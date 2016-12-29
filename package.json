@@ -1,0 +1,55 @@
+{
+  "name": "sfdx-core",
+  "version": "0.0.0",
+  "description": "This package contains core libraries for to interact with SFDX flows and APIs.",
+  "main": "index.js",
+  "directories": {
+    "bin": "./bin",
+    "lib": "./lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.soma.salesforce.com/sfdx/sfdx-core.git"
+  },
+  "dependencies": {
+    "bluebird": "3.4.0",
+    "bunyan": "https://github.com/cwallsfdc/node-bunyan",
+    "fs-extra": "0.30.0",
+    "heroku-cli-util": "5.10.10",
+    "jsforce": "1.6.1",
+    "jsonwebtoken": "7.0.0",
+    "lodash": "4.11.1",
+    "mkdirp": "0.5.1",
+    "moment": "2.13.0",
+    "optional-js": "1.1.2"
+  },
+  "scripts": {
+    "eslint": "eslint commands lib test index.js",
+    "eslint-with-style": "eslint -f checkstyle -o ./checkstyle.xml commands lib test index.js",
+    "lint": "npm run eslint",
+    "test": "mocha test/unit",
+    "unit": "mocha test/unit -R xunit-file",
+    "integration": "mocha test/integration -t 240000 -R xunit-file",
+    "coverage": "istanbul cover --report cobertura _mocha -- -t 240000 test/unit test/integration -R xunit-file;istanbul report --report html",
+    "coverage-unit": "istanbul cover --report cobertura _mocha -- -t 240000 test/unit -R xunit-file;istanbul report --report html"
+  },
+  "keywords": [
+    "force.com",
+    "salesforce",
+    "apex",
+    "lightning",
+    "heroku-plugin"
+  ],
+  "author": "Tim Noonan",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-as-promised": "5.3.0",
+    "eslint": "3.2.2",
+    "eslint-config-airbnb-base": "5.0.1",
+    "eslint-plugin-import": "1.13.0",
+    "istanbul": "0.4.4",
+    "mocha": "2.4.5",
+    "sinon": "^1.17.4"
+  }
+}

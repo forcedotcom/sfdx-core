@@ -5,9 +5,10 @@ module.exports = {
         JsonParseError: 'Parse error in file %s on line %s\n%s\n',
         MissingRequiredParameter: 'A required parameter [%s] is missing.',
         LoggerNameRequired: 'A logger name is required',
+        LogFileRequired: 'A path is required when enabling file logging.',
+        PermissionSetNotFoundError: 'Permission Set %s not found',
 
-        PermissionSetNotFoundError: 'Permission Set %s not found'
-
+        TestMessage : 'This is a test message do not change.'
     },
     workspace: {
         MissingAppConfig : 'The current project is invalid. workspace-config.json is missing.',
