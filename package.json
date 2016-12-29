@@ -1,7 +1,7 @@
 {
   "name": "sfdx-core",
   "version": "0.0.0",
-  "description": "This package contains core libraries for to interact with SFDX flows and APIs.",
+  "description": "Core libraries to interact with SFDX workspaces, orgs, and APIs.",
   "main": "index.js",
   "directories": {
     "bin": "./bin",
