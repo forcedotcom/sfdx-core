@@ -1,6 +1,3 @@
 # Salesforce DX Core Library
-This library provides workspace management, org authentication and a Salesforce API
-layer over JSForce.
+This library provides sfdx project management, org authentication and connection to Salesforce APIs.
 
-
-### Reference

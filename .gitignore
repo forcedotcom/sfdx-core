@@ -1,11 +1,2 @@
 node_modules
-.idea
-.sfdc
-SampleRestRequests
-.project
-test/Example-Dev-Workspace
-httpTest/Example-Dev-Workspace
-heroku
-npm-debug.log
-test/unit/temp
-coverage
+dist

@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2016",
+        "sourceMap": true,
+        "moduleResolution": "node",
+        "alwaysStrict": true,
+        "rootDir": "src",
+        "outDir": "dist"
+    },
+    "exclude": [
+        "gulpfile.js",
+        "node_modules",
+        "dist"
+    ]
+}
