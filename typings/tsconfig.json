@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "module": "es6",
+        "lib": [
+            "es6"
+        ],
+        "target": "es2016",
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true,
+        "baseUrl": ".",
+        "typeRoots": [
+            "."
+        ],
+        "types": [],
+        "noEmit": true
+    },
+    "files": [
+        "cli-engine-config/cli-engine-config.d.ts",
+        "cli-engine-config/cli-engine-config-tests.ts",
+        "cli-engine-command/cli-engine-command.d.ts",
+        "cli-engine-command/cli-engine-command-tests.ts"
+    ]
+}
