@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "dist/exports.js",
+  "license": "BSD-3-Clause",
+  "scripts": {
+    "test-typings": "tsc -p typings/tsconfig.json"
+  },
   "keywords": [
     "force",
     "salesforce",
