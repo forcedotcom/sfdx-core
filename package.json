@@ -9,5 +9,22 @@
     "sfdx",
     "salesforcedx"
   ],
-  "license": "BSD-3-Clause"
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "bluebird": "3.5.0",
+    "lodash": "4.17.4"
+  },
+  "devDependencies": {
+    "@types/chai": "4.0.4",
+    "@types/jsforce": "1.8.2",
+    "@types/mocha": "2.2.42",
+    "@types/node": "8.0.25",
+    "chai": "4.1.1",
+    "del": "3.0.0",
+    "gulp": "3.9.1",
+    "gulp-sourcemaps": "2.6.1",
+    "gulp-typescript": "3.2.2",
+    "sinon": "3.2.1",
+    "typescript": "2.4.2"
+  }
 }
