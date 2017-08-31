@@ -13,9 +13,10 @@
     "sfdx",
     "salesforcedx"
   ],
-  "license": "BSD-3-Clause",
   "dependencies": {
     "bluebird": "3.5.0",
+    "cli-engine-command": "^6.0.1",
+    "cli-engine-config": "^1.3.8",
     "lodash": "4.17.4"
   },
   "devDependencies": {
