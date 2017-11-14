@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* 
+/*
  * NOTE: This is the lowest level class in core and should not import any
  * other local classes or utils to prevent circular dependencies or testing
  * stub issues.
@@ -16,22 +16,20 @@ import * as util from 'util';
 import * as path from 'path';
 import * as _ from 'lodash';
 
-import * as Bluebird from 'bluebird';
-
 /**
  * Load messages from message files of the right locale.
- * 
+ *
  * In majority of modules, use Messages.importMessagesDirectory(<module path>) where module
  * path is the root folder location that contains a messages folder. Typically the root folder
  * location is obtained with __dirname. See Messages.importMessagesDirectory for example.
- * 
+ *
  * If individual files use their own messages file OR you need to load messages for an individual
  * test, use Messages.importMessageFile(<file path>);
  */
 export class Messages {
     // Internal readFile. Exposed for unit testing. Do not use sfdxUtil.readFile as messages.js
     // should have no internal dependencies.
-    static _readFile = Bluebird.promisify(fs.readFile);
+    static _readFile = util.promisify(fs.readFile);
 
     // A map of loading functions to dynamically load messages when they need to be used
     static loaders : Map<string, (locale : string) => Promise<Messages>> = new Map<string, (locale : string) => Promise<Messages>>();
@@ -56,14 +54,36 @@ export class Messages {
      * Generate a file loading function. Use Messages.importMessageFile unless
      * overriding the bundleName is required, then manually pass the loader
      * function to Messages.import();
-     * 
+     *
      * @param bundleName The name of the bundle
      * @param filePath The messages file path
      */
     static generateFileLoaderFunction(bundleName : string, filePath : string) : (locale : string) => Promise<Messages> {
         return async (locale : string) : Promise<Messages> => {
-            const json = JSON.parse(await this._readFile(filePath));
-            
+            let fileContents: string;
+
+            try {
+                fileContents = await this._readFile(filePath, 'utf8');
+            }
+            catch (err) {
+                // TODO: we should catch ugly exceptions and rethrow nicer ones. Just re-throwing for now.
+                throw err;
+            }
+
+            if (!fileContents || _.isEmpty(_.trim(fileContents))) {
+                throw new Error(`Invalid message file: ${filePath}. No content.`);
+            }
+
+            let json;
+
+            try {
+                json = JSON.parse(fileContents);
+            }
+            catch (err) {
+                // TODO: we should catch ugly exceptions and rethrow nicer ones. Just re-throwing for now.
+                throw err;
+            }
+
             const map = new Map();
 
             _.forEach(json, (value, key) => {
@@ -77,7 +97,7 @@ export class Messages {
     /**
      * Add a single message file to the list of loading functions using the file name as the bundle name.
      * The loader will only be added if the bundle name is not already taken.
-     * 
+     *
      * @param filePath The path of the file.
      */
     static importMessageFile(filePath : string) {
@@ -96,11 +116,11 @@ export class Messages {
      * Messages.loadMessages is called. By default, we assuming the moduleDirectoryPart is a
      * typescript project and in the ./dist/ folder which we will attempt to remove. If your messages
      * directory is in another spot or you are not using typescript, pass in false for hasDistFolder.
-     * 
+     *
      * @example
      * // e.g. If your index.js is in a ./src/ folder and compiled to a ./dist/ folder, you would do:
      * Messages.importMessagesDirectory(`${__dirname.replace('/dist', '')}`);
-     * 
+     *
      * @param moduleDirectoryPath The path to load the messages folder
      * @param hasDistFolder Will remove the last "/dist" from the folder path. i.e. the module is typescript
      * and the messages folder is in the top level of the module directory.
@@ -157,7 +177,7 @@ export class Messages {
      * @param label The label of the message
      * @param args The args to substitute in the message using util.format.
      */
-    getMessage(label : string, args : Array<any> = []) {
+    getMessage(label : string, args : Array<string | boolean | number> = []) {
         if (!this.messages.has(label)) {
             // Don't use messages inside messages
             throw new Error(`Missing label ${this.bundle}:${label} for locale ${Messages.locale}.`);

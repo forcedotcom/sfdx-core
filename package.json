@@ -5,7 +5,8 @@
   "main": "dist/exports.js",
   "license": "BSD-3-Clause",
   "scripts": {
-    "test-typings": "tsc -p typings/tsconfig.json"
+    "test-typings": "tsc -p typings/tsconfig.json",
+    "test": "gulp && mocha --recursive dist/test/unit"
   },
   "keywords": [
     "force",
@@ -14,7 +15,6 @@
     "salesforcedx"
   ],
   "dependencies": {
-    "bluebird": "3.5.0",
     "cli-engine-command": "^6.0.1",
     "cli-engine-config": "^1.3.8",
     "lodash": "4.17.4"

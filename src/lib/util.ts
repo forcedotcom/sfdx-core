@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs'
-import * as path from 'path'
-import * as _ from 'lodash'
-import * as Bluebird from 'bluebird'
+import * as fs from 'fs';
+import * as path from 'path';
+import * as _ from 'lodash';
+import * as util from 'util';
 
-import { ErrorMessages, SfdxError } from './sfdxError'
+import { SfdxErrorConfig, SfdxError } from './sfdxError';
 
 const processJsonError = async (error : Error, data : string, jsonPath : string) : Promise<void> => {
     if (error.name === 'SyntaxError') {
@@ -31,17 +31,17 @@ const processJsonError = async (error : Error, data : string, jsonPath : string)
         // only need to count new lines before the error position
         const lineNumber = data.substring(0, errPosition).split('\n').length;
 
-        throw await SfdxError.create(new ErrorMessages('sfdx-core', 'JsonParse', [jsonPath, lineNumber, errorPortion]));
+        throw await SfdxError.create('sfdx-core', 'JsonParseError', [jsonPath, lineNumber, errorPortion]);
     } else {
         throw error;
     }
-}; 
+};
 
 export default {
     /**
      * Promisified version of fs.readFile
      */
-    readFile: Bluebird.promisify(fs.readFile),
+    readFile: util.promisify(fs.readFile),
 
     /**
      * Read a file and convert it to JSON
@@ -62,13 +62,13 @@ export default {
      */
     async parseJSON(data : string, jsonPath : string = 'unknown', throwOnEmpty : boolean = true) : Promise<object> {
         if (_.isEmpty(data) && throwOnEmpty) {
-            throw await SfdxError.create(new ErrorMessages('sfdx-core', 'JsonParse', [jsonPath, 1, 'FILE HAS NO CONTENT']));
+            throw await SfdxError.create('sfdx-core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
         }
-        
+
         try {
             return JSON.parse(data || '{}');
         } catch(error) {
-            await processJsonError(error, data, jsonPath);   
+            await processJsonError(error, data, jsonPath);
         }
     }
 }

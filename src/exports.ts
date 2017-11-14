@@ -6,14 +6,14 @@
  */
 
 import Messages from './lib/messages';
-import { ErrorMessages, SfdxError } from './lib/sfdxError';
-import sfdxUtil from './lib/sfdxUtil';
+import { SfdxErrorConfig, SfdxError } from './lib/sfdxError';
+import util from './lib/util';
 
 Messages.importMessagesDirectory(__dirname);
 
 export default {
     Messages,
-    ErrorMessages,
+    SfdxErrorConfig,
     SfdxError,
-    sfdxUtil
+    util
 }
