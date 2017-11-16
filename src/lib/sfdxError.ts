@@ -11,76 +11,71 @@ import * as _ from 'lodash';
 import Messages from './messages';
 
 /**
- * A class to manage all the keys and tokens for SfdxErrors. Assumes the messages are stored
- * as "<key>Error" and "<key>Action" unless otherwise noted.
- * 
+ * A class to manage all the keys and tokens for a message bundle to use with SfdxError.
+ *
  * @example
- * SfdxError.create(new ErrorMessages('apex', 'runTest').setActionTokens([className]));
+ * SfdxError.create(new SfdxErrorConfig('apex', 'runTest').setAction('apexErrorAction1', [className]));
  */
-export class ErrorMessages {
+export class SfdxErrorConfig {
     readonly bundle : string;
-    readonly key : string;
-    readonly errorKey : string;
-    readonly actionKey : string;
+    errorKey : string;
+    private errorTokens : Array<string | boolean | number>;
+
     private messages : Messages;
-
-    errorTokens : Array<any>;
-    actionTokens : Array<any>;
+    private actions : Map<string, Array<string | boolean | number>> = new Map();
 
     /**
-     * Create a new ErrorMessages.
-     * @param bundle The messages bundle.
-     * @param key The messages key. Defaults to bundle if one is not provided.
+     * Create a new SfdxErrorConfig.
+     * @param bundle The message bundle.
+     * @param errorKey The error message key.
      * @param errorTokens The tokens to use when getting the error message
-     * @param actionTokens The tokens to use when getting the action message
+     * @param actionKey The action message keys.
+     * @param actionTokens The tokens to use when getting the action message(s)
      */
-    constructor(bundle : string, key? : string, errorTokens : Array<any> = [], actionTokens : Array<any> = []) {
+    constructor(bundle : string,
+                errorKey : string,
+                errorTokens : Array<string | boolean | number> = [],
+                actionKey? : string,
+                actionTokens? : Array<string | boolean | number>
+        ) {
         this.bundle = bundle;
-        this.key = key || bundle;
-        this.errorKey = `${key}Error`;
-        this.actionKey = `${key}Action`;
+        this.errorKey = errorKey;
         this.errorTokens = errorTokens;
-        this.actionTokens = actionTokens;
+        if (actionKey) {
+            this.actions.set(actionKey, actionTokens);
+        }
     }
 
     /**
-     * Set the error key. Returns the ErrorMessages for chaining.
-     * @param tokens Set the error key is something other than "<key>Error" is required.
+     * Set the error key. Returns the SfdxErrorConfig for chaining.
+     * @param key Set the error key.
      */
-    setErrorKey(tokens : Array<any>) : ErrorMessages {
-        this.errorTokens = tokens;
+    setErrorKey(key : string) : SfdxErrorConfig {
+        this.errorKey = key;
         return this;
     }
 
     /**
-     * Set the action key. Returns the ErrorMessages for chaining.
-     * @param tokens Set the action key is something other than "<key>Action" is required.
-     */
-    setActionKey(tokens : Array<any>) : ErrorMessages {
-        this.actionTokens = tokens;
-        return this;
-    }
-
-    /**
-     * Set the error tokens. Returns the ErrorMessages for chaining.
+     * Set the error tokens. Returns the SfdxErrorConfig for chaining.
      * @param tokens The error tokens
      */
-    setErrorTokens(tokens : Array<any>) : ErrorMessages {
+    setErrorTokens(tokens : Array<string | boolean | number>) : SfdxErrorConfig {
         this.errorTokens = tokens;
         return this;
     }
 
     /**
-     * Set the action tokens. Returns the ErrorMessages for chaining.
-     * @param tokens The action tokens
+     * Add an error action to assist the user with a resolution. Returns the SfdxErrorConfig for chaining.
+     * @param actionKey The action key in the message bundle
+     * @param actionTokens The action tokens for the string
      */
-    setActionTokens(tokens : Array<any>) : ErrorMessages {
-        this.actionTokens = tokens;
+    addAction(actionKey : string, actionTokens: Array<string | boolean | number>) : SfdxErrorConfig {
+        this.actions.set(actionKey, actionTokens);
         return this;
     }
 
     /**
-     * Load the messages using Messages.loadMessages
+     * Load the messages using Messages.loadMessages.
      */
     async load() : Promise<Messages> {
         this.messages = await Messages.loadMessages(this.bundle);
@@ -93,30 +88,38 @@ export class ErrorMessages {
      */
     getError() : string {
         if (!this.messages) {
-            throw new SfdxError('ErrorMessages not loaded.');
+            throw new SfdxError('SfdxErrorConfig not loaded.');
         }
         return this.messages.getMessage(this.errorKey, this.errorTokens);
     }
 
     /**
-     * Get the action message using messages.getMessage.
+     * Get the action messages using messages.getMessage.
      * @throws AlmError If errorMessages.load was not called first
      */
-    getAction() : string {
+    getActions() : string[] {
         if (!this.messages) {
-            throw new SfdxError('ErrorMessages not loaded.');
+            throw new SfdxError('SfdxErrorConfig not loaded.');
         }
 
-        try {
-            return this.messages.getMessage(this.actionKey, this.actionTokens);
-        } catch(error) {
-            if (this.actionKey !== `${this.key}Action`) {
-                throw error;
-            }
-            // NoOp. It is ok if the default action doesn't exist
-        }
+        if (this.actions.size === 0) return;
+
+        const actions : string[] = [];
+        this.actions.forEach((tokens, key) => {
+            actions.push(this.messages.getMessage(key, tokens));
+        });
+        return actions;
     }
-    
+
+    /**
+     * Remove all actions from this error config. Useful when reusing SfdxErrorConfig
+     * for other error messages within the same bundle. Returns the SfdxErrorConfig for chaining.
+     */
+    removeActions() : SfdxErrorConfig {
+        this.actions = new Map();
+        return this;
+    }
+
 }
 
 /*
@@ -126,38 +129,50 @@ export class ErrorMessages {
 export class SfdxError extends Error {
     name : string;
     message : string;
-    action : string;
+    actions : string[];
     exitCode : number;
 
     /**
      * Create an SfdxError.
-     * @param message The error message 
+     * @param message The error message
      * @param name The error name. Defaults to 'SfdxError'
      * @param action The action message
      * @param exitCode The exit code which will be used by the CLI.
      */
-    constructor(message : string, name? : string, action? : string, exitCode? : number) {
+    constructor(message : string, name? : string, actions? : string[], exitCode? : number) {
         super(message);
         this.name = name || 'SfdxError';
-        this.action = action;
+        this.actions = actions;
         this.exitCode = exitCode || 1;
     }
 
     /**
      * Create a new SfdxError. Needs to be async to load messages from message files.
-     * @param keyNameOrErrorMessages The message bundle and key or a errorMessages used to create the SfdxError
+     * @param bundle The message bundle used to create the SfdxError.
+     * @param key The key within the bundle for the message.
+     * @param tokens The values to use for message tokenization.
      */
-    static async create(keyNameOrErrorMessages : string | ErrorMessages) : Promise<SfdxError> {
-        let messages : ErrorMessages;
+    static async create(bundle: string, key: string, tokens?: Array<string | boolean | number>) : Promise<SfdxError>;
 
-        if (_.isString(keyNameOrErrorMessages)) {
-            messages = new ErrorMessages(<string>keyNameOrErrorMessages);
+    /**
+     * Create a new SfdxError. Needs to be async to load messages from message files.
+     * @param errorConfig The SfdxErrorConfig object used to create the SfdxError.
+     */
+    static async create(errorConfig: SfdxErrorConfig) : Promise<SfdxError>;
+
+    // The create implementation function.
+    static async create(bundleOrErrorConfig : string | SfdxErrorConfig, key?: string, tokens?: Array<string | boolean | number>) : Promise<SfdxError> {
+        let errorConfig : SfdxErrorConfig;
+
+        if (_.isString(bundleOrErrorConfig)) {
+            errorConfig = new SfdxErrorConfig(<string>bundleOrErrorConfig, key, tokens);
         } else {
-            messages = <ErrorMessages>keyNameOrErrorMessages;
+            errorConfig = <SfdxErrorConfig>bundleOrErrorConfig;
         }
 
-        await messages.load();
-        return new SfdxError(messages.getError(), messages.key, messages.getAction());
+        await errorConfig.load();
+
+        return new SfdxError(errorConfig.getError(), errorConfig.errorKey, errorConfig.getActions());
     }
 }
 
