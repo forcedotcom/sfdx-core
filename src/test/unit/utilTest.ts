@@ -6,13 +6,14 @@
  */
 
 import * as fs from 'fs';
+import * as path from 'path';
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 
 import sfdxUtil from '../../lib/util';
 import Messages from '../../lib/messages';
 
-Messages.importMessageFile(`${__dirname}/../../../messages/sfdx-core.json`);
+Messages.importMessageFile(path.join(__dirname, '..', '..', '..', 'messages', 'sfdx-core.json'));
 
 describe('Util', () => {
     const sandbox = sinon.sandbox.create();
