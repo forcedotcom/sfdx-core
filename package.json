@@ -15,8 +15,11 @@
     "salesforcedx"
   ],
   "dependencies": {
-    "cli-engine-command": "^6.0.1",
-    "cli-engine-config": "^1.3.8",
+    "bunyan-sfdx-no-dtrace": "1.8.2",
+    "chalk": "2.3.0",
+    "cli-engine-command": "9.0.3",
+    "cli-engine-config": "4.0.1-ts.16",
+    "cli-ux": "2.0.4",
     "lodash": "4.17.4"
   },
   "devDependencies": {

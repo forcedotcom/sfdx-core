@@ -44,6 +44,21 @@ export default {
     readFile: util.promisify(fs.readFile),
 
     /**
+     * Promisified version of fs.writeFile
+     */
+    writeFile: util.promisify(fs.writeFile),
+
+    /**
+     * Promisified version of fs.access
+     */
+    access: util.promisify(fs.access),
+
+    /**
+     * Promisified version of mkdirp
+     */
+    mkdirp: util.promisify(require('mkdirp')),
+
+    /**
      * Read a file and convert it to JSON
      *
      * @param {string} jsonPath The path of the file

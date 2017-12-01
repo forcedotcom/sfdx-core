@@ -8,6 +8,9 @@
 import Messages from './lib/messages';
 import { SfdxErrorConfig, SfdxError } from './lib/sfdxError';
 import util from './lib/util';
+import global from './lib/global';
+import UX from './lib/ux';
+import { Logger, LoggerLevel } from './lib/logger';
 
 Messages.importMessagesDirectory(__dirname);
 
@@ -15,5 +18,9 @@ export default {
     Messages,
     SfdxErrorConfig,
     SfdxError,
-    util
+    global,
+    util,
+    UX,
+    Logger,
+    LoggerLevel
 }

@@ -2,28 +2,7 @@
 // Project: https://github.com/heroku/cli-engine-command
 
 declare module "cli-engine-command" {
-    import { Config, ConfigOptions } from "cli-engine-config"
-
-    type AlphabetUppercase = | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "X" | "Y" | "Z"
-    type AlphabetLowercase = | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "x" | "y" | "z"
-
-    export type Flag<T> = {
-        char?: AlphabetLowercase | AlphabetUppercase | null,
-        description?: string | null,
-        hidden?: boolean | null,
-        default?: (() => (Promise<T | void> | T | void)) | null,
-        required?: boolean | null,
-        optional?: boolean | null,
-        parse?: ((s1: string | null, c: Command<any> | null, s2: string) => (Promise<T | void> | T | void)) | null,
-        completion?: Completion | null
-    }
-
-    export type BooleanFlag = {
-        char?: (AlphabetLowercase | AlphabetUppercase),
-        description?: string,
-        parse?: null,
-        hidden?: boolean
-    }
+    import { Arg, BooleanFlag, Completion, Config, ConfigOptions, Flag } from "cli-engine-config"
 
     export class RequiredFlagError extends Error {
         constructor(name: string);
@@ -45,15 +24,6 @@ declare module "cli-engine-command" {
 
     export type OutputFlags<Flags extends InputFlags> = {[name: string]: any} // TODO? s/string/$Enum<Flags>
     export type OutputArgs = {[name: string]: string}
-
-    export type Arg = {
-        name: string,
-        description?: string,
-        required?: boolean,
-        optional?: boolean,
-        hidden?: boolean,
-        completion?: Completion | null
-    }
 
     export type RunOptions = {
         argv?: string[],
@@ -95,19 +65,6 @@ declare module "cli-engine-command" {
         run(...rest: void[]): Promise<void>;
         stdout(): string;
         stderr(): string;
-    }
-
-    export type CompletionContext = {
-        args?: {[name: string]: string} | null,
-        flags?: {[name: string]: string} | null,
-        argv?: string[] | null,
-        out: Output
-    }
-
-    export type Completion = {
-        cacheDuration?: number | null,
-        cacheKey?: ((context: CompletionContext) => Promise<string>) | null,
-        options: ((context: CompletionContext) => Promise<string[]>) | null
     }
 
     export class ExitError extends Error {
