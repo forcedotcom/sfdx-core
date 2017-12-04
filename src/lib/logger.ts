@@ -14,6 +14,21 @@ import Global from './global';
 import sfdxUtil from './util';
 import { SfdxError } from './sfdxError';
 
+export class Bunyan extends bunyan {
+    constructor (options : LoggerOptions, _childOptions? : LoggerOptions, _childSimple? : boolean) {
+        super(options, _childOptions, _childSimple);
+    }
+    level(lvl? : string | number) { return super.level(lvl); }
+    addStream(stream, defaultLevel? : string | number) { return super.addStream(stream, defaultLevel); }
+    levels(name : string | number, value : string | number) { return super.levels(name, value); }
+    trace(...args : any[]) { return super.trace(...args); }
+    debug(...args : any[]) { return super.debug(...args); }
+    info(...args : any[]) { return super.info(...args); }
+    warn(...args : any[]) { return super.warn(...args); }
+    error(...args : any[]) { return super.error(...args); }
+    fatal(...args : any[]) { return super.fatal(...args); }
+}
+
 export interface LoggerStream {
     type : string,
     level? : string,
@@ -177,15 +192,13 @@ class Mode {
  * @extends bunyan
  * @see https://github.com/cwallsfdc/node-bunyan
  */
-export class Logger extends bunyan {
+export class Logger extends Bunyan {
 
     private _name : string;
-    level : Function = bunyan.level;
     private filters : Array<Function> = [];
     private fields : any = {};
     private ringbuffer : bunyan.RingBuffer;
     private streams : LoggerStream[];
-    private addStream : bunyan.addStream;
     private envMode : string;
     public static commandName : string;
 
@@ -392,7 +405,7 @@ export class Logger extends bunyan {
         fields.log = name;
 
         // only support including additional fields on log line (no config)
-        const childLogger = super.child(fields, true);
+        const childLogger = bunyan.child(fields, true);
 
         childLogger.filters = this.filters;
 
@@ -434,7 +447,11 @@ export class Logger extends bunyan {
      */
     setLevel(level? : number | string) : Logger {
         level = _.isNil(level) ? DEFAULT_LOG_LEVEL : level;
-        this.level(level);
+        try {
+            this.level(level);
+        } catch (err) {
+            throw SfdxError.wrap(err);
+        }
         return this;
     }
 

@@ -177,6 +177,10 @@ export class SfdxError extends Error {
         return new SfdxError(errorConfig.getError(), errorConfig.errorKey, errorConfig.getActions());
     }
 
+    static wrap(err : Error) {
+        return new SfdxError(err.message, err.name);
+    }
+
     setCommandName(commandName : string) {
         this.commandName = commandName;
         return this;

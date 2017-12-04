@@ -33,6 +33,20 @@ export default class SfdxCommand extends Command<InputFlags> {
         // Do additional stuff, like setup set up org context
     }
 
+    run() {
+        // @TODO: should we have consumers override an execute method so we can wrap
+        //        in a try/catch to ensure all errors from a command are SfdxErrors???
+        try {
+            // return await this.execute()
+        } catch (e) {
+            if (!(e instanceof SfdxError)) {
+                e = SfdxError.wrap(e);
+            }
+            return this.endWithError(e);
+        }
+
+    }
+
     endWithError(error : SfdxError) {
         process.exitCode = process.exitCode || error.exitCode || 1;
 
@@ -60,7 +74,7 @@ class MyCommand extends SfdxCommand {
         });
     }
 
-    async run() : Promise<void> {
+    async run() : Promise<never> {
         // here's an example of how a plugin would add a logger stream to the root logger
         // to do something like stream all root logging to a service.
         //(await Logger.root()).addStream(/* config for a http stream */)
@@ -70,6 +84,6 @@ class MyCommand extends SfdxCommand {
         //this.logger.addLogFileStream('myLogFile.txt');
         //this.logger.debug('bla');
 
-        return Promise.resolve();
+        return super.run();
     }
 }

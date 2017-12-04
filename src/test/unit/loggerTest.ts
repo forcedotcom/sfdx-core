@@ -21,9 +21,11 @@ describe('Logger', () => {
 
     describe('create', () => {
         it('should register, create and return the root SFDX logger by default', () => {
+            sandbox.spy(Logger.prototype, 'addFilter')
             const defaultLogger = Logger.create();
             expect(defaultLogger).to.be.instanceof(Logger);
             expect(defaultLogger.name).to.equal('sfdx');
+            expect(defaultLogger.addFilter['called'], 'Logger.create should have called addFilter()').to.be.true;
             const logger = Logger.get();
             expect(logger).to.deep.equal(defaultLogger);
         });
@@ -50,12 +52,31 @@ describe('Logger', () => {
     });
 
     describe('setLevel', () => {
-        it('should set the log level', () => {
+        it('should set the log level using a number', () => {
             const logger = Logger.create();
             logger.setLevel(LoggerLevel.ERROR);
             expect(logger.level()).to.equal(LoggerLevel.ERROR);
             logger.setLevel();
             expect(logger.level()).to.equal(LoggerLevel.WARN);
+        });
+
+        it('should set the log level using a string', () => {
+            const logger = Logger.create();
+            logger.setLevel('error');
+            expect(logger.level()).to.equal(LoggerLevel.ERROR);
+            logger.setLevel('WARN');
+            expect(logger.level()).to.equal(LoggerLevel.WARN);
+        });
+
+        it('should throw an error with an invalid logger level string', () => {
+            const logger = Logger.create();
+
+            try {
+                logger.setLevel('invalid');
+                assert.fail('should have thrown an error trying to set an invalid level string');
+            } catch (err) {
+                expect(err.message).to.equal('unknown level name: "invalid"');
+            }
         });
     });
 
@@ -70,6 +91,8 @@ describe('Logger', () => {
             expect(logger.shouldLog(LoggerLevel.INFO)).to.be.true;
             expect(logger.shouldLog(LoggerLevel.DEBUG)).to.be.true;
             expect(logger.shouldLog(LoggerLevel.TRACE)).to.be.false;
+            logger.setLevel(7);
+            expect(logger.shouldLog(LoggerLevel.TRACE)).to.be.true;
         });
     });
 });
