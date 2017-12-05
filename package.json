@@ -1,6 +1,6 @@
 {
   "name": "sfdx-core",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "dist/exports.js",
   "license": "BSD-3-Clause",
