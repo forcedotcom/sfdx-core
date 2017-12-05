@@ -7,7 +7,7 @@
 
 import Messages from './lib/messages';
 import { SfdxErrorConfig, SfdxError } from './lib/sfdxError';
-import util from './lib/util';
+import * as util  from './lib/util';
 
 Messages.importMessagesDirectory(__dirname);
 

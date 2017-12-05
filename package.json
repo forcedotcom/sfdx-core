@@ -31,5 +31,7 @@
     "gulp-typescript": "3.2.2",
     "sinon": "3.2.1",
     "typescript": "2.4.2"
-  }
+  },
+  "types": "dist/exports.d.ts"
+
 }
