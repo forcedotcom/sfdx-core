@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
 import * as _ from 'lodash';
 
 import Messages from './messages';
@@ -14,7 +13,7 @@ import Messages from './messages';
  * A class to manage all the keys and tokens for a message bundle to use with SfdxError.
  *
  * @example
- * SfdxError.create(new SfdxErrorConfig('apex', 'runTest').setAction('apexErrorAction1', [className]));
+ * SfdxError.create(new SfdxErrorConfig('apex', 'runTest').addAction('apexErrorAction1', [className]));
  */
 export class SfdxErrorConfig {
     readonly bundle : string;
