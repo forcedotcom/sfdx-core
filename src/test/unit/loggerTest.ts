@@ -11,11 +11,18 @@ import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 
 import { Logger, LoggerLevel, LoggerOptions } from '../../lib/logger';
+import sfdxUtil from '../../lib/util';
 
-describe('Logger', () => {
+describe.only('Logger', () => {
     const sandbox = sinon.sandbox.create();
+    const sfdx_env = process.env.SFDX_ENV;
+
+    beforeEach(() => {
+        process.env.SFDX_ENV = 'test';
+    });
 
     afterEach(() => {
+        process.env.SFDX_ENV = sfdx_env;
         sandbox.restore();
     });
 
@@ -93,6 +100,179 @@ describe('Logger', () => {
             expect(logger.shouldLog(LoggerLevel.TRACE)).to.be.false;
             logger.setLevel(7);
             expect(logger.shouldLog(LoggerLevel.TRACE)).to.be.true;
+        });
+    });
+
+    describe('getEnvironmentMode', () => {
+        it('is production by default', () => {
+            process.env.SFDX_ENV = undefined;
+            const logger = Logger.create();
+            expect(logger.getEnvironmentMode()['isProduction']()).to.be.true;
+            expect(logger.getEnvironmentMode()['isDevelopment']()).to.be.false;
+        });
+
+        it('uses logger mode', async () => {
+            const tmp : any = await Logger.child('tmp');
+            tmp.envMode = 'development';
+            expect(tmp.getEnvironmentMode().isDevelopment()).to.be.true;
+            expect(tmp.getEnvironmentMode().isProduction()).to.be.false;
+        });
+
+        it('uses SFDX_ENV mode', () => {
+            process.env.SFDX_ENV = 'development';
+            const logger = Logger.create();
+            expect(logger.getEnvironmentMode()['isDevelopment']()).to.be.true;
+            expect(logger.getEnvironmentMode()['isProduction']()).to.be.false;
+        });
+    });
+
+    describe('addLogFileStream', () => {
+        const testLogFile = 'some/dir/mylogfile.json';
+
+        let sfdxUtilAccessStub;
+        let sfdxUtilMkdirpStub;
+        let sfdxUtilWriteFileStub;
+
+        beforeEach(() => {
+            sfdxUtilAccessStub = sandbox.stub(sfdxUtil, 'access');
+            sfdxUtilMkdirpStub = sandbox.stub(sfdxUtil, 'mkdirp');
+            sfdxUtilWriteFileStub = sandbox.stub(sfdxUtil, 'writeFile');
+        });
+
+        it('should not create a new log file if it exists already', async () => {
+            sfdxUtilAccessStub.returns(Promise.resolve({}));
+            const logger = Logger.create();
+            const addStreamStub = sandbox.stub(logger, 'addStream');
+            await logger.addLogFileStream(testLogFile);
+            expect(sfdxUtilAccessStub.firstCall.args[0]).to.equal(testLogFile);
+            expect(sfdxUtilMkdirpStub.called).to.be.false;
+            expect(sfdxUtilWriteFileStub.called).to.be.false;
+            const addStreamArgs = addStreamStub.firstCall.args[0];
+            expect(addStreamArgs).to.have.property('type', 'file');
+            expect(addStreamArgs).to.have.property('path', testLogFile);
+            expect(addStreamArgs).to.have.property('level', logger.level());
+        });
+
+        it('should create a new log file and all directories if nonexistant', async () => {
+            sfdxUtilAccessStub.throws();
+            const logger = Logger.create();
+            const addStreamStub = sandbox.stub(logger, 'addStream');
+            await logger.addLogFileStream(testLogFile);
+            expect(sfdxUtilAccessStub.firstCall.args[0]).to.equal(testLogFile);
+            expect(sfdxUtilMkdirpStub.firstCall.args[0]).to.equal('some/dir');
+            expect(sfdxUtilMkdirpStub.firstCall.args[1]).to.have.property('mode', '700');
+            expect(sfdxUtilWriteFileStub.firstCall.args[0]).to.equal(testLogFile);
+            expect(sfdxUtilWriteFileStub.firstCall.args[1]).to.equal('');
+            expect(sfdxUtilWriteFileStub.firstCall.args[2]).to.have.property('mode', '600');
+            expect(addStreamStub.called).to.be.true;
+        });
+    });
+
+    describe('root', () => {
+        it('should return the root logger instance', async () => {
+            const rootLogger = await Logger.root();
+            expect(rootLogger.name).to.equal('sfdx');
+            expect(Logger.get()).to.equal(rootLogger);
+        });
+
+        it('should create the root logger if not already created', async () => {
+            sandbox.stub(Logger, 'get').onFirstCall().throws();
+            sandbox.stub(Logger.prototype, 'addLogFileStream');
+            sandbox.spy(Logger, 'create');
+            const rootLogger = await Logger.root();
+            expect(rootLogger.name).to.equal('sfdx');
+            Logger.get['restore']();
+            expect(Logger.get()).to.equal(rootLogger);
+            expect(Logger.create['called']).to.be.true;
+            expect(rootLogger.addLogFileStream['called']).to.be.false;
+        });
+    });
+
+    describe('child', () => {
+        it('should return a child logger instance off the root', async () => {
+            const childLoggerName = 'myChildLogger';
+            const childLogger = await Logger.child(childLoggerName);
+            expect(childLogger).to.be.instanceof(Logger);
+            expect(childLogger.name).to.equal(childLoggerName);
+            const childLogger2 = Logger.get(childLoggerName);
+            expect(childLogger2).to.equal(childLogger);
+            expect(childLogger.level()).to.equal(Logger.get().level());
+        });
+    });
+
+    describe('filters', () => {
+        const sid = 'SIDHERE!';
+        const simpleString = `sid=${sid}`;
+        const stringWithObject = ` The rain in Spain: ${JSON.stringify({ 'access_token' : sid })}`;
+        const jsforceStringWithToken = `Connection refresh completed. Refreshed access token = ${sid}`;
+        const obj1 = { accessToken: `${sid}`, refreshToken: `${sid}` };
+        const obj2 = { key: 'Access Token', value: `${sid}` };
+        const arr1 = [
+            { key: 'ACCESS token ', value: `${sid}` },
+            { key: 'refresh  TOKEN', value: `${sid}` },
+            { key: 'Sfdx Auth Url', value: `${sid}` }
+        ];
+        const arr2 = [
+            { key: ' AcCESS 78token', value: ` ${sid} ` },
+            { key : ' refresh  _TOKEn ', value: ` ${sid} ` },
+            { key: ' SfdX__AuthUrl  ', value : ` ${sid} ` }
+        ];
+        const testLogEntries = [simpleString, stringWithObject, jsforceStringWithToken, obj1, obj2, arr1, arr2];
+
+        async function runTest(logLevel : [string, number]) {
+            const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(0);
+
+            // Log at the provided log level for each test entry
+            testLogEntries.forEach(entry => logger[logLevel[0]](entry));
+
+            const logData = logger.readLogContentsAsText();
+            expect(logData, `Logs should NOT contain '${sid}'`).to.not.contain(sid);
+            const logRecords = logger.getBufferedRecords();
+            expect(logRecords[0], `expected to log at level: ${logLevel[0]}`).to.have.property('level', logLevel[1]);
+        };
+
+        it('should apply for log level: trace', () => {
+            runTest(['trace', 10]);
+        });
+
+        it('should apply for log level: debug', () => {
+            runTest(['debug', 20]);
+        });
+
+        it('should apply for log level: info', () => {
+            runTest(['info', 30]);
+        });
+
+        it('should apply for log level: warn', () => {
+            runTest(['warn', 40]);
+        });
+
+        it('should apply for log level: error', () => {
+            runTest(['error', 50]);
+        });
+
+        it('should apply for log level: fatal', async () => {
+            // logger.fatal() necessarily writes to stderr so stub it here
+            sandbox.stub(process.stderr, 'write');
+            await runTest(['fatal', 60]);
+            expect(process.stderr.write['called']).to.be.true;
+        });
+    });
+
+    describe('addField', () => {
+        it('should add a field to the log record', async () => {
+            const logger = (await Logger.child('testLogger')).useMemoryLogging();
+            logger.addField('newField1', 'stringVal');
+            logger.addField('newField2', 9);
+            logger.addField('newField3', true);
+            logger.debug('this WILL NOT be logged');
+            expect(logger.getBufferedRecords()).to.be.an('array').and.empty;
+            logger.warn('this WILL be logged');
+            const logRecords = logger.getBufferedRecords();
+            expect(logRecords).to.be.an('array').with.lengthOf(1);
+            expect(logRecords[0]).to.have.property('newField1', 'stringVal');
+            expect(logRecords[0]).to.have.property('newField2', 9);
+            expect(logRecords[0]).to.have.property('newField3', true);
         });
     });
 });

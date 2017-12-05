@@ -14,13 +14,22 @@ import Global from './global';
 import sfdxUtil from './util';
 import { SfdxError } from './sfdxError';
 
-export class Bunyan extends bunyan {
+class Bunyan extends bunyan {
     constructor (options : LoggerOptions, _childOptions? : LoggerOptions, _childSimple? : boolean) {
         super(options, _childOptions, _childSimple);
     }
     level(lvl? : string | number) { return super.level(lvl); }
     addStream(stream, defaultLevel? : string | number) { return super.addStream(stream, defaultLevel); }
     levels(name : string | number, value : string | number) { return super.levels(name, value); }
+    child(name: string, fields : any = {}) {
+        if (!name) {
+            throw new SfdxError('LoggerNameRequired');
+        }
+        fields.log = name;
+
+        // only support including additional fields on log line (no config)
+        return super.child(fields, true);
+    }
     trace(...args : any[]) { return super.trace(...args); }
     debug(...args : any[]) { return super.debug(...args); }
     info(...args : any[]) { return super.info(...args); }
@@ -74,20 +83,6 @@ const FILTERED_KEYS = [
 
 // Registry of loggers for reuse and to properly close streams
 const loggerRegistry : Map<string, Logger> = new Map<string, Logger>();
-
-const serializers = bunyan.stdSerializers;
-
-//
-//  @TODO: IS THIS EVEN USED ANYMORE??? ESPECIALLY SINCE Logger.addField() ADDS FIELDS
-//         DIRECTLY TO THE LOG ENTRY AND NOT A CONFIG OBJECT FIELD.
-//
-serializers.config = (obj) => _.reduce(obj, (acc, val, key) => {
-        if (_.isString(val) || _.isNumber(val) || _.isBoolean(val)) {
-            acc[key] = val;
-        }
-        return acc;
-    }, {});
-
 
 // close streams
 // FIXME: sadly, this does not work when process.exit is called; for now, disabled process.exit
@@ -216,13 +211,17 @@ export class Logger extends Bunyan {
         try {
             // Check if we have write access to the log file (i.e., we created it already)
             await sfdxUtil.access(logFile, fs.constants.W_OK);
-        } catch (err) {
+        } catch (err1) {
             try {
                 await sfdxUtil.mkdirp(path.dirname(logFile), { mode: DEFAULT_USER_DIR_MODE });
-            } catch (err) {
+            } catch (err2) {
                 // noop; directory exists already
             }
-            await sfdxUtil.writeFile(logFile, '', { mode: DEFAULT_USER_FILE_MODE });
+            try {
+                await sfdxUtil.writeFile(logFile, '', { mode: DEFAULT_USER_FILE_MODE });
+            } catch (err3) {
+                throw SfdxError.wrap(err3);
+            }
         }
 
         // avoid multiple streams to same log file
@@ -270,10 +269,11 @@ export class Logger extends Bunyan {
      *
      * WARNING: This cannot be undone for this logger instance.
      */
-    useMemoryLogging() {
+    useMemoryLogging() : Logger {
         this.streams = [];
         this.ringbuffer = new bunyan.RingBuffer({ limit: 5000 });
         this.addStream({ type: 'raw', stream: this.ringbuffer, level: this.level() });
+        return this;
     }
 
     /**
@@ -372,7 +372,7 @@ export class Logger extends Bunyan {
         } catch (e) {
             logger = Logger.create().setLevel();
             // disable log file writing, if applicable
-            if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' || process.env.SFDX_ENV !== 'test') {
+            if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && process.env.SFDX_ENV !== 'test') {
                 await logger.addLogFileStream(Global.LOG_FILE_PATH);
             }
         }
@@ -398,15 +398,10 @@ export class Logger extends Bunyan {
      * @returns {logger}
      */
     child(name: string, fields : any = {}) : Logger {
-        if (!name) {
-            throw new SfdxError('LoggerNameRequired');
-        }
-
-        fields.log = name;
-
         // only support including additional fields on log line (no config)
-        const childLogger = bunyan.child(fields, true);
+        const childLogger = super.child(name, fields);
 
+        childLogger._name = name;
         childLogger.filters = this.filters;
 
         // store to close on exit
