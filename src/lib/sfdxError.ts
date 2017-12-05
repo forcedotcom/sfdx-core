@@ -14,7 +14,7 @@ import Messages from './messages';
  * A class to manage all the keys and tokens for a message bundle to use with SfdxError.
  *
  * @example
- * SfdxError.create(new SfdxErrorConfig('apex', 'runTest').setAction('apexErrorAction1', [className]));
+ * SfdxError.create(new SfdxErrorConfig('apex', 'runTest').addAction('apexErrorAction1', [className]));
  */
 export class SfdxErrorConfig {
     readonly bundle : string;
