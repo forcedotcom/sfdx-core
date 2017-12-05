@@ -8,7 +8,6 @@
 import { readFile as fsReadFile } from 'fs';
 import { isEmpty } from 'lodash';
 import { promisify } from 'util';
-import { URL } from 'url';
 
 import { SfdxError } from './sfdxError';
 
@@ -37,17 +36,17 @@ const processJsonError = async (error : Error, data : string, jsonPath : string)
     }
 };
 
-const _local = {
+export class SfdxUtil {
     /**
      * Read a file and convert it to JSON
      *
      * @param {string} jsonPath The path of the file
      * @return {Promise} promise The contents of the file as a JSON object
      */
-    async readJSON(jsonPath : string, throwOnEmpty? : boolean) : Promise<object> {
-        const fileData = (await _local.readFile(jsonPath, 'utf8')).toString();
-        return await _local.parseJSON(fileData, jsonPath, throwOnEmpty);
-    },
+    static async readJSON(jsonPath : string, throwOnEmpty? : boolean) : Promise<object> {
+        const fileData = (await SfdxUtil.readFile(jsonPath, 'utf8')).toString();
+        return await SfdxUtil.parseJSON(fileData, jsonPath, throwOnEmpty);
+    }
 
     /**
      * Parse json data from a file.
@@ -55,7 +54,7 @@ const _local = {
      * @param jsonPath The file path. Defaults to 'unknown'.
      * @param throwOnEmpty Throw an exception if the data contents are empty
      */
-    async parseJSON(data : string, jsonPath : string = 'unknown', throwOnEmpty : boolean = true) : Promise<object> {
+    static async parseJSON(data : string, jsonPath : string = 'unknown', throwOnEmpty : boolean = true) : Promise<object> {
         if (isEmpty(data) && throwOnEmpty) {
             throw await SfdxError.create('sfdx-core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
         }
@@ -65,12 +64,10 @@ const _local = {
         } catch(error) {
             await processJsonError(error, data, jsonPath);
         }
-    },
+    }
 
     /**
      * Promisified version of fs.readFile
      */
-    readFile: promisify(fsReadFile),
+    static readFile = promisify(fsReadFile)
 };
-
-export default _local;
