@@ -2,7 +2,7 @@
   "name": "sfdx-core",
   "version": "0.0.3",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
-  "main": "dist/exports.js",
+  "main": "dist/exported",
   "license": "BSD-3-Clause",
   "scripts": {
     "test-typings": "tsc -p typings/tsconfig.json",
@@ -32,5 +32,5 @@
     "sinon": "3.2.1",
     "typescript": "2.4.2"
   },
-  "types": "dist/exports.d.ts"
+  "types": "dist/exported.d.ts"
 }

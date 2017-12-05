@@ -11,7 +11,7 @@ import * as util  from './lib/util';
 
 Messages.importMessagesDirectory(__dirname);
 
-export default {
+export {
     Messages,
     SfdxErrorConfig,
     SfdxError,
