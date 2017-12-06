@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
+import * as _ from 'lodash';
 
 import { Logger, LoggerLevel, LoggerOptions } from '../../lib/logger';
 import sfdxUtil from '../../lib/util';
@@ -232,23 +233,23 @@ describe.only('Logger', () => {
         };
 
         it('should apply for log level: trace', () => {
-            runTest(['trace', 10]);
+            return runTest(['trace', 10]);
         });
 
         it('should apply for log level: debug', () => {
-            runTest(['debug', 20]);
+            return runTest(['debug', 20]);
         });
 
         it('should apply for log level: info', () => {
-            runTest(['info', 30]);
+            return runTest(['info', 30]);
         });
 
         it('should apply for log level: warn', () => {
-            runTest(['warn', 40]);
+            return runTest(['warn', 40]);
         });
 
         it('should apply for log level: error', () => {
-            runTest(['error', 50]);
+            return runTest(['error', 50]);
         });
 
         it('should apply for log level: fatal', async () => {
@@ -273,6 +274,27 @@ describe.only('Logger', () => {
             expect(logRecords[0]).to.have.property('newField1', 'stringVal');
             expect(logRecords[0]).to.have.property('newField2', 9);
             expect(logRecords[0]).to.have.property('newField3', true);
+        });
+    });
+
+    describe('serializers', () => {
+        it('should run properly after filters are applied', async () => {
+            const logger = (await Logger.child('testSerializersLogger')).useMemoryLogging();
+
+            // A test serializer
+            logger['serializers'].config = (obj) => _.reduce(obj, (acc, val, key) => {
+                    if (_.isString(val) || _.isNumber(val) || _.isBoolean(val)) {
+                        acc[key] = val;
+                    }
+                    return acc;
+                }, {});
+
+            logger.warn({ config: { foo: { bar: 1 }, sid: 'secret' } });
+            const logRecords = logger.getBufferedRecords();
+
+            // If the serializer was applied it should not log the 'foo' entry
+            const msgOnError = 'Expected the config serializer to remove the "foo" entry from the log record '
+            expect(logRecords[0], msgOnError).to.have.deep.property('config', { sid: '<sid - HIDDEN>' });
         });
     });
 });

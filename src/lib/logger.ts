@@ -127,19 +127,15 @@ const _filter = (...args) => args.map(arg => {
                 expName = key.name;
             }
 
-            const hiddenAttrMessage = `<${expName} - ${HIDDEN}>`;
+            const hiddenAttrMessage = `"<${expName} - ${HIDDEN}>"`;
 
             // Match all json attribute values case insensitive: ex. {" Access*^&(*()^* Token " : " 45143075913458901348905 \n\t" ...}
-            const regexTokens = new RegExp(`['"][^'"]*${expElement}[^'"]*['"]\\s*:\\s*['"][^'"]*['"]`, 'gi');
-
-            // Replaced value will be no longer be a valid JSON object which is ok for logs: {<access_token - HIDDEN> ...}
-            _arg = _arg.replace(regexTokens, hiddenAttrMessage);
+            const regexTokens = new RegExp(`(['"][^'"]*${expElement}[^'"]*['"]\\s*:\\s*)['"][^'"]*['"]`, 'gi');
+            _arg = _arg.replace(regexTokens, `$1${hiddenAttrMessage}`);
 
             // Match all key value attribute case insensitive: ex. {" key\t"    : ' access_token  ' , " value " : "  dsafgasr431 " ....}
-            const keyRegex = new RegExp(`['"]\\s*key\\s*['"]\\s*:\\s*['"]\\s*${expElement}\\s*['"]\\s*.\\s*['"]\\s*value\\s*['"]\\s*:\\s*['"]\\s*[^'"]*['"]`, 'gi');
-
-            // Replaced value will be no longer be a valid JSON object which is ok for logs: {<access_token - HIDDEN> ...}
-            _arg = _arg.replace(keyRegex, hiddenAttrMessage);
+            const keyRegex = new RegExp(`(['"]\\s*key\\s*['"]\\s*:)\\s*['"]\\s*${expElement}\\s*['"]\\s*.\\s*['"]\\s*value\\s*['"]\\s*:\\s*['"]\\s*[^'"]*['"]`, 'gi');
+            _arg = _arg.replace(keyRegex, `$1${hiddenAttrMessage}`);
         });
 
         // This is a jsforce message we are masking. This can be removed after the following pull request is committed
@@ -155,7 +151,8 @@ const _filter = (...args) => args.map(arg => {
 
         _arg = _arg.replace(/sid=(.*)/, `sid=<${HIDDEN}>`);
 
-        return _arg;
+        // return an object if an object was logged; otherwise return the filtered string.
+        return _.isObject(arg) ? JSON.parse(_arg) : _arg;
     }
     else {
         return arg;
@@ -332,7 +329,6 @@ export class Logger extends Bunyan {
                 args = filter(...args);
             });
         }
-
         return args && args.length === 1 ? args[0] : args ;
     }
 
