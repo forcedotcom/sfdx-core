@@ -10,7 +10,6 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 
-import sfdxUtil from '../../lib/util';
 import Messages from '../../lib/messages';
 
 describe('Messages', () => {

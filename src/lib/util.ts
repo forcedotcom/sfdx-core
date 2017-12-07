@@ -5,12 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as _ from 'lodash';
-import * as util from 'util';
+import { readFile as fsReadFile } from 'fs';
+import { isEmpty } from 'lodash';
+import { promisify } from 'util';
 
-import { SfdxErrorConfig, SfdxError } from './sfdxError';
+import { SfdxError } from './sfdxError';
 
 const processJsonError = async (error : Error, data : string, jsonPath : string) : Promise<void> => {
     if (error.name === 'SyntaxError') {
@@ -37,12 +36,7 @@ const processJsonError = async (error : Error, data : string, jsonPath : string)
     }
 };
 
-export default {
-    /**
-     * Promisified version of fs.readFile
-     */
-    readFile: util.promisify(fs.readFile),
-
+export class SfdxUtil {
     /**
      * Promisified version of fs.writeFile
      */
@@ -64,10 +58,10 @@ export default {
      * @param {string} jsonPath The path of the file
      * @return {Promise} promise The contents of the file as a JSON object
      */
-    async readJSON(jsonPath : string, throwOnEmpty? : boolean) : Promise<object> {
-        const fileData = (await this.readFile(jsonPath, 'utf8')).toString();
-        return await this.parseJSON(fileData, jsonPath, throwOnEmpty);
-    },
+    static async readJSON(jsonPath : string, throwOnEmpty? : boolean) : Promise<object> {
+        const fileData = (await SfdxUtil.readFile(jsonPath, 'utf8')).toString();
+        return await SfdxUtil.parseJSON(fileData, jsonPath, throwOnEmpty);
+    }
 
     /**
      * Parse json data from a file.
@@ -75,8 +69,8 @@ export default {
      * @param jsonPath The file path. Defaults to 'unknown'.
      * @param throwOnEmpty Throw an exception if the data contents are empty
      */
-    async parseJSON(data : string, jsonPath : string = 'unknown', throwOnEmpty : boolean = true) : Promise<object> {
-        if (_.isEmpty(data) && throwOnEmpty) {
+    static async parseJSON(data : string, jsonPath : string = 'unknown', throwOnEmpty : boolean = true) : Promise<object> {
+        if (isEmpty(data) && throwOnEmpty) {
             throw await SfdxError.create('sfdx-core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
         }
 
@@ -86,4 +80,9 @@ export default {
             await processJsonError(error, data, jsonPath);
         }
     }
-}
+
+    /**
+     * Promisified version of fs.readFile
+     */
+    static readFile = promisify(fsReadFile)
+};
