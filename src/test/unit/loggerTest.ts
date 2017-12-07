@@ -14,7 +14,7 @@ import * as _ from 'lodash';
 import { Logger, LoggerLevel, LoggerOptions } from '../../lib/logger';
 import sfdxUtil from '../../lib/util';
 
-describe.only('Logger', () => {
+describe('Logger', () => {
     const sandbox = sinon.sandbox.create();
     const sfdx_env = process.env.SFDX_ENV;
 

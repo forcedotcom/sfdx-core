@@ -7,8 +7,8 @@
 
 import { CLI } from 'cli-ux';
 import { Logger, LoggerLevel } from './logger';
-import { TableOptions } from 'cli-ux/lib/table';
-import _ from 'lodash';
+import { TableOptions, TableColumn } from 'cli-ux/lib/table';
+import * as _ from 'lodash';
 import chalk from 'chalk';
 
 export const CustomColors = {
@@ -33,7 +33,7 @@ export default class UX extends CLI {
     // Collection of warnings that can be accessed and manipulated later.
     public static warnings : Set<string> = new Set<string>();
 
-    constructor(private logger : Logger, private isOutputEnabled : boolean) {
+    constructor(private logger : Logger, private isOutputEnabled : boolean = true) {
         super();
     }
 
@@ -46,7 +46,7 @@ export default class UX extends CLI {
         }
 
         // log to sfdx.log after the console as log filtering mutates the args.
-        this.logger.info(...args);
+        this.logger.info(data, ...args);
 
         return this;
     }
@@ -58,7 +58,7 @@ export default class UX extends CLI {
         this.logger.info(...args);
 
         if (this.isOutputEnabled) {
-            super.stdout.write(...args);
+            this.stdout.write(...args);
         }
 
         return this;
@@ -70,10 +70,10 @@ export default class UX extends CLI {
      * @param obj The object to log.
      */
     logJson(obj : any) : UX {
-        super.styledJSON(obj);
+        this.styledJSON(obj);
 
         // log to sfdx.log after the console as log filtering mutates the args.
-        this.logger.trace(obj);
+        this.logger.info(obj);
 
         return this;
     }
@@ -86,7 +86,7 @@ export default class UX extends CLI {
      *
      * @param message The warning message to output.
      */
-    warn(message : string) {
+    warn(message : string) : UX {
         const warning: string = color.yellow('WARNING:');
 
         // Necessarily log to sfdx.log.
@@ -97,9 +97,10 @@ export default class UX extends CLI {
                 UX.warnings.add(message);
             }
             else {
-                super.stderr.write(warning + message);
+                this.stderr.write(warning + message);
             }
         }
+        return this;
     }
 
     /**
@@ -107,9 +108,9 @@ export default class UX extends CLI {
      */
     error(...args : any[]) {
         if (this.isOutputEnabled) {
-            super.stderr.write(...args);
+            this.stderr.write(...args);
         }
-        this.logger.error(...args);
+        return this.logger.error(...args);
     }
 
     /**
@@ -119,19 +120,18 @@ export default class UX extends CLI {
      */
     errorJson(obj : any) {
         const err = JSON.stringify(obj);
-        super.stderr.write(err);
+        this.stderr.write(err);
         return this.logger.error(err);
     }
 
     /**
      * Formats a deprecation warning for display to stderr, stdout, and/or logs.
      *
-     * @param name The name of the deprecated object.
      * @param def The definition for the deprecated object.
-     * @param type The type of the deprecated object.
+     * @returns {string} the formatted deprecation message.
      */
-    formatDeprecationWarning(name : string, def : DeprecationDefinition, type : string) {
-        let msg = def.messageOverride || `The ${type} "${name}" has been deprecated and will be removed in v${`${(def.version + 1)}.0`} or later.`;
+    static formatDeprecationWarning(def : DeprecationDefinition) : string{
+        let msg = def.messageOverride || `The ${def.type} "${def.name}" has been deprecated and will be removed in v${(def.version + 1)}.0 or later.`;
         if (def.to) {
             msg += ` Use "${def.to}" instead.`;
         }
@@ -148,7 +148,7 @@ export default class UX extends CLI {
      * @param data The data to be output in table format.
      * @param options The table options to use for formatting.
      */
-    table(data : any[], options : Partial<TableOptions>) : UX {
+    table(data : any[], options : Partial<SfdxTableOptions> = {}) : UX {
         if (this.isOutputEnabled) {
             let columns = _.get(options, 'columns');
             if (columns) {
@@ -156,14 +156,16 @@ export default class UX extends CLI {
                     if (_.isString(col)) {
                         return { key: col, label: _.toUpper(col) };
                     }
-                    return { key: col.key, label: _.toUpper(col.label), format: col.format };
+                    // default to uppercase labels for consistency but allow overriding
+                    // if already defined for the column config.
+                    return Object.assign({ label: _.toUpper(col.key) }, col);
                 });
             }
-            super.table(data, options);
+            super.table(data, <Partial<TableOptions>>options);
         }
 
         // Log after table output as log filtering mutates data.
-        this.logger.info(...data);
+        this.logger.info(data);
 
         return this;
     }
@@ -175,7 +177,7 @@ export default class UX extends CLI {
      * @param obj The object to be styled for stdout.
      * @param keys The object keys to be written to stdout.
      */
-    styledObject(obj : any, keys : string[]) : UX {
+    styledObject(obj : any, keys? : string[]) : UX {
         this.logger.info(obj);
         if (this.isOutputEnabled) {
             super.styledObject(obj, keys);
@@ -198,9 +200,40 @@ export default class UX extends CLI {
     }
 }
 
-export interface DeprecationDefinition {
+/**
+ * Type to configure table options.  This is mostly a copy of cli-ux/table TableOptions
+ * except that it's more flexible (and probably a bit too flexible) with table columns.
+ * It also accepts just a string array in the simple cases where table header values
+ * are the only desired config option.
+ */
+export type SfdxTableOptions = {
+    columns: Partial<TableColumn>[]
+    colSep: string
+    after: (row: any[], options: TableOptions) => void
+    printLine: (row: any[]) => void
+    printRow: (row: any[]) => void
+    printHeader: (row: any[]) => void
+    headerAnsi: any
+} | {
+    columns: string[]
+}
+/**
+ * Type to configure a deprecation warning message.  A typical config can pass name,
+ * type, and version for a standard message.  Alternatively, the messageOverride can
+ * be used as a special case deprecated message.
+ */
+export type DeprecationDefinition = {
+    name: string,
+    type: string,
     version : number,
     to? : string,
     message? : string,
-    messageOverride? : string
+    messageOverride? : never
+} | {
+    name?: never,
+    type?: never,
+    version? : never,
+    to? : string,
+    message? : string,
+    messageOverride : string
 }
