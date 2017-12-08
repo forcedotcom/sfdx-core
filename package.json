@@ -6,7 +6,8 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "test-typings": "tsc -p typings/tsconfig.json",
-    "test": "gulp && mocha --recursive dist/test/unit"
+    "test": "gulp && mocha --recursive dist/test/unit",
+    "coverage": "gulp && ./node_modules/istanbul/lib/cli.js cover --report cobertura _mocha -- -t 480000 --recursive dist/test/unit"
   },
   "keywords": [
     "force",
@@ -30,7 +31,8 @@
     "gulp-sourcemaps": "2.6.1",
     "gulp-typescript": "3.2.2",
     "sinon": "3.2.1",
-    "typescript": "2.4.2"
+    "typescript": "2.4.2",
+    "istanbul": "0.4.4"
   },
   "types": "dist/exported.d.ts"
 }
