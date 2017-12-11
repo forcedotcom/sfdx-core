@@ -11,6 +11,9 @@ import { TableOptions, TableColumn } from 'cli-ux/lib/table';
 import * as _ from 'lodash';
 import chalk from 'chalk';
 
+// Needed for typescript compilation to create typings files.
+import { Chalk, ColorSupport } from 'chalk';
+
 export const CustomColors = {
     supportsColor: chalk.supportsColor,
     // map gray -> dim because it's not solarized compatible

@@ -11,10 +11,10 @@ import * as bunyan from 'bunyan-sfdx-no-dtrace';
 import * as _ from 'lodash';
 import * as mkdirp from 'mkdirp';
 import Global from './global';
-import sfdxUtil from './util';
+import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
 
-class Bunyan extends bunyan {
+export class Bunyan extends bunyan {
     constructor (options : LoggerOptions, _childOptions? : LoggerOptions, _childSimple? : boolean) {
         super(options, _childOptions, _childSimple);
     }
@@ -161,23 +161,6 @@ const _filter = (...args) => args.map(arg => {
 });
 
 /**
- * Represents a logger mode.  Currently supports 'production', 'development', and 'test'.
- * Defaults to 'production'.
- */
-class Mode {
-    static readonly types : string[] = ['production', 'development', 'test'];
-
-    constructor(readonly mode : string) {
-        mode = mode && mode.toLowerCase();
-        this.mode = Mode.types.includes(mode) ? mode : 'production';
-
-        Mode.types.forEach(modeType => {
-            this[`is${_.capitalize(modeType)}`] = () => (modeType === this.mode);
-        });
-    }
-}
-
-/**
  * Logger class for logging to sfdx.log based on the bunyan implementation.
  * Register and create a new logger:
  * @example Logger.create('myLogger').init();
@@ -191,7 +174,6 @@ export class Logger extends Bunyan {
     private fields : any = {};
     private ringbuffer : bunyan.RingBuffer;
     private streams : LoggerStream[];
-    private envMode : string;
     public static commandName : string;
 
     constructor(options : LoggerOptions, _childOptions? : LoggerOptions, _childSimple? : boolean) {
@@ -207,15 +189,15 @@ export class Logger extends Bunyan {
     async addLogFileStream(logFile) : Promise<any> {
         try {
             // Check if we have write access to the log file (i.e., we created it already)
-            await sfdxUtil.access(logFile, fs.constants.W_OK);
+            await SfdxUtil.access(logFile, fs.constants.W_OK);
         } catch (err1) {
             try {
-                await sfdxUtil.mkdirp(path.dirname(logFile), { mode: DEFAULT_USER_DIR_MODE });
+                await SfdxUtil.mkdirp(path.dirname(logFile), { mode: DEFAULT_USER_DIR_MODE });
             } catch (err2) {
                 // noop; directory exists already
             }
             try {
-                await sfdxUtil.writeFile(logFile, '', { mode: DEFAULT_USER_FILE_MODE });
+                await SfdxUtil.writeFile(logFile, '', { mode: DEFAULT_USER_FILE_MODE });
             } catch (err3) {
                 throw SfdxError.wrap(err3);
             }
@@ -299,7 +281,7 @@ export class Logger extends Bunyan {
 
             this.streams.forEach(async stream => {
                 if (stream.type === 'file') {
-                    content += await sfdxUtil.readFile(stream.path, 'utf8');
+                    content += await SfdxUtil.readFile(stream.path, 'utf8');
                 }
             });
             return content;
@@ -368,7 +350,7 @@ export class Logger extends Bunyan {
         } catch (e) {
             logger = Logger.create().setLevel();
             // disable log file writing, if applicable
-            if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && process.env.SFDX_ENV !== 'test') {
+            if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && !Global.getEnvironmentMode()['isTest']()) {
                 await logger.addLogFileStream(Global.LOG_FILE_PATH);
             }
         }
@@ -422,10 +404,6 @@ export class Logger extends Bunyan {
 
     isDebugEnabled() : boolean {
         return super.debug();
-    }
-
-    getEnvironmentMode() {
-        return new Mode(this.envMode || process.env.SFDX_ENV);
     }
 
     isError() {

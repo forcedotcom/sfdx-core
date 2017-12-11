@@ -12,7 +12,7 @@ import { assert, expect } from 'chai';
 import * as _ from 'lodash';
 
 import { Logger, LoggerLevel, LoggerOptions } from '../../lib/logger';
-import sfdxUtil from '../../lib/util';
+import { SfdxUtil } from '../../lib/util';
 
 describe('Logger', () => {
     const sandbox = sinon.sandbox.create();
@@ -104,29 +104,6 @@ describe('Logger', () => {
         });
     });
 
-    describe('getEnvironmentMode', () => {
-        it('is production by default', () => {
-            process.env.SFDX_ENV = undefined;
-            const logger = Logger.create();
-            expect(logger.getEnvironmentMode()['isProduction']()).to.be.true;
-            expect(logger.getEnvironmentMode()['isDevelopment']()).to.be.false;
-        });
-
-        it('uses logger mode', async () => {
-            const tmp : any = await Logger.child('tmp');
-            tmp.envMode = 'development';
-            expect(tmp.getEnvironmentMode().isDevelopment()).to.be.true;
-            expect(tmp.getEnvironmentMode().isProduction()).to.be.false;
-        });
-
-        it('uses SFDX_ENV mode', () => {
-            process.env.SFDX_ENV = 'development';
-            const logger = Logger.create();
-            expect(logger.getEnvironmentMode()['isDevelopment']()).to.be.true;
-            expect(logger.getEnvironmentMode()['isProduction']()).to.be.false;
-        });
-    });
-
     describe('addLogFileStream', () => {
         const testLogFile = 'some/dir/mylogfile.json';
 
@@ -135,9 +112,9 @@ describe('Logger', () => {
         let sfdxUtilWriteFileStub;
 
         beforeEach(() => {
-            sfdxUtilAccessStub = sandbox.stub(sfdxUtil, 'access');
-            sfdxUtilMkdirpStub = sandbox.stub(sfdxUtil, 'mkdirp');
-            sfdxUtilWriteFileStub = sandbox.stub(sfdxUtil, 'writeFile');
+            sfdxUtilAccessStub = sandbox.stub(SfdxUtil, 'access');
+            sfdxUtilMkdirpStub = sandbox.stub(SfdxUtil, 'mkdirp');
+            sfdxUtilWriteFileStub = sandbox.stub(SfdxUtil, 'writeFile');
         });
 
         it('should not create a new log file if it exists already', async () => {

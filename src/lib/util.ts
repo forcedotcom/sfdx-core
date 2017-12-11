@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { readFile as fsReadFile } from 'fs';
+import { access, readFile, writeFile } from 'fs';
 import { isEmpty } from 'lodash';
 import { promisify } from 'util';
 
@@ -38,21 +38,6 @@ const processJsonError = async (error : Error, data : string, jsonPath : string)
 
 export class SfdxUtil {
     /**
-     * Promisified version of fs.writeFile
-     */
-    writeFile: util.promisify(fs.writeFile),
-
-    /**
-     * Promisified version of fs.access
-     */
-    access: util.promisify(fs.access),
-
-    /**
-     * Promisified version of mkdirp
-     */
-    mkdirp: util.promisify(require('mkdirp')),
-
-    /**
      * Read a file and convert it to JSON
      *
      * @param {string} jsonPath The path of the file
@@ -84,5 +69,20 @@ export class SfdxUtil {
     /**
      * Promisified version of fs.readFile
      */
-    static readFile = promisify(fsReadFile)
+    static readFile = promisify(readFile)
+
+    /**
+     * Promisified version of fs.writeFile
+     */
+    static writeFile = promisify(writeFile)
+
+    /**
+     * Promisified version of fs.access
+     */
+    static access = promisify(access)
+
+    /**
+     * Promisified version of mkdirp
+     */
+    static mkdirp = promisify(require('mkdirp'))
 };
