@@ -122,7 +122,7 @@ export default class UX extends CLI {
      * @param obj The error object to log.
      */
     errorJson(obj : any) {
-        const err = JSON.stringify(obj);
+        const err = JSON.stringify(obj, null, 4);
         this.stderr.write(err);
         return this.logger.error(err);
     }
@@ -155,14 +155,19 @@ export default class UX extends CLI {
         if (this.isOutputEnabled) {
             let columns = _.get(options, 'columns');
             if (columns) {
-                options.columns = _.map(columns, (col) => {
+                let _columns : Partial<TableColumn>[] = [];
+                // Unfortunately, have to use _.forEach rather than _.map here because lodash typings
+                // don't like the possibility of 2 different iterator types.
+                _.forEach(columns, (col) => {
                     if (_.isString(col)) {
-                        return { key: col, label: _.toUpper(col) };
+                        _columns.push({ key: col, label: _.toUpper(col) } as Partial<TableColumn>);
+                    } else {
+                        // default to uppercase labels for consistency but allow overriding
+                        // if already defined for the column config.
+                        _columns.push(Object.assign({ label: _.toUpper(col['key']) }, col) as Partial<TableColumn>);
                     }
-                    // default to uppercase labels for consistency but allow overriding
-                    // if already defined for the column config.
-                    return Object.assign({ label: _.toUpper(col.key) }, col);
-                });
+                }) as Partial<TableColumn>[];
+                options.columns = _columns as Partial<TableColumn>[];
             }
             super.table(data, <Partial<TableOptions>>options);
         }

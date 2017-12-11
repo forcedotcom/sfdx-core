@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as bunyan from 'bunyan-sfdx-no-dtrace';
 import * as _ from 'lodash';
 import * as mkdirp from 'mkdirp';
-import Global from './global';
+import { Modes, Global } from './global';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
 
@@ -350,7 +350,7 @@ export class Logger extends Bunyan {
         } catch (e) {
             logger = Logger.create().setLevel();
             // disable log file writing, if applicable
-            if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && !Global.getEnvironmentMode()['isTest']()) {
+            if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && !Global.getEnvironmentMode().is(Modes.TEST)) {
                 await logger.addLogFileStream(Global.LOG_FILE_PATH);
             }
         }

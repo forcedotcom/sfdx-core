@@ -19,7 +19,7 @@ describe('UX', () => {
     const sandbox = sinon.sandbox.create();
     const sfdx_env = process.env.SFDX_ENV;
 
-    let logger;
+    let logger : Logger;
 
     beforeEach(() => {
         logger = Logger.create().useMemoryLogging().setLevel();
@@ -40,7 +40,7 @@ describe('UX', () => {
         const ux1 = ux.log(logMsg);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.info['firstCall'].args[0]).to.equal(logMsg);
         expect(CLI.prototype.log['called']).to.be.false;
         expect(ux1).to.equal(ux);
     });
@@ -54,7 +54,7 @@ describe('UX', () => {
         const ux1 = ux.log(logMsg);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.info['firstCall'].args[0]).to.equal(logMsg);
         expect(CLI.prototype.log['called']).to.be.true;
         expect(CLI.prototype.log['firstCall'].args[0]).to.equal(logMsg);
         expect(ux1).to.equal(ux);
@@ -70,7 +70,7 @@ describe('UX', () => {
         const ux1 = ux.logRaw(logMsg);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.info['firstCall'].args[0]).to.equal(logMsg);
         expect(ux.stdout.write['called']).to.be.false;
         expect(ux.stderr.write['called']).to.be.false;
         expect(ux1).to.equal(ux);
@@ -86,7 +86,7 @@ describe('UX', () => {
         const ux1 = ux.logRaw(logMsg);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.info['firstCall'].args[0]).to.equal(logMsg);
         expect(ux.stderr.write['called']).to.be.false;
         expect(ux.stdout.write['called']).to.be.true;
         expect(ux.stdout.write['firstCall'].args[0]).to.equal(logMsg);
@@ -102,7 +102,7 @@ describe('UX', () => {
         const ux1 = ux.logJson(logMsg);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.info['firstCall'].args[0]).to.equal(logMsg);
         expect(ux.styledJSON['called']).to.be.true;
         expect(ux.styledJSON['firstCall'].args[0]).to.equal(logMsg);
         expect(ux1).to.equal(ux);
@@ -118,10 +118,10 @@ describe('UX', () => {
         ux.errorJson(logMsg);
 
         expect(logger.error['called']).to.be.true;
-        expect(logger.error.firstCall.args[0]).to.equal(JSON.stringify(logMsg));
+        expect(logger.error['firstCall'].args[0]).to.equal(JSON.stringify(logMsg, null, 4));
         expect(ux.stderr.write['called']).to.be.true;
         expect(ux.stdout.write['called']).to.be.false;
-        expect(ux.stderr.write['firstCall'].args[0]).to.equal(JSON.stringify(logMsg));
+        expect(ux.stderr.write['firstCall'].args[0]).to.equal(JSON.stringify(logMsg, null, 4));
     });
 
     it('error() should only log to the logger (logLevel = error) when output IS NOT enabled', () => {
@@ -134,7 +134,7 @@ describe('UX', () => {
         ux.error(logMsg);
 
         expect(logger.error['called']).to.be.true;
-        expect(logger.error.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.error['firstCall'].args[0]).to.equal(logMsg);
         expect(ux.stderr.write['called']).to.be.false;
         expect(ux.stdout.write['called']).to.be.false;
     });
@@ -149,7 +149,7 @@ describe('UX', () => {
         ux.error(logMsg);
 
         expect(logger.error['called']).to.be.true;
-        expect(logger.error.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.error['firstCall'].args[0]).to.equal(logMsg);
         expect(ux.stdout.write['called']).to.be.false;
         expect(ux.stderr.write['called']).to.be.true;
         expect(ux.stderr.write['firstCall'].args[0]).to.equal(logMsg);
@@ -164,7 +164,7 @@ describe('UX', () => {
         const ux1 = ux.styledObject(logMsg);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.info['firstCall'].args[0]).to.equal(logMsg);
         expect(CLI.prototype.styledObject['called']).to.be.false;
         expect(ux1).to.equal(ux);
     });
@@ -179,7 +179,7 @@ describe('UX', () => {
         const ux1 = ux.styledObject(logMsg, keysToLog);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.info['firstCall'].args[0]).to.equal(logMsg);
         expect(CLI.prototype.styledObject['called']).to.be.true;
         expect(CLI.prototype.styledObject['firstCall'].args[0]).to.equal(logMsg);
         expect(CLI.prototype.styledObject['firstCall'].args[1]).to.equal(keysToLog);
@@ -195,7 +195,7 @@ describe('UX', () => {
         const ux1 = ux.styledHeader(logMsg);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.info['firstCall'].args[0]).to.equal(logMsg);
         expect(CLI.prototype.styledHeader['called']).to.be.false;
         expect(ux1).to.equal(ux);
     });
@@ -209,7 +209,7 @@ describe('UX', () => {
         const ux1 = ux.styledHeader(logMsg);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(logMsg);
+        expect(logger.info['firstCall'].args[0]).to.equal(logMsg);
         expect(CLI.prototype.styledHeader['called']).to.be.true;
         expect(CLI.prototype.styledHeader['firstCall'].args[0]).to.equal(logMsg);
         expect(ux1).to.equal(ux);
@@ -260,7 +260,7 @@ describe('UX', () => {
         const ux1 = ux.table(tableData);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(tableData);
+        expect(logger.info['firstCall'].args[0]).to.equal(tableData);
         expect(CLI.prototype.table['called']).to.be.false;
         expect(ux1).to.equal(ux);
     });
@@ -286,7 +286,7 @@ describe('UX', () => {
         const ux1 = ux.table(tableData, options);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(tableData);
+        expect(logger.info['firstCall'].args[0]).to.equal(tableData);
         expect(CLI.prototype.table['called']).to.be.true;
         expect(CLI.prototype.table['firstCall'].args[0]).to.equal(tableData);
         expect(CLI.prototype.table['firstCall'].args[1]).to.deep.equal(expectedOptions);
@@ -320,7 +320,7 @@ describe('UX', () => {
         const ux1 = ux.table(tableData, options);
 
         expect(logger.info['called']).to.be.true;
-        expect(logger.info.firstCall.args[0]).to.equal(tableData);
+        expect(logger.info['firstCall'].args[0]).to.equal(tableData);
         expect(CLI.prototype.table['called']).to.be.true;
         expect(CLI.prototype.table['firstCall'].args[0]).to.equal(tableData);
         expect(CLI.prototype.table['firstCall'].args[1]).to.deep.equal(expectedOptions);
@@ -350,8 +350,8 @@ describe('UX', () => {
             const ux1 = ux.warn(logMsg);
 
             expect(logger.warn['called']).to.be.true;
-            expect(logger.warn.firstCall.args[0]).to.equal('WARNING:');
-            expect(logger.warn.firstCall.args[1]).to.equal(logMsg);
+            expect(logger.warn['firstCall'].args[0]).to.equal('WARNING:');
+            expect(logger.warn['firstCall'].args[1]).to.equal(logMsg);
             expect(ux.stderr.write['called']).to.be.false;
             expect(ux.stdout.write['called']).to.be.false;
             expect(UX.warnings.size).to.equal(0);
@@ -368,8 +368,8 @@ describe('UX', () => {
             const ux1 = ux.warn(logMsg);
 
             expect(logger.warn['called']).to.be.true;
-            expect(logger.warn.firstCall.args[0]).to.equal('WARNING:');
-            expect(logger.warn.firstCall.args[1]).to.equal(logMsg);
+            expect(logger.warn['firstCall'].args[0]).to.equal('WARNING:');
+            expect(logger.warn['firstCall'].args[1]).to.equal(logMsg);
             expect(ux.stdout.write['called']).to.be.false;
             expect(ux.stderr.write['called']).to.be.true;
             expect(ux.stderr.write['firstCall'].args[0]).to.equal(`WARNING:${logMsg}`);
@@ -387,8 +387,8 @@ describe('UX', () => {
             const ux1 = ux.warn(logMsg);
 
             expect(logger.warn['called']).to.be.true;
-            expect(logger.warn.firstCall.args[0]).to.equal('WARNING:');
-            expect(logger.warn.firstCall.args[1]).to.equal(logMsg);
+            expect(logger.warn['firstCall'].args[0]).to.equal('WARNING:');
+            expect(logger.warn['firstCall'].args[1]).to.equal(logMsg);
             expect(ux.stdout.write['called']).to.be.false;
             expect(ux.stderr.write['called']).to.be.false;
             expect(UX.warnings.size).to.equal(1);

@@ -30,7 +30,7 @@ export default class SfdxCommand extends Command<InputFlags> {
 
         this.ux = new UX(this.logger, !!SfdxCommand.flags.json);
 
-        // Do additional stuff, like setup set up org context
+        // Do additional stuff, like set up org context
     }
 
     run() {
@@ -84,6 +84,6 @@ class MyCommand extends SfdxCommand {
         //this.logger.addLogFileStream('myLogFile.txt');
         //this.logger.debug('bla');
 
-        return super.run();
+        return await super.run();
     }
 }

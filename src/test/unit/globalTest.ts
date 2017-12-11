@@ -8,44 +8,28 @@
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 
-import { Global, Mode } from '../../lib/global';
+import { Global, Mode, Modes } from '../../lib/global';
 
 describe('Global', () => {
     const sfdx_env = process.env.SFDX_ENV;
 
     after(() => {
         process.env.SFDX_ENV = sfdx_env;
-        Global.setEnvironmentMode('test');
     });
 
     describe('environmentMode', () => {
         it('uses SFDX_ENV mode', () => {
             process.env.SFDX_ENV = 'development';
-            expect(Global.getEnvironmentMode()['isDevelopment']()).to.be.true;
-            expect(Global.getEnvironmentMode()['isProduction']()).to.be.false;
-            expect(Global.getEnvironmentMode()['isTest']()).to.be.false;
+            expect(Global.getEnvironmentMode().is(Modes.DEVELOPMENT)).to.be.true;
+            expect(Global.getEnvironmentMode().is(Modes.PRODUCTION)).to.be.false;
+            expect(Global.getEnvironmentMode().is(Modes.TEST)).to.be.false;
         });
 
         it('is production by default', () => {
-            Global.setEnvironmentMode(null);
-            expect(Global.getEnvironmentMode()['isProduction']()).to.be.true;
-            expect(Global.getEnvironmentMode()['isDevelopment']()).to.be.false;
-            expect(Global.getEnvironmentMode()['isTest']()).to.be.false;
-        });
-
-        it('can be changed via setEnvironmentMode', () => {
-            Global.setEnvironmentMode('test');
-            expect(Global.getEnvironmentMode()['isDevelopment']()).to.be.false;
-            expect(Global.getEnvironmentMode()['isProduction']()).to.be.false;
-            expect(Global.getEnvironmentMode()['isTest']()).to.be.true;
-        });
-
-        it('can be a custom Mode', () => {
-            const customMode = new Mode('foo', ['foo', 'bar', 'baz']);
-            Global.setEnvironmentMode(customMode);
-            expect(Global.getEnvironmentMode()['isBar']()).to.be.false;
-            expect(Global.getEnvironmentMode()['isBaz']()).to.be.false;
-            expect(Global.getEnvironmentMode()['isFoo']()).to.be.true;
+            process.env.SFDX_ENV = null;
+            expect(Global.getEnvironmentMode().is(Modes.DEVELOPMENT)).to.be.false;
+            expect(Global.getEnvironmentMode().is(Modes.PRODUCTION)).to.be.true;
+            expect(Global.getEnvironmentMode().is(Modes.TEST)).to.be.false;
         });
     });
 });
