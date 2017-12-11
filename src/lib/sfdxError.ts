@@ -8,6 +8,7 @@
 import * as _ from 'lodash';
 
 import Messages from './messages';
+import { color } from './ux';
 
 /**
  * A class to manage all the keys and tokens for a message bundle to use with SfdxError.
@@ -130,6 +131,7 @@ export class SfdxError extends Error {
     message : string;
     actions : string[];
     exitCode : number;
+    commandName : string;
 
     /**
      * Create an SfdxError.
@@ -172,6 +174,37 @@ export class SfdxError extends Error {
         await errorConfig.load();
 
         return new SfdxError(errorConfig.getError(), errorConfig.errorKey, errorConfig.getActions());
+    }
+
+    static wrap(err : Error) {
+        return new SfdxError(err.message, err.name);
+    }
+
+    setCommandName(commandName : string) {
+        this.commandName = commandName;
+        return this;
+    }
+
+    /**
+     * Format errors and actions for human consumption. Adds 'ERROR running <command name>',
+     * and outputs all errors in red.  When there are actions, we add 'Try this:' in blue
+     * followed by each action in red on its own line.
+     */
+    format() {
+        const colorizedArgs : string[] = [];
+        const runningWith =  this.commandName ? ` running ${this.commandName}` : '';
+        colorizedArgs.push(color.bold(`ERROR${runningWith}: `));
+        colorizedArgs.push(color.red(this.message));
+
+        // Format any actions.
+        if (_.get(this, 'actions.length')) {
+            colorizedArgs.push(`\n\n${color.blue(color.bold('Try this:'))}`);
+            this.actions.forEach((action) => {
+                colorizedArgs.push(`\n${color.red(action)}`);
+            });
+        }
+
+        return colorizedArgs;
     }
 }
 

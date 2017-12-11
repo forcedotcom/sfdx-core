@@ -97,6 +97,19 @@ describe('SfdxError', () => {
             expect(testMsg1).to.have.property('exitCode', 1);
         });
     });
+
+    describe('wrap', () => {
+        it('should return a wrapped error', () => {
+            const myErrorMsg = 'yikes! What did you do?';
+            const myErrorName = 'OhMyError';
+            const myError = new Error(myErrorMsg);
+            myError.name = myErrorName;
+            const mySfdxError = SfdxError.wrap(myError);
+            expect(mySfdxError).to.be.an.instanceOf(SfdxError);
+            expect(mySfdxError.message).to.equal(myErrorMsg);
+            expect(mySfdxError.name).to.equal(myErrorName);
+        });
+    });
 });
 
 describe('SfdxErrorConfig', () => {

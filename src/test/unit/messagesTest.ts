@@ -12,8 +12,6 @@ import { assert, expect } from 'chai';
 
 import Messages from '../../lib/messages';
 
-// Messages.importMessageFile(`${__dirname}/../../../messages/sfdx-core.json`);
-
 describe('Messages', () => {
     const sandbox = sinon.sandbox.create();
 
