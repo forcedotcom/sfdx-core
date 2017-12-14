@@ -3,6 +3,7 @@ import { InputFlags, Command } from 'cli-engine-command';
 import Logger from './logger';
 import UX from './ux';
 import SfdxError from './sfdxError';
+import Connection from './connection';
 
 
 export default class SfdxCommand extends Command<InputFlags> {
@@ -29,6 +30,13 @@ export default class SfdxCommand extends Command<InputFlags> {
         this.logger.setLevel(SfdxCommand.flags.loglevel || process.env.SFDX_LOG_LEVEL);
 
         this.ux = new UX(this.logger, !!SfdxCommand.flags.json);
+
+        // const myOrg = await Org.instantiate('myUsername');
+        // in org.instantiate(), gets auth info and creates a connection...
+        //    this.authInfo = await AuthInfo.create('myUsername');
+        //    this.connection = await Connection.create(authInfo);
+        // myOrg.connection.request();
+        // myOrg.connection.query();
 
         // Do additional stuff, like set up org context
     }

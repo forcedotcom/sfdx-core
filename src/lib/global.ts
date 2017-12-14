@@ -7,6 +7,7 @@
 
 import * as os from 'os';
 import * as path from 'path';
+import { SfdxUtil } from './util';
 
 export enum Modes {
     PRODUCTION = 'production',
@@ -42,6 +43,25 @@ export class Global {
 
     static getEnvironmentMode() : Mode {
         return new Mode(process.env.SFDX_ENV);
+    }
+
+    /**
+     * Single place to read global config information.  This will make it simple
+     * to replace file config i/o with a database.
+     * @param fileName name of the JSON config file from which to read.
+     */
+    static async fetchConfigInfo(fileName: string) : Promise<any> {
+        return await SfdxUtil.readJSON(path.join(Global.DIR, fileName));
+    }
+
+    /**
+     * Single place to write global config information.  This will make it simple
+     * to replace file config i/o with a database.
+     * @param fileName name of the JSON config file to write.
+     * @param info the JSON data to write.
+     */
+    static async saveConfigInfo(fileName: string, info: any) : Promise<any> {
+        return await SfdxUtil.writeFile(path.join(Global.DIR, fileName), info);
     }
 }
 

@@ -1,3 +1,8 @@
 {
-    "JsonParseError": "Parse error in file %s on line %s\n%s\n"
+    "JsonParseError": "Parse error in file %s on line %s\n%s\n",
+    "OrgDataNotAvailableError": "An attempt to refresh the authentication token failed with a 'Data Not Found Error'. The org identified by username %s does not appear to exist. Likely cause is that the org was deleted by another user or has expired.",
+    "OrgDataNotAvailableErrorAction1": "Run `sfdx force:org:list --clean` to remove stale org authentications.",
+    "OrgDataNotAvailableErrorAction2": "Use `sfdx force:config:set` to update the defaultusername.",
+    "OrgDataNotAvailableErrorAction3": "Use `sfdx force:org:create` to create a new org.",
+    "OrgDataNotAvailableErrorAction4": "Use `sfdx force:auth` to authenticate an existing org."
 }
