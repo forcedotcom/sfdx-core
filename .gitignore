@@ -1,3 +1,9 @@
 node_modules
 dist
 .idea/*
+
+package-lock.json
+
+coverage
+xunit.xml
+checkstyle.xml
