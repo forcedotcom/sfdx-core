@@ -9,3 +9,7 @@ shell.rm('-rf', `dist`);
 shell.rm('-f', `*xunit.xml`);
 shell.rm('-f', `*checkstyle.xml`);
 shell.rm('-rf', `*unitcoverage`);
+
+// We don't check-in lock files, so just remove them in clean
+shell.rm('-f', `yarn.lock`);
+shell.rm('-f', `package-lock.json`);

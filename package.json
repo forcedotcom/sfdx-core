@@ -8,10 +8,13 @@
     "typings": "tsc -p typings/tsconfig.json",
     "lint": "tslint -p .",
     "lint-report": "yarn lint -t checkstyle -o checkstyle.xml",
-    "compile": "gulp",
+    "clean": "scripts/clean.js",
+    "compile": "tsc -p ./tsconfig.json",
+    "build": "yarn clean && yarn compile",
     "watch": "tsc -w -p tsconfig.json",
-    "test": "yarn lint && node_modules/mocha/bin/mocha --recursive dist/test/unit",
-    "test-with-coverage": "yarn lint-report && scripts/unit-test-with-coverage.js"
+    "test": "yarn lint && mocha --recursive dist/test/unit",
+    "test-with-coverage": "yarn lint-report && scripts/unit-test-with-coverage.js",
+    "prepare": "yarn run build"
   },
   "keywords": [
     "force",
@@ -34,10 +37,6 @@
     "@types/mocha": "2.2.42",
     "@types/node": "8.0.25",
     "chai": "4.1.1",
-    "del": "3.0.0",
-    "gulp": "3.9.1",
-    "gulp-sourcemaps": "2.6.1",
-    "gulp-typescript": "3.2.2",
     "istanbul": "v1.1.0-alpha.1",
     "mocha": "2.4.5",
     "shelljs": "0.7.8",
