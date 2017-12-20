@@ -14,6 +14,7 @@ import chalk from 'chalk';
 // Needed for typescript compilation to create typings files.
 import { Chalk, ColorSupport } from 'chalk';
 
+// tslint:disable-next-line:variable-name
 export const CustomColors = {
     supportsColor: chalk.supportsColor,
     // map gray -> dim because it's not solarized compatible
@@ -25,25 +26,43 @@ export const CustomColors = {
 };
 
 export const color = new Proxy(chalk, {
+    // tslint:disable-next-line:no-shadowed-variable
     get: (chalk, name) => {
-      if (CustomColors[name]) return CustomColors[name]
-      return chalk[name]
-    },
+      if (CustomColors[name]) { return CustomColors[name]; }
+      return chalk[name];
+    }
 });
 
 export default class UX extends CLI {
 
     // Collection of warnings that can be accessed and manipulated later.
-    public static warnings : Set<string> = new Set<string>();
+    public static warnings: Set<string> = new Set<string>();
 
-    constructor(private logger : Logger, private isOutputEnabled : boolean = true) {
+    /**
+     * Formats a deprecation warning for display to stderr, stdout, and/or logs.
+     *
+     * @param def The definition for the deprecated object.
+     * @returns {string} the formatted deprecation message.
+     */
+    public static formatDeprecationWarning(def: DeprecationDefinition): string {
+        let msg = def.messageOverride || `The ${def.type} "${def.name}" has been deprecated and will be removed in v${(def.version + 1)}.0 or later.`;
+        if (def.to) {
+            msg += ` Use "${def.to}" instead.`;
+        }
+        if (def.message) {
+            msg += ` ${def.message}`;
+        }
+        return msg;
+    }
+
+    constructor(private logger: Logger, private isOutputEnabled: boolean = true) {
         super();
     }
 
     /**
      * Logs at INFO level and conditionally writes to stdout if stream output is enabled.
      */
-    log(data? : string, ...args : any[]) : UX {
+    public log(data?: string, ...args: any[]): UX {
         if (this.isOutputEnabled) {
             super.log(data, ...args);
         }
@@ -57,7 +76,7 @@ export default class UX extends CLI {
     /**
      *  Go directly to stdout. Useful when wanting to write to the same line.
      */
-    logRaw(...args : any[]) : UX {
+    public logRaw(...args: any[]): UX {
         this.logger.info(...args);
 
         if (this.isOutputEnabled) {
@@ -72,7 +91,7 @@ export default class UX extends CLI {
      *
      * @param obj The object to log.
      */
-    logJson(obj : any) : UX {
+    public logJson(obj: any): UX {
         this.styledJSON(obj);
 
         // log to sfdx.log after the console as log filtering mutates the args.
@@ -89,7 +108,7 @@ export default class UX extends CLI {
      *
      * @param message The warning message to output.
      */
-    warn(message : string) : UX {
+    public warn(message: string): UX {
         const warning: string = color.yellow('WARNING:');
 
         // Necessarily log to sfdx.log.
@@ -98,8 +117,7 @@ export default class UX extends CLI {
         if (this.logger.shouldLog(LoggerLevel.WARN)) {
             if (!this.isOutputEnabled) {
                 UX.warnings.add(message);
-            }
-            else {
+            } else {
                 this.stderr.write(warning + message);
             }
         }
@@ -109,7 +127,7 @@ export default class UX extends CLI {
     /**
      * Log an error and conditionally write to stderr if stream output is enabled.
      */
-    error(...args : any[]) {
+    public error(...args: any[]) {
         if (this.isOutputEnabled) {
             this.stderr.write(...args);
         }
@@ -121,27 +139,10 @@ export default class UX extends CLI {
      *
      * @param obj The error object to log.
      */
-    errorJson(obj : any) {
+    public errorJson(obj: any) {
         const err = JSON.stringify(obj, null, 4);
         this.stderr.write(err);
         return this.logger.error(err);
-    }
-
-    /**
-     * Formats a deprecation warning for display to stderr, stdout, and/or logs.
-     *
-     * @param def The definition for the deprecated object.
-     * @returns {string} the formatted deprecation message.
-     */
-    static formatDeprecationWarning(def : DeprecationDefinition) : string{
-        let msg = def.messageOverride || `The ${def.type} "${def.name}" has been deprecated and will be removed in v${(def.version + 1)}.0 or later.`;
-        if (def.to) {
-            msg += ` Use "${def.to}" instead.`;
-        }
-        if (def.message) {
-            msg += ` ${def.message}`;
-        }
-        return msg;
     }
 
     /**
@@ -151,13 +152,14 @@ export default class UX extends CLI {
      * @param data The data to be output in table format.
      * @param options The table options to use for formatting.
      */
-    table(data : any[], options : Partial<SfdxTableOptions> = {}) : UX {
+    public table(data: any[], options: Partial<SfdxTableOptions> = {}): UX {
         if (this.isOutputEnabled) {
-            let columns = _.get(options, 'columns');
+            const columns = _.get(options, 'columns');
             if (columns) {
-                let _columns : Partial<TableColumn>[] = [];
+                const _columns: Array<Partial<TableColumn>> = [];
                 // Unfortunately, have to use _.forEach rather than _.map here because lodash typings
                 // don't like the possibility of 2 different iterator types.
+                // tslint:disable-next-line:no-unused-expression
                 _.forEach(columns, (col) => {
                     if (_.isString(col)) {
                         _columns.push({ key: col, label: _.toUpper(col) } as Partial<TableColumn>);
@@ -166,10 +168,10 @@ export default class UX extends CLI {
                         // if already defined for the column config.
                         _columns.push(Object.assign({ label: _.toUpper(col['key']) }, col) as Partial<TableColumn>);
                     }
-                }) as Partial<TableColumn>[];
-                options.columns = _columns as Partial<TableColumn>[];
+                }) as Array<Partial<TableColumn>>;
+                options.columns = _columns as Array<Partial<TableColumn>>;
             }
-            super.table(data, <Partial<TableOptions>>options);
+            super.table(data, options as Partial<TableOptions>);
         }
 
         // Log after table output as log filtering mutates data.
@@ -185,7 +187,7 @@ export default class UX extends CLI {
      * @param obj The object to be styled for stdout.
      * @param keys The object keys to be written to stdout.
      */
-    styledObject(obj : any, keys? : string[]) : UX {
+    public styledObject(obj: any, keys?: string[]): UX {
         this.logger.info(obj);
         if (this.isOutputEnabled) {
             super.styledObject(obj, keys);
@@ -199,7 +201,7 @@ export default class UX extends CLI {
      *
      * @param header The header to be styled.
      */
-    styledHeader(header : string) : UX {
+    public styledHeader(header: string): UX {
         this.logger.info(header);
         if (this.isOutputEnabled) {
             super.styledHeader(header);
@@ -215,7 +217,7 @@ export default class UX extends CLI {
  * are the only desired config option.
  */
 export type SfdxTableOptions = {
-    columns: Partial<TableColumn>[]
+    columns: Array<Partial<TableColumn>>
     colSep: string
     after: (row: any[], options: TableOptions) => void
     printLine: (row: any[]) => void
@@ -224,7 +226,7 @@ export type SfdxTableOptions = {
     headerAnsi: any
 } | {
     columns: string[]
-}
+};
 /**
  * Type to configure a deprecation warning message.  A typical config can pass name,
  * type, and version for a standard message.  Alternatively, the messageOverride can
@@ -233,15 +235,15 @@ export type SfdxTableOptions = {
 export type DeprecationDefinition = {
     name: string,
     type: string,
-    version : number,
-    to? : string,
-    message? : string,
-    messageOverride? : never
+    version: number,
+    to?: string,
+    message?: string,
+    messageOverride?: never
 } | {
     name?: never,
     type?: never,
-    version? : never,
-    to? : string,
-    message? : string,
-    messageOverride : string
-}
+    version?: never,
+    to?: string,
+    message?: string,
+    messageOverride: string
+};

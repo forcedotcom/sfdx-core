@@ -33,8 +33,8 @@ describe('Util', () => {
             try {
                 await SfdxUtil.readJSON('emptyfile');
                 assert.fail('readJSON should have thrown a ParseError');
-            } catch(error) {
-                expect(error.message).to.contain('Parse error in file emptyfile on line 1\nFILE HAS NO CONTENT')
+            } catch (error) {
+                expect(error.message).to.contain('Parse error in file emptyfile on line 1\nFILE HAS NO CONTENT');
             }
         });
 
@@ -56,14 +56,14 @@ describe('Util', () => {
         });
 
         it('should throw a ParseError for invalid single line JSON file', () => {
-            readFileStub.returns(Promise.resolve(`{ "key": 12345, "value": [1,2,3], }`));
+            readFileStub.returns(Promise.resolve('{ "key": 12345, "value": [1,2,3], }'));
             return SfdxUtil.readJSON('invalidJSON_no_newline')
                 .then(() => assert.fail('readJSON should have thrown a ParseError'))
                 .catch((rv) => expect(rv.message).to.contain('Parse error in file invalidJSON_no_newline on line 1'));
         });
 
         it('should return a JSON object', () => {
-            const validJSON = { "key": 12345, "value": true };
+            const validJSON = { key: 12345, value: true };
             const validJSONStr = JSON.stringify(validJSON);
             readFileStub.returns(Promise.resolve(validJSONStr));
             return SfdxUtil.readJSON('validJSONStr')

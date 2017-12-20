@@ -15,13 +15,13 @@ import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
 
 export class Bunyan extends bunyan {
-    constructor (options : LoggerOptions, _childOptions? : LoggerOptions, _childSimple? : boolean) {
+    constructor(options: LoggerOptions, _childOptions?: LoggerOptions, _childSimple?: boolean) {
         super(options, _childOptions, _childSimple);
     }
-    level(lvl? : string | number) { return super.level(lvl); }
-    addStream(stream, defaultLevel? : string | number) { return super.addStream(stream, defaultLevel); }
-    levels(name : string | number, value : string | number) { return super.levels(name, value); }
-    child(name: string, fields : any = {}) {
+    public level(lvl?: string | number) { return super.level(lvl); }
+    public addStream(stream, defaultLevel?: string | number) { return super.addStream(stream, defaultLevel); }
+    public levels(name: string | number, value: string | number) { return super.levels(name, value); }
+    public child(name: string, fields: any = {}) {
         if (!name) {
             throw new SfdxError('LoggerNameRequired');
         }
@@ -30,29 +30,29 @@ export class Bunyan extends bunyan {
         // only support including additional fields on log line (no config)
         return super.child(fields, true);
     }
-    trace(...args : any[]) { return super.trace(...args); }
-    debug(...args : any[]) { return super.debug(...args); }
-    info(...args : any[]) { return super.info(...args); }
-    warn(...args : any[]) { return super.warn(...args); }
-    error(...args : any[]) { return super.error(...args); }
-    fatal(...args : any[]) { return super.fatal(...args); }
+    public trace(...args: any[]) { return super.trace(...args); }
+    public debug(...args: any[]) { return super.debug(...args); }
+    public info(...args: any[]) { return super.info(...args); }
+    public warn(...args: any[]) { return super.warn(...args); }
+    public error(...args: any[]) { return super.error(...args); }
+    public fatal(...args: any[]) { return super.fatal(...args); }
 }
 
 export interface LoggerStream {
-    type : string,
-    level? : string,
-    path? : string,
-    stream? : any,
-    closeOnExit? : boolean
+    type: string;
+    level?: string;
+    path?: string;
+    stream?: any;
+    closeOnExit?: boolean;
 }
 
 export interface LoggerOptions {
-    name : string,
-    level? : string,
-    serializers? : object,
-    src? : boolean,
-    stream? : any,
-    streams? : Array<LoggerStream>
+    name: string;
+    level?: string;
+    serializers?: object;
+    src?: boolean;
+    stream?: any;
+    streams?: LoggerStream[];
 }
 
 export enum LoggerLevel {
@@ -82,7 +82,7 @@ const FILTERED_KEYS = [
 ];
 
 // Registry of loggers for reuse and to properly close streams
-const loggerRegistry : Map<string, Logger> = new Map<string, Logger>();
+const loggerRegistry: Map<string, Logger> = new Map<string, Logger>();
 
 // close streams
 // FIXME: sadly, this does not work when process.exit is called; for now, disabled process.exit
@@ -101,7 +101,7 @@ const uncaughtExceptionHandler = (err) => {
 };
 
 // SFDX code and plugins should never show tokens or connect app information in the logs
-const _filter = (...args) => args.map(arg => {
+const _filter = (...args) => args.map((arg) => {
     if (_.isArray(arg)) {
         return _filter(...arg);
     }
@@ -116,7 +116,7 @@ const _filter = (...args) => args.map(arg => {
 
         const HIDDEN = 'HIDDEN';
 
-        FILTERED_KEYS.forEach((key : any) => {
+        FILTERED_KEYS.forEach((key: any) => {
 
             let expElement = key;
             let expName = key;
@@ -153,8 +153,7 @@ const _filter = (...args) => args.map(arg => {
 
         // return an object if an object was logged; otherwise return the filtered string.
         return _.isObject(arg) ? JSON.parse(_arg) : _arg;
-    }
-    else {
+    } else {
         return arg;
     }
 
@@ -168,15 +167,86 @@ const _filter = (...args) => args.map(arg => {
  * @see https://github.com/cwallsfdc/node-bunyan
  */
 export class Logger extends Bunyan {
+    public static commandName: string;
 
-    private _name : string;
-    private filters : Array<Function> = [];
-    private fields : any = {};
-    private ringbuffer : bunyan.RingBuffer;
-    private streams : LoggerStream[];
-    public static commandName : string;
+    /**
+     * Create/get the root logger with the default log level and file stream.
+     */
+    public static async root(): Promise<Logger> {
+        let logger;
+        try {
+            logger = Logger.get();
+        } catch (e) {
+            logger = Logger.create().setLevel();
+            // disable log file writing, if applicable
+            if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && !Global.getEnvironmentMode().is(Modes.TEST)) {
+                await logger.addLogFileStream(Global.LOG_FILE_PATH);
+            }
+        }
+        return logger;
+    }
 
-    constructor(options : LoggerOptions, _childOptions? : LoggerOptions, _childSimple? : boolean) {
+    /**
+     * Create a child of the root logger, inheriting log level, streams, etc.
+     * @param name The name of the child logger.
+     * @param fields Additional fields included in all log lines.
+     */
+    public static async child(name: string, fields?: any): Promise<Logger> {
+        return (await Logger.root()).child(name, fields);
+    }
+
+    /**
+     * Register, create and return a named instance of a logger.
+     *
+     * @param name The name of the logger to create.  Defaults to the SFDX core logger.
+     * @returns Logger The Logger instance.
+     */
+    public static create(name: string = SFDX_LOGGER_NAME): Logger {
+        // Return it if already registered
+        if (loggerRegistry.has(name)) {
+            return loggerRegistry.get(name);
+        }
+
+        // Create the logger
+        const logger = new Logger({
+            name,
+            level: 'error',
+            serializers: bunyan.stdSerializers,
+            // No streams for now, not until it is enabled
+            streams: []
+        });
+
+        // All SFDX loggers must filter sensitive data
+        logger.addFilter((...args) => _filter(...args));
+
+        // Register the new logger
+        loggerRegistry.set(name, logger);
+
+        logger.trace(`Created and registered '${name}' logger instance`);
+
+        return logger;
+    }
+
+    /**
+     * Get a registered logger instance.
+     *
+     * @param name Returns the registered logger instance.
+     */
+    public static get(name: string = SFDX_LOGGER_NAME) {
+        if (!loggerRegistry.has(name)) {
+            throw new Error(`Logger ${name} not found`);
+        }
+
+        return loggerRegistry.get(name);
+    }
+
+    private _name: string;
+    private filters: Array<(...args) => any[]> = [];
+    private fields: any = {};
+    private ringbuffer: bunyan.RingBuffer;
+    private streams: LoggerStream[];
+
+    constructor(options: LoggerOptions, _childOptions?: LoggerOptions, _childSimple?: boolean) {
         super(options, _childOptions, _childSimple);
         this._name = options.name;
     }
@@ -186,7 +256,7 @@ export class Logger extends Bunyan {
      *
      * @param logFile The path to the log file.  If it doesn't exist it will be created.
      */
-    async addLogFileStream(logFile) : Promise<any> {
+    public async addLogFileStream(logFile): Promise<any> {
         try {
             // Check if we have write access to the log file (i.e., we created it already)
             await SfdxUtil.access(logFile, fs.constants.W_OK);
@@ -228,7 +298,7 @@ export class Logger extends Bunyan {
     /**
      * Get the name of this logger.
      */
-    get name() : string {
+    get name(): string {
         return this._name;
     }
 
@@ -239,7 +309,7 @@ export class Logger extends Bunyan {
      * @param logLevel The requested log level to compare against the currently set log level
      * @returns {boolean}
      */
-    shouldLog(logLevel: number) : boolean {
+    public shouldLog(logLevel: number): boolean {
         return logLevel >= this.level();
     }
 
@@ -248,7 +318,7 @@ export class Logger extends Bunyan {
      *
      * WARNING: This cannot be undone for this logger instance.
      */
-    useMemoryLogging() : Logger {
+    public useMemoryLogging(): Logger {
         this.streams = [];
         this.ringbuffer = new bunyan.RingBuffer({ limit: 5000 });
         this.addStream({ type: 'raw', stream: this.ringbuffer, level: this.level() });
@@ -260,7 +330,7 @@ export class Logger extends Bunyan {
      *
      * @returns {Array<string>}
      */
-    getBufferedRecords() : string[] {
+    public getBufferedRecords(): string[] {
         return this.ringbuffer.records;
     }
 
@@ -269,17 +339,16 @@ export class Logger extends Bunyan {
      *
      * @returns {string}
      */
-    readLogContentsAsText() : string {
+    public readLogContentsAsText(): string {
         if (this.ringbuffer) {
             return this.getBufferedRecords().reduce((accum, value) => {
                 accum += (JSON.stringify(value) + os.EOL);
                 return accum;
             }, '');
-        }
-        else {
+        } else {
             let content = '';
 
-            this.streams.forEach(async stream => {
+            this.streams.forEach(async (stream) => {
                 if (stream.type === 'file') {
                     content += await SfdxUtil.readFile(stream.path, 'utf8');
                 }
@@ -294,7 +363,7 @@ export class Logger extends Bunyan {
      * @param filter - function defined in a command constructor
      * that manipulates log messages
      */
-    addFilter(filter : Function) {
+    public addFilter(filter: (...args) => any[]) {
         this.filters.push(filter);
     }
 
@@ -305,9 +374,9 @@ export class Logger extends Bunyan {
      * @param logLevel The log level.  Filtering will only be applied for relevant log levels.
      * @param args An array of strings, objects, etc.
      */
-    applyFilters(logLevel, ...args) {
+    public applyFilters(logLevel, ...args) {
         if (this.shouldLog(logLevel)) {
-            this.filters.forEach(filter => {
+            this.filters.forEach((filter) => {
                 args = filter(...args);
             });
         }
@@ -319,10 +388,10 @@ export class Logger extends Bunyan {
      *
      * @param {function} fn A function to call for each stream with the stream as an arg.
      */
-    close(fn? : Function) {
+    public close(fn?: (stream: LoggerStream) => void) {
         if (this.streams) {
             try {
-                this.streams.forEach(stream => {
+                this.streams.forEach((stream) => {
                     if (fn && _.isFunction(fn)) {
                         fn(stream);
                     }
@@ -341,32 +410,6 @@ export class Logger extends Bunyan {
     }
 
     /**
-     * Create/get the root logger with the default log level and file stream.
-     */
-    static async root() : Promise<Logger> {
-        let logger;
-        try {
-            logger = Logger.get();
-        } catch (e) {
-            logger = Logger.create().setLevel();
-            // disable log file writing, if applicable
-            if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && !Global.getEnvironmentMode().is(Modes.TEST)) {
-                await logger.addLogFileStream(Global.LOG_FILE_PATH);
-            }
-        }
-        return logger;
-    }
-
-    /**
-     * Create a child of the root logger, inheriting log level, streams, etc.
-     * @param name The name of the child logger.
-     * @param fields Additional fields included in all log lines.
-     */
-    static async child(name : string, fields? : any) : Promise<Logger> {
-        return (await Logger.root()).child(name, fields);
-    }
-
-    /**
      * Create a child logger, typically to add a few log record fields.
      *
      * @see bunyan.child(options, simple).
@@ -375,7 +418,7 @@ export class Logger extends Bunyan {
      * @param {object} fields Additional fields included in all log lines for the child logger.
      * @returns {logger}
      */
-    child(name: string, fields : any = {}) : Logger {
+    public child(name: string, fields: any = {}): Logger {
         // only support including additional fields on log line (no config)
         const childLogger = super.child(name, fields);
 
@@ -397,16 +440,16 @@ export class Logger extends Bunyan {
      * @param value The value of the field to be logged.
      * @returns {logger}
      */
-    addField(name : string, value: string | number | boolean) : Logger {
+    public addField(name: string, value: string | number | boolean): Logger {
         this.fields[name] = value;
         return this;
     }
 
-    isDebugEnabled() : boolean {
+    public isDebugEnabled(): boolean {
         return super.debug();
     }
 
-    isError() {
+    public isError() {
         return this.level() === LoggerLevel.ERROR;
     }
 
@@ -414,7 +457,7 @@ export class Logger extends Bunyan {
      * Set the logging level of all streams for this logger.
      * @param level The logger level.  @see LoggerLevel enum for values.
      */
-    setLevel(level? : number | string) : Logger {
+    public setLevel(level?: number | string): Logger {
         level = _.isNil(level) ? DEFAULT_LOG_LEVEL : level;
         try {
             this.level(level);
@@ -424,76 +467,31 @@ export class Logger extends Bunyan {
         return this;
     }
 
-    trace(...args) {
+    public trace(...args) {
         return super.trace(this.applyFilters(LoggerLevel.TRACE, ...args));
     }
 
-    debug(...args) {
+    public debug(...args) {
         return super.debug(this.applyFilters(LoggerLevel.DEBUG, ...args));
     }
 
-    info(...args) {
+    public info(...args) {
         return super.info(this.applyFilters(LoggerLevel.INFO, ...args));
     }
 
-    warn(...args) {
+    public warn(...args) {
         return super.warn(this.applyFilters(LoggerLevel.WARN, ...args));
     }
 
-    error(...args) {
+    public error(...args) {
         return super.error(this.applyFilters(LoggerLevel.ERROR, ...args));
     }
 
-    fatal(...args) {
+    public fatal(...args) {
         // Always show fatal to stderr
         console.error(...args); // eslint-disable-line no-console
         return super.fatal(this.applyFilters(LoggerLevel.FATAL, ...args));
     }
-
-    /**
-     * Register, create and return a named instance of a logger.
-     *
-     * @param name The name of the logger to create.  Defaults to the SFDX core logger.
-     * @returns Logger The Logger instance.
-     */
-    static create(name : string = SFDX_LOGGER_NAME) : Logger {
-        // Return it if already registered
-        if (loggerRegistry.has(name)) {
-            return loggerRegistry.get(name);
-        }
-
-        // Create the logger
-        const logger = new Logger({
-            name,
-            level: 'error',
-            serializers: bunyan.stdSerializers,
-            // No streams for now, not until it is enabled
-            streams: []
-        });
-
-        // All SFDX loggers must filter sensitive data
-        logger.addFilter((...args) => _filter(...args));
-
-        // Register the new logger
-        loggerRegistry.set(name, logger);
-
-        logger.trace(`Created and registered '${name}' logger instance`);
-
-        return logger;
-    }
-
-    /**
-     * Get a registered logger instance.
-     *
-     * @param name Returns the registered logger instance.
-     */
-    static get(name : string = SFDX_LOGGER_NAME) {
-        if (!loggerRegistry.has(name)) {
-            throw new Error(`Logger ${name} not found`);
-        }
-
-        return loggerRegistry.get(name);
-    }
-};
+}
 
 export default Logger;

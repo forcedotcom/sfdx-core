@@ -17,9 +17,9 @@ import chalk from 'chalk';
 
 describe('UX', () => {
     const sandbox = sinon.sandbox.create();
-    const sfdx_env = process.env.SFDX_ENV;
+    const sfdxEnv = process.env.SFDX_ENV;
 
-    let logger : Logger;
+    let logger: Logger;
 
     beforeEach(() => {
         logger = Logger.create().useMemoryLogging().setLevel();
@@ -27,7 +27,7 @@ describe('UX', () => {
     });
 
     afterEach(() => {
-        process.env.SFDX_ENV = sfdx_env;
+        process.env.SFDX_ENV = sfdxEnv;
         sandbox.restore();
     });
 
@@ -97,7 +97,7 @@ describe('UX', () => {
         sandbox.stub(logger, 'info');
         const ux = new UX(logger);
         sandbox.stub(ux, 'styledJSON');
-        const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1,2,3] };
+        const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1, 2, 3] };
 
         const ux1 = ux.logJson(logMsg);
 
@@ -113,7 +113,7 @@ describe('UX', () => {
         const ux = new UX(logger);
         sandbox.stub(ux.stderr, 'write');
         sandbox.stub(ux.stdout, 'write');
-        const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1,2,3] };
+        const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1, 2, 3] };
 
         ux.errorJson(logMsg);
 
@@ -159,7 +159,7 @@ describe('UX', () => {
         sandbox.stub(logger, 'info');
         sandbox.stub(CLI.prototype, 'styledObject');
         const ux = new UX(logger, false);
-        const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1,2,3] };
+        const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1, 2, 3] };
 
         const ux1 = ux.styledObject(logMsg);
 
@@ -173,7 +173,7 @@ describe('UX', () => {
         sandbox.stub(logger, 'info');
         sandbox.stub(CLI.prototype, 'styledObject');
         const ux = new UX(logger);
-        const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1,2,3] };
+        const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1, 2, 3] };
         const keysToLog = ['key1', 'key2', 'key3'];
 
         const ux1 = ux.styledObject(logMsg, keysToLog);
@@ -281,7 +281,7 @@ describe('UX', () => {
                 { key: 'bar', label: 'BAR' },
                 { key: 'baz', label: 'BAZ' }
             ]
-        }
+        };
 
         const ux1 = ux.table(tableData, options);
 
@@ -315,7 +315,7 @@ describe('UX', () => {
                 options.columns[1],
                 options.columns[2]
             ]
-        }
+        };
 
         const ux1 = ux.table(tableData, options);
 

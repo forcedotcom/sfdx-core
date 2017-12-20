@@ -10,9 +10,8 @@
     "lint-report": "yarn lint -t checkstyle -o checkstyle.xml",
     "compile": "gulp",
     "watch": "tsc -w -p tsconfig.json",
-    "test": "yarn lint && mocha --recursive dist/test/unit",
-    "test-report": "yarn lint-report && mocha --recursive dist/test/unit -R xunit-file",
-    "test-with-coverage": "yarn test-report && scripts/unit-test-with-coverage.js"
+    "test": "yarn lint && node_modules/mocha/bin/mocha --recursive dist/test/unit",
+    "test-with-coverage": "yarn lint-report && scripts/unit-test-with-coverage.js"
   },
   "keywords": [
     "force",
@@ -39,8 +38,8 @@
     "gulp": "3.9.1",
     "gulp-sourcemaps": "2.6.1",
     "gulp-typescript": "3.2.2",
-    "istanbul": "0.4.4",
-    "mocha": "4.0.1",
+    "istanbul": "v1.1.0-alpha.1",
+    "mocha": "2.4.5",
     "shelljs": "0.7.8",
     "sinon": "3.2.1",
     "tslint": "5.8.0",

@@ -15,16 +15,15 @@ const istanbulExecutable = path.join(
   'cli.js'
 );
 
-shell.exec('yarn test')
-shell.exec(`${istanbulExecutable} cover --report cobertura _mocha -- -t 2000 --recursive dist/test/unit`);
+shell.exec(`${istanbulExecutable} cover --report cobertura node_modules/mocha/bin/_mocha -- -t 2000 --recursive dist/test/unit -R xunit-file`);
 shell.exec(`${istanbulExecutable} report --report html json-summary`);// -- --config unitTestCoverageTargets.yaml`);
 
 let prefix;
 
-if (process.platform.match(/win/)) {
-    prefix = 'windows';
-} else if (process.platform.match(/darwin/)) {
+if (process.platform.match(/darwin/)) {
     prefix = 'darwin';
+} else if (process.platform.match(/^win/)) {
+    prefix = 'windows';
 } else {
     prefix = 'linux';
 }

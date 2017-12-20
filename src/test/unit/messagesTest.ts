@@ -52,7 +52,7 @@ describe('Messages', () => {
                 Messages.importMessageFile('myPluginMessages.txt');
                 assert.fail('should have thrown an error that only json files are allowed.');
             } catch (err) {
-                expect(err.message).to.contain('Only json message files are allowed, not .txt')
+                expect(err.message).to.contain('Only json message files are allowed, not .txt');
             }
         });
 

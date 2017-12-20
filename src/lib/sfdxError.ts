@@ -17,12 +17,12 @@ import { color } from './ux';
  * SfdxError.create(new SfdxErrorConfig('apex', 'runTest').addAction('apexErrorAction1', [className]));
  */
 export class SfdxErrorConfig {
-    readonly bundle : string;
-    errorKey : string;
-    private errorTokens : Array<string | boolean | number>;
+    public readonly bundle: string;
+    public errorKey: string;
+    private errorTokens: Array<string | boolean | number>;
 
-    private messages : Messages;
-    private actions : Map<string, Array<string | boolean | number>> = new Map();
+    private messages: Messages;
+    private actions: Map<string, Array<string | boolean | number>> = new Map();
 
     /**
      * Create a new SfdxErrorConfig.
@@ -32,11 +32,11 @@ export class SfdxErrorConfig {
      * @param actionKey The action message keys.
      * @param actionTokens The tokens to use when getting the action message(s)
      */
-    constructor(bundle : string,
-                errorKey : string,
-                errorTokens : Array<string | boolean | number> = [],
-                actionKey? : string,
-                actionTokens? : Array<string | boolean | number>
+    constructor(bundle: string,
+                errorKey: string,
+                errorTokens: Array<string | boolean | number> = [],
+                actionKey?: string,
+                actionTokens?: Array<string | boolean | number>
         ) {
         this.bundle = bundle;
         this.errorKey = errorKey;
@@ -50,7 +50,7 @@ export class SfdxErrorConfig {
      * Set the error key. Returns the SfdxErrorConfig for chaining.
      * @param key Set the error key.
      */
-    setErrorKey(key : string) : SfdxErrorConfig {
+    public setErrorKey(key: string): SfdxErrorConfig {
         this.errorKey = key;
         return this;
     }
@@ -59,7 +59,7 @@ export class SfdxErrorConfig {
      * Set the error tokens. Returns the SfdxErrorConfig for chaining.
      * @param tokens The error tokens
      */
-    setErrorTokens(tokens : Array<string | boolean | number>) : SfdxErrorConfig {
+    public setErrorTokens(tokens: Array<string | boolean | number>): SfdxErrorConfig {
         this.errorTokens = tokens;
         return this;
     }
@@ -69,7 +69,7 @@ export class SfdxErrorConfig {
      * @param actionKey The action key in the message bundle
      * @param actionTokens The action tokens for the string
      */
-    addAction(actionKey : string, actionTokens: Array<string | boolean | number>) : SfdxErrorConfig {
+    public addAction(actionKey: string, actionTokens: Array<string | boolean | number>): SfdxErrorConfig {
         this.actions.set(actionKey, actionTokens);
         return this;
     }
@@ -77,7 +77,7 @@ export class SfdxErrorConfig {
     /**
      * Load the messages using Messages.loadMessages.
      */
-    async load() : Promise<Messages> {
+    public async load(): Promise<Messages> {
         this.messages = await Messages.loadMessages(this.bundle);
         return this.messages;
     }
@@ -86,7 +86,7 @@ export class SfdxErrorConfig {
      * Get the error message using messages.getMessage.
      * @throws AlmError If errorMessages.load was not called first
      */
-    getError() : string {
+    public getError(): string {
         if (!this.messages) {
             throw new SfdxError('SfdxErrorConfig not loaded.');
         }
@@ -97,14 +97,14 @@ export class SfdxErrorConfig {
      * Get the action messages using messages.getMessage.
      * @throws AlmError If errorMessages.load was not called first
      */
-    getActions() : string[] {
+    public getActions(): string[] {
         if (!this.messages) {
             throw new SfdxError('SfdxErrorConfig not loaded.');
         }
 
-        if (this.actions.size === 0) return;
+        if (this.actions.size === 0) { return; }
 
-        const actions : string[] = [];
+        const actions: string[] = [];
         this.actions.forEach((tokens, key) => {
             actions.push(this.messages.getMessage(key, tokens));
         });
@@ -115,7 +115,7 @@ export class SfdxErrorConfig {
      * Remove all actions from this error config. Useful when reusing SfdxErrorConfig
      * for other error messages within the same bundle. Returns the SfdxErrorConfig for chaining.
      */
-    removeActions() : SfdxErrorConfig {
+    public removeActions(): SfdxErrorConfig {
         this.actions = new Map();
         return this;
     }
@@ -127,11 +127,44 @@ export class SfdxErrorConfig {
  *  CLI to help guide users past the error.
  */
 export class SfdxError extends Error {
-    name : string;
-    message : string;
-    actions : string[];
-    exitCode : number;
-    commandName : string;
+    /**
+     * Create a new SfdxError. Needs to be async to load messages from message files.
+     * @param bundle The message bundle used to create the SfdxError.
+     * @param key The key within the bundle for the message.
+     * @param tokens The values to use for message tokenization.
+     */
+    public static async create(bundle: string, key: string, tokens?: Array<string | boolean | number>): Promise<SfdxError>;
+
+    /**
+     * Create a new SfdxError. Needs to be async to load messages from message files.
+     * @param errorConfig The SfdxErrorConfig object used to create the SfdxError.
+     */
+    public static async create(errorConfig: SfdxErrorConfig): Promise<SfdxError>;
+
+    // The create implementation function.
+    public static async create(bundleOrErrorConfig: string | SfdxErrorConfig, key?: string, tokens?: Array<string | boolean | number>): Promise<SfdxError> {
+        let errorConfig: SfdxErrorConfig;
+
+        if (_.isString(bundleOrErrorConfig)) {
+            errorConfig = new SfdxErrorConfig(bundleOrErrorConfig as string, key, tokens);
+        } else {
+            errorConfig = bundleOrErrorConfig as SfdxErrorConfig;
+        }
+
+        await errorConfig.load();
+
+        return new SfdxError(errorConfig.getError(), errorConfig.errorKey, errorConfig.getActions());
+    }
+
+    public static wrap(err: Error) {
+        return new SfdxError(err.message, err.name);
+    }
+
+    public name: string;
+    public message: string;
+    public actions: string[];
+    public exitCode: number;
+    public commandName: string;
 
     /**
      * Create an SfdxError.
@@ -140,47 +173,14 @@ export class SfdxError extends Error {
      * @param action The action message
      * @param exitCode The exit code which will be used by the CLI.
      */
-    constructor(message : string, name? : string, actions? : string[], exitCode? : number) {
+    constructor(message: string, name?: string, actions?: string[], exitCode?: number) {
         super(message);
         this.name = name || 'SfdxError';
         this.actions = actions;
         this.exitCode = exitCode || 1;
     }
 
-    /**
-     * Create a new SfdxError. Needs to be async to load messages from message files.
-     * @param bundle The message bundle used to create the SfdxError.
-     * @param key The key within the bundle for the message.
-     * @param tokens The values to use for message tokenization.
-     */
-    static async create(bundle: string, key: string, tokens?: Array<string | boolean | number>) : Promise<SfdxError>;
-
-    /**
-     * Create a new SfdxError. Needs to be async to load messages from message files.
-     * @param errorConfig The SfdxErrorConfig object used to create the SfdxError.
-     */
-    static async create(errorConfig: SfdxErrorConfig) : Promise<SfdxError>;
-
-    // The create implementation function.
-    static async create(bundleOrErrorConfig : string | SfdxErrorConfig, key?: string, tokens?: Array<string | boolean | number>) : Promise<SfdxError> {
-        let errorConfig : SfdxErrorConfig;
-
-        if (_.isString(bundleOrErrorConfig)) {
-            errorConfig = new SfdxErrorConfig(<string>bundleOrErrorConfig, key, tokens);
-        } else {
-            errorConfig = <SfdxErrorConfig>bundleOrErrorConfig;
-        }
-
-        await errorConfig.load();
-
-        return new SfdxError(errorConfig.getError(), errorConfig.errorKey, errorConfig.getActions());
-    }
-
-    static wrap(err : Error) {
-        return new SfdxError(err.message, err.name);
-    }
-
-    setCommandName(commandName : string) {
+    public setCommandName(commandName: string) {
         this.commandName = commandName;
         return this;
     }
@@ -190,8 +190,8 @@ export class SfdxError extends Error {
      * and outputs all errors in red.  When there are actions, we add 'Try this:' in blue
      * followed by each action in red on its own line.
      */
-    format() {
-        const colorizedArgs : string[] = [];
+    public format() {
+        const colorizedArgs: string[] = [];
         const runningWith =  this.commandName ? ` running ${this.commandName}` : '';
         colorizedArgs.push(color.bold(`ERROR${runningWith}: `));
         colorizedArgs.push(color.red(this.message));
