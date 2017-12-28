@@ -41,11 +41,24 @@ export class SfdxUtil {
      * Read a file and convert it to JSON
      *
      * @param {string} jsonPath The path of the file
+     * @param {boolean} throwOnEmpty Whether to throw an error if the JSON file is empty
      * @return {Promise} promise The contents of the file as a JSON object
      */
     static async readJSON(jsonPath : string, throwOnEmpty? : boolean) : Promise<object> {
         const fileData = (await SfdxUtil.readFile(jsonPath, 'utf8')).toString();
         return await SfdxUtil.parseJSON(fileData, jsonPath, throwOnEmpty);
+    }
+
+    /**
+     * Convert a JSON object to a string and write it to a file.
+     *
+     * @param {string} jsonPath The path of the file
+     * @param {object} data The JSON object to write
+     * @return {Promise} promise
+     */
+    static async writeJSON(jsonPath : string, data: object) : Promise<void> {
+        const fileData : string = JSON.stringify(data, null, 4);
+        await SfdxUtil.writeFile(jsonPath, fileData, 'utf8');
     }
 
     /**

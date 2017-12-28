@@ -11,24 +11,23 @@ import { Connection as JSForceConnection } from 'jsforce';
 import * as jsforce from 'jsforce';
 import * as _ from 'lodash';
 import { Logger } from './logger';
-import { AuthInfo } from './authInfo';
+import { AuthInfo, AuthFields } from './authInfo';
 import { SfdxError } from './sfdxError';
 
 export interface OAuth2Options {
-    clientId?: string;
-    clientSecret?: string;
-    loginUrl?: string;
-    redirectUri?: string;
+    clientId: string;
+    clientSecret: string;
+    loginUrl: string;
+    redirectUri: string;
 }
 
-export interface ConnectionOptions extends OAuth2Options {
+export interface ConnectionOptions extends Partial<OAuth2Options> {
     accessToken?: string;
     callOptions?: Object;
     instanceUrl?: string;
     logLevel?: string;
     maxRequest?: number;
     oauth2?: Partial<OAuth2Options>;
-    proxyUrl?: string;
     refreshFn?: Function;
     refreshToken?: string;
     serverUrl?: string;
@@ -72,8 +71,14 @@ export class Connection extends JSForceConnection {
     static async create(authInfo : AuthInfo) : Promise<Connection> {
         const logger = await Logger.child('connection');
 
+        //
+        // TODO: THIS FUNCTION HAS TO SETUP THE PROPER CONNECTION BASED ON THE AUTH INFO
+        //       PASSED IN.  SHOULD WE HAVE this function create JwtConnection,
+        //       AccessTokenConnection, OAuthConnection, etc???
+        //
+
         const baseOptions : ConnectionOptions = {
-            // @TODO: eventually this will come from config but for now hardcode
+            // @TODO: eventually this will come from config but for now hardcode the version.
             // version: await config.getApiVersion(),
             version: '42.0',
             callOptions: {
@@ -83,6 +88,7 @@ export class Connection extends JSForceConnection {
 
         // Get connection options from auth info and create a new jsForce connection
         const connectionOptions : ConnectionOptions = Object.assign(baseOptions, authInfo.toJSON());
+        console.log('connectionOptions =', connectionOptions);
         const conn = new Connection(connectionOptions as any);
 
         if (authInfo.isOauth()) {
@@ -101,20 +107,13 @@ export class Connection extends JSForceConnection {
         return conn;
     }
 
-    async request(method : string = 'GET', url : string, headers? : any, body? : string) : Promise<any> {
-        this.logger.debug(`request: ${url}`);
+    // @TODO IMPLEMENT THIS AS IT EXISTS ON FORCE
+    // async request(method : string = 'GET', url : string, headers? : any, body? : string) : Promise<any> {
+    //     this.logger.debug(`request: ${url}`);
 
-        const _headers = Object.assign({}, Connection.SFDX_HTTP_HEADERS, headers);
-        return await this.request(method, url, body, _headers);
-    }
-
-    private async jwtAuthorize() {
-
-    }
-
-    private async refreshTokenAuthorize() {
-
-    }
+    //     const _headers = Object.assign({}, Connection.SFDX_HTTP_HEADERS, headers);
+    //     return await this.request(method, url, body, _headers);
+    // }
 
     private async oauthAuthorize() : Promise<any> {
         if (this.codeVerifier) {
@@ -138,22 +137,6 @@ export class Connection extends JSForceConnection {
             orgId: this.userInfo.organizationId,
             username: user.Username
         };
-    }
-
-    /**
-     * Authorizes with the org and saves the auth info.
-     */
-    async authorize() {
-        let authData;
-
-        if (this.authInfo.isJwt()) {
-            authData = this.jwtAuthorize();
-        } else if (this.authInfo.isRefreshTokenFlow()) {
-            authData = this.refreshTokenAuthorize();
-        } else {
-            authData = this.oauthAuthorize();
-        }
-        await this.authInfo.save(authData);
     }
 
     /**
@@ -197,11 +180,6 @@ export class Connection extends JSForceConnection {
     logDiagnosticsToServer(data : LogDiagnosticData) {
         return this.logToServer(data, LogType.DIAGNOSTIC);
     }
-
-    // These aren't working due to missing methods on the connection typing
-    // query = promisify(JSForceConnection.prototype.query)
-    // queryAll = promisify(JSForceConnection.prototype.queryAll)
-    // queryMore = promisify(JSForceConnection.prototype.queryMore)
 }
 
 enum LogType {

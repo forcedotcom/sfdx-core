@@ -5,18 +5,18 @@
             "es6"
         ],
         "target": "es2016",
-        "noImplicitAny": true,
+        "noImplicitAny": false,
         "noImplicitThis": true,
         "strictNullChecks": true,
         "baseUrl": ".",
         "typeRoots": [
-            "."
+            ".",
+            "../node_modules/@types"
         ],
         "types": [],
         "noEmit": true
     },
-    "files": [
-        "cli-engine-command/cli-engine-command.d.ts",
-        "cli-engine-command/cli-engine-command-tests.ts"
+    "includes": [
+        "**/*"
     ]
 }

@@ -61,7 +61,7 @@ export class Global {
      * @param info the JSON data to write.
      */
     static async saveConfigInfo(fileName: string, info: any) : Promise<any> {
-        return await SfdxUtil.writeFile(path.join(Global.DIR, fileName), info);
+        return await SfdxUtil.writeJSON(path.join(Global.DIR, fileName), info);
     }
 }
 

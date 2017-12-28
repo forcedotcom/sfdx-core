@@ -21,11 +21,12 @@
     "cli-engine-command": "9.0.3",
     "cli-engine-config": "4.0.1-ts.16",
     "cli-ux": "2.0.4",
+    "jsforce": "1.8.0",
+    "jsonwebtoken": "7.0.0",
     "lodash": "4.17.4"
   },
   "devDependencies": {
     "@types/chai": "4.0.4",
-    "@types/jsforce": "1.8.2",
     "@types/lodash": "4.14.88",
     "@types/mocha": "2.2.42",
     "@types/node": "8.0.25",
