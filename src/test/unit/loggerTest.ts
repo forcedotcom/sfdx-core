@@ -16,20 +16,20 @@ import { SfdxUtil } from '../../lib/util';
 
 describe('Logger', () => {
     const sandbox = sinon.sandbox.create();
-    const sfdx_env = process.env.SFDX_ENV;
+    const sfdxEnv = process.env.SFDX_ENV;
 
     beforeEach(() => {
         process.env.SFDX_ENV = 'test';
     });
 
     afterEach(() => {
-        process.env.SFDX_ENV = sfdx_env;
+        process.env.SFDX_ENV = sfdxEnv;
         sandbox.restore();
     });
 
     describe('create', () => {
         it('should register, create and return the root SFDX logger by default', () => {
-            sandbox.spy(Logger.prototype, 'addFilter')
+            sandbox.spy(Logger.prototype, 'addFilter');
             const defaultLogger = Logger.create();
             expect(defaultLogger).to.be.instanceof(Logger);
             expect(defaultLogger.name).to.equal('sfdx');
@@ -45,7 +45,7 @@ describe('Logger', () => {
             const logger2 = Logger.get('MyPlugin');
             expect(logger2).to.deep.equal(logger1);
         });
-    })
+    });
 
     // NOTE: positive get tests done as part of create testing.
     describe('get', () => {
@@ -181,7 +181,7 @@ describe('Logger', () => {
     describe('filters', () => {
         const sid = 'SIDHERE!';
         const simpleString = `sid=${sid}`;
-        const stringWithObject = ` The rain in Spain: ${JSON.stringify({ 'access_token' : sid })}`;
+        const stringWithObject = ` The rain in Spain: ${JSON.stringify({ access_token : sid })}`;
         const jsforceStringWithToken = `Connection refresh completed. Refreshed access token = ${sid}`;
         const obj1 = { accessToken: `${sid}`, refreshToken: `${sid}` };
         const obj2 = { key: 'Access Token', value: `${sid}` };
@@ -197,17 +197,17 @@ describe('Logger', () => {
         ];
         const testLogEntries = [simpleString, stringWithObject, jsforceStringWithToken, obj1, obj2, arr1, arr2];
 
-        async function runTest(logLevel : [string, number]) {
+        async function runTest(logLevel: [string, number]) {
             const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(0);
 
             // Log at the provided log level for each test entry
-            testLogEntries.forEach(entry => logger[logLevel[0]](entry));
+            testLogEntries.forEach((entry) => logger[logLevel[0]](entry));
 
             const logData = logger.readLogContentsAsText();
             expect(logData, `Logs should NOT contain '${sid}'`).to.not.contain(sid);
             const logRecords = logger.getBufferedRecords();
             expect(logRecords[0], `expected to log at level: ${logLevel[0]}`).to.have.property('level', logLevel[1]);
-        };
+        }
 
         it('should apply for log level: trace', () => {
             return runTest(['trace', 10]);
@@ -270,7 +270,7 @@ describe('Logger', () => {
             const logRecords = logger.getBufferedRecords();
 
             // If the serializer was applied it should not log the 'foo' entry
-            const msgOnError = 'Expected the config serializer to remove the "foo" entry from the log record '
+            const msgOnError = 'Expected the config serializer to remove the "foo" entry from the log record ';
             expect(logRecords[0], msgOnError).to.have.deep.property('config', { sid: '<sid - HIDDEN>' });
         });
     });

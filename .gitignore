@@ -1,3 +1,10 @@
 node_modules
 dist
 .idea/*
+
+yarn.lock
+package-lock.json
+
+*coverage
+*xunit.xml
+*checkstyle.xml

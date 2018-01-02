@@ -11,10 +11,10 @@ import { assert, expect } from 'chai';
 import { Global, Mode, Modes } from '../../lib/global';
 
 describe('Global', () => {
-    const sfdx_env = process.env.SFDX_ENV;
+    const sfdxEnv = process.env.SFDX_ENV;
 
     after(() => {
-        process.env.SFDX_ENV = sfdx_env;
+        process.env.SFDX_ENV = sfdxEnv;
     });
 
     describe('environmentMode', () => {
