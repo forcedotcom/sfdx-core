@@ -1,0 +1,32 @@
+
+export interface OAuth2Options {
+    authzServiceUrl?: string;
+    tokenServiceUrl?: string;
+    clientId?: string;
+    clientSecret?: string;
+    httpProxy?: string;
+    loginUrl?: string;
+    proxyUrl?: string;
+    redirectUri?: string;
+    refreshToken?: string;
+    revokeServiceUrl?: string;
+    authCode?: string;
+    privateKeyFile?: string;
+}
+
+export class OAuth2 {
+    constructor (options? : OAuth2Options);
+    loginUrl: string;
+    authzServiceUrl: string;
+    tokenServiceUrl: string;
+    revokeServiceUrl: string;
+    clientId: string;
+    clientSecret: string;
+    redirectUri: string;
+
+    getAuthorizationUrl: (params: any) => string;
+    refreshToken: (code, callback?) => Promise<any>;
+    requestToken: (code, callback?) => Promise<any>;
+    authenticate: (username, password, callback?) => Promise<any>;
+    revokeToken: (accessToken, callback?) => Promise<any>;
+}
