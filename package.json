@@ -5,9 +5,16 @@
   "main": "dist/exported",
   "license": "BSD-3-Clause",
   "scripts": {
-    "test-typings": "tsc -p typings/tsconfig.json",
-    "test": "gulp && mocha --recursive dist/test/unit",
-    "coverage": "gulp && ./node_modules/istanbul/lib/cli.js cover --report cobertura _mocha -- -t 480000 --recursive dist/test/unit"
+    "typings": "tsc -p typings/tsconfig.json",
+    "lint": "tslint -p .",
+    "lint-report": "yarn lint -t checkstyle -o checkstyle.xml",
+    "clean": "scripts/clean.js",
+    "compile": "tsc -p ./tsconfig.json",
+    "build": "yarn clean && yarn compile",
+    "watch": "tsc -w -p tsconfig.json",
+    "test": "yarn lint && mocha --recursive dist/test/unit",
+    "test-with-coverage": "yarn lint-report && scripts/unit-test-with-coverage.js",
+    "prepare": "yarn run build"
   },
   "keywords": [
     "force",
@@ -31,13 +38,13 @@
     "@types/mocha": "2.2.42",
     "@types/node": "8.0.25",
     "chai": "4.1.1",
-    "del": "3.0.0",
-    "gulp": "3.9.1",
-    "gulp-sourcemaps": "2.6.1",
-    "gulp-typescript": "3.2.2",
-    "istanbul": "0.4.4",
+    "istanbul": "v1.1.0-alpha.1",
+    "mocha": "2.4.5",
+    "shelljs": "0.7.8",
     "sinon": "3.2.1",
-    "typescript": "2.4.2"
+    "tslint": "5.8.0",
+    "typescript": "2.4.2",
+    "xunit-file": "1.0.0"
   },
   "types": "dist/exported.d.ts"
 }

@@ -13,23 +13,23 @@ export enum Modes {
     PRODUCTION = 'production',
     DEVELOPMENT = 'development',
     TEST = 'test'
-};
+}
 
 /**
  * Represents an environment mode.  Supports 'production', 'development', and 'test'
  * with the default mode being 'production'.
  */
 export class Mode {
-    constructor(readonly mode : string) {
+    constructor(readonly mode: string) {
         mode = mode && mode.toUpperCase();
         this.mode = Modes[mode] || Modes.PRODUCTION;
     }
 
-    is(mode: string) {
+    public is(mode: string) {
         return mode === this.mode;
     }
 
-    toString() {
+    public toString() {
         return this.mode;
     }
 }
@@ -38,10 +38,10 @@ export class Mode {
  * Global constants, methods and configuration.
  */
 export class Global {
-    static readonly DIR : string = path.join(os.homedir(), '.sfdx');
-    static readonly LOG_FILE_PATH : string = path.join(Global.DIR, 'sfdx.log');
+    public static readonly DIR: string = path.join(os.homedir(), '.sfdx');
+    public static readonly LOG_FILE_PATH: string = path.join(Global.DIR, 'sfdx.log');
 
-    static getEnvironmentMode() : Mode {
+    public static getEnvironmentMode(): Mode {
         return new Mode(process.env.SFDX_ENV);
     }
 

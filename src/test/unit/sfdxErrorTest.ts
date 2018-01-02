@@ -119,8 +119,8 @@ describe('SfdxErrorConfig', () => {
     });
 
     it('is mutable except for bundle', () => {
-        const bundle : string = 'testMessages';
-        const errorKey : string = 'Test1Error';
+        const bundle: string = 'testMessages';
+        const errorKey: string = 'Test1Error';
         const errConfig: SfdxErrorConfig = new SfdxErrorConfig(bundle, errorKey);
         expect(errConfig).to.have.property('bundle', bundle);
         expect(errConfig).to.have.property('errorKey', errorKey);
@@ -128,9 +128,9 @@ describe('SfdxErrorConfig', () => {
         expect(errConfig).to.have.deep.property('actions', new Map());
 
         // Set new config properties
-        const errorKey2 : string = 'Test2Error';
+        const errorKey2: string = 'Test2Error';
         const errorTokens2 = ['abcd', 123, false];
-        const actionKey : string = 'Action1';
+        const actionKey: string = 'Action1';
         const actionTokens = [true, 321, 'dcba'];
         errConfig.setErrorKey(errorKey2).setErrorTokens(errorTokens2).addAction(actionKey, actionTokens);
 
@@ -143,7 +143,7 @@ describe('SfdxErrorConfig', () => {
         expect(errConfig).to.have.deep.property('actions', actions);
 
         // add another action
-        const actionKey2 : string = 'Action2';
+        const actionKey2: string = 'Action2';
         const action2Tokens = [false, 9, 'hobbs'];
         errConfig.addAction(actionKey2, action2Tokens);
         actions.set(actionKey2, action2Tokens);
@@ -169,8 +169,8 @@ describe('SfdxErrorConfig', () => {
         const errConfig = new SfdxErrorConfig('sfdx-core', 'foo');
         try {
             errConfig.getError();
-        }  catch(error) {
-            expect(error.message).to.equal('SfdxErrorConfig not loaded.')
+        }  catch (error) {
+            expect(error.message).to.equal('SfdxErrorConfig not loaded.');
         }
     });
 
@@ -178,8 +178,8 @@ describe('SfdxErrorConfig', () => {
         const errConfig = new SfdxErrorConfig('sfdx-core', 'foo');
         try {
             errConfig.getActions();
-        }  catch(error) {
-            expect(error.message).to.equal('SfdxErrorConfig not loaded.')
+        }  catch (error) {
+            expect(error.message).to.equal('SfdxErrorConfig not loaded.');
         }
     });
 });
