@@ -9,21 +9,24 @@ import * as path from 'path';
 import { parse as urlParse } from 'url';
 import { lookup } from 'dns';
 import { promisify } from 'util';
+import { randomBytes, createHash } from 'crypto';
 import * as _ from 'lodash';
 import { OAuth2, OAuth2Options } from 'jsforce';
+import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
 import { SfdxUtil } from './util';
+import { SFDX_HTTP_HEADERS } from './connection';
 
 const lookupAsync = promisify(lookup);
 
 // Fields that are persisted in auth files
 export interface AuthFields {
     accessToken: string;
-    authCode: string;
     alias: string;
+    authCode: string;
     clientId: string;
     clientSecret: string;
     created: string;
@@ -49,11 +52,55 @@ class JwtOAuth2 extends OAuth2 {
         super(options);
     }
 
-    public async jwtAuthorize(innerToken, callback?): Promise<any> {
+    public async jwtAuthorize(innerToken: string, callback?): Promise<any> {
         return super._postParams({
             grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             assertion: innerToken
         }, callback);
+    }
+}
+
+// Extend OAuth2 to add code verifier support for the auth code (web auth) flow
+class AuthCodeOAuth2 extends OAuth2 {
+
+    private codeVerifier: string;
+
+    constructor(options: OAuth2Options) {
+        super(options);
+
+        // Set a code verifier string for OAuth authorization
+        this.codeVerifier = base64UrlEscape(randomBytes(Math.ceil(128)).toString('base64'));
+    }
+
+    /**
+     * Overrides jsforce.OAuth2.getAuthorizationUrl.  Get Salesforce OAuth2 authorization page
+     * URL to redirect user agent, adding a verification code for added security.
+     *
+     * @param params
+     */
+    public getAuthorizationUrl(params) {
+        // code verifier must be a base 64 url encoded hash of 128 bytes of random data. Our random data is also
+        // base 64 url encoded. See Connection.create();
+        const codeChallenge = base64UrlEscape(createHash('sha256').update(this.codeVerifier).digest('base64'));
+        _.set(params, 'code_challenge', codeChallenge);
+
+        return super.getAuthorizationUrl(params);
+    }
+
+    public async requestToken(code: string, callback?) {
+        return super.requestToken(code, callback);
+    }
+
+    /**
+     * Overrides jsforce.OAuth2._postParams because jsforce's oauth impl doesn't support
+     * coder_verifier and code_challenge. This enables the server to disallow trading a one-time auth code
+     * for an access/refresh token when the verifier and challenge are out of alignment.
+     *
+     * See - https://github.com/jsforce/jsforce/issues/665
+     */
+    private async _postParams(params, callback) {
+        _.set(params, 'code_verifier', this.codeVerifier);
+        return super._postParams(params, callback);
     }
 }
 
@@ -94,8 +141,8 @@ function _parseIdUrl(idUrl) {
     const orgId = idUrls.pop();
 
     return {
-        id: userId,
-        organizationId: orgId,
+        userId,
+        orgId,
         url: idUrl
     };
 }
@@ -105,22 +152,40 @@ const DEFAULT_CONNECTED_APP_INFO = {
     clientSecret: '1384510088588713504'
 };
 
+// Makes a nodejs base64 encoded string compatible with rfc4648 alternative encoding for urls.
+// @param base64Encoded a nodejs base64 encoded string
+function base64UrlEscape(base64Encoded: string): string {
+    // builtin node js base 64 encoding is not 64 url compatible.
+    // See - https://toolsn.ietf.org/html/rfc4648#section-5
+    return _.replace(base64Encoded, /\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
 /**
  * Handles persistence and fetching of user authentication information.
  */
 export class AuthInfo {
 
     /**
-     * Returns an instance of AuthInfo for the provided username.
+     * Returns an instance of AuthInfo for the provided username and/or options.
      *
      * @param username The username for the authentication info.
+     * @param options Options to be used for creating an OAuth2 instance.
      */
-    public static async create(username: string, options?: OAuth2Options): Promise<AuthInfo> {
+    public static async create(username?: string, options?: OAuth2Options): Promise<AuthInfo> {
+
+        // Must specify either username and/or options
+        if (!username && !options) {
+            throw SfdxError.create('sfdx-core', 'AuthInfoCreationError');
+        }
+
         const authInfo = new AuthInfo(username);
 
         // If the username is an access token, use that for auth and don't persist
         const accessTokenMatch = _.isString(username) && username.match(/^(00D\w{12,15})![\.\w]*$/);
         if (accessTokenMatch) {
+            // Need to setup the logger since we don't call init()
+            authInfo.logger = await Logger.child('AuthInfo');
+
             // TODO: remove hardcoding when sfdx-core config class is ready
             const instanceUrl = 'http://mydevhub.localhost.internal.salesforce.com:6109';
             // If it is an env var, use it instead of the local workspace sfdcLoginUrl property,
@@ -146,13 +211,11 @@ export class AuthInfo {
     // Cache of auth fields by username.
     private static cache: Map<string, Partial<AuthFields>> = new Map();
 
-    private readonly _authFileName: string;
     private logger: Logger;
     private fields: Partial<AuthFields> = {};
 
     constructor(username: string) {
         this.fields.username = username;
-        this._authFileName = `${username}.json`;
     }
 
     /**
@@ -198,7 +261,7 @@ export class AuthInfo {
     }
 
     get authFileName() {
-        return this._authFileName;
+        return `${this.fields.username}.json`;
     }
 
     get username() {
@@ -346,6 +409,19 @@ export class AuthInfo {
         return json;
     }
 
+    public getAuthorizationUrl(options: OAuth2Options): string {
+        const oauth2 = new AuthCodeOAuth2(options);
+
+        // The state parameter allows the redirectUri callback listener to ignore request that don't contain the state value.
+        const params = {
+            state: randomBytes(Math.ceil(6)).toString('hex'),
+            prompt: 'login',
+            scope: 'refresh_token api web'
+        };
+
+        return oauth2.getAuthorizationUrl(params);
+    }
+
     // Build OAuth config for a JWT auth flow
     private async buildJwtConfig(options: OAuth2Options): Promise<any> {
         const privateKey = await SfdxUtil.readFile(options.privateKeyFile, 'utf8');
@@ -364,11 +440,16 @@ export class AuthInfo {
         );
 
         const oauth2 = new JwtOAuth2({ loginUrl : options.loginUrl });
-        const _authFields = await oauth2.jwtAuthorize(jwtToken);
+        let _authFields;
+        try {
+            _authFields = await oauth2.jwtAuthorize(jwtToken);
+        } catch (err) {
+            throw SfdxError.create('sfdx-core', 'JWTAuthError', [err.message]);
+        }
 
         const authFields: Partial<AuthFields> = {
             accessToken: _authFields.access_token,
-            orgId: _parseIdUrl(_authFields.id).organizationId,
+            orgId: _parseIdUrl(_authFields.id).orgId,
             loginUrl: options.loginUrl
         };
         try {
@@ -389,18 +470,60 @@ export class AuthInfo {
         }
 
         const oauth2 = new OAuth2(options);
-        const _authFields = await oauth2.refreshToken(options.refreshToken);
+        let _authFields;
+        try {
+            _authFields = await oauth2.refreshToken(options.refreshToken);
+        } catch (err) {
+            throw SfdxError.create('sfdx-core', 'RefreshTokenAuthError', [err.message]);
+        }
 
         return {
             accessToken: _authFields.access_token,
             instanceUrl: _authFields.instance_url,
-            orgId: _parseIdUrl(_authFields.id).organizationId,
+            orgId: _parseIdUrl(_authFields.id).orgId,
             loginUrl: options.loginUrl || _authFields.instance_url,
             refreshToken: options.refreshToken
         };
     }
 
     private async buildWebAuthConfig(options: OAuth2Options): Promise<any> {
+        const oauth2 = new AuthCodeOAuth2(options);
+
+        // Exchange the auth code for an access token and refresh token.
+        let _authFields;
+        try {
+            this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
+            _authFields = await oauth2.requestToken(options.authCode);
+        } catch (err) {
+            throw SfdxError.create('sfdx-core', 'AuthCodeExchangeError', [err.message]);
+        }
+
+        const { userId, orgId } = _parseIdUrl(_authFields.id);
+
+        // Make a REST call for the username directly.  Normally this is done via a connection
+        // but we don't want to create circular dependencies or lots of snowflakes
+        // within this file to support it.
+        const apiVersion = 'v42.0';  // !!! TODO: GET THIS FROM CONFIG.JS !!!
+        const url = `${_authFields.instance_url}/services/data/${apiVersion}/sobjects/User/${userId}`;
+        const headers = Object.assign({ Authorization: `Bearer ${_authFields.access_token}` }, SFDX_HTTP_HEADERS);
+
+        let username;
+        try {
+            this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
+            const response = await new Transport().httpRequest({ url, headers });
+            username = _.get(JSON.parse(response.body), 'Username');
+        } catch (err) {
+            throw SfdxError.create('sfdx-core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
+        }
+
+        return {
+            accessToken: _authFields.access_token,
+            instanceUrl: _authFields.instance_url,
+            orgId,
+            username,
+            loginUrl: options.loginUrl || _authFields.instance_url,
+            refreshToken: _authFields.refresh_token
+        };
     }
 }
 

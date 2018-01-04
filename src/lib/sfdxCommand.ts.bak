@@ -68,6 +68,52 @@ export default class SfdxCommand extends Command<InputFlags> {
         }
         return Promise.reject(userDisplayError);
     }
+
+    public logErrorToServer(data: LogErrorData) {
+        return this.logToServer(data, LogType.ERROR);
+    }
+
+    public logDiagnosticsToServer(data: LogDiagnosticData) {
+        return this.logToServer(data, LogType.DIAGNOSTIC);
+    }
+
+    private logToServer(data: LogErrorData | LogDiagnosticData, type: LogType) {
+
+    }
+}
+
+enum LogType {
+    DIAGNOSTIC = 'DIAGNOSTIC',
+    ERROR = 'ERROR'
+}
+
+export interface LogErrorData {
+    commandName: string;
+    commandParams?: string[];
+    commandTimestamp: number;
+    hubOrgId: string;
+    toolbeltVersion: string;
+    sourceApiVersion: number;
+    origin: string;
+    artifactName: string;
+    orgType: string;
+    instanceUrl: string;
+    errorName: string;
+    errorMessage: string;
+    errorStack: string;
+    __errorWhitelist__?: string[];
+}
+
+export interface LogDiagnosticData {
+    commandName: string;
+    hubOrgId: string;
+    toolbeltVersion: string;
+    usageDate: string;
+    totalExecutions: number;
+    totalErrors: number;
+    avgRuntime: number;
+    minRuntime: number;
+    maxRuntime: number;
 }
 
 // How will customers extend SfdxCommand and get all the

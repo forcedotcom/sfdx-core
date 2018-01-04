@@ -1,5 +1,10 @@
 {
     "JsonParseError": "Parse error in file %s on line %s\n%s\n",
+    "AuthInfoCreationError": "Must pass a username and/or OAuth options when creating an AuthInfo instance.",
+    "AuthCodeExchangeError": "Error authenticating with auth code due to: %s",
+    "AuthCodeUsernameRetrievalError": "Could not retrieve the username after successful auth code exchange in org: %s.\nDue to: %s",
+    "JWTAuthError": "Error authenticating with JWT config due to: %s",
+    "RefreshTokenAuthError": "Error authenticating with the refresh token due to: %s",
     "OrgDataNotAvailableError": "An attempt to refresh the authentication token failed with a 'Data Not Found Error'. The org identified by username %s does not appear to exist. Likely cause is that the org was deleted by another user or has expired.",
     "OrgDataNotAvailableErrorAction1": "Run `sfdx force:org:list --clean` to remove stale org authentications.",
     "OrgDataNotAvailableErrorAction2": "Use `sfdx force:config:set` to update the defaultusername.",

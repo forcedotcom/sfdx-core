@@ -50,7 +50,7 @@ export class Global {
      * to replace file config i/o with a database.
      * @param fileName name of the JSON config file from which to read.
      */
-    static async fetchConfigInfo(fileName: string) : Promise<any> {
+    public static async fetchConfigInfo(fileName: string): Promise<any> {
         return await SfdxUtil.readJSON(path.join(Global.DIR, fileName));
     }
 
@@ -60,7 +60,7 @@ export class Global {
      * @param fileName name of the JSON config file to write.
      * @param info the JSON data to write.
      */
-    static async saveConfigInfo(fileName: string, info: any) : Promise<any> {
+    public static async saveConfigInfo(fileName: string, info: any): Promise<any> {
         return await SfdxUtil.writeJSON(path.join(Global.DIR, fileName), info);
     }
 }

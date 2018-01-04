@@ -25,8 +25,8 @@ export class OAuth2 {
     redirectUri: string;
 
     getAuthorizationUrl: (params: any) => string;
-    refreshToken: (code, callback?) => Promise<any>;
-    requestToken: (code, callback?) => Promise<any>;
-    authenticate: (username, password, callback?) => Promise<any>;
-    revokeToken: (accessToken, callback?) => Promise<any>;
+    refreshToken: (code: string, callback?) => Promise<any>;
+    requestToken: (code: string, callback?) => Promise<any>;
+    authenticate: (username: string, password: string, callback?) => Promise<any>;
+    revokeToken: (accessToken: string, callback?) => Promise<any>;
 }
