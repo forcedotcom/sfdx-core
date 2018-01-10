@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { isString } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
-import { Connection as JSForceConnection, ConnectionOptions } from 'jsforce';
+import { Connection as JSForceConnection, ConnectionOptions, RequestInfo } from 'jsforce';
 
 const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
 export const SFDX_HTTP_HEADERS = {
@@ -26,7 +26,7 @@ export const SFDX_HTTP_HEADERS = {
 export class Connection extends JSForceConnection {
 
     /**
-     * Create and return a connection to an org using saved authentication info.
+     * Create and return a connection to an org using authentication info.
      *
      * @param authInfo The authentication info from the persistence store.
      */
@@ -44,26 +44,17 @@ export class Connection extends JSForceConnection {
 
         // Get connection options from auth info and create a new jsForce connection
         const connectionOptions: ConnectionOptions = Object.assign(baseOptions, authInfo.toJSON());
-        console.log('connectionOptions =', connectionOptions);
         return new Connection(connectionOptions, authInfo, logger);
     }
 
-    // @overrides jsForce connection logger
+    // We want to use 1 logger for this class and the jsForce base classes so override
+    // the jsForce connection.tooling.logger and connection.logger.
     public tooling: any;
-
     private logger: Logger;
     private _logger: Logger;
 
     private authInfo: AuthInfo;
     private userInfo: any;
-
-    // @TODO IMPLEMENT THIS AS IT EXISTS ON FORCE
-    // async request(method : string = 'GET', url : string, headers? : any, body? : string) : Promise<any> {
-    //     this.logger.debug(`request: ${url}`);
-
-    //     const _headers = Object.assign({}, Connection.SFDX_HTTP_HEADERS, headers);
-    //     return await this.request(method, url, body, _headers);
-    // }
 
     constructor(options: ConnectionOptions, authInfo: AuthInfo, logger?: Logger) {
         super(options);
@@ -79,6 +70,22 @@ export class Connection extends JSForceConnection {
             // Set an OAuth access token refresh function handler
             super.on('refresh', authInfo.oauthRefresh.bind(authInfo));
         }
+    }
+
+    /**
+     * Send REST API request with given HTTP request info, with connected session information
+     * and SFDX headers.
+     *
+     * @override jsforce.connection.request
+     *
+     * @param request HTTP request object or URL to GET request
+     * @param options HTTP API request options
+     */
+    public async request(request: RequestInfo | string, options): Promise<any> {
+        const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
+        _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, request.headers);
+        this.logger.debug(`request: ${JSON.stringify(_request)}`);
+        return await super.request(_request, options);
     }
 }
 

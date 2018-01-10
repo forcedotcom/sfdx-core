@@ -62,6 +62,12 @@ export interface Connection {
     sobject<T>(resource: string): SObject<T>;
 }
 
+export interface RequestInfo {
+    method: string;
+    url: string;
+    headers: object;
+}
+
 export class Connection implements Connection {
     constructor(params: ConnectionOptions)
     accessToken: string;

@@ -135,6 +135,8 @@ function getJwtAudienceUrl(options) {
     return audienceUrl;
 }
 
+// parses the id field returned from jsForce oauth2 methods to get
+// user ID and org ID.
 function _parseIdUrl(idUrl) {
     const idUrls = idUrl.split('/');
     const userId = idUrls.pop();
@@ -240,14 +242,12 @@ export class AuthInfo {
             }
         } else {
             if (AuthInfo.cache.has(this.username)) {
-                // Set the auth fields and return this immediately so as not to re-cache
-                this.update(AuthInfo.cache.get(this.username));
-                return this;
+                authConfig = AuthInfo.cache.get(this.username);
             } else {
                 // Fetch from the persisted auth file
                 authConfig = await Global.fetchConfigInfo(this.authFileName);
 
-                // Decrypt access token and refresh token here
+                // @TODO: Decrypt access token and refresh token here
             }
         }
 
@@ -260,15 +260,15 @@ export class AuthInfo {
         return this;
     }
 
-    get authFileName() {
+    get authFileName(): string {
         return `${this.fields.username}.json`;
     }
 
-    get username() {
+    get username(): string {
         return this.fields.username;
     }
 
-    get authCode() {
+    get authCode(): string {
         return this.fields.authCode;
     }
 
@@ -286,7 +286,7 @@ export class AuthInfo {
         return !this.isAccessTokenFlow() && !this.isJwt();
     }
 
-    public isRefreshTokenFlow() {
+    public isRefreshTokenFlow(): boolean {
         const { refreshToken, authCode } = this.fields;
         return !authCode && !!refreshToken;
     }
@@ -298,9 +298,7 @@ export class AuthInfo {
         this.update(authData);
         AuthInfo.cache.set(this.username, this.fields);
 
-        // Encrypt access token and refresh token here
-
-        console.log('Saving authdata=', this.fields);
+        // @TODO: Encrypt access token and refresh token here
 
         await Global.saveConfigInfo(this.authFileName, this.fields);
         this.logger.info(`Saved auth info for username: ${this.username}`);
@@ -311,11 +309,12 @@ export class AuthInfo {
      *
      * @param authData Authorization fields to update.
      */
-    public update(authData: Partial<AuthFields>) {
+    public update(authData: Partial<AuthFields>): AuthInfo {
         if (_.isPlainObject(authData)) {
             Object.assign(this.fields, authData);
             this.logger.info(`Updated auth info for username: ${this.username}`);
         }
+        return this;
     }
 
     /**
@@ -371,7 +370,7 @@ export class AuthInfo {
     /**
      * Return only the auth fields needed to make a connection.
      */
-    public toJSON() {
+    public toJSON(): Partial<AuthFields> {
         let json;
 
         const { accessToken, instanceUrl } = this.fields;
