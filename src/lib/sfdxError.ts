@@ -69,7 +69,7 @@ export class SfdxErrorConfig {
      * @param actionKey The action key in the message bundle
      * @param actionTokens The action tokens for the string
      */
-    public addAction(actionKey: string, actionTokens: Array<string | boolean | number>): SfdxErrorConfig {
+    public addAction(actionKey: string, actionTokens?: Array<string | boolean | number>): SfdxErrorConfig {
         this.actions.set(actionKey, actionTokens);
         return this;
     }
