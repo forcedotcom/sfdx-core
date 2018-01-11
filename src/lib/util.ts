@@ -76,8 +76,8 @@ export class SfdxUtil {
      * @param {object} data The JSON object to write
      * @return {Promise} promise
      */
-    static async writeJSON(jsonPath : string, data: object) : Promise<void> {
-        const fileData : string = JSON.stringify(data, null, 4);
+    public static async writeJSON(jsonPath: string, data: object): Promise<void> {
+        const fileData: string = JSON.stringify(data, null, 4);
         await SfdxUtil.writeFile(jsonPath, fileData, 'utf8');
     }
 
