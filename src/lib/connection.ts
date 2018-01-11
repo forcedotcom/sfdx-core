@@ -81,7 +81,7 @@ export class Connection extends JSForceConnection {
      * @param request HTTP request object or URL to GET request
      * @param options HTTP API request options
      */
-    public async request(request: RequestInfo | string, options): Promise<any> {
+    public async request(request: RequestInfo | string, options?): Promise<any> {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);

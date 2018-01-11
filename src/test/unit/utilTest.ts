@@ -16,15 +16,15 @@ Messages.importMessageFile(path.join(__dirname, '..', '..', '..', 'messages', 's
 describe('Util', () => {
     const sandbox = sinon.sandbox.create();
 
+    afterEach(() => {
+        sandbox.restore();
+    });
+
     describe('readJSON', () => {
         let readFileStub;
 
         beforeEach(() => {
             readFileStub = sandbox.stub(SfdxUtil, 'readFile');
-        });
-
-        afterEach(() => {
-            sandbox.restore();
         });
 
         it('should throw a ParseError for empty JSON file', async () => {
@@ -68,6 +68,20 @@ describe('Util', () => {
             readFileStub.returns(Promise.resolve(validJSONStr));
             return SfdxUtil.readJSON('validJSONStr')
                 .then((rv) => expect(rv).to.eql(validJSON));
+        });
+    });
+
+    describe('writeJSON', () => {
+        it('should call writeFile with correct args', async () => {
+            sandbox.stub(SfdxUtil, 'writeFile').returns(Promise.resolve(null));
+            const testFilePath = 'utilTest_testFilePath';
+            const testJSON = { username: 'utilTest_username'};
+            const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
+            await SfdxUtil.writeJSON(testFilePath, testJSON);
+            expect(SfdxUtil.writeFile['called']).to.be.true;
+            expect(SfdxUtil.writeFile['firstCall'].args[0]).to.equal(testFilePath);
+            expect(SfdxUtil.writeFile['firstCall'].args[1]).to.deep.equal(stringifiedTestJSON);
+            expect(SfdxUtil.writeFile['firstCall'].args[2]).to.equal('utf8');
         });
     });
 });
