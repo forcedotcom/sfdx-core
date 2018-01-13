@@ -1,4 +1,6 @@
 # Jobs for sfdx-core
 jobs:
-  - name: "unittest"
-    script: "scripts/jenkins/unittest.groovy"
+  - name: unittest
+    script: scripts/jenkins/unittest.groovy
+  # Use the default promote script
+  - name: publish
