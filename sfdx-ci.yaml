@@ -1,0 +1,4 @@
+# Jobs for sfdx-core
+jobs:
+  - name: "unittest"
+    script: "scripts/jenkins/unittest.groovy"
