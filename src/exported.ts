@@ -27,4 +27,4 @@ export {
     LoggerLevel,
     Connection,
     AuthInfo
-}
+};
