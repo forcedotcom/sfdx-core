@@ -4,3 +4,4 @@ jobs:
     script: scripts/jenkins/unittest.groovy
   # Use the default promote script
   - name: publish
+    testTarget: test-with-coverage
