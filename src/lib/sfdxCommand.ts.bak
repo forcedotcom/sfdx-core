@@ -3,6 +3,7 @@ import { InputFlags, Command } from 'cli-engine-command';
 import Logger from './logger';
 import UX from './ux';
 import SfdxError from './sfdxError';
+import Connection from './connection';
 
 export default class SfdxCommand extends Command<InputFlags> {
 
@@ -28,6 +29,13 @@ export default class SfdxCommand extends Command<InputFlags> {
         this.logger.setLevel(SfdxCommand.flags.loglevel || process.env.SFDX_LOG_LEVEL);
 
         this.ux = new UX(this.logger, !!SfdxCommand.flags.json);
+
+        // const myOrg = await Org.instantiate('myUsername');
+        // in org.instantiate(), gets auth info and creates a connection...
+        //    this.authInfo = await AuthInfo.create('myUsername');
+        //    this.connection = await Connection.create(authInfo);
+        // myOrg.connection.request();
+        // myOrg.connection.query();
 
         // Do additional stuff, like set up org context
     }
@@ -60,6 +68,52 @@ export default class SfdxCommand extends Command<InputFlags> {
         }
         return Promise.reject(userDisplayError);
     }
+
+    public logErrorToServer(data: LogErrorData) {
+        return this.logToServer(data, LogType.ERROR);
+    }
+
+    public logDiagnosticsToServer(data: LogDiagnosticData) {
+        return this.logToServer(data, LogType.DIAGNOSTIC);
+    }
+
+    private logToServer(data: LogErrorData | LogDiagnosticData, type: LogType) {
+
+    }
+}
+
+enum LogType {
+    DIAGNOSTIC = 'DIAGNOSTIC',
+    ERROR = 'ERROR'
+}
+
+export interface LogErrorData {
+    commandName: string;
+    commandParams?: string[];
+    commandTimestamp: number;
+    hubOrgId: string;
+    toolbeltVersion: string;
+    sourceApiVersion: number;
+    origin: string;
+    artifactName: string;
+    orgType: string;
+    instanceUrl: string;
+    errorName: string;
+    errorMessage: string;
+    errorStack: string;
+    __errorWhitelist__?: string[];
+}
+
+export interface LogDiagnosticData {
+    commandName: string;
+    hubOrgId: string;
+    toolbeltVersion: string;
+    usageDate: string;
+    totalExecutions: number;
+    totalErrors: number;
+    avgRuntime: number;
+    minRuntime: number;
+    maxRuntime: number;
 }
 
 // How will customers extend SfdxCommand and get all the

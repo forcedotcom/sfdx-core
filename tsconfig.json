@@ -10,7 +10,11 @@
         "moduleResolution": "node",
         "alwaysStrict": true,
         "sourceRoot": "src",
-        "outDir": "dist"
+        "outDir": "dist",
+        "typeRoots": [
+            "./typings",
+            "./node_modules/@types"
+        ]
     },
     "include": [
         "src/**/*.ts"
