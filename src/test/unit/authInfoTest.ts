@@ -216,6 +216,31 @@ describe('AuthInfo', () => {
             }
         });
 
+        it('should catch a DNS error and set the instanceUrl when DNS lookup fails', async () => {
+            const username = 'authInfoTest_username_jwt_ERROR2';
+            const jwtConfig = {
+                clientId: `${CLIENT_ID}_JWT`,
+                loginUrl: `${LOGIN_URL}_JWT`,
+                privateKeyFile: 'authInfoTest/jwt/server.key'
+            };
+            const authResponse = {
+                access_token: `${ACCESS_TOKEN}_JWT`,
+                instance_url: instanceUrl,
+                id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+            };
+
+            // Stub file I/O, http requests, and the DNS lookup
+            readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
+            _postParmsStub.returns(Promise.resolve(authResponse));
+            sandbox.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
+            sandbox.stub(dns, 'lookup').throws(new Error('authInfoTest_ERROR_MSG'));
+
+            // Create the JWT AuthInfo instance
+            const authInfo = await AuthInfo.create(username, jwtConfig);
+
+            expect(authInfo.toJSON()).to.have.property('instanceUrl', jwtConfig.loginUrl);
+        });
+
         //
         // Refresh token tests
         //
@@ -426,6 +451,31 @@ describe('AuthInfo', () => {
             }
         });
 
+        it('should throw a AuthCodeUsernameRetrievalError when username retrieval fails after auth code exchange', async () => {
+            const authCodeConfig = {
+                authCode: `${AUTH_CODE}`,
+                loginUrl: `${LOGIN_URL}_AuthCode`
+            };
+            const authResponse = {
+                access_token: `${ACCESS_TOKEN}_AuthCode`,
+                instance_url: instanceUrl,
+                id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+                refresh_token: `${REFRESH_TOKEN}_AuthCode`
+            };
+
+            // Stub the http request (OAuth2.requestToken())
+            _postParmsStub.returns(Promise.resolve(authResponse));
+            sandbox.stub(Transport.prototype, 'httpRequest').throws(new Error('authInfoTest_ERROR_MSG'));
+
+            // Create the auth code AuthInfo instance
+            try {
+                await AuthInfo.create(null, authCodeConfig);
+                assert.fail('should have thrown an error within AuthInfo.buildWebAuthConfig()');
+            } catch (err) {
+                expect(err.name).to.equal('AuthCodeUsernameRetrievalError');
+            }
+        });
+
         it('should throw an error when neither username nor options have been passed', async () => {
             let authInfo;
             try {
@@ -521,6 +571,28 @@ describe('AuthInfo', () => {
             expect(testCallback.called, 'Should have called the callback passed to jwtRefresh()').to.be.true;
             expect(testCallback.firstCall.args[1]).to.equal(context.fields.accessToken);
         });
+
+        it('should call the callback with OrgDataNotAvailableError when AuthInfo.init() fails', async () => {
+            const context = {
+                fields: {
+                    loginUrl: LOGIN_URL,
+                    clientId: CLIENT_ID,
+                    privateKey: 'authInfoTest/jwt/server.key',
+                    accessToken: ACCESS_TOKEN
+                },
+                init: sandbox.stub(),
+                save: sandbox.stub(),
+                logger: TEST_LOGGER
+            };
+            const testCallback = sandbox.spy();
+            context.init.throws(new Error('Error: Data Not Available'));
+            context.save.returns(Promise.resolve());
+
+            await AuthInfo.prototype.jwtRefresh.call(context, null, testCallback);
+            expect(testCallback.called).to.be.true;
+            const sfdxError = testCallback.firstCall.args[0];
+            expect(sfdxError.name).to.equal('OrgDataNotAvailableError');
+        });
     });
 
     describe('oauthRefresh()', () => {
@@ -604,18 +676,23 @@ describe('AuthInfo', () => {
         });
 
         it('should use the correct audience URL for an internal URL (.vpod)', async () => {
-            const vpodUrl = 'http://mydevhub.vpod.salesforce.com:6109';
+            const vpodUrl = 'http://mydevhub.vpod.salesforce.com';
             await runTest({ loginUrl: vpodUrl }, vpodUrl);
         });
 
         it('should use the correct audience URL for an internal URL (.blitz)', async () => {
-            const blitzUrl = 'http://mydevhub.blitz.salesforce.com:6109';
+            const blitzUrl = 'http://mydevhub.blitz.salesforce.com';
             await runTest({ loginUrl: blitzUrl }, blitzUrl);
         });
 
         it('should use the correct audience URL for an internal URL (.stm)', async () => {
-            const stmUrl = 'http://mydevhub.stm.salesforce.com:6109';
+            const stmUrl = 'http://mydevhub.stm.salesforce.com';
             await runTest({ loginUrl: stmUrl }, stmUrl);
+        });
+
+        it('should use the correct audience URL for an internal URL (.mobile1)', async () => {
+            const mobile1Url = 'http://mobile1.t.salesforce.com';
+            await runTest({ loginUrl: mobile1Url }, mobile1Url);
         });
 
         it('should use the correct audience URL for createdOrgInstance beginning with "cs"', async () => {

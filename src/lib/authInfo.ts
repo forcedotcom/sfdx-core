@@ -106,7 +106,7 @@ export enum SFDC_URLS {
     production = 'https://login.salesforce.com'
 }
 
-const INTERNAL_URL_PARTS = ['.internal.', '.vpod.', 'stm.salesforce.com', '.blitz.salesforce.com'];
+const INTERNAL_URL_PARTS = ['.internal.', '.vpod.', 'stm.salesforce.com', '.blitz.salesforce.com', 'mobile1.t.salesforce.com'];
 
 function isInternalUrl(loginUrl: string = ''): boolean {
     return loginUrl.startsWith('https://gs1.') || _.some(INTERNAL_URL_PARTS, (part) => loginUrl.includes(part));
@@ -326,9 +326,10 @@ export class AuthInfo {
             clientId: this.fields.clientId,
             privateKeyFile: this.fields.privateKey
         };
-        await this.init(options);
-        await this.save();
+
         try {
+            await this.init(options);
+            await this.save();
             return await callback(null, this.fields.accessToken);
         } catch (err) {
             if (err.message && err.message.includes('Data Not Available')) {
