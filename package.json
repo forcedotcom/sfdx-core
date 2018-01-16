@@ -10,9 +10,9 @@
     "lint-report": "yarn lint -t checkstyle -o checkstyle.xml",
     "clean": "scripts/clean.js",
     "compile": "tsc -p ./tsconfig.json",
-    "build": "yarn clean && yarn compile",
+    "build": "yarn clean && yarn lint && yarn compile",
     "watch": "tsc -w -p tsconfig.json",
-    "test": "yarn lint && mocha --recursive dist/test/unit",
+    "test": "mocha --recursive dist/test/unit",
     "test-with-coverage": "yarn lint-report && scripts/unit-test-with-coverage.js",
     "prepare": "yarn run build"
   },
