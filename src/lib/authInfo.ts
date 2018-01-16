@@ -7,8 +7,7 @@
 
 import * as path from 'path';
 import { parse as urlParse } from 'url';
-import { lookup } from 'dns';
-import { promisify } from 'util';
+import * as dns from 'dns';
 import { randomBytes, createHash } from 'crypto';
 import * as _ from 'lodash';
 import { OAuth2, OAuth2Options } from 'jsforce';
@@ -19,8 +18,6 @@ import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
 import { SfdxUtil } from './util';
 import { SFDX_HTTP_HEADERS } from './connection';
-
-const lookupAsync = promisify(lookup);
 
 // Fields that are persisted in auth files
 export interface AuthFields {
@@ -109,7 +106,7 @@ export enum SFDC_URLS {
     production = 'https://login.salesforce.com'
 }
 
-const INTERNAL_URL_PARTS = ['.internal.', '.vpod.', 'stm.salesforce.com', '.blitz.salesforce.com'];
+const INTERNAL_URL_PARTS = ['.internal.', '.vpod.', 'stm.salesforce.com', '.blitz.salesforce.com', 'mobile1.t.salesforce.com'];
 
 function isInternalUrl(loginUrl: string = ''): boolean {
     return loginUrl.startsWith('https://gs1.') || _.some(INTERNAL_URL_PARTS, (part) => loginUrl.includes(part));
@@ -177,7 +174,7 @@ export class AuthInfo {
 
         // Must specify either username and/or options
         if (!username && !options) {
-            throw SfdxError.create('sfdx-core', 'AuthInfoCreationError');
+            throw await SfdxError.create('sfdx-core', 'AuthInfoCreationError');
         }
 
         const authInfo = new AuthInfo(username);
@@ -268,10 +265,6 @@ export class AuthInfo {
         return this.fields.username;
     }
 
-    get authCode(): string {
-        return this.fields.authCode;
-    }
-
     public isJwt(): boolean {
         const { refreshToken, privateKey, privateKeyFile } = this.fields;
         return !refreshToken && !!(privateKey || privateKeyFile);
@@ -333,9 +326,10 @@ export class AuthInfo {
             clientId: this.fields.clientId,
             privateKeyFile: this.fields.privateKey
         };
-        await this.init(options);
-        await this.save();
+
         try {
+            await this.init(options);
+            await this.save();
             return await callback(null, this.fields.accessToken);
         } catch (err) {
             if (err.message && err.message.includes('Data Not Available')) {
@@ -343,7 +337,7 @@ export class AuthInfo {
                 for (let i = 1; i < 5; i++) {
                     errConfig.addAction(`OrgDataNotAvailableErrorAction${i}`);
                 }
-                return callback(SfdxError.create(errConfig));
+                return callback(await SfdxError.create(errConfig));
             }
             return callback(err);
         }
@@ -411,7 +405,8 @@ export class AuthInfo {
     public getAuthorizationUrl(options: OAuth2Options): string {
         const oauth2 = new AuthCodeOAuth2(options);
 
-        // The state parameter allows the redirectUri callback listener to ignore request that don't contain the state value.
+        // The state parameter allows the redirectUri callback listener to ignore request
+        // that don't contain the state value.
         const params = {
             state: randomBytes(Math.ceil(6)).toString('hex'),
             prompt: 'login',
@@ -443,16 +438,17 @@ export class AuthInfo {
         try {
             _authFields = await oauth2.jwtAuthorize(jwtToken);
         } catch (err) {
-            throw SfdxError.create('sfdx-core', 'JWTAuthError', [err.message]);
+            throw await SfdxError.create('sfdx-core', 'JWTAuthError', [err.message]);
         }
 
         const authFields: Partial<AuthFields> = {
             accessToken: _authFields.access_token,
             orgId: _parseIdUrl(_authFields.id).orgId,
-            loginUrl: options.loginUrl
+            loginUrl: options.loginUrl,
+            privateKey: options.privateKeyFile
         };
         try {
-            await lookupAsync(urlParse(_authFields.instance_url).hostname);
+            await dns.lookup(urlParse(_authFields.instance_url).hostname, null);
             authFields.instanceUrl = _authFields.instance_url;
         } catch (err) {
             this.logger.info(`Instance URL [${_authFields.instance_url}] is not available.  DNS lookup failed.`);
@@ -473,7 +469,7 @@ export class AuthInfo {
         try {
             _authFields = await oauth2.refreshToken(options.refreshToken);
         } catch (err) {
-            throw SfdxError.create('sfdx-core', 'RefreshTokenAuthError', [err.message]);
+            throw await SfdxError.create('sfdx-core', 'RefreshTokenAuthError', [err.message]);
         }
 
         return {
@@ -481,7 +477,9 @@ export class AuthInfo {
             instanceUrl: _authFields.instance_url,
             orgId: _parseIdUrl(_authFields.id).orgId,
             loginUrl: options.loginUrl || _authFields.instance_url,
-            refreshToken: options.refreshToken
+            refreshToken: options.refreshToken,
+            clientId: options.clientId,
+            clientSecret: options.clientSecret
         };
     }
 
@@ -494,7 +492,7 @@ export class AuthInfo {
             this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
             _authFields = await oauth2.requestToken(options.authCode);
         } catch (err) {
-            throw SfdxError.create('sfdx-core', 'AuthCodeExchangeError', [err.message]);
+            throw await SfdxError.create('sfdx-core', 'AuthCodeExchangeError', [err.message]);
         }
 
         const { userId, orgId } = _parseIdUrl(_authFields.id);
@@ -512,7 +510,7 @@ export class AuthInfo {
             const response = await new Transport().httpRequest({ url, headers });
             username = _.get(JSON.parse(response.body), 'Username');
         } catch (err) {
-            throw SfdxError.create('sfdx-core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
+            throw await SfdxError.create('sfdx-core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
         }
 
         return {
