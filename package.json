@@ -14,7 +14,9 @@
     "watch": "tsc -w -p tsconfig.json",
     "test": "mocha --recursive dist/test/unit",
     "test-with-coverage": "yarn lint-report && scripts/unit-test-with-coverage.js",
-    "prepare": "yarn run build"
+    "prepare": "yarn run build",
+    "docgen": "node_modules/.bin/jsdoc dist --readme README.md -r -c jsdoc.json --package package.json",
+    "tsdoc": "node_modules/.bin/typedoc --mode modules --out typedocs --exclude '**/node_modules/**/*' --module commonjs --ignoreCompilerErrors src/lib --readme README.md"
   },
   "keywords": [
     "force",
@@ -38,11 +40,14 @@
     "@types/mocha": "2.2.42",
     "@types/node": "8.0.25",
     "chai": "4.1.1",
+    "docdash": "^0.4.0",
     "istanbul": "v1.1.0-alpha.1",
+    "jsdoc": "^3.5.5",
     "mocha": "2.4.5",
     "shelljs": "0.7.8",
     "sinon": "3.2.1",
     "tslint": "5.8.0",
+    "typedoc": "^0.9.0",
     "typescript": "2.4.2",
     "xunit-file": "1.0.0"
   },

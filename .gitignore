@@ -1,6 +1,8 @@
 node_modules
 dist
 .idea/*
+.sfdx
+.vscode/settings.json
 
 yarn.lock
 package-lock.json
