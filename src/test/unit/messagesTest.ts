@@ -11,10 +11,12 @@ import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 
 import Messages from '../../lib/messages';
+import { testSetup } from '../testSetup';
+
+// Setup the test environment.
+const $$ = testSetup();
 
 describe('Messages', () => {
-    const sandbox = sinon.sandbox.create();
-
     const testMessages = {
         msg1: 'test message 1',
         msg2: 'test message 2 %s and %s'
@@ -23,10 +25,6 @@ describe('Messages', () => {
     const msgMap = new Map();
     msgMap.set('msg1', testMessages.msg1);
     msgMap.set('msg2', testMessages.msg2);
-
-    afterEach(() => {
-        sandbox.restore();
-    });
 
     describe('getMessage', () => {
         const messages = new Messages('myBundle', Messages.locale, msgMap);
@@ -57,17 +55,17 @@ describe('Messages', () => {
         });
 
         it('should add the message file to the map of loaders', () => {
-            const loaderSetStub = sandbox.stub(Messages.loaders, 'set');
-            sandbox.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
+            const loaderSetStub = $$.SANDBOX.stub(Messages.loaders, 'set');
+            $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
             Messages.importMessageFile('myPluginMessages.json');
             expect(loaderSetStub.firstCall.args[0]).to.equal('myPluginMessages');
             expect(loaderSetStub.firstCall.args[1]).to.equal('loaderFunction');
         });
 
         it('should NOT add the message file to the map of loaders when the bundle already exists', () => {
-            sandbox.stub(Messages.loaders, 'has').returns(true);
-            const loaderSetStub = sandbox.stub(Messages.loaders, 'set');
-            sandbox.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
+            $$.SANDBOX.stub(Messages.loaders, 'has').returns(true);
+            const loaderSetStub = $$.SANDBOX.stub(Messages.loaders, 'set');
+            $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
             Messages.importMessageFile('myPluginMessages.json');
             expect(loaderSetStub.called).to.be.false;
         });
@@ -86,10 +84,10 @@ describe('Messages', () => {
         const messagesDirPath = `myModule${path.sep}dist`;
 
         beforeEach(() => {
-            importMessageFileStub = sandbox.stub(Messages, 'importMessageFile');
-            readdirSyncStub = sandbox.stub(fs, 'readdirSync');
+            importMessageFileStub = $$.SANDBOX.stub(Messages, 'importMessageFile');
+            readdirSyncStub = $$.SANDBOX.stub(fs, 'readdirSync');
             readdirSyncStub.returns(msgFiles);
-            statSyncStub = sandbox.stub(fs, 'statSync');
+            statSyncStub = $$.SANDBOX.stub(fs, 'statSync');
             statSyncStub.returns({ isDirectory: () => false, isFile: () => true });
         });
 
@@ -125,7 +123,7 @@ describe('Messages', () => {
 
         it('should throw an error when the file is empty', async () => {
             const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.json');
-            sandbox.stub(Messages, '_readFile').returns(Promise.resolve(''));
+            $$.SANDBOX.stub(Messages, '_readFile').returns(Promise.resolve(''));
 
             try {
                 await loaderFn(Messages.locale);
@@ -138,7 +136,7 @@ describe('Messages', () => {
 
         it('should throw an error when the file is invalid JSON', async () => {
             const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.json');
-            sandbox.stub(Messages, '_readFile').returns(Promise.resolve('key1=value1,key2=value2'));
+            $$.SANDBOX.stub(Messages, '_readFile').returns(Promise.resolve('key1=value1,key2=value2'));
 
             try {
                 await loaderFn(Messages.locale);
@@ -151,7 +149,7 @@ describe('Messages', () => {
 
         it('should return a Messages object', async () => {
             const loaderFn = Messages.generateFileLoaderFunction('myBundleName', 'myPluginMessages.json');
-            sandbox.stub(Messages, '_readFile').returns(Promise.resolve(JSON.stringify(testMessages)));
+            $$.SANDBOX.stub(Messages, '_readFile').returns(Promise.resolve(JSON.stringify(testMessages)));
             const messages = await loaderFn(Messages.locale);
             expect(messages).to.have.property('bundle', 'myBundleName');
             expect(messages).to.have.property('locale', Messages.locale);

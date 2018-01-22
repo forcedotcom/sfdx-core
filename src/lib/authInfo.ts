@@ -207,8 +207,45 @@ export class AuthInfo {
         return authInfo;
     }
 
+    /**
+     * The intent of the function is to determine if a user has authenticated at least once. The only way to really do this
+     * is to check to see if there are any org files. If so, then we can assume there is a keychain in use only if there is
+     * no generic keychain file.
+     */
+    public static async hasAuthentications(): Promise<boolean> {
+        try {
+            return !_.isEmpty(await AuthInfo.listAllAuthFiles());
+        } catch (err) {
+            // ENOENT
+            if (err.name === 'NoOrgsFoundError' || err.code === 'ENOENT') {
+                return false;
+            }
+            throw err;
+        }
+    }
+
+    /**
+     * Returns a list of all auth files stored in the global directory
+     */
+    public static async listAllAuthFiles(): Promise<string[]> {
+        const globalFiles = await SfdxUtil.readdir(Global.DIR);
+        const authFiles = globalFiles.filter((file) => file.match(AuthInfo.authFilenameFilterRegEx));
+
+        // Want to throw a clean error if no files are found.
+        if (_.isEmpty(authFiles)) {
+            const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'OrgDataNotAvailableError', null, 'NoOrgsFoundErrorAction');
+            throw await SfdxError.create(errConfig);
+        }
+
+        // At least one auth file is in the global dir.
+        return authFiles;
+    }
+
     // Cache of auth fields by username.
     private static cache: Map<string, Partial<AuthFields>> = new Map();
+
+    // The regular expression that filters files stored in $HOME/.sfdx
+    private static authFilenameFilterRegEx: RegExp = /^[^.][^@]+@[^.]+(\.[^.\s]+)+\.json$/;
 
     private logger: Logger;
     private fields: Partial<AuthFields> = {};

@@ -12,11 +12,12 @@ import { Connection, SFDX_HTTP_HEADERS } from '../../lib/connection';
 import { AuthInfo } from '../../lib/authInfo';
 import { Logger } from '../../lib/logger';
 import * as jsforce from 'jsforce';
+import { testSetup } from '../testSetup';
+
+// Setup the test environment.
+const $$ = testSetup();
 
 describe('Connection', () => {
-
-    const sandbox = sinon.sandbox.create();
-    const TEST_LOGGER = new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging();
 
     const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
     let refreshCalled: boolean;
@@ -29,12 +30,7 @@ describe('Connection', () => {
 
     beforeEach(() => {
         refreshCalled = false;
-        sandbox.stub(jsforce.Connection.prototype, 'initialize').returns({});
-        sandbox.stub(Logger, 'child').returns(Promise.resolve(TEST_LOGGER));
-    });
-
-    afterEach(() => {
-        sandbox.restore();
+        $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns({});
     });
 
     it('create() should create a connection using AuthInfo and SFDX options', async () => {
@@ -82,7 +78,7 @@ describe('Connection', () => {
 
     it('request() should add SFDX headers and call super() for a URL arg', async () => {
         const testResponse = { success: true };
-        sandbox.stub(jsforce.Connection.prototype, 'request').returns(Promise.resolve(testResponse));
+        $$.SANDBOX.stub(jsforce.Connection.prototype, 'request').returns(Promise.resolve(testResponse));
         const testUrl = 'connectionTest/request/url';
         const expectedRequestInfo = { method: 'GET', url: testUrl, headers: SFDX_HTTP_HEADERS };
 
@@ -98,7 +94,7 @@ describe('Connection', () => {
 
     it('request() should add SFDX headers and call super() for a RequestInfo and options arg', async () => {
         const testResponse = { success: true };
-        sandbox.stub(jsforce.Connection.prototype, 'request').returns(Promise.resolve(testResponse));
+        $$.SANDBOX.stub(jsforce.Connection.prototype, 'request').returns(Promise.resolve(testResponse));
         const testUrl = 'connectionTest/request/url/describe';
 
         const conn = await Connection.create(testAuthInfo as any);

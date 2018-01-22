@@ -9,5 +9,19 @@
     "OrgDataNotAvailableErrorAction1": "Run `sfdx force:org:list --clean` to remove stale org authentications.",
     "OrgDataNotAvailableErrorAction2": "Use `sfdx force:config:set` to update the defaultusername.",
     "OrgDataNotAvailableErrorAction3": "Use `sfdx force:org:create` to create a new org.",
-    "OrgDataNotAvailableErrorAction4": "Use `sfdx force:auth` to authenticate an existing org."
+    "OrgDataNotAvailableErrorAction4": "Use `sfdx force:auth` to authenticate an existing org.",
+    "InvalidEncryptedFormatError": "The encrypted data is not properly formatted.",
+    "InvalidEncryptedFormatErrorAction": "If attempting to create a scratch org then re-authorize. Otherwise create a new scratch org.",
+    "AuthDecryptError": "Failed to decipher auth data. reason: %s.",
+    "NoOrgsFoundError": "No scratch orgs can be found.",
+    "NoOrgsFoundErrorAction": "Use one of the commands in force:auth or force:org:create to add or create new scratch orgs.",
+    "UnsupportedOperatingSystemError": "Unsupported Operating System: %s",
+    "MissingCredentialProgramError": "Unable to find required security software: %s",
+    "CredentialProgramAccessError": "Unable to execute security software: %s",
+    "PasswordRetryError": "Failed to get the password after %i retries.",
+    "PasswordRequiredError": "A password is required.",
+    "KeyChainServiceRequiredError": "Unable to get or set a keychain value without a service name.",
+    "KeyChainAccountRequiredError": "Unable to get or set a keychain value without an account name.",
+    "KeyChainPasswordNotFoundError": "Could not find password.",
+    "KeyChainUserCanceledError": "User canceled authentication."
 }

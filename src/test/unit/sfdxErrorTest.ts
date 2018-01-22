@@ -10,6 +10,7 @@ import { assert, expect } from 'chai';
 
 import { SfdxErrorConfig, SfdxError } from '../../lib/sfdxError';
 import Messages from '../../lib/messages';
+import { testSetup } from '../testSetup';
 
 const testMessages = {
     Test1Error: 'This is test error message 1',
@@ -23,7 +24,8 @@ const testMessages = {
 
 Messages.importMessageFile('testMessages.json');
 
-const sandbox = sinon.sandbox.create();
+// Setup the test environment.
+const $$ = testSetup();
 
 describe('SfdxError', () => {
 
@@ -47,11 +49,7 @@ describe('SfdxError', () => {
         let _readFileStub;
 
         beforeEach(() => {
-            _readFileStub = sandbox.stub(Messages, '_readFile');
-        });
-
-        afterEach(() => {
-            sandbox.restore();
+            _readFileStub = $$.SANDBOX.stub(Messages, '_readFile');
         });
 
         it('should return a new SfdxError when passed a bundle and key', async () => {
@@ -114,10 +112,6 @@ describe('SfdxError', () => {
 
 describe('SfdxErrorConfig', () => {
 
-    afterEach(() => {
-        sandbox.restore();
-    });
-
     it('is mutable except for bundle', () => {
         const bundle: string = 'testMessages';
         const errorKey: string = 'Test1Error';
@@ -157,7 +151,7 @@ describe('SfdxErrorConfig', () => {
     it('should call Messages.loadMessages with the bundle name for load()', async () => {
         const messages = { sampleMsgKey: 'here is a sample message' };
         const bundle = 'sfdx-core';
-        const loadMessagesStub = sandbox.stub(Messages, 'loadMessages');
+        const loadMessagesStub = $$.SANDBOX.stub(Messages, 'loadMessages');
         loadMessagesStub.returns(Promise.resolve(messages));
         const errConfig = new SfdxErrorConfig(bundle, 'foo');
         const msgs = await errConfig.load();

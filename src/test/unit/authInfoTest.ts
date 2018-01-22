@@ -17,13 +17,14 @@ import { SfdxUtil } from '../../lib/util';
 import { OAuth2 } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
+import { testSetup } from '../testSetup';
 
 Messages.importMessageFile(path.join(__dirname, '..', '..', '..', 'messages', 'sfdx-core.json'));
 
-describe('AuthInfo', () => {
+// Setup the test environment.
+const $$ = testSetup();
 
-    const sandbox = sinon.sandbox.create();
-    const TEST_LOGGER = new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging();
+describe('AuthInfo', () => {
 
     // TODO: fix this when it's no longer hard coded.
     const instanceUrl = 'http://mydevhub.localhost.internal.salesforce.com:6109';
@@ -45,24 +46,19 @@ describe('AuthInfo', () => {
 
     beforeEach(() => {
         // Common stubs
-        sandbox.stub(Logger, 'child').returns(Promise.resolve(TEST_LOGGER));
-        sandbox.stub(Global, 'saveConfigInfo').returns(Promise.resolve());
+        $$.SANDBOX.stub(Global, 'saveConfigInfo').returns(Promise.resolve());
 
         // These stubs return different objects based on the tests
-        _postParmsStub = sandbox.stub(OAuth2.prototype, '_postParams');
-        readFileStub = sandbox.stub(SfdxUtil, 'readFile');
+        _postParmsStub = $$.SANDBOX.stub(OAuth2.prototype, '_postParams');
+        readFileStub = $$.SANDBOX.stub(SfdxUtil, 'readFile');
 
         // Spies
-        sandbox.spy(AuthInfo.prototype, 'init');
-        sandbox.spy(AuthInfo.prototype, 'update');
-        sandbox.spy(AuthInfo.prototype, 'buildJwtConfig');
-        sandbox.spy(AuthInfo.prototype, 'buildRefreshTokenConfig');
-        sandbox.spy(AuthInfo.prototype, 'buildWebAuthConfig');
-        sandbox.spy(Global, 'fetchConfigInfo');
-    });
-
-    afterEach(() => {
-        sandbox.restore();
+        $$.SANDBOX.spy(AuthInfo.prototype, 'init');
+        $$.SANDBOX.spy(AuthInfo.prototype, 'update');
+        $$.SANDBOX.spy(AuthInfo.prototype, 'buildJwtConfig');
+        $$.SANDBOX.spy(AuthInfo.prototype, 'buildRefreshTokenConfig');
+        $$.SANDBOX.spy(AuthInfo.prototype, 'buildWebAuthConfig');
+        $$.SANDBOX.spy(Global, 'fetchConfigInfo');
     });
 
     describe('create()', () => {
@@ -97,8 +93,8 @@ describe('AuthInfo', () => {
             // Stub file I/O, http requests, and the DNS lookup
             readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
             _postParmsStub.returns(Promise.resolve(authResponse));
-            sandbox.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-            sandbox.stub(dns, 'lookup').returns(Promise.resolve());
+            $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
+            $$.SANDBOX.stub(dns, 'lookup').returns(Promise.resolve());
 
             // Create the JWT AuthInfo instance
             const authInfo = await AuthInfo.create(JWT_USERNAME, jwtConfig);
@@ -204,8 +200,8 @@ describe('AuthInfo', () => {
             // Stub file I/O, http requests, and the DNS lookup
             readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
             _postParmsStub.throws(new Error('authInfoTest_ERROR_MSG'));
-            sandbox.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-            sandbox.stub(dns, 'lookup').returns(Promise.resolve());
+            $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
+            $$.SANDBOX.stub(dns, 'lookup').returns(Promise.resolve());
 
             // Create the JWT AuthInfo instance
             try {
@@ -232,8 +228,8 @@ describe('AuthInfo', () => {
             // Stub file I/O, http requests, and the DNS lookup
             readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
             _postParmsStub.returns(Promise.resolve(authResponse));
-            sandbox.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-            sandbox.stub(dns, 'lookup').throws(new Error('authInfoTest_ERROR_MSG'));
+            $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
+            $$.SANDBOX.stub(dns, 'lookup').throws(new Error('authInfoTest_ERROR_MSG'));
 
             // Create the JWT AuthInfo instance
             const authInfo = await AuthInfo.create(username, jwtConfig);
@@ -394,7 +390,7 @@ describe('AuthInfo', () => {
             // Stub the http requests (OAuth2.requestToken() and the request for the username)
             _postParmsStub.returns(Promise.resolve(authResponse));
             const responseBody = { body: JSON.stringify({ Username: username }) };
-            sandbox.stub(Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+            $$.SANDBOX.stub(Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
 
             // Create the refresh token AuthInfo instance
             const authInfo = await AuthInfo.create(null, authCodeConfig);
@@ -465,7 +461,7 @@ describe('AuthInfo', () => {
 
             // Stub the http request (OAuth2.requestToken())
             _postParmsStub.returns(Promise.resolve(authResponse));
-            sandbox.stub(Transport.prototype, 'httpRequest').throws(new Error('authInfoTest_ERROR_MSG'));
+            $$.SANDBOX.stub(Transport.prototype, 'httpRequest').throws(new Error('authInfoTest_ERROR_MSG'));
 
             // Create the auth code AuthInfo instance
             try {
@@ -503,7 +499,7 @@ describe('AuthInfo', () => {
             // Stub the http request (OAuth2.refreshToken())
             _postParmsStub.returns(Promise.resolve(authResponse));
 
-            sandbox.spy(AuthInfo['cache'], 'set');
+            $$.SANDBOX.spy(AuthInfo['cache'], 'set');
 
             // Create the AuthInfo instance
             const authInfo = await AuthInfo.create(username, refreshTokenConfig);
@@ -548,11 +544,11 @@ describe('AuthInfo', () => {
                     privateKey: 'authInfoTest/jwt/server.key',
                     accessToken: ACCESS_TOKEN
                 },
-                init: sandbox.stub(),
-                save: sandbox.stub(),
-                logger: TEST_LOGGER
+                init: $$.SANDBOX.stub(),
+                save: $$.SANDBOX.stub(),
+                logger: $$.TEST_LOGGER
             };
-            const testCallback = sandbox.stub();
+            const testCallback = $$.SANDBOX.stub();
             testCallback.returns(Promise.resolve());
 
             context.init.returns(Promise.resolve());
@@ -580,11 +576,11 @@ describe('AuthInfo', () => {
                     privateKey: 'authInfoTest/jwt/server.key',
                     accessToken: ACCESS_TOKEN
                 },
-                init: sandbox.stub(),
-                save: sandbox.stub(),
-                logger: TEST_LOGGER
+                init: $$.SANDBOX.stub(),
+                save: $$.SANDBOX.stub(),
+                logger: $$.TEST_LOGGER
             };
-            const testCallback = sandbox.spy();
+            const testCallback = $$.SANDBOX.spy();
             context.init.throws(new Error('Error: Data Not Available'));
             context.save.returns(Promise.resolve());
 
@@ -598,8 +594,8 @@ describe('AuthInfo', () => {
     describe('oauthRefresh()', () => {
         it('should call save()', async () => {
             const context = {
-                save: sandbox.stub(),
-                logger: TEST_LOGGER
+                save: $$.SANDBOX.stub(),
+                logger: $$.TEST_LOGGER
             };
             context.save.returns(Promise.resolve());
             const accessToken = `${ACCESS_TOKEN}_oauthRefreshTest`;
@@ -637,7 +633,7 @@ describe('AuthInfo', () => {
         async function runTest(options, expectedUrl: string) {
             const context = {
                 username: JWT_USERNAME,
-                logger: TEST_LOGGER
+                logger: $$.TEST_LOGGER
             };
             const defaults = {
                 clientId: CLIENT_ID,
@@ -654,8 +650,8 @@ describe('AuthInfo', () => {
             // Stub file I/O, http requests, and the DNS lookup
             readFileStub.returns(Promise.resolve('audienceUrlTest_privateKey'));
             _postParmsStub.returns(Promise.resolve(authResponse));
-            sandbox.stub(jwt, 'sign').returns(Promise.resolve('audienceUrlTest_jwtToken'));
-            sandbox.stub(dns, 'lookup').returns(Promise.resolve());
+            $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('audienceUrlTest_jwtToken'));
+            $$.SANDBOX.stub(dns, 'lookup').returns(Promise.resolve());
 
             await AuthInfo.prototype['buildJwtConfig'].call(context, options);
 

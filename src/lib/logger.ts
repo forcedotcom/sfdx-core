@@ -66,8 +66,6 @@ export enum LoggerLevel {
 
 const SFDX_LOGGER_NAME = 'sfdx';
 const DEFAULT_LOG_LEVEL = LoggerLevel.WARN;
-const DEFAULT_USER_DIR_MODE: string = '700';
-const DEFAULT_USER_FILE_MODE: string = '600';
 
 // Ok to log clientid
 const FILTERED_KEYS = [
@@ -262,12 +260,12 @@ export class Logger extends Bunyan {
             await SfdxUtil.access(logFile, fs.constants.W_OK);
         } catch (err1) {
             try {
-                await SfdxUtil.mkdirp(path.dirname(logFile), { mode: DEFAULT_USER_DIR_MODE });
+                await SfdxUtil.mkdirp(path.dirname(logFile), { mode: SfdxUtil.DEFAULT_USER_DIR_MODE });
             } catch (err2) {
                 // noop; directory exists already
             }
             try {
-                await SfdxUtil.writeFile(logFile, '', { mode: DEFAULT_USER_FILE_MODE });
+                await SfdxUtil.writeFile(logFile, '', { mode: SfdxUtil.DEFAULT_USER_FILE_MODE });
             } catch (err3) {
                 throw SfdxError.wrap(err3);
             }

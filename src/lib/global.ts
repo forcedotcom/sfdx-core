@@ -45,6 +45,10 @@ export class Global {
         return new Mode(process.env.SFDX_ENV);
     }
 
+    public static async createDir(): Promise<any> {
+        await SfdxUtil.mkdirp(Global.DIR, SfdxUtil.DEFAULT_USER_DIR_MODE);
+    }
+
     /**
      * Single place to read global config information.
      * @param fileName name of the JSON config file from which to read.

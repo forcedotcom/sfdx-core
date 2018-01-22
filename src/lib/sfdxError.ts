@@ -123,8 +123,27 @@ export class SfdxErrorConfig {
 }
 
 /*
- *  A generalized sfdx error which also contains an action. The action is used in the
- *  CLI to help guide users past the error.
+ * A generalized sfdx error which also contains an action. The action is used in the
+ * CLI to help guide users past the error.
+ *
+ * @example
+ * To throw an error in a synchronous function you must either pass the error message and actions
+ * directly to the constructor, e.g.,
+ *      throw new SfdxError('The error message', 'TheErrorName', ['Take this action'])
+ * Or you can load the messages in an asynchronous function so they are available in synchronous
+ * functions, e.g.,
+ *      public async init() {
+ *          Messages.importMessagesDirectory(__dirname);
+ *          this.messages = await Messages.loadMessages('myBundleName');
+ *      }
+ *      public doSomething() {
+ *          if (conditionNotMet) {
+ *              const myErrMsg = this.messages.getMessage('MyErrorMessageKey');
+ *              throw new SfdxError(myErrMsg, 'MyErrorName');
+ *          }
+ *      }
+ * To throw an error in an asynchronous function you can use the static create methods, e.g.,
+ *      throw await SfdxError.create('myBundleName', 'MyErrorMessageKey', [messageToken1]);
  */
 export class SfdxError extends Error {
     /**
