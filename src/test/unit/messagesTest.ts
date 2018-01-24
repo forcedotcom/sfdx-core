@@ -81,7 +81,7 @@ describe('Messages', () => {
             'soqlMessages.json'
         ];
 
-        const messagesDirPath = `myModule${path.sep}dist`;
+        const messagesDirPath = `myModule${path.sep}dist${path.sep}lib`;
 
         beforeEach(() => {
             importMessageFileStub = $$.SANDBOX.stub(Messages, 'importMessageFile');
@@ -93,7 +93,7 @@ describe('Messages', () => {
 
         it('should import each message file', () => {
             Messages.importMessagesDirectory(messagesDirPath, false);
-            const expectedMsgDirPath = path.join('myModule', 'dist', 'messages');
+            const expectedMsgDirPath = path.join('myModule', 'dist', 'lib', 'messages');
             expect(readdirSyncStub.called).to.be.true;
             expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
             expect(importMessageFileStub.firstCall.args[0]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
