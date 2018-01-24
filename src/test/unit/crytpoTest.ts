@@ -8,7 +8,6 @@
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 import * as path from 'path';
-import * as _crypto from 'crypto';
 import { testSetup } from '../testSetup';
 import { Crypto } from '../../lib/crypto';
 import { Logger } from '../../lib/logger';

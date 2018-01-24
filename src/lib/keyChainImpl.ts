@@ -10,7 +10,7 @@ import * as _ from 'lodash';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { spawn } from 'child_process';
+import * as childProcess from 'child_process';
 
 import { SfdxError } from './sfdxError';
 import { SfdxUtil } from './util';
@@ -133,7 +133,7 @@ export class KeychainAccess {
 
         await this.validateProgram();
 
-        const credManager = this.osImpl.getCommandFunc(opts, spawn);
+        const credManager = this.osImpl.getCommandFunc(opts, childProcess.spawn);
 
         let stdout = '';
         let stderr = '';
@@ -187,7 +187,7 @@ export class KeychainAccess {
 
         await _validateProgram(this.osImpl.getProgram(), this.fsIfc, _isExe);
 
-        const credManager = this.osImpl.setCommandFunc(opts, spawn);
+        const credManager = this.osImpl.setCommandFunc(opts, childProcess.spawn);
 
         let stdout = '';
         let stderr = '';
