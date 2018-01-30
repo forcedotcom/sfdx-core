@@ -18,6 +18,7 @@ import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
 import { SfdxUtil } from './util';
 import { SFDX_HTTP_HEADERS } from './connection';
+import { Crypto } from './crypto';
 
 // Fields that are persisted in auth files
 export interface AuthFields {
@@ -35,7 +36,6 @@ export interface AuthFields {
     orgId: string;
     password: string;
     privateKey: string;
-    privateKeyFile: string;
     refreshToken: string;
     scratchAdminUsername: string;
     userId: string;
@@ -151,6 +151,28 @@ const DEFAULT_CONNECTED_APP_INFO = {
     clientSecret: '1384510088588713504'
 };
 
+let authInfoCrypto: AuthInfoCrypto;
+
+class AuthInfoCrypto extends Crypto {
+    public static async create(): Promise<AuthInfoCrypto> {
+        return await new AuthInfoCrypto().init() as AuthInfoCrypto;
+    }
+
+    private static readonly encryptedFields = ['accessToken', 'refreshToken', 'password', 'clientSecret'];
+
+    public decryptFields(fields: Partial<AuthFields>) {
+        return this._crypt(fields, 'decrypt');
+    }
+
+    public encryptFields(fields: Partial<AuthFields>) {
+        return this._crypt(fields, 'encrypt');
+    }
+
+    private _crypt(fields: Partial<AuthFields>, method: string): Partial<AuthFields> {
+        return _.mapValues(fields, (val, key) => AuthInfoCrypto.encryptedFields.includes(key) ? this[method](val) : val);
+    }
+}
+
 // Makes a nodejs base64 encoded string compatible with rfc4648 alternative encoding for urls.
 // @param base64Encoded a nodejs base64 encoded string
 function base64UrlEscape(base64Encoded: string): string {
@@ -182,8 +204,9 @@ export class AuthInfo {
         // If the username is an access token, use that for auth and don't persist
         const accessTokenMatch = _.isString(username) && username.match(/^(00D\w{12,15})![\.\w]*$/);
         if (accessTokenMatch) {
-            // Need to setup the logger since we don't call init()
+            // Need to setup the logger and authInfoCrypto since we don't call init()
             authInfo.logger = await Logger.child('AuthInfo');
+            authInfoCrypto = await AuthInfoCrypto.create();
 
             // TODO: remove hardcoding when sfdx-core config class is ready
             const instanceUrl = 'http://mydevhub.localhost.internal.salesforce.com:6109';
@@ -195,33 +218,16 @@ export class AuthInfo {
             //     instanceUrl = sfdxConfig.get('instanceUrl') || urls.production;
             // }
 
-            authInfo.fields = {
+            authInfo.update({
                 accessToken: username,
                 instanceUrl,
                 orgId: accessTokenMatch[1]
-            };
+            });
         } else {
             await authInfo.init(options);
         }
 
         return authInfo;
-    }
-
-    /**
-     * The intent of the function is to determine if a user has authenticated at least once. The only way to really do this
-     * is to check to see if there are any org files. If so, then we can assume there is a keychain in use only if there is
-     * no generic keychain file.
-     */
-    public static async hasAuthentications(): Promise<boolean> {
-        try {
-            return !_.isEmpty(await AuthInfo.listAllAuthFiles());
-        } catch (err) {
-            // ENOENT
-            if (err.name === 'NoOrgsFoundError' || err.code === 'ENOENT') {
-                return false;
-            }
-            throw err;
-        }
     }
 
     /**
@@ -248,6 +254,8 @@ export class AuthInfo {
     private static authFilenameFilterRegEx: RegExp = /^[^.][^@]+@[^.]+(\.[^.\s]+)+\.json$/;
 
     private logger: Logger;
+
+    // All sensitive fields are encrypted
     private fields: Partial<AuthFields> = {};
 
     constructor(username: string) {
@@ -260,35 +268,37 @@ export class AuthInfo {
      */
     public async init(options?: OAuth2Options): Promise<AuthInfo> {
         this.logger = await Logger.child('AuthInfo');
+        authInfoCrypto = await AuthInfoCrypto.create();
 
         // If options were passed, use those before checking cache and reading an auth file.
         let authConfig: OAuth2Options;
         if (options) {
             // jwt flow
-            if (options.privateKeyFile) {
+            if (options.privateKey) {
                 authConfig = await this.buildJwtConfig(options);
             } else if (!options.authCode && options.refreshToken) {
-                // refresh token flow
+                // refresh token flow (from sfdxUrl or oauthRefreshFn)
                 authConfig = await this.buildRefreshTokenConfig(options);
             } else {
                 // authcode exchange / web auth flow
                 authConfig = await this.buildWebAuthConfig(options);
             }
+
+            // Update the auth fields WITH encryption
+            this.update(authConfig);
         } else {
             if (AuthInfo.cache.has(this.username)) {
                 authConfig = AuthInfo.cache.get(this.username);
             } else {
                 // Fetch from the persisted auth file
                 authConfig = await Global.fetchConfigInfo(this.authFileName);
-
-                // @TODO: Decrypt access token and refresh token here
             }
+
+            // Update the auth fields WITHOUT encryption (already encrypted)
+            this.update(authConfig, false);
         }
 
-        // Update the auth fields
-        this.update(authConfig);
-
-        // Cache the fields by username
+        // Cache the fields by username (fields are encrypted)
         AuthInfo.cache.set(this.username, this.fields);
 
         return this;
@@ -303,8 +313,8 @@ export class AuthInfo {
     }
 
     public isJwt(): boolean {
-        const { refreshToken, privateKey, privateKeyFile } = this.fields;
-        return !refreshToken && !!(privateKey || privateKeyFile);
+        const { refreshToken, privateKey } = this.fields;
+        return !refreshToken && !!privateKey;
     }
 
     public isAccessTokenFlow(): boolean {
@@ -322,25 +332,34 @@ export class AuthInfo {
     }
 
     /**
-     * Updates the cache and persists the authentication fields.
+     * Updates the cache and persists the authentication fields (encrypted).
      */
     public async save(authData?: Partial<AuthFields>): Promise<any> {
         this.update(authData);
         AuthInfo.cache.set(this.username, this.fields);
 
-        // @TODO: Encrypt access token and refresh token here
+        const dataToSave = _.clone(this.fields);
 
-        await Global.saveConfigInfo(this.authFileName, this.fields);
+        // Do not persist the default client ID and secret
+        if (dataToSave.clientId === DEFAULT_CONNECTED_APP_INFO.clientId) {
+            delete dataToSave.clientId;
+            delete dataToSave.clientSecret;
+        }
+
+        await Global.saveConfigInfo(this.authFileName, dataToSave);
         this.logger.info(`Saved auth info for username: ${this.username}`);
     }
 
     /**
-     * Update the authorization fields but do not persist.
+     * Update the authorization fields, encrypting sensitive fields, but do not persist.
      *
      * @param authData Authorization fields to update.
      */
-    public update(authData: Partial<AuthFields>): AuthInfo {
+    public update(authData: Partial<AuthFields>, encrypt: boolean = true): AuthInfo {
         if (_.isPlainObject(authData)) {
+            if (encrypt) {
+                authData = authInfoCrypto.encryptFields(authData);
+            }
             Object.assign(this.fields, authData);
             this.logger.info(`Updated auth info for username: ${this.username}`);
         }
@@ -348,58 +367,7 @@ export class AuthInfo {
     }
 
     /**
-     * A callback function for a JWT connection to refresh the access token.
-     *
-     * @param conn The jsForce connection
-     * @param callback The callback function to execute after access token refresh.
-     */
-    public async jwtRefresh(conn, callback: (err, accessToken?, res?) => void): Promise<any> {
-        this.logger.info('JWT access token has expired. Updating...');
-
-        // @TODO: figure out loginUrl (probably get from config class)
-        // loginUrl: this.fields.loginUrl || org.config.getAppConfigIfInWorkspace().sfdcLoginUrl,
-        const options: OAuth2Options = {
-            loginUrl: this.fields.loginUrl,
-            clientId: this.fields.clientId,
-            privateKeyFile: this.fields.privateKey
-        };
-
-        try {
-            await this.init(options);
-            await this.save();
-            return await callback(null, this.fields.accessToken);
-        } catch (err) {
-            if (err.message && err.message.includes('Data Not Available')) {
-                const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'OrgDataNotAvailableError', [this.username]);
-                for (let i = 1; i < 5; i++) {
-                    errConfig.addAction(`OrgDataNotAvailableErrorAction${i}`);
-                }
-                return callback(await SfdxError.create(errConfig));
-            }
-            return callback(err);
-        }
-    }
-
-    /**
-     * A function for the connection refresh handler that will refresh the access token
-     * for an OAuth connection.
-     * NOTE: Should be bound to an AuthInfo instance when defined as an on('refresh')
-     *       handler for the connection.
-     * @example
-     *   const authInfo = AuthInfo.create(myUsername);
-     *   const connection = Connection.create(authInfo);
-     *   connection.on('refresh', authInfo.oauthRefresh.bind(authInfo));
-     *
-     * @param accessToken the access token passed by the jsForce connection refresh event.
-     */
-    public async oauthRefresh(accessToken: string): Promise<any> {
-        this.logger.info('OAuth access token has expired. Updating...');
-        await this.save({ accessToken });
-        return this;
-    }
-
-    /**
-     * Return only the auth fields needed to make a connection.
+     * Return only the auth fields (decrypted) needed to make a connection.
      */
     public toJSON(): Partial<AuthFields> {
         let json;
@@ -416,7 +384,7 @@ export class AuthInfo {
             json = {
                 accessToken,
                 instanceUrl,
-                refreshFn: this.jwtRefresh.bind(this)
+                refreshFn: this.refreshFn.bind(this)
             };
         } else {
             // @TODO: figure out loginUrl and redirectUri (probably get from config class)
@@ -424,19 +392,24 @@ export class AuthInfo {
             // redirectUri: org.config.getOauthCallbackUrl()
             // loginUrl: this.fields.instanceUrl || this.config.getAppConfig().sfdcLoginUrl
             this.logger.info('Returning fields for a connection using OAuth config.');
+
+            // Decrypt a user provided client secret or use the default.
+            const clientSecret = this.fields.clientSecret ? authInfoCrypto.decrypt(this.fields.clientSecret) : DEFAULT_CONNECTED_APP_INFO.clientSecret;
             json = {
                 oauth2: {
                     loginUrl: instanceUrl || 'https://login.salesforce.com',
                     clientId: this.fields.clientId || DEFAULT_CONNECTED_APP_INFO.clientId,
-                    clientSecret: this.fields.clientSecret || DEFAULT_CONNECTED_APP_INFO.clientSecret,
+                    clientSecret,
                     redirectUri: 'http://localhost:1717/OauthRedirect'
                 },
                 accessToken,
                 instanceUrl,
-                refreshToken: this.fields.refreshToken
+                refreshFn: this.refreshFn.bind(this)
             };
         }
-        return json;
+
+        // decrypt the fields
+        return authInfoCrypto.decryptFields(json);
     }
 
     public getAuthorizationUrl(options: OAuth2Options): string {
@@ -453,9 +426,30 @@ export class AuthInfo {
         return oauth2.getAuthorizationUrl(params);
     }
 
+    // A callback function for a connection to refresh an access token.  This is used
+    // both for a JWT connection and an OAuth connection.
+    private async refreshFn(conn, callback: (err, accessToken?, res?) => void): Promise<any> {
+        this.logger.info('Access token has expired. Updating...');
+
+        try {
+            await this.init(authInfoCrypto.decryptFields(this.fields));
+            await this.save();
+            return await callback(null, authInfoCrypto.decrypt(this.fields.accessToken));
+        } catch (err) {
+            if (err.message && err.message.includes('Data Not Available')) {
+                const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'OrgDataNotAvailableError', [this.username]);
+                for (let i = 1; i < 5; i++) {
+                    errConfig.addAction(`OrgDataNotAvailableErrorAction${i}`);
+                }
+                return callback(await SfdxError.create(errConfig));
+            }
+            return callback(err);
+        }
+    }
+
     // Build OAuth config for a JWT auth flow
     private async buildJwtConfig(options: OAuth2Options): Promise<any> {
-        const privateKey = await SfdxUtil.readFile(options.privateKeyFile, 'utf8');
+        const privateKeyContents = await SfdxUtil.readFile(options.privateKey, 'utf8');
         const audienceUrl = getJwtAudienceUrl(options);
         const jwtToken = await jwt.sign(
             {
@@ -464,7 +458,7 @@ export class AuthInfo {
                 aud: audienceUrl,
                 exp: Date.now() + 300
             },
-            privateKey,
+            privateKeyContents,
             {
                 algorithm: 'RS256'
             }
@@ -482,7 +476,7 @@ export class AuthInfo {
             accessToken: _authFields.access_token,
             orgId: _parseIdUrl(_authFields.id).orgId,
             loginUrl: options.loginUrl,
-            privateKey: options.privateKeyFile
+            privateKey: options.privateKey
         };
         try {
             await dns.lookup(urlParse(_authFields.instance_url).hostname, null);
@@ -520,6 +514,7 @@ export class AuthInfo {
         };
     }
 
+    // build an OAuth config given an auth code.
     private async buildWebAuthConfig(options: OAuth2Options): Promise<any> {
         const oauth2 = new AuthCodeOAuth2(options);
 

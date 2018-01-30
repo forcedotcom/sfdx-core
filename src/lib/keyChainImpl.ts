@@ -18,20 +18,8 @@ import { Global } from './global';
 
 /* tslint:disable: no-bitwise */
 
-const GET_PASSWORD_RETRY_COUNT = 3;
+const GET_PASSWORD_RETRY_COUNT: number = 3;
 const SECRET_FILE_NAME: string = 'key.json';
-
-/**
- * contents for platform type
- * @type {{WINDOWS: string, DARWIN: string, LINUX: string, GENERIC_UNIX: string}}
- */
-const platforms = {
-    WINDOWS: 'windows',
-    DARWIN: 'darwin',
-    LINUX: 'linux',
-    GENERIC_UNIX: 'generic_unix',
-    GENERIC_WINDOWS: 'generic_windows'
-};
 
 /**
  * Helper to reduce an array of cli args down to a presentable string for logging.
@@ -73,7 +61,6 @@ const _isExe = (mode, gid, uid) => {
         return true;
     }
 
-    // tslint:disable-next-line:no-bitwise
     return Boolean((mode & parseInt('0001', 8)) ||
         ((mode & parseInt('0010', 8)) && process.getgid && gid === process.getgid()) ||
         ((mode & parseInt('0100', 8)) && process.getuid && uid === process.getuid()));
@@ -120,7 +107,7 @@ export class KeychainAccess {
      * @param fn - callback function (err, password)
      * @param retryCount - used internally to track the number of retries for getting a password out of the keychain.
      */
-    public async getPassword(opts, fn, retryCount): Promise<string> {
+    public async getPassword(opts, fn, retryCount = 0): Promise<string> {
         if (_.isNil(opts.service)) {
             fn(await SfdxError.create('sfdx-core', 'KeyChainServiceRequiredError'));
             return;
@@ -142,17 +129,14 @@ export class KeychainAccess {
         credManager.stderr.on('data', (data) => { stderr += data; });
 
         credManager.on('close', async (code) => {
-
-            const currentCount = _.isNil(retryCount) ? 0 : retryCount;
-
             try {
                 return this.osImpl.onGetCommandClose(code, stdout, stderr, opts, fn);
             } catch (e) {
                 if (e.retry) {
-                    if (currentCount >= GET_PASSWORD_RETRY_COUNT) {
+                    if (retryCount >= GET_PASSWORD_RETRY_COUNT) {
                         throw await SfdxError.create('sfdx-core', 'PasswordRetryError', [GET_PASSWORD_RETRY_COUNT]);
                     }
-                    return this.getPassword(opts, fn, currentCount + 1);
+                    return this.getPassword(opts, fn, retryCount + 1);
                 } else {
                     // if retry
                     throw e;
@@ -483,5 +467,6 @@ export const keyChainImpl = {
     generic_unix: new GenericUnixKeychainAccess(),
     generic_windows: new GenericWindowsKeychainAccess(),
     darwin: new KeychainAccess(_darwinImpl, fs),
-    linux: new KeychainAccess(_linuxImpl, fs)
+    linux: new KeychainAccess(_linuxImpl, fs),
+    validateProgram: _validateProgram
 };

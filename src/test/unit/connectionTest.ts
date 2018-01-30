@@ -20,16 +20,13 @@ const $$ = testSetup();
 describe('Connection', () => {
 
     const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
-    let refreshCalled: boolean;
 
     const testAuthInfo = {
         isOauth: () => true,
-        oauthRefresh: () => { refreshCalled = true; },
         toJSON: () => testConnectionOptions
     };
 
     beforeEach(() => {
-        refreshCalled = false;
         $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns({});
     });
 
@@ -42,38 +39,6 @@ describe('Connection', () => {
         expect(conn['loginUrl']).to.equal(testConnectionOptions.loginUrl);
         expect(conn['callOptions']).to.deep.equal({ client: 'sfdx toolbelt:' });
         expect(jsforce.Connection.prototype.initialize['called']).to.be.true;
-    });
-
-    it('constructor should add a refresh handler for oauth connections', () => {
-        const conn = new Connection(testConnectionOptions, testAuthInfo as any);
-
-        expect(conn.request).to.exist;
-        expect(conn['oauth2']).to.be.an('object');
-        expect(conn['authInfo']).to.exist;
-        expect(conn['loginUrl']).to.equal(testConnectionOptions.loginUrl);
-        expect(jsforce.Connection.prototype.initialize['called']).to.be.true;
-
-        // Verify oauth refresh handler called
-        expect(refreshCalled).to.be.false;
-        conn['emit']('refresh');
-        expect(refreshCalled).to.be.true;
-    });
-
-    it('constructor should NOT add a refresh handler for non-oauth connections', () => {
-        const testAuthInfo2 = Object.assign({}, testAuthInfo, { isOauth: () => false });
-
-        const conn = new Connection(testConnectionOptions, testAuthInfo2 as any);
-
-        expect(conn.request).to.exist;
-        expect(conn['oauth2']).to.be.an('object');
-        expect(conn['authInfo']).to.exist;
-        expect(conn['loginUrl']).to.equal(testConnectionOptions.loginUrl);
-        expect(jsforce.Connection.prototype.initialize['called']).to.be.true;
-
-        // Verify oauth refresh handler not called
-        expect(refreshCalled).to.be.false;
-        conn['emit']('refresh');
-        expect(refreshCalled).to.be.false;
     });
 
     it('request() should add SFDX headers and call super() for a URL arg', async () => {

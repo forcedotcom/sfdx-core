@@ -77,46 +77,38 @@ const keychainPromises = {
 
 export class Crypto {
 
-    private enableTokenEncryption: boolean;
+    public static async create(): Promise<Crypto> {
+        return await new Crypto().init();
+    }
 
     private messages: Messages;
 
-    constructor(private keyChain?) {
-        this.enableTokenEncryption = toUpper(process.env.SFDX_DISABLE_ENCRYPTION) !== 'TRUE';
-    }
+    constructor(private keyChain?) { }
 
     /**
      * Initialize any crypto dependencies. In this case we need to generate an encryption key.
      *
      * @param retryStatus - A string message to track retries
-     * @returns {Promise<any>}
+     * @returns {Promise<Crypto>}
      */
-    public async init(retryStatus?: string, platform?: string): Promise<any> {
+    public async init(retryStatus?: string, platform?: string): Promise<Crypto> {
         const logger = await Logger.child('crypto');
 
         if (!platform) {
             platform = os.platform();
         }
 
-        logger.debug(`process.env.SFDX_DISABLE_ENCRYPTION: ${process.env.SFDX_DISABLE_ENCRYPTION}`);
         logger.debug(`retryStatus: ${retryStatus}`);
 
         this.messages = await Messages.loadMessages('sfdx-core');
-
-        if (!this.enableTokenEncryption) {
-            return Promise.resolve(null);
-        }
 
         if (!this.keyChain) {
             this.keyChain = await retrieveKeychain(platform);
 
             return keychainPromises.get(this.keyChain, KEY_NAME, ACCOUNT).then((savedKey) => {
                 logger.debug('password retrieved from keychain');
-
                 _key = savedKey['password'];
-
-                // Just want to have something returned. But I do not want to return the encryption key.
-                return 'ENCRYPTION_KEY_FOUND';
+                return this;
             }).catch((err) => {
                 // No password found
                 if (err.name  === 'PasswordNotFound') {
@@ -152,10 +144,6 @@ export class Crypto {
             return undefined;
         }
 
-        if (!this.enableTokenEncryption) {
-            return text;
-        }
-
         if (isNil(_key)) {
             throw new Error('Failed to create a password in the OSX keychain.');
         }
@@ -168,7 +156,6 @@ export class Crypto {
 
         const tag = cipher.getAuthTag().toString('hex');
         return `${iv}${encrypted}${TAG_DELIMITER}${tag}`;
-
     }
 
     /**
@@ -180,10 +167,6 @@ export class Crypto {
     public decrypt(text): string {
         if (isNil(text)) {
             return undefined;
-        }
-
-        if (!this.enableTokenEncryption) {
-            return text;
         }
 
         const tokens = text.split(TAG_DELIMITER);

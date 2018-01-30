@@ -45,8 +45,14 @@ export class Global {
         return new Mode(process.env.SFDX_ENV);
     }
 
-    public static async createDir(): Promise<any> {
-        await SfdxUtil.mkdirp(Global.DIR, SfdxUtil.DEFAULT_USER_DIR_MODE);
+    /**
+     * Creates a directory within the global directory, or the global directory
+     * itself if a dirPath is not specified.
+     * @param dirPath diretory path to be created within the global directory.
+     */
+    public static async createDir(dirPath?: string): Promise<any> {
+        dirPath = dirPath ? path.join(Global.DIR, dirPath) : Global.DIR;
+        await SfdxUtil.mkdirp(dirPath, SfdxUtil.DEFAULT_USER_DIR_MODE);
     }
 
     /**

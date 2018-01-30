@@ -6,44 +6,17 @@
  */
 
 import * as path from 'path';
-import { SfdxUtil } from './util';
-import { Global } from './global';
 import { keyChainImpl, KeychainAccess, GenericUnixKeychainAccess } from './keyChainImpl';
 import { Logger } from './logger';
-import { AuthInfo } from './authInfo';
 import { SfdxError } from './sfdxError';
 
-const _usingGenericKeychain = async (logger: Logger): Promise<boolean> => {
-    const keyPath = path.join(Global.DIR, 'key.json');
-    logger.debug(`keyPath: ${keyPath}`);
-
-    try {
-        SfdxUtil.open(keyPath, 'r');
-        logger.debug('keyPath found.');
-        return true;
-    } catch (err) {
-        if (err.code === 'ENOENT') {
-            logger.debug('keyPath not found');
-            return false;
-        }
-        logger.debug(err.message);
-        throw err;
-    }
-};
-
-export const retrieveKeychain = async (platform) => {
+export const retrieveKeychain = async (platform): Promise<any> => {
 
     const logger: Logger = await Logger.child('keyChain');
     logger.debug(`platform: ${platform}`);
 
     const useGenericUnixKeychainVar = process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN || process.env.USE_GENERIC_UNIX_KEYCHAIN;
     const shouldUseGenericUnixKeychain = !!useGenericUnixKeychainVar && useGenericUnixKeychainVar.toLowerCase() === 'true';
-
-    const isUsingGenericKeychain = await _usingGenericKeychain(logger);
-    const hasAuthentications = await AuthInfo.hasAuthentications();
-
-    logger.debug(`isUsingGenericKeychain: ${isUsingGenericKeychain}`);
-    logger.debug(`hasAuthentications: ${hasAuthentications}`);
 
     if (/^win/.test(platform)) {
         return keyChainImpl.generic_windows;

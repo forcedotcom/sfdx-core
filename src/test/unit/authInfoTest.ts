@@ -8,18 +8,16 @@ import * as path from 'path';
 import * as dns from 'dns';
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
-
 import { AuthInfo } from '../../lib/authInfo';
 import { Logger } from '../../lib/logger';
 import Messages from '../../lib/messages';
 import Global from '../../lib/global';
+import { Crypto } from '../../lib/crypto';
 import { SfdxUtil } from '../../lib/util';
 import { OAuth2 } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { testSetup } from '../testSetup';
-
-Messages.importMessageFile(path.join(__dirname, '..', '..', '..', 'messages', 'sfdx-core.json'));
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -82,7 +80,7 @@ describe('AuthInfo', () => {
             const jwtConfig = {
                 clientId: `${CLIENT_ID}_JWT`,
                 loginUrl: `${LOGIN_URL}_JWT`,
-                privateKeyFile: 'authInfoTest/jwt/server.key'
+                privateKey: 'authInfoTest/jwt/server.key'
             };
             const authResponse = {
                 access_token: `${ACCESS_TOKEN}_JWT`,
@@ -124,7 +122,7 @@ describe('AuthInfo', () => {
                 instanceUrl,
                 orgId: authResponse.id.split('/')[0],
                 loginUrl: jwtConfig.loginUrl,
-                privateKey: jwtConfig.privateKeyFile
+                privateKey: jwtConfig.privateKey
             };
             expect(AuthInfo.prototype.update['firstCall'].args[0]).to.deep.equal(expectedAuthConfig);
         });
@@ -155,10 +153,12 @@ describe('AuthInfo', () => {
 
         it('should return a JWT AuthInfo instance when passed a username from an auth file', async () => {
             const username = 'authInfoTest_username_jwt-NOT-CACHED';
+            const jwtAccessToken = `${ACCESS_TOKEN}_JWT`;
+            const crypto = await Crypto.create();
 
             // Make the file read stub return JWT auth data
             const jwtData = {
-                accessToken: `${ACCESS_TOKEN}_JWT`,
+                accessToken: crypto.encrypt(jwtAccessToken),
                 clientId: `${CLIENT_ID}_JWT`,
                 loginUrl: `${LOGIN_URL}_JWT`,
                 instanceUrl,
@@ -171,7 +171,7 @@ describe('AuthInfo', () => {
 
             // Verify the returned AuthInfo instance
             const authInfoJSON = authInfo.toJSON();
-            expect(authInfoJSON).to.have.property('accessToken', jwtData.accessToken);
+            expect(authInfoJSON).to.have.property('accessToken', jwtAccessToken);
             expect(authInfoJSON).to.have.property('instanceUrl', instanceUrl);
             expect(authInfoJSON).to.have.property('refreshFn').and.is.a('function');
             expect(authInfo.username).to.equal(username);
@@ -180,6 +180,9 @@ describe('AuthInfo', () => {
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
             expect(authInfo.isJwt(), 'authInfo.isJwt() should be true').to.be.true;
             expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
+
+            // Verify authInfo.fields are encrypted
+            expect(authInfo['fields'].accessToken).equals(jwtData.accessToken);
 
             // Verify correct method calls
             expect(AuthInfo.prototype.init['called']).to.be.true;
@@ -194,7 +197,7 @@ describe('AuthInfo', () => {
             const jwtConfig = {
                 clientId: `${CLIENT_ID}_JWT`,
                 loginUrl: `${LOGIN_URL}_JWT`,
-                privateKeyFile: 'authInfoTest/jwt/server.key'
+                privateKey: 'authInfoTest/jwt/server.key'
             };
 
             // Stub file I/O, http requests, and the DNS lookup
@@ -217,7 +220,7 @@ describe('AuthInfo', () => {
             const jwtConfig = {
                 clientId: `${CLIENT_ID}_JWT`,
                 loginUrl: `${LOGIN_URL}_JWT`,
-                privateKeyFile: 'authInfoTest/jwt/server.key'
+                privateKey: 'authInfoTest/jwt/server.key'
             };
             const authResponse = {
                 access_token: `${ACCESS_TOKEN}_JWT`,
@@ -263,7 +266,7 @@ describe('AuthInfo', () => {
             const authInfoJSON = authInfo.toJSON();
             expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
             expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
-            expect(authInfoJSON).to.have.property('refreshToken', refreshTokenConfig.refreshToken);
+            expect(authInfoJSON).to.not.have.property('refreshToken');
             expect(authInfoJSON['oauth2']).to.have.property('loginUrl', instanceUrl);
             expect(authInfoJSON['oauth2']).to.have.property('clientId', DEFAULT_CONNECTED_APP_INFO.clientId);
             expect(authInfoJSON['oauth2']).to.have.property('clientSecret', DEFAULT_CONNECTED_APP_INFO.clientSecret);
@@ -274,6 +277,11 @@ describe('AuthInfo', () => {
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
             expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
             expect(authInfo.isOauth(), 'authInfo.isOauth() should be true').to.be.true;
+
+            // Verify authInfo.fields are encrypted
+            const crypto = await Crypto.create();
+            expect(crypto.decrypt(authInfo['fields'].accessToken)).equals(authResponse.access_token);
+            expect(crypto.decrypt(authInfo['fields'].refreshToken)).equals(refreshTokenConfig.refreshToken);
 
             // Verify expected methods are called with expected args
             expect(AuthInfo.prototype.init['called']).to.be.true;
@@ -318,7 +326,7 @@ describe('AuthInfo', () => {
             const authInfoJSON = authInfo.toJSON();
             expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
             expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
-            expect(authInfoJSON).to.have.property('refreshToken', refreshTokenConfig.refreshToken);
+            expect(authInfoJSON).to.not.have.property('refreshToken');
             expect(authInfoJSON['oauth2']).to.have.property('loginUrl', instanceUrl);
             expect(authInfoJSON['oauth2']).to.have.property('clientId', refreshTokenConfig.clientId);
             expect(authInfoJSON['oauth2']).to.have.property('clientSecret', refreshTokenConfig.clientSecret);
@@ -329,6 +337,12 @@ describe('AuthInfo', () => {
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
             expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
             expect(authInfo.isOauth(), 'authInfo.isOauth() should be true').to.be.true;
+
+            // Verify authInfo.fields are encrypted
+            const crypto = await Crypto.create();
+            expect(crypto.decrypt(authInfo['fields'].accessToken)).equals(authResponse.access_token);
+            expect(crypto.decrypt(authInfo['fields'].refreshToken)).equals(refreshTokenConfig.refreshToken);
+            expect(crypto.decrypt(authInfo['fields'].clientSecret)).equals(refreshTokenConfig.clientSecret);
 
             // Verify expected methods are called with expected args
             expect(AuthInfo.prototype.init['called']).to.be.true;
@@ -381,10 +395,10 @@ describe('AuthInfo', () => {
                 loginUrl: `${LOGIN_URL}_AuthCode`
             };
             const authResponse = {
-                access_token: `${ACCESS_TOKEN}_AuthCode`,
+                access_token: `${ACCESS_TOKEN}_RefreshToken`,
                 instance_url: instanceUrl,
                 id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-                refresh_token: `${REFRESH_TOKEN}_AuthCode`
+                refresh_token: `${REFRESH_TOKEN}_RefreshToken`
             };
 
             // Stub the http requests (OAuth2.requestToken() and the request for the username)
@@ -399,7 +413,7 @@ describe('AuthInfo', () => {
             const authInfoJSON = authInfo.toJSON();
             expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
             expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
-            expect(authInfoJSON).to.have.property('refreshToken', authResponse.refresh_token);
+            expect(authInfoJSON).to.not.have.property('refreshToken');
             expect(authInfoJSON['oauth2']).to.have.property('loginUrl', instanceUrl);
             expect(authInfoJSON['oauth2']).to.have.property('clientId', DEFAULT_CONNECTED_APP_INFO.clientId);
             expect(authInfoJSON['oauth2']).to.have.property('clientSecret', DEFAULT_CONNECTED_APP_INFO.clientSecret);
@@ -410,6 +424,11 @@ describe('AuthInfo', () => {
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
             expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
             expect(authInfo.isOauth(), 'authInfo.isOauth() should be true').to.be.true;
+
+            // Verify authInfo.fields are encrypted
+            const crypto = await Crypto.create();
+            expect(crypto.decrypt(authInfo['fields'].accessToken)).equals(authResponse.access_token);
+            expect(crypto.decrypt(authInfo['fields'].refreshToken)).equals(authResponse.refresh_token);
 
             // Verify expected methods are called with expected args
             expect(AuthInfo.prototype.init['called']).to.be.true;
@@ -517,32 +536,85 @@ describe('AuthInfo', () => {
             expect(AuthInfo.prototype.update['firstCall'].args[0]).to.deep.equal(changedData);
             expect(AuthInfo['cache'].set['called']).to.be.true;
             expect(Global.saveConfigInfo['called']).to.be.true;
-            expect(Global.saveConfigInfo['firstCall'].args[0]).to.equal(`${username}.json`);
+            const saveConfigInfoCall = Global.saveConfigInfo['firstCall'];
+            expect(saveConfigInfoCall.args[0]).to.equal(`${username}.json`);
 
+            const crypto = await Crypto.create();
+            const decryptedActualFields = saveConfigInfoCall.args[1];
+            decryptedActualFields.accessToken = crypto.decrypt(decryptedActualFields.accessToken);
+            decryptedActualFields.refreshToken = crypto.decrypt(decryptedActualFields.refreshToken);
             const expectedFields = {
                 accessToken: changedData.accessToken,
                 instanceUrl,
                 username,
                 orgId: authResponse.id.split('/')[0],
                 loginUrl: refreshTokenConfig.loginUrl,
-                refreshToken: refreshTokenConfig.refreshToken,
-                clientId: DEFAULT_CONNECTED_APP_INFO.clientId,
-                clientSecret: DEFAULT_CONNECTED_APP_INFO.clientSecret
+                refreshToken: refreshTokenConfig.refreshToken
             };
-            expect(Global.saveConfigInfo['firstCall'].args[1]).to.deep.equal(expectedFields);
+            // Note that this also verifies the clientId and clientSecret are not persisted,
+            // and that data is encrypted when saved (because we have to decrypt it to verify here).
+            expect(decryptedActualFields).to.deep.equal(expectedFields);
         });
-
-        it('should encrypt the data before saving');
     });
 
-    describe('jwtRefresh()', () => {
+    describe('update()', () => {
+        it('should encrypt the data before assigning to this.fields', async () => {
+            const crypto = await Crypto.create();
+            const context: any = {
+                fields: {
+                    accessToken: crypto.encrypt(ACCESS_TOKEN),
+                    instanceUrl,
+                    username: 'authInfoTest_updateTest',
+                    orgId: '00DAuthInfoTest_orgId',
+                    loginUrl: LOGIN_URL,
+                    refreshToken: crypto.encrypt(REFRESH_TOKEN)
+                },
+                logger: $$.TEST_LOGGER
+            };
+            const updatedFields = {
+                password: 'authInfoTest_password',
+                clientSecret: 'authInfoTest_updateTest_clientSecret',
+                accessToken: 'authInfoTest_updateTest_ACCESS_TOKEN'
+            };
+            await AuthInfo.prototype.update.call(context, updatedFields);
+            expect(crypto.decrypt(context.fields.accessToken)).to.equal(updatedFields.accessToken);
+            expect(crypto.decrypt(context.fields.password)).to.equal(updatedFields.password);
+            expect(crypto.decrypt(context.fields.clientSecret)).to.equal(updatedFields.clientSecret);
+            expect(crypto.decrypt(context.fields.refreshToken)).to.equal(REFRESH_TOKEN);
+            expect(context.fields.loginUrl).to.equal(LOGIN_URL);
+        });
+
+        it('should NOT encrypt the data when encrypt arg is false', async () => {
+            const context: any = {
+                fields: {
+                    accessToken: ACCESS_TOKEN,
+                    instanceUrl,
+                    username: 'authInfoTest_updateTest',
+                    orgId: '00DAuthInfoTest_orgId',
+                    loginUrl: LOGIN_URL,
+                    refreshToken: REFRESH_TOKEN
+                },
+                logger: $$.TEST_LOGGER
+            };
+            const updatedFields = {
+                password: 'authInfoTest_password',
+                clientSecret: 'authInfoTest_updateTest_clientSecret',
+                accessToken: 'authInfoTest_updateTest_ACCESS_TOKEN'
+            };
+            await AuthInfo.prototype.update.call(context, updatedFields, false);
+            expect(context.fields).to.deep.equal(Object.assign(context.fields, updatedFields));
+        });
+    });
+
+    describe('refreshFn()', () => {
         it('should call init() and save()', async () => {
+            const crypto = await Crypto.create();
             const context = {
                 fields: {
                     loginUrl: LOGIN_URL,
                     clientId: CLIENT_ID,
                     privateKey: 'authInfoTest/jwt/server.key',
-                    accessToken: ACCESS_TOKEN
+                    accessToken: crypto.encrypt(ACCESS_TOKEN)
                 },
                 init: $$.SANDBOX.stub(),
                 save: $$.SANDBOX.stub(),
@@ -554,27 +626,29 @@ describe('AuthInfo', () => {
             context.init.returns(Promise.resolve());
             context.save.returns(Promise.resolve());
 
-            await AuthInfo.prototype.jwtRefresh.call(context, null, testCallback);
+            await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
 
-            expect(context.init.called, 'Should have called AuthInfo.init() during jwtRefresh()').to.be.true;
+            expect(context.init.called, 'Should have called AuthInfo.init() during refreshFn()').to.be.true;
             const expectedInitArgs = {
                 loginUrl: context.fields.loginUrl,
                 clientId: context.fields.clientId,
-                privateKeyFile: context.fields.privateKey
+                privateKey: context.fields.privateKey,
+                accessToken: ACCESS_TOKEN
             };
             expect(context.init.firstCall.args[0]).to.deep.equal(expectedInitArgs);
-            expect(context.save.called, 'Should have called AuthInfo.save() during jwtRefresh()').to.be.true;
-            expect(testCallback.called, 'Should have called the callback passed to jwtRefresh()').to.be.true;
-            expect(testCallback.firstCall.args[1]).to.equal(context.fields.accessToken);
+            expect(context.save.called, 'Should have called AuthInfo.save() during refreshFn()').to.be.true;
+            expect(testCallback.called, 'Should have called the callback passed to refreshFn()').to.be.true;
+            expect(testCallback.firstCall.args[1]).to.equal(ACCESS_TOKEN);
         });
 
         it('should call the callback with OrgDataNotAvailableError when AuthInfo.init() fails', async () => {
+            const crypto = await Crypto.create();
             const context = {
                 fields: {
                     loginUrl: LOGIN_URL,
                     clientId: CLIENT_ID,
                     privateKey: 'authInfoTest/jwt/server.key',
-                    accessToken: ACCESS_TOKEN
+                    accessToken: crypto.encrypt(ACCESS_TOKEN)
                 },
                 init: $$.SANDBOX.stub(),
                 save: $$.SANDBOX.stub(),
@@ -584,26 +658,10 @@ describe('AuthInfo', () => {
             context.init.throws(new Error('Error: Data Not Available'));
             context.save.returns(Promise.resolve());
 
-            await AuthInfo.prototype.jwtRefresh.call(context, null, testCallback);
+            await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
             expect(testCallback.called).to.be.true;
             const sfdxError = testCallback.firstCall.args[0];
             expect(sfdxError.name).to.equal('OrgDataNotAvailableError');
-        });
-    });
-
-    describe('oauthRefresh()', () => {
-        it('should call save()', async () => {
-            const context = {
-                save: $$.SANDBOX.stub(),
-                logger: $$.TEST_LOGGER
-            };
-            context.save.returns(Promise.resolve());
-            const accessToken = `${ACCESS_TOKEN}_oauthRefreshTest`;
-
-            await AuthInfo.prototype.oauthRefresh.call(context, accessToken);
-
-            expect(context.save.called, 'Should have called AuthInfo.save() during oauthRefresh()').to.be.true;
-            expect(context.save.firstCall.args[0]).to.deep.equal({ accessToken });
         });
     });
 
@@ -638,7 +696,7 @@ describe('AuthInfo', () => {
             const defaults = {
                 clientId: CLIENT_ID,
                 loginUrl: LOGIN_URL,
-                privateKeyFile: 'fake/pk'
+                privateKey: 'fake/pk'
             };
             const _options = Object.assign(defaults, options);
             const authResponse = {

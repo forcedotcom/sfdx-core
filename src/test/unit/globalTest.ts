@@ -40,6 +40,25 @@ describe('Global', () => {
         });
     });
 
+    describe('createDir', () => {
+        it('should create the global dir when no args passed', async () => {
+            $$.SANDBOX.stub(SfdxUtil, 'mkdirp').returns(Promise.resolve());
+            await Global.createDir();
+            expect(SfdxUtil.mkdirp['called']).to.be.true;
+            expect(SfdxUtil.mkdirp['firstCall'].args[0]).to.equal(Global.DIR);
+            expect(SfdxUtil.mkdirp['firstCall'].args[1]).to.equal(SfdxUtil.DEFAULT_USER_DIR_MODE);
+        });
+
+        it('should create a dir within the global dir when a dirPath is passed', async () => {
+            $$.SANDBOX.stub(SfdxUtil, 'mkdirp').returns(Promise.resolve());
+            const dirPath = path.join('some', 'dir', 'path');
+            await Global.createDir(dirPath);
+            expect(SfdxUtil.mkdirp['called']).to.be.true;
+            expect(SfdxUtil.mkdirp['firstCall'].args[0]).to.equal(path.join(Global.DIR, dirPath));
+            expect(SfdxUtil.mkdirp['firstCall'].args[1]).to.equal(SfdxUtil.DEFAULT_USER_DIR_MODE);
+        });
+    });
+
     describe('fetchConfigInfo', () => {
         it('should call SfdxUtil.readJSON in the global dir', async () => {
             const testJSON = { username: 'globalTest_fetchConfigInfo' };

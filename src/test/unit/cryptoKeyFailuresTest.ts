@@ -19,8 +19,6 @@ import { keyChainImpl } from '../../lib/keyChainImpl';
 // Setup the test environment.
 const $$ = testSetup();
 
-Messages.importMessageFile(path.join(__dirname, '..', '..', '..', 'messages', 'sfdx-core.json'));
-
 const spawnReturnFake = {
     sdtoutData: 'stdout test data',
     sdterrData: 'stdout test data',

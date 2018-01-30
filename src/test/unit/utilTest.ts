@@ -12,8 +12,6 @@ import { SfdxUtil } from '../../lib/util';
 import Messages from '../../lib/messages';
 import { testSetup } from '../testSetup';
 
-Messages.importMessageFile(path.join(__dirname, '..', '..', '..', 'messages', 'sfdx-core.json'));
-
 // Setup the test environment.
 const $$ = testSetup();
 

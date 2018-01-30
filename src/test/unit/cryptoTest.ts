@@ -48,13 +48,13 @@ describe('CryptoTest', function() {
             expect(decrypted).to.equal(text);
         });
 
-        it('Should NOT have encrypted the string because SFDX_DISABLE_ENCRYPTION is true.', async () => {
+        it('Should have encrypted the string even if SFDX_DISABLE_ENCRYPTION is true.', async () => {
             process.env.SFDX_DISABLE_ENCRYPTION = 'true';
 
             crypto = new Crypto();
             await crypto.init();
             secret = crypto.encrypt(text);
-            expect(secret).to.equal(text);
+            expect(secret).to.not.equal(text);
         });
 
         it('Should have encrypted the string because SFDX_DISABLE_ENCRYPTION is not defined.', async () => {
@@ -66,23 +66,15 @@ describe('CryptoTest', function() {
             expect(secret).to.not.equal(text);
         });
 
-        it('Should NOT have decrypted the string because SFDX_DISABLE_ENCRYPTION is "true"', async () => {
+        it('Should have decrypted the string even if SFDX_DISABLE_ENCRYPTION is "true"', async () => {
             process.env.SFDX_DISABLE_ENCRYPTION = 'true';
 
             crypto = new Crypto();
             await crypto.init();
             const string = '123456';
-            const decrypted = crypto.decrypt(string);
-            expect(decrypted).to.equal(string);
-        });
-
-        it('Should not have decrypted the string because SFDX_DISABLE_ENCRYPTION is "TRUE"', async () => {
-            process.env.SFDX_DISABLE_ENCRYPTION = 'TRUE';
-
-            crypto = new Crypto();
-            await crypto.init();
-            const string = '123456';
-            const decrypted = crypto.decrypt(string);
+            const encrypted = crypto.encrypt(string);
+            const decrypted = crypto.decrypt(encrypted);
+            expect(encrypted).to.not.equal(string);
             expect(decrypted).to.equal(string);
         });
 

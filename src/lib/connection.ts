@@ -65,11 +65,6 @@ export class Connection extends JSForceConnection {
         if (logger) {
             this.logger = this._logger = this.tooling._logger = logger;
         }
-
-        if (authInfo.isOauth()) {
-            // Set an OAuth access token refresh function handler
-            super.on('refresh', authInfo.oauthRefresh.bind(authInfo));
-        }
     }
 
     /**
