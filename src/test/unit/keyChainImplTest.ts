@@ -106,7 +106,7 @@ describe('KeyChainImpl Tests', () => {
         const _OnGetCommandError = function(done) {
 
             const responseFunc = function(err) {
-                expect(err).to.have.property('name', 'PasswordNotFound');
+                expect(err).to.have.property('name', 'PasswordNotFoundError');
             };
 
             this.platformImpl.osImpl.onGetCommandClose(1, 'zuul', 'dana', keyChainOptions, responseFunc.bind(this));
@@ -116,7 +116,7 @@ describe('KeyChainImpl Tests', () => {
         const _OnGetCommandMacUserCanceled = function(done) {
 
             const responseFunc = function(err) {
-                expect(err).to.have.property('name', 'user_canceled');
+                expect(err).to.have.property('name', 'KeyChainUserCanceledError');
             };
 
             this.platformImpl.osImpl.onGetCommandClose(128, 'zuul', 'dana', null, responseFunc.bind(this));
@@ -137,7 +137,7 @@ describe('KeyChainImpl Tests', () => {
 
         const _OnGetCommandWindowsParseErrorPasswordNotFound = function(done) {
             const responseFunc = function(err) {
-                expect(err).to.have.property('name', 'PasswordNotFound');
+                expect(err).to.have.property('name', 'PasswordNotFoundError');
             };
 
             this.platformImpl.osImpl.onGetCommandClose(0, `${keyChainOptions.service} type was not found`, null,
@@ -173,12 +173,15 @@ describe('KeyChainImpl Tests', () => {
             done();
         };
 
-        const _OnGetCommandLinuxRetry = function(done) {
-            expect(this.platformImpl.osImpl.onGetCommandClose.bind(null, 1, null, 'invalid or unencryptable secret',
-                keyChainOptions, () => {
-                })).to.throw(Error).and.have.property('retry', true);
-
-            done();
+        const _OnGetCommandLinuxRetry = async function() {
+            const onGetCommandCloseFn = this.platformImpl.osImpl.onGetCommandClose.bind(null, 1, null, 'invalid or unencryptable secret',
+                keyChainOptions, () => {});
+            try {
+                await onGetCommandCloseFn();
+                assert.fail('onGetCommandClose() should have thrown an error.');
+            } catch (err) {
+                expect(err).to.have.property('retry', true);
+            }
         };
 
         const _tests = function() {

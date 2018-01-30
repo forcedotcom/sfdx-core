@@ -59,19 +59,6 @@ const keychainPromises = {
                 return resolve({ username: account, password });
             })
         );
-    },
-
-    /**
-     * Move a keychain password from one keychain to another.
-     * @param oldKeychain - The keychin with the password
-     * @param newKeychain - The target keychain
-     * @param service - service name
-     * @param account - account name
-     */
-    migrate(oldKeychain, newKeychain, service, account) {
-        return keychainPromises.get(oldKeychain, service, account)
-            .then((passwordResult) =>
-                keychainPromises.set(newKeychain, service, account, passwordResult['password']));
     }
 };
 
@@ -100,7 +87,7 @@ export class Crypto {
 
         logger.debug(`retryStatus: ${retryStatus}`);
 
-        this.messages = await Messages.loadMessages('sfdx-core');
+        this.messages = await Messages.loadMessages('encryption');
 
         if (!this.keyChain) {
             this.keyChain = await retrieveKeychain(platform);
@@ -111,7 +98,7 @@ export class Crypto {
                 return this;
             }).catch((err) => {
                 // No password found
-                if (err.name  === 'PasswordNotFound') {
+                if (err.name  === 'PasswordNotFoundError') {
                     // If we already tried to create a new key then bail.
                     if (retryStatus === 'KEY_SET') {
                         logger.debug('a key was set but the retry to get the password failed.');
@@ -135,9 +122,9 @@ export class Crypto {
 
     /**
      * Encrypts text.
+     *
      * @param text - The text to encrypt.
-     * @returns {undefined|String} - If enableTokenEncryption is set to false or not defined in package.json then the text
-     * is simply returned unencrypted.
+     * @returns {undefined|String} The encrypted string or undefined if no string was passed.
      */
     public encrypt(text): string {
         if (isNil(text)) {
@@ -145,7 +132,8 @@ export class Crypto {
         }
 
         if (isNil(_key)) {
-            throw new Error('Failed to create a password in the OSX keychain.');
+            const errMsg = this.messages.getMessage('KeychainPasswordCreationError');
+            throw new SfdxError(errMsg, 'KeychainPasswordCreationError');
         }
 
         const iv = crypto.randomBytes(BYTE_COUNT_FOR_IV).toString('hex');

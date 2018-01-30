@@ -277,7 +277,7 @@ export class AuthInfo {
             if (options.privateKey) {
                 authConfig = await this.buildJwtConfig(options);
             } else if (!options.authCode && options.refreshToken) {
-                // refresh token flow (from sfdxUrl or oauthRefreshFn)
+                // refresh token flow (from sfdxUrl or OAuth refreshFn)
                 authConfig = await this.buildRefreshTokenConfig(options);
             } else {
                 // authcode exchange / web auth flow
@@ -368,8 +368,10 @@ export class AuthInfo {
 
     /**
      * Return only the auth fields (decrypted) needed to make a connection.
+     *
+     * @returns Partial<AuthFields> AuthFields used in making jsForce connections.
      */
-    public toJSON(): Partial<AuthFields> {
+    public getConnectionOptions(): Partial<AuthFields> {
         let json;
 
         const { accessToken, instanceUrl } = this.fields;

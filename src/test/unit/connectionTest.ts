@@ -23,7 +23,7 @@ describe('Connection', () => {
 
     const testAuthInfo = {
         isOauth: () => true,
-        toJSON: () => testConnectionOptions
+        getConnectionOptions: () => testConnectionOptions
     };
 
     beforeEach(() => {

@@ -43,6 +43,6 @@ export const retrieveKeychain = async (platform): Promise<any> => {
             }
         }
     } else {
-        throw await SfdxError.create('sfdx-core', 'UnsupportedOperatingSystemError', [platform]);
+        throw await SfdxError.create('encryption', 'UnsupportedOperatingSystemError', [platform]);
     }
 };

@@ -65,7 +65,7 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(username);
 
             const expectedFields = { accessToken: username, instanceUrl };
-            expect(authInfo.toJSON()).to.deep.equal(expectedFields);
+            expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
             expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
@@ -98,7 +98,7 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(JWT_USERNAME, jwtConfig);
 
             // Verify the returned AuthInfo instance
-            const authInfoJSON = authInfo.toJSON();
+            const authInfoJSON = authInfo.getConnectionOptions();
             expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
             expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
             expect(authInfoJSON).to.have.property('refreshFn').and.is.a('function');
@@ -132,7 +132,7 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(JWT_USERNAME);
 
             // Verify the returned AuthInfo instance
-            const authInfoJSON = authInfo.toJSON();
+            const authInfoJSON = authInfo.getConnectionOptions();
             expect(authInfoJSON).to.have.property('accessToken', `${ACCESS_TOKEN}_JWT`);
             expect(authInfoJSON).to.have.property('instanceUrl', instanceUrl);
             expect(authInfoJSON).to.have.property('refreshFn').and.is.a('function');
@@ -170,7 +170,7 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(username);
 
             // Verify the returned AuthInfo instance
-            const authInfoJSON = authInfo.toJSON();
+            const authInfoJSON = authInfo.getConnectionOptions();
             expect(authInfoJSON).to.have.property('accessToken', jwtAccessToken);
             expect(authInfoJSON).to.have.property('instanceUrl', instanceUrl);
             expect(authInfoJSON).to.have.property('refreshFn').and.is.a('function');
@@ -237,7 +237,7 @@ describe('AuthInfo', () => {
             // Create the JWT AuthInfo instance
             const authInfo = await AuthInfo.create(username, jwtConfig);
 
-            expect(authInfo.toJSON()).to.have.property('instanceUrl', jwtConfig.loginUrl);
+            expect(authInfo.getConnectionOptions()).to.have.property('instanceUrl', jwtConfig.loginUrl);
         });
 
         //
@@ -263,7 +263,7 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(username, refreshTokenConfig);
 
             // Verify the returned AuthInfo instance
-            const authInfoJSON = authInfo.toJSON();
+            const authInfoJSON = authInfo.getConnectionOptions();
             expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
             expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
             expect(authInfoJSON).to.not.have.property('refreshToken');
@@ -323,7 +323,7 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(username, refreshTokenConfig);
 
             // Verify the returned AuthInfo instance
-            const authInfoJSON = authInfo.toJSON();
+            const authInfoJSON = authInfo.getConnectionOptions();
             expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
             expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
             expect(authInfoJSON).to.not.have.property('refreshToken');
@@ -410,7 +410,7 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(null, authCodeConfig);
 
             // Verify the returned AuthInfo instance
-            const authInfoJSON = authInfo.toJSON();
+            const authInfoJSON = authInfo.getConnectionOptions();
             expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
             expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
             expect(authInfoJSON).to.not.have.property('refreshToken');

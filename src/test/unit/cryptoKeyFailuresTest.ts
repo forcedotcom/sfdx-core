@@ -58,11 +58,11 @@ if (os.platform() === 'darwin') {
 
             try {
                 await new Crypto().init();
-                assert.fail('Should have thrown an UnsupportedOperatingSystemError for Crypto.init()');
+                assert.fail('Should have thrown an SetCredentialError for Crypto.init()');
             } catch (err) {
                 expect(err.name).to.equal('SetCredentialError');
-                expect(err.message).to.equal(`Command failed with response.\n${spawnReturnFake.sdtoutData} - ${spawnReturnFake.sdterrData}`);
-                expect(err.action).to.equal(`Determine why this command failed to set an encryption key for user ${currentUser}: [${programArg} ${setOptionsArg.join(' ')}].`);
+                expect(err.message).to.equal(`Command failed with response:\n${spawnReturnFake.sdtoutData} - ${spawnReturnFake.sdterrData}`);
+                expect(err.actions[0]).to.equal(`Determine why this command failed to set an encryption key for user ${currentUser}: [${programArg} ${setOptionsArg.join(' ')}].`);
             }
         });
 
@@ -76,11 +76,11 @@ if (os.platform() === 'darwin') {
 
             try {
                 await new Crypto().init('KEY_SET');
-                assert.fail('Should have thrown an UnsupportedOperatingSystemError for Crypto.init()');
+                assert.fail('Should have thrown an PasswordNotFoundError for Crypto.init()');
             } catch (err) {
-                expect(err.name).to.equal('PasswordNotFound');
+                expect(err.name).to.equal('PasswordNotFoundError');
                 expect(err.message).to.equal('Could not find password.\nstdout test data - stdout test data');
-                expect(err.action).to.equal(`Ensure a valid password is returned with the following command: [${programArg} ${optionsArg.join(' ')}].`);
+                expect(err.actions[0]).to.equal(`Ensure a valid password is returned with the following command: [${programArg} ${optionsArg.join(' ')}].`);
             }
         });
 

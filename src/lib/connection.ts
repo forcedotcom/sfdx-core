@@ -43,7 +43,7 @@ export class Connection extends JSForceConnection {
         };
 
         // Get connection options from auth info and create a new jsForce connection
-        const connectionOptions: ConnectionOptions = Object.assign(baseOptions, authInfo.toJSON());
+        const connectionOptions: ConnectionOptions = Object.assign(baseOptions, authInfo.getConnectionOptions());
         return new Connection(connectionOptions, authInfo, logger);
     }
 
