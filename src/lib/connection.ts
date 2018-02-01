@@ -80,7 +80,7 @@ export class Connection extends JSForceConnection {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
-        return await super.request(_request, options);
+        return super.request(_request, options);
     }
 }
 
