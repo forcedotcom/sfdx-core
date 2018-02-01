@@ -25,8 +25,6 @@
   "dependencies": {
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "chalk": "2.3.0",
-    "cli-engine-command": "9.0.3",
-    "cli-engine-config": "4.0.1-ts.16",
     "cli-ux": "2.0.4",
     "jsforce": "1.8.0",
     "jsonwebtoken": "7.0.0",

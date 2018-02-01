@@ -6,7 +6,7 @@
  */
 
 import { randomBytes } from 'crypto';
-import * as sinon from 'sinon';
+import { sandbox as sinonSandbox } from 'sinon';
 import { once } from 'lodash';
 import { Logger } from '../lib/logger';
 import Messages from '../lib/messages';
@@ -24,7 +24,7 @@ export const testSetup = once(() => {
 
     // Create a global sinon sandbox and a test logger instance for use within tests.
     const testContext: TestContext = {
-        SANDBOX: sinon.sandbox.create(),
+        SANDBOX: sinonSandbox.create(),
         TEST_LOGGER: new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging(),
         uniqid: () => randomBytes(16).toString('hex')
     };

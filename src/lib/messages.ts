@@ -131,7 +131,7 @@ export class Messages {
 
         if (hasDistFolder) {
             const parts: string[] = moduleDirectoryPath.split(path.sep);
-            const index = parts.lastIndexOf('dist');
+            const index: number = parts.lastIndexOf('dist');
             moduleMessagesDirPath = index !== -1 ? parts.slice(0, index).join(path.sep) : moduleDirectoryPath;
         }
 
