@@ -13,23 +13,30 @@ import * as _ from 'lodash';
 
 import { Logger, LoggerLevel, LoggerOptions } from '../../lib/logger';
 import { SfdxUtil } from '../../lib/util';
+import { testSetup } from '../testSetup';
+
+// Setup the test environment.
+const $$ = testSetup();
 
 describe('Logger', () => {
-    const sandbox = sinon.sandbox.create();
     const sfdxEnv = process.env.SFDX_ENV;
 
     beforeEach(() => {
         process.env.SFDX_ENV = 'test';
+
+        // Must restore the globally stubbed Logger.child method here.  Stubbed in testSetup.
+        if (Logger.child['restore']) {
+            Logger.child['restore']();
+        }
     });
 
     afterEach(() => {
         process.env.SFDX_ENV = sfdxEnv;
-        sandbox.restore();
     });
 
     describe('create', () => {
         it('should register, create and return the root SFDX logger by default', () => {
-            sandbox.spy(Logger.prototype, 'addFilter');
+            $$.SANDBOX.spy(Logger.prototype, 'addFilter');
             const defaultLogger = Logger.create();
             expect(defaultLogger).to.be.instanceof(Logger);
             expect(defaultLogger.name).to.equal('sfdx');
@@ -112,15 +119,15 @@ describe('Logger', () => {
         let sfdxUtilWriteFileStub;
 
         beforeEach(() => {
-            sfdxUtilAccessStub = sandbox.stub(SfdxUtil, 'access');
-            sfdxUtilMkdirpStub = sandbox.stub(SfdxUtil, 'mkdirp');
-            sfdxUtilWriteFileStub = sandbox.stub(SfdxUtil, 'writeFile');
+            sfdxUtilAccessStub = $$.SANDBOX.stub(SfdxUtil, 'access');
+            sfdxUtilMkdirpStub = $$.SANDBOX.stub(SfdxUtil, 'mkdirp');
+            sfdxUtilWriteFileStub = $$.SANDBOX.stub(SfdxUtil, 'writeFile');
         });
 
         it('should not create a new log file if it exists already', async () => {
             sfdxUtilAccessStub.returns(Promise.resolve({}));
             const logger = Logger.create();
-            const addStreamStub = sandbox.stub(logger, 'addStream');
+            const addStreamStub = $$.SANDBOX.stub(logger, 'addStream');
             await logger.addLogFileStream(testLogFile);
             expect(sfdxUtilAccessStub.firstCall.args[0]).to.equal(testLogFile);
             expect(sfdxUtilMkdirpStub.called).to.be.false;
@@ -134,7 +141,7 @@ describe('Logger', () => {
         it('should create a new log file and all directories if nonexistant', async () => {
             sfdxUtilAccessStub.throws();
             const logger = Logger.create();
-            const addStreamStub = sandbox.stub(logger, 'addStream');
+            const addStreamStub = $$.SANDBOX.stub(logger, 'addStream');
             await logger.addLogFileStream(testLogFile);
             expect(sfdxUtilAccessStub.firstCall.args[0]).to.equal(testLogFile);
             expect(sfdxUtilMkdirpStub.firstCall.args[0]).to.equal('some/dir');
@@ -154,9 +161,9 @@ describe('Logger', () => {
         });
 
         it('should create the root logger if not already created', async () => {
-            sandbox.stub(Logger, 'get').onFirstCall().throws();
-            sandbox.stub(Logger.prototype, 'addLogFileStream');
-            sandbox.spy(Logger, 'create');
+            $$.SANDBOX.stub(Logger, 'get').onFirstCall().throws();
+            $$.SANDBOX.stub(Logger.prototype, 'addLogFileStream');
+            $$.SANDBOX.spy(Logger, 'create');
             const rootLogger = await Logger.root();
             expect(rootLogger.name).to.equal('sfdx');
             Logger.get['restore']();
@@ -231,7 +238,7 @@ describe('Logger', () => {
 
         it('should apply for log level: fatal', async () => {
             // logger.fatal() necessarily writes to stderr so stub it here
-            sandbox.stub(process.stderr, 'write');
+            $$.SANDBOX.stub(process.stderr, 'write');
             await runTest(['fatal', 60]);
             expect(process.stderr.write['called']).to.be.true;
         });

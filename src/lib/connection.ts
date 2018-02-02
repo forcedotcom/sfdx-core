@@ -43,7 +43,7 @@ export class Connection extends JSForceConnection {
         };
 
         // Get connection options from auth info and create a new jsForce connection
-        const connectionOptions: ConnectionOptions = Object.assign(baseOptions, authInfo.toJSON());
+        const connectionOptions: ConnectionOptions = Object.assign(baseOptions, authInfo.getConnectionOptions());
         return new Connection(connectionOptions, authInfo, logger);
     }
 
@@ -65,11 +65,6 @@ export class Connection extends JSForceConnection {
         if (logger) {
             this.logger = this._logger = this.tooling._logger = logger;
         }
-
-        if (authInfo.isOauth()) {
-            // Set an OAuth access token refresh function handler
-            super.on('refresh', authInfo.oauthRefresh.bind(authInfo));
-        }
     }
 
     /**
@@ -85,7 +80,7 @@ export class Connection extends JSForceConnection {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
-        return await super.request(_request, options);
+        return super.request(_request, options);
     }
 }
 

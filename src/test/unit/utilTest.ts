@@ -10,21 +10,17 @@ import { assert, expect } from 'chai';
 
 import { SfdxUtil } from '../../lib/util';
 import Messages from '../../lib/messages';
+import { testSetup } from '../testSetup';
 
-Messages.importMessageFile(path.join(__dirname, '..', '..', '..', 'messages', 'sfdx-core.json'));
+// Setup the test environment.
+const $$ = testSetup();
 
 describe('Util', () => {
-    const sandbox = sinon.sandbox.create();
-
-    afterEach(() => {
-        sandbox.restore();
-    });
-
     describe('readJSON', () => {
         let readFileStub;
 
         beforeEach(() => {
-            readFileStub = sandbox.stub(SfdxUtil, 'readFile');
+            readFileStub = $$.SANDBOX.stub(SfdxUtil, 'readFile');
         });
 
         it('should throw a ParseError for empty JSON file', async () => {
@@ -73,7 +69,7 @@ describe('Util', () => {
 
     describe('writeJSON', () => {
         it('should call writeFile with correct args', async () => {
-            sandbox.stub(SfdxUtil, 'writeFile').returns(Promise.resolve(null));
+            $$.SANDBOX.stub(SfdxUtil, 'writeFile').returns(Promise.resolve(null));
             const testFilePath = 'utilTest_testFilePath';
             const testJSON = { username: 'utilTest_username'};
             const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
@@ -81,7 +77,7 @@ describe('Util', () => {
             expect(SfdxUtil.writeFile['called']).to.be.true;
             expect(SfdxUtil.writeFile['firstCall'].args[0]).to.equal(testFilePath);
             expect(SfdxUtil.writeFile['firstCall'].args[1]).to.deep.equal(stringifiedTestJSON);
-            expect(SfdxUtil.writeFile['firstCall'].args[2]).to.equal('utf8');
+            expect(SfdxUtil.writeFile['firstCall'].args[2]).to.deep.equal({ encoding: 'utf8', mode: '600' });
         });
     });
 });

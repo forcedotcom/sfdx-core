@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { access, readFile, writeFile } from 'fs';
+import { access, readFile, writeFile, open, readdir } from 'fs';
 import { isEmpty } from 'lodash';
 import { promisify } from 'util';
 
@@ -43,6 +43,11 @@ export class SfdxUtil {
     public static readFile = promisify(readFile);
 
     /**
+     * Promisified version of fs.readdir
+     */
+    public static readdir = promisify(readdir);
+
+    /**
      * Promisified version of fs.writeFile
      */
     public static writeFile = promisify(writeFile);
@@ -53,9 +58,17 @@ export class SfdxUtil {
     public static access = promisify(access);
 
     /**
+     * Promisified version of fs.open
+     */
+    public static open = promisify(open);
+
+    /**
      * Promisified version of mkdirp
      */
     public static mkdirp = promisify(require('mkdirp'));
+
+    public static DEFAULT_USER_DIR_MODE: string = '700';
+    public static DEFAULT_USER_FILE_MODE: string = '600';
 
     /**
      * Read a file and convert it to JSON
@@ -78,7 +91,7 @@ export class SfdxUtil {
      */
     public static async writeJSON(jsonPath: string, data: object): Promise<void> {
         const fileData: string = JSON.stringify(data, null, 4);
-        await SfdxUtil.writeFile(jsonPath, fileData, 'utf8');
+        await SfdxUtil.writeFile(jsonPath, fileData, { encoding: 'utf8', mode: SfdxUtil.DEFAULT_USER_FILE_MODE });
     }
 
     /**

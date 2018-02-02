@@ -46,6 +46,16 @@ export class Global {
     }
 
     /**
+     * Creates a directory within the global directory, or the global directory
+     * itself if a dirPath is not specified.
+     * @param dirPath diretory path to be created within the global directory.
+     */
+    public static async createDir(dirPath?: string): Promise<any> {
+        dirPath = dirPath ? path.join(Global.DIR, dirPath) : Global.DIR;
+        await SfdxUtil.mkdirp(dirPath, SfdxUtil.DEFAULT_USER_DIR_MODE);
+    }
+
+    /**
      * Single place to read global config information.
      * @param fileName name of the JSON config file from which to read.
      */
