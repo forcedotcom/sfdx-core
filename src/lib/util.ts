@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { access, readFile, writeFile, open, readdir } from 'fs';
+import { access, open, readdir, readFile, stat, writeFile,  unlink } from 'fs';
 import { isEmpty } from 'lodash';
 import { promisify } from 'util';
-
+import { isNil as _isNil, endsWith as _endsWith, includes as _includes } from 'lodash';
 import { SfdxError } from './sfdxError';
+import { URL } from 'url';
 
 const processJsonError = async (error: Error, data: string, jsonPath: string): Promise<void> => {
     if (error.name === 'SyntaxError') {
@@ -71,6 +72,16 @@ export class SfdxUtil {
     public static DEFAULT_USER_FILE_MODE: string = '600';
 
     /**
+     * Promisified version of unlink
+     */
+    public static unlink = promisify(unlink);
+
+    /**
+     * Promisified version of stat
+     */
+    public static stat = promisify(stat);
+
+    /**
      * Read a file and convert it to JSON
      *
      * @param {string} jsonPath The path of the file
@@ -78,7 +89,7 @@ export class SfdxUtil {
      * @return {Promise} promise The contents of the file as a JSON object
      */
     public static async readJSON(jsonPath: string, throwOnEmpty?: boolean): Promise<object> {
-        const fileData = (await SfdxUtil.readFile(jsonPath, 'utf8')).toString();
+        const fileData = (await SfdxUtil.readFile(jsonPath, 'utf8'));
         return await SfdxUtil.parseJSON(fileData, jsonPath, throwOnEmpty);
     }
 
@@ -110,5 +121,36 @@ export class SfdxUtil {
         } catch (error) {
             await processJsonError(error, data, jsonPath);
         }
+    }
+
+    /**
+     * Returns true if a provided url contains a Salesforce owned domain.
+     * @param {*} urlString the url to inspect
+     */
+    public static isSalesforceDomain(urlString: string): boolean {
+        let url: URL;
+
+        try {
+            url = new URL(urlString);
+        } catch (e) {
+            return false;
+        }
+
+        // Source https://help.salesforce.com/articleView?id=000003652&type=1
+        const whitelistOfSalesforceDomainPatterns: string[] = [
+            '.content.force.com',
+            '.force.com',
+            '.salesforce.com',
+            '.salesforceliveagent.com',
+            '.secure.force.com'
+        ];
+
+        const whitelistOfSalesforceHosts: string[] = [
+            'developer.salesforce.com',
+            'trailhead.salesforce.com'
+        ];
+
+        return !_isNil(whitelistOfSalesforceDomainPatterns.find((pattern) => _endsWith(url.hostname, pattern))) ||
+            _includes(whitelistOfSalesforceHosts, url.hostname);
     }
 }

@@ -80,4 +80,22 @@ describe('Util', () => {
             expect(SfdxUtil.writeFile['firstCall'].args[2]).to.deep.equal({ encoding: 'utf8', mode: '600' });
         });
     });
+
+    describe('isSalesforceDomain', () => {
+        it('is whitelist domain', () => {
+            expect(SfdxUtil.isSalesforceDomain('http://www.salesforce.com')).to.be.true;
+        });
+
+        it('is not whiteList or host', () => {
+            expect(SfdxUtil.isSalesforceDomain('http://www.ghostbusters.com')).to.be.false;
+        });
+
+        it('is whiteList host', () => {
+            expect(SfdxUtil.isSalesforceDomain('http://developer.salesforce.com')).to.be.true;
+        });
+
+        it('falsy', () => {
+            expect(SfdxUtil.isSalesforceDomain(undefined)).to.be.false;
+        });
+    });
 });

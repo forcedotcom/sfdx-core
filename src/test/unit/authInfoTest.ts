@@ -4,13 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
 import * as dns from 'dns';
-import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 import { AuthInfo } from '../../lib/authInfo';
-import { Logger } from '../../lib/logger';
-import Messages from '../../lib/messages';
 import Global from '../../lib/global';
 import { Crypto } from '../../lib/crypto';
 import { SfdxUtil } from '../../lib/util';
@@ -21,6 +17,18 @@ import { testSetup } from '../testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
+
+describe('AuthInfo No fs mock', () => {
+    it ('missing config', async () => {
+        const expectedErrorName = 'namedOrgNotFound';
+        try {
+            await AuthInfo.create('doesnt_exists@gb.com');
+            assert.fail(`should have thrown error with name: ${expectedErrorName}`);
+        } catch (e) {
+            expect(e).to.have.property('name', expectedErrorName);
+        }
+    });
+});
 
 describe('AuthInfo', () => {
 
@@ -492,9 +500,8 @@ describe('AuthInfo', () => {
         });
 
         it('should throw an error when neither username nor options have been passed', async () => {
-            let authInfo;
             try {
-                authInfo = await AuthInfo.create();
+                await AuthInfo.create();
                 assert.fail('Expected AuthInfo.create() to throw an error when no params are passed');
             } catch (err) {
                 expect(err.name).to.equal('AuthInfoCreationError');
@@ -698,7 +705,7 @@ describe('AuthInfo', () => {
                 loginUrl: LOGIN_URL,
                 privateKey: 'fake/pk'
             };
-            const _options = Object.assign(defaults, options);
+            Object.assign(defaults, options);
             const authResponse = {
                 access_token: `${ACCESS_TOKEN}_JWT`,
                 instance_url: instanceUrl,

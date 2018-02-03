@@ -40,8 +40,9 @@
     "mocha": "2.4.5",
     "shelljs": "0.7.8",
     "sinon": "3.2.1",
-    "tslint": "5.8.0",
-    "typescript": "2.4.2",
+    "tslint": "5.9.1",
+    "tslint-microsoft-contrib": "5.0.2",
+    "typescript": "2.6.2",
     "xunit-file": "1.0.0"
   },
   "types": "dist/exported.d.ts"

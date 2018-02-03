@@ -173,7 +173,7 @@ describe('Messages', () => {
             const msgs = new Messages('myOtherBundle', Messages.locale, otherMsgMap);
 
             // import the bundle with a custom loader
-            Messages.import('myOtherBundle', () => Promise.resolve(msgs));
+            Messages.importFunction('myOtherBundle', () => Promise.resolve(msgs));
 
             // now load the bundle
             const messages = await Messages.loadMessages('myOtherBundle');

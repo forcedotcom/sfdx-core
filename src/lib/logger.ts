@@ -39,6 +39,7 @@ export class Bunyan extends bunyan {
 }
 
 export interface LoggerStream {
+    // tslint:disable-next-line no-reserved-keywords
     type: string;
     level?: string;
     path?: string;
@@ -230,6 +231,7 @@ export class Logger extends Bunyan {
      *
      * @param name Returns the registered logger instance.
      */
+    // tslint:disable-next-line no-reserved-keywords
     public static get(name: string = SFDX_LOGGER_NAME) {
         if (!loggerRegistry.has(name)) {
             throw new Error(`Logger ${name} not found`);

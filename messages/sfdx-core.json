@@ -9,5 +9,7 @@
     "OrgDataNotAvailableErrorAction1": "Run `sfdx force:org:list --clean` to remove stale org authentications.",
     "OrgDataNotAvailableErrorAction2": "Use `sfdx force:config:set` to update the defaultusername.",
     "OrgDataNotAvailableErrorAction3": "Use `sfdx force:org:create` to create a new org.",
-    "OrgDataNotAvailableErrorAction4": "Use `sfdx force:auth` to authenticate an existing org."
+    "OrgDataNotAvailableErrorAction4": "Use `sfdx force:auth` to authenticate an existing org.",
+    "namedOrgNotFound": "No AuthInfo found for name %s",
+    "invalidInstanceUrl": ""
 }
