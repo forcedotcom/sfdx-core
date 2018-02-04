@@ -25,9 +25,24 @@ export enum OrgStatus {
     MISSING = 'MISSING'
 }
 
+/**
+ * Additional information tracked for the org.
+ */
 export interface OrgMetaInfo {
+
+    /**
+     * The auth info used for the org connection
+     */
     info: AuthInfo;
+
+    /**
+     * If true the dev hub configuration is missing
+     */
     devHubMissing: boolean;
+
+    /**
+     * True if this org has expired.
+     */
     expired: boolean;
 }
 
@@ -108,6 +123,5 @@ export class Org {
         const versions = await this.connection.request(info);
 
         return _.maxBy(versions, (_ver: any) => _ver.version);
-
     }
 }

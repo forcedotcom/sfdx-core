@@ -11,7 +11,7 @@
 import { homedir as osHomedir } from 'os';
 import { isNil as _isNil } from 'lodash';
 import { join as pathJoin} from 'path';
-import Messages from '../messages';
+import { Messages } from '../messages';
 import { ConfigFile } from './configFile';
 import { SfdxConstant as consts } from '../sfdxConstants';
 import { SfdxUtil } from '../util';
@@ -20,6 +20,12 @@ import { ProjectDir } from '../projectDir';
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
+/**
+ * Supported Org Types
+ * @type {{DEVHUB: SfdxConstant; USERNAME: SfdxConstant; list(): SfdxConstant[]}}
+ * DEVHUB - Developer Hub Username
+ * USERNAME - Non developer hub username
+ */
 export const ORG_DEFAULTS = {
     DEVHUB: consts.DEFAULT_DEV_HUB_USERNAME,
     USERNAME: consts.DEFAULT_USERNAME,
@@ -29,6 +35,13 @@ export const ORG_DEFAULTS = {
     }
 };
 
+/**
+ * Internal helper to validate the ENOENT error type.
+ * @param err - The error object to check.
+ * @returns {Object} The contents object bound to "this"
+ * @throws re-throws all other errors.
+ * @private
+ */
 const _checkEnoent = function(err) {
     if (err.code === 'ENOENT') {
         this.contents = {};
@@ -38,12 +51,56 @@ const _checkEnoent = function(err) {
     }
 };
 
+/**
+ * Interface for meta information about config properties
+ */
+export interface ConfigPropertyMeta {
+
+    /**
+     *  The config property name
+     */
+    key: string;
+
+    /**
+     *  Reference to the config data input validation
+     */
+    input?: ConfigPropertyMetaInput;
+
+    /**
+     *  True if the property should be indirectly hidden from the user.
+     */
+    hidden?: boolean;
+}
+
+/**
+ * Config property input validation
+ */
+export interface ConfigPropertyMetaInput {
+
+    /**
+     * Test if the input value is valid.
+     * @param value - the input value
+     * @returns - {boolean} Returns true if the input data is valid.
+     */
+    validator: (value) => {};
+
+    /**
+     * The message to return in the error if the validation fails.
+     */
+    failedMessage: string;
+}
+
+/**
+ * More Sfdx specific implementation of ConfigFile.
+ */
 export class SfdxConfig extends ConfigFile {
 
-    public static async getRootFolder(isGlobal: boolean): Promise<string> {
-        return isGlobal ? osHomedir() : await ProjectDir.getPath();
-    }
-
+    /**
+     * Static initializer
+     * @param {boolean} isGlobal - True of the returned config is a global config. False for local.
+     * @param {function} rootPathRetriever - A function to provide a root path.
+     * @returns {Promise<SfdxConfig>} - A global or local config object
+     */
     public static async create(isGlobal: boolean = true,
                                rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<SfdxConfig> {
 
@@ -81,14 +138,26 @@ export class SfdxConfig extends ConfigFile {
             new SfdxConfig(await SfdxConfig.getRootFolder(isGlobal) , isGlobal);
     }
 
-    public static getAllowedProperties(): any {
+    /**
+     * @returns {object} Returns an object representing the supported allowed properties.
+     */
+    public static getAllowedProperties(): ConfigPropertyMeta[] {
         if (!SfdxConfig.allowedProperties) {
             throw new SfdxError('SfdxConfig meta information has not been initialized. Use SfdxConfigcreate()');
         }
         return SfdxConfig.allowedProperties;
     }
 
-    public static async setPropertyValue(isGlobal: boolean, property: string, value?: any, rootPathRetriever?: (isGlobal: boolean) => Promise<string>) {
+    /**
+     * The the value of a supported config property
+     * @param {boolean} isGlobal - True for a global config. False for a local config.
+     * @param {string} propertyName - The name of the property to set
+     * @param value - The property value
+     * @param {(isGlobal: boolean) => Promise<string>} rootPathRetriever
+     * @returns {Promise<object>}
+     */
+    public static async setPropertyValue(isGlobal: boolean, propertyName: string, value?: any,
+                                         rootPathRetriever?: (isGlobal: boolean) => Promise<string>) {
 
         const rootFolder = rootPathRetriever ?
             await rootPathRetriever(isGlobal) : await SfdxConfig.getRootFolder(isGlobal);
@@ -98,14 +167,18 @@ export class SfdxConfig extends ConfigFile {
         const content = await config.read();
 
         if (_isNil(value)) {
-            delete content[property];
+            delete content[propertyName];
         } else {
-            content[property] = value;
+            content[propertyName] = value;
         }
 
         return await config.write(content);
     }
 
+    /**
+     * Clear all the configured properties both local and global
+     * @returns {Promise<void>}
+     */
     public static async clear(): Promise<void> {
         let config  = await SfdxConfig.create(true);
         await config.write({});
@@ -114,14 +187,31 @@ export class SfdxConfig extends ConfigFile {
         await config.write({});
     }
 
-    private static allowedProperties: any;
+    private static allowedProperties: ConfigPropertyMeta[];
     private static messages: Messages;
 
+    /**
+     * Helper used to determined what the local and global folder point to.
+     * @param {boolean} isGlobal - True if the config should be global. False for local.
+     * @returns {Promise<string>} - The filepath of the root folder.
+     */
+    private static async getRootFolder(isGlobal: boolean): Promise<string> {
+        return isGlobal ? osHomedir() : await ProjectDir.getPath();
+    }
+
+    /**
+     * Constructor
+     * @param {string} rootFolder - The root folder to use and if the root folder is the global config dir.
+     * @param {boolean} isGlobal - True for a global config false for a local config.
+     */
     protected constructor(rootFolder: string, isGlobal: boolean) {
         super(rootFolder, SFDX_CONFIG_FILE_NAME, isGlobal, true);
     }
 
-    public async read(): Promise<any> {
+    /**
+     * @returns {Promise<object>} Read, assign, and return the config contents.
+     */
+    public async read(): Promise<object> {
         try {
             await this.setContents(await SfdxUtil.readJSON(this.path, false));
             return this.getContents();
@@ -130,6 +220,12 @@ export class SfdxConfig extends ConfigFile {
         }
     }
 
+    /**
+     * Sets a value for a property
+     * @param {string} propertyName - The property to set.
+     * @param value - The value of the property
+     * @returns {Promise<void>}
+     */
     public async setPropertyValue(propertyName: string, value: any) {
 
         const property = SfdxConfig.allowedProperties.find((allowedProp) => allowedProp.key === propertyName);

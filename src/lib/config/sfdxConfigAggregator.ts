@@ -7,7 +7,7 @@
 
 import * as _ from 'lodash';
 
-import { SfdxConfig } from './sfdxConfig';
+import { SfdxConfig, ConfigPropertyMeta } from './sfdxConfig';
 import { SfdxError } from '../sfdxError';
 import {SfdxConstant} from '../sfdxConstants';
 
@@ -89,8 +89,7 @@ export class SfdxConfigAggregator {
      *
      * @param {string} key the key of the property
      * @returns {*} the value of the property
-     * @throws {Error} Throws error if initialized is not called prior. Or there is an attempt to get a property that's
-     * not supported
+     * @throws {Error} Or there is an attempt to get a property that's not supported
      */
     public getPropertyValue(key: SfdxConstant) {
         if (this.getAllowedProperties().some((element) => key === element.key)) {
@@ -103,9 +102,8 @@ export class SfdxConfigAggregator {
     /**
      * Get a resolved config property
      *
-     * @param {string} key the key of the property
-     * @returns {*} the value of the property
-     * @throws {Error} Throws error is initialized is not called prior
+     * @param {string} key - The key of the property
+     * @returns {*} The value of the property
      */
     public getInfo(key: SfdxConstant) {
         const location = this.getLocation(key);
@@ -122,7 +120,7 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * Get a resolved config property location.
+     * Gets a resolved config property location.
      *
      * For example, getLocation('logLevel') will return:
      * 1) $SFDX_LOG_LEVEL is resolved to 'Environment'
@@ -195,43 +193,78 @@ export class SfdxConfigAggregator {
         return _.sortBy(info, 'key');
     }
 
+    /**
+     * @returns {SfdxConfig} Get the local config object
+     */
     public getLocalConfig(): SfdxConfig {
         return this.localConfig;
     }
 
+    /**
+     * @returns {SfdxConfig} Get the global config object
+     */
     public getGlobalConfig(): SfdxConfig {
         return this.globalConfig;
     }
 
+    /**
+     * Set the global config object
+     * @param config - The config object to set
+     */
     protected setConfig(config: any) {
         this.config = config;
     }
 
+    /**
+     * Set the local config object
+     * @param {SfdxConfig} config - The config object value to set.
+     */
     protected setLocalConfig(config: SfdxConfig) {
         this.localConfig = config;
     }
 
+    /**
+     * Set the global config object
+     * @param {SfdxConfig} config - The config object value to set
+     */
     protected setGlobalConfig(config: SfdxConfig) {
         this.globalConfig = config;
     }
 
-    protected getAllowedProperties() {
+    /**
+     * @returns {ConfigPropertyMeta[]} - Get the allowed properties
+     */
+    protected getAllowedProperties(): ConfigPropertyMeta[] {
         return this.allowedProperties;
     }
 
-    protected setAllowedProperties(properties: any[]) {
+    /**
+     * Set the allowed properties
+     * @param {ConfigPropertyMeta[]} properties - The properties to set
+     */
+    protected setAllowedProperties(properties: ConfigPropertyMeta[]) {
         this.allowedProperties = properties;
     }
 
-    protected setEnvVars(envVars: any[]) {
+    /**
+     * Sets the env variables
+     * @param {any[]} envVars - The env varibless to set.
+     */
+    protected setEnvVars(envVars: any) {
         this.envVars = envVars;
     }
 
-    protected getEnvVars() {
+    /**
+     * @returns {any} - The environment variables as an object
+     */
+    protected getEnvVars(): any {
         return this.envVars;
     }
 
-    protected getConfig() {
+    /**
+     * @returns {any[]} - Returns the raw config data.
+     */
+    protected getConfig(): any {
         return this.config;
     }
 }
