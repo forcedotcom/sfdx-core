@@ -38,7 +38,8 @@ export class Mode {
  * Global constants, methods and configuration.
  */
 export class Global {
-    public static readonly DIR: string = path.join(os.homedir(), '.sfdx');
+    public static readonly STATE_FOLDER = '.sfdx';
+    public static readonly DIR: string = path.join(os.homedir(), Global.STATE_FOLDER);
     public static readonly LOG_FILE_PATH: string = path.join(Global.DIR, 'sfdx.log');
 
     public static getEnvironmentMode(): Mode {

@@ -46,7 +46,7 @@ export class Messages {
      * @param bundle The name of the bundle
      * @param loader The loader function
      */
-    public static import(bundle: string, loader: (locale: string) => Promise<Messages>): void {
+    public static importFunction(bundle: string, loader: (locale: string) => Promise<Messages>): void {
         this.loaders.set(bundle, loader);
     }
 

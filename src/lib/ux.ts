@@ -234,6 +234,7 @@ export type SfdxTableOptions = {
  */
 export type DeprecationDefinition = {
     name: string,
+    // tslint:disable-next-line no-reserved-keywords
     type: string,
     version: number,
     to?: string,
@@ -241,6 +242,7 @@ export type DeprecationDefinition = {
     messageOverride?: never
 } | {
     name?: never,
+    // tslint:disable-next-line no-reserved-keywords
     type?: never,
     version?: never,
     to?: string,

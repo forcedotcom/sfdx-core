@@ -290,9 +290,16 @@ export class AuthInfo {
                 authConfig = AuthInfo.cache.get(this.username);
             } else {
                 // Fetch from the persisted auth file
-                authConfig = await Global.fetchConfigInfo(this.authFileName);
+                try {
+                    authConfig = await Global.fetchConfigInfo(this.authFileName);
+                } catch (e) {
+                    if (e.code === 'ENOENT') {
+                        throw await SfdxError.create('sfdx-core', 'namedOrgNotFound', [this.username]);
+                    } else {
+                        throw e;
+                    }
+                }
             }
-
             // Update the auth fields WITHOUT encryption (already encrypted)
             this.update(authConfig, false);
         }
@@ -333,7 +340,7 @@ export class AuthInfo {
     /**
      * Updates the cache and persists the authentication fields (encrypted).
      */
-    public async save(authData?: Partial<AuthFields>): Promise<any> {
+    public async save(authData?: Partial<AuthFields>): Promise<AuthInfo> {
         this.update(authData);
         AuthInfo.cache.set(this.username, this.fields);
 
@@ -347,6 +354,7 @@ export class AuthInfo {
 
         await Global.saveConfigInfo(this.authFileName, dataToSave);
         this.logger.info(`Saved auth info for username: ${this.username}`);
+        return this;
     }
 
     /**

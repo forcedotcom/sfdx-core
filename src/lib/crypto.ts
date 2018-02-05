@@ -33,7 +33,7 @@ const keychainPromises = {
      * @param service - The keychain service name
      * @param account - The keychain account name
      */
-    get(_keychain, service, account) {
+    getPassword(_keychain, service, account) {
         return new Promise((resolve, reject) =>
             _keychain.getPassword({ service, account }, (err, password) => {
                 if (err) {
@@ -50,7 +50,7 @@ const keychainPromises = {
      * @param account - The keychain account name
      * @param password - The password for the keychain item
      */
-    set(_keychain, service, account, password) {
+    setPassword(_keychain, service, account, password) {
         return new Promise( (resolve, reject) =>
             _keychain.setPassword({ service, account, password }, (err) => {
                 if (err) {
@@ -92,7 +92,7 @@ export class Crypto {
         if (!this.keyChain) {
             this.keyChain = await retrieveKeychain(platform);
 
-            return keychainPromises.get(this.keyChain, KEY_NAME, ACCOUNT).then((savedKey) => {
+            return keychainPromises.getPassword(this.keyChain, KEY_NAME, ACCOUNT).then((savedKey) => {
                 logger.debug('password retrieved from keychain');
                 _key = savedKey['password'];
                 return this;
@@ -109,7 +109,7 @@ export class Crypto {
 
                     const key = crypto.randomBytes(Math.ceil(16)).toString('hex');
                     // Create a new password in the KeyChain.
-                    return keychainPromises.set(this.keyChain, KEY_NAME, ACCOUNT, key)
+                    return keychainPromises.setPassword(this.keyChain, KEY_NAME, ACCOUNT, key)
                         .then(() => this.init('KEY_SET', platform));
                 } else {
                     throw err;
