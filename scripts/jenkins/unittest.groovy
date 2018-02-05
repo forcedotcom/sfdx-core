@@ -1,3 +1,8 @@
 library identifier: 'salesforcedx-library'
 
-runUnitTestsWithCoverage(currentBuild)
+
+withEnv([
+	'USE_GENERIC_UNIX_KEYCHAIN=true'
+]) {
+    runUnitTestsWithCoverage(currentBuild)
+}
