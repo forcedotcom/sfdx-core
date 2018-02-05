@@ -7,13 +7,14 @@
 
 import { join as pathJoin, sep as pathSep } from 'path';
 import { SfdxError } from './sfdxError';
-import { SfdxConstant } from './sfdxConstants';
 import { SfdxUtil } from './util';
 
 /**
  * Class to compute the proper project directory. You generally find a .git folder in this location.
  */
 export class ProjectDir {
+
+    public static WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 
     /**
      * Computes the path of the project.
@@ -40,7 +41,7 @@ export class ProjectDir {
             }
         };
 
-        await traverseForFile(process.cwd(), SfdxConstant.WORKSPACE_CONFIG_FILENAME);
+        await traverseForFile(process.cwd(), ProjectDir.WORKSPACE_CONFIG_FILENAME);
 
         return foundProjectDir;
     }

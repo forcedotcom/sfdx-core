@@ -14,9 +14,10 @@ import { sandbox as sinonSandbox } from 'sinon';
 import { SfdxConfig } from '../../../lib/config/sfdxConfig';
 import { SfdxUtil } from '../../../lib/util';
 import { tmpdir as osTmpdir } from 'os';
-import { SfdxConstant } from '../../../lib/sfdxConstants';
+import { testSetup } from '../../testSetup';
 
-const sandbox = sinonSandbox.create();
+// Setup the test environment.
+const $$ = testSetup();
 
 const configFileContents = {
     defaultdevhubusername: 'sfdxConfigTest_devhub',
@@ -37,7 +38,7 @@ async function retrieveRootPath(isGlobal: boolean): Promise<string> {
 describe('SfdxConfigFile', () => {
 
     afterEach(() => {
-        sandbox.restore();
+        $$.SANDBOX.restore();
     });
 
     describe('instantiation', () => {
@@ -60,7 +61,7 @@ describe('SfdxConfigFile', () => {
         it('adds content of the config file from this.path to this.contents', async () => {
             const config: SfdxConfig = await SfdxConfig.create(true, retrieveRootPath);
 
-            sandbox.stub(SfdxUtil, 'readJSON')
+            $$.SANDBOX.stub(SfdxUtil, 'readJSON')
                 .withArgs(config.getPath(), false)
                 .returns(Promise.resolve(clone(configFileContents)));
 
@@ -76,8 +77,8 @@ describe('SfdxConfigFile', () => {
 
         it('calls SfdxConfig.write with updated file contents', async () => {
 
-            sandbox.stub(SfdxUtil, 'readJSON').callsFake(async () => Promise.resolve(clone(configFileContents)));
-            const writeStub = sandbox.stub(SfdxConfig.prototype, 'write');
+            $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(async () => Promise.resolve(clone(configFileContents)));
+            const writeStub = $$.SANDBOX.stub(SfdxConfig.prototype, 'write');
 
             const expectedFileContents = clone(configFileContents);
             const newUsername = 'updated_val';
@@ -89,8 +90,8 @@ describe('SfdxConfigFile', () => {
         });
 
         it('calls SfdxConfig.write with deleted file contents', async () => {
-            sandbox.stub(SfdxUtil, 'readJSON').callsFake(() => Promise.resolve(clone(configFileContents)));
-            const writeStub = sandbox.stub(SfdxConfig.prototype, 'write');
+            $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(() => Promise.resolve(clone(configFileContents)));
+            const writeStub = $$.SANDBOX.stub(SfdxConfig.prototype, 'write');
             const { defaultdevhubusername } = configFileContents;
 
             await SfdxConfig.setPropertyValue(false, 'defaultusername', undefined, retrieveRootPath);
@@ -123,8 +124,8 @@ describe('SfdxConfigFile', () => {
         it('noPropertyInput validation', async () => {
             const config: SfdxConfig = await SfdxConfig.create(undefined, retrieveRootPath);
             config.setContents([]);
-            config.setPropertyValue(SfdxConstant.DEFAULT_USERNAME, 'foo@example.com');
-            expect(config.getContents()[SfdxConstant.DEFAULT_USERNAME]).to.be.equal('foo@example.com');
+            config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, 'foo@example.com');
+            expect(config.getContents()[SfdxConfig.DEFAULT_USERNAME]).to.be.equal('foo@example.com');
         });
     });
 });

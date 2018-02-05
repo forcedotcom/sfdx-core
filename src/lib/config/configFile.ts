@@ -11,7 +11,7 @@
 import { join as pathJoin, dirname as pathDirname } from 'path';
 
 import { isBoolean as _isBoolean, isNil as _isNil } from 'lodash';
-import { SfdxConstant } from '../sfdxConstants';
+import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
 
 // Local
@@ -63,7 +63,7 @@ export class ConfigFile {
         // state folder.
         let configRootFolder = rootFolder;
         if (_isGlobal || _isState) {
-            configRootFolder = pathJoin(rootFolder, SfdxConstant.STATE_FOLDER);
+            configRootFolder = pathJoin(rootFolder, Global.STATE_FOLDER);
         }
         this.isGlobal = _isGlobal;
         this.name = fileName;
@@ -128,13 +128,12 @@ export class ConfigFile {
      *
      * @returns {Promise<boolean>} true if the file was deleted false otherwise
      */
-    public async deletes(): Promise<boolean> {
-        const exists = this.exists();
+    public async deletes(): Promise<void> {
+        const exists = await this.exists();
         if (exists) {
-            await SfdxUtil.unlink(this.path);
-            return true;
+            return await SfdxUtil.unlink(this.path);
         }
-        return false;
+        throw new SfdxError(`Target file doesn't exist. path: ${this.path}`, 'TargetFileNotFound');
     }
 
     /**

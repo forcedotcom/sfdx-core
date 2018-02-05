@@ -13,27 +13,11 @@ import { isNil as _isNil } from 'lodash';
 import { join as pathJoin} from 'path';
 import { Messages } from '../messages';
 import { ConfigFile } from './configFile';
-import { SfdxConstant as consts } from '../sfdxConstants';
 import { SfdxUtil } from '../util';
 import { SfdxError } from '../sfdxError';
 import { ProjectDir } from '../projectDir';
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
-
-/**
- * Supported Org Types
- * @type {{DEVHUB: SfdxConstant; USERNAME: SfdxConstant; list(): SfdxConstant[]}}
- * DEVHUB - Developer Hub Username
- * USERNAME - Non developer hub username
- */
-export const ORG_DEFAULTS = {
-    DEVHUB: consts.DEFAULT_DEV_HUB_USERNAME,
-    USERNAME: consts.DEFAULT_USERNAME,
-
-    list() {
-        return [ORG_DEFAULTS.DEVHUB, ORG_DEFAULTS.USERNAME];
-    }
-};
 
 /**
  * Internal helper to validate the ENOENT error type.
@@ -96,6 +80,18 @@ export interface ConfigPropertyMetaInput {
 export class SfdxConfig extends ConfigFile {
 
     /**
+     * Username associated with the default dev hub
+     * @type {string}
+     */
+    public static readonly DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername';
+
+    /**
+     * Username associate with the default scratchOrg
+     * @type {string}
+     */
+    public static readonly DEFAULT_USERNAME = 'defaultusername';
+
+    /**
      * Static initializer
      * @param {boolean} isGlobal - True of the returned config is a global config. False for local.
      * @param {function} rootPathRetriever - A function to provide a root path.
@@ -105,7 +101,6 @@ export class SfdxConfig extends ConfigFile {
                                rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<SfdxConfig> {
 
         if (!SfdxConfig.messages) {
-            Messages.importMessageFile(pathJoin(__dirname, '..', '..', '..', 'messages', 'sfdx-core-config.json'));
             SfdxConfig.messages = await Messages.loadMessages('sfdx-core-config');
         }
 
@@ -128,8 +123,8 @@ export class SfdxConfig extends ConfigFile {
                         failedMessage: SfdxConfig.messages.getMessage('invalidApiVersion')
                     }
                 },
-                { key: consts.DEFAULT_DEV_HUB_USERNAME },
-                { key: consts.DEFAULT_USERNAME }
+                { key: SfdxConfig.DEFAULT_DEV_HUB_USERNAME },
+                { key: SfdxConfig.DEFAULT_USERNAME }
             ];
         }
 
@@ -139,7 +134,7 @@ export class SfdxConfig extends ConfigFile {
     }
 
     /**
-     * @returns {object} Returns an object representing the supported allowed properties.
+     * @returns {ConfigPropertyMeta[]} Returns an object representing the supported allowed properties.
      */
     public static getAllowedProperties(): ConfigPropertyMeta[] {
         if (!SfdxConfig.allowedProperties) {
@@ -149,7 +144,7 @@ export class SfdxConfig extends ConfigFile {
     }
 
     /**
-     * The the value of a supported config property
+     * The value of a supported config property
      * @param {boolean} isGlobal - True for a global config. False for a local config.
      * @param {string} propertyName - The name of the property to set
      * @param value - The property value
@@ -172,7 +167,7 @@ export class SfdxConfig extends ConfigFile {
             content[propertyName] = value;
         }
 
-        return await config.write(content);
+        return config.write(content);
     }
 
     /**
@@ -243,3 +238,18 @@ export class SfdxConfig extends ConfigFile {
         }
     }
 }
+
+/**
+ * Supported Org Types
+ * @type {{DEVHUB: SfdxConstant; USERNAME: SfdxConstant; list(): SfdxConstant[]}}
+ * DEVHUB - Developer Hub Username
+ * USERNAME - Non developer hub username
+ */
+export const ORG_DEFAULT = {
+    DEVHUB: SfdxConfig.DEFAULT_DEV_HUB_USERNAME,
+    USERNAME: SfdxConfig.DEFAULT_USERNAME,
+
+    list() {
+        return [ORG_DEFAULT.DEVHUB, ORG_DEFAULT.USERNAME];
+    }
+};

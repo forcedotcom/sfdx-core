@@ -9,7 +9,6 @@ import * as _ from 'lodash';
 
 import { SfdxConfig, ConfigPropertyMeta } from './sfdxConfig';
 import { SfdxError } from '../sfdxError';
-import {SfdxConstant} from '../sfdxConstants';
 
 const propertyToEnvName = (property) => `SFDX_${_.snakeCase(property).toUpperCase()}`;
 
@@ -91,7 +90,7 @@ export class SfdxConfigAggregator {
      * @returns {*} the value of the property
      * @throws {Error} Or there is an attempt to get a property that's not supported
      */
-    public getPropertyValue(key: SfdxConstant) {
+    public getPropertyValue(key: string) {
         if (this.getAllowedProperties().some((element) => key === element.key)) {
             return this.getConfig()[key];
         } else {
@@ -105,7 +104,7 @@ export class SfdxConfigAggregator {
      * @param {string} key - The key of the property
      * @returns {*} The value of the property
      */
-    public getInfo(key: SfdxConstant) {
+    public getInfo(key: string) {
         const location = this.getLocation(key);
 
         return {
@@ -132,9 +131,8 @@ export class SfdxConfigAggregator {
      *
      * @param {string} key the key of the property
      * @returns {*} the value of the property
-     * @throws {Error} Throws error is initialized is not called prior
      */
-    public getLocation(key: SfdxConstant): LOCATIONS {
+    public getLocation(key: string): LOCATIONS {
         if (!_.isNil(this.getEnvVars()[key])) {
             return LOCATIONS.ENVIRONMENT;
         }
@@ -161,9 +159,8 @@ export class SfdxConfigAggregator {
      *
      * @param {string} key the key of the property
      * @returns {*} the value of the property
-     * @throws {Error} Throws error is initialized is not called prior
      */
-    public getPath(key: SfdxConstant): string {
+    public getPath(key: string): string {
         if (!_.isNil(this.envVars[key])) {
             return `\$${propertyToEnvName(key)}`;
         }
@@ -189,7 +186,7 @@ export class SfdxConfigAggregator {
      * @throws {Error} Throws error is initialized is not called prior
      */
     public getConfigInfo() {
-        const info = _.map(this.getConfig(), (val, key: SfdxConstant) => this.getInfo(key));
+        const info = _.map(this.getConfig(), (val, key: string) => this.getInfo(key));
         return _.sortBy(info, 'key');
     }
 
