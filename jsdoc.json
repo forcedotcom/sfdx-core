@@ -1,5 +1,5 @@
 {
-    "plugins": [],
+    "plugins": ["plugins/markdown"],
     "recurseDepth": 10,
     "source": {
         "exclude": "/test/"
@@ -18,6 +18,9 @@
     },
     "templates": {
         "cleverLinks": false,
-        "monospaceLinks": false
+        "monospaceLinks": false,
+        "default": {
+            "outputSourceFiles": false
+        }
     }
 }

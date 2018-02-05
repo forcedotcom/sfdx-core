@@ -17,14 +17,26 @@ import * as path from 'path';
 import * as _ from 'lodash';
 
 /**
- * Load messages from message files of the right locale.
+ * Load messages from loader functions. The loader functions will only run when a message is required.
  *
- * In majority of modules, use Messages.importMessagesDirectory(<module path>) where module
- * path is the root folder location that contains a messages folder. Typically the root folder
- * location is obtained with __dirname. See Messages.importMessagesDirectory for example.
+ * In the beginning of your app or file, add the loader functions to be used later. If using
+ * json files in a root messages directory, load the entire directory automatically with
+ * {@link Messages.importMessagesDirectory}.
  *
- * If individual files use their own messages file OR you need to load messages for an individual
- * test, use Messages.importMessageFile(<file path>);
+ * @example
+ * // Create loader functions for all files in the messages directory
+ * Messages.importMessagesDirectory(__dirname);
+ *
+ * // Now you can use the messages from anywhere in your code or file.
+ *
+ * @example
+ * // If using importMessageDirectory, the bundle name is the file name.
+ * const messages : Messages = await Messages.loadMessages(bundleName);
+ *
+ * // Messages now contains all the message in the bundleName file.
+ * messages.getMessage(messageName);
+ *
+ * @hideconstructor
  */
 export class Messages {
     // Internal readFile. Exposed for unit testing. Do not use sfdxUtil.readFile as messages.js
@@ -189,7 +201,6 @@ export class Messages {
         }
         return util.format(this.messages.get(key), ...tokens);
     }
-
 }
 
 export default Messages;
