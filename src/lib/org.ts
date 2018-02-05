@@ -8,7 +8,7 @@
 import { Connection } from './connection';
 import { Logger } from './logger';
 import { RequestInfo, RequestMethod } from 'jsforce';
-import * as _ from 'lodash';
+import { isNil as _isNil , maxBy as _maxBy } from 'lodash';
 import { AuthInfo } from './authInfo';
 
 /**
@@ -97,13 +97,13 @@ export class Org {
 
             // Get the devhub username from the org meta info;
             const devHubUsernameForgOrg = metaInfo.info.getConnectionOptions().devHubUsername;
-            const devHub = !_.isNil(devHubUsernameForgOrg) ? devhubMetas.get(devHubUsernameForgOrg) : null;
+            const devHub = !_isNil(devHubUsernameForgOrg) ? devhubMetas.get(devHubUsernameForgOrg) : null;
 
             // this means we know we have a scratch org, but no dev hub is providing ownership.
             // the org is likely gone. this could also mean the dev hub this auth file is
             // associated with, hasn't been locally authorized.
             if (metaInfo.devHubMissing) {
-                this.status = _.isNil(devHubUsernameForgOrg) || _.isNil(devHub) ? OrgStatus.UNKNOWN : OrgStatus.MISSING;
+                this.status = _isNil(devHubUsernameForgOrg) || _isNil(devHub) ? OrgStatus.UNKNOWN : OrgStatus.MISSING;
             }
         }
     }
@@ -122,6 +122,6 @@ export class Org {
 
         const versions = await this.connection.request(info);
 
-        return _.maxBy(versions, (_ver: any) => _ver.version);
+        return _maxBy(versions, (_ver: any) => _ver.version);
     }
 }

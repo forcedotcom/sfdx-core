@@ -8,9 +8,9 @@
 'use strict';
 
 // Node
-import * as Path from 'path';
+import { join as pathJoin, dirname as pathDirname } from 'path';
 
-import * as _ from 'lodash';
+import { isBoolean as _isBoolean, isNil as _isNil } from 'lodash';
 import { SfdxConstant } from '../sfdxConstants';
 import { SfdxError } from '../sfdxError';
 
@@ -56,18 +56,18 @@ export class ConfigFile {
             throw new SfdxError('The name parameter is invalid.', 'InvalidParameter');
         }
 
-        const _isGlobal: boolean = _.isBoolean(isGlobal) && isGlobal;
-        const _isState: boolean = _.isBoolean(isState) && isState;
+        const _isGlobal: boolean = _isBoolean(isGlobal) && isGlobal;
+        const _isState: boolean = _isBoolean(isState) && isState;
 
         // Don't let users store config files in homedir without being in the
         // state folder.
         let configRootFolder = rootFolder;
         if (_isGlobal || _isState) {
-            configRootFolder = Path.join(rootFolder, SfdxConstant.STATE_FOLDER);
+            configRootFolder = pathJoin(rootFolder, SfdxConstant.STATE_FOLDER);
         }
         this.isGlobal = _isGlobal;
         this.name = fileName;
-        this.path = Path.join(configRootFolder, filePath, fileName);
+        this.path = pathJoin(configRootFolder, filePath, fileName);
     }
 
     /**
@@ -98,11 +98,11 @@ export class ConfigFile {
      * @returns {Promise<object>} the written contents
      */
     public async write(newContents): Promise<object> {
-        if (!_.isNil(newContents)) {
+        if (!_isNil(newContents)) {
             this.contents = newContents;
         }
 
-        await SfdxUtil.mkdirp(Path.dirname(this.path));
+        await SfdxUtil.mkdirp(pathDirname(this.path));
 
         await SfdxUtil.writeFile(this.path, JSON.stringify(this.contents, null, 4));
 

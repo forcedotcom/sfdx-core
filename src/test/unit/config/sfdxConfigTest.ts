@@ -5,7 +5,7 @@
  */
 'use strict';
 
-import * as Path from 'path';
+import { join as pathJoin } from 'path';
 
 import { assert, expect } from 'chai';
 
@@ -26,12 +26,12 @@ const configFileContents = {
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 
 function getTestLocalPath(): string {
-    return Path.join(osTmpdir(), 'local');
+    return pathJoin(osTmpdir(), 'local');
 }
 
 async function retrieveRootPath(isGlobal: boolean): Promise<string> {
     return isGlobal ?
-        Promise.resolve(Path.join(osTmpdir(), 'global')) : Promise.resolve(Path.join(osTmpdir(), 'local'));
+        Promise.resolve(pathJoin(osTmpdir(), 'global')) : Promise.resolve(pathJoin(osTmpdir(), 'local'));
 }
 
 describe('SfdxConfigFile', () => {
