@@ -89,35 +89,31 @@ export class Crypto {
 
         this.messages = await Messages.loadMessages('encryption');
 
-        if (!this.keyChain) {
-            this.keyChain = await retrieveKeychain(platform);
-
-            return keychainPromises.getPassword(this.keyChain, KEY_NAME, ACCOUNT).then((savedKey) => {
-                logger.debug('password retrieved from keychain');
-                _key = savedKey['password'];
-                return this;
-            }).catch((err) => {
-                // No password found
-                if (err.name  === 'PasswordNotFoundError') {
-                    // If we already tried to create a new key then bail.
-                    if (retryStatus === 'KEY_SET') {
-                        logger.debug('a key was set but the retry to get the password failed.');
-                        throw err;
-                    } else {
-                        logger.debug('password not found in keychin attempting to created one and re-init.');
-                    }
-
-                    const key = crypto.randomBytes(Math.ceil(16)).toString('hex');
-                    // Create a new password in the KeyChain.
-                    return keychainPromises.setPassword(this.keyChain, KEY_NAME, ACCOUNT, key)
-                        .then(() => this.init('KEY_SET', platform));
-                } else {
+        try {
+            let savedKey = await keychainPromises.getPassword(await this.getKeyChain(platform), KEY_NAME, ACCOUNT);
+            _key = savedKey['password'];
+            savedKey = null;
+            return this;
+        } catch (err) {
+            // No password found
+            if (err.name  === 'PasswordNotFoundError') {
+                // If we already tried to create a new key then bail.
+                if (retryStatus === 'KEY_SET') {
+                    logger.debug('a key was set but the retry to get the password failed.');
                     throw err;
+                } else {
+                    logger.debug('password not found in keychin attempting to created one and re-init.');
                 }
-            });
-        }
 
-        logger.debug('keychain retrieved');
+                const key = crypto.randomBytes(Math.ceil(16)).toString('hex');
+                // Create a new password in the KeyChain.
+                await keychainPromises.setPassword(this.keyChain, KEY_NAME, ACCOUNT, key);
+
+                return this.init('KEY_SET', platform);
+            } else {
+                throw err;
+            }
+        }
     }
 
     /**
@@ -185,5 +181,12 @@ export class Crypto {
 
     public close(): void {
         _key = null;
+    }
+
+    private async getKeyChain(platform: string) {
+        if (!this.keyChain) {
+            this.keyChain = await retrieveKeychain(platform);
+        }
+        return this.keyChain;
     }
 }

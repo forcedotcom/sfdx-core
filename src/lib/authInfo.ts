@@ -185,6 +185,9 @@ function base64UrlEscape(base64Encoded: string): string {
  */
 export class AuthInfo {
 
+    // Cache of auth fields by username.
+    private static cache: Map<string, Partial<AuthFields>> = new Map();
+
     /**
      * Returns an instance of AuthInfo for the provided username and/or options.
      *
@@ -245,9 +248,6 @@ export class AuthInfo {
         // At least one auth file is in the global dir.
         return authFiles;
     }
-
-    // Cache of auth fields by username.
-    private static cache: Map<string, Partial<AuthFields>> = new Map();
 
     // The regular expression that filters files stored in $HOME/.sfdx
     private static authFilenameFilterRegEx: RegExp = /^[^.][^@]+@[^.]+(\.[^.\s]+)+\.json$/;
