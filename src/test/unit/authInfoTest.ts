@@ -18,6 +18,7 @@ import { testSetup } from '../testSetup';
 import { SECRET_FILE_NAME } from '../../lib/keyChainImpl';
 import SfdxError from '../../lib/sfdxError';
 import { toUpper as _toUpper, includes as _includes } from 'lodash';
+import Messages from '../../lib/messages';
 
 const TEST_KEY = {
     service: 'sfdx',
@@ -944,4 +945,26 @@ describe('AuthInfo', () => {
             await runTest({ createdOrgInstance: 'gs1' }, 'https://gs1.salesforce.com');
         });
     });
+
+    describe('hasAuthentications', () => {
+        it('should return false', async () => {
+            $$.SANDBOX.stub(AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+                return Promise.resolve([]);
+            });
+
+            const result: boolean = await AuthInfo.hasAuthentications();
+            expect(result).to.be.false;
+        });
+
+        it('should return true', async () => {
+
+            $$.SANDBOX.stub(AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+                return Promise.resolve(['file1']);
+            });
+
+            const result: boolean = await AuthInfo.hasAuthentications();
+            expect(result).to.be.equal(true);
+        });
+    });
+
 });
