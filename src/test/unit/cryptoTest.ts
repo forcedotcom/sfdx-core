@@ -5,19 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as sinon from 'sinon';
-import { assert, expect } from 'chai';
-import * as path from 'path';
+import { Global } from '../../lib/global';
+import { expect } from 'chai';
 import { testSetup } from '../testSetup';
 import { Crypto } from '../../lib/crypto';
-import { Logger } from '../../lib/logger';
+import * as sinon from 'sinon';
 
 // Setup the test environment.
 const $$ = testSetup();
 
+const TEST_KEY = {
+    service: 'sfdx',
+    account: 'local',
+    key: '8e8fd1e6dc06a37bf420898dbc3ee35c'
+};
+
 describe('CryptoTest', function() {
     const disableEncryptionEnvVar = process.env.SFDX_DISABLE_ENCRYPTION;
     let crypto;
+
+    beforeEach(() => {
+        $$.SANDBOX.stub(Global, 'fetchConfigInfo').callsFake(() => {
+            return Promise.resolve(TEST_KEY);
+        });
+    });
 
     afterEach(() => {
         crypto.close();

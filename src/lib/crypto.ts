@@ -6,12 +6,12 @@
  */
 
 import * as os from 'os';
-import { toUpper, isNil } from 'lodash';
+import { isNil } from 'lodash';
 import * as crypto from 'crypto';
 
 import { Logger } from './logger';
 import { Messages } from './messages';
-import { SfdxError, SfdxErrorConfig } from './sfdxError';
+import { SfdxError } from './sfdxError';
 import { retrieveKeychain } from './keyChain';
 
 const TAG_DELIMITER = ':';

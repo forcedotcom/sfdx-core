@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
+import { SfdxUtil } from './util';
 import { keyChainImpl, KeychainAccess, GenericUnixKeychainAccess } from './keyChainImpl';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
@@ -15,8 +15,8 @@ export const retrieveKeychain = async (platform): Promise<any> => {
     const logger: Logger = await Logger.child('keyChain');
     logger.debug(`platform: ${platform}`);
 
-    const useGenericUnixKeychainVar = process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN || process.env.USE_GENERIC_UNIX_KEYCHAIN;
-    const shouldUseGenericUnixKeychain = !!useGenericUnixKeychainVar && useGenericUnixKeychainVar.toLowerCase() === 'true';
+    const useGenericUnixKeychainVar = SfdxUtil.isEnvVarTruthy('SFDX_USE_GENERIC_UNIX_KEYCHAIN');
+    const shouldUseGenericUnixKeychain = !!useGenericUnixKeychainVar && useGenericUnixKeychainVar;
 
     if (/^win/.test(platform)) {
         return keyChainImpl.generic_windows;
