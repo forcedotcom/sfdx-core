@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { toUpper as _toUpper, size as _size } from 'lodash';
 import { access, open, readdir, readFile, stat, writeFile,  unlink } from 'fs';
 import { isEmpty } from 'lodash';
 import { promisify } from 'util';
@@ -152,5 +152,19 @@ export class SfdxUtil {
 
         return !_isNil(whitelistOfSalesforceDomainPatterns.find((pattern) => _endsWith(url.hostname, pattern))) ||
             _includes(whitelistOfSalesforceHosts, url.hostname);
+    }
+
+    /**
+     * Methods to ensure a environment variable is truthy. Truthy is defined as set to a non-null, non-empty, string
+     * that's not equal to false.
+     * @param {string} name - The name of the environment variable to check.
+     * @returns {boolean} - true if the value of the env variable is truthy. false otherwise.
+     */
+    public static isEnvVarTruthy(name: string): boolean {
+        if (!name) {
+            return false;
+        }
+        const value = process.env[name];
+        return value && _size(value) > 0 && _toUpper(value) !== 'FALSE';
     }
 }
