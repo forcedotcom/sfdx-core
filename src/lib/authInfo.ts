@@ -246,11 +246,27 @@ export class AuthInfo {
         return authFiles;
     }
 
-    // Cache of auth fields by username.
-    private static cache: Map<string, Partial<AuthFields>> = new Map();
+    /**
+     * Returns true if this sfdx instance already has 1 or more authentications.
+     * @returns {Promise<boolean>}
+     */
+    public static async hasAuthentications(): Promise<boolean> {
+        try {
+            const authFiles: string[] = await this.listAllAuthFiles();
+            return !_.isEmpty(authFiles);
+        } catch (err) {
+            if (err.name === 'OrgDataNotAvailableError' || err.code === 'ENOENT') {
+                return false;
+            }
+            throw err;
+        }
+    }
 
     // The regular expression that filters files stored in $HOME/.sfdx
     private static authFilenameFilterRegEx: RegExp = /^[^.][^@]+@[^.]+(\.[^.\s]+)+\.json$/;
+
+    // Cache of auth fields by username.
+    private static cache: Map<string, Partial<AuthFields>> = new Map();
 
     private logger: Logger;
 

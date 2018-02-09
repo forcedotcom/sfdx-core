@@ -40,6 +40,7 @@
     "mocha": "2.4.5",
     "shelljs": "0.7.8",
     "sinon": "3.2.1",
+    "ts-node": "4.1.0",
     "tslint": "5.9.1",
     "tslint-microsoft-contrib": "5.0.2",
     "typescript": "2.6.2",

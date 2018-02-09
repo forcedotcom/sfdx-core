@@ -18,7 +18,7 @@ import { Global } from './global';
 /* tslint:disable: no-bitwise */
 
 const GET_PASSWORD_RETRY_COUNT: number = 3;
-const SECRET_FILE_NAME: string = 'key.json';
+export const SECRET_FILE_NAME: string = 'key.json';
 
 /**
  * Helper to reduce an array of cli args down to a presentable string for logging.
@@ -362,7 +362,7 @@ export class GenericKeychainAccess {
             if (_.isNil(fileAccessError)) {
 
                 // read it's contents
-                SfdxUtil.readJSON(GenericKeychainAccess.SECRET_FILE)
+                return Global.fetchConfigInfo(GenericKeychainAccess.SECRET_FILE)
                     .then(async (readObj: SecretFields) => {
                         // validate service name and account just because
                         if ((opts.service === readObj.service ) && (opts.account === readObj.account)) {
@@ -412,9 +412,13 @@ export class GenericKeychainAccess {
     protected async isValidFileAccess(cb): Promise<any> {
         // This call just ensures the .sfdx dir exists and has the correct permissions.
         await Global.createDir();
-        fs.stat(GenericKeychainAccess.SECRET_FILE, (_err, stats) => {
-            !_.isNil(_err) ? cb(_err) : cb(null, stats);
-        });
+
+        try {
+            const stats = await SfdxUtil.stat(GenericKeychainAccess.SECRET_FILE);
+            cb(null, stats);
+        } catch (err) {
+            cb(err);
+        }
     }
 }
 
