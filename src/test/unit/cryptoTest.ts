@@ -9,7 +9,6 @@ import { Global } from '../../lib/global';
 import { expect } from 'chai';
 import { testSetup } from '../testSetup';
 import { Crypto } from '../../lib/crypto';
-import * as sinon from 'sinon';
 
 // Setup the test environment.
 const $$ = testSetup();
