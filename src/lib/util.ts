@@ -4,12 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { access, readFile, writeFile } from 'fs';
+import { toUpper as _toUpper, size as _size } from 'lodash';
+import { access, open, readdir, readFile, stat, writeFile,  unlink } from 'fs';
 import { isEmpty } from 'lodash';
 import { promisify } from 'util';
-
+import { isNil as _isNil, endsWith as _endsWith, includes as _includes } from 'lodash';
 import { SfdxError } from './sfdxError';
+import { URL } from 'url';
 
 const processJsonError = async (error: Error, data: string, jsonPath: string): Promise<void> => {
     if (error.name === 'SyntaxError') {
@@ -43,6 +44,11 @@ export class SfdxUtil {
     public static readFile = promisify(readFile);
 
     /**
+     * Promisified version of fs.readdir
+     */
+    public static readdir = promisify(readdir);
+
+    /**
      * Promisified version of fs.writeFile
      */
     public static writeFile = promisify(writeFile);
@@ -53,9 +59,27 @@ export class SfdxUtil {
     public static access = promisify(access);
 
     /**
+     * Promisified version of fs.open
+     */
+    public static open = promisify(open);
+
+    /**
      * Promisified version of mkdirp
      */
     public static mkdirp = promisify(require('mkdirp'));
+
+    public static DEFAULT_USER_DIR_MODE: string = '700';
+    public static DEFAULT_USER_FILE_MODE: string = '600';
+
+    /**
+     * Promisified version of unlink
+     */
+    public static unlink = promisify(unlink);
+
+    /**
+     * Promisified version of stat
+     */
+    public static stat = promisify(stat);
 
     /**
      * Read a file and convert it to JSON
@@ -65,7 +89,7 @@ export class SfdxUtil {
      * @return {Promise} promise The contents of the file as a JSON object
      */
     public static async readJSON(jsonPath: string, throwOnEmpty?: boolean): Promise<object> {
-        const fileData = (await SfdxUtil.readFile(jsonPath, 'utf8')).toString();
+        const fileData = (await SfdxUtil.readFile(jsonPath, 'utf8'));
         return await SfdxUtil.parseJSON(fileData, jsonPath, throwOnEmpty);
     }
 
@@ -78,7 +102,7 @@ export class SfdxUtil {
      */
     public static async writeJSON(jsonPath: string, data: object): Promise<void> {
         const fileData: string = JSON.stringify(data, null, 4);
-        await SfdxUtil.writeFile(jsonPath, fileData, 'utf8');
+        await SfdxUtil.writeFile(jsonPath, fileData, { encoding: 'utf8', mode: SfdxUtil.DEFAULT_USER_FILE_MODE });
     }
 
     /**
@@ -97,5 +121,50 @@ export class SfdxUtil {
         } catch (error) {
             await processJsonError(error, data, jsonPath);
         }
+    }
+
+    /**
+     * Returns true if a provided url contains a Salesforce owned domain.
+     * @param {*} urlString the url to inspect
+     */
+    public static isSalesforceDomain(urlString: string): boolean {
+        let url: URL;
+
+        try {
+            url = new URL(urlString);
+        } catch (e) {
+            return false;
+        }
+
+        // Source https://help.salesforce.com/articleView?id=000003652&type=1
+        const whitelistOfSalesforceDomainPatterns: string[] = [
+            '.content.force.com',
+            '.force.com',
+            '.salesforce.com',
+            '.salesforceliveagent.com',
+            '.secure.force.com'
+        ];
+
+        const whitelistOfSalesforceHosts: string[] = [
+            'developer.salesforce.com',
+            'trailhead.salesforce.com'
+        ];
+
+        return !_isNil(whitelistOfSalesforceDomainPatterns.find((pattern) => _endsWith(url.hostname, pattern))) ||
+            _includes(whitelistOfSalesforceHosts, url.hostname);
+    }
+
+    /**
+     * Methods to ensure a environment variable is truthy. Truthy is defined as set to a non-null, non-empty, string
+     * that's not equal to false.
+     * @param {string} name - The name of the environment variable to check.
+     * @returns {boolean} - true if the value of the env variable is truthy. false otherwise.
+     */
+    public static isEnvVarTruthy(name: string): boolean {
+        if (!name) {
+            return false;
+        }
+        const value = process.env[name];
+        return value && _size(value) > 0 && _toUpper(value) !== 'FALSE';
     }
 }

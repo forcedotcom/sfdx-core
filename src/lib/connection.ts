@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isString } from 'lodash';
+import { isString, cloneDeep } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
 import { Connection as JSForceConnection, ConnectionOptions, RequestInfo } from 'jsforce';
@@ -20,7 +20,7 @@ export const SFDX_HTTP_HEADERS = {
  * @extends jsforce.Connection
  *
  * @example
- * const connection = await Connection.create(AuthInfo.create(myAdminUsername));
+ * const connection = await Connection.create(await AuthInfo.create(myAdminUsername));
  * connection.query('my_soql_query');
  */
 export class Connection extends JSForceConnection {
@@ -43,7 +43,7 @@ export class Connection extends JSForceConnection {
         };
 
         // Get connection options from auth info and create a new jsForce connection
-        const connectionOptions: ConnectionOptions = Object.assign(baseOptions, authInfo.toJSON());
+        const connectionOptions: ConnectionOptions = Object.assign(baseOptions, authInfo.getConnectionOptions());
         return new Connection(connectionOptions, authInfo, logger);
     }
 
@@ -54,7 +54,6 @@ export class Connection extends JSForceConnection {
     private _logger: Logger;
 
     private authInfo: AuthInfo;
-    private userInfo: any;
 
     constructor(options: ConnectionOptions, authInfo: AuthInfo, logger?: Logger) {
         super(options);
@@ -64,11 +63,6 @@ export class Connection extends JSForceConnection {
         // Set the jsForce connection logger to be our Bunyan logger.
         if (logger) {
             this.logger = this._logger = this.tooling._logger = logger;
-        }
-
-        if (authInfo.isOauth()) {
-            // Set an OAuth access token refresh function handler
-            super.on('refresh', authInfo.oauthRefresh.bind(authInfo));
         }
     }
 
@@ -85,7 +79,15 @@ export class Connection extends JSForceConnection {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
-        return await super.request(_request, options);
+        return super.request(_request, options);
+    }
+
+    /**
+     * Getter for the AuthInfo
+     * @returns {AuthInfo} A cloned authInfo.
+     */
+    public getAuthInfo(): AuthInfo {
+        return cloneDeep(this.authInfo);
     }
 }
 

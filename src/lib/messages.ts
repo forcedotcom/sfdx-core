@@ -58,7 +58,7 @@ export class Messages {
      * @param bundle The name of the bundle
      * @param loader The loader function
      */
-    public static import(bundle: string, loader: (locale: string) => Promise<Messages>): void {
+    public static importFunction(bundle: string, loader: (locale: string) => Promise<Messages>): void {
         this.loaders.set(bundle, loader);
     }
 
@@ -135,14 +135,16 @@ export class Messages {
      * Messages.importMessagesDirectory(__dirname);
      *
      * @param moduleDirectoryPath The path to load the messages folder
-     * @param hasDistFolder Will remove the last "/dist" from the folder path. i.e. the module is typescript
-     * and the messages folder is in the top level of the module directory.
+     * @param hasDistFolder Will remove everything after the last "/dist" from the folder path.
+     * i.e., the module is typescript and the messages folder is in the top level of the module directory.
      */
     public static importMessagesDirectory(moduleDirectoryPath: string, hasDistFolder = true): void {
         let moduleMessagesDirPath = moduleDirectoryPath;
 
         if (hasDistFolder) {
-            moduleMessagesDirPath = moduleDirectoryPath.replace(`${path.sep}dist`, '');
+            const parts: string[] = moduleDirectoryPath.split(path.sep);
+            const index: number = parts.lastIndexOf('dist');
+            moduleMessagesDirPath = index !== -1 ? parts.slice(0, index).join(path.sep) : moduleDirectoryPath;
         }
 
         moduleMessagesDirPath += `${path.sep}messages`;

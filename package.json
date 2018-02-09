@@ -26,8 +26,6 @@
   "dependencies": {
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "chalk": "2.3.0",
-    "cli-engine-command": "9.0.3",
-    "cli-engine-config": "4.0.1-ts.16",
     "cli-ux": "2.0.4",
     "jsforce": "1.8.0",
     "jsonwebtoken": "7.0.0",
@@ -45,8 +43,10 @@
     "mocha": "2.4.5",
     "shelljs": "0.7.8",
     "sinon": "3.2.1",
-    "tslint": "5.8.0",
-    "typescript": "2.4.2",
+    "ts-node": "4.1.0",
+    "tslint": "5.9.1",
+    "tslint-microsoft-contrib": "5.0.2",
+    "typescript": "2.6.2",
     "xunit-file": "1.0.0"
   },
   "types": "dist/exported.d.ts"

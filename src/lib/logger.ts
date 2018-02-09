@@ -39,6 +39,7 @@ export class Bunyan extends bunyan {
 }
 
 export interface LoggerStream {
+    // tslint:disable-next-line no-reserved-keywords
     type: string;
     level?: string;
     path?: string;
@@ -66,8 +67,6 @@ export enum LoggerLevel {
 
 const SFDX_LOGGER_NAME = 'sfdx';
 const DEFAULT_LOG_LEVEL = LoggerLevel.WARN;
-const DEFAULT_USER_DIR_MODE: string = '700';
-const DEFAULT_USER_FILE_MODE: string = '600';
 
 // Ok to log clientid
 const FILTERED_KEYS = [
@@ -232,6 +231,7 @@ export class Logger extends Bunyan {
      *
      * @param name Returns the registered logger instance.
      */
+    // tslint:disable-next-line no-reserved-keywords
     public static get(name: string = SFDX_LOGGER_NAME) {
         if (!loggerRegistry.has(name)) {
             throw new Error(`Logger ${name} not found`);
@@ -262,12 +262,12 @@ export class Logger extends Bunyan {
             await SfdxUtil.access(logFile, fs.constants.W_OK);
         } catch (err1) {
             try {
-                await SfdxUtil.mkdirp(path.dirname(logFile), { mode: DEFAULT_USER_DIR_MODE });
+                await SfdxUtil.mkdirp(path.dirname(logFile), { mode: SfdxUtil.DEFAULT_USER_DIR_MODE });
             } catch (err2) {
                 // noop; directory exists already
             }
             try {
-                await SfdxUtil.writeFile(logFile, '', { mode: DEFAULT_USER_FILE_MODE });
+                await SfdxUtil.writeFile(logFile, '', { mode: SfdxUtil.DEFAULT_USER_FILE_MODE });
             } catch (err3) {
                 throw SfdxError.wrap(err3);
             }

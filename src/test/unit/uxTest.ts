@@ -14,9 +14,12 @@ import Logger from '../../lib/logger';
 import UX from '../../lib/ux';
 import { CLI } from 'cli-ux';
 import chalk from 'chalk';
+import { testSetup } from '../testSetup';
+
+// Setup the test environment.
+const $$ = testSetup();
 
 describe('UX', () => {
-    const sandbox = sinon.sandbox.create();
     const sfdxEnv = process.env.SFDX_ENV;
 
     let logger: Logger;
@@ -28,12 +31,11 @@ describe('UX', () => {
 
     afterEach(() => {
         process.env.SFDX_ENV = sfdxEnv;
-        sandbox.restore();
     });
 
     it('log() should only log to the logger when output IS NOT enabled', () => {
-        sandbox.stub(logger, 'info');
-        sandbox.stub(CLI.prototype, 'log');
+        $$.SANDBOX.stub(logger, 'info');
+        $$.SANDBOX.stub(CLI.prototype, 'log');
         const ux = new UX(logger, false);
         const logMsg = 'test log() 1 for log wrapper';
 
@@ -46,8 +48,8 @@ describe('UX', () => {
     });
 
     it('log() should log to the logger and stdout when output IS enabled', () => {
-        sandbox.stub(logger, 'info');
-        sandbox.stub(CLI.prototype, 'log');
+        $$.SANDBOX.stub(logger, 'info');
+        $$.SANDBOX.stub(CLI.prototype, 'log');
         const ux = new UX(logger);
         const logMsg = 'test log() 2 for log wrapper';
 
@@ -61,10 +63,10 @@ describe('UX', () => {
     });
 
     it('logRaw() should only log to the logger when output IS NOT enabled', () => {
-        sandbox.stub(logger, 'info');
+        $$.SANDBOX.stub(logger, 'info');
         const ux = new UX(logger, false);
-        sandbox.stub(ux.stdout, 'write');
-        sandbox.stub(ux.stderr, 'write');
+        $$.SANDBOX.stub(ux.stdout, 'write');
+        $$.SANDBOX.stub(ux.stderr, 'write');
         const logMsg = 'test logRaw() 1 for log wrapper';
 
         const ux1 = ux.logRaw(logMsg);
@@ -77,10 +79,10 @@ describe('UX', () => {
     });
 
     it('logRaw() should log to the logger and stdout when output IS enabled', () => {
-        sandbox.stub(logger, 'info');
+        $$.SANDBOX.stub(logger, 'info');
         const ux = new UX(logger);
-        sandbox.stub(ux.stdout, 'write');
-        sandbox.stub(ux.stderr, 'write');
+        $$.SANDBOX.stub(ux.stdout, 'write');
+        $$.SANDBOX.stub(ux.stderr, 'write');
         const logMsg = 'test logRaw() 2 for log wrapper';
 
         const ux1 = ux.logRaw(logMsg);
@@ -94,9 +96,9 @@ describe('UX', () => {
     });
 
     it('logJson() should log to the logger (unformatted) and stdout (formatted)', () => {
-        sandbox.stub(logger, 'info');
+        $$.SANDBOX.stub(logger, 'info');
         const ux = new UX(logger);
-        sandbox.stub(ux, 'styledJSON');
+        $$.SANDBOX.stub(ux, 'styledJSON');
         const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1, 2, 3] };
 
         const ux1 = ux.logJson(logMsg);
@@ -109,10 +111,10 @@ describe('UX', () => {
     });
 
     it('errorJson() should log to the logger (logLevel = error) and stderr', () => {
-        sandbox.stub(logger, 'error');
+        $$.SANDBOX.stub(logger, 'error');
         const ux = new UX(logger);
-        sandbox.stub(ux.stderr, 'write');
-        sandbox.stub(ux.stdout, 'write');
+        $$.SANDBOX.stub(ux.stderr, 'write');
+        $$.SANDBOX.stub(ux.stdout, 'write');
         const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1, 2, 3] };
 
         ux.errorJson(logMsg);
@@ -125,10 +127,10 @@ describe('UX', () => {
     });
 
     it('error() should only log to the logger (logLevel = error) when output IS NOT enabled', () => {
-        sandbox.stub(logger, 'error');
+        $$.SANDBOX.stub(logger, 'error');
         const ux = new UX(logger, false);
-        sandbox.stub(ux.stderr, 'write');
-        sandbox.stub(ux.stdout, 'write');
+        $$.SANDBOX.stub(ux.stderr, 'write');
+        $$.SANDBOX.stub(ux.stdout, 'write');
         const logMsg = 'test error() 1 for log wrapper';
 
         ux.error(logMsg);
@@ -140,10 +142,10 @@ describe('UX', () => {
     });
 
     it('error() should log to the logger (logLevel = error) and stderr when output IS enabled', () => {
-        sandbox.stub(logger, 'error');
+        $$.SANDBOX.stub(logger, 'error');
         const ux = new UX(logger);
-        sandbox.stub(ux.stderr, 'write');
-        sandbox.stub(ux.stdout, 'write');
+        $$.SANDBOX.stub(ux.stderr, 'write');
+        $$.SANDBOX.stub(ux.stdout, 'write');
         const logMsg = 'test error() 2 for log wrapper';
 
         ux.error(logMsg);
@@ -156,8 +158,8 @@ describe('UX', () => {
     });
 
     it('styledObject() should only log to the logger when output IS NOT enabled', () => {
-        sandbox.stub(logger, 'info');
-        sandbox.stub(CLI.prototype, 'styledObject');
+        $$.SANDBOX.stub(logger, 'info');
+        $$.SANDBOX.stub(CLI.prototype, 'styledObject');
         const ux = new UX(logger, false);
         const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1, 2, 3] };
 
@@ -170,8 +172,8 @@ describe('UX', () => {
     });
 
     it('styledObject() should log to the logger and stdout when output IS enabled', () => {
-        sandbox.stub(logger, 'info');
-        sandbox.stub(CLI.prototype, 'styledObject');
+        $$.SANDBOX.stub(logger, 'info');
+        $$.SANDBOX.stub(CLI.prototype, 'styledObject');
         const ux = new UX(logger);
         const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1, 2, 3] };
         const keysToLog = ['key1', 'key2', 'key3'];
@@ -187,8 +189,8 @@ describe('UX', () => {
     });
 
     it('styledHeader() should only log to the logger when output IS NOT enabled', () => {
-        sandbox.stub(logger, 'info');
-        sandbox.stub(CLI.prototype, 'styledHeader');
+        $$.SANDBOX.stub(logger, 'info');
+        $$.SANDBOX.stub(CLI.prototype, 'styledHeader');
         const ux = new UX(logger, false);
         const logMsg = 'test styledHeader() 1 for log wrapper';
 
@@ -201,8 +203,8 @@ describe('UX', () => {
     });
 
     it('styledHeader() should log to the logger and stdout when output IS enabled', () => {
-        sandbox.stub(logger, 'info');
-        sandbox.stub(CLI.prototype, 'styledHeader');
+        $$.SANDBOX.stub(logger, 'info');
+        $$.SANDBOX.stub(CLI.prototype, 'styledHeader');
         const ux = new UX(logger);
         const logMsg = 'test styledHeader() 2 for log wrapper';
 
@@ -248,8 +250,8 @@ describe('UX', () => {
     });
 
     it('table() should only log to the logger when output IS NOT enabled', () => {
-        sandbox.stub(logger, 'info');
-        sandbox.stub(CLI.prototype, 'table');
+        $$.SANDBOX.stub(logger, 'info');
+        $$.SANDBOX.stub(CLI.prototype, 'table');
         const ux = new UX(logger, false);
         const tableData = [
             { foo: 'amazing!', bar: 3, baz: true },
@@ -266,8 +268,8 @@ describe('UX', () => {
     });
 
     it('table() should log to the logger and output in table format when output IS enabled with simple column config', () => {
-        sandbox.stub(logger, 'info');
-        sandbox.stub(CLI.prototype, 'table');
+        $$.SANDBOX.stub(logger, 'info');
+        $$.SANDBOX.stub(CLI.prototype, 'table');
         const ux = new UX(logger);
         const tableData = [
             { foo: 'amazing!', bar: 3, baz: true },
@@ -294,8 +296,8 @@ describe('UX', () => {
     });
 
     it('table() should log to the logger and output in table format when output IS enabled with complex column config', () => {
-        sandbox.stub(logger, 'info');
-        sandbox.stub(CLI.prototype, 'table');
+        $$.SANDBOX.stub(logger, 'info');
+        $$.SANDBOX.stub(CLI.prototype, 'table');
         const ux = new UX(logger);
         const tableData = [
             { foo: 'amazing!', bar: 3, baz: true },
@@ -341,10 +343,10 @@ describe('UX', () => {
 
         it('warn() should only log to the logger when logLevel > WARN', () => {
             logger.setLevel('error');
-            sandbox.stub(logger, 'warn');
+            $$.SANDBOX.stub(logger, 'warn');
             const ux = new UX(logger, false);
-            sandbox.stub(ux.stderr, 'write');
-            sandbox.stub(ux.stdout, 'write');
+            $$.SANDBOX.stub(ux.stderr, 'write');
+            $$.SANDBOX.stub(ux.stdout, 'write');
             const logMsg = 'test warn() 1 for log wrapper';
 
             const ux1 = ux.warn(logMsg);
@@ -359,10 +361,10 @@ describe('UX', () => {
         });
 
         it('warn() should log to the logger and stderr when logLevel <= WARN and output enabled', () => {
-            sandbox.stub(logger, 'warn');
+            $$.SANDBOX.stub(logger, 'warn');
             const ux = new UX(logger);
-            sandbox.stub(ux.stderr, 'write');
-            sandbox.stub(ux.stdout, 'write');
+            $$.SANDBOX.stub(ux.stderr, 'write');
+            $$.SANDBOX.stub(ux.stdout, 'write');
             const logMsg = 'test warn() 1 for log wrapper';
 
             const ux1 = ux.warn(logMsg);
@@ -378,10 +380,10 @@ describe('UX', () => {
         });
 
         it('warn() should log to the logger and add to warnings Set when logLevel <= WARN and output NOT enabled', () => {
-            sandbox.stub(logger, 'warn');
+            $$.SANDBOX.stub(logger, 'warn');
             const ux = new UX(logger, false);
-            sandbox.stub(ux.stderr, 'write');
-            sandbox.stub(ux.stdout, 'write');
+            $$.SANDBOX.stub(ux.stderr, 'write');
+            $$.SANDBOX.stub(ux.stdout, 'write');
             const logMsg = 'test warn() 1 for log wrapper';
 
             const ux1 = ux.warn(logMsg);

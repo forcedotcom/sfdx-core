@@ -11,14 +11,12 @@ import * as path from 'path';
 
 import { Global, Mode, Modes } from '../../lib/global';
 import { SfdxUtil } from '../../lib/util';
+import { testSetup } from '../testSetup';
+
+// Setup the test environment.
+const $$ = testSetup();
 
 describe('Global', () => {
-
-    const sandbox = sinon.sandbox.create();
-
-    afterEach(() => {
-        sandbox.restore();
-    });
 
     describe('environmentMode', () => {
         const sfdxEnv = process.env.SFDX_ENV;
@@ -42,10 +40,29 @@ describe('Global', () => {
         });
     });
 
+    describe('createDir', () => {
+        it('should create the global dir when no args passed', async () => {
+            $$.SANDBOX.stub(SfdxUtil, 'mkdirp').returns(Promise.resolve());
+            await Global.createDir();
+            expect(SfdxUtil.mkdirp['called']).to.be.true;
+            expect(SfdxUtil.mkdirp['firstCall'].args[0]).to.equal(Global.DIR);
+            expect(SfdxUtil.mkdirp['firstCall'].args[1]).to.equal(SfdxUtil.DEFAULT_USER_DIR_MODE);
+        });
+
+        it('should create a dir within the global dir when a dirPath is passed', async () => {
+            $$.SANDBOX.stub(SfdxUtil, 'mkdirp').returns(Promise.resolve());
+            const dirPath = path.join('some', 'dir', 'path');
+            await Global.createDir(dirPath);
+            expect(SfdxUtil.mkdirp['called']).to.be.true;
+            expect(SfdxUtil.mkdirp['firstCall'].args[0]).to.equal(path.join(Global.DIR, dirPath));
+            expect(SfdxUtil.mkdirp['firstCall'].args[1]).to.equal(SfdxUtil.DEFAULT_USER_DIR_MODE);
+        });
+    });
+
     describe('fetchConfigInfo', () => {
         it('should call SfdxUtil.readJSON in the global dir', async () => {
             const testJSON = { username: 'globalTest_fetchConfigInfo' };
-            sandbox.stub(SfdxUtil, 'readJSON').returns(Promise.resolve(testJSON));
+            $$.SANDBOX.stub(SfdxUtil, 'readJSON').returns(Promise.resolve(testJSON));
             const fileName = 'globalTest_fileName1';
             const myJSON = await Global.fetchConfigInfo(fileName);
 
@@ -58,7 +75,7 @@ describe('Global', () => {
     describe('saveConfigInfo', () => {
         it('should call SfdxUtil.writeJSON in the global dir', async () => {
             const testJSON = { username: 'globalTest_saveConfigInfo' };
-            sandbox.stub(SfdxUtil, 'writeJSON').returns(Promise.resolve());
+            $$.SANDBOX.stub(SfdxUtil, 'writeJSON').returns(Promise.resolve());
             const fileName = 'globalTest_fileName1';
             await Global.saveConfigInfo(fileName, testJSON);
 

@@ -11,26 +11,26 @@ const salesforceConnection: sf.Connection = new sf.Connection({
     refreshToken: '',
     oauth2: {
         clientId: '',
-        clientSecret: '',
-    },
+        clientSecret: ''
+    }
 });
 
-salesforceConnection.sobject<DummyRecord>("Dummy").select(["thing", "other"]);
+salesforceConnection.sobject<DummyRecord>('Dummy').select(['thing', 'other']);
 
 // note the following should never compile:
-// salesforceConnection.sobject<DummyRecord>("Dummy").select(["lol"]);
+// salesforceConnection.sobject<DummyRecord>('Dummy').select(['lol']);
 
-salesforceConnection.sobject("Account").create({
-    Name: "Test Acc 2",
-    BillingStreet: "Maplestory street",
-    BillingPostalCode: "ME4 666"
+salesforceConnection.sobject('Account').create({
+    Name: 'Test Acc 2',
+    BillingStreet: 'Maplestory street',
+    BillingPostalCode: 'ME4 666'
 }, (err: Error, ret: sf.RecordResult) => {
     if (err || !ret.success) {
         return;
     }
 });
 
-salesforceConnection.sobject("ContentVersion").create({
+salesforceConnection.sobject('ContentVersion').create({
     OwnerId: '',
     Title: 'hello',
     PathOnClient: './hello-world.jpg',
@@ -41,28 +41,28 @@ salesforceConnection.sobject("ContentVersion").create({
     }
 });
 
-salesforceConnection.sobject<any>("ContentVersion").retrieve("world", {
-    test: "test"
+salesforceConnection.sobject<any>('ContentVersion').retrieve('world', {
+    test: 'test'
 }, (err: Error, ret) => {
     if (err) {
         return;
     }
 });
 
-salesforceConnection.sobject("ContentVersion").findOne<any>({ Id: '' }, (err, contentVersion) => {
+salesforceConnection.sobject('ContentVersion').findOne<any>({ Id: '' }, (err, contentVersion) => {
 });
 
-salesforceConnection.sobject("ContentDocumentLink").create({
+salesforceConnection.sobject('ContentDocumentLink').create({
     ContentDocumentId: '',
     LinkedEntityId: '',
-    ShareType: "I"
+    ShareType: 'I'
 }, (err: Error, ret: sf.RecordResult) => {
     if (err || !ret.success) {
         return;
     }
 });
 
-sf.Date.YESTERDAY;
+// sf.Date.YESTERDAY;
 
 salesforceConnection.sobject<any>('Coverage__c')
     .select(['Id', 'Name'])
@@ -88,4 +88,4 @@ salesforceConnection.sobject<any>('Coverage__c')
     .select(['Id', 'Name']).del(() => { });
 
 salesforceConnection.sobject<any>('Coverage__c')
-    .select(['Id', 'Name']).del("test", () => { });
+    .select(['Id', 'Name']).del('test', () => { });
