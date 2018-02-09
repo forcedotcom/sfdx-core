@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as dns from 'dns';
-import { randomBytes as cryptoRandomBytes } from 'crypto';
 import { assert, expect } from 'chai';
 import { AuthInfo } from '../../lib/authInfo';
 import Global from '../../lib/global';
@@ -18,7 +17,6 @@ import { testSetup } from '../testSetup';
 import { SECRET_FILE_NAME } from '../../lib/keyChainImpl';
 import SfdxError from '../../lib/sfdxError';
 import { toUpper as _toUpper, includes as _includes } from 'lodash';
-import Messages from '../../lib/messages';
 
 const TEST_KEY = {
     service: 'sfdx',
@@ -43,10 +41,6 @@ describe('AuthInfo No fs mock', () => {
                 return Promise.reject(new SfdxError('Not mocked - unhandled test case', 'UnsupportedTestCase'));
             }
         });
-    });
-
-    after(() => {
-        $$.SANDBOX.restore();
     });
 
     it ('missing config', async () => {
@@ -80,8 +74,7 @@ class MetaAuthDataMock {
     };
 
     constructor() {
-        const key = cryptoRandomBytes(Math.ceil(16)).toString('hex');
-        this._jwtUsername = `${this._jwtUsername}_${key}`;
+        this._jwtUsername = `${this._jwtUsername}_${$$.uniqid()}`;
     }
 
     get instanceUrl(): string {
