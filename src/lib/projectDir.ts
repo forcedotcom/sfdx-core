@@ -35,7 +35,7 @@ export class ProjectDir {
                     if (indexOfLastSlash > 0) {
                         await traverseForFile(workingDir.substring(0, indexOfLastSlash), file);
                     } else {
-                        throw await SfdxError.create('sfdx-core-config', 'InvalidProjectWorkspace');
+                        throw SfdxError.create('sfdx-core', 'config', 'InvalidProjectWorkspace');
                     }
                 }
             }

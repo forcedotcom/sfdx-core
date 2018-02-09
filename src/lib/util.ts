@@ -32,7 +32,7 @@ const processJsonError = async (error: Error, data: string, jsonPath: string): P
         // only need to count new lines before the error position
         const lineNumber = data.substring(0, errPosition).split('\n').length;
 
-        throw await SfdxError.create('sfdx-core', 'JsonParseError', [jsonPath, lineNumber, errorPortion]);
+        throw SfdxError.create('sfdx-core', 'core', 'JsonParseError', [jsonPath, lineNumber, errorPortion]);
     } else {
         throw error;
     }
@@ -117,8 +117,8 @@ export class SfdxUtil {
      * @param throwOnEmpty Throw an exception if the data contents are empty
      */
     public static async parseJSON(data: string, jsonPath: string = 'unknown', throwOnEmpty: boolean = true): Promise<object> {
-        if (_isEmpty(data) && throwOnEmpty) {
-            throw await SfdxError.create('sfdx-core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
+        if (isEmpty(data) && throwOnEmpty) {
+            throw SfdxError.create('sfdx-core', 'core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
         }
 
         try {

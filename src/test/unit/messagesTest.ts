@@ -47,7 +47,7 @@ describe('Messages', () => {
     describe('importMessageFile', () => {
         it('should throw when file extension is not json', () => {
             try {
-                Messages.importMessageFile('myPluginMessages.txt');
+                Messages.importMessageFile('package name', 'myPluginMessages.txt');
                 assert.fail('should have thrown an error that only json files are allowed.');
             } catch (err) {
                 expect(err.message).to.contain('Only json message files are allowed, not .txt');
@@ -55,18 +55,19 @@ describe('Messages', () => {
         });
 
         it('should add the message file to the map of loaders', () => {
-            const loaderSetStub = $$.SANDBOX.stub(Messages.loaders, 'set');
+            const loaderSetStub = $$.SANDBOX.stub(Messages, 'setLoaderFunction');
             $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
-            Messages.importMessageFile('myPluginMessages.json');
-            expect(loaderSetStub.firstCall.args[0]).to.equal('myPluginMessages');
-            expect(loaderSetStub.firstCall.args[1]).to.equal('loaderFunction');
+            Messages.importMessageFile('package name', 'myPluginMessages.json');
+            expect(loaderSetStub.firstCall.args[0]).to.equal('package name');
+            expect(loaderSetStub.firstCall.args[1]).to.equal('myPluginMessages');
+            expect(loaderSetStub.firstCall.args[2]).to.equal('loaderFunction');
         });
 
         it('should NOT add the message file to the map of loaders when the bundle already exists', () => {
-            $$.SANDBOX.stub(Messages.loaders, 'has').returns(true);
-            const loaderSetStub = $$.SANDBOX.stub(Messages.loaders, 'set');
+            $$.SANDBOX.stub(Messages, 'isCached').returns(true);
+            const loaderSetStub = $$.SANDBOX.stub(Messages, 'setLoaderFunction');
             $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
-            Messages.importMessageFile('myPluginMessages.json');
+            Messages.importMessageFile('package name', 'myPluginMessages.json');
             expect(loaderSetStub.called).to.be.false;
         });
     });
@@ -89,6 +90,7 @@ describe('Messages', () => {
             readdirSyncStub.returns(msgFiles);
             statSyncStub = $$.SANDBOX.stub(fs, 'statSync');
             statSyncStub.returns({ isDirectory: () => false, isFile: () => true });
+            $$.SANDBOX.stub(Messages, '_readFile').returns('{"name": "pname"}');
         });
 
         it('should import each message file', () => {
@@ -96,16 +98,18 @@ describe('Messages', () => {
             const expectedMsgDirPath = path.join('myModule', 'dist', 'lib', 'messages');
             expect(readdirSyncStub.called).to.be.true;
             expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
-            expect(importMessageFileStub.firstCall.args[0]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
-            expect(importMessageFileStub.secondCall.args[0]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
+            expect(importMessageFileStub.firstCall.args[0]).to.equal('pname');
+            expect(importMessageFileStub.firstCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
+            expect(importMessageFileStub.secondCall.args[0]).to.equal('pname');
+            expect(importMessageFileStub.secondCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
         });
 
         it('should remove the "/dist" from the module dir path', () => {
             Messages.importMessagesDirectory(messagesDirPath);
             const expectedMsgDirPath = path.join('myModule', 'messages');
             expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
-            expect(importMessageFileStub.firstCall.args[0]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
-            expect(importMessageFileStub.secondCall.args[0]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
+            expect(importMessageFileStub.firstCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
+            expect(importMessageFileStub.secondCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
         });
     });
 
@@ -121,12 +125,12 @@ describe('Messages', () => {
             }
         });
 
-        it('should throw an error when the file is empty', async () => {
+        it('should throw an error when the file is empty', () => {
             const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.json');
-            $$.SANDBOX.stub(Messages, '_readFile').returns(Promise.resolve(''));
+            $$.SANDBOX.stub(Messages, '_readFile').returns('');
 
             try {
-                await loaderFn(Messages.locale);
+                loaderFn(Messages.locale);
                 assert.fail('should have thrown an error that the file was empty.');
             } catch (err) {
                 expect(err.name).to.equal('SfdxError');
@@ -134,12 +138,12 @@ describe('Messages', () => {
             }
         });
 
-        it('should throw an error when the file is invalid JSON', async () => {
+        it('should throw an error when the file is invalid JSON', () => {
             const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.json');
-            $$.SANDBOX.stub(Messages, '_readFile').returns(Promise.resolve('key1=value1,key2=value2'));
+            $$.SANDBOX.stub(Messages, '_readFile').returns('key1=value1,key2=value2');
 
             try {
-                await loaderFn(Messages.locale);
+                loaderFn(Messages.locale);
                 assert.fail('should have thrown an error that the file not valid JSON.');
             } catch (err) {
                 expect(err.name).to.equal('SyntaxError');
@@ -147,11 +151,11 @@ describe('Messages', () => {
             }
         });
 
-        it('should return a Messages object', async () => {
+        it('should return a Messages object', () => {
             const loaderFn = Messages.generateFileLoaderFunction('myBundleName', 'myPluginMessages.json');
-            $$.SANDBOX.stub(Messages, '_readFile').returns(Promise.resolve(JSON.stringify(testMessages)));
-            const messages = await loaderFn(Messages.locale);
-            expect(messages).to.have.property('bundle', 'myBundleName');
+            $$.SANDBOX.stub(Messages, '_readFile').returns(JSON.stringify(testMessages));
+            const messages = loaderFn(Messages.locale);
+            expect(messages).to.have.property('bundleName', 'myBundleName');
             expect(messages).to.have.property('locale', Messages.locale);
             expect(messages.getMessage('msg1')).to.equal(testMessages.msg1);
             expect(messages.getMessage('msg2', ['token1', 222])).to.equal('test message 2 token1 and 222');
@@ -160,10 +164,16 @@ describe('Messages', () => {
 
     describe('loadMessages', () => {
         it('should return a cached bundle', async () => {
-            Messages.bundles.set('myBundle', new Messages('myBundle', Messages.locale, msgMap));
-            const messages = await Messages.loadMessages('myBundle');
+            const spy = $$.SANDBOX.spy(() => new Messages('myBundle', Messages.locale, msgMap));
+            Messages.setLoaderFunction('pname', 'myBundle', spy);
+            // Load messages
+            Messages.loadMessages('pname', 'myBundle');
+
+            // Call cache
+            const messages = Messages.loadMessages('pname', 'myBundle');
             expect(messages.getMessage('msg1')).to.equal(testMessages.msg1);
             expect(messages.getMessage('msg2', ['token1', 222])).to.equal('test message 2 token1 and 222');
+            expect(spy.calledOnce).to.be.true;
         });
 
         it('should load and return a bundle not in cache', async () => {
@@ -173,19 +183,19 @@ describe('Messages', () => {
             const msgs = new Messages('myOtherBundle', Messages.locale, otherMsgMap);
 
             // import the bundle with a custom loader
-            Messages.importFunction('myOtherBundle', () => Promise.resolve(msgs));
+            Messages.setLoaderFunction('pname', 'myOtherBundle', () => msgs);
 
             // now load the bundle
-            const messages = await Messages.loadMessages('myOtherBundle');
+            const messages = Messages.loadMessages('pname', 'myOtherBundle');
             expect(messages.getMessage('otherMsg1')).to.equal(otherMsgMap.get('otherMsg1'));
         });
 
         it('should throw an error if the bundle is not found', async () => {
             try {
-                await Messages.loadMessages('notfound');
+                Messages.loadMessages('pname', 'notfound');
                 assert.fail('should have thrown an error that the bundle was not found.');
             } catch (err) {
-                expect(err.message).to.equal('Missing bundle notfound for locale en_US.');
+                expect(err.message).to.equal('Missing bundle pname:notfound for locale en_US.');
             }
         });
     });

@@ -17,7 +17,8 @@ import { color } from './ux';
  * SfdxError.create(new SfdxErrorConfig('apex', 'runTest').addAction('apexErrorAction1', [className]));
  */
 export class SfdxErrorConfig {
-    public readonly bundle: string;
+    public readonly packageName: string;
+    public readonly bundleName: string;
     public errorKey: string;
     private errorTokens: Array<string | boolean | number>;
 
@@ -26,19 +27,21 @@ export class SfdxErrorConfig {
 
     /**
      * Create a new SfdxErrorConfig.
-     * @param bundle The message bundle.
+     * @param bundleName The message bundle.
      * @param errorKey The error message key.
      * @param errorTokens The tokens to use when getting the error message
      * @param actionKey The action message keys.
      * @param actionTokens The tokens to use when getting the action message(s)
      */
-    constructor(bundle: string,
+    constructor(packageName: string,
+                bundleName: string,
                 errorKey: string,
                 errorTokens: Array<string | boolean | number> = [],
                 actionKey?: string,
                 actionTokens?: Array<string | boolean | number>
         ) {
-        this.bundle = bundle;
+        this.packageName = packageName;
+        this.bundleName = bundleName;
         this.errorKey = errorKey;
         this.errorTokens = errorTokens;
         if (actionKey) {
@@ -77,8 +80,8 @@ export class SfdxErrorConfig {
     /**
      * Load the messages using Messages.loadMessages.
      */
-    public async load(): Promise<Messages> {
-        this.messages = await Messages.loadMessages(this.bundle);
+    public load(): Messages {
+        this.messages = Messages.loadMessages(this.packageName, this.bundleName);
         return this.messages;
     }
 
@@ -134,7 +137,7 @@ export class SfdxErrorConfig {
  * functions, e.g.,
  *      public async init() {
  *          Messages.importMessagesDirectory(__dirname);
- *          this.messages = await Messages.loadMessages('myBundleName');
+ *          this.messages = Messages.loadMessages('myPackageName', 'myBundleName');
  *      }
  *      public doSomething() {
  *          if (conditionNotMet) {
@@ -143,38 +146,43 @@ export class SfdxErrorConfig {
  *          }
  *      }
  * To throw an error in an asynchronous function you can use the static create methods, e.g.,
- *      throw await SfdxError.create('myBundleName', 'MyErrorMessageKey', [messageToken1]);
+ *      throw SfdxError.create('myBundleName', 'MyErrorMessageKey', [messageToken1]);
  */
 export class SfdxError extends Error {
     /**
-     * Create a new SfdxError. Needs to be async to load messages from message files.
-     * @param bundle The message bundle used to create the SfdxError.
-     * @param key The key within the bundle for the message.
-     * @param tokens The values to use for message tokenization.
+     * Create a new SfdxError.
+     * @param {string} packageName The message package name used to create the SfdxError.
+     * @param {string} bundleName The message bundle name used to create the SfdxError.
+     * @param {string} key The key within the bundle for the message.
+     * @param {Array<string | boolean | number>} tokens The values to use for message tokenization.
      */
-    public static async create(bundle: string, key: string, tokens?: Array<string | boolean | number>): Promise<SfdxError>;
+    public static create(packageName: string, bundleName: string, key: string, tokens?: Array<string | boolean | number>): SfdxError;
 
     /**
-     * Create a new SfdxError. Needs to be async to load messages from message files.
-     * @param errorConfig The SfdxErrorConfig object used to create the SfdxError.
+     * Create a new SfdxError.
+     * @param {SfdxErrorConfig} errorConfig The SfdxErrorConfig object used to create the SfdxError.
      */
-    public static async create(errorConfig: SfdxErrorConfig): Promise<SfdxError>;
+    public static create(errorConfig: SfdxErrorConfig): SfdxError;
 
     // The create implementation function.
-    public static async create(bundleOrErrorConfig: string | SfdxErrorConfig, key?: string, tokens?: Array<string | boolean | number>): Promise<SfdxError> {
+    public static create(packageNameOrErrorConfig: string | SfdxErrorConfig, bundleName?: string, key?: string, tokens?: Array<string | boolean | number>): SfdxError {
         let errorConfig: SfdxErrorConfig;
 
-        if (_.isString(bundleOrErrorConfig)) {
-            errorConfig = new SfdxErrorConfig(bundleOrErrorConfig as string, key, tokens);
+        if (_.isString(packageNameOrErrorConfig)) {
+            errorConfig = new SfdxErrorConfig(packageNameOrErrorConfig as string, bundleName, key, tokens);
         } else {
-            errorConfig = bundleOrErrorConfig as SfdxErrorConfig;
+            errorConfig = packageNameOrErrorConfig as SfdxErrorConfig;
         }
 
-        await errorConfig.load();
+        errorConfig.load();
 
         return new SfdxError(errorConfig.getError(), errorConfig.errorKey, errorConfig.getActions());
     }
 
+    /**
+     * Convert an Error to an SfdxError.
+     * @param {Error} err The error to convert.
+     */
     public static wrap(err: Error) {
         return new SfdxError(err.message, err.name);
     }
@@ -187,10 +195,10 @@ export class SfdxError extends Error {
 
     /**
      * Create an SfdxError.
-     * @param message The error message
-     * @param name The error name. Defaults to 'SfdxError'
-     * @param action The action message
-     * @param exitCode The exit code which will be used by the CLI.
+     * @param {string} message The error message
+     * @param {string} name The error name. Defaults to 'SfdxError'
+     * @param {string[]} action The action message
+     * @param {number} exitCode The exit code which will be used by the CLI.
      */
     constructor(message: string, name?: string, actions?: string[], exitCode?: number) {
         super(message);

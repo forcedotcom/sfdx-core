@@ -16,52 +16,74 @@ import * as util from 'util';
 import * as path from 'path';
 import * as _ from 'lodash';
 
+class Key {
+    constructor(private packageName, private bundleName) {}
+
+    public toString() {
+        return `${this.packageName}:${this.bundleName}`;
+    }
+}
+
 /**
- * Load messages from message files of the right locale.
+ * Load messages from loader functions. The loader functions will only run when a message is required.
  *
- * In majority of modules, use Messages.importMessagesDirectory(<module path>) where module
- * path is the root folder location that contains a messages folder. Typically the root folder
- * location is obtained with __dirname. See Messages.importMessagesDirectory for example.
+ * In the beginning of your app or file, add the loader functions to be used later. If using
+ * json files in a root messages directory, load the entire directory automatically with
+ * {@link Messages.importMessagesDirectory}.
  *
- * If individual files use their own messages file OR you need to load messages for an individual
- * test, use Messages.importMessageFile(<file path>);
+ * @example
+ * // Create loader functions for all files in the messages directory
+ * Messages.importMessagesDirectory(__dirname);
+ *
+ * // Now you can use the messages from anywhere in your code or file.
+ *
+ * @example
+ * // If using importMessageDirectory, the bundle name is the file name.
+ * const messages : Messages = Messages.loadMessages(packageName, bundleName);
+ *
+ * // Messages now contains all the message in the bundleName file.
+ * messages.getMessage(messageName);
+ *
+ * @hideconstructor
  */
 export class Messages {
     // Internal readFile. Exposed for unit testing. Do not use sfdxUtil.readFile as messages.js
     // should have no internal dependencies.
-    public static _readFile = util.promisify(fs.readFile);
-
-    // A map of loading functions to dynamically load messages when they need to be used
-    public static loaders: Map<string, (locale: string) => Promise<Messages>> = new Map<string, (locale: string) => Promise<Messages>>();
-
-    // A map cache of messages bundles that have already been loaded
-    public static bundles: Map<string, Messages> = new Map<string, Messages>();
+    public static _readFile = fs.readFileSync;
 
     static get locale() {
         return 'en_US';
     }
 
     /**
-     * Import a custom loader function for a bundle that will be called on Messages.loadMessages.
-     * @param bundle The name of the bundle
-     * @param loader The loader function
+     * A loader function.
+     * @callback loaderFunction
+     * @param {string} locale The local set by the framework.
+     * @returns {Message} The messages.
      */
-    public static importFunction(bundle: string, loader: (locale: string) => Promise<Messages>): void {
-        this.loaders.set(bundle, loader);
+
+    /**
+     * Set a custom loader function for a package and bundle that will be called on {@link Messages.loadMessages}.
+     * @param {string} packageName The npm package name.
+     * @param {string} bundle The name of the bundle.
+     * @param {loaderFunction} loader The loader function.
+     */
+    public static setLoaderFunction(packageName: string, bundle: string, loader: (locale: string) => Messages): void {
+        this.loaders.set(new Key(packageName, bundle).toString(), loader);
     }
 
     /**
-     * Generate a file loading function. Use Messages.importMessageFile unless
+     * Generate a file loading function. Use {@link Messages.importMessageFile} unless
      * overriding the bundleName is required, then manually pass the loader
-     * function to Messages.import();
+     * function to {@link Messages.setLoaderFunction}.
      *
-     * @param bundle The name of the bundle
-     * @param filePath The messages file path
+     * @param {string} bundle The name of the bundle.
+     * @param {string} filePath The messages file path.
      */
-    public static generateFileLoaderFunction(bundle: string, filePath: string): (locale: string) => Promise<Messages> {
-        return async (locale: string): Promise<Messages> => {
+    public static generateFileLoaderFunction(bundleName: string, filePath: string): (locale: string) => Messages {
+        return (locale: string): Messages => {
 
-            const fileContents: string = await this._readFile(filePath, 'utf8');
+            const fileContents: string = this._readFile(filePath, 'utf8');
 
             // If the file is empty throw an error that is clearer than "Unexpected end of JSON input",
             // which is what JSON.parse throws.
@@ -91,7 +113,7 @@ export class Messages {
                 map.set(key, value);
             });
 
-            return Promise.resolve(new Messages(bundle, locale, map));
+            return new Messages(bundleName, locale, map);
         };
     }
 
@@ -99,22 +121,23 @@ export class Messages {
      * Add a single message file to the list of loading functions using the file name as the bundle name.
      * The loader will only be added if the bundle name is not already taken.
      *
-     * @param filePath The path of the file.
+     * @param {string} packageName The npm package name.
+     * @param {string} filePath The path of the file.
      */
-    public static importMessageFile(filePath: string) {
+    public static importMessageFile(packageName: string, filePath: string) {
         if (path.extname(filePath) !== '.json') {
             throw new Error(`Only json message files are allowed, not ${path.extname(filePath)}`);
         }
         const bundleName = path.basename(filePath, '.json');
 
-        if (!this.loaders.has(bundleName)) {
-            this.loaders.set(bundleName, Messages.generateFileLoaderFunction(bundleName, filePath));
+        if (!this.isCached(packageName, bundleName)) {
+            this.setLoaderFunction(packageName, bundleName, Messages.generateFileLoaderFunction(bundleName, filePath));
         }
     }
 
     /**
      * Import all json files in a messages directory. Use the file name as the bundle key when
-     * Messages.loadMessages is called. By default, we're assuming the moduleDirectoryPart is a
+     * {@link Messages.loadMessages} is called. By default, we're assuming the moduleDirectoryPart is a
      * typescript project and in the ./dist/ folder which we will attempt to remove. If your messages
      * directory is in another spot or you are not using typescript, pass in false for hasDistFolder.
      *
@@ -122,17 +145,28 @@ export class Messages {
      * // e.g. If your index.js is in a ./src/ folder and compiled to a ./dist/ folder, you would do:
      * Messages.importMessagesDirectory(__dirname);
      *
-     * @param moduleDirectoryPath The path to load the messages folder
-     * @param hasDistFolder Will remove everything after the last "/dist" from the folder path.
+     * @param {string} moduleDirectoryPath The path to load the messages folder.
+     * @param {boolean} hasDistFolder Will remove everything after the last "/dist" from the folder path.
      * i.e., the module is typescript and the messages folder is in the top level of the module directory.
+     * @param {string} packageName The npm package name. Figured out from the root directory's package.json.
      */
-    public static importMessagesDirectory(moduleDirectoryPath: string, hasDistFolder = true): void {
+    public static importMessagesDirectory(moduleDirectoryPath: string, hasDistFolder: boolean = true, packageName?: string): void {
         let moduleMessagesDirPath = moduleDirectoryPath;
 
         if (hasDistFolder) {
             const parts: string[] = moduleDirectoryPath.split(path.sep);
             const index: number = parts.lastIndexOf('dist');
             moduleMessagesDirPath = index !== -1 ? parts.slice(0, index).join(path.sep) : moduleDirectoryPath;
+        }
+
+        if (!packageName) {
+            try {
+                packageName = JSON.parse(this._readFile(`${moduleMessagesDirPath}${path.sep}package.json`, 'utf8')).name;
+            } catch (err) {
+                const error = new Error(`Invalid or missing package.json file at ${moduleMessagesDirPath}. If not using a package.json, pass in a packageName.\n${err.message}`);
+                error.name = 'MissingPackageName';
+                throw error;
+            }
         }
 
         moduleMessagesDirPath += `${path.sep}messages`;
@@ -146,36 +180,58 @@ export class Messages {
                     // When we support other locales, load them from /messages/<local>/<bundleName>.json
                     // Change generateFileLoaderFunction to handle loading locales.
                 } else if (stat.isFile()) {
-                    this.importMessageFile(filePath);
+                    this.importMessageFile(packageName, filePath);
                 }
             }
         });
     }
 
     /**
-     * Load messages for a given bundle. If the bundle is not already cached, use the loader function
-     * created from Messages.import or Messages.importMessagesDirectory.
-     * @param bundle Name of the bundle to load
+     * Load messages for a given package and bundle. If the bundle is not already cached, use the loader function
+     * created from {@link Messages.setLoaderFunction} or {@link Messages.importMessagesDirectory}.
+     *
+     * @param {string} packageName The name of the npm package.
+     * @param {string} bundle Name of the bundle to load.
      */
-    public static async loadMessages(bundle: string): Promise<Messages> {
-        if (this.bundles.has(bundle)) {
-            return Promise.resolve(this.bundles.get(bundle));
+    public static loadMessages(packageName: string, bundleName: string): Messages {
+        const key = new Key(packageName, bundleName);
+
+        if (this.isCached(packageName, bundleName)) {
+            return this.bundles.get(key.toString());
         }
-        if (this.loaders.has(bundle)) {
-            const loader: (locale: string) => Promise<Messages> = this.loaders.get(bundle);
-            const messages: Messages = await loader(Messages.locale);
-            this.bundles.set(bundle, messages);
-            return this.bundles.get(bundle);
+        if (this.loaders.has(key.toString())) {
+            const loader: (locale: string) => Messages = this.loaders.get(key.toString());
+            const messages: Messages = loader(Messages.locale);
+            this.bundles.set(key.toString(), messages);
+            return this.bundles.get(key.toString());
         }
         // Don't use messages inside messages
-        throw new Error(`Missing bundle ${bundle} for locale ${Messages.locale}.`);
+        throw new Error(`Missing bundle ${key.toString()} for locale ${Messages.locale}.`);
     }
 
-    public readonly locale: string;
-    public readonly bundle: string;
+    /**
+     * Check if a bundle already been loaded.
+     * @param {string} packageName The npm package name.
+     * @param {string} bundleName The bundle name.
+     */
+    public static isCached(packageName: string, bundleName: string) {
+        return this.bundles.has(new Key(packageName, bundleName).toString());
+    }
 
-    constructor(bundle: string, locale: string, private messages: Map<string, string>) {
-        this.bundle = bundle;
+    // It would be AWESOME to use Map<Key, Message> but js does an object instance comparison and doesn't let you
+    // override valueOf or equals for the === operator, which map uses. So, Use Map<String, Message>
+
+    // A map of loading functions to dynamically load messages when they need to be used
+    private static loaders: Map<string, (locale: string) => Messages> = new Map<string, (locale: string) => Messages>();
+
+    // A map cache of messages bundles that have already been loaded
+    private static bundles: Map<string, Messages> = new Map<string, Messages>();
+
+    public readonly locale: string;
+    public readonly bundleName: string;
+
+    constructor(bundleName: string, locale: string, private messages: Map<string, string>) {
+        this.bundleName = bundleName;
         this.locale = locale;
     }
 
@@ -187,13 +243,12 @@ export class Messages {
     public getMessage(key: string, tokens: any[] = []) {
         if (!this.messages.has(key)) {
             // Don't use messages inside messages
-            throw new Error(`Missing message ${this.bundle}:${key} for locale ${Messages.locale}.`);
+            throw new Error(`Missing message ${this.bundleName}:${key} for locale ${Messages.locale}.`);
         }
         const val = util.format(this.messages.get(key), ...tokens);
 
         return val;
     }
-
 }
 
 export default Messages;

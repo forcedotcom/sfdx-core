@@ -162,7 +162,7 @@ const _filter = (...args) => args.map((arg) => {
  * Logger class for logging to sfdx.log based on the bunyan implementation.
  * Register and create a new logger:
  * @example Logger.create('myLogger').init();
- * @extends bunyan
+ * @extends Bunyan
  * @see https://github.com/cwallsfdc/node-bunyan
  */
 export class Logger extends Bunyan {

@@ -5,16 +5,17 @@
   "main": "dist/exported",
   "license": "BSD-3-Clause",
   "scripts": {
-    "typings": "tsc -p typings/tsconfig.json",
-    "lint": "tslint -p .",
+    "typings": "node_modules/.bin/tsc -p typings/tsconfig.json",
+    "lint": "node_modules/.bin/tslint -p .",
     "lint-report": "yarn lint -t checkstyle -o checkstyle.xml",
     "clean": "scripts/clean.js",
-    "compile": "tsc -p ./tsconfig.json",
+    "compile": "node_modules/.bin/tsc -p ./tsconfig.json",
     "build": "yarn clean && yarn lint && yarn compile",
     "watch": "tsc -w -p tsconfig.json",
-    "test": "mocha --recursive dist/test/unit",
+    "test": "yarn lint && yarn compile && node_modules/.bin/mocha --recursive dist/test/unit",
     "test-with-coverage": "yarn lint-report && scripts/unit-test-with-coverage.js",
-    "prepare": "yarn run build"
+    "prepare": "yarn run build",
+    "docgen": "yarn compile && node_modules/.bin/jsdoc dist --readme EXPORTED.md -r -c jsdoc.json --package package.json"
   },
   "keywords": [
     "force",
@@ -37,7 +38,9 @@
     "@types/mocha": "2.2.42",
     "@types/node": "8.0.25",
     "chai": "4.1.1",
+    "docdash": "0.4.0",
     "istanbul": "v1.1.0-alpha.1",
+    "jsdoc": "^3.5.5",
     "mocha": "2.4.5",
     "shelljs": "0.7.8",
     "sinon": "3.2.1",

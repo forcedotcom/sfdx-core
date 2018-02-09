@@ -70,7 +70,7 @@ export class Connection extends JSForceConnection {
      * Send REST API request with given HTTP request info, with connected session information
      * and SFDX headers.
      *
-     * @override jsforce.connection.request
+     * @override
      *
      * @param request HTTP request object or URL to GET request
      * @param options HTTP API request options

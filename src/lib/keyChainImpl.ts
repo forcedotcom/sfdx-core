@@ -59,11 +59,11 @@ const _validateProgram = async (programPath, fsIfc, isExeIfc) => {
         const stats = fsIfc.statSync(programPath);
         noPermission = !isExeIfc(stats.mode, stats.gid, stats.uid);
     } catch (e) {
-        throw await SfdxError.create('encryption', 'MissingCredentialProgramError', [programPath]);
+        throw SfdxError.create('sfdx-core', 'encryption', 'MissingCredentialProgramError', [programPath]);
     }
 
     if (noPermission) {
-        throw await SfdxError.create('encryption', 'CredentialProgramAccessError', [programPath]);
+        throw SfdxError.create('sfdx-core', 'encryption', 'CredentialProgramAccessError', [programPath]);
     }
 };
 
@@ -89,12 +89,12 @@ export class KeychainAccess {
      */
     public async getPassword(opts, fn, retryCount = 0): Promise<string> {
         if (_.isNil(opts.service)) {
-            fn(await SfdxError.create('encryption', 'KeyChainServiceRequiredError'));
+            fn(SfdxError.create('sfdx-core', 'encryption', 'KeyChainServiceRequiredError'));
             return;
         }
 
         if (_.isNil(opts.account)) {
-            fn(await SfdxError.create('encryption', 'KeyChainAccountRequiredError'));
+            fn(SfdxError.create('sfdx-core', 'encryption', 'KeyChainAccountRequiredError'));
             return;
         }
 
@@ -114,7 +114,7 @@ export class KeychainAccess {
             } catch (e) {
                 if (e.retry) {
                     if (retryCount >= GET_PASSWORD_RETRY_COUNT) {
-                        throw await SfdxError.create('encryption', 'PasswordRetryError', [GET_PASSWORD_RETRY_COUNT]);
+                        throw SfdxError.create('sfdx-core', 'encryption', 'PasswordRetryError', [GET_PASSWORD_RETRY_COUNT]);
                     }
                     return this.getPassword(opts, fn, retryCount + 1);
                 } else {
@@ -135,17 +135,17 @@ export class KeychainAccess {
     public async setPassword(opts, fn): Promise<any> {
 
         if (_.isNil(opts.service)) {
-            fn(await SfdxError.create('encryption', 'KeyChainServiceRequiredError'));
+            fn(SfdxError.create('sfdx-core', 'encryption', 'KeyChainServiceRequiredError'));
             return;
         }
 
         if (_.isNil(opts.account)) {
-            fn(await SfdxError.create('encryption', 'KeyChainAccountRequiredError'));
+            fn(SfdxError.create('sfdx-core', 'encryption', 'KeyChainAccountRequiredError'));
             return;
         }
 
         if (_.isNil(opts.password)) {
-            fn(await SfdxError.create('encryption', 'PasswordRequiredError'));
+            fn(SfdxError.create('sfdx-core', 'encryption', 'PasswordRequiredError'));
             return;
         }
 
@@ -190,13 +190,14 @@ const _linuxImpl = {
         if (code === 1) {
             const command = `${_linuxImpl.getProgram()} ${_optionsToString(_linuxImpl.getProgramOptions(opts))}`;
             const errorConfig = new SfdxErrorConfig(
+                'sfdx-core',
                 'encryption',
                 'PasswordNotFoundError',
                 [`\n${stdout} - ${stderr}`],
                 'PasswordNotFoundErrorAction',
                 [command]
             );
-            const error = await SfdxError.create(errorConfig);
+            const error = SfdxError.create(errorConfig);
 
             // This is a workaround for linux.
             // Calling secret-tool too fast can cause it to return an unexpected error. (below)
@@ -229,13 +230,14 @@ const _linuxImpl = {
         if (code !== 0) {
             const command = `${_linuxImpl.getProgram()} ${_optionsToString(_linuxImpl.setProgramOptions(opts))}`;
             const errorConfig = new SfdxErrorConfig(
+                'sfdx-core',
                 'encryption',
                 'SetCredentialError',
                 [`\n${stdout} - ${stderr}`],
                 'SetCredentialErrorAction',
                 [os.userInfo().username, command]
             );
-            fn(await SfdxError.create(errorConfig));
+            fn(SfdxError.create(errorConfig));
         } else {
             fn(null);
         }
@@ -268,18 +270,19 @@ const _darwinImpl = {
         if (code !== 0) {
             switch (code) {
                 case 128:
-                    err = await SfdxError.create('encryption', 'KeyChainUserCanceledError');
+                    err = SfdxError.create('sfdx-core', 'encryption', 'KeyChainUserCanceledError');
                     break;
                 default:
                     const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
                     const errorConfig = new SfdxErrorConfig(
+                        'sfdx-core',
                         'encryption',
                         'PasswordNotFoundError',
                         [`\n${stdout} - ${stderr}`],
                         'PasswordNotFoundErrorAction',
                         [command]
                     );
-                    err = await SfdxError.create(errorConfig);
+                    err = SfdxError.create(errorConfig);
             }
             fn(err, null);
             return;
@@ -293,13 +296,14 @@ const _darwinImpl = {
         } else {
             const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
             const errorConfig = new SfdxErrorConfig(
+                'sfdx-core',
                 'encryption',
                 'PasswordNotFoundError',
                 [`\n${stdout} - ${stderr}`],
                 'PasswordNotFoundErrorAction',
                 [command]
             );
-            fn(await SfdxError.create(errorConfig));
+            fn(SfdxError.create(errorConfig));
         }
     },
 
@@ -316,13 +320,14 @@ const _darwinImpl = {
         if (code !== 0) {
             const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.setProgramOptions(opts))}`;
             const errorConfig = new SfdxErrorConfig(
+                'sfdx-core',
                 'encryption',
                 'SetCredentialError',
                 [`\n${stdout} - ${stderr}`],
                 'SetCredentialErrorAction',
                 [os.userInfo().username, command]
             );
-            fn(await SfdxError.create(errorConfig));
+            fn(SfdxError.create(errorConfig));
         } else {
             fn(null);
         }
@@ -370,8 +375,8 @@ export class GenericKeychainAccess {
                         } else {
                             // if the service and account names don't match then maybe someone or something is editing
                             // that file. #donotallow
-                            const errorConfig = new SfdxErrorConfig('encryption', 'GenericKeychainServiceError', [GenericKeychainAccess.SECRET_FILE], 'GenericKeychainServiceErrorAction');
-                            const err = await SfdxError.create(errorConfig);
+                            const errorConfig = new SfdxErrorConfig('sfdx-core', 'encryption', 'GenericKeychainServiceError', [GenericKeychainAccess.SECRET_FILE], 'GenericKeychainServiceErrorAction');
+                            const err = SfdxError.create(errorConfig);
                             fn(err);
                         }
                     })
@@ -380,7 +385,7 @@ export class GenericKeychainAccess {
                     });
             } else {
                 if (fileAccessError.code === 'ENOENT') {
-                    fn(await SfdxError.create('encryption', 'PasswordNotFoundError', []));
+                    fn(SfdxError.create('sfdx-core', 'encryption', 'PasswordNotFoundError', []));
                 } else {
                     fn(fileAccessError);
                 }
@@ -435,13 +440,14 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
                     cb();
                 } else {
                     const errorConfig = new SfdxErrorConfig(
+                        'sfdx-core',
                         'encryption',
                         'GenericKeychainInvalidPermsError',
                         null,
                         'GenericKeychainInvalidPermsErrorAction',
                         [GenericKeychainAccess.SECRET_FILE, EXPECTED_OCTAL_PERM_VALUE]
                     );
-                    cb(await SfdxError.create(errorConfig));
+                    cb(SfdxError.create(errorConfig));
                 }
             }
         });
