@@ -37,7 +37,7 @@ describe('Connection', () => {
         expect(conn['oauth2']).to.be.an('object');
         expect(conn['authInfo']).to.exist;
         expect(conn['loginUrl']).to.equal(testConnectionOptions.loginUrl);
-        expect(conn['callOptions']).to.deep.equal({ client: 'sfdx toolbelt:' });
+        expect(conn['callOptions'].client).to.contain('sfdx toolbelt:');
         expect(jsforce.Connection.prototype.initialize['called']).to.be.true;
     });
 

@@ -195,7 +195,7 @@ export class AuthInfo {
 
         // Must specify either username and/or options
         if (!username && !options) {
-            throw await SfdxError.create('sfdx-core', 'AuthInfoCreationError');
+            throw SfdxError.create('sfdx-core', 'core', 'AuthInfoCreationError');
         }
 
         const authInfo = new AuthInfo(username);
@@ -238,8 +238,8 @@ export class AuthInfo {
 
         // Want to throw a clean error if no files are found.
         if (_.isEmpty(authFiles)) {
-            const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'OrgDataNotAvailableError', null, 'NoOrgsFoundErrorAction');
-            throw await SfdxError.create(errConfig);
+            const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'core', 'OrgDataNotAvailableError', null, 'NoOrgsFoundErrorAction');
+            throw SfdxError.create(errConfig);
         }
 
         // At least one auth file is in the global dir.
@@ -310,7 +310,7 @@ export class AuthInfo {
                     authConfig = await Global.fetchConfigInfo(this.authFileName);
                 } catch (e) {
                     if (e.code === 'ENOENT') {
-                        throw await SfdxError.create('sfdx-core', 'namedOrgNotFound', [this.username]);
+                        throw SfdxError.create('sfdx-core', 'core', 'namedOrgNotFound', [this.username]);
                     } else {
                         throw e;
                     }
@@ -462,11 +462,11 @@ export class AuthInfo {
             return await callback(null, authInfoCrypto.decrypt(this.fields.accessToken));
         } catch (err) {
             if (err.message && err.message.includes('Data Not Available')) {
-                const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'OrgDataNotAvailableError', [this.username]);
+                const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'core', 'OrgDataNotAvailableError', [this.username]);
                 for (let i = 1; i < 5; i++) {
                     errConfig.addAction(`OrgDataNotAvailableErrorAction${i}`);
                 }
-                return callback(await SfdxError.create(errConfig));
+                return callback(SfdxError.create(errConfig));
             }
             return callback(err);
         }
@@ -494,7 +494,7 @@ export class AuthInfo {
         try {
             _authFields = await oauth2.jwtAuthorize(jwtToken);
         } catch (err) {
-            throw await SfdxError.create('sfdx-core', 'JWTAuthError', [err.message]);
+            throw SfdxError.create('sfdx-core', 'core', 'JWTAuthError', [err.message]);
         }
 
         const authFields: Partial<AuthFields> = {
@@ -525,7 +525,7 @@ export class AuthInfo {
         try {
             _authFields = await oauth2.refreshToken(options.refreshToken);
         } catch (err) {
-            throw await SfdxError.create('sfdx-core', 'RefreshTokenAuthError', [err.message]);
+            throw SfdxError.create('sfdx-core', 'core', 'RefreshTokenAuthError', [err.message]);
         }
 
         return {
@@ -549,7 +549,7 @@ export class AuthInfo {
             this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
             _authFields = await oauth2.requestToken(options.authCode);
         } catch (err) {
-            throw await SfdxError.create('sfdx-core', 'AuthCodeExchangeError', [err.message]);
+            throw SfdxError.create('sfdx-core', 'core', 'AuthCodeExchangeError', [err.message]);
         }
 
         const { userId, orgId } = _parseIdUrl(_authFields.id);
@@ -567,7 +567,7 @@ export class AuthInfo {
             const response = await new Transport().httpRequest({ url, headers });
             username = _.get(JSON.parse(response.body), 'Username');
         } catch (err) {
-            throw await SfdxError.create('sfdx-core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
+            throw SfdxError.create('sfdx-core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
         }
 
         return {

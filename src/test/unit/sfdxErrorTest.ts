@@ -22,7 +22,7 @@ const testMessages = {
     Test3ErrorAction3: 'Why not both?: %s and %s'
 };
 
-Messages.importMessageFile('testMessages.json');
+Messages.importMessageFile('pname', 'testMessages.json');
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -53,8 +53,8 @@ describe('SfdxError', () => {
         });
 
         it('should return a new SfdxError when passed a bundle and key', async () => {
-            _readFileStub.returns(Promise.resolve(JSON.stringify(testMessages)));
-            const testMsg1: SfdxError = await SfdxError.create('testMessages', 'Test1Error');
+            _readFileStub.returns(JSON.stringify(testMessages));
+            const testMsg1: SfdxError = SfdxError.create('pname', 'testMessages', 'Test1Error');
             expect(testMsg1).to.have.property('name', 'Test1Error');
             expect(testMsg1).to.have.property('message', testMessages.Test1Error);
             expect(testMsg1).to.have.property('actions', undefined);
@@ -62,9 +62,9 @@ describe('SfdxError', () => {
         });
 
         it('should return a new SfdxError when passed a bundle, key, and error tokens', async () => {
-            _readFileStub.returns(Promise.resolve(JSON.stringify(testMessages)));
+            _readFileStub.returns(JSON.stringify(testMessages));
             const tokens = ['token one'];
-            const testMsg1: SfdxError = await SfdxError.create('testMessages', 'Test2Error', tokens);
+            const testMsg1: SfdxError = SfdxError.create('pname', 'testMessages', 'Test2Error', tokens);
             expect(testMsg1).to.have.property('name', 'Test2Error');
             expect(testMsg1).to.have.property('message', testMessages.Test2Error.replace('%s', tokens[0]));
             expect(testMsg1).to.have.property('actions', undefined);
@@ -72,10 +72,10 @@ describe('SfdxError', () => {
         });
 
         it('should return a new SfdxError when passed an SfdxErrorConfig object WITHOUT actions', async () => {
-            _readFileStub.returns(Promise.resolve(JSON.stringify(testMessages)));
+            _readFileStub.returns(JSON.stringify(testMessages));
             const tokens = ['failure one'];
-            const errConfig = new SfdxErrorConfig('testMessages', 'Test2Error', tokens);
-            const testMsg1: SfdxError = await SfdxError.create(errConfig);
+            const errConfig = new SfdxErrorConfig('pname', 'testMessages', 'Test2Error', tokens);
+            const testMsg1: SfdxError = SfdxError.create(errConfig);
             expect(testMsg1).to.have.property('name', 'Test2Error');
             expect(testMsg1).to.have.property('message', testMessages.Test2Error.replace('%s', tokens[0]));
             expect(testMsg1).to.have.property('actions', undefined);
@@ -83,12 +83,12 @@ describe('SfdxError', () => {
         });
 
         it('should return a new SfdxError when passed an SfdxErrorConfig object WITH actions', async () => {
-            _readFileStub.returns(Promise.resolve(JSON.stringify(testMessages)));
+            _readFileStub.returns(JSON.stringify(testMessages));
             const tokens = ['failure one', 2];
             const actionKey = 'Test3ErrorAction2';
             const actionTokens = ['reboot'];
-            const errConfig = new SfdxErrorConfig('testMessages', 'Test3Error', tokens, actionKey, actionTokens);
-            const testMsg1: SfdxError = await SfdxError.create(errConfig);
+            const errConfig = new SfdxErrorConfig('pname', 'testMessages', 'Test3Error', tokens, actionKey, actionTokens);
+            const testMsg1: SfdxError = SfdxError.create(errConfig);
             expect(testMsg1).to.have.property('name', 'Test3Error');
             expect(testMsg1).to.have.property('message', 'This is test error message 3: failure one with error: 2');
             expect(testMsg1).to.have.deep.property('actions', ['Or take this action: reboot']);
@@ -113,10 +113,12 @@ describe('SfdxError', () => {
 describe('SfdxErrorConfig', () => {
 
     it('is mutable except for bundle', () => {
-        const bundle: string = 'testMessages';
+        const packageName = 'pname';
+        const bundleName: string = 'testMessages';
         const errorKey: string = 'Test1Error';
-        const errConfig: SfdxErrorConfig = new SfdxErrorConfig(bundle, errorKey);
-        expect(errConfig).to.have.property('bundle', bundle);
+        const errConfig: SfdxErrorConfig = new SfdxErrorConfig(packageName, bundleName, errorKey);
+        expect(errConfig).to.have.property('packageName', packageName);
+        expect(errConfig).to.have.property('bundleName', bundleName);
         expect(errConfig).to.have.property('errorKey', errorKey);
         expect(errConfig).to.have.deep.property('errorTokens', []);
         expect(errConfig).to.have.deep.property('actions', new Map());
@@ -131,7 +133,7 @@ describe('SfdxErrorConfig', () => {
         // verify new properties
         const actions = new Map();
         actions.set(actionKey, actionTokens);
-        expect(errConfig).to.have.property('bundle', bundle);
+        expect(errConfig).to.have.property('bundleName', bundleName);
         expect(errConfig).to.have.property('errorKey', errorKey2);
         expect(errConfig).to.have.deep.property('errorTokens', errorTokens2);
         expect(errConfig).to.have.deep.property('actions', actions);
@@ -150,17 +152,17 @@ describe('SfdxErrorConfig', () => {
 
     it('should call Messages.loadMessages with the bundle name for load()', async () => {
         const messages = { sampleMsgKey: 'here is a sample message' };
-        const bundle = 'sfdx-core';
+        const packageName = 'sfdx-core';
         const loadMessagesStub = $$.SANDBOX.stub(Messages, 'loadMessages');
-        loadMessagesStub.returns(Promise.resolve(messages));
-        const errConfig = new SfdxErrorConfig(bundle, 'foo');
-        const msgs = await errConfig.load();
+        loadMessagesStub.returns(messages);
+        const errConfig = new SfdxErrorConfig(packageName, 'bundle', 'foo');
+        const msgs = errConfig.load();
         expect(msgs).to.deep.equal(messages);
-        expect(loadMessagesStub.getCall(0).args[0]).to.equal(bundle);
+        expect(loadMessagesStub.getCall(0).args[0]).to.equal(packageName);
     });
 
     it('should throw an error when getError() is called without first calling load()', () => {
-        const errConfig = new SfdxErrorConfig('sfdx-core', 'foo');
+        const errConfig = new SfdxErrorConfig('sfdx-core', 'core', 'foo');
         try {
             errConfig.getError();
         }  catch (error) {
@@ -169,7 +171,7 @@ describe('SfdxErrorConfig', () => {
     });
 
     it('should throw an error when getActions() is called without first calling load()', () => {
-        const errConfig = new SfdxErrorConfig('sfdx-core', 'foo');
+        const errConfig = new SfdxErrorConfig('sfdx-core', 'core', 'foo');
         try {
             errConfig.getActions();
         }  catch (error) {

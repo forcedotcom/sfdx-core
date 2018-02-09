@@ -80,28 +80,35 @@ export interface ConfigPropertyMetaInput {
 export class SfdxConfig extends ConfigFile {
 
     /**
-     * Username associated with the default dev hub
+     * Username associated with the default dev hub org
      * @type {string}
      */
     public static readonly DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername';
 
     /**
-     * Username associate with the default scratchOrg
+     * Username associate with the default org
      * @type {string}
      */
     public static readonly DEFAULT_USERNAME = 'defaultusername';
 
     /**
+     * A function to retrieve the sfdx project root.
+     * @callback rootPathRetriever
+     * @param {boolean} isGlobal True for a global config. False for a local config.
+     * @returns {Promise<string>} The property.
+     */
+
+    /**
      * Static initializer
      * @param {boolean} isGlobal - True of the returned config is a global config. False for local.
-     * @param {function} rootPathRetriever - A function to provide a root path.
+     * @param {rootPathRetriever} rootPathRetriever - A function to retrieve the sfdx project root.
      * @returns {Promise<SfdxConfig>} - A global or local config object
      */
     public static async create(isGlobal: boolean = true,
                                rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<SfdxConfig> {
 
         if (!SfdxConfig.messages) {
-            SfdxConfig.messages = await Messages.loadMessages('sfdx-core-config');
+            SfdxConfig.messages = Messages.loadMessages('sfdx-core', 'config');
         }
 
         if (!SfdxConfig.allowedProperties) {
@@ -147,11 +154,11 @@ export class SfdxConfig extends ConfigFile {
      * The value of a supported config property
      * @param {boolean} isGlobal - True for a global config. False for a local config.
      * @param {string} propertyName - The name of the property to set
-     * @param value - The property value
-     * @param {(isGlobal: boolean) => Promise<string>} rootPathRetriever
+     * @param {string | boolean} value - The property value
+     * @param {rootPathRetriever} rootPathRetriever A function to retrieve the sfdx project root.
      * @returns {Promise<object>}
      */
-    public static async setPropertyValue(isGlobal: boolean, propertyName: string, value?: any,
+    public static async setPropertyValue(isGlobal: boolean, propertyName: string, value?: string | boolean,
                                          rootPathRetriever?: (isGlobal: boolean) => Promise<string>) {
 
         const rootFolder = rootPathRetriever ?
@@ -218,20 +225,20 @@ export class SfdxConfig extends ConfigFile {
     /**
      * Sets a value for a property
      * @param {string} propertyName - The property to set.
-     * @param value - The value of the property
+     * @param {string | boolean} value - The value of the property
      * @returns {Promise<void>}
      */
-    public async setPropertyValue(propertyName: string, value: any) {
+    public async setPropertyValue(propertyName: string, value: string | boolean) {
 
         const property = SfdxConfig.allowedProperties.find((allowedProp) => allowedProp.key === propertyName);
         if (!property) {
-            throw await SfdxError.create('sfdx-core-config', 'UnknownConfigKey', [propertyName]);
+            throw SfdxError.create('sfdx-core', 'config', 'UnknownConfigKey', [propertyName]);
         }
         if (property.input) {
             if (property.input && property.input.validator(value)) {
                 this.contents[property.key] = value;
             } else {
-                throw await SfdxError.create('sfdx-core-config', 'invalidConfigValue', [property.input.failedMessage]);
+                throw SfdxError.create('sfdx-core', 'config', 'invalidConfigValue', [property.input.failedMessage]);
             }
         } else {
             this.contents[property.key] = value;
@@ -240,15 +247,19 @@ export class SfdxConfig extends ConfigFile {
 }
 
 /**
- * Supported Org Types
- * @type {{DEVHUB: SfdxConstant; USERNAME: SfdxConstant; list(): SfdxConstant[]}}
- * DEVHUB - Developer Hub Username
- * USERNAME - Non developer hub username
+ * Supported Org Default Types
+ * @type {object}
  */
 export const ORG_DEFAULT = {
+    /** {string} Default Developer Hub Username */
     DEVHUB: SfdxConfig.DEFAULT_DEV_HUB_USERNAME,
+    /** {string} Default Username */
     USERNAME: SfdxConfig.DEFAULT_USERNAME,
 
+    /**
+     * List the Org defaults
+     * @returns {stringp[]} List of default orgs
+     */
     list() {
         return [ORG_DEFAULT.DEVHUB, ORG_DEFAULT.USERNAME];
     }
