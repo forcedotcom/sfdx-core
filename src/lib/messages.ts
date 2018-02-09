@@ -189,7 +189,9 @@ export class Messages {
             // Don't use messages inside messages
             throw new Error(`Missing message ${this.bundle}:${key} for locale ${Messages.locale}.`);
         }
-        return util.format(this.messages.get(key), ...tokens);
+        const val = util.format(this.messages.get(key), ...tokens);
+
+        return val;
     }
 
 }

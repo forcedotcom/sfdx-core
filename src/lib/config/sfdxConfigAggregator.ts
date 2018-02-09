@@ -82,7 +82,7 @@ export class SfdxConfigAggregator {
     /**
      * @constructor
      */
-    private constructor() {}
+    protected constructor() {}
 
     /* Get a resolved config property
      *
@@ -90,7 +90,7 @@ export class SfdxConfigAggregator {
      * @returns {*} the value of the property
      * @throws {Error} Or there is an attempt to get a property that's not supported
      */
-    public getPropertyValue(key: string) {
+    public getPropertyValue(key: string): string {
         if (this.getAllowedProperties().some((element) => key === element.key)) {
             return this.getConfig()[key];
         } else {
