@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
-
-'use strict';
 
 // Thirdparty
 import { expect } from 'chai';
@@ -75,7 +73,7 @@ describe('Alias', () => {
                     });
                     expect(args[1]).to.equal(group);
                 };
-                await Alias.parseAndSet(['another=val']);
+                await Alias.parseAndUpdate(['another=val']);
                 expect(sinon.assert.calledOnce(KeyValueStore.prototype.updateValues));
             });
 
@@ -87,7 +85,7 @@ describe('Alias', () => {
                     });
                     expect(args[1]).to.equal(group);
                 };
-                await Alias.parseAndSet(['another=val', 'some=val']);
+                await Alias.parseAndUpdate(['another=val', 'some=val']);
                 expect(sinon.assert.calledOnce(KeyValueStore.prototype.updateValues));
             });
         });
@@ -96,7 +94,7 @@ describe('Alias', () => {
             const invalidFormats = ['another', 'foo==bar'];
             for (const element of invalidFormats) {
                 try {
-                    await Alias.parseAndSet([element]);
+                    await Alias.parseAndUpdate([element]);
                 } catch (err) {
                     if (err.name === 'AssertionError') {
                         throw err;

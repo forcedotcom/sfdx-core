@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
-
-'use strict';
 
 import { KeyValueStore } from './fileKeyValueStore';
 import { SfdxError } from './sfdxError';
@@ -27,12 +25,12 @@ export class Alias {
     public static GROUPS = { ORGS: 'orgs' };
 
     /**
-     * Set a group of aliases in a bulk save.
+     * Updates a group of aliases in a bulk save.
      * @param {array} aliasKeyAndValues An array of strings in the format <alias>=<value>
      * @param {string} group The group the alias belongs to. Defaults to ORGS.
      * @returns {Promise<object>} The new aliases that were saved.
      */
-    public static async parseAndSet(aliasKeyAndValues, group = Alias.GROUPS.ORGS): Promise<object> {
+    public static async parseAndUpdate(aliasKeyAndValues, group = Alias.GROUPS.ORGS): Promise<object> {
         const newAliases = {};
         if (aliasKeyAndValues.length === 0) {
             throw await SfdxError.create('sfdx-core', 'NoAliasesFound', []);
@@ -43,7 +41,6 @@ export class Alias {
 
             if (split.length !== 2) {
                 throw await SfdxError.create('sfdx-core', 'InvalidFormat', [arg]);
-                // throw almError({ keyName: 'InvalidFormat', bundle: 'alias' }, [arg]);
             }
             const [name, value] = split;
             newAliases[name] = value || undefined;
@@ -53,17 +50,17 @@ export class Alias {
     }
 
     /**
-     * Delete an alias from a group
+     * Removes an alias from a group
      * @param {string} alias The name of the alias to delete
      * @param {string} group The group the alias belongs to. Defaults to Orgs
-     * @returns {Promise} The promise resolved when the alias is deleted
+     * @returns {Promise} The promise resolved when the alias is delete
      */
     public static async remove(alias, group = Alias.GROUPS.ORGS) {
         return await aliasFileStore.remove(alias, group);
     }
 
     /**
-     * Set an alias on a group
+     * Update an alias on a group
      * @param {string} alias The name of the alias to set
      * @param {string} property The value of the alias
      * @param {string} group The group the alias belongs to. Defaults to Orgs
