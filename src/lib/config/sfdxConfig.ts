@@ -10,7 +10,6 @@
 // Node
 import { homedir as osHomedir } from 'os';
 import { isNil as _isNil } from 'lodash';
-import { join as pathJoin} from 'path';
 import { Messages } from '../messages';
 import { ConfigFile } from './configFile';
 import { SfdxUtil } from '../util';
@@ -74,22 +73,22 @@ export interface ConfigPropertyMetaInput {
     failedMessage: string;
 }
 
+export const enum OrgType {
+    /**
+     * Username associated with the default dev hub
+     */
+    DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername',
+
+    /**
+     * Username associate with the default scratchOrg
+     */
+    DEFAULT_USERNAME = 'defaultusername'
+}
+
 /**
  * More Sfdx specific implementation of ConfigFile.
  */
 export class SfdxConfig extends ConfigFile {
-
-    /**
-     * Username associated with the default dev hub
-     * @type {string}
-     */
-    public static readonly DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername';
-
-    /**
-     * Username associate with the default scratchOrg
-     * @type {string}
-     */
-    public static readonly DEFAULT_USERNAME = 'defaultusername';
 
     /**
      * Static initializer
@@ -123,8 +122,8 @@ export class SfdxConfig extends ConfigFile {
                         failedMessage: SfdxConfig.messages.getMessage('invalidApiVersion')
                     }
                 },
-                { key: SfdxConfig.DEFAULT_DEV_HUB_USERNAME },
-                { key: SfdxConfig.DEFAULT_USERNAME }
+                { key: OrgType.DEFAULT_DEV_HUB_USERNAME },
+                { key: OrgType.DEFAULT_USERNAME }
             ];
         }
 
@@ -190,7 +189,7 @@ export class SfdxConfig extends ConfigFile {
      * @param {boolean} isGlobal - True if the config should be global. False for local.
      * @returns {Promise<string>} - The filepath of the root folder.
      */
-    private static async getRootFolder(isGlobal: boolean): Promise<string> {
+    public static async getRootFolder(isGlobal: boolean): Promise<string> {
         return isGlobal ? osHomedir() : await ProjectDir.getPath();
     }
 
@@ -246,8 +245,8 @@ export class SfdxConfig extends ConfigFile {
  * USERNAME - Non developer hub username
  */
 export const ORG_DEFAULT = {
-    DEVHUB: SfdxConfig.DEFAULT_DEV_HUB_USERNAME,
-    USERNAME: SfdxConfig.DEFAULT_USERNAME,
+    DEVHUB: OrgType.DEFAULT_DEV_HUB_USERNAME,
+    USERNAME: OrgType.DEFAULT_USERNAME,
 
     list() {
         return [ORG_DEFAULT.DEVHUB, ORG_DEFAULT.USERNAME];

@@ -11,6 +11,7 @@ import { Org, OrgMetaInfo, OrgStatus } from '../../lib/org';
 import { OAuth2, RequestInfo } from 'jsforce';
 
 import { expect } from 'chai';
+import {SfdxConfigAggregator} from '../../lib/config/sfdxConfigAggregator';
 
 class MockAuthInfo extends AuthInfo {
 
@@ -35,36 +36,33 @@ class MockAuthInfo extends AuthInfo {
     }
 }
 
+class MockConnection extends Connection {
+    public static apiVersion = '90.0';
+
+    constructor() {
+        super({ loginUrl: 'http://sfdxtest.login.salesforce.com'}, new MockAuthInfo('test@example.com'));
+    }
+
+    public async request(request: RequestInfo | string, options?): Promise<any> {
+        return [{ version: '89.0' }, { version: MockConnection.apiVersion }, { version: '88.0' }];
+    }
+}
+
 describe('Org Tests', () => {
     describe('retrieveMaxApiVersion', () => {
 
-        const mockConnection = {
-            testValue: '90.0'
-
-        };
-
-        class MockConnection extends Connection {
-            constructor() {
-                super({ loginUrl: 'http://sfdxtest.login.salesforce.com'}, new MockAuthInfo('test@example.com'));
-            }
-
-            public async request(request: RequestInfo | string, options?): Promise<any> {
-                return [{ version: '89.0' }, { version: mockConnection.testValue }, { version: '88.0' }];
-            }
-        }
-
         it('no username', async () => {
 
-            const org: Org = await Org.create();
-            org.setConnection(new MockConnection());
+            const org: Org = await Org.create(new MockConnection());
 
             const apiVersion = await org.retrieveMaxApiVersion();
-            expect(apiVersion).has.property('version', mockConnection.testValue);
+            expect(apiVersion).has.property('version', MockConnection.apiVersion);
         });
 
     });
 
     describe('computeAndUpdateStatusForMetaConfig', () => {
+
         it('Missing status', async () => {
 
             const testDevHubUsername = 'admin2@gb.org';
@@ -82,7 +80,7 @@ describe('Org Tests', () => {
             const devHubMetaMap: Map<string, OrgMetaInfo> = new Map();
             devHubMetaMap.set(testDevHubUsername, devHubMeta);
 
-            const org: Org = await Org.create();
+            const org: Org = await Org.create(new MockConnection());
             org.computeAndUpdateStatusFromMetaInfo(scratchOrgMeta, devHubMetaMap);
             expect(org).to.have.property('status', OrgStatus.MISSING);
         });
@@ -100,9 +98,13 @@ describe('Org Tests', () => {
             };
             devHubMetaMap.set(testName, devHubMeta);
 
-            const org: Org = await Org.create();
+            const org: Org = await Org.create(new MockConnection());
             org.computeAndUpdateStatusFromMetaInfo(scratchOrgMeta, devHubMetaMap);
             expect(org).to.have.property('status', OrgStatus.UNKNOWN);
         });
+    });
+
+    describe('getName', () => {
+        it('should return default username', () => {});
     });
 });

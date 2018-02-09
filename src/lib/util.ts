@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { toUpper as _toUpper, size as _size } from 'lodash';
-import { access, open, readdir, readFile, stat, writeFile,  unlink } from 'fs';
-import { isEmpty } from 'lodash';
+import { join as pathJoin } from 'path';
+import { toUpper as _toUpper, size as _size, reduce as _reduce } from 'lodash';
+import * as fs from 'fs';
+import { isEmpty as _isEmpty, each as _each, eachRight as _eachRight } from 'lodash';
 import { promisify } from 'util';
 import { isNil as _isNil, endsWith as _endsWith, includes as _includes } from 'lodash';
 import { SfdxError } from './sfdxError';
@@ -41,27 +42,27 @@ export class SfdxUtil {
     /**
      * Promisified version of fs.readFile
      */
-    public static readFile = promisify(readFile);
+    public static readFile = promisify(fs.readFile);
 
     /**
      * Promisified version of fs.readdir
      */
-    public static readdir = promisify(readdir);
+    public static readdir = promisify(fs.readdir);
 
     /**
      * Promisified version of fs.writeFile
      */
-    public static writeFile = promisify(writeFile);
+    public static writeFile = promisify(fs.writeFile);
 
     /**
      * Promisified version of fs.access
      */
-    public static access = promisify(access);
+    public static access = promisify(fs.access);
 
     /**
      * Promisified version of fs.open
      */
-    public static open = promisify(open);
+    public static open = promisify(fs.open);
 
     /**
      * Promisified version of mkdirp
@@ -74,12 +75,16 @@ export class SfdxUtil {
     /**
      * Promisified version of unlink
      */
-    public static unlink = promisify(unlink);
+    public static unlink = promisify(fs.unlink);
 
     /**
      * Promisified version of stat
      */
-    public static stat = promisify(stat);
+    public static stat = promisify(fs.stat);
+
+    public static async canRead(path) {
+
+    }
 
     /**
      * Read a file and convert it to JSON
@@ -112,7 +117,7 @@ export class SfdxUtil {
      * @param throwOnEmpty Throw an exception if the data contents are empty
      */
     public static async parseJSON(data: string, jsonPath: string = 'unknown', throwOnEmpty: boolean = true): Promise<object> {
-        if (isEmpty(data) && throwOnEmpty) {
+        if (_isEmpty(data) && throwOnEmpty) {
             throw await SfdxError.create('sfdx-core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
         }
 
@@ -167,4 +172,50 @@ export class SfdxUtil {
         const value = process.env[name];
         return value && _size(value) > 0 && _toUpper(value) !== 'FALSE';
     }
+
+    public static async remove(path: string) {
+        try {
+            const pathsToDelete = await this.getPathsToDelete(path);
+            console.log(`pathsToDelete: ${pathsToDelete}`);
+            _eachRight(pathsToDelete, async (_path) => await SfdxUtil.unlink(_path));
+        } catch(err) {
+            console.log(err);
+        }
+    }
+
+    private static async getPathsToDelete(path: string, pathAccum: string[] = []): Promise<string[]> {
+        if (path) {
+
+            try {
+                await SfdxUtil.access(path, fs.constants.R_OK);
+            } catch (err) {
+                throw new SfdxError(`Can't read filepath: ${path}`, 'FilePathNotAccessible');
+            }
+
+            pathAccum.push(path);
+
+            console.log(`pathAccum: ${pathAccum}`);
+
+            const stats = await SfdxUtil.stat(path);
+
+            if (stats.isDirectory()) {
+                _each(await SfdxUtil.readdir(path), async (filePath) => {
+                    console.log(`filePath: ${filePath}`);
+                    return await SfdxUtil.getPathsToDelete(pathJoin(path, filePath), pathAccum);
+                });
+            }
+
+            console.log('returning');
+            return pathAccum;
+
+        } else {
+            throw new SfdxError(`The path: ${path} does not exist.`, 'PathDoesntExist');
+        }
+    }
+}
+
+try {
+    SfdxUtil.remove('/Users/tnoonan/tmp/deleteMe');
+} catch(err) {
+    console.error(err);
 }

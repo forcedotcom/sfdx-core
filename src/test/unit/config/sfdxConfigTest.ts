@@ -8,10 +8,7 @@
 import { join as pathJoin } from 'path';
 
 import { assert, expect } from 'chai';
-
-import { sandbox as sinonSandbox } from 'sinon';
-
-import { SfdxConfig } from '../../../lib/config/sfdxConfig';
+import { SfdxConfig, OrgType } from '../../../lib/config/sfdxConfig';
 import { SfdxUtil } from '../../../lib/util';
 import { tmpdir as osTmpdir } from 'os';
 import { testSetup } from '../../testSetup';
@@ -124,8 +121,8 @@ describe('SfdxConfigFile', () => {
         it('noPropertyInput validation', async () => {
             const config: SfdxConfig = await SfdxConfig.create(undefined, retrieveRootPath);
             config.setContents([]);
-            config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, 'foo@example.com');
-            expect(config.getContents()[SfdxConfig.DEFAULT_USERNAME]).to.be.equal('foo@example.com');
+            config.setPropertyValue(OrgType.DEFAULT_USERNAME, 'foo@example.com');
+            expect(config.getContents()[OrgType.DEFAULT_USERNAME]).to.be.equal('foo@example.com');
         });
     });
 });

@@ -23,6 +23,7 @@
     "salesforcedx"
   ],
   "dependencies": {
+    "bluebird": "3.4.6",
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "chalk": "2.3.0",
     "cli-ux": "2.0.4",
