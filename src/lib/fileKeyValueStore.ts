@@ -7,14 +7,8 @@
 
 'use strict';
 
-import * as path from 'path';
 import * as _ from 'lodash';
-
-import { SfdxError } from './sfdxError';
-
-
-const almError = require(path.join(__dirname, 'almError'));
-const srcDevUtil = require(path.join(__dirname, 'srcDevUtil'));
+import { Global } from './global';
 
 const _set = (aliases, group, alias, property) => {
     if (_.isNil(aliases[group])) {
@@ -41,10 +35,9 @@ const _set = (aliases, group, alias, property) => {
  * All key value pairs are stored under a group.
  *
  */
-class KeyValueStore {
+export class KeyValueStore {
 
     private fileStoreName;
-    private groups;
 
     constructor(fileName: string) {
         this.fileStoreName = fileName;
@@ -56,14 +49,11 @@ class KeyValueStore {
      * @param {string} group The group the alias belongs to.
      * @returns {Promise<object>} The new aliases that were saved.
      */
-    setValues(newAliases: any, group: string='default'): Promise<any> {
-        return srcDevUtil.getGlobalConfig(this.fileStoreName, {})
-            .then(aliases => {
-                _.forEach(newAliases, (val, key) => _set(aliases, group, key, val));
-                return aliases;
-            })
-            .then(aliases => srcDevUtil.saveGlobalConfig(this.fileStoreName, aliases))
-            .then(() => newAliases);
+    public async updateValues(newAliases: any, group: string= 'default'): Promise<any> {
+        const aliases = await Global.fetchConfigInfo(this.fileStoreName);
+        _.forEach(newAliases, (val, key) => _set(aliases, group, key, val));
+        await Global.saveConfigInfo(this.fileStoreName, aliases);
+        return newAliases;
     }
 
     /**
@@ -72,8 +62,8 @@ class KeyValueStore {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise} The promise resolved when the alias is deleted
      */
-    delete(alias: string, group: string='default'): Promise<any> {
-        return this.set(alias, undefined, group);
+    public async remove(alias: string, group: string= 'default'): Promise<any> {
+        return await this.update(alias, undefined, group);
     }
 
     /**
@@ -83,10 +73,10 @@ class KeyValueStore {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise} The promise resolved when the alias is set
      */
-    set(alias:string , property: string | number, group: string='default'): Promise<any> {
-        return srcDevUtil.getGlobalConfig(this.fileStoreName, {})
-            .then(aliases => _set(aliases, group, alias, property))
-            .then(aliases => srcDevUtil.saveGlobalConfig(this.fileStoreName, aliases));
+    public async update(alias: string , property: string | number, group: string= 'default'): Promise<any> {
+        const aliases = await Global.fetchConfigInfo(this.fileStoreName);
+        _set(aliases, group, alias, property);
+        await Global.saveConfigInfo(this.fileStoreName, aliases);
     }
 
     /**
@@ -95,13 +85,11 @@ class KeyValueStore {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise} The promise resolved when the aliases are unset
      */
-    unset(aliasesToUnset: Array<string>, group: string='default'): Promise<any> {
-        return srcDevUtil.getGlobalConfig(this.fileStoreName, {})
-            .then(aliases => {
-                aliases[group] = _.omit(aliases[group], aliasesToUnset);
-                return aliases;
-            })
-            .then(aliases => srcDevUtil.saveGlobalConfig(this.fileStoreName, aliases));
+    // Should this be renamed? 'Unlink'?
+    public async unset(aliasesToUnset: string[], group: string= 'default'): Promise<any> {
+        const aliases = await Global.fetchConfigInfo(this.fileStoreName);
+        aliases[group] = _.omit(aliases[group], aliasesToUnset);
+        await Global.saveConfigInfo(this.fileStoreName, aliases);
     }
 
     /**
@@ -110,9 +98,9 @@ class KeyValueStore {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise} The promise resolved when the alias is retrieved
      */
-    get(alias: string, group: string='default') {
-        return this.list(group)
-            .then(aliases => aliases[alias]);
+    public async fetch(alias: string, group: string= 'default') {
+        const aliases = await this.list(group);
+        return aliases[alias];
     }
 
     /**
@@ -120,9 +108,9 @@ class KeyValueStore {
      * @param {string} group The group of aliases to retrieve. Defaults to Orgs
      * @returns {Promise} The promise resolved when the aliases are retrieved
      */
-    list(group: string='default'): Promise<any> {
-        return srcDevUtil.getGlobalConfig(this.fileStoreName, {})
-            .then(aliases => (aliases[group] || {}));
+    public async list(group: string= 'default'): Promise<any> {
+        const aliases = await Global.fetchConfigInfo(this.fileStoreName);
+        return aliases[group] || {};
     }
 
     /**
@@ -131,10 +119,8 @@ class KeyValueStore {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise} The promise resolved when the alias is retrieved
      */
-    byValue(value: string | number, group: string='default'): Promise<any> {
-        return this.list(group)
-            .then(aliases => Object.keys(aliases).find(key => aliases[key] === value));
+    public async byValue(value: string | number, group: string= 'default'): Promise<any> {
+        const aliases = await this.list(group);
+        return Object.keys(aliases).find((key) => aliases[key] === value);
     }
 }
-
-module.exports = KeyValueStore;

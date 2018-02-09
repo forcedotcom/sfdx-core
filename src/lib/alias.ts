@@ -7,16 +7,11 @@
 
 'use strict';
 
-const path = require('path');
-
-const almError = require(path.join(__dirname, 'almError'));
-const FileKeyValueStore = require(path.join(__dirname, 'fileKeyValueStore'));
+import { KeyValueStore } from './fileKeyValueStore';
+import { SfdxError } from './sfdxError';
 
 const ALIAS_FILE_NAME = 'alias.json';
-
-const aliasFileStore = new FileKeyValueStore(ALIAS_FILE_NAME);
-
-
+const aliasFileStore = new KeyValueStore(ALIAS_FILE_NAME);
 
 /**
  * Manage aliases in the global .sfdx folder under alias.json. Aliases allow users
@@ -26,30 +21,35 @@ const aliasFileStore = new FileKeyValueStore(ALIAS_FILE_NAME);
  * orgs but groups allow aliases to be applied for other commands, settings, and flags.
  *
  */
-class Alias {
+export class Alias {
+
+    // Different groups of aliases. Only support orgs for now.
+    public static GROUPS = { ORGS: 'orgs' };
+
     /**
      * Set a group of aliases in a bulk save.
      * @param {array} aliasKeyAndValues An array of strings in the format <alias>=<value>
      * @param {string} group The group the alias belongs to. Defaults to ORGS.
      * @returns {Promise<object>} The new aliases that were saved.
      */
-    static parseAndSet(aliasKeyAndValues, group = Alias.Groups.ORGS) {
+    public static async parseAndSet(aliasKeyAndValues, group = Alias.GROUPS.ORGS): Promise<object> {
         const newAliases = {};
         if (aliasKeyAndValues.length === 0) {
-            throw almError({ keyName: 'NoAliasesFound', bundle: 'alias' }, []);
+            throw await SfdxError.create('sfdx-core', 'NoAliasesFound', []);
         }
 
-        aliasKeyAndValues.forEach(arg => {
+        for (const arg of aliasKeyAndValues) {
             const split = arg.split('=');
 
             if (split.length !== 2) {
-                throw almError({ keyName: 'InvalidFormat', bundle: 'alias' }, [arg]);
+                throw await SfdxError.create('sfdx-core', 'InvalidFormat', [arg]);
+                // throw almError({ keyName: 'InvalidFormat', bundle: 'alias' }, [arg]);
             }
             const [name, value] = split;
             newAliases[name] = value || undefined;
-        });
+        }
 
-        return aliasFileStore.setValues(newAliases, group);
+        return await aliasFileStore.updateValues(newAliases, group);
     }
 
     /**
@@ -58,8 +58,8 @@ class Alias {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise} The promise resolved when the alias is deleted
      */
-    static delete(alias, group = Alias.Groups.ORGS) {
-        return aliasFileStore.delete(alias, group);
+    public static async remove(alias, group = Alias.GROUPS.ORGS) {
+        return await aliasFileStore.remove(alias, group);
     }
 
     /**
@@ -69,8 +69,8 @@ class Alias {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise} The promise resolved when the alias is set
      */
-    static set(alias, property, group = Alias.Groups.ORGS) {
-        return aliasFileStore.set(alias, property, group);
+    public static async update(alias, property, group = Alias.GROUPS.ORGS) {
+        return await aliasFileStore.update(alias, property, group);
     }
 
     /**
@@ -79,8 +79,8 @@ class Alias {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise} The promise resolved when the aliases are unset
      */
-    static unset(aliasesToUnset, group = Alias.Groups.ORGS) {
-        return aliasFileStore.unset(aliasesToUnset, group);
+    public static async unset(aliasesToUnset, group = Alias.GROUPS.ORGS) {
+        return await aliasFileStore.unset(aliasesToUnset, group);
     }
 
     /**
@@ -89,8 +89,8 @@ class Alias {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise} The promise resolved when the alias is retrieved
      */
-    static get(alias, group = Alias.Groups.ORGS) {
-        return aliasFileStore.get(alias, group);
+    public static async fetch(alias, group = Alias.GROUPS.ORGS) {
+        return await aliasFileStore.fetch(alias, group);
     }
 
     /**
@@ -98,8 +98,8 @@ class Alias {
      * @param {string} group The group of aliases to retrieve. Defaults to Orgs
      * @returns {Promise} The promise resolved when the aliases are retrieved
      */
-    static list(group = Alias.Groups.ORGS) {
-        return aliasFileStore.list(group);
+    public static async list(group = Alias.GROUPS.ORGS) {
+        return await aliasFileStore.list(group);
     }
 
     /**
@@ -108,12 +108,8 @@ class Alias {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise} The promise resolved when the alias is retrieved
      */
-    static byValue(value, group = Alias.Groups.ORGS) {
-        return aliasFileStore.byValue(value, group);
+    public static async byValue(value, group = Alias.GROUPS.ORGS) {
+        return await aliasFileStore.byValue(value, group);
     }
+
 }
-
-// Different groups of aliases. Only support orgs for now.
-Alias.Groups = { ORGS: 'orgs' };
-
-module.exports = Alias;
