@@ -10,5 +10,7 @@
     "OrgDataNotAvailableErrorAction2": "Use `sfdx force:config:set` to update the defaultusername.",
     "OrgDataNotAvailableErrorAction3": "Use `sfdx force:org:create` to create a new org.",
     "OrgDataNotAvailableErrorAction4": "Use `sfdx force:auth` to authenticate an existing org.",
-    "namedOrgNotFound": "No AuthInfo found for name %s"
+    "namedOrgNotFound": "No AuthInfo found for name %s",
+    "NoAliasesFound": "Nothing to set",
+    "InvalidFormat": "Setting aliases must be in the format <key>=<value> but found: [%s]"
 }
