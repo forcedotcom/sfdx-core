@@ -49,27 +49,30 @@ export class Global {
     /**
      * Creates a directory within the global directory, or the global directory
      * itself if a dirPath is not specified.
-     * @param dirPath diretory path to be created within the global directory.
+     * @param {string} dirPath The directory path to be created within the global directory.
+     * @returns {Promise<void>}
      */
-    public static async createDir(dirPath?: string): Promise<any> {
+    public static async createDir(dirPath?: string): Promise<void> {
         dirPath = dirPath ? path.join(Global.DIR, dirPath) : Global.DIR;
         await SfdxUtil.mkdirp(dirPath, SfdxUtil.DEFAULT_USER_DIR_MODE);
     }
 
     /**
      * Single place to read global config information.
-     * @param fileName name of the JSON config file from which to read.
+     * @param {string} fileName The name of the JSON config file from which to read.
+     * @returns {Promise<object>} The json data read from the config file.
      */
-    public static async fetchConfigInfo(fileName: string): Promise<any> {
+    public static async fetchConfigInfo(fileName: string): Promise<object> {
         return await SfdxUtil.readJSON(path.join(Global.DIR, fileName));
     }
 
     /**
      * Single place to write global config information.
-     * @param fileName name of the JSON config file to write.
-     * @param info the JSON data to write.
+     * @param {string} fileName fileName The name of the JSON config file to write.
+     * @param {object} info The JSON data to write.
+     * @returns {Promise<void>}
      */
-    public static async saveConfigInfo(fileName: string, info: object): Promise<any> {
+    public static async saveConfigInfo(fileName: string, info: object): Promise<void> {
         return await SfdxUtil.writeJSON(path.join(Global.DIR, fileName), info);
     }
 }

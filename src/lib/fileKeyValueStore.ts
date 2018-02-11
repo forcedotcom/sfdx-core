@@ -32,6 +32,7 @@ const _set = (aliases, group, alias, property) => {
  *
  * All key value pairs are stored under a group.
  *
+ * @private
  */
 export class KeyValueStore {
 
@@ -43,11 +44,11 @@ export class KeyValueStore {
 
     /**
      * Set a group of aliases in a bulk save.
-     * @param {array} keyAndValues An object representing the aliases to set.
-     * @param {string} group The group the alias belongs to.
-     * @returns {Promise<object>} The new aliases that were saved.
+     * @param {object} keyAndValues An object representing the aliases to set.
+     * @param {string} group The group the property belongs to. Defaults to 'default'.
+     * @returns {Promise<object>} The new property that was saved.
      */
-    public async updateValues(newAliases: any, group: string= 'default'): Promise<any> {
+    public async updateValues(newAliases: object, group: string = 'default'): Promise<object> {
         const aliases = await Global.fetchConfigInfo(this.fileStoreName);
         _.forEach(newAliases, (val, key) => _set(aliases, group, key, val));
         await Global.saveConfigInfo(this.fileStoreName, aliases);
@@ -57,10 +58,10 @@ export class KeyValueStore {
     /**
      * Delete an alias from a group
      * @param {string} alias The name of the alias to delete
-     * @param {string} group The group the alias belongs to. Defaults to Orgs
-     * @returns {Promise} The promise resolved when the alias is deleted
+     * @param {string} group The group the alias belongs to. Defaults to 'default'.
+     * @returns {Promise<void>} The promise resolved when the alias is deleted
      */
-    public async remove(alias: string, group: string= 'default'): Promise<any> {
+    public async remove(alias: string, group: string = 'default'): Promise<void> {
         return await this.update(alias, undefined, group);
     }
 
@@ -68,10 +69,10 @@ export class KeyValueStore {
      * Set an alias on a group
      * @param {string} alias The name of the alias to set
      * @param {string} property The value of the alias
-     * @param {string} group The group the alias belongs to. Defaults to Orgs
-     * @returns {Promise} The promise resolved when the alias is set
+     * @param {string} group The group the alias belongs to. Defaults to 'default'.
+     * @returns {Promise<void>} The promise resolved when the alias is set.
      */
-    public async update(alias: string , property: string | number, group: string= 'default'): Promise<any> {
+    public async update(alias: string , property: string | number, group: string = 'default'): Promise<void> {
         const aliases = await Global.fetchConfigInfo(this.fileStoreName);
         _set(aliases, group, alias, property);
         await Global.saveConfigInfo(this.fileStoreName, aliases);
@@ -80,11 +81,10 @@ export class KeyValueStore {
     /**
      * Unset one or more aliases on a group
      * @param {string[]} aliases The names of the aliases to unset
-     * @param {string} group The group the alias belongs to. Defaults to Orgs
-     * @returns {Promise} The promise resolved when the aliases are unset
+     * @param {string} group The group the alias belongs to. Defaults to 'default'.
+     * @returns {Promise<void>} The promise resolved when the aliases are unset
      */
-    // Should this be renamed? 'Unlink'?
-    public async unset(aliasesToUnset: string[], group: string= 'default'): Promise<any> {
+    public async unset(aliasesToUnset: string[], group: string = 'default'): Promise<void> {
         const aliases = await Global.fetchConfigInfo(this.fileStoreName);
         aliases[group] = _.omit(aliases[group], aliasesToUnset);
         await Global.saveConfigInfo(this.fileStoreName, aliases);
@@ -93,20 +93,20 @@ export class KeyValueStore {
     /**
      * Get an alias from a group
      * @param {string} alias The name of the alias to get
-     * @param {string} group The group the alias belongs to. Defaults to Orgs
-     * @returns {Promise} The promise resolved when the alias is retrieved
+     * @param {string} group The group the alias belongs to. Defaults to 'default'.
+     * @returns {Promise<string>} The promise resolved when the alias is retrieved
      */
-    public async fetch(alias: string, group: string= 'default') {
+    public async fetch(alias: string, group: string = 'default'): Promise<string> {
         const aliases = await this.list(group);
         return aliases[alias];
     }
 
     /**
      * Get all alias from a group
-     * @param {string} group The group of aliases to retrieve. Defaults to Orgs
-     * @returns {Promise} The promise resolved when the aliases are retrieved
+     * @param {string} group The group of aliases to retrieve. Defaults to 'default'.
+     * @returns {Promise<object>} The promise resolved when the aliases are retrieved
      */
-    public async list(group: string= 'default'): Promise<any> {
+    public async list(group: string = 'default'): Promise<object> {
         const aliases = await Global.fetchConfigInfo(this.fileStoreName);
         return aliases[group] || {};
     }
@@ -114,10 +114,10 @@ export class KeyValueStore {
     /**
      * Get an alias from a group by value
      * @param {string} value The value of the alias to match
-     * @param {string} group The group the alias belongs to. Defaults to Orgs
-     * @returns {Promise} The promise resolved when the alias is retrieved
+     * @param {string} group The group the alias belongs to. Defaults to 'default'.
+     * @returns {Promise<string>} The promise resolved when the alias is retrieved
      */
-    public async byValue(value: string | number, group: string= 'default'): Promise<any> {
+    public async byValue(value: string, group: string = 'default'): Promise<string> {
         const aliases = await this.list(group);
         return Object.keys(aliases).find((key) => aliases[key] === value);
     }
