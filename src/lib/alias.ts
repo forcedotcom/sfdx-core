@@ -33,14 +33,14 @@ export class Alias {
     public static async parseAndUpdate(aliasKeyAndValues, group = Alias.GROUPS.ORGS): Promise<object> {
         const newAliases = {};
         if (aliasKeyAndValues.length === 0) {
-            throw await SfdxError.create('sfdx-core', 'NoAliasesFound', []);
+            throw SfdxError.create('sfdx-core', 'core', 'NoAliasesFound');
         }
 
         for (const arg of aliasKeyAndValues) {
             const split = arg.split('=');
 
             if (split.length !== 2) {
-                throw await SfdxError.create('sfdx-core', 'InvalidFormat', [arg]);
+                throw SfdxError.create('sfdx-core', 'core', 'InvalidFormat', [arg]);
             }
             const [name, value] = split;
             newAliases[name] = value || undefined;

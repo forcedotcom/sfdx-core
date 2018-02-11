@@ -37,6 +37,9 @@ const processJsonError = async (error: Error, data: string, jsonPath: string): P
     }
 };
 
+/**
+ * Common utility methods.
+ */
 export class SfdxUtil {
     /**
      * Promisified version of fs.readFile

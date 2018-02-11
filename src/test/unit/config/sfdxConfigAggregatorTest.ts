@@ -53,10 +53,10 @@ describe('SfdxConfigAggregator', () => {
         describe('with no workspace', () => {
             it('does not have a local config', async () => {
                 try {
+                    // Should not throw
                     await SfdxConfigAggregator.create();
-                    assert.fail('expected an error to be thrown');
                 } catch (err) {
-                    expect(err).to.have.property('name', 'InvalidProjectWorkspace');
+                    assert.fail('expected an error to be thrown');
                 }
             });
         });

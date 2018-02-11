@@ -367,7 +367,7 @@ export class GenericKeychainAccess {
             if (_.isNil(fileAccessError)) {
 
                 // read it's contents
-                return Global.fetchConfigInfo(GenericKeychainAccess.SECRET_FILE)
+                return Global.fetchConfigInfo(SECRET_FILE_NAME)
                     .then(async (readObj: SecretFields) => {
                         // validate service name and account just because
                         if ((opts.service === readObj.service ) && (opts.account === readObj.account)) {
