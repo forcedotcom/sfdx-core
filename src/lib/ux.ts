@@ -33,6 +33,11 @@ export const color = new Proxy(chalk, {
     }
 });
 
+/**
+ * A helper class for interacting with the shell
+ *
+ * @extends cli-ux
+ */
 export default class UX extends CLI {
 
     // Collection of warnings that can be accessed and manipulated later.
@@ -53,6 +58,14 @@ export default class UX extends CLI {
             msg += ` ${def.message}`;
         }
         return msg;
+    }
+
+    /**
+     * Create a UX instance.
+     * @returns {Promise<UX>} The UX instance.
+     */
+    public static async create(): Promise<UX> {
+        return new UX(await Logger.child('UX'));
     }
 
     constructor(private logger: Logger, private isOutputEnabled: boolean = true) {
