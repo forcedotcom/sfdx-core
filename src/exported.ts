@@ -14,6 +14,7 @@ import Connection from './lib/connection';
 import AuthInfo from './lib/authInfo';
 import { SfdxConfigAggregator } from './lib/config/sfdxConfigAggregator';
 import SfdxUtil from './lib/util';
+import Alias from './lib/alias';
 
 Messages.importMessagesDirectory(__dirname);
 
@@ -28,5 +29,6 @@ export {
     LoggerLevel,
     Connection,
     AuthInfo,
-    SfdxConfigAggregator
+    SfdxConfigAggregator,
+    Alias
 };

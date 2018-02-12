@@ -38,6 +38,9 @@ const processJsonError = async (error: Error, data: string, jsonPath: string): P
     }
 };
 
+/**
+ * Common utility methods.
+ */
 export class SfdxUtil {
     /**
      * Promisified version of fs.readFile
@@ -66,8 +69,11 @@ export class SfdxUtil {
 
     /**
      * Promisified version of mkdirp
+     * @param {string} folderPath The path of the folder to create.
+     * @param {string} mode The mode to create the directory.
+     * @returns {Promise<void>}
      */
-    public static mkdirp = promisify(require('mkdirp'));
+    public static mkdirp: (folderPath: string, mode?: string | object) => Promise<void> = promisify(require('mkdirp'));
 
     public static DEFAULT_USER_DIR_MODE: string = '700';
     public static DEFAULT_USER_FILE_MODE: string = '600';
