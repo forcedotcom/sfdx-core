@@ -5,3 +5,5 @@ jobs:
   # Use the default promote script
   - name: publish
     testTarget: test-with-coverage
+    envMap:
+      - 'SFDX_USE_GENERIC_UNIX_KEYCHAIN': true
