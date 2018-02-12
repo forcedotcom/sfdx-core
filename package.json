@@ -41,7 +41,7 @@
     "istanbul": "v1.1.0-alpha.1",
     "jsdoc": "^3.5.5",
     "mocha": "2.4.5",
-    "shelljs": "0.7.8",
+    "shelljs": "0.8.1",
     "sinon": "3.2.1",
     "ts-node": "4.1.0",
     "tslint": "5.9.1",
