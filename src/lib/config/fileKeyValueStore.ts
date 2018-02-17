@@ -6,7 +6,7 @@
  */
 
 import * as _ from 'lodash';
-import { Global } from './global';
+import { ConfigFile } from './configFile';
 
 const _set = (aliases, group, alias, property) => {
     if (_.isNil(aliases[group])) {
@@ -34,12 +34,25 @@ const _set = (aliases, group, alias, property) => {
  *
  * @private
  */
-export class KeyValueStore {
+export class KeyValueStore extends ConfigFile {
 
-    private fileStoreName;
+    /**
+     * static intializer
+     * @param {string} filename - The filename for this keyValueStore
+     * @returns {Promise<KeyValueStore>}
+     */
+    public static async create(filename: string) {
+        return new KeyValueStore(await ConfigFile.getRootFolder(true), true, filename);
+    }
 
-    constructor(fileName: string) {
-        this.fileStoreName = fileName;
+    /**
+     * ctor - note: the consumer calls KeyValueStore.create()
+     * @param {string} rootFolder - The root folder of the configuration
+     * @param {boolean} isGlobal - True if this is a global configuration
+     * @param {string} filename - The name of the file
+     */
+    private constructor(rootFolder: string, isGlobal: boolean, filename: string) {
+        super(rootFolder, filename, isGlobal);
     }
 
     /**
@@ -49,9 +62,9 @@ export class KeyValueStore {
      * @returns {Promise<object>} The new property that was saved.
      */
     public async updateValues(newAliases: object, group: string = 'default'): Promise<object> {
-        const aliases = await Global.fetchConfigInfo(this.fileStoreName);
+        const aliases = await this.readJSON();
         _.forEach(newAliases, (val, key) => _set(aliases, group, key, val));
-        await Global.saveConfigInfo(this.fileStoreName, aliases);
+        await this.write(aliases);
         return newAliases;
     }
 
@@ -73,9 +86,9 @@ export class KeyValueStore {
      * @returns {Promise<void>} The promise resolved when the alias is set.
      */
     public async update(alias: string , property: string | number, group: string = 'default'): Promise<void> {
-        const aliases = await Global.fetchConfigInfo(this.fileStoreName);
+        const aliases = await this.readJSON();
         _set(aliases, group, alias, property);
-        await Global.saveConfigInfo(this.fileStoreName, aliases);
+        await this.write(aliases);
     }
 
     /**
@@ -85,9 +98,9 @@ export class KeyValueStore {
      * @returns {Promise<void>} The promise resolved when the aliases are unset
      */
     public async unset(aliasesToUnset: string[], group: string = 'default'): Promise<void> {
-        const aliases = await Global.fetchConfigInfo(this.fileStoreName);
+        const aliases = await this.readJSON();
         aliases[group] = _.omit(aliases[group], aliasesToUnset);
-        await Global.saveConfigInfo(this.fileStoreName, aliases);
+        await this.write(aliases);
     }
 
     /**
@@ -107,7 +120,7 @@ export class KeyValueStore {
      * @returns {Promise<object>} The promise resolved when the aliases are retrieved
      */
     public async list(group: string = 'default'): Promise<object> {
-        const aliases = await Global.fetchConfigInfo(this.fileStoreName);
+        const aliases = await this.readJSON();
         return aliases[group] || {};
     }
 

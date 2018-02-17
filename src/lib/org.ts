@@ -5,16 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { map as _map } from 'lodash';
-
 import { join as pathJoin } from 'path';
+import { Alias } from './alias';
 import { Connection } from './connection';
 import { Logger } from './logger';
 import { RequestInfo, RequestMethod } from 'jsforce';
 import { SfdxConfig } from './config/sfdxConfig';
-import { isNil as _isNil , maxBy as _maxBy } from 'lodash';
-import { AuthInfo } from './authInfo';
+import { SfdxConfigAggregator, ConfigInfo } from './config/sfdxConfigAggregator';
+import { isNil as _isNil , maxBy as _maxBy, get as _get, filter as _filter } from 'lodash';
+import { AuthFields, AuthInfo } from './authInfo';
 import { Global} from './global';
+import { SfdxUtil } from './util';
+import { OrgConfigFile, OrgConfigType } from './config/orgConfigFile';
+import { SfdxError } from './sfdxError';
 
 /**
  * Org status
@@ -51,6 +54,17 @@ export interface OrgMetaInfo {
     expired: boolean;
 }
 
+const _manageDelete = function(cb, dirPath, throwWhenRemoveFails) {
+    return cb().catch((e) => {
+        if (throwWhenRemoveFails) {
+            throw e;
+        } else {
+            this.logger.warn(`failed to read directory ${dirPath}`);
+            return;
+        }
+    });
+};
+
 /**
  * Manage ScratchOrg meta information
  */
@@ -61,7 +75,8 @@ export class Org {
      * @returns {Promise<Org>}
      */
     public static async create(connection: Connection): Promise<Org> {
-        const org = new Org();
+
+        const org = new Org(await SfdxConfigAggregator.create());
 
         org.logger = await Logger.child('Org');
         org.setConnection(connection);
@@ -71,8 +86,17 @@ export class Org {
     private logger: Logger;
     private connection: Connection;
     private status: OrgStatus = OrgStatus.UNKNOWN;
+    private configAggregator: SfdxConfigAggregator;
+    private _usingAccessToken: boolean = false;
 
-    private constructor() {}
+    private constructor(_aggregator: SfdxConfigAggregator) {
+        this.configAggregator = _aggregator;
+    }
+
+    public setConfigAggregator(configAggregator: SfdxConfigAggregator): Org {
+        this.configAggregator = configAggregator;
+        return this;
+    }
 
     /**
      * Determines the value of the status field.
@@ -99,78 +123,66 @@ export class Org {
     }
 
     public getDataPath(filename?: string): string {
-        return pathJoin(...['orgs', this.getName(), filename].filter((e) => !!e));
+        return pathJoin(...[OrgConfigFile.ORGS_FOLDER_NAME, this.getName(), filename].filter((e) => !!e));
     }
 
     /**
      * Clean all data files in the org's data path, then remove the data directory.
      * Usually <workspace>/.sfdx/orgs/<username>
+     * @param {string} orgDataPath
+     * @returns {Promise<void>}
      */
-    public async cleanData(orgDataPath: string): Promise<void> {
+    public async cleanData(orgDataPath?: string, throwWhenRemoveFails: boolean = false): Promise<void> {
         let dataPath;
         try {
-            dataPath = pathJoin(SfdxConfig.getRootFolder(), Global.STATE_FOLDER, orgDataPath || this.getDataPath());
+            const rootFolder: string = await SfdxConfig.getRootFolder(false);
+            dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath || this.getDataPath());
         } catch (err) {
             if (err.name === 'InvalidProjectWorkspace') {
                 // If we aren't in a project dir, we can't clean up data files.
-                // If the user deletes this org outside of the workspace they used it in,
+                // If the user unlink this org outside of the workspace they used it in,
                 // data files will be left over.
                 return;
             }
             throw err;
         }
 
-        const dirListing: string[] = await SfdxConfig.readdir(dataPath);
-
-        dirListing = _map(dirListing, (file) => pathJoin(dataPath, file));
-        dirListing = _map(dirListing, (file) => )
-
-        const removeDir = (dirPath) => {
-            let stats;
-
-            try {
-                stats = fs.readdirSync(dirPath)
-                    .map(file => path.join(dirPath,file))
-                    .map(filePath => ({ filePath, stat: fs.statSync(filePath) }));
-
-                stats.filter(({ stat }) => stat.isDirectory()).forEach(({ filePath }) => removeDir(filePath));
-                stats.filter(({ stat }) => stat.isFile()).forEach(({ filePath }) => fs.unlinkSync(filePath));
-
-                fs.rmdirSync(dirPath);
-            } catch (err) {
-                this.logger.warn(`failed to read directory ${dirPath}`);
-            }
-        };
-
-        removeDir(dataPath);
-    }
-
-
-    /**
-     * Get the full path to the file storing the maximum revision value from the last valid pull from workspace scratch org
-     * @param wsPath - The root path of the workspace
-     * @returns {*}
-     */
-    getMaxRevision() {
-        return new StateFile(this.config, this.getDataPath('maxrevision.json'));
+        return _manageDelete.call(this, async () => await SfdxUtil.remove(dataPath), dataPath,
+            throwWhenRemoveFails);
     }
 
     /**
-     * Get the full path to the file storing the workspace source path information
-     * @param wsPath - The root path of the workspace
-     * @returns {*}
+     * @returns {Promise<object>} - A promise for an object that contains the max revision.
      */
-    getSourcePathInfos() {
-        return new StateFile(this.config, this.getDataPath('sourcePathInfos.json'));
+    public async retrieveMaxRevisionConfig(): Promise<OrgConfigFile> {
+        return OrgConfigFile.create(OrgConfigType.MAX_REVISION, this.getName());
+    }
+
+    /**
+     * @returns {Promise<object>} - A promise for an object containing the source path state
+     */
+    public async retrieveSourcePathInfosConfig(): Promise<OrgConfigFile> {
+        return OrgConfigFile.create(OrgConfigType.SOURCE_PATH_INFOS, this.getName());
     }
 
     /**
      * Get the full path to the file storing the workspace metadata typeDefs
-     * @param wsPath - The root path of the workspace
-     * @returns {*}
+     * @returns {Promise<object>} - A promise for an object containing the source path state
      */
-    getMetadataTypeInfos() {
-        return new StateFile(this.config, this.getDataPath('metadataTypeInfos.json'));
+    public async retrieveMetadataTypeInfosConfig(): Promise<OrgConfigFile> {
+        return OrgConfigFile.create(OrgConfigType.METADATA_TYPE_INFOS, this.getName());
+    }
+
+    public async retrieveOrgUsersConfig(): Promise<OrgConfigFile> {
+        return OrgConfigFile.create(OrgConfigType.USERS,
+            this.getConnection().getAuthInfo().getConnectionOptions().orgId);
+    }
+
+    /**
+     * @returns {boolean} -  Returns true if this org is using access token auth.
+     */
+    public getUsingAccessToken(): boolean {
+        return this._usingAccessToken;
     }
 
     /**
@@ -178,70 +190,78 @@ export class Org {
      * files, all user auth files for the org, matching default config settings, and any
      * matching aliases.
      */
-    deleteConfig() {
+    public async remove(throwWhenRemoveFails?: false): Promise<void> {
 
         // If deleting via the access token there shouldn't be any auth config files
         // so just return;
-        if (this.usingAccessToken) {
+        if (this.getUsingAccessToken()) {
             return Promise.resolve();
         }
 
-        let orgFileName;
         const aliases = [];
 
-        // If the org being deleted is the workspace org then we need to do this so that subsequent calls to the
-        // cli won't fail when trying to retrieve scratch org info from ~/.sfdx
-        const cleanup = (name) => {
-            let alias;
-            return Alias.byValue(name)
-                .then(_alias => {
-                    alias = _alias;
-                    _alias && aliases.push(_alias);
-                })
-                .then(() => this.resolvedAggregator())
-                .then(aggregator => {
-                    // Get the aggregated config for this type of org
-                    const info = aggregator.getInfo(this.type);
+        const auths: AuthInfo[] = await this.readUserAuthFiles();
 
-                    // We only want to delete the default if it is in the local or global
-                    // config file. i.e. we can't delete an env var.
-                    if ((info.value === name || info.value === alias) && (info.isGlobal() || info.isLocal())) {
-                        // Pass in undefined to unset it
-                        return SfdxConfig.set(info.isGlobal(), this.type);
-                    }
-                    return Promise.resolve();
-                })
-                .then(() => this.cleanData(path.join('orgs', name)))
-                .then(() => srcDevUtil.deleteGlobalConfig(`${name}.json`));
-        };
+        this.logger.info(`Cleaning up usernames in org: ${this.getConnection().getAuthInfo().getConnectionOptions().orgId}`);
 
-        return this.getConfig()
-            .then(orgData => {
-                orgFileName = `${orgData.orgId}.json`;
-                return srcDevUtil.getGlobalConfig(orgFileName, {});
-            })
-            .then(({ usernames }) => {
-                if (!usernames) {
-                    usernames = [this.getName()];
-                    orgFileName = null;
-                }
-                return usernames;
-            })
-            .then((usernames) => {
-                this.logger.info(`Cleaning up usernames: ${usernames} in org: ${this.authConfig.orgId}`);
-                return Promise.all(usernames.map(username => cleanup(username)));
-            })
-            .then(() => Alias.unset(aliases))
-            .then(() => {
-                if (orgFileName) {
-                    return srcDevUtil.deleteGlobalConfig(orgFileName);
-                }
-                return Promise.resolve();
-            });
+        for (const auth of auths) {
+            const username = auth.getConnectionOptions().username;
+
+            const alias = await Alias.byValue(username);
+
+            if (alias) {
+                aliases.push(alias);
+            }
+
+            let orgForUser;
+            if (username === this.getConnection().getAuthInfo().getConnectionOptions().username) {
+                orgForUser = this;
+            } else {
+                const _info = await AuthInfo.create(username);
+                const connection = await Connection.create(_info);
+                orgForUser = await Org.create(connection);
+            }
+
+            const orgType = await this.isDevHubOrg() ? SfdxConfig.DEFAULT_DEV_HUB_USERNAME : SfdxConfig.DEFAULT_USERNAME;
+
+            const configInfo: ConfigInfo = await orgForUser.configAggregator.getInfo(orgType);
+
+            if ((configInfo.value === username || configInfo.value === alias) &&
+                (configInfo.isGlobal() || configInfo.isLocal())) {
+
+                await SfdxConfig.setPropertyValue(configInfo.isGlobal() as boolean, orgType, undefined,
+                    this.configAggregator.getRootPathRetriever());
+            }
+
+            // Probably a good idea to let ConfigFile delete these before deleting Orgs/<orgname>
+            const sourceConfig: OrgConfigFile = await this.retrieveSourcePathInfosConfig();
+            _manageDelete.call(this, async () => await sourceConfig.unlink(), sourceConfig.getPath(),
+                throwWhenRemoveFails);
+
+            const mdTypeConfig: OrgConfigFile = await this.retrieveMetadataTypeInfosConfig();
+            _manageDelete.call(this, async () => await mdTypeConfig.unlink(), mdTypeConfig.getPath(),
+                throwWhenRemoveFails);
+
+            const maxRevision: OrgConfigFile = await this.retrieveMaxRevisionConfig();
+            _manageDelete.call(this, async () => await maxRevision.unlink(), maxRevision.getPath(),
+                throwWhenRemoveFails);
+
+            const orgUsers: OrgConfigFile = await this.retrieveOrgUsersConfig();
+            _manageDelete.call(this, async () => await orgUsers.unlink(), orgUsers.getPath(),
+                throwWhenRemoveFails);
+
+            // Now delete the parent folder named after the org
+            await orgForUser.cleanData(pathJoin(OrgConfigFile.ORGS_FOLDER_NAME, username));
+        }
+
+        return await Alias.unset(aliases);
     }
 
-    getFileName() {
-        return `${this.name}.json`;
+    /**
+     * @returns {string} - The name of the auth json file associated with this org.
+     */
+    public getFileName(): string {
+        return this.getConnection().getAuthInfo().authFileName;
     }
 
     /**
@@ -249,43 +269,36 @@ export class Org {
      *  @param devHubUsername - the username of the dev hub org
      *  @returns {Promise<Config>}
      */
-    checkScratchOrg(devHubUsername) {
-        return this.getConfig().then(config => {
-            let hubOrgPromise;
-            // If we know the hub org from the auth, use that instead and ignore
-            // the flag and defaults.
-            if (config.devHubUsername) {
-                hubOrgPromise = Org.create(config.devHubUsername);
-            } else {
-                hubOrgPromise = Org.create(devHubUsername, Org.Defaults.DEVHUB);
+    public async checkScratchOrg(devHubUsername?: string): Promise<Partial<AuthFields>> {
+
+        let targetDevHub = devHubUsername;
+        if (!targetDevHub) {
+            targetDevHub = this.configAggregator.getPropertyValue(SfdxConfig.DEFAULT_DEV_HUB_USERNAME);
+        }
+
+        const devHubConnection: any = await Connection.create(await AuthInfo.create(targetDevHub));
+
+        const thisOrgAuthConfig: Partial<AuthFields> = this.getConnection().getAuthInfo().getConnectionOptions();
+
+        const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg=\'${thisOrgAuthConfig.orgId}\'`;
+
+        let results;
+        try {
+            results = await devHubConnection.query(DEV_HUB_SOQL);
+
+        } catch (err) {
+            if (err.name === 'INVALID_TYPE') {
+                throw SfdxError.create('sfdx-org', 'org', 'notADevHub',
+                    [devHubConnection.getAuthInfo().getConnectionOptions().username]);
             }
+            throw err;
+        }
 
-            return hubOrgPromise
-                .catch(err => {
-                    err.action = messages.getMessage('action', [], 'generatePassword');
-                    throw err;
-                })
-                .then(hubOrg => srcDevUtil.queryOrgInfoFromDevHub(hubOrg, config.orgId)
-                    .then((results = {}) => {
-                        // If no results, org is not associated with the devhub
-                        if (_.get(results, 'records.length') !== 1) {
-                            return hubOrg.getConfig().then(hubConfig => {
-                                throw almError({ keyName: 'notFoundOnDevHub', bundle: 'generatePassword' }, [hubConfig.username], { keyName: 'action', bundle: 'generatePassword' });
-                            });
-                        }
-                        return Promise.resolve(config);
-                    })
-                    .catch(err => {
-                        if (err.name === 'INVALID_TYPE') {
-                            return hubOrg.getConfig().then(hubConfig => {
-                                throw almError({ keyName: 'notADevHub', bundle: 'generatePassword' }, [hubConfig.username], { keyName: 'action', bundle: 'generatePassword' });
-                            });
+        if (_get(results, 'records.length') !== 1) {
+            throw new SfdxError('No results', 'NoResults');
+        }
 
-                        }
-                        throw err;
-                    })
-                );
-        });
+        return thisOrgAuthConfig;
     }
 
     /**
@@ -293,59 +306,87 @@ export class Org {
      *
      *  @returns {Org} - Org object or null if org is not affiliated to a Dev Hub (according to local config).
      */
-    getDevHubOrg() {
-        return this.getConfig()
-            .then((orgData) => {
-                let org = null;
+    public async getDevHubOrg(): Promise<Org> {
 
-                if (orgData.isDevHub) {
-                    org = this;
-                } else if (orgData.devHubUsername) {
-                    org = Org.create(orgData.devHubUsername, Org.Defaults.DEVHUB);
-                }
+        const orgData = this.getConnection().getAuthInfo().getConnectionOptions();
 
-                return org;
-            });
+        if (this.isDevHubOrg()) {
+            return this;
+        } else if (orgData.devHubUsername) {
+            return Org.create(await Connection.create(await AuthInfo.create(orgData.username)));
+        }
     }
 
     /**
-     * Returns true if org if a Dev Hub.
-     *
-     *  @returns Boolean
+     * @returns Boolean - Returns true if org if a Dev Hub.
      */
-    isDevHubOrg() {
-        return this.getConfig()
-            .then((orgData) => orgData.isDevHub);
+    public isDevHubOrg(): boolean {
+        return this.getConnection().getAuthInfo().getConnectionOptions().isDevHub;
     }
 
     /**
-     * Refresh a users access token.
-     * @returns {*|Promise.<{}>}
+     * @returns {Promise<any>} - Refresh a users access token.
      */
-    refreshAuth() {
-        return this.force.describeData(this);
-    }
-
-
-    /**
-     *  Reads and returns the global, hidden org file in $HOME/.sfdx for this org.
-     *    E.g., $HOME/.sfdx/00Dxx0000001gPFEAY.json
-     *  @returns {Object} - The contents of the org file, or an empty object if not found.
-     */
-    readOrgFile() {
-        return this.getConfig().then(orgData => srcDevUtil.getGlobalConfig(`${orgData.orgId}.json`, {}));
+    public async refreshAuth(): Promise<any> {
+        const requestInfo = {
+            url: this.getConnection().baseUrl(),
+            method: 'GET'
+        };
+        return this.getConnection().request(requestInfo);
     }
 
     /**
      *  Reads and returns the content of all user auth files for this org.
      *  @returns {Array} - An array of all user auth file content.
      */
-    readUserAuthFiles() {
-        return this.readOrgFile()
-            .then(({ usernames }) => usernames || [this.name])
-            .map((username) => srcDevUtil.getGlobalConfig(`${username}.json`));
+    public async readUserAuthFiles(): Promise<AuthInfo[]> {
+        const contents: any = await this.retrieveOrgUsersConfig();
+        const usernames: string[] = contents.usernames || [this.getConnection().getAuthInfo().getConnectionOptions().username];
+        return Promise.all(usernames.map((username) => {
+            if (username === this.getConnection().getAuthInfo().getConnectionOptions().username) {
+                return this.getConnection().getAuthInfo();
+            } else {
+                AuthInfo.create(username);
+            }
+        }));
     }
 
+    /**
+     * Adds a username to the user config for this org.
+     * @param {AuthInfo} auth - The AuthInfo for the username to add.
+     * @returns {Promise<Org>} - This Org
+     */
+    public async addUsername(auth: AuthInfo): Promise<Org> {
+        const orgConfig: OrgConfigFile = await this.retrieveOrgUsersConfig();
+
+        const contents: any = await orgConfig.read();
+
+        if (!contents.usernames) {
+            contents.usernames = [];
+        }
+
+        contents.usernames.push(auth.getConnectionOptions().username);
+
+        await orgConfig.write(contents);
+        return this;
+    }
+
+    /**
+     * Removes a username from the user config for this object
+     * @param {AuthInfo} auth - The AuthInfo containing the username to remove
+     * @returns {Promise<Org>} - This Org
+     */
+    public async removeUsername(auth: AuthInfo): Promise<Org> {
+        const orgConfig: OrgConfigFile = await this.retrieveOrgUsersConfig();
+
+        const contents: any = await orgConfig.read();
+
+        const targetUser = auth.getConnectionOptions().username;
+        contents.usernames = _filter(contents.usernames, (username) => username !== targetUser);
+
+        await orgConfig.write(contents);
+        return this;
+    }
 
     /**
      * Retrieves the highest api version that is supported by the target server instance. If the apiVersion configured for
@@ -355,17 +396,34 @@ export class Org {
      */
     public async retrieveMaxApiVersion(): Promise<string> {
 
-        const url: string = `${this.connection.getAuthInfo().getConnectionOptions().instanceUrl}/services/data`;
+        const url: string = `${this.getConnection().getAuthInfo().getConnectionOptions().instanceUrl}/services/data`;
 
         const info: RequestInfo = { method: 'GET', url };
 
-        const versions = await this.connection.request(info);
+        const versions = await this.getConnection().request(info);
 
         return _maxBy(versions, (_ver: any) => _ver.version);
     }
 
     public getName(): string {
-        return this.connection.getAuthInfo().username;
+        return this.getConnection().getAuthInfo().username;
+    }
+
+    /**
+     * @returns {Connection} - Getter for the JSforce connection for the org.
+     */
+    protected getConnection(): Connection {
+        return this.connection;
+    }
+
+    /**
+     * Set indcator if this org is using access token authentication.
+     * @param {boolean} value - Return true if this org should us access token authentication. False otherwise.
+     * @returns {Org} - This org instance
+     */
+    private setUsingAccessToken(value: boolean) {
+        this._usingAccessToken = value;
+        return this;
     }
 
     /**

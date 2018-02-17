@@ -98,4 +98,30 @@ describe('Util', () => {
             expect(SfdxUtil.isSalesforceDomain(undefined)).to.be.false;
         });
     });
+
+    describe('remove', () => {
+        it('with the path', () => {
+
+        });
+
+        it('without the path', () => {
+
+        });
+
+        it ('no access to path', () => {
+
+        });
+
+        it ('empty dir', () => {
+
+        });
+
+        it ('directory with one file', () => {
+
+        });
+
+        it ('multi nesting', () => {
+
+        });
+    });
 });

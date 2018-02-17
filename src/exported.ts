@@ -13,8 +13,8 @@ import { Logger, LoggerLevel } from './lib/logger';
 import Connection from './lib/connection';
 import AuthInfo from './lib/authInfo';
 import { SfdxConfigAggregator } from './lib/config/sfdxConfigAggregator';
-import SfdxUtil from './lib/util';
-import Alias from './lib/alias';
+import { Alias } from './lib/alias';
+import { SfdxUtil } from './lib/util';
 
 Messages.importMessagesDirectory(__dirname);
 

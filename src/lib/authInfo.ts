@@ -12,6 +12,8 @@ import * as _ from 'lodash';
 import { OAuth2, OAuth2Options } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
+import { AuthInfoConfigFile } from './config/authInfoConfigFile';
+import { ConfigFile } from './config/configFile';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
@@ -39,6 +41,7 @@ export interface AuthFields {
     scratchAdminUsername: string;
     userId: string;
     username: string;
+    usernames: string[];
     userProfileName: string;
 }
 
@@ -263,7 +266,7 @@ export class AuthInfo {
     }
 
     // The regular expression that filters files stored in $HOME/.sfdx
-    private static authFilenameFilterRegEx: RegExp = /^[^.][^@]+@[^.]+(\.[^.\s]+)+\.json$/;
+    private static authFilenameFilterRegEx: RegExp = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
 
     // Cache of auth fields by username.
     private static cache: Map<string, Partial<AuthFields>> = new Map();
@@ -307,7 +310,8 @@ export class AuthInfo {
             } else {
                 // Fetch from the persisted auth file
                 try {
-                    authConfig = await Global.fetchConfigInfo(this.authFileName);
+                    const config: AuthInfoConfigFile = await AuthInfoConfigFile.create(this.authFileName);
+                    authConfig = await config.readJSON();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
                         throw SfdxError.create('sfdx-core', 'core', 'namedOrgNotFound', [this.username]);
@@ -368,9 +372,15 @@ export class AuthInfo {
             delete dataToSave.clientSecret;
         }
 
-        await Global.saveConfigInfo(this.authFileName, dataToSave);
+        const config: ConfigFile = await AuthInfoConfigFile.create(this.authFileName);
+        await config.write(dataToSave);
+
         this.logger.info(`Saved auth info for username: ${this.username}`);
         return this;
+    }
+
+    public async unlink(username: string): Promise<void> {
+
     }
 
     /**

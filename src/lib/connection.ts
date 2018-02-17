@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { join as pathJoin } from 'path';
 import { isString, cloneDeep } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
@@ -80,6 +81,13 @@ export class Connection extends JSForceConnection {
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
         return super.request(_request, options);
+    }
+
+    /**
+     * @returns {string} - The force api base url for the instance
+     */
+    public baseUrl(): string {
+        return pathJoin(super.instanceUrl, 'services', 'data', `v${super.version}`);
     }
 
     /**

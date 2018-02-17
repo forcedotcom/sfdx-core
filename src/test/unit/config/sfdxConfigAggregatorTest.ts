@@ -7,13 +7,12 @@
 
 import { join as pathJoin } from 'path';
 
-import { sandbox as sinonSandbox } from 'sinon';
 import { expect, assert } from 'chai';
 
 import { SfdxUtil } from '../../../lib/util';
 import { SfdxConfigAggregator } from '../../../lib/config/sfdxConfigAggregator';
 import { tmpdir as osTmpdir } from 'os';
-import { SfdxConfig, OrgType } from '../../../lib/config/sfdxConfig';
+import { SfdxConfig } from '../../../lib/config/sfdxConfig';
 import { testSetup } from '../../testSetup';
 
 // Setup the test environment.
@@ -47,7 +46,7 @@ describe('SfdxConfigAggregator', () => {
         it('converts env vars', async () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
             const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
-            expect(aggregator.getPropertyValue(OrgType.DEFAULT_USERNAME)).to.equal('test');
+            expect(aggregator.getPropertyValue(SfdxConfig.DEFAULT_USERNAME)).to.equal('test');
         });
 
         describe('with no workspace', () => {
@@ -71,13 +70,13 @@ describe('SfdxConfigAggregator', () => {
         });
         it('local overrides global', async () => {
             const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
-            expect(await aggregator.getPropertyValue(OrgType.DEFAULT_USERNAME)).to.equal(1);
+            expect(await aggregator.getPropertyValue(SfdxConfig.DEFAULT_USERNAME)).to.equal(1);
         });
 
         it('env overrides local and global', async () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
             const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
-            expect(await aggregator.getPropertyValue(OrgType.DEFAULT_USERNAME)).to.equal('test');
+            expect(await aggregator.getPropertyValue(SfdxConfig.DEFAULT_USERNAME)).to.equal('test');
         });
     });
 
@@ -94,7 +93,7 @@ describe('SfdxConfigAggregator', () => {
                 return Promise.resolve();
             });
             const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
-            expect(aggregator.getLocation(OrgType.DEFAULT_USERNAME)).to.equal('Local');
+            expect(aggregator.getLocation(SfdxConfig.DEFAULT_USERNAME)).to.equal('Local');
         });
 
         it('global', async () => {
@@ -109,7 +108,7 @@ describe('SfdxConfigAggregator', () => {
                 return Promise.resolve();
             });
             const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
-            expect(aggregator.getLocation(OrgType.DEFAULT_USERNAME)).to.equal('Global');
+            expect(aggregator.getLocation(SfdxConfig.DEFAULT_USERNAME)).to.equal('Global');
         });
 
         it('env', async () => {
@@ -125,7 +124,7 @@ describe('SfdxConfigAggregator', () => {
                 }
                 return Promise.resolve();
             });
-            expect(aggregator.getLocation(OrgType.DEFAULT_USERNAME)).to.equal('Environment');
+            expect(aggregator.getLocation(SfdxConfig.DEFAULT_USERNAME)).to.equal('Environment');
         });
 
         it('configInfo', async () => {

@@ -1,0 +1,90 @@
+Arguments: 
+  /Users/tnoonan/.nvm/versions/node/v9.5.0/bin/node /usr/local/Cellar/yarn/1.3.2/libexec/bin/yarn.js
+
+PATH: 
+  /Users/tnoonan/.nvm/versions/node/v9.5.0/bin:/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/bin:/Users/tnoonan/bin:/usr/local/bin:/usr/local/opt/groovy/libexec:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/opt/apache-maven-3.3.3/bin:/Users/tnoonan/work/bin:/Volumes/CaseAware/scripts/osx/bin/
+
+Yarn version: 
+  1.3.2
+
+Node version: 
+  9.5.0
+
+Platform: 
+  darwin x64
+
+npm manifest: 
+  {
+    "name": "sfdx-core",
+    "version": "0.0.6",
+    "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
+    "main": "dist/exported",
+    "license": "BSD-3-Clause",
+    "scripts": {
+      "typings": "node_modules/.bin/tsc -p typings/tsconfig.json",
+      "lint": "node_modules/.bin/tslint -p .",
+      "lint-report": "npm run lint -t checkstyle -o checkstyle.xml",
+      "clean": "scripts/clean.js",
+      "compile": "node_modules/.bin/tsc -p ./tsconfig.json",
+      "build": "npm run clean && npm run lint && npm run compile",
+      "watch": "tsc -w -p tsconfig.json",
+      "test": "npm run lint && npm run compile && node_modules/.bin/mocha --recursive dist/test/unit",
+      "test-with-coverage": "npm run lint-report && scripts/unit-test-with-coverage.js",
+      "prepare": "npm run build",
+      "docgen": "npm run compile && node_modules/.bin/jsdoc dist --readme EXPORTED.md -r -c jsdoc.json --package package.json"
+    },
+    "keywords": [
+      "force",
+      "salesforce",
+      "sfdx",
+      "salesforcedx"
+    ],
+    "dependencies": {
+      "bluebird": "3.4.6",
+      "bunyan-sfdx-no-dtrace": "1.8.2",
+      "chalk": "2.3.0",
+      "cli-ux": "2.0.4",
+      "jsforce": "1.8.0",
+      "jsonwebtoken": "7.0.0",
+      "lodash": "4.17.4"
+    },
+    "devDependencies": {
+      "@types/chai": "4.0.4",
+      "@types/lodash": "4.14.88",
+      "@types/mocha": "2.2.42",
+      "@types/node": "8.0.25",
+      "chai": "4.1.1",
+      "docdash": "0.4.0",
+      "istanbul": "v1.1.0-alpha.1",
+      "jsdoc": "^3.5.5",
+      "mocha": "2.4.5",
+      "mock-fs": "4.4.2",
+      "shelljs": "0.8.1",
+      "sinon": "3.2.1",
+      "ts-node": "4.1.0",
+      "tslint": "5.9.1",
+      "tslint-microsoft-contrib": "5.0.2",
+      "typescript": "2.6.2",
+      "xunit-file": "1.0.0"
+    },
+    "types": "dist/exported.d.ts"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
+
+Trace: 
+  Error: http://tnoonan-wsm2.internal.salesforce.com:4873/spdx-license-ids: ESOCKETTIMEDOUT
+      at ClientRequest.<anonymous> (/usr/local/Cellar/yarn/1.3.2/libexec/lib/cli.js:123716:19)
+      at Object.onceWrapper (events.js:255:19)
+      at ClientRequest.emit (events.js:160:13)
+      at Socket.emitTimeout (_http_client.js:702:34)
+      at Object.onceWrapper (events.js:255:19)
+      at Socket.emit (events.js:160:13)
+      at Socket._onTimeout (net.js:415:8)
+      at ontimeout (timers.js:458:11)
+      at tryOnTimeout (timers.js:296:5)
+      at Timer.listOnTimeout (timers.js:259:5)

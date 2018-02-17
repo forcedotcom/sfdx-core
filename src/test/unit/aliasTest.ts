@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 // Local
-import { KeyValueStore } from '../../lib/fileKeyValueStore';
+import { KeyValueStore } from '../../lib/config/fileKeyValueStore';
 import { Alias } from '../../lib/alias';
 import { testSetup } from '../testSetup';
 

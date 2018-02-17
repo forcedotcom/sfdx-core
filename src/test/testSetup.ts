@@ -9,12 +9,29 @@ import { randomBytes } from 'crypto';
 import { sandbox as sinonSandbox } from 'sinon';
 import { once } from 'lodash';
 import { Logger } from '../lib/logger';
-import Messages from '../lib/messages';
+import { Messages } from '../lib/messages';
+import { join as pathJoin } from 'path';
+import { tmpdir as osTmpdir } from 'os';
 
 export interface TestContext {
     SANDBOX: any;
     TEST_LOGGER: Logger;
     uniqid: () => string;
+    localPathRetriever: () => Promise<string>;
+    globalPathRetriever: () => Promise<string>;
+    rootPathRetriever: (isGlobal: boolean) => Promise<string>;
+}
+
+function getTestLocalPath(): Promise<string> {
+    return Promise.resolve(pathJoin(osTmpdir(), 'local'));
+}
+
+function getTestGlobalPath(): Promise<string> {
+    return Promise.resolve(pathJoin(osTmpdir(), 'global'));
+}
+
+async function retrieveRootPath(isGlobal: boolean): Promise<string> {
+    return isGlobal ? getTestGlobalPath() : getTestLocalPath();
 }
 
 export const testSetup = once(() => {
@@ -26,7 +43,10 @@ export const testSetup = once(() => {
     const testContext: TestContext = {
         SANDBOX: sinonSandbox.create(),
         TEST_LOGGER: new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging(),
-        uniqid: () => randomBytes(16).toString('hex')
+        uniqid: () => randomBytes(16).toString('hex'),
+        localPathRetriever: getTestLocalPath,
+        globalPathRetriever: getTestGlobalPath,
+        rootPathRetriever: retrieveRootPath
     };
 
     beforeEach(() => {

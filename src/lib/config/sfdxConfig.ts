@@ -8,13 +8,12 @@
 'use strict';
 
 // Node
-import { homedir as osHomedir } from 'os';
+
 import { isNil as _isNil } from 'lodash';
 import { Messages } from '../messages';
 import { ConfigFile } from './configFile';
 import { SfdxUtil } from '../util';
 import { SfdxError } from '../sfdxError';
-import { ProjectDir } from '../projectDir';
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
@@ -73,18 +72,13 @@ export interface ConfigPropertyMetaInput {
     failedMessage: string;
 }
 
-export const enum OrgType {
-    /**
-     * Username associated with the default dev hub
-     */
-    DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername',
+export class SfdxConfig extends ConfigFile {
 
     /**
      * Username associated with the default dev hub org
      * @type {string}
      */
-    DEFAULT_USERNAME = 'defaultusername'
-}
+    public static readonly DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername';
 
     /**
      * Username associate with the default org
@@ -131,14 +125,17 @@ export const enum OrgType {
                         failedMessage: SfdxConfig.messages.getMessage('invalidApiVersion')
                     }
                 },
-                { key: OrgType.DEFAULT_DEV_HUB_USERNAME },
-                { key: OrgType.DEFAULT_USERNAME }
+                { key: SfdxConfig.DEFAULT_DEV_HUB_USERNAME },
+                { key: SfdxConfig.DEFAULT_USERNAME }
             ];
         }
-
-        return rootPathRetriever ?
+        const config: SfdxConfig = rootPathRetriever ?
             new SfdxConfig(await rootPathRetriever(isGlobal) , isGlobal) :
             new SfdxConfig(await SfdxConfig.getRootFolder(isGlobal) , isGlobal);
+
+        await config.read();
+
+        return config;
     }
 
     /**
@@ -160,7 +157,7 @@ export const enum OrgType {
      * @returns {Promise<object>}
      */
     public static async setPropertyValue(isGlobal: boolean, propertyName: string, value?: string | boolean,
-                                         rootPathRetriever?: (isGlobal: boolean) => Promise<string>) {
+                                         rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<object> {
 
         const rootFolder = rootPathRetriever ?
             await rootPathRetriever(isGlobal) : await SfdxConfig.getRootFolder(isGlobal);
@@ -192,15 +189,6 @@ export const enum OrgType {
 
     private static allowedProperties: ConfigPropertyMeta[];
     private static messages: Messages;
-
-    /**
-     * Helper used to determined what the local and global folder point to.
-     * @param {boolean} isGlobal - True if the config should be global. False for local.
-     * @returns {Promise<string>} - The filepath of the root folder.
-     */
-    public static async getRootFolder(isGlobal: boolean): Promise<string> {
-        return isGlobal ? osHomedir() : await ProjectDir.getPath();
-    }
 
     /**
      * Constructor
@@ -245,6 +233,8 @@ export const enum OrgType {
             this.contents[property.key] = value;
         }
     }
+
+    public async cryptProperties(encrypt: boolean): Promise<void> {}
 }
 
 /**

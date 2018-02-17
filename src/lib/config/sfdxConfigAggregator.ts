@@ -31,39 +31,25 @@ export const enum LOCATIONS {
  * @param {LOCATIONS} location The location of the config property.
  * @param {string} path The path of the config value.
  */
-export class ConfigInfo {
-    public key: string;
-    public value: string | boolean;
-    public location: LOCATIONS;
-    public path: string;
-
-    constructor(key: string, value: string | boolean, location: LOCATIONS, path: string) {
-        this.key = key;
-        this.value = value;
-        this.location = location;
-        this.path = path;
-    }
-
+export interface ConfigInfo {
+    key: string;
+    location: string;
+    value: string;
+    path: string;
     /**
      * @returns true if the config property is in the local project
      */
-    public isLocal() {
-        return this.location === LOCATIONS.LOCAL;
-    }
+    isLocal: () => {};
 
     /**
      * @returns true if the config property is in the global space
      */
-    public isGlobal() {
-        return this.location === LOCATIONS.GLOBAL;
-    }
+    isGlobal: () => {};
 
     /**
      * @returns true if the config property is an environment variable.
      */
-    public isEnvVar() {
-        return this.location === LOCATIONS.ENVIRONMENT;
-    }
+    isEnvVar: () => {};
 }
 
 /**
@@ -82,6 +68,7 @@ export class ConfigInfo {
  * @hideconstructor
  */
 export class SfdxConfigAggregator {
+
     /**
      * Initialize the aggregator by reading and merging the global and local
      * sfdx config files, then resolving environment variables. This method
@@ -90,49 +77,12 @@ export class SfdxConfigAggregator {
      * @returns {Promise<SfdxConfigAggregator>} Returns the aggregated config object
      */
     public static async create(rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<SfdxConfigAggregator> {
-
-        const configAggregator = new SfdxConfigAggregator();
-
-        // Don't throw an project error with the aggregator, since it should resolve to global if
-        // there is no project.
-        try {
-            configAggregator.setLocalConfig(await SfdxConfig.create(false, rootPathRetriever));
-        } catch (err) {
-            if (err.name !== 'InvalidProjectWorkspace') {
-                throw err;
-            }
-        }
-
-        configAggregator.setGlobalConfig(await SfdxConfig.create(true, rootPathRetriever));
-
-        configAggregator.setAllowedProperties(SfdxConfig.getAllowedProperties());
-
-        configAggregator.setEnvVars(configAggregator.getAllowedProperties().reduce((obj, property) => {
-            const val = process.env[propertyToEnvName(property.key)];
-            if (!_.isNil(val)) {
-                obj[property.key] = val;
-            }
-            return obj;
-        }, {}));
-
-        // Global config must be read first so it is on the left hand of the
-        // object assign and is overwritten by the local config.
-
-        const configs = [await configAggregator.globalConfig.read()];
-
-        // We might not be in a project workspace
-        if (configAggregator.localConfig) {
-            configs.push(await configAggregator.localConfig.read());
-        }
-
-        configs.push(configAggregator.getEnvVars());
-
-        configAggregator.setConfig(_.reduce(configs.filter(_.isObject), (result, configElement) =>
-            _.merge(result, configElement), {}));
-
+        const configAggregator = new SfdxConfigAggregator(rootPathRetriever);
+        await configAggregator.loadProperties();
         return configAggregator;
     }
 
+    private rootPathRetriever: (isGlobal: boolean) => Promise<string>;
     private allowedProperties: any[];
     private localConfig: SfdxConfig;
     private globalConfig: SfdxConfig;
@@ -143,7 +93,17 @@ export class SfdxConfigAggregator {
      * @private
      * @constructor
      */
-    protected constructor() {}
+    protected constructor(rootPathRetriever?: (isGlobal: boolean) => Promise<string>) {
+        this.rootPathRetriever = rootPathRetriever;
+    }
+
+    /**
+     * @returns {(isGlobal: boolean) => Promise<string>} - The root path retriever function that determines where the
+     * local and global paths are located.
+     */
+    public getRootPathRetriever(): (isGlobal: boolean) => Promise<string> {
+        return this.rootPathRetriever;
+    }
 
     /**
      * Get a resolved config property
@@ -167,7 +127,17 @@ export class SfdxConfigAggregator {
      * @returns {ConfigInfo} The value of the property
      */
     public getInfo(key: string): ConfigInfo {
-        return new ConfigInfo(key, this.getPropertyValue(key), this.getLocation(key), this.getPath(key));
+        const location = this.getLocation(key);
+
+        return {
+            key,
+            location,
+            value: this.getPropertyValue(key),
+            path: this.getPath(key),
+            isLocal: () => location === LOCATIONS.LOCAL,
+            isGlobal: () => location === LOCATIONS.GLOBAL,
+            isEnvVar: () => location === LOCATIONS.ENVIRONMENT
+        };
     }
 
     /**
@@ -271,6 +241,58 @@ export class SfdxConfigAggregator {
      */
     public getEnvVars(): object {
         return this.envVars;
+    }
+
+    /**
+     * Causes the instance to re-read all property configurations.
+     * @returns {Promise<void>}
+     */
+    public async reload(): Promise<void> {
+        return this.loadProperties();
+    }
+
+    /**
+     * Loads all the properties and aggregates them according to location.
+     * @returns {Promise<void>}
+     */
+    private async loadProperties(): Promise<void> {
+        // Don't throw an project error with the aggregator, since it should resolve to global if
+        // there is no project.
+        try {
+            this.setLocalConfig(await SfdxConfig.create(false, this.rootPathRetriever));
+        } catch (err) {
+            if (err.name !== 'InvalidProjectWorkspace') {
+                throw err;
+            }
+        }
+
+        this.setGlobalConfig(await SfdxConfig.create(true, this.rootPathRetriever));
+
+        this.setAllowedProperties(SfdxConfig.getAllowedProperties());
+
+        this.setEnvVars(this.getAllowedProperties().reduce((obj, property) => {
+            const val = process.env[propertyToEnvName(property.key)];
+            if (!_.isNil(val)) {
+                obj[property.key] = val;
+            }
+            return obj;
+        }, {}));
+
+        // Global config must be read first so it is on the left hand of the
+        // object assign and is overwritten by the local config.
+
+        const configs = [await this.globalConfig.read()];
+
+        // We might not be in a project workspace
+        if (this.localConfig) {
+            configs.push(await this.localConfig.read());
+        }
+
+        configs.push(this.getEnvVars());
+
+        this.setConfig(_.reduce(configs.filter(_.isObject), (result, configElement) =>
+            _.merge(result, configElement), {}));
+
     }
 
     /**

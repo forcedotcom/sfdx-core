@@ -36,7 +36,7 @@ export interface UserInfo {
     url: string;
 }
 
-export type ConnectionEvent = "refresh";
+export type ConnectionEvent = 'refresh';
 
 /**
  * the methods exposed here are done so that a client can use 'declaration augmentation' to get intellisense on their own projects.
@@ -58,6 +58,8 @@ export type ConnectionEvent = "refresh";
  * to ensure that you have the correct data types for the various collection names.
  */
 export interface Connection {
+    instanceUrl: string;
+    version: string;
     query<T>(soql: string, callback?: (err: Error, result: QueryResult<T>) => void): Query<QueryResult<T>>;
     sobject<T>(resource: string): SObject<T>;
 }

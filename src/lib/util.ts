@@ -5,11 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { join as pathJoin } from 'path';
-import { toUpper as _toUpper, size as _size, reduce as _reduce } from 'lodash';
+import * as _ from 'lodash';
 import * as fs from 'fs';
-import { isEmpty as _isEmpty, each as _each, eachRight as _eachRight } from 'lodash';
 import { promisify } from 'util';
-import { isNil as _isNil, endsWith as _endsWith, includes as _includes } from 'lodash';
 import { SfdxError } from './sfdxError';
 import { URL } from 'url';
 
@@ -84,13 +82,14 @@ export class SfdxUtil {
     public static unlink = promisify(fs.unlink);
 
     /**
+     * Promisified version of rmdir
+     */
+    public static rmdir = promisify(fs.rmdir);
+
+    /**
      * Promisified version of stat
      */
     public static stat = promisify(fs.stat);
-
-    public static async canRead(path) {
-
-    }
 
     /**
      * Read a file and convert it to JSON
@@ -123,7 +122,7 @@ export class SfdxUtil {
      * @param throwOnEmpty Throw an exception if the data contents are empty
      */
     public static async parseJSON(data: string, jsonPath: string = 'unknown', throwOnEmpty: boolean = true): Promise<object> {
-        if (isEmpty(data) && throwOnEmpty) {
+        if (_.isEmpty(data) && throwOnEmpty) {
             throw SfdxError.create('sfdx-core', 'core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
         }
 
@@ -161,8 +160,8 @@ export class SfdxUtil {
             'trailhead.salesforce.com'
         ];
 
-        return !_isNil(whitelistOfSalesforceDomainPatterns.find((pattern) => _endsWith(url.hostname, pattern))) ||
-            _includes(whitelistOfSalesforceHosts, url.hostname);
+        return !_.isNil(whitelistOfSalesforceDomainPatterns.find((pattern) => _.endsWith(url.hostname, pattern))) ||
+            _.includes(whitelistOfSalesforceHosts, url.hostname);
     }
 
     /**
@@ -176,52 +175,43 @@ export class SfdxUtil {
             return false;
         }
         const value = process.env[name];
-        return value && _size(value) > 0 && _toUpper(value) !== 'FALSE';
+        return value && _.size(value) > 0 && _.toUpper(value) !== 'FALSE';
     }
 
-    public static async remove(path: string) {
-        try {
-            const pathsToDelete = await this.getPathsToDelete(path);
-            console.log(`pathsToDelete: ${pathsToDelete}`);
-            _eachRight(pathsToDelete, async (_path) => await SfdxUtil.unlink(_path));
-        } catch(err) {
-            console.log(err);
+    /**
+     * Deletes a folder recursively, removing all descending files and folders.
+     * @param {string} path - The path to remove
+     * @returns {Promise<void>}
+     * @throws {SfdxError} - If the folder or any sub-folder is missing or has no access.
+     */
+    public static remove(path: string): Promise<void> {
+        if (!path) {
+            throw new SfdxError('Path is null or undefined.');
         }
+        return SfdxUtil.access(path, fs.constants.R_OK)
+            .catch(() => {
+                throw new SfdxError(`The path: ${path} doesn\'t exists or access is denied.`);
+            })
+            .then(() => SfdxUtil.readdir(path))
+            .then((files) => {
+                return Promise.all(_.map(files, (file) => SfdxUtil.stat(pathJoin(path, file))))
+                    .then((stats) => {
+                        stats.forEach((stat, index) => {
+                            stat['path'] = pathJoin(path, files[index]);
+                        });
+                        return stats;
+                    });
+            })
+            .then((metas) => {
+                return Promise.all(_.map(metas, (meta: any) => {
+                    if (meta.isDirectory()) {
+                        return SfdxUtil.remove(meta.path);
+                    } else {
+                        return SfdxUtil.unlink(meta.path);
+                    }
+                }));
+            }).then(() => {
+                return SfdxUtil.rmdir(path);
+            });
     }
-
-    private static async getPathsToDelete(path: string, pathAccum: string[] = []): Promise<string[]> {
-        if (path) {
-
-            try {
-                await SfdxUtil.access(path, fs.constants.R_OK);
-            } catch (err) {
-                throw new SfdxError(`Can't read filepath: ${path}`, 'FilePathNotAccessible');
-            }
-
-            pathAccum.push(path);
-
-            console.log(`pathAccum: ${pathAccum}`);
-
-            const stats = await SfdxUtil.stat(path);
-
-            if (stats.isDirectory()) {
-                _each(await SfdxUtil.readdir(path), async (filePath) => {
-                    console.log(`filePath: ${filePath}`);
-                    return await SfdxUtil.getPathsToDelete(pathJoin(path, filePath), pathAccum);
-                });
-            }
-
-            console.log('returning');
-            return pathAccum;
-
-        } else {
-            throw new SfdxError(`The path: ${path} does not exist.`, 'PathDoesntExist');
-        }
-    }
-}
-
-try {
-    SfdxUtil.remove('/Users/tnoonan/tmp/deleteMe');
-} catch(err) {
-    console.error(err);
 }
