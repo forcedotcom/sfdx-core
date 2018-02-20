@@ -379,10 +379,6 @@ export class AuthInfo {
         return this;
     }
 
-    public async unlink(username: string): Promise<void> {
-
-    }
-
     /**
      * Update the authorization fields, encrypting sensitive fields, but do not persist.
      *
