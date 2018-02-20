@@ -29,7 +29,7 @@ Messages.importMessageFile(`${__dirname}/${pathFromTestFile}`);
 
 TODO
 
-# [AuthInto]{@link AuthInto}
+# [AuthInfo]{@link AuthInfo}
 
 TODO
 

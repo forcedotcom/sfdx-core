@@ -6,4 +6,5 @@ jobs:
   - name: publish
     testTarget: test-with-coverage
     envMap:
-      - 'SFDX_USE_GENERIC_UNIX_KEYCHAIN': true'
+      - 'SFDX_USE_GENERIC_UNIX_KEYCHAIN': true
+        'EMAIL': 't.dvornik@salesforce.com'
