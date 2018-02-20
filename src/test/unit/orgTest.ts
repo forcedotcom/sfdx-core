@@ -12,6 +12,8 @@ import { OAuth2, RequestInfo } from 'jsforce';
 import { expect, assert } from 'chai';
 import { testSetup } from '../testSetup';
 import { ConfigFile } from '../../lib/config/configFile';
+import { AuthInfoConfigFile } from '../../lib/config/authInfoConfigFile';
+import { KeyValueStore } from  '../../lib/config/fileKeyValueStore';
 import { SfdxConfig } from '../../lib/config/sfdxConfig';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
@@ -102,13 +104,6 @@ class MockConnection extends Connection {
 
     public async request(request: RequestInfo | string, options?): Promise<any> {
         return [{ version: '89.0' }, { version: MockConnection.apiVersion }, { version: '88.0' }];
-    }
-}
-
-class MockConfigFile extends ConfigFile {
-    public constructor(rootFolder: string, fileName: string,
-                       isGlobal: boolean = false, isState: boolean = true, filePath: string = '') {
-        super(rootFolder, fileName, isGlobal, isState, filePath);
     }
 }
 
@@ -341,6 +336,19 @@ describe('Org Tests', () => {
 
         let rootFolder = '';
         let aliases = {  orgs: {} };
+
+        const configFileReadJSONMock = function() {
+            if (this.path.includes(connection.getAuthInfo().getConnectionOptions().username)) {
+                return Promise.resolve(connection.getAuthInfo().getConnectionOptions());
+            }
+
+            if (this.path && this.path.includes(Alias.ALIAS_FILE_NAME)) {
+                return Promise.resolve(aliases);
+            }
+
+            return Promise.resolve({});
+        };
+
         beforeEach(() => {
             testData = new MockTestOrgData();
 
@@ -349,24 +357,12 @@ describe('Org Tests', () => {
                 return Promise.resolve(rootFolder);
             });
 
-            $$.SANDBOX.stub(Global, 'fetchConfigInfo').callsFake((path) => {
-                if (path.includes(connection.getAuthInfo().getConnectionOptions().username)) {
-                    return Promise.resolve(connection.getAuthInfo().getConnectionOptions());
-                }
+            $$.SANDBOX.stub(AuthInfoConfigFile.prototype, 'readJSON').callsFake(configFileReadJSONMock);
+            $$.SANDBOX.stub(KeyValueStore.prototype, 'readJSON').callsFake(configFileReadJSONMock);
 
-                if (path === Alias.ALIAS_FILE_NAME) {
-                    return Promise.resolve(aliases);
-                }
-
-                return Promise.resolve({});
-            });
-
-            $$.SANDBOX.stub(Global, 'saveConfigInfo').callsFake((path, value) => {
-                if (path === Alias.ALIAS_FILE_NAME) {
-                    aliases = value;
-                    return Promise.resolve(value);
-                }
-                throw new Error(`Unsupported - path: ${path} value: ${value}`);
+            $$.SANDBOX.stub(KeyValueStore.prototype, 'write').callsFake((contents) => {
+                aliases = contents;
+                return Promise.resolve(contents);
             });
         });
 
@@ -451,38 +447,6 @@ describe('Org Tests', () => {
 
             alias = await Alias.fetch('foo');
             expect(alias).eq(undefined);
-        });
-
-        describe('with multiple scratch org users', () => {
-
-            let user1Auth;
-
-            beforeEach(async () => {
-                user1Auth = await AuthInfo.create('foo@example.com');
-                await user1Auth.save();
-
-/*                const orgConnection: Connection = new MockConnection(testData);
-
-                const scratchOrgMockFile: MockConfigFile =
-                    new MockConfigFile(await $$.rootPathRetriever(true), `${testData.username}.json`);
-
-                scratchOrgMockFile.write(orgConnection.getAuthInfo());
-
-                const userMockData: MockTestOrgData = testData.createUser('winston');
-
-                const org: Org = await Org.create(orgConnection);
-
-                await org.addUsername(userMockData.createUser());*/
-            });
-
-            it('should remove workspace org files, scratch org config, and org file', async () => {
-                console.log(user1Auth);
-                // Create a scratchOrg auth file in $HOME/.sfdx/<email>
-                // Create a scratchOrg user auth in $HOME/.sfdx/<email>
-                // Create a org id file in $HOME/.sfdx/<org id>
-                // Org id should contain both usernames { usernames: [] }
-                // Both the org and user orgconfig data should be in the workspace. .sfdx/orgs
-            });
         });
     });
 });

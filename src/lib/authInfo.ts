@@ -241,7 +241,8 @@ export class AuthInfo {
 
         // Want to throw a clean error if no files are found.
         if (_.isEmpty(authFiles)) {
-            const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'core', 'OrgDataNotAvailableError', null, 'NoOrgsFoundErrorAction');
+            const errConfig: SfdxErrorConfig =
+                new SfdxErrorConfig('sfdx-core', 'core', 'noAuthInfoFound');
             throw SfdxError.create(errConfig);
         }
 

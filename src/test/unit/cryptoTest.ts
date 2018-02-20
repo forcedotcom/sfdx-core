@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '../../lib/global';
 import { expect } from 'chai';
 import { testSetup } from '../testSetup';
 import { Crypto } from '../../lib/crypto';
+import { KeychainConfigFile } from '../../lib/config/keychainConfigFile';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -24,7 +24,7 @@ describe('CryptoTest', function() {
     let crypto;
 
     beforeEach(() => {
-        $$.SANDBOX.stub(Global, 'fetchConfigInfo').callsFake(() => {
+        $$.SANDBOX.stub(KeychainConfigFile.prototype, 'readJSON').callsFake(() => {
             return Promise.resolve(TEST_KEY);
         });
     });
