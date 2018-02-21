@@ -112,7 +112,7 @@ export class SfdxConfigAggregator {
      * @returns {string | boolean} The value of the property.
      * @throws {Error} If there is an attempt to get a property that's not supported.
      */
-    public getPropertyValue(key: string): string {
+    public getPropertyValue(key: string): string | boolean   {
         if (this.getAllowedProperties().some((element) => key === element.key)) {
             return this.getConfig()[key];
         } else {
