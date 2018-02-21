@@ -436,7 +436,7 @@ export class Org {
      * @param {boolean} value - Return true if this org should us access token authentication. False otherwise.
      * @returns {Org} - This org instance
      */
-    private setUsingAccessToken(value: boolean) {
+    public setUsingAccessToken(value: boolean) {
         this._usingAccessToken = value;
         return this;
     }

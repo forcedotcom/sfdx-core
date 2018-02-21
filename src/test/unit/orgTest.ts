@@ -505,6 +505,11 @@ describe('Org Tests', () => {
 
         let orgs;
         beforeEach(async () => {
+            // Alias is currently a singleton so if the path to alias.json changes,
+            // which it does frequently in the unit tests, the singleton needs to be invalidated.
+            // Should never need to be called by a user.
+            Alias.invalidate();
+
             orgs = [];
             const testId = $$.uniqid();
 
@@ -596,10 +601,6 @@ describe('Org Tests', () => {
         });
 
         it('should validate org artifacts are gone', async () => {
-            // Alias is currently a singleton so if the path to alias.json changes,
-            // which it does frequently in the unit tests, the singleton needs to be invalidated.
-            // Should never need to be called by a user.
-            Alias.invalidate();
             await orgs[0].remove();
             for (const org of orgs) {
                 const maxRevConfig = await org.retrieveMaxRevisionConfig();
@@ -613,10 +614,6 @@ describe('Org Tests', () => {
         });
 
         it('should remove aliases and config settings', async () => {
-            // Alias is currently a singleton so if the path to alias.json changes,
-            // which it does frequently in the unit tests, the singleton needs to be invalidated.
-            // Should never need to be called by a user.
-            Alias.invalidate();
             const config: SfdxConfig = await SfdxConfig.create(true);
 
             const org0Username = orgs[0].getConnection().getAuthInfo().getFields().username;
@@ -642,6 +639,29 @@ describe('Org Tests', () => {
 
             alias = await Alias.fetchValue('foo');
             expect(alias).eq(undefined);
+        });
+
+        it('should not try to delete auth files when deleting an org via access token', async () => {
+            orgs[0].setUsingAccessToken(true);
+
+            await orgs[0].remove();
+
+            for (const org of orgs) {
+                const maxRevConfig = await org.retrieveMaxRevisionConfig();
+                const metaTypeConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
+                const sourcePathConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
+
+                expect(await maxRevConfig.access(fsConstants.R_OK)).to.be.true;
+                expect(await metaTypeConfig.access(fsConstants.R_OK)).to.be.true;
+                expect(await sourcePathConfig.access(fsConstants.R_OK)).to.be.true;
+            }
+
+            const user0Config: OrgConfigFile = await orgs[0].retrieveOrgUsersConfig();
+            const user1Config: OrgConfigFile = await orgs[1].retrieveOrgUsersConfig();
+
+            expect(await user0Config.access(fsConstants.R_OK)).to.be.true;
+            expect(await user1Config.access(fsConstants.R_OK)).to.be.false;
+
         });
     });
 });
