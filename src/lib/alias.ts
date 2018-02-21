@@ -93,8 +93,8 @@ export class Alias {
      * @param {AliasGroup} group The group the alias belongs to. Defaults to Orgs.
      * @returns {Promise<string>} The promise resolved when the alias is retrieved.
      */
-    public static async fetch(alias, group = AliasGroup.ORGS): Promise<string> {
-        return (await Alias.getAliasFileStore()).fetch(alias, group);
+    public static async fetchValue(name: string, group = AliasGroup.ORGS): Promise<string> {
+        return (await Alias.getAliasFileStore()).fetch(name, group);
     }
 
     /**
@@ -112,7 +112,7 @@ export class Alias {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise<string>} The promise resolved when the alias is retrieved
      */
-    public static async byValue(value, group = AliasGroup.ORGS): Promise<string> {
+    public static async fetchName(value: string, group = AliasGroup.ORGS): Promise<string> {
         return (await Alias.getAliasFileStore()).byValue(value, group);
     }
 
@@ -124,9 +124,10 @@ export class Alias {
      */
     private static async getAliasFileStore(): Promise<KeyValueStore> {
         if (!Alias.aliasFileStore) {
-            Alias.aliasFileStore = await KeyValueStore.create(ALIAS_FILE_NAME);
+            Alias.aliasFileStore = await KeyValueStore.create(ALIAS_FILE_NAME, AliasGroup.ORGS.valueOf());
         }
-        return Promise.resolve(Alias.aliasFileStore);
+
+        return Alias.aliasFileStore;
     }
 
     /**

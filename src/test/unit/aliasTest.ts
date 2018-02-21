@@ -13,6 +13,7 @@ import * as sinon from 'sinon';
 import { KeyValueStore } from '../../lib/config/fileKeyValueStore';
 import { Alias } from '../../lib/alias';
 import { testSetup } from '../testSetup';
+import {ConfigFile} from '../../lib/config/configFile';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -23,6 +24,8 @@ describe('Alias', () => {
 
     beforeEach(() => {
         validate = () => {};
+        $$.SANDBOX.stub(ConfigFile, 'getRootFolder').callsFake($$.rootPathRetriever);
+
         const stubMethod = (...args) => {
             validate(...args);
             return Promise.resolve();

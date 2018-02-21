@@ -27,15 +27,16 @@ describe('SfdxConfigFile', () => {
     });
 
     describe('instantiation', () => {
+        const id: string = $$.uniqid();
         it('using global', async () => {
-            const config: SfdxConfig = await SfdxConfig.create(true, $$.rootPathRetriever);
-            expect(config.getPath()).to.not.contain(await $$.localPathRetriever);
+            const config: SfdxConfig = await SfdxConfig.create(true, () => $$.rootPathRetriever(true, id));
+            expect(config.getPath()).to.not.contain(await $$.localPathRetriever(id));
             expect(config.getPath()).to.contain('.sfdx');
             expect(config.getPath()).to.contain('sfdx-config.json');
         });
         it('not using global', async () => {
-            const config: SfdxConfig = await SfdxConfig.create(false, $$.rootPathRetriever);
-            expect(config.getPath()).to.contain(await $$.localPathRetriever());
+            const config: SfdxConfig = await SfdxConfig.create(false, () => $$.rootPathRetriever(false, id));
+            expect(config.getPath()).to.contain(await $$.localPathRetriever(id));
             expect(config.getPath()).to.contain('.sfdx');
             expect(config.getPath()).to.contain('sfdx-config.json');
         });

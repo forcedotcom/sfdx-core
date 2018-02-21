@@ -110,14 +110,14 @@ export class Org {
             }
 
             // Get the devhub username from the org meta info;
-            const devHubUsernameForgOrg = metaInfo.info.getConnectionOptions().devHubUsername;
-            const devHub = !_isNil(devHubUsernameForgOrg) ? devhubMetas.get(devHubUsernameForgOrg) : null;
+            const devHubUsernameForOrg = metaInfo.info.getFields().devHubUsername;
+            const devHub = !_isNil(devHubUsernameForOrg) ? devhubMetas.get(devHubUsernameForOrg) : null;
 
             // this means we know we have a scratch org, but no dev hub is providing ownership.
             // the org is likely gone. this could also mean the dev hub this auth file is
             // associated with, hasn't been locally authorized.
             if (metaInfo.devHubMissing) {
-                this.status = _isNil(devHubUsernameForgOrg) || _isNil(devHub) ? OrgStatus.UNKNOWN : OrgStatus.MISSING;
+                this.status = _isNil(devHubUsernameForOrg) || _isNil(devHub) ? OrgStatus.UNKNOWN : OrgStatus.MISSING;
             }
         }
     }
@@ -175,7 +175,7 @@ export class Org {
 
     public async retrieveOrgUsersConfig(): Promise<OrgConfigFile> {
         return OrgConfigFile.create(OrgConfigType.USERS,
-            this.getConnection().getAuthInfo().getConnectionOptions().orgId);
+            this.getConnection().getAuthInfo().getFields().orgId);
     }
 
     /**
@@ -202,19 +202,19 @@ export class Org {
 
         const auths: AuthInfo[] = await this.readUserAuthFiles();
 
-        this.logger.info(`Cleaning up usernames in org: ${this.getConnection().getAuthInfo().getConnectionOptions().orgId}`);
+        this.logger.info(`Cleaning up usernames in org: ${this.getConnection().getAuthInfo().getFields().orgId}`);
 
         for (const auth of auths) {
-            const username = auth.getConnectionOptions().username;
+            const username = auth.getFields().username;
 
-            const alias = await Alias.byValue(username);
+            const alias = await Alias.fetchName(username);
 
             if (alias) {
                 aliases.push(alias);
             }
 
             let orgForUser;
-            if (username === this.getConnection().getAuthInfo().getConnectionOptions().username) {
+            if (username === this.getConnection().getAuthInfo().getFields().username) {
                 orgForUser = this;
             } else {
                 const _info = await AuthInfo.create(username);
@@ -340,13 +340,14 @@ export class Org {
      *  @returns {Array} - An array of all user auth file content.
      */
     public async readUserAuthFiles(): Promise<AuthInfo[]> {
-        const contents: any = await this.retrieveOrgUsersConfig();
+        const config: OrgConfigFile = await this.retrieveOrgUsersConfig();
+        const contents: any = await config.readJSON();
         const usernames: string[] = contents.usernames || [this.getConnection().getAuthInfo().getConnectionOptions().username];
         return Promise.all(usernames.map((username) => {
             if (username === this.getConnection().getAuthInfo().getConnectionOptions().username) {
                 return this.getConnection().getAuthInfo();
             } else {
-                AuthInfo.create(username);
+                return AuthInfo.create(username);
             }
         }));
     }
@@ -357,6 +358,7 @@ export class Org {
      * @returns {Promise<Org>} - This Org
      */
     public async addUsername(auth: AuthInfo): Promise<Org> {
+
         const orgConfig: OrgConfigFile = await this.retrieveOrgUsersConfig();
 
         const contents: any = await orgConfig.read();
@@ -365,9 +367,22 @@ export class Org {
             contents.usernames = [];
         }
 
-        contents.usernames.push(auth.getConnectionOptions().username);
+        let shouldUpdate = false;
 
-        await orgConfig.write(contents);
+        const thisUsername = this.getConnection().getAuthInfo().getFields().username;
+        if (!contents.usernames.includes(thisUsername)) {
+            contents.usernames.push(thisUsername);
+            shouldUpdate = true;
+        }
+
+        if (auth) {
+            contents.usernames.push(auth.getFields().username);
+            shouldUpdate = true;
+        }
+
+        if (shouldUpdate) {
+            await orgConfig.write(contents);
+        }
         return this;
     }
 

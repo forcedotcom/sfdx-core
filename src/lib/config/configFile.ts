@@ -13,7 +13,7 @@ import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
 import { homedir as osHomedir } from 'os';
 import { SfdxUtil } from '../util';
-import {ProjectDir} from '../projectDir';
+import { ProjectDir } from '../projectDir';
 
 /**
  * Represents a json config file that the toolbelt uses to manage settings and
@@ -115,12 +115,12 @@ export class ConfigFile {
 
     /**
      * Calls json.parse on the file content.
-     * @param {boolean} throwOnEmpty - Optionally indicate if a throw should occur on undefined results.
+     * @param {boolean} throwOnNotFound - Optionally indicate if a throw should occur on undefined results.
      * @returns { Promise<object> } - The json representation of the config
      * @see SfdxUtil.parseJSON
      */
-    public async readJSON(throwOnEmpty?: boolean): Promise<object> {
-        return SfdxUtil.parseJSON(await this.read(true), this.path, throwOnEmpty);
+    public async readJSON(throwOnNotFound: boolean = true): Promise<object> {
+        return this.read(throwOnNotFound);
     }
 
     /**

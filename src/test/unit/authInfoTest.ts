@@ -49,7 +49,7 @@ describe('AuthInfo No fs mock', () => {
     it ('missing config', async () => {
         const expectedErrorName = 'namedOrgNotFound';
         try {
-            await AuthInfo.create('doesnt_exists@gb.com');
+            await AuthInfo.create('doesnot_exist@gb.com');
             assert.fail(`should have thrown error with name: ${expectedErrorName}`);
         } catch (e) {
             expect(e).to.have.property('name', expectedErrorName);

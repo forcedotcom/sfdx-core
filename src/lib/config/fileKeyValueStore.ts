@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { constants as fsConstants } from 'fs';
 import * as _ from 'lodash';
 import { ConfigFile } from './configFile';
+import SfdxError from '../sfdxError';
 
 const _set = (aliases, group, alias, property) => {
     if (_.isNil(aliases[group])) {
@@ -41,8 +42,17 @@ export class KeyValueStore extends ConfigFile {
      * @param {string} filename - The filename for this keyValueStore
      * @returns {Promise<KeyValueStore>}
      */
-    public static async create(filename: string) {
-        return new KeyValueStore(await ConfigFile.getRootFolder(true), true, filename);
+    public static async create(filename: string, defaultGroup: string) {
+        const keyValueStore: KeyValueStore =
+            new KeyValueStore(await ConfigFile.getRootFolder(true), true, filename);
+
+        if (! await keyValueStore.access(fsConstants.R_OK)) {
+            await keyValueStore.write(JSON.parse(`{ "${defaultGroup}": {} }`));
+        } else {
+            throw new SfdxError('Failed to create global alias file.', 'AliasCreateFailed');
+        }
+
+        return keyValueStore;
     }
 
     /**

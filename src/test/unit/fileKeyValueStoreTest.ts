@@ -23,7 +23,10 @@ describe('fileKeyValueStore', () => {
     beforeEach(async () => {
         validate = () => {};
         aliases = {};
-        store = await KeyValueStore.create('tefetchConfigInfost.json');
+
+        $$.SANDBOX.stub(ConfigFile, 'getRootFolder').callsFake($$.rootPathRetriever);
+
+        store = await KeyValueStore.create('testfetchConfigInfos.json', 'orgs');
         $$.SANDBOX.stub(ConfigFile.prototype, 'write').callsFake((config) => {
             validate(config);
             return Promise.resolve();

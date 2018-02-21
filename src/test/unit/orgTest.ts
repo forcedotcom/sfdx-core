@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { constants as fsConstants } from 'fs';
 import { AuthInfo, AuthFields } from '../../lib/authInfo';
 import { Connection } from '../../lib/connection';
 import { Org, OrgMetaInfo, OrgStatus } from '../../lib/org';
@@ -12,8 +12,9 @@ import { OAuth2, RequestInfo } from 'jsforce';
 import { expect, assert } from 'chai';
 import { testSetup } from '../testSetup';
 import { ConfigFile } from '../../lib/config/configFile';
+import { Crypto } from '../../lib/crypto';
 import { AuthInfoConfigFile } from '../../lib/config/authInfoConfigFile';
-import { KeyValueStore } from  '../../lib/config/fileKeyValueStore';
+import { KeyValueStore } from '../../lib/config/fileKeyValueStore';
 import { SfdxConfig } from '../../lib/config/sfdxConfig';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
@@ -23,7 +24,8 @@ import { OrgConfigFile, OrgConfigType } from '../../lib/config/orgConfigFile';
 import { ProjectDir } from '../../lib/projectDir';
 import { SfdxConfigAggregator } from '../../lib/config/sfdxConfigAggregator';
 import { Alias } from '../../lib/alias';
-import { cloneDeep as _cloneDeep } from 'lodash';
+import { cloneDeep as _cloneDeep, merge as _merge, set as _set } from 'lodash';
+import * as Transport from 'jsforce/lib/transport';
 
 const $$ = testSetup();
 
@@ -37,6 +39,11 @@ class MockTestOrgData {
     public orgId: string;
     public loginUrl: string;
     public instanceUrl: string;
+    public clientId: string;
+    public clientSecret: string;
+    public authcode: string;
+    public accessToken: string;
+    public refreshToken: string;
 
     constructor() {
         this.testId = $$.uniqid();
@@ -44,84 +51,72 @@ class MockTestOrgData {
         this.username = `admin_${this.testId}@gb.org`;
         this.loginUrl = `http://login.${this.testId}.salesforce.com`;
         this.instanceUrl = `http://instance.${this.testId}.salesforce.com`;
+        this.clientId = `${this.testId}/client_id`;
+        this.clientSecret = `${this.testId}/client_secret`;
+        this.authcode = `${this.testId}/authcode`;
+        this.accessToken = `${this.testId}/accessToken`;
+        this.refreshToken =  '${this.testId}/refreshToken';
     }
 
-    public createDevHubUsername(): void {
-        this.devHubUsername = `admin_${this.testId}@gb.org`;
+    public createDevHubUsername(username: string): void {
+        this.devHubUsername = username;
     }
 
     public createUser(user: string): MockTestOrgData {
-        const userMock = _cloneDeep(this);
-        this.intializeUser(user);
+        const userMock = new MockTestOrgData();
+        userMock.username = user;
+        userMock.alias = this.alias;
+        userMock.devHubUsername = this.devHubUsername;
+        userMock.orgId = this.orgId;
+        userMock.loginUrl = this.loginUrl;
+        userMock.instanceUrl = this.instanceUrl;
+        userMock.clientId = this.clientId;
+        userMock.clientSecret = this.clientSecret;
         return userMock;
     }
 
-    private intializeUser(user: string) {
-        this.username = `${user}_${this.testId}@gb.org`;
-    }
-}
-
-class MockAuthInfo extends AuthInfo {
-    public static readonly MOCK_ORG_ID = '18005552368';
-
-    private _testData: MockTestOrgData;
-
-    constructor(testData?: MockTestOrgData) {
-        super(testData.username);
-        this._testData = testData;
-    }
-
-    public setDevHubUsername(username): MockAuthInfo {
-        this._testData.devHubUsername = username;
-        return this;
-    }
-
-    public getConnectionOptions(): Partial<AuthFields> {
-        return {
-            instanceUrl: this._testData.instanceUrl,
-            devHubUsername: this._testData.devHubUsername,
-            username: this._testData.username,
-            orgId: this._testData.orgId
+    public async getConfig() {
+        const crypto = await Crypto.create();
+        const config: any = {
+            orgId: this.orgId,
+            accessToken: crypto.encrypt(this.accessToken),
+            refreshToken: crypto.encrypt(this.refreshToken),
+            instanceUrl: this.instanceUrl,
+            loginUrl: this.loginUrl,
+            username: this.username,
+            createdOrgInstance: 'CS1',
+            created: '1519163543003'
+            // "devHubUsername": "tn@su-blitz.org"
         };
-    }
-}
 
-class MockConnection extends Connection {
-
-    public static readonly apiVersion = '90.0';
-
-    public static readonly TEST_USERNAME = 'egon@gb.com';
-
-    constructor(testData?: MockTestOrgData) {
-
-        let _testData: MockTestOrgData = testData;
-        if (!_testData) {
-            _testData = new MockTestOrgData();
+        if (this.devHubUsername) {
+            _set(config, 'devHubUsername', this.devHubUsername);
         }
 
-        super({ loginUrl: _testData.loginUrl}, new MockAuthInfo(_testData));
-    }
-
-    public async request(request: RequestInfo | string, options?): Promise<any> {
-        return [{ version: '89.0' }, { version: MockConnection.apiVersion }, { version: '88.0' }];
+        return config;
     }
 }
 
 describe('Org Tests', () => {
 
     let testData: MockTestOrgData;
+
     beforeEach(() => {
         testData = new MockTestOrgData();
     });
 
     describe('retrieveMaxApiVersion', () => {
-
         it('no username', async () => {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async () => {
+                return Promise.resolve(await testData.getConfig());
+            });
 
-            const org: Org = await Org.create(new MockConnection());
+            $$.SANDBOX.stub(Connection.prototype, 'request').callsFake(() => Promise.resolve(
+                [{version: '89.0'}, {version: '90.0'}, {version: '88.0'}]));
 
+            const org: Org = await Org.create(await Connection.create(await AuthInfo.create(testData.username)));
             const apiVersion = await org.retrieveMaxApiVersion();
-            expect(apiVersion).has.property('version', MockConnection.apiVersion);
+            expect(apiVersion).has.property('version', '90.0');
         });
     });
 
@@ -130,13 +125,25 @@ describe('Org Tests', () => {
         it('Missing status', async () => {
 
             const testDevHubMockData: MockTestOrgData = new MockTestOrgData();
+            const testOrgMockData: MockTestOrgData = new MockTestOrgData();
+
+            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+                if (this.path.includes(testDevHubMockData.username)) {
+                    return Promise.resolve(await testDevHubMockData.getConfig());
+                } else {
+                    testOrgMockData.createDevHubUsername(testDevHubMockData.username);
+                    return Promise.resolve(testOrgMockData.getConfig());
+                }
+            });
+
             const devHubMeta: OrgMetaInfo = {
-                info: new MockAuthInfo(testDevHubMockData), devHubMissing: false, expired: false
+                info: await AuthInfo.create(testDevHubMockData.username),
+                devHubMissing: false,
+                expired: false
             };
 
-            const testOrgMockData: MockTestOrgData = new MockTestOrgData();
             const scratchOrgMeta: OrgMetaInfo = {
-                info: new MockAuthInfo(testOrgMockData).setDevHubUsername(testDevHubMockData.username),
+                info: await AuthInfo.create(testOrgMockData.username),
                 devHubMissing: true,
                 expired: false
             };
@@ -144,31 +151,49 @@ describe('Org Tests', () => {
             const devHubMetaMap: Map<string, OrgMetaInfo> = new Map();
             devHubMetaMap.set(testDevHubMockData.username, devHubMeta);
 
-            const org: Org = await Org.create(new MockConnection());
+            const org: Org = await Org.create(await Connection.create(scratchOrgMeta.info));
             org.computeAndUpdateStatusFromMetaInfo(scratchOrgMeta, devHubMetaMap);
             expect(org).to.have.property('status', OrgStatus.MISSING);
         });
 
         it('Unknown status', async () => {
             const testOrgData: MockTestOrgData = new MockTestOrgData();
+            const testDevHubData: MockTestOrgData = new MockTestOrgData();
+
+            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+                if (this.path.includes(testDevHubData)) {
+                    return Promise.resolve(await testDevHubData.getConfig());
+                } else {
+                    return Promise.resolve(testOrgData.getConfig());
+                }
+            });
+
             const scratchOrgMeta: OrgMetaInfo = {
-                info: new MockAuthInfo(testOrgData), devHubMissing: true, expired: false
+                info: await AuthInfo.create(testOrgData.username),
+                devHubMissing: true,
+                expired: false
             };
 
-            const testDevHubData: MockTestOrgData = new MockTestOrgData();
             const devHubMetaMap: Map<string, OrgMetaInfo> = new Map();
             const devHubMeta: OrgMetaInfo = {
-                info: new MockAuthInfo(testDevHubData), devHubMissing: false, expired: false
+                info: await AuthInfo.create(testDevHubData.username),
+                devHubMissing: false,
+                expired: false
             };
             devHubMetaMap.set(testDevHubData.username, devHubMeta);
 
-            const org: Org = await Org.create(new MockConnection());
+            const org: Org = await Org.create(await Connection.create(scratchOrgMeta.info));
             org.computeAndUpdateStatusFromMetaInfo(scratchOrgMeta, devHubMetaMap);
             expect(org).to.have.property('status', OrgStatus.UNKNOWN);
         });
     });
 
     describe('cleanData', () => {
+        beforeEach(() => {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async () => {
+                return Promise.resolve(await testData.getConfig());
+            });
+        });
         describe('mock remove', () => {
             let removePath = '';
             let removeStub;
@@ -186,38 +211,41 @@ describe('Org Tests', () => {
 
             it ('with data path', async () => {
                 const orgDataPath = 'foo';
-                const org: Org = await Org.create(new MockConnection());
+                const org: Org = await Org.create(
+                    await Connection.create(await AuthInfo.create(testData.username)));
                 await org.cleanData(orgDataPath);
                 expect(removePath.endsWith(pathJoin(Global.STATE_FOLDER, orgDataPath))).to.be.equal(true);
             });
 
             it ('no org data path', async () => {
-                const connection: MockConnection = new MockConnection();
-                const org: Org = await Org.create(connection);
+                const org: Org = await Org.create(
+                    await Connection.create(await AuthInfo.create(testData.username)));
 
                 expect(removeStub.callCount).to.be.equal(0);
                 await org.cleanData();
                 expect(removeStub.callCount).to.be.equal(1);
 
                 expect(removePath).to.include(pathJoin(Global.STATE_FOLDER, OrgConfigFile.ORGS_FOLDER_NAME,
-                    connection.getAuthInfo().getConnectionOptions().username));
+                    testData.username));
             });
         });
 
         it ('InvalidProjectWorkspace', async () => {
+
             const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanData');
             let invalidProjectWorkspace = false;
-            $$.SANDBOX.stub(SfdxConfig, 'getRootFolder').callsFake(() => {
+            $$.SANDBOX.stub(ConfigFile, 'getRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
                     invalidProjectWorkspace = true;
                     const error = new Error();
                     error.name = 'InvalidProjectWorkspace';
                     throw error;
                 }
-                return osTmpdir();
+                return $$.rootPathRetriever(false);
             });
             const orgDataPath = 'foo';
-            const org: Org = await Org.create(new MockConnection());
+            const org: Org = await Org.create(
+                await Connection.create(await AuthInfo.create(testData.username)));
             await org.cleanData(orgDataPath);
             expect(invalidProjectWorkspace).to.be.equal(true);
         });
@@ -233,7 +261,8 @@ describe('Org Tests', () => {
                 return osTmpdir();
             });
             const orgDataPath = 'foo';
-            const org: Org = await Org.create(new MockConnection());
+            const org: Org = await Org.create(
+                await Connection.create(await AuthInfo.create(testData.username)));
             try {
                 await org.cleanData(orgDataPath);
                 assert.fail('This should have failed');
@@ -244,22 +273,30 @@ describe('Org Tests', () => {
     });
 
     describe('getDataPath', () => {
+        beforeEach(() => {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async () => {
+                return Promise.resolve(await testData.getConfig());
+            });
+        });
 
         it ('should return the dataPath for the org.', async () => {
             const testFilename = 'bar';
-            const org: Org = await Org.create(new MockConnection(testData));
+            const org: Org = await Org.create(
+                await Connection.create(await AuthInfo.create(testData.username)));
             expect(org.getDataPath('bar')).to.be.equal(
                 pathJoin(OrgConfigFile.ORGS_FOLDER_NAME, testData.username, testFilename));
         });
 
         it ('undefined field name', async () => {
-            const org: Org = await Org.create(new MockConnection(testData));
+            const org: Org = await Org.create(
+                await Connection.create(await AuthInfo.create(testData.username)));
             expect(org.getDataPath(undefined)).to.be.equal(
                 pathJoin(OrgConfigFile.ORGS_FOLDER_NAME, testData.username));
         });
 
         it ('null field name', async () => {
-            const org: Org = await Org.create(new MockConnection(testData));
+            const org: Org = await Org.create(
+                await Connection.create(await AuthInfo.create(testData.username)));
 
             expect(org.getDataPath(null)).to.be.equal(
                 pathJoin(OrgConfigFile.ORGS_FOLDER_NAME, testData.username));
@@ -268,6 +305,15 @@ describe('Org Tests', () => {
 
     describe('orgConfigs', () => {
         beforeEach(() => {
+
+            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+                if (this.path.includes(`${testData.username}.json`)) {
+                    return Promise.resolve(await testData.getConfig());
+                } else {
+                    throw new Error(`Unsupported path: ${this.path}`);
+                }
+            });
+
             $$.SANDBOX.stub(ProjectDir, 'getPath').callsFake(() => {
                 return Promise.resolve(osTmpdir());
             });
@@ -280,7 +326,8 @@ describe('Org Tests', () => {
                     return Promise.resolve(JSON.parse('1'));
                 });
 
-                const org: Org = await Org.create(new MockConnection());
+                const org: Org = await Org.create(
+                    await Connection.create(await AuthInfo.create(testData.username)));
                 const maxRevisionConfig: OrgConfigFile = await org.retrieveMaxRevisionConfig();
                 const maxRevision = await maxRevisionConfig.read();
                 expect(maxRevision).to.be.equal(1);
@@ -296,7 +343,8 @@ describe('Org Tests', () => {
                     return Promise.resolve([['foo', { sourcePath: 'bar' }]]);
                 });
 
-                const org: Org = await Org.create(new MockConnection(testData));
+                const org: Org = await Org.create(
+                    await Connection.create(await AuthInfo.create(testData.username)));
                 const sourceInfosConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
                 const sourceInfos: any = await sourceInfosConfig.read();
 
@@ -312,15 +360,14 @@ describe('Org Tests', () => {
         describe('getMetadataTypeInfo', () => {
             it ('valid', async () => {
 
-                const connection: Connection = new MockConnection(testData);
-
                 let metadataTypeInfosPath = '';
                 $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(function() {
                     metadataTypeInfosPath = this.path;
                     return Promise.resolve({ sourceApiVersion: '41.0' });
                 });
 
-                const org: Org = await Org.create(connection);
+                const org: Org = await Org.create(
+                    await Connection.create(await AuthInfo.create(testData.username)));
                 const metadataConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
                 const metadataTypeInfos = await metadataConfig.read();
                 expect(metadataTypeInfos).to.have.property('sourceApiVersion', '41.0');
@@ -332,14 +379,15 @@ describe('Org Tests', () => {
 
     describe('remove', () => {
 
-        const connection: Connection = new MockConnection();
+        // const connection: Connection = new MockConnection();
 
-        let rootFolder = '';
+        const rootFolder = '';
         let aliases = {  orgs: {} };
+        const testId: string = $$.uniqid();
 
-        const configFileReadJSONMock = function() {
-            if (this.path.includes(connection.getAuthInfo().getConnectionOptions().username)) {
-                return Promise.resolve(connection.getAuthInfo().getConnectionOptions());
+        const configFileReadJSONMock = async function() {
+            if (this.path.includes(`${testData.username}.json`)) {
+                return Promise.resolve(await testData.getConfig());
             }
 
             if (this.path && this.path.includes(Alias.ALIAS_FILE_NAME)) {
@@ -352,13 +400,11 @@ describe('Org Tests', () => {
         beforeEach(() => {
             testData = new MockTestOrgData();
 
-            $$.SANDBOX.stub(ProjectDir, 'getPath').callsFake(() => {
-                rootFolder = osTmpdir();
-                return Promise.resolve(rootFolder);
+            $$.SANDBOX.stub(ConfigFile, 'getRootFolder').callsFake(async (isGlobal: boolean) => {
+                return await $$.rootPathRetriever(isGlobal, testId);
             });
 
-            $$.SANDBOX.stub(AuthInfoConfigFile.prototype, 'readJSON').callsFake(configFileReadJSONMock);
-            $$.SANDBOX.stub(KeyValueStore.prototype, 'readJSON').callsFake(configFileReadJSONMock);
+            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(configFileReadJSONMock);
 
             $$.SANDBOX.stub(KeyValueStore.prototype, 'write').callsFake((contents) => {
                 aliases = contents;
@@ -368,7 +414,8 @@ describe('Org Tests', () => {
 
         it('should remove all assets associated with the org', async () => {
 
-            const org: Org = await Org.create(new MockConnection(testData));
+            const org: Org = await Org.create(
+                await Connection.create(await AuthInfo.create(testData.username)));
 
             const deletedPaths = [];
             $$.SANDBOX.stub(ConfigFile.prototype, 'unlink').callsFake(function() {
@@ -383,17 +430,20 @@ describe('Org Tests', () => {
             });
 
             await org.remove();
-            expect(deletedPaths).includes(pathJoin(rootFolder, OrgConfigFile.ORGS_FOLDER_NAME, testData.username,
-                OrgConfigType.SOURCE_PATH_INFOS.valueOf()));
-            expect(deletedPaths).includes(pathJoin(rootFolder, OrgConfigFile.ORGS_FOLDER_NAME, testData.username,
-                OrgConfigType.MAX_REVISION.valueOf()));
-            expect(deletedPaths).includes(pathJoin(rootFolder, OrgConfigFile.ORGS_FOLDER_NAME, testData.username,
-                OrgConfigType.METADATA_TYPE_INFOS.valueOf()));
-            expect(deletedPaths).includes(pathJoin(Global.DIR, `${testData.orgId}.json`));
+
+            expect(deletedPaths).includes(pathJoin(await $$.localPathRetriever(testId), Global.STATE_FOLDER,
+                OrgConfigFile.ORGS_FOLDER_NAME, testData.username, OrgConfigType.SOURCE_PATH_INFOS.valueOf()));
+            expect(deletedPaths).includes(pathJoin(await $$.localPathRetriever(testId), Global.STATE_FOLDER,
+                OrgConfigFile.ORGS_FOLDER_NAME, testData.username, OrgConfigType.MAX_REVISION.valueOf()));
+            expect(deletedPaths).includes(pathJoin(await $$.localPathRetriever(testId), Global.STATE_FOLDER,
+                OrgConfigFile.ORGS_FOLDER_NAME, testData.username, OrgConfigType.METADATA_TYPE_INFOS.valueOf()));
+            expect(deletedPaths).includes(pathJoin(await $$.globalPathRetriever(testId), Global.STATE_FOLDER,
+                `${testData.orgId}.json`));
         });
 
         it ('should not fail when no scratch org has been written', async () => {
-            const org: Org = await Org.create(new MockConnection(testData));
+            const org: Org = await Org.create(
+                await Connection.create(await AuthInfo.create(testData.username)));
 
             const error: any = new Error();
             error.code = 'ENOENT';
@@ -414,14 +464,14 @@ describe('Org Tests', () => {
         });
 
         it('should remove config setting', async () => {
+            const org: Org = await Org.create(
+                await Connection.create(await AuthInfo.create(testData.username)));
 
-            const org: Org = (await Org.create(new MockConnection(testData)));
-
-            const config: SfdxConfig = await SfdxConfig.create(true, $$.rootPathRetriever);
+            const config: SfdxConfig = await SfdxConfig.create(true);
             await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, testData.username);
             await config.write();
 
-            const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create($$.rootPathRetriever);
+            const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
             org.setConfigAggregator(sfdxConfigAggregator);
 
             expect(sfdxConfigAggregator.getInfo(SfdxConfig.DEFAULT_USERNAME)).has.property('value', testData.username);
@@ -437,16 +487,129 @@ describe('Org Tests', () => {
         });
 
         it('should remove the alias', async () => {
-            const org: Org = await Org.create(new MockConnection(testData));
+            const org: Org = await Org.create(
+                await Connection.create(await AuthInfo.create(testData.username)));
 
             await Alias.parseAndUpdate([`foo=${testData.username}`]);
-            let alias = await Alias.fetch('foo');
+            let alias = await Alias.fetchValue('foo');
             expect(alias).eq(testData.username);
 
             await org.remove();
 
-            alias = await Alias.fetch('foo');
+            alias = await Alias.fetchValue('foo');
             expect(alias).eq(undefined);
+        });
+    });
+
+    describe('with multiple scratch org users', () => {
+
+        let orgs;
+        beforeEach(async () => {
+            orgs = [];
+            const testId = $$.uniqid();
+
+            const orgIdUser: string = 'p.venkman@gb.org';
+            const addedUser: string = 'winston@gb.org';
+
+            const users = [
+                new MockTestOrgData().createUser(orgIdUser),
+                new MockTestOrgData().createUser(addedUser)
+            ];
+
+            $$.SANDBOX.stub(ConfigFile, 'getRootFolder')
+                .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal, testId));
+
+            let userAuthResponse = null;
+            $$.SANDBOX.stub(OAuth2.prototype, '_postParams').callsFake(() => Promise.resolve(userAuthResponse));
+
+            let responseBody = null;
+            $$.SANDBOX.stub(Transport.prototype, 'httpRequest').callsFake(() => {
+                return Promise.resolve(responseBody);
+            });
+
+            for (const user of users) {
+                userAuthResponse = {
+                    access_token: user.accessToken,
+                    instance_url: user.instanceUrl,
+                    id: user.testId,
+                    refresh_token: user.refreshToken
+                };
+
+                responseBody = { body: JSON.stringify({ Username: user.username, OrgId: user.orgId }) };
+
+                const userAuth = await AuthInfo.create(user.username, {
+                    clientId: user.clientId,
+                    clientSecret: user.clientSecret,
+                    loginUrl: user.loginUrl
+                });
+
+                await userAuth.save( {orgId: user.orgId});
+
+                const org: Org = await Org.create(
+                    await Connection.create(await AuthInfo.create(user.username)));
+
+                const maxRevConfig: OrgConfigFile = await org.retrieveMaxRevisionConfig();
+                maxRevConfig.write(1);
+
+                const metaTypeConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
+                metaTypeConfig.write({ sourceApiVersion: '42.0' });
+
+                const sourcePathConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
+                sourcePathConfig.write([[
+                    '/Users/tnoonan/foo/force-app',
+                    {
+                        state: 'n',
+                        sourcePath: '/Users/tnoonan/foo/force-app',
+                        isDirectory: true,
+                        isMetadataFile: false,
+                        size: 102,
+                        modifiedTime: 1518292409000,
+                        changeTime: 1518292409000,
+                        contentHash: 'b28b7af69320201d1cf206ebf28373980add1451',
+                        isWorkspace: false,
+                        isArtifactRoot: true
+                    }
+                ]]);
+
+                orgs.push(org);
+            }
+
+            await orgs[0].addUsername(orgs[1].getConnection().getAuthInfo());
+        });
+
+        it('should validate expected files', async () => {
+            for (const org of orgs) {
+                const maxRevConfig = await org.retrieveMaxRevisionConfig();
+                const metaTypeConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
+                const sourcePathConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
+
+                expect(await maxRevConfig.access(fsConstants.R_OK)).to.be.true;
+                expect(await metaTypeConfig.access(fsConstants.R_OK)).to.be.true;
+                expect(await sourcePathConfig.access(fsConstants.R_OK)).to.be.true;
+            }
+
+            const user0Config: OrgConfigFile = await orgs[0].retrieveOrgUsersConfig();
+            const user1Config: OrgConfigFile = await orgs[1].retrieveOrgUsersConfig();
+
+            expect(await user0Config.access(fsConstants.R_OK)).to.be.true;
+            expect(await user1Config.access(fsConstants.R_OK)).to.be.false;
+        });
+
+        it('should validate org artifacts are gone', async () => {
+            await orgs[0].remove();
+            for (const org of orgs) {
+                const maxRevConfig = await org.retrieveMaxRevisionConfig();
+                const metaTypeConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
+                const sourcePathConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
+
+                expect(await maxRevConfig.access(fsConstants.R_OK)).to.be.false;
+                expect(await metaTypeConfig.access(fsConstants.R_OK)).to.be.false;
+                expect(await sourcePathConfig.access(fsConstants.R_OK)).to.be.false;
+            }
+        });
+
+        it('should remove aliases and config settings', () => {
+
         });
     });
 });

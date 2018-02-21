@@ -272,10 +272,10 @@ export class AuthInfo {
     // Cache of auth fields by username.
     private static cache: Map<string, Partial<AuthFields>> = new Map();
 
-    private logger: Logger;
-
     // All sensitive fields are encrypted
     private fields: Partial<AuthFields> = {};
+
+    private logger: Logger;
 
     constructor(username: string) {
         this.fields.username = username;
@@ -456,6 +456,10 @@ export class AuthInfo {
         };
 
         return oauth2.getAuthorizationUrl(params);
+    }
+
+    public getFields(): Partial<AuthFields> {
+        return _.clone(this.fields);
     }
 
     // A callback function for a connection to refresh an access token.  This is used

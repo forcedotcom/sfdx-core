@@ -6,34 +6,34 @@
 'use strict';
 
 import * as Path from 'path';
-import { tmpdir as osTmpdir } from 'os';
 import { expect } from 'chai';
 
 import { ConfigFile } from '../../../lib/config/configFile';
 import { testSetup } from '../../testSetup';
 
+const $$ = testSetup();
+
 class TestConfigFile extends ConfigFile {
 
     public static async getTestLocalPath() {
-        return $$.localPathRetriever();
+        return $$.localPathRetriever(TestConfigFile.testId);
     }
 
     public static async getTestGlobalpath() {
-        return $$.globalPathRetriever();
+        return $$.globalPathRetriever(TestConfigFile.testId);
     }
 
     public static async create(filename: string, isGlobal: boolean, isState?: boolean, filePath?: string): Promise<ConfigFile> {
         const rootPath: string = isGlobal ? await TestConfigFile.getTestGlobalpath() : await TestConfigFile.getTestLocalPath();
         return new TestConfigFile(rootPath, filename, isGlobal, isState, filePath);
-
     }
+
+    private static testId: string = $$.uniqid();
 
     private constructor(rootPath: string, filename: string, isGlobal: boolean = false, isState: boolean = true, filePath: string = '') {
         super(rootPath, filename, isGlobal, isState, filePath);
     }
 }
-
-const $$ = testSetup();
 
 describe('ConfigFile', () => {
     describe('instantiation', () => {
