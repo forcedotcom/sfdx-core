@@ -13,7 +13,6 @@ import { expect, assert } from 'chai';
 import { testSetup } from '../testSetup';
 import { ConfigFile } from '../../lib/config/configFile';
 import { Crypto } from '../../lib/crypto';
-import { AuthInfoConfigFile } from '../../lib/config/authInfoConfigFile';
 import { KeyValueStore } from '../../lib/config/fileKeyValueStore';
 import { SfdxConfig } from '../../lib/config/sfdxConfig';
 import { tmpdir as osTmpdir } from 'os';
@@ -23,8 +22,9 @@ import { Global } from '../../lib/global';
 import { OrgConfigFile, OrgConfigType } from '../../lib/config/orgConfigFile';
 import { ProjectDir } from '../../lib/projectDir';
 import { SfdxConfigAggregator } from '../../lib/config/sfdxConfigAggregator';
+import { SfdxError } from '../../lib/sfdxError';
 import { Alias } from '../../lib/alias';
-import { cloneDeep as _cloneDeep, merge as _merge, set as _set } from 'lodash';
+import { set as _set, isEqual as _isEqual } from 'lodash';
 import * as Transport from 'jsforce/lib/transport';
 
 const $$ = testSetup();
@@ -662,6 +662,67 @@ describe('Org Tests', () => {
             expect(await user0Config.access(fsConstants.R_OK)).to.be.true;
             expect(await user1Config.access(fsConstants.R_OK)).to.be.false;
 
+        });
+    });
+
+    describe ('checkScratchOrg', () => {
+        let returnResult;
+        const testId = $$.uniqid();
+        let org: Org;
+        let connection: Connection;
+        beforeEach(async () => {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async () => {
+                return Promise.resolve(await testData.getConfig());
+            });
+
+            $$.SANDBOX.stub(Connection.prototype, 'query').callsFake(async (query) => {
+                if (returnResult === 'throw') {
+                    const error = new Error();
+                    error.name = 'INVALID_TYPE';
+                    throw error;
+                }
+                return returnResult;
+            });
+
+            $$.SANDBOX.stub(ConfigFile, 'getRootFolder')
+                .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal, testId));
+
+            const fakeDevHub = 'foo@devhub.com';
+            connection = await Connection.create(await AuthInfo.create(testData.username))
+            org = await Org.create(connection);
+
+            const config: SfdxConfig = await SfdxConfig.create(true);
+            await config.setPropertyValue(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, fakeDevHub);
+            await config.write();
+
+            const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+            org.setConfigAggregator(sfdxConfigAggregator);
+        });
+
+        it('validate is a scratch org', async () => {
+            returnResult = { records: [ {} ] };
+            const fields: Partial<AuthFields> = await org.checkScratchOrg();
+            expect(_isEqual(fields, connection.getAuthInfo().getFields())).to.be.true;
+        });
+
+        it('validate is not scratch org', async () => {
+            returnResult = { records: [] };
+            try {
+                const fields: Partial<AuthFields> = await org.checkScratchOrg();
+                assert.fail('This test is expected to fail.');
+            } catch(err) {
+                expect(err).to.have.property('name', 'NoResults');
+            }
+        });
+
+        it('validate is not scratch org', async () => {
+            returnResult = 'throw';
+            try {
+                await org.checkScratchOrg();
+                assert.fail('This test is expected to fail.');
+            } catch(err) {
+                expect(err).to.have.property('name', 'notADevHub');
+            }
         });
     });
 });

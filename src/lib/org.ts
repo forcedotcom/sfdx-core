@@ -258,13 +258,6 @@ export class Org {
     }
 
     /**
-     * @returns {string} - The name of the auth json file associated with this org.
-     */
-    public getFileName(): string {
-        return this.getConnection().getAuthInfo().authFileName;
-    }
-
-    /**
      *  Check that this org is a scratch org by asking the dev hub if it knows about this org.
      *  @param devHubUsername - the username of the dev hub org
      *  @returns {Promise<Config>}
@@ -278,7 +271,7 @@ export class Org {
 
         const devHubConnection: any = await Connection.create(await AuthInfo.create(targetDevHub));
 
-        const thisOrgAuthConfig: Partial<AuthFields> = this.getConnection().getAuthInfo().getConnectionOptions();
+        const thisOrgAuthConfig: Partial<AuthFields> = this.getConnection().getAuthInfo().getFields();
 
         const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg=\'${thisOrgAuthConfig.orgId}\'`;
 
@@ -288,8 +281,8 @@ export class Org {
 
         } catch (err) {
             if (err.name === 'INVALID_TYPE') {
-                throw SfdxError.create('sfdx-org', 'org', 'notADevHub',
-                    [devHubConnection.getAuthInfo().getConnectionOptions().username]);
+                throw SfdxError.create('sfdx-core', 'org', 'notADevHub',
+                    [devHubConnection.getAuthInfo().getFields().username]);
             }
             throw err;
         }
@@ -308,7 +301,7 @@ export class Org {
      */
     public async getDevHubOrg(): Promise<Org> {
 
-        const orgData = this.getConnection().getAuthInfo().getConnectionOptions();
+        const orgData = this.getConnection().getAuthInfo().getFields();
 
         if (this.isDevHubOrg()) {
             return this;
@@ -425,13 +418,6 @@ export class Org {
     }
 
     /**
-     * @returns {Connection} - Getter for the JSforce connection for the org.
-     */
-    protected getConnection(): Connection {
-        return this.connection;
-    }
-
-    /**
      * Set indcator if this org is using access token authentication.
      * @param {boolean} value - Return true if this org should us access token authentication. False otherwise.
      * @returns {Org} - This org instance
@@ -439,6 +425,13 @@ export class Org {
     public setUsingAccessToken(value: boolean) {
         this._usingAccessToken = value;
         return this;
+    }
+
+    /**
+     * @returns {Connection} - Getter for the JSforce connection for the org.
+     */
+    protected getConnection(): Connection {
+        return this.connection;
     }
 
     /**
@@ -452,7 +445,6 @@ export class Org {
             return this;
         } else {
             throw new Error('Connection not specified.');
-
         }
     }
 }

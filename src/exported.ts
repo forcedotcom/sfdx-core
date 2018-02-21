@@ -10,9 +10,13 @@ import { SfdxErrorConfig, SfdxError } from './lib/sfdxError';
 import Global from './lib/global';
 import UX from './lib/ux';
 import { Logger, LoggerLevel } from './lib/logger';
-import Connection from './lib/connection';
-import AuthInfo from './lib/authInfo';
+import { Connection } from './lib/connection';
+import { AuthInfo } from './lib/authInfo';
+import { Org } from './lib/org';
 import { SfdxConfigAggregator } from './lib/config/sfdxConfigAggregator';
+import { AuthInfoConfigFile } from './lib/config/authInfoConfigFile';
+import { OrgConfigFile } from './lib/config/orgConfigFile';
+import { ConfigFile } from './lib/config/ConfigFile';
 import { Alias } from './lib/alias';
 import { SfdxUtil } from './lib/util';
 
@@ -27,8 +31,12 @@ export {
     UX,
     Logger,
     LoggerLevel,
+    Org,
     Connection,
     AuthInfo,
     SfdxConfigAggregator,
+    AuthInfoConfigFile,
+    OrgConfigFile,
+    ConfigFile,
     Alias
 };

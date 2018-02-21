@@ -459,7 +459,7 @@ export class AuthInfo {
     }
 
     public getFields(): Partial<AuthFields> {
-        return _.clone(this.fields);
+        return this.fields;
     }
 
     // A callback function for a connection to refresh an access token.  This is used
