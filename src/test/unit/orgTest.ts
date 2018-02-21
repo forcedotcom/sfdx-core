@@ -688,7 +688,7 @@ describe('Org Tests', () => {
                 .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal, testId));
 
             const fakeDevHub = 'foo@devhub.com';
-            connection = await Connection.create(await AuthInfo.create(testData.username))
+            connection = await Connection.create(await AuthInfo.create(testData.username));
             org = await Org.create(connection);
 
             const config: SfdxConfig = await SfdxConfig.create(true);
@@ -710,7 +710,7 @@ describe('Org Tests', () => {
             try {
                 const fields: Partial<AuthFields> = await org.checkScratchOrg();
                 assert.fail('This test is expected to fail.');
-            } catch(err) {
+            } catch (err) {
                 expect(err).to.have.property('name', 'NoResults');
             }
         });
@@ -720,7 +720,7 @@ describe('Org Tests', () => {
             try {
                 await org.checkScratchOrg();
                 assert.fail('This test is expected to fail.');
-            } catch(err) {
+            } catch (err) {
                 expect(err).to.have.property('name', 'notADevHub');
             }
         });
