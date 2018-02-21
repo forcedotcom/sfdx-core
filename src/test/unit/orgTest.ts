@@ -596,6 +596,10 @@ describe('Org Tests', () => {
         });
 
         it('should validate org artifacts are gone', async () => {
+            // Alias is currently a singleton so if the path to alias.json changes,
+            // which it does frequently in the unit tests, the singleton needs to be invalidated.
+            // Should never need to be called by a user.
+            Alias.invalidate();
             await orgs[0].remove();
             for (const org of orgs) {
                 const maxRevConfig = await org.retrieveMaxRevisionConfig();
@@ -608,8 +612,36 @@ describe('Org Tests', () => {
             }
         });
 
-        it('should remove aliases and config settings', () => {
+        it('should remove aliases and config settings', async () => {
+            // Alias is currently a singleton so if the path to alias.json changes,
+            // which it does frequently in the unit tests, the singleton needs to be invalidated.
+            // Should never need to be called by a user.
+            Alias.invalidate();
+            const config: SfdxConfig = await SfdxConfig.create(true);
 
+            const org0Username = orgs[0].getConnection().getAuthInfo().getFields().username;
+            await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, org0Username);
+            await config.write();
+
+            const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+            orgs[0].setConfigAggregator(sfdxConfigAggregator);
+
+            const info = sfdxConfigAggregator.getInfo(SfdxConfig.DEFAULT_USERNAME);
+            expect(info).has.property('value', org0Username);
+
+            const org1Username = orgs[1].getConnection().getAuthInfo().getFields().username;
+            await Alias.parseAndUpdate(
+                [`foo=${org1Username}`]);
+            let alias = await Alias.fetchValue('foo');
+            expect(alias).eq(org1Username);
+
+            await orgs[0].remove();
+
+            await sfdxConfigAggregator.reload();
+            expect(sfdxConfigAggregator.getInfo(SfdxConfig.DEFAULT_USERNAME)).has.property('value', undefined);
+
+            alias = await Alias.fetchValue('foo');
+            expect(alias).eq(undefined);
         });
     });
 });

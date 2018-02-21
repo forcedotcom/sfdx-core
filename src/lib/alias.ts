@@ -57,6 +57,13 @@ export class Alias {
     }
 
     /**
+     * Set the alias file store to null so it can re-initialize.
+     */
+    public static invalidate() {
+        Alias.aliasFileStore = null;
+    }
+
+    /**
      * Removes an alias from a group.
      * @param {string} alias The name of the alias to delete.
      * @param {AliasGroup} group The group the alias belongs to. Defaults to Orgs.
