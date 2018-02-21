@@ -7,7 +7,6 @@
 import * as dns from 'dns';
 import { assert, expect } from 'chai';
 import { AuthInfo } from '../../lib/authInfo';
-// import Global from '../../lib/global';
 import { AuthInfoConfigFile } from '../../lib/config/authInfoConfigFile';
 import { ConfigFile } from '../../lib/config/configFile';
 import { KeychainConfigFile } from '../../lib/config/keychainConfigFile';
