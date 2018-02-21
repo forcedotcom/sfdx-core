@@ -34,7 +34,7 @@ export const enum LOCATIONS {
 export interface ConfigInfo {
     key: string;
     location: string;
-    value: string;
+    value: string | boolean;
     path: string;
     /**
      * @returns true if the config property is in the local project

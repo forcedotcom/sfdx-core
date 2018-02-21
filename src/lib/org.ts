@@ -264,12 +264,12 @@ export class Org {
      */
     public async checkScratchOrg(devHubUsername?: string): Promise<Partial<AuthFields>> {
 
-        let targetDevHub = devHubUsername;
+        let targetDevHub: string | boolean = devHubUsername;
         if (!targetDevHub) {
             targetDevHub = this.configAggregator.getPropertyValue(SfdxConfig.DEFAULT_DEV_HUB_USERNAME);
         }
 
-        const devHubConnection: any = await Connection.create(await AuthInfo.create(targetDevHub));
+        const devHubConnection: any = await Connection.create(await AuthInfo.create(targetDevHub as string));
 
         const thisOrgAuthConfig: Partial<AuthFields> = this.getConnection().getAuthInfo().getFields();
 
