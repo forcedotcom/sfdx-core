@@ -233,8 +233,6 @@ export class SfdxConfig extends ConfigFile {
             this.contents[property.key] = value;
         }
     }
-
-    public async cryptProperties(encrypt: boolean): Promise<void> {}
 }
 
 /**

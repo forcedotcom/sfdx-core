@@ -39,17 +39,17 @@ export interface ConfigInfo {
     /**
      * @returns true if the config property is in the local project
      */
-    isLocal: () => {};
+    isLocal: () => boolean;
 
     /**
      * @returns true if the config property is in the global space
      */
-    isGlobal: () => {};
+    isGlobal: () => boolean;
 
     /**
      * @returns true if the config property is an environment variable.
      */
-    isEnvVar: () => {};
+    isEnvVar: () => boolean;
 }
 
 /**
