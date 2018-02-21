@@ -44,7 +44,7 @@ export class KeyValueStore extends ConfigFile {
      */
     public static async create(filename: string, defaultGroup: string) {
         const keyValueStore: KeyValueStore =
-            new KeyValueStore(await ConfigFile.getRootFolder(true), true, filename);
+            new KeyValueStore(await ConfigFile.resolveRootFolder(true), true, filename);
 
         if (! await keyValueStore.access(fsConstants.R_OK)) {
             await keyValueStore.write(JSON.parse(`{ "${defaultGroup}": {} }`));

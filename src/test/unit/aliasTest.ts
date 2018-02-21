@@ -24,7 +24,7 @@ describe('Alias', () => {
 
     beforeEach(() => {
         validate = () => {};
-        $$.SANDBOX.stub(ConfigFile, 'getRootFolder').callsFake($$.rootPathRetriever);
+        $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake($$.rootPathRetriever);
 
         const stubMethod = (...args) => {
             validate(...args);

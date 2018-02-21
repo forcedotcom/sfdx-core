@@ -28,7 +28,7 @@ export class ConfigFile {
      * @param {boolean} isGlobal - True if the config should be global. False for local.
      * @returns {Promise<string>} - The filepath of the root folder.
      */
-    public static async getRootFolder(isGlobal: boolean): Promise<string> {
+    public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
         return isGlobal ? osHomedir() : await ProjectDir.getPath();
     }
 

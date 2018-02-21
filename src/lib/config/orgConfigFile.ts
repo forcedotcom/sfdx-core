@@ -33,9 +33,9 @@ export class OrgConfigFile extends ConfigFile {
 
         switch (orgConfigType) {
             case OrgConfigType.USERS:
-                return new OrgConfigFile(await ConfigFile.getRootFolder(true), `${nameOrId}.json`, true, true, Global.STATE_FOLDER);
+                return new OrgConfigFile(await ConfigFile.resolveRootFolder(true), `${nameOrId}.json`, true, true, Global.STATE_FOLDER);
             default:
-                return new OrgConfigFile(await ConfigFile.getRootFolder(false), orgConfigType.valueOf(), false, true, pathJoin(Global.STATE_FOLDER, this.ORGS_FOLDER_NAME, nameOrId));
+                return new OrgConfigFile(await ConfigFile.resolveRootFolder(false), orgConfigType.valueOf(), false, true, pathJoin(Global.STATE_FOLDER, this.ORGS_FOLDER_NAME, nameOrId));
         }
     }
 

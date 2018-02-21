@@ -40,7 +40,7 @@ export class Alias {
     public static async parseAndUpdate(aliasKeyAndValues: string[], group: AliasGroup = AliasGroup.ORGS): Promise<object> {
         const newAliases = {};
         if (aliasKeyAndValues.length === 0) {
-            throw await SfdxError.create('sfdx-core', 'core', 'NoAliasesFound', []);
+            throw SfdxError.create('sfdx-core', 'core', 'NoAliasesFound', []);
         }
 
         for (const arg of aliasKeyAndValues) {

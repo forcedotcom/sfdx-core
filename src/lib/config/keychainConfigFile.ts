@@ -12,6 +12,6 @@ export class KeychainConfigFile extends ConfigFile {
      */
     public static async create(): Promise<ConfigFile> {
         return new ConfigFile(
-            await ConfigFile.getRootFolder(true), KeychainConfigFile.KEYCHAIN_FILENAME, true);
+            await ConfigFile.resolveRootFolder(true), KeychainConfigFile.KEYCHAIN_FILENAME, true);
     }
 }

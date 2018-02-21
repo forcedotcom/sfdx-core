@@ -135,7 +135,7 @@ export class Org {
     public async cleanData(orgDataPath?: string, throwWhenRemoveFails: boolean = false): Promise<void> {
         let dataPath;
         try {
-            const rootFolder: string = await SfdxConfig.getRootFolder(false);
+            const rootFolder: string = await SfdxConfig.resolveRootFolder(false);
             dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath || this.getDataPath());
         } catch (err) {
             if (err.name === 'InvalidProjectWorkspace') {

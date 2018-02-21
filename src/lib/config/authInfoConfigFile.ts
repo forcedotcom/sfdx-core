@@ -10,6 +10,6 @@ export class AuthInfoConfigFile extends ConfigFile {
      * @returns {Promise<ConfigFile>} - A config backed by a json file.
      */
     public static async create(filename: string): Promise<ConfigFile> {
-        return new ConfigFile(await ConfigFile.getRootFolder(true), filename, true);
+        return new ConfigFile(await ConfigFile.resolveRootFolder(true), filename, true);
     }
 }

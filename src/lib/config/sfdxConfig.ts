@@ -131,7 +131,7 @@ export class SfdxConfig extends ConfigFile {
         }
         const config: SfdxConfig = rootPathRetriever ?
             new SfdxConfig(await rootPathRetriever(isGlobal) , isGlobal) :
-            new SfdxConfig(await SfdxConfig.getRootFolder(isGlobal) , isGlobal);
+            new SfdxConfig(await SfdxConfig.resolveRootFolder(isGlobal) , isGlobal);
 
         await config.read();
 
@@ -160,7 +160,7 @@ export class SfdxConfig extends ConfigFile {
                                          rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<object> {
 
         const rootFolder = rootPathRetriever ?
-            await rootPathRetriever(isGlobal) : await SfdxConfig.getRootFolder(isGlobal);
+            await rootPathRetriever(isGlobal) : await SfdxConfig.resolveRootFolder(isGlobal);
 
         const config = new SfdxConfig(rootFolder, isGlobal);
 

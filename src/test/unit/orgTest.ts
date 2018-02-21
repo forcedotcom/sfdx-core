@@ -199,7 +199,7 @@ describe('Org Tests', () => {
             let removeStub;
             beforeEach(() => {
                 const rootPath = osTmpdir();
-                $$.SANDBOX.stub(SfdxConfig, 'getRootFolder').callsFake(() => {
+                $$.SANDBOX.stub(SfdxConfig, 'resolveRootFolder').callsFake(() => {
                     return Promise.resolve(rootPath);
                 });
 
@@ -234,7 +234,7 @@ describe('Org Tests', () => {
 
             const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanData');
             let invalidProjectWorkspace = false;
-            $$.SANDBOX.stub(ConfigFile, 'getRootFolder').callsFake(() => {
+            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
                     invalidProjectWorkspace = true;
                     const error = new Error();
@@ -252,7 +252,7 @@ describe('Org Tests', () => {
 
         it ('Random Error', async () => {
             const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanData');
-            $$.SANDBOX.stub(SfdxConfig, 'getRootFolder').callsFake(() => {
+            $$.SANDBOX.stub(SfdxConfig, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
                     const err = new Error();
                     err.name = 'gozer';
@@ -400,7 +400,7 @@ describe('Org Tests', () => {
         beforeEach(() => {
             testData = new MockTestOrgData();
 
-            $$.SANDBOX.stub(ConfigFile, 'getRootFolder').callsFake(async (isGlobal: boolean) => {
+            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(async (isGlobal: boolean) => {
                 return await $$.rootPathRetriever(isGlobal, testId);
             });
 
@@ -521,7 +521,7 @@ describe('Org Tests', () => {
                 new MockTestOrgData().createUser(addedUser)
             ];
 
-            $$.SANDBOX.stub(ConfigFile, 'getRootFolder')
+            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
                 .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal, testId));
 
             let userAuthResponse = null;
@@ -684,7 +684,7 @@ describe('Org Tests', () => {
                 return returnResult;
             });
 
-            $$.SANDBOX.stub(ConfigFile, 'getRootFolder')
+            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
                 .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal, testId));
 
             const fakeDevHub = 'foo@devhub.com';
