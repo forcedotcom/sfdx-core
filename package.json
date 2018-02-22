@@ -26,6 +26,7 @@
   "files": [
     "docs",
     "dist",
+    "messages",
     "typings",
     "!dist/test/**/*",
     "!dist/**/*.map"
