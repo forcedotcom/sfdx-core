@@ -9,6 +9,7 @@ import { expect } from 'chai';
 import { testSetup } from '../testSetup';
 import { Crypto } from '../../lib/crypto';
 import { KeychainConfigFile } from '../../lib/config/keychainConfigFile';
+import { SfdxUtil } from '../../lib/util';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -24,6 +25,9 @@ describe('CryptoTest', function() {
     let crypto;
 
     beforeEach(() => {
+        $$.SANDBOX.stub(SfdxUtil, 'stat').callsFake(async (path) =>
+            Promise.resolve({mode: 16768})
+        );
         $$.SANDBOX.stub(KeychainConfigFile.prototype, 'readJSON').callsFake(() => {
             return Promise.resolve(TEST_KEY);
         });

@@ -31,6 +31,9 @@ const $$ = testSetup();
 describe('AuthInfo No fs mock', () => {
     const username = 'doesnt_exists@gb.com';
     beforeEach(() => {
+        $$.SANDBOX.stub(SfdxUtil, 'stat').callsFake(async (path) =>
+            Promise.resolve({mode: 16768})
+        );
         $$.SANDBOX.stub(AuthInfoConfigFile.prototype, 'write').callsFake(async function() {
             const path = this.path();
             if (path.includes('key.json')) {
@@ -45,7 +48,7 @@ describe('AuthInfo No fs mock', () => {
         });
     });
 
-    it ('missing config', async () => {
+    it('missing config', async () => {
         const expectedErrorName = 'namedOrgNotFound';
         try {
             await AuthInfo.create('doesnot_exist@gb.com');
