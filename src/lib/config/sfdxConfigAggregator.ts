@@ -254,8 +254,9 @@ export class SfdxConfigAggregator {
      * Causes the instance to re-read all property configurations.
      * @returns {Promise<void>}
      */
-    public async reload(): Promise<void> {
-        return this.loadProperties();
+    public async reload(): Promise<SfdxConfigAggregator> {
+        await this.loadProperties();
+        return this;
     }
 
     /**

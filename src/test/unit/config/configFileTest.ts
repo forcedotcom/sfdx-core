@@ -8,12 +8,12 @@
 import * as Path from 'path';
 import { expect } from 'chai';
 
-import { ConfigFile } from '../../../lib/config/configFile';
+import { Config } from '../../../lib/config/configFile';
 import { testSetup } from '../../testSetup';
 
 const $$ = testSetup();
 
-class TestConfigFile extends ConfigFile {
+class TestConfigFile extends Config {
 
     public static async getTestLocalPath() {
         return $$.localPathRetriever(TestConfigFile.testId);
@@ -23,7 +23,7 @@ class TestConfigFile extends ConfigFile {
         return $$.globalPathRetriever(TestConfigFile.testId);
     }
 
-    public static async create(filename: string, isGlobal: boolean, isState?: boolean, filePath?: string): Promise<ConfigFile> {
+    public static async create(filename: string, isGlobal: boolean, isState?: boolean, filePath?: string): Promise<Config> {
         const rootPath: string = isGlobal ? await TestConfigFile.getTestGlobalpath() : await TestConfigFile.getTestLocalPath();
         return new TestConfigFile(rootPath, filename, isGlobal, isState, filePath);
     }
@@ -35,10 +35,10 @@ class TestConfigFile extends ConfigFile {
     }
 }
 
-describe('ConfigFile', () => {
+describe('Config', () => {
     describe('instantiation', () => {
         it('not using global has project dir', async () => {
-            const config: ConfigFile = await TestConfigFile.create('test', false);
+            const config: Config = await TestConfigFile.create('test', false);
             expect(config.getPath()).to.contain(await TestConfigFile.getTestLocalPath());
         });
         it('using global does not have project dir', async () => {

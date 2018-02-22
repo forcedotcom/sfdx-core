@@ -10,6 +10,12 @@ import { keyChainImpl } from './keyChainImpl';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 
+/**
+ * Gets the os level keychain impl.
+ * @param platform - The os platform
+ * @returns {Promise<any>} - the keychain impl
+ * @private
+ */
 export const retrieveKeychain = async (platform): Promise<any> => {
 
     const logger: Logger = await Logger.child('keyChain');

@@ -1,5 +1,5 @@
 import { join as pathJoin } from 'path';
-import { ConfigFile } from './configFile';
+import { Config } from './configFile';
 import { SfdxError } from '../sfdxError';
 import { Global } from '../global';
 
@@ -16,7 +16,7 @@ export const enum OrgConfigType {
 /**
  * Class that represents various configuration files associated with Org instances.
  */
-export class OrgConfigFile extends ConfigFile {
+export class OrgConfigFile extends Config {
 
     public static ORGS_FOLDER_NAME = 'orgs';
 
@@ -33,9 +33,9 @@ export class OrgConfigFile extends ConfigFile {
 
         switch (orgConfigType) {
             case OrgConfigType.USERS:
-                return new OrgConfigFile(await ConfigFile.resolveRootFolder(true), `${nameOrId}.json`, true, true, Global.STATE_FOLDER);
+                return new OrgConfigFile(await Config.resolveRootFolder(true), `${nameOrId}.json`, true, true, Global.STATE_FOLDER);
             default:
-                return new OrgConfigFile(await ConfigFile.resolveRootFolder(false), orgConfigType.valueOf(), false, true, pathJoin(Global.STATE_FOLDER, this.ORGS_FOLDER_NAME, nameOrId));
+                return new OrgConfigFile(await Config.resolveRootFolder(false), orgConfigType.valueOf(), false, true, pathJoin(Global.STATE_FOLDER, this.ORGS_FOLDER_NAME, nameOrId));
         }
     }
 

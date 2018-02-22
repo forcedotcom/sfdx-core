@@ -46,12 +46,12 @@ export interface OrgMetaInfo {
     /**
      * If true the dev hub configuration is missing
      */
-    devHubMissing: boolean;
+    devHubMissing?: boolean;
 
     /**
      * True if this org has expired.
      */
-    expired: boolean;
+    expired?: boolean;
 }
 
 const _manageDelete = function(cb, dirPath, throwWhenRemoveFails) {
@@ -66,20 +66,41 @@ const _manageDelete = function(cb, dirPath, throwWhenRemoveFails) {
 };
 
 /**
- * Manage ScratchOrg meta information
+ * Manage Org meta information
  */
 export class Org {
 
     /**
      * Static initializer to create an org instance.
-     * @returns {Promise<Org>}
+     * @param {Connection} connection - JSForce connection
+     * @param {SfdxConfigAggregator} aggregator - configuration aggregator
+     * @param {boolean} isDevHub - true if the org is a devhub. false for a scratch org
+     * @returns {Promise<Org>} - An initialized org instance.
+     * @example const o: Org = await Org.create();
+     * @example const o: Org = await Org.create(await Connection.create(await AuthInfo.create('foo@example.com')));
      */
-    public static async create(connection: Connection): Promise<Org> {
+    public static async create(connection?: Connection,
+                               aggregator?: SfdxConfigAggregator, isDevHub: boolean = false): Promise<Org> {
 
-        const org = new Org(await SfdxConfigAggregator.create());
+        const _aggregator = aggregator ? aggregator : await SfdxConfigAggregator.create();
+
+        const org = new Org(_aggregator);
 
         org.logger = await Logger.child('Org');
-        org.setConnection(connection);
+
+        let _connection: Connection = connection;
+        if (!_connection) {
+            const username: string = isDevHub ?
+                aggregator.getInfo(SfdxConfig.DEFAULT_DEV_HUB_USERNAME).value as string :
+                aggregator.getInfo(SfdxConfig.DEFAULT_USERNAME).value as string;
+
+            if (username) {
+                _connection = await Connection.create(await AuthInfo.create(username));
+            } else {
+                throw new SfdxError(`No ${isDevHub ? 'default Devhub' : ' default' } username or Connection found.`, 'NoUsername' );
+            }
+        }
+        org.setConnection(_connection);
         return org;
     }
 
@@ -92,11 +113,6 @@ export class Org {
 
     private constructor(_aggregator: SfdxConfigAggregator) {
         this.configAggregator = _aggregator;
-    }
-
-    public setConfigAggregator(configAggregator: SfdxConfigAggregator): Org {
-        this.configAggregator = configAggregator;
-        return this;
     }
 
     /**
@@ -182,7 +198,7 @@ export class Org {
     /**
      * @returns {boolean} -  Returns true if this org is using access token auth.
      */
-    public getUsingAccessToken(): boolean {
+    public isUsingAccessToken(): boolean {
         return this._usingAccessToken;
     }
 
@@ -195,7 +211,7 @@ export class Org {
 
         // If deleting via the access token there shouldn't be any auth config files
         // so just return;
-        if (this.getUsingAccessToken()) {
+        if (this.isUsingAccessToken()) {
             return Promise.resolve();
         }
 
@@ -234,7 +250,7 @@ export class Org {
                     this.configAggregator.getRootPathRetriever());
             }
 
-            // Probably a good idea to let ConfigFile delete these before deleting Orgs/<orgname>
+            // Probably a good idea to let Config delete these before deleting Orgs/<orgname>
             const sourceConfig: OrgConfigFile = await this.retrieveSourcePathInfosConfig();
             _manageDelete.call(this, async () => await sourceConfig.unlink(), sourceConfig.getPath(),
                 throwWhenRemoveFails);
@@ -315,18 +331,19 @@ export class Org {
      * @returns Boolean - Returns true if org if a Dev Hub.
      */
     public isDevHubOrg(): boolean {
-        return this.getConnection().getAuthInfo().getConnectionOptions().isDevHub;
+        return this.getConnection().getAuthInfo().getFields().isDevHub;
     }
 
     /**
+     * Refreshes the auth for this org instance by calling the baseUrl on the connection object.
      * @returns {Promise<any>} - Refresh a users access token.
      */
-    public async refreshAuth(): Promise<any> {
+    public async refreshAuth(): Promise<void> {
         const requestInfo = {
             url: this.getConnection().baseUrl(),
             method: 'GET'
         };
-        return this.getConnection().request(requestInfo);
+        await this.getConnection().request(requestInfo);
     }
 
     /**
@@ -336,9 +353,10 @@ export class Org {
     public async readUserAuthFiles(): Promise<AuthInfo[]> {
         const config: OrgConfigFile = await this.retrieveOrgUsersConfig();
         const contents: any = await config.readJSON();
-        const usernames: string[] = contents.usernames || [this.getConnection().getAuthInfo().getConnectionOptions().username];
+        const thisUsername = this.getConnection().getAuthInfo().getFields().username;
+        const usernames: string[] = contents.usernames || [thisUsername];
         return Promise.all(usernames.map((username) => {
-            if (username === this.getConnection().getAuthInfo().getConnectionOptions().username) {
+            if (username === thisUsername) {
                 return this.getConnection().getAuthInfo();
             } else {
                 return AuthInfo.create(username);
@@ -426,6 +444,24 @@ export class Org {
     public setUsingAccessToken(value: boolean) {
         this._usingAccessToken = value;
         return this;
+    }
+
+    /**
+     * Getter for the config aggregator
+     * @returns {SfdxConfigAggregator} The config aggregator
+     */
+    public getConfigAggregator(): SfdxConfigAggregator {
+        return this.configAggregator;
+    }
+
+    /**
+     * returns Meta information about this org
+     * @returns {OrgMetaInfo} - OrgMetaInformation
+     */
+    public getMetaInfo(): OrgMetaInfo {
+        return {
+            info: this.getConnection().getAuthInfo()
+        };
     }
 
     /**

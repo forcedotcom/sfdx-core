@@ -53,7 +53,9 @@ export class Alias {
             newAliases[name] = value || undefined;
         }
 
-        return (await Alias.getAliasFileStore()).updateValues(newAliases, group);
+        const keyValueStore: KeyValueStore = await Alias.getAliasFileStore();
+
+        return await keyValueStore.updateValues(newAliases, group);
     }
 
     /**
@@ -95,8 +97,8 @@ export class Alias {
     }
 
     /**
-     * Get an alias from a group.
-     * @param {string} alias The name of the alias to get
+     * Gets an alias value from a name and group.
+     * @param {string} name The name of the alias to get
      * @param {AliasGroup} group The group the alias belongs to. Defaults to Orgs.
      * @returns {Promise<string>} The promise resolved when the alias is retrieved.
      */
@@ -105,7 +107,7 @@ export class Alias {
     }
 
     /**
-     * Get all alias from a group.
+     * Gets all alias from a group.
      * @param {string} group The group of aliases to retrieve. Defaults to Orgs.
      * @returns {Promise<object>} The promise resolved when the aliases are retrieved.
      */
@@ -114,7 +116,7 @@ export class Alias {
     }
 
     /**
-     * Get an alias from a group by value
+     * Get an alias name from a value and a group.
      * @param {string} value The value of the alias to match
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise<string>} The promise resolved when the alias is retrieved

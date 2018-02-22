@@ -13,7 +13,7 @@ import { OAuth2, OAuth2Options } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { AuthInfoConfigFile } from './config/authInfoConfigFile';
-import { ConfigFile } from './config/configFile';
+import { Config } from './config/configFile';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
@@ -374,7 +374,7 @@ export class AuthInfo {
             delete dataToSave.clientSecret;
         }
 
-        const config: ConfigFile = await AuthInfoConfigFile.create(this.authFileName);
+        const config: Config = await AuthInfoConfigFile.create(this.authFileName);
         await config.write(dataToSave);
 
         this.logger.info(`Saved auth info for username: ${this.username}`);
