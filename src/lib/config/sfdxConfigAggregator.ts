@@ -98,7 +98,14 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * @returns {(isGlobal: boolean) => Promise<string>} - The root path retriever function that determines where the
+     * Retrieve the path to the config file.
+     * @callback retrieverFunction
+     * @param {boolean} isGlobal Is it the global or local project config file?
+     * @returns {Promise<string>} The path of the config file.
+     */
+
+    /**
+     * @returns {retrieverFunction} - The root path retriever function that determines where the
      * local and global paths are located.
      */
     public getRootPathRetriever(): (isGlobal: boolean) => Promise<string> {
