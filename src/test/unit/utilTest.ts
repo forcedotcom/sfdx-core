@@ -4,12 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
-import * as sinon from 'sinon';
+
 import { assert, expect } from 'chai';
 
 import { SfdxUtil } from '../../lib/util';
-import Messages from '../../lib/messages';
 import { testSetup } from '../testSetup';
 
 // Setup the test environment.

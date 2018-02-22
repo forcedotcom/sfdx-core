@@ -9,7 +9,7 @@ import { join as pathJoin } from 'path';
 import { Alias } from './alias';
 import { Connection } from './connection';
 import { Logger } from './logger';
-import { RequestInfo, RequestMethod } from 'jsforce';
+import { RequestInfo } from 'jsforce';
 import { SfdxConfig } from './config/sfdxConfig';
 import { SfdxConfigAggregator, ConfigInfo } from './config/sfdxConfigAggregator';
 import { isNil as _isNil , maxBy as _maxBy, get as _get, filter as _filter } from 'lodash';
@@ -85,6 +85,7 @@ export class Org {
 
     private logger: Logger;
     private connection: Connection;
+    // tslint:disable-next-line:no-unused-variable
     private status: OrgStatus = OrgStatus.UNKNOWN;
     private configAggregator: SfdxConfigAggregator;
     private _usingAccessToken: boolean = false;

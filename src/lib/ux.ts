@@ -12,6 +12,7 @@ import * as _ from 'lodash';
 import chalk from 'chalk';
 
 // Needed for typescript compilation to create typings files.
+// tslint:disable-next-line:no-unused-variable
 import { Chalk, ColorSupport } from 'chalk';
 
 // tslint:disable-next-line:variable-name

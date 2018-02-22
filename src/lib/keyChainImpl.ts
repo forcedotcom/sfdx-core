@@ -14,8 +14,7 @@ import * as childProcess from 'child_process';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { SfdxUtil } from './util';
 import { Global } from './global';
-import {KeychainConfigFile} from './config/keychainConfigFile';
-import {ConfigFile} from './config/configFile';
+import { KeychainConfigFile } from './config/keychainConfigFile';
 
 /* tslint:disable: no-bitwise */
 

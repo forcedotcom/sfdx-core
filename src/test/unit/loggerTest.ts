@@ -5,13 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 import * as _ from 'lodash';
 
-import { Logger, LoggerLevel, LoggerOptions } from '../../lib/logger';
+import { Logger, LoggerLevel } from '../../lib/logger';
 import { SfdxUtil } from '../../lib/util';
 import { testSetup } from '../testSetup';
 

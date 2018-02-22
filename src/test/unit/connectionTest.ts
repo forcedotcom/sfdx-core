@@ -5,12 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as sinon from 'sinon';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 
 import { Connection, SFDX_HTTP_HEADERS } from '../../lib/connection';
 import { AuthInfo } from '../../lib/authInfo';
-import { Logger } from '../../lib/logger';
 import * as jsforce from 'jsforce';
 import { testSetup } from '../testSetup';
 
