@@ -10,7 +10,7 @@
     "lint-report": "npm run lint -- -t checkstyle -o checkstyle.xml",
     "clean": "scripts/clean.js",
     "compile": "node_modules/.bin/tsc -p ./tsconfig.json",
-    "build": "npm run clean && npm run lint && npm run compile",
+    "build": "npm run clean && npm run lint && npm run compile && npm run docgen",
     "watch": "tsc -w -p tsconfig.json",
     "test": "npm run lint && npm run compile && node_modules/.bin/mocha --recursive dist/test/unit",
     "test-with-coverage": "npm run lint-report && scripts/unit-test-with-coverage.js",
@@ -22,6 +22,13 @@
     "salesforce",
     "sfdx",
     "salesforcedx"
+  ],
+  "files": [
+    "docs",
+    "dist",
+    "typings",
+    "!dist/test/**/*",
+    "!dist/**/*.map"
   ],
   "dependencies": {
     "bunyan-sfdx-no-dtrace": "1.8.2",

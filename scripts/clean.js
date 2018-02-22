@@ -5,6 +5,7 @@ shell.set('-e');
 shell.set('+v');
 
 shell.rm('-rf', `dist`);
+shell.rm('-rf', `docs`);
 
 shell.rm('-f', `*xunit.xml`);
 shell.rm('-f', `*checkstyle.xml`);
