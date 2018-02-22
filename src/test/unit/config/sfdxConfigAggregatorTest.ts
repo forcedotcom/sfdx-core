@@ -7,7 +7,6 @@
 
 import { join as pathJoin } from 'path';
 
-import { sandbox as sinonSandbox } from 'sinon';
 import { expect, assert } from 'chai';
 
 import { SfdxUtil } from '../../../lib/util';

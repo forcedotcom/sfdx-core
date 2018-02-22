@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as sinon from 'sinon';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import * as path from 'path';
 
-import { Global, Mode, Modes } from '../../lib/global';
+import { Global, Modes } from '../../lib/global';
 import { SfdxUtil } from '../../lib/util';
 import { testSetup } from '../testSetup';
 
@@ -56,32 +55,6 @@ describe('Global', () => {
             expect(SfdxUtil.mkdirp['called']).to.be.true;
             expect(SfdxUtil.mkdirp['firstCall'].args[0]).to.equal(path.join(Global.DIR, dirPath));
             expect(SfdxUtil.mkdirp['firstCall'].args[1]).to.equal(SfdxUtil.DEFAULT_USER_DIR_MODE);
-        });
-    });
-
-    describe('fetchConfigInfo', () => {
-        it('should call SfdxUtil.readJSON in the global dir', async () => {
-            const testJSON = { username: 'globalTest_fetchConfigInfo' };
-            $$.SANDBOX.stub(SfdxUtil, 'readJSON').returns(Promise.resolve(testJSON));
-            const fileName = 'globalTest_fileName1';
-            const myJSON = await Global.fetchConfigInfo(fileName);
-
-            expect(SfdxUtil.readJSON['called']).to.be.true;
-            expect(SfdxUtil.readJSON['firstCall'].args[0]).to.equal(path.join(Global.DIR, fileName));
-            expect(myJSON).to.equal(testJSON);
-        });
-    });
-
-    describe('saveConfigInfo', () => {
-        it('should call SfdxUtil.writeJSON in the global dir', async () => {
-            const testJSON = { username: 'globalTest_saveConfigInfo' };
-            $$.SANDBOX.stub(SfdxUtil, 'writeJSON').returns(Promise.resolve());
-            const fileName = 'globalTest_fileName1';
-            await Global.saveConfigInfo(fileName, testJSON);
-
-            expect(SfdxUtil.writeJSON['called']).to.be.true;
-            expect(SfdxUtil.writeJSON['firstCall'].args[0]).to.equal(path.join(Global.DIR, fileName));
-            expect(SfdxUtil.writeJSON['firstCall'].args[1]).to.equal(testJSON);
         });
     });
 });

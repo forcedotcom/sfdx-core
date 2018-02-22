@@ -14,11 +14,12 @@ import * as childProcess from 'child_process';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { SfdxUtil } from './util';
 import { Global } from './global';
+import {KeychainConfigFile} from './config/keychainConfigFile';
+import {ConfigFile} from './config/configFile';
 
 /* tslint:disable: no-bitwise */
 
 const GET_PASSWORD_RETRY_COUNT: number = 3;
-export const SECRET_FILE_NAME: string = 'key.json';
 
 /**
  * Helper to reduce an array of cli args down to a presentable string for logging.
@@ -342,7 +343,9 @@ async function _writeFile(opts, fn) {
     };
 
     try {
-        await Global.saveConfigInfo(SECRET_FILE_NAME, obj);
+        const config: KeychainConfigFile = await KeychainConfigFile.create();
+        await config.write(obj);
+
         fn(null, obj);
     } catch (err) {
         fn(err);
@@ -357,7 +360,7 @@ interface SecretFields {
 
 export class GenericKeychainAccess {
 
-    protected static SECRET_FILE: string = path.join(Global.DIR, SECRET_FILE_NAME);
+    protected static SECRET_FILE: string = path.join(Global.DIR, KeychainConfigFile.KEYCHAIN_FILENAME);
 
     public async getPassword(opts, fn): Promise<any> {
         // validate the file in .sfdx
@@ -367,7 +370,7 @@ export class GenericKeychainAccess {
             if (_.isNil(fileAccessError)) {
 
                 // read it's contents
-                return Global.fetchConfigInfo(SECRET_FILE_NAME)
+                return KeychainConfigFile.create().then((config: KeychainConfigFile) => config.readJSON())
                     .then(async (readObj: SecretFields) => {
                         // validate service name and account just because
                         if ((opts.service === readObj.service ) && (opts.account === readObj.account)) {
@@ -375,7 +378,7 @@ export class GenericKeychainAccess {
                         } else {
                             // if the service and account names don't match then maybe someone or something is editing
                             // that file. #donotallow
-                            const errorConfig = new SfdxErrorConfig('sfdx-core', 'encryption', 'GenericKeychainServiceError', [GenericKeychainAccess.SECRET_FILE], 'GenericKeychainServiceErrorAction');
+                            const errorConfig = new SfdxErrorConfig('sfdx-core', 'encryption', 'GenericKeychainServiceError', [KeychainConfigFile.KEYCHAIN_FILENAME], 'GenericKeychainServiceErrorAction');
                             const err = SfdxError.create(errorConfig);
                             fn(err);
                         }
@@ -419,7 +422,7 @@ export class GenericKeychainAccess {
         await Global.createDir();
 
         try {
-            const stats = await SfdxUtil.stat(GenericKeychainAccess.SECRET_FILE);
+            const stats = await SfdxUtil.access(Global.DIR, fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
             cb(null, stats);
         } catch (err) {
             cb(err);

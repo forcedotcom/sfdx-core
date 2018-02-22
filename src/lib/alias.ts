@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { KeyValueStore } from './fileKeyValueStore';
+import { KeyValueStore } from './config/fileKeyValueStore';
 import { SfdxError } from './sfdxError';
 
 const ALIAS_FILE_NAME = 'alias.json';
-const aliasFileStore = new KeyValueStore(ALIAS_FILE_NAME);
 
 /**
  * Different groups of aliases. Currently only support orgs.
@@ -29,6 +28,9 @@ export enum AliasGroup {
  *
  */
 export class Alias {
+
+    public static readonly ALIAS_FILE_NAME = ALIAS_FILE_NAME;
+
     /**
      * Updates a group of aliases in a bulk save.
      * @param {array} aliasKeyAndValues An array of strings in the format <alias>=<value>.
@@ -38,7 +40,7 @@ export class Alias {
     public static async parseAndUpdate(aliasKeyAndValues: string[], group: AliasGroup = AliasGroup.ORGS): Promise<object> {
         const newAliases = {};
         if (aliasKeyAndValues.length === 0) {
-            throw SfdxError.create('sfdx-core', 'core', 'NoAliasesFound');
+            throw SfdxError.create('sfdx-core', 'core', 'NoAliasesFound', []);
         }
 
         for (const arg of aliasKeyAndValues) {
@@ -51,7 +53,14 @@ export class Alias {
             newAliases[name] = value || undefined;
         }
 
-        return await aliasFileStore.updateValues(newAliases, group);
+        return (await Alias.getAliasFileStore()).updateValues(newAliases, group);
+    }
+
+    /**
+     * Set the alias file store to null so it can re-initialize.
+     */
+    public static invalidate() {
+        Alias.aliasFileStore = null;
     }
 
     /**
@@ -61,7 +70,7 @@ export class Alias {
      * @returns {Promise<void>} The promise resolved when the alias is delete.
      */
     public static async remove(alias: string, group = AliasGroup.ORGS): Promise<void> {
-        return await aliasFileStore.remove(alias, group);
+        return (await Alias.getAliasFileStore()).remove(alias, group);
     }
 
     /**
@@ -72,7 +81,7 @@ export class Alias {
      * @returns {Promise<void>} The promise resolved when the alias is set.
      */
     public static async update(alias: string, property: string, group = AliasGroup.ORGS): Promise<void> {
-        return await aliasFileStore.update(alias, property, group);
+        return (await Alias.getAliasFileStore()).update(alias, property, group);
     }
 
     /**
@@ -82,7 +91,7 @@ export class Alias {
      * @returns {Promise<void>} The promise resolved when the aliases are unset.
      */
     public static async unset(aliasesToUnset, group = AliasGroup.ORGS): Promise<void> {
-        return await aliasFileStore.unset(aliasesToUnset, group);
+        return (await Alias.getAliasFileStore()).unset(aliasesToUnset, group);
     }
 
     /**
@@ -91,8 +100,8 @@ export class Alias {
      * @param {AliasGroup} group The group the alias belongs to. Defaults to Orgs.
      * @returns {Promise<string>} The promise resolved when the alias is retrieved.
      */
-    public static async fetch(alias, group = AliasGroup.ORGS): Promise<string> {
-        return await aliasFileStore.fetch(alias, group);
+    public static async fetchValue(name: string, group = AliasGroup.ORGS): Promise<string> {
+        return (await Alias.getAliasFileStore()).fetch(name, group);
     }
 
     /**
@@ -101,7 +110,7 @@ export class Alias {
      * @returns {Promise<object>} The promise resolved when the aliases are retrieved.
      */
     public static async list(group = AliasGroup.ORGS): Promise<object> {
-        return await aliasFileStore.list(group);
+        return (await Alias.getAliasFileStore()).list(group);
     }
 
     /**
@@ -110,9 +119,28 @@ export class Alias {
      * @param {string} group The group the alias belongs to. Defaults to Orgs
      * @returns {Promise<string>} The promise resolved when the alias is retrieved
      */
-    public static async byValue(value, group = AliasGroup.ORGS): Promise<string> {
-        return await aliasFileStore.byValue(value, group);
+    public static async fetchName(value: string, group = AliasGroup.ORGS): Promise<string> {
+        return (await Alias.getAliasFileStore()).byValue(value, group);
     }
+
+    private static aliasFileStore: KeyValueStore;
+
+    /**
+     * Singleton initializer
+     * @returns {Promise<KeyValueStore>} - Instance of a key value store
+     */
+    private static async getAliasFileStore(): Promise<KeyValueStore> {
+        if (!Alias.aliasFileStore) {
+            Alias.aliasFileStore = await KeyValueStore.create(ALIAS_FILE_NAME, AliasGroup.ORGS.valueOf());
+        }
+
+        return Alias.aliasFileStore;
+    }
+
+    /**
+     * ctor - note: consumers call static methods directly
+     */
+    private constructor() {}
 }
 
 export default Alias;

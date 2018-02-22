@@ -7,15 +7,16 @@
 import * as dns from 'dns';
 import { assert, expect } from 'chai';
 import { AuthInfo } from '../../lib/authInfo';
-import Global from '../../lib/global';
+import { AuthInfoConfigFile } from '../../lib/config/authInfoConfigFile';
+import { ConfigFile } from '../../lib/config/configFile';
+import { KeychainConfigFile } from '../../lib/config/keychainConfigFile';
 import { Crypto } from '../../lib/crypto';
 import { SfdxUtil } from '../../lib/util';
 import { OAuth2 } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { testSetup } from '../testSetup';
-import { SECRET_FILE_NAME } from '../../lib/keyChainImpl';
-import SfdxError from '../../lib/sfdxError';
+import { SfdxError } from '../../lib/sfdxError';
 import { toUpper as _toUpper, includes as _includes } from 'lodash';
 
 const TEST_KEY = {
@@ -30,7 +31,8 @@ const $$ = testSetup();
 describe('AuthInfo No fs mock', () => {
     const username = 'doesnt_exists@gb.com';
     beforeEach(() => {
-        $$.SANDBOX.stub(Global, 'fetchConfigInfo').callsFake(async (path) => {
+        $$.SANDBOX.stub(AuthInfoConfigFile.prototype, 'write').callsFake(async function() {
+            const path = this.path();
             if (path.includes('key.json')) {
                 return Promise.resolve(TEST_KEY);
             } else if (path.includes(username)) {
@@ -46,7 +48,7 @@ describe('AuthInfo No fs mock', () => {
     it ('missing config', async () => {
         const expectedErrorName = 'namedOrgNotFound';
         try {
-            await AuthInfo.create('doesnt_exists@gb.com');
+            await AuthInfo.create('doesnot_exist@gb.com');
             assert.fail(`should have thrown error with name: ${expectedErrorName}`);
         } catch (e) {
             expect(e).to.have.property('name', expectedErrorName);
@@ -150,7 +152,7 @@ class MetaAuthDataMock {
     }
 
     public async fetchConfigInfo(path: string): Promise<any> {
-        if (path.includes(SECRET_FILE_NAME)) {
+        if (path.includes(KeychainConfigFile.KEYCHAIN_FILENAME)) {
             return Promise.resolve(TEST_KEY);
         } else if (_includes(_toUpper(path), '_JWT')) {
             this._authInfoLookupCount = this._authInfoLookupCount + 1;
@@ -203,17 +205,17 @@ describe('AuthInfo', () => {
     beforeEach(async () => {
         testMetadata = new MetaAuthDataMock();
 
-        $$.SANDBOX.stub(SfdxUtil, 'stat').callsFake((path) => {
+        $$.SANDBOX.stub(SfdxUtil, 'stat').callsFake(async (path) => {
             return testMetadata.statForKeyFile(path);
         });
 
         // Common stubs
-        $$.SANDBOX.stub(Global, 'saveConfigInfo').callsFake(() => {
+        $$.SANDBOX.stub(ConfigFile.prototype, 'write').callsFake(async () => {
             return Promise.resolve();
         });
 
-        $$.SANDBOX.stub(Global, 'fetchConfigInfo').callsFake(async (path) => {
-            return testMetadata.fetchConfigInfo(path);
+        $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+            return testMetadata.fetchConfigInfo(this.path);
         });
 
         const crypto = await Crypto.create();
@@ -336,7 +338,6 @@ describe('AuthInfo', () => {
 
         it('should return a JWT AuthInfo instance when passed a username from an auth file', async () => {
             const username = 'authInfoTest_username_jwt-NOT-CACHED';
-            const crypto = await Crypto.create();
 
             // Make the file read stub return JWT auth data
             const jwtData = {
@@ -711,17 +712,17 @@ describe('AuthInfo', () => {
 
             // Save new fields
             const changedData = { accessToken: testMetadata.accessToken };
-            authInfo.save(changedData);
+            await authInfo.save(changedData);
 
             expect(AuthInfo.prototype.update['called']).to.be.true;
             expect(AuthInfo.prototype.update['firstCall'].args[0]).to.deep.equal(changedData);
             expect(AuthInfo['cache'].set['called']).to.be.true;
-            expect(Global.saveConfigInfo['called']).to.be.true;
-            const saveConfigInfoCall = Global.saveConfigInfo['firstCall'];
-            expect(saveConfigInfoCall.args[0]).to.equal(`${username}.json`);
+            expect(ConfigFile.prototype.write['called']).to.be.true;
+            const writeCall = ConfigFile.prototype.write['firstCall'];
+            expect(writeCall.thisValue.name).to.equal(`${username}.json`);
 
             const crypto = await Crypto.create();
-            const decryptedActualFields = saveConfigInfoCall.args[1];
+            const decryptedActualFields = writeCall.args[0];
             decryptedActualFields.accessToken = crypto.decrypt(decryptedActualFields.accessToken);
             decryptedActualFields.refreshToken = crypto.decrypt(decryptedActualFields.refreshToken);
             const expectedFields = {
@@ -960,4 +961,39 @@ describe('AuthInfo', () => {
         });
     });
 
+    describe('listAllAuthFiles', () => {
+        let files;
+        beforeEach(() => {
+            $$.SANDBOX.stub(SfdxUtil, 'readdir').callsFake(() => Promise.resolve(files));
+        });
+        it('matches username', async () => {
+            files = ['good@match.org.json'];
+            const orgs = await AuthInfo.listAllAuthFiles();
+            expect(orgs[0]).equals(files[0]);
+        });
+        it('matches username with single char', async () => {
+            files = ['a@match.org.json'];
+            const orgs = await AuthInfo.listAllAuthFiles();
+            expect(orgs[0]).equals(files[0]);
+        });
+        it('matches username with periods', async () => {
+            files = ['super.good@match.org.json'];
+            const orgs = await AuthInfo.listAllAuthFiles();
+            expect(orgs[0]).equals(files[0]);
+        });
+        it('matches username with subdomain', async () => {
+            files = ['good@sub.match.org.json'];
+            const orgs = await AuthInfo.listAllAuthFiles();
+            expect(orgs[0]).equals(files[0]);
+        });
+        it('does not match hidden usernames', async () => {
+            files = ['.no@match.org.json'];
+            try {
+                await AuthInfo.listAllAuthFiles();
+                assert.fail();
+            } catch (e) {
+                expect(e).to.have.property('name', 'noAuthInfoFound');
+            }
+        });
+    });
 });

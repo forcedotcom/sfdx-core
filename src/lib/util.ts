@@ -4,11 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { toUpper as _toUpper, size as _size } from 'lodash';
-import { access, open, readdir, readFile, stat, writeFile,  unlink } from 'fs';
-import { isEmpty } from 'lodash';
+import { join as pathJoin } from 'path';
+import * as _ from 'lodash';
+import * as fs from 'fs';
 import { promisify } from 'util';
-import { isNil as _isNil, endsWith as _endsWith, includes as _includes } from 'lodash';
 import { SfdxError } from './sfdxError';
 import { URL } from 'url';
 
@@ -44,27 +43,27 @@ export class SfdxUtil {
     /**
      * Promisified version of fs.readFile
      */
-    public static readFile = promisify(readFile);
+    public static readFile = promisify(fs.readFile);
 
     /**
      * Promisified version of fs.readdir
      */
-    public static readdir = promisify(readdir);
+    public static readdir = promisify(fs.readdir);
 
     /**
      * Promisified version of fs.writeFile
      */
-    public static writeFile = promisify(writeFile);
+    public static writeFile = promisify(fs.writeFile);
 
     /**
      * Promisified version of fs.access
      */
-    public static access = promisify(access);
+    public static access = promisify(fs.access);
 
     /**
      * Promisified version of fs.open
      */
-    public static open = promisify(open);
+    public static open = promisify(fs.open);
 
     /**
      * Promisified version of mkdirp
@@ -80,12 +79,17 @@ export class SfdxUtil {
     /**
      * Promisified version of unlink
      */
-    public static unlink = promisify(unlink);
+    public static unlink = promisify(fs.unlink);
+
+    /**
+     * Promisified version of rmdir
+     */
+    public static rmdir = promisify(fs.rmdir);
 
     /**
      * Promisified version of stat
      */
-    public static stat = promisify(stat);
+    public static stat = promisify(fs.stat);
 
     /**
      * Read a file and convert it to JSON
@@ -118,7 +122,7 @@ export class SfdxUtil {
      * @param throwOnEmpty Throw an exception if the data contents are empty
      */
     public static async parseJSON(data: string, jsonPath: string = 'unknown', throwOnEmpty: boolean = true): Promise<object> {
-        if (isEmpty(data) && throwOnEmpty) {
+        if (_.isEmpty(data) && throwOnEmpty) {
             throw SfdxError.create('sfdx-core', 'core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
         }
 
@@ -156,8 +160,8 @@ export class SfdxUtil {
             'trailhead.salesforce.com'
         ];
 
-        return !_isNil(whitelistOfSalesforceDomainPatterns.find((pattern) => _endsWith(url.hostname, pattern))) ||
-            _includes(whitelistOfSalesforceHosts, url.hostname);
+        return !_.isNil(whitelistOfSalesforceDomainPatterns.find((pattern) => _.endsWith(url.hostname, pattern))) ||
+            _.includes(whitelistOfSalesforceHosts, url.hostname);
     }
 
     /**
@@ -171,8 +175,43 @@ export class SfdxUtil {
             return false;
         }
         const value = process.env[name];
-        return value && _size(value) > 0 && _toUpper(value) !== 'FALSE';
+        return value && _.size(value) > 0 && _.toUpper(value) !== 'FALSE';
+    }
+
+    /**
+     * Deletes a folder recursively, removing all descending files and folders.
+     * @param {string} path - The path to remove
+     * @returns {Promise<void>}
+     * @throws {SfdxError} - If the folder or any sub-folder is missing or has no access.
+     */
+    public static remove(path: string): Promise<void> {
+        if (!path) {
+            throw new SfdxError('Path is null or undefined.');
+        }
+        return SfdxUtil.access(path, fs.constants.R_OK)
+            .catch(() => {
+                throw new SfdxError(`The path: ${path} doesn\'t exists or access is denied.`);
+            })
+            .then(() => SfdxUtil.readdir(path))
+            .then((files) => {
+                return Promise.all(_.map(files, (file) => SfdxUtil.stat(pathJoin(path, file))))
+                    .then((stats) => {
+                        stats.forEach((stat, index) => {
+                            stat['path'] = pathJoin(path, files[index]);
+                        });
+                        return stats;
+                    });
+            })
+            .then((metas) => {
+                return Promise.all(_.map(metas, (meta: any) => {
+                    if (meta.isDirectory()) {
+                        return SfdxUtil.remove(meta.path);
+                    } else {
+                        return SfdxUtil.unlink(meta.path);
+                    }
+                }));
+            }).then(() => {
+                return SfdxUtil.rmdir(path);
+            });
     }
 }
-
-export default SfdxUtil;

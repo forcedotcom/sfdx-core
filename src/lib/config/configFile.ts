@@ -7,15 +7,13 @@
 
 'use strict';
 
-// Node
 import { join as pathJoin, dirname as pathDirname } from 'path';
-
 import { isBoolean as _isBoolean, isNil as _isNil } from 'lodash';
 import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
-
-// Local
+import { homedir as osHomedir } from 'os';
 import { SfdxUtil } from '../util';
+import { ProjectDir } from '../projectDir';
 
 /**
  * Represents a json config file that the toolbelt uses to manage settings and
@@ -24,6 +22,15 @@ import { SfdxUtil } from '../util';
  * in the hidden state folder or wherever specified.
  */
 export class ConfigFile {
+
+    /**
+     * Helper used to determined what the local and global folder point to.
+     * @param {boolean} isGlobal - True if the config should be global. False for local.
+     * @returns {Promise<string>} - The filepath of the root folder.
+     */
+    public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
+        return isGlobal ? osHomedir() : await ProjectDir.getPath();
+    }
 
     protected name: string;
     protected path: string;
@@ -71,23 +78,49 @@ export class ConfigFile {
     }
 
     /**
+     * Determines if the config file is read write accessible
+     * @param {number} perm - The permission
+     * @returns {Promise<boolean>} - returns true if the user has capabilities specified by perm.
+     * @see {@link https://nodejs.org/api/fs.html#fs_fs_access_path_mode_callback}
+     */
+    public async access(perm: number): Promise<boolean> {
+        try {
+            await SfdxUtil.access(this.path, perm);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    /**
      * Read the config file and set "this.contents"
-     *
+     * @param {boolean} throwOnNotFound - Optionally indicate if a throw should occur on file read.
      * @returns {Promise<object>} the json contents of the config file
      * @throws {Error} Throws error if there was a problem reading or parsing the file
      */
-    public async read(): Promise<object> {
+    public async read(throwOnNotFound: boolean = false): Promise<any> {
         try {
             this.contents = await SfdxUtil.readJSON(this.path);
             return this.contents;
         } catch (err) {
             if (err.code === 'ENOENT') {
-                this.contents = {};
-                return this.contents;
-            } else {
-                throw err;
+                if (!throwOnNotFound) {
+                    this.contents = {};
+                    return this.contents;
+                }
             }
+            throw err;
         }
+    }
+
+    /**
+     * Calls json.parse on the file content.
+     * @param {boolean} throwOnNotFound - Optionally indicate if a throw should occur on undefined results.
+     * @returns { Promise<object> } - The json representation of the config
+     * @see SfdxUtil.parseJSON
+     */
+    public async readJSON(throwOnNotFound: boolean = true): Promise<object> {
+        return this.read(throwOnNotFound);
     }
 
     /**
@@ -97,7 +130,7 @@ export class ConfigFile {
      * @param {object} newContents the new contents of the file
      * @returns {Promise<object>} the written contents
      */
-    public async write(newContents): Promise<object> {
+    public async write(newContents?: any): Promise<object> {
         if (!_isNil(newContents)) {
             this.contents = newContents;
         }
@@ -128,7 +161,7 @@ export class ConfigFile {
      *
      * @returns {Promise<boolean>} true if the file was deleted false otherwise
      */
-    public async deletes(): Promise<void> {
+    public async unlink(): Promise<void> {
         const exists = await this.exists();
         if (exists) {
             return await SfdxUtil.unlink(this.path);

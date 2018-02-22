@@ -8,14 +8,12 @@
 'use strict';
 
 // Node
-import { homedir as osHomedir } from 'os';
+
 import { isNil as _isNil } from 'lodash';
-import { join as pathJoin} from 'path';
 import { Messages } from '../messages';
 import { ConfigFile } from './configFile';
 import { SfdxUtil } from '../util';
 import { SfdxError } from '../sfdxError';
-import { ProjectDir } from '../projectDir';
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
@@ -74,9 +72,6 @@ export interface ConfigPropertyMetaInput {
     failedMessage: string;
 }
 
-/**
- * More Sfdx specific implementation of ConfigFile.
- */
 export class SfdxConfig extends ConfigFile {
 
     /**
@@ -134,10 +129,13 @@ export class SfdxConfig extends ConfigFile {
                 { key: SfdxConfig.DEFAULT_USERNAME }
             ];
         }
-
-        return rootPathRetriever ?
+        const config: SfdxConfig = rootPathRetriever ?
             new SfdxConfig(await rootPathRetriever(isGlobal) , isGlobal) :
-            new SfdxConfig(await SfdxConfig.getRootFolder(isGlobal) , isGlobal);
+            new SfdxConfig(await SfdxConfig.resolveRootFolder(isGlobal) , isGlobal);
+
+        await config.read();
+
+        return config;
     }
 
     /**
@@ -159,10 +157,10 @@ export class SfdxConfig extends ConfigFile {
      * @returns {Promise<object>}
      */
     public static async setPropertyValue(isGlobal: boolean, propertyName: string, value?: string | boolean,
-                                         rootPathRetriever?: (isGlobal: boolean) => Promise<string>) {
+                                         rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<object> {
 
         const rootFolder = rootPathRetriever ?
-            await rootPathRetriever(isGlobal) : await SfdxConfig.getRootFolder(isGlobal);
+            await rootPathRetriever(isGlobal) : await SfdxConfig.resolveRootFolder(isGlobal);
 
         const config = new SfdxConfig(rootFolder, isGlobal);
 
@@ -191,15 +189,6 @@ export class SfdxConfig extends ConfigFile {
 
     private static allowedProperties: ConfigPropertyMeta[];
     private static messages: Messages;
-
-    /**
-     * Helper used to determined what the local and global folder point to.
-     * @param {boolean} isGlobal - True if the config should be global. False for local.
-     * @returns {Promise<string>} - The filepath of the root folder.
-     */
-    private static async getRootFolder(isGlobal: boolean): Promise<string> {
-        return isGlobal ? osHomedir() : await ProjectDir.getPath();
-    }
 
     /**
      * Constructor

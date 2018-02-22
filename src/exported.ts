@@ -10,11 +10,13 @@ import { SfdxErrorConfig, SfdxError } from './lib/sfdxError';
 import Global from './lib/global';
 import UX from './lib/ux';
 import { Logger, LoggerLevel } from './lib/logger';
-import Connection from './lib/connection';
-import AuthInfo from './lib/authInfo';
+import { Connection } from './lib/connection';
+import { AuthInfo } from './lib/authInfo';
+import { Org } from './lib/org';
 import { SfdxConfigAggregator } from './lib/config/sfdxConfigAggregator';
-import SfdxUtil from './lib/util';
-import Alias from './lib/alias';
+import { ConfigFile } from './lib/config/configFile';
+import { Alias } from './lib/alias';
+import { SfdxUtil } from './lib/util';
 
 Messages.importMessagesDirectory(__dirname);
 
@@ -27,8 +29,10 @@ export {
     UX,
     Logger,
     LoggerLevel,
+    Org,
     Connection,
     AuthInfo,
     SfdxConfigAggregator,
+    ConfigFile,
     Alias
 };

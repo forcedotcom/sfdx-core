@@ -12,6 +12,8 @@ import * as _ from 'lodash';
 import { OAuth2, OAuth2Options } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
+import { AuthInfoConfigFile } from './config/authInfoConfigFile';
+import { ConfigFile } from './config/configFile';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
@@ -39,6 +41,7 @@ export interface AuthFields {
     scratchAdminUsername: string;
     userId: string;
     username: string;
+    usernames: string[];
     userProfileName: string;
 }
 
@@ -238,7 +241,8 @@ export class AuthInfo {
 
         // Want to throw a clean error if no files are found.
         if (_.isEmpty(authFiles)) {
-            const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'core', 'OrgDataNotAvailableError', null, 'NoOrgsFoundErrorAction');
+            const errConfig: SfdxErrorConfig =
+                new SfdxErrorConfig('sfdx-core', 'core', 'noAuthInfoFound');
             throw SfdxError.create(errConfig);
         }
 
@@ -263,15 +267,15 @@ export class AuthInfo {
     }
 
     // The regular expression that filters files stored in $HOME/.sfdx
-    private static authFilenameFilterRegEx: RegExp = /^[^.][^@]+@[^.]+(\.[^.\s]+)+\.json$/;
+    private static authFilenameFilterRegEx: RegExp = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
 
     // Cache of auth fields by username.
     private static cache: Map<string, Partial<AuthFields>> = new Map();
 
-    private logger: Logger;
-
     // All sensitive fields are encrypted
     private fields: Partial<AuthFields> = {};
+
+    private logger: Logger;
 
     constructor(username: string) {
         this.fields.username = username;
@@ -307,7 +311,8 @@ export class AuthInfo {
             } else {
                 // Fetch from the persisted auth file
                 try {
-                    authConfig = await Global.fetchConfigInfo(this.authFileName);
+                    const config: AuthInfoConfigFile = await AuthInfoConfigFile.create(this.authFileName);
+                    authConfig = await config.readJSON();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
                         throw SfdxError.create('sfdx-core', 'core', 'namedOrgNotFound', [this.username]);
@@ -368,7 +373,9 @@ export class AuthInfo {
             delete dataToSave.clientSecret;
         }
 
-        await Global.saveConfigInfo(this.authFileName, dataToSave);
+        const config: ConfigFile = await AuthInfoConfigFile.create(this.authFileName);
+        await config.write(dataToSave);
+
         this.logger.info(`Saved auth info for username: ${this.username}`);
         return this;
     }
@@ -449,6 +456,10 @@ export class AuthInfo {
         };
 
         return oauth2.getAuthorizationUrl(params);
+    }
+
+    public getFields(): Partial<AuthFields> {
+        return this.fields;
     }
 
     // A callback function for a connection to refresh an access token.  This is used

@@ -5,10 +5,11 @@ dist
 .vscode/settings.json
 
 yarn.lock
+yarn-error.log
 package-lock.json
-
 docs
 
 *coverage
 *xunit.xml
 *checkstyle.xml
+

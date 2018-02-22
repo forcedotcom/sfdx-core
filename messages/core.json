@@ -12,5 +12,6 @@
     "OrgDataNotAvailableErrorAction4": "Use `sfdx force:auth` to authenticate an existing org.",
     "namedOrgNotFound": "No AuthInfo found for name %s",
     "NoAliasesFound": "Nothing to set",
-    "InvalidFormat": "Setting aliases must be in the format <key>=<value> but found: [%s]"
+    "InvalidFormat": "Setting aliases must be in the format <key>=<value> but found: [%s]",
+    "noAuthInfoFound": "No authorization information can be found."
 }
