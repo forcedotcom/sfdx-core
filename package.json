@@ -1,6 +1,6 @@
 {
   "name": "sfdx-core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "dist/exported",
   "license": "BSD-3-Clause",
@@ -26,6 +26,7 @@
   "files": [
     "docs",
     "dist",
+    "messages",
     "typings",
     "!dist/test/**/*",
     "!dist/**/*.map"
