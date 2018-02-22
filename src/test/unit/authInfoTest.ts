@@ -8,7 +8,7 @@ import * as dns from 'dns';
 import { assert, expect } from 'chai';
 import { AuthInfo } from '../../lib/authInfo';
 import { AuthInfoConfigFile } from '../../lib/config/authInfoConfigFile';
-import { ConfigFile } from '../../lib/config/configFile';
+import { Config } from '../../lib/config/configFile';
 import { KeychainConfigFile } from '../../lib/config/keychainConfigFile';
 import { Crypto } from '../../lib/crypto';
 import { SfdxUtil } from '../../lib/util';
@@ -214,11 +214,11 @@ describe('AuthInfo', () => {
         });
 
         // Common stubs
-        $$.SANDBOX.stub(ConfigFile.prototype, 'write').callsFake(async () => {
+        $$.SANDBOX.stub(Config.prototype, 'write').callsFake(async () => {
             return Promise.resolve();
         });
 
-        $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+        $$.SANDBOX.stub(Config.prototype, 'readJSON').callsFake(async function() {
             return testMetadata.fetchConfigInfo(this.path);
         });
 
@@ -721,8 +721,8 @@ describe('AuthInfo', () => {
             expect(AuthInfo.prototype.update['called']).to.be.true;
             expect(AuthInfo.prototype.update['firstCall'].args[0]).to.deep.equal(changedData);
             expect(AuthInfo['cache'].set['called']).to.be.true;
-            expect(ConfigFile.prototype.write['called']).to.be.true;
-            const writeCall = ConfigFile.prototype.write['firstCall'];
+            expect(Config.prototype.write['called']).to.be.true;
+            const writeCall = Config.prototype.write['firstCall'];
             expect(writeCall.thisValue.name).to.equal(`${username}.json`);
 
             const crypto = await Crypto.create();

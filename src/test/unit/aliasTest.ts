@@ -13,10 +13,25 @@ import * as sinon from 'sinon';
 import { KeyValueStore } from '../../lib/config/fileKeyValueStore';
 import { Alias } from '../../lib/alias';
 import { testSetup } from '../testSetup';
-import {ConfigFile} from '../../lib/config/configFile';
+import { Config } from '../../lib/config/configFile';
 
 // Setup the test environment.
 const $$ = testSetup();
+
+describe('Alias no key value mock', () => {
+    beforeEach(() => {
+        $$.SANDBOX.stub(Config, 'resolveRootFolder')
+            .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal));
+    });
+
+    it ('steel thread', async () => {
+        const KEY = 'foo';
+        const VALUE = 'bar';
+        await Alias.parseAndUpdate([`${KEY}=${VALUE}`]);
+        expect(await Alias.fetchName(VALUE)).eq(KEY);
+        expect(await Alias.fetchValue(KEY)).eq(VALUE);
+    });
+});
 
 describe('Alias', () => {
     let validate;
@@ -24,7 +39,7 @@ describe('Alias', () => {
 
     beforeEach(() => {
         validate = () => {};
-        $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake($$.rootPathRetriever);
+        $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake($$.rootPathRetriever);
 
         const stubMethod = (...args) => {
             validate(...args);

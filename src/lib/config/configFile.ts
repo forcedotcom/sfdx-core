@@ -22,7 +22,7 @@ import { ProjectDir } from '../projectDir';
  * folder (.sfdx) and local config files are stored in the project path, either
  * in the hidden state folder or wherever specified.
  */
-export class ConfigFile {
+export class Config {
 
     /**
      * Helper used to determined what the local and global folder point to.

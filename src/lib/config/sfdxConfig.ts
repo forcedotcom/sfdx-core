@@ -11,7 +11,7 @@
 
 import { isNil as _isNil } from 'lodash';
 import { Messages } from '../messages';
-import { ConfigFile } from './configFile';
+import { Config } from './configFile';
 import { SfdxUtil } from '../util';
 import { SfdxError } from '../sfdxError';
 
@@ -72,7 +72,7 @@ export interface ConfigPropertyMetaInput {
     failedMessage: string;
 }
 
-export class SfdxConfig extends ConfigFile {
+export class SfdxConfig extends Config {
 
     /**
      * Username associated with the default dev hub org

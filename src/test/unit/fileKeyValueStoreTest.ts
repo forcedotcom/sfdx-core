@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 import { KeyValueStore } from '../../lib/config/fileKeyValueStore';
-import { ConfigFile } from '../../lib/config/configFile';
+import { Config } from '../../lib/config/configFile';
 import { testSetup } from '../testSetup';
 
 // Setup the test environment.
@@ -24,14 +24,14 @@ describe('fileKeyValueStore', () => {
         validate = () => {};
         aliases = {};
 
-        $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake($$.rootPathRetriever);
+        $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake($$.rootPathRetriever);
 
         store = await KeyValueStore.create('testfetchConfigInfos.json', 'orgs');
-        $$.SANDBOX.stub(ConfigFile.prototype, 'write').callsFake((config) => {
+        $$.SANDBOX.stub(Config.prototype, 'write').callsFake((config) => {
             validate(config);
             return Promise.resolve();
         });
-        $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(() => Promise.resolve(aliases));
+        $$.SANDBOX.stub(Config.prototype, 'readJSON').callsFake(() => Promise.resolve(aliases));
     });
 
     it('saves key value pair', async () => {
@@ -39,7 +39,7 @@ describe('fileKeyValueStore', () => {
             expect(config.default.test).to.equal('val');
         };
         await store.update('test', 'val');
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+        expect(sinon.assert.calledOnce(Config.prototype.write));
     });
 
     it('unsets multiple key value pairs', async () => {
@@ -48,7 +48,7 @@ describe('fileKeyValueStore', () => {
             expect(config.default).to.deep.equal({ test2: 'val2' });
         };
         await store.unset(['test1', 'test3']);
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+        expect(sinon.assert.calledOnce(Config.prototype.write));
     });
 
     it('unsets a single value', async () => {
@@ -57,13 +57,13 @@ describe('fileKeyValueStore', () => {
             expect(config.default).to.deep.equal({ test2: 'val2', test3: 'val3' });
         };
         await store.unset(['test1']);
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+        expect(sinon.assert.calledOnce(Config.prototype.write));
     });
 
     it('returns a list of values under a group', async () => {
         aliases = { default: { test1: 'val1', test2: 'val2', test3: 'val3' } };
         const values = await store.list();
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.readJSON));
+        expect(sinon.assert.calledOnce(Config.prototype.readJSON));
         expect(values).to.deep.equal(aliases.default);
     });
 
@@ -73,7 +73,7 @@ describe('fileKeyValueStore', () => {
             expect(config.default.test).to.be.undefined;
         };
         await store.update('test', undefined);
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+        expect(sinon.assert.calledOnce(Config.prototype.write));
     });
 
     it('only allows one value', async () => {
@@ -83,7 +83,7 @@ describe('fileKeyValueStore', () => {
             expect(config.default.another).to.equal('val');
         };
         await store.update('another', 'val');
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+        expect(sinon.assert.calledOnce(Config.prototype.write));
     });
 
     describe('updateValues', () => {
@@ -92,7 +92,7 @@ describe('fileKeyValueStore', () => {
                 expect(config.default.another).to.equal('val');
             };
             await store.updateValues({ another: 'val' });
-            expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+            expect(sinon.assert.calledOnce(Config.prototype.write));
         });
 
         it('two of same value', async () => {
@@ -101,7 +101,7 @@ describe('fileKeyValueStore', () => {
                 expect(config.default.some).to.equal('val');
             };
             await store.updateValues({ another: 'val', some: 'val' });
-            expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+            expect(sinon.assert.calledOnce(Config.prototype.write));
         });
     });
 });

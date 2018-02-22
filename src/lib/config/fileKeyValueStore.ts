@@ -6,7 +6,7 @@
  */
 import { constants as fsConstants } from 'fs';
 import * as _ from 'lodash';
-import { ConfigFile } from './configFile';
+import { Config } from './configFile';
 import SfdxError from '../sfdxError';
 
 const _set = (aliases, group, alias, property) => {
@@ -35,7 +35,7 @@ const _set = (aliases, group, alias, property) => {
  *
  * @private
  */
-export class KeyValueStore extends ConfigFile {
+export class KeyValueStore extends Config {
 
     /**
      * static intializer
@@ -44,9 +44,9 @@ export class KeyValueStore extends ConfigFile {
      */
     public static async create(filename: string, defaultGroup: string) {
         const keyValueStore: KeyValueStore =
-            new KeyValueStore(await ConfigFile.resolveRootFolder(true), true, filename);
+            new KeyValueStore(await Config.resolveRootFolder(true), true, filename);
 
-        if (! await keyValueStore.access(fsConstants.R_OK)) {
+        if (!(await keyValueStore.access(fsConstants.R_OK))) {
             await keyValueStore.write(JSON.parse(`{ "${defaultGroup}": {} }`));
         } else {
             throw new SfdxError('Failed to create global alias file.', 'AliasCreateFailed');
