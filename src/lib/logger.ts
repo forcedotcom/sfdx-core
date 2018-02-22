@@ -9,7 +9,6 @@ import * as os from 'os';
 import * as path from 'path';
 import * as bunyan from 'bunyan-sfdx-no-dtrace';
 import * as _ from 'lodash';
-import * as mkdirp from 'mkdirp';
 import { Modes, Global } from './global';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';

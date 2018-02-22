@@ -11,7 +11,6 @@ import * as childProcess from 'child_process';
 import * as _crypto from 'crypto';
 import { testSetup } from '../testSetup';
 import { Crypto } from '../../lib/crypto';
-import Messages from '../../lib/messages';
 import { keyChainImpl } from '../../lib/keyChainImpl';
 
 // Setup the test environment.

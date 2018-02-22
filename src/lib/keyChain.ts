@@ -6,7 +6,7 @@
  */
 
 import { SfdxUtil } from './util';
-import { keyChainImpl, KeychainAccess, GenericUnixKeychainAccess } from './keyChainImpl';
+import { keyChainImpl } from './keyChainImpl';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 

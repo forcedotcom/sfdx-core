@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as sinon from 'sinon';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 
 import { SfdxErrorConfig, SfdxError } from '../../lib/sfdxError';
 import Messages from '../../lib/messages';

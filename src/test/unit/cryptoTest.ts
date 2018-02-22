@@ -8,7 +8,6 @@
 import { expect } from 'chai';
 import { testSetup } from '../testSetup';
 import { Crypto } from '../../lib/crypto';
-import { KeychainConfigFile } from '../../lib/config/keychainConfigFile';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -24,9 +23,10 @@ describe('CryptoTest', function() {
     let crypto;
 
     beforeEach(() => {
-        $$.SANDBOX.stub(KeychainConfigFile.prototype, 'readJSON').callsFake(() => {
-            return Promise.resolve(TEST_KEY);
-        });
+        $$.SANDBOX.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
+            setPassword: () => Promise.resolve(),
+            getPassword: (data, cb) => cb(undefined, TEST_KEY.key)
+        }));
     });
 
     afterEach(() => {

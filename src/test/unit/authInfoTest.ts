@@ -31,6 +31,10 @@ const $$ = testSetup();
 describe('AuthInfo No fs mock', () => {
     const username = 'doesnt_exists@gb.com';
     beforeEach(() => {
+        $$.SANDBOX.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
+            setPassword: () => Promise.resolve(),
+            getPassword: (data, cb) => cb(undefined, TEST_KEY.key)
+        }));
         $$.SANDBOX.stub(AuthInfoConfigFile.prototype, 'write').callsFake(async function() {
             const path = this.path();
             if (path.includes('key.json')) {
@@ -45,7 +49,7 @@ describe('AuthInfo No fs mock', () => {
         });
     });
 
-    it ('missing config', async () => {
+    it('missing config', async () => {
         const expectedErrorName = 'namedOrgNotFound';
         try {
             await AuthInfo.create('doesnot_exist@gb.com');
@@ -790,7 +794,6 @@ describe('AuthInfo', () => {
 
     describe('refreshFn()', () => {
         it('should call init() and save()', async () => {
-            const crypto = await Crypto.create();
             const context = {
                 fields: {
                     loginUrl: testMetadata.loginUrl,
@@ -824,7 +827,6 @@ describe('AuthInfo', () => {
         });
 
         it('should call the callback with OrgDataNotAvailableError when AuthInfo.init() fails', async () => {
-            const crypto = await Crypto.create();
             const context = {
                 fields: {
                     loginUrl: testMetadata.loginUrl,

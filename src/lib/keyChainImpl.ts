@@ -14,8 +14,7 @@ import * as childProcess from 'child_process';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { SfdxUtil } from './util';
 import { Global } from './global';
-import {KeychainConfigFile} from './config/keychainConfigFile';
-import {ConfigFile} from './config/configFile';
+import { KeychainConfigFile } from './config/keychainConfigFile';
 
 /* tslint:disable: no-bitwise */
 
@@ -422,8 +421,8 @@ export class GenericKeychainAccess {
         await Global.createDir();
 
         try {
-            const stats = await SfdxUtil.access(Global.DIR, fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
-            cb(null, stats);
+            await SfdxUtil.access(Global.DIR, fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
+            cb(null);
         } catch (err) {
             cb(err);
         }
@@ -433,10 +432,12 @@ export class GenericKeychainAccess {
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 
     protected async isValidFileAccess(cb): Promise<any> {
-        super.isValidFileAccess(async (err, stats) => {
+        super.isValidFileAccess(async (err) => {
             if (!_.isNil(err)) {
                 cb(err);
             } else {
+                const keyFile = await KeychainConfigFile.create();
+                const stats = await keyFile.stat();
                 const octalModeStr  = (stats.mode & 0o777).toString(8);
                 const EXPECTED_OCTAL_PERM_VALUE = '600';
                 if (octalModeStr === EXPECTED_OCTAL_PERM_VALUE) {

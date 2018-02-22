@@ -8,7 +8,7 @@ import { constants as fsConstants } from 'fs';
 import { AuthInfo, AuthFields } from '../../lib/authInfo';
 import { Connection } from '../../lib/connection';
 import { Org, OrgMetaInfo, OrgStatus } from '../../lib/org';
-import { OAuth2, RequestInfo } from 'jsforce';
+import { OAuth2 } from 'jsforce';
 import { expect, assert } from 'chai';
 import { testSetup } from '../testSetup';
 import { ConfigFile } from '../../lib/config/configFile';
@@ -22,7 +22,6 @@ import { Global } from '../../lib/global';
 import { OrgConfigFile, OrgConfigType } from '../../lib/config/orgConfigFile';
 import { ProjectDir } from '../../lib/projectDir';
 import { SfdxConfigAggregator } from '../../lib/config/sfdxConfigAggregator';
-import { SfdxError } from '../../lib/sfdxError';
 import { Alias } from '../../lib/alias';
 import { set as _set, isEqual as _isEqual } from 'lodash';
 import * as Transport from 'jsforce/lib/transport';
@@ -103,6 +102,10 @@ describe('Org Tests', () => {
 
     beforeEach(() => {
         testData = new MockTestOrgData();
+        $$.SANDBOX.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
+            setPassword: () => Promise.resolve(),
+            getPassword: (data, cb) => cb(undefined, '12345678901234567890123456789012')
+        }));
     });
 
     describe('retrieveMaxApiVersion', () => {
@@ -423,9 +426,7 @@ describe('Org Tests', () => {
                 return Promise.resolve({});
             });
 
-            let orgPath = '';
             $$.SANDBOX.stub(SfdxUtil, 'remove').callsFake((path) => {
-                orgPath = path;
                 return Promise.resolve({});
             });
 

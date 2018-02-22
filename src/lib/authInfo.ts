@@ -97,6 +97,7 @@ class AuthCodeOAuth2 extends OAuth2 {
      *
      * See - https://github.com/jsforce/jsforce/issues/665
      */
+    // tslint:disable-next-line:no-unused-variable
     private async _postParams(params, callback) {
         _.set(params, 'code_verifier', this.codeVerifier);
         return super._postParams(params, callback);
