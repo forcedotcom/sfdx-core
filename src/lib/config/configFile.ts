@@ -7,6 +7,7 @@
 
 'use strict';
 
+import { Stats as fsStats, constants as fsConstants } from 'fs';
 import { join as pathJoin, dirname as pathDirname } from 'path';
 import { isBoolean as _isBoolean, isNil as _isNil } from 'lodash';
 import { Global } from '../global';
@@ -148,12 +149,16 @@ export class ConfigFile {
      * @returns {Promise<boolean>} true if the config file exists and has access false otherwise.
      */
     public async exists(): Promise<boolean> {
-        try {
-            await SfdxUtil.stat(this.path);
-            return true;
-        } catch (err) {
-            return false;
-        }
+        return await this.access(fsConstants.R_OK);
+    }
+
+    /**
+     * Get the stats of the file
+     *
+     * @returns {Promise<fs.Stats>} stats The stats of the file.
+     */
+    public async stat(): Promise<fsStats> {
+        return SfdxUtil.stat(this.path);
     }
 
     /**
