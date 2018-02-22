@@ -103,6 +103,10 @@ describe('Org Tests', () => {
 
     beforeEach(() => {
         testData = new MockTestOrgData();
+        $$.SANDBOX.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
+            setPassword: () => Promise.resolve(),
+            getPassword: (data, cb) => cb(undefined, '12345678901234567890123456789012')
+        }));
     });
 
     describe('retrieveMaxApiVersion', () => {
