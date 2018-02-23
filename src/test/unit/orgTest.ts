@@ -565,13 +565,13 @@ describe('Org Tests', () => {
                     await Connection.create(await AuthInfo.create(user.username)), sfdxConfigAggregator);
 
                 const maxRevConfig: OrgConfigFile = await org.retrieveMaxRevisionConfig();
-                maxRevConfig.write(1);
+                await maxRevConfig.write(1);
 
                 const metaTypeConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
-                metaTypeConfig.write({ sourceApiVersion: '42.0' });
+                await metaTypeConfig.write({ sourceApiVersion: '42.0' });
 
                 const sourcePathConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
-                sourcePathConfig.write([[
+                await sourcePathConfig.write([[
                     '/Users/tnoonan/foo/force-app',
                     {
                         state: 'n',

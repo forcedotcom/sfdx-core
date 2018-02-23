@@ -17,7 +17,7 @@
         "quotemark": [true, "single", "avoid-template"],
         "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
         "variable-name": [true, "allow-leading-underscore"],
-
+        "no-floating-promises": true,
         // Test specific
         "no-unused-expression": false
     },

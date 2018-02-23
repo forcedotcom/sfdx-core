@@ -110,7 +110,7 @@ describe('SfdxConfigFile', () => {
         it('noPropertyInput validation', async () => {
             const config: SfdxConfig = await SfdxConfig.create(undefined, $$.rootPathRetriever);
             config.setContents([]);
-            config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, 'foo@example.com');
+            await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, 'foo@example.com');
             expect(config.getContents()[SfdxConfig.DEFAULT_USERNAME]).to.be.equal('foo@example.com');
         });
     });

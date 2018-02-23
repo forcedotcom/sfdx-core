@@ -41,7 +41,7 @@ export const retrieveKeychain = async (platform): Promise<any> => {
         } else {
             // otherwise try and use the builtin keychain
             try {
-                keyChainImpl.linux.validateProgram();
+                await keyChainImpl.linux.validateProgram();
                 return keyChainImpl.linux;
             } catch (e) {
                 // If the builtin keychain is not available use generic
