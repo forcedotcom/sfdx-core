@@ -186,7 +186,7 @@ export class SfdxUtil {
      */
     public static remove(path: string): Promise<void> {
         if (!path) {
-            throw new SfdxError('Path is null or undefined.');
+            throw new SfdxError('Path is null or undefined.', 'PathIsNullOrUndefined');
         }
         return SfdxUtil.access(path, fs.constants.R_OK)
             .catch(() => {
