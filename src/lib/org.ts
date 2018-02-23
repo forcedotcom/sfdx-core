@@ -317,13 +317,12 @@ export class Org {
      *  @returns {Org} - Org object or null if org is not affiliated to a Dev Hub (according to local config).
      */
     public async getDevHubOrg(): Promise<Org> {
-
-        const orgData = this.getConnection().getAuthInfo().getFields();
+        const orgData: OrgMetaInfo = this.getMetaInfo();
 
         if (this.isDevHubOrg()) {
-            return this;
-        } else if (orgData.devHubUsername) {
-            return Org.create(await Connection.create(await AuthInfo.create(orgData.username)));
+            return Promise.resolve(this);
+        } else if (orgData.info.getFields().devHubUsername) {
+            return Org.create(await Connection.create(await AuthInfo.create(orgData.info.getFields().devHubUsername)));
         }
     }
 

@@ -23,8 +23,9 @@ import { OrgConfigFile, OrgConfigType } from '../../lib/config/orgConfigFile';
 import { ProjectDir } from '../../lib/projectDir';
 import { SfdxConfigAggregator } from '../../lib/config/sfdxConfigAggregator';
 import { Alias } from '../../lib/alias';
-import { set as _set, isEqual as _isEqual } from 'lodash';
+import { set as _set, get as _get, isEqual as _isEqual } from 'lodash';
 import * as Transport from 'jsforce/lib/transport';
+import { RequestInfo } from '../../../typings/jsforce';
 
 const $$ = testSetup();
 
@@ -61,6 +62,10 @@ class MockTestOrgData {
         this.devHubUsername = username;
     }
 
+    public makeDevHub(): void {
+        _set(this, 'isDevHub', true);
+    }
+
     public createUser(user: string): MockTestOrgData {
         const userMock = new MockTestOrgData();
         userMock.username = user;
@@ -90,6 +95,11 @@ class MockTestOrgData {
 
         if (this.devHubUsername) {
             _set(config, 'devHubUsername', this.devHubUsername);
+        }
+
+        const isDevHub = _get(this, 'isDevHub');
+        if (isDevHub) {
+            _set(config, 'isDevHub', isDevHub);
         }
 
         return config;
@@ -555,13 +565,13 @@ describe('Org Tests', () => {
                     await Connection.create(await AuthInfo.create(user.username)), sfdxConfigAggregator);
 
                 const maxRevConfig: OrgConfigFile = await org.retrieveMaxRevisionConfig();
-                maxRevConfig.write(1);
+                await maxRevConfig.write(1);
 
                 const metaTypeConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
-                metaTypeConfig.write({ sourceApiVersion: '42.0' });
+                await metaTypeConfig.write({ sourceApiVersion: '42.0' });
 
                 const sourcePathConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
-                sourcePathConfig.write([[
+                await sourcePathConfig.write([[
                     '/Users/tnoonan/foo/force-app',
                     {
                         state: 'n',
@@ -723,6 +733,60 @@ describe('Org Tests', () => {
             } catch (err) {
                 expect(err).to.have.property('name', 'notADevHub');
             }
+        });
+    });
+
+    describe('getDevHubOrg', () => {
+
+        const devHubUser = 'ray@gb.org';
+        beforeEach(() => {
+            $$.SANDBOX.stub(Config, 'resolveRootFolder')
+                .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal));
+
+            $$.SANDBOX.stub(Config.prototype, 'readJSON').callsFake(async function() {
+                if (this.path.includes(devHubUser)) {
+                    const mockDevHubData: MockTestOrgData = new MockTestOrgData();
+                    mockDevHubData.username = devHubUser;
+                    return Promise.resolve(mockDevHubData);
+                }
+                return Promise.resolve(await testData.getConfig());
+            });
+        });
+
+        it ('steel thread', async () => {
+            testData.createDevHubUsername(devHubUser);
+            const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
+
+            const devHub: Org = await org.getDevHubOrg();
+            expect(devHub.getMetaInfo().info.getFields().username).eq(devHubUser);
+        });
+
+        it ('org is devhub', async () => {
+            testData.makeDevHub();
+            const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
+
+            const devHub: Org = await org.getDevHubOrg();
+            expect(devHub.getMetaInfo().info.getFields().username).eq(testData.username);
+        });
+    });
+
+    describe('refresh auth', () => {
+        let url;
+        beforeEach(() => {
+            $$.SANDBOX.stub(Config.prototype, 'readJSON').callsFake(async function() {
+                return Promise.resolve(await testData.getConfig());
+            });
+
+            $$.SANDBOX.stub(Connection.prototype, 'request').callsFake(async (requestInfo: RequestInfo): Promise<any> => {
+                url = requestInfo.url;
+                return Promise.resolve({});
+            });
+        });
+        it ('should request an refresh token', async () => {
+            const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
+            await org.refreshAuth();
+            // Todo add the apiversion to the test string
+            expect(url).to.include(`${testData.instanceUrl}/services/data/v`);
         });
     });
 });

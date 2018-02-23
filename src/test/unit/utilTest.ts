@@ -9,6 +9,8 @@ import { assert, expect } from 'chai';
 
 import { SfdxUtil } from '../../lib/util';
 import { testSetup } from '../testSetup';
+import { tmpdir as osTmpdir } from 'os';
+import { join as pathJoin } from 'path';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -96,4 +98,74 @@ describe('Util', () => {
             expect(SfdxUtil.isSalesforceDomain(undefined)).to.be.false;
         });
     });
+
+    describe('remove', () => {
+        it ('should throw an error on falsey', async () => {
+            try {
+                await SfdxUtil.remove(undefined);
+                assert.fail('This test is designed to throw an error');
+            } catch (e) {
+                expect(e).to.have.property('name', 'PathIsNullOrUndefined');
+            }
+        });
+
+        it ('should remove a folder with no files', async () => {
+            const folderToDelete = pathJoin(osTmpdir(), 'foo');
+            await SfdxUtil.mkdirp(folderToDelete);
+            await SfdxUtil.remove(folderToDelete);
+
+            try {
+                await SfdxUtil.access(folderToDelete);
+                assert.fail('This test is design to throw and error');
+            } catch (e) {
+                expect(e).to.have.property('code', 'ENOENT');
+            }
+        });
+
+        it ('should remove a folder with one file', async () => {
+            const folderToDelete = pathJoin(osTmpdir(), 'foo');
+            const fileToDelete = pathJoin(folderToDelete, 'test.json');
+
+            await SfdxUtil.mkdirp(folderToDelete);
+            await SfdxUtil.writeJSON(fileToDelete, {});
+            await SfdxUtil.remove(folderToDelete);
+
+            for (const path of [folderToDelete, fileToDelete]) {
+                try {
+                    await SfdxUtil.access(path);
+                    assert.fail('This test is design to throw and error');
+                } catch (e) {
+                    expect(e).to.have.property('code', 'ENOENT');
+                }
+            }
+        });
+
+        it ('should remove nested sub dirs', async () => {
+            const folderToDelete = pathJoin(osTmpdir(), 'alpha');
+            const sub1 = pathJoin(folderToDelete, 'bravo');
+            const sub2 = pathJoin(folderToDelete, 'charlie');
+            const nestedSub1 = pathJoin(sub1, 'echo');
+            const file1 = pathJoin(nestedSub1, 'foo.txt');
+            const file2 = pathJoin(sub2, 'foo.txt');
+
+            await SfdxUtil.mkdirp(sub2);
+            await SfdxUtil.mkdirp(nestedSub1);
+
+            await SfdxUtil.writeJSON(file1, {});
+            await SfdxUtil.writeJSON(file2, {});
+
+            await SfdxUtil.remove(folderToDelete);
+
+            for (const path of [file1, file2, nestedSub1, sub2, sub1]) {
+                try {
+                    await SfdxUtil.access(path);
+                    assert.fail('This test is design to throw and error');
+                } catch (e) {
+                    expect(e).to.have.property('code', 'ENOENT');
+                }
+            }
+
+        });
+    });
+
 });

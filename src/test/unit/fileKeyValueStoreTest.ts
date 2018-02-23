@@ -5,15 +5,37 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { join as pathJoin } from 'path';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 import { KeyValueStore } from '../../lib/config/fileKeyValueStore';
 import { Config } from '../../lib/config/configFile';
 import { testSetup } from '../testSetup';
+import { SfdxUtil } from '../../lib/util';
 
 // Setup the test environment.
 const $$ = testSetup();
+
+describe('fileKeyValueStore live file', () => {
+
+    let rootFolder;
+    const filename = 'test_keyvalue.json';
+    beforeEach(async () => {
+        rootFolder = await $$.rootPathRetriever(true);
+        $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake(() => Promise.resolve(rootFolder));
+
+        const content = { orgs: { foo: 'foo@example.com' } };
+        const sfdxPath = pathJoin(rootFolder, '.sfdx');
+        await SfdxUtil.mkdirp(sfdxPath);
+        await SfdxUtil.writeJSON(pathJoin(sfdxPath, filename), content);
+    });
+
+    it ('file already exists', async () => {
+        const store: KeyValueStore = await KeyValueStore.create(filename, 'orgs');
+        expect(await store.fetch('foo', 'orgs')).to.eq('foo@example.com');
+    });
+});
 
 describe('fileKeyValueStore', () => {
     let validate;

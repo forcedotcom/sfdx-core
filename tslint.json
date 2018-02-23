@@ -20,6 +20,7 @@
 	    "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
         "variable-name": [true, "allow-leading-underscore"],
         "no-trailing-whitespace": [true],
+        "no-floating-promises": true,
         // -- Begin MS SDL https://github.com/Microsoft/tslint-microsoft-contrib/wiki/TSLint-and-the-Microsoft-Security-Development-Lifecycle
         "no-banned-terms": true,
         "no-delete-expression": true,

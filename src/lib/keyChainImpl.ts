@@ -363,7 +363,7 @@ export class GenericKeychainAccess {
 
     public async getPassword(opts, fn): Promise<any> {
         // validate the file in .sfdx
-        this.isValidFileAccess(async (fileAccessError) => {
+        await this.isValidFileAccess(async (fileAccessError) => {
 
             // the file checks out.
             if (_.isNil(fileAccessError)) {
@@ -397,7 +397,7 @@ export class GenericKeychainAccess {
 
     public async setPassword(opts, fn): Promise<any> {
         // validate the file in .sfdx
-        this.isValidFileAccess((fileAccessError) => {
+        await this.isValidFileAccess((fileAccessError) => {
             // if there is a validation error
             if (!_.isNil(fileAccessError)) {
 
@@ -432,7 +432,7 @@ export class GenericKeychainAccess {
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 
     protected async isValidFileAccess(cb): Promise<any> {
-        super.isValidFileAccess(async (err) => {
+        await super.isValidFileAccess(async (err) => {
             if (!_.isNil(err)) {
                 cb(err);
             } else {
