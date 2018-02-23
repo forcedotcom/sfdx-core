@@ -46,12 +46,9 @@ export class KeyValueStore extends Config {
         const keyValueStore: KeyValueStore =
             new KeyValueStore(await Config.resolveRootFolder(true), true, filename);
 
-        if (!(await keyValueStore.access(fsConstants.R_OK))) {
+        if (!(await keyValueStore.access(fsConstants.R_OK | fsConstants.W_OK))) {
             await keyValueStore.write(JSON.parse(`{ "${defaultGroup}": {} }`));
-        } else {
-            throw new SfdxError('Failed to create global alias file.', 'AliasCreateFailed');
         }
-
         return keyValueStore;
     }
 

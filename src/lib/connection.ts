@@ -87,7 +87,7 @@ export class Connection extends JSForceConnection {
      */
     public baseUrl(): string {
         // essentially the same as pathJoin(super.instanceUrl, 'services', 'data', `v${super.version}`);
-        return super._baseUrl;
+        return super._baseUrl();
     }
 
     /**
