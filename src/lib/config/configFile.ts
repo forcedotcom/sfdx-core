@@ -86,7 +86,7 @@ export class Config {
      */
     public async access(perm: number): Promise<boolean> {
         try {
-            await SfdxUtil.access(this.path, perm);
+            await SfdxUtil.access(this.getPath(), perm);
             return true;
         } catch (err) {
             return false;
@@ -99,15 +99,15 @@ export class Config {
      * @returns {Promise<object>} the json contents of the config file
      * @throws {Error} Throws error if there was a problem reading or parsing the file
      */
-    public async read(throwOnNotFound: boolean = false): Promise<any> {
+    public async read(throwOnNotFound: boolean = false): Promise<object> {
         try {
-            this.contents = await SfdxUtil.readJSON(this.path);
-            return this.contents;
+            this.setContents(await SfdxUtil.readJSON(this.getPath()));
+            return Promise.resolve(this.contents);
         } catch (err) {
             if (err.code === 'ENOENT') {
                 if (!throwOnNotFound) {
                     this.contents = {};
-                    return this.contents;
+                    return Promise.resolve(this.contents);
                 }
             }
             throw err;
@@ -121,7 +121,7 @@ export class Config {
      * @see SfdxUtil.parseJSON
      */
     public async readJSON(throwOnNotFound: boolean = true): Promise<object> {
-        return this.read(throwOnNotFound);
+        return await this.read(throwOnNotFound);
     }
 
     /**
@@ -136,9 +136,9 @@ export class Config {
             this.contents = newContents;
         }
 
-        await SfdxUtil.mkdirp(pathDirname(this.path));
+        await SfdxUtil.mkdirp(pathDirname(this.getPath()));
 
-        await SfdxUtil.writeFile(this.path, JSON.stringify(this.contents, null, 4));
+        await SfdxUtil.writeFile(this.getPath(), JSON.stringify(this.contents, null, 4));
 
         return this.contents;
     }
@@ -158,7 +158,7 @@ export class Config {
      * @returns {Promise<fs.Stats>} stats The stats of the file.
      */
     public async stat(): Promise<fsStats> {
-        return SfdxUtil.stat(this.path);
+        return SfdxUtil.stat(this.getPath());
     }
 
     /**
@@ -169,9 +169,9 @@ export class Config {
     public async unlink(): Promise<void> {
         const exists = await this.exists();
         if (exists) {
-            return await SfdxUtil.unlink(this.path);
+            return await SfdxUtil.unlink(this.getPath());
         }
-        throw new SfdxError(`Target file doesn't exist. path: ${this.path}`, 'TargetFileNotFound');
+        throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
     }
 
     /**

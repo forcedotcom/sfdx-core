@@ -7,7 +7,6 @@
 import { constants as fsConstants } from 'fs';
 import * as _ from 'lodash';
 import { Config } from './configFile';
-import SfdxError from '../sfdxError';
 
 const _set = (aliases, group, alias, property) => {
     if (_.isNil(aliases[group])) {
@@ -42,11 +41,11 @@ export class KeyValueStore extends Config {
      * @param {string} filename - The filename for this keyValueStore
      * @returns {Promise<KeyValueStore>}
      */
-    public static async create(filename: string, defaultGroup: string) {
+    public static async create(filename: string, defaultGroup: string): Promise<KeyValueStore> {
         const keyValueStore: KeyValueStore =
             new KeyValueStore(await Config.resolveRootFolder(true), true, filename);
 
-        if (!(await keyValueStore.access(fsConstants.R_OK | fsConstants.W_OK))) {
+        if (!(await keyValueStore.access(fsConstants.R_OK))) {
             await keyValueStore.write(JSON.parse(`{ "${defaultGroup}": {} }`));
         }
         return keyValueStore;
@@ -118,7 +117,8 @@ export class KeyValueStore extends Config {
      */
     public async fetch(alias: string, group: string = 'default'): Promise<string> {
         const aliases = await this.list(group);
-        return aliases[alias];
+        const result = aliases[alias];
+        return result;
     }
 
     /**
