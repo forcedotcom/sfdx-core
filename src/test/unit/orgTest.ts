@@ -725,4 +725,33 @@ describe('Org Tests', () => {
             }
         });
     });
+
+    describe('getDevHubOrg', () => {
+
+        const devHubUser = 'ray@gb.org';
+        beforeEach(() => {
+            $$.SANDBOX.stub(Config, 'resolveRootFolder')
+                .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal));
+
+            $$.SANDBOX.stub(Config.prototype, 'readJSON').callsFake(async function() {
+                if (this.path.includes(devHubUser)) {
+                    const mockDevHubData: MockTestOrgData = new MockTestOrgData();
+                    mockDevHubData.username = devHubUser;
+                    return Promise.resolve(mockDevHubData);
+                }
+                return Promise.resolve(await testData.getConfig());
+            });
+        });
+
+        it ('steel thread', async () => {
+            testData.createDevHubUsername(devHubUser);
+            const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
+
+            const devHub: Org = await org.getDevHubOrg();
+            expect(devHub.getMetaInfo().info.getFields().username).eq(devHubUser);
+        });
+
+        it ('org is devhub', () => {});
+
+    });
 });
