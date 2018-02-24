@@ -29,13 +29,13 @@ describe('SfdxConfigFile', () => {
     describe('instantiation', () => {
         const id: string = $$.uniqid();
         it('using global', async () => {
-            const config: SfdxConfig = await SfdxConfig.create(true, () => $$.rootPathRetriever(true, id));
+            const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
             expect(config.getPath()).to.not.contain(await $$.localPathRetriever(id));
             expect(config.getPath()).to.contain('.sfdx');
             expect(config.getPath()).to.contain('sfdx-config.json');
         });
         it('not using global', async () => {
-            const config: SfdxConfig = await SfdxConfig.create(false, () => $$.rootPathRetriever(false, id));
+            const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(false));
             expect(config.getPath()).to.contain(await $$.localPathRetriever(id));
             expect(config.getPath()).to.contain('.sfdx');
             expect(config.getPath()).to.contain('sfdx-config.json');
@@ -45,7 +45,7 @@ describe('SfdxConfigFile', () => {
     describe('read', () => {
 
         it('adds content of the config file from this.path to this.contents', async () => {
-            const config: SfdxConfig = await SfdxConfig.create(true, $$.rootPathRetriever);
+            const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
 
             $$.SANDBOX.stub(SfdxUtil, 'readJSON')
                 .withArgs(config.getPath(), false)
@@ -88,7 +88,7 @@ describe('SfdxConfigFile', () => {
 
     describe('setPropertyValue', () => {
         it('UnknownConfigKey', async () => {
-            const config: SfdxConfig = await SfdxConfig.create(undefined, $$.rootPathRetriever);
+            const config: SfdxConfig = await SfdxConfig.create({});
             try {
                 await config.setPropertyValue('foo', 'bar');
                 assert.fail('Expected an error to be thrown.');
@@ -98,7 +98,7 @@ describe('SfdxConfigFile', () => {
         });
 
         it('invalidConfigValue', async () => {
-            const config: SfdxConfig = await SfdxConfig.create(undefined, $$.rootPathRetriever);
+            const config: SfdxConfig = await SfdxConfig.create({});
             try {
                 await config.setPropertyValue('apiVersion', '1');
                 assert.fail('Expected an error to be thrown.');
@@ -108,7 +108,7 @@ describe('SfdxConfigFile', () => {
         });
 
         it('noPropertyInput validation', async () => {
-            const config: SfdxConfig = await SfdxConfig.create(undefined, $$.rootPathRetriever);
+            const config: SfdxConfig = await SfdxConfig.create({});
             config.setContents([]);
             await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, 'foo@example.com');
             expect(config.getContents()[SfdxConfig.DEFAULT_USERNAME]).to.be.equal('foo@example.com');

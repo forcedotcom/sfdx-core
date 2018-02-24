@@ -19,7 +19,7 @@ import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { SfdxUtil } from '../../lib/util';
 import { Global } from '../../lib/global';
-import { OrgConfigFile, OrgConfigType } from '../../lib/config/orgConfigFile';
+import { OrgUsersConfig } from '../../lib/config/OrgUsersConfig';
 import { ProjectDir } from '../../lib/projectDir';
 import { SfdxConfigAggregator } from '../../lib/config/sfdxConfigAggregator';
 import { Alias } from '../../lib/alias';
@@ -222,14 +222,6 @@ describe('Org Tests', () => {
                 });
             });
 
-            it ('with data path', async () => {
-                const orgDataPath = 'foo';
-                const org: Org = await Org.create(
-                    await Connection.create(await AuthInfo.create(testData.username)));
-                await org.cleanData(orgDataPath);
-                expect(removePath.endsWith(pathJoin(Global.STATE_FOLDER, orgDataPath))).to.be.equal(true);
-            });
-
             it ('no org data path', async () => {
                 const org: Org = await Org.create(
                     await Connection.create(await AuthInfo.create(testData.username)));
@@ -238,7 +230,7 @@ describe('Org Tests', () => {
                 await org.cleanData();
                 expect(removeStub.callCount).to.be.equal(1);
 
-                expect(removePath).to.include(pathJoin(Global.STATE_FOLDER, OrgConfigFile.ORGS_FOLDER_NAME,
+                expect(removePath).to.include(pathJoin(Global.STATE_FOLDER, OrgUsersConfig.ORGS_FOLDER_NAME,
                     testData.username));
             });
         });
@@ -285,37 +277,6 @@ describe('Org Tests', () => {
         });
     });
 
-    describe('getDataPath', () => {
-        beforeEach(() => {
-            $$.SANDBOX.stub(Config.prototype, 'readJSON').callsFake(async () => {
-                return Promise.resolve(await testData.getConfig());
-            });
-        });
-
-        it ('should return the dataPath for the org.', async () => {
-            const testFilename = 'bar';
-            const org: Org = await Org.create(
-                await Connection.create(await AuthInfo.create(testData.username)));
-            expect(org.getDataPath('bar')).to.be.equal(
-                pathJoin(OrgConfigFile.ORGS_FOLDER_NAME, testData.username, testFilename));
-        });
-
-        it ('undefined field name', async () => {
-            const org: Org = await Org.create(
-                await Connection.create(await AuthInfo.create(testData.username)));
-            expect(org.getDataPath(undefined)).to.be.equal(
-                pathJoin(OrgConfigFile.ORGS_FOLDER_NAME, testData.username));
-        });
-
-        it ('null field name', async () => {
-            const org: Org = await Org.create(
-                await Connection.create(await AuthInfo.create(testData.username)));
-
-            expect(org.getDataPath(null)).to.be.equal(
-                pathJoin(OrgConfigFile.ORGS_FOLDER_NAME, testData.username));
-        });
-    });
-
     describe('orgConfigs', () => {
         beforeEach(() => {
 
@@ -331,70 +292,10 @@ describe('Org Tests', () => {
                 return Promise.resolve(osTmpdir());
             });
         });
-        describe('getMaxRevision', () => {
-            it('valid value', async () => {
-                let maxRevisionPath = '';
-                $$.SANDBOX.stub(Config.prototype, 'read').callsFake(function() {
-                    maxRevisionPath = this.path;
-                    return Promise.resolve(JSON.parse('1'));
-                });
-
-                const org: Org = await Org.create(
-                    await Connection.create(await AuthInfo.create(testData.username)));
-                const maxRevisionConfig: OrgConfigFile = await org.retrieveMaxRevisionConfig();
-                const maxRevision = await maxRevisionConfig.read();
-                expect(maxRevision).to.be.equal(1);
-                expect(maxRevisionPath).to.include(OrgConfigType.MAX_REVISION.valueOf());
-            });
-        });
-
-        describe('getSourcePathInfos', () => {
-            it ('valid', async () => {
-                let sourcePathInfosPath = '';
-                $$.SANDBOX.stub(Config.prototype, 'read').callsFake(function() {
-                    sourcePathInfosPath = this.path;
-                    return Promise.resolve([['foo', { sourcePath: 'bar' }]]);
-                });
-
-                const org: Org = await Org.create(
-                    await Connection.create(await AuthInfo.create(testData.username)));
-                const sourceInfosConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
-                const sourceInfos: any = await sourceInfosConfig.read();
-
-                expect(sourcePathInfosPath).to.include(pathJoin(OrgConfigFile.ORGS_FOLDER_NAME,
-                    testData.username, OrgConfigType.SOURCE_PATH_INFOS.valueOf()));
-                expect(sourceInfos.length).to.be.equal(1);
-                expect(sourceInfos[0].length).to.be.equal(2);
-                expect(sourceInfos[0][0]).to.be.equal('foo');
-                expect(sourceInfos[0][1].sourcePath).to.be.equal('bar');
-            });
-        });
-
-        describe('getMetadataTypeInfo', () => {
-            it ('valid', async () => {
-
-                let metadataTypeInfosPath = '';
-                $$.SANDBOX.stub(Config.prototype, 'read').callsFake(function() {
-                    metadataTypeInfosPath = this.path;
-                    return Promise.resolve({ sourceApiVersion: '41.0' });
-                });
-
-                const org: Org = await Org.create(
-                    await Connection.create(await AuthInfo.create(testData.username)));
-                const metadataConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
-                const metadataTypeInfos = await metadataConfig.read();
-                expect(metadataTypeInfos).to.have.property('sourceApiVersion', '41.0');
-                expect(metadataTypeInfosPath).to.include(pathJoin(OrgConfigFile.ORGS_FOLDER_NAME,
-                    testData.username, OrgConfigType.METADATA_TYPE_INFOS.valueOf()));
-            });
-        });
     });
 
     describe('remove', () => {
 
-        // const connection: Connection = new MockConnection();
-
-        const rootFolder = '';
         let aliases = {  orgs: {} };
         const testId: string = $$.uniqid();
 
@@ -436,18 +337,12 @@ describe('Org Tests', () => {
                 return Promise.resolve({});
             });
 
-            $$.SANDBOX.stub(SfdxUtil, 'remove').callsFake((path) => {
+            $$.SANDBOX.stub(SfdxUtil, 'remove').callsFake(() => {
                 return Promise.resolve({});
             });
 
             await org.remove();
 
-            expect(deletedPaths).includes(pathJoin(await $$.localPathRetriever(testId), Global.STATE_FOLDER,
-                OrgConfigFile.ORGS_FOLDER_NAME, testData.username, OrgConfigType.SOURCE_PATH_INFOS.valueOf()));
-            expect(deletedPaths).includes(pathJoin(await $$.localPathRetriever(testId), Global.STATE_FOLDER,
-                OrgConfigFile.ORGS_FOLDER_NAME, testData.username, OrgConfigType.MAX_REVISION.valueOf()));
-            expect(deletedPaths).includes(pathJoin(await $$.localPathRetriever(testId), Global.STATE_FOLDER,
-                OrgConfigFile.ORGS_FOLDER_NAME, testData.username, OrgConfigType.METADATA_TYPE_INFOS.valueOf()));
             expect(deletedPaths).includes(pathJoin(await $$.globalPathRetriever(testId), Global.STATE_FOLDER,
                 `${testData.orgId}.json`));
         });
@@ -479,7 +374,7 @@ describe('Org Tests', () => {
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)), sfdxConfigAggregator);
 
-            const config: SfdxConfig = await SfdxConfig.create(true);
+            const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
             await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, testData.username);
             await config.write();
 
@@ -564,29 +459,6 @@ describe('Org Tests', () => {
                 const org: Org = await Org.create(
                     await Connection.create(await AuthInfo.create(user.username)), sfdxConfigAggregator);
 
-                const maxRevConfig: OrgConfigFile = await org.retrieveMaxRevisionConfig();
-                await maxRevConfig.write(1);
-
-                const metaTypeConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
-                await metaTypeConfig.write({ sourceApiVersion: '42.0' });
-
-                const sourcePathConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
-                await sourcePathConfig.write([[
-                    '/Users/tnoonan/foo/force-app',
-                    {
-                        state: 'n',
-                        sourcePath: '/Users/tnoonan/foo/force-app',
-                        isDirectory: true,
-                        isMetadataFile: false,
-                        size: 102,
-                        modifiedTime: 1518292409000,
-                        changeTime: 1518292409000,
-                        contentHash: 'b28b7af69320201d1cf206ebf28373980add1451',
-                        isWorkspace: false,
-                        isArtifactRoot: true
-                    }
-                ]]);
-
                 orgs.push(org);
             }
 
@@ -594,38 +466,15 @@ describe('Org Tests', () => {
         });
 
         it('should validate expected files', async () => {
-            for (const org of orgs) {
-                const maxRevConfig = await org.retrieveMaxRevisionConfig();
-                const metaTypeConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
-                const sourcePathConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
-
-                expect(await maxRevConfig.access(fsConstants.R_OK)).to.be.true;
-                expect(await metaTypeConfig.access(fsConstants.R_OK)).to.be.true;
-                expect(await sourcePathConfig.access(fsConstants.R_OK)).to.be.true;
-            }
-
-            const user0Config: OrgConfigFile = await orgs[0].retrieveOrgUsersConfig();
-            const user1Config: OrgConfigFile = await orgs[1].retrieveOrgUsersConfig();
+            const user0Config: OrgUsersConfig = await orgs[0].retrieveOrgUsersConfig();
+            const user1Config: OrgUsersConfig = await orgs[1].retrieveOrgUsersConfig();
 
             expect(await user0Config.access(fsConstants.R_OK)).to.be.true;
             expect(await user1Config.access(fsConstants.R_OK)).to.be.false;
         });
 
-        it('should validate org artifacts are gone', async () => {
-            await orgs[0].remove();
-            for (const org of orgs) {
-                const maxRevConfig = await org.retrieveMaxRevisionConfig();
-                const metaTypeConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
-                const sourcePathConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
-
-                expect(await maxRevConfig.access(fsConstants.R_OK)).to.be.false;
-                expect(await metaTypeConfig.access(fsConstants.R_OK)).to.be.false;
-                expect(await sourcePathConfig.access(fsConstants.R_OK)).to.be.false;
-            }
-        });
-
         it('should remove aliases and config settings', async () => {
-            const config: SfdxConfig = await SfdxConfig.create(true);
+            const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
 
             const org0Username = orgs[0].getMetaInfo().info.getFields().username;
             await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, org0Username);
@@ -655,18 +504,8 @@ describe('Org Tests', () => {
 
             await orgs[0].remove();
 
-            for (const org of orgs) {
-                const maxRevConfig = await org.retrieveMaxRevisionConfig();
-                const metaTypeConfig: OrgConfigFile = await org.retrieveMetadataTypeInfosConfig();
-                const sourcePathConfig: OrgConfigFile = await org.retrieveSourcePathInfosConfig();
-
-                expect(await maxRevConfig.access(fsConstants.R_OK)).to.be.true;
-                expect(await metaTypeConfig.access(fsConstants.R_OK)).to.be.true;
-                expect(await sourcePathConfig.access(fsConstants.R_OK)).to.be.true;
-            }
-
-            const user0Config: OrgConfigFile = await orgs[0].retrieveOrgUsersConfig();
-            const user1Config: OrgConfigFile = await orgs[1].retrieveOrgUsersConfig();
+            const user0Config: OrgUsersConfig = await orgs[0].retrieveOrgUsersConfig();
+            const user1Config: OrgUsersConfig = await orgs[1].retrieveOrgUsersConfig();
 
             expect(await user0Config.access(fsConstants.R_OK)).to.be.true;
             expect(await user1Config.access(fsConstants.R_OK)).to.be.false;
@@ -684,7 +523,7 @@ describe('Org Tests', () => {
                 return Promise.resolve(await testData.getConfig());
             });
 
-            $$.SANDBOX.stub(Connection.prototype, 'query').callsFake(async (query) => {
+            $$.SANDBOX.stub(Connection.prototype, 'query').callsFake(async () => {
                 if (returnResult === 'throw') {
                     const error = new Error();
                     error.name = 'INVALID_TYPE';
@@ -702,7 +541,7 @@ describe('Org Tests', () => {
             connection = await Connection.create(await AuthInfo.create(testData.username));
             org = await Org.create(connection, sfdxConfigAggregator);
 
-            const config: SfdxConfig = await SfdxConfig.create(true);
+            const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
             await config.setPropertyValue(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, fakeDevHub);
             await config.write();
 
@@ -718,7 +557,7 @@ describe('Org Tests', () => {
         it('validate is not scratch org', async () => {
             returnResult = { records: [] };
             try {
-                const fields: Partial<AuthFields> = await org.checkScratchOrg();
+                await org.checkScratchOrg();
                 assert.fail('This test is expected to fail.');
             } catch (err) {
                 expect(err).to.have.property('name', 'NoResults');

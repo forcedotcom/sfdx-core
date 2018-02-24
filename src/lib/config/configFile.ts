@@ -17,8 +17,20 @@ import { SfdxUtil } from '../util';
 import { ProjectDir } from '../projectDir';
 
 /**
+ * The interface for  Config options.
+ * @interface
+ */
+export interface ConfigOptions {
+    rootFolder?: string;
+    filename?: string;
+    isGlobal?: boolean;
+    isState?: boolean;
+    filePath?: string;
+}
+
+/**
  * Represents a json config file that the toolbelt uses to manage settings and
- * state. Global config files are stord in the home directory hidden state
+ * state. Global config files are stored in the home directory hidden state
  * folder (.sfdx) and local config files are stored in the project path, either
  * in the hidden state folder or wherever specified.
  */
@@ -33,50 +45,35 @@ export class Config {
         return isGlobal ? osHomedir() : await ProjectDir.getPath();
     }
 
-    protected name: string;
-    protected path: string;
-    protected contents: object;
-    protected isGlobal: boolean;
+    public static async create<T extends Config>(this: { new(): T }, options: ConfigOptions): Promise<T> {
+        const config: Config = new Config();
+        config.options = options;
 
-    /**
-     * Constructor that sets the path and name. The path is generated from
-     * all the passed in parameters.
-     *
-     * @param {string} rootFolder The root folder containing the .sfdx folder.
-     * @param {string} fileName The name of the config file.
-     * @param {boolean} isGlobal If true, file root is set to the home directory.
-     * If false or not a boolean, file root is set to the project directory.
-     * @param {boolean} isState If true, file is stored in the hidden state folder
-     * within the file root. This will automatically be set to true if isGlobal is true.
-     * @param {string} filePath The path of the config file appended to the file
-     * root. i.e. a relative path from the global or local project directories.
-     * @throws {Error} Throws an InvalidParameter error if name is not a non-empty string.
-     * @throws {Error} Throws an InvalidProjectWorkspace error trying to instantiate a
-     * local config file outside of a project workspace
-     */
-    protected constructor(rootFolder: string, fileName: string,
-                          isGlobal: boolean = false, isState: boolean = true, filePath: string = '') {
-        if (!rootFolder) {
-            throw new SfdxError('rootFolder is not specified', 'InvalidParameter');
+        if (!config.options.filename) {
+            throw new SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
         }
 
-        if (!fileName) {
-            throw new SfdxError('The name parameter is invalid.', 'InvalidParameter');
-        }
-
-        const _isGlobal: boolean = _isBoolean(isGlobal) && isGlobal;
-        const _isState: boolean = _isBoolean(isState) && isState;
+        const _isGlobal: boolean = _isBoolean(config.options.isGlobal) && config.options.isGlobal;
+        const _isState: boolean = _isBoolean(config.options.isState) && config.options.isState;
 
         // Don't let users store config files in homedir without being in the
         // state folder.
-        let configRootFolder = rootFolder;
+        let configRootFolder = config.options.rootFolder ? config.options.rootFolder :
+            await Config.resolveRootFolder(config.options.isGlobal);
+
         if (_isGlobal || _isState) {
-            configRootFolder = pathJoin(rootFolder, Global.STATE_FOLDER);
+            configRootFolder = pathJoin(configRootFolder, Global.STATE_FOLDER);
         }
-        this.isGlobal = _isGlobal;
-        this.name = fileName;
-        this.path = pathJoin(configRootFolder, filePath, fileName);
+
+        config.path = pathJoin(configRootFolder,
+            config.options.filePath ? config.options.filePath : '', config.options.filename);
+
+        return new this();
     }
+
+    private options: ConfigOptions;
+    private path: string;
+    private contents: object;
 
     /**
      * Determines if the config file is read write accessible
@@ -201,6 +198,6 @@ export class Config {
      * @returns {boolean} true if this config is using the global path false otherwise
      */
     public getIsGlobal(): boolean {
-        return this.isGlobal;
+        return this.options.isGlobal;
     }
 }

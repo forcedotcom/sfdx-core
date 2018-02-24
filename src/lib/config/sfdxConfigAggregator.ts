@@ -267,14 +267,14 @@ export class SfdxConfigAggregator {
         // Don't throw an project error with the aggregator, since it should resolve to global if
         // there is no project.
         try {
-            this.setLocalConfig(await SfdxConfig.create(false, this.rootPathRetriever));
+            this.setLocalConfig(await SfdxConfig.create(SfdxConfig.getDefaultOptions(false)));
         } catch (err) {
             if (err.name !== 'InvalidProjectWorkspace') {
                 throw err;
             }
         }
 
-        this.setGlobalConfig(await SfdxConfig.create(true, this.rootPathRetriever));
+        this.setGlobalConfig(await SfdxConfig.create(SfdxConfig.getDefaultOptions(true)));
 
         this.setAllowedProperties(SfdxConfig.getAllowedProperties());
 

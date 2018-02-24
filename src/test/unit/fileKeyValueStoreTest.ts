@@ -32,7 +32,8 @@ describe('fileKeyValueStore live file', () => {
     });
 
     it ('file already exists', async () => {
-        const store: KeyValueStore = await KeyValueStore.create(filename, 'orgs');
+        const store: KeyValueStore =
+            await KeyValueStore.create(KeyValueStore.getDefaultOptions(filename, 'orgs'));
         expect(await store.fetch('foo', 'orgs')).to.eq('foo@example.com');
     });
 });
@@ -48,7 +49,7 @@ describe('fileKeyValueStore', () => {
 
         $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake($$.rootPathRetriever);
 
-        store = await KeyValueStore.create('testfetchConfigInfos.json', 'orgs');
+        store = await KeyValueStore.create(KeyValueStore.getDefaultOptions('testfetchConfigInfos.json', 'orgs'));
         $$.SANDBOX.stub(Config.prototype, 'write').callsFake((config) => {
             validate(config);
             return Promise.resolve();

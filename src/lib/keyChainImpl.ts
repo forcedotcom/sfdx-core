@@ -14,7 +14,7 @@ import * as childProcess from 'child_process';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { SfdxUtil } from './util';
 import { Global } from './global';
-import { KeychainConfigFile } from './config/keychainConfigFile';
+import { KeychainConfig } from './config/keychainConfig';
 
 /* tslint:disable: no-bitwise */
 
@@ -342,7 +342,7 @@ async function _writeFile(opts, fn) {
     };
 
     try {
-        const config: KeychainConfigFile = await KeychainConfigFile.create();
+        const config: KeychainConfig = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
         await config.write(obj);
 
         fn(null, obj);
@@ -359,7 +359,7 @@ interface SecretFields {
 
 export class GenericKeychainAccess {
 
-    protected static SECRET_FILE: string = path.join(Global.DIR, KeychainConfigFile.KEYCHAIN_FILENAME);
+    protected static SECRET_FILE: string = path.join(Global.DIR, KeychainConfig.KEYCHAIN_FILENAME);
 
     public async getPassword(opts, fn): Promise<any> {
         // validate the file in .sfdx
@@ -369,7 +369,8 @@ export class GenericKeychainAccess {
             if (_.isNil(fileAccessError)) {
 
                 // read it's contents
-                return KeychainConfigFile.create().then((config: KeychainConfigFile) => config.readJSON())
+                return KeychainConfig.create(KeychainConfig.getDefaultOptions())
+                    .then((config: KeychainConfig) => config.readJSON())
                     .then(async (readObj: SecretFields) => {
                         // validate service name and account just because
                         if ((opts.service === readObj.service ) && (opts.account === readObj.account)) {
@@ -377,7 +378,7 @@ export class GenericKeychainAccess {
                         } else {
                             // if the service and account names don't match then maybe someone or something is editing
                             // that file. #donotallow
-                            const errorConfig = new SfdxErrorConfig('sfdx-core', 'encryption', 'GenericKeychainServiceError', [KeychainConfigFile.KEYCHAIN_FILENAME], 'GenericKeychainServiceErrorAction');
+                            const errorConfig = new SfdxErrorConfig('sfdx-core', 'encryption', 'GenericKeychainServiceError', [KeychainConfig.KEYCHAIN_FILENAME], 'GenericKeychainServiceErrorAction');
                             const err = SfdxError.create(errorConfig);
                             fn(err);
                         }
@@ -436,7 +437,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
             if (!_.isNil(err)) {
                 cb(err);
             } else {
-                const keyFile = await KeychainConfigFile.create();
+                const keyFile = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
                 const stats = await keyFile.stat();
                 const octalModeStr  = (stats.mode & 0o777).toString(8);
                 const EXPECTED_OCTAL_PERM_VALUE = '600';

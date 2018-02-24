@@ -12,7 +12,7 @@ import * as _ from 'lodash';
 import { OAuth2, OAuth2Options } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-import { AuthInfoConfigFile } from './config/authInfoConfigFile';
+import { AuthInfoConfig } from './config/authInfoConfig';
 import { Config } from './config/configFile';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
@@ -312,7 +312,8 @@ export class AuthInfo {
             } else {
                 // Fetch from the persisted auth file
                 try {
-                    const config: AuthInfoConfigFile = await AuthInfoConfigFile.create(this.authFileName);
+                    const config: AuthInfoConfig =
+                        await AuthInfoConfig.create(AuthInfoConfig.getDefaultOptions(this.authFileName));
                     authConfig = await config.readJSON();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
@@ -374,7 +375,7 @@ export class AuthInfo {
             delete dataToSave.clientSecret;
         }
 
-        const config: Config = await AuthInfoConfigFile.create(this.authFileName);
+        const config: Config = await AuthInfoConfig.create(AuthInfoConfig.getDefaultOptions(this.authFileName));
         await config.write(dataToSave);
 
         this.logger.info(`Saved auth info for username: ${this.username}`);
