@@ -11,9 +11,11 @@
 
 import { isNil as _isNil } from 'lodash';
 import { Messages } from '../messages';
-import {Config, ConfigOptions} from './configFile';
+import { Config, ConfigOptions } from './config';
 import { SfdxUtil } from '../util';
 import { SfdxError } from '../sfdxError';
+
+const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
 /**
  * Internal helper to validate the ENOENT error type.
@@ -124,7 +126,7 @@ export class SfdxConfig extends Config {
     }
 
     public static getDefaultOptions(isGlobal: boolean): ConfigOptions {
-        return { isGlobal, isState: true };
+        return { isGlobal, isState: true, filename: SFDX_CONFIG_FILE_NAME };
     }
 
     /**
@@ -145,8 +147,8 @@ export class SfdxConfig extends Config {
      * @param {rootPathRetriever} rootPathRetriever A function to retrieve the sfdx project root.
      * @returns {Promise<object>}
      */
-    public static async setPropertyValue(isGlobal: boolean, propertyName: string, value?: string | boolean,
-                                         rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<object> {
+    public static async setPropertyValue(isGlobal: boolean, propertyName: string,
+                                         value?: string | boolean): Promise<object> {
 
         const config = await SfdxConfig.create(SfdxConfig.getDefaultOptions(isGlobal));
 
@@ -197,17 +199,20 @@ export class SfdxConfig extends Config {
     public async setPropertyValue(propertyName: string, value: string | boolean) {
 
         const property = SfdxConfig.allowedProperties.find((allowedProp) => allowedProp.key === propertyName);
+        const contents = this.getContents();
         if (!property) {
             throw SfdxError.create('sfdx-core', 'config', 'UnknownConfigKey', [propertyName]);
         }
         if (property.input) {
             if (property.input && property.input.validator(value)) {
-                this.getContents()[property.key] = value;
+                contents[property.key] = value;
+                this.setContents(contents);
             } else {
                 throw SfdxError.create('sfdx-core', 'config', 'invalidConfigValue', [property.input.failedMessage]);
             }
         } else {
-            this.getContents()[property.key] = value;
+            contents[property.key] = value;
+            this.setContents(contents);
         }
     }
 }

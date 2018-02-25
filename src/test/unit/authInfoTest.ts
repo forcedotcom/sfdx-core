@@ -8,7 +8,7 @@ import * as dns from 'dns';
 import { assert, expect } from 'chai';
 import { AuthInfo } from '../../lib/authInfo';
 import { AuthInfoConfig } from '../../lib/config/authInfoConfig';
-import { Config } from '../../lib/config/configFile';
+import { Config } from '../../lib/config/config';
 import { KeychainConfig } from '../../lib/config/keychainConfig';
 import { Crypto } from '../../lib/crypto';
 import { SfdxUtil } from '../../lib/util';
@@ -723,7 +723,7 @@ describe('AuthInfo', () => {
             expect(AuthInfo['cache'].set['called']).to.be.true;
             expect(Config.prototype.write['called']).to.be.true;
             const writeCall = Config.prototype.write['firstCall'];
-            expect(writeCall.thisValue.name).to.equal(`${username}.json`);
+            expect(writeCall.thisValue.options.filename).to.equal(`${username}.json`);
 
             const crypto = await Crypto.create();
             const decryptedActualFields = writeCall.args[0];

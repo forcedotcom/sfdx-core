@@ -1,4 +1,4 @@
-import {Config, ConfigOptions} from './configFile';
+import {Config, ConfigOptions} from './config';
 import { Global } from '../global';
 
 /**
@@ -12,8 +12,7 @@ export class OrgUsersConfig extends Config {
         return {
             isGlobal: true,
             isState: true,
-            filename: `${orgId}.json`,
-            filePath: Global.STATE_FOLDER
+            filename: `${orgId}.json`
         };
     }
 }

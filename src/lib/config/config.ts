@@ -46,7 +46,7 @@ export class Config {
     }
 
     public static async create<T extends Config>(this: { new(): T }, options: ConfigOptions): Promise<T> {
-        const config: Config = new Config();
+        const config: T = new this();
         config.options = options;
 
         if (!config.options.filename) {
@@ -68,7 +68,7 @@ export class Config {
         config.path = pathJoin(configRootFolder,
             config.options.filePath ? config.options.filePath : '', config.options.filename);
 
-        return new this();
+        return config;
     }
 
     private options: ConfigOptions;
@@ -103,7 +103,7 @@ export class Config {
         } catch (err) {
             if (err.code === 'ENOENT') {
                 if (!throwOnNotFound) {
-                    this.contents = {};
+                    this.setContents({});
                     return Promise.resolve(this.contents);
                 }
             }
@@ -130,14 +130,14 @@ export class Config {
      */
     public async write(newContents?: any): Promise<object> {
         if (!_isNil(newContents)) {
-            this.contents = newContents;
+            this.setContents(newContents);
         }
 
         await SfdxUtil.mkdirp(pathDirname(this.getPath()));
 
-        await SfdxUtil.writeFile(this.getPath(), JSON.stringify(this.contents, null, 4));
+        await SfdxUtil.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 4));
 
-        return this.contents;
+        return this.getContents();
     }
 
     /**
@@ -182,7 +182,7 @@ export class Config {
      * @returns {string} The config contents from the json config
      */
     public getContents(): object {
-        return this.contents;
+        return this.contents || {};
     }
 
     /**

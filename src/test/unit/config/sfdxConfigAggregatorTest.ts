@@ -14,23 +14,19 @@ import { SfdxConfigAggregator } from '../../../lib/config/sfdxConfigAggregator';
 import { tmpdir as osTmpdir } from 'os';
 import { SfdxConfig } from '../../../lib/config/sfdxConfig';
 import { testSetup } from '../../testSetup';
+import {Config} from '../../../lib/config/config';
 
 // Setup the test environment.
 const $$ = testSetup();
 
-function getTestLocalPath(): string {
-    return pathJoin(osTmpdir(), 'local');
-}
-
-function getTestGlobalPath(): string {
-    return pathJoin(osTmpdir(), 'global');
-}
-
-async function retrieveRootPath(isGlobal: boolean): Promise<string> {
-    return isGlobal ? Promise.resolve(getTestGlobalPath()) : Promise.resolve(getTestLocalPath());
-}
-
 describe('SfdxConfigAggregator', () => {
+
+    let id: string;
+    beforeEach(() => {
+        id = $$.uniqid();
+        $$.SANDBOX.stub(Config, 'resolveRootFolder')
+            .callsFake((isGlobal: boolean) => $$.rootPathRetriever(isGlobal, id));
+    });
 
     afterEach(() => {
         delete process.env.SFDX_DEFAULTUSERNAME;
@@ -38,14 +34,14 @@ describe('SfdxConfigAggregator', () => {
 
     describe('instantiation', () => {
         it('creates local and global config', async () => {
-            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
+            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
             expect(aggregator.getLocalConfig()).to.be.exist;
             expect(aggregator.getGlobalConfig()).to.be.exist;
         });
 
         it('converts env vars', async () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
-            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
+            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
             expect(aggregator.getPropertyValue(SfdxConfig.DEFAULT_USERNAME)).to.equal('test');
         });
 
@@ -69,13 +65,13 @@ describe('SfdxConfigAggregator', () => {
             });
         });
         it('local overrides global', async () => {
-            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
+            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
             expect(await aggregator.getPropertyValue(SfdxConfig.DEFAULT_USERNAME)).to.equal(1);
         });
 
         it('env overrides local and global', async () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
-            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
+            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
             expect(await aggregator.getPropertyValue(SfdxConfig.DEFAULT_USERNAME)).to.equal('test');
         });
     });
@@ -84,41 +80,41 @@ describe('SfdxConfigAggregator', () => {
         it('local', async () => {
             $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(async (path) => {
                 if (path) {
-                    if (path.includes(getTestGlobalPath())) {
+                    if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 2});
-                    } else if (path.includes(getTestLocalPath())) {
+                    } else if (path.includes(await $$.localPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 1});
                     }
                 }
                 return Promise.resolve();
             });
-            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
+            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
             expect(aggregator.getLocation(SfdxConfig.DEFAULT_USERNAME)).to.equal('Local');
         });
 
         it('global', async () => {
             $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(async (path) => {
                 if (path) {
-                    if (path.includes(getTestGlobalPath())) {
+                    if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 2});
-                    } else if (path.includes(getTestLocalPath())) {
+                    } else if (path.includes(await $$.localPathRetriever(id))) {
                         return Promise.resolve({});
                     }
                 }
                 return Promise.resolve();
             });
-            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
+            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
             expect(aggregator.getLocation(SfdxConfig.DEFAULT_USERNAME)).to.equal('Global');
         });
 
         it('env', async () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
-            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
+            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
             $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(async (path) => {
                 if (path) {
-                    if (path.includes(getTestGlobalPath())) {
+                    if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({ defaultusername: 1 });
-                    } else if (path.includes(getTestLocalPath())) {
+                    } else if (path.includes(await $$.localPathRetriever(id))) {
                         return Promise.resolve({ defaultusername: 2 });
                     }
                 }
@@ -131,7 +127,7 @@ describe('SfdxConfigAggregator', () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
             $$.SANDBOX.stub(SfdxUtil, 'readJSON').returns(Promise.resolve({}));
 
-            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create(retrieveRootPath);
+            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
             const info = aggregator.getConfigInfo()[0];
             expect(info.key).to.equal('defaultusername');
             expect(info.value).to.equal('test');

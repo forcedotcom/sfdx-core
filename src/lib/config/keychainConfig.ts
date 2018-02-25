@@ -1,4 +1,4 @@
-import { Config, ConfigOptions } from './configFile';
+import { Config, ConfigOptions } from './config';
 
 /**
  * Represent a keychain config backed by a json file.

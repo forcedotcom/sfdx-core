@@ -11,7 +11,7 @@ import { Org, OrgMetaInfo, OrgStatus } from '../../lib/org';
 import { OAuth2 } from 'jsforce';
 import { expect, assert } from 'chai';
 import { testSetup } from '../testSetup';
-import { Config } from '../../lib/config/configFile';
+import { Config } from '../../lib/config/config';
 import { Crypto } from '../../lib/crypto';
 import { KeyValueStore } from '../../lib/config/fileKeyValueStore';
 import { SfdxConfig } from '../../lib/config/sfdxConfig';
@@ -210,11 +210,11 @@ describe('Org Tests', () => {
         describe('mock remove', () => {
             let removePath = '';
             let removeStub;
+            let id: string;
             beforeEach(() => {
-                const rootPath = osTmpdir();
-                $$.SANDBOX.stub(SfdxConfig, 'resolveRootFolder').callsFake(() => {
-                    return Promise.resolve(rootPath);
-                });
+                id = $$.uniqid();
+                $$.SANDBOX.stub(Config, 'resolveRootFolder')
+                    .callsFake((isGlobal: boolean) => $$.rootPathRetriever(isGlobal, id));
 
                 removeStub = $$.SANDBOX.stub(SfdxUtil, 'remove').callsFake((path) => {
                     removePath = path;
@@ -230,8 +230,7 @@ describe('Org Tests', () => {
                 await org.cleanData();
                 expect(removeStub.callCount).to.be.equal(1);
 
-                expect(removePath).to.include(pathJoin(Global.STATE_FOLDER, OrgUsersConfig.ORGS_FOLDER_NAME,
-                    testData.username));
+                expect(removePath).to.include(pathJoin(Global.STATE_FOLDER, OrgUsersConfig.ORGS_FOLDER_NAME));
             });
         });
 

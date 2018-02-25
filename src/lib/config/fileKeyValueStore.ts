@@ -6,7 +6,8 @@
  */
 import { constants as fsConstants } from 'fs';
 import * as _ from 'lodash';
-import {Config, ConfigOptions} from './configFile';
+import {Config, ConfigOptions} from './config';
+import Global from '../global';
 
 const _set = (aliases, group, alias, property) => {
     if (_.isNil(aliases[group])) {
@@ -48,9 +49,9 @@ export class KeyValueStore extends Config {
     public static async create<T extends Config>(this: { new(): T }, options: KeyValueStoreConfigOptions): Promise<T> {
 
         const store: T =  await super.create(options) as T;
-
+        console.log(store.getPath());
         if (!(await store.access(fsConstants.R_OK))) {
-            await store.write(JSON.parse(`{ '${options.defaultGroup}': {} }`));
+            await store.write(JSON.parse(`{ "${options.defaultGroup}": {} }`));
         }
         return store as T;
     }
@@ -58,7 +59,8 @@ export class KeyValueStore extends Config {
     public static getDefaultOptions(filename: string, defaultGroup: string): KeyValueStoreConfigOptions {
         return {
             filename,
-            defaultGroup
+            defaultGroup,
+            filePath: Global.STATE_FOLDER
         };
     }
 

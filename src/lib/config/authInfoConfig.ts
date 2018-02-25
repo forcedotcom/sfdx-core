@@ -1,4 +1,4 @@
-import { Config, ConfigOptions } from './configFile';
+import { Config, ConfigOptions } from './config';
 
 /**
  * Represents an auth file config backed by a json file

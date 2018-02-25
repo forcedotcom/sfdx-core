@@ -76,13 +76,12 @@ export class SfdxConfigAggregator {
      *
      * @returns {Promise<SfdxConfigAggregator>} Returns the aggregated config object
      */
-    public static async create(rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<SfdxConfigAggregator> {
-        const configAggregator = new SfdxConfigAggregator(rootPathRetriever);
+    public static async create(): Promise<SfdxConfigAggregator> {
+        const configAggregator = new SfdxConfigAggregator();
         await configAggregator.loadProperties();
         return configAggregator;
     }
 
-    private rootPathRetriever: (isGlobal: boolean) => Promise<string>;
     private allowedProperties: any[];
     private localConfig: SfdxConfig;
     private globalConfig: SfdxConfig;
@@ -93,9 +92,7 @@ export class SfdxConfigAggregator {
      * @private
      * @constructor
      */
-    protected constructor(rootPathRetriever?: (isGlobal: boolean) => Promise<string>) {
-        this.rootPathRetriever = rootPathRetriever;
-    }
+    protected constructor() {}
 
     /**
      * Retrieve the path to the config file.
@@ -103,14 +100,6 @@ export class SfdxConfigAggregator {
      * @param {boolean} isGlobal Is it the global or local project config file?
      * @returns {Promise<string>} The path of the config file.
      */
-
-    /**
-     * @returns {retrieverFunction} - The root path retriever function that determines where the
-     * local and global paths are located.
-     */
-    public getRootPathRetriever(): (isGlobal: boolean) => Promise<string> {
-        return this.rootPathRetriever;
-    }
 
     /**
      * Get a resolved config property

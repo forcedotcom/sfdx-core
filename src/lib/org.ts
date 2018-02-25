@@ -149,7 +149,7 @@ export class Org {
         let dataPath;
         try {
             const rootFolder: string = await SfdxConfig.resolveRootFolder(false);
-            dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath);
+            dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
         } catch (err) {
             if (err.name === 'InvalidProjectWorkspace') {
                 // If we aren't in a project dir, we can't clean up data files.
@@ -220,8 +220,7 @@ export class Org {
             if ((configInfo.value === username || configInfo.value === alias) &&
                 (configInfo.isGlobal() || configInfo.isLocal())) {
 
-                await SfdxConfig.setPropertyValue(configInfo.isGlobal() as boolean, orgType, undefined,
-                    this.configAggregator.getRootPathRetriever());
+                await SfdxConfig.setPropertyValue(configInfo.isGlobal() as boolean, orgType, undefined);
             }
 
             const orgUsers: OrgUsersConfig = await this.retrieveOrgUsersConfig();

@@ -13,7 +13,7 @@ import { OAuth2, OAuth2Options } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { AuthInfoConfig } from './config/authInfoConfig';
-import { Config } from './config/configFile';
+import { Config } from './config/config';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
