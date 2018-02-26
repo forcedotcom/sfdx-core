@@ -11,7 +11,7 @@
 
 import { isNil as _isNil } from 'lodash';
 import { Messages } from '../messages';
-import { Config } from './configFile';
+import { Config, ConfigOptions } from './config';
 import { SfdxUtil } from '../util';
 import { SfdxError } from '../sfdxError';
 
@@ -93,15 +93,7 @@ export class SfdxConfig extends Config {
      * @returns {Promise<string>} The property.
      */
 
-    /**
-     * Static initializer
-     * @param {boolean} isGlobal - True of the returned config is a global config. False for local.
-     * @param {rootPathRetriever} rootPathRetriever - A function to retrieve the sfdx project root.
-     * @returns {Promise<SfdxConfig>} - A global or local config object
-     */
-    public static async create(isGlobal: boolean = true,
-                               rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<SfdxConfig> {
-
+    public static async create<T extends Config>(this: { new(): T }, options: ConfigOptions): Promise<T> {
         if (!SfdxConfig.messages) {
             SfdxConfig.messages = Messages.loadMessages('sfdx-core', 'config');
         }
@@ -129,13 +121,12 @@ export class SfdxConfig extends Config {
                 { key: SfdxConfig.DEFAULT_USERNAME }
             ];
         }
-        const config: SfdxConfig = rootPathRetriever ?
-            new SfdxConfig(await rootPathRetriever(isGlobal) , isGlobal) :
-            new SfdxConfig(await SfdxConfig.resolveRootFolder(isGlobal) , isGlobal);
 
-        await config.read();
+        return await super.create(options) as T;
+    }
 
-        return config;
+    public static getDefaultOptions(isGlobal: boolean): ConfigOptions {
+        return { isGlobal, isState: true, filename: SFDX_CONFIG_FILE_NAME };
     }
 
     /**
@@ -156,13 +147,10 @@ export class SfdxConfig extends Config {
      * @param {rootPathRetriever} rootPathRetriever A function to retrieve the sfdx project root.
      * @returns {Promise<object>}
      */
-    public static async setPropertyValue(isGlobal: boolean, propertyName: string, value?: string | boolean,
-                                         rootPathRetriever?: (isGlobal: boolean) => Promise<string>): Promise<object> {
+    public static async setPropertyValue(isGlobal: boolean, propertyName: string,
+                                         value?: string | boolean): Promise<object> {
 
-        const rootFolder = rootPathRetriever ?
-            await rootPathRetriever(isGlobal) : await SfdxConfig.resolveRootFolder(isGlobal);
-
-        const config = new SfdxConfig(rootFolder, isGlobal);
+        const config = await SfdxConfig.create(SfdxConfig.getDefaultOptions(isGlobal));
 
         const content = await config.read();
 
@@ -180,10 +168,10 @@ export class SfdxConfig extends Config {
      * @returns {Promise<void>}
      */
     public static async clear(): Promise<void> {
-        let config  = await SfdxConfig.create(true);
+        let config  = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
         await config.write({});
 
-        config = await SfdxConfig.create(false);
+        config = await SfdxConfig.create(SfdxConfig.getDefaultOptions(false));
         await config.write({});
     }
 
@@ -191,20 +179,11 @@ export class SfdxConfig extends Config {
     private static messages: Messages;
 
     /**
-     * Constructor
-     * @param {string} rootFolder - The root folder to use and if the root folder is the global config dir.
-     * @param {boolean} isGlobal - True for a global config false for a local config.
-     */
-    protected constructor(rootFolder: string, isGlobal: boolean) {
-        super(rootFolder, SFDX_CONFIG_FILE_NAME, isGlobal, true);
-    }
-
-    /**
      * @returns {Promise<object>} Read, assign, and return the config contents.
      */
     public async read(): Promise<object> {
         try {
-            await this.setContents(await SfdxUtil.readJSON(this.path, false));
+            await this.setContents(await SfdxUtil.readJSON(this.getPath(), false));
             return this.getContents();
         } catch (err) {
             _checkEnoent.call(this, err);
@@ -220,17 +199,20 @@ export class SfdxConfig extends Config {
     public async setPropertyValue(propertyName: string, value: string | boolean) {
 
         const property = SfdxConfig.allowedProperties.find((allowedProp) => allowedProp.key === propertyName);
+        const contents = this.getContents();
         if (!property) {
             throw SfdxError.create('sfdx-core', 'config', 'UnknownConfigKey', [propertyName]);
         }
         if (property.input) {
             if (property.input && property.input.validator(value)) {
-                this.contents[property.key] = value;
+                contents[property.key] = value;
+                this.setContents(contents);
             } else {
                 throw SfdxError.create('sfdx-core', 'config', 'invalidConfigValue', [property.input.failedMessage]);
             }
         } else {
-            this.contents[property.key] = value;
+            contents[property.key] = value;
+            this.setContents(contents);
         }
     }
 }

@@ -14,7 +14,7 @@ import { Connection } from './lib/connection';
 import { AuthInfo } from './lib/authInfo';
 import { Org } from './lib/org';
 import { SfdxConfigAggregator } from './lib/config/sfdxConfigAggregator';
-import { Config } from './lib/config/configFile';
+import { Config } from './lib/config/config';
 import { Alias } from './lib/alias';
 import { SfdxUtil } from './lib/util';
 

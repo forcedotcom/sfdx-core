@@ -7,9 +7,9 @@
 import * as dns from 'dns';
 import { assert, expect } from 'chai';
 import { AuthInfo } from '../../lib/authInfo';
-import { AuthInfoConfigFile } from '../../lib/config/authInfoConfigFile';
-import { Config } from '../../lib/config/configFile';
-import { KeychainConfigFile } from '../../lib/config/keychainConfigFile';
+import { AuthInfoConfig } from '../../lib/config/authInfoConfig';
+import { Config } from '../../lib/config/config';
+import { KeychainConfig } from '../../lib/config/keychainConfig';
 import { Crypto } from '../../lib/crypto';
 import { SfdxUtil } from '../../lib/util';
 import { OAuth2 } from 'jsforce';
@@ -35,7 +35,7 @@ describe('AuthInfo No fs mock', () => {
             setPassword: () => Promise.resolve(),
             getPassword: (data, cb) => cb(undefined, TEST_KEY.key)
         }));
-        $$.SANDBOX.stub(AuthInfoConfigFile.prototype, 'write').callsFake(async function() {
+        $$.SANDBOX.stub(AuthInfoConfig.prototype, 'write').callsFake(async function() {
             const path = this.path();
             if (path.includes('key.json')) {
                 return Promise.resolve(TEST_KEY);
@@ -156,7 +156,7 @@ class MetaAuthDataMock {
     }
 
     public async fetchConfigInfo(path: string): Promise<any> {
-        if (path.includes(KeychainConfigFile.KEYCHAIN_FILENAME)) {
+        if (path.includes(KeychainConfig.KEYCHAIN_FILENAME)) {
             return Promise.resolve(TEST_KEY);
         } else if (_includes(_toUpper(path), '_JWT')) {
             this._authInfoLookupCount = this._authInfoLookupCount + 1;
@@ -723,7 +723,7 @@ describe('AuthInfo', () => {
             expect(AuthInfo['cache'].set['called']).to.be.true;
             expect(Config.prototype.write['called']).to.be.true;
             const writeCall = Config.prototype.write['firstCall'];
-            expect(writeCall.thisValue.name).to.equal(`${username}.json`);
+            expect(writeCall.thisValue.options.filename).to.equal(`${username}.json`);
 
             const crypto = await Crypto.create();
             const decryptedActualFields = writeCall.args[0];

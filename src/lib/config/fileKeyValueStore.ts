@@ -6,7 +6,8 @@
  */
 import { constants as fsConstants } from 'fs';
 import * as _ from 'lodash';
-import { Config } from './configFile';
+import {Config, ConfigOptions} from './config';
+import Global from '../global';
 
 const _set = (aliases, group, alias, property) => {
     if (_.isNil(aliases[group])) {
@@ -27,6 +28,10 @@ const _set = (aliases, group, alias, property) => {
     return aliases;
 };
 
+export interface KeyValueStoreConfigOptions extends ConfigOptions {
+    defaultGroup: string;
+}
+
 /**
  * Manages access to a key value store in the global .sfdx folder under <fileStoreName>.
  *
@@ -37,28 +42,25 @@ const _set = (aliases, group, alias, property) => {
 export class KeyValueStore extends Config {
 
     /**
-     * static intializer
-     * @param {string} filename - The filename for this keyValueStore
-     * @returns {Promise<KeyValueStore>}
+     *
+     * @param {KeyValueStoreConfigOptions} options
+     * @returns {Promise}
      */
-    public static async create(filename: string, defaultGroup: string): Promise<KeyValueStore> {
-        const keyValueStore: KeyValueStore =
-            new KeyValueStore(await Config.resolveRootFolder(true), true, filename);
+    public static async create<T extends Config>(this: { new(): T }, options: KeyValueStoreConfigOptions): Promise<T> {
 
-        if (!(await keyValueStore.access(fsConstants.R_OK))) {
-            await keyValueStore.write(JSON.parse(`{ "${defaultGroup}": {} }`));
+        const store: T =  await super.create(options) as T;
+        if (!(await store.access(fsConstants.R_OK))) {
+            await store.write(JSON.parse(`{ "${options.defaultGroup}": {} }`));
         }
-        return keyValueStore;
+        return store as T;
     }
 
-    /**
-     * ctor - note: the consumer calls KeyValueStore.create()
-     * @param {string} rootFolder - The root folder of the configuration
-     * @param {boolean} isGlobal - True if this is a global configuration
-     * @param {string} filename - The name of the file
-     */
-    private constructor(rootFolder: string, isGlobal: boolean, filename: string) {
-        super(rootFolder, filename, isGlobal);
+    public static getDefaultOptions(filename: string, defaultGroup: string): KeyValueStoreConfigOptions {
+        return {
+            filename,
+            defaultGroup,
+            filePath: Global.STATE_FOLDER
+        };
     }
 
     /**

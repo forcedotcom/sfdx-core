@@ -16,7 +16,7 @@ import { isNil as _isNil , maxBy as _maxBy, get as _get, filter as _filter } fro
 import { AuthFields, AuthInfo } from './authInfo';
 import { Global} from './global';
 import { SfdxUtil } from './util';
-import { OrgConfigFile, OrgConfigType } from './config/orgConfigFile';
+import { OrgUsersConfig } from './config/OrgUsersConfig';
 import { SfdxError } from './sfdxError';
 
 /**
@@ -139,10 +139,6 @@ export class Org {
         }
     }
 
-    public getDataPath(filename?: string): string {
-        return pathJoin(...[OrgConfigFile.ORGS_FOLDER_NAME, this.getName(), filename].filter((e) => !!e));
-    }
-
     /**
      * Clean all data files in the org's data path, then remove the data directory.
      * Usually <workspace>/.sfdx/orgs/<username>
@@ -153,7 +149,7 @@ export class Org {
         let dataPath;
         try {
             const rootFolder: string = await SfdxConfig.resolveRootFolder(false);
-            dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath || this.getDataPath());
+            dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
         } catch (err) {
             if (err.name === 'InvalidProjectWorkspace') {
                 // If we aren't in a project dir, we can't clean up data files.
@@ -168,31 +164,9 @@ export class Org {
             throwWhenRemoveFails);
     }
 
-    /**
-     * @returns {Promise<object>} - A promise for an object that contains the max revision.
-     */
-    public async retrieveMaxRevisionConfig(): Promise<OrgConfigFile> {
-        return OrgConfigFile.create(OrgConfigType.MAX_REVISION, this.getName());
-    }
-
-    /**
-     * @returns {Promise<object>} - A promise for an object containing the source path state
-     */
-    public async retrieveSourcePathInfosConfig(): Promise<OrgConfigFile> {
-        return OrgConfigFile.create(OrgConfigType.SOURCE_PATH_INFOS, this.getName());
-    }
-
-    /**
-     * Get the full path to the file storing the workspace metadata typeDefs
-     * @returns {Promise<object>} - A promise for an object containing the source path state
-     */
-    public async retrieveMetadataTypeInfosConfig(): Promise<OrgConfigFile> {
-        return OrgConfigFile.create(OrgConfigType.METADATA_TYPE_INFOS, this.getName());
-    }
-
-    public async retrieveOrgUsersConfig(): Promise<OrgConfigFile> {
-        return OrgConfigFile.create(OrgConfigType.USERS,
-            this.getConnection().getAuthInfo().getFields().orgId);
+    public async retrieveOrgUsersConfig(): Promise<OrgUsersConfig> {
+        return await OrgUsersConfig.create(
+            OrgUsersConfig.getDefaultOptions(this.getConnection().getAuthInfo().getFields().orgId));
     }
 
     /**
@@ -246,29 +220,12 @@ export class Org {
             if ((configInfo.value === username || configInfo.value === alias) &&
                 (configInfo.isGlobal() || configInfo.isLocal())) {
 
-                await SfdxConfig.setPropertyValue(configInfo.isGlobal() as boolean, orgType, undefined,
-                    this.configAggregator.getRootPathRetriever());
+                await SfdxConfig.setPropertyValue(configInfo.isGlobal() as boolean, orgType, undefined);
             }
 
-            // Probably a good idea to let Config delete these before deleting Orgs/<orgname>
-            const sourceConfig: OrgConfigFile = await this.retrieveSourcePathInfosConfig();
-            _manageDelete.call(this, async () => await sourceConfig.unlink(), sourceConfig.getPath(),
-                throwWhenRemoveFails);
-
-            const mdTypeConfig: OrgConfigFile = await this.retrieveMetadataTypeInfosConfig();
-            _manageDelete.call(this, async () => await mdTypeConfig.unlink(), mdTypeConfig.getPath(),
-                throwWhenRemoveFails);
-
-            const maxRevision: OrgConfigFile = await this.retrieveMaxRevisionConfig();
-            _manageDelete.call(this, async () => await maxRevision.unlink(), maxRevision.getPath(),
-                throwWhenRemoveFails);
-
-            const orgUsers: OrgConfigFile = await this.retrieveOrgUsersConfig();
+            const orgUsers: OrgUsersConfig = await this.retrieveOrgUsersConfig();
             _manageDelete.call(this, async () => await orgUsers.unlink(), orgUsers.getPath(),
                 throwWhenRemoveFails);
-
-            // Now delete the parent folder named after the org
-            await orgForUser.cleanData(pathJoin(OrgConfigFile.ORGS_FOLDER_NAME, username));
         }
 
         return await Alias.unset(aliases);
@@ -350,7 +307,7 @@ export class Org {
      *  @returns {Array} - An array of all user auth file content.
      */
     public async readUserAuthFiles(): Promise<AuthInfo[]> {
-        const config: OrgConfigFile = await this.retrieveOrgUsersConfig();
+        const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
         const contents: any = await config.readJSON();
         const thisUsername = this.getConnection().getAuthInfo().getFields().username;
         const usernames: string[] = contents.usernames || [thisUsername];
@@ -370,7 +327,7 @@ export class Org {
      */
     public async addUsername(auth: AuthInfo): Promise<Org> {
 
-        const orgConfig: OrgConfigFile = await this.retrieveOrgUsersConfig();
+        const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
         const contents: any = await orgConfig.read();
 
@@ -403,11 +360,11 @@ export class Org {
      * @returns {Promise<Org>} - This Org
      */
     public async removeUsername(auth: AuthInfo): Promise<Org> {
-        const orgConfig: OrgConfigFile = await this.retrieveOrgUsersConfig();
+        const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
-        const contents: any = await orgConfig.read();
+        const contents: any = await orgConfig.readJSON();
 
-        const targetUser = auth.getConnectionOptions().username;
+        const targetUser = auth.getFields().username;
         contents.usernames = _filter(contents.usernames, (username) => username !== targetUser);
 
         await orgConfig.write(contents);
@@ -466,7 +423,7 @@ export class Org {
     /**
      * @returns {Connection} - Getter for the JSforce connection for the org.
      */
-    protected getConnection(): Connection {
+    public getConnection(): Connection {
         return this.connection;
     }
 
@@ -480,7 +437,7 @@ export class Org {
             this.connection = connection;
             return this;
         } else {
-            throw new Error('Connection not specified.');
+            throw new SfdxError('Connection not specified', 'UndefinedConnection');
         }
     }
 }

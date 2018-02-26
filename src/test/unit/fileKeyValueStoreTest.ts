@@ -9,8 +9,8 @@ import { join as pathJoin } from 'path';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import { KeyValueStore } from '../../lib/config/fileKeyValueStore';
-import { Config } from '../../lib/config/configFile';
+import {KeyValueStore, KeyValueStoreConfigOptions} from '../../lib/config/fileKeyValueStore';
+import {Config, ConfigOptions} from '../../lib/config/config';
 import { testSetup } from '../testSetup';
 import { SfdxUtil } from '../../lib/util';
 
@@ -32,7 +32,10 @@ describe('fileKeyValueStore live file', () => {
     });
 
     it ('file already exists', async () => {
-        const store: KeyValueStore = await KeyValueStore.create(filename, 'orgs');
+        const options: KeyValueStoreConfigOptions = KeyValueStore.getDefaultOptions(filename, 'orgs');
+        options.rootFolder = rootFolder;
+        const store: KeyValueStore =
+            await KeyValueStore.create(options);
         expect(await store.fetch('foo', 'orgs')).to.eq('foo@example.com');
     });
 });
@@ -48,7 +51,7 @@ describe('fileKeyValueStore', () => {
 
         $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake($$.rootPathRetriever);
 
-        store = await KeyValueStore.create('testfetchConfigInfos.json', 'orgs');
+        store = await KeyValueStore.create(KeyValueStore.getDefaultOptions('testfetchConfigInfos.json', 'orgs'));
         $$.SANDBOX.stub(Config.prototype, 'write').callsFake((config) => {
             validate(config);
             return Promise.resolve();
