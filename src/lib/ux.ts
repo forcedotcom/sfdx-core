@@ -132,7 +132,7 @@ export default class UX extends CLI {
             if (!this.isOutputEnabled) {
                 UX.warnings.add(message);
             } else {
-                this.stderr.write(warning + message);
+                this.stderr.log(warning + message);
             }
         }
         return this;
@@ -143,7 +143,7 @@ export default class UX extends CLI {
      */
     public error(...args: any[]) {
         if (this.isOutputEnabled) {
-            this.stderr.write(...args);
+            this.stderr.log(...args);
         }
         return this.logger.error(...args);
     }
@@ -155,7 +155,7 @@ export default class UX extends CLI {
      */
     public errorJson(obj: any) {
         const err = JSON.stringify(obj, null, 4);
-        this.stderr.write(err);
+        this.stderr.log(err);
         return this.logger.error(err);
     }
 
