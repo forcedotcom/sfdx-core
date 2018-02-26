@@ -9,11 +9,12 @@
 
 // Node
 
-import { isNil as _isNil } from 'lodash';
+import { isNil as _isNil, some as _some, keyBy as _keyBy, each as _each } from 'lodash';
 import { Messages } from '../messages';
 import { Config, ConfigOptions } from './config';
 import { SfdxUtil } from '../util';
 import { SfdxError } from '../sfdxError';
+import { Crypto } from '../crypto';
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
@@ -52,6 +53,11 @@ export interface ConfigPropertyMeta {
      *  True if the property should be indirectly hidden from the user.
      */
     hidden?: boolean;
+
+    /**
+     * True if the property values should be stored encrypted.
+     */
+    encrypted?: boolean;
 }
 
 /**
@@ -78,21 +84,34 @@ export class SfdxConfig extends Config {
      * Username associated with the default dev hub org
      * @type {string}
      */
-    public static readonly DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername';
+    public static readonly DEFAULT_DEV_HUB_USERNAME: string = 'defaultdevhubusername';
 
     /**
      * Username associate with the default org
      * @type {string}
      */
-    public static readonly DEFAULT_USERNAME = 'defaultusername';
+    public static readonly DEFAULT_USERNAME: string = 'defaultusername';
 
     /**
-     * A function to retrieve the sfdx project root.
-     * @callback rootPathRetriever
-     * @param {boolean} isGlobal True for a global config. False for a local config.
-     * @returns {Promise<string>} The property.
+     * The sid for the debugger configuration
+     * @type {string}
      */
+    public static readonly ISV_DEBUGGER_SID: string = 'isvDebuggerSid';
 
+    /**
+     * The url for the debugger configuration
+     * @type {string}
+     */
+    public static readonly ISV_DEBUGGER_URL: string = 'isvDebuggerUrl';
+
+    /**
+     * Creates an instance of an SfdxConfig
+     * @param {ConfigOptions} options - The config options
+     * @return {Promise<T extends Config>) - An instance of SfdxConfig
+     * @example
+     * const config: SfdxConfig = await Sfdx.create({ isGlobal: false }}
+     * await config.setPropertyValue()
+     */
     public static async create<T extends Config>(this: { new(): T }, options: ConfigOptions): Promise<T> {
         if (!SfdxConfig.messages) {
             SfdxConfig.messages = Messages.loadMessages('sfdx-core', 'config');
@@ -118,9 +137,13 @@ export class SfdxConfig extends Config {
                     }
                 },
                 { key: SfdxConfig.DEFAULT_DEV_HUB_USERNAME },
-                { key: SfdxConfig.DEFAULT_USERNAME }
+                { key: SfdxConfig.DEFAULT_USERNAME },
+                { key: SfdxConfig.ISV_DEBUGGER_SID, encrypted: true },
+                { key: SfdxConfig.ISV_DEBUGGER_URL }
             ];
         }
+
+        SfdxConfig.propertyConfigMap = _keyBy(SfdxConfig.allowedProperties, 'key');
 
         return await super.create(options) as T;
     }
@@ -144,7 +167,6 @@ export class SfdxConfig extends Config {
      * @param {boolean} isGlobal - True for a global config. False for a local config.
      * @param {string} propertyName - The name of the property to set
      * @param {string | boolean} value - The property value
-     * @param {rootPathRetriever} rootPathRetriever A function to retrieve the sfdx project root.
      * @returns {Promise<object>}
      */
     public static async setPropertyValue(isGlobal: boolean, propertyName: string,
@@ -177,6 +199,9 @@ export class SfdxConfig extends Config {
 
     private static allowedProperties: ConfigPropertyMeta[];
     private static messages: Messages;
+    private static propertyConfigMap;
+
+    private crypto: Crypto;
 
     /**
      * @returns {Promise<object>} Read, assign, and return the config contents.
@@ -184,10 +209,32 @@ export class SfdxConfig extends Config {
     public async read(): Promise<object> {
         try {
             await this.setContents(await SfdxUtil.readJSON(this.getPath(), false));
+            await this.cryptProperties(false);
             return this.getContents();
         } catch (err) {
             _checkEnoent.call(this, err);
+        } finally {
+            await this.clearCyrpto();
         }
+    }
+
+    /**
+     * Writes SfdxConfg properties taking into account encrypted properites.
+     * @param newContents - The new SfdxConfig value to persist.
+     * @return {Promise<object>}
+     */
+    public async write(newContents?: any): Promise<object> {
+        if (!_isNil(newContents)) {
+            this.setContents(newContents);
+        }
+
+        await this.cryptProperties(true);
+
+        await super.write();
+
+        await this.cryptProperties(false);
+
+        return this.getContents();
     }
 
     /**
@@ -213,6 +260,62 @@ export class SfdxConfig extends Config {
         } else {
             contents[property.key] = value;
             this.setContents(contents);
+        }
+    }
+
+    /**
+     * Intializes the crypto dependency
+     * @return {Promise<void>}
+     */
+    private async initCrypto(): Promise<void> {
+        if (!this.crypto) {
+            this.crypto = await Crypto.create();
+        }
+    }
+
+    /**
+     * Closes the crpto dependency. Crypto should be close after it's used and no longer needed.
+     * @return {Promise<void>}
+     */
+    private async clearCyrpto(): Promise<void> {
+        if (this.crypto) {
+            this.crypto.close();
+            delete this.crypto;
+        }
+    }
+
+    /**
+     * Get an individual property config
+     * @param {string} propertyName - The name of the property
+     * @return {ConfigPropertyMeta} - The meta config
+     */
+    private getPropertyConfig(propertyName: string): ConfigPropertyMeta {
+        const prop = SfdxConfig.propertyConfigMap[propertyName];
+
+        if (!prop) {
+            throw SfdxError.create('sfdx-core', 'config', 'UnknownConfigKey', [propertyName]);
+        }
+        return prop;
+    }
+
+    /**
+     * Encrypts and content properties that have a encryption attribute.
+     * @param {boolean} encrypt - true to encrypt
+     * @return {Promise<void>}
+     */
+    private async cryptProperties(encrypt: boolean) {
+        const hasEncryptedProperties =
+            _some(this.getContents(), (val, key) => !!SfdxConfig.propertyConfigMap[key].encrypted);
+
+        if (hasEncryptedProperties) {
+            await this.initCrypto();
+
+            _each(this.getContents(), (value, key) => {
+                if (this.getPropertyConfig(key).encrypted) {
+                    this.getContents()[key] = encrypt ? this.crypto.encrypt(value) : this.crypto.decrypt(value);
+
+                }
+            });
         }
     }
 }

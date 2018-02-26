@@ -21,7 +21,7 @@ const configFileContents = {
 
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 
-describe('SfdxConfigFile', () => {
+describe('SfdxConfig', () => {
 
     let id: string;
     beforeEach(() => {
