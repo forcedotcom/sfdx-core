@@ -627,4 +627,95 @@ describe('Org Tests', () => {
             expect(url).to.include(`${testData.instanceUrl}/services/data/v`);
         });
     });
+
+    describe('readUserAuthFiles', () => {
+        let orgs: Org[];
+
+        let mock0: MockTestOrgData;
+        let mock1: MockTestOrgData;
+        let mock2: MockTestOrgData;
+
+        beforeEach(async () => {
+            orgs = [];
+
+            mock0 = new MockTestOrgData();
+            mock1 = new MockTestOrgData();
+            mock2 = new MockTestOrgData();
+
+            $$.SANDBOX.stub(Config, 'resolveRootFolder')
+                .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal));
+
+            $$.SANDBOX.stub(Config.prototype, 'readJSON').callsFake(async function() {
+                const path = this.path;
+
+                if (path && path.includes(mock0.username)) {
+                    return mock0.getConfig();
+                } else if (path && path.includes(mock1.username)) {
+                    return mock1.getConfig();
+                } else if (path && path.includes(mock2.username)) {
+                    return mock2.getConfig();
+                } else if (path && path.includes(mock0.orgId)) {
+                    return {
+                        usernames: [
+                            orgs[0].getMetaInfo().info.getFields().username,
+                            orgs[1].getMetaInfo().info.getFields().username,
+                            orgs[2].getMetaInfo().info.getFields().username
+                        ]
+                    };
+                } else {
+                    throw new Error(`Unhandled Path: ${path}`);
+                }
+            });
+
+            orgs[0] = await Org.create(
+                await Connection.create(await AuthInfo.create(mock0.username)));
+            orgs[1] = await Org.create(
+                await Connection.create(await AuthInfo.create(mock1.username)));
+            orgs[2] = await Org.create(
+                await Connection.create(await AuthInfo.create(mock2.username)));
+        });
+
+        it('should read all auth files from an org file', async () => {
+            await orgs[0].addUsername(orgs[1].getConnection().getAuthInfo());
+            await orgs[0].addUsername(orgs[2].getConnection().getAuthInfo());
+
+            const orgUsers: AuthInfo[] = await orgs[0].readUserAuthFiles();
+            let expectedUsers = [mock0.username, mock1.username, mock2.username];
+            for (const info of orgUsers) {
+                expectedUsers = expectedUsers.filter((user) => info.getFields().username !== user);
+            }
+            expect(expectedUsers.length).to.eq(0);
+        });
+
+        it('should read just the scratch org admin auth file when no org file', async () => {
+            const orgUsers: AuthInfo[] = await orgs[0].readUserAuthFiles();
+            let expectedUsers = [mock0.username];
+            for (const info of orgUsers) {
+                expectedUsers = expectedUsers.filter((user) => info.getFields().username !== user);
+            }
+            expect(expectedUsers.length).to.eq(0);
+        });
+
+        describe('removeUsername', () => {
+            it ('should remove all usernames', async () => {
+
+                await orgs[0].addUsername(orgs[1].getConnection().getAuthInfo());
+                await orgs[0].addUsername(orgs[2].getConnection().getAuthInfo());
+
+                let usersPresent: string[] = null;
+                $$.SANDBOX.stub(Config.prototype, 'write').callsFake(async function(contents) {
+                    usersPresent = contents.usernames;
+                    return;
+                });
+
+                await orgs[0].removeUsername(orgs[1].getConnection().getAuthInfo());
+                expect(usersPresent.length).to.be.eq(2);
+                expect(usersPresent).to.not.include(mock1.username);
+
+                await orgs[0].removeUsername(orgs[2].getConnection().getAuthInfo());
+                expect(usersPresent.length).to.be.eq(2);
+                expect(usersPresent).to.not.include(mock2.username);
+            });
+        });
+    });
 });

@@ -49,7 +49,6 @@ export class KeyValueStore extends Config {
     public static async create<T extends Config>(this: { new(): T }, options: KeyValueStoreConfigOptions): Promise<T> {
 
         const store: T =  await super.create(options) as T;
-        console.log(store.getPath());
         if (!(await store.access(fsConstants.R_OK))) {
             await store.write(JSON.parse(`{ "${options.defaultGroup}": {} }`));
         }

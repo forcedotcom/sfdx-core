@@ -362,9 +362,9 @@ export class Org {
     public async removeUsername(auth: AuthInfo): Promise<Org> {
         const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
-        const contents: any = await orgConfig.read();
+        const contents: any = await orgConfig.readJSON();
 
-        const targetUser = auth.getConnectionOptions().username;
+        const targetUser = auth.getFields().username;
         contents.usernames = _filter(contents.usernames, (username) => username !== targetUser);
 
         await orgConfig.write(contents);
@@ -437,7 +437,7 @@ export class Org {
             this.connection = connection;
             return this;
         } else {
-            throw new Error('Connection not specified.');
+            throw new SfdxError('Connection not specified', 'UndefinedConnection');
         }
     }
 }

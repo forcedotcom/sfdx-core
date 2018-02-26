@@ -77,7 +77,7 @@ describe('SfdxConfigFile', () => {
             const newUsername = 'updated_val';
             expectedFileContents.defaultusername = newUsername;
 
-            await SfdxConfig.setPropertyValue(false, 'defaultusername', newUsername, $$.rootPathRetriever);
+            await SfdxConfig.setPropertyValue(false, 'defaultusername', newUsername);
 
             expect(writeStub.calledWith(expectedFileContents)).to.be.true;
         });
@@ -87,7 +87,7 @@ describe('SfdxConfigFile', () => {
             const writeStub = $$.SANDBOX.stub(SfdxConfig.prototype, 'write');
             const { defaultdevhubusername } = configFileContents;
 
-            await SfdxConfig.setPropertyValue(false, 'defaultusername', undefined, $$.rootPathRetriever);
+            await SfdxConfig.setPropertyValue(false, 'defaultusername');
 
             expect(writeStub.calledWith({ defaultdevhubusername })).to.be.true;
         });

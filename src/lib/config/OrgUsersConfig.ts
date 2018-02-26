@@ -1,5 +1,4 @@
 import {Config, ConfigOptions} from './config';
-import { Global } from '../global';
 
 /**
  * Class that represents various configuration files associated with Org instances.
