@@ -8,7 +8,7 @@
 import Messages from './lib/messages';
 import { SfdxErrorConfig, SfdxError } from './lib/sfdxError';
 import Global from './lib/global';
-import UX from './lib/ux';
+import { UX, SfdxTableOptions } from './lib/ux';
 import { Logger, LoggerLevel } from './lib/logger';
 import { Connection } from './lib/connection';
 import { AuthInfo } from './lib/authInfo';
@@ -27,6 +27,7 @@ export {
     Global,
     SfdxUtil,
     UX,
+    SfdxTableOptions,
     Logger,
     LoggerLevel,
     Org,
