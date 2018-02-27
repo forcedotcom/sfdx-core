@@ -122,6 +122,7 @@ describe('SfdxConfig', () => {
     });
 
     it('calls ConfigFile.write with encrypted values contents', async () => {
+        console.log(`SFDX_USE_GENERIC_UNIX_KEYCHAIN: ${process.env['SFDX_USE_GENERIC_UNIX_KEYCHAIN']}`);
         const TEST_VAL = 'test';
         $$.SANDBOX.stub(Config.prototype, Config.prototype.readJSON.name).callsFake(() => Promise.resolve({}));
 

@@ -166,6 +166,16 @@ describe('Org Tests', () => {
             expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
         });
 
+        it ('should expose getUsername', async () => {
+            const org: Org = await Org.create(testData.username);
+            expect(org.getUsername()).to.eq(testData.username);
+        });
+
+        it ('should expose getOrgId', async () => {
+            const org: Org = await Org.create(testData.username);
+            expect(org.getOrgId()).to.eq(testData.orgId);
+        });
+
     });
 
     describe('retrieveMaxApiVersion', () => {

@@ -428,8 +428,20 @@ export class Org {
         return _maxBy(versions, (_ver: any) => _ver.version);
     }
 
-    public getName(): string {
-        return this.getConnection().getAuthInfo().username;
+    /**
+     * Return the username for the org.
+     * @return {string} - The username
+     */
+    public getUsername(): string {
+        return this.getMetaInfo().info.getFields().username;
+    }
+
+    /**
+     * Returns the orgId for this org
+     * @return {string} - The org Id
+     */
+    public getOrgId(): string {
+        return this.getMetaInfo().info.getFields().orgId;
     }
 
     /**
