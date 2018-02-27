@@ -110,48 +110,48 @@ describe('UX', () => {
     it('errorJson() should log to the logger (logLevel = error) and stderr', () => {
         $$.SANDBOX.stub(logger, 'error');
         const ux = new UX(logger);
-        $$.SANDBOX.stub(ux.stderr, 'write');
-        $$.SANDBOX.stub(ux.stdout, 'write');
+        $$.SANDBOX.stub(ux.stderr, 'log');
+        $$.SANDBOX.stub(ux.stdout, 'log');
         const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1, 2, 3] };
 
         ux.errorJson(logMsg);
 
         expect(logger.error['called']).to.be.true;
         expect(logger.error['firstCall'].args[0]).to.equal(JSON.stringify(logMsg, null, 4));
-        expect(ux.stderr.write['called']).to.be.true;
-        expect(ux.stdout.write['called']).to.be.false;
-        expect(ux.stderr.write['firstCall'].args[0]).to.equal(JSON.stringify(logMsg, null, 4));
+        expect(ux.stderr.log['called']).to.be.true;
+        expect(ux.stdout.log['called']).to.be.false;
+        expect(ux.stderr.log['firstCall'].args[0]).to.equal(JSON.stringify(logMsg, null, 4));
     });
 
     it('error() should only log to the logger (logLevel = error) when output IS NOT enabled', () => {
         $$.SANDBOX.stub(logger, 'error');
         const ux = new UX(logger, false);
-        $$.SANDBOX.stub(ux.stderr, 'write');
-        $$.SANDBOX.stub(ux.stdout, 'write');
+        $$.SANDBOX.stub(ux.stderr, 'log');
+        $$.SANDBOX.stub(ux.stdout, 'log');
         const logMsg = 'test error() 1 for log wrapper';
 
         ux.error(logMsg);
 
         expect(logger.error['called']).to.be.true;
         expect(logger.error['firstCall'].args[0]).to.equal(logMsg);
-        expect(ux.stderr.write['called']).to.be.false;
-        expect(ux.stdout.write['called']).to.be.false;
+        expect(ux.stderr.log['called']).to.be.false;
+        expect(ux.stdout.log['called']).to.be.false;
     });
 
     it('error() should log to the logger (logLevel = error) and stderr when output IS enabled', () => {
         $$.SANDBOX.stub(logger, 'error');
         const ux = new UX(logger);
-        $$.SANDBOX.stub(ux.stderr, 'write');
-        $$.SANDBOX.stub(ux.stdout, 'write');
-        const logMsg = 'test error() 2 for log wrapper';
+        $$.SANDBOX.stub(ux.stderr, 'log');
+        $$.SANDBOX.stub(ux.stdout, 'log');
+        const logMsg = 'test error() 2 for log wrapper\n';
 
         ux.error(logMsg);
 
         expect(logger.error['called']).to.be.true;
         expect(logger.error['firstCall'].args[0]).to.equal(logMsg);
-        expect(ux.stdout.write['called']).to.be.false;
-        expect(ux.stderr.write['called']).to.be.true;
-        expect(ux.stderr.write['firstCall'].args[0]).to.equal(logMsg);
+        expect(ux.stdout.log['called']).to.be.false;
+        expect(ux.stderr.log['called']).to.be.true;
+        expect(ux.stderr.log['firstCall'].args[0]).to.equal(logMsg);
     });
 
     it('styledObject() should only log to the logger when output IS NOT enabled', () => {
@@ -342,8 +342,8 @@ describe('UX', () => {
             logger.setLevel('error');
             $$.SANDBOX.stub(logger, 'warn');
             const ux = new UX(logger, false);
-            $$.SANDBOX.stub(ux.stderr, 'write');
-            $$.SANDBOX.stub(ux.stdout, 'write');
+            $$.SANDBOX.stub(ux.stderr, 'log');
+            $$.SANDBOX.stub(ux.stdout, 'log');
             const logMsg = 'test warn() 1 for log wrapper';
 
             const ux1 = ux.warn(logMsg);
@@ -351,8 +351,8 @@ describe('UX', () => {
             expect(logger.warn['called']).to.be.true;
             expect(logger.warn['firstCall'].args[0]).to.equal('WARNING:');
             expect(logger.warn['firstCall'].args[1]).to.equal(logMsg);
-            expect(ux.stderr.write['called']).to.be.false;
-            expect(ux.stdout.write['called']).to.be.false;
+            expect(ux.stderr.log['called']).to.be.false;
+            expect(ux.stdout.log['called']).to.be.false;
             expect(UX.warnings.size).to.equal(0);
             expect(ux1).to.equal(ux);
         });
@@ -360,18 +360,18 @@ describe('UX', () => {
         it('warn() should log to the logger and stderr when logLevel <= WARN and output enabled', () => {
             $$.SANDBOX.stub(logger, 'warn');
             const ux = new UX(logger);
-            $$.SANDBOX.stub(ux.stderr, 'write');
-            $$.SANDBOX.stub(ux.stdout, 'write');
-            const logMsg = 'test warn() 1 for log wrapper';
+            $$.SANDBOX.stub(ux.stderr, 'log');
+            $$.SANDBOX.stub(ux.stdout, 'log');
+            const logMsg = 'test warn() 1 for log wrapper\n';
 
             const ux1 = ux.warn(logMsg);
 
             expect(logger.warn['called']).to.be.true;
             expect(logger.warn['firstCall'].args[0]).to.equal('WARNING:');
             expect(logger.warn['firstCall'].args[1]).to.equal(logMsg);
-            expect(ux.stdout.write['called']).to.be.false;
-            expect(ux.stderr.write['called']).to.be.true;
-            expect(ux.stderr.write['firstCall'].args[0]).to.equal(`WARNING:${logMsg}`);
+            expect(ux.stdout.log['called']).to.be.false;
+            expect(ux.stderr.log['called']).to.be.true;
+            expect(ux.stderr.log['firstCall'].args[0]).to.equal(`WARNING:${logMsg}`);
             expect(UX.warnings.size).to.equal(0);
             expect(ux1).to.equal(ux);
         });
@@ -379,8 +379,8 @@ describe('UX', () => {
         it('warn() should log to the logger and add to warnings Set when logLevel <= WARN and output NOT enabled', () => {
             $$.SANDBOX.stub(logger, 'warn');
             const ux = new UX(logger, false);
-            $$.SANDBOX.stub(ux.stderr, 'write');
-            $$.SANDBOX.stub(ux.stdout, 'write');
+            $$.SANDBOX.stub(ux.stderr, 'log');
+            $$.SANDBOX.stub(ux.stdout, 'log');
             const logMsg = 'test warn() 1 for log wrapper';
 
             const ux1 = ux.warn(logMsg);
@@ -388,8 +388,8 @@ describe('UX', () => {
             expect(logger.warn['called']).to.be.true;
             expect(logger.warn['firstCall'].args[0]).to.equal('WARNING:');
             expect(logger.warn['firstCall'].args[1]).to.equal(logMsg);
-            expect(ux.stdout.write['called']).to.be.false;
-            expect(ux.stderr.write['called']).to.be.false;
+            expect(ux.stdout.log['called']).to.be.false;
+            expect(ux.stderr.log['called']).to.be.false;
             expect(UX.warnings.size).to.equal(1);
             expect(Array.from(UX.warnings)[0]).to.equal(logMsg);
             expect(ux1).to.equal(ux);
