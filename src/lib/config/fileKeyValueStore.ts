@@ -7,7 +7,6 @@
 import { constants as fsConstants } from 'fs';
 import * as _ from 'lodash';
 import {Config, ConfigOptions} from './config';
-import Global from '../global';
 
 const _set = (aliases, group, alias, property) => {
     if (_.isNil(aliases[group])) {

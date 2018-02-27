@@ -9,8 +9,8 @@ import { join as pathJoin } from 'path';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import {KeyValueStore, KeyValueStoreConfigOptions} from '../../lib/config/fileKeyValueStore';
-import {Config, ConfigOptions} from '../../lib/config/config';
+import { KeyValueStore, KeyValueStoreConfigOptions } from '../../lib/config/fileKeyValueStore';
+import { Config } from '../../lib/config/config';
 import { testSetup } from '../testSetup';
 import { SfdxUtil } from '../../lib/util';
 
