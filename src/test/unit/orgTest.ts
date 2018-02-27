@@ -118,6 +118,56 @@ describe('Org Tests', () => {
         }));
     });
 
+    describe('org:create', () => {
+        const testId = $$.uniqid();
+        beforeEach(() => {
+            $$.SANDBOX.stub(Config.prototype, 'readJSON').callsFake(async function() {
+                return Promise.resolve(await testData.getConfig());
+            });
+
+            $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake(async (isGlobal: boolean) => {
+                return await $$.rootPathRetriever(isGlobal, testId);
+            });
+        });
+
+        it ('should create an org from a username', async () => {
+            const org: Org = await Org.create(testData.username);
+            expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
+        });
+
+        it ('should create an org from an alias', async () => {
+            const ALIAS: string = 'foo';
+            await Alias.parseAndUpdate([`${ALIAS}=${testData.username}`]);
+            const org: Org = await Org.create(ALIAS);
+            expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
+        });
+
+        it ('should create an org from the default username', async () => {
+
+            const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
+            await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, testData.username);
+            await config.write();
+
+            const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+
+            const org: Org = await Org.create(undefined, sfdxConfigAggregator);
+            expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
+        });
+
+        it ('should create a default devhub org', async () => {
+
+            const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
+            await config.setPropertyValue(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, testData.username);
+            await config.write();
+
+            const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+
+            const org: Org = await Org.create(undefined, sfdxConfigAggregator, true);
+            expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
+        });
+
+    });
+
     describe('retrieveMaxApiVersion', () => {
         it('no username', async () => {
             $$.SANDBOX.stub(Config.prototype, 'readJSON').callsFake(async () => {

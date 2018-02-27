@@ -116,9 +116,24 @@ describe('SfdxConfig', () => {
 
         it('noPropertyInput validation', async () => {
             const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
-            config.setContents([]);
             await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, 'foo@example.com');
             expect(config.getContents()[SfdxConfig.DEFAULT_USERNAME]).to.be.equal('foo@example.com');
         });
+    });
+
+    it('calls ConfigFile.write with encrypted values contents', async () => {
+        const TEST_VAL = 'test';
+        $$.SANDBOX.stub(Config.prototype, Config.prototype.readJSON.name).callsFake(() => Promise.resolve({}));
+
+        const writeStub = $$.SANDBOX.stub(Config.prototype, Config.prototype.write.name).callsFake(function() {
+            expect(this.contents.isvDebuggerSid.length).to.be.greaterThan(TEST_VAL.length);
+            expect(this.contents.isvDebuggerSid).to.not.equal(TEST_VAL);
+        });
+
+        const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
+        await config.setPropertyValue(SfdxConfig.ISV_DEBUGGER_SID, TEST_VAL);
+        await config.write();
+
+        expect(writeStub.called).to.be.true;
     });
 });

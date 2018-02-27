@@ -12,7 +12,7 @@ import { Logger } from './logger';
 import { RequestInfo } from 'jsforce';
 import { SfdxConfig } from './config/sfdxConfig';
 import { SfdxConfigAggregator, ConfigInfo } from './config/sfdxConfigAggregator';
-import { isNil as _isNil , maxBy as _maxBy, get as _get, filter as _filter } from 'lodash';
+import { isNil as _isNil , maxBy as _maxBy, get as _get, filter as _filter, isString as _isString } from 'lodash';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Global} from './global';
 import { SfdxUtil } from './util';
@@ -71,35 +71,57 @@ const _manageDelete = function(cb, dirPath, throwWhenRemoveFails) {
 export class Org {
 
     /**
-     * Static initializer to create an org instance.
-     * @param {Connection} connection - JSForce connection
-     * @param {SfdxConfigAggregator} aggregator - configuration aggregator
-     * @param {boolean} isDevHub - true if the org is a devhub. false for a scratch org
-     * @returns {Promise<Org>} - An initialized org instance.
-     * @example const o: Org = await Org.create();
-     * @example const o: Org = await Org.create(await Connection.create(await AuthInfo.create('foo@example.com')));
+     * Static initializer that allows creating an instance of an org from a alias or a plain string username. If no
+     * username or alias is provided then the defaultusername is used. If isDevHub is true then the defaultdevhub is used.
+     * @param {string} aliasOrUsername - The string alias or username
+     * @param {SfdxConfigAggregator} aggregator - optional config aggregator
+     * @param {boolean} isDevHub - optional - true if this org is a devhub. defaults to false
+     * @return {Promise<Org>}
      */
-    public static async create(connection?: Connection,
-                               aggregator?: SfdxConfigAggregator, isDevHub: boolean = false): Promise<Org> {
+    public static async create(aliasOrUsername?: string, aggregator?: SfdxConfigAggregator, isDevHub?: boolean): Promise<Org>;
 
+    /**
+     * Static initializer that allows creating an instance of an org from a Connection object
+     * @param {Connection} connection - The connection
+     * @param {SfdxConfigAggregator} aggregator - optional config aggregator
+     * @param {boolean} isDevHub - optional - true if this org is a devhub. defaults to false
+     * @return {Promise<Org>}
+     */
+    // tslint:disable-next-line:unified-signatures
+    public static async create(connection?: Connection, aggregator?: SfdxConfigAggregator, isDevHub?: boolean): Promise<Org>;
+
+    public static async create(connection: string | Connection, aggregator?: SfdxConfigAggregator, isDevHub?: boolean): Promise<Org> {
         const _aggregator = aggregator ? aggregator : await SfdxConfigAggregator.create();
 
         const org = new Org(_aggregator);
 
         org.logger = await Logger.child('Org');
 
-        let _connection: Connection = connection;
+        let _connection: Connection;
+
+        if (_isString(connection)) {
+            org.logger.debug('connection type is string');
+            const aliasValue: string = await Alias.fetchValue(connection);
+            _connection = await Connection.create(
+                await AuthInfo.create(aliasValue || connection));
+        } else {
+            _connection = connection;
+        }
+
         if (!_connection) {
+            org.logger.debug('No connection specified. Trying default configurations');
             const username: string = isDevHub ?
-                aggregator.getInfo(SfdxConfig.DEFAULT_DEV_HUB_USERNAME).value as string :
-                aggregator.getInfo(SfdxConfig.DEFAULT_USERNAME).value as string;
+                _aggregator.getInfo(SfdxConfig.DEFAULT_DEV_HUB_USERNAME).value as string :
+                _aggregator.getInfo(SfdxConfig.DEFAULT_USERNAME).value as string;
 
             if (username) {
                 _connection = await Connection.create(await AuthInfo.create(username));
             } else {
-                throw new SfdxError(`No ${isDevHub ? 'default Devhub' : ' default' } username or Connection found.`, 'NoUsername' );
+                throw new SfdxError(`No ${isDevHub ? 'default Devhub' : 'default' } username or Connection found.`, 'NoUsername' );
             }
         }
+
+        org.logger.debug(`connection created for org user: ${_connection.getAuthInfo().getFields().username}`);
         org.setConnection(_connection);
         return org;
     }
@@ -150,6 +172,7 @@ export class Org {
         try {
             const rootFolder: string = await SfdxConfig.resolveRootFolder(false);
             dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
+            this.logger.debug(`cleaning data for path: ${dataPath}`);
         } catch (err) {
             if (err.name === 'InvalidProjectWorkspace') {
                 // If we aren't in a project dir, we can't clean up data files.
@@ -209,7 +232,7 @@ export class Org {
                 orgForUser = this;
             } else {
                 const _info = await AuthInfo.create(username);
-                const connection = await Connection.create(_info);
+                const connection: Connection = await Connection.create(_info);
                 orgForUser = await Org.create(connection);
             }
 
@@ -247,7 +270,9 @@ export class Org {
 
         const thisOrgAuthConfig: Partial<AuthFields> = this.getConnection().getAuthInfo().getFields();
 
-        const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg=\'${thisOrgAuthConfig.orgId}\'`;
+        const trimmedId: string = SfdxUtil.trimTo15(thisOrgAuthConfig.orgId);
+
+        const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg=\'${trimmedId}\'`;
 
         let results;
         try {
@@ -295,6 +320,7 @@ export class Org {
      * @returns {Promise<any>} - Refresh a users access token.
      */
     public async refreshAuth(): Promise<void> {
+        this.logger.debug('Refreshing auth for org.');
         const requestInfo = {
             url: this.getConnection().baseUrl(),
             method: 'GET'
@@ -326,6 +352,12 @@ export class Org {
      * @returns {Promise<Org>} - This Org
      */
     public async addUsername(auth: AuthInfo): Promise<Org> {
+
+        if (!auth) {
+            throw new SfdxError('Missing auth info', 'MissingAuthInfo');
+        }
+
+        this.logger.debug(`adding username ${auth.getFields().username}`);
 
         const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
@@ -360,6 +392,12 @@ export class Org {
      * @returns {Promise<Org>} - This Org
      */
     public async removeUsername(auth: AuthInfo): Promise<Org> {
+        if (!auth) {
+            throw new SfdxError('Missing auth info', 'MissingAuthInfo');
+        }
+
+        this.logger.debug(`removing username ${auth.getFields().username}`);
+
         const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
         const contents: any = await orgConfig.readJSON();
@@ -384,6 +422,8 @@ export class Org {
         const info: RequestInfo = { method: 'GET', url };
 
         const versions = await this.getConnection().request(info);
+
+        this.logger.debug(`response for org versions: ${versions}`);
 
         return _maxBy(versions, (_ver: any) => _ver.version);
     }

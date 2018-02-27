@@ -42,6 +42,9 @@ export class Config {
      * @returns {Promise<string>} - The filepath of the root folder.
      */
     public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
+        if (!_isBoolean(isGlobal)) {
+            throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
+        }
         return isGlobal ? osHomedir() : await ProjectDir.getPath();
     }
 

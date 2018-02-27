@@ -59,7 +59,7 @@ export class KeyValueStore extends Config {
         return {
             filename,
             defaultGroup,
-            filePath: Global.STATE_FOLDER
+            isGlobal: true
         };
     }
 
