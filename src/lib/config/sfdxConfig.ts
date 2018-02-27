@@ -9,7 +9,7 @@
 
 // Node
 
-import { isNil as _isNil, some as _some, keyBy as _keyBy, each as _each } from 'lodash';
+import * as _ from 'lodash';
 import { Messages } from '../messages';
 import { Config, ConfigOptions } from './config';
 import { SfdxUtil } from '../util';
@@ -123,7 +123,7 @@ export class SfdxConfig extends Config {
                     key: 'instanceUrl',
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
-                        validator: (value) => _isNil(value) || SfdxUtil.isSalesforceDomain(value),
+                        validator: (value) => _.isNil(value) || SfdxUtil.isSalesforceDomain(value),
                         failedMessage: SfdxConfig.messages.getMessage('invalidInstanceUrl')
                     }
                 },
@@ -132,7 +132,7 @@ export class SfdxConfig extends Config {
                     hidden: true,
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
-                        validator: (value) => _isNil(value) || /[1-9]\d\.0/.test(value),
+                        validator: (value) => _.isNil(value) || /[1-9]\d\.0/.test(value),
                         failedMessage: SfdxConfig.messages.getMessage('invalidApiVersion')
                     }
                 },
@@ -143,7 +143,7 @@ export class SfdxConfig extends Config {
             ];
         }
 
-        SfdxConfig.propertyConfigMap = _keyBy(SfdxConfig.allowedProperties, 'key');
+        SfdxConfig.propertyConfigMap = _.keyBy(SfdxConfig.allowedProperties, 'key');
 
         return await super.create(options) as T;
     }
@@ -176,7 +176,7 @@ export class SfdxConfig extends Config {
 
         const content = await config.read();
 
-        if (_isNil(value)) {
+        if (_.isNil(value)) {
             delete content[propertyName];
         } else {
             content[propertyName] = value;
@@ -224,7 +224,7 @@ export class SfdxConfig extends Config {
      * @return {Promise<object>}
      */
     public async write(newContents?: any): Promise<object> {
-        if (!_isNil(newContents)) {
+        if (!_.isNil(newContents)) {
             this.setContents(newContents);
         }
 
@@ -305,12 +305,12 @@ export class SfdxConfig extends Config {
      */
     private async cryptProperties(encrypt: boolean) {
         const hasEncryptedProperties =
-            _some(this.getContents(), (val, key) => !!SfdxConfig.propertyConfigMap[key].encrypted);
+            _.some(this.getContents(), (val, key) => !!SfdxConfig.propertyConfigMap[key].encrypted);
 
         if (hasEncryptedProperties) {
             await this.initCrypto();
 
-            _each(this.getContents(), (value, key) => {
+            _.each(this.getContents(), (value, key) => {
                 if (this.getPropertyConfig(key).encrypted) {
                     this.getContents()[key] = encrypt ? this.crypto.encrypt(value) : this.crypto.decrypt(value);
 
