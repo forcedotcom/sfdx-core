@@ -221,7 +221,7 @@ export class SfdxUtil {
      * @return {string} - 15 character version of the ID.
      */
     public static trimTo15(id: string): string {
-        // FIXME: remove once 18-char orgid is figured out
+        // FIXME: remove once 18-char entityId is figured out
         if (id && id.length && id.length > 15) {
             id = id.substring(0, 15);
         }
