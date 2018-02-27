@@ -134,7 +134,7 @@ export class Alias {
     private static async getAliasFileStore(): Promise<KeyValueStore> {
         if (!Alias.aliasFileStore) {
             Alias.aliasFileStore =
-                await KeyValueStore.create({ filename: ALIAS_FILE_NAME, defaultGroup: AliasGroup.ORGS.valueOf() });
+                await KeyValueStore.create(KeyValueStore.getDefaultOptions(ALIAS_FILE_NAME, AliasGroup.ORGS.valueOf()));
         }
 
         return Alias.aliasFileStore;

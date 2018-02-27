@@ -168,4 +168,10 @@ describe('Util', () => {
         });
     });
 
+    it ('should trim an 18 character id to 15 characters', () => {
+        const id: string = SfdxUtil.trimTo15('ABCDEFGHIJKLMNOPQR');
+        const trimmed = SfdxUtil.trimTo15(id);
+        expect(trimmed.length).to.eq(15);
+        expect(trimmed.endsWith('O')).to.be.true;
+    });
 });

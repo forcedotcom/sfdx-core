@@ -15,6 +15,7 @@ import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { SfdxUtil } from './util';
 import { Global } from './global';
 import { KeychainConfig } from './config/keychainConfig';
+import {Config} from './config/config';
 
 /* tslint:disable: no-bitwise */
 
@@ -359,8 +360,6 @@ interface SecretFields {
 
 export class GenericKeychainAccess {
 
-    protected static SECRET_FILE: string = path.join(Global.DIR, KeychainConfig.KEYCHAIN_FILENAME);
-
     public async getPassword(opts, fn): Promise<any> {
         // validate the file in .sfdx
         await this.isValidFileAccess(async (fileAccessError) => {
@@ -398,7 +397,7 @@ export class GenericKeychainAccess {
 
     public async setPassword(opts, fn): Promise<any> {
         // validate the file in .sfdx
-        await this.isValidFileAccess((fileAccessError) => {
+        await this.isValidFileAccess(async (fileAccessError) => {
             // if there is a validation error
             if (!_.isNil(fileAccessError)) {
 
@@ -417,32 +416,32 @@ export class GenericKeychainAccess {
         });
     }
 
-    protected async isValidFileAccess(cb): Promise<any> {
-        // This call just ensures the .sfdx dir exists and has the correct permissions.
-        await Global.createDir();
-
+    protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<any> {
         try {
-            await SfdxUtil.access(Global.DIR, fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
-            cb(null);
+            const root = await Config.resolveRootFolder(true);
+            await SfdxUtil.access(path.join(root, Global.STATE_FOLDER), fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
+            await cb(null);
         } catch (err) {
-            cb(err);
+            await cb(err);
         }
     }
 }
 
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 
-    protected async isValidFileAccess(cb): Promise<any> {
+    protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<any> {
+        const secretFile: string = path.join(await Config.resolveRootFolder(true),
+            Global.STATE_FOLDER, KeychainConfig.getDefaultOptions().filename);
         await super.isValidFileAccess(async (err) => {
             if (!_.isNil(err)) {
-                cb(err);
+                await cb(err);
             } else {
                 const keyFile = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
                 const stats = await keyFile.stat();
                 const octalModeStr  = (stats.mode & 0o777).toString(8);
                 const EXPECTED_OCTAL_PERM_VALUE = '600';
                 if (octalModeStr === EXPECTED_OCTAL_PERM_VALUE) {
-                    cb();
+                    await cb();
                 } else {
                     const errorConfig = new SfdxErrorConfig(
                         'sfdx-core',
@@ -450,9 +449,9 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
                         'GenericKeychainInvalidPermsError',
                         null,
                         'GenericKeychainInvalidPermsErrorAction',
-                        [GenericKeychainAccess.SECRET_FILE, EXPECTED_OCTAL_PERM_VALUE]
+                        [secretFile, EXPECTED_OCTAL_PERM_VALUE]
                     );
-                    cb(SfdxError.create(errorConfig));
+                    await cb(SfdxError.create(errorConfig));
                 }
             }
         });
