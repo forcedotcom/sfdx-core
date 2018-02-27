@@ -235,12 +235,18 @@ export class SfdxError extends Error {
     }
 
     public toJson() {
-        return {
+        const json: any = {
             name: this.name,
             message: this.message || this.name,
             exitCode: this.exitCode,
             actions: this.actions
         };
+
+        if (this.commandName) {
+            json.commandName = this.commandName;
+        }
+
+        return json;
     }
 }
 
