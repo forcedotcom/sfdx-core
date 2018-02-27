@@ -233,6 +233,21 @@ export class SfdxError extends Error {
 
         return colorizedArgs;
     }
+
+    public toJson() {
+        const json: any = {
+            name: this.name,
+            message: this.message || this.name,
+            exitCode: this.exitCode,
+            actions: this.actions
+        };
+
+        if (this.commandName) {
+            json.commandName = this.commandName;
+        }
+
+        return json;
+    }
 }
 
 export default SfdxError;
