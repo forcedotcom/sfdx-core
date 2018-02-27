@@ -121,20 +121,26 @@ describe('SfdxConfig', () => {
         });
     });
 
-    it('calls ConfigFile.write with encrypted values contents', async () => {
-        console.log(`SFDX_USE_GENERIC_UNIX_KEYCHAIN: ${process.env['SFDX_USE_GENERIC_UNIX_KEYCHAIN']}`);
-        const TEST_VAL = 'test';
-        $$.SANDBOX.stub(Config.prototype, Config.prototype.readJSON.name).callsFake(() => Promise.resolve({}));
+    describe('crypto props', () => {
+        it('calls ConfigFile.write with encrypted values contents', async () => {
 
-        const writeStub = $$.SANDBOX.stub(Config.prototype, Config.prototype.write.name).callsFake(function() {
-            expect(this.contents.isvDebuggerSid.length).to.be.greaterThan(TEST_VAL.length);
-            expect(this.contents.isvDebuggerSid).to.not.equal(TEST_VAL);
+            const TEST_VAL = 'test';
+
+            const origFunction = Config.prototype.write;
+            const writeStub = $$.SANDBOX.stub(Config.prototype, Config.prototype.write.name).callsFake(async function(contents) {
+                if (this.path.includes('key.json')) {
+                    return await origFunction.call(this, contents);
+                } else {
+                    expect(this.contents.isvDebuggerSid.length).to.be.greaterThan(TEST_VAL.length);
+                    expect(this.contents.isvDebuggerSid).to.not.equal(TEST_VAL);
+                }
+            });
+
+            const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
+            await config.setPropertyValue(SfdxConfig.ISV_DEBUGGER_SID, TEST_VAL);
+            await config.write();
+
+            expect(writeStub.called).to.be.true;
         });
-
-        const config: SfdxConfig = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
-        await config.setPropertyValue(SfdxConfig.ISV_DEBUGGER_SID, TEST_VAL);
-        await config.write();
-
-        expect(writeStub.called).to.be.true;
     });
 });
