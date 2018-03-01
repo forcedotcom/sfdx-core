@@ -145,7 +145,7 @@ describe('SfdxError', () => {
         });
 
         it('should return expected base formatting', () => {
-            // Set the mode to PRODUCTION
+            // Set the mode to TEST
             $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(new Mode(Modes.TEST));
 
             const message = 'it\s a trap!';
@@ -160,7 +160,7 @@ describe('SfdxError', () => {
         });
 
         it('should return expected formatting with a commandName set', () => {
-            // Set the mode to PRODUCTION
+            // Set the mode to TEST
             $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(new Mode(Modes.TEST));
 
             const message = 'it\s a trap!';
@@ -177,7 +177,7 @@ describe('SfdxError', () => {
         });
 
         it('should return expected formatting with actions', () => {
-            // Set the mode to PRODUCTION
+            // Set the mode to TEST
             $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(new Mode(Modes.TEST));
 
             const message = 'it\s a trap!';
