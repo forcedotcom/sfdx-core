@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 
 import Logger from '../../lib/logger';
-import UX from '../../lib/ux';
+import { UX } from '../../lib/ux';
 import { CLI } from 'cli-ux';
 import chalk from 'chalk';
 import { testSetup } from '../testSetup';

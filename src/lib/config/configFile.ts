@@ -79,6 +79,9 @@ export class ConfigFile extends BaseConfigStore {
      * @returns {Promise<string>} - The file path of the root folder.
      */
     public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
+        if (!_isBoolean(isGlobal)) {
+            throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
+        }
         return isGlobal ? osHomedir() : await Project.resolveProjectPathFromCurrentWorkingDirectory();
     }
 

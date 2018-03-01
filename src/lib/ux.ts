@@ -39,7 +39,7 @@ export const color = new Proxy(chalk, {
  *
  * @extends cli-ux
  */
-export default class UX extends CLI {
+export class UX extends CLI {
 
     // Collection of warnings that can be accessed and manipulated later.
     public static warnings: Set<string> = new Set<string>();

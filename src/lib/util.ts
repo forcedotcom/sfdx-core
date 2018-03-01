@@ -243,4 +243,17 @@ export class SfdxUtil {
 
         return _key;
     }
+
+    /**
+     * Converts the 18 character org id to 15 characters
+     * @param {string} id - the id to convert
+     * @return {string} - 15 character version of the ID.
+     */
+    public static trimTo15(id: string): string {
+        // FIXME: remove once 18-char entityId is figured out
+        if (id && id.length && id.length > 15) {
+            id = id.substring(0, 15);
+        }
+        return id;
+    }
 }

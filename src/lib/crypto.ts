@@ -102,7 +102,7 @@ export class Crypto {
                     logger.debug('a key was set but the retry to get the password failed.');
                     throw err;
                 } else {
-                    logger.debug('password not found in keychin attempting to created one and re-init.');
+                    logger.debug('password not found in keychain attempting to created one and re-init.');
                 }
 
                 const key = crypto.randomBytes(Math.ceil(16)).toString('hex');
