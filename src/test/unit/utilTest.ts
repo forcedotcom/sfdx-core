@@ -168,4 +168,20 @@ describe('Util', () => {
         });
     });
 
+    describe('findUpperCaseKeys', () => {
+        it('should return the first upper case key', () => {
+            const testObj = { lowercase: true, UpperCase: false, nested: { camelCase: true } };
+            expect(SfdxUtil.findUpperCaseKeys(testObj)).to.equal('UpperCase');
+        });
+
+        it('should return the first nested upper case key', () => {
+            const testObj = { lowercase: true, uppercase: false, nested: { NestedUpperCase: true } };
+            expect(SfdxUtil.findUpperCaseKeys(testObj)).to.equal('NestedUpperCase');
+        });
+
+        it('should return undefined when no upper case key is found', () => {
+            const testObj = { lowercase: true, uppercase: false, nested: { camelCase: true } };
+            expect(SfdxUtil.findUpperCaseKeys(testObj)).to.be.undefined;
+        });
+    });
 });

@@ -13,7 +13,7 @@ import { OAuth2, OAuth2Options } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { AuthInfoConfig } from './config/authInfoConfig';
-import { Config } from './config/config';
+import { ConfigFile } from './config/configFile';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
@@ -313,8 +313,8 @@ export class AuthInfo {
                 // Fetch from the persisted auth file
                 try {
                     const config: AuthInfoConfig =
-                        await AuthInfoConfig.create(AuthInfoConfig.getDefaultOptions(this.authFileName));
-                    authConfig = await config.readJSON();
+                        await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.username));
+                    authConfig = await config.read();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
                         throw SfdxError.create('sfdx-core', 'core', 'namedOrgNotFound', [this.username]);
@@ -331,10 +331,6 @@ export class AuthInfo {
         AuthInfo.cache.set(this.username, this.fields);
 
         return this;
-    }
-
-    get authFileName(): string {
-        return `${this.fields.username}.json`;
     }
 
     get username(): string {
@@ -375,8 +371,9 @@ export class AuthInfo {
             delete dataToSave.clientSecret;
         }
 
-        const config: Config = await AuthInfoConfig.create(AuthInfoConfig.getDefaultOptions(this.authFileName));
-        await config.write(dataToSave);
+        const config: ConfigFile = await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.username));
+        config.setContentFromObject(dataToSave);
+        await config.write();
 
         this.logger.info(`Saved auth info for username: ${this.username}`);
         return this;

@@ -335,31 +335,28 @@ const _darwinImpl = {
 };
 
 async function _writeFile(opts, fn) {
-    const obj: SecretFields = {
-        service: opts.service,
-        account: opts.account,
-        key: opts.password
-    };
-
     try {
-        const config: KeychainConfig = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
-        await config.write(obj);
+        const config: KeychainConfig = await KeychainConfig.create();
+        config.set(SecretFields.ACCOUNT, opts.account);
+        config.set(SecretFields.KEY, opts.password);
+        config.set(SecretFields.SERVICE, opts.service);
+        await config.write();
 
-        fn(null, obj);
+        fn(null, config.getContents());
     } catch (err) {
         fn(err);
     }
 }
 
-interface SecretFields {
-    service: string;
-    account: string;
-    key: string;
+enum SecretFields {
+    SERVICE = 'service',
+    ACCOUNT = 'account',
+    KEY = 'key'
 }
 
 export class GenericKeychainAccess {
 
-    protected static SECRET_FILE: string = path.join(Global.DIR, KeychainConfig.KEYCHAIN_FILENAME);
+    protected static SECRET_FILE: string = path.join(Global.DIR, KeychainConfig.getFileName());
 
     public async getPassword(opts, fn): Promise<any> {
         // validate the file in .sfdx
@@ -369,16 +366,15 @@ export class GenericKeychainAccess {
             if (_.isNil(fileAccessError)) {
 
                 // read it's contents
-                return KeychainConfig.create(KeychainConfig.getDefaultOptions())
-                    .then((config: KeychainConfig) => config.readJSON())
-                    .then(async (readObj: SecretFields) => {
+                return KeychainConfig.retrieve()
+                    .then((config: KeychainConfig) => {
                         // validate service name and account just because
-                        if ((opts.service === readObj.service ) && (opts.account === readObj.account)) {
-                            fn(null, readObj.key);
+                        if ((opts.service === config.get(SecretFields.SERVICE)) && (opts.account === config.get(SecretFields.ACCOUNT))) {
+                            fn(null, config.get(SecretFields.KEY));
                         } else {
                             // if the service and account names don't match then maybe someone or something is editing
                             // that file. #donotallow
-                            const errorConfig = new SfdxErrorConfig('sfdx-core', 'encryption', 'GenericKeychainServiceError', [KeychainConfig.KEYCHAIN_FILENAME], 'GenericKeychainServiceErrorAction');
+                            const errorConfig = new SfdxErrorConfig('sfdx-core', 'encryption', 'GenericKeychainServiceError', [KeychainConfig.getFileName()], 'GenericKeychainServiceErrorAction');
                             const err = SfdxError.create(errorConfig);
                             fn(err);
                         }
@@ -437,7 +433,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
             if (!_.isNil(err)) {
                 cb(err);
             } else {
-                const keyFile = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
+                const keyFile = await KeychainConfig.create();
                 const stats = await keyFile.stat();
                 const octalModeStr  = (stats.mode & 0o777).toString(8);
                 const EXPECTED_OCTAL_PERM_VALUE = '600';

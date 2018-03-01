@@ -10,26 +10,29 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 // Local
-import { KeyValueStore } from '../../lib/config/fileKeyValueStore';
-import { Alias } from '../../lib/alias';
+import { ConfigGroup } from '../../lib/config/configGroup';
+import { Aliases } from '../../lib/config/aliases';
 import { testSetup } from '../testSetup';
-import { Config } from '../../lib/config/config';
+import { ConfigFile } from '../../lib/config/configFile';
 
 // Setup the test environment.
 const $$ = testSetup();
 
 describe('Alias no key value mock', () => {
     beforeEach(() => {
-        $$.SANDBOX.stub(Config, 'resolveRootFolder')
+        $$.SANDBOX.stub(ConfigGroup, 'resolveRootFolder')
             .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal));
     });
 
     it ('steel thread', async () => {
         const KEY = 'foo';
         const VALUE = 'bar';
-        await Alias.parseAndUpdate([`${KEY}=${VALUE}`]);
-        expect(await Alias.fetchName(VALUE)).eq(KEY);
-        expect(await Alias.fetchValue(KEY)).eq(VALUE);
+        await Aliases.parseAndUpdate([`${KEY}=${VALUE}`]);
+        expect(await Aliases.fetch(KEY)).eq(VALUE);
+
+        const keys = (await Aliases.retrieve()).getKeysByValue(VALUE);
+        expect(keys.length).eq(1);
+        expect(keys[0]).eq(KEY);
     });
 });
 
@@ -39,34 +42,34 @@ describe('Alias', () => {
 
     beforeEach(() => {
         validate = () => {};
-        $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake($$.rootPathRetriever);
+        $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake($$.rootPathRetriever);
 
-        const stubMethod = (...args) => {
-            validate(...args);
+        const stubMethod = function(...args) {
+            validate(this.content, ...args);
             return Promise.resolve();
         };
 
-        // Stub the methods on the fileKeyValueStore
-        $$.SANDBOX.stub(KeyValueStore.prototype, 'updateValues').callsFake(stubMethod);
-        $$.SANDBOX.stub(KeyValueStore.prototype, 'remove').callsFake(stubMethod);
-        $$.SANDBOX.stub(KeyValueStore.prototype, 'update').callsFake(stubMethod);
-        $$.SANDBOX.stub(KeyValueStore.prototype, 'unset').callsFake(stubMethod);
-        $$.SANDBOX.stub(KeyValueStore.prototype, 'fetch').callsFake(stubMethod);
-        $$.SANDBOX.stub(KeyValueStore.prototype, 'list').callsFake(stubMethod);
-        $$.SANDBOX.stub(KeyValueStore.prototype, 'byValue').callsFake(stubMethod);
+        // Stub the methods on the configGroup
+        $$.SANDBOX.stub(ConfigGroup.prototype, 'read').callsFake(async () => {});
+        $$.SANDBOX.stub(ConfigGroup.prototype, 'write').callsFake(function() {
+            validate(JSON.parse(JSON.stringify(this.content)));
+            return Promise.resolve();
+        });
     });
 
-    describe('#update', () => {
-        it('passes the correct values to FileKeyValueStore#update', async () => {
+    describe('#set', () => {
+        it.only('passes the correct values to FileKeyValueStore#update', async () => {
             const key = 'test';
             const value = 'val';
             validate = (...args) => {
-                expect(args[0]).to.equal(key);
-                expect(args[1]).to.equal(value);
-                expect(args[2]).to.equal(group);
+                expect(args[0]).to.equal({
+                    orgs: { test: 'val' }
+                });
             };
-            await Alias.update(key, value);
-            expect(sinon.assert.calledOnce(KeyValueStore.prototype.update));
+            const aliases = await Aliases.retrieve();
+            aliases.set(key, value);
+            await aliases.write();
+            expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
         });
     });
 
@@ -77,42 +80,44 @@ describe('Alias', () => {
                 expect(args[0]).to.deep.equal(keyArray);
                 expect(args[1]).to.equal(group);
             };
-            await Alias.unset(keyArray);
-            expect(sinon.assert.calledOnce(KeyValueStore.prototype.unset));
+            const aliases = await Aliases.retrieve();
+            aliases.unsetAll(keyArray);
+            await aliases.write();
+            expect(sinon.assert.calledOnce(ConfigGroup.prototype.unset));
         });
     });
 
     describe('#parseAndSet', () => {
-        describe('passes the right values to FileKeyValueStore#updateValues', () => {
-            it('for one value', async () => {
-                validate = (...args) => {
-                    expect(args[0]).to.deep.equal({
-                        another: 'val'
-                    });
-                    expect(args[1]).to.equal(group);
-                };
-                await Alias.parseAndUpdate(['another=val']);
-                expect(sinon.assert.calledOnce(KeyValueStore.prototype.updateValues));
-            });
+        // describe('passes the right values to FileKeyValueStore#updateValues', () => {
+        //     it('for one value', async () => {
+        //         validate = (...args) => {
+        //             expect(args[0]).to.deep.equal({
+        //                 another: 'val'
+        //             });
+        //             expect(args[1]).to.equal(group);
+        //         };
+        //         await Alias.parseAndUpdate(['another=val']);
+        //         expect(sinon.assert.calledOnce(KeyValueStore.prototype.updateValues));
+        //     });
 
-            it('for two of same value', async () => {
-                validate = (...args) => {
-                    expect(args[0]).to.deep.equal({
-                        another: 'val',
-                        some: 'val'
-                    });
-                    expect(args[1]).to.equal(group);
-                };
-                await Alias.parseAndUpdate(['another=val', 'some=val']);
-                expect(sinon.assert.calledOnce(KeyValueStore.prototype.updateValues));
-            });
-        });
+        //     it('for two of same value', async () => {
+        //         validate = (...args) => {
+        //             expect(args[0]).to.deep.equal({
+        //                 another: 'val',
+        //                 some: 'val'
+        //             });
+        //             expect(args[1]).to.equal(group);
+        //         };
+        //         await Alias.parseAndUpdate(['another=val', 'some=val']);
+        //         expect(sinon.assert.calledOnce(KeyValueStore.prototype.updateValues));
+        //     });
+        // });
 
         it('should handle invalid alias formats', async () => {
             const invalidFormats = ['another', 'foo==bar'];
             for (const element of invalidFormats) {
                 try {
-                    await Alias.parseAndUpdate([element]);
+                    await Aliases.parseAndUpdate([element]);
                 } catch (err) {
                     if (err.name === 'AssertionError') {
                         throw err;

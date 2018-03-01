@@ -9,10 +9,10 @@ import { join as pathJoin } from 'path';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import {KeyValueStore, KeyValueStoreConfigOptions} from '../../lib/config/fileKeyValueStore';
-import {Config, ConfigOptions} from '../../lib/config/config';
-import { testSetup } from '../testSetup';
-import { SfdxUtil } from '../../lib/util';
+import { ConfigGroup, ConfigGroupOptions } from '../../../lib/config/configGroup';
+import { ConfigFile, ConfigOptions } from '../../../lib/config/configFile';
+import { testSetup } from '../../testSetup';
+import { SfdxUtil } from '../../../lib/util';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -23,7 +23,7 @@ describe('fileKeyValueStore live file', () => {
     const filename = 'test_keyvalue.json';
     beforeEach(async () => {
         rootFolder = await $$.rootPathRetriever(true);
-        $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake(() => Promise.resolve(rootFolder));
+        $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(() => Promise.resolve(rootFolder));
 
         const content = { orgs: { foo: 'foo@example.com' } };
         const sfdxPath = pathJoin(rootFolder, '.sfdx');
@@ -32,11 +32,11 @@ describe('fileKeyValueStore live file', () => {
     });
 
     it ('file already exists', async () => {
-        const options: KeyValueStoreConfigOptions = KeyValueStore.getDefaultOptions(filename, 'orgs');
+        const options: ConfigGroupOptions = ConfigGroup.getOptions(filename, 'orgs');
         options.rootFolder = rootFolder;
-        const store: KeyValueStore =
-            await KeyValueStore.create(options);
-        expect(await store.fetch('foo', 'orgs')).to.eq('foo@example.com');
+        const store: ConfigGroup =
+            await ConfigGroup.create<ConfigGroup>(options);
+        expect(await store.getInGroup('foo', 'orgs')).to.eq('foo@example.com');
     });
 });
 
@@ -49,14 +49,14 @@ describe('fileKeyValueStore', () => {
         validate = () => {};
         aliases = {};
 
-        $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake($$.rootPathRetriever);
+        $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake($$.rootPathRetriever);
 
-        store = await KeyValueStore.create(KeyValueStore.getDefaultOptions('testfetchConfigInfos.json', 'orgs'));
-        $$.SANDBOX.stub(Config.prototype, 'write').callsFake((config) => {
+        store = await ConfigGroup.create(ConfigGroup.getOptions('testfetchConfigInfos.json', 'orgs'));
+        $$.SANDBOX.stub(ConfigFile.prototype, 'write').callsFake((config) => {
             validate(config);
             return Promise.resolve();
         });
-        $$.SANDBOX.stub(Config.prototype, 'readJSON').callsFake(() => Promise.resolve(aliases));
+        $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(() => Promise.resolve(aliases));
     });
 
     it('saves key value pair', async () => {
@@ -64,7 +64,7 @@ describe('fileKeyValueStore', () => {
             expect(config.default.test).to.equal('val');
         };
         await store.update('test', 'val');
-        expect(sinon.assert.calledOnce(Config.prototype.write));
+        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
     });
 
     it('unsets multiple key value pairs', async () => {
@@ -73,7 +73,7 @@ describe('fileKeyValueStore', () => {
             expect(config.default).to.deep.equal({ test2: 'val2' });
         };
         await store.unset(['test1', 'test3']);
-        expect(sinon.assert.calledOnce(Config.prototype.write));
+        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
     });
 
     it('unsets a single value', async () => {
@@ -82,13 +82,13 @@ describe('fileKeyValueStore', () => {
             expect(config.default).to.deep.equal({ test2: 'val2', test3: 'val3' });
         };
         await store.unset(['test1']);
-        expect(sinon.assert.calledOnce(Config.prototype.write));
+        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
     });
 
     it('returns a list of values under a group', async () => {
         aliases = { default: { test1: 'val1', test2: 'val2', test3: 'val3' } };
         const values = await store.list();
-        expect(sinon.assert.calledOnce(Config.prototype.readJSON));
+        expect(sinon.assert.calledOnce(ConfigFile.prototype.read));
         expect(values).to.deep.equal(aliases.default);
     });
 
@@ -98,7 +98,7 @@ describe('fileKeyValueStore', () => {
             expect(config.default.test).to.be.undefined;
         };
         await store.update('test', undefined);
-        expect(sinon.assert.calledOnce(Config.prototype.write));
+        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
     });
 
     it('only allows one value', async () => {
@@ -108,7 +108,7 @@ describe('fileKeyValueStore', () => {
             expect(config.default.another).to.equal('val');
         };
         await store.update('another', 'val');
-        expect(sinon.assert.calledOnce(Config.prototype.write));
+        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
     });
 
     describe('updateValues', () => {
@@ -117,7 +117,7 @@ describe('fileKeyValueStore', () => {
                 expect(config.default.another).to.equal('val');
             };
             await store.updateValues({ another: 'val' });
-            expect(sinon.assert.calledOnce(Config.prototype.write));
+            expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
         });
 
         it('two of same value', async () => {
@@ -126,7 +126,7 @@ describe('fileKeyValueStore', () => {
                 expect(config.default.some).to.equal('val');
             };
             await store.updateValues({ another: 'val', some: 'val' });
-            expect(sinon.assert.calledOnce(Config.prototype.write));
+            expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
         });
     });
 });

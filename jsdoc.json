@@ -2,7 +2,7 @@
     "plugins": ["plugins/markdown"],
     "recurseDepth": 10,
     "source": {
-        "exclude": "/test/"
+        "excludePattern": ".*/test/.*"
     },
     "sourceType": "module",
     "tags": {

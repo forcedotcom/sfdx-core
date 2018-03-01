@@ -1,19 +1,24 @@
-import { Config, ConfigOptions } from './config';
+import { ConfigFile, ConfigOptions } from './configFile';
 
 /**
  * Represents an auth file config backed by a json file
+ * @extends Config
  */
-export class AuthInfoConfig extends Config {
+export class AuthInfoConfig extends ConfigFile {
+    public static getDefaultOptions(isGlobal: boolean, filename?: string): ConfigOptions {
+        throw Error('The method AuthInfoConfig.getDefaultOptions is supported. Call AuthInfoConfig.getOptions().');
+    }
 
     /**
-     * Default options for an auth file.
-     * @param {string} filename - the name of the auth file. Sfdx uses <username>.json
-     * @return {ConfigOptions} - The ConfigOptions
+     * Gets the config options for a given org ID.
+     * @param {string} orgId - The orgId. Generally this org would have multiple users configured.
+     * @return {ConfigOptions} - The ConfigOptions.
      */
-    public static getDefaultOptions(filename: string): ConfigOptions {
+    public static getOptions(username: string): ConfigOptions {
         return {
-            isGlobal: true,
-            filename
+            isGlobal: true, // Only allow global auth files
+            isState: true,
+            filename: `${username}.json`
         };
     }
 }

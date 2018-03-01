@@ -256,14 +256,14 @@ export class SfdxConfigAggregator {
         // Don't throw an project error with the aggregator, since it should resolve to global if
         // there is no project.
         try {
-            this.setLocalConfig(await SfdxConfig.create(SfdxConfig.getDefaultOptions(false)));
+            this.setLocalConfig(await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(false)));
         } catch (err) {
             if (err.name !== 'InvalidProjectWorkspace') {
                 throw err;
             }
         }
 
-        this.setGlobalConfig(await SfdxConfig.create(SfdxConfig.getDefaultOptions(true)));
+        this.setGlobalConfig(await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true)));
 
         this.setAllowedProperties(SfdxConfig.getAllowedProperties());
 
@@ -278,11 +278,11 @@ export class SfdxConfigAggregator {
         // Global config must be read first so it is on the left hand of the
         // object assign and is overwritten by the local config.
 
-        const configs = [await this.globalConfig.read()];
+        const configs = [(await this.globalConfig.read() as object)];
 
         // We might not be in a project workspace
         if (this.localConfig) {
-            configs.push(await this.localConfig.read());
+            configs.push((await this.localConfig.read()) as object);
         }
 
         configs.push(this.getEnvVars());

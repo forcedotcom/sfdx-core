@@ -42,26 +42,31 @@ const processJsonError = async (error: Error, data: string, jsonPath: string): P
 export class SfdxUtil {
     /**
      * Promisified version of fs.readFile
+     * @see https://nodejs.org/api/fs.html#fs_fs_readfile_path_options_callback
      */
     public static readFile = promisify(fs.readFile);
 
     /**
      * Promisified version of fs.readdir
+     * @see https://nodejs.org/api/fs.html#fs_fs_readdir_path_options_callback
      */
     public static readdir = promisify(fs.readdir);
 
     /**
      * Promisified version of fs.writeFile
+     * @see https://nodejs.org/api/fs.html#fs_fs_writefile_file_data_options_callback
      */
     public static writeFile = promisify(fs.writeFile);
 
     /**
      * Promisified version of fs.access
+     * @see https://nodejs.org/api/fs.html#fs_fs_access_path_mode_callback
      */
     public static access = promisify(fs.access);
 
     /**
      * Promisified version of fs.open
+     * @see https://nodejs.org/api/fs.html#fs_fs_open_path_flags_mode_callback
      */
     public static open = promisify(fs.open);
 
@@ -70,6 +75,7 @@ export class SfdxUtil {
      * @param {string} folderPath The path of the folder to create.
      * @param {string} mode The mode to create the directory.
      * @returns {Promise<void>}
+     * @see https://nodejs.org/api/fs.html#fs_fs_mkdir_path_mode_callback
      */
     public static mkdirp: (folderPath: string, mode?: string | object) => Promise<void> = promisify(require('mkdirp'));
 
@@ -78,16 +84,19 @@ export class SfdxUtil {
 
     /**
      * Promisified version of unlink
+     * @see https://nodejs.org/api/fs.html#fs_fs_unlink_path_callback
      */
     public static unlink = promisify(fs.unlink);
 
     /**
      * Promisified version of rmdir
+     * @see https://nodejs.org/api/fs.html#fs_fs_readdir_path_options_callback
      */
     public static rmdir = promisify(fs.rmdir);
 
     /**
      * Promisified version of stat
+     * @see https://nodejs.org/api/fs.html#fs_fs_fstat_fd_callback
      */
     public static stat = promisify(fs.stat);
 
@@ -213,5 +222,25 @@ export class SfdxUtil {
             }).then(() => {
                 return SfdxUtil.rmdir(path);
             });
+    }
+
+    /**
+     *  Returns the first key within the object that has an upper case first letter.
+     *
+     *  @param {Object} obj The object to check key casing
+     *  @return {string} The key that starts with upper case
+     */
+    public static findUpperCaseKeys(obj: object): string {
+        let _key;
+        _.findKey(obj, (val, key) => {
+            if (key[0] === key[0].toUpperCase()) {
+                _key = key;
+            } else if (_.isPlainObject(val)) {
+                _key = this.findUpperCaseKeys(val);
+            }
+            return _key;
+        });
+
+        return _key;
     }
 }

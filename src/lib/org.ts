@@ -6,7 +6,7 @@
  */
 
 import { join as pathJoin } from 'path';
-import { Alias } from './alias';
+import { Aliases } from './config/aliases';
 import { Connection } from './connection';
 import { Logger } from './logger';
 import { RequestInfo } from 'jsforce';
@@ -16,7 +16,7 @@ import { isNil as _isNil , maxBy as _maxBy, get as _get, filter as _filter } fro
 import { AuthFields, AuthInfo } from './authInfo';
 import { Global} from './global';
 import { SfdxUtil } from './util';
-import { OrgUsersConfig } from './config/OrgUsersConfig';
+import { OrgUsersConfig } from './config/orgUsersConfig';
 import { SfdxError } from './sfdxError';
 
 /**
@@ -165,8 +165,7 @@ export class Org {
     }
 
     public async retrieveOrgUsersConfig(): Promise<OrgUsersConfig> {
-        return await OrgUsersConfig.create(
-            OrgUsersConfig.getDefaultOptions(this.getConnection().getAuthInfo().getFields().orgId));
+        return await OrgUsersConfig.create(OrgUsersConfig.getOptions(this.getId()));
     }
 
     /**
@@ -189,19 +188,17 @@ export class Org {
             return Promise.resolve();
         }
 
-        const aliases = [];
-
         const auths: AuthInfo[] = await this.readUserAuthFiles();
-
-        this.logger.info(`Cleaning up usernames in org: ${this.getConnection().getAuthInfo().getFields().orgId}`);
+        const aliases: Aliases = await Aliases.retrieve<Aliases>();
+        this.logger.info(`Cleaning up usernames in org: ${this.getId()}`);
 
         for (const auth of auths) {
             const username = auth.getFields().username;
 
-            const alias = await Alias.fetchName(username);
+            const alias = aliases.get(username);
 
             if (alias) {
-                aliases.push(alias);
+                aliases.unset(username);
             }
 
             let orgForUser;
@@ -228,7 +225,7 @@ export class Org {
                 throwWhenRemoveFails);
         }
 
-        return await Alias.unset(aliases);
+        await aliases.write();
     }
 
     /**
@@ -308,7 +305,7 @@ export class Org {
      */
     public async readUserAuthFiles(): Promise<AuthInfo[]> {
         const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
-        const contents: any = await config.readJSON();
+        const contents: any = await config.read();
         const thisUsername = this.getConnection().getAuthInfo().getFields().username;
         const usernames: string[] = contents.usernames || [thisUsername];
         return Promise.all(usernames.map((username) => {
@@ -362,7 +359,7 @@ export class Org {
     public async removeUsername(auth: AuthInfo): Promise<Org> {
         const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
-        const contents: any = await orgConfig.readJSON();
+        const contents: any = await orgConfig.read();
 
         const targetUser = auth.getFields().username;
         contents.usernames = _filter(contents.usernames, (username) => username !== targetUser);
@@ -386,6 +383,10 @@ export class Org {
         const versions = await this.getConnection().request(info);
 
         return _maxBy(versions, (_ver: any) => _ver.version);
+    }
+
+    public getId(): string {
+        return this.getConnection().getAuthInfo().getFields().orgId;
     }
 
     public getName(): string {

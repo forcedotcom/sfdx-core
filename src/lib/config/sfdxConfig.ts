@@ -11,27 +11,11 @@
 
 import { isNil as _isNil } from 'lodash';
 import { Messages } from '../messages';
-import { Config, ConfigOptions } from './config';
+import { ConfigFile, ConfigOptions } from './configFile';
 import { SfdxUtil } from '../util';
 import { SfdxError } from '../sfdxError';
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
-
-/**
- * Internal helper to validate the ENOENT error type.
- * @param err - The error object to check.
- * @returns {Object} The contents object bound to "this"
- * @throws re-throws all other errors.
- * @private
- */
-const _checkEnoent = function(err) {
-    if (err.code === 'ENOENT') {
-        this.contents = {};
-        return this.contents;
-    } else {
-        throw err;
-    }
-};
 
 /**
  * Interface for meta information about config properties
@@ -72,7 +56,7 @@ export interface ConfigPropertyMetaInput {
     failedMessage: string;
 }
 
-export class SfdxConfig extends Config {
+export class SfdxConfig extends ConfigFile {
 
     /**
      * Username associated with the default dev hub org
@@ -93,7 +77,7 @@ export class SfdxConfig extends Config {
      * @returns {Promise<string>} The property.
      */
 
-    public static async create<T extends Config>(this: { new(): T }, options: ConfigOptions): Promise<T> {
+    public static async create<T extends ConfigFile>(options: ConfigOptions): Promise<T> {
         if (!SfdxConfig.messages) {
             SfdxConfig.messages = Messages.loadMessages('sfdx-core', 'config');
         }
@@ -125,8 +109,8 @@ export class SfdxConfig extends Config {
         return await super.create(options) as T;
     }
 
-    public static getDefaultOptions(isGlobal: boolean): ConfigOptions {
-        return { isGlobal, isState: true, filename: SFDX_CONFIG_FILE_NAME };
+    public static getFileName(): string {
+        return SFDX_CONFIG_FILE_NAME;
     }
 
     /**
@@ -169,26 +153,14 @@ export class SfdxConfig extends Config {
      */
     public static async clear(): Promise<void> {
         let config  = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
-        await config.write({});
+        await config.write();
 
         config = await SfdxConfig.create(SfdxConfig.getDefaultOptions(false));
-        await config.write({});
+        await config.write();
     }
 
     private static allowedProperties: ConfigPropertyMeta[];
     private static messages: Messages;
-
-    /**
-     * @returns {Promise<object>} Read, assign, and return the config contents.
-     */
-    public async read(): Promise<object> {
-        try {
-            await this.setContents(await SfdxUtil.readJSON(this.getPath(), false));
-            return this.getContents();
-        } catch (err) {
-            _checkEnoent.call(this, err);
-        }
-    }
 
     /**
      * Sets a value for a property
