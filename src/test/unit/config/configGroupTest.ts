@@ -17,7 +17,7 @@ import { SfdxUtil } from '../../../lib/util';
 // Setup the test environment.
 const $$ = testSetup();
 
-describe('fileKeyValueStore live file', () => {
+describe('ConfigGroup live file', () => {
 
     let rootFolder;
     const filename = 'test_keyvalue.json';
@@ -31,19 +31,18 @@ describe('fileKeyValueStore live file', () => {
         await SfdxUtil.writeJSON(pathJoin(sfdxPath, filename), content);
     });
 
-    it ('file already exists', async () => {
-        const options: ConfigGroupOptions = ConfigGroup.getOptions(filename, 'orgs');
+    it('file already exists', async () => {
+        const options: ConfigGroupOptions = ConfigGroup.getOptions('orgs', filename);
         options.rootFolder = rootFolder;
-        const store: ConfigGroup =
-            await ConfigGroup.create<ConfigGroup>(options);
-        expect(await store.getInGroup('foo', 'orgs')).to.eq('foo@example.com');
+        const store: ConfigGroup = await ConfigGroup.retrieve<ConfigGroup>(options);
+        expect(store.getInGroup('foo', 'orgs')).to.eq('foo@example.com');
     });
 });
 
-describe('fileKeyValueStore', () => {
+describe('ConfigGroup', () => {
     let validate;
     let aliases;
-    let store;
+    let store: ConfigGroup;
 
     beforeEach(async () => {
         validate = () => {};
@@ -51,82 +50,123 @@ describe('fileKeyValueStore', () => {
 
         $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake($$.rootPathRetriever);
 
-        store = await ConfigGroup.create(ConfigGroup.getOptions('testfetchConfigInfos.json', 'orgs'));
-        $$.SANDBOX.stub(ConfigFile.prototype, 'write').callsFake((config) => {
-            validate(config);
+        store = await ConfigGroup.create<ConfigGroup>(ConfigGroup.getOptions('default', 'testfetchConfigInfos.json'));
+        $$.SANDBOX.stub(SfdxUtil, 'writeFile').callsFake((...args) => {
+            validate(JSON.parse(args[1]));
             return Promise.resolve();
         });
         $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(() => Promise.resolve(aliases));
     });
 
-    it('saves key value pair', async () => {
-        validate = (config) => {
-            expect(config.default.test).to.equal('val');
-        };
-        await store.update('test', 'val');
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+    it('set key value pair', async () => {
+        store.set('test', 'val');
+        expect(store.get('test')).equals('val');
+        expect(store.getInGroup('test')).equals('val');
+        expect(store.getGroup('default').get('test')).equals('val');
     });
 
-    it('unsets multiple key value pairs', async () => {
-        aliases = { default: { test1: 'val1', test2: 'val2', test3: 'val3' } };
-        validate = (config) => {
-            expect(config.default).to.deep.equal({ test2: 'val2' });
-        };
-        await store.unset(['test1', 'test3']);
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+    it('set key value pair is not accessible in another group', async () => {
+        store.setInGroup('test', 'val', 'worldly');
+        expect(store.get('test')).equals(undefined);
+        expect(store.getInGroup('test', 'worldly')).equals('val');
+        expect(store.getGroup('worldly').get('test')).equals('val');
     });
 
-    it('unsets a single value', async () => {
-        aliases = { default: { test1: 'val1', test2: 'val2', test3: 'val3' } };
-        validate = (config) => {
-            expect(config.default).to.deep.equal({ test2: 'val2', test3: 'val3' });
-        };
-        await store.unset(['test1']);
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+    it('set key value pair using default group', async () => {
+        store.set('test', 'val');
+        store.setDefaultGroup('worldly');
+        store.set('test', 'val2');
+        expect(store.get('test')).equals('val2');
+        expect(store.getInGroup('test')).equals('val2');
+        expect(store.getInGroup('test', 'default')).equals('val');
+        expect(store.getInGroup('test', 'worldly')).equals('val2');
+        expect(store.getGroup('worldly').get('test')).equals('val2');
+    });
+
+    it('unset key', async () => {
+        store.set('test', 'val');
+        store.unset('test');
+        expect(store.get('test')).equals(undefined);
+    });
+
+    it('unset single key', async () => {
+        store.set('test1', 'val1');
+        store.set('test2', 'val2');
+        store.unset('test1');
+        expect(store.get('test1')).equals(undefined);
+        expect(store.get('test2')).equals('val2');
+    });
+
+    it('unset key in different group', async () => {
+        store.setInGroup('test', 'val', 'worldly');
+        store.unset('test');
+        expect(store.get('test')).equals(undefined);
+        expect(store.getInGroup('test', 'worldly')).equals('val');
+    });
+
+    it('unset all key', async () => {
+        store.set('test1', 'val1');
+        store.set('test2', 'val2');
+        store.set('test3', 'val3');
+        store.unsetAll(['test1', 'test3']);
+        expect(store.get('test1')).equals(undefined);
+        expect(store.get('test2')).equals('val2');
+        expect(store.get('test3')).equals(undefined);
+    });
+
+    it('set contents from object', async () => {
+        store.setContentsFromObject({
+            default: { test1: 'val1', test2: 'val2' }
+        });
+        expect(store.get('test1')).equals('val1');
+        expect(store.get('test2')).equals('val2');
+    });
+
+    it('to object', async () => {
+        store.set('test1', 'val1');
+        store.set('test2', 'val2');
+        expect(store.toObject()).to.deep.equal({
+            default: { test1: 'val1', test2: 'val2' }
+        });
     });
 
     it('returns a list of values under a group', async () => {
-        aliases = { default: { test1: 'val1', test2: 'val2', test3: 'val3' } };
-        const values = await store.list();
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.read));
-        expect(values).to.deep.equal(aliases.default);
-    });
-
-    it('undefined removes value', async () => {
-        aliases = { default: { test: 'val' } };
-        validate = (config) => {
-            expect(config.default.test).to.be.undefined;
-        };
-        await store.update('test', undefined);
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
-    });
-
-    it('only allows one value', async () => {
-        aliases = { default: { test: 'val' } };
-        validate = (config) => {
-            expect(config.default.test).to.be.undefined;
-            expect(config.default.another).to.equal('val');
-        };
-        await store.update('another', 'val');
-        expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
-    });
-
-    describe('updateValues', () => {
-        it('one value', async () => {
-            validate = (config) => {
-                expect(config.default.another).to.equal('val');
-            };
-            await store.updateValues({ another: 'val' });
-            expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+        store.setContentsFromObject({
+            default: { test1: 'val1', test2: 'val2', test3: 'val3' }
         });
 
-        it('two of same value', async () => {
+        expect(store.keys()).to.deep.equal(['test1', 'test2', 'test3']);
+        expect(store.values()).to.deep.equal(['val1', 'val2', 'val3']);
+        expect(store.entries()).to.deep.equal([['test1', 'val1'], ['test2', 'val2'], ['test3', 'val3']]);
+    });
+
+    describe('write', () => {
+        it('set key value pair', async () => {
             validate = (config) => {
-                expect(config.default.another).to.be.undefined;
-                expect(config.default.some).to.equal('val');
+                expect(config.default.test).to.equal('val');
             };
-            await store.updateValues({ another: 'val', some: 'val' });
-            expect(sinon.assert.calledOnce(ConfigFile.prototype.write));
+            store.set('test', 'val');
+            await store.write();
+            expect(sinon.assert.calledOnce(SfdxUtil.writeFile));
+        });
+
+        describe('updateValues', () => {
+            it('one value', async () => {
+                validate = (config) => {
+                    expect(config.default.another).to.equal('val');
+                };
+                await store.updateValues({ another: 'val' });
+                expect(sinon.assert.calledOnce(SfdxUtil.writeFile));
+            });
+
+            it('two of same value', async () => {
+                validate = (config) => {
+                    expect(config.default.another).to.equal('val');
+                    expect(config.default.some).to.equal('val');
+                };
+                await store.updateValues({ another: 'val', some: 'val' });
+                expect(sinon.assert.calledOnce(SfdxUtil.writeFile));
+            });
         });
     });
 });

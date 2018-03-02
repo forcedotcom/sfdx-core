@@ -77,7 +77,7 @@ export class ConfigGroup extends ConfigFile {
     public async updateValues(newEntries: object, group?: string): Promise<object> {
         // Make sure the contents are loaded
         await this.read();
-        _.forEach(newEntries, (val, key) => this.setInGroup(group || this.defaultGroup, key, val));
+        _.forEach(newEntries, (val, key) => this.setInGroup(key, val, group || this.defaultGroup));
         await this.write();
         return newEntries;
     }
@@ -98,7 +98,7 @@ export class ConfigGroup extends ConfigFile {
     }
 
     public entries(): ConfigEntry[] {
-        return _.entries(this.getContents().get(this.defaultGroup) as ConfigContents);
+        return Array.from(this.getGroup(this.defaultGroup).entries());
     }
 
     public get(key: string): ConfigValue { // tslint:disable-next-line no-reserved-keywords
@@ -111,7 +111,11 @@ export class ConfigGroup extends ConfigFile {
     }
 
     public keys(): string[] {
-        return _.keys(this.getContents().get(this.defaultGroup));
+        return Array.from((this.getGroup(this.defaultGroup).keys()));
+    }
+
+    public values(): ConfigValue[] {
+        return Array.from((this.getGroup(this.defaultGroup).values()));
     }
 
     public set(key: string, value: ConfigValue) { // tslint:disable-next-line no-reserved-keywords
@@ -124,7 +128,11 @@ export class ConfigGroup extends ConfigFile {
     }
 
     public unset(key: string): boolean {
-        return (this.getContents().get(this.defaultGroup) as ConfigContents).delete(key);
+        const groupContents = this.getGroup(this.defaultGroup);
+        if (groupContents) {
+            return groupContents.delete(key);
+        }
+        return;
     }
 
     public clear(): void {
@@ -147,7 +155,38 @@ export class ConfigGroup extends ConfigFile {
      * @returns {ConfigValue}
      */
     public getInGroup(key: string, group?: string): ConfigValue {
-        return this.getGroup(group).get(key);
+        const groupContents = this.getGroup(group);
+        if (groupContents) {
+            return groupContents.get(key);
+        }
+        return;
+    }
+
+    /**
+     * Convert the config object to a json object.
+     * @returns {object}
+     * @override
+     */
+    public toObject(): object {
+        return _.entries(this.getContents()).reduce((obj, entry: ConfigEntry) => {
+            obj[entry[0]] = _.entries(entry[1] as ConfigContents).reduce((subobj, subentry: ConfigEntry) => {
+                subobj[subentry[0]] = subentry[1];
+                return subobj;
+            }, {});
+            return obj;
+        }, {});
+    }
+
+    /**
+     * Convert a json object to a ConfigContents and set it as the config contents.
+     * @param {object} obj The object.
+     */
+    public setContentsFromObject(obj: object): void {
+        const contents = new Map<string, ConfigValue>(_.entries(obj));
+        _.entries(contents).forEach(([key, value]) => {
+            contents.set(key, new Map<string, ConfigValue>(_.entries(value)));
+        });
+        this.setContents(contents);
     }
 
     /**
@@ -158,18 +197,20 @@ export class ConfigGroup extends ConfigFile {
      * @returns {ConfigContents}
      */
     public setInGroup(key: string, value?: ConfigValue, group?: string) {
-        const content = this.getContents();
+        let content: ConfigContents = this.getContents();
 
         group = group || this.defaultGroup;
 
-        if (_.isNil(content[group])) {
-            content[group] = {};
+        if (!content.has(group)) {
+            content.set(group, new Map<string, ConfigValue>());
         }
 
+        content = content.get(group) as ConfigContents;
+
         if (_.isUndefined(value)) {
-            delete content[group][key];
+            content.delete(key);
         } else {
-            content[group][key] = value;
+            content.set(key, value);
         }
 
         return content;

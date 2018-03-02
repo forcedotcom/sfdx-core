@@ -30,13 +30,14 @@ describe('Alias no key value mock', () => {
         await Aliases.parseAndUpdate([`${KEY}=${VALUE}`]);
         expect(await Aliases.fetch(KEY)).eq(VALUE);
 
-        const keys = (await Aliases.retrieve()).getKeysByValue(VALUE);
+        const keys = (await Aliases.retrieve<Aliases>()).getKeysByValue(VALUE);
         expect(keys.length).eq(1);
         expect(keys[0]).eq(KEY);
     });
 });
 
 describe('Alias', () => {
+    let read;
     let validate;
     const group = 'orgs';
 
@@ -44,29 +45,31 @@ describe('Alias', () => {
         validate = () => {};
         $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake($$.rootPathRetriever);
 
+        read = async () => {};
+
         const stubMethod = function(...args) {
             validate(this.content, ...args);
             return Promise.resolve();
         };
 
         // Stub the methods on the configGroup
-        $$.SANDBOX.stub(ConfigGroup.prototype, 'read').callsFake(async () => {});
+        $$.SANDBOX.stub(ConfigGroup.prototype, 'read').callsFake(read);
         $$.SANDBOX.stub(ConfigGroup.prototype, 'write').callsFake(function() {
-            validate(JSON.parse(JSON.stringify(this.content)));
+            validate(this.toObject());
             return Promise.resolve();
         });
     });
 
     describe('#set', () => {
-        it.only('passes the correct values to FileKeyValueStore#update', async () => {
+        it('has the right object on write', async () => {
             const key = 'test';
             const value = 'val';
             validate = (...args) => {
-                expect(args[0]).to.equal({
+                expect(args[0]).to.deep.equal({
                     orgs: { test: 'val' }
                 });
             };
-            const aliases = await Aliases.retrieve();
+            const aliases = await Aliases.retrieve<Aliases>();
             aliases.set(key, value);
             await aliases.write();
             expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
@@ -75,43 +78,47 @@ describe('Alias', () => {
 
     describe('#unset', () => {
         it('passes the correct values to FileKeyValueStore#unset', async () => {
+            read = async () => Promise.resolve({
+                orgs: { test1: 'val', test2: 'val', test3: 'val' }
+            });
             const keyArray = ['test1', 'test3'];
             validate = (...args) => {
-                expect(args[0]).to.deep.equal(keyArray);
-                expect(args[1]).to.equal(group);
+                expect(args[0]).to.deep.equal({
+                    orgs: { test2: 'val' }
+                });
             };
-            const aliases = await Aliases.retrieve();
+            const aliases = await Aliases.retrieve<Aliases>();
             aliases.unsetAll(keyArray);
             await aliases.write();
-            expect(sinon.assert.calledOnce(ConfigGroup.prototype.unset));
+            expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
         });
     });
 
     describe('#parseAndSet', () => {
-        // describe('passes the right values to FileKeyValueStore#updateValues', () => {
-        //     it('for one value', async () => {
-        //         validate = (...args) => {
-        //             expect(args[0]).to.deep.equal({
-        //                 another: 'val'
-        //             });
-        //             expect(args[1]).to.equal(group);
-        //         };
-        //         await Alias.parseAndUpdate(['another=val']);
-        //         expect(sinon.assert.calledOnce(KeyValueStore.prototype.updateValues));
-        //     });
+        describe('passes the right values to FileKeyValueStore#updateValues', () => {
+            it('for one value', async () => {
+                validate = (...args) => {
+                    expect(args[0]).to.deep.equal({
+                        orgs: { another: 'val' }
+                    });
+                    expect(args[1]).to.equal(group);
+                };
+                await Aliases.parseAndUpdate(['another=val']);
+                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
+            });
 
-        //     it('for two of same value', async () => {
-        //         validate = (...args) => {
-        //             expect(args[0]).to.deep.equal({
-        //                 another: 'val',
-        //                 some: 'val'
-        //             });
-        //             expect(args[1]).to.equal(group);
-        //         };
-        //         await Alias.parseAndUpdate(['another=val', 'some=val']);
-        //         expect(sinon.assert.calledOnce(KeyValueStore.prototype.updateValues));
-        //     });
-        // });
+            it('for two of same value', async () => {
+                validate = (...args) => {
+                    expect(args[0]).to.deep.equal({ orgs: {
+                        another: 'val',
+                        some: 'val'
+                    }});
+                    expect(args[1]).to.equal(group);
+                };
+                await Aliases.parseAndUpdate(['another=val', 'some=val']);
+                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
+            });
+        });
 
         it('should handle invalid alias formats', async () => {
             const invalidFormats = ['another', 'foo==bar'];

@@ -9,7 +9,7 @@ export class OrgUsersConfig extends ConfigFile {
      * **Do not use.** Call {@link OrgUsersConfig.getOptions} instead.
      */
     public static getDefaultOptions(isGlobal: boolean, filename?: string): ConfigOptions {
-        throw Error('The method OrgUsersConfig.getDefaultOptions is supported. Call OrgUsersConfig.getOptions().');
+        throw Error('The method OrgUsersConfig.getDefaultOptions is not supported. Call OrgUsersConfig.getOptions().');
     }
 
     /**

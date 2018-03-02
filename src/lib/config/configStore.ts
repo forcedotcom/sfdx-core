@@ -171,6 +171,9 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {ConfigContents}
      */
     public getContents(): ConfigContents {
+        if (!this.contents) {
+            this.setContents();
+        }
         return this.contents;
     }
 
@@ -179,7 +182,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @param {ConfigContents} contents The contents.
      */
     public setContents(contents?: ConfigContents): void {
-        this.contents = contents || new Map();
+        this.contents = contents || new Map<string, ConfigValue>();
     }
 
     /**
@@ -200,7 +203,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {object}
      */
     public toObject(): object {
-        return this.entries().reduce((obj, entry: ConfigEntry) => {
+        return _.entries(this.contents).reduce((obj, entry: ConfigEntry) => {
             obj[entry[0]] = entry[1];
             return obj;
         }, {});
@@ -210,7 +213,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * Convert a json object to a ConfigContents and set it as the config contents.
      * @param {object} obj The object.
      */
-    public setContentFromObject(obj: object): void {
+    public setContentsFromObject(obj: object): void {
         this.contents = new Map<string, ConfigValue>(_.entries(obj));
     }
 }

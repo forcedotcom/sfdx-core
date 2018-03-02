@@ -372,7 +372,7 @@ export class AuthInfo {
         }
 
         const config: ConfigFile = await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.username));
-        config.setContentFromObject(dataToSave);
+        config.setContentsFromObject(dataToSave);
         await config.write();
 
         this.logger.info(`Saved auth info for username: ${this.username}`);

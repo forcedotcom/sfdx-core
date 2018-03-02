@@ -7,6 +7,7 @@
 import { join as pathJoin } from 'path';
 import * as _ from 'lodash';
 import * as fs from 'fs';
+import { sep as pathSep } from 'path';
 import { promisify } from 'util';
 import { SfdxError } from './sfdxError';
 import { URL } from 'url';
@@ -40,6 +41,12 @@ const processJsonError = async (error: Error, data: string, jsonPath: string): P
  * Common utility methods.
  */
 export class SfdxUtil {
+    /**
+     * The file name of the sfdx-project.json.
+     */
+    // This has to be defined on util to prevent circular deps with project and configFile.
+    public static SFDX_PROJECT_JSON = 'sfdx-project.json';
+
     /**
      * Promisified version of fs.readFile
      * @see https://nodejs.org/api/fs.html#fs_fs_readfile_path_options_callback
@@ -245,15 +252,51 @@ export class SfdxUtil {
     }
 
     /**
-     * Converts the 18 character org id to 15 characters
+     * Converts the 18 character Salesforce ID to 15 characters
      * @param {string} id - the id to convert
      * @return {string} - 15 character version of the ID.
      */
     public static trimTo15(id: string): string {
-        // FIXME: remove once 18-char entityId is figured out
         if (id && id.length && id.length > 15) {
             id = id.substring(0, 15);
         }
         return id;
+    }
+
+    /**
+     * Traverse the filesystem for a specific file
+     * @param {string} workingDir The directory in which to start traversing.
+     * @param {string} file The file name to look for.
+     * @returns {string} The path of the file, or null if not found;
+     */
+    public static async traverseForFile(workingDir: string, file: string): Promise<string> {
+        let foundProjectDir: string = null;
+        try {
+            await SfdxUtil.stat(pathJoin(workingDir, file));
+            foundProjectDir = workingDir;
+        } catch (err) {
+            if (err && err.code === 'ENOENT') {
+                const indexOfLastSlash: number = workingDir.lastIndexOf(pathSep);
+                if (indexOfLastSlash > 0) {
+                    await SfdxUtil.traverseForFile(workingDir.substring(0, indexOfLastSlash), file);
+                }
+            }
+        }
+        return foundProjectDir;
+    }
+
+    /**
+     * Traverses for the sfdx project path from the current working directory.
+     * @throws InvalidProjectWorkspace - If the current folder is not located in a workspace
+     * @returns {Promise<string>} -The absolute path to the project
+     */
+    public static async resolveProjectPathFromCurrentWorkingDirectory(): Promise<string> {
+        const path = await SfdxUtil.traverseForFile(process.cwd(), SfdxUtil.SFDX_PROJECT_JSON);
+
+        if (!path) {
+            throw SfdxError.create('sfdx-core', 'config', 'InvalidProjectWorkspace');
+        }
+
+        return path;
     }
 }

@@ -6,7 +6,6 @@
  */
 
 import * as _ from 'lodash';
-import { join as pathJoin, sep as pathSep } from 'path';
 import { ConfigContents } from './config/configStore';
 import { ConfigFile } from './config/configFile';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
@@ -18,7 +17,7 @@ import { SfdxUtil } from './util';
  */
 export class SfdxProjectJson extends ConfigFile {
     public static getFileName() {
-        return 'sfdx-project.json';
+        return SfdxUtil.SFDX_PROJECT_JSON;
     }
 
     public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
@@ -51,32 +50,12 @@ export class Project {
     }
 
     /**
-     * Computes the path of the project.
+     * Traverses for the sfdx project path from the current working directory.
      * @throws InvalidProjectWorkspace - If the current folder is not located in a workspace
      * @returns {Promise<string>} -The absolute path to the project
      */
     public static async resolveProjectPathFromCurrentWorkingDirectory(): Promise<string> {
-        let foundProjectDir: string = null;
-
-        const traverseForFile = async (workingDir: string, file: string) => {
-            try {
-                await SfdxUtil.stat(pathJoin(workingDir, file));
-                foundProjectDir = workingDir;
-            } catch (err) {
-                if (err && err.code === 'ENOENT') {
-                    const indexOfLastSlash: number = workingDir.lastIndexOf(pathSep);
-                    if (indexOfLastSlash > 0) {
-                        await traverseForFile(workingDir.substring(0, indexOfLastSlash), file);
-                    } else {
-                        throw SfdxError.create('sfdx-core', 'config', 'InvalidProjectWorkspace');
-                    }
-                }
-            }
-        };
-
-        await traverseForFile(process.cwd(), SfdxProjectJson.getFileName());
-
-        return foundProjectDir;
+        return await SfdxUtil.resolveProjectPathFromCurrentWorkingDirectory();
     }
 
     private projectConfig: any;

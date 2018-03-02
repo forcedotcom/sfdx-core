@@ -15,7 +15,6 @@ import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
 import { homedir as osHomedir } from 'os';
 import { SfdxUtil } from '../util';
-import { Project } from '../project';
 
 /**
  * The interface for Config options.
@@ -82,7 +81,7 @@ export class ConfigFile extends BaseConfigStore {
         if (!_isBoolean(isGlobal)) {
             throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
         }
-        return isGlobal ? osHomedir() : await Project.resolveProjectPathFromCurrentWorkingDirectory();
+        return isGlobal ? osHomedir() : await SfdxUtil.resolveProjectPathFromCurrentWorkingDirectory();
     }
 
     /**
@@ -167,7 +166,7 @@ export class ConfigFile extends BaseConfigStore {
      */
     public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
         try {
-            this.setContents(await SfdxUtil.readJSON(this.getPath()) as ConfigContents);
+            this.setContentsFromObject(await SfdxUtil.readJSON(this.getPath()));
             return this.getContents();
         } catch (err) {
             if (err.code === 'ENOENT') {
@@ -195,7 +194,7 @@ export class ConfigFile extends BaseConfigStore {
 
         await SfdxUtil.mkdirp(pathDirname(this.getPath()));
 
-        await SfdxUtil.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 4));
+        await SfdxUtil.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 4));
 
         return this.getContents();
     }

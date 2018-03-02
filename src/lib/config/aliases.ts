@@ -47,14 +47,6 @@ export class Aliases extends ConfigGroup {
     }
 
     /**
-     * **Do not use.** Call {@link Aliases.getOptions} instead.
-     * @override
-     */
-    public static getDefaultOptions(isGlobal: boolean, filename?: string): ConfigGroupOptions {
-        throw Error('The method Alias.getDefaultOptions is supported. Call Alias.getOptions().');
-    }
-
-    /**
      * Get Aliases specific options.
      * @returns {ConfigGroupOptions}
      */

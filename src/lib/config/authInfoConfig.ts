@@ -6,7 +6,7 @@ import { ConfigFile, ConfigOptions } from './configFile';
  */
 export class AuthInfoConfig extends ConfigFile {
     public static getDefaultOptions(isGlobal: boolean, filename?: string): ConfigOptions {
-        throw Error('The method AuthInfoConfig.getDefaultOptions is supported. Call AuthInfoConfig.getOptions().');
+        throw Error('The method AuthInfoConfig.getDefaultOptions is not supported. Call AuthInfoConfig.getOptions().');
     }
 
     /**
