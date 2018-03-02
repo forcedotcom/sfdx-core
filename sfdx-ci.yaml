@@ -8,3 +8,5 @@ jobs:
     envMap:
       - 'SFDX_USE_GENERIC_UNIX_KEYCHAIN': true
         'EMAIL': 't.dvornik@salesforce.com'
+  - name: publish-doc
+    script: scripts/jenkins/publish-doc.groovy

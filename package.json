@@ -15,7 +15,8 @@
     "test": "npm run lint && npm run compile && node_modules/.bin/mocha --recursive dist/test/unit",
     "test-with-coverage": "npm run lint-report && scripts/unit-test-with-coverage.js",
     "prepare": "npm run build",
-    "docgen": "npm run compile && node_modules/.bin/jsdoc dist --readme EXPORTED.md -r -c jsdoc.json --package package.json"
+    "docgen": "npm run compile && node_modules/.bin/jsdoc dist --readme EXPORTED.md -r -c jsdoc.json --package package.json",
+    "publishDocs": "ts-node scripts/publishDocs.ts"
   },
   "keywords": [
     "force",
@@ -40,6 +41,7 @@
     "lodash": "4.17.4"
   },
   "devDependencies": {
+    "@types/shelljs": "0.7.8",
     "@types/chai": "4.0.4",
     "@types/lodash": "4.14.88",
     "@types/mocha": "2.2.42",
