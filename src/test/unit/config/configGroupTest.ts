@@ -17,45 +17,24 @@ import { SfdxUtil } from '../../../lib/util';
 // Setup the test environment.
 const $$ = testSetup();
 
-describe('ConfigGroup live file', () => {
-
-    let rootFolder;
+describe('ConfigGroup retrieve calls read', () => {
     const filename = 'test_keyvalue.json';
     beforeEach(async () => {
-        rootFolder = await $$.rootPathRetriever(true);
-        $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(() => Promise.resolve(rootFolder));
-
-        const content = { orgs: { foo: 'foo@example.com' } };
-        const sfdxPath = pathJoin(rootFolder, '.sfdx');
-        await SfdxUtil.mkdirp(sfdxPath);
-        await SfdxUtil.writeJSON(pathJoin(sfdxPath, filename), content);
+        $$.configs['ConfigGroup'] = { orgs: { foo: 'foo@example.com' } };
     });
 
     it('file already exists', async () => {
         const options: ConfigGroupOptions = ConfigGroup.getOptions('orgs', filename);
-        options.rootFolder = rootFolder;
         const store: ConfigGroup = await ConfigGroup.retrieve<ConfigGroup>(options);
         expect(store.getInGroup('foo', 'orgs')).to.eq('foo@example.com');
     });
 });
 
 describe('ConfigGroup', () => {
-    let validate;
-    let aliases;
     let store: ConfigGroup;
 
     beforeEach(async () => {
-        validate = () => {};
-        aliases = {};
-
-        $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake($$.rootPathRetriever);
-
         store = await ConfigGroup.create<ConfigGroup>(ConfigGroup.getOptions('default', 'testfetchConfigInfos.json'));
-        $$.SANDBOX.stub(SfdxUtil, 'writeFile').callsFake((...args) => {
-            validate(JSON.parse(args[1]));
-            return Promise.resolve();
-        });
-        $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(() => Promise.resolve(aliases));
     });
 
     it('set key value pair', async () => {
@@ -142,30 +121,23 @@ describe('ConfigGroup', () => {
 
     describe('write', () => {
         it('set key value pair', async () => {
-            validate = (config) => {
-                expect(config.default.test).to.equal('val');
-            };
             store.set('test', 'val');
             await store.write();
-            expect(sinon.assert.calledOnce(SfdxUtil.writeFile));
+            expect($$.configs['ConfigGroup'].default.test).to.equal('val');
         });
 
         describe('updateValues', () => {
             it('one value', async () => {
-                validate = (config) => {
-                    expect(config.default.another).to.equal('val');
-                };
                 await store.updateValues({ another: 'val' });
-                expect(sinon.assert.calledOnce(SfdxUtil.writeFile));
+                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
+                expect($$.configs['ConfigGroup'].default.another).to.equal('val');
             });
 
             it('two of same value', async () => {
-                validate = (config) => {
-                    expect(config.default.another).to.equal('val');
-                    expect(config.default.some).to.equal('val');
-                };
                 await store.updateValues({ another: 'val', some: 'val' });
-                expect(sinon.assert.calledOnce(SfdxUtil.writeFile));
+                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
+                expect($$.configs['ConfigGroup'].default.another).to.equal('val');
+                expect($$.configs['ConfigGroup'].default.some).to.equal('val');
             });
         });
     });

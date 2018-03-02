@@ -12,7 +12,7 @@ import { testSetup } from '../../testSetup';
 import { ConfigFile } from '../../../lib/config/configFile';
 
 // Setup the test environment.
-const $$ = testSetup();
+const $$ = testSetup({ includeConfigMocks: false });
 
 const configFileContents = {
     defaultdevhubusername: 'sfdxConfigTest_devhub',
@@ -51,7 +51,7 @@ describe('SfdxConfig', () => {
 
     describe('read', () => {
 
-        it('adds content of the config file from this.path to this.contents', async () => {
+        it.only('adds content of the config file from this.path to this.contents', async () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
 
             $$.SANDBOX.stub(SfdxUtil, 'readJSON')
