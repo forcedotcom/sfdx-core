@@ -10,10 +10,10 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 // Local
-import { ConfigGroup } from '../../lib/config/configGroup';
-import { Aliases } from '../../lib/config/aliases';
-import { testSetup } from '../testSetup';
-import { ConfigFile } from '../../lib/config/configFile';
+import { ConfigGroup } from '../../../lib/config/configGroup';
+import { Aliases } from '../../../lib/config/aliases';
+import { testSetup } from '../../testSetup';
+import { ConfigFile } from '../../../lib/config/configFile';
 
 // Setup the test environment.
 const $$ = testSetup();
