@@ -98,7 +98,10 @@ export class ConfigGroup extends ConfigFile {
     }
 
     public entries(): ConfigEntry[] {
-        return Array.from(this.getGroup(this.defaultGroup).entries());
+        if (this.getGroup()) {
+            return Array.from((this.getGroup()).entries());
+        }
+        return [];
     }
 
     public get(key: string): ConfigValue { // tslint:disable-next-line no-reserved-keywords

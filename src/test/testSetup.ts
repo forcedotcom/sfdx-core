@@ -14,15 +14,28 @@ import { Crypto } from '../lib/crypto';
 import { ConfigFile } from '../lib/config/configFile';
 import { join as pathJoin } from 'path';
 import { tmpdir as osTmpdir } from 'os';
+import { ConfigContents } from '../lib/config/configStore';
 
 /**
- * Different parts of the system that can be mocked out. These are broken
- * out into different pieces if any need to be restored for individual tests.
+ * Different parts of the system that are mocked out. They can be restored for
+ * individual tests. Test's stubs should always go on the DEFAULT which is exposed
+ * on the TestContext.
  */
 export interface SandboxTypes {
     DEFAULT: any;
     CRYPTO: any;
     CONFIG: any;
+}
+
+export interface ConfigStub {
+    readFn?: () => Promise<ConfigContents>;
+    writeFn?: () => Promise<void>;
+    // Used for read and write. Useful between config instances
+    contents?: object;
+    // Useful to override to conditionally get based on the config instance.
+    retrieveContents?: () => Promise<object>;
+    // Useful to override to conditionally set based on the config instance.
+    updateContents?: () => Promise<object>;
 }
 
 /**
@@ -34,7 +47,7 @@ export interface TestContext {
     TEST_LOGGER: Logger;
     id: string;
     uniqid: () => string;
-    configs: object;
+    configStubs: { [configName: string]: ConfigStub };
     localPathRetriever: (uid: string) => Promise<string>;
     globalPathRetriever: (uid: string) => Promise<string>;
     rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
@@ -72,7 +85,7 @@ export const testSetup = once(() => {
         TEST_LOGGER: new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging(),
         id: _uniqid(),
         uniqid: _uniqid,
-        configs: {},
+        configStubs: {},
         localPathRetriever: getTestLocalPath,
         globalPathRetriever: getTestGlobalPath,
         rootPathRetriever: retrieveRootPath
@@ -86,12 +99,37 @@ export const testSetup = once(() => {
 
         // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
         testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(async function() {
-            this.setContentsFromObject(testContext.configs[this.constructor.name]);
+            const stub = testContext.configStubs[this.constructor.name] || {};
+
+            if (stub.readFn) {
+                return await stub.readFn.call(this);
+            }
+
+            let contents = stub.contents || {};
+            if (stub.retrieveContents) {
+                contents = await stub.retrieveContents.call(this);
+            }
+
+            this.setContentsFromObject(contents);
             return Promise.resolve(this.getContents());
         });
-        testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(contents) {
-            this.setContents(contents || this.getContents());
-            testContext.configs[this.constructor.name] = this.toObject();
+        testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(newContents) {
+            if (!testContext.configStubs[this.constructor.name]) {
+                testContext.configStubs[this.constructor.name] = {};
+            }
+            const stub =  testContext.configStubs[this.constructor.name];
+
+            if (stub.writeFn) {
+                return await stub.writeFn.call(this, newContents);
+            }
+
+            let contents = newContents || this.getContents();
+
+            if (stub.updateContents) {
+                contents = await stub.updateContents.call(this);
+            }
+            this.setContents(contents);
+            testContext.configStubs[this.constructor.name].contents = this.toObject();
             return Promise.resolve();
         });
 
@@ -104,7 +142,7 @@ export const testSetup = once(() => {
     afterEach(() => {
         testContext.SANDBOX.restore();
         forEach(testContext.SANDBOXES, (sandbox) => sandbox.restore());
-        testContext.configs = {};
+        testContext.configStubs = {};
     });
 
     return testContext;

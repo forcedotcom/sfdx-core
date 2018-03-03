@@ -20,7 +20,9 @@ const $$ = testSetup();
 describe('ConfigGroup retrieve calls read', () => {
     const filename = 'test_keyvalue.json';
     beforeEach(async () => {
-        $$.configs['ConfigGroup'] = { orgs: { foo: 'foo@example.com' } };
+        $$.configStubs['ConfigGroup'] = {
+            contents: { orgs: { foo: 'foo@example.com' } }
+        };
     });
 
     it('file already exists', async () => {
@@ -123,21 +125,21 @@ describe('ConfigGroup', () => {
         it('set key value pair', async () => {
             store.set('test', 'val');
             await store.write();
-            expect($$.configs['ConfigGroup'].default.test).to.equal('val');
+            expect($$.configStubs['ConfigGroup'].contents['default'].test).to.equal('val');
         });
 
         describe('updateValues', () => {
             it('one value', async () => {
                 await store.updateValues({ another: 'val' });
                 expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
-                expect($$.configs['ConfigGroup'].default.another).to.equal('val');
+                expect($$.configStubs['ConfigGroup'].contents['default'].another).to.equal('val');
             });
 
             it('two of same value', async () => {
                 await store.updateValues({ another: 'val', some: 'val' });
                 expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
-                expect($$.configs['ConfigGroup'].default.another).to.equal('val');
-                expect($$.configs['ConfigGroup'].default.some).to.equal('val');
+                expect($$.configStubs['ConfigGroup'].contents['default'].another).to.equal('val');
+                expect($$.configStubs['ConfigGroup'].contents['default'].some).to.equal('val');
             });
         });
     });

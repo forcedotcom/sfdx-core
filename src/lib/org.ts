@@ -218,11 +218,8 @@ export class Org {
         for (const auth of auths) {
             const username = auth.getFields().username;
 
-            const alias = aliases.get(username);
-
-            if (alias) {
-                aliases.unset(username);
-            }
+            const aliasKeys = aliases.getKeysByValue(username) || [];
+            aliases.unsetAll(aliasKeys);
 
             let orgForUser;
             if (username === this.getConnection().getAuthInfo().getFields().username) {
@@ -237,7 +234,7 @@ export class Org {
 
             const configInfo: ConfigInfo = await orgForUser.configAggregator.getInfo(orgType);
 
-            if ((configInfo.value === username || configInfo.value === alias) &&
+            if ((configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
                 (configInfo.isGlobal() || configInfo.isLocal())) {
 
                 await SfdxConfig.update(configInfo.isGlobal() as boolean, orgType, undefined);
@@ -333,7 +330,7 @@ export class Org {
         const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
         const contents: any = await config.read();
         const thisUsername = this.getConnection().getAuthInfo().getFields().username;
-        const usernames: string[] = contents.usernames || [thisUsername];
+        const usernames: string[] = contents.get('usernames') || [thisUsername];
         return Promise.all(usernames.map((username) => {
             if (username === thisUsername) {
                 return this.getConnection().getAuthInfo();
@@ -359,26 +356,24 @@ export class Org {
         const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
         const contents: any = await orgConfig.read();
-
-        if (!contents.usernames) {
-            contents.usernames = [];
-        }
+        const usernames = contents.get('usernames') || [];
 
         let shouldUpdate = false;
 
         const thisUsername = this.getConnection().getAuthInfo().getFields().username;
-        if (!contents.usernames.includes(thisUsername)) {
-            contents.usernames.push(thisUsername);
+        if (!usernames.includes(thisUsername)) {
+            usernames.push(thisUsername);
             shouldUpdate = true;
         }
 
         if (auth) {
-            contents.usernames.push(auth.getFields().username);
+            usernames.push(auth.getFields().username);
             shouldUpdate = true;
         }
 
         if (shouldUpdate) {
-            await orgConfig.write(contents);
+            orgConfig.set('usernames', usernames);
+            await orgConfig.write();
         }
         return this;
     }
@@ -400,9 +395,9 @@ export class Org {
         const contents: any = await orgConfig.read();
 
         const targetUser = auth.getFields().username;
-        contents.usernames = _filter(contents.usernames, (username) => username !== targetUser);
+        contents.set('usernames', _filter(contents.get('usernames'), (username) => username !== targetUser));
 
-        await orgConfig.write(contents);
+        await orgConfig.write();
         return this;
     }
 

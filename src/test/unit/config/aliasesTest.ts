@@ -43,7 +43,7 @@ describe('Alias', () => {
             aliases.set(key, value);
             await aliases.write();
             expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
-            expect($$.configs['Aliases']).to.deep.equal({
+            expect($$.configStubs['Aliases'].contents).to.deep.equal({
                 orgs: { test: 'val' }
             });
         });
@@ -51,15 +51,17 @@ describe('Alias', () => {
 
     describe('#unset', () => {
         it('passes the correct values to FileKeyValueStore#unset', async () => {
-            $$.configs['Aliases'] = {
-                orgs: { test1: 'val', test2: 'val', test3: 'val' }
+            $$.configStubs['Aliases'] = {
+                contents: {
+                    orgs: { test1: 'val', test2: 'val', test3: 'val' }
+                }
             };
             const keyArray = ['test1', 'test3'];
             const aliases = await Aliases.retrieve<Aliases>();
             aliases.unsetAll(keyArray);
             await aliases.write();
             expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
-            expect($$.configs['Aliases']).to.deep.equal({
+            expect($$.configStubs['Aliases'].contents).to.deep.equal({
                 orgs: { test2: 'val' }
             });
         });
@@ -70,7 +72,7 @@ describe('Alias', () => {
             it('for one value', async () => {
                 await Aliases.parseAndUpdate(['another=val']);
                 expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
-                expect($$.configs['Aliases']).to.deep.equal({
+                expect($$.configStubs['Aliases'].contents).to.deep.equal({
                     orgs: { another: 'val' }
                 });
             });
@@ -78,7 +80,7 @@ describe('Alias', () => {
             it('for two of same value', async () => {
                 await Aliases.parseAndUpdate(['another=val', 'some=val']);
                 expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
-                expect($$.configs['Aliases']).to.deep.equal({ orgs: {
+                expect($$.configStubs['Aliases'].contents).to.deep.equal({ orgs: {
                     another: 'val',
                     some: 'val'
                 }});

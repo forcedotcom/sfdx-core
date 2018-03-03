@@ -15,6 +15,7 @@ import { ConfigFile } from '../../lib/config/configFile';
 import { Crypto } from '../../lib/crypto';
 import { ConfigGroup } from '../../lib/config/configGroup';
 import { SfdxConfig } from '../../lib/config/sfdxConfig';
+import { AuthInfoConfig } from '../../lib/config/authInfoConfig';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { SfdxUtil } from '../../lib/util';
@@ -110,38 +111,25 @@ describe('Org Tests', () => {
 
     let testData: MockTestOrgData;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         testData = new MockTestOrgData();
-
-        // Testing config functionality, so restore global stubs.
-        $$.SANDBOXES.CONFIG.restore();
+        $$.configStubs['AuthInfoConfig'] = { contents: await testData.getConfig() };
     });
 
     describe('org:create', () => {
-        const testId = $$.uniqid();
-        beforeEach(() => {
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
-                return Promise.resolve(await testData.getConfig());
-            });
-
-            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(async (isGlobal: boolean) => {
-                return await $$.rootPathRetriever(isGlobal, testId);
-            });
-        });
-
-        it ('should create an org from a username', async () => {
+        it('should create an org from a username', async () => {
             const org: Org = await Org.create(testData.username);
             expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
         });
 
-        it ('should create an org from an alias', async () => {
+        it('should create an org from an alias', async () => {
             const ALIAS: string = 'foo';
             await Aliases.parseAndUpdate([`${ALIAS}=${testData.username}`]);
             const org: Org = await Org.create(ALIAS);
             expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
         });
 
-        it ('should create an org from the default username', async () => {
+        it('should create an org from the default username', async () => {
 
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
             await config.set(SfdxConfig.DEFAULT_USERNAME, testData.username);
@@ -153,7 +141,7 @@ describe('Org Tests', () => {
             expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
         });
 
-        it ('should create a default devhub org', async () => {
+        it('should create a default devhub org', async () => {
 
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
             await config.set(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, testData.username);
@@ -165,12 +153,12 @@ describe('Org Tests', () => {
             expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
         });
 
-        it ('should expose getUsername', async () => {
+        it('should expose getUsername', async () => {
             const org: Org = await Org.create(testData.username);
             expect(org.getUsername()).to.eq(testData.username);
         });
 
-        it ('should expose getOrgId', async () => {
+        it('should expose getOrgId', async () => {
             const org: Org = await Org.create(testData.username);
             expect(org.getOrgId()).to.eq(testData.orgId);
         });
@@ -179,10 +167,6 @@ describe('Org Tests', () => {
 
     describe('retrieveMaxApiVersion', () => {
         it('no username', async () => {
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async () => {
-                return Promise.resolve(await testData.getConfig());
-            });
-
             $$.SANDBOX.stub(Connection.prototype, 'request').callsFake(() => Promise.resolve(
                 [{version: '89.0'}, {version: '90.0'}, {version: '88.0'}]));
 
@@ -199,14 +183,17 @@ describe('Org Tests', () => {
             const testDevHubMockData: MockTestOrgData = new MockTestOrgData();
             const testOrgMockData: MockTestOrgData = new MockTestOrgData();
 
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
+            const retrieve = async function() {
                 if (this.path.includes(testDevHubMockData.username)) {
                     return Promise.resolve(await testDevHubMockData.getConfig());
                 } else {
                     testOrgMockData.createDevHubUsername(testDevHubMockData.username);
                     return Promise.resolve(testOrgMockData.getConfig());
                 }
-            });
+            };
+            $$.configStubs['AuthInfoConfig'] = {
+                retrieveContents: retrieve
+            };
 
             const devHubMeta: OrgMetaInfo = {
                 info: await AuthInfo.create(testDevHubMockData.username),
@@ -232,13 +219,16 @@ describe('Org Tests', () => {
             const testOrgData: MockTestOrgData = new MockTestOrgData();
             const testDevHubData: MockTestOrgData = new MockTestOrgData();
 
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
+            const retrieve = async function() {
                 if (this.path.includes(testDevHubData)) {
                     return Promise.resolve(await testDevHubData.getConfig());
                 } else {
                     return Promise.resolve(testOrgData.getConfig());
                 }
-            });
+            };
+            $$.configStubs['AuthInfoConfig'] = {
+                retrieveContents: retrieve
+            };
 
             const scratchOrgMeta: OrgMetaInfo = {
                 info: await AuthInfo.create(testOrgData.username),
@@ -261,27 +251,17 @@ describe('Org Tests', () => {
     });
 
     describe('cleanData', () => {
-        beforeEach(() => {
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async () => {
-                return Promise.resolve(await testData.getConfig());
-            });
-        });
         describe('mock remove', () => {
             let removePath = '';
             let removeStub;
-            let id: string;
             beforeEach(() => {
-                id = $$.uniqid();
-                $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
-                    .callsFake((isGlobal: boolean) => $$.rootPathRetriever(isGlobal, id));
-
                 removeStub = $$.SANDBOX.stub(SfdxUtil, 'remove').callsFake((path) => {
                     removePath = path;
                     return Promise.resolve();
                 });
             });
 
-            it ('no org data path', async () => {
+            it('no org data path', async () => {
                 const org: Org = await Org.create(
                     await Connection.create(await AuthInfo.create(testData.username)));
 
@@ -293,8 +273,8 @@ describe('Org Tests', () => {
             });
         });
 
-        it ('InvalidProjectWorkspace', async () => {
-
+        it('InvalidProjectWorkspace', async () => {
+            $$.SANDBOXES.CONFIG.restore();
             const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanData');
             let invalidProjectWorkspace = false;
             $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(() => {
@@ -313,7 +293,8 @@ describe('Org Tests', () => {
             expect(invalidProjectWorkspace).to.be.equal(true);
         });
 
-        it ('Random Error', async () => {
+        it('Random Error', async () => {
+            $$.SANDBOXES.CONFIG.restore();
             const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanData');
             $$.SANDBOX.stub(SfdxConfig, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
@@ -335,53 +316,17 @@ describe('Org Tests', () => {
         });
     });
 
-    describe('orgConfigs', () => {
-        beforeEach(() => {
-
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
-                if (this.path.includes(`${testData.username}.json`)) {
-                    return Promise.resolve(await testData.getConfig());
-                } else {
-                    throw new Error(`Unsupported path: ${this.path}`);
-                }
-            });
-
-            $$.SANDBOX.stub(Project, 'resolveProjectPathFromCurrentWorkingDirectory').callsFake(() => {
-                return Promise.resolve(osTmpdir());
-            });
-        });
-    });
-
     describe('remove', () => {
-
-        let aliases = {  orgs: {} };
-        const testId: string = $$.uniqid();
-
         const configFileReadJSONMock = async function() {
             if (this.path.includes(`${testData.username}.json`)) {
                 return Promise.resolve(await testData.getConfig());
-            }
-
-            if (this.path && this.path.includes(Aliases.getFileName())) {
-                return Promise.resolve(aliases);
             }
 
             return Promise.resolve({});
         };
 
         beforeEach(() => {
-            testData = new MockTestOrgData();
-
-            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(async (isGlobal: boolean) => {
-                return await $$.rootPathRetriever(isGlobal, testId);
-            });
-
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(configFileReadJSONMock);
-
-            $$.SANDBOX.stub(ConfigGroup.prototype, 'write').callsFake((contents) => {
-                aliases = contents;
-                return Promise.resolve(contents);
-            });
+            $$.configStubs['AuthInfoConfig'] = { retrieveContents: configFileReadJSONMock };
         });
 
         it('should remove all assets associated with the org', async () => {
@@ -401,11 +346,11 @@ describe('Org Tests', () => {
 
             await org.remove();
 
-            expect(deletedPaths).includes(pathJoin(await $$.globalPathRetriever(testId), Global.STATE_FOLDER,
+            expect(deletedPaths).includes(pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER,
                 `${testData.orgId}.json`));
         });
 
-        it ('should not fail when no scratch org has been written', async () => {
+        it('should not fail when no scratch org has been written', async () => {
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
 
@@ -478,8 +423,8 @@ describe('Org Tests', () => {
                 new MockTestOrgData().createUser(addedUser)
             ];
 
-            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
-                .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal, testId));
+            $$.SANDBOXES.CONFIG.restore();
+            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal) => $$.rootPathRetriever(isGlobal, $$.id));
 
             let userAuthResponse = null;
             $$.SANDBOX.stub(OAuth2.prototype, '_postParams').callsFake(() => Promise.resolve(userAuthResponse));
@@ -538,8 +483,7 @@ describe('Org Tests', () => {
             expect(info).has.property('value', org0Username);
 
             const org1Username = orgs[1].getMetaInfo().info.getFields().username;
-            await Aliases.parseAndUpdate(
-                [`foo=${org1Username}`]);
+            await Aliases.parseAndUpdate([`foo=${org1Username}`]);
             let alias = await Aliases.fetch('foo');
             expect(alias).eq(org1Username);
 
@@ -566,16 +510,11 @@ describe('Org Tests', () => {
         });
     });
 
-    describe ('checkScratchOrg', () => {
+    describe('checkScratchOrg', () => {
         let returnResult;
-        const testId = $$.uniqid();
         let org: Org;
         let connection: Connection;
         beforeEach(async () => {
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async () => {
-                return Promise.resolve(await testData.getConfig());
-            });
-
             $$.SANDBOX.stub(Connection.prototype, 'query').callsFake(async () => {
                 if (returnResult === 'throw') {
                     const error = new Error();
@@ -584,9 +523,6 @@ describe('Org Tests', () => {
                 }
                 return returnResult;
             });
-
-            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
-                .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal, testId));
 
             const fakeDevHub = 'foo@devhub.com';
 
@@ -632,20 +568,18 @@ describe('Org Tests', () => {
 
         const devHubUser = 'ray@gb.org';
         beforeEach(() => {
-            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
-                .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal));
-
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
+            const retrieve = async function() {
                 if (this.path.includes(devHubUser)) {
                     const mockDevHubData: MockTestOrgData = new MockTestOrgData();
                     mockDevHubData.username = devHubUser;
-                    return Promise.resolve(mockDevHubData);
+                    return Promise.resolve(mockDevHubData.getConfig());
                 }
                 return Promise.resolve(await testData.getConfig());
-            });
+            };
+            $$.configStubs['AuthInfoConfig'] = { retrieveContents: retrieve};
         });
 
-        it ('steel thread', async () => {
+        it('steel thread', async () => {
             testData.createDevHubUsername(devHubUser);
             const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
 
@@ -653,7 +587,7 @@ describe('Org Tests', () => {
             expect(devHub.getMetaInfo().info.getFields().username).eq(devHubUser);
         });
 
-        it ('org is devhub', async () => {
+        it('org is devhub', async () => {
             testData.makeDevHub();
             const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
 
@@ -665,16 +599,12 @@ describe('Org Tests', () => {
     describe('refresh auth', () => {
         let url;
         beforeEach(() => {
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
-                return Promise.resolve(await testData.getConfig());
-            });
-
             $$.SANDBOX.stub(Connection.prototype, 'request').callsFake(async (requestInfo: RequestInfo): Promise<any> => {
                 url = requestInfo.url;
                 return Promise.resolve({});
             });
         });
-        it ('should request an refresh token', async () => {
+        it('should request an refresh token', async () => {
             const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
             await org.refreshAuth();
             // Todo add the apiversion to the test string
@@ -696,10 +626,7 @@ describe('Org Tests', () => {
             mock1 = new MockTestOrgData();
             mock2 = new MockTestOrgData();
 
-            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
-                .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal));
-
-            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
+            const retrieve = async function() {
                 const path = this.path;
 
                 if (path && path.includes(mock0.username)) {
@@ -719,7 +646,8 @@ describe('Org Tests', () => {
                 } else {
                     throw new Error(`Unhandled Path: ${path}`);
                 }
-            });
+            };
+            $$.configStubs['AuthInfoConfig'] = { retrieveContents: retrieve};
 
             orgs[0] = await Org.create(
                 await Connection.create(await AuthInfo.create(mock0.username)));
@@ -751,23 +679,20 @@ describe('Org Tests', () => {
         });
 
         describe('removeUsername', () => {
-            it ('should remove all usernames', async () => {
+            it('should remove all usernames', async () => {
 
                 await orgs[0].addUsername(orgs[1].getConnection().getAuthInfo());
                 await orgs[0].addUsername(orgs[2].getConnection().getAuthInfo());
 
                 let usersPresent: string[] = null;
-                $$.SANDBOX.stub(ConfigFile.prototype, 'write').callsFake(async function(contents) {
-                    usersPresent = contents.usernames;
-                    return;
-                });
-
                 await orgs[0].removeUsername(orgs[1].getConnection().getAuthInfo());
+                usersPresent = $$.configStubs['OrgUsersConfig'].contents['usernames'];
                 expect(usersPresent.length).to.be.eq(2);
                 expect(usersPresent).to.not.include(mock1.username);
 
                 await orgs[0].removeUsername(orgs[2].getConnection().getAuthInfo());
-                expect(usersPresent.length).to.be.eq(2);
+                usersPresent = $$.configStubs['OrgUsersConfig'].contents['usernames'];
+                expect(usersPresent.length).to.be.eq(1);
                 expect(usersPresent).to.not.include(mock2.username);
             });
         });
