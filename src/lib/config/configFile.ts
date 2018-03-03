@@ -194,7 +194,7 @@ export class ConfigFile extends BaseConfigStore {
 
         await SfdxUtil.mkdirp(pathDirname(this.getPath()));
 
-        await SfdxUtil.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 4));
+        await SfdxUtil.writeJSON(this.getPath(), this.toObject());
 
         return this.getContents();
     }

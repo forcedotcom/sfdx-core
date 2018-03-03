@@ -314,7 +314,8 @@ export class AuthInfo {
                 try {
                     const config: AuthInfoConfig =
                         await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.username));
-                    authConfig = await config.read();
+                    await config.read();
+                    authConfig = config.toObject();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
                         throw SfdxError.create('sfdx-core', 'core', 'namedOrgNotFound', [this.username]);

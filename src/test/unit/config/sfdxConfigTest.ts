@@ -12,7 +12,7 @@ import { testSetup } from '../../testSetup';
 import { ConfigFile } from '../../../lib/config/configFile';
 
 // Setup the test environment.
-const $$ = testSetup({ includeConfigMocks: false });
+const $$ = testSetup();
 
 const configFileContents = {
     defaultdevhubusername: 'sfdxConfigTest_devhub',
@@ -22,9 +22,12 @@ const configFileContents = {
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 
 describe('SfdxConfig', () => {
-
     let id: string;
+
     beforeEach(() => {
+        // Testing config functionality, so restore global stubs.
+        $$.SANDBOXES.CONFIG.restore();
+
         id = $$.uniqid();
         $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
             .callsFake((isGlobal: boolean) => $$.rootPathRetriever(isGlobal, id));
@@ -51,17 +54,18 @@ describe('SfdxConfig', () => {
 
     describe('read', () => {
 
-        it.only('adds content of the config file from this.path to this.contents', async () => {
+        it('adds content of the config file from this.path to this.contents', async () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
 
             $$.SANDBOX.stub(SfdxUtil, 'readJSON')
-                .withArgs(config.getPath(), false)
+                .withArgs(config.getPath())
                 .returns(Promise.resolve(clone(configFileContents)));
 
             const content = await config.read();
 
-            expect(content).to.deep.equal(configFileContents);
-            expect(config.getContents()).to.deep.equal(configFileContents);
+            expect(content.get('defaultusername')).to.equal(configFileContents.defaultusername);
+            expect(content.get('defaultdevhubusername')).to.equal(configFileContents.defaultdevhubusername);
+            expect(config.toObject()).to.deep.equal(configFileContents);
 
         });
     });
@@ -71,33 +75,33 @@ describe('SfdxConfig', () => {
         it('calls SfdxConfig.write with updated file contents', async () => {
 
             $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(async () => Promise.resolve(clone(configFileContents)));
-            const writeStub = $$.SANDBOX.stub(SfdxConfig.prototype, 'write');
+            const writeStub = $$.SANDBOX.stub(SfdxUtil, 'writeJSON');
 
             const expectedFileContents = clone(configFileContents);
             const newUsername = 'updated_val';
             expectedFileContents.defaultusername = newUsername;
 
-            await SfdxConfig.setPropertyValue(false, 'defaultusername', newUsername);
+            await SfdxConfig.update(false, 'defaultusername', newUsername);
 
-            expect(writeStub.calledWith(expectedFileContents)).to.be.true;
+            expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);
         });
 
         it('calls SfdxConfig.write with deleted file contents', async () => {
             $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(() => Promise.resolve(clone(configFileContents)));
-            const writeStub = $$.SANDBOX.stub(SfdxConfig.prototype, 'write');
+            const writeStub = $$.SANDBOX.stub(SfdxUtil, 'writeJSON');
             const { defaultdevhubusername } = configFileContents;
 
-            await SfdxConfig.setPropertyValue(false, 'defaultusername');
+            await SfdxConfig.update(false, 'defaultusername');
 
-            expect(writeStub.calledWith({ defaultdevhubusername })).to.be.true;
+            expect(writeStub.getCall(0).args[1]).to.deep.equal({ defaultdevhubusername });
         });
     });
 
-    describe('setPropertyValue', () => {
+    describe('set', () => {
         it('UnknownConfigKey', async () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
             try {
-                await config.setPropertyValue('foo', 'bar');
+                config.set('foo', 'bar');
                 assert.fail('Expected an error to be thrown.');
             } catch (err) {
                 expect(err).to.have.property('name', 'UnknownConfigKey');
@@ -107,7 +111,7 @@ describe('SfdxConfig', () => {
         it('invalidConfigValue', async () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
             try {
-                await config.setPropertyValue('apiVersion', '1');
+                config.set('apiVersion', '1');
                 assert.fail('Expected an error to be thrown.');
             } catch (err) {
                 expect(err).to.have.property('name', 'invalidConfigValue');
@@ -116,8 +120,8 @@ describe('SfdxConfig', () => {
 
         it('noPropertyInput validation', async () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
-            await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, 'foo@example.com');
-            expect(config.getContents()[SfdxConfig.DEFAULT_USERNAME]).to.be.equal('foo@example.com');
+            await config.set(SfdxConfig.DEFAULT_USERNAME, 'foo@example.com');
+            expect(config.get(SfdxConfig.DEFAULT_USERNAME)).to.be.equal('foo@example.com');
         });
     });
 
@@ -127,17 +131,13 @@ describe('SfdxConfig', () => {
             const TEST_VAL = 'test';
 
             const origFunction = ConfigFile.prototype.write;
-            const writeStub = $$.SANDBOX.stub(ConfigFile.prototype, ConfigFile.prototype.write.name).callsFake(async function(contents) {
-                if (this.path.includes('key.json')) {
-                    return await origFunction.call(this, contents);
-                } else {
-                    expect(this.contents.isvDebuggerSid.length).to.be.greaterThan(TEST_VAL.length);
-                    expect(this.contents.isvDebuggerSid).to.not.equal(TEST_VAL);
-                }
+            const writeStub = $$.SANDBOX.stub(ConfigFile.prototype, ConfigFile.prototype.write.name).callsFake(async function() {
+                expect(this.get('isvDebuggerSid').length).to.be.greaterThan(TEST_VAL.length);
+                expect(this.get('isvDebuggerSid')).to.not.equal(TEST_VAL);
             });
 
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
-            await config.setPropertyValue(SfdxConfig.ISV_DEBUGGER_SID, TEST_VAL);
+            await config.set(SfdxConfig.ISV_DEBUGGER_SID, TEST_VAL);
             await config.write();
 
             expect(writeStub.called).to.be.true;

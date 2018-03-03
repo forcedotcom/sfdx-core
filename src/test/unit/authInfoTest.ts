@@ -9,7 +9,6 @@ import { assert, expect } from 'chai';
 import { AuthInfo } from '../../lib/authInfo';
 import { AuthInfoConfig } from '../../lib/config/authInfoConfig';
 import { ConfigFile } from '../../lib/config/configFile';
-import { KeychainConfig } from '../../lib/config/keychainConfig';
 import { Crypto } from '../../lib/crypto';
 import { SfdxUtil } from '../../lib/util';
 import { OAuth2 } from 'jsforce';
@@ -31,21 +30,18 @@ const $$ = testSetup();
 describe('AuthInfo No fs mock', () => {
     const username = 'doesnt_exists@gb.com';
     beforeEach(() => {
+        // Testing crypto functionality, so restore global stubs.
+        $$.SANDBOXES.CRYPTO.restore();
+        $$.SANDBOXES.CONFIG.restore();
+
         $$.SANDBOX.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
             setPassword: () => Promise.resolve(),
             getPassword: (data, cb) => cb(undefined, TEST_KEY.key)
         }));
-        $$.SANDBOX.stub(AuthInfoConfig.prototype, 'write').callsFake(async function() {
-            const path = this.path();
-            if (path.includes('key.json')) {
-                return Promise.resolve(TEST_KEY);
-            } else if (path.includes(username)) {
-                const error: any = new SfdxError('Test error', 'testError');
-                error.code = 'ENOENT';
-                return Promise.reject(error);
-            } else {
-                return Promise.reject(new SfdxError('Not mocked - unhandled test case', 'UnsupportedTestCase'));
-            }
+        $$.SANDBOX.stub(AuthInfoConfig.prototype, 'read').callsFake(async function() {
+            const error: any = new SfdxError('Test error', 'testError');
+            error.code = 'ENOENT';
+            return Promise.reject(error);
         });
     });
 
@@ -156,9 +152,7 @@ class MetaAuthDataMock {
     }
 
     public async fetchConfigInfo(path: string): Promise<any> {
-        if (path.includes(KeychainConfig.getFileName())) {
-            return Promise.resolve(TEST_KEY);
-        } else if (_includes(_toUpper(path), '_JWT')) {
+        if (_includes(_toUpper(path), '_JWT')) {
             this._authInfoLookupCount = this._authInfoLookupCount + 1;
             return Promise.resolve({
                 instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
@@ -207,6 +201,9 @@ describe('AuthInfo', () => {
     let testMetadata: MetaAuthDataMock;
 
     beforeEach(async () => {
+        // Testing config functionality, so restore global stubs.
+        $$.SANDBOXES.CONFIG.restore();
+
         testMetadata = new MetaAuthDataMock();
 
         $$.SANDBOX.stub(SfdxUtil, 'stat').callsFake(async (path) => {
@@ -218,8 +215,9 @@ describe('AuthInfo', () => {
             return Promise.resolve();
         });
 
-        $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
-            return testMetadata.fetchConfigInfo(this.path);
+        $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
+            this.setContentsFromObject(await testMetadata.fetchConfigInfo(this.path));
+            return this.getContents();
         });
 
         const crypto = await Crypto.create();
@@ -302,7 +300,7 @@ describe('AuthInfo', () => {
                 expect(AuthInfo.prototype['buildJwtConfig']['called']).to.be.true;
                 expect(AuthInfo.prototype['buildJwtConfig']['firstCall'].args[0]).to.equal(jwtConfig);
                 expect(SfdxUtil.readFile['called']).to.be.true;
-                expect(AuthInfoConfig.getOptions(testMetadata.jwtUsername)).to.equal(`${testMetadata.jwtUsername}.json`);
+                expect(AuthInfoConfig.getOptions(testMetadata.jwtUsername).filename).to.equal(`${testMetadata.jwtUsername}.json`);
 
                 const expectedAuthConfig = {
                     accessToken: authResponse.access_token,
@@ -351,7 +349,10 @@ describe('AuthInfo', () => {
                 instanceUrl: testMetadata.instanceUrl,
                 privateKey: 'authInfoTest/jwt/server.key'
             };
-            readFileStub.returns(Promise.resolve(JSON.stringify(jwtData)));
+
+            testMetadata.fetchConfigInfo = () => {
+                return Promise.resolve(jwtData);
+            };
 
             // Create the JWT AuthInfo instance
             const authInfo = await AuthInfo.create(username);
@@ -375,7 +376,7 @@ describe('AuthInfo', () => {
             expect(AuthInfo.prototype.init['firstCall'].args[0], 'should NOT have passed any args to AuthInfo.init()').to.be.undefined;
             expect(AuthInfo.prototype.update['called']).to.be.true;
             expect(AuthInfo.prototype['buildJwtConfig']['called'], 'should NOT have called AuthInfo.buildJwtConfig() - should get from cache').to.be.false;
-            expect(testMetadata.authInfoLookupCount > 0, 'should have called Global.fetchConfigInfo() for auth info').to.be.true;
+            expect(testMetadata.authInfoLookupCount === 0, 'should not have called Global.fetchConfigInfo() for auth info - using overridden instance').to.be.true;
             expect(AuthInfoConfig.getOptions(username).filename).to.equal(`${username}.json`);
         });
 
@@ -725,7 +726,7 @@ describe('AuthInfo', () => {
             expect(writeCall.thisValue.options.filename).to.equal(`${username}.json`);
 
             const crypto = await Crypto.create();
-            const decryptedActualFields = writeCall.args[0];
+            const decryptedActualFields = writeCall.thisValue.toObject();
             decryptedActualFields.accessToken = crypto.decrypt(decryptedActualFields.accessToken);
             decryptedActualFields.refreshToken = crypto.decrypt(decryptedActualFields.refreshToken);
             const expectedFields = {

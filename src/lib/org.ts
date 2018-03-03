@@ -240,7 +240,7 @@ export class Org {
             if ((configInfo.value === username || configInfo.value === alias) &&
                 (configInfo.isGlobal() || configInfo.isLocal())) {
 
-                await SfdxConfig.setPropertyValue(configInfo.isGlobal() as boolean, orgType, undefined);
+                await SfdxConfig.update(configInfo.isGlobal() as boolean, orgType, undefined);
             }
 
             const orgUsers: OrgUsersConfig = await this.retrieveOrgUsersConfig();

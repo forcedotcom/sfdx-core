@@ -152,10 +152,10 @@ export class SfdxConfigAggregator {
             return LOCATIONS.ENVIRONMENT;
         }
 
-        if (!_.isNil(_.get(this.getLocalConfig(), `contents[${key}]`))) {
+        if (this.getLocalConfig() && this.getLocalConfig().get(key)) {
             return LOCATIONS.LOCAL;
         }
-        if (!_.isNil(_.get(this.getGlobalConfig(), `contents[${key}]`))) {
+        if (this.getGlobalConfig() && this.getGlobalConfig().get(key)) {
             return LOCATIONS.GLOBAL;
         }
         return null;
@@ -278,11 +278,13 @@ export class SfdxConfigAggregator {
         // Global config must be read first so it is on the left hand of the
         // object assign and is overwritten by the local config.
 
-        const configs = [(await this.globalConfig.read() as object)];
+        await this.globalConfig.read();
+        const configs = [(this.globalConfig.toObject() as object)];
 
         // We might not be in a project workspace
         if (this.localConfig) {
-            configs.push((await this.localConfig.read()) as object);
+            await this.localConfig.read();
+            configs.push((this.localConfig.toObject()) as object);
         }
 
         configs.push(this.getEnvVars());

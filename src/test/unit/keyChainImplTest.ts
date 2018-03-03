@@ -19,6 +19,11 @@ const $$ = testSetup();
 
 describe('KeyChainImpl Tests', () => {
 
+    beforeEach(() => {
+        // Testing crypto functionality, so restore global stubs.
+        $$.SANDBOXES.CRYPTO.restore();
+    });
+
     describe('keychain program file issues', () => {
 
         it('File not found', async () => {

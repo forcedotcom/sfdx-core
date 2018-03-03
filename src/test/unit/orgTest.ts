@@ -112,16 +112,15 @@ describe('Org Tests', () => {
 
     beforeEach(() => {
         testData = new MockTestOrgData();
-        $$.SANDBOX.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
-            setPassword: () => Promise.resolve(),
-            getPassword: (data, cb) => cb(undefined, '12345678901234567890123456789012')
-        }));
+
+        // Testing config functionality, so restore global stubs.
+        $$.SANDBOXES.CONFIG.restore();
     });
 
     describe('org:create', () => {
         const testId = $$.uniqid();
         beforeEach(() => {
-            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
                 return Promise.resolve(await testData.getConfig());
             });
 
@@ -145,7 +144,7 @@ describe('Org Tests', () => {
         it ('should create an org from the default username', async () => {
 
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
-            await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, testData.username);
+            await config.set(SfdxConfig.DEFAULT_USERNAME, testData.username);
             await config.write();
 
             const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
@@ -157,7 +156,7 @@ describe('Org Tests', () => {
         it ('should create a default devhub org', async () => {
 
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
-            await config.setPropertyValue(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, testData.username);
+            await config.set(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, testData.username);
             await config.write();
 
             const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
@@ -180,7 +179,7 @@ describe('Org Tests', () => {
 
     describe('retrieveMaxApiVersion', () => {
         it('no username', async () => {
-            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async () => {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async () => {
                 return Promise.resolve(await testData.getConfig());
             });
 
@@ -200,7 +199,7 @@ describe('Org Tests', () => {
             const testDevHubMockData: MockTestOrgData = new MockTestOrgData();
             const testOrgMockData: MockTestOrgData = new MockTestOrgData();
 
-            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
                 if (this.path.includes(testDevHubMockData.username)) {
                     return Promise.resolve(await testDevHubMockData.getConfig());
                 } else {
@@ -233,7 +232,7 @@ describe('Org Tests', () => {
             const testOrgData: MockTestOrgData = new MockTestOrgData();
             const testDevHubData: MockTestOrgData = new MockTestOrgData();
 
-            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
                 if (this.path.includes(testDevHubData)) {
                     return Promise.resolve(await testDevHubData.getConfig());
                 } else {
@@ -263,7 +262,7 @@ describe('Org Tests', () => {
 
     describe('cleanData', () => {
         beforeEach(() => {
-            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async () => {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async () => {
                 return Promise.resolve(await testData.getConfig());
             });
         });
@@ -339,7 +338,7 @@ describe('Org Tests', () => {
     describe('orgConfigs', () => {
         beforeEach(() => {
 
-            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
                 if (this.path.includes(`${testData.username}.json`)) {
                     return Promise.resolve(await testData.getConfig());
                 } else {
@@ -434,7 +433,7 @@ describe('Org Tests', () => {
                 await Connection.create(await AuthInfo.create(testData.username)), sfdxConfigAggregator);
 
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
-            await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, testData.username);
+            await config.set(SfdxConfig.DEFAULT_USERNAME, testData.username);
             await config.write();
 
             await sfdxConfigAggregator.reload();
@@ -531,7 +530,7 @@ describe('Org Tests', () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
 
             const org0Username = orgs[0].getMetaInfo().info.getFields().username;
-            await config.setPropertyValue(SfdxConfig.DEFAULT_USERNAME, org0Username);
+            await config.set(SfdxConfig.DEFAULT_USERNAME, org0Username);
             await config.write();
 
             const sfdxConfigAggregator = await orgs[0].getConfigAggregator().reload();
@@ -573,7 +572,7 @@ describe('Org Tests', () => {
         let org: Org;
         let connection: Connection;
         beforeEach(async () => {
-            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async () => {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async () => {
                 return Promise.resolve(await testData.getConfig());
             });
 
@@ -596,7 +595,7 @@ describe('Org Tests', () => {
             org = await Org.create(connection, sfdxConfigAggregator);
 
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
-            await config.setPropertyValue(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, fakeDevHub);
+            await config.set(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, fakeDevHub);
             await config.write();
 
             await org.getConfigAggregator().reload();
@@ -636,7 +635,7 @@ describe('Org Tests', () => {
             $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
                 .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal));
 
-            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
                 if (this.path.includes(devHubUser)) {
                     const mockDevHubData: MockTestOrgData = new MockTestOrgData();
                     mockDevHubData.username = devHubUser;
@@ -666,7 +665,7 @@ describe('Org Tests', () => {
     describe('refresh auth', () => {
         let url;
         beforeEach(() => {
-            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
                 return Promise.resolve(await testData.getConfig());
             });
 
@@ -700,7 +699,7 @@ describe('Org Tests', () => {
             $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
                 .callsFake((isGlobal) => $$.rootPathRetriever(isGlobal));
 
-            $$.SANDBOX.stub(ConfigFile.prototype, 'readJSON').callsFake(async function() {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function() {
                 const path = this.path;
 
                 if (path && path.includes(mock0.username)) {

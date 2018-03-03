@@ -55,7 +55,8 @@ export interface ConfigStore {
     clear(): void;
     values(): ConfigValue[];
 
-    forEach(actionFn: any): Promise<void>;
+    forEach(actionFn: any): void;
+    awaitEach(actionFn: any): Promise<void>;
 
     // Content methods
     getContents(): ConfigContents;
@@ -187,10 +188,21 @@ export abstract class BaseConfigStore implements ConfigStore {
 
     /**
      * Calls callbackFn once for each key-value pair present in the config object.
+     * @param actionFn The function `(key: string, value: ConfigValue) => void` to be called for each element.
+     */
+    public forEach(actionFn: (key: string, value: ConfigValue) => void): void {
+        const entries = this.entries();
+        for (let i = 0, entry = entries[i]; i < entries.length; i++) {
+            actionFn(entry[0], entry[1]);
+        }
+    }
+
+    /**
+     * Calls callbackFn once for each key-value pair present in the config object.
      * @param actionFn The function `(key: string, value: ConfigValue) => Promise<void>` to be called for each element.
      * @returns {Promise<void>}
      */
-    public async forEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
+    public async awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
         const entries = this.entries();
         for (let i = 0, entry = entries[i]; i < entries.length; i++) {
             await actionFn(entry[0], entry[1]);
