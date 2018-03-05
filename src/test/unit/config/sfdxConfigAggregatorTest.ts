@@ -14,17 +14,19 @@ import { SfdxConfigAggregator } from '../../../lib/config/sfdxConfigAggregator';
 import { tmpdir as osTmpdir } from 'os';
 import { SfdxConfig } from '../../../lib/config/sfdxConfig';
 import { testSetup } from '../../testSetup';
-import {Config} from '../../../lib/config/config';
+import { ConfigFile } from '../../../lib/config/configFile';
 
 // Setup the test environment.
 const $$ = testSetup();
 
 describe('SfdxConfigAggregator', () => {
-
     let id: string;
     beforeEach(() => {
+        // Testing config functionality, so restore global stubs.
+        $$.SANDBOXES.CONFIG.restore();
+
         id = $$.uniqid();
-        $$.SANDBOX.stub(Config, 'resolveRootFolder')
+        $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
             .callsFake((isGlobal: boolean) => $$.rootPathRetriever(isGlobal, id));
     });
 
@@ -60,8 +62,10 @@ describe('SfdxConfigAggregator', () => {
     describe('initialization', () => {
         before(() => {
             $$.SANDBOX.stub(SfdxConfig.prototype, 'read').callsFake(async function() {
-                return this.isGlobal ? await Promise.resolve({ defaultusername: 2 }) :
-                    await Promise.resolve({ defaultusername: 1 });
+                const config = this.isGlobal ? await Promise.resolve(new Map([['defaultusername', 2]])) :
+                    await Promise.resolve(new Map([['defaultusername', 1]]));
+                this.setContents(config);
+                return config;
             });
         });
         it('local overrides global', async () => {

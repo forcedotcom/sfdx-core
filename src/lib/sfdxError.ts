@@ -9,6 +9,7 @@ import * as _ from 'lodash';
 
 import Messages from './messages';
 import { color } from './ux';
+import { Global, Modes } from './global';
 
 /**
  * A class to manage all the keys and tokens for a message bundle to use with SfdxError.
@@ -193,6 +194,9 @@ export class SfdxError extends Error {
     public exitCode: number;
     public commandName: string;
 
+    // Additional data helpful for consumers of this error.  E.g., API call result
+    public data: any;
+
     /**
      * Create an SfdxError.
      * @param {string} message The error message
@@ -209,6 +213,11 @@ export class SfdxError extends Error {
 
     public setCommandName(commandName: string) {
         this.commandName = commandName;
+        return this;
+    }
+
+    public setData(data: any) {
+        this.data = data;
         return this;
     }
 
@@ -230,6 +239,9 @@ export class SfdxError extends Error {
                 colorizedArgs.push(`\n${color.red(action)}`);
             });
         }
+        if (this.stack && Global.getEnvironmentMode().is(Modes.DEVELOPMENT)) {
+            colorizedArgs.push(color.red(`\n*** Internal Diagnostic ***\n\n${this.stack}\n******\n`));
+        }
 
         return colorizedArgs;
     }
@@ -244,6 +256,10 @@ export class SfdxError extends Error {
 
         if (this.commandName) {
             json.commandName = this.commandName;
+        }
+
+        if (this.data) {
+            json.data = this.data;
         }
 
         return json;

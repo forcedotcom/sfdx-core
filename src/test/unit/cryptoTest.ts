@@ -23,6 +23,9 @@ describe('CryptoTest', function() {
     let crypto;
 
     beforeEach(() => {
+        // Testing crypto functionality, so restore global stubs.
+        $$.SANDBOXES.CRYPTO.restore();
+
         $$.SANDBOX.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
             setPassword: () => Promise.resolve(),
             getPassword: (data, cb) => cb(undefined, TEST_KEY.key)

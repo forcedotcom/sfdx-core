@@ -8,14 +8,15 @@
 import Messages from './lib/messages';
 import { SfdxErrorConfig, SfdxError } from './lib/sfdxError';
 import Global from './lib/global';
-import UX from './lib/ux';
+import { Project } from './lib/project';
+import { UX, SfdxTableOptions } from './lib/ux';
 import { Logger, LoggerLevel } from './lib/logger';
 import { Connection } from './lib/connection';
 import { AuthInfo } from './lib/authInfo';
 import { Org } from './lib/org';
 import { SfdxConfigAggregator } from './lib/config/sfdxConfigAggregator';
-import { Config } from './lib/config/config';
-import { Alias } from './lib/alias';
+import { ConfigFile } from './lib/config/configFile';
+import { Aliases } from './lib/config/aliases';
 import { SfdxUtil } from './lib/util';
 
 Messages.importMessagesDirectory(__dirname);
@@ -25,14 +26,16 @@ export {
     SfdxErrorConfig,
     SfdxError,
     Global,
+    Project,
     SfdxUtil,
     UX,
+    SfdxTableOptions,
     Logger,
     LoggerLevel,
     Org,
     Connection,
     AuthInfo,
     SfdxConfigAggregator,
-    Config,
-    Alias
+    ConfigFile,
+    Aliases
 };

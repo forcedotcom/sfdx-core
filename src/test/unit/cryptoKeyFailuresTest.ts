@@ -38,6 +38,11 @@ if (os.platform() === 'darwin') {
             process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL || '';
         });
 
+        beforeEach(() => {
+            // Testing crypto functionality, so restore global stubs.
+            $$.SANDBOXES.CRYPTO.restore();
+        });
+
         it('should throw SetCredentialError when unable to get/set a keychain password', async () => {
             const buf = Buffer.from('testPassword', 'ascii');
             const pwd = buf.toString('hex');

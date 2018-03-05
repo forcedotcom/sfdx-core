@@ -15,7 +15,7 @@ import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { SfdxUtil } from './util';
 import { Global } from './global';
 import { KeychainConfig } from './config/keychainConfig';
-import {Config} from './config/config';
+import { ConfigFile } from './config/configFile';
 
 /* tslint:disable: no-bitwise */
 
@@ -68,6 +68,9 @@ const _validateProgram = async (programPath, fsIfc, isExeIfc) => {
     }
 };
 
+/**
+ * @private
+ */
 export class KeychainAccess {
 
     /**
@@ -336,28 +339,28 @@ const _darwinImpl = {
 };
 
 async function _writeFile(opts, fn) {
-    const obj: SecretFields = {
-        service: opts.service,
-        account: opts.account,
-        key: opts.password
-    };
-
     try {
-        const config: KeychainConfig = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
-        await config.write(obj);
+        const config: KeychainConfig = await KeychainConfig.create();
+        config.set(SecretFields.ACCOUNT, opts.account);
+        config.set(SecretFields.KEY, opts.password);
+        config.set(SecretFields.SERVICE, opts.service);
+        await config.write();
 
-        fn(null, obj);
+        fn(null, config.getContents());
     } catch (err) {
         fn(err);
     }
 }
 
-interface SecretFields {
-    service: string;
-    account: string;
-    key: string;
+enum SecretFields {
+    SERVICE = 'service',
+    ACCOUNT = 'account',
+    KEY = 'key'
 }
 
+/**
+ * @private
+ */
 export class GenericKeychainAccess {
 
     public async getPassword(opts, fn): Promise<any> {
@@ -368,16 +371,15 @@ export class GenericKeychainAccess {
             if (_.isNil(fileAccessError)) {
 
                 // read it's contents
-                return KeychainConfig.create(KeychainConfig.getDefaultOptions())
-                    .then((config: KeychainConfig) => config.readJSON())
-                    .then(async (readObj: SecretFields) => {
+                return KeychainConfig.retrieve()
+                    .then((config: KeychainConfig) => {
                         // validate service name and account just because
-                        if ((opts.service === readObj.service ) && (opts.account === readObj.account)) {
-                            fn(null, readObj.key);
+                        if ((opts.service === config.get(SecretFields.SERVICE)) && (opts.account === config.get(SecretFields.ACCOUNT))) {
+                            fn(null, config.get(SecretFields.KEY));
                         } else {
                             // if the service and account names don't match then maybe someone or something is editing
                             // that file. #donotallow
-                            const errorConfig = new SfdxErrorConfig('sfdx-core', 'encryption', 'GenericKeychainServiceError', [KeychainConfig.KEYCHAIN_FILENAME], 'GenericKeychainServiceErrorAction');
+                            const errorConfig = new SfdxErrorConfig('sfdx-core', 'encryption', 'GenericKeychainServiceError', [KeychainConfig.getFileName()], 'GenericKeychainServiceErrorAction');
                             const err = SfdxError.create(errorConfig);
                             fn(err);
                         }
@@ -418,7 +420,7 @@ export class GenericKeychainAccess {
 
     protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<any> {
         try {
-            const root = await Config.resolveRootFolder(true);
+            const root = await ConfigFile.resolveRootFolder(true);
             await SfdxUtil.access(path.join(root, Global.STATE_FOLDER), fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
             await cb(null);
         } catch (err) {
@@ -427,16 +429,19 @@ export class GenericKeychainAccess {
     }
 }
 
+/**
+ * @private
+ */
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 
     protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<any> {
-        const secretFile: string = path.join(await Config.resolveRootFolder(true),
+        const secretFile: string = path.join(await ConfigFile.resolveRootFolder(true),
             Global.STATE_FOLDER, KeychainConfig.getDefaultOptions().filename);
         await super.isValidFileAccess(async (err) => {
             if (!_.isNil(err)) {
                 await cb(err);
             } else {
-                const keyFile = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
+                const keyFile = await KeychainConfig.create();
                 const stats = await keyFile.stat();
                 const octalModeStr  = (stats.mode & 0o777).toString(8);
                 const EXPECTED_OCTAL_PERM_VALUE = '600';
@@ -460,6 +465,9 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 
 export class GenericWindowsKeychainAccess extends GenericKeychainAccess {}
 
+/**
+ * @private
+ */
 export const keyChainImpl = {
     generic_unix: new GenericUnixKeychainAccess(),
     generic_windows: new GenericWindowsKeychainAccess(),
