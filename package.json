@@ -13,7 +13,7 @@
     "build": "npm run clean && npm run lint && npm run compile && npm run docgen",
     "watch": "tsc -w -p tsconfig.json",
     "test": "npm run lint && npm run compile && node_modules/.bin/mocha --recursive dist/test/unit",
-    "test-with-coverage": "npm run lint-report && scripts/unit-test-with-coverage.js",
+    "test-with-coverage": "npm run lint-report && npm run compile && scripts/unit-test-with-coverage.js",
     "prepare": "npm run build",
     "docgen": "npm run compile && node_modules/.bin/jsdoc dist --readme EXPORTED.md -r -c jsdoc.json --package package.json"
   },
