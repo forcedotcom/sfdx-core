@@ -9,7 +9,7 @@ node {
             }
 
             stage('install') {
-                sh 'yarn .'
+                sh 'yarn'
             }
 
             stage('promote doc') {
