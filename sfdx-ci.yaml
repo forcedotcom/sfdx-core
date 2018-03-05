@@ -10,6 +10,8 @@ jobs:
         'EMAIL': 't.dvornik@salesforce.com'
   - name: publish-doc
     script: scripts/jenkins/publish-doc.groovy
+    branches:
+      - 'tnoonan/master'
   - name: promote-doc
     script: scripts/jenkins/promote-doc.groovy
     branches:
