@@ -29,6 +29,7 @@
     "messages",
     "typings",
     "!dist/test/**/*",
+    "dist/test/testSetup*",
     "!dist/**/*.map"
   ],
   "dependencies": {

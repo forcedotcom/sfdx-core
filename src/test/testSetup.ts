@@ -69,6 +69,77 @@ async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Pro
     return isGlobal ? await getTestGlobalPath(uid) : await getTestLocalPath(uid);
 }
 
+/**
+ * @module testSetup
+ */
+/**
+ * Different hooks into {@link ConfigFile} used for testing instead of doing file IO.
+ * @typedef {object} TestContext
+ * @property {function} readFn A function `() => Promise<ConfigContents>;` that controls
+ * all aspect of {@link ConfigFile.read}. For example, it won't set the contents unless
+ * explicitly done. Only use this if you know what you are doing. Use retrieveContents
+ * instead.
+ * @property {function} writeFn A function `() => Promise<void>;` that controls all aspects
+ * of {@link ConfigFile.write}. For example, it won't read the contents unless explicitly
+ * done. Only use this if you know what you are doing. Use updateContents instead.
+ * @property {object} contents The contents that are used when @{link ConfigFile.read} unless
+ * retrieveContents is set. This will also contain the new config when @{link ConfigFile.write}
+ * is called. This will persist through config instances, such as {@link Alias.update} and
+ * {@link Alias.fetch}.
+ * @property {function} retrieveContents A function `() => Promise<object>;` to conditionally
+ * read based on the config instance. The `this` value will be the config instance.
+ * @property {function} updateContents A function `() => Promise<object>;` to conditionally
+ * set based on the config instance. The `this` value will be the config instance.
+ */
+/**
+ * Different configuration options when running before each.
+ * @typedef {object} TestContext
+ * @property {sinon.sandbox} SANDBOX The default sandbox is cleared out before
+ * each test run. See [sinon sandbox]{@link http://sinonjs.org/releases/v1.17.7/sandbox/}.
+ * @property {SandboxTypes} SANDBOXES An object of different sandboxes. Used when
+ * needing to restore parts of the system for customized testing.
+ * @property {Logger} TEST_LOGGER The test logger that is used when {@link Logger.child}
+ * is used anywhere. It uses memory logging.
+ * @property {string} id A unique id for the test run.
+ * @property {function} uniqid A function `() => string` that returns unique strings.
+ * @property {object} configStubs An object of `[configName: string]: ConfigStub` used in test that interact with config files.
+ * names to {@link ConfigStubs} that contain properties used when reading and writing
+ * to config files.
+ * @property {function} localPathRetriever A function `(uid: string) => Promise<string>;`
+ * used when resolving the local path.
+ * @property {function} globalPathRetriever A function `(uid: string) => Promise<string>;`
+ * used when resolving the global path.
+ * @property {function} rootPathRetriever: A function `(isGlobal: boolean, uid?: string) => Promise<string>;`
+ * used then resolving paths. Calls localPathRetriever and globalPathRetriever.
+ */
+
+/**
+ * Use to mock out different pieces of sfdx-core to make testing easier. This will mock out
+ * logging to a file, config file reading and writing, local and global path resolution, and
+ * *http request using connection (soon)*.
+ * @function testSetup
+ * @returns {TestContext}
+ *
+ * @example
+ * // In a mocha tests
+ * import testSetup from 'sfdx-core/dist/test/testSetup';
+ *
+ * const $$ = testSetup();
+ *
+ * describe(() => {
+ *  it('test', () => {
+ *    // Stub out your own method
+ *    $$.SANDBOX.stub(MyClass.prototype, 'myMethod').returnsFake(() => {});
+ *
+ *    // Set the contents that is used when aliases are read. Same for all config files.
+ *    $$.configStubs['Aliases'].content = { 'myTestAlias': 'user@company.com' };
+ *
+ *    // Will use the contents set above.
+ *    const username = Aliases.fetch('myTestAlias');
+ *    expect(username).to.equal('user@company.com');
+ *  });
+ * });
+ */
 export const testSetup = once(() => {
     // Import all the messages files in the sfdx-core messages dir.
     Messages.importMessagesDirectory(pathJoin(__dirname, '..', '..'));
