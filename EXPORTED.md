@@ -1,9 +1,51 @@
+# Salesforce DX Core Library
+This library provides client side management of sfdx projects, org authentication, connections to Salesforce APIs, and other various utilities.
 
-# [Messages]{@link Messages}
+## [AuthInfo]{@link AuthInfo}
 
-It's not a good idea to hard code messages in code, which makes it hard for localization and for others to edit messages across the entire repository. Messages can be used for anything from user output (like the console), to error messages, to returned data from a method.
+Create, read, or save authentication information to an org. 
 
-The [core message framework]{@link Messages} manages messages and allows them to be accessible by all plugins and consumers of sfdx-core. It is setup to handle localization down the road, at no additional effort to the consumer.
+## [Connection]{@link Connection}
+
+Create an instance of an API connection from an {@link AuthInfo}.
+
+## {@link Org}
+
+Create a representation of an org based on an already authenticated alias, username or default. The org will have a [connection]{@link Connection} and other useful methods for interacting with an org and it's users.
+
+## {@link ConfigFile}
+
+Represents a config file at either a local or global path. The config file extends the {@link ConfigStore} which provides map like functions to interact with config values. The following classes are config files.
+
+* {@link Aliases}
+* {@link AuthInfoConfig}
+* {@link OrgUsersConfig}
+* {@link SfdxConfig}
+* {@link SfdxProjectJson}
+
+## {@link SfdxConfigAggregator}
+
+Aggregates local, global, and environment config values using {@link SfdxConfig} and environment variables.
+
+## {@link Project}
+
+Represents an sfdx project, defined by the file `sfdx-project.json`.
+
+## {@link UX}
+
+Helper methods for user experiences to the terminal.
+
+## {@link Logger}
+
+All logging in sfdx-core is accomplished through this logging class. Anyone can also use the logger to log there own log lines to the `sfdx.log` file or to any other log file or stream utilizing the log level flags and envars set by the CLI or framework. 
+
+## [SfdxError]{@link SfdxError}
+
+An error class that is always thrown from sfdx-core, providing useful formatting and contextual data.
+
+## [Messages]{@link Messages}
+
+The [core message framework]{@link Messages} manages messages and allows them to be accessible by all plugins and consumers of sfdx-core. It is setup to handle localization down the road, at no additional effort to the consumer. Messages can be used for anything from user output (like the console), to error messages, to returned data from a method.
 
 First, add your messages to the `<moduleRoot>/messages` directory. Message files must be in `.json`.
 
@@ -25,14 +67,3 @@ The messages in your json file support [util.format](https://nodejs.org/api/util
 Messages.importMessageFile(`${__dirname}/${pathFromTestFile}`);
 ```
 
-# [SfdxError]{@link SfdxError}
-
-TODO
-
-# [AuthInfo]{@link AuthInfo}
-
-TODO
-
-# [Connection]{@link Connection}
-
-TODO
