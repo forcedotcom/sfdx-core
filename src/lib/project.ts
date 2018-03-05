@@ -14,6 +14,18 @@ import { SfdxUtil } from './util';
 
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
+ *
+ * *Note:* Any non-standard (not owned by Salesforce) properties stored in sfdx-project.json should
+ * be in a top level property that represents your project or plugin.
+ *
+ * @extends ConfigFile
+ *
+ * @example
+ * const project = await SfdxProjectJson.retrieve<SfdxProjectJson>();
+ * const myPluginProperties = project.get('myplugin') || {};
+ * myPluginProperties.myprop = 'someValue';
+ * project.set('myplugin', myPluginProperties);
+ * await project.write();
  */
 export class SfdxProjectJson extends ConfigFile {
     public static getFileName() {
@@ -33,7 +45,7 @@ export class SfdxProjectJson extends ConfigFile {
 }
 
 /**
- * An SFDX project directory. This directory contains an sfdx-project.json config file as well as
+ * An SFDX project directory. This directory contains a {@link SfdxProjectJson} config file as well as
  * a hidden .sfdx folder that contains all the other local project config files.
  */
 export class Project {
@@ -53,6 +65,7 @@ export class Project {
      * Traverses for the sfdx project path from the current working directory.
      * @throws InvalidProjectWorkspace - If the current folder is not located in a workspace
      * @returns {Promise<string>} -The absolute path to the project
+     * @see {@link SfdxUtil.resolveProjectPathFromCurrentWorkingDirectory}
      */
     public static async resolveProjectPathFromCurrentWorkingDirectory(): Promise<string> {
         return await SfdxUtil.resolveProjectPathFromCurrentWorkingDirectory();
@@ -78,19 +91,24 @@ export class Project {
     /**
      * Get the sfdx-project.json config. The global sfdx-project.json is used for user defaults
      * that are not checked in to the project specific file.
+     *
+     * *Note:* When reading values from {@link SfdxProjectJson}, it is recommended to use
+     * {@link Project.resolveProjectConfig} instead.
+     *
      * @param {boolean} isGlobal True to get the global project file, otherwise the local project config.
      */
     public async retrieveSfdxProjectJson(isGlobal: boolean = false): Promise<SfdxProjectJson> {
         const prop = `sfdxProjectJson${isGlobal ? 'Global' : ''}`;
         if (!this[prop]) {
-            this[prop] = await SfdxProjectJson.create(SfdxProjectJson.getDefaultOptions(isGlobal));
+            this[prop] = await SfdxProjectJson.retrieve<SfdxProjectJson>(SfdxProjectJson.getDefaultOptions(isGlobal));
         }
         return this[prop];
     }
 
     /**
-     * The project config is resolved from sfdx-project.json, @link{SfdxConfigAggregator}, and a
-     * set of defaults.
+     * The project config is resolved from local and global @link{SfdxProjectJson},
+     * @link{SfdxConfigAggregator}, and a set of defaults. It is recommended to use
+     * this when reading values from SfdxProjectJson.
      * @returns {object} The resolved project config.
      */
     public async resolveProjectConfig(): Promise<object> {

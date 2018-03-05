@@ -4,10 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
-
-'use strict';
-
-// Node
+/**
+ * Contains meta information about sfdx config properties.
+ * @typedef {object} ConfigPropertyMeta
+ * @property {string} key The config property name.
+ * @property {input} value Reference to the config data input validation.
+ * @property {boolean} hidden True if the property should be indirectly hidden from the user.
+ * @property {boolean} encrypted True if the property values should be stored encrypted.
+ */
+/**
+ * Contains meta information about sfdx config properties.
+ * @typedef {object} ConfigPropertyMetaInput
+ * @property {function} validator Test if the input value is valid.
+ * @property {string} failedMessage The message to return in the error if the validation fails.
+ */
 
 import * as _ from 'lodash';
 import { Messages } from '../messages';
@@ -25,12 +35,12 @@ const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 export interface ConfigPropertyMeta {
 
     /**
-     *  The config property name
+     *  The config property name.
      */
     key: string;
 
     /**
-     *  Reference to the config data input validation
+     *  Reference to the config data input validation.
      */
     input?: ConfigPropertyMetaInput;
 
@@ -63,6 +73,19 @@ export interface ConfigPropertyMetaInput {
     failedMessage: string;
 }
 
+/**
+ * The files where sfdx config values are stored for projects and the global space.
+ *
+ * *Note:* It is not recommended to instantiate this object directly when resolving
+ * config values. Instead use {@link SfdxConfigAggregator}
+ *
+ * @extends ConfigFile
+ *
+ * @example
+ * const localConfig = await SfdxConfig.retrieve<SfdxConfig>();
+ * localConfig.set('defaultusername', 'username@company.org');
+ * await localConfig.write();
+ */
 export class SfdxConfig extends ConfigFile {
 
     /**
@@ -92,7 +115,7 @@ export class SfdxConfig extends ConfigFile {
     /**
      * Creates an instance of an SfdxConfig
      * @param {ConfigOptions} options - The config options
-     * @return {Promise<T extends Config>)} - An instance of SfdxConfig
+     * @return {Promise<SfdxConfig>} - An instance of SfdxConfig
      * @example
      * const config: SfdxConfig = await Sfdx.create<SfdxConfig>({ isGlobal: false }};
      * config.set(allowedPropertyKey, value);
@@ -149,10 +172,10 @@ export class SfdxConfig extends ConfigFile {
     }
 
     /**
-     * The value of a supported config property
+     * The value of a supported config property.
      * @param {boolean} isGlobal - True for a global config. False for a local config.
-     * @param {string} propertyName - The name of the property to set
-     * @param {string | boolean} value - The property value
+     * @param {string} propertyName - The name of the property to set.
+     * @param {string | boolean} value - The property value.
      * @returns {Promise<object>}
      */
     public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<object> {
@@ -171,7 +194,7 @@ export class SfdxConfig extends ConfigFile {
     }
 
     /**
-     * Clear all the configured properties both local and global
+     * Clear all the configured properties both local and global.
      * @returns {Promise<void>}
      */
     public static async clear(): Promise<void> {
@@ -204,7 +227,7 @@ export class SfdxConfig extends ConfigFile {
     }
 
     /**
-     * Writes SfdxConfg properties taking into account encrypted properites.
+     * Writes SfdxConfg properties taking into account encrypted properties.
      * @param newContents - The new SfdxConfig value to persist.
      * @return {Promise<object>}
      */
@@ -223,9 +246,9 @@ export class SfdxConfig extends ConfigFile {
     }
 
     /**
-     * Sets a value for a property
+     * Sets a value for a property.
      * @param {string} propertyName - The property to set.
-     * @param {string | boolean} value - The value of the property
+     * @param {string | boolean} value - The value of the property.
      * @returns {Promise<void>}
      */
     public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
@@ -248,7 +271,7 @@ export class SfdxConfig extends ConfigFile {
     }
 
     /**
-     * Initialize the crypto dependency
+     * Initialize the crypto dependency.
      * @return {Promise<void>}
      */
     private async initCrypto(): Promise<void> {
@@ -269,9 +292,9 @@ export class SfdxConfig extends ConfigFile {
     }
 
     /**
-     * Get an individual property config
-     * @param {string} propertyName - The name of the property
-     * @return {ConfigPropertyMeta} - The meta config
+     * Get an individual property config.
+     * @param {string} propertyName - The name of the property.
+     * @return {ConfigPropertyMeta} - The meta config.
      */
     private getPropertyConfig(propertyName: string): ConfigPropertyMeta {
         const prop = SfdxConfig.propertyConfigMap[propertyName];
@@ -284,7 +307,7 @@ export class SfdxConfig extends ConfigFile {
 
     /**
      * Encrypts and content properties that have a encryption attribute.
-     * @param {boolean} encrypt - true to encrypt
+     * @param {boolean} encrypt - true to encrypt.
      * @return {Promise<void>}
      */
     private async cryptProperties(encrypt: boolean) {
@@ -304,7 +327,7 @@ export class SfdxConfig extends ConfigFile {
 }
 
 /**
- * Supported Org Default Types
+ * Supported Org Default Types.
  * @type {object}
  */
 export const ORG_DEFAULT = {

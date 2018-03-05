@@ -57,16 +57,18 @@ export class Aliases extends ConfigGroup {
     }
 
     /**
-     * Override to call Alias.getOptions for the user
-     * @see ConfigGroup.create
+     * Overrides {@link ConfigFile.create} to pass in {@link Alias.getOptions}.
+     * @override
+     * @see {@link ConfigFile.create}
      */
     public static async create<T extends ConfigFile>(options: ConfigOptions): Promise<T> {
         return (await super.create(options || Aliases.getOptions())) as T;
     }
 
     /**
-     * Override to call Alias.getOptions for the user
-     * @see ConfigGroup.retrieve
+     * Overrides {@link ConfigFile.retrieve} to pass in {@link Alias.getOptions}.
+     * @override
+     * @see {@link ConfigFile.retrieve}
      */
     public static async retrieve<T extends ConfigFile>(options?: ConfigOptions): Promise<T> {
         return (await super.retrieve(options || Aliases.getOptions())) as T;

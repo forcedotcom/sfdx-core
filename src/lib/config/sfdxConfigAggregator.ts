@@ -13,7 +13,7 @@ import { SfdxError } from '../sfdxError';
 const propertyToEnvName = (property) => `SFDX_${_.snakeCase(property).toUpperCase()}`;
 
 /**
- * Possible locations for a config value
+ * Possible locations for a config value.
  * @readonly
  * @enum {string}
  */
@@ -24,7 +24,7 @@ export const enum LOCATIONS {
 }
 
 /**
- * Information about a config property
+ * Information about a config property.
  *
  * @param {string} key The config key.
  * @param {string | boolean} value The config value.
@@ -217,7 +217,7 @@ export class SfdxConfigAggregator {
     /**
      * Get the global config object.
      *
-     * @returns {SfdxConfig} Get the global config object
+     * @returns {SfdxConfig} Get the global config object.
      */
     public getGlobalConfig(): SfdxConfig {
         return this.globalConfig;
@@ -232,8 +232,8 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * Get the config properties that are environment variables
-     * @returns {object} The environment variables as an object
+     * Get the config properties that are environment variables.
+     * @returns {object} The environment variables as an object.
      */
     public getEnvVars(): object {
         return this.envVars;
@@ -295,8 +295,8 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * Set the resolved config object
-     * @param config The config object to set
+     * Set the resolved config object.
+     * @param config The config object to set.
      * @private
      */
     private setConfig(config: any) {
@@ -304,7 +304,7 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * Set the local config object
+     * Set the local config object.
      * @param {SfdxConfig} config The config object value to set.
      * @private
      */
@@ -313,8 +313,8 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * Set the global config object
-     * @param {SfdxConfig} config The config object value to set
+     * Set the global config object.
+     * @param {SfdxConfig} config The config object value to set.
      * @private
      */
     private setGlobalConfig(config: SfdxConfig) {
@@ -322,8 +322,8 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * Get the allowed properties
-     * @returns {ConfigPropertyMeta[]} Get the allowed properties
+     * Get the allowed properties.
+     * @returns {ConfigPropertyMeta[]} Get the allowed properties.
      * @private
      */
     private getAllowedProperties(): ConfigPropertyMeta[] {
@@ -331,8 +331,8 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * Set the allowed properties
-     * @param {ConfigPropertyMeta[]} properties The properties to set
+     * Set the allowed properties.
+     * @param {ConfigPropertyMeta[]} properties The properties to set.
      * @private
      */
     private setAllowedProperties(properties: ConfigPropertyMeta[]) {
@@ -340,7 +340,7 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * Sets the env variables
+     * Sets the env variables.
      * @param {object} envVars The env variables to set.
      * @private
      */

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2016, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ */
 
 import { ConfigFile } from './configFile';
 import { isNil as _isNil } from 'lodash';
@@ -5,7 +11,7 @@ import { SfdxUtil } from '../util';
 import { dirname as pathDirname } from 'path';
 
 /**
- * Represent a keychain config backed by a json file.
+ * Represent a key chain config backed by a json file.
  * @private
  */
 export class KeychainConfig extends ConfigFile {

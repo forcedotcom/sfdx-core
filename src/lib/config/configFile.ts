@@ -4,8 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
-
-'use strict';
+/**
+ * Options when creating the config file.
+ * @typedef {object} ConfigOptions
+ * @property {string} rootFolder The root folder where the config file is stored.
+ * @property {string} filename The file name.
+ * @property {boolean} isGlobal If the file is in the global or project directory.
+ * @property {boolean} isState If the file is in the state folder or no (.sfdx).
+ * @property {string} filePath The full file path where the config file is stored.
+ */
 
 import { Stats as fsStats, constants as fsConstants } from 'fs';
 import { join as pathJoin, dirname as pathDirname } from 'path';
@@ -18,7 +25,7 @@ import { SfdxUtil } from '../util';
 
 /**
  * The interface for Config options.
- * @class
+ * *NOTE:* And changes to this interface must also change the jsdoc typedef header above.
  * @interface
  */
 export interface ConfigOptions {

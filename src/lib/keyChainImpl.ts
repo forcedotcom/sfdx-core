@@ -68,6 +68,9 @@ const _validateProgram = async (programPath, fsIfc, isExeIfc) => {
     }
 };
 
+/**
+ * @private
+ */
 export class KeychainAccess {
 
     /**
@@ -355,6 +358,9 @@ enum SecretFields {
     KEY = 'key'
 }
 
+/**
+ * @private
+ */
 export class GenericKeychainAccess {
 
     public async getPassword(opts, fn): Promise<any> {
@@ -423,6 +429,9 @@ export class GenericKeychainAccess {
     }
 }
 
+/**
+ * @private
+ */
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 
     protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<any> {
@@ -456,6 +465,9 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 
 export class GenericWindowsKeychainAccess extends GenericKeychainAccess {}
 
+/**
+ * @private
+ */
 export const keyChainImpl = {
     generic_unix: new GenericUnixKeychainAccess(),
     generic_windows: new GenericWindowsKeychainAccess(),

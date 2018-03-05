@@ -4,10 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
+/**
+ * Options when creating the config file. Extends {@link ConfigOptions}.
+ * @typedef {object} ConfigGroupOptions
+ * @extends ConfigOptions
+ * @property {string} defaultGroup The default group for properties to go into.
+ */
+
 import * as _ from 'lodash';
 import { ConfigValue, ConfigEntry, ConfigContents } from './configStore';
 import { ConfigFile, ConfigOptions } from './configFile';
 
+/**
+ * The interface for Config options.
+ * *NOTE:* And changes to this interface must also change the jsdoc typedef header above.
+ * @interface
+ */
 export interface ConfigGroupOptions extends ConfigOptions {
     defaultGroup: string;
 }
@@ -36,8 +48,9 @@ export interface ConfigGroupOptions extends ConfigOptions {
 export class ConfigGroup extends ConfigFile {
 
     /**
-     * Overrides {@link ConfigFile.read}.
-     * @override // Doesn't work for static methods
+     * Overrides {@link ConfigFile.create} to pass in {@link ConfigGroup.getOptions}.
+     * @override
+     * @see {@link ConfigFile.create}
      */
     public static async create<T extends ConfigFile>(options: ConfigOptions): Promise<T> {
         const config: T = (await super.create(options)) as T;

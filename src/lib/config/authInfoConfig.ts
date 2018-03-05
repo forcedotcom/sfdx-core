@@ -1,8 +1,18 @@
+/*
+ * Copyright (c) 2016, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { ConfigFile, ConfigOptions } from './configFile';
 
 /**
- * Represents an auth file config backed by a json file
- * @extends Config
+ * An auth config file that stores information such as access tokens, usernames, etc.
+ *
+ * @extends ConfigFile
+ *
+ * @example
+ * const authInfo = await AuthInfoConfig.retrieve<AuthInfoConfig>(AuthInfoConfig.getOptions(username));
  */
 export class AuthInfoConfig extends ConfigFile {
     public static getDefaultOptions(isGlobal: boolean, filename?: string): ConfigOptions {
