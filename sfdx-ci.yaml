@@ -12,3 +12,5 @@ jobs:
     script: scripts/jenkins/publish-doc.groovy
   - name: promote-doc
     script: scripts/jenkins/promote-doc.groovy
+    branches:
+      'tnoonan/master'
