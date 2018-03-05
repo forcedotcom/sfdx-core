@@ -10,3 +10,5 @@ jobs:
         'EMAIL': 't.dvornik@salesforce.com'
   - name: publish-doc
     script: scripts/jenkins/publish-doc.groovy
+  - name: promote-doc
+    script: scripts/jenkins/promote-doc.groovy
