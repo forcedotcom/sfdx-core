@@ -8,12 +8,12 @@
 import * as Path from 'path';
 import { expect } from 'chai';
 
-import { Config, ConfigOptions } from '../../../lib/config/config';
+import { ConfigFile, ConfigOptions } from '../../../lib/config/configFile';
 import { testSetup } from '../../testSetup';
 
 const $$ = testSetup();
 
-class TestConfig extends Config {
+class TestConfig extends ConfigFile {
 
     public static async getTestLocalPath() {
         return $$.localPathRetriever(TestConfig.testId);
@@ -35,7 +35,7 @@ class TestConfig extends Config {
 describe('Config', () => {
     describe('instantiation', () => {
         it('not using global has project dir', async () => {
-            const config: Config = await TestConfig.create(await TestConfig.getOptions('test', false));
+            const config: ConfigFile = await TestConfig.create(await TestConfig.getOptions('test', false));
             expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());
         });
         it('using global does not have project dir', async () => {

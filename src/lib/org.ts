@@ -6,7 +6,7 @@
  */
 
 import { join as pathJoin } from 'path';
-import { Alias } from './alias';
+import { Aliases } from './config/aliases';
 import { Connection } from './connection';
 import { Logger } from './logger';
 import { RequestInfo } from 'jsforce';
@@ -16,7 +16,7 @@ import { isNil as _isNil , maxBy as _maxBy, get as _get, filter as _filter, isSt
 import { AuthFields, AuthInfo } from './authInfo';
 import { Global} from './global';
 import { SfdxUtil } from './util';
-import { OrgUsersConfig } from './config/OrgUsersConfig';
+import { OrgUsersConfig } from './config/orgUsersConfig';
 import { SfdxError } from './sfdxError';
 
 /**
@@ -101,7 +101,7 @@ export class Org {
 
         if (_isString(connection)) {
             org.logger.debug('connection type is string');
-            const aliasValue: string = await Alias.fetchValue(connection);
+            const aliasValue: string = await Aliases.fetch(connection);
             _connection = await Connection.create(
                 await AuthInfo.create(aliasValue || connection));
         } else {
@@ -188,8 +188,7 @@ export class Org {
     }
 
     public async retrieveOrgUsersConfig(): Promise<OrgUsersConfig> {
-        return await OrgUsersConfig.create(
-            OrgUsersConfig.getDefaultOptions(this.getConnection().getAuthInfo().getFields().orgId));
+        return await OrgUsersConfig.create(OrgUsersConfig.getOptions(this.getOrgId()));
     }
 
     /**
@@ -212,20 +211,15 @@ export class Org {
             return Promise.resolve();
         }
 
-        const aliases = [];
-
         const auths: AuthInfo[] = await this.readUserAuthFiles();
-
-        this.logger.info(`Cleaning up usernames in org: ${this.getConnection().getAuthInfo().getFields().orgId}`);
+        const aliases: Aliases = await Aliases.retrieve<Aliases>();
+        this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
 
         for (const auth of auths) {
             const username = auth.getFields().username;
 
-            const alias = await Alias.fetchName(username);
-
-            if (alias) {
-                aliases.push(alias);
-            }
+            const aliasKeys = aliases.getKeysByValue(username) || [];
+            aliases.unsetAll(aliasKeys);
 
             let orgForUser;
             if (username === this.getConnection().getAuthInfo().getFields().username) {
@@ -240,10 +234,10 @@ export class Org {
 
             const configInfo: ConfigInfo = await orgForUser.configAggregator.getInfo(orgType);
 
-            if ((configInfo.value === username || configInfo.value === alias) &&
+            if ((configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
                 (configInfo.isGlobal() || configInfo.isLocal())) {
 
-                await SfdxConfig.setPropertyValue(configInfo.isGlobal() as boolean, orgType, undefined);
+                await SfdxConfig.update(configInfo.isGlobal() as boolean, orgType, undefined);
             }
 
             const orgUsers: OrgUsersConfig = await this.retrieveOrgUsersConfig();
@@ -251,7 +245,7 @@ export class Org {
                 throwWhenRemoveFails);
         }
 
-        return await Alias.unset(aliases);
+        await aliases.write();
     }
 
     /**
@@ -334,9 +328,9 @@ export class Org {
      */
     public async readUserAuthFiles(): Promise<AuthInfo[]> {
         const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
-        const contents: any = await config.readJSON();
+        const contents: any = await config.read();
         const thisUsername = this.getConnection().getAuthInfo().getFields().username;
-        const usernames: string[] = contents.usernames || [thisUsername];
+        const usernames: string[] = contents.get('usernames') || [thisUsername];
         return Promise.all(usernames.map((username) => {
             if (username === thisUsername) {
                 return this.getConnection().getAuthInfo();
@@ -362,26 +356,24 @@ export class Org {
         const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
         const contents: any = await orgConfig.read();
-
-        if (!contents.usernames) {
-            contents.usernames = [];
-        }
+        const usernames = contents.get('usernames') || [];
 
         let shouldUpdate = false;
 
         const thisUsername = this.getConnection().getAuthInfo().getFields().username;
-        if (!contents.usernames.includes(thisUsername)) {
-            contents.usernames.push(thisUsername);
+        if (!usernames.includes(thisUsername)) {
+            usernames.push(thisUsername);
             shouldUpdate = true;
         }
 
         if (auth) {
-            contents.usernames.push(auth.getFields().username);
+            usernames.push(auth.getFields().username);
             shouldUpdate = true;
         }
 
         if (shouldUpdate) {
-            await orgConfig.write(contents);
+            orgConfig.set('usernames', usernames);
+            await orgConfig.write();
         }
         return this;
     }
@@ -400,12 +392,12 @@ export class Org {
 
         const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
-        const contents: any = await orgConfig.readJSON();
+        const contents: any = await orgConfig.read();
 
         const targetUser = auth.getFields().username;
-        contents.usernames = _filter(contents.usernames, (username) => username !== targetUser);
+        contents.set('usernames', _filter(contents.get('usernames'), (username) => username !== targetUser));
 
-        await orgConfig.write(contents);
+        await orgConfig.write();
         return this;
     }
 

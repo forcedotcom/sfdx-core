@@ -21,6 +21,9 @@ describe('keyChain', () => {
     const OLD_GENERIC_VAL = process.env.USE_GENERIC_UNIX_KEYCHAIN;
 
     beforeEach(() => {
+        // Testing crypto functionality, so restore global stubs.
+        $$.SANDBOXES.CRYPTO.restore();
+
         process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = 'false';
         process.env.USE_GENERIC_UNIX_KEYCHAIN = 'false';
     });

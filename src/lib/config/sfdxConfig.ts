@@ -4,14 +4,25 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
-
-'use strict';
-
-// Node
+/**
+ * Contains meta information about sfdx config properties.
+ * @typedef {object} ConfigPropertyMeta
+ * @property {string} key The config property name.
+ * @property {input} value Reference to the config data input validation.
+ * @property {boolean} hidden True if the property should be indirectly hidden from the user.
+ * @property {boolean} encrypted True if the property values should be stored encrypted.
+ */
+/**
+ * Contains meta information about sfdx config properties.
+ * @typedef {object} ConfigPropertyMetaInput
+ * @property {function} validator Test if the input value is valid.
+ * @property {string} failedMessage The message to return in the error if the validation fails.
+ */
 
 import * as _ from 'lodash';
 import { Messages } from '../messages';
-import { Config, ConfigOptions } from './config';
+import { ConfigContents, ConfigValue } from './configStore';
+import { ConfigFile, ConfigOptions } from './configFile';
 import { SfdxUtil } from '../util';
 import { SfdxError } from '../sfdxError';
 import { Crypto } from '../crypto';
@@ -19,33 +30,17 @@ import { Crypto } from '../crypto';
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
 /**
- * Internal helper to validate the ENOENT error type.
- * @param err - The error object to check.
- * @returns {Object} The contents object bound to "this"
- * @throws re-throws all other errors.
- * @private
- */
-const _checkEnoent = function(err) {
-    if (err.code === 'ENOENT') {
-        this.contents = {};
-        return this.contents;
-    } else {
-        throw err;
-    }
-};
-
-/**
  * Interface for meta information about config properties
  */
 export interface ConfigPropertyMeta {
 
     /**
-     *  The config property name
+     *  The config property name.
      */
     key: string;
 
     /**
-     *  Reference to the config data input validation
+     *  Reference to the config data input validation.
      */
     input?: ConfigPropertyMetaInput;
 
@@ -78,7 +73,20 @@ export interface ConfigPropertyMetaInput {
     failedMessage: string;
 }
 
-export class SfdxConfig extends Config {
+/**
+ * The files where sfdx config values are stored for projects and the global space.
+ *
+ * *Note:* It is not recommended to instantiate this object directly when resolving
+ * config values. Instead use {@link SfdxConfigAggregator}
+ *
+ * @extends ConfigFile
+ *
+ * @example
+ * const localConfig = await SfdxConfig.retrieve<SfdxConfig>();
+ * localConfig.set('defaultusername', 'username@company.org');
+ * await localConfig.write();
+ */
+export class SfdxConfig extends ConfigFile {
 
     /**
      * Username associated with the default dev hub org
@@ -107,12 +115,13 @@ export class SfdxConfig extends Config {
     /**
      * Creates an instance of an SfdxConfig
      * @param {ConfigOptions} options - The config options
-     * @return {Promise<T extends Config>) - An instance of SfdxConfig
+     * @return {Promise<SfdxConfig>} - An instance of SfdxConfig
      * @example
-     * const config: SfdxConfig = await Sfdx.create({ isGlobal: false }}
-     * await config.setPropertyValue()
+     * const config: SfdxConfig = await Sfdx.create<SfdxConfig>({ isGlobal: false }};
+     * config.set(allowedPropertyKey, value);
+     * await config.write();
      */
-    public static async create<T extends Config>(this: { new(): T }, options: ConfigOptions): Promise<T> {
+    public static async create<T extends ConfigFile>(options: ConfigOptions): Promise<T> {
         if (!SfdxConfig.messages) {
             SfdxConfig.messages = Messages.loadMessages('sfdx-core', 'config');
         }
@@ -148,8 +157,8 @@ export class SfdxConfig extends Config {
         return await super.create(options) as T;
     }
 
-    public static getDefaultOptions(isGlobal: boolean): ConfigOptions {
-        return { isGlobal, isState: true, filename: SFDX_CONFIG_FILE_NAME };
+    public static getFileName(): string {
+        return SFDX_CONFIG_FILE_NAME;
     }
 
     /**
@@ -163,38 +172,39 @@ export class SfdxConfig extends Config {
     }
 
     /**
-     * The value of a supported config property
+     * The value of a supported config property.
      * @param {boolean} isGlobal - True for a global config. False for a local config.
-     * @param {string} propertyName - The name of the property to set
-     * @param {string | boolean} value - The property value
+     * @param {string} propertyName - The name of the property to set.
+     * @param {string | boolean} value - The property value.
      * @returns {Promise<object>}
      */
-    public static async setPropertyValue(isGlobal: boolean, propertyName: string,
-                                         value?: string | boolean): Promise<object> {
+    public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<object> {
 
         const config = await SfdxConfig.create(SfdxConfig.getDefaultOptions(isGlobal));
 
         const content = await config.read();
 
         if (_.isNil(value)) {
-            delete content[propertyName];
+            content.delete(propertyName);
         } else {
-            content[propertyName] = value;
+            content.set(propertyName, value);
         }
 
         return config.write(content);
     }
 
     /**
-     * Clear all the configured properties both local and global
+     * Clear all the configured properties both local and global.
      * @returns {Promise<void>}
      */
     public static async clear(): Promise<void> {
         let config  = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
-        await config.write({});
+        config.clear();
+        await config.write();
 
         config = await SfdxConfig.create(SfdxConfig.getDefaultOptions(false));
-        await config.write({});
+        config.clear();
+        await config.write();
     }
 
     private static allowedProperties: ConfigPropertyMeta[];
@@ -206,20 +216,18 @@ export class SfdxConfig extends Config {
     /**
      * @returns {Promise<object>} Read, assign, and return the config contents.
      */
-    public async read(): Promise<object> {
+    public async read(): Promise<ConfigContents> {
         try {
-            await this.setContents(await SfdxUtil.readJSON(this.getPath(), false));
+            await super.read();
             await this.cryptProperties(false);
             return this.getContents();
-        } catch (err) {
-            _checkEnoent.call(this, err);
         } finally {
             await this.clearCyrpto();
         }
     }
 
     /**
-     * Writes SfdxConfg properties taking into account encrypted properites.
+     * Writes SfdxConfg properties taking into account encrypted properties.
      * @param newContents - The new SfdxConfig value to persist.
      * @return {Promise<object>}
      */
@@ -238,33 +246,32 @@ export class SfdxConfig extends Config {
     }
 
     /**
-     * Sets a value for a property
+     * Sets a value for a property.
      * @param {string} propertyName - The property to set.
-     * @param {string | boolean} value - The value of the property
+     * @param {string | boolean} value - The value of the property.
      * @returns {Promise<void>}
      */
-    public async setPropertyValue(propertyName: string, value: string | boolean) {
+    public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
 
-        const property = SfdxConfig.allowedProperties.find((allowedProp) => allowedProp.key === propertyName);
-        const contents = this.getContents();
+        const property = SfdxConfig.allowedProperties.find((allowedProp) => allowedProp.key === key);
+
         if (!property) {
-            throw SfdxError.create('sfdx-core', 'config', 'UnknownConfigKey', [propertyName]);
+            throw SfdxError.create('sfdx-core', 'config', 'UnknownConfigKey', [key]);
         }
         if (property.input) {
             if (property.input && property.input.validator(value)) {
-                contents[property.key] = value;
-                this.setContents(contents);
+                super.set(property.key, value);
             } else {
                 throw SfdxError.create('sfdx-core', 'config', 'invalidConfigValue', [property.input.failedMessage]);
             }
         } else {
-            contents[property.key] = value;
-            this.setContents(contents);
+            super.set(property.key, value);
         }
+        return this.getContents();
     }
 
     /**
-     * Intializes the crypto dependency
+     * Initialize the crypto dependency.
      * @return {Promise<void>}
      */
     private async initCrypto(): Promise<void> {
@@ -285,9 +292,9 @@ export class SfdxConfig extends Config {
     }
 
     /**
-     * Get an individual property config
-     * @param {string} propertyName - The name of the property
-     * @return {ConfigPropertyMeta} - The meta config
+     * Get an individual property config.
+     * @param {string} propertyName - The name of the property.
+     * @return {ConfigPropertyMeta} - The meta config.
      */
     private getPropertyConfig(propertyName: string): ConfigPropertyMeta {
         const prop = SfdxConfig.propertyConfigMap[propertyName];
@@ -300,20 +307,19 @@ export class SfdxConfig extends Config {
 
     /**
      * Encrypts and content properties that have a encryption attribute.
-     * @param {boolean} encrypt - true to encrypt
+     * @param {boolean} encrypt - true to encrypt.
      * @return {Promise<void>}
      */
     private async cryptProperties(encrypt: boolean) {
         const hasEncryptedProperties =
-            _.some(this.getContents(), (val, key) => !!SfdxConfig.propertyConfigMap[key].encrypted);
+            _.some(this.entries(), ([key, val]) => !!SfdxConfig.propertyConfigMap[key].encrypted);
 
         if (hasEncryptedProperties) {
             await this.initCrypto();
 
-            _.each(this.getContents(), (value, key) => {
+            this.forEach((key, value) => {
                 if (this.getPropertyConfig(key).encrypted) {
-                    this.getContents()[key] = encrypt ? this.crypto.encrypt(value) : this.crypto.decrypt(value);
-
+                    this.set(key, encrypt ? this.crypto.encrypt(value) : this.crypto.decrypt(value));
                 }
             });
         }
@@ -321,7 +327,7 @@ export class SfdxConfig extends Config {
 }
 
 /**
- * Supported Org Default Types
+ * Supported Org Default Types.
  * @type {object}
  */
 export const ORG_DEFAULT = {
