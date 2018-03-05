@@ -1,7 +1,7 @@
 library identifier: 'salesforcedx-library'
 
 node {
-    stage('publish') {
+    stage('publish-doc') {
         sh "ok"
     }
 }

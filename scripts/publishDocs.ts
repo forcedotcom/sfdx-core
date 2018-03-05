@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env ../node_modules/.bin/ts-node
 
 import * as shell from 'shelljs';
 import { ShellString, ExecOutputReturnValue } from 'shelljs';
@@ -21,23 +21,25 @@ if (!awsInfo) {
     }
 }
 
-function validateEnvVar(envValue: string): void {
+function validateEnvVar(envName: string): string {
+    const envValue: string = process.env[envName];
+
     if (!envValue || envValue.length < 1) {
-        throw new Error();
+        throw new Error('Invalid ');
     }
+    return envValue;
 }
 
-const s3EndpointUrl = process.env['S3_ENDPOINT_URL'];
-validateEnvVar(s3EndpointUrl);
+const s3EndpointUrl = validateEnvVar('S3_ENDPOINT_URL');
 
-const s3Target = process.env['S3_TARGET'];
-validateEnvVar(s3Target);
+const s3Target = validateEnvVar('S3_TARGET');
 
+const cpSource = validateEnvVar('CP_SOURCE');
 
-const cpSource = process.env['CP_SOURCE'];
-validateEnvVar(cpSource);
+const awsProfile = validateEnvVar('AWS_PROFILE');
 
-const awsProfile = process.env['AWS_PROFILE'];
-validateEnvVar(awsProfile);
+const cmd = `aws s3 cp --endpoint-url ${s3EndpointUrl} --recursive  ${cpSource} ${s3Target} --profile ${awsProfile}`;
 
-shell.exec(`aws s3 cp --endpoint-url ${s3EndpointUrl} --recursive  ${cpSource} ${s3Target} --profile ${awsProfile}`);
+shell.echo(`Running aws Command: ${cmd}`);
+
+shell.exec(cmd);
