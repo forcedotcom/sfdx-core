@@ -48,7 +48,7 @@ node {
 
             stage('promote doc') {
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
-                    s3Upload(pathStyleAccessEnabled: true, file: 'docs', bucket: env[bucketEnvName], path: 'media/salesforce-cli/docs')
+                    s3Upload(pathStyleAccessEnabled: true, file: 'docs', bucket: env[bucketEnvName], path: ${env.targetS3Path})
                 }
             }
         }

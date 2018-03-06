@@ -15,6 +15,7 @@ jobs:
     envMap:
       -
         releaseType: STAGE
+        targetS3Path: media/salesforce-cli/docs
 
   - name: promote--jsdoc
     script: scripts/jenkins/release-doc.groovy
@@ -23,3 +24,4 @@ jobs:
     envMap:
       -
         releaseType: PROD
+        targetS3Path: media/salesforce-cli/docs
