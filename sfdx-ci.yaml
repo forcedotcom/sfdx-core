@@ -11,17 +11,15 @@ jobs:
   - name: publish-doc
     script: scripts/jenkins/release-doc.groovy
     branches:
-      - 'tnoonan/master'
+      - tnoonan/master
     envMap:
       -
-        key: 'releaseType'
-        value: 'STAGE'
+        releaseTyoe: STAGE
 
   - name: promote-doc
     script: scripts/jenkins/release-doc.groovy
     branches:
-      - 'tnoonan/master'
+      - tnoonan/master
     envMap:
       -
-        key: 'releaseType'
-        value: 'PROD'
+        releaseTypoe: PROD
