@@ -18,6 +18,7 @@ import { SfdxConfigAggregator } from './lib/config/sfdxConfigAggregator';
 import { ConfigFile } from './lib/config/configFile';
 import { Aliases } from './lib/config/aliases';
 import { SfdxUtil } from './lib/util';
+import { testSetup } from './test/testSetup';
 
 Messages.importMessagesDirectory(__dirname);
 
@@ -37,5 +38,6 @@ export {
     AuthInfo,
     SfdxConfigAggregator,
     ConfigFile,
-    Aliases
+    Aliases,
+    testSetup
 };
