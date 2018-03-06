@@ -14,10 +14,10 @@ node {
                     error "The release type is not set."
                 }
 
-                endPointUrlEnvName = "S3_${env.releaseType}_ENDPOINT_URL"
-                bucketEnvName = "S3_${env.releaseType}_BUCKET"
-                credentialsIdEnvName = "S3_${env.releaseType}_CREDENTIALS_ID"
-                regionEnvName = "S3_${env.releaseType}_REGION"
+                endPointUrlEnvName = "__S3_${env.releaseType}_ENDPOINT_URL"
+                bucketEnvName = "__S3_${env.releaseType}_BUCKET"
+                credentialsIdEnvName = "__S3_${env.releaseType}_CREDENTIALS_ID"
+                regionEnvName = "__S3_${env.releaseType}_REGION"
 
                 if (!env[endPointUrlEnvName]) {
                     error "Missing aws endpoint url"
