@@ -99,26 +99,23 @@ export class Org {
 
         let _connection: Connection;
 
+        if (!connection) {
+            org.logger.debug('No connection specified. Trying default configurations');
+            connection = isDevHub ?
+                _aggregator.getInfo(SfdxConfig.DEFAULT_DEV_HUB_USERNAME).value as string :
+                _aggregator.getInfo(SfdxConfig.DEFAULT_USERNAME).value as string;
+            if (!connection) {
+                throw new SfdxError(`No ${isDevHub ? 'default Devhub' : 'default' } username or Connection found.`, 'NoUsername' );
+            }
+        }
+
         if (_isString(connection)) {
             org.logger.debug('connection type is string');
             const aliasValue: string = await Aliases.fetch(connection);
             _connection = await Connection.create(
-                await AuthInfo.create(aliasValue || connection));
+                await AuthInfo.create(aliasValue || connection), _aggregator);
         } else {
             _connection = connection;
-        }
-
-        if (!_connection) {
-            org.logger.debug('No connection specified. Trying default configurations');
-            const username: string = isDevHub ?
-                _aggregator.getInfo(SfdxConfig.DEFAULT_DEV_HUB_USERNAME).value as string :
-                _aggregator.getInfo(SfdxConfig.DEFAULT_USERNAME).value as string;
-
-            if (username) {
-                _connection = await Connection.create(await AuthInfo.create(username));
-            } else {
-                throw new SfdxError(`No ${isDevHub ? 'default Devhub' : 'default' } username or Connection found.`, 'NoUsername' );
-            }
         }
 
         org.logger.debug(`connection created for org user: ${_connection.getAuthInfo().getFields().username}`);
