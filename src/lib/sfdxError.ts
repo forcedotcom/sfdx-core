@@ -184,8 +184,10 @@ export class SfdxError extends Error {
      * Convert an Error to an SfdxError.
      * @param {Error} err The error to convert.
      */
-    public static wrap(err: Error) {
-        return new SfdxError(err.message, err.name);
+    public static wrap(err: Error): SfdxError {
+        const sfdxError = new SfdxError(err.message, err.name);
+        sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
+        return sfdxError;
     }
 
     public name: string;

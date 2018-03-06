@@ -7,6 +7,7 @@
 import { isString, cloneDeep } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
+import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
 import { Connection as JSForceConnection, ConnectionOptions, RequestInfo } from 'jsforce';
 
 const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
@@ -30,13 +31,13 @@ export class Connection extends JSForceConnection {
      *
      * @param authInfo The authentication info from the persistence store.
      */
-    public static async create(authInfo: AuthInfo): Promise<Connection> {
+    public static async create(authInfo: AuthInfo, configAggregator?: SfdxConfigAggregator): Promise<Connection> {
         const logger = await Logger.child('connection');
+        const _aggregator = configAggregator || await SfdxConfigAggregator.create();
 
         const baseOptions: ConnectionOptions = {
-            // @TODO: eventually this will come from config but for now hardcode the version.
-            // version: await config.getApiVersion(),
-            version: '42.0',
+            // Set the API version obtained from the config aggregator.
+            version: _aggregator.getInfo('apiVersion').value,
             callOptions: {
                 client: clientId
             }
