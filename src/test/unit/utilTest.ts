@@ -185,6 +185,21 @@ describe('Util', () => {
         });
     });
 
+    describe('validateApiVersion', () => {
+        it('should return true for "42.0"', () => {
+            expect(SfdxUtil.validateApiVersion('42.0')).to.be.true;
+        });
+
+        it('should return false for "42"', () => {
+            expect(SfdxUtil.validateApiVersion('42')).to.be.false;
+        });
+
+        it('should return false for 42.0', () => {
+            const num = 42.0;
+            expect(SfdxUtil.validateApiVersion(num as any)).to.be.false;
+        });
+    });
+
     it ('should trim an 18 character id to 15 characters', () => {
         const id: string = SfdxUtil.trimTo15('ABCDEFGHIJKLMNOPQR');
         const trimmed = SfdxUtil.trimTo15(id);
