@@ -19,7 +19,7 @@ node {
                 String credentialsIdEnvName = "S3_${env.releaseType}_CREDENTIALS_ID"
                 String regionEnvName = "S3_${env.releaseType}_REGION"
 
-                withAws(region: regionEnvName, endpointUrl: endPointUrlEnvName, credentials: credentialsIdEnvName) {
+                withAWS(region: regionEnvName, endpointUrl: endPointUrlEnvName, credentials: credentialsIdEnvName) {
                     s3Upload(pathStyleAccessEnabled: true, pathfile: 'docs', bucket: bucketEnvName, path: 'media/salesforce-cli/docs')
                 }
             }
