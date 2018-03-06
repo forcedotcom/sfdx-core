@@ -25,14 +25,14 @@ function validateEnvVar(envName: string): string {
     const envValue: string = process.env[envName];
 
     if (!envValue || envValue.length < 1) {
-        throw new Error('Invalid ');
+        throw new Error(`Unset or missing environment variable: ${envName}`);
     }
     return envValue;
 }
 
 const s3EndpointUrl = validateEnvVar('S3_ENDPOINT_URL');
 
-const s3Target = validateEnvVar('S3_TARGET');
+const s3Target = validateEnvVar('S3_TARGET_PATH');
 
 const cpSource = validateEnvVar('CP_SOURCE');
 
