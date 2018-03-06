@@ -3,6 +3,12 @@ library identifier: 'salesforcedx-library'
 node {
     withProxy() {
         withHome() {
+            stage('validate') {
+                if (!env.releaseType) {
+                    error "The release type is not set."
+                }
+            }
+
             stage('checkout') {
                 deleteDir()
                 checkout scm
