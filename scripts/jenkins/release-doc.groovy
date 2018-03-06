@@ -25,7 +25,7 @@ node {
                 String credentialsIdEnvName = "S3_${env.releaseType}_CREDENTIALS_ID"
                 String regionEnvName = "S3_${env.releaseType}_REGION"
 
-                println("endPointUrlEnvName: ${endPointUrlEnvName} : ${env[endPointUrlEnvName]}")
+                debug "endPointUrlEnvName: ${endPointUrlEnvName} : ${env[endPointUrlEnvName]}"
                 println("bucketEnvName: ${bucketEnvName} : ${env[bucketEnvName]}")
                 println("credentialsIdEnvName: ${credentialsIdEnvName} : ${env[credentialsIdEnvName]}")
                 println("regionEnvName: ${regionEnvName} : ${env[regionEnvName]}")
