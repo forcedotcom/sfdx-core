@@ -186,6 +186,7 @@ export class SfdxError extends Error {
      */
     public static wrap(err: Error): SfdxError {
         const sfdxError = new SfdxError(err.message, err.name);
+        sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
         sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
         return sfdxError;
     }
