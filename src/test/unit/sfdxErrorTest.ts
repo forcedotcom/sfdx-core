@@ -107,6 +107,7 @@ describe('SfdxError', () => {
             expect(mySfdxError).to.be.an.instanceOf(SfdxError);
             expect(mySfdxError.message).to.equal(myErrorMsg);
             expect(mySfdxError.name).to.equal(myErrorName);
+            expect(mySfdxError.stack).to.contain('Outer stack:\n').and.contain(myError.stack);
         });
     });
 
