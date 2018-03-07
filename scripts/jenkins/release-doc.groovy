@@ -1,5 +1,14 @@
 library identifier: 'salesforcedx-library'
 
+final String htmlRedirectTemplate =
+"""<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+    <title>SFDX Developer Documentation Redirection</title>
+    <meta http-equiv="refresh" content="0;URL='./%%packageVersion%%/index.html'"/>
+    </head>
+    <body/>
+</html>""".toString();
+
 node {
     withProxy() {
         withHome() {
@@ -52,17 +61,9 @@ node {
             }
 
             stage('promote doc') {
-                String htmlRedirect = """
-                    <html xmlns="http://www.w3.org/1999/xhtml">
-                        <head>
-                        <title>SFDX Developer Documentation Redirection</title>
-                        <meta http-equiv="refresh" content="0;URL='./${packageDotJson.version}/index.html'"/>
-                        </head>
-                        <body/>
-                    </html>""".toString();
 
-                String filePath = "docs/${packageDotJson.name}/index.html"
-                sh "echo '${htmlRedirect}' >> ${filePath}"
+                final String filePath = "docs/${packageDotJson.name}/index.html".toString()
+                sh "echo '${htmlRedirectTemplate.replace('%%packageVersion%%', packageDotJson.version)}' >> ${filePath}"
                 sh "cat ${filePath}"
 
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
