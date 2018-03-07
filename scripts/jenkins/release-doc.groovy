@@ -4,20 +4,20 @@ node {
     withProxy() {
         withHome() {
 
-            String endPointUrlEnvName
-            String bucketEnvName
-            String credentialsIdEnvName
-            String regionEnvName
+            final String endPointUrlEnvName
+            final String bucketEnvName
+            final String credentialsIdEnvName
+            final String regionEnvName
 
             stage('validate') {
                 if (!env.releaseType) {
                     error "The release type is not set."
                 }
 
-                endPointUrlEnvName = "__S3_${env.releaseType}_ENDPOINT_URL"
-                bucketEnvName = "__S3_${env.releaseType}_BUCKET"
-                credentialsIdEnvName = "__S3_${env.releaseType}_CREDENTIALS_ID"
-                regionEnvName = "__S3_${env.releaseType}_REGION"
+                endPointUrlEnvName = "__S3_${env.releaseType}_ENDPOINT_URL".toString()
+                bucketEnvName = "__S3_${env.releaseType}_BUCKET".toString()
+                credentialsIdEnvName = "__S3_${env.releaseType}_CREDENTIALS_ID".toString()
+                regionEnvName = "__S3_${env.releaseType}_REGION".toString()
 
                 if (!env[endPointUrlEnvName]) {
                     error "Missing aws endpoint url"
@@ -42,7 +42,7 @@ node {
                 checkout scm
             }
 
-            def packageDotJson;
+            def packageDotJson
             stage('install') {
                 sh 'yarn'
                 packageDotJson = loadPackageJson('package.json')
@@ -58,14 +58,14 @@ node {
             }
 
             stage('Upload latest redirect object') {
-                String filePath = "docs/${packageDotJson.name}/latest"
+                final String filePath = "docs/${packageDotJson.name}/latest".toString()
                 debug "filePath: ${filePath}"
                 sh "touch ${filePath}"
 
-                Srtring targetPath = "${env.targetS3Path}/${packageDotJson.name}/latest"
+                final String targetPath = "${env.targetS3Path}/${packageDotJson.name}/latest".toString()
                 debug "targetPath: ${targetPath}"
 
-                String redirectPath = "${env.targetS3Path}/${packageDotJson.name}/${packageDotJson.version}"
+                final String redirectPath = "${env.targetS3Path}/${packageDotJson.name}/${packageDotJson.version}".toString()
                 debug "targetPath: ${targetPath}"
 
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
