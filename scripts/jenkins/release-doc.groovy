@@ -52,24 +52,18 @@ node {
             }
 
             stage('promote doc') {
+                def htmlRedirect = """
+                    <html xmlns="http://www.w3.org/1999/xhtml">
+                        <head>
+                        <title>SFDX Developer Documentation Redirection</title>
+                        <meta http-equiv="refresh" content="0;URL='./${packageDotJson.version}/index.html'"/>
+                        </head>
+                        <body/>
+                    </html>"""
+
+                sh "echo ${htmlRedirect} >> docs/${packageDotJson.name}"
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
                     s3Upload(pathStyleAccessEnabled: true, file: 'docs', bucket: env[bucketEnvName], path: env.targetS3Path)
-                }
-            }
-
-            stage('Upload latest redirect object') {
-                final String filePath = "docs/${packageDotJson.name}/latest".toString()
-                debug "filePath: ${filePath}"
-
-                final String targetPath = "${env.targetS3Path}/${packageDotJson.name}/latest".toString()
-                debug "targetPath: ${targetPath}"
-
-                final String redirectPath = "${env.targetS3Path}/${packageDotJson.name}/${packageDotJson.version}".toString()
-                debug "targetPath: ${targetPath}"
-                sh "echo x-amz-website-redirect-location:${redirectPath} >> ${filePath}"
-
-                withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
-                    s3Upload(file:filePath, bucket:env[bucketEnvName], path: targetPath, metadatas:["x-amz-website-redirect-location:${redirectPath}"])
                 }
             }
         }
