@@ -63,10 +63,10 @@ node {
                 // create an empty file the we will assign redirect metadata to.
                 sh "touch ${path}"
 
-                def targetPath = "${env.targetS3Path}/${path}"
+                def targetPath = "${env.targetS3Path}/../${path}"
                 debug "targetPath ${targetPath}"
 
-                def latestTargetPath = "${env.targetS3Path}/docs/${packageDotJson.name}/${packageDotJson.version}"
+                def latestTargetPath = "${env.targetS3Path}/${packageDotJson.name}/${packageDotJson.version}"
                 debug "latestTargetPath: ${latestTargetPath}"
 
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
