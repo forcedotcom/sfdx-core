@@ -1,5 +1,3 @@
-import org.testng.FileAssert
-
 library identifier: 'salesforcedx-library'
 
 node {
