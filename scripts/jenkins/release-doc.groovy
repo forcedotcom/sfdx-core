@@ -69,7 +69,7 @@ node {
                 sh "x-amz-website-redirect-location:${redirectPath} > ${filePath}"
 
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
-                    s3Upload(bucket:env[bucketEnvName], file:filePath, path: targetPath, metadatas:["x-amz-website-redirect-location:${redirectPath}"])
+                    s3Upload(file:filePath, bucket:env[bucketEnvName], path: targetPath, metadatas:["x-amz-website-redirect-location:${redirectPath}"])
                 }
             }
         }
