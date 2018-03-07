@@ -1,3 +1,5 @@
+import org.testng.FileAssert
+
 library identifier: 'salesforcedx-library'
 
 node {
@@ -52,16 +54,19 @@ node {
             }
 
             stage('promote doc') {
-                def htmlRedirect = """
+                String htmlRedirect = """
                     <html xmlns="http://www.w3.org/1999/xhtml">
                         <head>
                         <title>SFDX Developer Documentation Redirection</title>
                         <meta http-equiv="refresh" content="0;URL='./${packageDotJson.version}/index.html'"/>
                         </head>
                         <body/>
-                    </html>"""
+                    </html>""".toString();
 
-                sh "echo ${htmlRedirect} >> docs/${packageDotJson.name}"
+                String filePath = "docs/${packageDotJson.name}/index.html"
+                sh "echo ${htmlRedirect} >> ${filePath}"
+                sh "cat ${filePath}"
+
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
                     s3Upload(pathStyleAccessEnabled: true, file: 'docs', bucket: env[bucketEnvName], path: env.targetS3Path)
                 }
