@@ -141,7 +141,7 @@ export class SfdxConfig extends ConfigFile {
                     hidden: true,
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
-                        validator: (value) => _.isNil(value) || /[1-9]\d\.0/.test(value),
+                        validator: SfdxUtil.validateApiVersion,
                         failedMessage: SfdxConfig.messages.getMessage('invalidApiVersion')
                     }
                 },

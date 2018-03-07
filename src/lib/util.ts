@@ -151,7 +151,7 @@ export class SfdxUtil {
 
     /**
      * Returns true if a provided url contains a Salesforce owned domain.
-     * @param {*} urlString the url to inspect
+     * @param {*} urlString the url to inspect.
      */
     public static isSalesforceDomain(urlString: string): boolean {
         let url: URL;
@@ -183,8 +183,8 @@ export class SfdxUtil {
     /**
      * Methods to ensure a environment variable is truthy. Truthy is defined as set to a non-null, non-empty, string
      * that's not equal to false.
-     * @param {string} name - The name of the environment variable to check.
-     * @returns {boolean} - true if the value of the env variable is truthy. false otherwise.
+     * @param {string} name The name of the environment variable to check.
+     * @returns {boolean} true if the value of the env variable is truthy.
      */
     public static isEnvVarTruthy(name: string): boolean {
         if (!name) {
@@ -196,9 +196,9 @@ export class SfdxUtil {
 
     /**
      * Deletes a folder recursively, removing all descending files and folders.
-     * @param {string} path - The path to remove
+     * @param {string} path The path to remove.
      * @returns {Promise<void>}
-     * @throws {SfdxError} - If the folder or any sub-folder is missing or has no access.
+     * @throws {SfdxError} If the folder or any sub-folder is missing or has no access.
      */
     public static remove(path: string): Promise<void> {
         if (!path) {
@@ -234,8 +234,8 @@ export class SfdxUtil {
     /**
      *  Returns the first key within the object that has an upper case first letter.
      *
-     *  @param {Object} obj The object to check key casing
-     *  @return {string} The key that starts with upper case
+     *  @param {Object} obj The object to check key casing.
+     *  @return {string} The key that starts with upper case.
      */
     public static findUpperCaseKeys(obj: object): string {
         let _key;
@@ -252,9 +252,9 @@ export class SfdxUtil {
     }
 
     /**
-     * Converts the 18 character Salesforce ID to 15 characters
-     * @param {string} id - the id to convert
-     * @return {string} - 15 character version of the ID.
+     * Converts the 18 character Salesforce ID to 15 characters.
+     * @param {string} id the id to convert.
+     * @return {string} 15 character version of the ID.
      */
     public static trimTo15(id: string): string {
         if (id && id.length && id.length > 15) {
@@ -264,10 +264,10 @@ export class SfdxUtil {
     }
 
     /**
-     * Traverse the filesystem for a specific file
+     * Traverse the filesystem for a specific file.
      * @param {string} workingDir The directory in which to start traversing.
      * @param {string} file The file name to look for.
-     * @returns {string} The path of the file, or null if not found;
+     * @returns {string} The path of the file, or null if not found.
      */
     public static async traverseForFile(workingDir: string, file: string): Promise<string> {
         let foundProjectDir: string = null;
@@ -287,8 +287,8 @@ export class SfdxUtil {
 
     /**
      * Traverses for the sfdx project path from the current working directory.
-     * @throws InvalidProjectWorkspace - If the current folder is not located in a workspace
-     * @returns {Promise<string>} -The absolute path to the project
+     * @throws InvalidProjectWorkspace - If the current folder is not located in a workspace.
+     * @returns {Promise<string>} The absolute path to the project.
      */
     public static async resolveProjectPathFromCurrentWorkingDirectory(): Promise<string> {
         const path = await SfdxUtil.traverseForFile(process.cwd(), SfdxUtil.SFDX_PROJECT_JSON);
@@ -298,5 +298,14 @@ export class SfdxUtil {
         }
 
         return path;
+    }
+
+    /**
+     * Tests whether an API version is in the correct format.
+     * @param value The API version as a string.
+     * @returns {boolean} true if the value is in the format "i.0"
+     */
+    public static validateApiVersion(value: string): boolean {
+        return _.isNil(value) || /[1-9]\d\.0/.test(value);
     }
 }
