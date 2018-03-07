@@ -60,13 +60,13 @@ node {
             stage('Upload latest redirect object') {
                 final String filePath = "docs/${packageDotJson.name}/latest".toString()
                 debug "filePath: ${filePath}"
-                sh "touch ${filePath}"
 
                 final String targetPath = "${env.targetS3Path}/${packageDotJson.name}/latest".toString()
                 debug "targetPath: ${targetPath}"
 
                 final String redirectPath = "${env.targetS3Path}/${packageDotJson.name}/${packageDotJson.version}".toString()
                 debug "targetPath: ${targetPath}"
+                sh "x-amz-website-redirect-location:${redirectPath} > ${filePath}"
 
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
                     s3Upload(bucket:env[bucketEnvName], file:filePath, path: targetPath, metadatas:["x-amz-website-redirect-location:${redirectPath}"])
