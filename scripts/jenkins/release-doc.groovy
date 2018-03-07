@@ -42,13 +42,35 @@ node {
                 checkout scm
             }
 
+            def packageDotJson;
             stage('install') {
                 sh 'yarn'
+                packageDotJson = loadPackageJson('package.json')
+                if (!packageDotJson) {
+                    error 'Failed to find package.json file for project'
+                }
             }
 
             stage('promote doc') {
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
                     s3Upload(pathStyleAccessEnabled: true, file: 'docs', bucket: env[bucketEnvName], path: env.targetS3Path)
+                }
+            }
+
+            stage('Upload latest redirect object') {
+                def path = "docs/${packageDotJson.name}/latest"
+                debug "path ${path}"
+                // create an empty file the we will assign redirect metadata to.
+                sh "touch ${path}"
+
+                def targetPath = "${env.targetS3Path}/${path}"
+                debug "targetPath ${targetPath}"
+
+                def latestTargetPath = "${env.targetS3Path}/docs/${packageDotJson.name}/${packageDotJson.version}"
+                debug "latestTargetPath: ${latestTargetPath}"
+
+                withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
+                    s3Upload(bucket:env[bucketEnvName], file:path, path: targetPath, metadatas:["x-amz-website-redirect-location:${latestTargetPath}"])
                 }
             }
         }
