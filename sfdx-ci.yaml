@@ -17,7 +17,7 @@ jobs:
         releaseType: STAGE
         targetS3Path: media/salesforce-cli/docs
 
-  - name: promote--jsdoc
+  - name: promote-jsdoc
     script: scripts/jenkins/release-doc.groovy
     branches:
       - tnoonan/master
