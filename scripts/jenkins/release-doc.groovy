@@ -66,7 +66,7 @@ node {
 
                 final String redirectPath = "${env.targetS3Path}/${packageDotJson.name}/${packageDotJson.version}".toString()
                 debug "targetPath: ${targetPath}"
-                sh "x-amz-website-redirect-location:${redirectPath} > ${filePath}"
+                sh "echo x-amz-website-redirect-location:${redirectPath} >> ${filePath}"
 
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
                     s3Upload(file:filePath, bucket:env[bucketEnvName], path: targetPath, metadatas:["x-amz-website-redirect-location:${redirectPath}"])
