@@ -62,7 +62,7 @@ node {
                     </html>""".toString();
 
                 String filePath = "docs/${packageDotJson.name}/index.html"
-                sh "echo ${htmlRedirect} >> ${filePath}"
+                sh "echo '${htmlRedirect}' >> ${filePath}"
                 sh "cat ${filePath}"
 
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
