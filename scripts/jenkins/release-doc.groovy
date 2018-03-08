@@ -18,7 +18,7 @@ node {
             final String credentialsIdEnvName
             final String regionEnvName
 
-            stage('validate') {
+            stage("validate") {
                 if (!env.releaseType) {
                     error "The release type is not set."
                 }
@@ -46,28 +46,29 @@ node {
                 debug("regionEnvName: ${regionEnvName} : ${env[regionEnvName]}")
             }
 
-            stage('checkout') {
+            stage("checkout") {
                 deleteDir()
                 checkout scm
             }
 
             def packageDotJson
-            stage('install') {
-                sh 'npm run build'
-                packageDotJson = loadPackageJson('package.json')
+            stage("install") {
+                sh "npm install"
+                sh "npm run build"
+                packageDotJson = loadPackageJson("package.json")
                 if (!packageDotJson) {
-                    error 'Failed to find package.json file for project'
+                    error "Failed to find package.json file for project"
                 }
             }
 
-            stage('promote doc') {
+            stage("promote doc") {
 
                 final String filePath = "docs/${packageDotJson.name}/index.html".toString()
-                sh "echo '${htmlRedirectTemplate.replace('%%packageVersion%%', packageDotJson.version)}' >> ${filePath}"
+                sh "echo '${htmlRedirectTemplate.replace("%%packageVersion%%", packageDotJson.version)}' >> ${filePath}"
                 sh "cat ${filePath}"
 
                 withAWS(region: env[regionEnvName], endpointUrl: env[endPointUrlEnvName], credentials: env[credentialsIdEnvName]) {
-                    s3Upload(pathStyleAccessEnabled: true, file: 'docs', bucket: env[bucketEnvName], path: env.targetS3Path)
+                    s3Upload(pathStyleAccessEnabled: true, file: "docs", bucket: env[bucketEnvName], path: env.targetS3Path)
                 }
             }
         }
