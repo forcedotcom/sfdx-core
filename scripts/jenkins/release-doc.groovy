@@ -53,7 +53,7 @@ node {
 
             def packageDotJson
             stage('install') {
-                sh 'yarn'
+                sh 'npm run build'
                 packageDotJson = loadPackageJson('package.json')
                 if (!packageDotJson) {
                     error 'Failed to find package.json file for project'

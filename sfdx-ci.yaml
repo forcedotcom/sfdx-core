@@ -8,19 +8,8 @@ jobs:
     envMap:
       - 'SFDX_USE_GENERIC_UNIX_KEYCHAIN': true
         'EMAIL': 't.dvornik@salesforce.com'
-  - name: publish-jsdoc
-    script: scripts/jenkins/release-doc.groovy
-    branches:
-      - tnoonan/master
-    envMap:
-      -
-        releaseType: STAGE
-        targetS3Path: media/salesforce-cli/docs
-
   - name: promote-jsdoc
     script: scripts/jenkins/release-doc.groovy
-    branches:
-      - tnoonan/master
     envMap:
       -
         releaseType: PROD
