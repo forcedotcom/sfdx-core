@@ -33,7 +33,7 @@ export class SfdxProjectJson extends ConfigFile {
     }
 
     public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
-        const contents = await this.read();
+        const contents = await super.read();
 
         // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camelcase.
         const upperCaseKey = SfdxUtil.findUpperCaseKeys(contents);
