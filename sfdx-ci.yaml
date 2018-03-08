@@ -10,8 +10,6 @@ jobs:
         'EMAIL': 't.dvornik@salesforce.com'
   - name: promote-jsdoc
     script: scripts/jenkins/release-doc.groovy
-    branches:
-          - tnoonan/master
     envMap:
       -
         releaseType: PROD
