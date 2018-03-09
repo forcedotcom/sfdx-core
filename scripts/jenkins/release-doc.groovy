@@ -3,7 +3,7 @@ library identifier: 'salesforcedx-library'
 final String htmlRedirectTemplate =
 """<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
-    <title>SFDX Developer Documentation Redirection</title>
+    <title>SFDX Developer Documentation Redirect</title>
     <meta http-equiv="refresh" content="0;URL='./%%packageVersion%%/index.html'"/>
     </head>
     <body/>
@@ -23,10 +23,11 @@ node {
                     error "The release type is not set."
                 }
 
-                endPointUrlEnvName = "__S3_${env.releaseType}_ENDPOINT_URL".toString()
-                bucketEnvName = "__S3_${env.releaseType}_BUCKET".toString()
-                credentialsIdEnvName = "__S3_${env.releaseType}_CREDENTIALS_ID".toString()
-                regionEnvName = "__S3_${env.releaseType}_REGION".toString()
+                const releaseProperites = getPropertiesFileForReleaseStage()
+                endPointUrlEnvName = releaseProperites["S3_${env.releaseType}_ENDPOINT_URL"].toString()
+                bucketEnvName = releaseProperites["S3_${env.releaseType}_BUCKET"].toString()
+                credentialsIdEnvName = releaseProperites["S3_${env.releaseType}_CREDENTIALS_ID"].toString()
+                regionEnvName = releaseProperites["S3_${env.releaseType}_REGION"].toString()
 
                 if (!env[endPointUrlEnvName]) {
                     error "Missing aws endpoint url"
