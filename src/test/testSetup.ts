@@ -8,6 +8,7 @@
 import { randomBytes } from 'crypto';
 import { sandbox as sinonSandbox } from 'sinon';
 import { forEach, isBoolean, once } from 'lodash';
+import chalk from 'chalk';
 import { Logger } from '../lib/logger';
 import { Messages } from '../lib/messages';
 import { Crypto } from '../lib/crypto';
@@ -162,6 +163,8 @@ export const testSetup = once(() => {
         rootPathRetriever: retrieveRootPath
     };
 
+    const chalkEnabled = chalk.enabled;
+
     beforeEach(() => {
         // Most core files create a child logger so stub this to return our test logger.
         testContext.SANDBOX.stub(Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
@@ -208,12 +211,15 @@ export const testSetup = once(() => {
             setPassword: () => Promise.resolve(),
             getPassword: (data, cb) => cb(undefined, '12345678901234567890123456789012')
         }));
+
+        chalk.enabled = false;
     });
 
     afterEach(() => {
         testContext.SANDBOX.restore();
         forEach(testContext.SANDBOXES, (sandbox) => sandbox.restore());
         testContext.configStubs = {};
+        chalk.enabled = chalkEnabled;
     });
 
     return testContext;
