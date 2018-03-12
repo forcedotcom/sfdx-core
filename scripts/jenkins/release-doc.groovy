@@ -29,22 +29,22 @@ node {
                 credentialsIdEnvName = releaseProperites["S3_${env.releaseType}_CREDENTIALS_ID"].toString()
                 regionEnvName = releaseProperites["S3_${env.releaseType}_REGION"].toString()
 
-                if (!env[endPointUrlEnvName]) {
+                if (!releaseProperites[endPointUrlEnvName]) {
                     error "Missing aws endpoint url"
                 }
 
-                if (!env[bucketEnvName]) {
+                if (!releaseProperites[bucketEnvName]) {
                     error("Missing aws bucket")
                 }
 
-                if (!env[credentialsIdEnvName]) {
+                if (!releaseProperites[credentialsIdEnvName]) {
                     error("Missing aws credentials")
                 }
 
                 debug "endPointUrlEnvName: ${endPointUrlEnvName} : ${env[endPointUrlEnvName]}"
-                debug("bucketEnvName: ${bucketEnvName} : ${env[bucketEnvName]}")
-                debug("credentialsIdEnvName: ${credentialsIdEnvName} : ${env[credentialsIdEnvName]}")
-                debug("regionEnvName: ${regionEnvName} : ${env[regionEnvName]}")
+                debug("bucketEnvName: ${bucketEnvName} : ${releaseProperites[bucketEnvName]}")
+                debug("credentialsIdEnvName: ${credentialsIdEnvName} : ${releaseProperites[credentialsIdEnvName]}")
+                debug("regionEnvName: ${regionEnvName} : ${releaseProperites[regionEnvName]}")
             }
 
             stage("checkout") {
