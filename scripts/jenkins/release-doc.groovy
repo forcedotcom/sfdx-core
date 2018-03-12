@@ -23,28 +23,29 @@ node {
                     error "The release type is not set."
                 }
 
-                def releaseProperites = loadProperties()
-                endPointUrlEnvName = releaseProperites["S3_${env.releaseType}_ENDPOINT_URL"].toString()
-                bucketEnvName = releaseProperites["S3_${env.releaseType}_BUCKET"].toString()
-                credentialsIdEnvName = releaseProperites["S3_${env.releaseType}_CREDENTIALS_ID"].toString()
-                regionEnvName = releaseProperites["S3_${env.releaseType}_REGION"].toString()
+                loadProperties()
+                
+                endPointUrlEnvName = env["S3_${env.releaseType}_ENDPOINT_URL"].toString()
+                bucketEnvName = env["S3_${env.releaseType}_BUCKET"].toString()
+                credentialsIdEnvName = env["S3_${env.releaseType}_CREDENTIALS_ID"].toString()
+                regionEnvName = env["S3_${env.releaseType}_REGION"].toString()
 
-                if (!releaseProperites[endPointUrlEnvName]) {
+                if (!env[endPointUrlEnvName]) {
                     error "Missing aws endpoint url"
                 }
 
-                if (!releaseProperites[bucketEnvName]) {
+                if (!env[bucketEnvName]) {
                     error("Missing aws bucket")
                 }
 
-                if (!releaseProperites[credentialsIdEnvName]) {
+                if (!env[credentialsIdEnvName]) {
                     error("Missing aws credentials")
                 }
 
-                debug "endPointUrlEnvName: ${endPointUrlEnvName} : ${releaseProperites[endPointUrlEnvName]}"
-                debug("bucketEnvName: ${bucketEnvName} : ${releaseProperites[bucketEnvName]}")
-                debug("credentialsIdEnvName: ${credentialsIdEnvName} : ${releaseProperites[credentialsIdEnvName]}")
-                debug("regionEnvName: ${regionEnvName} : ${releaseProperites[regionEnvName]}")
+                debug "endPointUrlEnvName: ${endPointUrlEnvName} : ${env[endPointUrlEnvName]}"
+                debug("bucketEnvName: ${bucketEnvName} : ${env[bucketEnvName]}")
+                debug("credentialsIdEnvName: ${credentialsIdEnvName} : ${env[credentialsIdEnvName]}")
+                debug("regionEnvName: ${regionEnvName} : ${env[regionEnvName]}")
             }
 
             stage("checkout") {
