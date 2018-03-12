@@ -23,7 +23,7 @@ node {
                     error "The release type is not set."
                 }
 
-                def releaseProperites = getPropertiesFileForReleaseStage()
+                def releaseProperites = loadProperties()
                 endPointUrlEnvName = releaseProperites["S3_${env.releaseType}_ENDPOINT_URL"].toString()
                 bucketEnvName = releaseProperites["S3_${env.releaseType}_BUCKET"].toString()
                 credentialsIdEnvName = releaseProperites["S3_${env.releaseType}_CREDENTIALS_ID"].toString()
@@ -41,7 +41,7 @@ node {
                     error("Missing aws credentials")
                 }
 
-                debug "endPointUrlEnvName: ${endPointUrlEnvName} : ${env[endPointUrlEnvName]}"
+                debug "endPointUrlEnvName: ${endPointUrlEnvName} : ${releaseProperites[endPointUrlEnvName]}"
                 debug("bucketEnvName: ${bucketEnvName} : ${releaseProperites[bucketEnvName]}")
                 debug("credentialsIdEnvName: ${credentialsIdEnvName} : ${releaseProperites[credentialsIdEnvName]}")
                 debug("regionEnvName: ${regionEnvName} : ${releaseProperites[regionEnvName]}")
