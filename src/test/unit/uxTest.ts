@@ -10,7 +10,6 @@ import { expect } from 'chai';
 import Logger from '../../lib/logger';
 import { UX } from '../../lib/ux';
 import { CLI } from 'cli-ux';
-import chalk from 'chalk';
 import { testSetup } from '../testSetup';
 
 // Setup the test environment.
@@ -327,14 +326,7 @@ describe('UX', () => {
     });
 
     describe('warn()', () => {
-        const chalkEnabled = chalk.enabled;
-
-        before(() => {
-            chalk.enabled = false;
-        });
-
         after(() => {
-            chalk.enabled = chalkEnabled;
             UX.warnings.clear();
         });
 
