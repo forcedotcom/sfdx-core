@@ -23,7 +23,7 @@ node {
                     error "The release type is not set."
                 }
 
-                const releaseProperites = getPropertiesFileForReleaseStage()
+                def releaseProperites = getPropertiesFileForReleaseStage()
                 endPointUrlEnvName = releaseProperites["S3_${env.releaseType}_ENDPOINT_URL"].toString()
                 bucketEnvName = releaseProperites["S3_${env.releaseType}_BUCKET"].toString()
                 credentialsIdEnvName = releaseProperites["S3_${env.releaseType}_CREDENTIALS_ID"].toString()
