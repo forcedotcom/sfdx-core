@@ -24,11 +24,11 @@ node {
                 }
 
                 loadProperties()
-                
-                endPointUrlEnvName = env["S3_${env.releaseType}_ENDPOINT_URL"].toString()
-                bucketEnvName = env["S3_${env.releaseType}_BUCKET"].toString()
-                credentialsIdEnvName = env["S3_${env.releaseType}_CREDENTIALS_ID"].toString()
-                regionEnvName = env["S3_${env.releaseType}_REGION"].toString()
+
+                endPointUrlEnvName = "S3_${env.releaseType}_ENDPOINT_URL".toString()
+                bucketEnvName = "S3_${env.releaseType}_BUCKET".toString()
+                credentialsIdEnvName = "S3_${env.releaseType}_CREDENTIALS_ID".toString()
+                regionEnvName = "S3_${env.releaseType}_REGION".toString()
 
                 if (!env[endPointUrlEnvName]) {
                     error "Missing aws endpoint url"
@@ -42,7 +42,7 @@ node {
                     error("Missing aws credentials")
                 }
 
-                debug "endPointUrlEnvName: ${endPointUrlEnvName} : ${env[endPointUrlEnvName]}"
+                debug("endPointUrlEnvName: ${endPointUrlEnvName} : ${env[endPointUrlEnvName]}")
                 debug("bucketEnvName: ${bucketEnvName} : ${env[bucketEnvName]}")
                 debug("credentialsIdEnvName: ${credentialsIdEnvName} : ${env[credentialsIdEnvName]}")
                 debug("regionEnvName: ${regionEnvName} : ${env[regionEnvName]}")
