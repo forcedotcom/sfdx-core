@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { SfdxErrorConfig, SfdxError } from '../../lib/sfdxError';
 import { color } from '../../lib/ux';
 import { Global, Modes, Mode } from '../../lib/global';
-import Messages from '../../lib/messages';
+import { Messages } from '../../lib/messages';
 import { testSetup } from '../testSetup';
 
 const testMessages = {

@@ -493,5 +493,3 @@ export class Logger extends Bunyan {
         return super.fatal(this.applyFilters(LoggerLevel.FATAL, ...args));
     }
 }
-
-export default Logger;

@@ -591,5 +591,3 @@ export class AuthInfo {
         };
     }
 }
-
-export default AuthInfo;

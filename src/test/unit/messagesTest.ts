@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 
-import Messages from '../../lib/messages';
+import { Messages } from '../../lib/messages';
 import { testSetup } from '../testSetup';
 
 // Setup the test environment.

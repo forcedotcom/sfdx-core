@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 
-import Logger from '../../lib/logger';
+import { Logger } from '../../lib/logger';
 import { UX } from '../../lib/ux';
 import { CLI } from 'cli-ux';
 import { testSetup } from '../testSetup';

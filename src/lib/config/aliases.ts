@@ -111,5 +111,3 @@ export class Aliases extends ConfigGroup {
         return (await Aliases.retrieve<Aliases>()).getInGroup(key, group) as string;
     }
 }
-
-export default Aliases;
