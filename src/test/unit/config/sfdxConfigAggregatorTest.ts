@@ -60,9 +60,9 @@ describe('SfdxConfigAggregator', () => {
     });
 
     describe('initialization', () => {
-        before(() => {
+        beforeEach(() => {
             $$.SANDBOX.stub(SfdxConfig.prototype, 'read').callsFake(async function() {
-                const config = this.isGlobal ? await Promise.resolve(new Map([['defaultusername', 2]])) :
+                const config = this.isGlobal() ? await Promise.resolve(new Map([['defaultusername', 2]])) :
                     await Promise.resolve(new Map([['defaultusername', 1]]));
                 this.setContents(config);
                 return config;

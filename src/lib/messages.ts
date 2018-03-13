@@ -138,7 +138,7 @@ export class Messages {
     /**
      * Import all json files in a messages directory. Use the file name as the bundle key when
      * {@link Messages.loadMessages} is called. By default, we're assuming the moduleDirectoryPart is a
-     * typescript project and in the ./dist/ folder which we will attempt to remove. If your messages
+     * typescript project and in the ./dist/ or ./lib/ folder which we will attempt to remove it. If your messages
      * directory is in another spot or you are not using typescript, pass in false for hasDistFolder.
      *
      * @example
@@ -155,7 +155,11 @@ export class Messages {
 
         if (hasDistFolder) {
             const parts: string[] = moduleDirectoryPath.split(path.sep);
-            const index: number = parts.lastIndexOf('dist');
+            let index: number = parts.lastIndexOf('dist');
+
+            if (index < 0) {
+                index = parts.lastIndexOf('lib');
+            }
             moduleMessagesDirPath = index !== -1 ? parts.slice(0, index).join(path.sep) : moduleDirectoryPath;
         }
 

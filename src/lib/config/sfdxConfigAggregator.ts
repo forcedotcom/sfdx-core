@@ -1,8 +1,26 @@
 /*
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ */
+/**
+ * An enum of all possible locations for a config value.
+ * @typedef LOCATIONS
+ * @property {string} GLOBAL Represents the global config.
+ * @property {string} LOCAL Represents the local project config.
+ * @property {string} ENVIRONMENT Represents environment variables.
+ */
+/**
+ * Information about a config property.
+ * @typedef ConfigInfo
+ * @property {string} key The config key.
+ * @property {string | boolean} value The config value.
+ * @property {LOCATIONS} location The location of the config property.
+ * @property {string} path The path of the config value.
+ * @property {function} isLocal `() => boolean` Location is `LOCATIONS.LOCAL`.
+ * @property {function} isGlobal `() => boolean` Location is `LOCATIONS.GLOBAL`.
+ * @property {function} isEnvVar `() => boolean` Location is `LOCATIONS.ENVIRONMENT`.
  */
 
 import * as _ from 'lodash';
@@ -12,11 +30,6 @@ import { SfdxError } from '../sfdxError';
 
 const propertyToEnvName = (property) => `SFDX_${_.snakeCase(property).toUpperCase()}`;
 
-/**
- * Possible locations for a config value.
- * @readonly
- * @enum {string}
- */
 export const enum LOCATIONS {
     GLOBAL = 'Global',
     LOCAL = 'Local',
@@ -25,15 +38,10 @@ export const enum LOCATIONS {
 
 /**
  * Information about a config property.
- *
- * @param {string} key The config key.
- * @param {string | boolean} value The config value.
- * @param {LOCATIONS} location The location of the config property.
- * @param {string} path The path of the config value.
  */
 export interface ConfigInfo {
     key: string;
-    location: string;
+    location: LOCATIONS;
     value: string | boolean;
     path: string;
     /**
@@ -53,17 +61,18 @@ export interface ConfigInfo {
 }
 
 /**
- * Aggregate global and local config files, as well as environment variables for
- * sfdx-config.json. The resolution happens in the following bottom-up order:
+ * Aggregate global and local project config files, as well as environment variables for
+ * `sfdx-config.json`. The resolution happens in the following bottom-up order:
  *
- * 1. Environment variables  (SFDX_LOG_LEVEL)
- * 2. Workspace settings  (<workspace-root>/.sfdx/sfdx-config.json)
- * 3. Global settings  ($HOME/.sfdx/sfdx-config.json)
+ * 1. Environment variables  (`SFDX_LOG_LEVEL`)
+ * 1. Workspace settings  (`<workspace-root>/.sfdx/sfdx-config.json`)
+ * 1. Global settings  (`$HOME/.sfdx/sfdx-config.json`)
  *
  * Use {@link SfdxConfigAggregator.create} to instantiate the aggregator.
  *
  * @example
  * const aggregator = await SfdxConfigAggregator.create();
+ * console.log(aggregator.getPropertyValue('defaultusername'));
  *
  * @hideconstructor
  */
@@ -86,9 +95,11 @@ export class SfdxConfigAggregator {
     private localConfig: SfdxConfig;
     private globalConfig: SfdxConfig;
     private envVars: object;
-    private config: object[];
+    private config: object;
 
     /**
+     * **Do not directly construct instances of this class -- use {@link SfdxConfigAggregator.resolve} instead.**
+     *
      * @private
      * @constructor
      */
@@ -102,11 +113,12 @@ export class SfdxConfigAggregator {
      */
 
     /**
-     * Get a resolved config property
+     * Get a resolved config property.
      *
      * @param {string} key The key of the property.
-     * @returns {string | boolean} The value of the property.
-     * @throws {Error} If there is an attempt to get a property that's not supported.
+     * @returns {string | boolean}
+     * @throws {SfdxError}
+     *  **`{name: 'UnknownConfigKey'}`:** An attempt to get a property that's not supported.
      */
     public getPropertyValue(key: string): string | boolean   {
         if (this.getAllowedProperties().some((element) => key === element.key)) {
@@ -117,10 +129,10 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * Get a resolved config property
+     * Get a resolved config property.
      *
-     * @param {string} key The key of the property
-     * @returns {ConfigInfo} The value of the property
+     * @param {string} key The key of the property.
+     * @returns {ConfigInfo} The value of the property.
      */
     public getInfo(key: string): ConfigInfo {
         const location = this.getLocation(key);
@@ -139,16 +151,16 @@ export class SfdxConfigAggregator {
     /**
      * Gets a resolved config property location.
      *
-     * For example, getLocation('logLevel') will return:
-     * 1) 'Environment' if resolved to an environment variable
-     * 2) 'Local if resolved to local config
-     * 3) 'Global' if resolved to the global config
+     * For example, `getLocation('logLevel')` will return:
+     * 1. `LOCATIONS.GLOBAL` if resolved to an environment variable.
+     * 1. `LOCATIONS.LOCAL` if resolved to local project config.
+     * 1. `LOCATIONS.ENVIRONMENT` if resolved to the global config.
      *
      * @param {string} key The key of the property.
-     * @returns {LOCATIONS} The value of the property.
+     * @returns {LOCATIONS}
      */
     public getLocation(key: string): LOCATIONS {
-        if (!_.isNil(this.getEnvVars()[key])) {
+        if (!_.isNil(this.getEnvVars().get(key))) {
             return LOCATIONS.ENVIRONMENT;
         }
 
@@ -162,18 +174,18 @@ export class SfdxConfigAggregator {
     }
 
     /**
-     * Get a resolved config property path.
+     * Get a resolved file path or environment variable name of the property.
      *
-     * For example, getLocation('logLevel') will return:
-     * 1) $SFDX_LOG_LEVEL if resolved to an environment variable
-     * 2) ./.sfdx/sfdx-config.json if resolved to the local config
-     * 3) ~/.sfdx/sfdx-config.json if resolved to the global config
+     * For example, `getPath('logLevel')` will return:
+     * 1. `$SFDX_LOG_LEVEL` if resolved to an environment variable.
+     * 1. `./.sfdx/sfdx-config.json` if resolved to the local config.
+     * 1. `~/.sfdx/sfdx-config.json` if resolved to the global config.
      *
-     * Please note that the path returns may be the absolute path instead of
-     * "./" and "~/""
+     * **Note:** that the path returns may be the absolute path instead of
+     * `./` and `~/`.
      *
      * @param {string} key The key of the property.
-     * @returns {string} The file path or environment variable name of the property.
+     * @returns {string}
      */
     public getPath(key: string): string {
         if (!_.isNil(this.envVars[key])) {
@@ -198,49 +210,49 @@ export class SfdxConfigAggregator {
      *     { key: 'defaultusername', val: '<username>', location: 'Local', path: './.sfdx/sfdx-config.json'}
      * ]
      *
-     * @returns {ConfigInfo[]} The value of the property.
+     * @returns {ConfigInfo[]}
      */
     public getConfigInfo(): ConfigInfo[] {
-        const info = _.map(this.getConfig(), (val, key: string) => this.getInfo(key));
+        const info = _.map(_.keys(this.getConfig()), (key: string) => this.getInfo(key));
         return _.sortBy(info, 'key') as any;
     }
 
     /**
-     * Get the local config object.
+     * Get the local project config instance.
      *
-     * @returns {SfdxConfig} Get the local config object.
+     * @returns {SfdxConfig}
      */
     public getLocalConfig(): SfdxConfig {
         return this.localConfig;
     }
 
     /**
-     * Get the global config object.
+     * Get the global config instance.
      *
-     * @returns {SfdxConfig} Get the global config object.
+     * @returns {SfdxConfig}
      */
     public getGlobalConfig(): SfdxConfig {
         return this.globalConfig;
     }
 
     /**
-     * Get the resolved config object.
-     * @returns {object[]} Returns the raw config data.
+     * Get the resolved config object from the local, global and environment config instances.
+     * @returns {object}
      */
-    public getConfig(): object[] {
+    public getConfig(): object {
         return this.config;
     }
 
     /**
      * Get the config properties that are environment variables.
-     * @returns {object} The environment variables as an object.
+     * @returns {Map<string, string>}
      */
-    public getEnvVars(): object {
-        return this.envVars;
+    public getEnvVars(): Map<string, string> {
+        return new Map<string, string>(_.entries(this.envVars));
     }
 
     /**
-     * Causes the instance to re-read all property configurations.
+     * Re-read all property configurations from disk.
      * @returns {Promise<void>}
      */
     public async reload(): Promise<SfdxConfigAggregator> {
@@ -251,6 +263,7 @@ export class SfdxConfigAggregator {
     /**
      * Loads all the properties and aggregates them according to location.
      * @returns {Promise<void>}
+     * @private
      */
     private async loadProperties(): Promise<void> {
         // Don't throw an project error with the aggregator, since it should resolve to global if
@@ -287,7 +300,7 @@ export class SfdxConfigAggregator {
             configs.push((this.localConfig.toObject()) as object);
         }
 
-        configs.push(this.getEnvVars());
+        configs.push(this.envVars);
 
         this.setConfig(_.reduce(configs.filter(_.isObject), (result, configElement) =>
             _.merge(result, configElement), {}));
@@ -299,7 +312,7 @@ export class SfdxConfigAggregator {
      * @param config The config object to set.
      * @private
      */
-    private setConfig(config: any) {
+    private setConfig(config: object) {
         this.config = config;
     }
 
@@ -323,7 +336,7 @@ export class SfdxConfigAggregator {
 
     /**
      * Get the allowed properties.
-     * @returns {ConfigPropertyMeta[]} Get the allowed properties.
+     * @returns {ConfigPropertyMeta[]}
      * @private
      */
     private getAllowedProperties(): ConfigPropertyMeta[] {
