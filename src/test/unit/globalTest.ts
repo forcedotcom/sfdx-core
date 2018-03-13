@@ -28,6 +28,7 @@ describe('Global', () => {
             process.env.SFDX_ENV = 'development';
             expect(Global.getEnvironmentMode().is(Modes.DEVELOPMENT)).to.be.true;
             expect(Global.getEnvironmentMode().is(Modes.PRODUCTION)).to.be.false;
+            expect(Global.getEnvironmentMode().is(Modes.DEMO)).to.be.false;
             expect(Global.getEnvironmentMode().is(Modes.TEST)).to.be.false;
         });
 
@@ -35,6 +36,7 @@ describe('Global', () => {
             process.env.SFDX_ENV = null;
             expect(Global.getEnvironmentMode().is(Modes.DEVELOPMENT)).to.be.false;
             expect(Global.getEnvironmentMode().is(Modes.PRODUCTION)).to.be.true;
+            expect(Global.getEnvironmentMode().is(Modes.DEMO)).to.be.false;
             expect(Global.getEnvironmentMode().is(Modes.TEST)).to.be.false;
         });
     });

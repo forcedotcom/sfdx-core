@@ -9,7 +9,7 @@ import { expect, assert } from 'chai';
 
 import { Project, SfdxProjectJson } from '../../lib/project';
 import { SfdxUtil } from '../../lib/util';
-import Messages from '../../lib/messages';
+import { Messages } from '../../lib/messages';
 import { testSetup } from '../testSetup';
 
 // Setup the test environment.

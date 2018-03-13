@@ -6,7 +6,6 @@
  */
 
 import { randomBytes } from 'crypto';
-import { sandbox as sinonSandbox } from 'sinon';
 import { forEach, isBoolean, once } from 'lodash';
 import chalk from 'chalk';
 import { Logger } from '../lib/logger';
@@ -123,7 +122,7 @@ async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Pro
  *
  * @example
  * // In a mocha tests
- * import testSetup from 'sfdx-core/dist/test/testSetup';
+ * import testSetup from 'sfdx-core/dist/test';
  *
  * const $$ = testSetup();
  *
@@ -141,18 +140,26 @@ async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Pro
  *  });
  * });
  */
-export const testSetup = once(() => {
+export const testSetup = once((sandbox?) => {
+    if (!sandbox) {
+        try {
+            sandbox = require('sinon').sandbox;
+        } catch (e) {
+            throw new Error('The package sinon was not found. Add it to your package.json and pass it in to testSetup(sinon.sandbox)');
+        }
+    }
+
     // Import all the messages files in the sfdx-core messages dir.
     Messages.importMessagesDirectory(__dirname);
 
     // Create a global sinon sandbox and a test logger instance for use within tests.
-    const defaultSandbox = sinonSandbox.create();
+    const defaultSandbox = sandbox.create();
     const testContext: TestContext = {
         SANDBOX: defaultSandbox,
         SANDBOXES: {
             DEFAULT: defaultSandbox,
-            CONFIG: sinonSandbox.create(),
-            CRYPTO: sinonSandbox.create()
+            CONFIG: sandbox.create(),
+            CRYPTO: sandbox.create()
         },
         TEST_LOGGER: new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging(),
         id: _uniqid(),
@@ -217,7 +224,7 @@ export const testSetup = once(() => {
 
     afterEach(() => {
         testContext.SANDBOX.restore();
-        forEach(testContext.SANDBOXES, (sandbox) => sandbox.restore());
+        forEach(testContext.SANDBOXES, (theSandbox) => theSandbox.restore());
         testContext.configStubs = {};
         chalk.enabled = chalkEnabled;
     });

@@ -252,5 +252,3 @@ export class Messages {
         return util.format(this.messages.get(key), ...tokens);
     }
 }
-
-export default Messages;

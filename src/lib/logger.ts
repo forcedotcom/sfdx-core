@@ -454,9 +454,10 @@ export class Logger extends Bunyan {
 
     /**
      * Set the logging level of all streams for this logger.
-     * @param level The logger level.  @see LoggerLevel enum for values.
+     * @param level The logger level.
+     * @see LoggerLevel enum for values.
      */
-    public setLevel(level?: number | string): Logger {
+    public setLevel(level?: LoggerLevel | number | string): Logger {
         const defaultLogLevel = process.env.SFDX_LOG_LEVEL || DEFAULT_LOG_LEVEL;
         level = _.isNil(level) ? defaultLogLevel : level;
         try {
@@ -493,5 +494,3 @@ export class Logger extends Bunyan {
         return super.fatal(this.applyFilters(LoggerLevel.FATAL, ...args));
     }
 }
-
-export default Logger;
