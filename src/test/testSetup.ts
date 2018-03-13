@@ -143,7 +143,7 @@ async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Pro
  */
 export const testSetup = once(() => {
     // Import all the messages files in the sfdx-core messages dir.
-    Messages.importMessagesDirectory(pathJoin(__dirname, '..', '..'));
+    Messages.importMessagesDirectory(__dirname);
 
     // Create a global sinon sandbox and a test logger instance for use within tests.
     const defaultSandbox = sinonSandbox.create();
