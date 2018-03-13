@@ -70,6 +70,7 @@ export {
 } from './lib/global';
 
 export {
+    LoggerLevel,
     LoggerOptions,
     LoggerStream,
     Logger
