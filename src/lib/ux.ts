@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CLI } from 'cli-ux';
+import { inspect } from 'util';
 import { Logger, LoggerLevel } from './logger';
-import { TableOptions, TableColumn } from 'cli-ux/lib/table';
+import { TableOptions, TableColumn } from 'cli-ux/lib/styled/table';
 import * as _ from 'lodash';
 import chalk from 'chalk';
 
@@ -36,10 +36,8 @@ export const color = new Proxy(chalk, {
 
 /**
  * A helper class for interacting with the shell
- *
- * @extends cli-ux
  */
-export class UX extends CLI {
+export class UX {
 
     // Collection of warnings that can be accessed and manipulated later.
     public static warnings: Set<string> = new Set<string>();
@@ -69,8 +67,11 @@ export class UX extends CLI {
         return new UX(await Logger.child('UX'));
     }
 
-    constructor(private logger: Logger, private isOutputEnabled: boolean = true) {
-        super();
+    // The oclif/cli-ux
+    public cli;
+
+    constructor(private logger: Logger, private isOutputEnabled: boolean = true, cli?) {
+        this.cli = cli || require('cli-ux');
     }
 
     /**
@@ -78,24 +79,11 @@ export class UX extends CLI {
      */
     public log(data?: string, ...args: any[]): UX {
         if (this.isOutputEnabled) {
-            super.log(data, ...args);
+            this.cli.log(data, ...args);
         }
 
         // log to sfdx.log after the console as log filtering mutates the args.
         this.logger.info(data, ...args);
-
-        return this;
-    }
-
-    /**
-     *  Go directly to stdout. Useful when wanting to write to the same line.
-     */
-    public logRaw(...args: any[]): UX {
-        this.logger.info(...args);
-
-        if (this.isOutputEnabled) {
-            this.stdout.write(...args);
-        }
 
         return this;
     }
@@ -106,7 +94,7 @@ export class UX extends CLI {
      * @param obj The object to log.
      */
     public logJson(obj: any): UX {
-        this.styledJSON(obj);
+        this.cli.styledJSON(obj);
 
         // log to sfdx.log after the console as log filtering mutates the args.
         this.logger.info(obj);
@@ -132,7 +120,7 @@ export class UX extends CLI {
             if (!this.isOutputEnabled) {
                 UX.warnings.add(message);
             } else {
-                this.stderr.log(warning + message);
+                this.cli.warn(warning + message);
             }
         }
         return this;
@@ -143,7 +131,8 @@ export class UX extends CLI {
      */
     public error(...args: any[]) {
         if (this.isOutputEnabled) {
-            this.stderr.log(...args);
+            const errMsg = args.map((a) => typeof a === 'string' ? a : inspect(a)).join(' ');
+            this.cli.error(`${errMsg}\n`);
         }
         return this.logger.error(...args);
     }
@@ -155,7 +144,7 @@ export class UX extends CLI {
      */
     public errorJson(obj: any) {
         const err = JSON.stringify(obj, null, 4);
-        this.stderr.log(err);
+        this.cli.error(err);
         return this.logger.error(err);
     }
 
@@ -185,7 +174,7 @@ export class UX extends CLI {
                 }) as Array<Partial<TableColumn>>;
                 options.columns = _columns as Array<Partial<TableColumn>>;
             }
-            super.table(data, options as Partial<TableOptions>);
+            this.cli.table(data, options as Partial<TableOptions>);
         }
 
         // Log after table output as log filtering mutates data.
@@ -204,7 +193,21 @@ export class UX extends CLI {
     public styledObject(obj: any, keys?: string[]): UX {
         this.logger.info(obj);
         if (this.isOutputEnabled) {
-            super.styledObject(obj, keys);
+            this.cli.styledObject(obj, keys);
+        }
+        return this;
+    }
+
+    /**
+     * Log at INFO level and conditionally write to stdout in styled JSON format if
+     * stream output is enabled.
+     *
+     * @param obj The object to be styled for stdout.
+     */
+    public styledJSON(obj: any): UX {
+        this.logger.info(obj);
+        if (this.isOutputEnabled) {
+            this.cli.styledJSON(obj);
         }
         return this;
     }
@@ -218,7 +221,7 @@ export class UX extends CLI {
     public styledHeader(header: string): UX {
         this.logger.info(header);
         if (this.isOutputEnabled) {
-            super.styledHeader(header);
+            this.cli.styledHeader(header);
         }
         return this;
     }
