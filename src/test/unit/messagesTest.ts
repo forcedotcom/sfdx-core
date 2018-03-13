@@ -111,6 +111,14 @@ describe('Messages', () => {
             expect(importMessageFileStub.firstCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
             expect(importMessageFileStub.secondCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
         });
+
+        it('should remove the "/lib" from the module dir path if there is not dist', () => {
+            Messages.importMessagesDirectory(messagesDirPath.replace(`${path.sep}dist`, ''));
+            const expectedMsgDirPath = path.join('myModule', 'messages');
+            expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
+            expect(importMessageFileStub.firstCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
+            expect(importMessageFileStub.secondCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
+        });
     });
 
     describe('generateFileLoaderFunction', () => {

@@ -88,7 +88,7 @@ export class ConfigFile extends BaseConfigStore {
         if (!_isBoolean(isGlobal)) {
             throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
         }
-        return isGlobal ? osHomedir() : await SfdxUtil.resolveProjectPathFromCurrentWorkingDirectory();
+        return isGlobal ? osHomedir() : await SfdxUtil.resolveProjectPath();
     }
 
     /**
@@ -251,7 +251,7 @@ export class ConfigFile extends BaseConfigStore {
      * Returns true if this config is using the global path, false otherwise.
      * @returns {boolean}
      */
-    public getIsGlobal(): boolean {
+    public isGlobal(): boolean {
         return this.options.isGlobal;
     }
 

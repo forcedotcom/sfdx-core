@@ -286,18 +286,19 @@ export class SfdxUtil {
     }
 
     /**
-     * Traverses for the sfdx project path from the current working directory.
-     * @throws InvalidProjectWorkspace - If the current folder is not located in a workspace.
+     * Traverses for the sfdx project path.
+     * @param {string} path The path to start traversing from. Defaults to the current working directory.
+     * @throws InvalidProjectWorkspace If the current folder is not located in a workspace.
      * @returns {Promise<string>} The absolute path to the project.
      */
-    public static async resolveProjectPathFromCurrentWorkingDirectory(): Promise<string> {
-        const path = await SfdxUtil.traverseForFile(process.cwd(), SfdxUtil.SFDX_PROJECT_JSON);
+    public static async resolveProjectPath(path: string = process.cwd()): Promise<string> {
+        const projectPath = await SfdxUtil.traverseForFile(path, SfdxUtil.SFDX_PROJECT_JSON);
 
-        if (!path) {
+        if (!projectPath) {
             throw SfdxError.create('sfdx-core', 'config', 'InvalidProjectWorkspace');
         }
 
-        return path;
+        return projectPath;
     }
 
     /**
