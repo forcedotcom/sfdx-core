@@ -64,10 +64,6 @@ export {
 } from './lib/connection';
 
 export {
-    Crypto
-} from './lib/crypto';
-
-export {
     Mode,
     Modes,
     Global
