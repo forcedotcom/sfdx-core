@@ -463,6 +463,9 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
     }
 }
 
+/**
+ * @private
+ */
 export class GenericWindowsKeychainAccess extends GenericKeychainAccess {}
 
 /**

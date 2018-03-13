@@ -99,5 +99,3 @@ export class Connection extends JSForceConnection {
         return cloneDeep(this.authInfo);
     }
 }
-
-export default Connection;

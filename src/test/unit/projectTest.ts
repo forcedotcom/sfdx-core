@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 
 import { SfdxErrorConfig, SfdxError } from '../../lib/sfdxError';
-import Messages from '../../lib/messages';
+import { Messages } from '../../lib/messages';
 import { testSetup } from '../testSetup';
 
 // Setup the test environment.

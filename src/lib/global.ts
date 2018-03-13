@@ -105,5 +105,3 @@ export class Global {
         await SfdxUtil.mkdirp(dirPath, SfdxUtil.DEFAULT_USER_DIR_MODE);
     }
 }
-
-export default Global;

@@ -7,7 +7,7 @@
 
 import * as _ from 'lodash';
 
-import Messages from './messages';
+import { Messages } from './messages';
 import { color } from './ux';
 import { Global, Modes } from './global';
 
@@ -319,5 +319,3 @@ export class SfdxError extends Error {
         return json;
     }
 }
-
-export default SfdxError;
