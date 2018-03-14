@@ -20,9 +20,6 @@ describe('UX', () => {
 
     beforeEach(() => {
         process.env.SFDX_ENV = 'test';
-        $$.SANDBOX.spy(console, 'error');
-        $$.SANDBOX.spy(console, 'log');
-        $$.SANDBOX.spy(process.stdout, 'write');
     });
 
     afterEach(() => {
@@ -76,7 +73,7 @@ describe('UX', () => {
 
     it('errorJson() should log to the logger (logLevel = error) and stderr', () => {
         $$.SANDBOX.stub($$.TEST_LOGGER, 'error');
-        $$.SANDBOX.stub(cli, 'error');
+        $$.SANDBOX.stub(console, 'error');
         const ux = new UX($$.TEST_LOGGER, true, cli);
         const logMsg = { key1: 'foo', key2: 9, key3: true, key4: [1, 2, 3] };
 
@@ -84,12 +81,13 @@ describe('UX', () => {
 
         expect($$.TEST_LOGGER.error['called']).to.be.true;
         expect($$.TEST_LOGGER.error['firstCall'].args[0]).to.equal(JSON.stringify(logMsg, null, 4));
-        expect(cli.error['called']).to.be.true;
+        expect(console.error['called']).to.be.true;
+        expect(console.error['firstCall'].args[0]).to.equal(JSON.stringify(logMsg, null, 4));
     });
 
     it('error() should only log to the logger (logLevel = error) when output IS NOT enabled', () => {
         $$.SANDBOX.stub($$.TEST_LOGGER, 'error');
-        $$.SANDBOX.stub(cli, 'error');
+        $$.SANDBOX.stub(console, 'error');
         const ux = new UX($$.TEST_LOGGER, false, cli);
         const logMsg = 'test error() 1 for log wrapper';
 
@@ -97,12 +95,12 @@ describe('UX', () => {
 
         expect($$.TEST_LOGGER.error['called']).to.be.true;
         expect($$.TEST_LOGGER.error['firstCall'].args[0]).to.equal(logMsg);
-        expect(cli.error['called']).to.be.false;
+        expect(console.error['called']).to.be.false;
     });
 
     it('error() should log to the logger (logLevel = error) and stderr when output IS enabled', () => {
         $$.SANDBOX.stub($$.TEST_LOGGER, 'error');
-        $$.SANDBOX.stub(cli, 'error');
+        $$.SANDBOX.stub(console, 'error');
         const ux = new UX($$.TEST_LOGGER, true, cli);
         const logMsg = 'test error() 2 for log wrapper\n';
 
@@ -110,7 +108,8 @@ describe('UX', () => {
 
         expect($$.TEST_LOGGER.error['called']).to.be.true;
         expect($$.TEST_LOGGER.error['firstCall'].args[0]).to.equal(logMsg);
-        expect(cli.error['called']).to.be.true;
+        expect(console.error['called']).to.be.true;
+        expect(console.error['firstCall'].args[0]).to.equal(logMsg);
     });
 
     it('styledObject() should only log to the logger when output IS NOT enabled', () => {
