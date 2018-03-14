@@ -150,7 +150,8 @@ export const testSetup = once((sandbox?) => {
     }
 
     // Import all the messages files in the sfdx-core messages dir.
-    Messages.importMessagesDirectory(pathJoin(__dirname, '..', '..'));
+    // Messages.importMessagesDirectory(pathJoin(__dirname, '..', '..'));
+    Messages.importMessagesDirectory(pathJoin(__dirname));
     // Create a global sinon sandbox and a test logger instance for use within tests.
     const defaultSandbox = sandbox.create();
     const testContext: TestContext = {

@@ -146,20 +146,24 @@ export class Messages {
      * Messages.importMessagesDirectory(__dirname);
      *
      * @param {string} moduleDirectoryPath The path to load the messages folder.
-     * @param {boolean} hasDistFolder Will remove everything after the last "/dist" from the folder path.
+     * @param {boolean} truncatePathBasedOnFolders Will remove everything after the last "/dist" or "/src" from the folder path.
      * i.e., the module is typescript and the messages folder is in the top level of the module directory.
      * @param {string} packageName The npm package name. Figured out from the root directory's package.json.
      */
-    public static importMessagesDirectory(moduleDirectoryPath: string, hasDistFolder: boolean = true, packageName?: string): void {
+    public static importMessagesDirectory(moduleDirectoryPath: string, truncatePathBasedOnFolders: boolean = true, packageName?: string): void {
         let moduleMessagesDirPath = moduleDirectoryPath;
 
-        if (hasDistFolder) {
+        if (truncatePathBasedOnFolders) {
             const parts: string[] = moduleDirectoryPath.split(path.sep);
             let index: number = parts.lastIndexOf('dist');
 
             if (index < 0) {
+                index = parts.lastIndexOf('src');
+            }
+            if (index < 0) {
                 index = parts.lastIndexOf('lib');
             }
+
             moduleMessagesDirPath = index !== -1 ? parts.slice(0, index).join(path.sep) : moduleDirectoryPath;
         }
 
