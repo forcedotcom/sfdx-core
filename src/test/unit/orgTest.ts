@@ -142,7 +142,6 @@ describe('Org Tests', () => {
         });
 
         it('should create a default devhub org', async () => {
-
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
             await config.set(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, testData.username);
             await config.write();
@@ -176,7 +175,7 @@ describe('Org Tests', () => {
         });
     });
 
-    describe('cleanData', () => {
+    describe('cleanLocalOrgData', () => {
         describe('mock remove', () => {
             let removePath = '';
             let removeStub;
@@ -194,14 +193,12 @@ describe('Org Tests', () => {
                 expect(removeStub.callCount).to.be.equal(0);
                 await org.cleanLocalOrgData();
                 expect(removeStub.callCount).to.be.equal(1);
-
-                // expect(removePath).to.include(pathJoin(Global.STATE_FOLDER, OrgUsersConfig.ORGS_FOLDER_NAME));
             });
         });
 
         it('InvalidProjectWorkspace', async () => {
             $$.SANDBOXES.CONFIG.restore();
-            const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanData');
+            const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanLocalOrgData');
             let invalidProjectWorkspace = false;
             $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
@@ -221,7 +218,7 @@ describe('Org Tests', () => {
 
         it('Random Error', async () => {
             $$.SANDBOXES.CONFIG.restore();
-            const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanData');
+            const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanLocalOrgData');
             $$.SANDBOX.stub(SfdxConfig, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
                     const err = new Error();
@@ -343,10 +340,12 @@ describe('Org Tests', () => {
 
             const orgIdUser: string = 'p.venkman@gb.org';
             const addedUser: string = 'winston@gb.org';
+            const accessTokenUser: string = 'ltully@gb.org';
 
             const users = [
                 new MockTestOrgData().createUser(orgIdUser),
-                new MockTestOrgData().createUser(addedUser)
+                new MockTestOrgData().createUser(addedUser),
+                new MockTestOrgData().createUser(accessTokenUser)
             ];
 
             $$.SANDBOXES.CONFIG.restore();
@@ -374,7 +373,7 @@ describe('Org Tests', () => {
                     clientId: user.clientId,
                     clientSecret: user.clientSecret,
                     loginUrl: user.loginUrl
-                });
+                } , user.username === accessTokenUser);
 
                 await userAuth.save( {orgId: user.orgId});
 
@@ -423,9 +422,7 @@ describe('Org Tests', () => {
         });
 
         it('should not try to delete auth files when deleting an org via access token', async () => {
-            orgs[0].getConnection().getAuthInfo().setIsUsingAccessToken(true);
-
-            await orgs[0].remove();
+            await orgs[2].remove();
 
             const user0Config: OrgUsersConfig = await orgs[0].retrieveOrgUsersConfig();
             const user1Config: OrgUsersConfig = await orgs[1].retrieveOrgUsersConfig();
