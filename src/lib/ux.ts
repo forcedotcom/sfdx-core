@@ -5,6 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/**
+ * A table option configuration type that can be the TableOptions as defined by
+ * [oclif/cli-ux](https://github.com/oclif/cli-ux/blob/master/src/styled/table.ts) or a string array of table keys to be used as table headers
+ * for simple tables.
+ * @typedef {object} SfdxTableOptions
+ * @property {TableOptions | string[]} options
+ */
+
 import { Logger, LoggerLevel } from './logger';
 import { TableOptions, TableColumn } from 'cli-ux/lib/styled/table';
 import * as _ from 'lodash';
@@ -38,13 +46,16 @@ export const color = new Proxy(chalk, {
  */
 export class UX {
 
-    // Collection of warnings that can be accessed and manipulated later.
+    /**
+     * Collection of warnings that can be accessed and manipulated later.
+     * @type {Set<string>}
+     */
     public static warnings: Set<string> = new Set<string>();
 
     /**
      * Formats a deprecation warning for display to `stderr`, `stdout`, and/or logs.
      *
-     * @param def The definition for the deprecated object.
+     * @param {DeprecationDefinition} def The definition for the deprecated object.
      * @returns {string} The formatted deprecation message.
      */
     public static formatDeprecationWarning(def: DeprecationDefinition): string {
@@ -80,6 +91,7 @@ export class UX {
     /**
      * Logs at `INFO` level and conditionally writes to `stdout` if stream output is enabled.
      *
+     * @param {...any[]} args The messages or objects to log.
      * @returns {UX}
      */
     public log(...args: any[]): UX {
@@ -96,7 +108,7 @@ export class UX {
     /**
      * Log JSON to stdout and to the log file with log level info.
      *
-     * @param obj The object to log -- must be serializable as JSON.
+     * @param {object} obj The object to log -- must be serializable as JSON.
      * @returns {UX}
      * @throws {TypeError} If the object is not JSON-serializable.
      */
@@ -115,7 +127,7 @@ export class UX {
      * to the static {@link UX.warnings} set if stream output is _not_ enabled, for later
      * consumption and manipulation.
      *
-     * @param message The warning message to output.
+     * @param {string} message The warning message to output.
      * @returns {UX}
      * @see UX.warnings
      */
@@ -140,6 +152,7 @@ export class UX {
      * Logs an error at `ERROR` level and conditionally writes to `stderr` if stream
      * output is enabled.
      *
+     * @param {...any[]} args The errors to log.
      * @returns {UX}
      */
     public error(...args: any[]): UX {
@@ -155,7 +168,7 @@ export class UX {
     /**
      * Logs an object as JSON at `ERROR` level and to `stderr`.
      *
-     * @param obj The error object to log -- must be serializable as JSON.
+     * @param {object} obj The error object to log -- must be serializable as JSON.
      * @returns {UX}
      * @throws {TypeError} If the object is not JSON-serializable.
      */
@@ -170,12 +183,13 @@ export class UX {
      * Logs at `INFO` level and conditionally writes to `stdout` in a table format if
      * stream output is enabled.
      *
-     * @param rows The rows of data to be output in table format.
-     * @param options The table options to use for formatting.
+     * @param {object[]} rows The rows of data to be output in table format.
+     * @param {Partial<SfdxTableOptions>} options The {@link SfdxTableOptions} to use for formatting.
      * @returns {UX}
      */
     public table(rows: any[], options: Partial<SfdxTableOptions> = {}): UX {
         if (this.isOutputEnabled) {
+            options = (_.isArray(options) ? { columns: options } : options) as Partial<TableOptions>;
             const columns = _.get(options, 'columns');
             if (columns) {
                 const _columns: Array<Partial<TableColumn>> = [];
@@ -205,11 +219,11 @@ export class UX {
      * Logs at `INFO` level and conditionally writes to `stdout` in a styled object format if
      * stream output is enabled.
      *
-     * @param obj The object to be styled for stdout.
-     * @param keys The object keys to be written to stdout.
+     * @param {object} obj The object to be styled for stdout.
+     * @param {string[]} [keys] The object keys to be written to stdout.
      * @returns {UX}
      */
-    public styledObject(obj: any, keys?: string[]): UX {
+    public styledObject(obj: object, keys?: string[]): UX {
         this.logger.info(obj);
         if (this.isOutputEnabled) {
             this.cli.styledObject(obj, keys);
@@ -221,9 +235,9 @@ export class UX {
      * Log at `INFO` level and conditionally write to `stdout` in styled JSON format if
      * stream output is enabled.
      *
-     * @param obj The object to be styled for stdout.
+     * @param {object} obj The object to be styled for stdout.
      */
-    public styledJSON(obj: any): UX {
+    public styledJSON(obj: object): UX {
         this.logger.info(obj);
         if (this.isOutputEnabled) {
             this.cli.styledJSON(obj);
@@ -235,7 +249,7 @@ export class UX {
      * Logs at `INFO` level and conditionally writes to `stdout` in a styled header format if
      * stream output is enabled.
      *
-     * @param header The header to be styled.
+     * @param {string} header The header to be styled.
      * @returns {UX}
      */
     public styledHeader(header: string): UX {
@@ -252,19 +266,7 @@ export class UX {
  * more simply just a string array in the simple cases where table header values
  * are the only desired config option.
  */
-// This is mostly a copy of cli-ux/table TableOptions except that it's more flexible
-// (and probably a bit too flexible) with table columns.
-export type SfdxTableOptions = {
-    columns: Array<Partial<TableColumn>>
-    colSep: string
-    after: (row: any[], options: TableOptions) => void
-    printLine: (row: any[]) => void
-    printRow: (row: any[]) => void
-    printHeader: (row: any[]) => void
-    headerAnsi: any
-} | {
-    columns: string[]
-};
+export type SfdxTableOptions = TableOptions | string[];
 
 /**
  * A deprecation warning message configuration type.  A typical instance can pass `name`,
