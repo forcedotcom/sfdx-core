@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CLI } from 'cli-ux';
 import { Logger, LoggerLevel } from './logger';
-import { TableOptions, TableColumn } from 'cli-ux/lib/table';
+import { TableOptions, TableColumn } from 'cli-ux/lib/styled/table';
 import * as _ from 'lodash';
 import chalk from 'chalk';
 
@@ -35,20 +34,18 @@ export const color = new Proxy(chalk, {
 });
 
 /**
- * A helper class for interacting with the shell
- *
- * @extends cli-ux
+ * Utilities for interacting with terminal I/O.
  */
-export class UX extends CLI {
+export class UX {
 
     // Collection of warnings that can be accessed and manipulated later.
     public static warnings: Set<string> = new Set<string>();
 
     /**
-     * Formats a deprecation warning for display to stderr, stdout, and/or logs.
+     * Formats a deprecation warning for display to `stderr`, `stdout`, and/or logs.
      *
      * @param def The definition for the deprecated object.
-     * @returns {string} the formatted deprecation message.
+     * @returns {string} The formatted deprecation message.
      */
     public static formatDeprecationWarning(def: DeprecationDefinition): string {
         let msg = def.messageOverride || `The ${def.type} "${def.name}" has been deprecated and will be removed in v${(def.version + 1)}.0 or later.`;
@@ -62,40 +59,36 @@ export class UX extends CLI {
     }
 
     /**
-     * Create a UX instance.
-     * @returns {Promise<UX>} The UX instance.
+     * Create a `UX` instance.
+     *
+     * @returns {Promise<UX>} A `Promise` of the created `UX` instance.
      */
     public static async create(): Promise<UX> {
         return new UX(await Logger.child('UX'));
     }
 
-    constructor(private logger: Logger, private isOutputEnabled: boolean = true) {
-        super();
+    // The oclif/cli-ux
+    public cli;
+
+    /**
+     * Do not directly construct instances of this class -- use {@link UX.create} instead.
+     */
+    constructor(private logger: Logger, private isOutputEnabled: boolean = true, cli?) {
+        this.cli = cli || require('cli-ux').cli;
     }
 
     /**
-     * Logs at INFO level and conditionally writes to stdout if stream output is enabled.
+     * Logs at `INFO` level and conditionally writes to `stdout` if stream output is enabled.
+     *
+     * @returns {UX}
      */
-    public log(data?: string, ...args: any[]): UX {
+    public log(...args: any[]): UX {
         if (this.isOutputEnabled) {
-            super.log(data, ...args);
+            this.cli.log(...args);
         }
 
         // log to sfdx.log after the console as log filtering mutates the args.
-        this.logger.info(data, ...args);
-
-        return this;
-    }
-
-    /**
-     *  Go directly to stdout. Useful when wanting to write to the same line.
-     */
-    public logRaw(...args: any[]): UX {
         this.logger.info(...args);
-
-        if (this.isOutputEnabled) {
-            this.stdout.write(...args);
-        }
 
         return this;
     }
@@ -103,10 +96,12 @@ export class UX extends CLI {
     /**
      * Log JSON to stdout and to the log file with log level info.
      *
-     * @param obj The object to log.
+     * @param obj The object to log -- must be serializable as JSON.
+     * @returns {UX}
+     * @throws {TypeError} If the object is not JSON-serializable.
      */
-    public logJson(obj: any): UX {
-        this.styledJSON(obj);
+    public logJson(obj: object): UX {
+        this.cli.styledJSON(obj);
 
         // log to sfdx.log after the console as log filtering mutates the args.
         this.logger.info(obj);
@@ -115,12 +110,14 @@ export class UX extends CLI {
     }
 
     /**
-     * Log a warning and conditionally write to stderr if the log level is
-     * WARNING or above and stream output is enabled.  The message is added
-     * to a static warnings Set if stream output is not enabled for later
-     * consumption and manipulation.  @see SfdxUX.warnings
+     * Logs a warning as `WARN` level and conditionally writes to `stderr` if the log
+     * level is `WARN` or above and stream output is enabled.  The message is added
+     * to the static {@link UX.warnings} set if stream output is _not_ enabled, for later
+     * consumption and manipulation.
      *
      * @param message The warning message to output.
+     * @returns {UX}
+     * @see UX.warnings
      */
     public warn(message: string): UX {
         const warning: string = color.yellow('WARNING:');
@@ -132,48 +129,58 @@ export class UX extends CLI {
             if (!this.isOutputEnabled) {
                 UX.warnings.add(message);
             } else {
-                this.stderr.log(warning + message);
+                this.cli.warn(warning + message);
             }
         }
+
         return this;
     }
 
     /**
-     * Log an error and conditionally write to stderr if stream output is enabled.
-     */
-    public error(...args: any[]) {
-        if (this.isOutputEnabled) {
-            this.stderr.log(...args);
-        }
-        return this.logger.error(...args);
-    }
-
-    /**
-     * Log JSON to stderr and to the log file with log level error.
+     * Logs an error at `ERROR` level and conditionally writes to `stderr` if stream
+     * output is enabled.
      *
-     * @param obj The error object to log.
+     * @returns {UX}
      */
-    public errorJson(obj: any) {
-        const err = JSON.stringify(obj, null, 4);
-        this.stderr.log(err);
-        return this.logger.error(err);
+    public error(...args: any[]): UX {
+        if (this.isOutputEnabled) {
+            console.error(...args);
+        }
+
+        this.logger.error(...args);
+
+        return this;
     }
 
     /**
-     * Log at INFO level and conditionally write to stdout in a table format if
+     * Logs an object as JSON at `ERROR` level and to `stderr`.
+     *
+     * @param obj The error object to log -- must be serializable as JSON.
+     * @returns {UX}
+     * @throws {TypeError} If the object is not JSON-serializable.
+     */
+    public errorJson(obj: object): UX {
+        const err = JSON.stringify(obj, null, 4);
+        console.error(err);
+        this.logger.error(err);
+        return this;
+    }
+
+    /**
+     * Logs at `INFO` level and conditionally writes to `stdout` in a table format if
      * stream output is enabled.
      *
-     * @param data The data to be output in table format.
+     * @param rows The rows of data to be output in table format.
      * @param options The table options to use for formatting.
+     * @returns {UX}
      */
-    public table(data: any[], options: Partial<SfdxTableOptions> = {}): UX {
+    public table(rows: any[], options: Partial<SfdxTableOptions> = {}): UX {
         if (this.isOutputEnabled) {
             const columns = _.get(options, 'columns');
             if (columns) {
                 const _columns: Array<Partial<TableColumn>> = [];
                 // Unfortunately, have to use _.forEach rather than _.map here because lodash typings
                 // don't like the possibility of 2 different iterator types.
-                // tslint:disable-next-line:no-unused-expression
                 _.forEach(columns, (col) => {
                     if (_.isString(col)) {
                         _columns.push({ key: col, label: _.toUpper(col) } as Partial<TableColumn>);
@@ -182,54 +189,71 @@ export class UX extends CLI {
                         // if already defined for the column config.
                         _columns.push(Object.assign({ label: _.toUpper(col['key']) }, col) as Partial<TableColumn>);
                     }
-                }) as Array<Partial<TableColumn>>;
+                });
                 options.columns = _columns as Array<Partial<TableColumn>>;
             }
-            super.table(data, options as Partial<TableOptions>);
+            this.cli.table(rows, options as Partial<TableOptions>);
         }
 
         // Log after table output as log filtering mutates data.
-        this.logger.info(data);
+        this.logger.info(rows);
 
         return this;
     }
 
     /**
-     * Log at INFO level and conditionally write to stdout in styled object format if
+     * Logs at `INFO` level and conditionally writes to `stdout` in a styled object format if
      * stream output is enabled.
      *
      * @param obj The object to be styled for stdout.
      * @param keys The object keys to be written to stdout.
+     * @returns {UX}
      */
     public styledObject(obj: any, keys?: string[]): UX {
         this.logger.info(obj);
         if (this.isOutputEnabled) {
-            super.styledObject(obj, keys);
+            this.cli.styledObject(obj, keys);
         }
         return this;
     }
 
     /**
-     * Log at INFO level and conditionally write to stdout in styled header format if
+     * Log at `INFO` level and conditionally write to `stdout` in styled JSON format if
+     * stream output is enabled.
+     *
+     * @param obj The object to be styled for stdout.
+     */
+    public styledJSON(obj: any): UX {
+        this.logger.info(obj);
+        if (this.isOutputEnabled) {
+            this.cli.styledJSON(obj);
+        }
+        return this;
+    }
+
+    /**
+     * Logs at `INFO` level and conditionally writes to `stdout` in a styled header format if
      * stream output is enabled.
      *
      * @param header The header to be styled.
+     * @returns {UX}
      */
     public styledHeader(header: string): UX {
         this.logger.info(header);
         if (this.isOutputEnabled) {
-            super.styledHeader(header);
+            this.cli.styledHeader(header);
         }
         return this;
     }
 }
 
 /**
- * Type to configure table options.  This is mostly a copy of cli-ux/table TableOptions
- * except that it's more flexible (and probably a bit too flexible) with table columns.
- * It also accepts just a string array in the simple cases where table header values
+ * A table option configuration type.  May be a detailed configuration, or
+ * more simply just a string array in the simple cases where table header values
  * are the only desired config option.
  */
+// This is mostly a copy of cli-ux/table TableOptions except that it's more flexible
+// (and probably a bit too flexible) with table columns.
 export type SfdxTableOptions = {
     columns: Array<Partial<TableColumn>>
     colSep: string
@@ -241,9 +265,10 @@ export type SfdxTableOptions = {
 } | {
     columns: string[]
 };
+
 /**
- * Type to configure a deprecation warning message.  A typical config can pass name,
- * type, and version for a standard message.  Alternatively, the messageOverride can
+ * A deprecation warning message configuration type.  A typical instance can pass `name`,
+ * `type`, and `version` for a standard message.  Alternatively, the `messageOverride` can
  * be used as a special case deprecated message.
  */
 export type DeprecationDefinition = {
