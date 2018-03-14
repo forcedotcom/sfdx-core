@@ -39,7 +39,7 @@ export const color = new Proxy(chalk, {
 export class UX {
 
     // Collection of warnings that can be accessed and manipulated later.
-    public static warnings = new Set<string>();
+    public static warnings: Set<string> = new Set<string>();
 
     /**
      * Formats a deprecation warning for display to `stderr`, `stdout`, and/or logs.
@@ -47,7 +47,7 @@ export class UX {
      * @param def The definition for the deprecated object.
      * @returns {string} The formatted deprecation message.
      */
-    public static formatDeprecationWarning(def: DeprecationDefinition) {
+    public static formatDeprecationWarning(def: DeprecationDefinition): string {
         let msg = def.messageOverride || `The ${def.type} "${def.name}" has been deprecated and will be removed in v${(def.version + 1)}.0 or later.`;
         if (def.to) {
             msg += ` Use "${def.to}" instead.`;
@@ -63,7 +63,7 @@ export class UX {
      *
      * @returns {Promise<UX>} A `Promise` of the created `UX` instance.
      */
-    public static async create() {
+    public static async create(): Promise<UX> {
         return new UX(await Logger.child('UX'));
     }
 
@@ -82,7 +82,7 @@ export class UX {
      *
      * @returns {UX}
      */
-    public log(...args: any[]) {
+    public log(...args: any[]): UX {
         if (this.isOutputEnabled) {
             this.cli.log(...args);
         }
@@ -119,7 +119,7 @@ export class UX {
      * @returns {UX}
      * @see UX.warnings
      */
-    public warn(message: string) {
+    public warn(message: string): UX {
         const warning: string = color.yellow('WARNING:');
 
         // Necessarily log to sfdx.log.
@@ -142,7 +142,7 @@ export class UX {
      *
      * @returns {UX}
      */
-    public error(...args: any[]) {
+    public error(...args: any[]): UX {
         if (this.isOutputEnabled) {
             console.error(...args);
         }
@@ -159,7 +159,7 @@ export class UX {
      * @returns {UX}
      * @throws {TypeError} If the object is not JSON-serializable.
      */
-    public errorJson(obj: object) {
+    public errorJson(obj: object): UX {
         const err = JSON.stringify(obj, null, 4);
         console.error(err);
         this.logger.error(err);
@@ -174,7 +174,7 @@ export class UX {
      * @param options The table options to use for formatting.
      * @returns {UX}
      */
-    public table(rows: any[], options: Partial<SfdxTableOptions> = {}) {
+    public table(rows: any[], options: Partial<SfdxTableOptions> = {}): UX {
         if (this.isOutputEnabled) {
             const columns = _.get(options, 'columns');
             if (columns) {
@@ -209,7 +209,7 @@ export class UX {
      * @param keys The object keys to be written to stdout.
      * @returns {UX}
      */
-    public styledObject(obj: any, keys?: string[]) {
+    public styledObject(obj: any, keys?: string[]): UX {
         this.logger.info(obj);
         if (this.isOutputEnabled) {
             this.cli.styledObject(obj, keys);
@@ -238,7 +238,7 @@ export class UX {
      * @param header The header to be styled.
      * @returns {UX}
      */
-    public styledHeader(header: string) {
+    public styledHeader(header: string): UX {
         this.logger.info(header);
         if (this.isOutputEnabled) {
             this.cli.styledHeader(header);
