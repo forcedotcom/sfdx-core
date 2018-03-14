@@ -276,6 +276,8 @@ export class AuthInfo {
     // All sensitive fields are encrypted
     private fields: Partial<AuthFields> = {};
 
+    private usingAccessToken: boolean;
+
     private logger: Logger;
 
     constructor(username: string) {
@@ -460,6 +462,24 @@ export class AuthInfo {
 
     public getFields(): Partial<AuthFields> {
         return this.fields;
+    }
+
+    /**
+     * Sets an indicator if this org is using access token authentication.
+     * @param {boolean} value Return true if this org should us access token authentication. False otherwise.
+     * @returns {Org} For convenience this object is returned.
+     */
+    public setIsUsingAccessToken(isUsingAccessToken: boolean): AuthInfo {
+        this.usingAccessToken = isUsingAccessToken;
+        return this;
+    }
+
+    /**
+     * Returns true if this org is using access token auth.
+     * @returns {boolean}
+     */
+    public isUsingAccessToken(): boolean {
+        return this.usingAccessToken;
     }
 
     // A callback function for a connection to refresh an access token.  This is used

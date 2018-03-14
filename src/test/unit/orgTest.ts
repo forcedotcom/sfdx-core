@@ -155,7 +155,7 @@ describe('Org Tests', () => {
 
         it('should expose getUsername', async () => {
             const org: Org = await Org.create(testData.username);
-            expect(org.getUsername()).to.eq(testData.username);
+            expect(org.getSignupUsername()).to.eq(testData.username);
         });
 
         it('should expose getOrgId', async () => {
@@ -176,80 +176,6 @@ describe('Org Tests', () => {
         });
     });
 
-    describe('computeAndUpdateStatusForMetaConfig', () => {
-
-        it('Missing status', async () => {
-
-            const testDevHubMockData: MockTestOrgData = new MockTestOrgData();
-            const testOrgMockData: MockTestOrgData = new MockTestOrgData();
-
-            const retrieve = async function() {
-                if (this.path.includes(testDevHubMockData.username)) {
-                    return Promise.resolve(await testDevHubMockData.getConfig());
-                } else {
-                    testOrgMockData.createDevHubUsername(testDevHubMockData.username);
-                    return Promise.resolve(testOrgMockData.getConfig());
-                }
-            };
-            $$.configStubs['AuthInfoConfig'] = {
-                retrieveContents: retrieve
-            };
-
-            const devHubMeta: OrgMetaInfo = {
-                info: await AuthInfo.create(testDevHubMockData.username),
-                devHubMissing: false,
-                expired: false
-            };
-
-            const scratchOrgMeta: OrgMetaInfo = {
-                info: await AuthInfo.create(testOrgMockData.username),
-                devHubMissing: true,
-                expired: false
-            };
-
-            const devHubMetaMap: Map<string, OrgMetaInfo> = new Map();
-            devHubMetaMap.set(testDevHubMockData.username, devHubMeta);
-
-            const org: Org = await Org.create(await Connection.create(scratchOrgMeta.info));
-            org.computeAndUpdateStatusFromMetaInfo(scratchOrgMeta, devHubMetaMap);
-            expect(org).to.have.property('status', OrgStatus.MISSING);
-        });
-
-        it('Unknown status', async () => {
-            const testOrgData: MockTestOrgData = new MockTestOrgData();
-            const testDevHubData: MockTestOrgData = new MockTestOrgData();
-
-            const retrieve = async function() {
-                if (this.path.includes(testDevHubData)) {
-                    return Promise.resolve(await testDevHubData.getConfig());
-                } else {
-                    return Promise.resolve(testOrgData.getConfig());
-                }
-            };
-            $$.configStubs['AuthInfoConfig'] = {
-                retrieveContents: retrieve
-            };
-
-            const scratchOrgMeta: OrgMetaInfo = {
-                info: await AuthInfo.create(testOrgData.username),
-                devHubMissing: true,
-                expired: false
-            };
-
-            const devHubMetaMap: Map<string, OrgMetaInfo> = new Map();
-            const devHubMeta: OrgMetaInfo = {
-                info: await AuthInfo.create(testDevHubData.username),
-                devHubMissing: false,
-                expired: false
-            };
-            devHubMetaMap.set(testDevHubData.username, devHubMeta);
-
-            const org: Org = await Org.create(await Connection.create(scratchOrgMeta.info));
-            org.computeAndUpdateStatusFromMetaInfo(scratchOrgMeta, devHubMetaMap);
-            expect(org).to.have.property('status', OrgStatus.UNKNOWN);
-        });
-    });
-
     describe('cleanData', () => {
         describe('mock remove', () => {
             let removePath = '';
@@ -266,7 +192,7 @@ describe('Org Tests', () => {
                     await Connection.create(await AuthInfo.create(testData.username)));
 
                 expect(removeStub.callCount).to.be.equal(0);
-                await org.cleanData();
+                await org.cleanLocalOrgData();
                 expect(removeStub.callCount).to.be.equal(1);
 
                 // expect(removePath).to.include(pathJoin(Global.STATE_FOLDER, OrgUsersConfig.ORGS_FOLDER_NAME));
@@ -289,7 +215,7 @@ describe('Org Tests', () => {
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
-            await org.cleanData(orgDataPath);
+            await org.cleanLocalOrgData(orgDataPath);
             expect(invalidProjectWorkspace).to.be.equal(true);
         });
 
@@ -308,7 +234,7 @@ describe('Org Tests', () => {
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
             try {
-                await org.cleanData(orgDataPath);
+                await org.cleanLocalOrgData(orgDataPath);
                 assert.fail('This should have failed');
             } catch (e) {
                 expect(e).to.have.property('name', 'gozer');
@@ -497,7 +423,7 @@ describe('Org Tests', () => {
         });
 
         it('should not try to delete auth files when deleting an org via access token', async () => {
-            orgs[0].setUsingAccessToken(true);
+            orgs[0].getConnection().getAuthInfo().setIsUsingAccessToken(true);
 
             await orgs[0].remove();
 
