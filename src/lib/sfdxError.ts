@@ -297,11 +297,11 @@ export class SfdxError extends Error {
     }
 
     /**
-     * Convert an error objects state to JSON.
-     * @returns {string} - A JSON formatted string representing the state of this error.
+     * Convert an SfdxError's state to an object.
+     * @returns {object} - A plain object representing the state of this error.
      */
-    public toJson(): string {
-        const json: any = {
+    public toObject(): object {
+        const obj: any = {
             name: this.name,
             message: this.message || this.name,
             exitCode: this.exitCode,
@@ -309,13 +309,13 @@ export class SfdxError extends Error {
         };
 
         if (this.commandName) {
-            json.commandName = this.commandName;
+            obj.commandName = this.commandName;
         }
 
         if (this.data) {
-            json.data = this.data;
+            obj.data = this.data;
         }
 
-        return json;
+        return obj;
     }
 }
