@@ -141,7 +141,7 @@ export class UX {
             if (!this.isOutputEnabled) {
                 UX.warnings.add(message);
             } else {
-                this.cli.warn(warning + message);
+                console.warn(`${warning} ${message}`);
             }
         }
 

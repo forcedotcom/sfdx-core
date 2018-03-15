@@ -299,7 +299,7 @@ describe('UX', () => {
         it('warn() should only log to the logger when logLevel > WARN', () => {
             $$.TEST_LOGGER.setLevel('error');
             $$.SANDBOX.stub($$.TEST_LOGGER, 'warn');
-            $$.SANDBOX.stub(cli, 'warn');
+            $$.SANDBOX.stub(console, 'warn');
             const ux = new UX($$.TEST_LOGGER, false, cli);
             const logMsg = 'test warn() 1 for log wrapper';
 
@@ -308,7 +308,7 @@ describe('UX', () => {
             expect($$.TEST_LOGGER.warn['called']).to.be.true;
             expect($$.TEST_LOGGER.warn['firstCall'].args[0]).to.equal('WARNING:');
             expect($$.TEST_LOGGER.warn['firstCall'].args[1]).to.equal(logMsg);
-            expect(cli.warn['called']).to.be.false;
+            expect(console.warn['called']).to.be.false;
             expect(UX.warnings.size).to.equal(0);
             expect(ux1).to.equal(ux);
         });
@@ -316,7 +316,7 @@ describe('UX', () => {
         it('warn() should log to the logger and stderr when logLevel <= WARN and output enabled', () => {
             $$.TEST_LOGGER.setLevel('warn');
             $$.SANDBOX.stub($$.TEST_LOGGER, 'warn');
-            $$.SANDBOX.stub(cli, 'warn');
+            $$.SANDBOX.stub(console, 'warn');
             const ux = new UX($$.TEST_LOGGER, true, cli);
             const logMsg = 'test warn() 1 for log wrapper\n';
 
@@ -325,7 +325,7 @@ describe('UX', () => {
             expect($$.TEST_LOGGER.warn['called']).to.be.true;
             expect($$.TEST_LOGGER.warn['firstCall'].args[0]).to.equal('WARNING:');
             expect($$.TEST_LOGGER.warn['firstCall'].args[1]).to.equal(logMsg);
-            expect(cli.warn['called']).to.be.true;
+            expect(console.warn['called']).to.be.true;
             expect(UX.warnings.size).to.equal(0);
             expect(ux1).to.equal(ux);
         });
@@ -333,7 +333,7 @@ describe('UX', () => {
         it('warn() should log to the logger and add to warnings Set when logLevel <= WARN and output NOT enabled', () => {
             $$.TEST_LOGGER.setLevel('warn');
             $$.SANDBOX.stub($$.TEST_LOGGER, 'warn');
-            $$.SANDBOX.stub(cli, 'warn');
+            $$.SANDBOX.stub(console, 'warn');
             const ux = new UX($$.TEST_LOGGER, false, cli);
             const logMsg = 'test warn() 1 for log wrapper';
 
@@ -342,7 +342,7 @@ describe('UX', () => {
             expect($$.TEST_LOGGER.warn['called']).to.be.true;
             expect($$.TEST_LOGGER.warn['firstCall'].args[0]).to.equal('WARNING:');
             expect($$.TEST_LOGGER.warn['firstCall'].args[1]).to.equal(logMsg);
-            expect(cli.warn['called']).to.be.false;
+            expect(console.warn['called']).to.be.false;
             expect(UX.warnings.size).to.equal(1);
             expect(Array.from(UX.warnings)[0]).to.equal(logMsg);
             expect(ux1).to.equal(ux);
