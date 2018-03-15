@@ -142,7 +142,6 @@ describe('Org Tests', () => {
         });
 
         it('should create a default devhub org', async () => {
-
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
             await config.set(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, testData.username);
             await config.write();
@@ -176,81 +175,7 @@ describe('Org Tests', () => {
         });
     });
 
-    describe('computeAndUpdateStatusForMetaConfig', () => {
-
-        it('Missing status', async () => {
-
-            const testDevHubMockData: MockTestOrgData = new MockTestOrgData();
-            const testOrgMockData: MockTestOrgData = new MockTestOrgData();
-
-            const retrieve = async function() {
-                if (this.path.includes(testDevHubMockData.username)) {
-                    return Promise.resolve(await testDevHubMockData.getConfig());
-                } else {
-                    testOrgMockData.createDevHubUsername(testDevHubMockData.username);
-                    return Promise.resolve(testOrgMockData.getConfig());
-                }
-            };
-            $$.configStubs['AuthInfoConfig'] = {
-                retrieveContents: retrieve
-            };
-
-            const devHubMeta: OrgMetaInfo = {
-                info: await AuthInfo.create(testDevHubMockData.username),
-                devHubMissing: false,
-                expired: false
-            };
-
-            const scratchOrgMeta: OrgMetaInfo = {
-                info: await AuthInfo.create(testOrgMockData.username),
-                devHubMissing: true,
-                expired: false
-            };
-
-            const devHubMetaMap: Map<string, OrgMetaInfo> = new Map();
-            devHubMetaMap.set(testDevHubMockData.username, devHubMeta);
-
-            const org: Org = await Org.create(await Connection.create(scratchOrgMeta.info));
-            org.computeAndUpdateStatusFromMetaInfo(scratchOrgMeta, devHubMetaMap);
-            expect(org).to.have.property('status', OrgStatus.MISSING);
-        });
-
-        it('Unknown status', async () => {
-            const testOrgData: MockTestOrgData = new MockTestOrgData();
-            const testDevHubData: MockTestOrgData = new MockTestOrgData();
-
-            const retrieve = async function() {
-                if (this.path.includes(testDevHubData)) {
-                    return Promise.resolve(await testDevHubData.getConfig());
-                } else {
-                    return Promise.resolve(testOrgData.getConfig());
-                }
-            };
-            $$.configStubs['AuthInfoConfig'] = {
-                retrieveContents: retrieve
-            };
-
-            const scratchOrgMeta: OrgMetaInfo = {
-                info: await AuthInfo.create(testOrgData.username),
-                devHubMissing: true,
-                expired: false
-            };
-
-            const devHubMetaMap: Map<string, OrgMetaInfo> = new Map();
-            const devHubMeta: OrgMetaInfo = {
-                info: await AuthInfo.create(testDevHubData.username),
-                devHubMissing: false,
-                expired: false
-            };
-            devHubMetaMap.set(testDevHubData.username, devHubMeta);
-
-            const org: Org = await Org.create(await Connection.create(scratchOrgMeta.info));
-            org.computeAndUpdateStatusFromMetaInfo(scratchOrgMeta, devHubMetaMap);
-            expect(org).to.have.property('status', OrgStatus.UNKNOWN);
-        });
-    });
-
-    describe('cleanData', () => {
+    describe('cleanLocalOrgData', () => {
         describe('mock remove', () => {
             let removePath = '';
             let removeStub;
@@ -266,16 +191,14 @@ describe('Org Tests', () => {
                     await Connection.create(await AuthInfo.create(testData.username)));
 
                 expect(removeStub.callCount).to.be.equal(0);
-                await org.cleanData();
+                await org.cleanLocalOrgData();
                 expect(removeStub.callCount).to.be.equal(1);
-
-                // expect(removePath).to.include(pathJoin(Global.STATE_FOLDER, OrgUsersConfig.ORGS_FOLDER_NAME));
             });
         });
 
         it('InvalidProjectWorkspace', async () => {
             $$.SANDBOXES.CONFIG.restore();
-            const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanData');
+            const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanLocalOrgData');
             let invalidProjectWorkspace = false;
             $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
@@ -289,13 +212,13 @@ describe('Org Tests', () => {
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
-            await org.cleanData(orgDataPath);
+            await org.cleanLocalOrgData(orgDataPath);
             expect(invalidProjectWorkspace).to.be.equal(true);
         });
 
         it('Random Error', async () => {
             $$.SANDBOXES.CONFIG.restore();
-            const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanData');
+            const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanLocalOrgData');
             $$.SANDBOX.stub(SfdxConfig, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
                     const err = new Error();
@@ -308,7 +231,7 @@ describe('Org Tests', () => {
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
             try {
-                await org.cleanData(orgDataPath);
+                await org.cleanLocalOrgData(orgDataPath);
                 assert.fail('This should have failed');
             } catch (e) {
                 expect(e).to.have.property('name', 'gozer');
@@ -417,10 +340,12 @@ describe('Org Tests', () => {
 
             const orgIdUser: string = 'p.venkman@gb.org';
             const addedUser: string = 'winston@gb.org';
+            const accessTokenUser: string = 'ltully@gb.org';
 
             const users = [
                 new MockTestOrgData().createUser(orgIdUser),
-                new MockTestOrgData().createUser(addedUser)
+                new MockTestOrgData().createUser(addedUser),
+                new MockTestOrgData().createUser(accessTokenUser)
             ];
 
             $$.SANDBOXES.CONFIG.restore();
@@ -448,7 +373,7 @@ describe('Org Tests', () => {
                     clientId: user.clientId,
                     clientSecret: user.clientSecret,
                     loginUrl: user.loginUrl
-                });
+                } , user.username === accessTokenUser);
 
                 await userAuth.save( {orgId: user.orgId});
 
@@ -497,9 +422,7 @@ describe('Org Tests', () => {
         });
 
         it('should not try to delete auth files when deleting an org via access token', async () => {
-            orgs[0].setUsingAccessToken(true);
-
-            await orgs[0].remove();
+            await orgs[2].remove();
 
             const user0Config: OrgUsersConfig = await orgs[0].retrieveOrgUsersConfig();
             const user1Config: OrgUsersConfig = await orgs[1].retrieveOrgUsersConfig();

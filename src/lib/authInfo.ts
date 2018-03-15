@@ -195,7 +195,7 @@ export class AuthInfo {
      * @param username The username for the authentication info.
      * @param options Options to be used for creating an OAuth2 instance.
      */
-    public static async create(username?: string, options?: OAuth2Options): Promise<AuthInfo> {
+    public static async create(username?: string, options?: OAuth2Options, isUsingAccessToken?: boolean): Promise<AuthInfo> {
 
         // Must specify either username and/or options
         if (!username && !options) {
@@ -203,6 +203,8 @@ export class AuthInfo {
         }
 
         const authInfo = new AuthInfo(username);
+
+        authInfo.setIsUsingAccessToken(isUsingAccessToken);
 
         // If the username is an access token, use that for auth and don't persist
         const accessTokenMatch = _.isString(username) && username.match(/^(00D\w{12,15})![\.\w]*$/);
@@ -275,6 +277,8 @@ export class AuthInfo {
 
     // All sensitive fields are encrypted
     private fields: Partial<AuthFields> = {};
+
+    private usingAccessToken: boolean;
 
     private logger: Logger;
 
@@ -460,6 +464,24 @@ export class AuthInfo {
 
     public getFields(): Partial<AuthFields> {
         return this.fields;
+    }
+
+    /**
+     * Returns true if this org is using access token auth.
+     * @returns {boolean}
+     */
+    public isUsingAccessToken(): boolean {
+        return this.usingAccessToken;
+    }
+
+    /**
+     * Sets an indicator if this org is using access token authentication.
+     * @param {boolean} value Return true if this org should us access token authentication. False otherwise.
+     * @returns {Org} For convenience this object is returned.
+     */
+    protected setIsUsingAccessToken(isUsingAccessToken: boolean): AuthInfo {
+        this.usingAccessToken = isUsingAccessToken;
+        return this;
     }
 
     // A callback function for a connection to refresh an access token.  This is used
