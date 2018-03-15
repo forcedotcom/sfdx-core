@@ -1,3 +1,4 @@
+import { JsonArray } from './lib/types';
 /*
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
@@ -96,10 +97,16 @@ export {
 } from './lib/sfdxError';
 
 export {
+    AnyJson,
+    JsonArray,
+    JsonMap
+} from './lib/types';
+
+export {
     SfdxUtil
 } from './lib/util';
 
 export {
-    UX,
-    SfdxTableOptions
+    SfdxTableOptions,
+    UX
 } from './lib/ux';
