@@ -11,6 +11,7 @@ import chalk from 'chalk';
 import { Logger } from '../lib/logger';
 import { Messages } from '../lib/messages';
 import { Crypto } from '../lib/crypto';
+import { Connection } from '../lib/connection';
 import { ConfigFile } from '../lib/config/configFile';
 import { join as pathJoin } from 'path';
 import { tmpdir as osTmpdir } from 'os';
@@ -25,6 +26,7 @@ export interface SandboxTypes {
     DEFAULT: any;
     CRYPTO: any;
     CONFIG: any;
+    CONNECTION: any;
 }
 
 export interface ConfigStub {
@@ -51,6 +53,7 @@ export interface TestContext {
     localPathRetriever: (uid: string) => Promise<string>;
     globalPathRetriever: (uid: string) => Promise<string>;
     rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
+    fakeConnectionRequest: (request: any, options?: any) => Promise<any>;
 }
 
 const _uniqid = () => {
@@ -67,6 +70,10 @@ function getTestGlobalPath(uid: string): Promise<string> {
 
 async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Promise<string> {
     return isGlobal ? await getTestGlobalPath(uid) : await getTestLocalPath(uid);
+}
+
+function defaultFakeConnectionRequest(request: any, options?: any): Promise<any> {
+    return Promise.resolve({ records: [] });
 }
 
 /**
@@ -159,7 +166,8 @@ export const testSetup = once((sandbox?) => {
         SANDBOXES: {
             DEFAULT: defaultSandbox,
             CONFIG: sandbox.create(),
-            CRYPTO: sandbox.create()
+            CRYPTO: sandbox.create(),
+            CONNECTION: sandbox.create()
         },
         TEST_LOGGER: new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging(),
         id: _uniqid(),
@@ -167,7 +175,8 @@ export const testSetup = once((sandbox?) => {
         configStubs: {},
         localPathRetriever: getTestLocalPath,
         globalPathRetriever: getTestGlobalPath,
-        rootPathRetriever: retrieveRootPath
+        rootPathRetriever: retrieveRootPath,
+        fakeConnectionRequest: defaultFakeConnectionRequest
     };
 
     const chalkEnabled = chalk.enabled;
@@ -218,6 +227,10 @@ export const testSetup = once((sandbox?) => {
             setPassword: () => Promise.resolve(),
             getPassword: (data, cb) => cb(undefined, '12345678901234567890123456789012')
         }));
+
+        testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(request, options?) {
+            return testContext.fakeConnectionRequest.call(this, request, options);
+        });
 
         chalk.enabled = false;
     });

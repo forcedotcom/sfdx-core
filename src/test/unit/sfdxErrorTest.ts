@@ -111,7 +111,7 @@ describe('SfdxError', () => {
         });
     });
 
-    describe('toJson', () => {
+    describe('toObject', () => {
         it('should return the proper JSON object WITH commandName and data', () => {
             const message = 'it\s a trap!';
             const name = 'BadError';
@@ -123,7 +123,7 @@ describe('SfdxError', () => {
             const sfdxError = new SfdxError(message, name, actions, exitCode);
             sfdxError.setCommandName(commandName).setData(data);
 
-            expect(sfdxError.toJson()).to.deep.equal({ name, message, exitCode, actions, commandName, data });
+            expect(sfdxError.toObject()).to.deep.equal({ name, message, exitCode, actions, commandName, data });
         });
 
         it('should return the proper JSON object WITHOUT commandName and data', () => {
@@ -132,7 +132,7 @@ describe('SfdxError', () => {
 
             const sfdxError = new SfdxError(message, name );
 
-            expect(sfdxError.toJson()).to.deep.equal({ name, message, exitCode: 1, actions: undefined });
+            expect(sfdxError.toObject()).to.deep.equal({ name, message, exitCode: 1, actions: undefined });
         });
     });
 

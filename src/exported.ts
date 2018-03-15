@@ -100,5 +100,6 @@ export {
 } from './lib/util';
 
 export {
-    UX
+    UX,
+    SfdxTableOptions
 } from './lib/ux';

@@ -238,7 +238,7 @@ describe('UX', () => {
             { foo: 'incredible!', bar: 0, baz: false },
             { foo: 'truly amazing!', bar: 9, baz: true }
         ];
-        const options = { columns: ['foo', 'bar', 'baz'] };
+        const options = ['foo', 'bar', 'baz'];
         const expectedOptions = {
             columns: [
                 { key: 'foo', label: 'FOO' },
@@ -252,7 +252,7 @@ describe('UX', () => {
         expect($$.TEST_LOGGER.info['called']).to.be.true;
         expect($$.TEST_LOGGER.info['firstCall'].args[0]).to.equal(tableData);
         expect(retVal.x).to.deep.equal(tableData);
-        expect(retVal.y).to.deep.equal(options);
+        expect(retVal.y).to.deep.equal(expectedOptions);
         expect(ux1).to.equal(ux);
     });
 
