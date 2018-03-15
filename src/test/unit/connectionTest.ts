@@ -25,6 +25,7 @@ describe('Connection', () => {
     };
 
     beforeEach(() => {
+        $$.SANDBOXES.CONNECTION.restore();
         $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns({});
     });
 
