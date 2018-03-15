@@ -6,7 +6,7 @@
 /**
  * Any JSON-compatible object.
  *
- * @typedef {object} JsonMap
+ * @typedef {Object<string, AnyJson>} JsonMap
  */
 /**
  * Any JSON-compatible array.
