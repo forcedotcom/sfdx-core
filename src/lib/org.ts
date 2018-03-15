@@ -432,7 +432,7 @@ export class Org {
      * Returns the admin username used to create the org.
      * @return {string}
      */
-    public getSignupUsername(): string {
+    public getUsername(): string {
         return this.getMetaInfo().info.getFields().username;
     }
 

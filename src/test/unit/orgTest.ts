@@ -154,7 +154,7 @@ describe('Org Tests', () => {
 
         it('should expose getUsername', async () => {
             const org: Org = await Org.create(testData.username);
-            expect(org.getSignupUsername()).to.eq(testData.username);
+            expect(org.getUsername()).to.eq(testData.username);
         });
 
         it('should expose getOrgId', async () => {
