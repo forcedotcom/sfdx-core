@@ -167,9 +167,9 @@ describe('Org Tests', () => {
 
     describe('retrieveMaxApiVersion', () => {
         it('no username', async () => {
-            $$.SANDBOX.stub(Connection.prototype, 'request').callsFake(() => Promise.resolve(
-                [{version: '89.0'}, {version: '90.0'}, {version: '88.0'}]));
 
+            $$.fakeConnectionRequest = () => Promise.resolve(
+                [{version: '89.0'}, {version: '90.0'}, {version: '88.0'}]);
             const org: Org = await Org.create(await Connection.create(await AuthInfo.create(testData.username)));
             const apiVersion = await org.retrieveMaxApiVersion();
             expect(apiVersion).has.property('version', '90.0');
@@ -599,10 +599,10 @@ describe('Org Tests', () => {
     describe('refresh auth', () => {
         let url;
         beforeEach(() => {
-            $$.SANDBOX.stub(Connection.prototype, 'request').callsFake(async (requestInfo: RequestInfo): Promise<any> => {
-                url = requestInfo.url;
-                return Promise.resolve({});
-            });
+            $$.fakeConnectionRequest = (requestInfo: RequestInfo): Promise<any> => {
+                    url = requestInfo.url;
+                    return Promise.resolve({});
+                };
         });
         it('should request an refresh token', async () => {
             const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
