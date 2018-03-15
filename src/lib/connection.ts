@@ -98,4 +98,12 @@ export class Connection extends JSForceConnection {
     public getAuthInfo(): AuthInfo {
         return cloneDeep(this.authInfo);
     }
+
+    /**
+     * Getter for the username of the Salesforce Org
+     * @returns {string}
+     */
+    public getUsername(): string {
+        return this.getAuthInfo().getFields().username;
+    }
 }
