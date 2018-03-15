@@ -1,7 +1,15 @@
 /**
+ * @typedef {boolean|number|string|null|JsonArray|JsonMap} AnyJson
+ */
+/**
+ * @typedef {object} JsonMap
+ */
+/**
+ * @typedef {Array<AnyJson>} JsonArray
+ */
+
+ /**
  * Any valid JSON value.
- *
- * @typedef {boolean|number|string|null|JsonArray|JsonMap}
  */
 export type AnyJson = boolean | number | string | null | JsonArray | JsonMap;
 
