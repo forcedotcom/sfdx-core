@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigFile } from './configFile';
+import { ConfigFile, ConfigOptions } from './configFile';
 import { isNil as _isNil } from 'lodash';
 import { SfdxUtil } from '../util';
 import { dirname as pathDirname } from 'path';
@@ -17,6 +17,13 @@ import { dirname as pathDirname } from 'path';
 export class KeychainConfig extends ConfigFile {
     public static getFileName(): string {
         return 'key.json';
+    }
+
+    public static getDefaultOptions(isGlobal = true, filename) {
+        const config = super.getDefaultOptions(isGlobal);
+        // The key file is ALWAYS in the global space.
+        config.isGlobal = true;
+        return config;
     }
 
     /**
