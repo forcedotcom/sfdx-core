@@ -36,7 +36,7 @@ export enum OrgStatus {
 }
 
 /**
- * Additional information tracked for the an beyond what's provided by the local auth information.
+ * Additional information tracked for an org beyond what's provided by the local auth information.
  */
 export interface OrgMetaInfo {
 
@@ -68,7 +68,7 @@ const _manageDelete = function(cb, dirPath, throwWhenRemoveFails) {
 };
 
 /**
- * Provides a local representation of an Org within a project workspace.
+ * Provides a way to manage a locally authenticated Org.
  *
  * @see {@link AuthInfo}
  * @see {@link Connection}
@@ -90,24 +90,33 @@ export class Org {
     /**
      * Static initializer that allows creating an instance of an org from a alias or a plain string username. If no
      * username or alias is provided then the defaultusername is used. If isDevHub is true then the defaultdevhub is used.
-     * @param {string} aliasOrUsername The string alias or username.
-     * @param {SfdxConfigAggregator} aggregator optional config aggregator.
-     * @param {boolean} isDevHub optional true if this org is a devhub. defaults to false.
+     * @param {string} [aliasOrUsername] The string alias or username.
+     * @param {SfdxConfigAggregator} [aggregator] optional config aggregator.
+     * @param {boolean} [isDevHub] true if this org is a devhub. defaults to false.
      * @return {Promise<Org>}
      */
     public static async create(aliasOrUsername?: string, aggregator?: SfdxConfigAggregator, isDevHub?: boolean): Promise<Org>;
 
     /**
      * Static initializer that allows creating an instance of an org from a Connection object.
-     * @param {Connection} connection The connection
-     * @param {SfdxConfigAggregator} aggregator A config aggregator. (Optional)
-     * @param {boolean} isDevHub True if this org is a devhub. defaults to false (Optional)
+     * @param {Connection} [connection] The connection
+     * @param {SfdxConfigAggregator} [aggregator] A config aggregator. (Optional)
+     * @param {boolean} [isDevHub] True if this org is a devhub. defaults to false (Optional)
      * @return {Promise<Org>}
      */
     // tslint:disable-next-line:unified-signatures
     public static async create(connection?: Connection, aggregator?: SfdxConfigAggregator, isDevHub?: boolean): Promise<Org>;
 
-    public static async create(connection: string | Connection, aggregator?: SfdxConfigAggregator, isDevHub?: boolean): Promise<Org> {
+    /**
+     * Static initializer that allows creating an instance of an org from an alias, username, or Connection. If no identifier
+     * is provided then the defaultusername is used. If isDevHub is true then the defaultdevhubusername is used.
+     * @see {@link SfdxConfig}
+     * @param {string | Connection} [connection] The string alias or username.
+     * @param {SfdxConfigAggregator} [aggregator] optional config aggregator.
+     * @param {boolean} [isDevHub] true if this org is a devhub. defaults to false.
+     * @return {Promise<Org>}
+     */
+    public static async create(connection?: string | Connection, aggregator?: SfdxConfigAggregator, isDevHub?: boolean): Promise<Org> {
         const _aggregator = aggregator ? aggregator : await SfdxConfigAggregator.create();
 
         const org = new Org(_aggregator);
@@ -146,12 +155,18 @@ export class Org {
     private status: OrgStatus = OrgStatus.UNKNOWN;
     private configAggregator: SfdxConfigAggregator;
 
+    /**
+     * **Do not directly construct instances of this class -- use {@link Org.create} instead.**
+     *
+     * @private
+     * @constructor
+     */
     private constructor(_aggregator: SfdxConfigAggregator) {
         this.configAggregator = _aggregator;
     }
 
     /**
-     * Clean all data files in the org's data path, then finally remove the data directory.
+     * Clean all data files in the org's data path.
      * Usually <workspace>/.sfdx/orgs/<username>
      * @param {string} [orgDataPath] - a relative path other than "orgs/"
      * @returns {Promise<void>}
@@ -233,7 +248,7 @@ export class Org {
     }
 
     /**
-     *  Check that this org is a scratch org by asking the dev hub if it knows about this org.
+     *  Check that this org is a scratch org by asking the dev hub if it knows about it.
      *  @param {string} [devHubUsername] The username of the dev hub org.
      *  @returns {Promise<Config>}
      */
@@ -272,10 +287,10 @@ export class Org {
     }
 
     /**
-     * Returns Org object representing this org's dev hub.
+     * Returns an Org object representing this org's dev hub.
      *
-     *  @returns {Promise<Org>}  Returns the Org object or null if org is not affiliated with a Dev Hub
-     *  (according to the local config).
+     * @returns {Promise<Org>}  Returns the Org object or null if this org is not affiliated with a Dev Hub
+     * (according to the local config).
      */
     public async getDevHubOrg(): Promise<Org> {
         const orgData: OrgMetaInfo = this.getMetaInfo();
@@ -297,9 +312,9 @@ export class Org {
 
     /**
      * Refreshes the auth for this org's instance by calling HTTP GET on the baseUrl of the connection object.
-     * @returns {Promise<any>} Refresh a user's access token and returns the server response.
+     * @returns {Promise<void>}
      */
-    public async refreshAuth(): Promise<any> {
+    public async refreshAuth(): Promise<void> {
         this.logger.debug('Refreshing auth for org.');
         const requestInfo = {
             url: this.getConnection().baseUrl(),
@@ -438,7 +453,7 @@ export class Org {
     }
 
     /**
-     * returns Meta information about this org.
+     * Returns meta information about this org.
      * @returns {OrgMetaInfo}
      */
     public getMetaInfo(): OrgMetaInfo {
@@ -459,6 +474,7 @@ export class Org {
      * Set the JSForce connection to use for this org.
      * @param {Connection} connection The connection to use.
      * @returns {Org} For convenience this object is returned.
+     * @see {@link http://jsforce.github.io/jsforce/doc/Connection.html}
      */
     private setConnection(connection: Connection): Org {
         if (connection) {
