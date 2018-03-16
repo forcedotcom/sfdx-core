@@ -229,6 +229,9 @@ export const testSetup = once((sandbox?) => {
         }));
 
         testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(request, options?) {
+            if (request === `${this.instanceUrl}/services/data`) {
+                return Promise.resolve([{ version: '42.0' }]);
+            }
             return testContext.fakeConnectionRequest.call(this, request, options);
         });
 
