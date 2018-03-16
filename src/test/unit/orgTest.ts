@@ -114,6 +114,7 @@ describe('Org Tests', () => {
     beforeEach(async () => {
         testData = new MockTestOrgData();
         $$.configStubs['AuthInfoConfig'] = { contents: await testData.getConfig() };
+        $$.SANDBOX.stub(Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     });
 
     describe('org:create', () => {

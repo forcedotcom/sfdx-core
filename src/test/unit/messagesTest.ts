@@ -83,13 +83,19 @@ describe('Messages', () => {
         ];
 
         const messagesDirPath = `myModule${path.sep}dist${path.sep}lib`;
+        const truncateErr = new Error();
+        (truncateErr as any).code = 'ENOENT';
+        let truncatePath = 'myModule';
 
         beforeEach(() => {
             importMessageFileStub = $$.SANDBOX.stub(Messages, 'importMessageFile');
             readdirSyncStub = $$.SANDBOX.stub(fs, 'readdirSync');
             readdirSyncStub.returns(msgFiles);
             statSyncStub = $$.SANDBOX.stub(fs, 'statSync');
-            statSyncStub.returns({ isDirectory: () => false, isFile: () => true });
+            statSyncStub.callsFake((statPath) => {
+                if (!statPath.match(/messages/) && statPath !== `${truncatePath}${path.sep}package.json`) { throw truncateErr; }
+                return { isDirectory: () => false, isFile: () => true };
+            });
             $$.SANDBOX.stub(Messages, '_readFile').returns('{"name": "pname"}');
         });
 
@@ -121,8 +127,9 @@ describe('Messages', () => {
         });
 
         it('should not remove the "/lib" if dist is already removed', () => {
-            Messages.importMessagesDirectory('/var/lib/sfdx-core/dist/lib/messages.js');
-            const expectedMsgDirPath = '/var/lib/sfdx-core/messages';
+            truncatePath = '/var/lib/sfdx-core/dist';
+            Messages.importMessagesDirectory('/var/lib/sfdx-core/dist/lib/utils.js');
+            const expectedMsgDirPath = '/var/lib/sfdx-core/dist/messages';
             expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
             expect(importMessageFileStub.firstCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
             expect(importMessageFileStub.secondCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
