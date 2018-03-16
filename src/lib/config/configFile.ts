@@ -66,9 +66,9 @@ export class ConfigFile extends BaseConfigStore {
 
     /**
      * Returns the default options for the config file.
-     * @param {boolean} isGlobal - If the file should be stored globally or locally.
-     * @param {string} filename - The name of the config file.
-     * @return {ConfigOptions} - The ConfigOptions.
+     * @param {boolean} isGlobal If the file should be stored globally or locally.
+     * @param {string} filename The name of the config file.
+     * @return {ConfigOptions} The ConfigOptions.
      */
     public static getDefaultOptions(isGlobal: boolean = false, filename?: string): ConfigOptions {
         return {
@@ -81,8 +81,8 @@ export class ConfigFile extends BaseConfigStore {
     /**
      * Helper used to determined what the local and global folder point to.
      *
-     * @param {boolean} isGlobal - True if the config should be global. False for local.
-     * @returns {Promise<string>} - The file path of the root folder.
+     * @param {boolean} isGlobal True if the config should be global. False for local.
+     * @returns {Promise<string>} The file path of the root folder.
      */
     public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
         if (!_isBoolean(isGlobal)) {
@@ -98,7 +98,7 @@ export class ConfigFile extends BaseConfigStore {
      *
      * **Note:** Cast to the extended class. e.g. `await MyConfig.create<MyConfig>();`
      *
-     * @param {ConfigOptions} options The options used to create the file. Will use {@link ConfigFile.getDefaultOptions} by default.
+     * @param {ConfigOptions} [options] The options used to create the file. Will use {@link ConfigFile.getDefaultOptions} by default.
      * {@link ConfigFile.getDefaultOptions} with no parameters by default.
      */
     public static async create<T extends ConfigFile>(options?: ConfigOptions): Promise<T> {
@@ -138,7 +138,7 @@ export class ConfigFile extends BaseConfigStore {
      *
      * **Note:** Cast to the extended class. e.g. `await MyConfig.retrieve<MyConfig>();`
      *
-     * @param {ConfigOptions} options The options used to create the file. Will use {@link ConfigFile.getDefaultOptions} by default.
+     * @param {ConfigOptions} [options] The options used to create the file. Will use {@link ConfigFile.getDefaultOptions} by default.
      * {@link ConfigFile.getDefaultOptions} with no parameters by default.
      */
     public static async retrieve<T extends ConfigFile>(options?: ConfigOptions): Promise<T> {
@@ -152,8 +152,8 @@ export class ConfigFile extends BaseConfigStore {
 
     /**
      * Determines if the config file is read write accessible.
-     * @param {number} perm - The permission.
-     * @returns {Promise<boolean>} - returns true if the user has capabilities specified by perm.
+     * @param {number} perm The permission.
+     * @returns {Promise<boolean>} returns true if the user has capabilities specified by perm.
      * @see {@link SfdxUtil.access}
      */
     public async access(perm: number): Promise<boolean> {
@@ -167,9 +167,9 @@ export class ConfigFile extends BaseConfigStore {
 
     /**
      * Read the config file and set the config contents.
-     * @param {boolean} throwOnNotFound - Optionally indicate if a throw should occur on file read.
-     * @returns {Promise<object>} the config contents of the config file.
-     * @throws {Error} Throws error if there was a problem reading or parsing the file.
+     * @param {boolean} [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
+     * @returns {Promise<object>} The config contents of the config file.
+     * @throws Throws an error if there was a problem reading or parsing the file.
      */
     public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
         try {
@@ -191,7 +191,7 @@ export class ConfigFile extends BaseConfigStore {
      * it will write the existing config contents that was set from {@link ConfigFile.read}, or empty
      * if {@link ConfigFile.read} was not called.
      *
-     * @param {object} newContents The new contents of the file.
+     * @param {object} [newContents] The new contents of the file.
      * @returns {Promise<object>} The written contents.
      */
     public async write(newContents?: ConfigContents): Promise<object> {
@@ -240,7 +240,7 @@ export class ConfigFile extends BaseConfigStore {
     }
 
     /**
-     * Returns path to the config file.
+     * Returns the path to the config file.
      * @returns {string}
      */
     public getPath(): string {

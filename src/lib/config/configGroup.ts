@@ -63,7 +63,7 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Get ConfigGroup specific options, such as the default group.
      * @param defaultGroup The default group to use when creating the config.
-     * @param filename The filename of the config file. Uses the static {@link getFileName} by default.
+     * @param [filename] The filename of the config file. Uses the static {@link getFileName} by default.
      */
     public static getOptions(defaultGroup: string, filename?: string): ConfigGroupOptions {
         const options: ConfigGroupOptions = this.getDefaultOptions(true, filename) as ConfigGroupOptions;
@@ -83,8 +83,8 @@ export class ConfigGroup extends ConfigFile {
 
     /**
      * Set a group of entries in a bulk save.
-     * @param {object} keyAndValues An object representing the aliases to set.
-     * @param {string} group The group the property belongs to. Defaults to 'default'.
+     * @param {object} newEntries An object representing the aliases to set.
+     * @param {string} [group = 'default'] The group the property belongs to.
      * @returns {Promise<object>} The new property that was saved.
      */
     public async updateValues(newEntries: object, group?: string): Promise<object> {
@@ -98,8 +98,8 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Set a value on a group.
      * @param {string} key The key.
-     * @param {string} property The value.
-     * @param {string} group The group. Defaults to 'default'.
+     * @param {string} value The value.
+     * @param {string} [group = 'default'] The group.
      * @returns {Promise<void>} The promise resolved when the value is set.
      */
     public async updateValue(key: string, value: ConfigValue, group?: string): Promise<void> {
@@ -110,6 +110,11 @@ export class ConfigGroup extends ConfigFile {
         await this.write();
     }
 
+    /**
+     * Gets an array of key value pairs.
+     * @returns {ConfigEntry[]}
+     * @override
+     */
     public entries(): ConfigEntry[] {
         if (this.getGroup()) {
             return Array.from((this.getGroup()).entries());
@@ -117,24 +122,53 @@ export class ConfigGroup extends ConfigFile {
         return [];
     }
 
+    /**
+     * Returns a specified element from ConfigGroup.
+     * @param {string} key The key.
+     * @returns {ConfigValue} The associated value.
+     * @override
+     */
     public get(key: string): ConfigValue { // tslint:disable-next-line no-reserved-keywords
         return this.getInGroup(key);
     }
 
+    /**
+     * Returns a boolean if an element with the specified key exists.
+     * @param {string} key The key.
+     * @returns {boolean}
+     * @override
+     */
     public has(key: string): boolean {
         return this.getContents().has(this.defaultGroup) &&
             (this.getContents().get(this.defaultGroup) as ConfigContents).has(key);
     }
 
+    /**
+     * Returns an array of the keys for this ConfigGroup.
+     * @returns {string[]}
+     * @override
+     */
     public keys(): string[] {
         return Array.from((this.getGroup(this.defaultGroup).keys()));
     }
 
+    /**
+     * Returns an array of the values for this ConfigGroup.
+     * @returns {ConfigValue[]}
+     * @override
+     */
     public values(): ConfigValue[] {
         return Array.from((this.getGroup(this.defaultGroup).values()));
     }
 
-    public set(key: string, value: ConfigValue) { // tslint:disable-next-line no-reserved-keywords
+    /**
+     * Add or updates an element with the specified key
+     * @param {string} key The key.
+     * @param {ConfigValue} value The value.
+     * @returns {ConfigContents}
+     * @override
+     */
+    public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
         if (!this.getContents().has(this.defaultGroup)) {
             this.getContents().set(this.defaultGroup, new Map<string, ConfigValue>());
         }
@@ -143,6 +177,12 @@ export class ConfigGroup extends ConfigFile {
         return contents;
     }
 
+    /**
+     * Removes an element with the specified key from the group.
+     * @param {string} key The key.
+     * @returns {boolean} True if the item was deleted.
+     * @override
+     */
     public unset(key: string): boolean {
         const groupContents = this.getGroup(this.defaultGroup);
         if (groupContents) {
@@ -151,6 +191,10 @@ export class ConfigGroup extends ConfigFile {
         return;
     }
 
+    /**
+     * Remove all key value pairs from the group.
+     * @override
+     */
     public clear(): void {
         this.getContents().delete(this.defaultGroup);
     }
@@ -158,7 +202,7 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Get all config content for a group.
      * @param {string} group The group.
-     * @returns {ConfigContent} The contents.
+     * @returns {ConfigContents} The contents.
      */
     public getGroup(group?: string): ConfigContents {
         return this.getContents().get(group || this.defaultGroup) as ConfigContents;
@@ -167,7 +211,7 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Returns the value associated to the key and group, or undefined if there is none.
      * @param {string} key The key.
-     * @param {string} group The group. Defaults to the default group.
+     * @param {string} [group: 'default'] The group. Defaults to the default group.
      * @returns {ConfigValue}
      */
     public getInGroup(key: string, group?: string): ConfigValue {
@@ -208,11 +252,11 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Sets the value for the key and group in the config object.
      * @param key The key.
-     * @param value The value.
-     * @param group The group. Defaults to the default group.
-     * @returns {ConfigContents}
+     * @param [value] The value.
+     * @param [group = 'default'] The group. Defaults to the default group.
+     * @returns {ConfigContents} The contents.
      */
-    public setInGroup(key: string, value?: ConfigValue, group?: string) {
+    public setInGroup(key: string, value?: ConfigValue, group?: string): ConfigContents {
         let content: ConfigContents = this.getContents();
 
         group = group || this.defaultGroup;

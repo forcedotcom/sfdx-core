@@ -38,9 +38,11 @@ export enum AliasGroup {
  * const username: string = Aliases.fetch('myAlias');
  */
 export class Aliases extends ConfigGroup {
+
     /**
-     * The aliases filename.
+     * The aliases state file filename.
      * @override
+     * @returns {string}
      */
     public static getFileName(): string {
         return ALIAS_FILE_NAME;
@@ -57,18 +59,23 @@ export class Aliases extends ConfigGroup {
     }
 
     /**
-     * Overrides {@link ConfigFile.create} to pass in {@link Alias.getOptions}.
+     * Overrides {@link ConfigFile.create} to pass in {@link Aliases.getOptions}.
      * @override
+     * @param {ConfigOptions} options
      * @see {@link ConfigFile.create}
+     * @returns {Promise<T>}
      */
     public static async create<T extends ConfigFile>(options: ConfigOptions): Promise<T> {
         return (await super.create(options || Aliases.getOptions())) as T;
     }
 
     /**
-     * Overrides {@link ConfigFile.retrieve} to pass in {@link Alias.getOptions}.
-     * @override
+     * Overrides {@link ConfigFile.retrieve} to pass in {@link Aliases.getOptions}.
+     * @param {ConfigOptions} [options] Specify to override builting options.
      * @see {@link ConfigFile.retrieve}
+     * @see {@link ConfigGroupOptions}
+     * @returns {Promise<T>}
+     * @override
      */
     public static async retrieve<T extends ConfigFile>(options?: ConfigOptions): Promise<T> {
         return (await super.retrieve(options || Aliases.getOptions())) as T;
@@ -76,9 +83,12 @@ export class Aliases extends ConfigGroup {
 
     /**
      * Updates a group of aliases in a bulk save.
-     * @param {array} aliasKeyAndValues An array of strings in the format <alias>=<value>.
-     * @param {AliasGroup} group The group the alias belongs to. Defaults to ORGS.
+     * @param {array} aliasKeyAndValues An array of strings in the format &lt;alias&gt;=&lt;value&gt;.
+     * Each element will be saved in the Aliases state file under the group.
+     * @param {AliasGroup} [group = AliasGroup.ORGS] The group the alias belongs to. Defaults to ORGS.
      * @returns {Promise<object>} The new aliases that were saved.
+     * @example
+     * const aliases = Aliases.parseAndUpdate(['foo=bar', 'bar=baz'])
      */
     public static async parseAndUpdate(aliasKeyAndValues: string[], group: AliasGroup = AliasGroup.ORGS): Promise<object> {
         const newAliases = {};
@@ -103,8 +113,8 @@ export class Aliases extends ConfigGroup {
 
     /**
      * Get an alias from a key and group. Shorthand for `Alias.retrieve().get(key)`.
-     * @param {string} value The value of the alias to match
-     * @param {string} group The group the alias belongs to. Defaults to Orgs
+     * @param {string} key The value of the alias to match
+     * @param {string} [group=AliasGroup.Orgs] The group the alias belongs to. Defaults to Orgs
      * @returns {Promise<string>} The promise resolved when the alias is retrieved
      */
     public static async fetch(key: string, group = AliasGroup.ORGS): Promise<string> {
