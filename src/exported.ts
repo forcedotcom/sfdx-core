@@ -69,7 +69,10 @@ export {
 } from './lib/global';
 
 export {
+    Fields,
+    FieldValue,
     LoggerLevel,
+    LoggerLevelValue,
     LoggerOptions,
     LoggerStream,
     Logger
