@@ -4,11 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isString, cloneDeep } from 'lodash';
+import { isString, cloneDeep, last } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
 import { Connection as JSForceConnection, ConnectionOptions, RequestInfo } from 'jsforce';
+import { SfdxUtil } from './util';
+import { SfdxError } from './sfdxError';
 
 const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
 export const SFDX_HTTP_HEADERS = {
@@ -21,23 +23,31 @@ export const SFDX_HTTP_HEADERS = {
  * @extends jsforce.Connection
  *
  * @example
+ * // Uses latest API version
  * const connection = await Connection.create(await AuthInfo.create(myAdminUsername));
- * connection.query('my_soql_query');
+ * connection.query('SELECT Name from Account');
+ *
+ * // Use different API version
+ * connection.setApiVersion("42.0");
+ * connection.query('SELECT Name from Account');
  */
 export class Connection extends JSForceConnection {
 
     /**
      * Create and return a connection to an org using authentication info.
+     * The returned connection uses the latest API version available on the
+     * server unless the apiVersion [config]{@link SfdxConfig} value is set.
      *
      * @param authInfo The authentication info from the persistence store.
      */
     public static async create(authInfo: AuthInfo, configAggregator?: SfdxConfigAggregator): Promise<Connection> {
         const logger = await Logger.child('connection');
         const _aggregator = configAggregator || await SfdxConfigAggregator.create();
-
+        const versionFromConfig = _aggregator.getInfo('apiVersion').value;
         const baseOptions: ConnectionOptions = {
             // Set the API version obtained from the config aggregator.
-            version: _aggregator.getInfo('apiVersion').value,
+            // Will use jsforce default if undefined.
+            version: versionFromConfig,
             callOptions: {
                 client: clientId
             }
@@ -45,7 +55,11 @@ export class Connection extends JSForceConnection {
 
         // Get connection options from auth info and create a new jsForce connection
         const connectionOptions: ConnectionOptions = Object.assign(baseOptions, authInfo.getConnectionOptions());
-        return new Connection(connectionOptions, authInfo, logger);
+        const conn = new Connection(connectionOptions, authInfo, logger);
+        if (!versionFromConfig) {
+            await conn.useLatestApiVersion();
+        }
+        return conn;
     }
 
     // We want to use 1 logger for this class and the jsForce base classes so override
@@ -55,6 +69,9 @@ export class Connection extends JSForceConnection {
     private _logger: Logger;
 
     private authInfo: AuthInfo;
+
+    private version: string;
+    private instanceUrl: string;
 
     constructor(options: ConnectionOptions, authInfo: AuthInfo, logger?: Logger) {
         super(options);
@@ -89,6 +106,34 @@ export class Connection extends JSForceConnection {
     public baseUrl(): string {
         // essentially the same as pathJoin(super.instanceUrl, 'services', 'data', `v${super.version}`);
         return super._baseUrl();
+    }
+
+    /**
+     * Use the latest API version available on `this.instanceUrl.
+     */
+    public async useLatestApiVersion(): Promise<void> {
+        const versions = await this.request(`${this.instanceUrl}/services/data`);
+        this.setApiVersion((last(versions) as any).version);
+    }
+
+    /**
+     * Get the API version used for all connection request.
+     * @returns {string}
+     */
+    public getApiVersion(): string {
+        return this.version;
+    }
+
+    /**
+     * Set the API version for all connection request.
+     * @param {string} version The API version.
+     * @throws {SfdxError} Incorrect API version.
+     */
+    public setApiVersion(version: string): void {
+        if (!SfdxUtil.validateApiVersion(version)) {
+            throw new SfdxError(`Invalid API version ${version}. Expecting format "[1-9][0-9].0", i.e. 42.0`);
+        }
+        this.version = version;
     }
 
     /**

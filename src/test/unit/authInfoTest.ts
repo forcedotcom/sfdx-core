@@ -17,6 +17,7 @@ import * as jwt from 'jsonwebtoken';
 import { testSetup } from '../testSetup';
 import { SfdxError } from '../../lib/sfdxError';
 import { toUpper as _toUpper, includes as _includes } from 'lodash';
+import { SfdxConfigAggregator } from '../../exported';
 
 const TEST_KEY = {
     service: 'sfdx',
@@ -238,6 +239,9 @@ describe('AuthInfo', () => {
 
     describe('create()', () => {
         it('should return an AuthInfo instance when passed an access token as username', async () => {
+            $$.SANDBOX.stub(SfdxConfigAggregator.prototype, 'loadProperties').callsFake(async function() {});
+            $$.SANDBOX.stub(SfdxConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
+
             const username = '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
             const authInfo = await AuthInfo.create(username);
 

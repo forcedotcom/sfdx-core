@@ -138,33 +138,34 @@ export class Messages {
     /**
      * Import all json files in a messages directory. Use the file name as the bundle key when
      * {@link Messages.loadMessages} is called. By default, we're assuming the moduleDirectoryPart is a
-     * typescript project and in the ./dist/ or ./lib/ folder which we will attempt to remove it. If your messages
-     * directory is in another spot or you are not using typescript, pass in false for hasDistFolder.
+     * typescript project and will truncate to root path (where the package.json file is). If your messages
+     * directory is in another spot or you are not using typescript, pass in false for truncateToProjectPath.
      *
      * @example
-     * // e.g. If your index.js is in a ./src/ folder and compiled to a ./dist/ folder, you would do:
+     * // e.g. If your message directory is in the project root, you would do:
      * Messages.importMessagesDirectory(__dirname);
      *
      * @param {string} moduleDirectoryPath The path to load the messages folder.
-     * @param {boolean} truncatePathBasedOnFolders Will remove everything after the last "/dist" or "/src" from the folder path.
+     * @param {boolean} truncateToProjectPath Will remove everything after the last "/dist" or "/src" from the folder path.
      * i.e., the module is typescript and the messages folder is in the top level of the module directory.
      * @param {string} packageName The npm package name. Figured out from the root directory's package.json.
      */
-    public static importMessagesDirectory(moduleDirectoryPath: string, truncatePathBasedOnFolders: boolean = true, packageName?: string): void {
+    public static importMessagesDirectory(moduleDirectoryPath: string, truncateToProjectPath: boolean = true, packageName?: string): void {
         let moduleMessagesDirPath = moduleDirectoryPath;
+        let projectRoot: string = moduleDirectoryPath;
 
-        if (truncatePathBasedOnFolders) {
-            const parts: string[] = moduleDirectoryPath.split(path.sep);
-            let index: number = parts.lastIndexOf('dist');
-
-            if (index < 0) {
-                index = parts.lastIndexOf('src');
+        while (projectRoot.length >= 0) {
+            try {
+                fs.statSync(path.join(projectRoot, 'package.json'));
+                break;
+            } catch (err) {
+                if (err.code !== 'ENOENT') { throw err; }
+                projectRoot = projectRoot.substring(0, projectRoot.lastIndexOf(path.sep));
             }
-            if (index < 0) {
-                index = parts.lastIndexOf('lib');
-            }
+        }
 
-            moduleMessagesDirPath = index !== -1 ? parts.slice(0, index).join(path.sep) : moduleDirectoryPath;
+        if (truncateToProjectPath) {
+            moduleMessagesDirPath = projectRoot;
         }
 
         if (!packageName) {

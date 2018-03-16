@@ -14,6 +14,7 @@ import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { AuthInfoConfig } from './config/authInfoConfig';
 import { ConfigFile } from './config/configFile';
+import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
@@ -213,15 +214,8 @@ export class AuthInfo {
             authInfo.logger = await Logger.child('AuthInfo');
             authInfoCrypto = await AuthInfoCrypto.create();
 
-            // TODO: remove hardcoding when sfdx-core config class is ready
-            const instanceUrl = 'http://mydevhub.localhost.internal.salesforce.com:6109';
-            // If it is an env var, use it instead of the local workspace sfdcLoginUrl property,
-            // otherwise try to use the local sfdx-project property instead.
-            // if (sfdxConfig.getInfo('instanceUrl').isEnvVar()) {
-            //     instanceUrl = sfdxConfig.get('instanceUrl');
-            // } else {
-            //     instanceUrl = sfdxConfig.get('instanceUrl') || urls.production;
-            // }
+            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+            const instanceUrl: string = aggregator.getPropertyValue('instanceUrl') as string || SFDC_URLS.production;
 
             authInfo.update({
                 accessToken: username,
@@ -375,6 +369,8 @@ export class AuthInfo {
             delete dataToSave.clientId;
             delete dataToSave.clientSecret;
         }
+
+        this.logger.debug(dataToSave);
 
         const config: ConfigFile = await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.username));
         config.setContentsFromObject(dataToSave);

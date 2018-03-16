@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 
 import { Connection, SFDX_HTTP_HEADERS } from '../../lib/connection';
 import { AuthInfo } from '../../lib/authInfo';
@@ -18,6 +18,7 @@ const $$ = testSetup();
 describe('Connection', () => {
 
     const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
+    let requestMock;
 
     const testAuthInfo = {
         isOauth: () => true,
@@ -27,6 +28,7 @@ describe('Connection', () => {
     beforeEach(() => {
         $$.SANDBOXES.CONNECTION.restore();
         $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns({});
+        requestMock = $$.SANDBOX.stub(jsforce.Connection.prototype, 'request').onFirstCall().returns(Promise.resolve([{ version: '42.0' }]));
     });
 
     it('create() should create a connection using AuthInfo and SFDX options', async () => {
@@ -40,9 +42,23 @@ describe('Connection', () => {
         expect(jsforce.Connection.prototype.initialize['called']).to.be.true;
     });
 
+    it('create() should create a connection with the latest API version', async () => {
+        const conn = await Connection.create(testAuthInfo as any);
+        expect(conn.getApiVersion()).to.equal('42.0');
+    });
+
+    it('setApiVersion() should throw with invalid version', async () => {
+        const conn = await Connection.create(testAuthInfo as any);
+
+        try {
+            conn.setApiVersion('v23.0');
+            assert.fail();
+        } catch (e) {}
+    });
+
     it('request() should add SFDX headers and call super() for a URL arg', async () => {
         const testResponse = { success: true };
-        $$.SANDBOX.stub(jsforce.Connection.prototype, 'request').returns(Promise.resolve(testResponse));
+        requestMock.onSecondCall().returns(Promise.resolve(testResponse));
         const testUrl = 'connectionTest/request/url';
         const expectedRequestInfo = { method: 'GET', url: testUrl, headers: SFDX_HTTP_HEADERS };
 
@@ -51,14 +67,14 @@ describe('Connection', () => {
         // Test passing a string to conn.request()
         const response1 = await conn.request(testUrl);
         expect(jsforce.Connection.prototype.request.called).to.be.true;
-        expect(jsforce.Connection.prototype.request['firstCall'].args[0]).to.deep.equal(expectedRequestInfo);
-        expect(jsforce.Connection.prototype.request['firstCall'].args[1]).to.be.undefined;
+        expect(jsforce.Connection.prototype.request['secondCall'].args[0]).to.deep.equal(expectedRequestInfo);
+        expect(jsforce.Connection.prototype.request['secondCall'].args[1]).to.be.undefined;
         expect(response1).to.deep.equal(testResponse);
     });
 
     it('request() should add SFDX headers and call super() for a RequestInfo and options arg', async () => {
         const testResponse = { success: true };
-        $$.SANDBOX.stub(jsforce.Connection.prototype, 'request').returns(Promise.resolve(testResponse));
+        requestMock.onSecondCall().returns(Promise.resolve(testResponse));
         const testUrl = 'connectionTest/request/url/describe';
 
         const conn = await Connection.create(testAuthInfo as any);
@@ -69,8 +85,8 @@ describe('Connection', () => {
         const httpOptions = { responseType: 'json' };
         const response = await conn.request(requestInfo, httpOptions);
         expect(jsforce.Connection.prototype.request.called).to.be.true;
-        expect(jsforce.Connection.prototype.request['firstCall'].args[0]).to.deep.equal(expectedRequestInfo);
-        expect(jsforce.Connection.prototype.request['firstCall'].args[1]).to.equal(httpOptions);
+        expect(jsforce.Connection.prototype.request['secondCall'].args[0]).to.deep.equal(expectedRequestInfo);
+        expect(jsforce.Connection.prototype.request['secondCall'].args[1]).to.equal(httpOptions);
         expect(response).to.deep.equal(testResponse);
     });
 });
