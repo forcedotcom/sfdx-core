@@ -4,6 +4,48 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/**
+ * Options for OAuth2
+ * @typedef OAuth2Options
+ * @property {string} authzServiceUrl
+ * @property {string} tokenServiceUrl
+ * @property {string} clientId
+ * @property {string} clientSecret
+ * @property {string} httpProxy
+ * @property {string} loginUrl
+ * @property {string} proxyUrl
+ * @property {string} redirectUri
+ * @property {string} refreshToken
+ * @property {string} revokeServiceUrl
+ * @property {string} authCode
+ * @property {string} privateKeyFile
+ * @see https://jsforce.github.io/jsforce/doc/OAuth2.html
+ */
+
+/**
+ * Fields for authorization, organization, and local information.
+ * @typedef AuthFields
+ * @property {string} accessToken
+ * @property {string} alias
+ * @property {string} authCode
+ * @property {string} clientId
+ * @property {string} clientSecret
+ * @property {string} created
+ * @property {string} createdOrgInstance
+ * @property {string} devHubUsername
+ * @property {string} instanceUrl
+ * @property {string} isDevHub
+ * @property {string} loginUrl
+ * @property {string} orgId
+ * @property {string} password
+ * @property {string} privateKey
+ * @property {string} refreshToken
+ * @property {string} scratchAdminUsername
+ * @property {string} userId
+ * @property {string} username
+ * @property {string} usernames
+ * @property {string} userProfileName
+ */
 
 import { parse as urlParse } from 'url';
 import * as dns from 'dns';
@@ -24,26 +66,26 @@ import { Crypto } from './crypto';
 
 // Fields that are persisted in auth files
 export interface AuthFields {
-    accessToken: string;
-    alias: string;
-    authCode: string;
-    clientId: string;
-    clientSecret: string;
-    created: string;
-    createdOrgInstance: string;
-    devHubUsername: string;
-    instanceUrl: string;
-    isDevHub: boolean;
-    loginUrl: string;
-    orgId: string;
-    password: string;
-    privateKey: string;
-    refreshToken: string;
-    scratchAdminUsername: string;
-    userId: string;
-    username: string;
-    usernames: string[];
-    userProfileName: string;
+    accessToken?: string;
+    alias?: string;
+    authCode?: string;
+    clientId?: string;
+    clientSecret?: string;
+    created?: string;
+    createdOrgInstance?: string;
+    devHubUsername?: string;
+    instanceUrl?: string;
+    isDevHub?: boolean;
+    loginUrl?: string;
+    orgId?: string;
+    password?: string;
+    privateKey?: string;
+    refreshToken?: string;
+    scratchAdminUsername?: string;
+    userId?: string;
+    username?: string;
+    usernames?: string[];
+    userProfileName?: string;
 }
 
 // Extend OAuth2 to add JWT Bearer Token Flow support.
@@ -164,15 +206,15 @@ class AuthInfoCrypto extends Crypto {
 
     private static readonly encryptedFields = ['accessToken', 'refreshToken', 'password', 'clientSecret'];
 
-    public decryptFields(fields: Partial<AuthFields>) {
+    public decryptFields(fields: AuthFields) {
         return this._crypt(fields, 'decrypt');
     }
 
-    public encryptFields(fields: Partial<AuthFields>) {
+    public encryptFields(fields: AuthFields) {
         return this._crypt(fields, 'encrypt');
     }
 
-    private _crypt(fields: Partial<AuthFields>, method: string): Partial<AuthFields> {
+    private _crypt(fields: AuthFields, method: string): AuthFields {
         return _.mapValues(fields, (val, key) => AuthInfoCrypto.encryptedFields.includes(key) ? this[method](val) : val);
     }
 }
@@ -186,17 +228,40 @@ function base64UrlEscape(base64Encoded: string): string {
 }
 
 /**
- * Handles persistence and fetching of user authentication information.
+ * Handles persistence and fetching of user authentication information using
+ * JWT, oAuth, or refresh tokens. Set's up the refresh flows that jsForce will
+ * use to keep tokens active. An AuthInfo can also be created with an access
+ * token but can not be persisted to disk.
+ *
+ * @example
+ * // Creating a new authentication file.
+ * const authInfo = await AuthInfo.create(myAdminUsername, {
+ *     loginUrl, authCode, clientId, clientSecret
+ * });
+ * authInfo.save();
+ *
+ * // Creating an authorization info with an access token.
+ * const authInfo = await AuthInfo.create(accessToken);
+ *
+ * // Using an existing authentication file.
+ * const authInfo = await AuthInfo.create(myAdminUsername);
+ *
+ * // Using the AuthInfo
+ * const connection = await Connection.create(authInfo);
  */
 export class AuthInfo {
 
     /**
-     * Returns an instance of AuthInfo for the provided username and/or options.
+     * Create an instance of AuthInfo for the provided username and options.
+     * If options are not provided, attempt to read the authorization information from disk.
      *
-     * @param username The username for the authentication info.
-     * @param options Options to be used for creating an OAuth2 instance.
+     * @param {string} [username] The username for the authentication info.
+     * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
+     * @throws {SfdxError}
+     *    **`{name: 'namedOrgNotFound'}`:** Org information does not exist.
+     * @returns {Promise<AuthInfo>}
      */
-    public static async create(username?: string, options?: OAuth2Options, isUsingAccessToken?: boolean): Promise<AuthInfo> {
+    public static async create(username?: string, options?: OAuth2Options): Promise<AuthInfo> {
 
         // Must specify either username and/or options
         if (!username && !options) {
@@ -204,8 +269,6 @@ export class AuthInfo {
         }
 
         const authInfo = new AuthInfo(username);
-
-        authInfo.setIsUsingAccessToken(isUsingAccessToken);
 
         // If the username is an access token, use that for auth and don't persist
         const accessTokenMatch = _.isString(username) && username.match(/^(00D\w{12,15})![\.\w]*$/);
@@ -222,6 +285,8 @@ export class AuthInfo {
                 instanceUrl,
                 orgId: accessTokenMatch[1]
             });
+
+            authInfo.usingAccessToken = true;
         } else {
             await authInfo.init(options);
         }
@@ -230,7 +295,8 @@ export class AuthInfo {
     }
 
     /**
-     * Returns a list of all auth files stored in the global directory
+     * Get a list of all auth files stored in the global directory
+     * @returns {Promise<string[]>}
      */
     public static async listAllAuthFiles(): Promise<string[]> {
         const globalFiles = await SfdxUtil.readdir(Global.DIR);
@@ -248,7 +314,7 @@ export class AuthInfo {
     }
 
     /**
-     * Returns true if this sfdx instance already has 1 or more authentications.
+     * Returns true if one or more authentications are persisted.
      * @returns {Promise<boolean>}
      */
     public static async hasAuthentications(): Promise<boolean> {
@@ -263,26 +329,55 @@ export class AuthInfo {
         }
     }
 
+    /**
+     * Get the authorization URL.
+     * @param {OAuth2Options} options The options to generate the URL
+     * @returns {string}
+     */
+    public static getAuthorizationUrl(options: OAuth2Options): string {
+        const oauth2 = new AuthCodeOAuth2(options);
+
+        // The state parameter allows the redirectUri callback listener to ignore request
+        // that don't contain the state value.
+        const params = {
+            state: randomBytes(Math.ceil(6)).toString('hex'),
+            prompt: 'login',
+            scope: 'refresh_token api web'
+        };
+
+        return oauth2.getAuthorizationUrl(params);
+    }
+
     // The regular expression that filters files stored in $HOME/.sfdx
     private static authFilenameFilterRegEx: RegExp = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
 
     // Cache of auth fields by username.
-    private static cache: Map<string, Partial<AuthFields>> = new Map();
+    private static cache: Map<string, AuthFields> = new Map();
 
     // All sensitive fields are encrypted
-    private fields: Partial<AuthFields> = {};
+    private fields: AuthFields = {};
 
     private usingAccessToken: boolean;
 
     private logger: Logger;
 
-    constructor(username: string) {
+    /**
+     * **Do not directly construct instances of this class -- use {@link AuthInfo.create} instead.**
+     *
+     * @private
+     * @constructor
+     */
+    private constructor(username: string) {
         this.fields.username = username;
     }
 
     /**
-     * Initialize an AuthInfo instance with a logger and the auth fields; either from
-     * cache or by reading from persistence store.
+     * Initialize an AuthInfo instance with the options. If options are not provided
+     * initialize from cache or by reading from persistence store.
+     * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
+     * @throws {SfdxError}
+     *    **`{name: 'namedOrgNotFound'}`:** Org information does not exist.
+     * @returns {Promise<AuthInfo>} Returns `this` for convenience.
      */
     public async init(options?: OAuth2Options): Promise<AuthInfo> {
         this.logger = await Logger.child('AuthInfo');
@@ -305,18 +400,18 @@ export class AuthInfo {
             // Update the auth fields WITH encryption
             this.update(authConfig);
         } else {
-            if (AuthInfo.cache.has(this.username)) {
-                authConfig = AuthInfo.cache.get(this.username);
+            if (AuthInfo.cache.has(this.getUsername())) {
+                authConfig = AuthInfo.cache.get(this.getUsername());
             } else {
                 // Fetch from the persisted auth file
                 try {
                     const config: AuthInfoConfig =
-                        await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.username));
+                        await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.getUsername()));
                     await config.read();
                     authConfig = config.toObject();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
-                        throw SfdxError.create('sfdx-core', 'core', 'namedOrgNotFound', [this.username]);
+                        throw SfdxError.create('sfdx-core', 'core', 'namedOrgNotFound', [this.getUsername()]);
                     } else {
                         throw e;
                     }
@@ -327,29 +422,49 @@ export class AuthInfo {
         }
 
         // Cache the fields by username (fields are encrypted)
-        AuthInfo.cache.set(this.username, this.fields);
+        AuthInfo.cache.set(this.getUsername(), this.fields);
 
         return this;
     }
 
-    get username(): string {
+    /**
+     * Get the username.
+     * @returns {string}
+     */
+    public getUsername(): string {
         return this.fields.username;
     }
 
+    /**
+     * Returns true if `this` is using the JWT flow.
+     * @returns {boolean}
+     */
     public isJwt(): boolean {
         const { refreshToken, privateKey } = this.fields;
         return !refreshToken && !!privateKey;
     }
 
+    /**
+     * Returns true if `this` is using an access token flow.
+     * @returns {boolean}
+     */
     public isAccessTokenFlow(): boolean {
         const { refreshToken, privateKey } = this.fields;
         return !refreshToken && !privateKey;
     }
 
+    /**
+     * Returns true if `this` is using the oauth flow.
+     * @returns {boolean}
+     */
     public isOauth(): boolean {
         return !this.isAccessTokenFlow() && !this.isJwt();
     }
 
+    /**
+     * Returns true if `this` is using the refresh token flow.
+     * @returns {boolean}
+     */
     public isRefreshTokenFlow(): boolean {
         const { refreshToken, authCode } = this.fields;
         return !authCode && !!refreshToken;
@@ -357,10 +472,12 @@ export class AuthInfo {
 
     /**
      * Updates the cache and persists the authentication fields (encrypted).
+     * @param {AuthFields} [authData] New data to save.
+     * @returns {Promise<AuthInfo>}
      */
-    public async save(authData?: Partial<AuthFields>): Promise<AuthInfo> {
+    public async save(authData?: AuthFields): Promise<AuthInfo> {
         this.update(authData);
-        AuthInfo.cache.set(this.username, this.fields);
+        AuthInfo.cache.set(this.getUsername(), this.fields);
 
         const dataToSave = _.clone(this.fields);
 
@@ -372,36 +489,38 @@ export class AuthInfo {
 
         this.logger.debug(dataToSave);
 
-        const config: ConfigFile = await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.username));
+        const config: ConfigFile = await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.getUsername()));
         config.setContentsFromObject(dataToSave);
         await config.write();
 
-        this.logger.info(`Saved auth info for username: ${this.username}`);
+        this.logger.info(`Saved auth info for username: ${this.getUsername()}`);
         return this;
     }
 
     /**
      * Update the authorization fields, encrypting sensitive fields, but do not persist.
      *
-     * @param authData Authorization fields to update.
+     * @param {AuthFields} authData Authorization fields to update.
+     * @param {boolean} encrypt Encrypt the fields.
+     * @returns {AuthInfo} Returns `this` for convenience.
      */
-    public update(authData: Partial<AuthFields>, encrypt: boolean = true): AuthInfo {
+    public update(authData: AuthFields, encrypt: boolean = true): AuthInfo {
         if (_.isPlainObject(authData)) {
             if (encrypt) {
                 authData = authInfoCrypto.encryptFields(authData);
             }
             Object.assign(this.fields, authData);
-            this.logger.info(`Updated auth info for username: ${this.username}`);
+            this.logger.info(`Updated auth info for username: ${this.getUsername()}`);
         }
         return this;
     }
 
     /**
-     * Return only the auth fields (decrypted) needed to make a connection.
+     * Get the auth fields (decrypted) needed to make a connection.
      *
-     * @returns Partial<AuthFields> AuthFields used in making jsForce connections.
+     * @returns {AuthFields}
      */
-    public getConnectionOptions(): Partial<AuthFields> {
+    public getConnectionOptions(): AuthFields {
         let json;
 
         const { accessToken, instanceUrl } = this.fields;
@@ -444,21 +563,11 @@ export class AuthInfo {
         return authInfoCrypto.decryptFields(json);
     }
 
-    public getAuthorizationUrl(options: OAuth2Options): string {
-        const oauth2 = new AuthCodeOAuth2(options);
-
-        // The state parameter allows the redirectUri callback listener to ignore request
-        // that don't contain the state value.
-        const params = {
-            state: randomBytes(Math.ceil(6)).toString('hex'),
-            prompt: 'login',
-            scope: 'refresh_token api web'
-        };
-
-        return oauth2.getAuthorizationUrl(params);
-    }
-
-    public getFields(): Partial<AuthFields> {
+    /**
+     * Get the authorization fields.
+     * @returns {AuthFields}
+     */
+    public getFields(): AuthFields {
         return this.fields;
     }
 
@@ -468,16 +577,6 @@ export class AuthInfo {
      */
     public isUsingAccessToken(): boolean {
         return this.usingAccessToken;
-    }
-
-    /**
-     * Sets an indicator if this org is using access token authentication.
-     * @param {boolean} value Return true if this org should us access token authentication. False otherwise.
-     * @returns {Org} For convenience this object is returned.
-     */
-    protected setIsUsingAccessToken(isUsingAccessToken: boolean): AuthInfo {
-        this.usingAccessToken = isUsingAccessToken;
-        return this;
     }
 
     // A callback function for a connection to refresh an access token.  This is used
@@ -491,7 +590,7 @@ export class AuthInfo {
             return await callback(null, authInfoCrypto.decrypt(this.fields.accessToken));
         } catch (err) {
             if (err.message && err.message.includes('Data Not Available')) {
-                const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'core', 'OrgDataNotAvailableError', [this.username]);
+                const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'core', 'OrgDataNotAvailableError', [this.getUsername()]);
                 for (let i = 1; i < 5; i++) {
                     errConfig.addAction(`OrgDataNotAvailableErrorAction${i}`);
                 }
@@ -502,13 +601,13 @@ export class AuthInfo {
     }
 
     // Build OAuth config for a JWT auth flow
-    private async buildJwtConfig(options: OAuth2Options): Promise<any> {
+    private async buildJwtConfig(options: OAuth2Options): Promise<AuthFields> {
         const privateKeyContents = await SfdxUtil.readFile(options.privateKey, 'utf8');
         const audienceUrl = getJwtAudienceUrl(options);
         const jwtToken = await jwt.sign(
             {
                 iss: options.clientId,
-                sub: this.username,
+                sub: this.getUsername(),
                 aud: audienceUrl,
                 exp: Date.now() + 300
             },
@@ -526,7 +625,7 @@ export class AuthInfo {
             throw SfdxError.create('sfdx-core', 'core', 'JWTAuthError', [err.message]);
         }
 
-        const authFields: Partial<AuthFields> = {
+        const authFields: AuthFields = {
             accessToken: _authFields.access_token,
             orgId: _parseIdUrl(_authFields.id).orgId,
             loginUrl: options.loginUrl,

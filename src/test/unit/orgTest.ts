@@ -374,7 +374,7 @@ describe('Org Tests', () => {
                     clientId: user.clientId,
                     clientSecret: user.clientSecret,
                     loginUrl: user.loginUrl
-                } , user.username === accessTokenUser);
+                });
 
                 await userAuth.save( {orgId: user.orgId});
 

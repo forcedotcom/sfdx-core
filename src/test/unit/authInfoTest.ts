@@ -291,7 +291,7 @@ describe('AuthInfo', () => {
                 expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
                 expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
                 expect(authInfoJSON).to.have.property('refreshFn').and.is.a('function');
-                expect(authInfo.username).to.equal(testMetadata.jwtUsername);
+                expect(authInfo.getUsername()).to.equal(testMetadata.jwtUsername);
                 expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
                 expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
                 expect(authInfo.isJwt(), 'authInfo.isJwt() should be true').to.be.true;
@@ -326,7 +326,7 @@ describe('AuthInfo', () => {
                 expect(authInfoJSON).to.have.property('accessToken', testMetadata.accessToken);
                 expect(authInfoJSON).to.have.property('instanceUrl', testMetadata.instanceUrl);
                 expect(authInfoJSON).to.have.property('refreshFn').and.is.a('function');
-                expect(authInfo.username).to.equal(testMetadata.jwtUsername);
+                expect(authInfo.getUsername()).to.equal(testMetadata.jwtUsername);
                 expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
                 expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
                 expect(authInfo.isJwt(), 'authInfo.isJwt() should be true').to.be.true;
@@ -366,7 +366,7 @@ describe('AuthInfo', () => {
             expect(authInfoJSON).to.have.property('accessToken', testMetadata.accessToken);
             expect(authInfoJSON).to.have.property('instanceUrl', testMetadata.instanceUrl);
             expect(authInfoJSON).to.have.property('refreshFn').and.is.a('function');
-            expect(authInfo.username).to.equal(username);
+            expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
             expect(authInfo.isJwt(), 'authInfo.isJwt() should be true').to.be.true;
@@ -463,7 +463,7 @@ describe('AuthInfo', () => {
             expect(authInfoJSON['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
             expect(authInfoJSON['oauth2']).to.have.property('clientSecret', testMetadata.defaultConnectedAppInfo.clientSecret);
             expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
-            expect(authInfo.username).to.equal(username);
+            expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
             expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
@@ -523,7 +523,7 @@ describe('AuthInfo', () => {
             expect(authInfoJSON['oauth2']).to.have.property('clientId', refreshTokenConfig.clientId);
             expect(authInfoJSON['oauth2']).to.have.property('clientSecret', refreshTokenConfig.clientSecret);
             expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
-            expect(authInfo.username).to.equal(username);
+            expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
             expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
@@ -609,7 +609,7 @@ describe('AuthInfo', () => {
             expect(authInfoJSON['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
             expect(authInfoJSON['oauth2']).to.have.property('clientSecret', testMetadata.defaultConnectedAppInfo.clientSecret);
             expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
-            expect(authInfo.username).to.equal(username);
+            expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
             expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
@@ -713,7 +713,7 @@ describe('AuthInfo', () => {
             // Create the AuthInfo instance
             const authInfo = await AuthInfo.create(username, refreshTokenConfig);
 
-            expect(authInfo.username).to.equal(username);
+            expect(authInfo.getUsername()).to.equal(username);
 
             // reset the AuthInfo.update stub so we only look at what happens with AuthInfo.save().
             AuthInfo.prototype.update['reset']();
@@ -751,6 +751,7 @@ describe('AuthInfo', () => {
         it('should encrypt the data before assigning to this.fields', async () => {
             const crypto = await Crypto.create();
             const context: any = {
+                getUsername: () => context.fields.username,
                 fields: {
                     accessToken: crypto.encrypt(testMetadata.accessToken),
                     instanceUrl: testMetadata.instanceUrl,
@@ -776,6 +777,7 @@ describe('AuthInfo', () => {
 
         it('should NOT encrypt the data when encrypt arg is false', async () => {
             const context: any = {
+                getUsername: () => context.fields.username,
                 fields: {
                     accessToken: testMetadata.accessToken,
                     instanceUrl: testMetadata.instanceUrl,
@@ -799,6 +801,7 @@ describe('AuthInfo', () => {
     describe('refreshFn()', () => {
         it('should call init() and save()', async () => {
             const context = {
+                getUsername: () => '',
                 fields: {
                     loginUrl: testMetadata.loginUrl,
                     clientId: testMetadata.clientId,
@@ -832,6 +835,7 @@ describe('AuthInfo', () => {
 
         it('should call the callback with OrgDataNotAvailableError when AuthInfo.init() fails', async () => {
             const context = {
+                getUsername: () => '',
                 fields: {
                     loginUrl: testMetadata.loginUrl,
                     clientId: testMetadata.clientId,
@@ -860,7 +864,7 @@ describe('AuthInfo', () => {
                 redirectUri: testMetadata.redirectUri,
                 loginUrl: testMetadata.loginUrl
             };
-            const url: string = AuthInfo.prototype.getAuthorizationUrl.call(null, options);
+            const url: string = AuthInfo.getAuthorizationUrl.call(null, options);
 
             expect(url.startsWith(options.loginUrl), 'authorization URL should start with the loginUrl').to.be.true;
             expect(url).to.contain('state=');
@@ -878,7 +882,7 @@ describe('AuthInfo', () => {
 
         async function runTest(options, expectedUrl: string) {
             const context = {
-                username: testMetadata.jwtUsername,
+                getUsername: () => testMetadata.jwtUsername,
                 logger: $$.TEST_LOGGER
             };
             const defaults = {
