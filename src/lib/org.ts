@@ -84,6 +84,8 @@ const _manageDelete = function(cb, dirPath, throwWhenRemoveFails) {
  * const org2: Org = await Org.create();
  * // Full Connection
  * const org3: Org = await Org.create(await Connection.create(await AuthInfo.create('bar@example.com')));
+ *
+ * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
 export class Org {
 

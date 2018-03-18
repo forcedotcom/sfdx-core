@@ -163,6 +163,7 @@ const _filter = (...args) => args.map((arg) => {
  * @example Logger.create('myLogger').init();
  * @extends Bunyan
  * @see https://github.com/cwallsfdc/node-bunyan
+ * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_log_messages.htm
  */
 export class Logger extends Bunyan {
     public static commandName: string;

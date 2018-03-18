@@ -7,7 +7,7 @@ Requires [Node](https://nodejs.org) 8.4 or greater and [Typescript](http://www.t
 
 ## [AuthInfo]{@link AuthInfo}
 
-Create, read, update and delete authentication information for an org. 
+Create, read, update and delete authentication information for an org.
 
 ## [Connection]{@link Connection}
 

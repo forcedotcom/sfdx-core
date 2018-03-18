@@ -51,6 +51,9 @@ export class Global {
     /**
      * Gets the current mode environment variable as a {@link Mode} instance.
      *
+     * @example
+     * console.log(Global.getEnvironmentMode() === Mode.PRODUCTION);
+     *
      * @returns {Mode}
      */
     public static getEnvironmentMode(): Mode {

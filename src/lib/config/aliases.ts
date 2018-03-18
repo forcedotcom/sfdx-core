@@ -36,6 +36,7 @@ export enum AliasGroup {
  *
  * // Shorthand to get an alias.
  * const username: string = Aliases.fetch('myAlias');
+ * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
 export class Aliases extends ConfigGroup {
     /**

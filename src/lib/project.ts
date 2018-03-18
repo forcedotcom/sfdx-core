@@ -26,6 +26,8 @@ import { SfdxUtil } from './util';
  * myPluginProperties.myprop = 'someValue';
  * project.set('myplugin', myPluginProperties);
  * await project.write();
+ *
+ * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm
  */
 export class SfdxProjectJson extends ConfigFile {
     public static getFileName() {
