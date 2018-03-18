@@ -9,7 +9,7 @@ import { expect } from 'chai';
 
 import { SfdxErrorConfig, SfdxError } from '../../lib/sfdxError';
 import { color } from '../../lib/ux';
-import { Global, Modes, Mode } from '../../lib/global';
+import { Global, Mode } from '../../lib/global';
 import { Messages } from '../../lib/messages';
 import { testSetup } from '../testSetup';
 
@@ -147,7 +147,7 @@ describe('SfdxError', () => {
 
         it('should return expected base formatting', () => {
             // Set the mode to TEST
-            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(new Mode(Modes.TEST));
+            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(Mode.TEST);
 
             const message = 'it\s a trap!';
             const name = 'BadError';
@@ -162,7 +162,7 @@ describe('SfdxError', () => {
 
         it('should return expected formatting with a commandName set', () => {
             // Set the mode to TEST
-            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(new Mode(Modes.TEST));
+            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(Mode.TEST);
 
             const message = 'it\s a trap!';
             const name = 'BadError';
@@ -179,7 +179,7 @@ describe('SfdxError', () => {
 
         it('should return expected formatting with actions', () => {
             // Set the mode to TEST
-            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(new Mode(Modes.TEST));
+            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(Mode.TEST);
 
             const message = 'it\s a trap!';
             const name = 'BadError';
@@ -195,7 +195,7 @@ describe('SfdxError', () => {
 
         it('should return expected formatting with stack trace (in dev mode)', () => {
             // Set the mode to DEVELOPMENT
-            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(new Mode(Modes.DEVELOPMENT));
+            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(Mode.DEVELOPMENT);
 
             const message = 'it\s a trap!';
             const name = 'BadError';

@@ -10,56 +10,21 @@ import * as path from 'path';
 import { SfdxUtil } from './util';
 
 /**
- * An `enum` of all recognized environment modes.
+ * Represents an environment mode.  Supports `production`, `development`, `demo`, and `test`
+ * with the default mode being `production`.
  *
- * @typedef Modes
+ * To set the mode, `export SFDX_ENV=<mode>` in your current environment.
+ * @typedef Mode
  * @property {string} PRODUCTION
  * @property {string} DEVELOPMENT
  * @property {string} DEMO
  * @property {string} TEST
  */
-export enum Modes {
+export enum Mode {
     PRODUCTION = 'production',
     DEVELOPMENT = 'development',
     DEMO = 'demo',
     TEST = 'test'
-}
-
-/**
- * Represents an environment mode.  Supports `production`, `development`, `demo`, and `test`
- * with the default mode being `production`.
- *
- * @see Modes
- */
-export class Mode {
-    /**
-     * Creates a new `Mode` instance from a string.
-     *
-     * @param {string} mode One of `production`, `development`, `demo`, and `test`, defaulting
-     *                      to `production` if unrecognized.
-     */
-    constructor(private readonly mode: string) {
-        mode = mode && mode.toUpperCase();
-        this.mode = Modes[mode] || Modes.PRODUCTION;
-    }
-
-    /**
-     * Compares a given {@link Modes} value to this `Mode` for equality.
-     *
-     * @param {Modes} mode A concrete `Modes` value with which to compare.
-     */
-    public is(mode: Modes) {
-        return mode === this.mode;
-    }
-
-    /**
-     * Gets the `string` value of this `Mode`.
-     *
-     * @returns {string}
-     */
-    public toString() {
-        return this.mode;
-    }
 }
 
 /**
@@ -87,10 +52,9 @@ export class Global {
      * Gets the current mode environment variable as a {@link Mode} instance.
      *
      * @returns {Mode}
-     * @see Modes
      */
     public static getEnvironmentMode(): Mode {
-        return new Mode(process.env.SFDX_ENV);
+        return Mode[(process.env.SFDX_ENV || Mode.PRODUCTION).toUpperCase()];
     }
 
     /**

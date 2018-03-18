@@ -1,17 +1,21 @@
-# Salesforce DX Core Library
-This library provides client side management of sfdx projects, org authentication, connections to Salesforce APIs, and other various utilities.
+# Salesforce DX Core Library (**Beta**)
+This library provides client side management of sfdx projects, org authentication, connections to Salesforce APIs, and other various utilities. These libraries are used by and follow patterns of the [Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli).
+
+Requires [Node](https://nodejs.org) 8.4 or greater and [Typescript](http://www.typescriptlang.org/) target `es2017`.
+
+**Note: Currently in Beta.**
 
 ## [AuthInfo]{@link AuthInfo}
 
-Create, read, or save authentication information to an org. 
+Create, read, update and delete authentication information for an org. 
 
 ## [Connection]{@link Connection}
 
-Create an instance of an API connection from an {@link AuthInfo}.
+Create an instance of an API connection to a Salesforce org.
 
 ## {@link Org}
 
-Create a representation of an org based on an already authenticated alias, username or default. The org will have a [connection]{@link Connection} and other useful methods for interacting with an org and it's users.
+Create a representation of an org based on an already authenticated alias, username or default. The org will have a [connection]{@link Connection} and other useful methods for interacting with an org and its users.
 
 ## {@link ConfigFile}
 
@@ -45,25 +49,5 @@ An error class that is always thrown from sfdx-core, providing useful formatting
 
 ## [Messages]{@link Messages}
 
-The [core message framework]{@link Messages} manages messages and allows them to be accessible by all plugins and consumers of sfdx-core. It is setup to handle localization down the road, at no additional effort to the consumer. Messages can be used for anything from user output (like the console), to error messages, to returned data from a method.
-
-First, add your messages to the `<moduleRoot>/messages` directory. Message files must be in `.json`.
-
-Next, tell sfdx-core where to load message files from. You want to add this to the index.js or whatever is loaded when the package is required. The framework will automatically strip `dist/...` from the path if using that convention.
-```javascript
-Messages.importMessagesDirectory(__dirname);
-```
-Before using the messages in your code, load the bundle you wish to use. If `Messages.importMessagesDirectory` was used, then the bundle name is the message file name.
-```javascript
-const messages : Messages = Messages.loadMessages('sfdx-core', 'config');
-```
-Now you can use them freely.
-```javascript
-messages.getMessage('JsonParseError');
-```
-The messages in your json file support [util.format](https://nodejs.org/api/util.html#util_util_format_format_args) and applies the tokens passed into {@link Message.getMessage}.
-**Note:** When running unit tests individually, you may see errors that the messages aren't found. This is because `index.js` isn't loaded when tests run like they are when the package is required. To allow tests to run, import the message directory in each test, as outlined above (it will only do it once) or load the message file the test depends on individually.
-```javascript
-Messages.importMessageFile(`${__dirname}/${pathFromTestFile}`);
-```
+Manage user messages that are accessible by all plugins and consumers of sfdx-core.
 

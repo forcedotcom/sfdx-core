@@ -9,7 +9,7 @@ import * as _ from 'lodash';
 
 import { Messages } from './messages';
 import { color } from './ux';
-import { Global, Modes } from './global';
+import { Global, Mode } from './global';
 
 /**
  * A class to manage all the keys and tokens for a message bundle to use with SfdxError.
@@ -289,7 +289,7 @@ export class SfdxError extends Error {
                 colorizedArgs.push(`\n${color.red(action)}`);
             });
         }
-        if (this.stack && Global.getEnvironmentMode().is(Modes.DEVELOPMENT)) {
+        if (this.stack && Global.getEnvironmentMode() === Mode.DEVELOPMENT) {
             colorizedArgs.push(color.red(`\n*** Internal Diagnostic ***\n\n${this.stack}\n******\n`));
         }
 
