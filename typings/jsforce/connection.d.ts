@@ -61,8 +61,8 @@ export type ConnectionEvent = 'refresh';
 export abstract class BaseConnection {
     _baseUrl(): string;
     request(info: RequestInfo | string, options?: Object, callback?: (err: Error, Object) => void): Promise<Object>; 
-    query<T>(soql: string, options?: object, callback?: (err: Error, result: QueryResult<T>) => void): Query<QueryResult<T>>;
-    queryMore<T>(locator: string, options?: object, callback?: (err: Error, result: QueryResult<T>) => void): Query<QueryResult<T>>;
+    query<T>(soql: string, options?: object, callback?: (err: Error, result: QueryResult<T>) => void): Promise<QueryResult<T>>;
+    queryMore<T>(locator: string, options?: object, callback?: (err: Error, result: QueryResult<T>) => void): Promise<QueryResult<T>>;
     create<T>(type: string, records: Record<T>|Array<Record<T>>, options?: Object, callback?: (err: Error, result: RecordResult | Array<RecordResult>) => void): Promise<(RecordResult | Array<RecordResult>)>;
     insert<T>(type: string, records: Record<T>|Array<Record<T>>, options?: Object, callback?: (err: Error, result: RecordResult | Array<RecordResult>) => void): Promise<(RecordResult | Array<RecordResult>)>;
     retrieve<T>(type: string, ids: string|Array<string>, options?: Object, callback?: (err: Error, result: Record<T> | Array<Record<T>>) => void): Promise<(Record<T> | Array<Record<T>>)>;
