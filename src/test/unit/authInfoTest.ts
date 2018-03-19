@@ -73,7 +73,7 @@ class MetaAuthDataMock {
     private _redirectUri: string = 'http://localhost:1717/OauthRedirect';
     private _authCode: string = 'authInfoTest_authCode';
     private _authInfoLookupCount: number = 0;
-    private _defaultConnectedAppInfo: Partial<AuthFields> = {
+    private _defaultConnectedAppInfo: AuthFields = {
         clientId: 'SalesforceDevelopmentExperience',
         clientSecret: '1384510088588713504'
     };
@@ -130,11 +130,11 @@ class MetaAuthDataMock {
         this._authCode = value;
     }
 
-    get defaultConnectedAppInfo(): Partial<AuthFields> {
+    get defaultConnectedAppInfo(): AuthFields {
         return this._defaultConnectedAppInfo;
     }
 
-    set defaultConnectedAppInfo(value: Partial<AuthFields>) {
+    set defaultConnectedAppInfo(value: AuthFields) {
         this._defaultConnectedAppInfo = value;
     }
 
