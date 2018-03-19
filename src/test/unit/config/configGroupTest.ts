@@ -6,7 +6,7 @@
  */
 
 import { join as pathJoin } from 'path';
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import * as sinon from 'sinon';
 
 import { ConfigGroup, ConfigGroupOptions } from '../../../lib/config/configGroup';
@@ -44,6 +44,15 @@ describe('ConfigGroup', () => {
         expect(store.get('test')).equals('val');
         expect(store.getInGroup('test')).equals('val');
         expect(store.getGroup('default').get('test')).equals('val');
+    });
+
+    it ('setDefaultGroup: false value for groupname', async () => {
+        try {
+            store.setDefaultGroup(undefined);
+            assert.fail('This call shouldn\'t succeed');
+        } catch (e) {
+            expect(e.name).equals('MissingGroupName');
+        }
     });
 
     it('set key value pair is not accessible in another group', async () => {
