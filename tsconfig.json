@@ -14,7 +14,11 @@
         "typeRoots": [
             "./typings",
             "./node_modules/@types"
-        ]
+        ],
+        "baseUrl": "./",
+        "paths" : {
+            "*" : ["./typings/*"]
+        }
     },
     "include": [
         "src/**/*.ts"

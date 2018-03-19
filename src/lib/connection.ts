@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isString, cloneDeep, last } from 'lodash';
+import { isString, cloneDeep, maxBy } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
@@ -43,7 +43,7 @@ export class Connection extends JSForceConnection {
     public static async create(authInfo: AuthInfo, configAggregator?: SfdxConfigAggregator): Promise<Connection> {
         const logger = await Logger.child('connection');
         const _aggregator = configAggregator || await SfdxConfigAggregator.create();
-        const versionFromConfig = _aggregator.getInfo('apiVersion').value;
+        const versionFromConfig = _aggregator.getInfo('apiVersion').value as string;
         const baseOptions: ConnectionOptions = {
             // Set the API version obtained from the config aggregator.
             // Will use jsforce default if undefined.
@@ -64,14 +64,10 @@ export class Connection extends JSForceConnection {
 
     // We want to use 1 logger for this class and the jsForce base classes so override
     // the jsForce connection.tooling.logger and connection.logger.
-    public tooling: any;
     private logger: Logger;
     private _logger: Logger;
 
     private authInfo: AuthInfo;
-
-    private version: string;
-    private instanceUrl: string;
 
     constructor(options: ConnectionOptions, authInfo: AuthInfo, logger?: Logger) {
         super(options);
@@ -95,7 +91,7 @@ export class Connection extends JSForceConnection {
      */
     public async request(request: RequestInfo | string, options?): Promise<any> {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
-        _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, request.headers);
+        _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, _request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
         return super.request(_request, options);
     }
@@ -109,11 +105,25 @@ export class Connection extends JSForceConnection {
     }
 
     /**
+     * Retrieves the highest api version that is supported by the target server instance.
+     * @returns {Promise<string>} The max api version number. i.e 46.0
+     */
+    public async retrieveMaxApiVersion(): Promise<string> {
+        const versions: object[] = (await this.request(`${this.instanceUrl}/services/data`)) as object[];
+        this.logger.debug(`response for org versions: ${versions}`);
+        return maxBy(versions, (version: any) => version.version).version;
+    }
+
+    /**
      * Use the latest API version available on `this.instanceUrl.
      */
     public async useLatestApiVersion(): Promise<void> {
-        const versions = await this.request(`${this.instanceUrl}/services/data`);
-        this.setApiVersion((last(versions) as any).version);
+        try {
+            this.setApiVersion(await this.retrieveMaxApiVersion());
+        } catch (err) {
+            // Don't fail if we can't use the latest, just use the default
+            this.logger.warn('Failed to set the latest API version:', err);
+        }
     }
 
     /**

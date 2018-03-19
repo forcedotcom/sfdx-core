@@ -14,7 +14,7 @@ import * as glob from 'glob';
 export { Date } from './date-enum';
 export { Record } from './record';
 export { RecordResult } from './record-result';
-export { Connection, ConnectionOptions, RequestInfo } from './connection';
+export { Connection, ConnectionOptions, RequestInfo, Tooling } from './connection';
 export { SObject } from './salesforce-object';
 export { SalesforceId } from './salesforce-id';
 export { OAuth2, OAuth2Options } from './oauth2';

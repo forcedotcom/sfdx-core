@@ -66,7 +66,7 @@ describe('Connection', () => {
 
         // Test passing a string to conn.request()
         const response1 = await conn.request(testUrl);
-        expect(jsforce.Connection.prototype.request.called).to.be.true;
+        expect((jsforce.Connection.prototype.request as any).called).to.be.true;
         expect(jsforce.Connection.prototype.request['secondCall'].args[0]).to.deep.equal(expectedRequestInfo);
         expect(jsforce.Connection.prototype.request['secondCall'].args[1]).to.be.undefined;
         expect(response1).to.deep.equal(testResponse);
@@ -84,7 +84,7 @@ describe('Connection', () => {
         const expectedRequestInfo = Object.assign({}, requestInfo, { headers: SFDX_HTTP_HEADERS });
         const httpOptions = { responseType: 'json' };
         const response = await conn.request(requestInfo, httpOptions);
-        expect(jsforce.Connection.prototype.request.called).to.be.true;
+        expect((jsforce.Connection.prototype.request as any).called).to.be.true;
         expect(jsforce.Connection.prototype.request['secondCall'].args[0]).to.deep.equal(expectedRequestInfo);
         expect(jsforce.Connection.prototype.request['secondCall'].args[1]).to.equal(httpOptions);
         expect(response).to.deep.equal(testResponse);
