@@ -228,7 +228,7 @@ describe('UX', () => {
     });
 
     it('table() should log to the logger and output in table format when output IS enabled with simple column config', () => {
-        const retVal: any = {};
+        const retVal: any = {}; // tslint:disable-line:no-any
         $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
         const tableGetter = () => (x, y) => { retVal.x = x; retVal.y = y; };
         $$.SANDBOX.stub(cli, 'table').get(tableGetter);
@@ -257,7 +257,7 @@ describe('UX', () => {
     });
 
     it('table() should log to the logger and output in table format when output IS enabled with complex column config', () => {
-        const retVal: any = {};
+        const retVal: any = {}; // tslint:disable-line:no-any
         $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
         const tableGetter = () => (x, y) => { retVal.x = x; retVal.y = y; };
         $$.SANDBOX.stub(cli, 'table').get(tableGetter);

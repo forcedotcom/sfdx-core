@@ -16,6 +16,7 @@ import { ConfigFile } from '../lib/config/configFile';
 import { join as pathJoin } from 'path';
 import { tmpdir as osTmpdir } from 'os';
 import { ConfigContents } from '../lib/config/configStore';
+import { AnyJson } from '../lib/types';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -23,10 +24,10 @@ import { ConfigContents } from '../lib/config/configStore';
  * on the TestContext.
  */
 export interface SandboxTypes {
-    DEFAULT: any;
-    CRYPTO: any;
-    CONFIG: any;
-    CONNECTION: any;
+    DEFAULT: any; // tslint:disable-line:no-any
+    CRYPTO: any; // tslint:disable-line:no-any
+    CONFIG: any; // tslint:disable-line:no-any
+    CONNECTION: any; // tslint:disable-line:no-any
 }
 
 export interface ConfigStub {
@@ -44,7 +45,7 @@ export interface ConfigStub {
  * Different configuration options when running before each
  */
 export interface TestContext {
-    SANDBOX: any;
+    SANDBOX: any; // tslint:disable-line:no-any
     SANDBOXES: SandboxTypes;
     TEST_LOGGER: Logger;
     id: string;
@@ -53,7 +54,7 @@ export interface TestContext {
     localPathRetriever: (uid: string) => Promise<string>;
     globalPathRetriever: (uid: string) => Promise<string>;
     rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
-    fakeConnectionRequest: (request: any, options?: any) => Promise<any>;
+    fakeConnectionRequest: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>; // tslint:disable-line:no-any
 }
 
 const _uniqid = () => {
@@ -72,7 +73,7 @@ async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Pro
     return isGlobal ? await getTestGlobalPath(uid) : await getTestLocalPath(uid);
 }
 
-function defaultFakeConnectionRequest(request: any, options?: any): Promise<any> {
+function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Promise<AnyJson> { // tslint:disable-line:no-any
     return Promise.resolve({ records: [] });
 }
 

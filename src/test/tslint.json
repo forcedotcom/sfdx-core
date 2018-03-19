@@ -5,6 +5,7 @@
     ],
     "jsRules": {},
     "rules": {
+        "no-any": true,
         "only-arrow-functions": false,
         "interface-name": false,
         "max-classes-per-file": false,

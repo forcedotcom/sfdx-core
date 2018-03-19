@@ -84,7 +84,7 @@ describe('Messages', () => {
 
         const messagesDirPath = `myModule${path.sep}dist${path.sep}lib`;
         const truncateErr = new Error();
-        (truncateErr as any).code = 'ENOENT';
+        truncateErr['code'] = 'ENOENT';
         let truncatePath = 'myModule';
 
         beforeEach(() => {

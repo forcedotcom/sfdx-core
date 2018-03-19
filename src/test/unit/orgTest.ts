@@ -7,6 +7,7 @@
 import { constants as fsConstants } from 'fs';
 import { AuthInfo, AuthFields } from '../../lib/authInfo';
 import { Connection } from '../../lib/connection';
+import { AnyJson } from '../../lib/types';
 import { Org, OrgMetaInfo, OrgStatus } from '../../lib/org';
 import { OAuth2 } from 'jsforce';
 import { expect, assert } from 'chai';
@@ -15,6 +16,7 @@ import { ConfigFile } from '../../lib/config/configFile';
 import { Crypto } from '../../lib/crypto';
 import { ConfigGroup } from '../../lib/config/configGroup';
 import { SfdxConfig } from '../../lib/config/sfdxConfig';
+import { ConfigContents, ConfigValue } from '../../lib/config/configStore';
 import { AuthInfoConfig } from '../../lib/config/authInfoConfig';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
@@ -80,27 +82,26 @@ class MockTestOrgData {
         return userMock;
     }
 
-    public async getConfig() {
+    public async getConfig(): Promise<ConfigContents> {
         const crypto = await Crypto.create();
-        const config: any = {
-            orgId: this.orgId,
-            accessToken: crypto.encrypt(this.accessToken),
-            refreshToken: crypto.encrypt(this.refreshToken),
-            instanceUrl: this.instanceUrl,
-            loginUrl: this.loginUrl,
-            username: this.username,
-            createdOrgInstance: 'CS1',
-            created: '1519163543003'
-            // "devHubUsername": "tn@su-blitz.org"
-        };
+        const config = new Map<string, ConfigValue>();
+        config.set('orgId', this.orgId);
+        config.set('accessToken', crypto.encrypt(this.accessToken));
+        config.set('refreshToken', crypto.encrypt(this.refreshToken));
+        config.set('instanceUrl', this.instanceUrl);
+        config.set('loginUrl', this.loginUrl);
+        config.set('username', this.username);
+        config.set('createdOrgInstance', 'CS1');
+        config.set('created', '1519163543003');
+        // config.set('devHubUsername', 'tn@su-blitz.org');
 
         if (this.devHubUsername) {
-            _set(config, 'devHubUsername', this.devHubUsername);
+            config.set('devHubUsername', this.devHubUsername);
         }
 
         const isDevHub = _get(this, 'isDevHub');
         if (isDevHub) {
-            _set(config, 'isDevHub', isDevHub);
+            config.set('isDevHub', isDevHub);
         }
 
         return config;
@@ -278,8 +279,8 @@ describe('Org Tests', () => {
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
 
-            const error: any = new Error();
-            error.code = 'ENOENT';
+            const error: Error = new Error();
+            error['code'] = 'ENOENT';
 
             $$.SANDBOX.stub(ConfigFile.prototype, 'unlink').callsFake(async function() {
                 throw error;
@@ -523,8 +524,8 @@ describe('Org Tests', () => {
     describe('refresh auth', () => {
         let url;
         beforeEach(() => {
-            $$.fakeConnectionRequest = (requestInfo: RequestInfo): Promise<any> => {
-                    url = requestInfo.url;
+            $$.fakeConnectionRequest = (requestInfo: AnyJson): Promise<AnyJson> => {
+                    url = requestInfo['url'];
                     return Promise.resolve({});
                 };
         });
