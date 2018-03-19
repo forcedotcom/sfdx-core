@@ -27,7 +27,7 @@ describe('Messages', () => {
     msgMap.set('msg2', testMessages.msg2);
 
     describe('getMessage', () => {
-        const messages = new Messages('myBundle', Messages.locale, msgMap);
+        const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
 
         it('should return the proper messages', () => {
             expect(messages.getMessage('msg1')).to.equal(testMessages.msg1);
@@ -141,7 +141,7 @@ describe('Messages', () => {
             const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.json');
 
             try {
-                await loaderFn(Messages.locale);
+                await loaderFn(Messages.getLocale());
                 assert.fail('should have thrown an error that the message file was not found.');
             } catch (err) {
                 expect(err.message).to.equal('ENOENT: no such file or directory, open \'myPluginMessages.json\'');
@@ -153,7 +153,7 @@ describe('Messages', () => {
             $$.SANDBOX.stub(Messages, '_readFile').returns('');
 
             try {
-                loaderFn(Messages.locale);
+                loaderFn(Messages.getLocale());
                 assert.fail('should have thrown an error that the file was empty.');
             } catch (err) {
                 expect(err.name).to.equal('SfdxError');
@@ -166,7 +166,7 @@ describe('Messages', () => {
             $$.SANDBOX.stub(Messages, '_readFile').returns('key1=value1,key2=value2');
 
             try {
-                loaderFn(Messages.locale);
+                loaderFn(Messages.getLocale());
                 assert.fail('should have thrown an error that the file not valid JSON.');
             } catch (err) {
                 expect(err.name).to.equal('SyntaxError');
@@ -177,9 +177,9 @@ describe('Messages', () => {
         it('should return a Messages object', () => {
             const loaderFn = Messages.generateFileLoaderFunction('myBundleName', 'myPluginMessages.json');
             $$.SANDBOX.stub(Messages, '_readFile').returns(JSON.stringify(testMessages));
-            const messages = loaderFn(Messages.locale);
+            const messages = loaderFn(Messages.getLocale());
             expect(messages).to.have.property('bundleName', 'myBundleName');
-            expect(messages).to.have.property('locale', Messages.locale);
+            expect(messages).to.have.property('locale', Messages.getLocale());
             expect(messages.getMessage('msg1')).to.equal(testMessages.msg1);
             expect(messages.getMessage('msg2', ['token1', 222])).to.equal('test message 2 token1 and 222');
         });
@@ -187,7 +187,7 @@ describe('Messages', () => {
 
     describe('loadMessages', () => {
         it('should return a cached bundle', async () => {
-            const spy = $$.SANDBOX.spy(() => new Messages('myBundle', Messages.locale, msgMap));
+            const spy = $$.SANDBOX.spy(() => new Messages('myBundle', Messages.getLocale(), msgMap));
             Messages.setLoaderFunction('pname', 'myBundle', spy);
             // Load messages
             Messages.loadMessages('pname', 'myBundle');
@@ -203,7 +203,7 @@ describe('Messages', () => {
             // create a new bundle
             const otherMsgMap = new Map();
             otherMsgMap.set('otherMsg1', 'this is a test message too');
-            const msgs = new Messages('myOtherBundle', Messages.locale, otherMsgMap);
+            const msgs = new Messages('myOtherBundle', Messages.getLocale(), otherMsgMap);
 
             // import the bundle with a custom loader
             Messages.setLoaderFunction('pname', 'myOtherBundle', () => msgs);

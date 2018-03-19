@@ -65,7 +65,6 @@ export {
 
 export {
     Mode,
-    Modes,
     Global
 } from './lib/global';
 

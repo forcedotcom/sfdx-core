@@ -85,6 +85,8 @@ export interface ConfigPropertyMetaInput {
  * const localConfig = await SfdxConfig.retrieve<SfdxConfig>();
  * localConfig.set('defaultusername', 'username@company.org');
  * await localConfig.write();
+ *
+ * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_config_values.htm
  */
 export class SfdxConfig extends ConfigFile {
 

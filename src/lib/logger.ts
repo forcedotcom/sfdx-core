@@ -9,7 +9,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as bunyan from 'bunyan-sfdx-no-dtrace';
 import * as _ from 'lodash';
-import { Modes, Global } from './global';
+import { Mode, Global } from './global';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
 
@@ -163,6 +163,7 @@ const _filter = (...args) => args.map((arg) => {
  * @example Logger.create('myLogger').init();
  * @extends Bunyan
  * @see https://github.com/cwallsfdc/node-bunyan
+ * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_log_messages.htm
  */
 export class Logger extends Bunyan {
     public static commandName: string;
@@ -177,7 +178,7 @@ export class Logger extends Bunyan {
         } catch (e) {
             logger = Logger.create().setLevel();
             // disable log file writing, if applicable
-            if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && !Global.getEnvironmentMode().is(Modes.TEST)) {
+            if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && (Global.getEnvironmentMode() !== Mode.TEST)) {
                 await logger.addLogFileStream(Global.LOG_FILE_PATH);
             }
         }
