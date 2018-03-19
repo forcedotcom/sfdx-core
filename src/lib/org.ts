@@ -18,10 +18,9 @@ import { join as pathJoin } from 'path';
 import { Aliases } from './config/aliases';
 import { Connection } from './connection';
 import { Logger } from './logger';
-import { RequestInfo } from 'jsforce';
 import { SfdxConfig } from './config/sfdxConfig';
 import { SfdxConfigAggregator, ConfigInfo } from './config/sfdxConfigAggregator';
-import { maxBy as _maxBy, get as _get, filter as _filter, isString as _isString } from 'lodash';
+import { get as _get, filter as _filter, isString as _isString } from 'lodash';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Global} from './global';
 import { SfdxUtil } from './util';
@@ -322,7 +321,8 @@ export class Org {
             url: this.getConnection().baseUrl(),
             method: 'GET'
         };
-        await this.getConnection().request(requestInfo);
+        const conn = this.getConnection();
+        await conn.request(requestInfo);
     }
 
     /**
@@ -415,19 +415,10 @@ export class Org {
      * Retrieves the highest api version that is supported by the target server instance. If the apiVersion configured for
      * Sfdx is greater than the one returned in this call an api version mismatch occurs. In the case of the CLI that
      * results in a warning
-     * @returns {Promise<string>} The max api version number. i.i 46.0
+     * @returns {Promise<string>} The max api version number. i.e 46.0
      */
     public async retrieveMaxApiVersion(): Promise<string> {
-
-        const url: string = `${this.getConnection().getAuthInfo().getConnectionOptions().instanceUrl}/services/data`;
-
-        const info: RequestInfo = { method: 'GET', url };
-
-        const versions = await this.getConnection().request(info);
-
-        this.logger.debug(`response for org versions: ${versions}`);
-
-        return _maxBy(versions, (_ver: any) => _ver.version);
+        return await this.getConnection().retrieveMaxApiVersion();
     }
 
     /**

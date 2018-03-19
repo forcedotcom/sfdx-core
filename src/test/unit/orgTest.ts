@@ -168,12 +168,12 @@ describe('Org Tests', () => {
 
     describe('retrieveMaxApiVersion', () => {
         it('no username', async () => {
-
-            $$.fakeConnectionRequest = () => Promise.resolve(
-                [{version: '89.0'}, {version: '90.0'}, {version: '88.0'}]);
+            $$.SANDBOXES.CONNECTION.restore();
+            $$.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(() =>
+                Promise.resolve([{version: '89.0'}, {version: '90.0'}, {version: '88.0'}]));
             const org: Org = await Org.create(await Connection.create(await AuthInfo.create(testData.username)));
             const apiVersion = await org.retrieveMaxApiVersion();
-            expect(apiVersion).has.property('version', '90.0');
+            expect(apiVersion).to.equal('90.0');
         });
     });
 
@@ -211,6 +211,7 @@ describe('Org Tests', () => {
                 }
                 return $$.rootPathRetriever(false);
             });
+            $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
@@ -229,6 +230,7 @@ describe('Org Tests', () => {
                 }
                 return osTmpdir();
             });
+            $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));

@@ -890,7 +890,7 @@ describe('AuthInfo', () => {
                 loginUrl: testMetadata.loginUrl,
                 privateKey: 'fake/pk'
             };
-            Object.assign(defaults, options);
+
             const authResponse = {
                 access_token: testMetadata.accessToken,
                 instance_url: testMetadata.instanceUrl,
@@ -903,7 +903,7 @@ describe('AuthInfo', () => {
             $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('audienceUrlTest_jwtToken'));
             $$.SANDBOX.stub(dns, 'lookup').returns(Promise.resolve());
 
-            await AuthInfo.prototype['buildJwtConfig'].call(context, options);
+            await AuthInfo.prototype['buildJwtConfig'].call(context, Object.assign(defaults, options));
 
             expect(jwt.sign['firstCall'].args[0]).to.have.property('aud', expectedUrl);
         }

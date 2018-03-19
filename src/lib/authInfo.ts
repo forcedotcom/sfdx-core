@@ -141,7 +141,7 @@ class AuthCodeOAuth2 extends OAuth2 {
      * See - https://github.com/jsforce/jsforce/issues/665
      */
     // tslint:disable-next-line:no-unused-variable
-    private async _postParams(params, callback) {
+    protected async _postParams(params, callback) {
         _.set(params, 'code_verifier', this.codeVerifier);
         return super._postParams(params, callback);
     }
@@ -390,6 +390,10 @@ export class AuthInfo {
         let authConfig: OAuth2Options;
         if (options) {
             // jwt flow
+            // Support both sfdx and jsforce private key values
+            if (!options.privateKey && options.privateKeyFile) {
+                options.privateKey = options.privateKeyFile;
+            }
             if (options.privateKey) {
                 authConfig = await this.buildJwtConfig(options);
             } else if (!options.authCode && options.refreshToken) {
@@ -410,7 +414,7 @@ export class AuthInfo {
                 try {
                     const config: AuthInfoConfig =
                         await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.getUsername()));
-                    await config.read();
+                    await config.read(true);
                     authConfig = config.toObject();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
