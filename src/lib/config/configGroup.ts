@@ -77,7 +77,7 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Sets the default group for all {@link BaseConfigStore} methods to use.
      * @param {String} group The group.
-     * @throws Throws an Error if the group parameter is null or undefined. &lbrace;name: MissingGroupName&rbrace;
+     * @throws {SfdxError} **`{name: 'MissingGroupName'}`:** Throws an Error if the group parameter is null or undefined.
      */
     public setDefaultGroup(group: string): void {
         if (!group) {
