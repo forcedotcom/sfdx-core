@@ -229,7 +229,7 @@ function base64UrlEscape(base64Encoded: string): string {
 
 /**
  * Handles persistence and fetching of user authentication information using
- * JWT, oAuth, or refresh tokens. Set's up the refresh flows that jsForce will
+ * JWT, oAuth, or refresh tokens. Sets up the refresh flows that jsForce will
  * use to keep tokens active. An AuthInfo can also be created with an access
  * token but can not be persisted to disk.
  *
