@@ -14,6 +14,7 @@
 import * as _ from 'lodash';
 import { ConfigValue, ConfigEntry, ConfigContents } from './configStore';
 import { ConfigFile, ConfigOptions } from './configFile';
+import {SfdxError} from '../sfdxError';
 
 /**
  * The interface for Config options.
@@ -62,8 +63,8 @@ export class ConfigGroup extends ConfigFile {
 
     /**
      * Get ConfigGroup specific options, such as the default group.
-     * @param defaultGroup The default group to use when creating the config.
-     * @param [filename] The filename of the config file. Uses the static {@link getFileName} by default.
+     * @param {string} defaultGroup The default group to use when creating the config.
+     * @param {string} [filename] The filename of the config file. Uses the static {@link getFileName} by default.
      */
     public static getOptions(defaultGroup: string, filename?: string): ConfigGroupOptions {
         const options: ConfigGroupOptions = this.getDefaultOptions(true, filename) as ConfigGroupOptions;
@@ -76,8 +77,13 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Sets the default group for all {@link BaseConfigStore} methods to use.
      * @param {String} group The group.
+     * @throws Throws an Error if the group parameter is null or undefined. &lbrace;name: MissingGroupName&rbrace;
      */
     public setDefaultGroup(group: string): void {
+        if (!group) {
+            throw new SfdxError('null or undefined group', 'MissingGroupName');
+        }
+
         this.defaultGroup = group;
     }
 
@@ -133,7 +139,7 @@ export class ConfigGroup extends ConfigFile {
     }
 
     /**
-     * Returns a boolean if an element with the specified key exists.
+     * Returns a boolean if an element with the specified key exists in the default group.
      * @param {string} key The key.
      * @returns {boolean}
      * @override
@@ -144,7 +150,7 @@ export class ConfigGroup extends ConfigFile {
     }
 
     /**
-     * Returns an array of the keys for this ConfigGroup.
+     * Returns an array of the keys from the default group.
      * @returns {string[]}
      * @override
      */
@@ -153,7 +159,7 @@ export class ConfigGroup extends ConfigFile {
     }
 
     /**
-     * Returns an array of the values for this ConfigGroup.
+     * Returns an array of the values from the default group.
      * @returns {ConfigValue[]}
      * @override
      */
@@ -162,7 +168,7 @@ export class ConfigGroup extends ConfigFile {
     }
 
     /**
-     * Add or updates an element with the specified key
+     * Add or updates an element with the specified key in the default group.
      * @param {string} key The key.
      * @param {ConfigValue} value The value.
      * @returns {ConfigContents}
@@ -178,7 +184,7 @@ export class ConfigGroup extends ConfigFile {
     }
 
     /**
-     * Removes an element with the specified key from the group.
+     * Removes an element with the specified key from the default group.
      * @param {string} key The key.
      * @returns {boolean} True if the item was deleted.
      * @override
@@ -192,7 +198,7 @@ export class ConfigGroup extends ConfigFile {
     }
 
     /**
-     * Remove all key value pairs from the group.
+     * Remove all key value pairs from the default group.
      * @override
      */
     public clear(): void {
@@ -201,7 +207,7 @@ export class ConfigGroup extends ConfigFile {
 
     /**
      * Get all config content for a group.
-     * @param {string} group The group.
+     * @param {string} [group = 'default'] The group.
      * @returns {ConfigContents} The contents.
      */
     public getGroup(group?: string): ConfigContents {
@@ -211,7 +217,7 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Returns the value associated to the key and group, or undefined if there is none.
      * @param {string} key The key.
-     * @param {string} [group: 'default'] The group. Defaults to the default group.
+     * @param {string} [group ='default'] The group. Defaults to the default group.
      * @returns {ConfigValue}
      */
     public getInGroup(key: string, group?: string): ConfigValue {

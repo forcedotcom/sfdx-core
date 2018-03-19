@@ -83,7 +83,7 @@ export class Aliases extends ConfigGroup {
 
     /**
      * Updates a group of aliases in a bulk save.
-     * @param {array} aliasKeyAndValues An array of strings in the format &lt;alias&gt;=&lt;value&gt;.
+     * @param {array} aliasKeyAndValues An array of strings in the format `<alias>=<value>`.
      * Each element will be saved in the Aliases state file under the group.
      * @param {AliasGroup} [group = AliasGroup.ORGS] The group the alias belongs to. Defaults to ORGS.
      * @returns {Promise<object>} The new aliases that were saved.
