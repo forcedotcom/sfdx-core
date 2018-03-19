@@ -211,11 +211,8 @@ export class Logger {
     // The sfdx root logger singleton
     private static rootLogger: Logger;
 
+    // The actual Bunyan logger
     private bunyan: Bunyan;
-    private name: string;
-    private filters: Array<(...args) => any[]> = [];
-    private ringBuffer: Bunyan.RingBuffer;
-    private streams: LoggerStream[] = [];
 
     /**
      * Constructs a new `Logger`.
@@ -240,7 +237,9 @@ export class Logger {
         }
 
         this.bunyan = new Bunyan(options);
-        this.name = options.name;
+        this.bunyan.name = options.name;
+        this.bunyan.filters = [];
+        this.bunyan.streams = [];
 
         // all SFDX loggers must filter sensitive data
         this.addFilter((...args) => _filter(...args));
@@ -250,7 +249,7 @@ export class Logger {
             process.on('exit', this.exitHandler);
         }
 
-        this.trace(`Created '${this.name}' logger instance`);
+        this.trace(`Created '${this.getName()}' logger instance`);
     }
 
     /**
@@ -287,7 +286,7 @@ export class Logger {
         }
 
         // avoid multiple streams to same log file
-        if (!this.streams.find((stream) => stream.type === 'file' && stream.path === logFile)) {
+        if (!this.bunyan.streams.find((stream) => stream.type === 'file' && stream.path === logFile)) {
             // TODO: rotating-file
             // https://github.com/trentm/node-bunyan#stream-type-rotating-file
             this.addStream({ type: 'file', path: logFile, level: this.bunyan.level() as number });
@@ -302,7 +301,7 @@ export class Logger {
      * @returns {string}
      */
     public getName(): string {
-        return this.name;
+        return this.bunyan.name;
     }
 
     /**
@@ -372,9 +371,9 @@ export class Logger {
      * @returns {Logger} For convenience this object is returned.
      */
     public useMemoryLogging(): Logger {
-        this.streams = [];
-        this.ringBuffer = new Bunyan.RingBuffer({ limit: 5000 });
-        this.addStream({ type: 'raw', stream: this.ringBuffer, level: this.bunyan.level() });
+        this.bunyan.streams = [];
+        this.bunyan.ringBuffer = new Bunyan.RingBuffer({ limit: 5000 });
+        this.addStream({ type: 'raw', stream: this.bunyan.ringBuffer, level: this.bunyan.level() });
         return this;
     }
 
@@ -384,7 +383,10 @@ export class Logger {
      * @returns {Array<string>}
      */
     public getBufferedRecords(): string[] {
-        return this.ringBuffer.records;
+        if (this.bunyan.ringBuffer) {
+            return this.bunyan.ringBuffer.records;
+        }
+        return [];
     }
 
     /**
@@ -393,14 +395,14 @@ export class Logger {
      * @returns {string}
      */
     public readLogContentsAsText(): string {
-        if (this.ringBuffer) {
+        if (this.bunyan.ringBuffer) {
             return this.getBufferedRecords().reduce((accum, value) => {
                 accum += (JSON.stringify(value) + os.EOL);
                 return accum;
             }, '');
         } else {
             let content = '';
-            this.streams.forEach(async (stream) => {
+            this.bunyan.streams.forEach(async (stream) => {
                 if (stream.type === 'file') {
                     content += await SfdxUtil.readFile(stream.path, 'utf8');
                 }
@@ -415,7 +417,10 @@ export class Logger {
      * @param {function} filter A function with signature `(...args) => any[]` that transforms log message arguments.
      */
     public addFilter(filter: (...args) => any[]): void {
-        this.filters.push(filter);
+        if (!this.bunyan.filters) {
+            this.bunyan.filters = [];
+        }
+        this.bunyan.filters.push(filter);
     }
 
     /**
@@ -425,9 +430,9 @@ export class Logger {
      *                        the stream as an arg.
      */
     public close(fn?: (stream: LoggerStream) => void): void {
-        if (this.streams) {
+        if (this.bunyan.streams) {
             try {
-                this.streams.forEach((entry) => {
+                this.bunyan.streams.forEach((entry) => {
                     if (fn) {
                         fn(entry);
                     }
@@ -459,7 +464,8 @@ export class Logger {
         const child = new Logger(name);
         // only support including additional fields on log line (no config)
         child.bunyan = this.bunyan.child(fields, true);
-        child.filters = this.filters;
+        child.bunyan.name = name;
+        child.bunyan.filters = this.bunyan.filters;
 
         this.trace(`Setup child '${name}' logger instance`);
 
@@ -548,7 +554,7 @@ export class Logger {
 
     private applyFilters(logLevel, ...args): undefined | any | any[] {
         if (this.shouldLog(logLevel)) {
-            this.filters.forEach((filter) => args = filter(...args));
+            this.bunyan.filters.forEach((filter) => args = filter(...args));
         }
         return args && args.length === 1 ? args[0] : args;
     }

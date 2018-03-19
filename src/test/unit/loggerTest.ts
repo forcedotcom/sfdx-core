@@ -42,7 +42,7 @@ describe('Logger', () => {
         });
     });
 
-    describe('setLevel', () => {
+    describe('levels', () => {
         it('should set the log level using a number', () => {
             const logger = new Logger('testLogger');
             logger.setLevel(LoggerLevel.ERROR);
@@ -55,7 +55,7 @@ describe('Logger', () => {
             const logger = new Logger('testLogger');
             logger.setLevel(Logger.getLevelByName('ERROR'));
             expect(logger.getLevel()).to.equal(LoggerLevel.ERROR);
-            logger.setLevel(Logger.getLevelByName('WARN'));
+            logger.setLevel(Logger.getLevelByName('warn'));
             expect(logger.getLevel()).to.equal(LoggerLevel.WARN);
         });
 
@@ -66,6 +66,17 @@ describe('Logger', () => {
             } catch (err) {
                 expect(err.message).to.equal('UnrecognizedLoggerLevelName');
             }
+        });
+
+        it('should list available level strings', () => {
+            expect(Logger.LEVEL_NAMES).to.deep.equal([
+                'trace',
+                'debug',
+                'info',
+                'warn',
+                'error',
+                'fatal'
+            ]);
         });
     });
 
@@ -146,10 +157,11 @@ describe('Logger', () => {
 
         it('should create the root logger if not already created', async () => {
             $$.SANDBOX.stub(Logger.prototype, 'addLogFileStream');
+            $$.SANDBOX.spy(Logger, 'root');
             const rootLogger = await Logger.root();
             expect(rootLogger.getName()).to.equal('sfdx');
             expect(await Logger.root()).to.equal(rootLogger);
-            expect(Logger.constructor['called']).to.be.true;
+            expect(Logger.root['called']).to.be.true;
             expect(rootLogger.addLogFileStream['called']).to.be.false;
         });
     });
