@@ -25,24 +25,45 @@ class Key {
 }
 
 /**
- * Load messages from loader functions. The loader functions will only run when a message is required.
+ * The core message framework manages messages and allows them to be accessible by
+ * all plugins and consumers of sfdx-core. It is set up to handle localization down
+ * the road at no additional effort to the consumer. Messages can be used for
+ * anything from user output (like the console), to error messages, to returned
+ * data from a method.
+ *
+ * Messages are loaded from loader functions. The loader functions will only run
+ * when a message is required. This prevents all messages from being loaded into memory at
+ * application startup. The functions can load from memory, a file, or a server.
  *
  * In the beginning of your app or file, add the loader functions to be used later. If using
- * json files in a root messages directory, load the entire directory automatically with
- * {@link Messages.importMessagesDirectory}.
+ * json files in a root messages directory (`<moduleRoot>/messages`), load the entire directory
+ * automatically with {@link Messages.importMessagesDirectory}. Message files must be in `.json`
+ * with **only** top level key-value pairs. The values support
+ * [util.format](https://nodejs.org/api/util.html#util_util_format_format_args) style strings
+ * that apply the tokens passed into {@link Message.getMessage}
+ *
+ * A sample message file.
+ * ```
+ * {
+ *    'msgKey': 'A message displayed in the terminal'
+ * }
+ * ```
+ *
+ * **Note:** When running unit tests individually, you may see errors that the messages aren't found.
+ * This is because `index.js` isn't loaded when tests run like they are when the package is required.
+ * To allow tests to run, import the message directory in each test (it will only
+ * do it once) or load the message file the test depends on individually.
  *
  * @example
  * // Create loader functions for all files in the messages directory
  * Messages.importMessagesDirectory(__dirname);
  *
  * // Now you can use the messages from anywhere in your code or file.
- *
- * @example
  * // If using importMessageDirectory, the bundle name is the file name.
  * const messages : Messages = Messages.loadMessages(packageName, bundleName);
  *
  * // Messages now contains all the message in the bundleName file.
- * messages.getMessage(messageName);
+ * messages.getMessage('JsonParseError');
  *
  * @hideconstructor
  */
@@ -51,7 +72,12 @@ export class Messages {
     // should have no internal dependencies.
     public static _readFile = fs.readFileSync;
 
-    static get locale() {
+    /**
+     * Get the locale. This will always return 'en_US' but will return the
+     * machine's locale in the future.
+     * @returns {string}
+     */
+    public static getLocale(): string {
         return 'en_US';
     }
 
@@ -79,6 +105,7 @@ export class Messages {
      *
      * @param {string} bundle The name of the bundle.
      * @param {string} filePath The messages file path.
+     * @returns {loaderFunction}
      */
     public static generateFileLoaderFunction(bundleName: string, filePath: string): (locale: string) => Messages {
         return (locale: string): Messages => {
@@ -124,7 +151,7 @@ export class Messages {
      * @param {string} packageName The npm package name.
      * @param {string} filePath The path of the file.
      */
-    public static importMessageFile(packageName: string, filePath: string) {
+    public static importMessageFile(packageName: string, filePath: string): void {
         if (path.extname(filePath) !== '.json') {
             throw new Error(`Only json message files are allowed, not ${path.extname(filePath)}`);
         }
@@ -201,6 +228,7 @@ export class Messages {
      *
      * @param {string} packageName The name of the npm package.
      * @param {string} bundle Name of the bundle to load.
+     * @returns {Messages}
      */
     public static loadMessages(packageName: string, bundleName: string): Messages {
         const key = new Key(packageName, bundleName);
@@ -210,12 +238,12 @@ export class Messages {
         }
         if (this.loaders.has(key.toString())) {
             const loader: (locale: string) => Messages = this.loaders.get(key.toString());
-            const messages: Messages = loader(Messages.locale);
+            const messages: Messages = loader(Messages.getLocale());
             this.bundles.set(key.toString(), messages);
             return this.bundles.get(key.toString());
         }
         // Don't use messages inside messages
-        throw new Error(`Missing bundle ${key.toString()} for locale ${Messages.locale}.`);
+        throw new Error(`Missing bundle ${key.toString()} for locale ${Messages.getLocale()}.`);
     }
 
     /**
@@ -236,9 +264,23 @@ export class Messages {
     // A map cache of messages bundles that have already been loaded
     private static bundles: Map<string, Messages> = new Map<string, Messages>();
 
+    /**
+     * The locale of the messages in this bundle.
+     */
     public readonly locale: string;
+    /**
+     * The bundle name.
+     */
     public readonly bundleName: string;
 
+    /**
+     * Create a new messages bundle.
+     *
+     * **Note:** Use {Messages.loadMessages} unless you are writing your own loader function.
+     * @param {string} bundleName The bundle name.
+     * @param {string} locale The locale.
+     * @param {Map<string, string>} messages The messages. Can not be modified once created.
+     */
     constructor(bundleName: string, locale: string, private messages: Map<string, string>) {
         this.bundleName = bundleName;
         this.locale = locale;
@@ -247,12 +289,14 @@ export class Messages {
     /**
      * Get a message using a message key and use the tokens as values for tokenization.
      * @param key The key of the message.
-     * @param tokens The values to substitute in the message using util.format.
+     * @param tokens The values to substitute in the message.
+     * @returns {string}
+     * @see https://nodejs.org/api/util.html#util_util_format_format_args
      */
-    public getMessage(key: string, tokens: any[] = []) {
+    public getMessage(key: string, tokens: any[] = []): string {
         if (!this.messages.has(key)) {
             // Don't use messages inside messages
-            throw new Error(`Missing message ${this.bundleName}:${key} for locale ${Messages.locale}.`);
+            throw new Error(`Missing message ${this.bundleName}:${key} for locale ${Messages.getLocale()}.`);
         }
         return util.format(this.messages.get(key), ...tokens);
     }

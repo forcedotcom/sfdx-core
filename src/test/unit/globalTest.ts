@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import * as path from 'path';
 
-import { Global, Modes } from '../../lib/global';
+import { Global, Mode } from '../../lib/global';
 import { SfdxUtil } from '../../lib/util';
 import { testSetup } from '../testSetup';
 
@@ -26,18 +26,18 @@ describe('Global', () => {
 
         it('uses SFDX_ENV mode', () => {
             process.env.SFDX_ENV = 'development';
-            expect(Global.getEnvironmentMode().is(Modes.DEVELOPMENT)).to.be.true;
-            expect(Global.getEnvironmentMode().is(Modes.PRODUCTION)).to.be.false;
-            expect(Global.getEnvironmentMode().is(Modes.DEMO)).to.be.false;
-            expect(Global.getEnvironmentMode().is(Modes.TEST)).to.be.false;
+            expect(Global.getEnvironmentMode() === Mode.DEVELOPMENT).to.be.true;
+            expect(Global.getEnvironmentMode() === Mode.PRODUCTION).to.be.false;
+            expect(Global.getEnvironmentMode() === Mode.DEMO).to.be.false;
+            expect(Global.getEnvironmentMode() === Mode.TEST).to.be.false;
         });
 
         it('is production by default', () => {
-            process.env.SFDX_ENV = null;
-            expect(Global.getEnvironmentMode().is(Modes.DEVELOPMENT)).to.be.false;
-            expect(Global.getEnvironmentMode().is(Modes.PRODUCTION)).to.be.true;
-            expect(Global.getEnvironmentMode().is(Modes.DEMO)).to.be.false;
-            expect(Global.getEnvironmentMode().is(Modes.TEST)).to.be.false;
+            delete process.env.SFDX_ENV;
+            expect(Global.getEnvironmentMode() === Mode.DEVELOPMENT).to.be.false;
+            expect(Global.getEnvironmentMode() === Mode.PRODUCTION).to.be.true;
+            expect(Global.getEnvironmentMode() === Mode.DEMO).to.be.false;
+            expect(Global.getEnvironmentMode() === Mode.TEST).to.be.false;
         });
     });
 
