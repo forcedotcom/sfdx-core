@@ -110,6 +110,13 @@ export type FieldValue = string | number | boolean;
  * A logging abstraction powered by {@link https://github.com/cwallsfdc/node-bunyan|Bunyan} that provides both a default
  * logger configuration that will log to `sfdx.log`, and a way to create custom loggers based on the same foundation.
  *
+ * `Logger` construction automatically adds `process` event listeners to `uncaughtException` and `exit` events to
+ * to log fatal errors and clean up open streams, respectively.  Because of this, creation of many loggers (for example,
+ * as children of the `root` sfdx logger) can cause Node.js to emit `MaxListenersExceededWarning` warnings.  If this
+ * occurs, you can increase the number of acceptable listeners using
+ * {@link https://nodejs.org/api/events.html#events_emitter_setmaxlisteners_n|EventEmitter.setMaxListeners}, as
+ * appropriate to your application.
+ *
  * @example
  * // Gets the root sfdx logger
  * const logger = await Logger.root();
@@ -211,6 +218,13 @@ export class Logger {
     // The sfdx root logger singleton
     private static rootLogger: Logger;
 
+    /**
+     * @ignore
+     */
+    private static shouldUseProcessListeners() {
+        return Global.getEnvironmentMode() !== Mode.TEST;
+    }
+
     // The actual Bunyan logger
     private bunyan: Bunyan;
 
@@ -244,7 +258,7 @@ export class Logger {
         // all SFDX loggers must filter sensitive data
         this.addFilter((...args) => _filter(...args));
 
-        if (Global.getEnvironmentMode() === Mode.TEST) {
+        if (Logger.shouldUseProcessListeners()) {
             process.on('uncaughtException', this.uncaughtExceptionHandler);
             process.on('exit', this.exitHandler);
         }
@@ -442,8 +456,10 @@ export class Logger {
                     }
                 });
             } finally {
-                process.removeListener('uncaughtException', this.uncaughtExceptionHandler);
-                process.removeListener('exit', this.exitHandler);
+                if (Logger.shouldUseProcessListeners()) {
+                    process.removeListener('uncaughtException', this.uncaughtExceptionHandler);
+                    process.removeListener('exit', this.exitHandler);
+                }
             }
         }
     }
