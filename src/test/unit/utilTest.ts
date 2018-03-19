@@ -196,7 +196,7 @@ describe('Util', () => {
 
         it('should return false for 42.0', () => {
             const num = 42.0;
-            expect(SfdxUtil.validateApiVersion(num as any)).to.be.false;
+            expect(SfdxUtil.validateApiVersion(num as any)).to.be.false; // tslint:disable-line:no-any
         });
     });
 

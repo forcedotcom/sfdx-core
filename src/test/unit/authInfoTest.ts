@@ -6,9 +6,10 @@
  */
 import * as dns from 'dns';
 import { assert, expect } from 'chai';
-import { AuthInfo } from '../../lib/authInfo';
+import { AuthInfo, AuthFields } from '../../lib/authInfo';
 import { AuthInfoConfig } from '../../lib/config/authInfoConfig';
 import { ConfigFile } from '../../lib/config/configFile';
+import { ConfigContents, ConfigValue } from '../../lib/config/configStore';
 import { Crypto } from '../../lib/crypto';
 import { SfdxUtil } from '../../lib/util';
 import { OAuth2 } from 'jsforce';
@@ -18,6 +19,7 @@ import { testSetup } from '../testSetup';
 import { SfdxError } from '../../lib/sfdxError';
 import { toUpper as _toUpper, includes as _includes } from 'lodash';
 import { SfdxConfigAggregator } from '../../exported';
+import { AnyJson } from '../../lib/types';
 
 const TEST_KEY = {
     service: 'sfdx',
@@ -40,8 +42,8 @@ describe('AuthInfo No fs mock', () => {
             getPassword: (data, cb) => cb(undefined, TEST_KEY.key)
         }));
         $$.SANDBOX.stub(AuthInfoConfig.prototype, 'read').callsFake(async function() {
-            const error: any = new SfdxError('Test error', 'testError');
-            error.code = 'ENOENT';
+            const error = new SfdxError('Test error', 'testError');
+            error['code'] = 'ENOENT';
             return Promise.reject(error);
         });
     });
@@ -71,7 +73,7 @@ class MetaAuthDataMock {
     private _redirectUri: string = 'http://localhost:1717/OauthRedirect';
     private _authCode: string = 'authInfoTest_authCode';
     private _authInfoLookupCount: number = 0;
-    private _defaultConnectedAppInfo: any = {
+    private _defaultConnectedAppInfo: AuthFields = {
         clientId: 'SalesforceDevelopmentExperience',
         clientSecret: '1384510088588713504'
     };
@@ -128,11 +130,11 @@ class MetaAuthDataMock {
         this._authCode = value;
     }
 
-    get defaultConnectedAppInfo(): any {
+    get defaultConnectedAppInfo(): AuthFields {
         return this._defaultConnectedAppInfo;
     }
 
-    set defaultConnectedAppInfo(value: any) {
+    set defaultConnectedAppInfo(value: AuthFields) {
         this._defaultConnectedAppInfo = value;
     }
 
@@ -152,21 +154,21 @@ class MetaAuthDataMock {
         return this._authInfoLookupCount;
     }
 
-    public async fetchConfigInfo(path: string): Promise<any> {
+    public async fetchConfigInfo(path: string): Promise<ConfigContents> {
         if (_includes(_toUpper(path), '_JWT')) {
             this._authInfoLookupCount = this._authInfoLookupCount + 1;
-            return Promise.resolve({
-                instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
-                accessToken: this.encryptedAccessToken,
-                privateKey: '123456'
-            });
+            const configContents = new Map<string, ConfigValue>();
+            configContents.set('instanceUrl', 'http://mydevhub.localhost.internal.salesforce.com:6109');
+            configContents.set('accessToken', this.encryptedAccessToken);
+            configContents.set('privateKey', '123456');
+            return Promise.resolve(configContents);
         } else {
             return Promise.reject(
                 new SfdxError('Not mocked - unhandled test case', 'UnsupportedTestCase'));
         }
     }
 
-    public async statForKeyFile(path: string): Promise<any> {
+    public async statForKeyFile(path: string): Promise<any> { // tslint:disable-line:no-any
         if (!_includes(path, 'key.json')) {
             return new SfdxError(`Unexpected path: ${path}`, 'UnexpectedInput');
         }
@@ -346,14 +348,12 @@ describe('AuthInfo', () => {
             const username = 'authInfoTest_username_jwt-NOT-CACHED';
 
             // Make the file read stub return JWT auth data
-            const jwtData = {
-                accessToken: testMetadata.encryptedAccessToken,
-                clientId: testMetadata.clientId,
-                loginUrl: testMetadata.loginUrl,
-                instanceUrl: testMetadata.instanceUrl,
-                privateKey: 'authInfoTest/jwt/server.key'
-            };
-
+            const jwtData = new Map<string, ConfigValue>();
+            jwtData.set('accessToken', testMetadata.encryptedAccessToken);
+            jwtData.set('clientId', testMetadata.clientId);
+            jwtData.set('loginUrl', testMetadata.loginUrl);
+            jwtData.set('instanceUrl', testMetadata.instanceUrl);
+            jwtData.set('privateKey', 'authInfoTest/jwt/server.key');
             testMetadata.fetchConfigInfo = () => {
                 return Promise.resolve(jwtData);
             };
@@ -373,7 +373,7 @@ describe('AuthInfo', () => {
             expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
 
             // Verify authInfo.fields are encrypted
-            expect(authInfo['fields'].accessToken).equals(jwtData.accessToken);
+            expect(authInfo['fields'].accessToken).equals(jwtData.get('accessToken'));
 
             // Verify correct method calls
             expect(AuthInfo.prototype.init['called']).to.be.true;
@@ -750,7 +750,7 @@ describe('AuthInfo', () => {
     describe('update()', () => {
         it('should encrypt the data before assigning to this.fields', async () => {
             const crypto = await Crypto.create();
-            const context: any = {
+            const context: any = { // tslint:disable-line:no-any
                 getUsername: () => context.fields.username,
                 fields: {
                     accessToken: crypto.encrypt(testMetadata.accessToken),
@@ -776,7 +776,7 @@ describe('AuthInfo', () => {
         });
 
         it('should NOT encrypt the data when encrypt arg is false', async () => {
-            const context: any = {
+            const context: any = { // tslint:disable-line:no-any
                 getUsername: () => context.fields.username,
                 fields: {
                     accessToken: testMetadata.accessToken,

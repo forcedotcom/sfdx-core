@@ -9,6 +9,7 @@ import { expect, assert } from 'chai';
 
 import { Connection, SFDX_HTTP_HEADERS } from '../../lib/connection';
 import { AuthInfo } from '../../lib/authInfo';
+import { AnyJson } from '../../lib/types';
 import * as jsforce from 'jsforce';
 import { testSetup } from '../testSetup';
 
@@ -32,7 +33,7 @@ describe('Connection', () => {
     });
 
     it('create() should create a connection using AuthInfo and SFDX options', async () => {
-        const conn = await Connection.create(testAuthInfo as any);
+        const conn = await Connection.create(testAuthInfo as AuthInfo);
 
         expect(conn.request).to.exist;
         expect(conn['oauth2']).to.be.an('object');
@@ -43,12 +44,12 @@ describe('Connection', () => {
     });
 
     it('create() should create a connection with the latest API version', async () => {
-        const conn = await Connection.create(testAuthInfo as any);
+        const conn = await Connection.create(testAuthInfo as AuthInfo);
         expect(conn.getApiVersion()).to.equal('42.0');
     });
 
     it('setApiVersion() should throw with invalid version', async () => {
-        const conn = await Connection.create(testAuthInfo as any);
+        const conn = await Connection.create(testAuthInfo as AuthInfo);
 
         try {
             conn.setApiVersion('v23.0');
@@ -62,7 +63,7 @@ describe('Connection', () => {
         const testUrl = 'connectionTest/request/url';
         const expectedRequestInfo = { method: 'GET', url: testUrl, headers: SFDX_HTTP_HEADERS };
 
-        const conn = await Connection.create(testAuthInfo as any);
+        const conn = await Connection.create(testAuthInfo as AuthInfo);
 
         // Test passing a string to conn.request()
         const response1 = await conn.request(testUrl);
@@ -77,7 +78,7 @@ describe('Connection', () => {
         requestMock.onSecondCall().returns(Promise.resolve(testResponse));
         const testUrl = 'connectionTest/request/url/describe';
 
-        const conn = await Connection.create(testAuthInfo as any);
+        const conn = await Connection.create(testAuthInfo as AuthInfo);
 
         // Test passing a RequestInfo object and options to conn.request()
         const requestInfo = { method: 'POST', url: testUrl };

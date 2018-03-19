@@ -64,8 +64,8 @@ describe('Project', async () => {
         it('gets default login url', async () => {
             $$.configStubs['SfdxProjectJson'] = { contents: {} };
             const project = await Project.resolve();
-            const config: any = await project.resolveProjectConfig();
-            expect(config.sfdcLoginUrl).to.equal('https://login.salesforce.com');
+            const config = await project.resolveProjectConfig();
+            expect(config['sfdcLoginUrl']).to.equal('https://login.salesforce.com');
         });
         it('gets global overrides default', async () => {
             const read = async function() {
@@ -77,8 +77,8 @@ describe('Project', async () => {
             };
             $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
             const project = await Project.resolve();
-            const config: any = await project.resolveProjectConfig();
-            expect(config.sfdcLoginUrl).to.equal('globalUrl');
+            const config = await project.resolveProjectConfig();
+            expect(config['sfdcLoginUrl']).to.equal('globalUrl');
         });
         it('gets local overrides global', async () => {
             const read = async function() {
@@ -90,8 +90,8 @@ describe('Project', async () => {
             };
             $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
             const project = await Project.resolve();
-            const config: any = await project.resolveProjectConfig();
-            expect(config.sfdcLoginUrl).to.equal('localUrl');
+            const config = await project.resolveProjectConfig();
+            expect(config['sfdcLoginUrl']).to.equal('localUrl');
         });
         it('gets env overrides local', async () => {
             process.env.FORCE_SFDC_LOGIN_URL = 'envarUrl';
@@ -104,8 +104,8 @@ describe('Project', async () => {
             };
             $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
             const project = await Project.resolve();
-            const config: any = await project.resolveProjectConfig();
-            expect(config.sfdcLoginUrl).to.equal('envarUrl');
+            const config = await project.resolveProjectConfig();
+            expect(config['sfdcLoginUrl']).to.equal('envarUrl');
         });
         it('gets config overrides local', async () => {
             const read = async function() {
@@ -118,8 +118,8 @@ describe('Project', async () => {
             $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
             $$.configStubs['SfdxConfig'] = { contents: { apiVersion: 40.0 } };
             const project = await Project.resolve();
-            const config: any = await project.resolveProjectConfig();
-            expect(config.apiVersion).to.equal(40.0);
+            const config = await project.resolveProjectConfig();
+            expect(config['apiVersion']).to.equal(40.0);
         });
     });
 });
