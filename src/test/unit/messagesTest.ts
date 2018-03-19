@@ -12,6 +12,7 @@ import { assert, expect } from 'chai';
 
 import { Messages } from '../../lib/messages';
 import { testSetup } from '../testSetup';
+import { SfdxError } from '../../lib/sfdxError';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -83,7 +84,7 @@ describe('Messages', () => {
         ];
 
         const messagesDirPath = `myModule${path.sep}dist${path.sep}lib`;
-        const truncateErr = new Error();
+        const truncateErr = new SfdxError('truncate error');
         truncateErr['code'] = 'ENOENT';
         let truncatePath = 'myModule';
 

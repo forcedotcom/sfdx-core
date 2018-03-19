@@ -42,7 +42,7 @@ describe('AuthInfo No fs mock', () => {
             getPassword: (data, cb) => cb(undefined, TEST_KEY.key)
         }));
         $$.SANDBOX.stub(AuthInfoConfig.prototype, 'read').callsFake(async function() {
-            const error: SfdxError = new SfdxError('Test error', 'testError');
+            const error = new SfdxError('Test error', 'testError');
             error['code'] = 'ENOENT';
             return Promise.reject(error);
         });
