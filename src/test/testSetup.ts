@@ -54,7 +54,7 @@ export interface TestContext {
     localPathRetriever: (uid: string) => Promise<string>;
     globalPathRetriever: (uid: string) => Promise<string>;
     rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
-    fakeConnectionRequest: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>; // tslint:disable-line:no-any
+    fakeConnectionRequest: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>;
 }
 
 const _uniqid = () => {
@@ -73,7 +73,7 @@ async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Pro
     return isGlobal ? await getTestGlobalPath(uid) : await getTestLocalPath(uid);
 }
 
-function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Promise<AnyJson> { // tslint:disable-line:no-any
+function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Promise<AnyJson> {
     return Promise.resolve({ records: [] });
 }
 
