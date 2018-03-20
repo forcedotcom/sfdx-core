@@ -18,7 +18,7 @@ const $$ = testSetup();
 describe('Logger', () => {
     const sfdxEnv = process.env.SFDX_ENV;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         process.env.SFDX_ENV = 'test';
 
         // Must restore the globally stubbed Logger.child method here.  Stubbed in testSetup.
@@ -28,73 +28,61 @@ describe('Logger', () => {
     });
 
     afterEach(() => {
+        Logger.destroyRoot();
         process.env.SFDX_ENV = sfdxEnv;
     });
 
-    describe('create', () => {
-        it('should register, create and return the root SFDX logger by default', () => {
-            $$.SANDBOX.spy(Logger.prototype, 'addFilter');
-            const defaultLogger = Logger.create();
-            expect(defaultLogger).to.be.instanceof(Logger);
-            expect(defaultLogger.name).to.equal('sfdx');
-            expect(defaultLogger.addFilter['called'], 'Logger.create should have called addFilter()').to.be.true;
-            const logger = Logger.get();
-            expect(logger).to.deep.equal(defaultLogger);
-        });
-
-        it('should register, create and return a new named logger', () => {
-            const logger1 = Logger.create('MyPlugin');
+    describe('constructor', () => {
+        it('should construct a new named logger', async () => {
+            const logger1 = new Logger('testLogger');
             expect(logger1).to.be.instanceof(Logger);
-            expect(logger1.name).to.equal('MyPlugin');
-            const logger2 = Logger.get('MyPlugin');
-            expect(logger2).to.deep.equal(logger1);
+            expect(logger1.getName()).to.equal('testLogger');
+            const logger2 = Logger.root();
+            expect(logger2).to.not.equal(logger1);
         });
     });
 
-    // NOTE: positive get tests done as part of create testing.
-    describe('get', () => {
-        it('should throw an error when a logger was not registered', () => {
-            try {
-                Logger.get('unregisteredLogger');
-                assert.fail('should have thrown an error for getting an unregistered logger');
-            } catch (err) {
-                expect(err.message).to.equal('Logger unregisteredLogger not found');
-            }
-        });
-    });
-
-    describe('setLevel', () => {
+    describe('levels', () => {
         it('should set the log level using a number', () => {
-            const logger = Logger.create();
+            const logger = new Logger('testLogger');
             logger.setLevel(LoggerLevel.ERROR);
-            expect(logger.level()).to.equal(LoggerLevel.ERROR);
+            expect(logger.getLevel()).to.equal(LoggerLevel.ERROR);
             logger.setLevel();
-            expect(logger.level()).to.equal(LoggerLevel.WARN);
+            expect(logger.getLevel()).to.equal(LoggerLevel.WARN);
         });
 
         it('should set the log level using a string', () => {
-            const logger = Logger.create();
-            logger.setLevel('error');
-            expect(logger.level()).to.equal(LoggerLevel.ERROR);
-            logger.setLevel('WARN');
-            expect(logger.level()).to.equal(LoggerLevel.WARN);
+            const logger = new Logger('testLogger');
+            logger.setLevel(Logger.getLevelByName('ERROR'));
+            expect(logger.getLevel()).to.equal(LoggerLevel.ERROR);
+            logger.setLevel(Logger.getLevelByName('warn'));
+            expect(logger.getLevel()).to.equal(LoggerLevel.WARN);
         });
 
         it('should throw an error with an invalid logger level string', () => {
-            const logger = Logger.create();
-
             try {
-                logger.setLevel('invalid');
-                assert.fail('should have thrown an error trying to set an invalid level string');
+                Logger.getLevelByName('invalid');
+                assert.fail('should have thrown an error trying to get an invalid level name');
             } catch (err) {
-                expect(err.message).to.equal('unknown level name: "invalid"');
+                expect(err.message).to.equal('UnrecognizedLoggerLevelName');
             }
+        });
+
+        it('should list available level strings', () => {
+            expect(Logger.LEVEL_NAMES).to.deep.equal([
+                'trace',
+                'debug',
+                'info',
+                'warn',
+                'error',
+                'fatal'
+            ]);
         });
     });
 
     describe('shouldLog', () => {
         it('returns correct boolean', () => {
-            const logger = Logger.create();
+            const logger = new Logger('test');
             logger.setLevel();
             expect(logger.shouldLog(LoggerLevel.ERROR)).to.be.true;
             expect(logger.shouldLog(LoggerLevel.WARN)).to.be.true;
@@ -123,7 +111,7 @@ describe('Logger', () => {
 
         it('should not create a new log file if it exists already', async () => {
             sfdxUtilAccessStub.returns(Promise.resolve({}));
-            const logger = Logger.create();
+            const logger = new Logger('test');
             const addStreamStub = $$.SANDBOX.stub(logger, 'addStream');
             await logger.addLogFileStream(testLogFile);
             expect(sfdxUtilAccessStub.firstCall.args[0]).to.equal(testLogFile);
@@ -132,12 +120,12 @@ describe('Logger', () => {
             const addStreamArgs = addStreamStub.firstCall.args[0];
             expect(addStreamArgs).to.have.property('type', 'file');
             expect(addStreamArgs).to.have.property('path', testLogFile);
-            expect(addStreamArgs).to.have.property('level', logger.level());
+            expect(addStreamArgs).to.have.property('level', logger.getLevel());
         });
 
-        it('should create a new log file and all directories if nonexistant', async () => {
+        it('should create a new log file and all directories if nonexistent', async () => {
             sfdxUtilAccessStub.throws();
-            const logger = Logger.create();
+            const logger = new Logger('testLogger');
             const addStreamStub = $$.SANDBOX.stub(logger, 'addStream');
             await logger.addLogFileStream(testLogFile);
             expect(sfdxUtilAccessStub.firstCall.args[0]).to.equal(testLogFile);
@@ -151,21 +139,29 @@ describe('Logger', () => {
     });
 
     describe('root', () => {
-        it('should return the root logger instance', async () => {
+        it('should construct the root SFDX logger', async () => {
+            $$.SANDBOX.spy(Logger.prototype, 'addFilter');
+            const defaultLogger = await Logger.root();
+            expect(defaultLogger).to.be.instanceof(Logger);
+            expect(defaultLogger.getName()).to.equal('sfdx');
+            expect(defaultLogger.addFilter['called'], 'new Logger() should have called addFilter()').to.be.true;
+            const logger = await Logger.root();
+            expect(logger).to.equal(defaultLogger);
+        });
+
+        it('should return the same root logger instance', async () => {
             const rootLogger = await Logger.root();
-            expect(rootLogger.name).to.equal('sfdx');
-            expect(Logger.get()).to.equal(rootLogger);
+            expect(rootLogger.getName()).to.equal('sfdx');
+            expect(await Logger.root()).to.equal(rootLogger);
         });
 
         it('should create the root logger if not already created', async () => {
-            $$.SANDBOX.stub(Logger, 'get').onFirstCall().throws();
             $$.SANDBOX.stub(Logger.prototype, 'addLogFileStream');
-            $$.SANDBOX.spy(Logger, 'create');
+            $$.SANDBOX.spy(Logger, 'root');
             const rootLogger = await Logger.root();
-            expect(rootLogger.name).to.equal('sfdx');
-            Logger.get['restore']();
-            expect(Logger.get()).to.equal(rootLogger);
-            expect(Logger.create['called']).to.be.true;
+            expect(rootLogger.getName()).to.equal('sfdx');
+            expect(await Logger.root()).to.equal(rootLogger);
+            expect(Logger.root['called']).to.be.true;
             expect(rootLogger.addLogFileStream['called']).to.be.false;
         });
     });
@@ -175,10 +171,7 @@ describe('Logger', () => {
             const childLoggerName = 'myChildLogger';
             const childLogger = await Logger.child(childLoggerName);
             expect(childLogger).to.be.instanceof(Logger);
-            expect(childLogger.name).to.equal(childLoggerName);
-            const childLogger2 = Logger.get(childLoggerName);
-            expect(childLogger2).to.equal(childLogger);
-            expect(childLogger.level()).to.equal(Logger.get().level());
+            expect(childLogger.getName()).to.equal(childLoggerName);
         });
     });
 
@@ -263,7 +256,7 @@ describe('Logger', () => {
             const logger = (await Logger.child('testSerializersLogger')).useMemoryLogging();
 
             // A test serializer
-            logger['serializers'].config = (obj) => _.reduce(obj, (acc, val, key) => {
+            logger.getBunyanLogger().serializers.config = (obj) => _.reduce(obj, (acc, val, key) => {
                     if (_.isString(val) || _.isNumber(val) || _.isBoolean(val)) {
                         acc[key] = val;
                     }

@@ -297,7 +297,7 @@ describe('UX', () => {
         });
 
         it('warn() should only log to the logger when logLevel > WARN', () => {
-            $$.TEST_LOGGER.setLevel('error');
+            $$.TEST_LOGGER.setLevel(Logger.getLevelByName('error'));
             $$.SANDBOX.stub($$.TEST_LOGGER, 'warn');
             $$.SANDBOX.stub(console, 'warn');
             const ux = new UX($$.TEST_LOGGER, false, cli);
@@ -314,7 +314,7 @@ describe('UX', () => {
         });
 
         it('warn() should log to the logger and stderr when logLevel <= WARN and output enabled', () => {
-            $$.TEST_LOGGER.setLevel('warn');
+            $$.TEST_LOGGER.setLevel(Logger.getLevelByName('warn'));
             $$.SANDBOX.stub($$.TEST_LOGGER, 'warn');
             $$.SANDBOX.stub(console, 'warn');
             const ux = new UX($$.TEST_LOGGER, true, cli);
@@ -331,7 +331,7 @@ describe('UX', () => {
         });
 
         it('warn() should log to the logger and add to warnings Set when logLevel <= WARN and output NOT enabled', () => {
-            $$.TEST_LOGGER.setLevel('warn');
+            $$.TEST_LOGGER.setLevel(Logger.getLevelByName('warn'));
             $$.SANDBOX.stub($$.TEST_LOGGER, 'warn');
             $$.SANDBOX.stub(console, 'warn');
             const ux = new UX($$.TEST_LOGGER, false, cli);
