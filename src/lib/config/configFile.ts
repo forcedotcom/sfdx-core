@@ -16,12 +16,13 @@
 
 import { Stats as fsStats, constants as fsConstants } from 'fs';
 import { join as pathJoin, dirname as pathDirname } from 'path';
-import { isBoolean as _isBoolean, isNil as _isNil } from 'lodash';
+import { isBoolean as _isBoolean, isNil as _isNil, isPlainObject as _isPlainObject } from 'lodash';
 import { BaseConfigStore, ConfigContents } from './configStore';
 import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
 import { homedir as osHomedir } from 'os';
 import { SfdxUtil } from '../util';
+import { JsonMap } from '../types';
 
 /**
  * The interface for Config options.
@@ -173,7 +174,11 @@ export class ConfigFile extends BaseConfigStore {
      */
     public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
         try {
-            this.setContentsFromObject(await SfdxUtil.readJSON(this.getPath()));
+            const obj = await SfdxUtil.readJSON(this.getPath());
+            if (!_isPlainObject(obj)) {
+                throw new SfdxError('UnexpectedJsonFileFormat');
+            }
+            this.setContentsFromObject(obj as JsonMap);
             return this.getContents();
         } catch (err) {
             if (err.code === 'ENOENT') {

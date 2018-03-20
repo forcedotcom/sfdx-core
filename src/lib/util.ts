@@ -4,140 +4,115 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { join as pathJoin } from 'path';
+
 import * as _ from 'lodash';
 import * as fs from 'fs';
-import { sep as pathSep } from 'path';
+import * as mkdirp from 'mkdirp';
+import * as path from 'path';
 import { promisify } from 'util';
 import { SfdxError } from './sfdxError';
 import { URL } from 'url';
-
-const processJsonError = async (error: Error, data: string, jsonPath: string): Promise<void> => {
-    if (error.name === 'SyntaxError') {
-        const BUFFER = 20;
-
-        // Get the position of the error from the error message.  This is the error index
-        // within the file contents as 1 long string.
-        const errPosition = parseInt(error.message.match(/position (\d+)/)[1], 10);
-
-        // Get a buffered error portion to display, highlighting the error in red
-        const start = Math.max(0, (errPosition - BUFFER));
-        const end = Math.min(data.length, (errPosition + BUFFER));
-
-        const errorPortion = data.substring(start, errPosition) +
-            // logger.color.bgRed(data.substring(errPosition, errPosition + 1)) +
-            data.substring(errPosition + 2, end);
-
-        // only need to count new lines before the error position
-        const lineNumber = data.substring(0, errPosition).split('\n').length;
-
-        throw SfdxError.create('@salesforce/core', 'core', 'JsonParseError', [jsonPath, lineNumber, errorPortion]);
-    } else {
-        throw error;
-    }
-};
+import { AnyJson } from './types';
 
 /**
  * Common utility methods.
  */
 export class SfdxUtil {
+
     /**
-     * The file name of the sfdx-project.json.
+     * The name of the project config file.
      */
     // This has to be defined on util to prevent circular deps with project and configFile.
-    public static SFDX_PROJECT_JSON = 'sfdx-project.json';
+    public static readonly SFDX_PROJECT_JSON = 'sfdx-project.json';
 
     /**
-     * Promisified version of fs.readFile
-     * @see https://nodejs.org/api/fs.html#fs_fs_readfile_path_options_callback
+     * The default file system mode to use when creating directories.
      */
-    public static readFile = promisify(fs.readFile);
+    public static readonly DEFAULT_USER_DIR_MODE: string = '700';
 
     /**
-     * Promisified version of fs.readdir
-     * @see https://nodejs.org/api/fs.html#fs_fs_readdir_path_options_callback
+     * The default file system mode to use when creating files.
      */
-    public static readdir = promisify(fs.readdir);
+    public static readonly DEFAULT_USER_FILE_MODE: string = '600';
 
     /**
-     * Promisified version of fs.writeFile
-     * @see https://nodejs.org/api/fs.html#fs_fs_writefile_file_data_options_callback
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_readfile_path_options_callback|fs.readFile}.
      */
-    public static writeFile = promisify(fs.writeFile);
+    public static readonly readFile = promisify(fs.readFile);
 
     /**
-     * Promisified version of fs.access
-     * @see https://nodejs.org/api/fs.html#fs_fs_access_path_mode_callback
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_readdir_path_options_callback|fs.readdir}.
      */
-    public static access = promisify(fs.access);
+    public static readonly readdir = promisify(fs.readdir);
 
     /**
-     * Promisified version of fs.open
-     * @see https://nodejs.org/api/fs.html#fs_fs_open_path_flags_mode_callback
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_writefile_file_data_options_callback|fs.writeFile}.
      */
-    public static open = promisify(fs.open);
+    public static readonly writeFile = promisify(fs.writeFile);
 
     /**
-     * Promisified version of mkdirp
-     * @param {string} folderPath The path of the folder to create.
-     * @param {string} mode The mode to create the directory.
-     * @returns {Promise<void>}
-     * @see https://nodejs.org/api/fs.html#fs_fs_mkdir_path_mode_callback
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_access_path_mode_callback|fs.access}.
      */
-    public static mkdirp: (folderPath: string, mode?: string | object) => Promise<void> = promisify(require('mkdirp'));
-
-    public static DEFAULT_USER_DIR_MODE: string = '700';
-    public static DEFAULT_USER_FILE_MODE: string = '600';
+    public static readonly access = promisify(fs.access);
 
     /**
-     * Promisified version of unlink
-     * @see https://nodejs.org/api/fs.html#fs_fs_unlink_path_callback
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_open_path_flags_mode_callback|fs.open}.
      */
-    public static unlink = promisify(fs.unlink);
+    public static readonly open = promisify(fs.open);
 
     /**
-     * Promisified version of rmdir
-     * @see https://nodejs.org/api/fs.html#fs_fs_readdir_path_options_callback
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_unlink_path_callback|unlink}.
      */
-    public static rmdir = promisify(fs.rmdir);
+    public static readonly unlink = promisify(fs.unlink);
 
     /**
-     * Promisified version of stat
-     * @see https://nodejs.org/api/fs.html#fs_fs_fstat_fd_callback
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_readdir_path_options_callback|rmdir}.
      */
-    public static stat = promisify(fs.stat);
+    public static readonly rmdir = promisify(fs.rmdir);
 
     /**
-     * Read a file and convert it to JSON
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_fstat_fd_callback|stat}.
+     */
+    public static readonly stat = promisify(fs.stat);
+
+    /**
+     * Promisified version of {@link https://www.npmjs.com/package/mkdirp}.
+     */
+    public static readonly mkdirp: (folderPath: string, mode?: string | object) => Promise<void> = promisify(mkdirp);
+
+    /**
+     * Read a file and convert it to JSON.
      *
-     * @param {string} jsonPath The path of the file
-     * @param {boolean} throwOnEmpty Whether to throw an error if the JSON file is empty
-     * @return {Promise} promise The contents of the file as a JSON object
+     * @param {string} jsonPath The path of the file.
+     * @param {boolean} throwOnEmpty Whether to throw an error if the JSON file is empty.
+     * @return {Promise<AnyJson>} The contents of the file as a JSON object.
      */
-    public static async readJSON(jsonPath: string, throwOnEmpty?: boolean): Promise<object> {
+    public static async readJSON(jsonPath: string, throwOnEmpty?: boolean): Promise<AnyJson> {
         const fileData = (await SfdxUtil.readFile(jsonPath, 'utf8'));
         return await SfdxUtil.parseJSON(fileData, jsonPath, throwOnEmpty);
     }
 
     /**
-     * Convert a JSON object to a string and write it to a file.
+     * Convert a JSON-compatible object to a `string` and write it to a file.
      *
-     * @param {string} jsonPath The path of the file
-     * @param {object} data The JSON object to write
-     * @return {Promise} promise
+     * @param {string} jsonPath The path of the file to write.
+     * @param {object} data The JSON object to write.
+     * @return {Promise<void>}
      */
-    public static async writeJSON(jsonPath: string, data: object): Promise<void> {
+    public static async writeJSON(jsonPath: string, data: AnyJson): Promise<void> {
         const fileData: string = JSON.stringify(data, null, 4);
         await SfdxUtil.writeFile(jsonPath, fileData, { encoding: 'utf8', mode: SfdxUtil.DEFAULT_USER_FILE_MODE });
     }
 
     /**
-     * Parse json data from a file.
-     * @param data Data to parse.
-     * @param jsonPath The file path. Defaults to 'unknown'.
-     * @param throwOnEmpty Throw an exception if the data contents are empty
+     * Parse JSON `string` data.
+     *
+     * @param {string} data Data to parse.
+     * @param {String} [jsonPath=unknown] The file path from which the JSON was loaded.
+     * @param {SfdxError} throwOnEmpty If the data contents are empty.
+     * @returns {Promise<AnyJson>}
      */
-    public static async parseJSON(data: string, jsonPath: string = 'unknown', throwOnEmpty: boolean = true): Promise<object> {
+    public static async parseJSON(data: string, jsonPath: string = 'unknown', throwOnEmpty: boolean = true): Promise<AnyJson> {
         if (_.isEmpty(data) && throwOnEmpty) {
             throw SfdxError.create('@salesforce/core', 'core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
         }
@@ -150,8 +125,10 @@ export class SfdxUtil {
     }
 
     /**
-     * Returns true if a provided url contains a Salesforce owned domain.
-     * @param {*} urlString the url to inspect.
+     * Returns `true` if a provided URL contains a Salesforce owned domain.
+     *
+     * @param {string} urlString The URL to inspect.
+     * @returns {boolean}
      */
     public static isSalesforceDomain(urlString: string): boolean {
         let url: URL;
@@ -181,10 +158,11 @@ export class SfdxUtil {
     }
 
     /**
-     * Methods to ensure a environment variable is truthy. Truthy is defined as set to a non-null, non-empty, string
-     * that's not equal to false.
+     * Returns `true` is an environment variable is "truthy". Truthiness is defined as set to a non-null, non-empty,
+     * string that's not equal to `false`.
+     *
      * @param {string} name The name of the environment variable to check.
-     * @returns {boolean} true if the value of the env variable is truthy.
+     * @returns {boolean}
      */
     public static isEnvVarTruthy(name: string): boolean {
         if (!name) {
@@ -196,48 +174,43 @@ export class SfdxUtil {
 
     /**
      * Deletes a folder recursively, removing all descending files and folders.
-     * @param {string} path The path to remove.
+     *
+     * @param {string} dirPath The path to remove.
      * @returns {Promise<void>}
      * @throws {SfdxError} If the folder or any sub-folder is missing or has no access.
      */
-    public static remove(path: string): Promise<void> {
-        if (!path) {
+    public static async remove(dirPath: string): Promise<void> {
+        if (!dirPath) {
             throw new SfdxError('Path is null or undefined.', 'PathIsNullOrUndefined');
         }
-        return SfdxUtil.access(path, fs.constants.R_OK)
-            .catch(() => {
-                throw new SfdxError(`The path: ${path} doesn\'t exists or access is denied.`);
-            })
-            .then(() => SfdxUtil.readdir(path))
-            .then((files) => {
-                return Promise.all(_.map(files, (file) => SfdxUtil.stat(pathJoin(path, file))))
-                    .then((stats) => {
-                        stats.forEach((stat, index) => {
-                            stat['path'] = pathJoin(path, files[index]);
-                        });
-                        return stats;
-                    });
-            })
-            .then((metas) => {
-                return Promise.all(_.map(metas, (meta: any) => {
-                    if (meta.isDirectory()) {
-                        return SfdxUtil.remove(meta.path);
-                    } else {
-                        return SfdxUtil.unlink(meta.path);
-                    }
-                }));
-            }).then(() => {
-                return SfdxUtil.rmdir(path);
-            });
+        try {
+            await SfdxUtil.access(dirPath, fs.constants.R_OK);
+        } catch (err) {
+            throw new SfdxError(`The path: ${dirPath} doesn\'t exist or access is denied.`);
+        }
+        const files = await SfdxUtil.readdir(dirPath);
+        const stats = await Promise.all(_.map(files, (file) => SfdxUtil.stat(path.join(dirPath, file))));
+        const metas = _.map(stats, (stat, index) => {
+            stat['path'] = path.join(dirPath, files[index]);
+            return stat;
+        });
+        await Promise.all(_.map(metas, (meta) => {
+            if (meta.isDirectory()) {
+                return SfdxUtil.remove(meta['path']);
+            } else {
+                return SfdxUtil.unlink(meta['path']);
+            }
+        }));
+        await SfdxUtil.rmdir(dirPath);
     }
 
     /**
      *  Returns the first key within the object that has an upper case first letter.
      *
-     *  @param {Object} obj The object to check key casing.
-     *  @return {string} The key that starts with upper case.
+     *  @param {Object<string, any>} obj The object in which to check key casing.
+     *  @returns {string}
      */
-    public static findUpperCaseKeys(obj: object): string {
+    public static findUpperCaseKeys(obj: { [key: string]: any }): string {
         let _key;
         _.findKey(obj, (val, key) => {
             if (key[0] === key[0].toUpperCase()) {
@@ -247,14 +220,14 @@ export class SfdxUtil {
             }
             return _key;
         });
-
         return _key;
     }
 
     /**
-     * Converts the 18 character Salesforce ID to 15 characters.
-     * @param {string} id the id to convert.
-     * @return {string} 15 character version of the ID.
+     * Converts an 18 character Salesforce ID to 15 characters.
+     *
+     * @param {string} id The id to convert.
+     * @return {string}
      */
     public static trimTo15(id: string): string {
         if (id && id.length && id.length > 15) {
@@ -264,21 +237,24 @@ export class SfdxUtil {
     }
 
     /**
-     * Traverse the filesystem for a specific file.
-     * @param {string} workingDir The directory in which to start traversing.
+     * Searches a file path in an ascending manner (until reaching the filesystem root) for the first occurrence a
+     * specific file name.  Resolves with the directory path containing the located file, or `null` if the file was
+     * not found.
+     *
+     * @param {string} dir The directory path in which to start the upward search.
      * @param {string} file The file name to look for.
-     * @returns {string} The path of the file, or null if not found.
+     * @returns {Promise<string>}
      */
-    public static async traverseForFile(workingDir: string, file: string): Promise<string> {
+    public static async traverseForFile(dir: string, file: string): Promise<string> {
         let foundProjectDir: string = null;
         try {
-            await SfdxUtil.stat(pathJoin(workingDir, file));
-            foundProjectDir = workingDir;
+            await SfdxUtil.stat(path.join(dir, file));
+            foundProjectDir = dir;
         } catch (err) {
             if (err && err.code === 'ENOENT') {
-                const indexOfLastSlash: number = workingDir.lastIndexOf(pathSep);
-                if (indexOfLastSlash > 0) {
-                    await SfdxUtil.traverseForFile(workingDir.substring(0, indexOfLastSlash), file);
+                const nextDir = path.resolve(dir, '..');
+                if (nextDir !== dir) { // stop at root
+                    foundProjectDir = await SfdxUtil.traverseForFile(nextDir, file);
                 }
             }
         }
@@ -286,27 +262,63 @@ export class SfdxUtil {
     }
 
     /**
-     * Traverses for the sfdx project path.
-     * @param {string} path The path to start traversing from. Defaults to the current working directory.
-     * @throws InvalidProjectWorkspace If the current folder is not located in a workspace.
+     * Performs an upward directory search for an sfdx project file.
+     *
+     * @param {string} [dir=process.cwd()] The directory path to start traversing from.
+     * @throws {SfdxError} If the current folder is not located in a workspace.
      * @returns {Promise<string>} The absolute path to the project.
+     * @see SfdxUtil.SFDX_PROJECT_JSON
+     * @see SfdxUtil.traverseForFile
+     * @see {@link https://nodejs.org/api/process.html#process_process_cwd|process.cwd()}
      */
-    public static async resolveProjectPath(path: string = process.cwd()): Promise<string> {
-        const projectPath = await SfdxUtil.traverseForFile(path, SfdxUtil.SFDX_PROJECT_JSON);
-
+    public static async resolveProjectPath(dir: string = process.cwd()): Promise<string> {
+        const projectPath = await SfdxUtil.traverseForFile(dir, SfdxUtil.SFDX_PROJECT_JSON);
         if (!projectPath) {
             throw SfdxError.create('@salesforce/core', 'config', 'InvalidProjectWorkspace');
         }
-
         return projectPath;
     }
 
     /**
-     * Tests whether an API version is in the correct format.
+     * Tests whether an API version matches the format `i.0`.
+     *
      * @param value The API version as a string.
-     * @returns {boolean} true if the value is in the format "i.0"
+     * @returns {boolean}
      */
     public static validateApiVersion(value: string): boolean {
         return _.isNil(value) || /[1-9]\d\.0/.test(value);
     }
+
+    /**
+     * **This class contains static members only and cannot be instantiated.**
+     *
+     * @private
+     */
+    private constructor() {
+    }
 }
+
+const processJsonError = async (error: Error, data: string, jsonPath: string): Promise<void> => {
+    if (error.name === 'SyntaxError') {
+        const BUFFER = 20;
+
+        // Get the position of the error from the error message.  This is the error index
+        // within the file contents as 1 long string.
+        const errPosition = parseInt(error.message.match(/position (\d+)/)[1], 10);
+
+        // Get a buffered error portion to display, highlighting the error in red
+        const start = Math.max(0, (errPosition - BUFFER));
+        const end = Math.min(data.length, (errPosition + BUFFER));
+
+        const errorPortion = data.substring(start, errPosition) +
+            // logger.color.bgRed(data.substring(errPosition, errPosition + 1)) +
+            data.substring(errPosition + 2, end);
+
+        // only need to count new lines before the error position
+        const lineNumber = data.substring(0, errPosition).split('\n').length;
+
+        throw SfdxError.create('@salesforce/core', 'core', 'JsonParseError', [jsonPath, lineNumber, errorPortion]);
+    } else {
+        throw error;
+    }
+};
