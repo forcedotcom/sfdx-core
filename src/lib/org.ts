@@ -274,7 +274,7 @@ export class Org {
 
         } catch (err) {
             if (err.name === 'INVALID_TYPE') {
-                throw SfdxError.create('sfdx-core', 'org', 'notADevHub',
+                throw SfdxError.create('@salesforce/core', 'org', 'notADevHub',
                     [devHubConnection.getAuthInfo().getFields().username]);
             }
             throw err;

@@ -60,11 +60,11 @@ const _validateProgram = async (programPath, fsIfc, isExeIfc) => {
         const stats = fsIfc.statSync(programPath);
         noPermission = !isExeIfc(stats.mode, stats.gid, stats.uid);
     } catch (e) {
-        throw SfdxError.create('sfdx-core', 'encryption', 'MissingCredentialProgramError', [programPath]);
+        throw SfdxError.create('@salesforce/core', 'encryption', 'MissingCredentialProgramError', [programPath]);
     }
 
     if (noPermission) {
-        throw SfdxError.create('sfdx-core', 'encryption', 'CredentialProgramAccessError', [programPath]);
+        throw SfdxError.create('@salesforce/core', 'encryption', 'CredentialProgramAccessError', [programPath]);
     }
 };
 
@@ -93,12 +93,12 @@ export class KeychainAccess {
      */
     public async getPassword(opts, fn, retryCount = 0): Promise<string> {
         if (_.isNil(opts.service)) {
-            fn(SfdxError.create('sfdx-core', 'encryption', 'KeyChainServiceRequiredError'));
+            fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
             return;
         }
 
         if (_.isNil(opts.account)) {
-            fn(SfdxError.create('sfdx-core', 'encryption', 'KeyChainAccountRequiredError'));
+            fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainAccountRequiredError'));
             return;
         }
 
@@ -118,7 +118,7 @@ export class KeychainAccess {
             } catch (e) {
                 if (e.retry) {
                     if (retryCount >= GET_PASSWORD_RETRY_COUNT) {
-                        throw SfdxError.create('sfdx-core', 'encryption', 'PasswordRetryError', [GET_PASSWORD_RETRY_COUNT]);
+                        throw SfdxError.create('@salesforce/core', 'encryption', 'PasswordRetryError', [GET_PASSWORD_RETRY_COUNT]);
                     }
                     return this.getPassword(opts, fn, retryCount + 1);
                 } else {
@@ -139,17 +139,17 @@ export class KeychainAccess {
     public async setPassword(opts, fn): Promise<any> {
 
         if (_.isNil(opts.service)) {
-            fn(SfdxError.create('sfdx-core', 'encryption', 'KeyChainServiceRequiredError'));
+            fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
             return;
         }
 
         if (_.isNil(opts.account)) {
-            fn(SfdxError.create('sfdx-core', 'encryption', 'KeyChainAccountRequiredError'));
+            fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainAccountRequiredError'));
             return;
         }
 
         if (_.isNil(opts.password)) {
-            fn(SfdxError.create('sfdx-core', 'encryption', 'PasswordRequiredError'));
+            fn(SfdxError.create('@salesforce/core', 'encryption', 'PasswordRequiredError'));
             return;
         }
 
@@ -194,7 +194,7 @@ const _linuxImpl = {
         if (code === 1) {
             const command = `${_linuxImpl.getProgram()} ${_optionsToString(_linuxImpl.getProgramOptions(opts))}`;
             const errorConfig = new SfdxErrorConfig(
-                'sfdx-core',
+                '@salesforce/core',
                 'encryption',
                 'PasswordNotFoundError',
                 [`\n${stdout} - ${stderr}`],
@@ -234,7 +234,7 @@ const _linuxImpl = {
         if (code !== 0) {
             const command = `${_linuxImpl.getProgram()} ${_optionsToString(_linuxImpl.setProgramOptions(opts))}`;
             const errorConfig = new SfdxErrorConfig(
-                'sfdx-core',
+                '@salesforce/core',
                 'encryption',
                 'SetCredentialError',
                 [`\n${stdout} - ${stderr}`],
@@ -274,12 +274,12 @@ const _darwinImpl = {
         if (code !== 0) {
             switch (code) {
                 case 128:
-                    err = SfdxError.create('sfdx-core', 'encryption', 'KeyChainUserCanceledError');
+                    err = SfdxError.create('@salesforce/core', 'encryption', 'KeyChainUserCanceledError');
                     break;
                 default:
                     const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
                     const errorConfig = new SfdxErrorConfig(
-                        'sfdx-core',
+                        '@salesforce/core',
                         'encryption',
                         'PasswordNotFoundError',
                         [`\n${stdout} - ${stderr}`],
@@ -300,7 +300,7 @@ const _darwinImpl = {
         } else {
             const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
             const errorConfig = new SfdxErrorConfig(
-                'sfdx-core',
+                '@salesforce/core',
                 'encryption',
                 'PasswordNotFoundError',
                 [`\n${stdout} - ${stderr}`],
@@ -324,7 +324,7 @@ const _darwinImpl = {
         if (code !== 0) {
             const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.setProgramOptions(opts))}`;
             const errorConfig = new SfdxErrorConfig(
-                'sfdx-core',
+                '@salesforce/core',
                 'encryption',
                 'SetCredentialError',
                 [`\n${stdout} - ${stderr}`],
@@ -379,7 +379,7 @@ export class GenericKeychainAccess {
                         } else {
                             // if the service and account names don't match then maybe someone or something is editing
                             // that file. #donotallow
-                            const errorConfig = new SfdxErrorConfig('sfdx-core', 'encryption', 'GenericKeychainServiceError', [KeychainConfig.getFileName()], 'GenericKeychainServiceErrorAction');
+                            const errorConfig = new SfdxErrorConfig('@salesforce/core', 'encryption', 'GenericKeychainServiceError', [KeychainConfig.getFileName()], 'GenericKeychainServiceErrorAction');
                             const err = SfdxError.create(errorConfig);
                             fn(err);
                         }
@@ -389,7 +389,7 @@ export class GenericKeychainAccess {
                     });
             } else {
                 if (fileAccessError.code === 'ENOENT') {
-                    fn(SfdxError.create('sfdx-core', 'encryption', 'PasswordNotFoundError', []));
+                    fn(SfdxError.create('@salesforce/core', 'encryption', 'PasswordNotFoundError', []));
                 } else {
                     fn(fileAccessError);
                 }
@@ -449,7 +449,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
                     await cb();
                 } else {
                     const errorConfig = new SfdxErrorConfig(
-                        'sfdx-core',
+                        '@salesforce/core',
                         'encryption',
                         'GenericKeychainInvalidPermsError',
                         null,

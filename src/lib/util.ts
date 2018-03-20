@@ -31,7 +31,7 @@ const processJsonError = async (error: Error, data: string, jsonPath: string): P
         // only need to count new lines before the error position
         const lineNumber = data.substring(0, errPosition).split('\n').length;
 
-        throw SfdxError.create('sfdx-core', 'core', 'JsonParseError', [jsonPath, lineNumber, errorPortion]);
+        throw SfdxError.create('@salesforce/core', 'core', 'JsonParseError', [jsonPath, lineNumber, errorPortion]);
     } else {
         throw error;
     }
@@ -139,7 +139,7 @@ export class SfdxUtil {
      */
     public static async parseJSON(data: string, jsonPath: string = 'unknown', throwOnEmpty: boolean = true): Promise<object> {
         if (_.isEmpty(data) && throwOnEmpty) {
-            throw SfdxError.create('sfdx-core', 'core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
+            throw SfdxError.create('@salesforce/core', 'core', 'JsonParseError', [jsonPath, 1, 'FILE HAS NO CONTENT']);
         }
 
         try {
@@ -295,7 +295,7 @@ export class SfdxUtil {
         const projectPath = await SfdxUtil.traverseForFile(path, SfdxUtil.SFDX_PROJECT_JSON);
 
         if (!projectPath) {
-            throw SfdxError.create('sfdx-core', 'config', 'InvalidProjectWorkspace');
+            throw SfdxError.create('@salesforce/core', 'config', 'InvalidProjectWorkspace');
         }
 
         return projectPath;

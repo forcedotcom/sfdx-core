@@ -268,7 +268,7 @@ export class AuthInfo {
 
         // Must specify either username and/or options
         if (!username && !options) {
-            throw SfdxError.create('sfdx-core', 'core', 'AuthInfoCreationError');
+            throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
         }
 
         const authInfo = new AuthInfo(username);
@@ -308,7 +308,7 @@ export class AuthInfo {
         // Want to throw a clean error if no files are found.
         if (_.isEmpty(authFiles)) {
             const errConfig: SfdxErrorConfig =
-                new SfdxErrorConfig('sfdx-core', 'core', 'noAuthInfoFound');
+                new SfdxErrorConfig('@salesforce/core', 'core', 'noAuthInfoFound');
             throw SfdxError.create(errConfig);
         }
 
@@ -418,7 +418,7 @@ export class AuthInfo {
                     authConfig = config.toObject();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
-                        throw SfdxError.create('sfdx-core', 'core', 'namedOrgNotFound', [this.getUsername()]);
+                        throw SfdxError.create('@salesforce/core', 'core', 'namedOrgNotFound', [this.getUsername()]);
                     } else {
                         throw e;
                     }
@@ -597,7 +597,7 @@ export class AuthInfo {
             return await callback(null, authInfoCrypto.decrypt(this.fields.accessToken));
         } catch (err) {
             if (err.message && err.message.includes('Data Not Available')) {
-                const errConfig: SfdxErrorConfig = new SfdxErrorConfig('sfdx-core', 'core', 'OrgDataNotAvailableError', [this.getUsername()]);
+                const errConfig: SfdxErrorConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'OrgDataNotAvailableError', [this.getUsername()]);
                 for (let i = 1; i < 5; i++) {
                     errConfig.addAction(`OrgDataNotAvailableErrorAction${i}`);
                 }
@@ -629,7 +629,7 @@ export class AuthInfo {
         try {
             _authFields = await oauth2.jwtAuthorize(jwtToken);
         } catch (err) {
-            throw SfdxError.create('sfdx-core', 'core', 'JWTAuthError', [err.message]);
+            throw SfdxError.create('@salesforce/core', 'core', 'JWTAuthError', [err.message]);
         }
 
         const authFields: AuthFields = {
@@ -660,7 +660,7 @@ export class AuthInfo {
         try {
             _authFields = await oauth2.refreshToken(options.refreshToken);
         } catch (err) {
-            throw SfdxError.create('sfdx-core', 'core', 'RefreshTokenAuthError', [err.message]);
+            throw SfdxError.create('@salesforce/core', 'core', 'RefreshTokenAuthError', [err.message]);
         }
 
         return {
@@ -684,7 +684,7 @@ export class AuthInfo {
             this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
             _authFields = await oauth2.requestToken(options.authCode);
         } catch (err) {
-            throw SfdxError.create('sfdx-core', 'core', 'AuthCodeExchangeError', [err.message]);
+            throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeExchangeError', [err.message]);
         }
 
         const { userId, orgId } = _parseIdUrl(_authFields.id);
@@ -702,7 +702,7 @@ export class AuthInfo {
             const response = await new Transport().httpRequest({ url, headers });
             username = _.get(JSON.parse(response.body), 'Username');
         } catch (err) {
-            throw SfdxError.create('sfdx-core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
+            throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
         }
 
         return {
