@@ -94,14 +94,14 @@ export class Aliases extends ConfigGroup {
     public static async parseAndUpdate(aliasKeyAndValues: string[], group: AliasGroup = AliasGroup.ORGS): Promise<object> {
         const newAliases = {};
         if (aliasKeyAndValues.length === 0) {
-            throw SfdxError.create('sfdx-core', 'core', 'NoAliasesFound', []);
+            throw SfdxError.create('@salesforce/core', 'core', 'NoAliasesFound', []);
         }
 
         for (const arg of aliasKeyAndValues) {
             const split = arg.split('=');
 
             if (split.length !== 2) {
-                throw SfdxError.create('sfdx-core', 'core', 'InvalidFormat', [arg]);
+                throw SfdxError.create('@salesforce/core', 'core', 'InvalidFormat', [arg]);
             }
             const [name, value] = split;
             newAliases[name] = value || undefined;

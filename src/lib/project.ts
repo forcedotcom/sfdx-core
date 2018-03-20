@@ -46,7 +46,7 @@ export class SfdxProjectJson extends ConfigFile {
         // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camelcase.
         const upperCaseKey = SfdxUtil.findUpperCaseKeys(contents);
         if (upperCaseKey) {
-            throw SfdxError.create('sfdx-core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
+            throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
         }
         return contents;
     }

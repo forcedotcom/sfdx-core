@@ -125,7 +125,7 @@ export class SfdxConfig extends ConfigFile {
      */
     public static async create<T extends ConfigFile>(options: ConfigOptions): Promise<T> {
         if (!SfdxConfig.messages) {
-            SfdxConfig.messages = Messages.loadMessages('sfdx-core', 'config');
+            SfdxConfig.messages = Messages.loadMessages('@salesforce/core', 'config');
         }
 
         if (!SfdxConfig.allowedProperties) {
@@ -258,13 +258,13 @@ export class SfdxConfig extends ConfigFile {
         const property = SfdxConfig.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
         if (!property) {
-            throw SfdxError.create('sfdx-core', 'config', 'UnknownConfigKey', [key]);
+            throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
         }
         if (property.input) {
             if (property.input && property.input.validator(value)) {
                 super.set(property.key, value);
             } else {
-                throw SfdxError.create('sfdx-core', 'config', 'invalidConfigValue', [property.input.failedMessage]);
+                throw SfdxError.create('@salesforce/core', 'config', 'invalidConfigValue', [property.input.failedMessage]);
             }
         } else {
             super.set(property.key, value);
@@ -302,7 +302,7 @@ export class SfdxConfig extends ConfigFile {
         const prop = SfdxConfig.propertyConfigMap[propertyName];
 
         if (!prop) {
-            throw SfdxError.create('sfdx-core', 'config', 'UnknownConfigKey', [propertyName]);
+            throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [propertyName]);
         }
         return prop;
     }

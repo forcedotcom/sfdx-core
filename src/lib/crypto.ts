@@ -87,7 +87,7 @@ export class Crypto {
 
         logger.debug(`retryStatus: ${retryStatus}`);
 
-        this.messages = Messages.loadMessages('sfdx-core', 'encryption');
+        this.messages = Messages.loadMessages('@salesforce/core', 'encryption');
 
         try {
             let savedKey = await keychainPromises.getPassword(await this.getKeyChain(platform), KEY_NAME, ACCOUNT);

@@ -253,7 +253,7 @@ describe('SfdxErrorConfig', () => {
 
     it('should call Messages.loadMessages with the bundle name for load()', async () => {
         const messages = { sampleMsgKey: 'here is a sample message' };
-        const packageName = 'sfdx-core';
+        const packageName = '@salesforce/core';
         const loadMessagesStub = $$.SANDBOX.stub(Messages, 'loadMessages');
         loadMessagesStub.returns(messages);
         const errConfig = new SfdxErrorConfig(packageName, 'bundle', 'foo');
@@ -263,7 +263,7 @@ describe('SfdxErrorConfig', () => {
     });
 
     it('should throw an error when getError() is called without first calling load()', () => {
-        const errConfig = new SfdxErrorConfig('sfdx-core', 'core', 'foo');
+        const errConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'foo');
         try {
             errConfig.getError();
         }  catch (error) {
@@ -272,7 +272,7 @@ describe('SfdxErrorConfig', () => {
     });
 
     it('should throw an error when getActions() is called without first calling load()', () => {
-        const errConfig = new SfdxErrorConfig('sfdx-core', 'core', 'foo');
+        const errConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'foo');
         try {
             errConfig.getActions();
         }  catch (error) {
