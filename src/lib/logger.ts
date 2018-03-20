@@ -273,7 +273,7 @@ export class Logger {
      * @param {LoggerLevelValue} [defaultLevel] The default level of the stream.
      */
     public addStream(stream: LoggerStream, defaultLevel?: LoggerLevelValue): void {
-        return this.bunyan.addStream(stream, defaultLevel);
+        this.bunyan.addStream(stream, defaultLevel);
     }
 
     /**
@@ -305,8 +305,6 @@ export class Logger {
             // https://github.com/trentm/node-bunyan#stream-type-rotating-file
             this.addStream({ type: 'file', path: logFile, level: this.bunyan.level() as number });
         }
-
-        return Promise.resolve();
     }
 
     /**
