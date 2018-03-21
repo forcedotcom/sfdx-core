@@ -10,6 +10,7 @@ jobs:
         'EMAIL': 't.dvornik@salesforce.com'
   - name: promote-jsdoc
     script: scripts/jenkins/release-doc.groovy
+    type: pipeline
     envMap:
       -
         releaseType: PROD
