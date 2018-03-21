@@ -59,7 +59,8 @@
     "tslint": "5.9.1",
     "tslint-microsoft-contrib": "5.0.2",
     "typescript": "2.6.2",
-    "xunit-file": "1.0.0"
+    "xunit-file": "1.0.0",
+    "@salesforce/dev-config": "1.0.3"
   },
   "types": "dist/exported.d.ts"
 }

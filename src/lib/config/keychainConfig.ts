@@ -19,7 +19,7 @@ export class KeychainConfig extends ConfigFile {
         return 'key.json';
     }
 
-    public static getDefaultOptions(isGlobal = true, filename?) {
+    public static getDefaultOptions(isGlobal = true, filename?): ConfigOptions {
         const config = super.getDefaultOptions(isGlobal);
         // The key file is ALWAYS in the global space.
         config.isGlobal = true;
