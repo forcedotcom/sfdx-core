@@ -44,8 +44,8 @@ export class SfdxErrorConfig {
      * @param bundleName {string} The message bundle.
      * @param errorKey {string} The error message key.
      * @param errorTokens {Array<string | boolean | number>} The tokens to use when getting the error message.
-     * @param actionKey {string} The action message key.
-     * @param actionTokens {Array<string | boolean | number>} The tokens to use when getting the action message(s).
+     * @param [actionKey] {string} The action message key.
+     * @param [actionTokens] {Array<string | boolean | number>} The tokens to use when getting the action message(s).
      */
     constructor(packageName: string,
                 bundleName: string,
@@ -86,7 +86,7 @@ export class SfdxErrorConfig {
     /**
      * Add an error action to assist the user with a resolution.
      * @param {string} actionKey The action key in the message bundle.
-     * @param {Array<string | boolean | number>} actionTokens The action tokens for the string.
+     * @param {Array<string | boolean | number>} [actionTokens] The action tokens for the string.
      * @returns {SfdxErrorConfig} For convenience `this` object is returned.
      */
     public addAction(actionKey: string, actionTokens?: Array<string | boolean | number>): SfdxErrorConfig {
@@ -172,7 +172,7 @@ export class SfdxError extends Error {
      * @param {string} packageName The message package name used to create the SfdxError.
      * @param {string} bundleName The message bundle name used to create the SfdxError.
      * @param {string} key The key within the bundle for the message.
-     * @param {Array<string | boolean | number>} tokens The values to use for message tokenization.
+     * @param {Array<string | boolean | number>} [tokens] The values to use for message tokenization.
      */
     public static create(packageName: string, bundleName: string, key: string, tokens?: Array<string | boolean | number>): SfdxError;
 
@@ -240,9 +240,9 @@ export class SfdxError extends Error {
     /**
      * Create an SfdxError.
      * @param {string} message The error message.
-     * @param {string} name The error name. Defaults to 'SfdxError'.
-     * @param {string[]} actions The action message(s).
-     * @param {number} exitCode The exit code which will be used by SfdxCommand.
+     * @param {string} [name] The error name. Defaults to 'SfdxError'.
+     * @param {string[]} [actions] The action message(s).
+     * @param {number} [exitCode] The exit code which will be used by SfdxCommand.
      */
     constructor(message: string, name?: string, actions?: string[], exitCode?: number) {
         super(message);
