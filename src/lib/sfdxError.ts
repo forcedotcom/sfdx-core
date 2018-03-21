@@ -96,7 +96,7 @@ export class SfdxErrorConfig {
 
     /**
      * Load the messages using Messages.loadMessages.
-     * @returns {Messages} - Returns the loaded messages
+     * @returns {Messages} Returns the loaded messages
      */
     public load(): Messages {
         this.messages = Messages.loadMessages(this.packageName, this.bundleName);
@@ -252,8 +252,8 @@ export class SfdxError extends Error {
 
     /**
      * Sets the name of the command
-     * @param {string} commandName - The command name.
-     * @returns {SfdxError} - For convenience this object's instance is returned.
+     * @param {string} commandName The command name.
+     * @returns {SfdxError} For convenience this object's instance is returned.
      */
     public setCommandName(commandName: string): SfdxError {
         this.commandName = commandName;
@@ -262,8 +262,8 @@ export class SfdxError extends Error {
 
     /**
      * An additional payload for the error
-     * @param data - The payload data
-     * @returns {SfdxError} - For convenience this object's instance is returned.
+     * @param data The payload data
+     * @returns {SfdxError} For convenience this object's instance is returned.
      */
     public setData(data: any): SfdxError {
         this.data = data;
@@ -274,7 +274,7 @@ export class SfdxError extends Error {
      * Format errors and actions for human consumption. Adds 'ERROR running <command name>',
      * and outputs all errors in red.  When there are actions, we add 'Try this:' in blue
      * followed by each action in red on its own line.
-     * @returns {string[]} - Returns decorated messages
+     * @returns {string[]} Returns decorated messages
      */
     public format(): string[] {
         const colorizedArgs: string[] = [];
@@ -298,7 +298,7 @@ export class SfdxError extends Error {
 
     /**
      * Convert an SfdxError's state to an object.
-     * @returns {object} - A plain object representing the state of this error.
+     * @returns {object} A plain object representing the state of this error.
      */
     public toObject(): object {
         const obj: any = {

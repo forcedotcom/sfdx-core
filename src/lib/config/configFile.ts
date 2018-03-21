@@ -154,7 +154,7 @@ export class ConfigFile extends BaseConfigStore {
     /**
      * Determines if the config file is read write accessible.
      * @param {number} perm The permission.
-     * @returns {Promise<boolean>} returns true if the user has capabilities specified by perm.
+     * @returns {Promise<boolean>} `true` if the user has capabilities specified by perm.
      * @see {@link SfdxUtil.access}
      */
     public async access(perm: number): Promise<boolean> {
@@ -170,7 +170,8 @@ export class ConfigFile extends BaseConfigStore {
      * Read the config file and set the config contents.
      * @param {boolean} [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
      * @returns {Promise<object>} The config contents of the config file.
-     * @throws Throws an error if there was a problem reading or parsing the file.
+     * @throws {SfdxError}
+     *    **`{name: 'UnexpectedJsonFileFormat'}`:** There was a problem reading or parsing the file.
      */
     public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
         try {

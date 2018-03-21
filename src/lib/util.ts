@@ -109,8 +109,9 @@ export class SfdxUtil {
      *
      * @param {string} data Data to parse.
      * @param {String} [jsonPath=unknown] The file path from which the JSON was loaded.
-     * @param {SfdxError} throwOnEmpty If the data contents are empty.
+     * @param {boolean} [throwOnEmpty=true] If the data contents are empty.
      * @returns {Promise<AnyJson>}
+     * @throws {SfdxError} **`{name: 'JsonParseError'}`** If the data contents are empty.
      */
     public static async parseJSON(data: string, jsonPath: string = 'unknown', throwOnEmpty: boolean = true): Promise<AnyJson> {
         if (_.isEmpty(data) && throwOnEmpty) {
@@ -177,7 +178,10 @@ export class SfdxUtil {
      *
      * @param {string} dirPath The path to remove.
      * @returns {Promise<void>}
-     * @throws {SfdxError} If the folder or any sub-folder is missing or has no access.
+     * @throws {SfdxError}
+     *    **`{name: 'PathIsNullOrUndefined'}`** The path is not defined.
+     * @throws {SfdxError}
+     *    **`{name: 'DirMissingOrNoAccess'}`** The folder or any sub-folder is missing or has no access.
      */
     public static async remove(dirPath: string): Promise<void> {
         if (!dirPath) {
@@ -186,7 +190,7 @@ export class SfdxUtil {
         try {
             await SfdxUtil.access(dirPath, fs.constants.R_OK);
         } catch (err) {
-            throw new SfdxError(`The path: ${dirPath} doesn\'t exist or access is denied.`);
+            throw new SfdxError(`The path: ${dirPath} doesn\'t exist or access is denied.`, 'DirMissingOrNoAccess');
         }
         const files = await SfdxUtil.readdir(dirPath);
         const stats = await Promise.all(_.map(files, (file) => SfdxUtil.stat(path.join(dirPath, file))));
@@ -265,8 +269,8 @@ export class SfdxUtil {
      * Performs an upward directory search for an sfdx project file.
      *
      * @param {string} [dir=process.cwd()] The directory path to start traversing from.
-     * @throws {SfdxError} If the current folder is not located in a workspace.
      * @returns {Promise<string>} The absolute path to the project.
+     * @throws {SfdxError} **`{name: 'InvalidProjectWorkspace'}`** If the current folder is not located in a workspace.
      * @see SfdxUtil.SFDX_PROJECT_JSON
      * @see SfdxUtil.traverseForFile
      * @see {@link https://nodejs.org/api/process.html#process_process_cwd|process.cwd()}

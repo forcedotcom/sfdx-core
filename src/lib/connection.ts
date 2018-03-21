@@ -137,11 +137,11 @@ export class Connection extends JSForceConnection {
     /**
      * Set the API version for all connection request.
      * @param {string} version The API version.
-     * @throws {SfdxError} Incorrect API version.
+     * @throws {SfdxError} **`{name: 'IncorrectAPIVersion'}`:** Incorrect API version.
      */
     public setApiVersion(version: string): void {
         if (!SfdxUtil.validateApiVersion(version)) {
-            throw new SfdxError(`Invalid API version ${version}. Expecting format "[1-9][0-9].0", i.e. 42.0`);
+            throw new SfdxError(`Invalid API version ${version}. Expecting format "[1-9][0-9].0", i.e. 42.0`, 'IncorrectAPIVersion');
         }
         this.version = version;
     }

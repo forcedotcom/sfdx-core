@@ -198,7 +198,8 @@ export class Logger {
      * Gets a numeric `LoggerLevel` value by string name.
      *
      * @param {string} levelName The level name to convert to a `LoggerLevel` enum value.
-     * @throws {SfdxError} If the level name was not case-insensitively recognized as a valid `LoggerLevel` value.
+     * @throws {SfdxError}
+     *    **`{name: 'UnrecognizedLoggerLevelName'}`:** The level name was not case-insensitively recognized as a valid `LoggerLevel` value.
      * @see LoggerLevel
      */
     public static getLevelByName(levelName: string): LoggerLevelValue {
@@ -228,7 +229,8 @@ export class Logger {
      * Constructs a new `Logger`.
      *
      * @param {LoggerOptions|string} optionsOrName A set of `LoggerOptions` or name to use with the default options.
-     * @throws {SfdxError} If more than one attempt is made to construct the root `Logger`.
+     * @throws {SfdxError}
+     *    **`{name: 'RedundantRootLogger'}`:** More than one attempt is made to construct the root `Logger`.
      */
     public constructor(optionsOrName: LoggerOptions | string) {
         let options: LoggerOptions;
@@ -336,7 +338,8 @@ export class Logger {
      *
      * @param {LoggerLevelValue} [level] The logger level.
      * @returns {Logger} For convenience `this` object is returned.
-     * @throws {SfdxError} If a value of `level` read from `SFDX_LOG_LEVEL` was invalid.
+     * @throws {SfdxError}
+     *    **`{name: 'UnrecognizedLoggerLevelName'}`:** A value of `level` read from `SFDX_LOG_LEVEL` was invalid.
      */
     public setLevel(level?: LoggerLevelValue): Logger {
         if (_.isNil(level)) {

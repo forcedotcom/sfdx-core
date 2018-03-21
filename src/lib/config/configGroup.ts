@@ -78,7 +78,7 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Sets the default group for all {@link BaseConfigStore} methods to use.
      * @param {String} group The group.
-     * @throws {SfdxError} **`{name: 'MissingGroupName'}`:** Throws an Error if the group parameter is null or undefined.
+     * @throws {SfdxError} **`{name: 'MissingGroupName'}`:** The group parameter is null or undefined.
      */
     public setDefaultGroup(group: string): void {
         if (!group) {
@@ -245,7 +245,7 @@ export class ConfigGroup extends ConfigFile {
     }
 
     /**
-     * Convert a json object to a ConfigContents and set it as the config contents.
+     * Convert a JSON object to a {@link ConfigContents} and set it as the config contents.
      * @param {object} obj The object.
      */
     public setContentsFromObject(obj: object): void {
