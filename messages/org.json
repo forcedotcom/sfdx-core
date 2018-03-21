@@ -1,4 +1,4 @@
 {
-    "notFoundOnDevHub": "The scratch org does not belong to the dev hub username %s.",
-    "notADevHub": "The provided dev hub username %s is not a valid dev hub."
+    "NotFoundOnDevHub": "The scratch org does not belong to the dev hub username %s.",
+    "NotADevHub": "The provided dev hub username %s is not a valid dev hub."
 }

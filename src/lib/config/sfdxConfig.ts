@@ -118,6 +118,8 @@ export class SfdxConfig extends ConfigFile {
      * Creates an instance of an SfdxConfig.
      * @param {ConfigOptions} options The config options.
      * @return {Promise<SfdxConfig>} An instance of SfdxConfig.
+     * @throws {SfdxError} **`{name: 'InvalidInstanceUrl'}`** Invalid instance URL.
+     * @throws {SfdxError} **`{name: 'InvalidApiVersion'}`** Invalid API version.
      * @example
      * const config: SfdxConfig = await Sfdx.create<SfdxConfig>({ isGlobal: false }};
      * config.set(allowedPropertyKey, value);
@@ -135,7 +137,7 @@ export class SfdxConfig extends ConfigFile {
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
                         validator: (value) => _.isNil(value) || SfdxUtil.isSalesforceDomain(value),
-                        failedMessage: SfdxConfig.messages.getMessage('invalidInstanceUrl')
+                        failedMessage: SfdxConfig.messages.getMessage('InvalidInstanceUrl')
                     }
                 },
                 {
@@ -144,7 +146,7 @@ export class SfdxConfig extends ConfigFile {
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
                         validator: SfdxUtil.validateApiVersion,
-                        failedMessage: SfdxConfig.messages.getMessage('invalidApiVersion')
+                        failedMessage: SfdxConfig.messages.getMessage('InvalidApiVersion')
                     }
                 },
                 { key: SfdxConfig.DEFAULT_DEV_HUB_USERNAME },
@@ -252,6 +254,7 @@ export class SfdxConfig extends ConfigFile {
      * @param {string} propertyName The property to set.
      * @param {string | boolean} value The value of the property.
      * @returns {Promise<void>}
+     * @throws {SfdxError} **`{name: 'InvalidConfigValue'}`** Invalid configuration value.
      */
     public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
 
@@ -264,7 +267,7 @@ export class SfdxConfig extends ConfigFile {
             if (property.input && property.input.validator(value)) {
                 super.set(property.key, value);
             } else {
-                throw SfdxError.create('@salesforce/core', 'config', 'invalidConfigValue', [property.input.failedMessage]);
+                throw SfdxError.create('@salesforce/core', 'config', 'InvalidConfigValue', [property.input.failedMessage]);
             }
         } else {
             super.set(property.key, value);

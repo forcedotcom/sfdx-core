@@ -1,7 +1,7 @@
 {
     "UnknownConfigKey": "Unknown config name \"%s\"",
-    "invalidConfigValue": "Invalid config value. %s",
-    "invalidInstanceUrl": "Specify a valid Salesforce instance URL",
-    "invalidApiVersion": "Specify a valid Salesforce API version, for example, 42.0",
+    "InvalidConfigValue": "Invalid config value. %s",
+    "InvalidInstanceUrl": "Specify a valid Salesforce instance URL",
+    "InvalidApiVersion": "Specify a valid Salesforce API version, for example, 42.0",
     "InvalidProjectWorkspace": "This directory does not contain a valid Salesforce DX project"
 }

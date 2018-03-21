@@ -486,7 +486,7 @@ describe('Org Tests', () => {
                 await org.checkScratchOrg();
                 assert.fail('This test is expected to fail.');
             } catch (err) {
-                expect(err).to.have.property('name', 'notADevHub');
+                expect(err).to.have.property('name', 'NotADevHub');
             }
         });
     });
