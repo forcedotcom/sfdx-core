@@ -263,7 +263,7 @@ export class SfdxError extends Error {
 
     /**
      * An additional payload for the error.
-     * @param data The payload data.
+     * @param {any} data The payload data.
      * @returns {SfdxError} For convenience `this` object is returned.
      */
     public setData(data: any): SfdxError {
