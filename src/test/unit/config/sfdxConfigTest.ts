@@ -108,13 +108,13 @@ describe('SfdxConfig', () => {
             }
         });
 
-        it('invalidConfigValue', async () => {
+        it('InvalidConfigValue', async () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
             try {
                 config.set('apiVersion', '1');
                 assert.fail('Expected an error to be thrown.');
             } catch (err) {
-                expect(err).to.have.property('name', 'invalidConfigValue');
+                expect(err).to.have.property('name', 'InvalidConfigValue');
             }
         });
 

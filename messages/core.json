@@ -10,9 +10,9 @@
     "OrgDataNotAvailableErrorAction2": "Use `sfdx force:config:set` to update the defaultusername.",
     "OrgDataNotAvailableErrorAction3": "Use `sfdx force:org:create` to create a new org.",
     "OrgDataNotAvailableErrorAction4": "Use `sfdx force:auth` to authenticate an existing org.",
-    "namedOrgNotFound": "No AuthInfo found for name %s",
+    "NamedOrgNotFound": "No AuthInfo found for name %s",
     "NoAliasesFound": "Nothing to set",
     "InvalidFormat": "Setting aliases must be in the format <key>=<value> but found: [%s]",
-    "noAuthInfoFound": "No authorization information can be found.",
+    "NoAuthInfoFound": "No authorization information can be found.",
     "InvalidJsonCasing": "All JSON input must have heads down camelcase keys.  E.g., { sfdcLoginUrl: \"https://login.salesforce.com\" }\nFound \"%s\" at %s"
 }

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /**
- * Options for OAuth2
+ * Options for OAuth2.
  * @typedef OAuth2Options
  * @property {string} authzServiceUrl
  * @property {string} tokenServiceUrl
@@ -262,7 +262,9 @@ export class AuthInfo {
      * @param {string} [username] The username for the authentication info.
      * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
      * @throws {SfdxError}
-     *    **`{name: 'namedOrgNotFound'}`:** Org information does not exist.
+     *    **`{name: 'NamedOrgNotFound'}`:** Org information does not exist.
+     * @throws {SfdxError}
+     *    **`{name: 'AuthInfoCreationError'}`:** Org information does not exist.
      * @returns {Promise<AuthInfo>}
      */
     public static async create(username?: string, options?: OAuth2Options): Promise<AuthInfo> {
@@ -309,7 +311,7 @@ export class AuthInfo {
         // Want to throw a clean error if no files are found.
         if (_.isEmpty(authFiles)) {
             const errConfig: SfdxErrorConfig =
-                new SfdxErrorConfig('@salesforce/core', 'core', 'noAuthInfoFound');
+                new SfdxErrorConfig('@salesforce/core', 'core', 'NoAuthInfoFound');
             throw SfdxError.create(errConfig);
         }
 
@@ -380,7 +382,7 @@ export class AuthInfo {
      * initialize from cache or by reading from persistence store.
      * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
      * @throws {SfdxError}
-     *    **`{name: 'namedOrgNotFound'}`:** Org information does not exist.
+     *    **`{name: 'NamedOrgNotFound'}`:** Org information does not exist.
      * @returns {Promise<AuthInfo>} For convenience `this` object is returned.
      */
     public async init(options?: OAuth2Options): Promise<AuthInfo> {
@@ -419,7 +421,7 @@ export class AuthInfo {
                     authConfig = config.toObject();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
-                        throw SfdxError.create('@salesforce/core', 'core', 'namedOrgNotFound', [this.getUsername()]);
+                        throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [this.getUsername()]);
                     } else {
                         throw e;
                     }

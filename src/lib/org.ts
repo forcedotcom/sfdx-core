@@ -248,9 +248,11 @@ export class Org {
     }
 
     /**
-     *  Check that this org is a scratch org by asking the dev hub if it knows about it.
-     *  @param {string} [devHubUsername] The username of the dev hub org.
-     *  @returns {Promise<Config>}
+     * Check that this org is a scratch org by asking the dev hub if it knows about it.
+     * @param {string} [devHubUsername] The username of the dev hub org.
+     * @returns {Promise<Config>}
+     * @throws {SfdxError} **`{name: 'NotADevHub'}`** Not a Dev Hub.
+     * @throws {SfdxError} **`{name: 'NoResults'}`** No results.
      */
     public async checkScratchOrg(devHubUsername?: string): Promise<Partial<AuthFields>> {
 
@@ -273,7 +275,7 @@ export class Org {
 
         } catch (err) {
             if (err.name === 'INVALID_TYPE') {
-                throw SfdxError.create('@salesforce/core', 'org', 'notADevHub',
+                throw SfdxError.create('@salesforce/core', 'org', 'NotADevHub',
                     [devHubConnection.getAuthInfo().getFields().username]);
             }
             throw err;
