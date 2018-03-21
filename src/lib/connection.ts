@@ -39,7 +39,7 @@ export class Connection extends JSForceConnection {
      * server unless the apiVersion [config]{@link SfdxConfig} value is set.
      *
      * @param {AuthInfo} authInfo The authentication info from the persistence store.
-     * @param {SfdxConfigAggregator} [configAggregator] The aggregated config object
+     * @param {SfdxConfigAggregator} [configAggregator] The aggregated config object.
      * @returns {Promise<Connection>}
      */
     public static async create(authInfo: AuthInfo, configAggregator?: SfdxConfigAggregator): Promise<Connection> {
