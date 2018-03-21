@@ -200,6 +200,52 @@ describe('Util', () => {
         });
     });
 
+    describe('validateEmail', () => {
+        it('should return true for "me@my.org"', () => {
+            expect(SfdxUtil.validateEmail('me@my.org')).to.be.true;
+        });
+
+        it('should return false for "me@my."', () => {
+            expect(SfdxUtil.validateEmail('me@my.')).to.be.false;
+        });
+
+        it('should return false for "@my.com"', () => {
+            expect(SfdxUtil.validateEmail('@my')).to.be.false;
+        });
+    });
+
+    describe('validateSalesforceId', () => {
+        it('should return true for "00DB0000003uuuuuuu"', () => {
+            expect(SfdxUtil.validateSalesforceId('00DB0000003uuuuuuu')).to.be.true;
+        });
+
+        it('should return false for "00D"', () => {
+            expect(SfdxUtil.validateSalesforceId('00D')).to.be.false;
+        });
+
+        it('should return false for "00D***11100000K"', () => {
+            expect(SfdxUtil.validateSalesforceId('00D***11100000K')).to.be.false;
+        });
+    });
+
+    describe('validatePathDoesNotContainInvalidChars', () => {
+        it('should return true for "/this/is/my/path"', () => {
+            expect(SfdxUtil.validatePathDoesNotContainInvalidChars('/this/is/my/path')).to.be.true;
+        });
+
+        it('should return false for "this/is/path??"', () => {
+            expect(SfdxUtil.validatePathDoesNotContainInvalidChars('this/is/path??')).to.be.false;
+        });
+
+        it('should return false for "[this/is/path]"', () => {
+            expect(SfdxUtil.validatePathDoesNotContainInvalidChars('[this/is/path]')).to.be.false;
+        });
+
+        it('should return false for "/my/path > err.log"', () => {
+            expect(SfdxUtil.validatePathDoesNotContainInvalidChars('/my/path > err.log')).to.be.false;
+        });
+    });
+
     describe('traverseForFile', () => {
         let statFileStub;
         let statError;
