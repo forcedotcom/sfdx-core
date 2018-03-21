@@ -38,7 +38,8 @@
     "cli-ux": "3.3.25",
     "jsforce": "1.8.0",
     "jsonwebtoken": "7.0.0",
-    "lodash": "4.17.4"
+    "lodash": "4.17.4",
+    "mkdirp": "0.5.1"
   },
   "devDependencies": {
     "@types/chai": "4.0.4",

@@ -14,7 +14,8 @@
 import * as _ from 'lodash';
 import { ConfigValue, ConfigEntry, ConfigContents } from './configStore';
 import { ConfigFile, ConfigOptions } from './configFile';
-import {SfdxError} from '../sfdxError';
+import { SfdxError } from '../sfdxError';
+import { JsonMap } from '../types';
 
 /**
  * The interface for Config options.
@@ -230,10 +231,10 @@ export class ConfigGroup extends ConfigFile {
 
     /**
      * Convert the config object to a json object.
-     * @returns {object}
+     * @returns {JsonMap}
      * @override
      */
-    public toObject(): object {
+    public toObject(): JsonMap {
         return _.entries(this.getContents()).reduce((obj, entry: ConfigEntry) => {
             obj[entry[0]] = _.entries(entry[1] as ConfigContents).reduce((subobj, subentry: ConfigEntry) => {
                 subobj[subentry[0]] = subentry[1];

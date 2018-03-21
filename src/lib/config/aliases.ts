@@ -72,7 +72,7 @@ export class Aliases extends ConfigGroup {
 
     /**
      * Overrides {@link ConfigFile.retrieve} to pass in {@link Aliases.getOptions}.
-     * @param {ConfigOptions} [options] Specify to override builting options.
+     * @param {ConfigOptions} [options] Specify to override builtin options.
      * @see {@link ConfigFile.retrieve}
      * @see {@link ConfigGroupOptions}
      * @returns {Promise<T>}

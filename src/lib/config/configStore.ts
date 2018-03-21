@@ -22,6 +22,7 @@
  */
 
 import * as _ from 'lodash';
+import { JsonMap } from '../types';
 
 /**
  * The allowed types stored in a config store.
@@ -211,10 +212,10 @@ export abstract class BaseConfigStore implements ConfigStore {
     }
 
     /**
-     * Convert the config object to a json object.
-     * @returns {object}
+     * Convert the config object to a JSON object.
+     * @returns {JsonMap}
      */
-    public toObject(): object {
+    public toObject(): JsonMap {
         return _.entries(this.contents).reduce((obj, entry: ConfigEntry) => {
             obj[entry[0]] = entry[1];
             return obj;
@@ -222,10 +223,10 @@ export abstract class BaseConfigStore implements ConfigStore {
     }
 
     /**
-     * Convert a json object to a ConfigContents and set it as the config contents.
-     * @param {object} obj The object.
+     * Convert a JSON object to a ConfigContents and set it as the config contents.
+     * @param {JsonMap} obj The object.
      */
-    public setContentsFromObject(obj: object): void {
-        this.contents = new Map<string, ConfigValue>(_.entries(obj));
+    public setContentsFromObject(obj: JsonMap): void {
+        this.contents = new Map<string, ConfigValue>(_.entries(obj as object));
     }
 }

@@ -63,6 +63,7 @@ import { Logger } from './logger';
 import { SfdxUtil } from './util';
 import { SFDX_HTTP_HEADERS } from './connection';
 import { Crypto } from './crypto';
+import { JsonMap } from './types';
 
 // Fields that are persisted in auth files
 export interface AuthFields {
@@ -497,7 +498,7 @@ export class AuthInfo {
         this.logger.debug(dataToSave);
 
         const config: ConfigFile = await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.getUsername()));
-        config.setContentsFromObject(dataToSave);
+        config.setContentsFromObject(dataToSave as JsonMap);
         await config.write();
 
         this.logger.info(`Saved auth info for username: ${this.getUsername()}`);

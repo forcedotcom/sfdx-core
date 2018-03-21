@@ -159,7 +159,7 @@ describe('Util', () => {
             for (const path of [file1, file2, nestedSub1, sub2, sub1]) {
                 try {
                     await SfdxUtil.access(path);
-                    assert.fail('This test is design to throw and error');
+                    assert.fail('This test is designed to throw and error');
                 } catch (e) {
                     expect(e).to.have.property('code', 'ENOENT');
                 }
@@ -200,7 +200,43 @@ describe('Util', () => {
         });
     });
 
-    it ('should trim an 18 character id to 15 characters', () => {
+    describe('traverseForFile', () => {
+        let statFileStub;
+        let statError;
+
+        beforeEach(() => {
+            statFileStub = $$.SANDBOX.stub(SfdxUtil, 'stat');
+            statError = new Error('test');
+            statError['code'] = 'ENOENT';
+        });
+
+        it('should find a file in the starting dir', async () => {
+            const path = await SfdxUtil.traverseForFile('/foo/bar/baz', 'fizz');
+            expect(path).to.equal('/foo/bar/baz');
+        });
+
+        it('should find a file in a parent dir', async () => {
+            statFileStub.withArgs('/foo/bar/baz/fizz').returns(Promise.reject(statError));
+            const path = await SfdxUtil.traverseForFile('/foo/bar/baz', 'fizz');
+            expect(path).to.equal('/foo/bar');
+        });
+
+        it('should find a file in the root dir', async () => {
+            statFileStub.withArgs('/foo/bar/baz/fizz').returns(Promise.reject(statError));
+            statFileStub.withArgs('/foo/bar/fizz').returns(Promise.reject(statError));
+            statFileStub.withArgs('/foo/fizz').returns(Promise.reject(statError));
+            const path = await SfdxUtil.traverseForFile('/foo/bar/baz', 'fizz');
+            expect(path).to.equal('/');
+        });
+
+        it('should return null if not found', async () => {
+            statFileStub.returns(Promise.reject(statError));
+            const path = await SfdxUtil.traverseForFile('/foo/bar/baz', 'fizz');
+            expect(path).to.equal(null);
+        });
+    });
+
+    it('should trim an 18 character id to 15 characters', () => {
         const id: string = SfdxUtil.trimTo15('ABCDEFGHIJKLMNOPQR');
         const trimmed = SfdxUtil.trimTo15(id);
         expect(trimmed.length).to.eq(15);
