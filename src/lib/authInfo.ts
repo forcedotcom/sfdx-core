@@ -381,7 +381,7 @@ export class AuthInfo {
      * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
      * @throws {SfdxError}
      *    **`{name: 'namedOrgNotFound'}`:** Org information does not exist.
-     * @returns {Promise<AuthInfo>} Returns `this` for convenience.
+     * @returns {Promise<AuthInfo>} For convenience `this` object is returned.
      */
     public async init(options?: OAuth2Options): Promise<AuthInfo> {
         this.logger = await Logger.child('AuthInfo');
@@ -510,7 +510,7 @@ export class AuthInfo {
      *
      * @param {AuthFields} authData Authorization fields to update.
      * @param {boolean} encrypt Encrypt the fields.
-     * @returns {AuthInfo} Returns `this` for convenience.
+     * @returns {AuthInfo} For convenience `this` object is returned.
      */
     public update(authData: AuthFields, encrypt: boolean = true): AuthInfo {
         if (_.isPlainObject(authData)) {

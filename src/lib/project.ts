@@ -89,7 +89,7 @@ export class Project {
     private constructor(private path) {}
 
     /**
-     * Get the project path.
+     * Returns the project path.
      * @returns {string}
      */
     public getPath(): string {

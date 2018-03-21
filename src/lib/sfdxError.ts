@@ -66,7 +66,7 @@ export class SfdxErrorConfig {
     /**
      * Set the error key.
      * @param {string} key The key to set.
-     * @returns For convenience this object's instance is returned.
+     * @returns For convenience `this` object is returned.
      */
     public setErrorKey(key: string): SfdxErrorConfig {
         this.errorKey = key;
@@ -76,7 +76,7 @@ export class SfdxErrorConfig {
     /**
      * Set the error tokens.
      * @param {Array<string | boolean | number>} tokens The tokens to set
-     * @returns {SfdxErrorConfig} For convenience this object's instance is returned.
+     * @returns {SfdxErrorConfig} For convenience `this` object is returned.
      */
     public setErrorTokens(tokens: Array<string | boolean | number>): SfdxErrorConfig {
         this.errorTokens = tokens;
@@ -87,7 +87,7 @@ export class SfdxErrorConfig {
      * Add an error action to assist the user with a resolution.
      * @param {string} actionKey The action key in the message bundle.
      * @param {Array<string | boolean | number>} actionTokens The action tokens for the string.
-     * @returns {SfdxErrorConfig} For convenience this object's instance is returned.
+     * @returns {SfdxErrorConfig} For convenience `this` object is returned.
      */
     public addAction(actionKey: string, actionTokens?: Array<string | boolean | number>): SfdxErrorConfig {
         this.actions.set(actionKey, actionTokens);
@@ -96,7 +96,7 @@ export class SfdxErrorConfig {
 
     /**
      * Load the messages using Messages.loadMessages.
-     * @returns {Messages} - Returns the loaded messages
+     * @returns {Messages} Returns the loaded messages
      */
     public load(): Messages {
         this.messages = Messages.loadMessages(this.packageName, this.bundleName);
@@ -137,7 +137,7 @@ export class SfdxErrorConfig {
     /**
      * Remove all actions from this error config. Useful when reusing SfdxErrorConfig
      * for other error messages within the same bundle.
-     * @returns {SfdxErrorConfig} For convenience this object's instance is returned.
+     * @returns {SfdxErrorConfig} For convenience `this` object is returned.
      */
     public removeActions(): SfdxErrorConfig {
         this.actions = new Map();
@@ -252,8 +252,8 @@ export class SfdxError extends Error {
 
     /**
      * Sets the name of the command
-     * @param {string} commandName - The command name.
-     * @returns {SfdxError} - For convenience this object's instance is returned.
+     * @param {string} commandName The command name.
+     * @returns {SfdxError} For convenience `this` object is returned.
      */
     public setCommandName(commandName: string): SfdxError {
         this.commandName = commandName;
@@ -262,8 +262,8 @@ export class SfdxError extends Error {
 
     /**
      * An additional payload for the error
-     * @param data - The payload data
-     * @returns {SfdxError} - For convenience this object's instance is returned.
+     * @param data The payload data
+     * @returns {SfdxError} For convenience `this` object is returned.
      */
     public setData(data: any): SfdxError {
         this.data = data;
@@ -274,7 +274,7 @@ export class SfdxError extends Error {
      * Format errors and actions for human consumption. Adds 'ERROR running <command name>',
      * and outputs all errors in red.  When there are actions, we add 'Try this:' in blue
      * followed by each action in red on its own line.
-     * @returns {string[]} - Returns decorated messages
+     * @returns {string[]} Returns decorated messages.
      */
     public format(): string[] {
         const colorizedArgs: string[] = [];
@@ -298,7 +298,7 @@ export class SfdxError extends Error {
 
     /**
      * Convert an SfdxError's state to an object.
-     * @returns {object} - A plain object representing the state of this error.
+     * @returns {object} A plain object representing the state of this error.
      */
     public toObject(): object {
         const obj: any = {
