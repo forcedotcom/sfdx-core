@@ -23,7 +23,7 @@ const GET_PASSWORD_RETRY_COUNT: number = 3;
 
 /**
  * Helper to reduce an array of cli args down to a presentable string for logging.
- * @param optionsArray - cli command args.
+ * @param optionsArray CLI command args.
  */
 function _optionsToString(optionsArray) {
     return optionsArray.reduce((accum, element) => `${accum} ${element}`);
@@ -31,10 +31,10 @@ function _optionsToString(optionsArray) {
 
 /**
  * Helper to determine if a program is executable
- * @param mode - stats mode
- * @param gid - unix group id
- * @param uid - unix user id
- * @returns {boolean} true if the program is executable for the user. for windows true is always returned
+ * @param mode Stats mode.
+ * @param gid Unix group id.
+ * @param uid Unix user id.
+ * @returns {boolean} `true` if the program is executable for the user. For Windows true is always returned.
  * @private
  */
 const _isExe = (mode, gid, uid) => {
@@ -48,10 +48,10 @@ const _isExe = (mode, gid, uid) => {
 };
 
 /**
- * private helper to validate that a program exists on the file system and is executable
- * @param programPath - the absolute path of the program
- * @param fsIfc - the file system interface
- * @param isExeIfc - executable validation function
+ * Private helper to validate that a program exists on the file system and is executable.
+ * @param programPath The absolute path of the program.
+ * @param fsIfc The file system interface.
+ * @param isExeIfc Executable validation function.
  * @private
  */
 const _validateProgram = async (programPath, fsIfc, isExeIfc) => {
@@ -74,9 +74,9 @@ const _validateProgram = async (programPath, fsIfc, isExeIfc) => {
 export class KeychainAccess {
 
     /**
-     * abstract prototype for general cross platform keychain interaction
-     * @param osImpl - the platform impl for (linux, darwin, windows)
-     * @param fsIfc - the file system interface
+     * Abstract prototype for general cross platform keychain interaction.
+     * @param osImpl The platform impl for (linux, darwin, windows)
+     * @param fsIfc The file system interface
      * @constructor
      */
     constructor(private osImpl, private fsIfc) {}
@@ -86,10 +86,10 @@ export class KeychainAccess {
     }
 
     /**
-     * gets a password using the native program for credential management.
-     * @param opts - options for the credential lookup
-     * @param fn - callback function (err, password)
-     * @param retryCount - used internally to track the number of retries for getting a password out of the keychain.
+     * Returns a password using the native program for credential management.
+     * @param opts Options for the credential lookup.
+     * @param fn Callback function (err, password).
+     * @param retryCount Used internally to track the number of retries for getting a password out of the keychain.
      */
     public async getPassword(opts, fn, retryCount = 0): Promise<string> {
         if (_.isNil(opts.service)) {
@@ -132,9 +132,9 @@ export class KeychainAccess {
     }
 
     /**
-     * sets a password using the native program for credential management.
-     * @param opts - options for the credential lookup
-     * @param fn - callback function (err, password)
+     * Sets a password using the native program for credential management.
+     * @param opts Options for the credential lookup.
+     * @param fn Callback function (err, password).
      */
     public async setPassword(opts, fn): Promise<any> {
 
@@ -170,9 +170,9 @@ export class KeychainAccess {
 }
 
 /**
- * linux implementation
+ * Linux implementation.
  *
- * uses libsecret
+ * Uses libsecret.
  *
  * @private
  */
@@ -249,7 +249,7 @@ const _linuxImpl = {
 };
 
 /**
- * OSX implementation
+ * OSX implementation.
  *
  * /usr/bin/security is a cli front end for OSX keychain.
  *

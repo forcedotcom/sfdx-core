@@ -62,8 +62,8 @@ export interface ConfigPropertyMetaInput {
 
     /**
      * Test if the input value is valid.
-     * @param value - the input value
-     * @returns - {boolean} Returns true if the input data is valid.
+     * @param value The input value.
+     * @returns {boolean} Returns true if the input data is valid.
      */
     validator: (value) => {};
 
@@ -91,33 +91,33 @@ export interface ConfigPropertyMetaInput {
 export class SfdxConfig extends ConfigFile {
 
     /**
-     * Username associated with the default dev hub org
+     * Username associated with the default dev hub org.
      * @type {string}
      */
     public static readonly DEFAULT_DEV_HUB_USERNAME: string = 'defaultdevhubusername';
 
     /**
-     * Username associate with the default org
+     * Username associate with the default org.
      * @type {string}
      */
     public static readonly DEFAULT_USERNAME: string = 'defaultusername';
 
     /**
-     * The sid for the debugger configuration
+     * The sid for the debugger configuration.
      * @type {string}
      */
     public static readonly ISV_DEBUGGER_SID: string = 'isvDebuggerSid';
 
     /**
-     * The url for the debugger configuration
+     * The url for the debugger configuration.
      * @type {string}
      */
     public static readonly ISV_DEBUGGER_URL: string = 'isvDebuggerUrl';
 
     /**
-     * Creates an instance of an SfdxConfig
-     * @param {ConfigOptions} options - The config options
-     * @return {Promise<SfdxConfig>} - An instance of SfdxConfig
+     * Creates an instance of an SfdxConfig.
+     * @param {ConfigOptions} options The config options.
+     * @return {Promise<SfdxConfig>} An instance of SfdxConfig.
      * @example
      * const config: SfdxConfig = await Sfdx.create<SfdxConfig>({ isGlobal: false }};
      * config.set(allowedPropertyKey, value);
@@ -175,9 +175,9 @@ export class SfdxConfig extends ConfigFile {
 
     /**
      * The value of a supported config property.
-     * @param {boolean} isGlobal - True for a global config. False for a local config.
-     * @param {string} propertyName - The name of the property to set.
-     * @param {string | boolean} value - The property value.
+     * @param {boolean} isGlobal True for a global config. False for a local config.
+     * @param {string} propertyName The name of the property to set.
+     * @param {string | boolean} value The property value.
      * @returns {Promise<object>}
      */
     public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<object> {
@@ -230,7 +230,7 @@ export class SfdxConfig extends ConfigFile {
 
     /**
      * Writes SfdxConfg properties taking into account encrypted properties.
-     * @param newContents - The new SfdxConfig value to persist.
+     * @param newContents The new SfdxConfig value to persist.
      * @return {Promise<object>}
      */
     public async write(newContents?: any): Promise<object> {
@@ -249,8 +249,8 @@ export class SfdxConfig extends ConfigFile {
 
     /**
      * Sets a value for a property.
-     * @param {string} propertyName - The property to set.
-     * @param {string | boolean} value - The value of the property.
+     * @param {string} propertyName The property to set.
+     * @param {string | boolean} value The value of the property.
      * @returns {Promise<void>}
      */
     public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
@@ -295,8 +295,8 @@ export class SfdxConfig extends ConfigFile {
 
     /**
      * Get an individual property config.
-     * @param {string} propertyName - The name of the property.
-     * @return {ConfigPropertyMeta} - The meta config.
+     * @param {string} propertyName The name of the property.
+     * @return {ConfigPropertyMeta} The meta config.
      */
     private getPropertyConfig(propertyName: string): ConfigPropertyMeta {
         const prop = SfdxConfig.propertyConfigMap[propertyName];
@@ -309,7 +309,7 @@ export class SfdxConfig extends ConfigFile {
 
     /**
      * Encrypts and content properties that have a encryption attribute.
-     * @param {boolean} encrypt - true to encrypt.
+     * @param {boolean} encrypt `true` to encrypt.
      * @return {Promise<void>}
      */
     private async cryptProperties(encrypt: boolean) {
@@ -339,8 +339,8 @@ export const ORG_DEFAULT = {
     USERNAME: SfdxConfig.DEFAULT_USERNAME,
 
     /**
-     * List the Org defaults
-     * @returns {stringp[]} List of default orgs
+     * List the Org defaults.
+     * @returns {string[]} List of default orgs.
      */
     list() {
         return [ORG_DEFAULT.DEVHUB, ORG_DEFAULT.USERNAME];

@@ -29,9 +29,9 @@ const ACCOUNT = 'local';
 const keychainPromises = {
 
     /**
-     * Gets a password item
-     * @param service - The keychain service name
-     * @param account - The keychain account name
+     * Gets a password item.
+     * @param service The keychain service name.
+     * @param account The keychain account name.
      */
     getPassword(_keychain, service, account) {
         return new Promise((resolve, reject) =>
@@ -45,10 +45,10 @@ const keychainPromises = {
     },
 
     /**
-     * Sets a generic password item in OSX keychain
-     * @param service - The keychain service name
-     * @param account - The keychain account name
-     * @param password - The password for the keychain item
+     * Sets a generic password item in OSX keychain.
+     * @param service The keychain service name.
+     * @param account The keychain account name.
+     * @param password The password for the keychain item.
      */
     setPassword(_keychain, service, account, password) {
         return new Promise( (resolve, reject) =>
@@ -75,7 +75,7 @@ export class Crypto {
     /**
      * Initialize any crypto dependencies. In this case we need to generate an encryption key.
      *
-     * @param retryStatus - A string message to track retries
+     * @param retryStatus A string message to track retries.
      * @returns {Promise<Crypto>}
      */
     public async init(retryStatus?: string, platform?: string): Promise<Crypto> {
@@ -119,10 +119,10 @@ export class Crypto {
     /**
      * Encrypts text.
      *
-     * @param text - The text to encrypt.
-     * @returns {undefined|String} The encrypted string or undefined if no string was passed.
+     * @param {string} text The text to encrypt.
+     * @returns {string|undefined} The encrypted string or undefined if no string was passed.
      */
-    public encrypt(text): string {
+    public encrypt(text): string | undefined {
         if (isNil(text)) {
             return undefined;
         }
@@ -144,11 +144,11 @@ export class Crypto {
 
     /**
      * Decrypts text.
-     * @param text - The text to decrypt.
-     * @returns {undefined|String} - If enableTokenEncryption is set to false or not defined in package.json then the text
+     * @param text The text to decrypt.
+     * @returns {string|undefined} If enableTokenEncryption is set to false or not defined in package.json then the text
      * is simply returned. The text is then assumed to be unencrypted.
      */
-    public decrypt(text): string {
+    public decrypt(text): string | undefined {
         if (isNil(text)) {
             return undefined;
         }

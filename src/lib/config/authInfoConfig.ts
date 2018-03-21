@@ -22,8 +22,8 @@ export class AuthInfoConfig extends ConfigFile {
 
     /**
      * Gets the config options for a given org ID.
-     * @param {string} orgId - The orgId. Generally this org would have multiple users configured.
-     * @return {ConfigOptions} - The ConfigOptions.
+     * @param {string} orgId The orgId. Generally this org would have multiple users configured.
+     * @return {ConfigOptions} The ConfigOptions.
      */
     public static getOptions(username: string): ConfigOptions {
         return {

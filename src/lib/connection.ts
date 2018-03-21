@@ -97,7 +97,7 @@ export class Connection extends JSForceConnection {
     }
 
     /**
-     * @returns {string} - The force api base url for the instance
+     * @returns {string} The force api base url for the instance
      */
     public baseUrl(): string {
         // essentially the same as pathJoin(super.instanceUrl, 'services', 'data', `v${super.version}`);

@@ -139,7 +139,7 @@ class AuthCodeOAuth2 extends OAuth2 {
      * coder_verifier and code_challenge. This enables the server to disallow trading a one-time auth code
      * for an access/refresh token when the verifier and challenge are out of alignment.
      *
-     * See - https://github.com/jsforce/jsforce/issues/665
+     * See https://github.com/jsforce/jsforce/issues/665
      */
     // tslint:disable-next-line:no-unused-variable
     protected async _postParams(params, callback) {
@@ -224,7 +224,7 @@ class AuthInfoCrypto extends Crypto {
 // @param base64Encoded a nodejs base64 encoded string
 function base64UrlEscape(base64Encoded: string): string {
     // builtin node js base 64 encoding is not 64 url compatible.
-    // See - https://toolsn.ietf.org/html/rfc4648#section-5
+    // See https://toolsn.ietf.org/html/rfc4648#section-5
     return _.replace(base64Encoded, /\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
