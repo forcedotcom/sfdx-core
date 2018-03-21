@@ -294,6 +294,34 @@ export class SfdxUtil {
     }
 
     /**
+     * Tests whether an email is in the correct format `me@my.org`
+     *
+     * @param value The email as a string.
+     * @returns {boolean}
+     */
+    public static validateEmail(value: string): boolean {
+        return /^[^.][^@]*@[^.]+(\.[^.\s]+)+$/.test(value);
+    }
+
+    /**
+     * Tests whether a Salesforce id is in the correct format, a 15- or 18-character length string with only letters and numbers
+     * @param value The id as a string.
+     * @returns {boolean}
+     */
+    public static validateSalesforceId(value: string): boolean {
+        return /[a-zA-Z0-9]{18}|[a-zA-Z0-9]{15}/.test(value) && (value.length === 15 || value.length === 18);
+    }
+
+    /**
+     * Tests whether a path is in the correct format; the value doesn't include the characters "[", "]", "?", "<", ">", "?", "|"
+     * @param value The path as a string.
+     * @returns {boolean}
+     */
+    public static validatePathDoesNotContainInvalidChars(value: string): boolean {
+        return !/[\[:"\?<>\|\]]+/.test(value);
+    }
+
+    /**
      * **This class contains static members only and cannot be instantiated.**
      *
      * @private
