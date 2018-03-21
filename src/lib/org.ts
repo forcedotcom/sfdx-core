@@ -8,10 +8,10 @@
 /**
  * Scratch Org status.
  * @typedef OrgStatus
- * @property ACTIVE {string} The scratch org is active.
- * @property EXPIRED {string} The scratch org has expired.
- * @property UNKNOWN {string} The org is a scratch Org but no dev hub is indicated.
- * @property MISSING {string} The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
+ * @property {string} ACTIVE The scratch org is active.
+ * @property {string} EXPIRED The scratch org has expired.
+ * @property {string} UNKNOWN The org is a scratch Org but no dev hub is indicated.
+ * @property {string} MISSING The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
  */
 
 import { join as pathJoin } from 'path';
@@ -167,9 +167,8 @@ export class Org {
     }
 
     /**
-     * Clean all data files in the org's data path.
-     * Usually <workspace>/.sfdx/orgs/<username>
-     * @param {string} [orgDataPath] - a relative path other than "orgs/"
+     * Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.
+     * @param {string} [orgDataPath] A relative path other than "orgs/".
      * @returns {Promise<void>}
      */
     public async cleanLocalOrgData(orgDataPath?: string, throwWhenRemoveFails: boolean = false): Promise<void> {
@@ -288,10 +287,8 @@ export class Org {
     }
 
     /**
-     * Returns an Org object representing this org's dev hub.
-     *
-     * @returns {Promise<Org>}  Returns the Org object or null if this org is not affiliated with a Dev Hub
-     * (according to the local config).
+     * Returns the Org object or null if this org is not affiliated with a Dev Hub (according to the local config).
+     * @returns {Promise<Org>}
      */
     public async getDevHubOrg(): Promise<Org> {
         const orgData: OrgMetaInfo = this.getMetaInfo();
@@ -304,7 +301,7 @@ export class Org {
     }
 
     /**
-     * Returns true if the org is a Dev Hub.
+     * Returns `true` if the org is a Dev Hub.
      * @returns {Boolean}
      */
     public isDevHubOrg(): boolean {
@@ -326,8 +323,8 @@ export class Org {
     }
 
     /**
-     *  Reads and returns the content of all user auth files for this org.
-     *  @returns {Promise<AuthInfo[]>} An array of all user auth file content.
+     *  Reads and returns the content of all user auth files for this org as an array.
+     *  @returns {Promise<AuthInfo[]>}
      */
     public async readUserAuthFiles(): Promise<AuthInfo[]> {
         const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
@@ -346,7 +343,7 @@ export class Org {
     /**
      * Adds a username to the user config for this org.
      * @param {AuthInfo | string} auth The AuthInfo for the username to add.
-     * @returns {Promise<Org>} This Org
+     * @returns {Promise<Org>} For convenience `this` object is returned.
      * @example
      * const org: Org = await Org.create(await Connection.create(await AuthInfo.create('foo@example.com')));
      * const userAuth: AuthInfo = await AuthInfo.create('bar@example.com');
@@ -387,9 +384,10 @@ export class Org {
     }
 
     /**
-     * Removes a username from the user config for this object
-     * @param {AuthInfo | string} auth - The AuthInfo containing the username to remove
-     * @returns {Promise<Org>} - This Org
+     * Removes a username from the user config for this object.
+     * @param {AuthInfo | string} auth The AuthInfo containing the username to remove.
+     * @returns {Promise<Org>} For convenience `this` object is returned.
+     * @throws {SfdxError} **`{name: 'MissingAuthInfo'}`** Auth info is missing.
      */
     public async removeUsername(auth: AuthInfo | string): Promise<Org> {
         if (!auth) {
@@ -414,8 +412,8 @@ export class Org {
     /**
      * Retrieves the highest api version that is supported by the target server instance. If the apiVersion configured for
      * Sfdx is greater than the one returned in this call an api version mismatch occurs. In the case of the CLI that
-     * results in a warning
-     * @returns {Promise<string>} The max api version number. i.e 46.0
+     * results in a warning.
+     * @returns {Promise<string>} The max api version number, i.e `46.0`.
      */
     public async retrieveMaxApiVersion(): Promise<string> {
         return await this.getConnection().retrieveMaxApiVersion();
@@ -438,7 +436,7 @@ export class Org {
     }
 
     /**
-     * Getter for the config aggregator.
+     * Returns for the config aggregator.
      * @returns {SfdxConfigAggregator}
      */
     public getConfigAggregator(): SfdxConfigAggregator {
@@ -456,7 +454,7 @@ export class Org {
     }
 
     /**
-     * Getter for the JSForce connection for the org.
+     * Returns the JSForce connection for the org.
      * @returns {Connection}
      */
     public getConnection(): Connection {
@@ -464,9 +462,10 @@ export class Org {
     }
 
     /**
-     * Set the JSForce connection to use for this org.
+     * Sets the JSForce connection to use for this org.
      * @param {Connection} connection The connection to use.
-     * @returns {Org} For convenience this object is returned.
+     * @returns {Org} For convenience `this` object is returned.
+     * @throws {SfdxError} **`{name: 'UndefinedConnection'}`** The connection was not defined.
      * @see {@link http://jsforce.github.io/jsforce/doc/Connection.html}
      */
     private setConnection(connection: Connection): Org {
