@@ -331,10 +331,12 @@ export class Logger {
      * @example
      * // Sets the level from the environment or default value
      * logger.setLevel()
+     * @example
      * // Set the level from the INFO enum
-     * @example logger.setLevel(LoggerLevel.INFO)
+     * logger.setLevel(LoggerLevel.INFO)
+     * @example
      * // Sets the level case-insensitively from a string value
-     * @example logger.setLevel(Logger.getLevelByName('info'))
+     * logger.setLevel(Logger.getLevelByName('info'))
      *
      * @param {LoggerLevelValue} [level] The logger level.
      * @returns {Logger} For convenience `this` object is returned.
@@ -364,7 +366,7 @@ export class Logger {
      * Compares the requested log level with the current log level.  Returns true if
      * the requested log level is greater than or equal to the current log level.
      *
-     * @param {LoggerLevelValue} level The requested log level to compare against the currently set log level
+     * @param {LoggerLevelValue} level The requested log level to compare against the currently set log level.
      * @returns {boolean}
      */
     public shouldLog(level: LoggerLevelValue): boolean {
@@ -462,7 +464,7 @@ export class Logger {
     /**
      * Create a child logger, typically to add a few log record fields.
      *
-     * @param {string} name The name of the child logger that is emitted w/ log line as log:<name>
+     * @param {string} name The name of the child logger that is emitted w/ log line as `log:<name>`.
      * @param {Fields} [fields] Additional fields included in all log lines for the child logger.
      * @returns {Logger} For convenience this object is returned.
      */
@@ -484,11 +486,11 @@ export class Logger {
     }
 
     /**
-     * Add a field to all log lines for this logger
+     * Add a field to all log lines for this logger.
      *
      * @param {string} name The name of the field to add.
      * @param {FieldValue} value The value of the field to be logged.
-     * @returns {Logger} For convenience this object is returned.
+     * @returns {Logger} For convenience `this` object is returned.
      */
     public addField(name: string, value: FieldValue): Logger {
         this.bunyan.fields[name] = value;
@@ -499,7 +501,7 @@ export class Logger {
      * Logs at `trace` level with filtering applied.
      *
      * @param {...any} args Any number of arguments to be logged.
-     * @returns {Logger} For convenience this object is returned.
+     * @returns {Logger} For convenience `this` object is returned.
      */
     public trace(...args: any[]): Logger {
         this.bunyan.trace(this.applyFilters(LoggerLevel.TRACE, ...args));
@@ -510,7 +512,7 @@ export class Logger {
      * Logs at `debug` level with filtering applied.
      *
      * @param {...any} args Any number of arguments to be logged.
-     * @returns {Logger} For convenience this object is returned.
+     * @returns {Logger} For convenience `this` object is returned.
      */
     public debug(...args: any[]): Logger {
         this.bunyan.debug(this.applyFilters(LoggerLevel.DEBUG, ...args));
@@ -521,7 +523,7 @@ export class Logger {
      * Logs at `info` level with filtering applied.
      *
      * @param {...any} args Any number of arguments to be logged.
-     * @returns {Logger} For convenience this object is returned.
+     * @returns {Logger} For convenience `this` object is returned.
      */
     public info(...args: any[]): Logger {
         this.bunyan.info(this.applyFilters(LoggerLevel.INFO, ...args));
@@ -532,7 +534,7 @@ export class Logger {
      * Logs at `warn` level with filtering applied.
      *
      * @param {...any} args Any number of arguments to be logged.
-     * @returns {Logger} For convenience this object is returned.
+     * @returns {Logger} For convenience `this` object is returned.
      */
     public warn(...args: any[]): Logger {
         this.bunyan.warn(this.applyFilters(LoggerLevel.WARN, ...args));
@@ -543,7 +545,7 @@ export class Logger {
      * Logs at `error` level with filtering applied.
      *
      * @param {...any} args Any number of arguments to be logged.
-     * @returns {Logger} For convenience this object is returned.
+     * @returns {Logger} For convenience `this` object is returned.
      */
     public error(...args: any[]): Logger {
         this.bunyan.error(this.applyFilters(LoggerLevel.ERROR, ...args));
@@ -554,7 +556,7 @@ export class Logger {
      * Logs at `fatal` level with filtering applied.
      *
      * @param {...any} args Any number of arguments to be logged.
-     * @returns {Logger} For convenience this object is returned.
+     * @returns {Logger} For convenience `this` object is returned.
      */
     public fatal(...args: any[]): Logger {
         // always show fatal to stderr
