@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /**
- * Options for OAuth2
+ * Options for OAuth2.
  * @typedef OAuth2Options
  * @property {string} authzServiceUrl
  * @property {string} tokenServiceUrl
@@ -139,7 +139,7 @@ class AuthCodeOAuth2 extends OAuth2 {
      * coder_verifier and code_challenge. This enables the server to disallow trading a one-time auth code
      * for an access/refresh token when the verifier and challenge are out of alignment.
      *
-     * See - https://github.com/jsforce/jsforce/issues/665
+     * See https://github.com/jsforce/jsforce/issues/665
      */
     // tslint:disable-next-line:no-unused-variable
     protected async _postParams(params, callback) {
@@ -224,7 +224,7 @@ class AuthInfoCrypto extends Crypto {
 // @param base64Encoded a nodejs base64 encoded string
 function base64UrlEscape(base64Encoded: string): string {
     // builtin node js base 64 encoding is not 64 url compatible.
-    // See - https://toolsn.ietf.org/html/rfc4648#section-5
+    // See https://toolsn.ietf.org/html/rfc4648#section-5
     return _.replace(base64Encoded, /\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
@@ -262,7 +262,9 @@ export class AuthInfo {
      * @param {string} [username] The username for the authentication info.
      * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
      * @throws {SfdxError}
-     *    **`{name: 'namedOrgNotFound'}`:** Org information does not exist.
+     *    **`{name: 'NamedOrgNotFound'}`:** Org information does not exist.
+     * @throws {SfdxError}
+     *    **`{name: 'AuthInfoCreationError'}`:** Org information does not exist.
      * @returns {Promise<AuthInfo>}
      */
     public static async create(username?: string, options?: OAuth2Options): Promise<AuthInfo> {
@@ -309,7 +311,7 @@ export class AuthInfo {
         // Want to throw a clean error if no files are found.
         if (_.isEmpty(authFiles)) {
             const errConfig: SfdxErrorConfig =
-                new SfdxErrorConfig('@salesforce/core', 'core', 'noAuthInfoFound');
+                new SfdxErrorConfig('@salesforce/core', 'core', 'NoAuthInfoFound');
             throw SfdxError.create(errConfig);
         }
 
@@ -380,8 +382,8 @@ export class AuthInfo {
      * initialize from cache or by reading from persistence store.
      * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
      * @throws {SfdxError}
-     *    **`{name: 'namedOrgNotFound'}`:** Org information does not exist.
-     * @returns {Promise<AuthInfo>} Returns `this` for convenience.
+     *    **`{name: 'NamedOrgNotFound'}`:** Org information does not exist.
+     * @returns {Promise<AuthInfo>} For convenience `this` object is returned.
      */
     public async init(options?: OAuth2Options): Promise<AuthInfo> {
         this.logger = await Logger.child('AuthInfo');
@@ -419,7 +421,7 @@ export class AuthInfo {
                     authConfig = config.toObject();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
-                        throw SfdxError.create('@salesforce/core', 'core', 'namedOrgNotFound', [this.getUsername()]);
+                        throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [this.getUsername()]);
                     } else {
                         throw e;
                     }
@@ -510,7 +512,7 @@ export class AuthInfo {
      *
      * @param {AuthFields} authData Authorization fields to update.
      * @param {boolean} encrypt Encrypt the fields.
-     * @returns {AuthInfo} Returns `this` for convenience.
+     * @returns {AuthInfo} For convenience `this` object is returned.
      */
     public update(authData: AuthFields, encrypt: boolean = true): AuthInfo {
         if (_.isPlainObject(authData)) {
