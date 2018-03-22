@@ -33,7 +33,6 @@
     "!dist/**/*.map"
   ],
   "dependencies": {
-    "@types/bunyan": "^1.8.4",
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "chalk": "2.3.0",
     "cli-ux": "3.3.25",
@@ -44,6 +43,7 @@
   },
   "devDependencies": {
     "@salesforce/dev-config": "1.0.4",
+    "@types/bunyan": "1.8.4",
     "@types/chai": "4.0.4",
     "@types/lodash": "4.14.88",
     "@types/mocha": "2.2.42",
