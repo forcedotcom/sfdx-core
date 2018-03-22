@@ -589,6 +589,24 @@ export class AuthInfo {
         return this.usingAccessToken;
     }
 
+    /**
+     * Get the SFDX Auth URL.
+     * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_auth.htm#cli_reference_force_auth
+     * @returns {string}
+     */
+    public getSfdxAuthUrl(): string {
+        const decryptedFields = authInfoCrypto.decryptFields(this.fields);
+        const instanceUrl = decryptedFields.instanceUrl.replace(/^https?:\/\//, '');
+        let sfdxAuthUrl = 'force://';
+
+        if (decryptedFields.clientId) {
+            sfdxAuthUrl += `${decryptedFields.clientId}:${decryptedFields.clientSecret}:`;
+        }
+
+        sfdxAuthUrl += `${decryptedFields.refreshToken}@${instanceUrl}`;
+        return sfdxAuthUrl;
+    }
+
     // A callback function for a connection to refresh an access token.  This is used
     // both for a JWT connection and an OAuth connection.
     private async refreshFn(conn, callback: (err, accessToken?, res?) => void): Promise<any> {
