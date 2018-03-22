@@ -227,7 +227,7 @@ export class Messages {
      * created from {@link Messages.setLoaderFunction} or {@link Messages.importMessagesDirectory}.
      *
      * @param {string} packageName The name of the npm package.
-     * @param {string} bundle Name of the bundle to load.
+     * @param {string} bundleName of the bundle to load.
      * @returns {Messages}
      */
     public static loadMessages(packageName: string, bundleName: string): Messages {
