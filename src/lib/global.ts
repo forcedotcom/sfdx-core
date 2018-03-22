@@ -28,7 +28,7 @@ export enum Mode {
 }
 
 /**
- * Global constants, methods and configuration.
+ * Global constants, methods, and configuration.
  */
 export class Global {
     /**
