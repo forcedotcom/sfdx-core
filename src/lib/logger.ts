@@ -10,7 +10,7 @@
  *
  * @typedef LoggerOptions
  * @property {string} name The logger name.
- * @property {any} [serializers] The logger's serializers.
+ * @property {Serializers} [serializers] The logger's serializers.
  * @property {boolean} [src] Whether or not to log source file, line, and function information.
  * @property {LoggerLevelValue} [level] The desired log level.
  * @property {Writable} [stream] A stream to write to.
@@ -67,6 +67,7 @@ import * as path from 'path';
 import { Writable } from 'stream';
 import * as EventEmitter from 'events';
 import * as Bunyan from 'bunyan-sfdx-no-dtrace';
+import { Serializers } from 'bunyan';
 import * as _ from 'lodash';
 import { Global, Mode } from './global';
 import { SfdxUtil } from './util';
@@ -74,7 +75,7 @@ import { SfdxError } from './sfdxError';
 
 export interface LoggerOptions {
     name: string;
-    serializers?: any;
+    serializers?: Serializers;
     src?: boolean;
     level?: LoggerLevelValue;
     stream?: Writable;
@@ -96,7 +97,7 @@ export interface LoggerStream {
     stream?: Writable;
     name?: string;
     path?: string;
-    [key: string]: any;
+    [key: string]: any; // tslint:disable-line:no-any
 }
 
 export type LoggerLevelValue = LoggerLevel | number;
@@ -356,7 +357,7 @@ export class Logger {
      *
      * @returns {any} The low-level Bunyan logger.
      */
-    public getBunyanLogger(): any {
+    public getBunyanLogger(): Bunyan {
         return this.bunyan;
     }
 
@@ -427,7 +428,7 @@ export class Logger {
      *
      * @param {function} filter A function with signature `(...args) => any[]` that transforms log message arguments.
      */
-    public addFilter(filter: (...args) => any[]): void {
+    public addFilter(filter: (...args) => any[]): void { // tslint:disable-line:no-any
         if (!this.bunyan.filters) {
             this.bunyan.filters = [];
         }
@@ -501,7 +502,7 @@ export class Logger {
      * @param {...any} args Any number of arguments to be logged.
      * @returns {Logger} For convenience this object is returned.
      */
-    public trace(...args: any[]): Logger {
+    public trace(...args: any[]): Logger { // tslint:disable-line:no-any
         this.bunyan.trace(this.applyFilters(LoggerLevel.TRACE, ...args));
         return this;
     }
@@ -512,7 +513,7 @@ export class Logger {
      * @param {...any} args Any number of arguments to be logged.
      * @returns {Logger} For convenience this object is returned.
      */
-    public debug(...args: any[]): Logger {
+    public debug(...args: any[]): Logger { // tslint:disable-line:no-any
         this.bunyan.debug(this.applyFilters(LoggerLevel.DEBUG, ...args));
         return this;
     }
@@ -523,7 +524,7 @@ export class Logger {
      * @param {...any} args Any number of arguments to be logged.
      * @returns {Logger} For convenience this object is returned.
      */
-    public info(...args: any[]): Logger {
+    public info(...args: any[]): Logger { // tslint:disable-line:no-any
         this.bunyan.info(this.applyFilters(LoggerLevel.INFO, ...args));
         return this;
     }
@@ -534,7 +535,7 @@ export class Logger {
      * @param {...any} args Any number of arguments to be logged.
      * @returns {Logger} For convenience this object is returned.
      */
-    public warn(...args: any[]): Logger {
+    public warn(...args: any[]): Logger { // tslint:disable-line:no-any
         this.bunyan.warn(this.applyFilters(LoggerLevel.WARN, ...args));
         return this;
     }
@@ -545,7 +546,7 @@ export class Logger {
      * @param {...any} args Any number of arguments to be logged.
      * @returns {Logger} For convenience this object is returned.
      */
-    public error(...args: any[]): Logger {
+    public error(...args: any[]): Logger { // tslint:disable-line:no-any
         this.bunyan.error(this.applyFilters(LoggerLevel.ERROR, ...args));
         return this;
     }
@@ -556,14 +557,14 @@ export class Logger {
      * @param {...any} args Any number of arguments to be logged.
      * @returns {Logger} For convenience this object is returned.
      */
-    public fatal(...args: any[]): Logger {
+    public fatal(...args: any[]): Logger { // tslint:disable-line:no-any
         // always show fatal to stderr
         console.error(...args);
         this.bunyan.fatal(this.applyFilters(LoggerLevel.FATAL, ...args));
         return this;
     }
 
-    private applyFilters(logLevel, ...args): undefined | any | any[] {
+    private applyFilters(logLevel, ...args): undefined | any | any[] { // tslint:disable-line:no-any
         if (this.shouldLog(logLevel)) {
             this.bunyan.filters.forEach((filter) => args = filter(...args));
         }
@@ -582,6 +583,8 @@ export class Logger {
         this.close();
     }
 }
+
+type FilteredKey = string | object;
 
 // Ok to log clientid
 const FILTERED_KEYS = [
@@ -611,14 +614,14 @@ const _filter = (...args) => args.map((arg) => {
 
         const HIDDEN = 'HIDDEN';
 
-        FILTERED_KEYS.forEach((key: any) => {
+        FILTERED_KEYS.forEach((key: FilteredKey) => {
             let expElement = key;
             let expName = key;
 
             // Filtered keys can be strings or objects containing regular expression components.
             if (_.isPlainObject(key)) {
-                expElement = key.regex;
-                expName = key.name;
+                expElement = key['regex'];
+                expName = key['name'];
             }
 
             const hiddenAttrMessage = `"<${expName} - ${HIDDEN}>"`;

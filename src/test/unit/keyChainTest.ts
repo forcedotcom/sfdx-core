@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as sinon from 'sinon';
 import { expect } from 'chai';
 import * as _ from 'lodash';
 import { testSetup } from '../testSetup';

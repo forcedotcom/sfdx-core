@@ -136,7 +136,7 @@ export class KeychainAccess {
      * @param opts Options for the credential lookup.
      * @param fn Callback function (err, password).
      */
-    public async setPassword(opts, fn): Promise<any> {
+    public async setPassword(opts, fn): Promise<void> {
 
         if (_.isNil(opts.service)) {
             fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
@@ -340,7 +340,7 @@ const _darwinImpl = {
 
 async function _writeFile(opts, fn) {
     try {
-        const config: KeychainConfig = await KeychainConfig.create();
+        const config = await KeychainConfig.create();
         config.set(SecretFields.ACCOUNT, opts.account);
         config.set(SecretFields.KEY, opts.password);
         config.set(SecretFields.SERVICE, opts.service);
@@ -363,7 +363,7 @@ enum SecretFields {
  */
 export class GenericKeychainAccess {
 
-    public async getPassword(opts, fn): Promise<any> {
+    public async getPassword(opts, fn): Promise<any> { // tslint:disable-line:no-any
         // validate the file in .sfdx
         await this.isValidFileAccess(async (fileAccessError) => {
 
@@ -397,7 +397,7 @@ export class GenericKeychainAccess {
         });
     }
 
-    public async setPassword(opts, fn): Promise<any> {
+    public async setPassword(opts, fn): Promise<any> { // tslint:disable-line:no-any
         // validate the file in .sfdx
         await this.isValidFileAccess(async (fileAccessError) => {
             // if there is a validation error
@@ -418,7 +418,7 @@ export class GenericKeychainAccess {
         });
     }
 
-    protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<any> {
+    protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<void> {
         try {
             const root = await ConfigFile.resolveRootFolder(true);
             await SfdxUtil.access(path.join(root, Global.STATE_FOLDER), fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
@@ -434,7 +434,7 @@ export class GenericKeychainAccess {
  */
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 
-    protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<any> {
+    protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<void> {
         const secretFile: string = path.join(await ConfigFile.resolveRootFolder(true),
             Global.STATE_FOLDER, KeychainConfig.getDefaultOptions().filename);
         await super.isValidFileAccess(async (err) => {
@@ -478,3 +478,5 @@ export const keyChainImpl = {
     linux: new KeychainAccess(_linuxImpl, fs),
     validateProgram: _validateProgram
 };
+
+export type KeyChain = GenericUnixKeychainAccess | GenericWindowsKeychainAccess | KeychainAccess;

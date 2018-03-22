@@ -95,7 +95,7 @@ class JwtOAuth2 extends OAuth2 {
         super(options);
     }
 
-    public async jwtAuthorize(innerToken: string, callback?): Promise<any> {
+    public async jwtAuthorize(innerToken: string, callback?): Promise<any> { // tslint:disable-line:no-any
         return super._postParams({
             grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             assertion: innerToken
@@ -591,7 +591,7 @@ export class AuthInfo {
 
     // A callback function for a connection to refresh an access token.  This is used
     // both for a JWT connection and an OAuth connection.
-    private async refreshFn(conn, callback: (err, accessToken?, res?) => void): Promise<any> {
+    private async refreshFn(conn, callback: (err, accessToken?, res?) => void): Promise<void> {
         this.logger.info('Access token has expired. Updating...');
 
         try {
@@ -653,7 +653,7 @@ export class AuthInfo {
     }
 
     // Build OAuth config for a refresh token auth flow
-    private async buildRefreshTokenConfig(options: OAuth2Options): Promise<any> {
+    private async buildRefreshTokenConfig(options: OAuth2Options): Promise<AuthFields> {
         if (!options.clientId) {
             Object.assign(options, DEFAULT_CONNECTED_APP_INFO);
         }
@@ -678,7 +678,7 @@ export class AuthInfo {
     }
 
     // build an OAuth config given an auth code.
-    private async buildWebAuthConfig(options: OAuth2Options): Promise<any> {
+    private async buildWebAuthConfig(options: OAuth2Options): Promise<AuthFields> {
         const oauth2 = new AuthCodeOAuth2(options);
 
         // Exchange the auth code for an access token and refresh token.

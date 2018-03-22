@@ -19,7 +19,6 @@ import { testSetup } from '../testSetup';
 import { SfdxError } from '../../lib/sfdxError';
 import { toUpper as _toUpper, includes as _includes } from 'lodash';
 import { SfdxConfigAggregator } from '../../exported';
-import { AnyJson } from '../../lib/types';
 
 const TEST_KEY = {
     service: 'sfdx',
@@ -31,7 +30,6 @@ const TEST_KEY = {
 const $$ = testSetup();
 
 describe('AuthInfo No fs mock', () => {
-    const username = 'doesnt_exists@gb.com';
     beforeEach(() => {
         // Testing crypto functionality, so restore global stubs.
         $$.SANDBOXES.CRYPTO.restore();
@@ -144,6 +142,10 @@ class MetaAuthDataMock {
 
     set encryptedAccessToken(value: string) {
         this._encryptedAccessToken = value;
+    }
+
+    get encryptedRefreshToken(): string {
+        return this._encryptedRefreshToken;
     }
 
     set encryptedRefreshToken(value: string) {

@@ -6,6 +6,7 @@
  */
 
 import { ConfigFile, ConfigOptions } from './configFile';
+import { ConfigContents } from './configStore';
 import { isNil as _isNil } from 'lodash';
 import { SfdxUtil } from '../util';
 import { dirname as pathDirname } from 'path';
@@ -30,10 +31,10 @@ export class KeychainConfig extends ConfigFile {
      * Write the config file with new contents. If no new contents are passed in
      * it will write this.contents that was set from read().
      *
-     * @param {object} newContents the new contents of the file
-     * @returns {Promise<object>} the written contents
+     * @param {ConfigContents} newContents the new contents of the file
+     * @returns {Promise<ConfigContents>} the written contents
      */
-    public async write(newContents?: any): Promise<object> {
+    public async write(newContents?: ConfigContents): Promise<ConfigContents> {
         if (!_isNil(newContents)) {
             this.setContents(newContents);
         }
