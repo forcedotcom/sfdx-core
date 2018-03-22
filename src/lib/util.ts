@@ -61,22 +61,22 @@ export class SfdxUtil {
     public static readonly open = promisify(fs.open);
 
     /**
-     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_unlink_path_callback|unlink}.
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_unlink_path_callback|fs.unlink}.
      */
     public static readonly unlink = promisify(fs.unlink);
 
     /**
-     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_readdir_path_options_callback|rmdir}.
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_readdir_path_options_callback|fs.rmdir}.
      */
     public static readonly rmdir = promisify(fs.rmdir);
 
     /**
-     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_fstat_fd_callback|stat}.
+     * Promisified version of {@link https://nodejs.org/api/fs.html#fs_fs_fstat_fd_callback|fs.stat}.
      */
     public static readonly stat = promisify(fs.stat);
 
     /**
-     * Promisified version of {@link https://www.npmjs.com/package/mkdirp}.
+     * Promisified version of {@link https://npmjs.com/package/mkdirp|mkdirp}.
      */
     public static readonly mkdirp: (folderPath: string, mode?: string | object) => Promise<void> = promisify(mkdirp);
 
@@ -84,7 +84,7 @@ export class SfdxUtil {
      * Read a file and convert it to JSON.
      *
      * @param {string} jsonPath The path of the file.
-     * @param {boolean} throwOnEmpty Whether to throw an error if the JSON file is empty.
+     * @param {boolean} [throwOnEmpty] Whether to throw an error if the JSON file is empty.
      * @return {Promise<AnyJson>} The contents of the file as a JSON object.
      */
     public static async readJSON(jsonPath: string, throwOnEmpty?: boolean): Promise<AnyJson> {
@@ -294,7 +294,7 @@ export class SfdxUtil {
     }
 
     /**
-     * Tests whether an email is in the correct format `me@my.org`
+     * Tests whether an email matches the format `me@my.org`
      *
      * @param value The email as a string.
      * @returns {boolean}
@@ -304,8 +304,8 @@ export class SfdxUtil {
     }
 
     /**
-     * Tests whether a Salesforce id is in the correct format, a 15- or 18-character length string with only letters and numbers
-     * @param value The id as a string.
+     * Tests whether a Salesforce ID is in the correct format, a 15- or 18-character length string with only letters and numbers
+     * @param value The ID as a string.
      * @returns {boolean}
      */
     public static validateSalesforceId(value: string): boolean {

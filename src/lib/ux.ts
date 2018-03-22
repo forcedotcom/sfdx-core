@@ -236,6 +236,7 @@ export class UX {
      * stream output is enabled.
      *
      * @param {object} obj The object to be styled for stdout.
+     * @returns {UX}
      */
     public styledJSON(obj: object): UX {
         this.logger.info(obj);

@@ -38,7 +38,9 @@ export class Connection extends JSForceConnection {
      * The returned connection uses the latest API version available on the
      * server unless the apiVersion [config]{@link SfdxConfig} value is set.
      *
-     * @param authInfo The authentication info from the persistence store.
+     * @param {AuthInfo} authInfo The authentication info from the persistence store.
+     * @param {SfdxConfigAggregator} [configAggregator] The aggregated config object.
+     * @returns {Promise<Connection>}
      */
     public static async create(authInfo: AuthInfo, configAggregator?: SfdxConfigAggregator): Promise<Connection> {
         const logger = await Logger.child('connection');
@@ -86,9 +88,9 @@ export class Connection extends JSForceConnection {
      *
      * @override
      *
-     * @param request HTTP request object or URL to GET request
-     * @param options HTTP API request options
-     * @returns {Promise<object>}
+     * @param {RequestInfo | string} request HTTP request object or URL to GET request.
+     * @param [options] HTTP API request options.
+     * @returns {Promise<object>} The request Promise.
      */
     public async request(request: RequestInfo | string, options?): Promise<object> {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
@@ -98,7 +100,7 @@ export class Connection extends JSForceConnection {
     }
 
     /**
-     * @returns {string} The force api base url for the instance
+     * @returns {string} The Force API base url for the instance.
      */
     public baseUrl(): string {
         // essentially the same as pathJoin(super.instanceUrl, 'services', 'data', `v${super.version}`);
@@ -107,7 +109,7 @@ export class Connection extends JSForceConnection {
 
     /**
      * Retrieves the highest api version that is supported by the target server instance.
-     * @returns {Promise<string>} The max api version number. i.e 46.0
+     * @returns {Promise<string>} The max API version number. i.e 46.0
      */
     public async retrieveMaxApiVersion(): Promise<string> {
         const versions: object[] = (await this.request(`${this.instanceUrl}/services/data`)) as object[];
@@ -116,7 +118,7 @@ export class Connection extends JSForceConnection {
     }
 
     /**
-     * Use the latest API version available on `this.instanceUrl.
+     * Use the latest API version available on `this.instanceUrl`.
      */
     public async useLatestApiVersion(): Promise<void> {
         try {
@@ -128,7 +130,7 @@ export class Connection extends JSForceConnection {
     }
 
     /**
-     * Get the API version used for all connection request.
+     * Get the API version used for all connection requests.
      * @returns {string}
      */
     public getApiVersion(): string {
@@ -136,7 +138,7 @@ export class Connection extends JSForceConnection {
     }
 
     /**
-     * Set the API version for all connection request.
+     * Set the API version for all connection requests.
      * @param {string} version The API version.
      * @throws {SfdxError} **`{name: 'IncorrectAPIVersion'}`:** Incorrect API version.
      */
