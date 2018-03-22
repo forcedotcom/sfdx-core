@@ -269,7 +269,6 @@ export class Logger {
      *
      * @param {LoggerStream} stream The stream configuration to add.
      * @param {LoggerLevelValue} [defaultLevel] The default level of the stream.
-     * @returns {void}
      */
     public addStream(stream: LoggerStream, defaultLevel?: LoggerLevelValue): void {
         this.bunyan.addStream(stream, defaultLevel);
@@ -429,7 +428,6 @@ export class Logger {
      * Adds a filter to be applied to all logged messages.
      *
      * @param {function} filter A function with signature `(...args) => any[]` that transforms log message arguments.
-     * @returns {void}
      */
     public addFilter(filter: (...args) => any[]): void {
         if (!this.bunyan.filters) {
@@ -443,7 +441,6 @@ export class Logger {
      *
      * @param {function} [fn] A function with signature `(stream: LoggerStream) => void` to call for each stream with
      *                        the stream as an arg.
-     * @returns {void}
      */
     public close(fn?: (stream: LoggerStream) => void): void {
         if (this.bunyan.streams) {
