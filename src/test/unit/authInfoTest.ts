@@ -873,6 +873,29 @@ describe('AuthInfo', () => {
         });
     });
 
+    describe('getSfdxAuthUrl()', () => {
+        it('should return the correct sfdx auth url', async () => {
+            const username = 'authInfoTest_username_RefreshToken';
+            const refreshTokenConfig = {
+                refreshToken: testMetadata.refreshToken,
+                loginUrl: testMetadata.loginUrl
+            };
+            const authResponse = {
+                access_token: testMetadata.accessToken,
+                instance_url: testMetadata.instanceUrl,
+                id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+            };
+
+            // Stub the http request (OAuth2.refreshToken())
+            _postParmsStub.returns(Promise.resolve(authResponse));
+
+            // Create the refresh token AuthInfo instance
+            const authInfo = await AuthInfo.create(username, refreshTokenConfig);
+
+            expect(authInfo.getSfdxAuthUrl()).to.contain(`force://SalesforceDevelopmentExperience:1384510088588713504:${testMetadata.refreshToken}@mydevhub.localhost.internal.salesforce.com:6109`);
+        });
+    });
+
     describe('audienceUrl', () => {
         const sfdxAudienceUrlSetting = process.env.SFDX_AUDIENCE_URL;
 
