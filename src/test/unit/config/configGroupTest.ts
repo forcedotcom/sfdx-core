@@ -5,14 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { join as pathJoin } from 'path';
 import { expect, assert } from 'chai';
 import * as sinon from 'sinon';
 
 import { ConfigGroup, ConfigGroupOptions } from '../../../lib/config/configGroup';
-import { ConfigFile, ConfigOptions } from '../../../lib/config/configFile';
 import { testSetup } from '../../testSetup';
-import { SfdxUtil } from '../../../lib/util';
 
 // Setup the test environment.
 const $$ = testSetup();

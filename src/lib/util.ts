@@ -214,7 +214,7 @@ export class SfdxUtil {
      *  @param {Object<string, any>} obj The object in which to check key casing.
      *  @returns {string}
      */
-    public static findUpperCaseKeys(obj: { [key: string]: any }): string {
+    public static findUpperCaseKeys(obj: { [key: string]: any }): string { // tslint:disable-line:no-any
         let _key;
         _.findKey(obj, (val, key) => {
             if (key[0] === key[0].toUpperCase()) {

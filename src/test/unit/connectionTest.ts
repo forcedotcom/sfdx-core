@@ -9,7 +9,6 @@ import { expect, assert } from 'chai';
 
 import { Connection, SFDX_HTTP_HEADERS } from '../../lib/connection';
 import { AuthInfo } from '../../lib/authInfo';
-import { AnyJson } from '../../lib/types';
 import * as jsforce from 'jsforce';
 import { testSetup } from '../testSetup';
 

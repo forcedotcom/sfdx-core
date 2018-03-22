@@ -33,6 +33,7 @@
     "!dist/**/*.map"
   ],
   "dependencies": {
+    "@types/bunyan": "^1.8.4",
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "chalk": "2.3.0",
     "cli-ux": "3.3.25",
@@ -42,6 +43,7 @@
     "mkdirp": "0.5.1"
   },
   "devDependencies": {
+    "@salesforce/dev-config": "1.0.4",
     "@types/chai": "4.0.4",
     "@types/lodash": "4.14.88",
     "@types/mocha": "2.2.42",
@@ -56,11 +58,8 @@
     "sinon": "3.2.1",
     "source-map-support": "^0.5.3",
     "ts-node": "4.1.0",
-    "tslint": "5.9.1",
-    "tslint-microsoft-contrib": "5.0.2",
     "typescript": "2.6.2",
-    "xunit-file": "1.0.0",
-    "@salesforce/dev-config": "1.0.3"
+    "xunit-file": "1.0.0"
   },
   "types": "dist/exported.d.ts"
 }

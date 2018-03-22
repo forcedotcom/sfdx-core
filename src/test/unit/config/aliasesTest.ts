@@ -13,7 +13,6 @@ import * as sinon from 'sinon';
 import { ConfigGroup } from '../../../lib/config/configGroup';
 import { Aliases } from '../../../lib/config/aliases';
 import { testSetup } from '../../testSetup';
-import { ConfigFile } from '../../../lib/config/configFile';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -32,7 +31,6 @@ describe('Alias no key value mock', () => {
 });
 
 describe('Alias', () => {
-    const group = 'orgs';
 
     describe('#set', () => {
         it('has the right object on write', async () => {

@@ -1,26 +1,6 @@
 {
-    "defaultSeverity": "error",
-    "extends": [
-        "tslint:recommended"
-    ],
-    "jsRules": {},
+    "extends": "../../../tslint.json",
     "rules": {
-        "no-any": true,
-        "only-arrow-functions": false,
-        "interface-name": false,
-        "max-classes-per-file": false,
-        "max-line-length": false,
-        "no-console": false,
-        "no-empty": false,
-        "no-string-literal": false,
-        "object-literal-sort-keys": false,
-        "ordered-imports": false,
-        "quotemark": [true, "single", "avoid-template"],
-        "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
-        "variable-name": [true, "allow-leading-underscore"],
-        "no-floating-promises": true,
-        // Test specific
         "no-unused-expression": false
-    },
-    "rulesDirectory": []
+    }
 }

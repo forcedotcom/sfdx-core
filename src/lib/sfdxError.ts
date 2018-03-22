@@ -234,7 +234,7 @@ export class SfdxError extends Error {
     public commandName: string;
 
     // Additional data helpful for consumers of this error.  E.g., API call result
-    public data: any;
+    public data: any; // tslint:disable-line:no-any
 
     /**
      * Create an SfdxError.
@@ -265,7 +265,7 @@ export class SfdxError extends Error {
      * @param data The payload data
      * @returns {SfdxError} For convenience `this` object is returned.
      */
-    public setData(data: any): SfdxError {
+    public setData(data: any): SfdxError { // tslint:disable-line:no-any
         this.data = data;
         return this;
     }
@@ -301,7 +301,7 @@ export class SfdxError extends Error {
      * @returns {object} A plain object representing the state of this error.
      */
     public toObject(): object {
-        const obj: any = {
+        const obj: any = { // tslint:disable-line:no-any
             name: this.name,
             message: this.message || this.name,
             exitCode: this.exitCode,

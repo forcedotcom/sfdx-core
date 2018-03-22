@@ -6,7 +6,7 @@
  */
 
 import { randomBytes } from 'crypto';
-import { forEach, isBoolean, once } from 'lodash';
+import { forEach, once } from 'lodash';
 import chalk from 'chalk';
 import { Logger } from '../lib/logger';
 import { Messages } from '../lib/messages';
