@@ -188,8 +188,8 @@ export abstract class BaseConfigStore implements ConfigStore {
     }
 
     /**
-     * Calls callbackFn once for each key-value pair present in the config object.
-     * @param actionFn The function `(key: string, value: ConfigValue) => void` to be called for each element.
+     * Invokes `actionFn` once for each key-value pair present in the config object.
+     * @param {function} actionFn The function `(key: string, value: ConfigValue) => void` to be called for each element.
      */
     public forEach(actionFn: (key: string, value: ConfigValue) => void): void {
         const entries = this.entries();
@@ -199,8 +199,8 @@ export abstract class BaseConfigStore implements ConfigStore {
     }
 
     /**
-     * Calls callbackFn once for each key-value pair present in the config object.
-     * @param actionFn The function `(key: string, value: ConfigValue) => Promise<void>` to be called for each element.
+     * Asynchronously invokes `actionFn` once for each key-value pair present in the config object.
+     * @param {function} actionFn The function `(key: string, value: ConfigValue) => Promise<void>` to be called for each element.
      * @returns {Promise<void>}
      */
     public async awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
@@ -223,7 +223,7 @@ export abstract class BaseConfigStore implements ConfigStore {
     }
 
     /**
-     * Convert a JSON object to a ConfigContents and set it as the config contents.
+     * Convert a JSON object to a {@link ConfigContents} and set it as the config contents.
      * @param {JsonMap} obj The object.
      */
     public setContentsFromObject(obj: JsonMap): void {

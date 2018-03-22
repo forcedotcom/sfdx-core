@@ -49,7 +49,7 @@ describe('AuthInfo No fs mock', () => {
     });
 
     it('missing config', async () => {
-        const expectedErrorName = 'namedOrgNotFound';
+        const expectedErrorName = 'NamedOrgNotFound';
         try {
             await AuthInfo.create('doesnot_exist@gb.com');
             assert.fail(`should have thrown error with name: ${expectedErrorName}`);
@@ -1002,7 +1002,7 @@ describe('AuthInfo', () => {
                 await AuthInfo.listAllAuthFiles();
                 assert.fail();
             } catch (e) {
-                expect(e).to.have.property('name', 'noAuthInfoFound');
+                expect(e).to.have.property('name', 'NoAuthInfoFound');
             }
         });
     });
