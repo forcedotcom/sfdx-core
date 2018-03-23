@@ -230,9 +230,9 @@ function base64UrlEscape(base64Encoded: string): string {
 
 /**
  * Handles persistence and fetching of user authentication information using
- * JWT, oAuth, or refresh tokens. Sets up the refresh flows that jsForce will
+ * JWT, OAuth, or refresh tokens. Sets up the refresh flows that jsForce will
  * use to keep tokens active. An AuthInfo can also be created with an access
- * token but can not be persisted to disk.
+ * token, but AuthInfos created with access tokens can't be persisted to disk.
  *
  * @example
  * // Creating a new authentication file.
@@ -301,7 +301,7 @@ export class AuthInfo {
     }
 
     /**
-     * Get a list of all auth files stored in the global directory
+     * Get a list of all auth files stored in the global directory.
      * @returns {Promise<string[]>}
      */
     public static async listAllAuthFiles(): Promise<string[]> {
@@ -337,7 +337,7 @@ export class AuthInfo {
 
     /**
      * Get the authorization URL.
-     * @param {OAuth2Options} options The options to generate the URL
+     * @param {OAuth2Options} options The options to generate the URL.
      * @returns {string}
      */
     public static getAuthorizationUrl(options: OAuth2Options): string {
