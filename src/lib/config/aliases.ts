@@ -21,9 +21,9 @@ export enum AliasGroup {
 }
 
 /**
- * Aliases specify alternate names for different groups of properties used by sfdx, such as orgs.
- * By default, all aliases are stored under 'orgs' but groups allow aliases to be applied for
- * other commands, settings, and flags.
+ * Aliases specify alternate names for groups of properties used by the Salesforce CLI, such as orgs.
+ * By default, all aliases are stored under 'orgs', but groups allow aliases to be applied for
+ * other commands, settings, and parameters.
  *
  * **Note:** All aliases are stored at the global level.
  *
