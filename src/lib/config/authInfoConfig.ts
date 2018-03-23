@@ -7,7 +7,7 @@
 import { ConfigFile, ConfigOptions } from './configFile';
 
 /**
- * An auth config file that stores information such as access tokens, usernames, etc
+ * An auth config file that stores information such as access tokens, usernames, etc.,
  * in the global sfdx directory (~/.sfdx).
  *
  * @extends ConfigFile
