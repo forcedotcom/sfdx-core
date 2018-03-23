@@ -1,5 +1,5 @@
 # Salesforce DX Core Library (Beta)
-This library provides client side management of sfdx projects, org authentication, connections to Salesforce APIs, and other various utilities.
+This library provides client-side management of Salesforce DX projects, org authentication, connections to Salesforce APIs, and other various utilities.
 
 See the [API documentation](https://developer.salesforce.com/media/salesforce-cli/docs/@salesforce/core/index.html).
 
