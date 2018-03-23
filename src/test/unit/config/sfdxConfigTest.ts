@@ -130,7 +130,6 @@ describe('SfdxConfig', () => {
 
             const TEST_VAL = 'test';
 
-            const origFunction = ConfigFile.prototype.write;
             const writeStub = $$.SANDBOX.stub(ConfigFile.prototype, ConfigFile.prototype.write.name).callsFake(async function() {
                 expect(this.get('isvDebuggerSid').length).to.be.greaterThan(TEST_VAL.length);
                 expect(this.get('isvDebuggerSid')).to.not.equal(TEST_VAL);

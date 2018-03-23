@@ -56,8 +56,8 @@ export interface ConfigStore {
     clear(): void;
     values(): ConfigValue[];
 
-    forEach(actionFn: any): void;
-    awaitEach(actionFn: any): Promise<void>;
+    forEach(actionFn: (key: string, value: ConfigValue) => void): void;
+    awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void>;
 
     // Content methods
     getContents(): ConfigContents;

@@ -94,7 +94,7 @@ export class UX {
      * @param {...any[]} args The messages or objects to log.
      * @returns {UX}
      */
-    public log(...args: any[]): UX {
+    public log(...args: any[]): UX { // tslint:disable-line:no-any
         if (this.isOutputEnabled) {
             this.cli.log(...args);
         }
@@ -155,7 +155,7 @@ export class UX {
      * @param {...any[]} args The errors to log.
      * @returns {UX}
      */
-    public error(...args: any[]): UX {
+    public error(...args: any[]): UX { // tslint:disable-line:no-any
         if (this.isOutputEnabled) {
             console.error(...args);
         }
@@ -187,7 +187,7 @@ export class UX {
      * @param {Partial<SfdxTableOptions>} options The {@link SfdxTableOptions} to use for formatting.
      * @returns {UX}
      */
-    public table(rows: any[], options: Partial<SfdxTableOptions> = {}): UX {
+    public table(rows: any[], options: Partial<SfdxTableOptions> = {}): UX { // tslint:disable-line:no-any
         if (this.isOutputEnabled) {
             options = (_.isArray(options) ? { columns: options } : options) as Partial<TableOptions>;
             const columns = _.get(options, 'columns');
