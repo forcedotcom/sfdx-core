@@ -72,7 +72,7 @@ export class Project {
         return new Project(await SfdxUtil.resolveProjectPath(path));
     }
 
-    private projectConfig: any;
+    private projectConfig: any; // tslint:disable-line:no-any
 
     // Dynamically referenced in retrieveSfdxProjectJson
     // tslint:disable-next-line:no-unused-variable

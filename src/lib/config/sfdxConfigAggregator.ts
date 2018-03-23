@@ -91,7 +91,7 @@ export class SfdxConfigAggregator {
         return configAggregator;
     }
 
-    private allowedProperties: any[];
+    private allowedProperties: ConfigPropertyMeta[];
     private localConfig: SfdxConfig;
     private globalConfig: SfdxConfig;
     private envVars: object;
@@ -214,7 +214,7 @@ export class SfdxConfigAggregator {
      */
     public getConfigInfo(): ConfigInfo[] {
         const info = _.map(_.keys(this.getConfig()), (key: string) => this.getInfo(key));
-        return _.sortBy(info, 'key') as any;
+        return _.sortBy(info, 'key');
     }
 
     /**

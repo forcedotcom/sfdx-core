@@ -274,13 +274,6 @@ describe('UX', () => {
                 { key: 'baz', label: 'ZaB' }
             ]
         };
-        const expectedOptions = {
-            columns: [
-                { key: 'foo', label: 'FOO' },
-                options.columns[1],
-                options.columns[2]
-            ]
-        };
 
         const ux1 = ux.table(tableData, options);
 

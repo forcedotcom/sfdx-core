@@ -6,7 +6,7 @@
  */
 
 import { SfdxUtil } from './util';
-import { keyChainImpl } from './keyChainImpl';
+import { keyChainImpl, KeyChain } from './keyChainImpl';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 
@@ -16,7 +16,7 @@ import { SfdxError } from './sfdxError';
  * @returns {Promise<any>} The keychain impl.
  * @private
  */
-export const retrieveKeychain = async (platform): Promise<any> => {
+export const retrieveKeychain = async (platform): Promise<KeyChain> => {
 
     const logger: Logger = await Logger.child('keyChain');
     logger.debug(`platform: ${platform}`);

@@ -293,7 +293,7 @@ export class Messages {
      * @returns {string}
      * @see https://nodejs.org/api/util.html#util_util_format_format_args
      */
-    public getMessage(key: string, tokens: any[] = []): string {
+    public getMessage(key: string, tokens: any[] = []): string { // tslint:disable-line:no-any
         if (!this.messages.has(key)) {
             // Don't use messages inside messages
             throw new Error(`Missing message ${this.bundleName}:${key} for locale ${Messages.getLocale()}.`);

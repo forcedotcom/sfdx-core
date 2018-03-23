@@ -8,27 +8,23 @@ import { constants as fsConstants } from 'fs';
 import { AuthInfo, AuthFields } from '../../lib/authInfo';
 import { Connection } from '../../lib/connection';
 import { AnyJson } from '../../lib/types';
-import { Org, OrgMetaInfo, OrgStatus } from '../../lib/org';
+import { Org } from '../../lib/org';
 import { OAuth2 } from 'jsforce';
 import { expect, assert } from 'chai';
 import { testSetup } from '../testSetup';
 import { ConfigFile } from '../../lib/config/configFile';
 import { Crypto } from '../../lib/crypto';
-import { ConfigGroup } from '../../lib/config/configGroup';
 import { SfdxConfig } from '../../lib/config/sfdxConfig';
 import { ConfigContents, ConfigValue } from '../../lib/config/configStore';
-import { AuthInfoConfig } from '../../lib/config/authInfoConfig';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { SfdxUtil } from '../../lib/util';
 import { Global } from '../../lib/global';
 import { OrgUsersConfig } from '../../lib/config/orgUsersConfig';
-import { Project } from '../../lib/project';
 import { SfdxConfigAggregator } from '../../lib/config/sfdxConfigAggregator';
 import { Aliases } from '../../lib/config/aliases';
 import { set as _set, get as _get, isEqual as _isEqual } from 'lodash';
 import * as Transport from 'jsforce/lib/transport';
-import { RequestInfo } from '../../../typings/jsforce';
 
 const $$ = testSetup();
 
@@ -179,11 +175,9 @@ describe('Org Tests', () => {
 
     describe('cleanLocalOrgData', () => {
         describe('mock remove', () => {
-            let removePath = '';
             let removeStub;
             beforeEach(() => {
                 removeStub = $$.SANDBOX.stub(SfdxUtil, 'remove').callsFake((path) => {
-                    removePath = path;
                     return Promise.resolve();
                 });
             });
@@ -340,7 +334,6 @@ describe('Org Tests', () => {
         let orgs: Org[];
         beforeEach(async () => {
             orgs = [];
-            const testId = $$.uniqid();
 
             const orgIdUser: string = 'p.venkman@gb.org';
             const addedUser: string = 'winston@gb.org';
