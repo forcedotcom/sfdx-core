@@ -166,6 +166,10 @@ export class UX {
         this.cli.action.status = status;
     }
 
+    /**
+     * Gets the spinner status
+     * @returns {string} the spinner status
+     */
     public getSpinnerStatus(): string {
         return this.cli.action.status;
     }
