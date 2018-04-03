@@ -129,7 +129,7 @@ export class UX {
      * @returns {Promise<string>} The user input to the prompt
      */
     public async prompt(name: string, options: IPromptOptions = {}): Promise<string> {
-        return await this.cli.prompt(name, options);
+        return this.cli.prompt(name, options);
     }
 
     /**
@@ -138,7 +138,7 @@ export class UX {
      * @returns {Promise<boolean>} true if the user inputs y or yes, and false if the user inputs n, or no
      */
     public async confirm(message: string): Promise<boolean> {
-        return await this.cli.confirm(message);
+        return this.cli.confirm(message);
     }
 
     /**
@@ -152,7 +152,8 @@ export class UX {
     /**
      * Pause the spinner and call the given function
      * @param fn The function to be called in the pause
-     * @param icon
+     * @param icon The string displayed to the user
+     * @returns The result returned by the passed in function
      */
     public pauseSpinner<T>(fn: () => T, icon?: string): T {
         return this.cli.action.pause(fn, icon);
