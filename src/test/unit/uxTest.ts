@@ -284,6 +284,62 @@ describe('UX', () => {
         expect(ux1).to.equal(ux);
     });
 
+    it('prompt() should call the cli.prompt() method', async () => {
+        const question = 'City?';
+        const answer = 'Louisville';
+        const ux = new UX($$.TEST_LOGGER, true, cli);
+        const promptGetter = () => (name, options) => {
+            expect(name).to.equal(question);
+            expect(options).to.eql({});
+            return answer;
+        };
+        $$.SANDBOX.stub(cli, 'prompt').get(promptGetter);
+        const response = await ux.prompt(question);
+        expect(response).to.equal(answer);
+    });
+
+    it('confirm() should call the cli.confirm() method', async () => {
+        const question = 'Yes?';
+        const answer = true;
+        const ux = new UX($$.TEST_LOGGER, true, cli);
+        const confirmGetter = () => (msg) => {
+            expect(msg).to.equal(question);
+            return answer;
+        };
+        $$.SANDBOX.stub(cli, 'confirm').get(confirmGetter);
+        const response = await ux.confirm(question);
+        expect(response).to.equal(answer);
+    });
+
+    it('startSpinner() should call action.start()', () => {
+        const ux = new UX($$.TEST_LOGGER, true, cli);
+        $$.SANDBOX.stub(cli.action, 'start');
+        ux.startSpinner('test message');
+        expect(cli.action.start['called']).to.be.true;
+    });
+
+    it('pauseSpinner() should call action.pause()', () => {
+        const ux = new UX($$.TEST_LOGGER, true, cli);
+        $$.SANDBOX.stub(cli.action, 'pause');
+        ux.pauseSpinner(() => {});
+        expect(cli.action.pause['called']).to.be.true;
+    });
+
+    it('getSpinnerStatus() and setSpinnerStatus() get and set the status on action', () => {
+        const ux = new UX($$.TEST_LOGGER, true, cli);
+        ux.cli.action.task = { action: 'spinner', status: 'old status', active: true };
+        expect(ux.getSpinnerStatus()).to.equal('old status');
+        ux.setSpinnerStatus('new status');
+        expect(ux.cli.action.status).to.equal('new status');
+    });
+
+    it('stopSpinner() should call action.stop()', () => {
+        const ux = new UX($$.TEST_LOGGER, true, cli);
+        $$.SANDBOX.stub(cli.action, 'stop');
+        ux.stopSpinner('test message');
+        expect(cli.action.stop['called']).to.be.true;
+    });
+
     describe('warn()', () => {
         after(() => {
             UX.warnings.clear();
