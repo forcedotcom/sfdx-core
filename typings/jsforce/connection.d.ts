@@ -106,5 +106,5 @@ export class Tooling extends BaseConnection {
     public _logger;
 
     // Specific to tooling
-    executeAnonymous(body: string, callback?: (err: Error, res: any) => void): Promise<any>;
+    executeAnonymous(body: string, callback?: (err: Error, res: any) => void): Promise<any>
 } 
