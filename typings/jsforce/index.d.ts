@@ -18,3 +18,4 @@ export { Connection, ConnectionOptions, RequestInfo, Tooling } from './connectio
 export { SObject } from './salesforce-object';
 export { SalesforceId } from './salesforce-id';
 export { OAuth2, OAuth2Options } from './oauth2';
+export { Promise } from './promise';

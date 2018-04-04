@@ -90,4 +90,21 @@ describe('Connection', () => {
         expect(jsforce.Connection.prototype.request['secondCall'].args[1]).to.equal(httpOptions);
         expect(response).to.deep.equal(testResponse);
     });
+
+    it('request() should add SFDX headers and call super() for a tooling request', async () => {
+        const testResponse = { success: true };
+        requestMock.onSecondCall().returns(Promise.resolve(testResponse));
+
+        const conn = await Connection.create(testAuthInfo as AuthInfo);
+
+        const testUrl = '/services/data/v42.0/tooling/sobjects';
+        const requestInfo = { method: 'GET', url: testUrl };
+        const expectedRequestInfo = Object.assign({}, requestInfo, { headers: SFDX_HTTP_HEADERS });
+
+        const response = await conn.tooling.describeGlobal();
+
+        expect(jsforce.Connection.prototype.request['called']).to.be.true;
+        expect(jsforce.Connection.prototype.request['secondCall'].args[0]).to.deep.equal(expectedRequestInfo);
+        expect(response).to.deep.equal(testResponse);
+    });
 });

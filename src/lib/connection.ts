@@ -8,7 +8,7 @@ import { isString, cloneDeep, maxBy } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
-import { Connection as JSForceConnection, ConnectionOptions, RequestInfo } from 'jsforce';
+import { Connection as JSForceConnection, ConnectionOptions, RequestInfo, Promise as JSPromise } from 'jsforce';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
 
@@ -17,6 +17,11 @@ export const SFDX_HTTP_HEADERS = {
     'content-type': 'application/json',
     'user-agent': clientId
 };
+
+/**
+ * Use thenCall() method defined in JSForce when returned connection requests need it
+ */
+Promise.prototype['thenCall'] = JSPromise.prototype.thenCall;
 
 /**
  * Handles connections and requests to Salesforce Orgs.
