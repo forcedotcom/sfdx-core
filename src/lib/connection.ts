@@ -8,9 +8,11 @@ import { isString, cloneDeep, maxBy } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
-import { Connection as JSForceConnection, ConnectionOptions, RequestInfo } from 'jsforce';
+import { Connection as JSForceConnection, ConnectionOptions, RequestInfo, Promise as JsforcePromise} from 'jsforce';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
+
+Promise.prototype['thenCall'] = JsforcePromise.prototype.thenCall;
 
 const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
 export const SFDX_HTTP_HEADERS = {

@@ -28,7 +28,7 @@ import { SfdxConfigAggregator } from '../../lib/config/sfdxConfigAggregator';
 import { Aliases } from '../../lib/config/aliases';
 import { set as _set, get as _get, isEqual as _isEqual } from 'lodash';
 import * as Transport from 'jsforce/lib/transport';
-import { RequestInfo } from '../../../typings/jsforce';
+import { RequestInfo } from 'jsforce';
 
 const $$ = testSetup();
 
