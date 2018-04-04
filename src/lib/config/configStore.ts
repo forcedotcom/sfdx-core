@@ -56,8 +56,8 @@ export interface ConfigStore {
     clear(): void;
     values(): ConfigValue[];
 
-    forEach(actionFn: any): void;
-    awaitEach(actionFn: any): Promise<void>;
+    forEach(actionFn: (key: string, value: ConfigValue) => void): void;
+    awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void>;
 
     // Content methods
     getContents(): ConfigContents;
@@ -129,7 +129,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * Sets the value for the key in the config object.
      * @param {string} key The Key.
      * @param {ConfigValue} value The value.
-     * @returns {ConfigContents} Returns the config object
+     * @returns {ConfigContents} Returns the config object.
      */
     public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
         return this.contents.set(key, value);
@@ -180,7 +180,7 @@ export abstract class BaseConfigStore implements ConfigStore {
     }
 
     /**
-     * Set the entire config contents.
+     * Sets the entire config contents.
      * @param {ConfigContents} contents The contents.
      */
     public setContents(contents?: ConfigContents): void {

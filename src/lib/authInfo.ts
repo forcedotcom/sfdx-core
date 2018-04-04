@@ -95,7 +95,7 @@ class JwtOAuth2 extends OAuth2 {
         super(options);
     }
 
-    public async jwtAuthorize(innerToken: string, callback?): Promise<any> {
+    public async jwtAuthorize(innerToken: string, callback?): Promise<any> { // tslint:disable-line:no-any
         return super._postParams({
             grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             assertion: innerToken
@@ -230,9 +230,9 @@ function base64UrlEscape(base64Encoded: string): string {
 
 /**
  * Handles persistence and fetching of user authentication information using
- * JWT, oAuth, or refresh tokens. Sets up the refresh flows that jsForce will
+ * JWT, OAuth, or refresh tokens. Sets up the refresh flows that jsForce will
  * use to keep tokens active. An AuthInfo can also be created with an access
- * token but can not be persisted to disk.
+ * token, but AuthInfos created with access tokens can't be persisted to disk.
  *
  * @example
  * // Creating a new authentication file.
@@ -301,7 +301,7 @@ export class AuthInfo {
     }
 
     /**
-     * Get a list of all auth files stored in the global directory
+     * Get a list of all auth files stored in the global directory.
      * @returns {Promise<string[]>}
      */
     public static async listAllAuthFiles(): Promise<string[]> {
@@ -337,7 +337,7 @@ export class AuthInfo {
 
     /**
      * Get the authorization URL.
-     * @param {OAuth2Options} options The options to generate the URL
+     * @param {OAuth2Options} options The options to generate the URL.
      * @returns {string}
      */
     public static getAuthorizationUrl(options: OAuth2Options): string {
@@ -609,7 +609,7 @@ export class AuthInfo {
 
     // A callback function for a connection to refresh an access token.  This is used
     // both for a JWT connection and an OAuth connection.
-    private async refreshFn(conn, callback: (err, accessToken?, res?) => void): Promise<any> {
+    private async refreshFn(conn, callback: (err, accessToken?, res?) => void): Promise<void> {
         this.logger.info('Access token has expired. Updating...');
 
         try {
@@ -671,7 +671,7 @@ export class AuthInfo {
     }
 
     // Build OAuth config for a refresh token auth flow
-    private async buildRefreshTokenConfig(options: OAuth2Options): Promise<any> {
+    private async buildRefreshTokenConfig(options: OAuth2Options): Promise<AuthFields> {
         if (!options.clientId) {
             Object.assign(options, DEFAULT_CONNECTED_APP_INFO);
         }
@@ -696,7 +696,7 @@ export class AuthInfo {
     }
 
     // build an OAuth config given an auth code.
-    private async buildWebAuthConfig(options: OAuth2Options): Promise<any> {
+    private async buildWebAuthConfig(options: OAuth2Options): Promise<AuthFields> {
         const oauth2 = new AuthCodeOAuth2(options);
 
         // Exchange the auth code for an access token and refresh token.

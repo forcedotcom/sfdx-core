@@ -15,6 +15,7 @@
 
 import { Logger, LoggerLevel } from './logger';
 import { TableOptions, TableColumn } from 'cli-ux/lib/styled/table';
+import { IPromptOptions } from 'cli-ux';
 import * as _ from 'lodash';
 import chalk from 'chalk';
 
@@ -94,7 +95,7 @@ export class UX {
      * @param {...any[]} args The messages or objects to log.
      * @returns {UX}
      */
-    public log(...args: any[]): UX {
+    public log(...args: any[]): UX { // tslint:disable-line:no-any
         if (this.isOutputEnabled) {
             this.cli.log(...args);
         }
@@ -119,6 +120,67 @@ export class UX {
         this.logger.info(obj);
 
         return this;
+    }
+
+    /**
+     * Prompt the user for input
+     * @param {string} name The string that the user sees when prompted for information
+     * @param {IPromptOptions} options Configuration options for the prompt { type: 'normal' | 'mask' | 'hide' }
+     * @returns {Promise<string>} The user input to the prompt
+     */
+    public async prompt(name: string, options: IPromptOptions = {}): Promise<string> {
+        return this.cli.prompt(name, options);
+    }
+
+    /**
+     * Prompt the user for confirmation
+     * @param {string} message The message displayed to the user
+     * @returns {Promise<boolean>} true if the user inputs y or yes, and false if the user inputs n, or no
+     */
+    public async confirm(message: string): Promise<boolean> {
+        return this.cli.confirm(message);
+    }
+
+    /**
+     * Start a spinner action after displaying the given message
+     * @param message The message displayed to the user
+     */
+    public startSpinner(message: string): void {
+        this.cli.action.start(message);
+    }
+
+    /**
+     * Pause the spinner and call the given function
+     * @param fn The function to be called in the pause
+     * @param icon The string displayed to the user
+     * @returns The result returned by the passed in function
+     */
+    public pauseSpinner<T>(fn: () => T, icon?: string): T {
+        return this.cli.action.pause(fn, icon);
+    }
+
+    /**
+     * Update the spinner status
+     * @param status The message displayed to the user
+     */
+    public setSpinnerStatus(status?: string): void {
+        this.cli.action.status = status;
+    }
+
+    /**
+     * Gets the spinner status
+     * @returns {string} the spinner status
+     */
+    public getSpinnerStatus(): string {
+        return this.cli.action.status;
+    }
+
+    /**
+     * Stop the spinner action
+     * @param message The message displayed to the user
+     */
+    public stopSpinner(message?: string): void {
+        this.cli.action.stop(message);
     }
 
     /**
@@ -155,7 +217,7 @@ export class UX {
      * @param {...any[]} args The errors to log.
      * @returns {UX}
      */
-    public error(...args: any[]): UX {
+    public error(...args: any[]): UX { // tslint:disable-line:no-any
         if (this.isOutputEnabled) {
             console.error(...args);
         }
@@ -187,7 +249,7 @@ export class UX {
      * @param {Partial<SfdxTableOptions>} options The {@link SfdxTableOptions} to use for formatting.
      * @returns {UX}
      */
-    public table(rows: any[], options: Partial<SfdxTableOptions> = {}): UX {
+    public table(rows: any[], options: Partial<SfdxTableOptions> = {}): UX { // tslint:disable-line:no-any
         if (this.isOutputEnabled) {
             options = (_.isArray(options) ? { columns: options } : options) as Partial<TableOptions>;
             const columns = _.get(options, 'columns');

@@ -8,7 +8,6 @@
  /* tslint:disable: only-arrow-functions */
 
 import * as path from 'path';
-import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 import * as fs from 'fs';
 import { testSetup } from '../testSetup';
@@ -125,42 +124,6 @@ describe('KeyChainImpl Tests', () => {
             };
 
             this.platformImpl.osImpl.onGetCommandClose(128, 'zuul', 'dana', null, responseFunc.bind(this));
-            done();
-        };
-
-        const _OnGetCommandWindowsParseError = function(done) {
-
-            const responseFunc = function(err) {
-                expect(err).to.have.property('name', 'SetCredentialParseError');
-            };
-
-            this.platformImpl.osImpl.onGetCommandClose(0, '', null, keyChainOptions, responseFunc.bind(this));
-            this.platformImpl.osImpl.onGetCommandClose(0, `${keyChainOptions.service}`, null, keyChainOptions,
-                responseFunc.bind(this));
-            done();
-        };
-
-        const _OnGetCommandWindowsParseErrorPasswordNotFound = function(done) {
-            const responseFunc = function(err) {
-                expect(err).to.have.property('name', 'PasswordNotFoundError');
-            };
-
-            this.platformImpl.osImpl.onGetCommandClose(0, `${keyChainOptions.service} type was not found`, null,
-                keyChainOptions, responseFunc.bind(this));
-
-            done();
-        };
-
-        const _OnGetCommandWindows = function(done) {
-            const password = 'keymaster';
-            const responseFunc = function(err, passwd) {
-                expect(password).to.equal(passwd);
-                expect(err).to.be.null;
-            };
-
-            this.platformImpl.osImpl.onGetCommandClose(0, `Password : ${password}`, null,
-                keyChainOptions, responseFunc.bind(this));
-
             done();
         };
 

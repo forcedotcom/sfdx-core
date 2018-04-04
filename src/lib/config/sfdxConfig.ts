@@ -232,10 +232,10 @@ export class SfdxConfig extends ConfigFile {
 
     /**
      * Writes SfdxConfg properties taking into account encrypted properties.
-     * @param newContents The new SfdxConfig value to persist.
-     * @return {Promise<object>}
+     * @param {ConfigContents} newContents The new SfdxConfig value to persist.
+     * @return {Promise<ConfigContents>}
      */
-    public async write(newContents?: any): Promise<object> {
+    public async write(newContents?: ConfigContents): Promise<ConfigContents> {
         if (!_.isNil(newContents)) {
             this.setContents(newContents);
         }

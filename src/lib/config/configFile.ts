@@ -152,7 +152,7 @@ export class ConfigFile extends BaseConfigStore {
     private path: string;
 
     /**
-     * Determines if the config file is read write accessible.
+     * Determines if the config file is read/write accessible.
      * @param {number} perm The permission.
      * @returns {Promise<boolean>} `true` if the user has capabilities specified by perm.
      * @see {@link SfdxUtil.access}
@@ -194,8 +194,8 @@ export class ConfigFile extends BaseConfigStore {
 
     /**
      * Write the config file with new contents. If no new contents are passed in
-     * it will write the existing config contents that was set from {@link ConfigFile.read}, or empty
-     * if {@link ConfigFile.read} was not called.
+     * it will write the existing config contents that were set from {@link ConfigFile.read}, or an
+     * empty file if {@link ConfigFile.read} was not called.
      *
      * @param {object} [newContents] The new contents of the file.
      * @returns {Promise<object>} The written contents.
@@ -215,7 +215,7 @@ export class ConfigFile extends BaseConfigStore {
     /**
      * Check to see if the config file exists.
      *
-     * @returns {Promise<boolean>} True if the config file exists and has access false otherwise.
+     * @returns {Promise<boolean>} True if the config file exists and has access, false otherwise.
      */
     public async exists(): Promise<boolean> {
         return await this.access(fsConstants.R_OK);

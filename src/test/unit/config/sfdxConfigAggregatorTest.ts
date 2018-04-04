@@ -5,13 +5,10 @@
  */
 'use strict';
 
-import { join as pathJoin } from 'path';
-
 import { expect, assert } from 'chai';
 
 import { SfdxUtil } from '../../../lib/util';
 import { SfdxConfigAggregator } from '../../../lib/config/sfdxConfigAggregator';
-import { tmpdir as osTmpdir } from 'os';
 import { SfdxConfig } from '../../../lib/config/sfdxConfig';
 import { testSetup } from '../../testSetup';
 import { ConfigFile } from '../../../lib/config/configFile';

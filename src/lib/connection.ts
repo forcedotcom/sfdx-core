@@ -21,6 +21,11 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 /**
+ * Use thenCall() method defined in JSForce when returned connection requests need it
+ */
+Promise.prototype['thenCall'] = JSPromise.prototype.thenCall;
+
+/**
  * Handles connections and requests to Salesforce Orgs.
  * @extends jsforce.Connection
  *
@@ -92,9 +97,9 @@ export class Connection extends JSForceConnection {
      *
      * @param {RequestInfo | string} request HTTP request object or URL to GET request.
      * @param [options] HTTP API request options.
-     * @returns {Promise<any>} The request Promise.
+     * @returns {Promise<object>} The request Promise.
      */
-    public async request(request: RequestInfo | string, options?): Promise<any> {
+    public async request(request: RequestInfo | string, options?): Promise<object> {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, _request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
@@ -116,7 +121,7 @@ export class Connection extends JSForceConnection {
     public async retrieveMaxApiVersion(): Promise<string> {
         const versions: object[] = (await this.request(`${this.instanceUrl}/services/data`)) as object[];
         this.logger.debug(`response for org versions: ${versions}`);
-        return maxBy(versions, (version: any) => version.version).version;
+        return maxBy(versions, (version) => version['version'])['version'];
     }
 
     /**

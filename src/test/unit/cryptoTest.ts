@@ -84,11 +84,11 @@ describe('CryptoTest', function() {
 
             crypto = new Crypto();
             await crypto.init();
-            const string = '123456';
-            const encrypted = crypto.encrypt(string);
+            const str = '123456';
+            const encrypted = crypto.encrypt(str);
             const decrypted = crypto.decrypt(encrypted);
-            expect(encrypted).to.not.equal(string);
-            expect(decrypted).to.equal(string);
+            expect(encrypted).to.not.equal(str);
+            expect(decrypted).to.equal(str);
         });
 
         it('InvalidEncryptedFormatError action', async () => {

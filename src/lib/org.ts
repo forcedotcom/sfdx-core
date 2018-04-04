@@ -19,6 +19,7 @@ import { Aliases } from './config/aliases';
 import { Connection } from './connection';
 import { Logger } from './logger';
 import { SfdxConfig } from './config/sfdxConfig';
+import { ConfigContents } from './config/configStore';
 import { SfdxConfigAggregator, ConfigInfo } from './config/sfdxConfigAggregator';
 import { get as _get, filter as _filter, isString as _isString } from 'lodash';
 import { AuthFields, AuthInfo } from './authInfo';
@@ -261,7 +262,7 @@ export class Org {
             targetDevHub = this.configAggregator.getPropertyValue(SfdxConfig.DEFAULT_DEV_HUB_USERNAME);
         }
 
-        const devHubConnection: any = await Connection.create(await AuthInfo.create(targetDevHub as string));
+        const devHubConnection = await Connection.create(await AuthInfo.create(targetDevHub as string));
 
         const thisOrgAuthConfig: Partial<AuthFields> = this.getConnection().getAuthInfo().getFields();
 
@@ -330,9 +331,9 @@ export class Org {
      */
     public async readUserAuthFiles(): Promise<AuthInfo[]> {
         const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
-        const contents: any = await config.read();
+        const contents: ConfigContents = await config.read();
         const thisUsername = this.getConnection().getAuthInfo().getFields().username;
-        const usernames: string[] = contents.get('usernames') || [thisUsername];
+        const usernames: string[] = contents.get('usernames') as string[] || [thisUsername];
         return Promise.all(usernames.map((username) => {
             if (username === thisUsername) {
                 return this.getConnection().getAuthInfo();
@@ -362,8 +363,8 @@ export class Org {
 
         const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
-        const contents: any = await orgConfig.read();
-        const usernames = contents.get('usernames') || [];
+        const contents: ConfigContents = await orgConfig.read();
+        const usernames = contents.get('usernames') as string[] || [];
 
         let shouldUpdate = false;
 
@@ -402,10 +403,10 @@ export class Org {
 
         const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
-        const contents: any = await orgConfig.read();
+        const contents: ConfigContents = await orgConfig.read();
 
         const targetUser = _auth.getFields().username;
-        contents.set('usernames', _filter(contents.get('usernames'), (username) => username !== targetUser));
+        contents.set('usernames', _filter(contents.get('usernames') as string[], (username) => username !== targetUser));
 
         await orgConfig.write();
         return this;
