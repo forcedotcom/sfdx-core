@@ -526,15 +526,6 @@ export class AuthInfo {
     }
 
     /**
-     * Returns the client secerts if defined.
-     * @return {string | undefined}
-     */
-    public getClientSecret() {
-        return this.fields.clientSecret ?
-            authInfoCrypto.decrypt(this.fields.clientSecret) : DEFAULT_CONNECTED_APP_INFO.clientSecret;
-    }
-
-    /**
      * Get the auth fields (decrypted) needed to make a connection.
      *
      * @returns {AuthFields}
