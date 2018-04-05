@@ -559,8 +559,6 @@ describe('AuthInfo', () => {
             expect(authInfoJSON).to.not.have.property('refreshToken');
             expect(authInfoJSON['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl);
             expect(authInfoJSON['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
-            authInfoJSON['oauth2'].clientSecret = authInfoJSON['oauth2'].clientSecretFn();
-            expect(authInfoJSON['oauth2']).to.have.property('clientSecret', testMetadata.defaultConnectedAppInfo.clientSecret);
             expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
             expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
@@ -620,8 +618,6 @@ describe('AuthInfo', () => {
             expect(authInfoJSON).to.not.have.property('refreshToken');
             expect(authInfoJSON['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl);
             expect(authInfoJSON['oauth2']).to.have.property('clientId', refreshTokenConfig.clientId);
-            authInfoJSON['oauth2'].clientSecret = authInfoJSON['oauth2'].clientSecretFn();
-            expect(authInfoJSON['oauth2']).to.have.property('clientSecret', refreshTokenConfig.clientSecret);
             expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
             expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
@@ -707,8 +703,6 @@ describe('AuthInfo', () => {
             expect(authInfoJSON).to.not.have.property('refreshToken');
             expect(authInfoJSON['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl); // why is this instanceUrl?
             expect(authInfoJSON['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
-            authInfoJSON['oauth2'].clientSecret = authInfoJSON['oauth2'].clientSecretFn();
-            expect(authInfoJSON['oauth2']).to.have.property('clientSecret', testMetadata.defaultConnectedAppInfo.clientSecret);
             expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
             expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;

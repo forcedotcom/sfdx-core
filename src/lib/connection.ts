@@ -4,24 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isString, cloneDeep, maxBy, isFunction } from 'lodash';
+import { isString, cloneDeep, maxBy } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
-import { Connection as JSForceConnection, ConnectionOptions, RequestInfo, Promise as JSPromise } from 'jsforce';
+import { Connection as JSForceConnection, ConnectionOptions, RequestInfo, Promise as JsforcePromise} from 'jsforce';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
+
+Promise.prototype['thenCall'] = JsforcePromise.prototype.thenCall;
 
 const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
 export const SFDX_HTTP_HEADERS = {
     'content-type': 'application/json',
     'user-agent': clientId
 };
-
-/**
- * Use thenCall() method defined in JSForce when returned connection requests need it
- */
-Promise.prototype['thenCall'] = JSPromise.prototype.thenCall;
 
 /**
  * Handles connections and requests to Salesforce Orgs.
@@ -62,32 +59,11 @@ export class Connection extends JSForceConnection {
 
         // Get connection options from auth info and create a new jsForce connection
         const connectionOptions: ConnectionOptions = Object.assign(baseOptions, authInfo.getConnectionOptions());
-
-        let clientSecretBackupValue;
-        if (connectionOptions.oauth2) {
-            if (isFunction(connectionOptions.oauth2.clientSecretFn)) {
-                clientSecretBackupValue = connectionOptions.oauth2.clientSecret;
-                // Wait until the last minute to decrypt the client secret.
-                connectionOptions.oauth2.clientSecret = connectionOptions.oauth2.clientSecretFn();
-            } else {
-                throw new SfdxError('The clientSecretFn was found but it\'s not a function.',
-                    'MissingOrInvalid clientSecretFn');
-            }
+        const conn = new Connection(connectionOptions, authInfo, logger);
+        if (!versionFromConfig) {
+            await conn.useLatestApiVersion();
         }
-
-        try {
-            const conn = new Connection(connectionOptions, authInfo, logger);
-
-            if (!versionFromConfig) {
-                await conn.useLatestApiVersion();
-            }
-            return conn;
-        } finally {
-            if (clientSecretBackupValue) {
-                // restore the client secret value;
-                connectionOptions.oauth2.clientSecret = clientSecretBackupValue;
-            }
-        }
+        return conn;
     }
 
     // We want to use 1 logger for this class and the jsForce base classes so override
@@ -116,9 +92,9 @@ export class Connection extends JSForceConnection {
      *
      * @param {RequestInfo | string} request HTTP request object or URL to GET request.
      * @param [options] HTTP API request options.
-     * @returns {Promise<object>} The request Promise.
+     * @returns {Promise<any>} The request Promise.
      */
-    public async request(request: RequestInfo | string, options?): Promise<object> {
+    public async request(request: RequestInfo | string, options?): Promise<any> {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, _request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
@@ -140,7 +116,7 @@ export class Connection extends JSForceConnection {
     public async retrieveMaxApiVersion(): Promise<string> {
         const versions: object[] = (await this.request(`${this.instanceUrl}/services/data`)) as object[];
         this.logger.debug(`response for org versions: ${versions}`);
-        return maxBy(versions, (version) => version['version'])['version'];
+        return maxBy(versions, (version: any) => version.version).version;
     }
 
     /**
