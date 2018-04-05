@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isString, cloneDeep, maxBy } from 'lodash';
+import { isString, cloneDeep, maxBy, isFunction } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
@@ -62,11 +62,32 @@ export class Connection extends JSForceConnection {
 
         // Get connection options from auth info and create a new jsForce connection
         const connectionOptions: ConnectionOptions = Object.assign(baseOptions, authInfo.getConnectionOptions());
-        const conn = new Connection(connectionOptions, authInfo, logger);
-        if (!versionFromConfig) {
-            await conn.useLatestApiVersion();
+
+        let clientSecretBackupValue;
+        if (connectionOptions.oauth2) {
+            if (isFunction(connectionOptions.oauth2.clientSecretFn)) {
+                clientSecretBackupValue = connectionOptions.oauth2.clientSecret;
+                // Wait until the last minute to decrypt the client secret.
+                connectionOptions.oauth2.clientSecret = connectionOptions.oauth2.clientSecretFn();
+            } else {
+                throw new SfdxError('The clientSecretFn was found but it\'s not a function.',
+                    'MissingOrInvalid clientSecretFn');
+            }
         }
-        return conn;
+
+        try {
+            const conn = new Connection(connectionOptions, authInfo, logger);
+
+            if (!versionFromConfig) {
+                await conn.useLatestApiVersion();
+            }
+            return conn;
+        } finally {
+            if (clientSecretBackupValue) {
+                // restore the client secret value;
+                connectionOptions.oauth2.clientSecret = clientSecretBackupValue;
+            }
+        }
     }
 
     // We want to use 1 logger for this class and the jsForce base classes so override

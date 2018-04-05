@@ -10,6 +10,7 @@ import { SObject } from './salesforce-object';
 export interface OAuth2Options {
     clientId?: string;
     clientSecret?: string;
+    clientSecretFn?: () => string;
     loginUrl?: string;
     redirectUri?: string;
 }

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as dns from 'dns';
+import * as _ from 'lodash';
 import { assert, expect } from 'chai';
 import { AuthInfo, AuthFields } from '../../lib/authInfo';
 import { AuthInfoConfig } from '../../lib/config/authInfoConfig';
@@ -114,6 +115,10 @@ class MetaAuthDataMock {
 
     set jwtUsername(value: string) {
         this._jwtUsername = value;
+    }
+
+    get username(): string {
+        return this._jwtUsername;
     }
 
     get redirectUri(): string {
@@ -239,6 +244,97 @@ describe('AuthInfo', () => {
         $$.SANDBOX.spy(AuthInfo.prototype, 'buildJwtConfig');
         $$.SANDBOX.spy(AuthInfo.prototype, 'buildRefreshTokenConfig');
         $$.SANDBOX.spy(AuthInfo.prototype, 'buildWebAuthConfig');
+    });
+
+    describe('Secret Tests', () => {
+        let authInfo: AuthInfo;
+        let decryptedRefreshToken: string;
+        beforeEach (async () => {
+            const authCodeConfig = {
+                authCode: testMetadata.authCode,
+                loginUrl: testMetadata.loginUrl
+            };
+            const authResponse = {
+                access_token: testMetadata.accessToken,
+                instance_url: testMetadata.instanceUrl,
+                id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+                refresh_token: testMetadata.refreshToken
+            };
+
+            // Stub the http requests (OAuth2.requestToken() and the request for the username)
+            _postParmsStub.returns(Promise.resolve(authResponse));
+            const responseBody = { body: JSON.stringify({ Username: testMetadata.username }) };
+            $$.SANDBOX.stub(Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+            authInfo = await AuthInfo.create(null, authCodeConfig);
+
+            const crypto = await Crypto.create();
+            decryptedRefreshToken = crypto.decrypt(authInfo.getFields().refreshToken);
+        });
+
+        // Walk an object deeply looking for the attribute name of clientSecret or values that contain the client secret
+        // or decrypted refresh token.
+        const walkAndSearchForSecrets = function(obj: object) {
+            const keys = _.keys(obj);
+            keys.forEach((key) => {
+                if (_.isObject(obj[key])) {
+                    walkAndSearchForSecrets(obj[key]);
+                }
+                const keyUpper = _.toUpper(key);
+
+                // If the key is likely a clientSecret "ish" attribute and the value is a string.
+                // reminder:'clientSecretFn' is always legit.
+                if (_.includes(keyUpper, 'SECRET') && _.includes(keyUpper, 'CLIENT') && _.isString(obj[key])) {
+                    throw new Error('Key indicates client secret.');
+                }
+
+                if (_.isString(obj[key]) && _.includes(obj[key], testMetadata.defaultConnectedAppInfo.clientSecret)) {
+                    throw new Error(`Client secret present as value in object with key: ${key}`);
+                }
+                if (_.isString(obj[key]) && _.includes(obj[key], decryptedRefreshToken)) {
+                    throw new Error(`Refresh token present as value in object with key: ${key}`);
+                }
+            });
+        };
+
+        describe('getFields', () => {
+            it('return value should not have a client secret or decrypted refresh token', () => {
+                const fields: AuthFields = authInfo.getFields();
+                const strObj: string = JSON.stringify(fields);
+
+                // verify the returned object doesn't have secrets
+                expect(walkAndSearchForSecrets(fields)).to.not.throw;
+
+                expect(strObj).does.not.include(testMetadata.defaultConnectedAppInfo.clientSecret);
+                expect(strObj).does.not.include(decryptedRefreshToken);
+            });
+        });
+
+        describe('getConnectionOptions', () => {
+
+            it ('return value should not have a client secret or decrypted refresh token', () => {
+                const fields: AuthFields = authInfo.getConnectionOptions();
+                const strObj: string = JSON.stringify(fields);
+
+                // verify the returned object doesn't have secrets
+                expect(walkAndSearchForSecrets(fields)).to.not.throw;
+
+                // double check the stringified objects don't have secrets.
+                expect(strObj).does.not.include(testMetadata.defaultConnectedAppInfo.clientSecret);
+                expect(strObj).does.not.include(decryptedRefreshToken);
+            });
+        });
+        describe('AuthInfo', () => {
+            it ('AuthINfo should not have a client secret or decrypted refresh token', () => {
+                const authInfoString: string = JSON.stringify(authInfo);
+
+                // verify the returned object doesn't have secrets
+                expect(walkAndSearchForSecrets(authInfo)).to.not.throw;
+
+                // double check the stringified objects don't have secrets.
+                expect(authInfoString).does.not.include(testMetadata.defaultConnectedAppInfo.clientSecret);
+                expect(authInfoString).does.not.include(decryptedRefreshToken);
+            });
+        });
     });
 
     describe('create()', () => {
@@ -463,6 +559,7 @@ describe('AuthInfo', () => {
             expect(authInfoJSON).to.not.have.property('refreshToken');
             expect(authInfoJSON['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl);
             expect(authInfoJSON['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
+            authInfoJSON['oauth2'].clientSecret = authInfoJSON['oauth2'].clientSecretFn();
             expect(authInfoJSON['oauth2']).to.have.property('clientSecret', testMetadata.defaultConnectedAppInfo.clientSecret);
             expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
             expect(authInfo.getUsername()).to.equal(username);
@@ -523,6 +620,7 @@ describe('AuthInfo', () => {
             expect(authInfoJSON).to.not.have.property('refreshToken');
             expect(authInfoJSON['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl);
             expect(authInfoJSON['oauth2']).to.have.property('clientId', refreshTokenConfig.clientId);
+            authInfoJSON['oauth2'].clientSecret = authInfoJSON['oauth2'].clientSecretFn();
             expect(authInfoJSON['oauth2']).to.have.property('clientSecret', refreshTokenConfig.clientSecret);
             expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
             expect(authInfo.getUsername()).to.equal(username);
@@ -609,6 +707,7 @@ describe('AuthInfo', () => {
             expect(authInfoJSON).to.not.have.property('refreshToken');
             expect(authInfoJSON['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl); // why is this instanceUrl?
             expect(authInfoJSON['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
+            authInfoJSON['oauth2'].clientSecret = authInfoJSON['oauth2'].clientSecretFn();
             expect(authInfoJSON['oauth2']).to.have.property('clientSecret', testMetadata.defaultConnectedAppInfo.clientSecret);
             expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
             expect(authInfo.getUsername()).to.equal(username);

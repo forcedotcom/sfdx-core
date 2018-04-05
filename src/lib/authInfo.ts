@@ -526,6 +526,15 @@ export class AuthInfo {
     }
 
     /**
+     * Returns the client secerts if defined.
+     * @return {string | undefined}
+     */
+    public getClientSecret() {
+        return this.fields.clientSecret ?
+            authInfoCrypto.decrypt(this.fields.clientSecret) : DEFAULT_CONNECTED_APP_INFO.clientSecret;
+    }
+
+    /**
      * Get the auth fields (decrypted) needed to make a connection.
      *
      * @returns {AuthFields}
@@ -554,13 +563,17 @@ export class AuthInfo {
             // loginUrl: this.fields.instanceUrl || this.config.getAppConfig().sfdcLoginUrl
             this.logger.info('Returning fields for a connection using OAuth config.');
 
+            const getSecret = function() {
+                return this.fields.clientSecret ?
+                    authInfoCrypto.decrypt(this.fields.clientSecret) : DEFAULT_CONNECTED_APP_INFO.clientSecret;
+            };
+
             // Decrypt a user provided client secret or use the default.
-            const clientSecret = this.fields.clientSecret ? authInfoCrypto.decrypt(this.fields.clientSecret) : DEFAULT_CONNECTED_APP_INFO.clientSecret;
             json = {
                 oauth2: {
                     loginUrl: instanceUrl || 'https://login.salesforce.com',
                     clientId: this.fields.clientId || DEFAULT_CONNECTED_APP_INFO.clientId,
-                    clientSecret,
+                    clientSecretFn: getSecret.bind(this),
                     redirectUri: 'http://localhost:1717/OauthRedirect'
                 },
                 accessToken,
