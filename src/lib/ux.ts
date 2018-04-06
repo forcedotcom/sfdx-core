@@ -13,6 +13,14 @@
  * @property {TableOptions | string[]} options
  */
 
+ /**
+  * A prompt option configuration as defined by
+  * [oclif/cli-ux](https://github.com/oclif/cli-ux/blob/master/src/prompt.ts)
+  * @typedef {object} IPromptOptions
+  * @property {string} prompt The prompt string displayed to the user.
+  * @property {'normal' | 'mask' | 'hide'} type `Normal` does not hide the user input, `mask` hides the user input after the user presses `ENTER`, and `hide` hides the user input as it is being typed.
+  */
+
 import { Logger, LoggerLevel } from './logger';
 import { TableOptions, TableColumn } from 'cli-ux/lib/styled/table';
 import { IPromptOptions } from 'cli-ux';
@@ -123,61 +131,61 @@ export class UX {
     }
 
     /**
-     * Prompt the user for input
-     * @param {string} name The string that the user sees when prompted for information
-     * @param {IPromptOptions} options Configuration options for the prompt { type: 'normal' | 'mask' | 'hide' }
-     * @returns {Promise<string>} The user input to the prompt
+     * Prompt the user for input.
+     * @param {string} name The string that the user sees when prompted for information.
+     * @param {IPromptOptions} options A prompt option configuration.
+     * @returns {Promise<string>} The user input to the prompt.
      */
     public async prompt(name: string, options: IPromptOptions = {}): Promise<string> {
         return this.cli.prompt(name, options);
     }
 
     /**
-     * Prompt the user for confirmation
-     * @param {string} message The message displayed to the user
-     * @returns {Promise<boolean>} true if the user inputs y or yes, and false if the user inputs n, or no
+     * Prompt the user for confirmation.
+     * @param {string} message The message displayed to the user.
+     * @returns {Promise<boolean>} Returns `true` if the user inputs 'y' or 'yes', and `false` if the user inputs 'n' or 'no'.
      */
     public async confirm(message: string): Promise<boolean> {
         return this.cli.confirm(message);
     }
 
     /**
-     * Start a spinner action after displaying the given message
-     * @param message The message displayed to the user
+     * Start a spinner action after displaying the given message.
+     * @param {string} message The message displayed to the user.
      */
     public startSpinner(message: string): void {
         this.cli.action.start(message);
     }
 
     /**
-     * Pause the spinner and call the given function
-     * @param fn The function to be called in the pause
-     * @param icon The string displayed to the user
-     * @returns The result returned by the passed in function
+     * Pause the spinner and call the given function.
+     * @param {function} fn The function to be called in the pause.
+     * @param {string} icon The string displayed to the user.
+     * @returns {T} The result returned by the passed in function.
      */
     public pauseSpinner<T>(fn: () => T, icon?: string): T {
         return this.cli.action.pause(fn, icon);
     }
 
     /**
-     * Update the spinner status
-     * @param status The message displayed to the user
+     * Update the spinner status.
+     * @param {string} status The message displayed to the user.
      */
     public setSpinnerStatus(status?: string): void {
         this.cli.action.status = status;
     }
 
     /**
-     * Gets the spinner status
-     * @returns {string} the spinner status
+     * Get the spinner status.
+     * @returns {string}
      */
     public getSpinnerStatus(): string {
         return this.cli.action.status;
     }
 
     /**
-     * Stop the spinner action
-     * @param message The message displayed to the user
+     * Stop the spinner action.
+     * @param {string} message The message displayed to the user.
      */
     public stopSpinner(message?: string): void {
         this.cli.action.stop(message);
