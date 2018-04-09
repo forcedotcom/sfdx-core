@@ -33,8 +33,7 @@
     "!dist/**/*.map"
   ],
   "dependencies": {
-    "@types/jsforce": "1.8.20",
-    "bunyan-sfdx-no-dtrace": "1.8.2",
+    "@types/jsforce": "1.8.22",
     "chalk": "2.3.0",
     "cli-ux": "3.3.25",
     "jsforce": "1.8.0",
