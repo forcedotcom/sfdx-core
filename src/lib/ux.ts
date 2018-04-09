@@ -15,7 +15,7 @@
 
  /**
   * A prompt option configuration as defined by
-  * [oclif/cli-ux](https://github.com/oclif/cli-ux/blob/master/src/prompt.ts)
+  * [oclif/cli-ux](https://github.com/oclif/cli-ux/blob/master/src/prompt.ts).
   * @typedef {object} IPromptOptions
   * @property {string} prompt The prompt string displayed to the user.
   * @property {'normal' | 'mask' | 'hide'} type `Normal` does not hide the user input, `mask` hides the user input after the user presses `ENTER`, and `hide` hides the user input as it is being typed.
