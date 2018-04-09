@@ -8,20 +8,21 @@ import { isString, cloneDeep, maxBy } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
-import { Connection as JSForceConnection, ConnectionOptions, RequestInfo, Promise as JSPromise } from 'jsforce';
+import { Connection as JSForceConnection, ConnectionOptions, RequestInfo, Promise as JsforcePromise} from 'jsforce';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
+
+/**
+ * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
+ * jsforce which expects .thenCall. Add .thenCall to the node promise to prevent breakage.
+ */
+Promise.prototype['thenCall'] = JsforcePromise.prototype.thenCall;
 
 const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
 export const SFDX_HTTP_HEADERS = {
     'content-type': 'application/json',
     'user-agent': clientId
 };
-
-/**
- * Use thenCall() method defined in JSForce when returned connection requests need it
- */
-Promise.prototype['thenCall'] = JSPromise.prototype.thenCall;
 
 /**
  * Handles connections and requests to Salesforce Orgs.
@@ -119,7 +120,8 @@ export class Connection extends JSForceConnection {
     public async retrieveMaxApiVersion(): Promise<string> {
         const versions: object[] = (await this.request(`${this.instanceUrl}/services/data`)) as object[];
         this.logger.debug(`response for org versions: ${versions}`);
-        return maxBy(versions, (version) => version['version'])['version'];
+        // tslint:disable-next-line:no-any
+        return (maxBy(versions, (version: any) => version.version)).version;
     }
 
     /**

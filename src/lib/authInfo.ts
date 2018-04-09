@@ -555,12 +555,10 @@ export class AuthInfo {
             this.logger.info('Returning fields for a connection using OAuth config.');
 
             // Decrypt a user provided client secret or use the default.
-            const clientSecret = this.fields.clientSecret ? authInfoCrypto.decrypt(this.fields.clientSecret) : DEFAULT_CONNECTED_APP_INFO.clientSecret;
             json = {
                 oauth2: {
                     loginUrl: instanceUrl || 'https://login.salesforce.com',
                     clientId: this.fields.clientId || DEFAULT_CONNECTED_APP_INFO.clientId,
-                    clientSecret,
                     redirectUri: 'http://localhost:1717/OauthRedirect'
                 },
                 accessToken,
