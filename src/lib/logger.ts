@@ -6,6 +6,22 @@
  */
 
 /**
+ * A Bunyan `Serializer` function.
+ *
+ * @callback Serializer
+ * @param {any} input The input to be serialized.
+ * @returns {any} The serialized input.
+ *
+ * @see {@link https://github.com/cwallsfdc/node-bunyan#serializers|Bunyan Serializers API}
+ */
+/**
+ * A collection of named `Serializer`s.
+ *
+ * @typedef {Object<string, Serializer>} Serializers
+ *
+ * @see {@link https://github.com/cwallsfdc/node-bunyan#serializers|Bunyan Serializers API}
+ */
+/**
  * The common set of `Logger` options.
  *
  * @typedef LoggerOptions
@@ -67,11 +83,16 @@ import * as path from 'path';
 import { Writable } from 'stream';
 import * as EventEmitter from 'events';
 import * as Bunyan from 'bunyan-sfdx-no-dtrace';
-import { Serializers } from 'bunyan';
 import * as _ from 'lodash';
 import { Global, Mode } from './global';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
+
+export type Serializer = (input: any) => any; // tslint:disable-line:no-any
+
+export interface Serializers {
+    [key: string]: Serializer;
+}
 
 export interface LoggerOptions {
     name: string;
