@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "0.16.27",
+  "version": "0.16.29",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "dist/exported",
   "license": "BSD-3-Clause",
@@ -33,7 +33,8 @@
     "!dist/**/*.map"
   ],
   "dependencies": {
-    "@types/jsforce": "1.8.22",
+    "@types/jsforce": "1.8.24",
+    "bunyan-sfdx-no-dtrace": "1.8.2",
     "chalk": "2.3.0",
     "cli-ux": "3.3.25",
     "jsforce": "1.8.0",
