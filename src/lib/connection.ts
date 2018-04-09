@@ -12,6 +12,10 @@ import { Connection as JSForceConnection, ConnectionOptions, RequestInfo, Promis
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
 
+/**
+ * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
+ * jsforce which expects .thenCall. Add .thenCall to the node promise to prevent breakage.
+ */
 Promise.prototype['thenCall'] = JsforcePromise.prototype.thenCall;
 
 const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
@@ -92,7 +96,7 @@ export class Connection extends JSForceConnection {
      *
      * @param {RequestInfo | string} request HTTP request object or URL to GET request.
      * @param [options] HTTP API request options.
-     * @returns {Promise<any>} The request Promise.
+     * @returns {Promise<object>} The request Promise.
      */
     public async request(request: RequestInfo | string, options?): Promise<object> {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
