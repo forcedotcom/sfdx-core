@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "0.16.10",
+  "version": "0.16.12",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "dist/exported",
   "license": "BSD-3-Clause",
@@ -43,7 +43,6 @@
   },
   "devDependencies": {
     "@salesforce/dev-config": "1.0.4",
-    "@types/bunyan": "1.8.4",
     "@types/chai": "4.0.4",
     "@types/lodash": "4.14.88",
     "@types/mocha": "2.2.42",
