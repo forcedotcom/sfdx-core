@@ -4,13 +4,9 @@
         "sourceRoot": "src",
         "outDir": "dist",
         "typeRoots": [
-            "./typings",
             "./node_modules/@types"
         ],
-        "baseUrl": "./",
-        "paths" : {
-            "*" : ["./typings/*"]
-        }
+        "baseUrl": "./"
     },
     "include": [
         "src/**/*.ts"
