@@ -27,6 +27,7 @@ import { Global} from './global';
 import { SfdxUtil } from './util';
 import { OrgUsersConfig } from './config/orgUsersConfig';
 import { SfdxError } from './sfdxError';
+import { QueryResult } from 'jsforce';
 
 export enum OrgStatus {
     ACTIVE = 'ACTIVE',
@@ -272,7 +273,7 @@ export class Org {
 
         let results;
         try {
-            results = await devHubConnection.query(DEV_HUB_SOQL);
+            results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<object>>);
 
         } catch (err) {
             if (err.name === 'INVALID_TYPE') {
