@@ -8,8 +8,7 @@ yarn.lock
 yarn-error.log
 package-lock.json
 docs
-src/temp/*
 *coverage
 *xunit.xml
 *checkstyle.xml
-
+src/temp
