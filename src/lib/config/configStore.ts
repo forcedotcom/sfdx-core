@@ -27,7 +27,7 @@ import { JsonMap } from '../types';
 /**
  * The allowed types stored in a config store.
  */
-export type ConfigValue = string | boolean | object;
+export type ConfigValue = string | number | boolean | object;
 
 /**
  * The type of entries in a config store defined by the key and value type of {@link ConfigContents}.
@@ -193,7 +193,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      */
     public forEach(actionFn: (key: string, value: ConfigValue) => void): void {
         const entries = this.entries();
-        for (let i = 0, entry = entries[i]; i < entries.length; i++) {
+        for (const entry of entries) {
             actionFn(entry[0], entry[1]);
         }
     }
@@ -205,10 +205,9 @@ export abstract class BaseConfigStore implements ConfigStore {
      */
     public async awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
         const entries = this.entries();
-        for (let i = 0, entry = entries[i]; i < entries.length; i++) {
+        for (const entry of entries) {
             await actionFn(entry[0], entry[1]);
         }
-        return Promise.resolve();
     }
 
     /**
