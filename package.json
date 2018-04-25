@@ -34,7 +34,7 @@
   ],
   "dependencies": {
     "bunyan-sfdx-no-dtrace": "1.8.2",
-    "chalk": "2.3.0",
+    "chalk": "2.4.0",
     "cli-ux": "3.3.25",
     "jsforce": "1.8.0",
     "jsonwebtoken": "7.0.0",
