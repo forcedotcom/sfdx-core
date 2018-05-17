@@ -33,10 +33,6 @@ describe('SfdxConfig', () => {
             .callsFake((isGlobal: boolean) => $$.rootPathRetriever(isGlobal, id));
     });
 
-    afterEach(() => {
-        $$.SANDBOX.restore();
-    });
-
     describe('instantiation', () => {
         it('using global', async () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
