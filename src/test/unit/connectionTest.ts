@@ -130,7 +130,7 @@ describe('Connection', () => {
         expect(querySpy.firstCall.args[1]).to.have.property('autoFetch', true);
     });
 
-    it('autoFetchToolingQuery() should call this.query with proper args', async () => {
+    it('tooling.autoFetchQuery() should call this.query with proper args', async () => {
         const records1 = [{ id: 7 }, { id: 8 }, { id: 9 }];
         const records2 = [{ id: 10 }, { id: 11 }, { id: 12 }];
         const queryResponse1 = { totalSize: 3, done: false, records: records1 };
@@ -141,7 +141,7 @@ describe('Connection', () => {
 
         const conn = await Connection.create(testAuthInfo as AuthInfo);
         const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
-        const queryResults = await conn.autoFetchToolingQuery(soql);
+        const queryResults = await conn.tooling.autoFetchQuery(soql);
 
         expect(queryResults).to.deep.equal({
             done: true,
@@ -159,7 +159,7 @@ describe('Connection', () => {
         const conn = await Connection.create(testAuthInfo as AuthInfo);
 
         try {
-            await conn.autoFetchToolingQuery('TEST_SOQL');
+            await conn.autoFetchQuery('TEST_SOQL');
             assert.fail('autoFetch query should have errored.');
         } catch (err) {
             expect(err.message).to.equal(errorMsg);
