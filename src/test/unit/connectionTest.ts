@@ -106,4 +106,63 @@ describe('Connection', () => {
         expect(jsforce.Connection.prototype.request['secondCall'].args[0]).to.deep.equal(expectedRequestInfo);
         expect(response).to.deep.equal(testResponse);
     });
+
+    it('autoFetchQuery() should call this.query with proper args', async () => {
+        const records1 = [{ id: 1 }, { id: 2 }, { id: 3 }];
+        const records2 = [{ id: 4 }, { id: 5 }, { id: 6 }];
+        const queryResponse1 = { totalSize: 3, done: false, records: records1 };
+        const queryResponse2 = { totalSize: 3, done: true, records: records2 };
+        requestMock.onSecondCall().returns(Promise.resolve(queryResponse1));
+        requestMock.onThirdCall().returns(Promise.resolve(queryResponse2));
+        const querySpy = $$.SANDBOX.spy(jsforce.Connection.prototype, 'query');
+        const soql = 'TEST_SOQL';
+
+        const conn = await Connection.create(testAuthInfo as AuthInfo);
+        const queryResults = await conn.autoFetchQuery(soql);
+
+        expect(queryResults).to.deep.equal({
+            done: true,
+            nextRecordsUrl: null,
+            totalSize: 6,
+            records: [...records1, ...records2]
+        });
+        expect(querySpy.firstCall.args[0]).to.equal(soql);
+        expect(querySpy.firstCall.args[1]).to.have.property('autoFetch', true);
+    });
+
+    it('autoFetchToolingQuery() should call this.query with proper args', async () => {
+        const records1 = [{ id: 7 }, { id: 8 }, { id: 9 }];
+        const records2 = [{ id: 10 }, { id: 11 }, { id: 12 }];
+        const queryResponse1 = { totalSize: 3, done: false, records: records1 };
+        const queryResponse2 = { totalSize: 3, done: true, records: records2 };
+        requestMock.onSecondCall().returns(Promise.resolve(queryResponse1));
+        requestMock.onThirdCall().returns(Promise.resolve(queryResponse2));
+        const soql = 'TEST_SOQL';
+
+        const conn = await Connection.create(testAuthInfo as AuthInfo);
+        const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+        const queryResults = await conn.autoFetchToolingQuery(soql);
+
+        expect(queryResults).to.deep.equal({
+            done: true,
+            nextRecordsUrl: null,
+            totalSize: 6,
+            records: [...records1, ...records2]
+        });
+        expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
+        expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
+    });
+
+    it('autoFetch() should reject the promise upon query error', async () => {
+        const errorMsg = 'QueryFailed';
+        requestMock.onSecondCall().throws(new Error(errorMsg));
+        const conn = await Connection.create(testAuthInfo as AuthInfo);
+
+        try {
+            await conn.autoFetchToolingQuery('TEST_SOQL');
+            assert.fail('autoFetch query should have errored.');
+        } catch (err) {
+            expect(err.message).to.equal(errorMsg);
+        }
+    });
 });
