@@ -8,7 +8,13 @@ import { isString, cloneDeep, maxBy } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
-import { Connection as JSForceConnection, ConnectionOptions, RequestInfo, Promise as JsforcePromise} from 'jsforce';
+import { Connection as JSForceConnection } from 'jsforce';
+import { Tooling as JSForceTooling } from 'jsforce';
+import { Promise as JsforcePromise } from 'jsforce';
+import { ConnectionOptions } from 'jsforce';
+import { RequestInfo } from 'jsforce';
+import { QueryResult } from 'jsforce';
+import { ExecuteOptions } from 'jsforce';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
 
@@ -23,6 +29,21 @@ export const SFDX_HTTP_HEADERS = {
     'content-type': 'application/json',
     'user-agent': clientId
 };
+
+// This interface is so we can add the autoFetchQuery method to both the Connection
+// and Tooling classes and get nice typing info for it within editors.  JSForce is
+// unlikely to accept a PR for this method, but that would be another approach.
+export interface Tooling extends JSForceTooling {
+    /**
+     * Executes a query and auto-fetches (i.e., "queryMore") all results.  This is especially
+     * useful with large query result sizes, such as over 2000 records.  The default maximum
+     * fetch size is 10,000 records.  Modify this via the options argument.
+     * @param {string} soql The SOQL string.
+     * @param {ExecuteOptions} options The query options.  NOTE: the autoFetch option will always be true.
+     * @returns {Promise.<QueryResult<T>>}
+     */
+    autoFetchQuery<T>(soql: string, options?: ExecuteOptions): Promise<QueryResult<T>>;
+}
 
 /**
  * Handles connections and requests to Salesforce Orgs.
@@ -70,6 +91,8 @@ export class Connection extends JSForceConnection {
         return conn;
     }
 
+    public tooling: Tooling;
+
     // We want to use 1 logger for this class and the jsForce base classes so override
     // the jsForce connection.tooling.logger and connection.logger.
     private logger: Logger;
@@ -79,6 +102,8 @@ export class Connection extends JSForceConnection {
 
     constructor(options: ConnectionOptions, authInfo: AuthInfo, logger?: Logger) {
         super(options);
+
+        this.tooling.autoFetchQuery = Connection.prototype.autoFetchQuery;
 
         this.authInfo = authInfo;
 
@@ -170,5 +195,32 @@ export class Connection extends JSForceConnection {
      */
     public getUsername(): string {
         return this.getAuthInfo().getFields().username;
+    }
+
+    /**
+     * Executes a query and auto-fetches (i.e., "queryMore") all results.  This is especially
+     * useful with large query result sizes, such as over 2000 records.  The default maximum
+     * fetch size is 10,000 records.  Modify this via the options argument.
+     * @param {string} soql The SOQL string.
+     * @param {ExecuteOptions} options The query options.  NOTE: the autoFetch option will always be true.
+     * @returns {Promise.<QueryResult<T>>}
+     */
+    public async autoFetchQuery<T>(soql: string, options: ExecuteOptions = {}): Promise<QueryResult<T>> {
+        const _options = Object.assign(options, { autoFetch: true });
+        const records: T[] = [];
+
+        this._logger.debug(`Auto-fetching query: ${soql}`);
+
+        return new Promise<QueryResult<T>>((resolve, reject) =>
+            this.query<T>(soql, _options as any) // tslint:disable-line no-any  TODO: REMOVE "as any" when connection.query() arg types are updated
+                .on('record', ((rec: T) => records.push(rec)))
+                .on('error', (err) => reject(err))
+                .on('end', () => resolve({
+                    done: true,
+                    nextRecordsUrl: null,
+                    totalSize: records.length,
+                    records
+                }))
+        );
     }
 }
