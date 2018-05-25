@@ -170,7 +170,7 @@ export class SfdxConfig extends ConfigFile {
      */
     public static getAllowedProperties(): ConfigPropertyMeta[] {
         if (!SfdxConfig.allowedProperties) {
-            throw new SfdxError('SfdxConfig meta information has not been initialized. Use SfdxConfigcreate()');
+            throw new SfdxError('SfdxConfig meta information has not been initialized. Use SfdxConfig.create()');
         }
         return SfdxConfig.allowedProperties;
     }
@@ -226,12 +226,12 @@ export class SfdxConfig extends ConfigFile {
             await this.cryptProperties(false);
             return this.getContents();
         } finally {
-            await this.clearCyrpto();
+            await this.clearCrypto();
         }
     }
 
     /**
-     * Writes SfdxConfg properties taking into account encrypted properties.
+     * Writes SfdxConfig properties taking into account encrypted properties.
      * @param {ConfigContents} newContents The new SfdxConfig value to persist.
      * @return {Promise<ConfigContents>}
      */
@@ -286,10 +286,10 @@ export class SfdxConfig extends ConfigFile {
     }
 
     /**
-     * Closes the crpto dependency. Crypto should be close after it's used and no longer needed.
+     * Closes the crypto dependency. Crypto should be close after it's used and no longer needed.
      * @return {Promise<void>}
      */
-    private async clearCyrpto(): Promise<void> {
+    private async clearCrypto(): Promise<void> {
         if (this.crypto) {
             this.crypto.close();
             delete this.crypto;
@@ -315,7 +315,7 @@ export class SfdxConfig extends ConfigFile {
      * @param {boolean} encrypt `true` to encrypt.
      * @return {Promise<void>}
      */
-    private async cryptProperties(encrypt: boolean) {
+    private async cryptProperties(encrypt: boolean): Promise<void> {
         const hasEncryptedProperties =
             _.some(this.entries(), ([key, val]) => !!SfdxConfig.propertyConfigMap[key].encrypted);
 
@@ -345,7 +345,7 @@ export const ORG_DEFAULT = {
      * List the Org defaults.
      * @returns {string[]} List of default orgs.
      */
-    list() {
+    list(): string[] {
         return [ORG_DEFAULT.DEVHUB, ORG_DEFAULT.USERNAME];
     }
 };
