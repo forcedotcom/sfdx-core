@@ -206,13 +206,13 @@ export class Connection extends JSForceConnection {
      * @returns {Promise.<QueryResult<T>>}
      */
     public async autoFetchQuery<T>(soql: string, options: ExecuteOptions = {}): Promise<QueryResult<T>> {
-        const _options = Object.assign(options, { autoFetch: true });
+        const _options: ExecuteOptions = Object.assign(options, { autoFetch: true });
         const records: T[] = [];
 
         this._logger.debug(`Auto-fetching query: ${soql}`);
 
         return new Promise<QueryResult<T>>((resolve, reject) =>
-            this.query<T>(soql, _options as any) // tslint:disable-line no-any  TODO: REMOVE "as any" when connection.query() arg types are updated
+            this.query<T>(soql, _options)
                 .on('record', ((rec: T) => records.push(rec)))
                 .on('error', (err) => reject(err))
                 .on('end', () => resolve({
