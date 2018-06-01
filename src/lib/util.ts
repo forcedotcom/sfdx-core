@@ -12,7 +12,7 @@ import * as path from 'path';
 import { promisify } from 'util';
 import { SfdxError } from './sfdxError';
 import { URL } from 'url';
-import { AnyJson } from './types';
+import { AnyJson, JsonMap, isJsonMap, isJsonArray } from './types';
 
 /**
  * Common utility methods.
@@ -88,8 +88,20 @@ export class SfdxUtil {
      * @return {Promise<AnyJson>} The contents of the file as a JSON object.
      */
     public static async readJSON(jsonPath: string, throwOnEmpty?: boolean): Promise<AnyJson> {
-        const fileData = (await SfdxUtil.readFile(jsonPath, 'utf8'));
+        const fileData = await SfdxUtil.readFile(jsonPath, 'utf8');
         return await SfdxUtil.parseJSON(fileData, jsonPath, throwOnEmpty);
+    }
+
+    /**
+     * Read a file and convert it to JSON, throwing an error if the parsed contents are not a `JsonMap`.
+     *
+     * @param {string} jsonPath The path of the file.
+     * @param {boolean} [throwOnEmpty] Whether to throw an error if the JSON file is empty.
+     * @return {Promise<JsonMap>} The contents of the file as a JSON object.
+     */
+    public static async readJSONObject(jsonPath: string, throwOnEmpty?: boolean): Promise<JsonMap> {
+        const fileData = await SfdxUtil.readFile(jsonPath, 'utf8');
+        return await SfdxUtil.parseJSONObject(fileData, jsonPath, throwOnEmpty);
     }
 
     /**
@@ -123,6 +135,47 @@ export class SfdxUtil {
         } catch (error) {
             await processJsonError(error, data, jsonPath);
         }
+    }
+
+    /**
+     * Parse JSON `string` data, expecting the result to be a `JsonMap`.
+     *
+     * @param {string} data Data to parse.
+     * @param {String} [jsonPath=unknown] The file path from which the JSON was loaded.
+     * @param {boolean} [throwOnEmpty=true] If the data contents are empty.
+     * @returns {Promise<JsonMap>}
+     * @throws {SfdxError} **`{name: 'JsonParseError'}`** If the data contents are empty.
+     * @throws {SfdxError} **`{name: 'UnexpectedJsonFileFormat'}`** If the data contents are not a `JsonMap`.
+     */
+    public static async parseJSONObject(data: string, jsonPath?: string, throwOnEmpty?: boolean): Promise<JsonMap> {
+        const json = await this.parseJSON(data, jsonPath, throwOnEmpty);
+        if (json === null || json instanceof Array || (typeof json !== 'object')) {
+            throw new SfdxError('UnexpectedJsonFileFormat');
+        }
+        return json;
+    }
+
+    /**
+     * Finds all elements of type `T` with a given name in a `JsonMap`.  Not suitable for use
+     * with object graphs containing circular references.  The specification of an appropriate
+     * type `T` that will satisfy all matching element values is the responsibility of the caller.
+     *
+     * @param {JsonMap} json The JSON object tree to search for elements of the given name.
+     * @param {string} name The name of elements to search for.
+     * @returns {T[]} An array of matching elements.
+     */
+    public static getJSONElementsByName<T extends AnyJson>(json: JsonMap, name: string): T[] {
+        let matches: T[] = [];
+        if (json.hasOwnProperty(name)) {
+            matches.push(json[name] as T); // Asserting T here assumes the caller knows what they are asking for
+        }
+        const maybeRecurse = (element: AnyJson): void => {
+            if (isJsonMap(element)) {
+                matches = matches.concat(SfdxUtil.getJSONElementsByName(element, name));
+            }
+        };
+        _.forEach(json, (value) => isJsonArray(value) ? _.forEach(value, maybeRecurse) : maybeRecurse(value));
+        return matches;
     }
 
     /**

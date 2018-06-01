@@ -1,0 +1,178 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "sfdxProjectSchema",
+  "type": "object",
+  "title": "SFDX Project",
+  "description": "The properties and shape of the SFDX project",
+  "properties": {
+    "namespace": {
+      "type": "string",
+      "title": "Namespace",
+      "description": "The project's namespace"
+    },
+    "sfdcLoginUrl": {
+      "type": "string",
+      "title": "SFDC Login URL",
+      "description": "The Salesforce Login URL"
+    },
+    "sourceApiVersion": {
+      "type": "string",
+      "title": "Source API Version",
+      "description": "The API version of the Salesforce DX-formatted source"
+    },
+    "softExit": {
+      "type": "boolean",
+      "title": "Soft Exit",
+      "description": "Enable or disable soft exit mode"
+    },
+    "enableTokenEncryption": {
+      "type": "boolean",
+      "title": "Enable Token Encryption",
+      "description": "Enable or disable token encryption"
+    },
+    "plugins": {
+      "type": "object",
+      "title": "CLI Plugins custom settings",
+      "description": "Plugins custom settings that users can set for a project.",
+      "additionalProperties": true
+    },
+    "packageDirectories": {
+      "type": "array",
+      "title": "Package Directories",
+      "description": "The list of package source directories",
+      "items": {
+        "type": "object",
+        "title": "Directory Type",
+        "description": "Package source directory type",
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path",
+            "description": "The path name of the package directory"
+          },
+          "id": {
+            "type": "string",
+            "title": "ID",
+            "description": "ID of the package2 for the source directory (starts with 0Ho)"
+          },
+          "versionName": {
+            "type": "string",
+            "title": "Version Name",
+            "description": "The package version name."
+          },
+          "versionDescription": {
+            "type": "string",
+            "title": "Version Description",
+            "description": "The package version description"
+          },
+          "versionNumber": {
+            "type": "string",
+            "title": "Version Number",
+            "description": "The package version number: Major.Minor.Patch.Build"
+          },
+          "ancestorId": {
+            "type": "string",
+            "title": "Ancestor ID",
+            "description": "The package2 version ancestor ID (starts with 05i)"
+          },
+          "ancestorVersion": {
+            "type": "string",
+            "title": "Ancestor Version",
+            "description": "The package2 ancestor version number."
+          },
+          "default": {
+            "type": "boolean",
+            "title": "Default",
+            "description": "Enable / disable this package directory as default"
+          },
+          "features": {
+            "type": "string",
+            "title": "Features",
+            "description": "The list of feature names to enable"
+          },
+          "orgPreferences": {
+            "type": "object",
+            "title": "Org Preferences",
+            "description": "The list of org preferences",
+            "properties": {
+              "enabled": {
+                "type": "array",
+                "title": "Enabled Org Preferences",
+                "description": "The list of org preferences to enable",
+                "items": {
+                  "type": "string",
+                  "title": "Org Preference Name",
+                  "description": "Name of the org preference to enable"
+                }
+              },
+              "disabled": {
+                "type": "array",
+                "title": "Disabled Org Preferences",
+                "description": "The list of org preferences to disable",
+                "items": {
+                  "type": "string",
+                  "title": "Org Preference Name",
+                  "description": "Name of the org preference to disable"
+                }
+              }
+            }
+          },
+          "dependencies": {
+            "type": "array",
+            "title": "Dependencies",
+            "description": "The list of package dependencies",
+            "items": {
+              "title": "Dependency",
+              "description": "Dependency packageId & versionNumber or subscriberPackageVersionId",
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "packageId": {
+                      "type": "string",
+                      "title": "Package ID",
+                      "description": "The dependency package2 ID (starts with 0Ho)"
+                    },
+                    "versionNumber": {
+                      "type": "string",
+                      "title": "Version Number",
+                      "description": "The dependency version number"
+                    }
+                  },
+                  "required": [
+                    "packageId",
+                    "versionNumber"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "subscriberPackageVersionId": {
+                      "type": "string",
+                      "title": "Subscriber Package Version ID",
+                      "description": "The dependency subscriber package version ID (starts with 04t)"
+                    }
+                  },
+                  "required": [
+                    "subscriberPackageVersionId"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required" : [
+          "path",
+          "id",
+          "versionName",
+          "versionNumber"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "sfdcLoginUrl"
+  ]
+}

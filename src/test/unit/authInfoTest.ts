@@ -811,7 +811,7 @@ describe('AuthInfo', () => {
             expect(authInfo.getUsername()).to.equal(username);
 
             // reset the AuthInfo.update stub so we only look at what happens with AuthInfo.save().
-            AuthInfo.prototype.update['reset']();
+            AuthInfo.prototype.update['resetHistory']();
 
             // Save new fields
             const changedData = { accessToken: testMetadata.accessToken };
