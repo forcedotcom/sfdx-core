@@ -96,7 +96,7 @@ class JwtOAuth2 extends OAuth2 {
     }
 
     public async jwtAuthorize(innerToken: string, callback?): Promise<any> { // tslint:disable-line:no-any
-        return super._postParams({
+        return super['_postParams']({
             grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             assertion: innerToken
         }, callback);
@@ -144,7 +144,7 @@ class AuthCodeOAuth2 extends OAuth2 {
     // tslint:disable-next-line:no-unused-variable
     protected async _postParams(params, callback) {
         _.set(params, 'code_verifier', this.codeVerifier);
-        return super._postParams(params, callback);
+        return super['_postParams'](params, callback);
     }
 }
 

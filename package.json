@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "0.16.13",
+  "version": "0.16.15",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "dist/exported",
   "license": "BSD-3-Clause",
@@ -36,13 +36,13 @@
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "chalk": "2.4.0",
     "cli-ux": "3.3.25",
-    "jsforce": "1.8.0",
+    "jsforce": "1.8.4",
     "jsonwebtoken": "7.0.0",
     "lodash": "4.17.4",
     "mkdirp": "0.5.1"
   },
   "devDependencies": {
-    "@types/jsforce": "1.8.9",
+    "@types/jsforce": "1.8.12",
     "@salesforce/dev-config": "1.0.4",
     "@types/chai": "4.0.4",
     "@types/lodash": "4.14.88",
