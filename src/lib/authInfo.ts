@@ -202,7 +202,7 @@ let authInfoCrypto: AuthInfoCrypto;
 
 class AuthInfoCrypto extends Crypto {
     public static async create(): Promise<AuthInfoCrypto> {
-        return await new AuthInfoCrypto().init() as AuthInfoCrypto;
+        return await new AuthInfoCrypto().init(undefined, undefined, true) as AuthInfoCrypto;
     }
 
     private static readonly encryptedFields = ['accessToken', 'refreshToken', 'password', 'clientSecret'];

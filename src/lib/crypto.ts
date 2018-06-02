@@ -13,11 +13,12 @@ import { Logger } from './logger';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { retrieveKeychain } from './keyChain';
+import { SecureString } from './secureString';
 
 const TAG_DELIMITER = ':';
 const BYTE_COUNT_FOR_IV = 6;
 const _algo = 'aes-256-gcm';
-let _key = null;
+const _key: SecureString<string> = new SecureString();
 
 const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
@@ -33,7 +34,7 @@ const keychainPromises = {
      * @param service The keychain service name.
      * @param account The keychain account name.
      */
-    getPassword(_keychain, service, account) {
+    getPassword(_keychain, service, account): Promise<{username: string, password: string}> {
         return new Promise((resolve, reject) =>
             _keychain.getPassword({ service, account }, (err, password) => {
                 if (err) {
@@ -69,6 +70,7 @@ export class Crypto {
     }
 
     private messages: Messages;
+    private noResetOnClose: boolean;
 
     constructor(private keyChain?) { }
 
@@ -78,7 +80,7 @@ export class Crypto {
      * @param retryStatus A string message to track retries.
      * @returns {Promise<Crypto>}
      */
-    public async init(retryStatus?: string, platform?: string): Promise<Crypto> {
+    public async init(retryStatus?: string, platform?: string, noResetOnClose: boolean = false): Promise<Crypto> {
         const logger = await Logger.child('crypto');
 
         if (!platform) {
@@ -88,11 +90,10 @@ export class Crypto {
         logger.debug(`retryStatus: ${retryStatus}`);
 
         this.messages = Messages.loadMessages('@salesforce/core', 'encryption');
+        this.noResetOnClose = noResetOnClose;
 
         try {
-            let savedKey = await keychainPromises.getPassword(await this.getKeyChain(platform), KEY_NAME, ACCOUNT);
-            _key = savedKey['password'];
-            savedKey = null;
+            _key.consume(Buffer.from((await keychainPromises.getPassword(await this.getKeyChain(platform), KEY_NAME, ACCOUNT)).password, 'utf8'));
             return this;
         } catch (err) {
             // No password found
@@ -133,13 +134,16 @@ export class Crypto {
         }
 
         const iv = crypto.randomBytes(BYTE_COUNT_FOR_IV).toString('hex');
-        const cipher = crypto.createCipheriv(_algo, _key, iv);
 
-        let encrypted = cipher.update(text, 'utf8', 'hex');
-        encrypted += cipher.final('hex');
+        return _key.value((buffer: Buffer): string => {
+            const cipher = crypto.createCipheriv(_algo, buffer.toString('utf8'), iv);
 
-        const tag = cipher.getAuthTag().toString('hex');
-        return `${iv}${encrypted}${TAG_DELIMITER}${tag}`;
+            let encrypted = cipher.update(text, 'utf8', 'hex');
+            encrypted += cipher.final('hex');
+
+            const tag = cipher.getAuthTag().toString('hex');
+            return `${iv}${encrypted}${TAG_DELIMITER}${tag}`;
+        });
     }
 
     /**
@@ -165,22 +169,26 @@ export class Crypto {
         const iv = tokens[0].substring(0, (BYTE_COUNT_FOR_IV * 2));
         const secret = tokens[0].substring((BYTE_COUNT_FOR_IV * 2), tokens[0].length);
 
-        const decipher = crypto.createDecipheriv(_algo, _key, iv);
+        return _key.value((buffer: Buffer) => {
+            const decipher = crypto.createDecipheriv(_algo, buffer.toString('utf8'), iv);
 
-        let dec;
-        try {
-            decipher.setAuthTag(Buffer.from(tag, 'hex'));
-            dec = decipher.update(secret, 'hex', 'utf8');
-            dec += decipher.final('utf8');
-        } catch (e) {
-            const errMsg = this.messages.getMessage('AuthDecryptError', [e.message]);
-            throw new SfdxError(errMsg, 'AuthDecryptError');
-        }
-        return dec;
+            let dec;
+            try {
+                decipher.setAuthTag(Buffer.from(tag, 'hex'));
+                dec = decipher.update(secret, 'hex', 'utf8');
+                dec += decipher.final('utf8');
+            } catch (e) {
+                const errMsg = this.messages.getMessage('AuthDecryptError', [e.message]);
+                throw new SfdxError(errMsg, 'AuthDecryptError');
+            }
+            return dec;
+        });
     }
 
     public close(): void {
-        _key = null;
+        if (!this.noResetOnClose) {
+            _key.clear();
+        }
     }
 
     private async getKeyChain(platform: string) {
