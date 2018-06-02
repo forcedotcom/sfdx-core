@@ -18,7 +18,6 @@ import { SecureString } from './secureString';
 const TAG_DELIMITER = ':';
 const BYTE_COUNT_FOR_IV = 6;
 const _algo = 'aes-256-gcm';
-const _key: SecureString<string> = new SecureString();
 
 const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
@@ -71,6 +70,7 @@ export class Crypto {
 
     private messages: Messages;
     private noResetOnClose: boolean;
+    private _key: SecureString<string> = new SecureString();
 
     constructor(private keyChain?) { }
 
@@ -93,7 +93,7 @@ export class Crypto {
         this.noResetOnClose = noResetOnClose;
 
         try {
-            _key.consume(Buffer.from((await keychainPromises.getPassword(await this.getKeyChain(platform), KEY_NAME, ACCOUNT)).password, 'utf8'));
+            this._key.consume(Buffer.from((await keychainPromises.getPassword(await this.getKeyChain(platform), KEY_NAME, ACCOUNT)).password, 'utf8'));
             return this;
         } catch (err) {
             // No password found
@@ -128,14 +128,14 @@ export class Crypto {
             return undefined;
         }
 
-        if (isNil(_key)) {
+        if (isNil(this._key)) {
             const errMsg = this.messages.getMessage('KeychainPasswordCreationError');
             throw new SfdxError(errMsg, 'KeychainPasswordCreationError');
         }
 
         const iv = crypto.randomBytes(BYTE_COUNT_FOR_IV).toString('hex');
 
-        return _key.value((buffer: Buffer): string => {
+        return this._key.value((buffer: Buffer): string => {
             const cipher = crypto.createCipheriv(_algo, buffer.toString('utf8'), iv);
 
             let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -169,7 +169,7 @@ export class Crypto {
         const iv = tokens[0].substring(0, (BYTE_COUNT_FOR_IV * 2));
         const secret = tokens[0].substring((BYTE_COUNT_FOR_IV * 2), tokens[0].length);
 
-        return _key.value((buffer: Buffer) => {
+        return this._key.value((buffer: Buffer) => {
             const decipher = crypto.createDecipheriv(_algo, buffer.toString('utf8'), iv);
 
             let dec;
@@ -187,7 +187,7 @@ export class Crypto {
 
     public close(): void {
         if (!this.noResetOnClose) {
-            _key.clear();
+            this._key.clear();
         }
     }
 
