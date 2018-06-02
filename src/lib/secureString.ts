@@ -4,7 +4,7 @@ const cipherName: string =  'aes256';
 const cipherSize: number = 32;
 
 /**
- * Used to store and retrieve a secret string value.
+ * Used to store and retrieve a SecretStrings in memory.
  *
  * Usage:
  *
