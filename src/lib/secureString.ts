@@ -5,8 +5,7 @@ const cipherSize: number = 32;
 
 /**
  * Used to store and retrieve a SecretStrings in memory.
- *
- * Usage:
+ * @example
  *
  * const sString: SecureString<string> = new SecureString();
  * sString.consume(secretTextBuffer);
@@ -25,10 +24,10 @@ export class SecureString <T> {
 
     /**
      * Invokes a callback with a decrypted version of the string.
-     * @param {(buffer: Buffer) => T} cb - The callback with the decrypted buffer parameters that returns a desired
-     * typed. It's important to understand that once the callback goes out of scope the buffer is overwritten with
+     * @param {DecipherCallback} cb - The callback containing the decrypted buffer parameter that returns a desired
+     * typed object. It's important to understand that once the callback goes out of scope the buffer is overwritten with
      * random data. Do not make a copy of this object and persist it!
-     * @return {T} - The intended type of the object to return. This is implementation specific.
+     * @return T - The value of the callback
      */
     public value(cb: (buffer: Buffer) => T): T   {
         if (cb) {
@@ -45,6 +44,12 @@ export class SecureString <T> {
             }
         }
     }
+
+    /**
+     * @callback DecipherCallback
+     * @param {Buffer} buffer - A buffer containing the decrypted secret.
+     * @returns T - The intended type of the object to return. This is implementation specific.
+     */
 
     /**
      * Overwrites the value of the encrypted secret with random data.
