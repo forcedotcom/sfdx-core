@@ -22,6 +22,11 @@ const _algo = 'aes-256-gcm';
 const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
 
+interface CredType {
+    username: string;
+    password: string;
+}
+
 /**
  * osxKeyChain promise wrapper.
  * @type {{get: KeychainPromises.get, set: KeychainPromises.set}}
@@ -33,7 +38,7 @@ const keychainPromises = {
      * @param service The keychain service name.
      * @param account The keychain account name.
      */
-    getPassword(_keychain, service, account): Promise<{username: string, password: string}> {
+    getPassword(_keychain, service, account): Promise<CredType> {
         return new Promise((resolve, reject) =>
             _keychain.getPassword({ service, account }, (err, password) => {
                 if (err) {
@@ -50,7 +55,7 @@ const keychainPromises = {
      * @param account The keychain account name.
      * @param password The password for the keychain item.
      */
-    setPassword(_keychain, service, account, password) {
+    setPassword(_keychain, service, account, password): Promise<CredType> {
         return new Promise( (resolve, reject) =>
             _keychain.setPassword({ service, account, password }, (err) => {
                 if (err) {
