@@ -1,13 +1,13 @@
-import { SecureString } from '../../lib/secureString';
+import { SecureBuffer } from '../../lib/secureBuffer';
 import { expect } from 'chai';
 
-describe('secureString', async () => {
+describe('secureBuffer', async () => {
     const secretText: string = 'FOO';
     const testReturnValue = 'BAR';
     const secretTextBuffer: Buffer = Buffer.from(secretText, 'utf8');
 
-    it('validate consuming a string buffer encrypting and decrypting', () => {
-        const sString: SecureString<string> = new SecureString();
+    it('validate consuming a buffer - encrypting and decrypting', () => {
+        const sString: SecureBuffer<string> = new SecureBuffer();
         sString.consume(secretTextBuffer);
         const value: string = sString.value((buffer: Buffer): string => {
             expect(buffer.toString('utf8')).to.be.equal(secretText);
@@ -18,7 +18,7 @@ describe('secureString', async () => {
     });
 
     it('falsy value', () => {
-        const sString: SecureString<string> = new SecureString();
+        const sString: SecureBuffer<string> = new SecureBuffer();
         sString.consume(null);
         const value: string = sString.value((buffer: Buffer) => {
             expect(buffer.toString('utf8')).to.be.equal('');
@@ -28,13 +28,13 @@ describe('secureString', async () => {
     });
 
     it('falsy callback', () => {
-        const sString: SecureString<string> = new SecureString();
+        const sString: SecureBuffer<string> = new SecureBuffer();
         sString.consume(secretTextBuffer);
         sString.value(null);
     });
 
-    it ('test clearing the secret string', () => {
-        const sString: SecureString<void> = new SecureString();
+    it ('test clearing the secret buffer', () => {
+        const sString: SecureBuffer<void> = new SecureBuffer();
         sString.consume(secretTextBuffer);
         sString.clear();
         sString.value((buffer: Buffer) => {

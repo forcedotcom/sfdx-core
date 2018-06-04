@@ -4,10 +4,10 @@ const cipherName: string =  'aes256';
 const cipherSize: number = 32;
 
 /**
- * Used to store and retrieve a SecretStrings in memory.
+ * Used to store and retrieve a sensitive information in memory. This is not meant for at rest encryption.
  * @example
  *
- * const sString: SecureString<string> = new SecureString();
+ * const sString: SecureBuffer<string> = new SecureBuffer();
  * sString.consume(secretTextBuffer);
  * const value: string = sString.value((buffer: Buffer): string => {
  *     const password: string = buffer.toString('utf8');
@@ -17,17 +17,17 @@ const cipherSize: number = 32;
  * });
  *
  */
-export class SecureString <T> {
+export class SecureBuffer <T> {
     private secret: Buffer;
     private key = crypto.randomBytes(cipherSize);
     private iv = crypto.randomBytes(16);
 
     /**
-     * Invokes a callback with a decrypted version of the string.
+     * Invokes a callback with a decrypted version of the buffer.
      * @param {DecipherCallback} cb - The callback containing the decrypted buffer parameter that returns a desired
-     * typed object. It's important to understand that once the callback goes out of scope the buffer is overwritten with
-     * random data. Do not make a copy of this object and persist it!
-     * @return T - The value of the callback
+     * typed object. It's important to understand that once the callback goes out of scope the buffer parameters is
+     * overwritten with random data. Do not make a copy of this buffer and persist it!
+     * @return T - The value of the callback of type T
      */
     public value(cb: (buffer: Buffer) => T): T   {
         if (cb) {

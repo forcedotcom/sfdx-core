@@ -13,7 +13,7 @@ import { Logger } from './logger';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { retrieveKeychain } from './keyChain';
-import { SecureString } from './secureString';
+import { SecureBuffer } from './secureBuffer';
 
 const TAG_DELIMITER = ':';
 const BYTE_COUNT_FOR_IV = 6;
@@ -70,7 +70,7 @@ export class Crypto {
 
     private messages: Messages;
     private noResetOnClose: boolean;
-    private _key: SecureString<string> = new SecureString();
+    private _key: SecureBuffer<string> = new SecureBuffer();
 
     constructor(private keyChain?) { }
 
