@@ -107,8 +107,8 @@ export class SchemaValidator {
     /**
      * Load another schema relative to the primary schema when referenced.  Only supports local schema URIs.
      *
-     * @param {string} uri The first segment of the $ref schema
-     * @param {function} callback The callback when the external schema is loaded
+     * @param {string} uri The first segment of the $ref schema.
+     * @param {function} callback The callback when the external schema is loaded.
      * @return {Promise<JsonMap>}
      * @private
      */
