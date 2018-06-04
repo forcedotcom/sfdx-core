@@ -7,7 +7,7 @@
 
 import * as path from 'path';
 import * as validator from 'jsen';
-import { JsenValidator, JsenValidateError } from 'jsen';
+import { JsenValidateError } from 'jsen';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
 import { AnyJson, JsonMap, Dictionary } from './types';
@@ -24,10 +24,10 @@ export class SchemaValidator {
     private schema: JsonMap;
 
     /**
-     * TODO
+     * Creates a new `SchemaValidator` instance given a logger and path to a schema file.
      *
-     * @param {Logger} logger
-     * @param {string} schemaPath
+     * @param {Logger} logger An {@link SfdxLogger} instance on which to base this class's logger.
+     * @param {string} schemaPath The path from which the schema with which to validate should be loaded.
      */
     public constructor(logger: Logger, private schemaPath: string) {
         this.logger = logger.child('SchemaValidator');
@@ -85,6 +85,7 @@ export class SchemaValidator {
      *
      * @param {JsonMap} schema The main schema to validate against.
      * @returns {Promise<Dictionary<JsonMap>>} A map of external schema local URIs to loaded schema JSON objects.
+     * @private
      */
     private async loadExternalSchemas(schema: JsonMap): Promise<Dictionary<JsonMap>> {
         const externalSchemas: Dictionary<JsonMap> = {};
@@ -109,6 +110,7 @@ export class SchemaValidator {
      * @param {string} uri The first segment of the $ref schema
      * @param {function} callback The callback when the external schema is loaded
      * @return {Promise<JsonMap>}
+     * @private
      */
     private async loadExternalSchema(uri: string): Promise<JsonMap> {
         const schemaPath = path.join(this.schemasDir, `${uri}.json`);
@@ -128,6 +130,7 @@ export class SchemaValidator {
      * @param {array} errors An array of JsenValidateError objects.
      * @param {JsonMap} schema The validation schema.
      * @return {string}
+     * @private
      */
     private getErrorsText(errors: JsenValidateError[], schema: JsonMap): string {
         return errors.map((error) => {
@@ -147,7 +150,7 @@ export class SchemaValidator {
 
             switch (error.keyword) {
                 case 'additionalProperties':
-                    // tslint:disable-next-line:no-any
+                    // tslint:disable-next-line:no-any because @types/jsen lacks a declaration for `additionalProperties`
                     return `${error.path} should NOT have additional properties '${(error as any).additionalProperties}'`;
                 case 'required':
                     if (property) {
@@ -155,7 +158,6 @@ export class SchemaValidator {
                     }
                     return `should have required property '${error.path}'`;
                 case 'oneOf':
-                    // TODO Could probably be a better message
                     return `${error.path} should match exactly one schema in oneOf`;
                 case 'enum':
                     return `${error.path} should be equal to one of the allowed values ${getEnumValues()}`;
