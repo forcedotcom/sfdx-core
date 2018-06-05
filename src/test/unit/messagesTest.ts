@@ -50,14 +50,23 @@ describe('Messages', () => {
                 Messages.importMessageFile('package name', 'myPluginMessages.txt');
                 assert.fail('should have thrown an error that only json files are allowed.');
             } catch (err) {
-                expect(err.message).to.contain('Only json message files are allowed, not .txt');
+                expect(err.message).to.contain('Only json and js message files are allowed, not .txt');
             }
         });
 
-        it('should add the message file to the map of loaders', () => {
+        it('should add the json message file to the map of loaders', () => {
             const loaderSetStub = $$.SANDBOX.stub(Messages, 'setLoaderFunction');
             $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
             Messages.importMessageFile('package name', 'myPluginMessages.json');
+            expect(loaderSetStub.firstCall.args[0]).to.equal('package name');
+            expect(loaderSetStub.firstCall.args[1]).to.equal('myPluginMessages');
+            expect(loaderSetStub.firstCall.args[2]).to.equal('loaderFunction');
+        });
+
+        it('should add the js message file to the map of loaders', () => {
+            const loaderSetStub = $$.SANDBOX.stub(Messages, 'setLoaderFunction');
+            $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
+            Messages.importMessageFile('package name', 'myPluginMessages.js');
             expect(loaderSetStub.firstCall.args[0]).to.equal('package name');
             expect(loaderSetStub.firstCall.args[1]).to.equal('myPluginMessages');
             expect(loaderSetStub.firstCall.args[2]).to.equal('loaderFunction');
@@ -96,7 +105,7 @@ describe('Messages', () => {
                 if (!statPath.match(/messages/) && statPath !== `${truncatePath}${path.sep}package.json`) { throw truncateErr; }
                 return { isDirectory: () => false, isFile: () => true };
             });
-            $$.SANDBOX.stub(Messages, '_readFile').returns('{"name": "pname"}');
+            $$.SANDBOX.stub(Messages, '_readFile').returns({name: 'pname'});
         });
 
         it('should import each message file', () => {
@@ -144,7 +153,8 @@ describe('Messages', () => {
                 await loaderFn(Messages.getLocale());
                 assert.fail('should have thrown an error that the message file was not found.');
             } catch (err) {
-                expect(err.message).to.equal('ENOENT: no such file or directory, open \'myPluginMessages.json\'');
+                expect(err.message).to.contain('Cannot find module');
+                expect(err.message).to.contain('myPluginMessages.json');
             }
         });
 
@@ -169,14 +179,14 @@ describe('Messages', () => {
                 loaderFn(Messages.getLocale());
                 assert.fail('should have thrown an error that the file not valid JSON.');
             } catch (err) {
-                expect(err.name).to.equal('SyntaxError');
-                expect(err.message).to.equal('Invalid JSON content in message file: myPluginMessages.json\nUnexpected token k in JSON at position 0');
+                expect(err.name).to.equal('Error');
+                expect(err.message).to.equal('Found returned content type \'string\'. Check file.');
             }
         });
 
         it('should return a Messages object', () => {
             const loaderFn = Messages.generateFileLoaderFunction('myBundleName', 'myPluginMessages.json');
-            $$.SANDBOX.stub(Messages, '_readFile').returns(JSON.stringify(testMessages));
+            $$.SANDBOX.stub(Messages, '_readFile').returns(testMessages);
             const messages = loaderFn(Messages.getLocale());
             expect(messages).to.have.property('bundleName', 'myBundleName');
             expect(messages).to.have.property('locale', Messages.getLocale());

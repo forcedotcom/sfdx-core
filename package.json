@@ -36,6 +36,7 @@
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "chalk": "2.4.0",
     "cli-ux": "3.3.25",
+    "debug": "3.1.0",
     "jsforce": "1.8.4",
     "jsonwebtoken": "7.0.0",
     "lodash": "4.17.4",
