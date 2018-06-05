@@ -87,6 +87,7 @@ import * as _ from 'lodash';
 import { Global, Mode } from './global';
 import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
+import * as createDebugUtil from 'debug';
 
 export type Serializer = (input: any) => any; // tslint:disable-line:no-any
 
@@ -190,6 +191,34 @@ export class Logger {
         if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && Global.getEnvironmentMode() !== Mode.TEST) {
             await this.rootLogger.addLogFileStream(Global.LOG_FILE_PATH);
         }
+
+        // The debug library does this for you, but no point setting up the stream if it isn't there
+        if (process.env.DEBUG) {
+            const debuggers = {};
+
+            debuggers['core'] = createDebugUtil(`${this.rootLogger.getName()}:core`);
+
+            this.rootLogger.addStream({
+                name: 'debug',
+                stream: new Writable({
+                    write: (chunk, encoding, next) => {
+                        const json = JSON.parse(chunk.toString());
+                        let debuggerName = 'core';
+                        if (json['log']) {
+                            debuggerName = json['log'];
+                            if (!debuggers[debuggerName]) {
+                                debuggers[debuggerName] = createDebugUtil(`${this.rootLogger.getName()}:${debuggerName}`);
+                            }
+                        }
+                        debuggers[debuggerName](`${LoggerLevel[json.level]} ${json.msg}`);
+                        next();
+                      }
+                }),
+                // Consume all levels
+                level: 0
+            });
+        }
+
         return this.rootLogger;
     }
 

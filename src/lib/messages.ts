@@ -15,6 +15,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as path from 'path';
 import * as _ from 'lodash';
+import { AnyJson, JsonMap } from './types';
 
 class Key {
     constructor(private packageName, private bundleName) {}
@@ -36,9 +37,9 @@ class Key {
  * application startup. The functions can load from memory, a file, or a server.
  *
  * In the beginning of your app or file, add the loader functions to be used later. If using
- * json files in a root messages directory (`<moduleRoot>/messages`), load the entire directory
- * automatically with {@link Messages.importMessagesDirectory}. Message files must be in `.json`
- * with **only** top level key-value pairs. The values support
+ * json or js files in a root messages directory (`<moduleRoot>/messages`), load the entire directory
+ * automatically with {@link Messages.importMessagesDirectory}. Message files must be in `.json` or `.js`
+ * that exports a json object with **only** top level key-value pairs. The values support
  * [util.format](https://nodejs.org/api/util.html#util_util_format_format_args) style strings
  * that apply the tokens passed into {@link Message.getMessage}
  *
@@ -70,7 +71,11 @@ class Key {
 export class Messages {
     // Internal readFile. Exposed for unit testing. Do not use sfdxUtil.readFile as messages.js
     // should have no internal dependencies.
-    public static _readFile = fs.readFileSync;
+    public static _readFile = (filePath: string): AnyJson => {
+        // Not quite sure why we need to append the current working directory, but we get
+        // Cannot find module './package.json' without it.
+        return require(path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath));
+    }
 
     /**
      * Get the locale. This will always return 'en_US' but will return the
@@ -109,12 +114,11 @@ export class Messages {
      */
     public static generateFileLoaderFunction(bundleName: string, filePath: string): (locale: string) => Messages {
         return (locale: string): Messages => {
+            // Anything can be returned by a js file, so stringify the results to ensure valid json is returned.
+            const fileContents: string = JSON.stringify(this._readFile(filePath));
 
-            const fileContents: string = this._readFile(filePath, 'utf8');
-
-            // If the file is empty throw an error that is clearer than "Unexpected end of JSON input",
-            // which is what JSON.parse throws.
-            if (!fileContents || _.isEmpty(_.trim(fileContents))) {
+            // If the file is empty, JSON.stringify will turn it into "" which will validate on parse, so throw.
+            if (!fileContents || fileContents === 'null' || fileContents === '""') {
                 const error = new Error(`Invalid message file: ${filePath}. No content.`);
                 error.name = 'SfdxError';
                 throw error;
@@ -124,6 +128,11 @@ export class Messages {
 
             try {
                 json = JSON.parse(fileContents);
+
+                if (!_.isObject(json)) {
+                    // Bubble up
+                    throw new Error(`Unexpected token. Found returned content type '${typeof json}'.`);
+                }
             } catch (err) {
                 // Provide a nicer error message for a common JSON parse error; Unexpected token
                 if (err.message.startsWith('Unexpected token')) {
@@ -152,10 +161,10 @@ export class Messages {
      * @param {string} filePath The path of the file.
      */
     public static importMessageFile(packageName: string, filePath: string): void {
-        if (path.extname(filePath) !== '.json') {
-            throw new Error(`Only json message files are allowed, not ${path.extname(filePath)}`);
+        if (path.extname(filePath) !== '.json' && path.extname(filePath) !== '.js') {
+            throw new Error(`Only json and js message files are allowed, not ${path.extname(filePath)}`);
         }
-        const bundleName = path.basename(filePath, '.json');
+        const bundleName = path.basename(filePath, path.extname(filePath));
 
         if (!this.isCached(packageName, bundleName)) {
             this.setLoaderFunction(packageName, bundleName, Messages.generateFileLoaderFunction(bundleName, filePath));
@@ -163,7 +172,7 @@ export class Messages {
     }
 
     /**
-     * Import all json files in a messages directory. Use the file name as the bundle key when
+     * Import all json and js files in a messages directory. Use the file name as the bundle key when
      * {@link Messages.loadMessages} is called. By default, we're assuming the moduleDirectoryPart is a
      * typescript project and will truncate to root path (where the package.json file is). If your messages
      * directory is in another spot or you are not using typescript, pass in false for truncateToProjectPath.
@@ -197,9 +206,9 @@ export class Messages {
 
         if (!packageName) {
             try {
-                packageName = JSON.parse(this._readFile(`${moduleMessagesDirPath}${path.sep}package.json`, 'utf8')).name;
+                packageName = (this._readFile(path.join(moduleMessagesDirPath, 'package.json')) as JsonMap).name as string;
             } catch (err) {
-                const error = new Error(`Invalid or missing package.json file at ${moduleMessagesDirPath}. If not using a package.json, pass in a packageName.\n${err.message}`);
+                const error = new Error(`Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.\n${err.message}`);
                 error.name = 'MissingPackageName';
                 throw error;
             }
