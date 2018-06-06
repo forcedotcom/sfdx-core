@@ -254,29 +254,29 @@ export class UX {
      * stream output is enabled.
      *
      * @param {object[]} rows The rows of data to be output in table format.
-     * @param {Partial<SfdxTableOptions>} options The {@link SfdxTableOptions} to use for formatting.
+     * @param {SfdxTableOptions} options The {@link SfdxTableOptions} to use for formatting.
      * @returns {UX}
      */
-    public table(rows: any[], options: Partial<SfdxTableOptions> = {}): UX { // tslint:disable-line:no-any
+    public table(rows: any[], options: SfdxTableOptions = {}): UX { // tslint:disable-line:no-any
         if (this.isOutputEnabled) {
-            options = (_.isArray(options) ? { columns: options } : options) as Partial<TableOptions>;
-            const columns = _.get(options, 'columns');
+            const tableOptions = _.isArray(options) ? { columns: options } : options;
+            const columns = _.get(tableOptions, 'columns');
             if (columns) {
                 const _columns: Array<Partial<TableColumn>> = [];
                 // Unfortunately, have to use _.forEach rather than _.map here because lodash typings
                 // don't like the possibility of 2 different iterator types.
                 _.forEach(columns, (col) => {
                     if (_.isString(col)) {
-                        _columns.push({ key: col, label: _.toUpper(col) } as Partial<TableColumn>);
+                        _columns.push({ key: col, label: _.toUpper(col) });
                     } else {
                         // default to uppercase labels for consistency but allow overriding
                         // if already defined for the column config.
-                        _columns.push(Object.assign({ label: _.toUpper(col['key']) }, col) as Partial<TableColumn>);
+                        _columns.push(Object.assign({ label: _.toUpper(col['key']) }, col));
                     }
                 });
-                options.columns = _columns as Array<Partial<TableColumn>>;
+                tableOptions.columns = _columns;
             }
-            this.cli.table(rows, options as Partial<TableOptions>);
+            this.cli.table(rows, tableOptions);
         }
 
         // Log after table output as log filtering mutates data.
@@ -337,7 +337,7 @@ export class UX {
  * more simply just a string array in the simple cases where table header values
  * are the only desired config option.
  */
-export type SfdxTableOptions = TableOptions | string[];
+export type SfdxTableOptions = Partial<TableOptions> | string[];
 
 /**
  * A deprecation warning message configuration type.  A typical instance can pass `name`,

@@ -40,7 +40,7 @@ describe('Alias', () => {
             const aliases = await Aliases.retrieve<Aliases>();
             aliases.set(key, value);
             await aliases.write();
-            expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
+            expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
             expect($$.configStubs['Aliases'].contents).to.deep.equal({
                 orgs: { test: 'val' }
             });
@@ -58,7 +58,7 @@ describe('Alias', () => {
             const aliases = await Aliases.retrieve<Aliases>();
             aliases.unsetAll(keyArray);
             await aliases.write();
-            expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
+            expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
             expect($$.configStubs['Aliases'].contents).to.deep.equal({
                 orgs: { test2: 'val' }
             });
@@ -69,7 +69,7 @@ describe('Alias', () => {
         describe('passes the right values to FileKeyValueStore#updateValues', () => {
             it('for one value', async () => {
                 await Aliases.parseAndUpdate(['another=val']);
-                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
+                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
                 expect($$.configStubs['Aliases'].contents).to.deep.equal({
                     orgs: { another: 'val' }
                 });
@@ -77,7 +77,7 @@ describe('Alias', () => {
 
             it('for two of same value', async () => {
                 await Aliases.parseAndUpdate(['another=val', 'some=val']);
-                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
+                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
                 expect($$.configStubs['Aliases'].contents).to.deep.equal({ orgs: {
                     another: 'val',
                     some: 'val'

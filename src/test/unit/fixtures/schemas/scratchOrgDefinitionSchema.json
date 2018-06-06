@@ -1,0 +1,50 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "scratchOrgDefinitionSchema",
+    "type": "object",
+    "title": "Scratch Org Definition",
+    "description": "The properties and shape of the scratch org to be created",
+    "properties": {
+        "Company": {
+            "type": "string",
+            "title": "Company",
+            "description": "The org's company name"
+        },
+        "Country": {
+            "type": "string",
+            "title": "Country",
+            "description": "The org's country"
+        },
+        "LastName": {
+            "type": "string",
+            "title": "Last Name",
+            "description": "The org's admin user's last name"
+        },
+        "Email": {
+            "type": "string",
+            "title": "Signup Email",
+            "description": "The org's signup email"
+        },
+        "Username": {
+            "type": "string",
+            "title": "Username",
+            "description": "The org's admin user's username"
+        },
+        "Edition": {
+            "type": "string",
+            "title": "Edition",
+            "description": "The org's edition; i.e. Developer, Enterprise, etc."
+        },
+        "OrgPreferences": {
+            "type": "object",
+            "title": "Org Preferences",
+            "description": "The org's preferences"
+        },
+        "Features": {
+            "type": "string",
+            "title": "Features",
+            "description": "The org's features"
+        }
+    },
+    "additionalProperties": false
+}
