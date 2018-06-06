@@ -148,10 +148,10 @@ function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Prom
  *  });
  * });
  */
-export const testSetup = once((sandbox?) => {
-    if (!sandbox) {
+export const testSetup = once((sinon?) => {
+    if (!sinon) {
         try {
-            sandbox = require('sinon').sandbox;
+            sinon = require('sinon');
         } catch (e) {
             throw new Error('The package sinon was not found. Add it to your package.json and pass it in to testSetup(sinon.sandbox)');
         }
@@ -161,14 +161,14 @@ export const testSetup = once((sandbox?) => {
     // Messages.importMessagesDirectory(pathJoin(__dirname, '..', '..'));
     Messages.importMessagesDirectory(pathJoin(__dirname));
     // Create a global sinon sandbox and a test logger instance for use within tests.
-    const defaultSandbox = sandbox.create();
+    const defaultSandbox = sinon.createSandbox();
     const testContext: TestContext = {
         SANDBOX: defaultSandbox,
         SANDBOXES: {
             DEFAULT: defaultSandbox,
-            CONFIG: sandbox.create(),
-            CRYPTO: sandbox.create(),
-            CONNECTION: sandbox.create()
+            CONFIG: sinon.createSandbox(),
+            CRYPTO: sinon.createSandbox(),
+            CONNECTION: sinon.createSandbox()
         },
         TEST_LOGGER: new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging(),
         id: _uniqid(),

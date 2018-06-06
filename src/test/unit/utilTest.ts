@@ -11,6 +11,7 @@ import { SfdxUtil } from '../../lib/util';
 import { testSetup } from '../testSetup';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
+import { JsonMap } from '../../lib/types';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -27,10 +28,10 @@ describe('Util', () => {
             readFileStub.returns(Promise.resolve(''));
 
             try {
-                await SfdxUtil.readJSON('emptyfile');
+                await SfdxUtil.readJSON('emptyFile');
                 assert.fail('readJSON should have thrown a ParseError');
             } catch (error) {
-                expect(error.message).to.contain('Parse error in file emptyfile on line 1\nFILE HAS NO CONTENT');
+                expect(error.message).to.contain('Parse error in file emptyFile on line 1\nFILE HAS NO CONTENT');
             }
         });
 
@@ -67,6 +68,33 @@ describe('Util', () => {
         });
     });
 
+    describe('readJSONObject', () => {
+        let readFileStub;
+
+        beforeEach(() => {
+            readFileStub = $$.SANDBOX.stub(SfdxUtil, 'readFile');
+        });
+
+        it('should throw a UnexpectedJsonFileFormat for non-object JSON content', async () => {
+            readFileStub.returns(Promise.resolve('[]'));
+
+            try {
+                await SfdxUtil.readJSONObject('arrayFile');
+                assert.fail('readJSON should have thrown a UnexpectedJsonFileFormat');
+            } catch (error) {
+                expect(error.message).to.contain('UnexpectedJsonFileFormat');
+            }
+        });
+
+        it('should return a JSON object', async () => {
+            const validJSON = { key: 12345, value: true };
+            const validJSONStr = JSON.stringify(validJSON);
+            readFileStub.returns(Promise.resolve(validJSONStr));
+            const rv = await SfdxUtil.readJSONObject('validJSONStr');
+            expect(rv).to.eql(validJSON);
+        });
+    });
+
     describe('writeJSON', () => {
         it('should call writeFile with correct args', async () => {
             $$.SANDBOX.stub(SfdxUtil, 'writeFile').returns(Promise.resolve(null));
@@ -78,6 +106,31 @@ describe('Util', () => {
             expect(SfdxUtil.writeFile['firstCall'].args[0]).to.equal(testFilePath);
             expect(SfdxUtil.writeFile['firstCall'].args[1]).to.deep.equal(stringifiedTestJSON);
             expect(SfdxUtil.writeFile['firstCall'].args[2]).to.deep.equal({ encoding: 'utf8', mode: '600' });
+        });
+    });
+
+    describe('getJSONElementsByName', () => {
+        it('returns a flattened array of all elements of a given name found in a JSON tree', () => {
+            const json: JsonMap = {
+                a: 'fail',
+                b: 'root',
+                c: 'fail',
+                d: {
+                    a: 'fail',
+                    b: 'd',
+                    c: 'fail'
+                },
+                e: [
+                    'fail',
+                    {
+                        a: 'fail',
+                        b: 'e',
+                        c: 'fail'
+                    },
+                    'fail'
+                ]
+            };
+            expect(SfdxUtil.getJSONElementsByName(json, 'b')).to.deep.equal(['root', 'd', 'e']);
         });
     });
 
@@ -100,7 +153,7 @@ describe('Util', () => {
     });
 
     describe('remove', () => {
-        it ('should throw an error on falsey', async () => {
+        it ('should throw an error on falsy', async () => {
             try {
                 await SfdxUtil.remove(undefined);
                 assert.fail('This test is designed to throw an error');

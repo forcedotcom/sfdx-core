@@ -137,13 +137,13 @@ describe('ConfigGroup', () => {
         describe('updateValues', () => {
             it('one value', async () => {
                 await store.updateValues({ another: 'val' });
-                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
+                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
                 expect($$.configStubs['ConfigGroup'].contents['default'].another).to.equal('val');
             });
 
             it('two of same value', async () => {
                 await store.updateValues({ another: 'val', some: 'val' });
-                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write));
+                expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
                 expect($$.configStubs['ConfigGroup'].contents['default'].another).to.equal('val');
                 expect($$.configStubs['ConfigGroup'].contents['default'].some).to.equal('val');
             });
