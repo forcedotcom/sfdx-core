@@ -91,10 +91,10 @@ describe('Messages', () => {
             'soqlMessages.json'
         ];
 
-        const messagesDirPath = `myModule${path.sep}dist${path.sep}lib`;
+        const messagesDirPath = `${path.sep}root${path.sep}myModule${path.sep}dist${path.sep}lib`;
         const truncateErr = new SfdxError('truncate error');
         truncateErr['code'] = 'ENOENT';
-        let truncatePath = 'myModule';
+        let truncatePath = `${path.sep}root${path.sep}myModule`;
 
         beforeEach(() => {
             importMessageFileStub = $$.SANDBOX.stub(Messages, 'importMessageFile');
@@ -110,7 +110,7 @@ describe('Messages', () => {
 
         it('should import each message file', () => {
             Messages.importMessagesDirectory(messagesDirPath, false);
-            const expectedMsgDirPath = path.join('myModule', 'dist', 'lib', 'messages');
+            const expectedMsgDirPath = path.sep + path.join('root', 'myModule', 'dist', 'lib', 'messages');
             expect(readdirSyncStub.called).to.be.true;
             expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
             expect(importMessageFileStub.firstCall.args[0]).to.equal('pname');
@@ -121,7 +121,7 @@ describe('Messages', () => {
 
         it('should remove the "/dist" from the module dir path', () => {
             Messages.importMessagesDirectory(messagesDirPath);
-            const expectedMsgDirPath = path.join('myModule', 'messages');
+            const expectedMsgDirPath = path.sep + path.join('root', 'myModule', 'messages');
             expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
             expect(importMessageFileStub.firstCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
             expect(importMessageFileStub.secondCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
@@ -129,7 +129,7 @@ describe('Messages', () => {
 
         it('should remove the "/lib" from the module dir path if there is not dist', () => {
             Messages.importMessagesDirectory(messagesDirPath.replace(`${path.sep}dist`, ''));
-            const expectedMsgDirPath = path.join('myModule', 'messages');
+            const expectedMsgDirPath = path.sep + path.join('root', 'myModule', 'messages');
             expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
             expect(importMessageFileStub.firstCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
             expect(importMessageFileStub.secondCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
@@ -142,6 +142,15 @@ describe('Messages', () => {
             expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
             expect(importMessageFileStub.firstCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
             expect(importMessageFileStub.secondCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
+        });
+
+        it('should throw on relative paths', () => {
+            try {
+                Messages.importMessagesDirectory('./');
+                assert.fail();
+            } catch (e) {
+                expect(e.message).to.contain('Invalid module path.');
+            }
         });
     });
 

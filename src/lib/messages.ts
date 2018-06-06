@@ -72,9 +72,7 @@ export class Messages {
     // Internal readFile. Exposed for unit testing. Do not use sfdxUtil.readFile as messages.js
     // should have no internal dependencies.
     public static _readFile = (filePath: string): AnyJson => {
-        // Not quite sure why we need to append the current working directory, but we get
-        // Cannot find module './package.json' without it.
-        return require(path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath));
+        return require(filePath);
     }
 
     /**
@@ -189,6 +187,10 @@ export class Messages {
     public static importMessagesDirectory(moduleDirectoryPath: string, truncateToProjectPath: boolean = true, packageName?: string): void {
         let moduleMessagesDirPath = moduleDirectoryPath;
         let projectRoot: string = moduleDirectoryPath;
+
+        if (!path.isAbsolute(moduleDirectoryPath)) {
+            throw new Error('Invalid module path. Relative URLs are not allowed.');
+        }
 
         while (projectRoot.length >= 0) {
             try {
