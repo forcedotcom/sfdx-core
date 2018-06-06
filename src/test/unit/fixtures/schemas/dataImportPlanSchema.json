@@ -1,0 +1,80 @@
+{
+    "_comment": "Copyright (c) 2016, salesforce.com, inc. All rights reserved. Licensed under the BSD 3-Clause license. For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "array",
+    "title": "Data Import Plan",
+    "description": "Schema for SFDX Toolbelt's data import plan JSON.",
+    "items": {
+        "type": "object",
+        "title": "SObject Type",
+        "description": "Definition of records to be insert per SObject Type",
+        "properties": {
+            "sobject": {
+                "type": "string",
+                "title": "Name of SObject",
+                "description": "Child file references must have SObject roots of this type"
+            },
+            "saveRefs": {
+                "type": "boolean",
+                "title": "Save References",
+                "description": "Post-save, save references (Name/ID) to be used for reference replacement in subsequent saves.  Applies to all data files for this SObject type.",
+                "default": false
+            },
+            "resolveRefs": {
+                "type": "boolean",
+                "title": "Resolve References",
+                "description": "Pre-save, replace @<reference> with ID from previous save.  Applies to all data files for this SObject type.",
+                "default": false
+            },
+            "files": {
+                "type": "array",
+                "title": "Files",
+                "description": "An array of files paths to load",
+                "items": {
+                    "title": "Filepath.",
+                    "description": "Filepath string or object to point to a JSON or XML file having data defined in SObject Tree format.",
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "file": {
+                                    "type": "string",
+                                    "title": "Filepath schema",
+                                    "description": "Filepath to JSON or XML file having data defined in SObject Tree format"
+                                },
+                                "contentType": {
+                                    "title": "Filepath schema.",
+                                    "description": "If data file extension is not .json or .xml, provide content type.",
+                                    "enum": [
+                                        "application/json",
+                                        "application/xml"
+                                    ]
+                                },
+                                "saveRefs": {
+                                    "type": "boolean",
+                                    "title": "Save References",
+                                    "description": "Post-save, save references (Name/ID) to be used for reference replacement in subsequent saves.  Overrides SObject-level 'saveRefs' setting."
+                                },
+                                "resolveRefs": {
+                                    "type": "boolean",
+                                    "title": "Resolve References",
+                                    "description": "Pre-save, replace @<reference> with ID from previous save.  Overrides SObject-level 'replaceRefs' setting."
+                                }
+                            },
+                            "required": [
+                                "file"
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "required": [
+            "sobject",
+            "files"
+        ]
+    }
+}

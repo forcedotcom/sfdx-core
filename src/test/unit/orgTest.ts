@@ -205,7 +205,7 @@ describe('Org Tests', () => {
                 }
                 return $$.rootPathRetriever(false);
             });
-            $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(() => Promise.resolve({}));
+            $$.SANDBOX.stub(SfdxUtil, 'readJSONObject').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
@@ -224,7 +224,7 @@ describe('Org Tests', () => {
                 }
                 return osTmpdir();
             });
-            $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(() => Promise.resolve({}));
+            $$.SANDBOX.stub(SfdxUtil, 'readJSONObject').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
