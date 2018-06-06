@@ -180,7 +180,7 @@ describe('Messages', () => {
                 assert.fail('should have thrown an error that the file not valid JSON.');
             } catch (err) {
                 expect(err.name).to.equal('Error');
-                expect(err.message).to.equal('Found returned content type \'string\'. Check file.');
+                expect(err.message).to.equal('Invalid JSON content in message file: myPluginMessages.json\nUnexpected token. Found returned content type \'string\'.');
             }
         });
 
