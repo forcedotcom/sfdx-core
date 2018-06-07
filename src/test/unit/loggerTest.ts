@@ -7,6 +7,7 @@
 
 import { assert, expect } from 'chai';
 import * as _ from 'lodash';
+import * as debug from 'debug/src/debug';
 
 import { Logger, LoggerLevel } from '../../lib/logger';
 import { SfdxUtil } from '../../lib/util';
@@ -269,6 +270,60 @@ describe('Logger', () => {
             // If the serializer was applied it should not log the 'foo' entry
             const msgOnError = 'Expected the config serializer to remove the "foo" entry from the log record ';
             expect(logRecords[0], msgOnError).to.have.deep.property('config', { sid: '<sid - HIDDEN>' });
+        });
+    });
+
+    describe('debug lib', () => {
+        let output;
+        beforeEach(() => {
+            Logger.destroyRoot();
+            // enable debug logging
+            debug.useColors = () => false;
+            debug.enable('*');
+            output = '';
+        });
+
+        afterEach(() => {
+            debug.enable();
+        });
+
+        it('should use root in output', async () => {
+            // Do this in the test because we want normal mocha output
+            const out = $$.SANDBOX.stub(process.stdout, 'write');
+            const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
+                output += error;
+            });
+            const logger = (await Logger.root());
+            logger.warn('warn');
+            out.restore();
+            err.restore();
+            expect(output).to.contain('sfdx:core WARN warn');
+        });
+
+        it('should use child name in output', async () => {
+            // Do this in the test because we want normal mocha output
+            const out = $$.SANDBOX.stub(process.stdout, 'write');
+            const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
+                output += error;
+            });
+            const logger = (await Logger.root()).child('test');
+            logger.warn('warn');
+            out.restore();
+            err.restore();
+            expect(output).to.contain('sfdx:test WARN warn');
+        });
+
+        it('should include different level', async () => {
+            // Do this in the test because we want normal mocha output
+            const out = $$.SANDBOX.stub(process.stdout, 'write');
+            const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
+                output += error;
+            });
+            const logger = (await Logger.root());
+            logger.info('info');
+            out.restore();
+            err.restore();
+            expect(output).to.contain('sfdx:core INFO info');
         });
     });
 });

@@ -51,10 +51,10 @@ describe('SfdxError', () => {
 
         beforeEach(() => {
             _readFileStub = $$.SANDBOX.stub(Messages, '_readFile');
+            _readFileStub.returns(testMessages);
         });
 
         it('should return a new SfdxError when passed a bundle and key', async () => {
-            _readFileStub.returns(JSON.stringify(testMessages));
             const testMsg1: SfdxError = SfdxError.create('pname', 'testMessages', 'Test1Error');
             expect(testMsg1).to.have.property('name', 'Test1Error');
             expect(testMsg1).to.have.property('message', testMessages.Test1Error);
@@ -63,7 +63,6 @@ describe('SfdxError', () => {
         });
 
         it('should return a new SfdxError when passed a bundle, key, and error tokens', async () => {
-            _readFileStub.returns(JSON.stringify(testMessages));
             const tokens = ['token one'];
             const testMsg1: SfdxError = SfdxError.create('pname', 'testMessages', 'Test2Error', tokens);
             expect(testMsg1).to.have.property('name', 'Test2Error');
@@ -73,7 +72,6 @@ describe('SfdxError', () => {
         });
 
         it('should return a new SfdxError when passed an SfdxErrorConfig object WITHOUT actions', async () => {
-            _readFileStub.returns(JSON.stringify(testMessages));
             const tokens = ['failure one'];
             const errConfig = new SfdxErrorConfig('pname', 'testMessages', 'Test2Error', tokens);
             const testMsg1: SfdxError = SfdxError.create(errConfig);
@@ -84,7 +82,6 @@ describe('SfdxError', () => {
         });
 
         it('should return a new SfdxError when passed an SfdxErrorConfig object WITH actions', async () => {
-            _readFileStub.returns(JSON.stringify(testMessages));
             const tokens = ['failure one', 2];
             const actionKey = 'Test3ErrorAction2';
             const actionTokens = ['reboot'];
