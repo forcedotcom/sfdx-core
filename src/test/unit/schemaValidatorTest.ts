@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
@@ -9,16 +9,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
-import { Logger, LoggerLevel } from '../../lib/logger';
-import { SchemaValidator } from '../../lib/schema';
+import { SchemaValidator } from '../../lib/schemaValidator';
 import { AnyJson, JsonMap, isJsonMap } from '../../lib/types';
+import { testSetup } from '../testSetup';
+
+const $$ = testSetup();
 
 const SCHEMA_DIR = path.join(__dirname, '..', '..', '..', 'src', 'test', 'unit', 'fixtures', 'schemas');
-
-const logger = new Logger({
-    name: 'SchemaTest',
-    level: LoggerLevel.ERROR
-});
 
 /**
  * Validate a piece of data against a schema using a SchemaValidator instance.
@@ -29,7 +26,7 @@ const logger = new Logger({
  * @return {Promise<void>}
  */
 const validate = (schema: JsonMap, json: AnyJson): Promise<AnyJson> => {
-    const validator = new SchemaValidator(logger, `${SCHEMA_DIR}/test.json`);
+    const validator = new SchemaValidator($$.TEST_LOGGER, `${SCHEMA_DIR}/test.json`);
     sinon.stub(validator, 'load').callsFake(() => Promise.resolve(schema));
     return validator.validate(json);
 };
@@ -137,7 +134,7 @@ describe('schemaValidator', () => {
         it('should not have `not found` errors', () => {
             fs.readdirSync(SCHEMA_DIR).forEach((schemaName) => {
                 const schemaPath = path.join(SCHEMA_DIR, schemaName);
-                const validator = new SchemaValidator(logger, schemaPath);
+                const validator = new SchemaValidator($$.TEST_LOGGER, schemaPath);
 
                 // If the schemas reference an invalid external error, then validation will fail.
                 return validator.validate({}).catch((err) => {
