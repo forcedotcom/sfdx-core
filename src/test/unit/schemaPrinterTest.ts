@@ -267,6 +267,23 @@ describe('SchemaPrinter', () => {
             expect(actual).to.contain(expected);
         });
 
+        it('should show type from strings', () => {
+            const jsType1 = 'string';
+            const jsType2 = 'object';
+            // TODO maybe we should show type oneOf with the types listed below for objects?
+            const expected = `(${jsType1}|${jsType2})`;
+            const schema = {
+                properties: {
+                    testProperty: {
+                        oneOf: [jsType1, jsType2]
+                    }
+                }
+            };
+            const actual = getLine(schema);
+
+            expect(actual).to.contain(expected);
+        });
+
         // Implementation TODO
         it.skip('should show object titles', () => {
             const title1 = 'title1';

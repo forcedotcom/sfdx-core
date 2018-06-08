@@ -143,14 +143,9 @@ class SchemaProperty {
             this.rawProperty = Object.assign({}, resolveRef(this.schema, this.rawProperty), rawProperty);
         }
 
-        // TODO -- this doesn't make much sense to me... see the possible json schema types for oneOf
-        // Handle `oneOf`s
         if (isJsonArray(this.rawProperty.oneOf) && !this.rawProperty.type) {
-            // TODO Should this be = 'oneOf' and we show the different options below?
             this.rawProperty.type = this.rawProperty.oneOf.map((value) => {
-                return isJsonMap(value)
-                    ? value.type || value.$ref
-                    : value; // TODO string?  other?
+                return isJsonMap(value) ? value.type || value.$ref : value;
             }).join('|');
         }
 
