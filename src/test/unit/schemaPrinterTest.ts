@@ -88,7 +88,7 @@ describe('SchemaPrinter', () => {
     });
 
     describe('object properties', () => {
-        const getPropertyLine = (properties, line = 0) => getLine({
+        const getPropertyLine = (properties: JsonMap, line: number = 0) => getLine({
             properties: {
                 testProperty: {
                     type: 'object', properties
@@ -319,7 +319,7 @@ describe('SchemaPrinter', () => {
         });
     });
 
-    const loadSchema = (schemaName, schemaPath) => {
+    const loadSchema = (schemaName: string, schemaPath: string) => {
         const fileContents = fs.readFileSync(schemaPath, 'utf8');
         let schema;
 

@@ -45,7 +45,11 @@ export class SchemaPrinter {
             }
 
             Object.keys(this.schema.properties).forEach((key) => {
-                this.parseProperty(key, this.schema.properties[key], startLevel);
+                const properties = asJsonMap(this.schema.properties);
+                if (!properties) {
+                    return;
+                }
+                this.parseProperty(key, asJsonMap(properties[key]), startLevel);
                 add('');
             });
         } else {
@@ -86,9 +90,12 @@ export class SchemaPrinter {
         };
     }
 
-    private parseProperty(name: string, rawProperty: JsonMap, level: number): void {
-        const add = this.addFn(level);
+    private parseProperty(name: string, rawProperty?: JsonMap, level: number = 0): void {
+        if (!rawProperty) {
+            return;
+        }
 
+        const add = this.addFn(level);
         const property = new SchemaProperty(this.logger, this.schema, name, rawProperty);
 
         add(property.renderHeader());
@@ -100,9 +107,17 @@ export class SchemaPrinter {
         }
         if (property.type === 'array') {
             add(`    ${property.renderArrayHeader()}`);
-            if (property.items.type === 'object' && property.items.properties) {
+            if (property.items && property.items.type === 'object' && property.items.properties) {
                 Object.keys(property.items.properties).forEach((key) => {
-                    this.parseProperty(key, property.items.properties[key], level + 2);
+                    const items = asJsonMap(property.items);
+                    if (!items) {
+                        return;
+                    }
+                    const properties = asJsonMap(items.properties);
+                    if (!properties) {
+                        return;
+                    }
+                    this.parseProperty(key, asJsonMap(properties[key]), level + 2);
                 });
             }
         }
@@ -150,15 +165,15 @@ class SchemaProperty {
     }
 
     public renderTitle(): string {
-        return color.underline(this.title);
+        return this.title ? color.underline(this.title) : '';
     }
 
     public renderDescription(): string {
-        return color.dim(this.description);
+        return this.description ? color.dim(this.description) : '';
     }
 
     public renderType(): string {
-        return color.dim(this.type);
+        return this.type ? color.dim(this.type) : '';
     }
 
     public renderHeader(): string {
@@ -166,41 +181,49 @@ class SchemaProperty {
     }
 
     public renderArrayHeader(): string {
+        if (!this.items) {
+            return '';
+        }
         const minItems = this.minItems ? ` - min ${this.minItems}` : '';
         const prop = new SchemaProperty(this.logger, this.schema, 'items', this.items);
         return `items(${prop.renderType()}${minItems}) - ${prop.renderTitle()}: ${prop.renderDescription()}`;
     }
 
-    public get title(): string | null {
+    public get title(): string | undefined {
         return asString(this.rawProperty.title);
     }
 
-    public get description(): string | null {
+    public get description(): string | undefined {
         return asString(this.rawProperty.description);
     }
 
-    public get type(): string | null { // tslint:disable-line:no-reserved-keywords
+    public get type(): string | undefined { // tslint:disable-line:no-reserved-keywords
         return asString(this.rawProperty.type);
     }
 
-    public get required(): JsonArray | null {
+    public get required(): JsonArray | undefined {
         return asJsonArray(this.rawProperty.required);
     }
 
-    public get properties(): JsonMap | null {
+    public get properties(): JsonMap | undefined {
         return asJsonMap(this.rawProperty.properties);
     }
 
-    public get items(): JsonMap | null {
+    public get items(): JsonMap | undefined {
         return asJsonMap(this.rawProperty.items);
     }
 
-    public get minItems(): number | null {
+    public get minItems(): number | undefined {
         return asNumber(this.rawProperty.minItems);
     }
 
-    public getProperty(key: string): JsonMap | null {
-        return asJsonMap(this.rawProperty.properties[key]);
+    public getProperty(key: string): JsonMap | undefined {
+        const properties = this.getProperties();
+        return asJsonMap(properties && properties[key]);
+    }
+
+    public getProperties(): JsonMap | undefined {
+        return asJsonMap(this.rawProperty.properties);
     }
 }
 
