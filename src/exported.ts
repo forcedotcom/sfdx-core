@@ -93,6 +93,14 @@ export {
 } from './lib/project';
 
 export {
+    SchemaPrinter
+} from './lib/schemaPrinter';
+
+export {
+    SchemaValidator
+} from './lib/schemaValidator';
+
+export {
     SfdxError,
     SfdxErrorConfig
 } from './lib/sfdxError';
