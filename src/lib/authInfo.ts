@@ -658,10 +658,11 @@ export class AuthInfo {
             privateKey: options.privateKey
         };
         try {
-            await dns.lookup(urlParse(_authFields.instance_url).hostname, null);
+            // Check if the url is resolvable. This can fail when my-domains have not been replicated.
+            await this.lookup(urlParse(_authFields.instance_url).hostname);
             authFields.instanceUrl = _authFields.instance_url;
         } catch (err) {
-            this.logger.info(`Instance URL [${_authFields.instance_url}] is not available.  DNS lookup failed.`);
+            this.logger.debug(`Instance URL [${_authFields.instance_url}] is not available.  DNS lookup failed. Using loginUrl [${options.loginUrl}] instead. This may result in a "Destination URL not reset" error.`);
             authFields.instanceUrl = options.loginUrl;
         }
 
@@ -732,5 +733,18 @@ export class AuthInfo {
             loginUrl: options.loginUrl || _authFields.instance_url,
             refreshToken: _authFields.refresh_token
         };
+    }
+
+    // See https://nodejs.org/api/dns.html#dns_dns_lookup_hostname_options_callback
+    private async lookup(host: string): Promise<{ address: string, family: number }> {
+        return new Promise<{ address: string, family: number }>((resolve, reject) => {
+            dns.lookup(host, (err, address: string, family: number) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ address, family });
+                }
+            });
+        });
     }
 }
