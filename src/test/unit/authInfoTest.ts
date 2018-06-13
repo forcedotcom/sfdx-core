@@ -381,7 +381,7 @@ describe('AuthInfo', () => {
                 readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
                 _postParmsStub.returns(Promise.resolve(authResponse));
                 $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-                $$.SANDBOX.stub(dns, 'lookup').returns(Promise.resolve());
+                $$.SANDBOX.stub(dns, 'lookup').callsFake((url, done) => done(null, { address: '1.1.1.1', family: 4 }));
 
                 // Create the JWT AuthInfo instance
                 const authInfo = await AuthInfo.create(testMetadata.jwtUsername, jwtConfig);
@@ -494,7 +494,7 @@ describe('AuthInfo', () => {
             readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
             _postParmsStub.throws(new Error('authInfoTest_ERROR_MSG'));
             $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-            $$.SANDBOX.stub(dns, 'lookup').returns(Promise.resolve());
+            $$.SANDBOX.stub(dns, 'lookup').callsFake((url, done) => done(null, { address: '1.1.1.1', family: 4 }));
 
             // Create the JWT AuthInfo instance
             try {
@@ -522,7 +522,7 @@ describe('AuthInfo', () => {
             readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
             _postParmsStub.returns(Promise.resolve(authResponse));
             $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-            $$.SANDBOX.stub(dns, 'lookup').throws(new Error('authInfoTest_ERROR_MSG'));
+            $$.SANDBOX.stub(dns, 'lookup').callsFake((url, done) => done(new Error('authInfoTest_ERROR_MSG')));
 
             // Create the JWT AuthInfo instance
             const authInfo = await AuthInfo.create(username, jwtConfig);
@@ -1019,7 +1019,7 @@ describe('AuthInfo', () => {
             readFileStub.returns(Promise.resolve('audienceUrlTest_privateKey'));
             _postParmsStub.returns(Promise.resolve(authResponse));
             $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('audienceUrlTest_jwtToken'));
-            $$.SANDBOX.stub(dns, 'lookup').returns(Promise.resolve());
+            $$.SANDBOX.stub(dns, 'lookup').callsFake((url, done) => done(null, { address: '1.1.1.1', family: 4 }));
 
             await AuthInfo.prototype['buildJwtConfig'].call(context, Object.assign(defaults, options));
 
