@@ -13,11 +13,11 @@ const ALIAS_FILE_NAME = 'alias.json';
 
 /**
  * Different groups of aliases. Currently only support orgs.
- * @readonly
- * @enum {string}
+ * @typedef AliasGroup
+ * @property {string} ORGS
  */
 export enum AliasGroup {
-    'ORGS' = 'orgs'
+    ORGS = 'orgs'
 }
 
 /**

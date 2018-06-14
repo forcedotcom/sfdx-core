@@ -18,14 +18,22 @@
  * @property {function} validator Test if the input value is valid.
  * @property {string} failedMessage The message to return in the error if the validation fails.
  */
+/**
+ * Supported Org Default Types.
+ * @typedef {object} ORG_DEFAULT
+ * @property {string} DEVHUB Default developer hub username.
+ * @property {string} USERNAME Default username.
+ * @property {function} list `() => string[]` List the Org defaults.
+ */
 
 import * as _ from 'lodash';
 import { Messages } from '../messages';
 import { ConfigContents, ConfigValue } from './configStore';
 import { ConfigFile, ConfigOptions } from './configFile';
-import { SfdxUtil } from '../util';
 import { SfdxError } from '../sfdxError';
 import { Crypto } from '../crypto';
+import { isSalesforceDomain } from '../util';
+import { validateApiVersion } from '../util/validate';
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
@@ -136,7 +144,7 @@ export class SfdxConfig extends ConfigFile {
                     key: 'instanceUrl',
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
-                        validator: (value) => _.isNil(value) || SfdxUtil.isSalesforceDomain(value),
+                        validator: (value) => _.isNil(value) || isSalesforceDomain(value),
                         failedMessage: SfdxConfig.messages.getMessage('InvalidInstanceUrl')
                     }
                 },
@@ -145,7 +153,7 @@ export class SfdxConfig extends ConfigFile {
                     hidden: true,
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
-                        validator: SfdxUtil.validateApiVersion,
+                        validator: validateApiVersion,
                         failedMessage: SfdxConfig.messages.getMessage('InvalidApiVersion')
                     }
                 },
@@ -331,20 +339,10 @@ export class SfdxConfig extends ConfigFile {
     }
 }
 
-/**
- * Supported Org Default Types.
- * @type {object}
- */
 export const ORG_DEFAULT = {
-    /** {string} Default Developer Hub Username */
     DEVHUB: SfdxConfig.DEFAULT_DEV_HUB_USERNAME,
-    /** {string} Default Username */
     USERNAME: SfdxConfig.DEFAULT_USERNAME,
 
-    /**
-     * List the Org defaults.
-     * @returns {string[]} List of default orgs.
-     */
     list(): string[] {
         return [ORG_DEFAULT.DEVHUB, ORG_DEFAULT.USERNAME];
     }

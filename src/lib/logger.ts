@@ -77,7 +77,6 @@
  * @typedef {string|number|boolean} FieldValue
  */
 
-import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { Writable } from 'stream';
@@ -85,9 +84,9 @@ import * as EventEmitter from 'events';
 import * as Bunyan from 'bunyan-sfdx-no-dtrace';
 import * as _ from 'lodash';
 import { Global, Mode } from './global';
-import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
 import * as createDebugUtil from 'debug';
+import * as fs from './util/fs';
 
 export type Serializer = (input: any) => any; // tslint:disable-line:no-any
 
@@ -334,15 +333,15 @@ export class Logger {
     public async addLogFileStream(logFile: string): Promise<void> {
         try {
             // Check if we have write access to the log file (i.e., we created it already)
-            await SfdxUtil.access(logFile, fs.constants.W_OK);
+            await fs.access(logFile, fs.constants.W_OK);
         } catch (err1) {
             try {
-                await SfdxUtil.mkdirp(path.dirname(logFile), { mode: SfdxUtil.DEFAULT_USER_DIR_MODE });
+                await fs.mkdirp(path.dirname(logFile), { mode: fs.DEFAULT_USER_DIR_MODE });
             } catch (err2) {
                 // noop; directory exists already
             }
             try {
-                await SfdxUtil.writeFile(logFile, '', { mode: SfdxUtil.DEFAULT_USER_FILE_MODE });
+                await fs.writeFile(logFile, '', { mode: fs.DEFAULT_USER_FILE_MODE });
             } catch (err3) {
                 throw SfdxError.wrap(err3);
             }
@@ -468,7 +467,7 @@ export class Logger {
             let content = '';
             this.bunyan.streams.forEach(async (stream) => {
                 if (stream.type === 'file') {
-                    content += await SfdxUtil.readFile(stream.path, 'utf8');
+                    content += await fs.readFile(stream.path, 'utf8');
                 }
             });
             return content;

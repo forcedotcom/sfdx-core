@@ -8,11 +8,11 @@
 import * as path from 'path';
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
-import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
 import { AnyJson, JsonMap, Dictionary } from './types';
 import { Logger } from './logger';
 import { isString as _isString } from 'lodash';
+import { readJsonObject, getJsonValuesByName } from './util/json';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.
@@ -41,7 +41,7 @@ export class SchemaValidator {
      */
     public async load(): Promise<JsonMap> {
         if (!this.schema) {
-            this.schema = await SfdxUtil.readJSONObject(this.schemaPath);
+            this.schema = await readJsonObject(this.schemaPath);
             this.logger.debug(`Schema loaded for ${this.schemaPath}`);
         }
         return this.schema;
@@ -89,7 +89,7 @@ export class SchemaValidator {
      */
     private async loadExternalSchemas(schema: JsonMap): Promise<Dictionary<JsonMap>> {
         const externalSchemas: Dictionary<JsonMap> = {};
-        const promises = SfdxUtil.getJSONElementsByName<string>(schema, '$ref')
+        const promises = getJsonValuesByName<string>(schema, '$ref')
             .map((ref) => ref && ref.match(/([\w\.]+)#/))
             .map((match) => match && match[1])
             .filter((uri) => !!uri)
@@ -115,7 +115,7 @@ export class SchemaValidator {
     private async loadExternalSchema(uri: string): Promise<JsonMap> {
         const schemaPath = path.join(this.schemasDir, `${uri}.json`);
         try {
-            return await SfdxUtil.readJSONObject(schemaPath);
+            return await readJsonObject(schemaPath);
         } catch (err) {
             if (err.code === 'ENOENT') {
                 throw new SfdxError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');

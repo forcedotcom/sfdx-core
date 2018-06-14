@@ -8,7 +8,8 @@
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { color } from './ux';
-import { JsonMap, JsonArray, isJsonMap, isJsonArray, asJsonMap, asString, asNumber, asJsonArray } from './types';
+import { JsonMap, JsonArray } from './types';
+import { isJsonMap, asJsonMap, asString, asNumber, asJsonArray } from './util/json';
 
 /**
  * Prints a JSON schema in a human-friendly format.
@@ -143,8 +144,9 @@ class SchemaProperty {
             this.rawProperty = Object.assign({}, resolveRef(this.schema, this.rawProperty), rawProperty);
         }
 
-        if (isJsonArray(this.rawProperty.oneOf) && !this.rawProperty.type) {
-            this.rawProperty.type = this.rawProperty.oneOf.map((value) => {
+        const oneOfs = asJsonArray(this.rawProperty.oneOf);
+        if (oneOfs && !this.rawProperty.type) {
+            this.rawProperty.type = oneOfs.map((value) => {
                 return isJsonMap(value) ? value.type || value.$ref : value;
             }).join('|');
         }
@@ -228,6 +230,7 @@ class SchemaProperty {
  * @param {JsonMap} schema The source schema containing the property containing a `$ref` field.
  * @param {JsonMap} property The property that contains the `$ref` field.
  * @returns {JsonMap}
+ * @private
  */
 function resolveRef(schema: JsonMap, property: JsonMap): JsonMap | null {
     const ref = property.$ref;

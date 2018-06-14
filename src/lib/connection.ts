@@ -15,8 +15,8 @@ import { ConnectionOptions } from 'jsforce';
 import { RequestInfo } from 'jsforce';
 import { QueryResult } from 'jsforce';
 import { ExecuteOptions } from 'jsforce';
-import { SfdxUtil } from './util';
 import { SfdxError } from './sfdxError';
+import { validateApiVersion } from './util/validate';
 
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
@@ -175,7 +175,7 @@ export class Connection extends JSForceConnection {
      * @throws {SfdxError} **`{name: 'IncorrectAPIVersion'}`:** Incorrect API version.
      */
     public setApiVersion(version: string): void {
-        if (!SfdxUtil.validateApiVersion(version)) {
+        if (!validateApiVersion(version)) {
             throw new SfdxError(`Invalid API version ${version}. Expecting format "[1-9][0-9].0", i.e. 42.0`, 'IncorrectAPIVersion');
         }
         this.version = version;

@@ -3,15 +3,15 @@
  * All Rights Reserved
  * Company Confidential
  */
+
 'use strict';
 
 import { expect, assert } from 'chai';
-
-import { SfdxUtil } from '../../../lib/util';
 import { SfdxConfigAggregator } from '../../../lib/config/sfdxConfigAggregator';
 import { SfdxConfig } from '../../../lib/config/sfdxConfig';
 import { testSetup } from '../../testSetup';
 import { ConfigFile } from '../../../lib/config/configFile';
+import * as json from '../../../lib/util/json';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -79,7 +79,7 @@ describe('SfdxConfigAggregator', () => {
 
     describe('locations', () => {
         it('local', async () => {
-            $$.SANDBOX.stub(SfdxUtil, 'readJSONObject').callsFake(async (path) => {
+            $$.SANDBOX.stub(json, 'readJsonObject').callsFake(async (path) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 2});
@@ -94,7 +94,7 @@ describe('SfdxConfigAggregator', () => {
         });
 
         it('global', async () => {
-            $$.SANDBOX.stub(SfdxUtil, 'readJSONObject').callsFake(async (path) => {
+            $$.SANDBOX.stub(json, 'readJsonObject').callsFake(async (path) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 2});
@@ -111,7 +111,7 @@ describe('SfdxConfigAggregator', () => {
         it('env', async () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
             const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
-            $$.SANDBOX.stub(SfdxUtil, 'readJSON').callsFake(async (path) => {
+            $$.SANDBOX.stub(json, 'readJson').callsFake(async (path) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({ defaultusername: 1 });
@@ -126,7 +126,7 @@ describe('SfdxConfigAggregator', () => {
 
         it('configInfo', async () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
-            $$.SANDBOX.stub(SfdxUtil, 'readJSON').returns(Promise.resolve({}));
+            $$.SANDBOX.stub(json, 'readJson').returns(Promise.resolve({}));
 
             const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
             const info = aggregator.getConfigInfo()[0];

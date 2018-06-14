@@ -21,7 +21,9 @@ import { BaseConfigStore, ConfigContents } from './configStore';
 import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
 import { homedir as osHomedir } from 'os';
-import { SfdxUtil } from '../util';
+import * as fs from '../util/fs';
+import { resolveProjectPath } from '../util';
+import { readJsonObject, writeJson } from '../util/json';
 
 /**
  * The interface for Config options.
@@ -88,7 +90,7 @@ export class ConfigFile extends BaseConfigStore {
         if (!_isBoolean(isGlobal)) {
             throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
         }
-        return isGlobal ? osHomedir() : await SfdxUtil.resolveProjectPath();
+        return isGlobal ? osHomedir() : await resolveProjectPath();
     }
 
     /**
@@ -154,11 +156,11 @@ export class ConfigFile extends BaseConfigStore {
      * Determines if the config file is read/write accessible.
      * @param {number} perm The permission.
      * @returns {Promise<boolean>} `true` if the user has capabilities specified by perm.
-     * @see {@link SfdxUtil.access}
+     * @see {@link https://nodejs.org/api/fs.html#fs_fs_access_path_mode_callback|fs.access}
      */
     public async access(perm: number): Promise<boolean> {
         try {
-            await SfdxUtil.access(this.getPath(), perm);
+            await fs.access(this.getPath(), perm);
             return true;
         } catch (err) {
             return false;
@@ -174,7 +176,7 @@ export class ConfigFile extends BaseConfigStore {
      */
     public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
         try {
-            const obj = await SfdxUtil.readJSONObject(this.getPath());
+            const obj = await readJsonObject(this.getPath());
             this.setContentsFromObject(obj);
             return this.getContents();
         } catch (err) {
@@ -201,9 +203,9 @@ export class ConfigFile extends BaseConfigStore {
             this.setContents(newContents);
         }
 
-        await SfdxUtil.mkdirp(pathDirname(this.getPath()));
+        await fs.mkdirp(pathDirname(this.getPath()));
 
-        await SfdxUtil.writeJSON(this.getPath(), this.toObject());
+        await writeJson(this.getPath(), this.toObject());
 
         return this.getContents();
     }
@@ -221,22 +223,22 @@ export class ConfigFile extends BaseConfigStore {
      * Get the stats of the file.
      *
      * @returns {Promise<fs.Stats>} stats The stats of the file.
-     * @see {@link SfdxUtil.stat}
+     * @see {@link https://nodejs.org/api/fs.html#fs_fs_fstat_fd_callback|fs.stat}
      */
     public async stat(): Promise<fsStats> {
-        return SfdxUtil.stat(this.getPath());
+        return fs.stat(this.getPath());
     }
 
     /**
      * Delete the config file if it exists.
      *
      * @returns {Promise<boolean>} True if the file was deleted, false otherwise.
-     * @see {@link SfdxUtil.unlink}
+     * @see {@link https://nodejs.org/api/fs.html#fs_fs_unlink_path_callback|fs.unlink}
      */
     public async unlink(): Promise<void> {
         const exists = await this.exists();
         if (exists) {
-            return await SfdxUtil.unlink(this.getPath());
+            return await fs.unlink(this.getPath());
         }
         throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
     }

@@ -8,8 +8,8 @@
 import { ConfigFile, ConfigOptions } from './configFile';
 import { ConfigContents } from './configStore';
 import { isNil as _isNil } from 'lodash';
-import { SfdxUtil } from '../util';
 import { dirname as pathDirname } from 'path';
+import * as fs from '../util/fs';
 
 /**
  * Represent a key chain config backed by a json file.
@@ -39,9 +39,9 @@ export class KeychainConfig extends ConfigFile {
             this.setContents(newContents);
         }
 
-        await SfdxUtil.mkdirp(pathDirname(this.getPath()));
+        await fs.mkdirp(pathDirname(this.getPath()));
 
-        await SfdxUtil.writeFile(this.getPath(),
+        await fs.writeFile(this.getPath(),
             JSON.stringify(this.getContents(), null, 4), { mode: '600' });
 
         return this.getContents();

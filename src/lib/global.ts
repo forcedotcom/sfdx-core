@@ -7,7 +7,7 @@
 
 import * as os from 'os';
 import * as path from 'path';
-import { SfdxUtil } from './util';
+import * as fs from './util/fs';
 
 /**
  * Represents an environment mode.  Supports `production`, `development`, `demo`, and `test`
@@ -69,6 +69,6 @@ export class Global {
      */
     public static async createDir(dirPath?: string): Promise<void> {
         dirPath = dirPath ? path.join(Global.DIR, dirPath) : Global.DIR;
-        await SfdxUtil.mkdirp(dirPath, SfdxUtil.DEFAULT_USER_DIR_MODE);
+        await fs.mkdirp(dirPath, fs.DEFAULT_USER_DIR_MODE);
     }
 }
