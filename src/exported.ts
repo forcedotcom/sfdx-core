@@ -106,16 +106,22 @@ export {
 } from './lib/sfdxError';
 
 export {
+    AnyDictionary,
     AnyJson,
+    Dictionary,
     JsonArray,
     JsonMap
 } from './lib/types';
 
 export {
-    SfdxUtil
-} from './lib/util';
-
-export {
     SfdxTableOptions,
     UX
 } from './lib/ux';
+
+// Roll-up all util functions into a common util object in the public API
+import * as util from './lib/util/index';
+import * as fs from './lib/util/fs';
+import * as json from './lib/util/json';
+import * as validate from './lib/util/validate';
+const allUtil = Object.assign({}, util, fs, json, validate);
+export { allUtil as util };

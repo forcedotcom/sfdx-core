@@ -18,13 +18,14 @@ import { SfdxConfig } from '../../lib/config/sfdxConfig';
 import { ConfigContents, ConfigValue } from '../../lib/config/configStore';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
-import { SfdxUtil } from '../../lib/util';
 import { Global } from '../../lib/global';
 import { OrgUsersConfig } from '../../lib/config/orgUsersConfig';
 import { SfdxConfigAggregator } from '../../lib/config/sfdxConfigAggregator';
 import { Aliases } from '../../lib/config/aliases';
 import { set as _set, get as _get, isEqual as _isEqual } from 'lodash';
 import * as Transport from 'jsforce/lib/transport';
+import * as fs from '../../lib/util/fs';
+import * as json from '../../lib/util/json';
 
 const $$ = testSetup();
 
@@ -194,7 +195,7 @@ describe('Org Tests', () => {
         describe('mock remove', () => {
             let removeStub;
             beforeEach(() => {
-                removeStub = $$.SANDBOX.stub(SfdxUtil, 'remove').callsFake((path) => {
+                removeStub = $$.SANDBOX.stub(fs, 'remove').callsFake((path) => {
                     return Promise.resolve();
                 });
             });
@@ -222,7 +223,7 @@ describe('Org Tests', () => {
                 }
                 return $$.rootPathRetriever(false);
             });
-            $$.SANDBOX.stub(SfdxUtil, 'readJSONObject').callsFake(() => Promise.resolve({}));
+            $$.SANDBOX.stub(json, 'readJsonObject').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
@@ -241,7 +242,7 @@ describe('Org Tests', () => {
                 }
                 return osTmpdir();
             });
-            $$.SANDBOX.stub(SfdxUtil, 'readJSONObject').callsFake(() => Promise.resolve({}));
+            $$.SANDBOX.stub(json, 'readJsonObject').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
@@ -255,7 +256,7 @@ describe('Org Tests', () => {
     });
 
     describe('remove', () => {
-        const configFileReadJSONMock = async function() {
+        const configFilereadJsonMock = async function() {
             if (this.path.includes(`${testData.username}.json`)) {
                 return Promise.resolve(await testData.getConfig());
             }
@@ -264,7 +265,7 @@ describe('Org Tests', () => {
         };
 
         beforeEach(() => {
-            $$.configStubs['AuthInfoConfig'] = { retrieveContents: configFileReadJSONMock };
+            $$.configStubs['AuthInfoConfig'] = { retrieveContents: configFilereadJsonMock };
         });
 
         it('should remove all assets associated with the org', async () => {
@@ -278,7 +279,7 @@ describe('Org Tests', () => {
                 return Promise.resolve({});
             });
 
-            $$.SANDBOX.stub(SfdxUtil, 'remove').callsFake(() => {
+            $$.SANDBOX.stub(fs, 'remove').callsFake(() => {
                 return Promise.resolve({});
             });
 
@@ -299,7 +300,7 @@ describe('Org Tests', () => {
                 throw error;
             });
 
-            $$.SANDBOX.stub(SfdxUtil, 'remove').callsFake(async () => {
+            $$.SANDBOX.stub(fs, 'remove').callsFake(async () => {
                 return Promise.reject(error);
             });
 

@@ -12,7 +12,6 @@ import { AuthInfoConfig } from '../../lib/config/authInfoConfig';
 import { ConfigFile } from '../../lib/config/configFile';
 import { ConfigContents, ConfigValue } from '../../lib/config/configStore';
 import { Crypto } from '../../lib/crypto';
-import { SfdxUtil } from '../../lib/util';
 import { OAuth2 } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
@@ -20,6 +19,7 @@ import { testSetup } from '../testSetup';
 import { SfdxError } from '../../lib/sfdxError';
 import { toUpper as _toUpper, includes as _includes } from 'lodash';
 import { SfdxConfigAggregator } from '../../exported';
+import * as fs from '../../lib/util/fs';
 
 const TEST_KEY = {
     service: 'sfdx',
@@ -216,7 +216,7 @@ describe('AuthInfo', () => {
 
         testMetadata = new MetaAuthDataMock();
 
-        $$.SANDBOX.stub(SfdxUtil, 'stat').callsFake(async (path) => {
+        $$.SANDBOX.stub(fs, 'stat').callsFake(async (path) => {
             return testMetadata.statForKeyFile(path);
         });
 
@@ -236,7 +236,7 @@ describe('AuthInfo', () => {
 
         // These stubs return different objects based on the tests
         _postParmsStub = $$.SANDBOX.stub(OAuth2.prototype, '_postParams');
-        readFileStub = $$.SANDBOX.stub(SfdxUtil, 'readFile');
+        readFileStub = $$.SANDBOX.stub(fs, 'readFile');
 
         // Spies
         $$.SANDBOX.spy(AuthInfo.prototype, 'init');
@@ -403,7 +403,7 @@ describe('AuthInfo', () => {
                 expect(AuthInfo.prototype.update['called']).to.be.true;
                 expect(AuthInfo.prototype['buildJwtConfig']['called']).to.be.true;
                 expect(AuthInfo.prototype['buildJwtConfig']['firstCall'].args[0]).to.equal(jwtConfig);
-                expect(SfdxUtil.readFile['called']).to.be.true;
+                expect(fs.readFile['called']).to.be.true;
                 expect(AuthInfoConfig.getOptions(testMetadata.jwtUsername).filename).to.equal(`${testMetadata.jwtUsername}.json`);
 
                 const expectedAuthConfig = {
@@ -1092,7 +1092,7 @@ describe('AuthInfo', () => {
     describe('listAllAuthFiles', () => {
         let files;
         beforeEach(() => {
-            $$.SANDBOX.stub(SfdxUtil, 'readdir').callsFake(() => Promise.resolve(files));
+            $$.SANDBOX.stub(fs, 'readdir').callsFake(() => Promise.resolve(files));
         });
         it('matches username', async () => {
             files = ['good@match.org.json'];

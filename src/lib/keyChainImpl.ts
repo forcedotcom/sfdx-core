@@ -6,16 +6,15 @@
  */
 
 import * as _ from 'lodash';
-import * as fs from 'fs';
+import * as nodeFs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as childProcess from 'child_process';
-
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
-import { SfdxUtil } from './util';
 import { Global } from './global';
 import { KeychainConfig } from './config/keychainConfig';
 import { ConfigFile } from './config/configFile';
+import * as fs from './util/fs';
 
 /* tslint:disable: no-bitwise */
 
@@ -24,6 +23,7 @@ const GET_PASSWORD_RETRY_COUNT: number = 3;
 /**
  * Helper to reduce an array of cli args down to a presentable string for logging.
  * @param optionsArray CLI command args.
+ * @private
  */
 function _optionsToString(optionsArray) {
     return optionsArray.reduce((accum, element) => `${accum} ${element}`);
@@ -421,7 +421,7 @@ export class GenericKeychainAccess {
     protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<void> {
         try {
             const root = await ConfigFile.resolveRootFolder(true);
-            await SfdxUtil.access(path.join(root, Global.STATE_FOLDER), fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
+            await fs.access(path.join(root, Global.STATE_FOLDER), fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
             await cb(null);
         } catch (err) {
             await cb(err);
@@ -474,8 +474,8 @@ export class GenericWindowsKeychainAccess extends GenericKeychainAccess {}
 export const keyChainImpl = {
     generic_unix: new GenericUnixKeychainAccess(),
     generic_windows: new GenericWindowsKeychainAccess(),
-    darwin: new KeychainAccess(_darwinImpl, fs),
-    linux: new KeychainAccess(_linuxImpl, fs),
+    darwin: new KeychainAccess(_darwinImpl, nodeFs),
+    linux: new KeychainAccess(_linuxImpl, nodeFs),
     validateProgram: _validateProgram
 };
 

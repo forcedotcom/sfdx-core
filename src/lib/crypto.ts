@@ -30,6 +30,7 @@ interface CredType {
 /**
  * osxKeyChain promise wrapper.
  * @type {{get: KeychainPromises.get, set: KeychainPromises.set}}
+ * @private
  */
 const keychainPromises = {
 
