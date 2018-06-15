@@ -8,7 +8,7 @@
 import { keyChainImpl, KeyChain } from './keyChainImpl';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
-import { isEnvVarTruthy } from './util';
+import { isEnvVarTruthy } from './util/internal';
 
 /**
  * Gets the os level keychain impl.

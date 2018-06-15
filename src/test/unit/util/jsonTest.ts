@@ -1,3 +1,4 @@
+import { SfdxError } from './../../../lib/sfdxError';
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -128,5 +129,54 @@ describe('getJsonValuesByName', () => {
             ]
         };
         expect(json.getJsonValuesByName(data, 'b')).to.deep.equal(['root', 'd', 'e']);
+    });
+
+    describe('findUpperCaseKeys', () => {
+        it('should return the first upper case key', () => {
+            const testObj = { lowercase: true, UpperCase: false, nested: { camelCase: true } };
+            expect(json.findUpperCaseKeys(testObj)).to.equal('UpperCase');
+        });
+
+        it('should return the first nested upper case key', () => {
+            const testObj = { lowercase: true, uppercase: false, nested: { NestedUpperCase: true } };
+            expect(json.findUpperCaseKeys(testObj)).to.equal('NestedUpperCase');
+        });
+
+        it('should return undefined when no upper case key is found', () => {
+            const testObj = { lowercase: true, uppercase: false, nested: { camelCase: true } };
+            expect(json.findUpperCaseKeys(testObj)).to.be.undefined;
+        });
+    });
+});
+
+describe('type narrowing', () => {
+    describe('ensureString', () => {
+        it('should raise an error when passed undefined', () => {
+            expect(() => json.ensureString(undefined)).to.throw(SfdxError);
+        });
+    });
+
+    describe('ensureNumber', () => {
+        it('should raise an error when passed undefined', () => {
+            expect(() => json.ensureNumber(undefined)).to.throw(SfdxError);
+        });
+    });
+
+    describe('ensureBoolean', () => {
+        it('should raise an error when passed undefined', () => {
+            expect(() => json.ensureBoolean(undefined)).to.throw(SfdxError);
+        });
+    });
+
+    describe('ensureJsonMap', () => {
+        it('should raise an error when passed undefined', () => {
+            expect(() => json.ensureJsonMap(undefined)).to.throw(SfdxError);
+        });
+    });
+
+    describe('ensureJsonArray', () => {
+        it('should raise an error when passed undefined', () => {
+            expect(() => json.ensureJsonArray(undefined)).to.throw(SfdxError);
+        });
     });
 });

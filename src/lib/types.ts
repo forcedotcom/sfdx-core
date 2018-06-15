@@ -32,6 +32,6 @@
 
 export interface Dictionary<T> { [key: string]: T; }
 export type AnyDictionary = Dictionary<any>; // tslint:disable-line:no-any
-export type AnyJson = boolean | number | string | undefined | JsonArray | JsonMap;
+export type AnyJson = boolean | number | string | null | JsonArray | JsonMap;
 export interface JsonMap { [key: string]: AnyJson; }
 export interface JsonArray extends Array<AnyJson> { }

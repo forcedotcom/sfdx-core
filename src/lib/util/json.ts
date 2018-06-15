@@ -1,3 +1,4 @@
+import { findKey } from 'lodash';
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -5,7 +6,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /**
- * @module util
+ * @module json
  */
 
 import { isEmpty, isString, isNumber, isBoolean, isPlainObject, isArray, forEach } from 'lodash';
@@ -179,6 +180,90 @@ export function asJsonMap(value?: AnyJson): JsonMap | undefined {
  */
 export function asJsonArray(value?: AnyJson): JsonArray | undefined {
     return isJsonArray(value) ? value : undefined;
+}
+
+/**
+ * Narrows an `AnyJson` value to a `string` if it is type compatible, or raise an `SfdxError` otherwise.
+ *
+ * @param {AnyJson} value Any JSON value to test.
+ * @returns {string}
+ */
+export function ensureString(value ?: AnyJson): string {
+    if (!isString(value)) {
+        throw new SfdxError('Value is not a string');
+    }
+    return value;
+}
+
+/**
+ * Narrows an `AnyJson` value to a `number` if it is type compatible, or raise an `SfdxError` otherwise.
+ *
+ * @param {AnyJson} value Any JSON value to test.
+ * @returns {number}
+ */
+export function ensureNumber(value ?: AnyJson): number {
+    if (!isNumber(value)) {
+        throw new SfdxError('Value is not a string');
+    }
+    return value;
+}
+
+/**
+ * Narrows an `AnyJson` value to a `boolean` if it is type compatible, or raise an `SfdxError` otherwise.
+ *
+ * @param {AnyJson} value Any JSON value to test.
+ * @returns {boolean}
+ */
+export function ensureBoolean(value ?: AnyJson): boolean {
+    if (!isBoolean(value)) {
+        throw new SfdxError('Value is not a boolean');
+    }
+    return value;
+}
+
+/**
+ * Narrows an `AnyJson` value to a `JsonMap` if it is type compatible, or raise an `SfdxError` otherwise.
+ *
+ * @param {AnyJson} value Any JSON value to test.
+ * @returns {JsonMap}
+ */
+export function ensureJsonMap(value?: AnyJson): JsonMap {
+    if (!isJsonMap(value)) {
+        throw new SfdxError('Value is not a JsonMap');
+    }
+    return value;
+}
+
+/**
+ * Narrows an `AnyJson` value to a `JsonArray` if it is type compatible, or raise an `SfdxError` otherwise.
+ *
+ * @param {AnyJson} value Any JSON value to test.
+ * @returns {JsonArray}
+ */
+export function ensureJsonArray(value?: AnyJson): JsonArray {
+    if (!isJsonArray(value)) {
+        throw new SfdxError('Value is not a JsonArray');
+    }
+    return value;
+}
+
+/**
+ * Returns the first key within the object that has an upper case first letter.
+ *
+ * @param {JsonMap} json The object in which to check key casing.
+ * @returns {string}
+ */
+export function findUpperCaseKeys(json: JsonMap): string {
+    let _key;
+    findKey(json, (val, key) => {
+        if (key[0] === key[0].toUpperCase()) {
+            _key = key;
+        } else if (isPlainObject(val)) {
+            _key = this.findUpperCaseKeys(val);
+        }
+        return _key;
+    });
+    return _key;
 }
 
 async function processJsonError(error: Error, data: string, jsonPath: string): Promise<void> {

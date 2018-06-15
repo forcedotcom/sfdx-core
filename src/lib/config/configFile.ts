@@ -22,7 +22,7 @@ import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
 import { homedir as osHomedir } from 'os';
 import * as fs from '../util/fs';
-import { resolveProjectPath } from '../util';
+import { resolveProjectPath } from '../util/internal';
 import { readJsonObject, writeJson } from '../util/json';
 
 /**
