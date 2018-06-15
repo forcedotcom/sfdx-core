@@ -150,9 +150,91 @@ describe('getJsonValuesByName', () => {
 });
 
 describe('type narrowing', () => {
+    describe('isJsonMap', () => {
+        it('should return false when passed undefined', () => {
+            expect(json.isJsonMap(undefined)).to.be.false;
+        });
+
+        it('should return true when passed a JsonMap', () => {
+            const value = {a: 'b', c: 'd'};
+            expect(json.isJsonMap(value)).to.be.true;
+        });
+    });
+
+    describe('isJsonArray', () => {
+        it('should return false when passed undefined', () => {
+            expect(json.isJsonArray(undefined)).to.be.false;
+        });
+
+        it('should return true when passed a JsonArray', () => {
+            const value = ['a', 'b'];
+            expect(json.isJsonArray(value)).to.be.true;
+        });
+    });
+
+    describe('asString', () => {
+        it('should return undefined when passed undefined', () => {
+            expect(json.asString(undefined)).to.be.undefined;
+        });
+
+        it('should return a string when passed a string', () => {
+            const value = 'string';
+            expect(json.asString(value)).to.equal(value);
+        });
+    });
+
+    describe('asNumber', () => {
+        it('should return undefined when passed undefined', () => {
+            expect(json.asNumber(undefined)).to.be.undefined;
+        });
+
+        it('should return a number when passed a number', () => {
+            const value = 1;
+            expect(json.asNumber(value)).to.equal(value);
+        });
+    });
+
+    describe('asBoolean', () => {
+        it('should return undefined when passed undefined', () => {
+            expect(json.asBoolean(undefined)).to.be.undefined;
+        });
+
+        it('should return a boolean when passed a boolean', () => {
+            const value = true;
+            expect(json.asBoolean(value)).to.equal(value);
+        });
+    });
+
+    describe('asJsonMap', () => {
+        it('should return undefined when passed undefined', () => {
+            expect(json.asJsonMap(undefined)).to.be.undefined;
+        });
+
+        it('should return a JsonMap when passed a JsonMap', () => {
+            const value = { a: 'b', c: 'd' };
+            expect(json.asJsonMap(value)).to.equal(value);
+        });
+    });
+
+    describe('asJsonArray', () => {
+        it('should return undefined when passed undefined', () => {
+            expect(json.asJsonArray(undefined)).to.be.undefined;
+        });
+
+        it('should return a JsonArray when passed a JsonArray', () => {
+            const value = ['a', 'b'];
+            expect(json.asJsonArray(value)).to.equal(value);
+        });
+    });
+
     describe('ensureString', () => {
         it('should raise an error when passed undefined', () => {
             expect(() => json.ensureString(undefined)).to.throw(SfdxError);
+        });
+
+        it('should return a string when passed a string', () => {
+            const value = 'string';
+            expect(json.asString(value)).to.equal(value);
         });
     });
 
@@ -160,11 +242,21 @@ describe('type narrowing', () => {
         it('should raise an error when passed undefined', () => {
             expect(() => json.ensureNumber(undefined)).to.throw(SfdxError);
         });
+
+        it('should return a number when passed a number', () => {
+            const value = 1;
+            expect(json.asNumber(value)).to.equal(value);
+        });
     });
 
     describe('ensureBoolean', () => {
         it('should raise an error when passed undefined', () => {
             expect(() => json.ensureBoolean(undefined)).to.throw(SfdxError);
+        });
+
+        it('should return a boolean when passed a number', () => {
+            const value = true;
+            expect(json.asBoolean(value)).to.equal(value);
         });
     });
 
@@ -172,11 +264,21 @@ describe('type narrowing', () => {
         it('should raise an error when passed undefined', () => {
             expect(() => json.ensureJsonMap(undefined)).to.throw(SfdxError);
         });
+
+        it('should return a JsonMap when passed a JsonMap', () => {
+            const value = { a: 'b', c: 'd' };
+            expect(json.asJsonMap(value)).to.deep.equal(value);
+        });
     });
 
     describe('ensureJsonArray', () => {
         it('should raise an error when passed undefined', () => {
             expect(() => json.ensureJsonArray(undefined)).to.throw(SfdxError);
+        });
+
+        it('should return a JsonArray when passed a JsonArray', () => {
+            const value = ['a', 'b'];
+            expect(json.asJsonArray(value)).to.deep.equal(value);
         });
     });
 });
