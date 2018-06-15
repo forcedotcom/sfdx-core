@@ -12,7 +12,7 @@ import { SfdxError } from './sfdxError';
 import { AnyJson, JsonMap, Dictionary } from './types';
 import { Logger } from './logger';
 import { isString as _isString } from 'lodash';
-import { readJsonObject, getJsonValuesByName } from './util/json';
+import { readJsonMap, getJsonValuesByName } from './util/json';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.
@@ -41,7 +41,7 @@ export class SchemaValidator {
      */
     public async load(): Promise<JsonMap> {
         if (!this.schema) {
-            this.schema = await readJsonObject(this.schemaPath);
+            this.schema = await readJsonMap(this.schemaPath);
             this.logger.debug(`Schema loaded for ${this.schemaPath}`);
         }
         return this.schema;
@@ -115,7 +115,7 @@ export class SchemaValidator {
     private async loadExternalSchema(uri: string): Promise<JsonMap> {
         const schemaPath = path.join(this.schemasDir, `${uri}.json`);
         try {
-            return await readJsonObject(schemaPath);
+            return await readJsonMap(schemaPath);
         } catch (err) {
             if (err.code === 'ENOENT') {
                 throw new SfdxError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');

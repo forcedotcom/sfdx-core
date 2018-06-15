@@ -66,7 +66,7 @@ describe('readJson', () => {
     });
 });
 
-describe('readJsonObject', () => {
+describe('readJsonMap', () => {
     let readFileStub;
 
     beforeEach(() => {
@@ -77,7 +77,7 @@ describe('readJsonObject', () => {
         readFileStub.returns(Promise.resolve('[]'));
 
         try {
-            await json.readJsonObject('arrayFile');
+            await json.readJsonMap('arrayFile');
             assert.fail('readJson should have thrown a UnexpectedJsonFileFormat');
         } catch (error) {
             expect(error.message).to.contain('UnexpectedJsonFileFormat');
@@ -88,7 +88,7 @@ describe('readJsonObject', () => {
         const validJSON = { key: 12345, value: true };
         const validJSONStr = JSON.stringify(validJSON);
         readFileStub.returns(Promise.resolve(validJSONStr));
-        const rv = await json.readJsonObject('validJSONStr');
+        const rv = await json.readJsonMap('validJSONStr');
         expect(rv).to.eql(validJSON);
     });
 });
