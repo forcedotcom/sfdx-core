@@ -16,7 +16,7 @@ import { RequestInfo } from 'jsforce';
 import { QueryResult } from 'jsforce';
 import { ExecuteOptions } from 'jsforce';
 import { SfdxError } from './sfdxError';
-import { validateApiVersion } from './util/validate';
+import { validateApiVersion } from './util/sfdc';
 
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to

@@ -32,8 +32,7 @@ import { ConfigContents, ConfigValue } from './configStore';
 import { ConfigFile, ConfigOptions } from './configFile';
 import { SfdxError } from '../sfdxError';
 import { Crypto } from '../crypto';
-import { isSalesforceDomain } from '../util';
-import { validateApiVersion } from '../util/validate';
+import { isSalesforceDomain, validateApiVersion } from '../util/sfdc';
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 

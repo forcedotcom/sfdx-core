@@ -10,7 +10,8 @@ import { ConfigContents } from './config/configStore';
 import { ConfigFile, ConfigOptions } from './config/configFile';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
 import { SfdxError } from './sfdxError';
-import { findUpperCaseKeys, resolveProjectPath, SFDX_PROJECT_JSON } from './util';
+import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
+import { findUpperCaseKeys } from './util/json';
 
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
@@ -45,7 +46,7 @@ export class SfdxProjectJson extends ConfigFile {
         const contents = await super.read();
 
         // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
-        const upperCaseKey = findUpperCaseKeys(contents);
+        const upperCaseKey = findUpperCaseKeys(this.toObject());
         if (upperCaseKey) {
             throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
         }
