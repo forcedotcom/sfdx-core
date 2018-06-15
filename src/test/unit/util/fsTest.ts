@@ -33,7 +33,7 @@ describe('util/fs', () => {
 
             try {
                 await fs.access(folderToDelete);
-                assert.fail('This test is design to throw and error');
+                assert.fail('This test is designed to throw and error');
             } catch (e) {
                 expect(e).to.have.property('code', 'ENOENT');
             }
@@ -50,7 +50,7 @@ describe('util/fs', () => {
             for (const path of [folderToDelete, fileToDelete]) {
                 try {
                     await fs.access(path);
-                    assert.fail('This test is design to throw and error');
+                    assert.fail('This test is designed to throw and error');
                 } catch (e) {
                     expect(e).to.have.property('code', 'ENOENT');
                 }
