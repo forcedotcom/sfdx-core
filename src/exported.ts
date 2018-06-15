@@ -84,7 +84,7 @@ export {
 
 export {
     Org,
-    OrgMetaInfo
+    OrgFields
 } from './lib/org';
 
 export {
