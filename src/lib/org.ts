@@ -6,6 +6,19 @@
  */
 
 /**
+ * Org Fields.
+ * @typedef OrgFields
+ * @property {string} ALIAS The org alias.
+ * @property {string} CREATED_ORG_INSTANCE The Salesforce instance the org was created on. e.g. `cs42`.
+ * @property {string} DEV_HUB_USERNAME The username of the dev hub org that created this org. Only populated for scratch orgs.
+ * @property {string} INSTANCE_URL The full url of the instance the org lives on.
+ * @property {string} IS_DEV_HUB Is the current org a dev hub org. e.g. They have access to the `ScratchOrgInfo` object.
+ * @property {string} LOGIN_URL The login url of the org. e.g. `https://login.salesforce.com` or `https://test.salesforce.com`.
+ * @property {string} ORG_ID The org ID.
+ * @property {string} STATUS The `OrgStatus` of the org.
+ */
+
+/**
  * Scratch Org status.
  * @typedef OrgStatus
  * @property {string} ACTIVE The scratch org is active.
@@ -28,6 +41,7 @@ import { SfdxUtil } from './util';
 import { OrgUsersConfig } from './config/orgUsersConfig';
 import { SfdxError } from './sfdxError';
 import { QueryResult } from 'jsforce';
+import { AnyJson, Dictionary } from './types';
 
 export enum OrgStatus {
     ACTIVE = 'ACTIVE',
@@ -36,25 +50,34 @@ export enum OrgStatus {
     MISSING = 'MISSING'
 }
 
-/**
- * Additional information tracked for an org beyond what's provided by the local auth information.
- */
-export interface OrgMetaInfo {
+// A subset of fields from AuthInfoFields and properties that are specific to Org,
+// and properties that are defined on Org itself.
+export enum OrgFields {
+    // From AuthInfo
+    ALIAS = 'alias',
+    CREATED = 'created',
+    CREATED_ORG_INSTANCE = 'createdOrgInstance',
+    DEV_HUB_USERNAME = 'devHubUsername',
+    INSTANCE_URL = 'instanceUrl',
+    IS_DEV_HUB = 'isDevHub',
+    LOGIN_URL = 'loginUrl',
+    ORG_ID = 'orgId',
 
-    /**
-     * The auth info used for the org connection
-     */
-    info: AuthInfo;
+    // From Org
+    STATUS = 'status'
 
-    /**
-     * If true the dev hub configuration is missing
-     */
-    devHubMissing?: boolean;
+    // Should it be on org? Leave it off for now, as it might
+    // be confusing to the consumer what this actually is.
+    // USERNAMES = 'usernames',
 
-    /**
-     * True if this org has expired.
-     */
-    expired?: boolean;
+    // Keep separation of concerns. I think these should be on a "user" that belongs to the org.
+    // Org can have a list of user objects that belong to it? Should connection be on user and org.getConnection()
+    // gets the orgs current user for the process? Maybe we just want to keep with the Org only model for
+    // the end of time?
+    // USER_ID = 'userId',
+    // USERNAME = 'username',
+    // PASSWORD = 'password',
+    // USER_PROFILE_NAME = 'userProfileName'
 }
 
 const _manageDelete = function(cb, dirPath, throwWhenRemoveFails) {
@@ -223,7 +246,7 @@ export class Org {
             aliases.unsetAll(aliasKeys);
 
             let orgForUser;
-            if (username === this.getConnection().getAuthInfo().getFields().username) {
+            if (username === this.getUsername()) {
                 orgForUser = this;
             } else {
                 const _info = await AuthInfo.create(username);
@@ -295,12 +318,10 @@ export class Org {
      * @returns {Promise<Org>}
      */
     public async getDevHubOrg(): Promise<Org> {
-        const orgData: OrgMetaInfo = this.getMetaInfo();
-
         if (this.isDevHubOrg()) {
             return Promise.resolve(this);
-        } else if (orgData.info.getFields().devHubUsername) {
-            return Org.create(await Connection.create(await AuthInfo.create(orgData.info.getFields().devHubUsername)));
+        } else if (this.getField(OrgFields.DEV_HUB_USERNAME)) {
+            return Org.create(await Connection.create(await AuthInfo.create(this.getField(OrgFields.DEV_HUB_USERNAME) as string)));
         }
     }
 
@@ -309,7 +330,7 @@ export class Org {
      * @returns {Boolean}
      */
     public isDevHubOrg(): boolean {
-        return this.getConnection().getAuthInfo().getFields().isDevHub;
+        return this.getField(OrgFields.IS_DEV_HUB) as boolean;
     }
 
     /**
@@ -333,7 +354,7 @@ export class Org {
     public async readUserAuthFiles(): Promise<AuthInfo[]> {
         const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
         const contents: ConfigContents = await config.read();
-        const thisUsername = this.getConnection().getAuthInfo().getFields().username;
+        const thisUsername = this.getUsername();
         const usernames: string[] = contents.get('usernames') as string[] || [thisUsername];
         return Promise.all(usernames.map((username) => {
             if (username === thisUsername) {
@@ -369,7 +390,7 @@ export class Org {
 
         let shouldUpdate = false;
 
-        const thisUsername = this.getConnection().getAuthInfo().getFields().username;
+        const thisUsername = this.getUsername();
         if (!usernames.includes(thisUsername)) {
             usernames.push(thisUsername);
             shouldUpdate = true;
@@ -428,7 +449,7 @@ export class Org {
      * @return {string}
      */
     public getUsername(): string {
-        return this.getMetaInfo().info.getFields().username;
+        return this.getAuthInfo().getUsername();
     }
 
     /**
@@ -436,7 +457,7 @@ export class Org {
      * @return {string}
      */
     public getOrgId(): string {
-        return this.getMetaInfo().info.getFields().orgId;
+        return this.getField(OrgFields.ORG_ID) as string;
     }
 
     /**
@@ -448,13 +469,27 @@ export class Org {
     }
 
     /**
-     * Returns meta information about this org.
-     * @returns {OrgMetaInfo}
+     * Returns an org field. Returns undefined if the field is not set or invalid.
+     * @returns {AnyJson}
      */
-    public getMetaInfo(): OrgMetaInfo {
-        return {
-            info: this.getConnection().getAuthInfo()
-        };
+    public getField(key: OrgFields): AnyJson {
+        return this[key] || this.getAuthInfo().getFields()[key];
+    }
+
+    /**
+     * Returns a map of requested fields.
+     * @returns {Dictionary<AnyJson>}
+     */
+    public getFields(keys: OrgFields[]): Dictionary<AnyJson> {
+        return keys.reduce((map, key) => { map[key] = this.getField(key); return map; }, {});
+    }
+
+    /**
+     * Returns the org connection's auth info
+     * @returns {AuthInfo}
+     */
+    public getAuthInfo(): AuthInfo {
+        return this.getConnection().getAuthInfo();
     }
 
     /**
