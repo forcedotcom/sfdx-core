@@ -79,7 +79,7 @@ describe('SfdxConfigAggregator', () => {
 
     describe('locations', () => {
         it('local', async () => {
-            $$.SANDBOX.stub(json, 'readJsonObject').callsFake(async (path) => {
+            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(async (path) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 2});
@@ -94,7 +94,7 @@ describe('SfdxConfigAggregator', () => {
         });
 
         it('global', async () => {
-            $$.SANDBOX.stub(json, 'readJsonObject').callsFake(async (path) => {
+            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(async (path) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 2});

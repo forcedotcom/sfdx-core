@@ -53,7 +53,7 @@ describe('SfdxConfig', () => {
         it('adds content of the config file from this.path to this.contents', async () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
 
-            $$.SANDBOX.stub(json, 'readJsonObject')
+            $$.SANDBOX.stub(json, 'readJsonMap')
                 .withArgs(config.getPath())
                 .returns(Promise.resolve(clone(configFileContents)));
 
@@ -70,7 +70,7 @@ describe('SfdxConfig', () => {
 
         it('calls SfdxConfig.write with updated file contents', async () => {
 
-            $$.SANDBOX.stub(json, 'readJsonObject').callsFake(async () => Promise.resolve(clone(configFileContents)));
+            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
             const writeStub = $$.SANDBOX.stub(json, 'writeJson');
 
             const expectedFileContents = clone(configFileContents);
@@ -83,7 +83,7 @@ describe('SfdxConfig', () => {
         });
 
         it('calls SfdxConfig.write with deleted file contents', async () => {
-            $$.SANDBOX.stub(json, 'readJsonObject').callsFake(() => Promise.resolve(clone(configFileContents)));
+            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(() => Promise.resolve(clone(configFileContents)));
             const writeStub = $$.SANDBOX.stub(json, 'writeJson');
             const { defaultdevhubusername } = configFileContents;
 

@@ -23,7 +23,7 @@ import { SfdxError } from '../sfdxError';
 import { homedir as osHomedir } from 'os';
 import * as fs from '../util/fs';
 import { resolveProjectPath } from '../util/internal';
-import { readJsonObject, writeJson } from '../util/json';
+import { readJsonMap, writeJson } from '../util/json';
 
 /**
  * The interface for Config options.
@@ -176,7 +176,7 @@ export class ConfigFile extends BaseConfigStore {
      */
     public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
         try {
-            const obj = await readJsonObject(this.getPath());
+            const obj = await readJsonMap(this.getPath());
             this.setContentsFromObject(obj);
             return this.getContents();
         } catch (err) {

@@ -33,9 +33,9 @@ export async function readJson(jsonPath: string, throwOnEmpty?: boolean): Promis
  * @param {boolean} [throwOnEmpty] Whether to throw an error if the JSON file is empty.
  * @return {Promise<JsonMap>} The contents of the file as a JSON object.
  */
-export async function readJsonObject(jsonPath: string, throwOnEmpty?: boolean): Promise<JsonMap> {
+export async function readJsonMap(jsonPath: string, throwOnEmpty?: boolean): Promise<JsonMap> {
     const fileData = await readFile(jsonPath, 'utf8');
-    return await parseJsonObject(fileData, jsonPath, throwOnEmpty);
+    return await parseJsonMap(fileData, jsonPath, throwOnEmpty);
 }
 
 /**
@@ -81,7 +81,7 @@ export async function parseJson(data: string, jsonPath: string = 'unknown', thro
  * @throws {SfdxError} **`{name: 'JsonParseError'}`** If the data contents are empty.
  * @throws {SfdxError} **`{name: 'UnexpectedJsonFileFormat'}`** If the data contents are not a `JsonMap`.
  */
-export async function parseJsonObject(data: string, jsonPath?: string, throwOnEmpty?: boolean): Promise<JsonMap> {
+export async function parseJsonMap(data: string, jsonPath?: string, throwOnEmpty?: boolean): Promise<JsonMap> {
     const json = await parseJson(data, jsonPath, throwOnEmpty);
     if (json === null || json instanceof Array || (typeof json !== 'object')) {
         throw new SfdxError('UnexpectedJsonFileFormat');
