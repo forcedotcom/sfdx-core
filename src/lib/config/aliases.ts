@@ -35,7 +35,7 @@ export enum AliasGroup {
  * await aliases.write();
  *
  * // Shorthand to get an alias.
- * const username: string = Aliases.fetch('myAlias');
+ * const username: string = await Aliases.fetch('myAlias');
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
 export class Aliases extends ConfigGroup {
@@ -89,7 +89,7 @@ export class Aliases extends ConfigGroup {
      * @param {AliasGroup} [group = AliasGroup.ORGS] The group the alias belongs to. Defaults to ORGS.
      * @returns {Promise<object>} The new aliases that were saved.
      * @example
-     * const aliases = Aliases.parseAndUpdate(['foo=bar', 'bar=baz'])
+     * const aliases = await Aliases.parseAndUpdate(['foo=bar', 'bar=baz'])
      */
     public static async parseAndUpdate(aliasKeyAndValues: string[], group: AliasGroup = AliasGroup.ORGS): Promise<object> {
         const newAliases = {};
