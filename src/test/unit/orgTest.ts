@@ -8,7 +8,7 @@ import { constants as fsConstants } from 'fs';
 import { AuthInfo, AuthFields } from '../../lib/authInfo';
 import { Connection } from '../../lib/connection';
 import { AnyJson } from '../../lib/types';
-import { Org } from '../../lib/org';
+import { Org, OrgFields } from '../../lib/org';
 import { OAuth2 } from 'jsforce';
 import { expect, assert } from 'chai';
 import { testSetup } from '../testSetup';
@@ -114,17 +114,34 @@ describe('Org Tests', () => {
         $$.SANDBOX.stub(Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     });
 
+    describe('fields', () => {
+        it('getField should get authinfo fields', async () => {
+            const org: Org = await Org.create(testData.username);
+            expect(org.getField(OrgFields.ORG_ID)).to.eq(testData.orgId);
+        });
+
+        it('getField should get org properties', async () => {
+            const org: Org = await Org.create(testData.username);
+            expect(org.getField(OrgFields.STATUS)).to.eq('UNKNOWN');
+        });
+
+        it('getFields should get a bunch of fields', async () => {
+            const org: Org = await Org.create(testData.username);
+            expect(org.getFields([OrgFields.ORG_ID, OrgFields.STATUS])).to.deep.eq({ orgId: testData.orgId, status: 'UNKNOWN' });
+        });
+    });
+
     describe('org:create', () => {
         it('should create an org from a username', async () => {
             const org: Org = await Org.create(testData.username);
-            expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
+            expect(org.getUsername()).to.eq(testData.username);
         });
 
         it('should create an org from an alias', async () => {
             const ALIAS: string = 'foo';
             await Aliases.parseAndUpdate([`${ALIAS}=${testData.username}`]);
             const org: Org = await Org.create(ALIAS);
-            expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
+            expect(org.getUsername()).to.eq(testData.username);
         });
 
         it('should create an org from the default username', async () => {
@@ -136,7 +153,7 @@ describe('Org Tests', () => {
             const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
 
             const org: Org = await Org.create(undefined, sfdxConfigAggregator);
-            expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
+            expect(org.getUsername()).to.eq(testData.username);
         });
 
         it('should create a default devhub org', async () => {
@@ -147,7 +164,7 @@ describe('Org Tests', () => {
             const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
 
             const org: Org = await Org.create(undefined, sfdxConfigAggregator, true);
-            expect(org.getMetaInfo().info.getFields().username).to.eq(testData.username);
+            expect(org.getUsername()).to.eq(testData.username);
         });
 
         it('should expose getUsername', async () => {
@@ -382,7 +399,7 @@ describe('Org Tests', () => {
                 orgs.push(org);
             }
 
-            await orgs[0].addUsername(orgs[1].getMetaInfo().info);
+            await orgs[0].addUsername(orgs[1].getAuthInfo());
         });
 
         it('should validate expected files', async () => {
@@ -396,7 +413,7 @@ describe('Org Tests', () => {
         it('should remove aliases and config settings', async () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
 
-            const org0Username = orgs[0].getMetaInfo().info.getFields().username;
+            const org0Username = orgs[0].getUsername();
             await config.set(SfdxConfig.DEFAULT_USERNAME, org0Username);
             await config.write();
 
@@ -404,7 +421,7 @@ describe('Org Tests', () => {
             const info = sfdxConfigAggregator.getInfo(SfdxConfig.DEFAULT_USERNAME);
             expect(info).has.property('value', org0Username);
 
-            const org1Username = orgs[1].getMetaInfo().info.getFields().username;
+            const org1Username = orgs[1].getUsername();
             await Aliases.parseAndUpdate([`foo=${org1Username}`]);
             let alias = await Aliases.fetch('foo');
             expect(alias).eq(org1Username);
@@ -504,7 +521,7 @@ describe('Org Tests', () => {
             const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
 
             const devHub: Org = await org.getDevHubOrg();
-            expect(devHub.getMetaInfo().info.getFields().username).eq(devHubUser);
+            expect(devHub.getUsername()).eq(devHubUser);
         });
 
         it('org is devhub', async () => {
@@ -512,7 +529,7 @@ describe('Org Tests', () => {
             const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
 
             const devHub: Org = await org.getDevHubOrg();
-            expect(devHub.getMetaInfo().info.getFields().username).eq(testData.username);
+            expect(devHub.getUsername()).eq(testData.username);
         });
     });
 
@@ -558,9 +575,9 @@ describe('Org Tests', () => {
                 } else if (path && path.includes(mock0.orgId)) {
                     return {
                         usernames: [
-                            orgs[0].getMetaInfo().info.getFields().username,
-                            orgs[1].getMetaInfo().info.getFields().username,
-                            orgs[2].getMetaInfo().info.getFields().username
+                            orgs[0].getUsername(),
+                            orgs[1].getUsername(),
+                            orgs[2].getUsername()
                         ]
                     };
                 } else {
