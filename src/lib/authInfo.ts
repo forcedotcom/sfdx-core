@@ -60,10 +60,10 @@ import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
-import { SfdxUtil } from './util';
 import { SFDX_HTTP_HEADERS } from './connection';
 import { Crypto } from './crypto';
 import { JsonMap } from './types';
+import * as fs from './util/fs';
 
 // Fields that are persisted in auth files
 export interface AuthFields {
@@ -305,7 +305,7 @@ export class AuthInfo {
      * @returns {Promise<string[]>}
      */
     public static async listAllAuthFiles(): Promise<string[]> {
-        const globalFiles = await SfdxUtil.readdir(Global.DIR);
+        const globalFiles = await fs.readdir(Global.DIR);
         const authFiles = globalFiles.filter((file) => file.match(AuthInfo.authFilenameFilterRegEx));
 
         // Want to throw a clean error if no files are found.
@@ -628,7 +628,7 @@ export class AuthInfo {
 
     // Build OAuth config for a JWT auth flow
     private async buildJwtConfig(options: OAuth2Options): Promise<AuthFields> {
-        const privateKeyContents = await SfdxUtil.readFile(options.privateKey, 'utf8');
+        const privateKeyContents = await fs.readFile(options.privateKey, 'utf8');
         const audienceUrl = getJwtAudienceUrl(options);
         const jwtToken = await jwt.sign(
             {

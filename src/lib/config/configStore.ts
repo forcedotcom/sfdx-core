@@ -22,12 +22,12 @@
  */
 
 import * as _ from 'lodash';
-import { JsonMap } from '../types';
+import { JsonMap, AnyJson } from '../types';
 
 /**
  * The allowed types stored in a config store.
  */
-export type ConfigValue = string | number | boolean | object;
+export type ConfigValue = AnyJson | object;
 
 /**
  * The type of entries in a config store defined by the key and value type of {@link ConfigContents}.

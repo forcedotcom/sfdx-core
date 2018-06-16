@@ -9,8 +9,8 @@ import { expect } from 'chai';
 import * as path from 'path';
 
 import { Global, Mode } from '../../lib/global';
-import { SfdxUtil } from '../../lib/util';
 import { testSetup } from '../testSetup';
+import * as fs from '../../lib/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -43,20 +43,20 @@ describe('Global', () => {
 
     describe('createDir', () => {
         it('should create the global dir when no args passed', async () => {
-            $$.SANDBOX.stub(SfdxUtil, 'mkdirp').returns(Promise.resolve());
+            $$.SANDBOX.stub(fs, 'mkdirp').returns(Promise.resolve());
             await Global.createDir();
-            expect(SfdxUtil.mkdirp['called']).to.be.true;
-            expect(SfdxUtil.mkdirp['firstCall'].args[0]).to.equal(Global.DIR);
-            expect(SfdxUtil.mkdirp['firstCall'].args[1]).to.equal(SfdxUtil.DEFAULT_USER_DIR_MODE);
+            expect(fs.mkdirp['called']).to.be.true;
+            expect(fs.mkdirp['firstCall'].args[0]).to.equal(Global.DIR);
+            expect(fs.mkdirp['firstCall'].args[1]).to.equal(fs.DEFAULT_USER_DIR_MODE);
         });
 
         it('should create a dir within the global dir when a dirPath is passed', async () => {
-            $$.SANDBOX.stub(SfdxUtil, 'mkdirp').returns(Promise.resolve());
+            $$.SANDBOX.stub(fs, 'mkdirp').returns(Promise.resolve());
             const dirPath = path.join('some', 'dir', 'path');
             await Global.createDir(dirPath);
-            expect(SfdxUtil.mkdirp['called']).to.be.true;
-            expect(SfdxUtil.mkdirp['firstCall'].args[0]).to.equal(path.join(Global.DIR, dirPath));
-            expect(SfdxUtil.mkdirp['firstCall'].args[1]).to.equal(SfdxUtil.DEFAULT_USER_DIR_MODE);
+            expect(fs.mkdirp['called']).to.be.true;
+            expect(fs.mkdirp['firstCall'].args[0]).to.equal(path.join(Global.DIR, dirPath));
+            expect(fs.mkdirp['firstCall'].args[1]).to.equal(fs.DEFAULT_USER_DIR_MODE);
         });
     });
 });

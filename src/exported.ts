@@ -106,16 +106,24 @@ export {
 } from './lib/sfdxError';
 
 export {
+    AnyDictionary,
     AnyJson,
+    Dictionary,
     JsonArray,
     JsonMap
 } from './lib/types';
 
 export {
-    SfdxUtil
-} from './lib/util';
-
-export {
     SfdxTableOptions,
     UX
 } from './lib/ux';
+
+// Utility sub-modules
+import * as fs from './lib/util/fs';
+import * as json from './lib/util/json';
+import * as sfdc from './lib/util/sfdc';
+export {
+    fs,
+    json,
+    sfdc
+};

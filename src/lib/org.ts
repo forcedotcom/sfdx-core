@@ -37,11 +37,12 @@ import { SfdxConfigAggregator, ConfigInfo } from './config/sfdxConfigAggregator'
 import { get as _get, filter as _filter, isString as _isString } from 'lodash';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Global} from './global';
-import { SfdxUtil } from './util';
 import { OrgUsersConfig } from './config/orgUsersConfig';
 import { SfdxError } from './sfdxError';
 import { QueryResult } from 'jsforce';
 import { AnyJson, Dictionary } from './types';
+import { trimTo15 } from './util/sfdc';
+import * as fs from './util/fs';
 
 export enum OrgStatus {
     ACTIVE = 'ACTIVE',
@@ -212,7 +213,7 @@ export class Org {
             throw err;
         }
 
-        return _manageDelete.call(this, async () => await SfdxUtil.remove(dataPath), dataPath,
+        return _manageDelete.call(this, async () => await fs.remove(dataPath), dataPath,
             throwWhenRemoveFails);
     }
 
@@ -290,7 +291,7 @@ export class Org {
 
         const thisOrgAuthConfig: Partial<AuthFields> = this.getConnection().getAuthInfo().getFields();
 
-        const trimmedId: string = SfdxUtil.trimTo15(thisOrgAuthConfig.orgId);
+        const trimmedId: string = trimTo15(thisOrgAuthConfig.orgId);
 
         const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg=\'${trimmedId}\'`;
 
