@@ -71,7 +71,7 @@ export class Project {
      * @returns {Promise<Project>} The resolved project.
      */
     public static async resolve(path ?: string): Promise<Project> {
-        return new Project(await resolveProjectPath(path));
+        return new Project(await this.resolveProjectPath(path));
     }
 
     /**
