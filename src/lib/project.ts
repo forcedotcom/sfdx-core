@@ -74,6 +74,19 @@ export class Project {
         return new Project(await resolveProjectPath(path));
     }
 
+    /**
+     * Performs an upward directory search for an sfdx project file.
+     *
+     * @param {string} [dir=process.cwd()] The directory path to start traversing from.
+     * @returns {Promise<string>} The absolute path to the project.
+     * @throws {SfdxError} **`{name: 'InvalidProjectWorkspace'}`** If the current folder is not located in a workspace.
+     * @see fs.traverseForFile
+     * @see {@link https://nodejs.org/api/process.html#process_process_cwd|process.cwd()}
+     */
+    public static async resolveProjectPath(dir: string): Promise<string> {
+        return resolveProjectPath(dir);
+    }
+
     private projectConfig: any; // tslint:disable-line:no-any
 
     // Dynamically referenced in retrieveSfdxProjectJson
