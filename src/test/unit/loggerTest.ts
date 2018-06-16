@@ -8,10 +8,9 @@
 import { assert, expect } from 'chai';
 import * as _ from 'lodash';
 import * as debug from 'debug/src/debug';
-
 import { Logger, LoggerLevel } from '../../lib/logger';
-import { SfdxUtil } from '../../lib/util';
 import { testSetup } from '../testSetup';
+import * as fs from '../../lib/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -100,24 +99,24 @@ describe('Logger', () => {
     describe('addLogFileStream', () => {
         const testLogFile = 'some/dir/mylogfile.json';
 
-        let sfdxUtilAccessStub;
-        let sfdxUtilMkdirpStub;
-        let sfdxUtilWriteFileStub;
+        let utilAccessStub;
+        let utilMkdirpStub;
+        let utilWriteFileStub;
 
         beforeEach(() => {
-            sfdxUtilAccessStub = $$.SANDBOX.stub(SfdxUtil, 'access');
-            sfdxUtilMkdirpStub = $$.SANDBOX.stub(SfdxUtil, 'mkdirp');
-            sfdxUtilWriteFileStub = $$.SANDBOX.stub(SfdxUtil, 'writeFile');
+            utilAccessStub = $$.SANDBOX.stub(fs, 'access');
+            utilMkdirpStub = $$.SANDBOX.stub(fs, 'mkdirp');
+            utilWriteFileStub = $$.SANDBOX.stub(fs, 'writeFile');
         });
 
         it('should not create a new log file if it exists already', async () => {
-            sfdxUtilAccessStub.returns(Promise.resolve({}));
+            utilAccessStub.returns(Promise.resolve({}));
             const logger = new Logger('test');
             const addStreamStub = $$.SANDBOX.stub(logger, 'addStream');
             await logger.addLogFileStream(testLogFile);
-            expect(sfdxUtilAccessStub.firstCall.args[0]).to.equal(testLogFile);
-            expect(sfdxUtilMkdirpStub.called).to.be.false;
-            expect(sfdxUtilWriteFileStub.called).to.be.false;
+            expect(utilAccessStub.firstCall.args[0]).to.equal(testLogFile);
+            expect(utilMkdirpStub.called).to.be.false;
+            expect(utilWriteFileStub.called).to.be.false;
             const addStreamArgs = addStreamStub.firstCall.args[0];
             expect(addStreamArgs).to.have.property('type', 'file');
             expect(addStreamArgs).to.have.property('path', testLogFile);
@@ -125,16 +124,16 @@ describe('Logger', () => {
         });
 
         it('should create a new log file and all directories if nonexistent', async () => {
-            sfdxUtilAccessStub.throws();
+            utilAccessStub.throws();
             const logger = new Logger('testLogger');
             const addStreamStub = $$.SANDBOX.stub(logger, 'addStream');
             await logger.addLogFileStream(testLogFile);
-            expect(sfdxUtilAccessStub.firstCall.args[0]).to.equal(testLogFile);
-            expect(sfdxUtilMkdirpStub.firstCall.args[0]).to.equal('some/dir');
-            expect(sfdxUtilMkdirpStub.firstCall.args[1]).to.have.property('mode', '700');
-            expect(sfdxUtilWriteFileStub.firstCall.args[0]).to.equal(testLogFile);
-            expect(sfdxUtilWriteFileStub.firstCall.args[1]).to.equal('');
-            expect(sfdxUtilWriteFileStub.firstCall.args[2]).to.have.property('mode', '600');
+            expect(utilAccessStub.firstCall.args[0]).to.equal(testLogFile);
+            expect(utilMkdirpStub.firstCall.args[0]).to.equal('some/dir');
+            expect(utilMkdirpStub.firstCall.args[1]).to.have.property('mode', '700');
+            expect(utilWriteFileStub.firstCall.args[0]).to.equal(testLogFile);
+            expect(utilWriteFileStub.firstCall.args[1]).to.equal('');
+            expect(utilWriteFileStub.firstCall.args[2]).to.have.property('mode', '600');
             expect(addStreamStub.called).to.be.true;
         });
     });

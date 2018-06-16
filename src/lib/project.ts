@@ -10,7 +10,8 @@ import { ConfigContents } from './config/configStore';
 import { ConfigFile, ConfigOptions } from './config/configFile';
 import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
 import { SfdxError } from './sfdxError';
-import { SfdxUtil } from './util';
+import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
+import { findUpperCaseKeys } from './util/json';
 
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
@@ -30,21 +31,22 @@ import { SfdxUtil } from './util';
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm
  */
 export class SfdxProjectJson extends ConfigFile {
+
     public static getFileName() {
-        return SfdxUtil.SFDX_PROJECT_JSON;
+        return SFDX_PROJECT_JSON;
     }
 
-    public static getDefaultOptions(isGlobal: boolean = false, filename?: string): ConfigOptions {
+    public static getDefaultOptions(isGlobal: boolean = false): ConfigOptions {
         const options = super.getDefaultOptions(isGlobal);
         options.isState = false;
         return options;
     }
 
-    public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
+    public async read(): Promise<ConfigContents> {
         const contents = await super.read();
 
-        // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camelcase.
-        const upperCaseKey = SfdxUtil.findUpperCaseKeys(contents);
+        // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
+        const upperCaseKey = findUpperCaseKeys(this.toObject());
         if (upperCaseKey) {
             throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
         }
@@ -69,7 +71,7 @@ export class Project {
      * @returns {Promise<Project>} The resolved project.
      */
     public static async resolve(path ?: string): Promise<Project> {
-        return new Project(await SfdxUtil.resolveProjectPath(path));
+        return new Project(await resolveProjectPath(path));
     }
 
     private projectConfig: any; // tslint:disable-line:no-any

@@ -7,9 +7,9 @@
 
 import { assert, expect } from 'chai';
 import { SfdxConfig } from '../../../lib/config/sfdxConfig';
-import { SfdxUtil } from '../../../lib/util';
 import { testSetup } from '../../testSetup';
 import { ConfigFile } from '../../../lib/config/configFile';
+import * as json from '../../../lib/util/json';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -53,7 +53,7 @@ describe('SfdxConfig', () => {
         it('adds content of the config file from this.path to this.contents', async () => {
             const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
 
-            $$.SANDBOX.stub(SfdxUtil, 'readJSONObject')
+            $$.SANDBOX.stub(json, 'readJsonMap')
                 .withArgs(config.getPath())
                 .returns(Promise.resolve(clone(configFileContents)));
 
@@ -70,8 +70,8 @@ describe('SfdxConfig', () => {
 
         it('calls SfdxConfig.write with updated file contents', async () => {
 
-            $$.SANDBOX.stub(SfdxUtil, 'readJSONObject').callsFake(async () => Promise.resolve(clone(configFileContents)));
-            const writeStub = $$.SANDBOX.stub(SfdxUtil, 'writeJSON');
+            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
+            const writeStub = $$.SANDBOX.stub(json, 'writeJson');
 
             const expectedFileContents = clone(configFileContents);
             const newUsername = 'updated_val';
@@ -83,8 +83,8 @@ describe('SfdxConfig', () => {
         });
 
         it('calls SfdxConfig.write with deleted file contents', async () => {
-            $$.SANDBOX.stub(SfdxUtil, 'readJSONObject').callsFake(() => Promise.resolve(clone(configFileContents)));
-            const writeStub = $$.SANDBOX.stub(SfdxUtil, 'writeJSON');
+            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(() => Promise.resolve(clone(configFileContents)));
+            const writeStub = $$.SANDBOX.stub(json, 'writeJson');
             const { defaultdevhubusername } = configFileContents;
 
             await SfdxConfig.update(false, 'defaultusername');
