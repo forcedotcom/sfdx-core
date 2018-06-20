@@ -78,7 +78,7 @@ export class SchemaPrinter {
     }
 
     /**
-     * Prints the accumulated set of schema lines.
+     * Prints the accumulated set of schema lines as info log lines to the logger.
      */
     public print(): void {
         this.lines.forEach((line) => this.logger.info(line));

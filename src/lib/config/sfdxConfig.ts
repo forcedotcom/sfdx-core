@@ -159,7 +159,16 @@ export class SfdxConfig extends ConfigFile {
                 { key: SfdxConfig.DEFAULT_DEV_HUB_USERNAME },
                 { key: SfdxConfig.DEFAULT_USERNAME },
                 { key: SfdxConfig.ISV_DEBUGGER_SID, encrypted: true },
-                { key: SfdxConfig.ISV_DEBUGGER_URL }
+                { key: SfdxConfig.ISV_DEBUGGER_URL },
+                // This should be brought in by a plugin, but there isn't a way to do that right now.
+                {
+                    key: 'restDeploy',
+                    hidden: true,
+                    input: {
+                        validator: (value) => value.toString() === 'true' || value.toString() === 'false',
+                        failedMessage: SfdxConfig.messages.getMessage('InvalidBooleanConfigValue')
+                    }
+                }
             ];
         }
 
