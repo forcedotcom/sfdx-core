@@ -88,9 +88,9 @@ export {
 } from './lib/org';
 
 export {
-    Project,
+    SfdxProject,
     SfdxProjectJson
-} from './lib/project';
+} from './lib/sfdxProject';
 
 export {
     SchemaPrinter

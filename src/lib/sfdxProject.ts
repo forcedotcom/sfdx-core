@@ -63,15 +63,15 @@ export class SfdxProjectJson extends ConfigFile {
  * const projectJson = await project.resolveProjectConfig();
  * console.log(projectJson.sfdxLoginUrl);
  */
-export class Project {
+export class SfdxProject {
     /**
      * Get a Project from a given path or from the working directory.
      * @param {string} path The path of the project.
      * @throws InvalidProjectWorkspace If the current folder is not located in a workspace.
-     * @returns {Promise<Project>} The resolved project.
+     * @returns {Promise<SfdxProject>} The resolved project.
      */
-    public static async resolve(path ?: string): Promise<Project> {
-        return new Project(await this.resolveProjectPath(path));
+    public static async resolve(path ?: string): Promise<SfdxProject> {
+        return new SfdxProject(await this.resolveProjectPath(path));
     }
 
     /**
