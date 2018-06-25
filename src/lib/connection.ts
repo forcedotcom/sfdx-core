@@ -7,7 +7,7 @@
 import { isString, cloneDeep, maxBy } from 'lodash';
 import { Logger } from './logger';
 import { AuthInfo } from './authInfo';
-import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
+import { ConfigAggregator } from './config/configAggregator';
 import { Connection as JSForceConnection } from 'jsforce';
 import { Tooling as JSForceTooling } from 'jsforce';
 import { Promise as JsforcePromise } from 'jsforce';
@@ -63,15 +63,15 @@ export class Connection extends JSForceConnection {
     /**
      * Create and return a connection to an org using authentication info.
      * The returned connection uses the latest API version available on the
-     * server unless the apiVersion [config]{@link SfdxConfig} value is set.
+     * server unless the apiVersion [config]{@link Config} value is set.
      *
      * @param {AuthInfo} authInfo The authentication info from the persistence store.
-     * @param {SfdxConfigAggregator} [configAggregator] The aggregated config object.
+     * @param {ConfigAggregator} [configAggregator] The aggregated config object.
      * @returns {Promise<Connection>}
      */
-    public static async create(authInfo: AuthInfo, configAggregator?: SfdxConfigAggregator): Promise<Connection> {
+    public static async create(authInfo: AuthInfo, configAggregator?: ConfigAggregator): Promise<Connection> {
         const logger = await Logger.child('connection');
-        const _aggregator = configAggregator || await SfdxConfigAggregator.create();
+        const _aggregator = configAggregator || await ConfigAggregator.create();
         const versionFromConfig = _aggregator.getInfo('apiVersion').value as string;
         const baseOptions: ConnectionOptions = {
             // Set the API version obtained from the config aggregator.
