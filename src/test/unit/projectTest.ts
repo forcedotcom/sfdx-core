@@ -7,14 +7,14 @@
 
 import { expect, assert } from 'chai';
 
-import { Project, SfdxProjectJson } from '../../lib/project';
+import { SfdxProject, SfdxProjectJson } from '../../lib/sfdxProject';
 import * as internal from '../../lib/util/internal';
 import { testSetup } from '../testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
 
-describe('Project', async () => {
+describe('SfdxProject', async () => {
     let projectPath;
 
     beforeEach(async () => {
@@ -23,7 +23,7 @@ describe('Project', async () => {
     describe('resolve', () => {
         it('with working directory', async () => {
             $$.SANDBOX.stub(internal, 'resolveProjectPath').callsFake(() => projectPath);
-            const project = await Project.resolve();
+            const project = await SfdxProject.resolve();
             expect(project.getPath()).to.equal(projectPath);
             const sfdxProject = await project.retrieveSfdxProjectJson();
             expect(sfdxProject.getPath()).to.equal(`${projectPath}/${SfdxProjectJson.getFileName()}`);
@@ -31,7 +31,7 @@ describe('Project', async () => {
         it('with working directory throws with no sfdx-project.json', async () => {
             $$.SANDBOX.stub(internal, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspace'));
             try {
-                await Project.resolve();
+                await SfdxProject.resolve();
                 assert.fail();
             } catch (e) {
                 expect(e.message).to.equal('InvalidProjectWorkspace');
@@ -39,7 +39,7 @@ describe('Project', async () => {
         });
         it('with path', async () => {
             $$.SANDBOX.stub(internal, 'resolveProjectPath').callsFake(() => '/path');
-            const project = await Project.resolve('/path');
+            const project = await SfdxProject.resolve('/path');
             expect(project.getPath()).to.equal('/path');
             const sfdxProject = await project.retrieveSfdxProjectJson();
             expect(sfdxProject.getPath()).to.equal(`/path/${SfdxProjectJson.getFileName()}`);
@@ -47,7 +47,7 @@ describe('Project', async () => {
         it('with path throws with no sfdx-project.json', async () => {
             $$.SANDBOX.stub(internal, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspace'));
             try {
-                await Project.resolve();
+                await SfdxProject.resolve();
                 assert.fail();
             } catch (e) {
                 expect(e.message).to.equal('InvalidProjectWorkspace');
@@ -62,7 +62,7 @@ describe('Project', async () => {
         });
         it('gets default login url', async () => {
             $$.configStubs['SfdxProjectJson'] = { contents: {} };
-            const project = await Project.resolve();
+            const project = await SfdxProject.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['sfdcLoginUrl']).to.equal('https://login.salesforce.com');
         });
@@ -75,7 +75,7 @@ describe('Project', async () => {
                 }
             };
             $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
-            const project = await Project.resolve();
+            const project = await SfdxProject.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['sfdcLoginUrl']).to.equal('globalUrl');
         });
@@ -88,7 +88,7 @@ describe('Project', async () => {
                 }
             };
             $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
-            const project = await Project.resolve();
+            const project = await SfdxProject.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['sfdcLoginUrl']).to.equal('localUrl');
         });
@@ -102,7 +102,7 @@ describe('Project', async () => {
                 }
             };
             $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
-            const project = await Project.resolve();
+            const project = await SfdxProject.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['sfdcLoginUrl']).to.equal('envarUrl');
         });
@@ -116,7 +116,7 @@ describe('Project', async () => {
             };
             $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
             $$.configStubs['Config'] = { contents: { apiVersion: 40.0 } };
-            const project = await Project.resolve();
+            const project = await SfdxProject.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['apiVersion']).to.equal(40.0);
         });
