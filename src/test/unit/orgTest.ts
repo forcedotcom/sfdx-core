@@ -234,7 +234,7 @@ describe('Org Tests', () => {
         it('Random Error', async () => {
             $$.SANDBOXES.CONFIG.restore();
             const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanLocalOrgData');
-            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(() => {
+            $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
                     const err = new Error();
                     err.name = 'gozer';
