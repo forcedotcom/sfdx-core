@@ -115,7 +115,7 @@ describe('Project', async () => {
                 }
             };
             $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
-            $$.configStubs['SfdxConfig'] = { contents: { apiVersion: 40.0 } };
+            $$.configStubs['Config'] = { contents: { apiVersion: 40.0 } };
             const project = await Project.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['apiVersion']).to.equal(40.0);

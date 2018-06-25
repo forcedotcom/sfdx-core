@@ -56,7 +56,7 @@ import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { AuthInfoConfig } from './config/authInfoConfig';
 import { ConfigFile } from './config/configFile';
-import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
+import { ConfigAggregator } from './config/configAggregator';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
@@ -283,7 +283,7 @@ export class AuthInfo {
             authInfo.logger = await Logger.child('AuthInfo');
             authInfoCrypto = await AuthInfoCrypto.create();
 
-            const aggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+            const aggregator: ConfigAggregator = await ConfigAggregator.create();
             const instanceUrl: string = aggregator.getPropertyValue('instanceUrl') as string || SFDC_URLS.production;
 
             authInfo.update({
