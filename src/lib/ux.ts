@@ -9,8 +9,8 @@
  * A table option configuration type that can be the TableOptions as defined by
  * [oclif/cli-ux](https://github.com/oclif/cli-ux/blob/master/src/styled/table.ts) or a string array of table keys to be used as table headers
  * for simple tables.
- * @typedef {object} SfdxTableOptions
- * @property {TableOptions | string[]} options
+ * @typedef {object} TableOptions
+ * @property {Partial<OclifTableOptions> | string[]} options
  */
 
  /**
@@ -22,7 +22,10 @@
   */
 
 import { Logger, LoggerLevel } from './logger';
-import { TableOptions, TableColumn } from 'cli-ux/lib/styled/table';
+import {
+    TableOptions as OclifTableOptions,
+    TableColumn as OclifTableColumn
+} from 'cli-ux/lib/styled/table';
 import { IPromptOptions } from 'cli-ux';
 import * as _ from 'lodash';
 import chalk from 'chalk';
@@ -254,15 +257,15 @@ export class UX {
      * stream output is enabled.
      *
      * @param {object[]} rows The rows of data to be output in table format.
-     * @param {SfdxTableOptions} options The {@link SfdxTableOptions} to use for formatting.
+     * @param {TableOptions} options The {@link TableOptions} to use for formatting.
      * @returns {UX}
      */
-    public table(rows: any[], options: SfdxTableOptions = {}): UX { // tslint:disable-line:no-any
+    public table(rows: any[], options: TableOptions = {}): UX { // tslint:disable-line:no-any
         if (this.isOutputEnabled) {
             const tableOptions = _.isArray(options) ? { columns: options } : options;
             const columns = _.get(tableOptions, 'columns');
             if (columns) {
-                const _columns: Array<Partial<TableColumn>> = [];
+                const _columns: Array<Partial<OclifTableColumn>> = [];
                 // Unfortunately, have to use _.forEach rather than _.map here because lodash typings
                 // don't like the possibility of 2 different iterator types.
                 _.forEach(columns, (col) => {
@@ -337,7 +340,7 @@ export class UX {
  * more simply just a string array in the simple cases where table header values
  * are the only desired config option.
  */
-export type SfdxTableOptions = Partial<TableOptions> | string[];
+export type TableOptions = Partial<OclifTableOptions> | string[];
 
 /**
  * A deprecation warning message configuration type.  A typical instance can pass `name`,

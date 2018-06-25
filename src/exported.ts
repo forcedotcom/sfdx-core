@@ -114,7 +114,7 @@ export {
 } from './lib/types';
 
 export {
-    SfdxTableOptions,
+    TableOptions,
     UX
 } from './lib/ux';
 
