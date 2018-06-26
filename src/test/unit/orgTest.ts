@@ -14,13 +14,13 @@ import { expect, assert } from 'chai';
 import { testSetup } from '../testSetup';
 import { ConfigFile } from '../../lib/config/configFile';
 import { Crypto } from '../../lib/crypto';
-import { SfdxConfig } from '../../lib/config/sfdxConfig';
+import { Config } from '../../lib/config/config';
 import { ConfigContents, ConfigValue } from '../../lib/config/configStore';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { Global } from '../../lib/global';
 import { OrgUsersConfig } from '../../lib/config/orgUsersConfig';
-import { SfdxConfigAggregator } from '../../lib/config/sfdxConfigAggregator';
+import { ConfigAggregator } from '../../lib/config/configAggregator';
 import { Aliases } from '../../lib/config/aliases';
 import { set as _set, get as _get, isEqual as _isEqual } from 'lodash';
 import * as Transport from 'jsforce/lib/transport';
@@ -147,24 +147,24 @@ describe('Org Tests', () => {
 
         it('should create an org from the default username', async () => {
 
-            const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
-            await config.set(SfdxConfig.DEFAULT_USERNAME, testData.username);
+            const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
+            await config.set(Config.DEFAULT_USERNAME, testData.username);
             await config.write();
 
-            const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+            const configAggregator: ConfigAggregator = await ConfigAggregator.create();
 
-            const org: Org = await Org.create(undefined, sfdxConfigAggregator);
+            const org: Org = await Org.create(undefined, configAggregator);
             expect(org.getUsername()).to.eq(testData.username);
         });
 
         it('should create a default devhub org', async () => {
-            const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
-            await config.set(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, testData.username);
+            const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
+            await config.set(Config.DEFAULT_DEV_HUB_USERNAME, testData.username);
             await config.write();
 
-            const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+            const configAggregator: ConfigAggregator = await ConfigAggregator.create();
 
-            const org: Org = await Org.create(undefined, sfdxConfigAggregator, true);
+            const org: Org = await Org.create(undefined, configAggregator, true);
             expect(org.getUsername()).to.eq(testData.username);
         });
 
@@ -234,7 +234,7 @@ describe('Org Tests', () => {
         it('Random Error', async () => {
             $$.SANDBOXES.CONFIG.restore();
             const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanLocalOrgData');
-            $$.SANDBOX.stub(SfdxConfig, 'resolveRootFolder').callsFake(() => {
+            $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
                     const err = new Error();
                     err.name = 'gozer';
@@ -256,7 +256,7 @@ describe('Org Tests', () => {
     });
 
     describe('remove', () => {
-        const configFilereadJsonMock = async function() {
+        const configFileReadJsonMock = async function() {
             if (this.path.includes(`${testData.username}.json`)) {
                 return Promise.resolve(await testData.getConfig());
             }
@@ -265,7 +265,7 @@ describe('Org Tests', () => {
         };
 
         beforeEach(() => {
-            $$.configStubs['AuthInfoConfig'] = { retrieveContents: configFilereadJsonMock };
+            $$.configStubs['AuthInfoConfig'] = { retrieveContents: configFileReadJsonMock };
         });
 
         it('should remove all assets associated with the org', async () => {
@@ -312,22 +312,22 @@ describe('Org Tests', () => {
         });
 
         it('should remove config setting', async () => {
-            const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+            const configAggregator: ConfigAggregator = await ConfigAggregator.create();
             const org: Org = await Org.create(
-                await Connection.create(await AuthInfo.create(testData.username)), sfdxConfigAggregator);
+                await Connection.create(await AuthInfo.create(testData.username)), configAggregator);
 
-            const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
-            await config.set(SfdxConfig.DEFAULT_USERNAME, testData.username);
+            const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
+            await config.set(Config.DEFAULT_USERNAME, testData.username);
             await config.write();
 
-            await sfdxConfigAggregator.reload();
-            expect(sfdxConfigAggregator.getInfo(SfdxConfig.DEFAULT_USERNAME)).has.property('value', testData.username);
+            await configAggregator.reload();
+            expect(configAggregator.getInfo(Config.DEFAULT_USERNAME)).has.property('value', testData.username);
 
             await org.remove();
-            await sfdxConfigAggregator.reload();
+            await configAggregator.reload();
 
-            const defaultusername = sfdxConfigAggregator.getInfo(SfdxConfig.DEFAULT_USERNAME);
-            const info = sfdxConfigAggregator.getInfo(SfdxConfig.DEFAULT_USERNAME);
+            const defaultusername = configAggregator.getInfo(Config.DEFAULT_USERNAME);
+            const info = configAggregator.getInfo(Config.DEFAULT_USERNAME);
             expect(defaultusername.value).eq(undefined);
             expect(info.value).eq(undefined);
         });
@@ -392,10 +392,10 @@ describe('Org Tests', () => {
 
                 await userAuth.save( {orgId: user.orgId});
 
-                const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+                const configAggregator: ConfigAggregator = await ConfigAggregator.create();
 
                 const org: Org = await Org.create(
-                    await Connection.create(await AuthInfo.create(user.username)), sfdxConfigAggregator);
+                    await Connection.create(await AuthInfo.create(user.username)), configAggregator);
 
                 orgs.push(org);
             }
@@ -412,14 +412,14 @@ describe('Org Tests', () => {
         });
 
         it('should remove aliases and config settings', async () => {
-            const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
+            const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
 
             const org0Username = orgs[0].getUsername();
-            await config.set(SfdxConfig.DEFAULT_USERNAME, org0Username);
+            await config.set(Config.DEFAULT_USERNAME, org0Username);
             await config.write();
 
-            const sfdxConfigAggregator = await orgs[0].getConfigAggregator().reload();
-            const info = sfdxConfigAggregator.getInfo(SfdxConfig.DEFAULT_USERNAME);
+            const configAggregator = await orgs[0].getConfigAggregator().reload();
+            const info = configAggregator.getInfo(Config.DEFAULT_USERNAME);
             expect(info).has.property('value', org0Username);
 
             const org1Username = orgs[1].getUsername();
@@ -429,8 +429,8 @@ describe('Org Tests', () => {
 
             await orgs[0].remove();
 
-            await sfdxConfigAggregator.reload();
-            expect(sfdxConfigAggregator.getInfo(SfdxConfig.DEFAULT_USERNAME)).has.property('value', undefined);
+            await configAggregator.reload();
+            expect(configAggregator.getInfo(Config.DEFAULT_USERNAME)).has.property('value', undefined);
 
             alias = await Aliases.fetch('foo');
             expect(alias).eq(undefined);
@@ -464,12 +464,12 @@ describe('Org Tests', () => {
 
             const fakeDevHub = 'foo@devhub.com';
 
-            const sfdxConfigAggregator: SfdxConfigAggregator = await SfdxConfigAggregator.create();
+            const configAggregator: ConfigAggregator = await ConfigAggregator.create();
             connection = await Connection.create(await AuthInfo.create(testData.username));
-            org = await Org.create(connection, sfdxConfigAggregator);
+            org = await Org.create(connection, configAggregator);
 
-            const config: SfdxConfig = await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true));
-            await config.set(SfdxConfig.DEFAULT_DEV_HUB_USERNAME, fakeDevHub);
+            const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
+            await config.set(Config.DEFAULT_DEV_HUB_USERNAME, fakeDevHub);
             await config.write();
 
             await org.getConfigAggregator().reload();

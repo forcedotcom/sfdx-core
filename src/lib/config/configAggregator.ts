@@ -25,7 +25,7 @@
 
 import * as _ from 'lodash';
 
-import { SfdxConfig, ConfigPropertyMeta } from './sfdxConfig';
+import { Config, ConfigPropertyMeta } from './config';
 import { SfdxError } from '../sfdxError';
 
 const propertyToEnvName = (property) => `SFDX_${_.snakeCase(property).toUpperCase()}`;
@@ -68,37 +68,37 @@ export interface ConfigInfo {
  * 1. Workspace settings  (`<workspace-root>/.sfdx/sfdx-config.json`)
  * 1. Global settings  (`$HOME/.sfdx/sfdx-config.json`)
  *
- * Use {@link SfdxConfigAggregator.create} to instantiate the aggregator.
+ * Use {@link ConfigAggregator.create} to instantiate the aggregator.
  *
  * @example
- * const aggregator = await SfdxConfigAggregator.create();
+ * const aggregator = await ConfigAggregator.create();
  * console.log(aggregator.getPropertyValue('defaultusername'));
  *
  * @hideconstructor
  */
-export class SfdxConfigAggregator {
+export class ConfigAggregator {
 
     /**
      * Initialize the aggregator by reading and merging the global and local
      * sfdx config files, then resolving environment variables. This method
      * must be called before getting resolved config properties.
      *
-     * @returns {Promise<SfdxConfigAggregator>} Returns the aggregated config object
+     * @returns {Promise<ConfigAggregator>} Returns the aggregated config object
      */
-    public static async create(): Promise<SfdxConfigAggregator> {
-        const configAggregator = new SfdxConfigAggregator();
+    public static async create(): Promise<ConfigAggregator> {
+        const configAggregator = new ConfigAggregator();
         await configAggregator.loadProperties();
         return configAggregator;
     }
 
     private allowedProperties: ConfigPropertyMeta[];
-    private localConfig: SfdxConfig;
-    private globalConfig: SfdxConfig;
+    private localConfig: Config;
+    private globalConfig: Config;
     private envVars: object;
     private config: object;
 
     /**
-     * **Do not directly construct instances of this class -- use {@link SfdxConfigAggregator.resolve} instead.**
+     * **Do not directly construct instances of this class -- use {@link ConfigAggregator.resolve} instead.**
      *
      * @private
      * @constructor
@@ -220,18 +220,18 @@ export class SfdxConfigAggregator {
     /**
      * Get the local project config instance.
      *
-     * @returns {SfdxConfig}
+     * @returns {Config}
      */
-    public getLocalConfig(): SfdxConfig {
+    public getLocalConfig(): Config {
         return this.localConfig;
     }
 
     /**
      * Get the global config instance.
      *
-     * @returns {SfdxConfig}
+     * @returns {Config}
      */
-    public getGlobalConfig(): SfdxConfig {
+    public getGlobalConfig(): Config {
         return this.globalConfig;
     }
 
@@ -255,7 +255,7 @@ export class SfdxConfigAggregator {
      * Re-read all property configurations from disk.
      * @returns {Promise<void>}
      */
-    public async reload(): Promise<SfdxConfigAggregator> {
+    public async reload(): Promise<ConfigAggregator> {
         await this.loadProperties();
         return this;
     }
@@ -269,16 +269,16 @@ export class SfdxConfigAggregator {
         // Don't throw an project error with the aggregator, since it should resolve to global if
         // there is no project.
         try {
-            this.setLocalConfig(await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(false)));
+            this.setLocalConfig(await Config.create<Config>(Config.getDefaultOptions(false)));
         } catch (err) {
             if (err.name !== 'InvalidProjectWorkspace') {
                 throw err;
             }
         }
 
-        this.setGlobalConfig(await SfdxConfig.create<SfdxConfig>(SfdxConfig.getDefaultOptions(true)));
+        this.setGlobalConfig(await Config.create<Config>(Config.getDefaultOptions(true)));
 
-        this.setAllowedProperties(SfdxConfig.getAllowedProperties());
+        this.setAllowedProperties(Config.getAllowedProperties());
 
         this.setEnvVars(this.getAllowedProperties().reduce((obj, property) => {
             const val = process.env[propertyToEnvName(property.key)];
@@ -318,19 +318,19 @@ export class SfdxConfigAggregator {
 
     /**
      * Set the local config object.
-     * @param {SfdxConfig} config The config object value to set.
+     * @param {Config} config The config object value to set.
      * @private
      */
-    private setLocalConfig(config: SfdxConfig) {
+    private setLocalConfig(config: Config) {
         this.localConfig = config;
     }
 
     /**
      * Set the global config object.
-     * @param {SfdxConfig} config The config object value to set.
+     * @param {Config} config The config object value to set.
      * @private
      */
-    private setGlobalConfig(config: SfdxConfig) {
+    private setGlobalConfig(config: Config) {
         this.globalConfig = config;
     }
 

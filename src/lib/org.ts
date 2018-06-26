@@ -31,9 +31,9 @@ import { join as pathJoin } from 'path';
 import { Aliases } from './config/aliases';
 import { Connection } from './connection';
 import { Logger } from './logger';
-import { SfdxConfig } from './config/sfdxConfig';
+import { Config } from './config/config';
 import { ConfigContents } from './config/configStore';
-import { SfdxConfigAggregator, ConfigInfo } from './config/sfdxConfigAggregator';
+import { ConfigAggregator, ConfigInfo } from './config/configAggregator';
 import { get as _get, filter as _filter, isString as _isString } from 'lodash';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Global} from './global';
@@ -98,7 +98,7 @@ const _manageDelete = function(cb, dirPath, throwWhenRemoveFails) {
  * @see {@link AuthInfo}
  * @see {@link Connection}
  * @see {@link Aliases}
- * @see {@link SfdxConfig}
+ * @see {@link Config}
  *
  * @example
  * // Email username
@@ -118,33 +118,33 @@ export class Org {
      * Static initializer that allows creating an instance of an org from a alias or a plain string username. If no
      * username or alias is provided then the defaultusername is used. If isDevHub is true then the defaultdevhub is used.
      * @param {string} [aliasOrUsername] The string alias or username.
-     * @param {SfdxConfigAggregator} [aggregator] optional config aggregator.
+     * @param {ConfigAggregator} [aggregator] optional config aggregator.
      * @param {boolean} [isDevHub] true if this org is a devhub. defaults to false.
      * @return {Promise<Org>}
      */
-    public static async create(aliasOrUsername?: string, aggregator?: SfdxConfigAggregator, isDevHub?: boolean): Promise<Org>;
+    public static async create(aliasOrUsername?: string, aggregator?: ConfigAggregator, isDevHub?: boolean): Promise<Org>;
 
     /**
      * Static initializer that allows creating an instance of an org from a Connection object.
      * @param {Connection} [connection] The connection
-     * @param {SfdxConfigAggregator} [aggregator] A config aggregator. (Optional)
+     * @param {ConfigAggregator} [aggregator] A config aggregator. (Optional)
      * @param {boolean} [isDevHub] True if this org is a devhub. defaults to false (Optional)
      * @return {Promise<Org>}
      */
     // tslint:disable-next-line:unified-signatures
-    public static async create(connection?: Connection, aggregator?: SfdxConfigAggregator, isDevHub?: boolean): Promise<Org>;
+    public static async create(connection?: Connection, aggregator?: ConfigAggregator, isDevHub?: boolean): Promise<Org>;
 
     /**
      * Static initializer that allows creating an instance of an org from an alias, username, or Connection. If no identifier
      * is provided then the defaultusername is used. If isDevHub is true then the defaultdevhubusername is used.
-     * @see {@link SfdxConfig}
+     * @see {@link Config}
      * @param {string | Connection} [connection] The string alias or username.
-     * @param {SfdxConfigAggregator} [aggregator] optional config aggregator.
+     * @param {ConfigAggregator} [aggregator] optional config aggregator.
      * @param {boolean} [isDevHub] true if this org is a devhub. defaults to false.
      * @return {Promise<Org>}
      */
-    public static async create(connection?: string | Connection, aggregator?: SfdxConfigAggregator, isDevHub?: boolean): Promise<Org> {
-        const _aggregator = aggregator ? aggregator : await SfdxConfigAggregator.create();
+    public static async create(connection?: string | Connection, aggregator?: ConfigAggregator, isDevHub?: boolean): Promise<Org> {
+        const _aggregator = aggregator ? aggregator : await ConfigAggregator.create();
 
         const org = new Org(_aggregator);
 
@@ -155,8 +155,8 @@ export class Org {
         if (!connection) {
             org.logger.debug('No connection specified. Trying default configurations');
             connection = isDevHub ?
-                _aggregator.getInfo(SfdxConfig.DEFAULT_DEV_HUB_USERNAME).value as string :
-                _aggregator.getInfo(SfdxConfig.DEFAULT_USERNAME).value as string;
+                _aggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME).value as string :
+                _aggregator.getInfo(Config.DEFAULT_USERNAME).value as string;
             if (!connection) {
                 throw new SfdxError(`No ${isDevHub ? 'default Devhub' : 'default' } username or Connection found.`, 'NoUsername' );
             }
@@ -180,7 +180,7 @@ export class Org {
     private connection: Connection;
     // tslint:disable-next-line:no-unused-variable
     private status: OrgStatus = OrgStatus.UNKNOWN;
-    private configAggregator: SfdxConfigAggregator;
+    private configAggregator: ConfigAggregator;
 
     /**
      * **Do not directly construct instances of this class -- use {@link Org.create} instead.**
@@ -188,7 +188,7 @@ export class Org {
      * @private
      * @constructor
      */
-    private constructor(_aggregator: SfdxConfigAggregator) {
+    private constructor(_aggregator: ConfigAggregator) {
         this.configAggregator = _aggregator;
     }
 
@@ -200,7 +200,7 @@ export class Org {
     public async cleanLocalOrgData(orgDataPath?: string, throwWhenRemoveFails: boolean = false): Promise<void> {
         let dataPath;
         try {
-            const rootFolder: string = await SfdxConfig.resolveRootFolder(false);
+            const rootFolder: string = await Config.resolveRootFolder(false);
             dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
             this.logger.debug(`cleaning data for path: ${dataPath}`);
         } catch (err) {
@@ -255,14 +255,14 @@ export class Org {
                 orgForUser = await Org.create(connection);
             }
 
-            const orgType = await this.isDevHubOrg() ? SfdxConfig.DEFAULT_DEV_HUB_USERNAME : SfdxConfig.DEFAULT_USERNAME;
+            const orgType = await this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
 
             const configInfo: ConfigInfo = await orgForUser.configAggregator.getInfo(orgType);
 
             if ((configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
                 (configInfo.isGlobal() || configInfo.isLocal())) {
 
-                await SfdxConfig.update(configInfo.isGlobal() as boolean, orgType, undefined);
+                await Config.update(configInfo.isGlobal() as boolean, orgType, undefined);
             }
 
             const orgUsers: OrgUsersConfig = await this.retrieveOrgUsersConfig();
@@ -284,7 +284,7 @@ export class Org {
 
         let targetDevHub: string | boolean = devHubUsername;
         if (!targetDevHub) {
-            targetDevHub = this.configAggregator.getPropertyValue(SfdxConfig.DEFAULT_DEV_HUB_USERNAME);
+            targetDevHub = this.configAggregator.getPropertyValue(Config.DEFAULT_DEV_HUB_USERNAME);
         }
 
         const devHubConnection = await Connection.create(await AuthInfo.create(targetDevHub as string));
@@ -463,9 +463,9 @@ export class Org {
 
     /**
      * Returns for the config aggregator.
-     * @returns {SfdxConfigAggregator}
+     * @returns {ConfigAggregator}
      */
-    public getConfigAggregator(): SfdxConfigAggregator {
+    public getConfigAggregator(): ConfigAggregator {
         return this.configAggregator;
     }
 

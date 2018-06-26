@@ -84,18 +84,18 @@ export interface ConfigPropertyMetaInput {
  * The files where sfdx config values are stored for projects and the global space.
  *
  * *Note:* It is not recommended to instantiate this object directly when resolving
- * config values. Instead use {@link SfdxConfigAggregator}
+ * config values. Instead use {@link ConfigAggregator}
  *
  * @extends ConfigFile
  *
  * @example
- * const localConfig = await SfdxConfig.retrieve<SfdxConfig>();
+ * const localConfig = await Config.retrieve<Config>();
  * localConfig.set('defaultusername', 'username@company.org');
  * await localConfig.write();
  *
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_config_values.htm
  */
-export class SfdxConfig extends ConfigFile {
+export class Config extends ConfigFile {
 
     /**
      * Username associated with the default dev hub org.
@@ -122,29 +122,29 @@ export class SfdxConfig extends ConfigFile {
     public static readonly ISV_DEBUGGER_URL: string = 'isvDebuggerUrl';
 
     /**
-     * Creates an instance of an SfdxConfig.
+     * Creates an instance of a Config.
      * @param {ConfigOptions} options The config options.
-     * @return {Promise<SfdxConfig>} An instance of SfdxConfig.
+     * @return {Promise<Config>} An instance of Config.
      * @throws {SfdxError} **`{name: 'InvalidInstanceUrl'}`** Invalid instance URL.
      * @throws {SfdxError} **`{name: 'InvalidApiVersion'}`** Invalid API version.
      * @example
-     * const config: SfdxConfig = await Sfdx.create<SfdxConfig>({ isGlobal: false }};
+     * const config: Config = await Sfdx.create<Config>({ isGlobal: false }};
      * config.set(allowedPropertyKey, value);
      * await config.write();
      */
     public static async create<T extends ConfigFile>(options: ConfigOptions): Promise<T> {
-        if (!SfdxConfig.messages) {
-            SfdxConfig.messages = Messages.loadMessages('@salesforce/core', 'config');
+        if (!Config.messages) {
+            Config.messages = Messages.loadMessages('@salesforce/core', 'config');
         }
 
-        if (!SfdxConfig.allowedProperties) {
-            SfdxConfig.allowedProperties = [
+        if (!Config.allowedProperties) {
+            Config.allowedProperties = [
                 {
                     key: 'instanceUrl',
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
                         validator: (value) => _.isNil(value) || isSalesforceDomain(value),
-                        failedMessage: SfdxConfig.messages.getMessage('InvalidInstanceUrl')
+                        failedMessage: Config.messages.getMessage('InvalidInstanceUrl')
                     }
                 },
                 {
@@ -153,26 +153,26 @@ export class SfdxConfig extends ConfigFile {
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
                         validator: validateApiVersion,
-                        failedMessage: SfdxConfig.messages.getMessage('InvalidApiVersion')
+                        failedMessage: Config.messages.getMessage('InvalidApiVersion')
                     }
                 },
-                { key: SfdxConfig.DEFAULT_DEV_HUB_USERNAME },
-                { key: SfdxConfig.DEFAULT_USERNAME },
-                { key: SfdxConfig.ISV_DEBUGGER_SID, encrypted: true },
-                { key: SfdxConfig.ISV_DEBUGGER_URL },
+                { key: Config.DEFAULT_DEV_HUB_USERNAME },
+                { key: Config.DEFAULT_USERNAME },
+                { key: Config.ISV_DEBUGGER_SID, encrypted: true },
+                { key: Config.ISV_DEBUGGER_URL },
                 // This should be brought in by a plugin, but there isn't a way to do that right now.
                 {
                     key: 'restDeploy',
                     hidden: true,
                     input: {
                         validator: (value) => value.toString() === 'true' || value.toString() === 'false',
-                        failedMessage: SfdxConfig.messages.getMessage('InvalidBooleanConfigValue')
+                        failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
                     }
                 }
             ];
         }
 
-        SfdxConfig.propertyConfigMap = _.keyBy(SfdxConfig.allowedProperties, 'key');
+        Config.propertyConfigMap = _.keyBy(Config.allowedProperties, 'key');
 
         return await super.create(options) as T;
     }
@@ -185,10 +185,10 @@ export class SfdxConfig extends ConfigFile {
      * @returns {ConfigPropertyMeta[]} Returns an object representing the supported allowed properties.
      */
     public static getAllowedProperties(): ConfigPropertyMeta[] {
-        if (!SfdxConfig.allowedProperties) {
-            throw new SfdxError('SfdxConfig meta information has not been initialized. Use SfdxConfig.create()');
+        if (!Config.allowedProperties) {
+            throw new SfdxError('Config meta information has not been initialized. Use Config.create()');
         }
-        return SfdxConfig.allowedProperties;
+        return Config.allowedProperties;
     }
 
     /**
@@ -200,7 +200,7 @@ export class SfdxConfig extends ConfigFile {
      */
     public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<object> {
 
-        const config = await SfdxConfig.create(SfdxConfig.getDefaultOptions(isGlobal));
+        const config = await Config.create(Config.getDefaultOptions(isGlobal));
 
         const content = await config.read();
 
@@ -218,11 +218,11 @@ export class SfdxConfig extends ConfigFile {
      * @returns {Promise<void>}
      */
     public static async clear(): Promise<void> {
-        let config  = await SfdxConfig.create(SfdxConfig.getDefaultOptions(true));
+        let config  = await Config.create(Config.getDefaultOptions(true));
         config.clear();
         await config.write();
 
-        config = await SfdxConfig.create(SfdxConfig.getDefaultOptions(false));
+        config = await Config.create(Config.getDefaultOptions(false));
         config.clear();
         await config.write();
     }
@@ -247,8 +247,8 @@ export class SfdxConfig extends ConfigFile {
     }
 
     /**
-     * Writes SfdxConfig properties taking into account encrypted properties.
-     * @param {ConfigContents} newContents The new SfdxConfig value to persist.
+     * Writes Config properties taking into account encrypted properties.
+     * @param {ConfigContents} newContents The new Config value to persist.
      * @return {Promise<ConfigContents>}
      */
     public async write(newContents?: ConfigContents): Promise<ConfigContents> {
@@ -274,7 +274,7 @@ export class SfdxConfig extends ConfigFile {
      */
     public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
 
-        const property = SfdxConfig.allowedProperties.find((allowedProp) => allowedProp.key === key);
+        const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
         if (!property) {
             throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
@@ -318,7 +318,7 @@ export class SfdxConfig extends ConfigFile {
      * @return {ConfigPropertyMeta} The meta config.
      */
     private getPropertyConfig(propertyName: string): ConfigPropertyMeta {
-        const prop = SfdxConfig.propertyConfigMap[propertyName];
+        const prop = Config.propertyConfigMap[propertyName];
 
         if (!prop) {
             throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [propertyName]);
@@ -333,7 +333,7 @@ export class SfdxConfig extends ConfigFile {
      */
     private async cryptProperties(encrypt: boolean): Promise<void> {
         const hasEncryptedProperties =
-            _.some(this.entries(), ([key, val]) => !!SfdxConfig.propertyConfigMap[key].encrypted);
+            _.some(this.entries(), ([key, val]) => !!Config.propertyConfigMap[key].encrypted);
 
         if (hasEncryptedProperties) {
             await this.initCrypto();
@@ -348,8 +348,8 @@ export class SfdxConfig extends ConfigFile {
 }
 
 export const ORG_DEFAULT = {
-    DEVHUB: SfdxConfig.DEFAULT_DEV_HUB_USERNAME,
-    USERNAME: SfdxConfig.DEFAULT_USERNAME,
+    DEVHUB: Config.DEFAULT_DEV_HUB_USERNAME,
+    USERNAME: Config.DEFAULT_USERNAME,
 
     list(): string[] {
         return [ORG_DEFAULT.DEVHUB, ORG_DEFAULT.USERNAME];

@@ -26,16 +26,16 @@ Represents a config file at either a local or global path. The config file exten
 * {@link Aliases}
 * {@link AuthInfoConfig}
 * {@link OrgUsersConfig}
-* {@link SfdxConfig}
+* {@link Config}
 * {@link SfdxProjectJson}
 
-## {@link SfdxConfigAggregator}
+## {@link ConfigAggregator}
 
-Aggregates local, global, and environment config values using {@link SfdxConfig} and environment variables.
+Aggregates local, global, and environment config values using {@link Config} and environment variables.
 
-## {@link Project}
+## {@link SfdxProject}
 
-Represents a Salesfore DX project, defined by the file `sfdx-project.json`.
+Represents a Salesforce DX project, defined by the file `sfdx-project.json`.
 
 ## {@link UX}
 
@@ -43,7 +43,7 @@ Helper methods for user experiences related to interacting with the terminal.
 
 ## {@link Logger}
 
-All logging in `sfdx-core` is accomplished through this logging class. Anyone can also use the logger to log their own log lines to the `sfdx.log` file or to any other log file or stream by utilizing the log level flags and envars set by the CLI or framework. 
+All logging in `sfdx-core` is accomplished through this logging class. Anyone can also use the logger to log their own log lines to the `sfdx.log` file or to any other log file or stream by utilizing the log level flags and envars set by the CLI or framework.
 
 ## [SfdxError]{@link SfdxError}
 
