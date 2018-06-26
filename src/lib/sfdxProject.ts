@@ -8,7 +8,7 @@
 import * as _ from 'lodash';
 import { ConfigContents } from './config/configStore';
 import { ConfigFile, ConfigOptions } from './config/configFile';
-import { SfdxConfigAggregator } from './config/sfdxConfigAggregator';
+import { ConfigAggregator } from './config/configAggregator';
 import { SfdxError } from './sfdxError';
 import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
 import { findUpperCaseKeys } from './util/json';
@@ -63,15 +63,15 @@ export class SfdxProjectJson extends ConfigFile {
  * const projectJson = await project.resolveProjectConfig();
  * console.log(projectJson.sfdxLoginUrl);
  */
-export class Project {
+export class SfdxProject {
     /**
      * Get a Project from a given path or from the working directory.
      * @param {string} path The path of the project.
      * @throws InvalidProjectWorkspace If the current folder is not located in a workspace.
-     * @returns {Promise<Project>} The resolved project.
+     * @returns {Promise<SfdxProject>} The resolved project.
      */
-    public static async resolve(path ?: string): Promise<Project> {
-        return new Project(await this.resolveProjectPath(path));
+    public static async resolve(path ?: string): Promise<SfdxProject> {
+        return new SfdxProject(await this.resolveProjectPath(path));
     }
 
     /**
@@ -136,7 +136,7 @@ export class Project {
 
     /**
      * The project config is resolved from local and global {@link SfdxProjectJson},
-     * {@link SfdxConfigAggregator}, and a set of defaults. It is recommended to use
+     * {@link ConfigAggregator}, and a set of defaults. It is recommended to use
      * this when reading values from SfdxProjectJson.
      * @returns {object} A resolved config object that contains a bunch of different
      * properties, including some 3rd party custom properties.
@@ -157,7 +157,7 @@ export class Project {
             this.projectConfig = _.defaults(local.toObject(), global.toObject(), defaults);
 
             // Add fields in sfdx-config.json
-            _.assign(this.projectConfig, (await SfdxConfigAggregator.create()).getConfig());
+            _.assign(this.projectConfig, (await ConfigAggregator.create()).getConfig());
 
             // LEGACY - Allow override of sfdcLoginUrl via env var FORCE_SFDC_LOGIN_URL
             if (process.env.FORCE_SFDC_LOGIN_URL) {

@@ -43,14 +43,14 @@ export {
     ConfigPropertyMeta,
     ConfigPropertyMetaInput,
     ORG_DEFAULT,
-    SfdxConfig
-} from './lib/config/sfdxConfig';
+    Config
+} from './lib/config/config';
 
 export {
     ConfigInfo,
     LOCATIONS,
-    SfdxConfigAggregator
-} from './lib/config/sfdxConfigAggregator';
+    ConfigAggregator
+} from './lib/config/configAggregator';
 
 export {
     AuthFields,
@@ -88,9 +88,9 @@ export {
 } from './lib/org';
 
 export {
-    Project,
+    SfdxProject,
     SfdxProjectJson
-} from './lib/project';
+} from './lib/sfdxProject';
 
 export {
     SchemaPrinter
@@ -114,7 +114,7 @@ export {
 } from './lib/types';
 
 export {
-    SfdxTableOptions,
+    TableOptions,
     UX
 } from './lib/ux';
 
