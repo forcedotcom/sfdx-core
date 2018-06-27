@@ -16,7 +16,11 @@ import { ConfigFile } from '../lib/config/configFile';
 import { join as pathJoin } from 'path';
 import { tmpdir as osTmpdir } from 'os';
 import { ConfigContents } from '../lib/config/configStore';
-import { AnyJson } from '../lib/types';
+import { AnyJson, JsonMap } from '../lib/types';
+import { SfdxError } from '../lib/sfdxError';
+import { EventEmitter } from 'events';
+import { CometClient, CometSubscription } from '../lib/status/streamingClient';
+import * as _ from 'lodash';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -130,7 +134,7 @@ function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Prom
  *
  * @example
  * // In a mocha tests
- * import testSetup from 'sfdx-core/dist/test';
+ * import testSetup from '@salesforce/core/dist/test';
  *
  * const $$ = testSetup();
  *
@@ -248,3 +252,142 @@ export const testSetup = once((sinon?) => {
 
     return testContext;
 });
+
+/**
+ * A pre-canned error for tyy/catch testing.
+ * @see shouldThrowAsync
+ * @type {SfdxError}
+ */
+export const unexpectedResult: SfdxError = new SfdxError('This code was expected to failed',
+    'UnexpectedResult');
+
+/**
+ * Use for this testing pattern:
+ *
+ *  try {
+ *      await call()
+ *      assert.fail('this should never happen');
+ *  } catch (e) {
+ *  ...
+ *  }
+ *
+ *  Just do this
+ *
+ *  try {
+ *      shouldThrowAsync(call()); // If this succeeds unexpectedResultError is thrown.
+ *  } catch(e) {
+ *  ...
+ *  }
+ *
+ * @param {Promise<AnyJson>} f The async function that is expected to throw.
+ * @returns {Promise<void>}
+ */
+export async function shouldThrowAsync(f: Promise<AnyJson>) {
+    return Promise.resolve(f).then(() => {
+        throw unexpectedResult;
+    });
+}
+
+/**
+ * A helper to determine if a subscription will use callback or errorback.
+ * Enable errback to simulate a subscription failure.
+ */
+export enum StreamingMockSubscriptionCall {
+    CALLBACK,
+    ERRORBACK
+}
+
+/**
+ * Additional subscription options for the StreamingMOck.
+ */
+export interface StreamingMockCometSubscriptionOptions {
+    // Target URL
+    url: string;
+    // Simple id to associate with this instance.
+    id: string;
+    // What is the subscription outcome a successful callback or an error?
+    subscriptionCall: StreamingMockSubscriptionCall;
+    // If it's an error that states what that error should be.
+    subscriptionErrbackError?: SfdxError;
+    // A list of messages to playback for the client. One message per process tick.
+    messagePlaylist?: JsonMap[];
+}
+
+/**
+ * Simulates a comet subscription to a streaming channel.
+ */
+export class StreamingMockCometSubscription extends EventEmitter implements CometSubscription {
+    public static SUBSCRIPTION_COMPLETE: string = 'subscriptionComplete';
+    public static SUBSCRIPTION_FAILED: string = 'subscriptionFailed';
+    private options: StreamingMockCometSubscriptionOptions;
+
+    constructor(options: StreamingMockCometSubscriptionOptions) {
+        super();
+        this.options = options;
+    }
+
+    public callback(callback: () => void): void {
+        if (this.options.subscriptionCall === StreamingMockSubscriptionCall.CALLBACK) {
+            setTimeout(() => {
+                callback();
+                super.emit(StreamingMockCometSubscription.SUBSCRIPTION_COMPLETE);
+            }, 0);
+        }
+    }
+
+    public errback(callback: (error: Error) => void): void {
+        if (this.options.subscriptionCall === StreamingMockSubscriptionCall.ERRORBACK) {
+            setTimeout(() => {
+                callback(this.options.subscriptionErrbackError);
+                super.emit(StreamingMockCometSubscription.SUBSCRIPTION_FAILED);
+            }, 0);
+        }
+    }
+}
+
+/**
+ * Simulates a comet client. To the core streaming client this mocks the internal comet impl.
+ * The uses setTimeout(0ms) event loop phase just so the client can simulate actual streaming without the response
+ * latency.
+ */
+export class StreamingMockCometClient extends CometClient {
+    private readonly options: StreamingMockCometSubscriptionOptions;
+
+    /**
+     * Constructor
+     * @param {StreamingMockCometSubscriptionOptions} options Extends the StreamingClient options.
+     */
+    constructor(options: StreamingMockCometSubscriptionOptions) {
+        super(options.url);
+        this.options = options;
+        if (!this.options.messagePlaylist) {
+            this.options.messagePlaylist = [{ id:  this.options.id }];
+        }
+    }
+
+    public addExtension(extension: JsonMap): void {}
+
+    public disable(label: string): void {}
+
+    public handshake(callback: () => void): void {
+        setTimeout(() => { callback(); }, 0);
+    }
+
+    public setHeader(name: string, value: string): void {}
+
+    public subscribe(channel: string, callback: (message: JsonMap) => void): CometSubscription {
+        const subscription: StreamingMockCometSubscription = new StreamingMockCometSubscription(this.options);
+        subscription.on('subscriptionComplete', () => {
+            _.each(this.options.messagePlaylist, (message) => {
+                setTimeout(() => {
+                    callback(message);
+                }, 0);
+            });
+        });
+        return subscription;
+    }
+
+    public disconnect(): Promise<void> {
+        return Promise.resolve();
+    }
+}

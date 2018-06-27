@@ -9,7 +9,7 @@ import { findKey } from 'lodash';
  * @module json
  */
 
-import { isEmpty, isString, isNumber, isBoolean, isPlainObject, isArray, forEach } from 'lodash';
+import { isEmpty, isString, isNumber, isBoolean, isPlainObject, isArray, forEach, get } from 'lodash';
 import { SfdxError } from '../sfdxError';
 import { AnyJson, JsonArray, JsonMap } from '../types';
 import { readFile, writeFile, DEFAULT_USER_FILE_MODE } from './fs';
@@ -112,6 +112,38 @@ export function getJsonValuesByName<T extends AnyJson>(json: JsonMap, name: stri
     return matches;
 }
 
+export function getAsString(json: JsonMap, path: string): string | undefined {
+    return asString(get(json, path));
+}
+
+export function getAsNumber(json: JsonMap, path: string): number | undefined {
+    return asNumber(get(json, path));
+}
+
+export function getAsBoolean(json: JsonMap, path: string): boolean | undefined {
+    return asBoolean(get(json, path));
+}
+
+export function getAsJsonMap(json: JsonMap, path: string): JsonMap | undefined {
+    return asJsonMap(get(json, path));
+}
+
+export function getAsJsonArray(json: JsonMap, path: string): JsonArray | undefined {
+    return asJsonArray(get(json, path));
+}
+
+export function getEnsureString(json: JsonMap, path: string): string {
+    return ensureString(get(json, path));
+}
+
+export function getEnsureNumber(json: JsonMap, path: string): number {
+    return ensureNumber(get(json, path));
+}
+
+export function getEnsureBoolean(json: JsonMap, path: string): boolean {
+    return ensureBoolean(get(json, path));
+}
+
 /**
  * Tests whether any JSON value is an object.
  *
@@ -203,7 +235,7 @@ export function ensureString(value ?: AnyJson): string {
  */
 export function ensureNumber(value ?: AnyJson): number {
     if (!isNumber(value)) {
-        throw new SfdxError('Value is not a string');
+        throw new SfdxError('Value is not a number');
     }
     return value;
 }

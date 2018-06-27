@@ -122,7 +122,25 @@ export class Config extends ConfigFile {
     public static readonly ISV_DEBUGGER_URL: string = 'isvDebuggerUrl';
 
     /**
-     * Creates an instance of a Config.
+     * true if polling should be used over streaming when creating scratch orgs.
+     * @type {string}
+     */
+    public static readonly USE_POLLING_ORG_CREATE = 'usepolling.org:create';
+
+    /**
+     * true if polling should be used over streaming when running apex tests.
+     * @type {string}
+     */
+    public static readonly USE_POLLING_APEX_TEST = 'usepolling.apex:test';
+
+    /**
+     * The api version
+     * @type {string}
+     */
+    public static readonly API_VERSION = 'apiVersion';
+
+    /**
+     * Creates an instance of an Config.
      * @param {ConfigOptions} options The config options.
      * @return {Promise<Config>} An instance of Config.
      * @throws {SfdxError} **`{name: 'InvalidInstanceUrl'}`** Invalid instance URL.
@@ -148,7 +166,7 @@ export class Config extends ConfigFile {
                     }
                 },
                 {
-                    key: 'apiVersion',
+                    key: Config.API_VERSION,
                     hidden: true,
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
@@ -160,15 +178,21 @@ export class Config extends ConfigFile {
                 { key: Config.DEFAULT_USERNAME },
                 { key: Config.ISV_DEBUGGER_SID, encrypted: true },
                 { key: Config.ISV_DEBUGGER_URL },
-                // This should be brought in by a plugin, but there isn't a way to do that right now.
                 {
-                    key: 'restDeploy',
-                    hidden: true,
+                    key: Config.USE_POLLING_APEX_TEST,
                     input: {
-                        validator: (value) => value.toString() === 'true' || value.toString() === 'false',
-                        failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
+                        validator: (value) => _.isNil(value) || (value === 'true') || value === 'false',
+                        failedMessage: `${Config.USE_POLLING_ORG_CREATE} must be a boolean value. true/false.`
+                    }
+                },
+                {
+                    key: Config.USE_POLLING_ORG_CREATE,
+                    input: {
+                        validator: (value) => _.isNil(value) || (value === 'true') || value === 'false',
+                        failedMessage: `${Config.USE_POLLING_ORG_CREATE} must be a boolean value. true/false.`
                     }
                 }
+
             ];
         }
 
