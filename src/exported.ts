@@ -114,6 +114,31 @@ export {
 } from './lib/types';
 
 export {
+    StatusResult
+} from './lib/status/client';
+
+export {
+    PollingOptions,
+    DefaultPollingOptions,
+    PollingClient
+} from './lib/status/pollingClient';
+
+export {
+    CometClient,
+    CometSubscription,
+    DefaultStreamingOptions,
+    StreamingClient,
+    StreamingConnectionState,
+    StreamingTimeoutError,
+    StreamingOptions
+} from './lib/status/streamingClient';
+
+export {
+    Time,
+    TIME_UNIT
+} from './lib/util/time';
+
+export {
     TableOptions,
     UX
 } from './lib/ux';

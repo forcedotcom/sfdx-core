@@ -1,0 +1,4 @@
+{
+    "genericTimeoutMessage": "Socket timeout occurred while listening for results.",
+    "genericHandshakeTimeoutMessage": "The streaming request failed to handshake at %s."
+}
