@@ -178,6 +178,15 @@ export class Config extends ConfigFile {
                 { key: Config.DEFAULT_USERNAME },
                 { key: Config.ISV_DEBUGGER_SID, encrypted: true },
                 { key: Config.ISV_DEBUGGER_URL },
+                // This should be brought in by a plugin, but there isn't a way to do that right now.
+                {
+                    key: 'restDeploy',
+                    hidden: true,
+                    input: {
+                        validator: (value) => value.toString() === 'true' || value.toString() === 'false',
+                        failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
+                    }
+                },
                 {
                     key: Config.USE_POLLING_APEX_TEST,
                     input: {

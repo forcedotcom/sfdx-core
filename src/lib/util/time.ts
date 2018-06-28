@@ -5,13 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/**
+ * Units of time
+ */
 export enum TIME_UNIT {
     MINUTES,
     MILLISECONDS,
     SECONDS
 }
 /**
- * Helper class to convert cli wait times between minutes and milliseconds.
+ * Helper class to convert cli times between minutes, seconds, and milliseconds.
  */
 export class Time {
 

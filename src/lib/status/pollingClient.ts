@@ -25,7 +25,8 @@ export interface PollingOptions<T> {
 }
 
 /**
- * Default options set for polling.
+ * Default options set for polling. The default options specify a timeout of 3 minutes and polling frequency of 15
+ * seconds;
  */
 export class DefaultPollingOptions <T> implements PollingOptions<T> {
     public frequency: Time;
@@ -34,19 +35,20 @@ export class DefaultPollingOptions <T> implements PollingOptions<T> {
 
     /**
      * constructor
-     * @param {() => Promise<StatusResult<T>>} poll The function used for polling status.
+     * @param {function} poll The function used for polling status.
+     * @see StatusResult
      */
     constructor(poll: () => Promise<StatusResult<T>>) {
         this.poll = poll;
         this.timeout = new Time(3, TIME_UNIT.MINUTES);
-        this.frequency = new Time(3, TIME_UNIT.SECONDS);
+        this.frequency = new Time(15, TIME_UNIT.SECONDS);
     }
 }
 
 /**
  * This is a polling client that can be used to poll the status of long running tasks. It can be used as a replacement
- * for Streaming when streaming topics are not available or when streaming handshakes are failing. Why wouldn't you you
- * want to use this? It can impact API usage.
+ * for Streaming when streaming topics are not available or when streaming handshakes are failing. Why wouldn't you
+ * want to use this? It can impact Salesforce API usage.
  *
  * @example
  *  const options: PollingOptions<string> = {
@@ -67,17 +69,44 @@ export class DefaultPollingOptions <T> implements PollingOptions<T> {
  */
 export class PollingClient<T> {
 
+    /**
+     * Initialize and return a polling client.
+     *
+     * @param {PollingOptions<U>} options Polling options.
+     * @returns {Promise<PollingClient<U>>}
+     * @see {@link PollingOptions}
+     * @see {@link DefaultPollingOptions}
+     * @async
+     */
+    public static async init<U>(options: PollingOptions<U>): Promise<PollingClient<U>> {
+        return new PollingClient<U>(options, await Logger.child('PollingClient'));
+    }
+
+    protected logger: Logger;
+
     private options: PollingOptions<T>;
     private timeout: NodeJS.Timer;
     private interval: NodeJS.Timer;
-    private logger: Logger;
 
-    constructor(options: PollingOptions<T>) {
+    /**
+     * Constructor
+     * @param {PollingOptions<T>} options Polling client options
+     * @param {Logger} logger Internal logging instace
+     * @see {@link PollingClient.init}
+     */
+    protected constructor(options: PollingOptions<T>, logger: Logger) {
         this.options = options;
-        this.logger = new Logger('PollingClient');
+        this.logger = logger;
         this.logger.debug('Polling enabled.');
     }
 
+    /**
+     * Returns a promise to call the specified polling function using the interval and timeout specified
+     * in the polling options.
+     * @returns {Promise<T>} A promise to call the specified polling function using the interval and timeout specified
+     * in the polling options.
+     * @async
+     */
     public subscribe(): Promise<T> {
         return new Promise((resolve, reject) => {
             // Use set interval to periodically call the polling function

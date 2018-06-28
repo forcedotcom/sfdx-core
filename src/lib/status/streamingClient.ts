@@ -17,8 +17,9 @@ import * as _ from 'lodash';
 import { StatusResult } from './client';
 
 /**
- * Comet client interface. The is to allow for mocking the inner client cometd implementation.
- * Generally this is the Faye interface but it could be an adapter for the cometd npm.
+ * Comet client interface. The is to allow for mocking the inner streaming Cometd implementation.
+ * The Faye implementation is used by default but it could be used to adapt another Cometd impl.
+ * @abstract
  */
 export abstract class CometClient extends EventEmitter {
     // tslint:disable-next-line:no-unused-variable
@@ -29,10 +30,42 @@ export abstract class CometClient extends EventEmitter {
         this.url = url;
     }
 
+    /**
+     * Disable polling features.
+     * @param {string} label Polling feature label.
+     * @abstract
+     */
     public abstract disable(label: string): void;
+
+    /**
+     * Add a custom extension to the underlying client.
+     * @param {JsonMap} extension The json function for the extension.
+     * @abstract
+     */
     public abstract addExtension(extension: JsonMap): void;
+
+    /**
+     * Sets an http header name/value.
+     * @param {string} name The header name.
+     * @param {string} value The header value.
+     * @abstract
+     */
     public abstract setHeader(name: string, value: string): void;
+
+    /**
+     * handshake with the streaming channel
+     * @param {function} callback Callback for the handshake when it successfully completes. The handshake should throw
+     * errors when errors are encountered.
+     * @abstract
+     */
     public abstract handshake(callback: () => void): void;
+
+    /**
+     * Subscribes to Comet topics. Subscribe should perform a handshake if one hasn't benn performed yet.
+     * @param {string} channel The topic to subscribe to.
+     * @param {function(message)} callback The callback to execute once a message has been received.
+     * @returns {CometSubscription} A subscription object.
+     */
     public abstract subscribe(channel: string, callback: (message: JsonMap) => void): CometSubscription;
     public abstract disconnect(): void;
 }
@@ -92,11 +125,10 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
      * Constructor for DefaultStreamingOptions
      * @param {Org} org The streaming target org
      * @param {string} apiVersion The salesforce api version
-     * @param {string} channel The streaming channel or topic. If the topics is a system topic then api 36.0 is used.
+     * @param {string} channel The streaming channel or topic. If the topic is a system topic then api 36.0 is used.
      * System topics are deprecated.
-     * @param {(message: JsonMap) => StatusResult<T>} streamProcessor The function the called can specify to process
-     * streaming messages
-     * @see StatusResult
+     * @param {function(JsonMap)} streamProcessor The function called that can process streaming messages.
+     * @see {@link StatusResult}
      */
     constructor(org: Org, apiVersion: string, channel: string, streamProcessor: (message: JsonMap) => StatusResult<T>) {
 
@@ -141,6 +173,12 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
     }
 }
 
+/**
+ * Connection state
+ * @typedef StreamingConnectionState
+ * @property {string} CONNECTED Used to indicated that the streaming client is connected.
+ * @see {@link StreamingClient.handshake}
+ */
 export enum StreamingConnectionState {
     CONNECTED
 }
@@ -154,38 +192,7 @@ export enum StreamingTimeoutError {
 }
 
 /**
- * Api wrapper to supper Salesforce streaming. The client contains an internal implementation of a cometd specification.
- * @example
- *
- *  streamProcessor(message: JsonMap): StatusResult<string> {
- *      if (!message..payload.id) {
- *          throw new SfdxErro('Not found.', 'NotFound');
- *      }
- *
- *      return {
- *          completed: true,
- *          payload: message.payload.id
- *      }
- *  }
- *
- *  const options: StreamingOptions<string> =
- *      new DefaultStreamingOptions(await CoreOrg.create(this.org.name), this.force.config.getApiVersion(),
- *      TOPIC, this.streamProcessor.bind(this));
- *
- *  try  {
- *      const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
- *
- *      await asyncStatusClient.handshake();
- *
- *      await asyncStatusClient.subscribe(async () => {
- *               const requestResponse = await scratchOrgInfoApi.request(scratchOrgInfo);
- *               this.scratchOrgInfoId = requestResponse.id;
- *           });
- *
- *  } catch(e) {
- *      // handle streaming message errors and timeouts here. ex. If the handshake fails you could try polling.
- *      ....
- *  }
+ * Api wrapper to support Salesforce streaming. The client contains an internal implementation of a cometd specification.
  *
  * Salesforce client and timeout information
  *
@@ -207,9 +214,53 @@ export enum StreamingTimeoutError {
  * Note that these timeouts apply to the Streaming API client session and not the Salesforce authentication session. If
  * the client session times out, the authentication session remains active until the organization-specific timeout
  * policy goes into effect.
+ *
+ * @example
+ *
+ *  streamProcessor(message: JsonMap): StatusResult<string> {
+ *      if (!message.payload.id) {
+ *          throw new SfdxError('Not found.', 'NotFound');
+ *      }
+ *
+ *      if (message.payload.status !== 'Active')) {
+ *          return  { completed: false }
+ *      }
+ *
+ *      return {
+ *          completed: true,
+ *          payload: message.payload.id
+ *      }
+ *  }
+ *
+ *  const org: Org = await Org.create(this.org.name);
+ *  const options: StreamingOptions<string> =
+ *      new DefaultStreamingOptions(org, org.getConnection().getApiVersion(),
+ *      TOPIC, this.streamProcessor.bind(this));
+ *
+ *  try  {
+ *      const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
+ *
+ *      await asyncStatusClient.handshake();
+ *
+ *      await asyncStatusClient.subscribe(async () => {
+ *               // Now that we are subscribed, we can initiate the request that will cause the events to start streaming.
+ *               const requestResponse = await org.getConnection().request(url);
+ *               this.id = requestResponse.id;
+ *           });
+ *
+ *  } catch(e) {
+ *      // handle streaming message errors and timeouts here. ex. If the handshake fails you could try polling.
+ *      ....
+ *  }
+ *
  */
 export class StreamingClient<T> {
 
+    /**
+     * A static initializer for creating a StreamingClient
+     * @param {StreamingOptions<U>} options The StreamingClient options.
+     * @returns {Promise<StreamingClient<U>>}
+     */
     public static async init<U>(options: StreamingOptions<U>): Promise<StreamingClient<U>> {
 
         const streamingClient: StreamingClient<U> = new StreamingClient<U>(options);
@@ -222,7 +273,7 @@ export class StreamingClient<T> {
             streamingClient.logger.debug(`accessToken: XXXXXX${accessToken.substring(accessToken.length - 5, accessToken.length - 1)}`);
             streamingClient.cometClient.setHeader('Authorization', `OAuth ${accessToken}`);
         } else {
-            throw new SfdxError('Missing or invalid access token', 'MissingOrInvalidAcc essToken');
+            throw new SfdxError('Missing or invalid access token', 'MissingOrInvalidAccessToken');
         }
 
         streamingClient.log(`Streaming client target url: ${streamingClient.targetUrl}`);
@@ -237,7 +288,7 @@ export class StreamingClient<T> {
     /**
      * Constructs a streaming client.
      * @param {StreamingOptions<T>} options Config options for the StreamingClient
-     * @see StreamingOptions
+     * @see {@link StreamingOptions}
      */
     private constructor(options: StreamingOptions<T>) {
 
@@ -262,6 +313,7 @@ export class StreamingClient<T> {
 
     /**
      * Provides a convenient way to handshake with the server endpoint before trying to subscribe.
+     * @async
      * @returns {Promise<StreamingConnectionState>}
      */
     public handshake(): Promise<StreamingConnectionState> {
@@ -288,10 +340,11 @@ export class StreamingClient<T> {
 
     /**
      * Subscribe to streaming events.
-     * @param {() => Promise<void>} streamInit - This function should initialize the data that result in streaming updates.
-     * @returns {Promise<T>} - When the streaming processor set in the options completes it returns a payload in the
-     * StatusResult options. The payload is just echoed here for convenience.
-     * @see StatusResult
+     * @param {function} streamInit - This function should call the platform apis that result in streaming updates on push topics.
+     * @returns {Promise<T>} - When the streaming processor that's set in the options completes, it returns a payload in
+     * the StatusResult object. The payload is just echoed here for convenience.
+     * @async
+     * @see {@link StatusResult}
      */
     public subscribe(streamInit: () => Promise<void>): Promise<T> {
         let timeout: NodeJS.Timer;
@@ -300,58 +353,56 @@ export class StreamingClient<T> {
         // says it's complete.
         return new Promise((subscribeResolve, subscribeReject) => {
             // This is the inner promise chain that's satisfied when the client impl (Faye/Mock) says it's subscribed.
-            return streamInit().then(() => {
-                return new Promise((subscriptionResolve, subscriptionReject) => {
+            return new Promise((subscriptionResolve, subscriptionReject) => {
 
-                    timeout = setTimeout(() => {
-                        const timeoutError: SfdxError = SfdxError.create('@salesforce/core',
-                            'streaming', 'genericTimeoutMessage');
-                        timeoutError.name = StreamingTimeoutError.SUBSCRIBE;
-                        this.doTimeout(timeout, timeoutError);
-                        subscribeReject(timeoutError);
-                    }, this.options.handshakeTimeout.milliseconds);
+                timeout = setTimeout(() => {
+                    const timeoutError: SfdxError = SfdxError.create('@salesforce/core',
+                        'streaming', 'genericTimeoutMessage');
+                    timeoutError.name = StreamingTimeoutError.SUBSCRIBE;
+                    this.doTimeout(timeout, timeoutError);
+                    subscribeReject(timeoutError);
+                }, this.options.handshakeTimeout.milliseconds);
 
-                    // Initialize the subscription.
-                    const subscription: CometSubscription = this.cometClient.subscribe(this.options.channel,
-                        (message) => {
-                            try {
-                                // The result of the stream processor determines the state of the outer promise.
-                                const result: StatusResult<T> = this.options.streamProcessor(message);
+                // Initialize the subscription.
+                const subscription: CometSubscription = this.cometClient.subscribe(this.options.channel,
+                    (message) => {
+                        try {
+                            // The result of the stream processor determines the state of the outer promise.
+                            const result: StatusResult<T> = this.options.streamProcessor(message);
 
-                                // The stream processor says it's complete. Clean up and resolve the outer promise.
-                                if (result && result.completed) {
-                                    clearTimeout(timeout);
-                                    this.cometClient.disconnect();
-                                    subscribeResolve(result.payload);
-                                }
-                            } catch (e) {
-                                // it's completely valid for the stream processor to throw an error. If it does we will
-                                // reject the outer promise. Keep in mind if we are here the subscription was resolved.
+                            // The stream processor says it's complete. Clean up and resolve the outer promise.
+                            if (result && result.completed) {
                                 clearTimeout(timeout);
-                                subscribeReject(e);
+                                this.cometClient.disconnect();
+                                subscribeResolve(result.payload);
                             }
-                        });
-
-                    subscription.callback(() => {
-                        subscriptionResolve();
+                        } catch (e) {
+                            // it's completely valid for the stream processor to throw an error. If it does we will
+                            // reject the outer promise. Keep in mind if we are here the subscription was resolved.
+                            clearTimeout(timeout);
+                            subscribeReject(e);
+                        }
                     });
 
-                    subscription.errback((error) => {
-                        subscriptionReject(error);
-                    });
-                })
-                .then(() => {
-                    // Now that we successfully have a subscription started up we are safe to initialize the function that
-                    // will affect the streaming events. I.E. create an org or run apex tests.
-                    return;
-                })
-                .catch((error) => {
-                    // Need to catch the subscription rejection or it will result in an unhandled rejection error.
-                    clearTimeout(timeout);
-
-                    // No subscription so we can reject the out promise as well.
-                    subscribeReject(error);
+                subscription.callback(() => {
+                    subscriptionResolve();
                 });
+
+                subscription.errback((error) => {
+                    subscriptionReject(error);
+                });
+            })
+            .then(() => {
+                // Now that we successfully have a subscription started up we are safe to initialize the function that
+                // will affect the streaming events. I.E. create an org or run apex tests.
+                return streamInit();
+            })
+            .catch((error) => {
+                // Need to catch the subscription rejection or it will result in an unhandled rejection error.
+                clearTimeout(timeout);
+
+                // No subscription so we can reject the out promise as well.
+                subscribeReject(error);
             });
         });
     }

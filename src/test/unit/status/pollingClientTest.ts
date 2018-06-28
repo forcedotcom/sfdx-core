@@ -1,8 +1,9 @@
 import { PollingClient, PollingOptions } from '../../../lib/status/pollingClient';
 import { StatusResult } from '../../../lib/status/client';
 import { Time, TIME_UNIT } from '../../../lib/util/time';
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
+import { shouldThrowAsync } from '../../testSetup';
 
 interface TestType {
     name: string;
@@ -40,7 +41,7 @@ describe('clientTest', () => {
             frequency: new Time(10, TIME_UNIT.MILLISECONDS),
             timeout: new Time(1, TIME_UNIT.MINUTES)
         };
-        const client = new PollingClient(options);
+        const client: PollingClient<TestType> = await PollingClient.init<TestType>(options);
 
         const pollResult: TestType = await client.subscribe();
 
@@ -58,10 +59,9 @@ describe('clientTest', () => {
             timeout: new Time(300, TIME_UNIT.MILLISECONDS)
         };
 
-        const client = new PollingClient(options);
+        const client: PollingClient<TestType> = await PollingClient.init<TestType>(options);
         try {
-            await client.subscribe();
-            assert.fail('This polling listener should subscribeTimeout');
+            await shouldThrowAsync(client.subscribe());
         } catch (e) {
             expect(callCount).to.be.equal(3);
             expect(e).to.have.property('name', 'ClientTimeout');
@@ -84,10 +84,9 @@ describe('clientTest', () => {
             frequency: new Time(90, TIME_UNIT.MILLISECONDS),
             timeout: new Time(400, TIME_UNIT.MILLISECONDS)
         };
-        const client = new PollingClient(options);
+        const client: PollingClient<TestType> = await PollingClient.init<TestType>(options);
         try {
-            await client.subscribe();
-            assert.fail('This polling listener should error out');
+            await shouldThrowAsync(client.subscribe());
         } catch (e) {
             expect(callCount).to.be.equal(2);
             expect(e).to.have.property('name', TEST_VALUE);
