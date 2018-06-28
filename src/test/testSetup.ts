@@ -254,7 +254,7 @@ export const testSetup = once((sinon?) => {
 });
 
 /**
- * A pre-canned error for tyy/catch testing.
+ * A pre-canned error for try/catch testing.
  * @see shouldThrowAsync
  * @type {SfdxError}
  */
@@ -282,7 +282,7 @@ export const unexpectedResult: SfdxError = new SfdxError('This code was expected
  * @param {Promise<AnyJson>} f The async function that is expected to throw.
  * @returns {Promise<void>}
  */
-export async function shouldThrowAsync(f: Promise<AnyJson>) {
+export async function shouldThrowAsync(f: Promise<any>) {// tslint:disable-line:no-any
     return Promise.resolve(f).then(() => {
         throw unexpectedResult;
     });
@@ -298,7 +298,7 @@ export enum StreamingMockSubscriptionCall {
 }
 
 /**
- * Additional subscription options for the StreamingMOck.
+ * Additional subscription options for the StreamingMock.
  */
 export interface StreamingMockCometSubscriptionOptions {
     // Target URL
