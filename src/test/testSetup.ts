@@ -16,10 +16,10 @@ import { ConfigFile } from '../lib/config/configFile';
 import { join as pathJoin } from 'path';
 import { tmpdir as osTmpdir } from 'os';
 import { ConfigContents } from '../lib/config/configStore';
-import { AnyJson, JsonMap } from '../lib/types';
 import { SfdxError } from '../lib/sfdxError';
 import { EventEmitter } from 'events';
 import { CometClient, CometSubscription } from '../lib/status/streamingClient';
+import { AnyJson, JsonMap } from '@salesforce/ts-json';
 import * as _ from 'lodash';
 
 /**

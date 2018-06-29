@@ -22,7 +22,7 @@
  */
 
 import * as _ from 'lodash';
-import { JsonMap, AnyJson } from '../types';
+import { JsonMap, AnyJson } from '@salesforce/ts-json';
 
 /**
  * The allowed types stored in a config store.

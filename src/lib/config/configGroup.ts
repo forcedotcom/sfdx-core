@@ -15,7 +15,7 @@ import * as _ from 'lodash';
 import { ConfigValue, ConfigEntry, ConfigContents } from './configStore';
 import { ConfigFile, ConfigOptions } from './configFile';
 import { SfdxError } from '../sfdxError';
-import { JsonMap } from '../types';
+import { JsonMap } from '@salesforce/ts-json';
 
 /**
  * The interface for Config options.

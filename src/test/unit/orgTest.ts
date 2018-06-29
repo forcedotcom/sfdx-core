@@ -7,7 +7,7 @@
 import { constants as fsConstants } from 'fs';
 import { AuthInfo, AuthFields } from '../../lib/authInfo';
 import { Connection } from '../../lib/connection';
-import { AnyJson } from '../../lib/types';
+import { AnyJson } from '@salesforce/ts-json';
 import { Org, OrgFields } from '../../lib/org';
 import { OAuth2 } from 'jsforce';
 import { expect, assert } from 'chai';
@@ -25,7 +25,6 @@ import { Aliases } from '../../lib/config/aliases';
 import { set as _set, get as _get, isEqual as _isEqual } from 'lodash';
 import * as Transport from 'jsforce/lib/transport';
 import * as fs from '../../lib/util/fs';
-import * as json from '../../lib/util/json';
 
 const $$ = testSetup();
 
@@ -223,7 +222,7 @@ describe('Org Tests', () => {
                 }
                 return $$.rootPathRetriever(false);
             });
-            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(() => Promise.resolve({}));
+            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
@@ -242,7 +241,7 @@ describe('Org Tests', () => {
                 }
                 return osTmpdir();
             });
-            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(() => Promise.resolve({}));
+            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));

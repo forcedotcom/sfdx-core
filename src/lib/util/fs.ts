@@ -11,6 +11,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as mkdirpLib from 'mkdirp';
+import * as json from '@salesforce/ts-json';
+import { JsonMap, AnyJson } from '@salesforce/ts-json';
 import { promisify } from 'util';
 import { SfdxError } from '../sfdxError';
 
@@ -160,4 +162,40 @@ export async function traverseForFile(dir: string, file: string): Promise<string
         }
     }
     return foundProjectDir;
+}
+
+/**
+ * Read a file and convert it to JSON.
+ *
+ * @param {string} jsonPath The path of the file.
+ * @param {boolean} [throwOnEmpty] Whether to throw an error if the JSON file is empty.
+ * @return {Promise<AnyJson>} The contents of the file as a JSON object.
+ */
+export async function readJson(jsonPath: string, throwOnEmpty?: boolean): Promise<AnyJson> {
+    const fileData = await readFile(jsonPath, 'utf8');
+    return await json.parseJson(fileData, jsonPath, throwOnEmpty);
+}
+
+/**
+ * Read a file and convert it to JSON, throwing an error if the parsed contents are not a `JsonMap`.
+ *
+ * @param {string} jsonPath The path of the file.
+ * @param {boolean} [throwOnEmpty] Whether to throw an error if the JSON file is empty.
+ * @return {Promise<JsonMap>} The contents of the file as a JSON object.
+ */
+export async function readJsonMap(jsonPath: string, throwOnEmpty?: boolean): Promise<JsonMap> {
+    const fileData = await readFile(jsonPath, 'utf8');
+    return await json.parseJsonMap(fileData, jsonPath, throwOnEmpty);
+}
+
+/**
+ * Convert a JSON-compatible object to a `string` and write it to a file.
+ *
+ * @param {string} jsonPath The path of the file to write.
+ * @param {object} data The JSON object to write.
+ * @return {Promise<void>}
+ */
+export async function writeJson(jsonPath: string, data: AnyJson): Promise<void> {
+    const fileData: string = JSON.stringify(data, null, 4);
+    await writeFile(jsonPath, fileData, { encoding: 'utf8', mode: DEFAULT_USER_FILE_MODE });
 }
