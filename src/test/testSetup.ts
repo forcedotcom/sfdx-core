@@ -274,7 +274,7 @@ export const unexpectedResult: SfdxError = new SfdxError('This code was expected
  *  Just do this
  *
  *  try {
- *      await shouldThrowAsync(call()); // If this succeeds unexpectedResultError is thrown.
+ *      await shouldThrow(call()); // If this succeeds unexpectedResultError is thrown.
  *  } catch(e) {
  *  ...
  *  }
