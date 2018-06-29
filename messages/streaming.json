@@ -1,4 +1,5 @@
 {
     "genericTimeoutMessage": "Socket timeout occurred while listening for results.",
-    "genericHandshakeTimeoutMessage": "The streaming request failed to handshake at %s."
+    "genericHandshakeTimeoutMessage": "The streaming request failed to handshake at %s.",
+    "waitParamValidValueError": "Invalid value was specified for wait. Please provide a wait value greater than %s minutes."
 }

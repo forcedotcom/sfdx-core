@@ -113,6 +113,10 @@ export interface StreamingOptions<T> {
  * Default Streaming Options. Uses Faye as the cometd impl.
  */
 export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
+
+    public static readonly DEFAULT_SUBSCRIBE_TIMEOUT = new Time(3, TIME_UNIT.MINUTES);
+    public static readonly DEFAULT_HANDSHAKE_TIMEOUT = new Time(30, TIME_UNIT.SECONDS);
+
     public apiVersion: string;
     public org: Org;
     public streamProcessor: (message: JsonMap) => StatusResult<T>;
@@ -157,8 +161,8 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
 
         this.streamProcessor = streamProcessor;
         this.channel = channel;
-        this.subscribeTimeout = new Time(3, TIME_UNIT.MINUTES);
-        this.handshakeTimeout = new Time(1, TIME_UNIT.MINUTES);
+        this.subscribeTimeout = DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT;
+        this.handshakeTimeout = DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT;
         this.streamingImpl = {
             getCometClient: (url: string) => {
                 return new Faye.Client(url);
@@ -170,6 +174,38 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
                 });
             }
         };
+    }
+
+    /**
+     * Setter for the subscribe timeout.
+     * @param {Time} newTime The new subscribe timeout.
+     * @throws {SfdxError} An error if the newTime is less than the default time.
+     */
+    public setSubscribeTimeout(newTime: Time) {
+        this.subscribeTimeout = this.validateTimeout(newTime,
+            DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
+    }
+
+    /**
+     * Setter for the handshake timeout.
+     * @param {Time} newTime The new handshake timeout
+     * @throws {SfdxError} An error if the newTime is less than the default time.
+     */
+    public setHandshakeTimeout(newTime: Time) {
+        this.handshakeTimeout = this.validateTimeout(newTime,
+            DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT);
+    }
+
+    private validateTimeout(newTime: Time, existingTime: Time) {
+        if (newTime) {
+            if (newTime.milliseconds >= existingTime.milliseconds) {
+                return newTime;
+            } else {
+                throw SfdxError.create('@salesforce/core',
+                    'streaming', 'waitParamValidValueError',
+                    [existingTime.minutes]);
+            }
+        }
     }
 }
 
