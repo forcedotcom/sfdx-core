@@ -171,7 +171,7 @@ export class Org {
             _connection = connection;
         }
 
-        org.logger.debug(`connection created for org user: ${_connection.getAuthInfo().getFields().username}`);
+        org.logger.debug(`connection created for org user: ${_connection.getUsername()}`);
         org.setConnection(_connection);
         return org;
     }
@@ -232,7 +232,7 @@ export class Org {
 
         // If deleting via the access token there shouldn't be any auth config files
         // so just return;
-        if (this.getConnection().getAuthInfo().isUsingAccessToken()) {
+        if (this.getConnection().isUsingAccessToken()) {
             return Promise.resolve();
         }
 
@@ -289,7 +289,7 @@ export class Org {
 
         const devHubConnection = await Connection.create(await AuthInfo.create(targetDevHub as string));
 
-        const thisOrgAuthConfig: Partial<AuthFields> = this.getConnection().getAuthInfo().getFields();
+        const thisOrgAuthConfig: Partial<AuthFields> = this.getConnection().getAuthInfoFields();
 
         const trimmedId: string = trimTo15(thisOrgAuthConfig.orgId);
 
@@ -302,7 +302,7 @@ export class Org {
         } catch (err) {
             if (err.name === 'INVALID_TYPE') {
                 throw SfdxError.create('@salesforce/core', 'org', 'NotADevHub',
-                    [devHubConnection.getAuthInfo().getFields().username]);
+                    [devHubConnection.getUsername()]);
             }
             throw err;
         }
@@ -359,7 +359,7 @@ export class Org {
         const usernames: string[] = contents.get('usernames') as string[] || [thisUsername];
         return Promise.all(usernames.map((username) => {
             if (username === thisUsername) {
-                return this.getConnection().getAuthInfo();
+                return AuthInfo.create(this.getConnection().getUsername());
             } else {
                 return AuthInfo.create(username);
             }
@@ -450,7 +450,7 @@ export class Org {
      * @return {string}
      */
     public getUsername(): string {
-        return this.getAuthInfo().getUsername();
+        return this.getConnection().getUsername();
     }
 
     /**
@@ -474,7 +474,7 @@ export class Org {
      * @returns {AnyJson}
      */
     public getField(key: OrgFields): AnyJson {
-        return this[key] || this.getAuthInfo().getFields()[key];
+        return this[key] || this.getConnection().getAuthInfoFields()[key];
     }
 
     /**
@@ -483,14 +483,6 @@ export class Org {
      */
     public getFields(keys: OrgFields[]): Dictionary<AnyJson> {
         return keys.reduce((map, key) => { map[key] = this.getField(key); return map; }, {});
-    }
-
-    /**
-     * Returns the org connection's auth info
-     * @returns {AuthInfo}
-     */
-    public getAuthInfo(): AuthInfo {
-        return this.getConnection().getAuthInfo();
     }
 
     /**
