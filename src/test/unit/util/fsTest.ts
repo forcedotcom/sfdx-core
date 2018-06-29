@@ -10,7 +10,6 @@ import { testSetup } from '../../testSetup';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import * as fs from '../../../lib/util/fs';
-import { writeJson } from '../../../lib/util/json';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -44,7 +43,7 @@ describe('util/fs', () => {
             const fileToDelete = pathJoin(folderToDelete, 'test.json');
 
             await fs.mkdirp(folderToDelete);
-            await writeJson(fileToDelete, {});
+            await fs.writeJson(fileToDelete, {});
             await fs.remove(folderToDelete);
 
             for (const path of [folderToDelete, fileToDelete]) {
@@ -68,8 +67,8 @@ describe('util/fs', () => {
             await fs.mkdirp(sub2);
             await fs.mkdirp(nestedSub1);
 
-            await writeJson(file1, {});
-            await writeJson(file2, {});
+            await fs.writeJson(file1, {});
+            await fs.writeJson(file2, {});
 
             await fs.remove(folderToDelete);
 
@@ -118,6 +117,97 @@ describe('util/fs', () => {
             statFileStub.returns(Promise.reject(statError));
             const path = await fs.traverseForFile('/foo/bar/baz', 'fizz');
             expect(path).to.equal(null);
+        });
+    });
+    describe('readJson', () => {
+        let readFileStub;
+
+        beforeEach(() => {
+            readFileStub = $$.SANDBOX.stub(fs, 'readFile');
+        });
+
+        it('should throw a ParseError for empty JSON file', async () => {
+            readFileStub.returns(Promise.resolve(''));
+
+            try {
+                await fs.readJson('emptyFile');
+                assert.fail('readJson should have thrown a ParseError');
+            } catch (error) {
+                expect(error.message).to.contain('Unexpected end of JSON input');
+            }
+        });
+
+        it('should throw a ParseError for invalid multiline JSON file', () => {
+            readFileStub.returns(Promise.resolve(`{
+                "key": 12345,
+                "value": true,
+            }`));
+            return fs.readJson('invalidJSON')
+                .then(() => assert.fail('readJson should have thrown a ParseError'))
+                .catch((rv) => expect(rv.message).to.contain('Parse error in file invalidJSON on line 4'));
+        });
+
+        it('should throw a ParseError for invalid multiline JSON file 2', () => {
+            readFileStub.returns(Promise.resolve('{\n"a":}'));
+            return fs.readJson('invalidJSON2')
+                .then(() => assert.fail('readJson should have thrown a ParseError'))
+                .catch((rv) => expect(rv.message).to.contain('Parse error in file invalidJSON2 on line 2'));
+        });
+
+        it('should throw a ParseError for invalid single line JSON file', () => {
+            readFileStub.returns(Promise.resolve('{ "key": 12345, "value": [1,2,3], }'));
+            return fs.readJson('invalidJSON_no_newline')
+                .then(() => assert.fail('readJson should have thrown a ParseError'))
+                .catch((rv) => expect(rv.message).to.contain('Parse error in file invalidJSON_no_newline on line 1'));
+        });
+
+        it('should return a JSON object', () => {
+            const validJSON = { key: 12345, value: true };
+            const validJSONStr = JSON.stringify(validJSON);
+            readFileStub.returns(Promise.resolve(validJSONStr));
+            return fs.readJson('validJSONStr')
+                .then((rv) => expect(rv).to.eql(validJSON));
+        });
+    });
+
+    describe('readJsonMap', () => {
+        let readFileStub;
+
+        beforeEach(() => {
+            readFileStub = $$.SANDBOX.stub(fs, 'readFile');
+        });
+
+        it('should throw an error for non-object JSON content', async () => {
+            readFileStub.returns(Promise.resolve('[]'));
+
+            try {
+                await fs.readJsonMap('arrayFile');
+                assert.fail('readJsonMap should have thrown an error');
+            } catch (error) {
+                expect(error.message).to.contain('Expected parsed JSON data to be an object');
+            }
+        });
+
+        it('should return a JSON object', async () => {
+            const validJSON = { key: 12345, value: true };
+            const validJSONStr = JSON.stringify(validJSON);
+            readFileStub.returns(Promise.resolve(validJSONStr));
+            const rv = await fs.readJsonMap('validJSONStr');
+            expect(rv).to.eql(validJSON);
+        });
+    });
+
+    describe('writeJson', () => {
+        it('should call writeFile with correct args', async () => {
+            $$.SANDBOX.stub(fs, 'writeFile').returns(Promise.resolve(null));
+            const testFilePath = 'utilTest_testFilePath';
+            const testJSON = { username: 'utilTest_username'};
+            const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
+            await fs.writeJson(testFilePath, testJSON);
+            expect(fs.writeFile['called']).to.be.true;
+            expect(fs.writeFile['firstCall'].args[0]).to.equal(testFilePath);
+            expect(fs.writeFile['firstCall'].args[1]).to.deep.equal(stringifiedTestJSON);
+            expect(fs.writeFile['firstCall'].args[2]).to.deep.equal({ encoding: 'utf8', mode: '600' });
         });
     });
 });

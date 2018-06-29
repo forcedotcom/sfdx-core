@@ -11,7 +11,7 @@ import { ConfigFile, ConfigOptions } from './config/configFile';
 import { ConfigAggregator } from './config/configAggregator';
 import { SfdxError } from './sfdxError';
 import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
-import { findUpperCaseKeys } from './util/json';
+import { findUpperCaseKeys } from './util/sfdc';
 
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.

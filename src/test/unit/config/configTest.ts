@@ -9,7 +9,7 @@ import { assert, expect } from 'chai';
 import { Config } from '../../../lib/config/config';
 import { testSetup } from '../../testSetup';
 import { ConfigFile } from '../../../lib/config/configFile';
-import * as json from '../../../lib/util/json';
+import * as fs from '../../../lib/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -49,11 +49,10 @@ describe('Config', () => {
     });
 
     describe('read', () => {
-
         it('adds content of the config file from this.path to this.contents', async () => {
             const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
 
-            $$.SANDBOX.stub(json, 'readJsonMap')
+            $$.SANDBOX.stub(fs, 'readJsonMap')
                 .withArgs(config.getPath())
                 .returns(Promise.resolve(clone(configFileContents)));
 
@@ -67,11 +66,9 @@ describe('Config', () => {
     });
 
     describe('set', () => {
-
         it('calls Config.write with updated file contents', async () => {
-
-            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
-            const writeStub = $$.SANDBOX.stub(json, 'writeJson');
+            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
+            const writeStub = $$.SANDBOX.stub(fs, 'writeJson');
 
             const expectedFileContents = clone(configFileContents);
             const newUsername = 'updated_val';
@@ -82,18 +79,19 @@ describe('Config', () => {
             expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);
         });
 
-        it('calls Config.write with updated file contents', async () => {
-
-            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
-            const writeStub = $$.SANDBOX.stub(json, 'writeJson');
-
+        it('calls Config.write with deleted file contents', async () => {
             const expectedFileContents = clone(configFileContents);
             const newUsername = 'updated_val';
             expectedFileContents.defaultusername = newUsername;
 
             await Config.update(false, 'defaultusername', newUsername);
 
-            expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);
+            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
+            const writeStub = $$.SANDBOX.stub(fs, 'writeJson');
+            const { defaultdevhubusername } = configFileContents;
+
+            await Config.update(false, 'defaultusername');
+            expect(writeStub.getCall(0).args[1]).to.deep.equal({ defaultdevhubusername });
         });
     });
 
@@ -133,7 +131,6 @@ describe('Config', () => {
 
     describe('crypto props', () => {
         it('calls ConfigFile.write with encrypted values contents', async () => {
-
             const TEST_VAL = 'test';
 
             const writeStub = $$.SANDBOX.stub(ConfigFile.prototype, ConfigFile.prototype.write.name).callsFake(async function() {

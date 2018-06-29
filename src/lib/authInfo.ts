@@ -62,7 +62,7 @@ import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { Logger } from './logger';
 import { SFDX_HTTP_HEADERS } from './connection';
 import { Crypto } from './crypto';
-import { JsonMap } from './types';
+import { JsonMap } from '@salesforce/ts-json';
 import * as fs from './util/fs';
 
 // Fields that are persisted in auth files

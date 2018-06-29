@@ -11,7 +11,7 @@ import { ConfigAggregator } from '../../../lib/config/configAggregator';
 import { Config } from '../../../lib/config/config';
 import { testSetup } from '../../testSetup';
 import { ConfigFile } from '../../../lib/config/configFile';
-import * as json from '../../../lib/util/json';
+import * as fs from '../../../lib/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -79,7 +79,7 @@ describe('ConfigAggregator', () => {
 
     describe('locations', () => {
         it('local', async () => {
-            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(async (path) => {
+            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 2});
@@ -94,7 +94,7 @@ describe('ConfigAggregator', () => {
         });
 
         it('global', async () => {
-            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(async (path) => {
+            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 2});
@@ -111,7 +111,7 @@ describe('ConfigAggregator', () => {
         it('env', async () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
             const aggregator: ConfigAggregator = await ConfigAggregator.create();
-            $$.SANDBOX.stub(json, 'readJson').callsFake(async (path) => {
+            $$.SANDBOX.stub(fs, 'readJson').callsFake(async (path) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({ defaultusername: 1 });
@@ -126,7 +126,7 @@ describe('ConfigAggregator', () => {
 
         it('configInfo', async () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
-            $$.SANDBOX.stub(json, 'readJson').returns(Promise.resolve({}));
+            $$.SANDBOX.stub(fs, 'readJson').returns(Promise.resolve({}));
 
             const aggregator: ConfigAggregator = await ConfigAggregator.create();
             const info = aggregator.getConfigInfo()[0];

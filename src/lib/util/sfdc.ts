@@ -9,7 +9,8 @@
  */
 
 import { URL } from 'url';
-import { includes, isNil, endsWith } from 'lodash';
+import { findKey, includes, isNil, endsWith } from 'lodash';
+import { JsonMap, asJsonMap, isJsonMap } from '@salesforce/ts-json';
 
 /**
  * Returns `true` if a provided URL contains a Salesforce owned domain.
@@ -93,4 +94,23 @@ export function validateSalesforceId(value: string): boolean {
  */
 export function validatePathDoesNotContainInvalidChars(value: string): boolean {
     return !/[\[:"\?<>\|\]]+/.test(value);
+}
+
+/**
+ * Returns the first key within the object that has an upper case first letter.
+ *
+ * @param {JsonMap} data The object in which to check key casing.
+ * @returns {string}
+ */
+export function findUpperCaseKeys(data: JsonMap): string {
+    let key: string;
+    findKey(data, (val, k) => {
+        if (k[0] === k[0].toUpperCase()) {
+            key = k;
+        } else if (isJsonMap(val)) {
+            key = findUpperCaseKeys(asJsonMap(val));
+        }
+        return key;
+    });
+    return key;
 }

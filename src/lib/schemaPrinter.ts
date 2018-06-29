@@ -8,8 +8,7 @@
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { color } from './ux';
-import { JsonMap, JsonArray } from './types';
-import { isJsonMap, asJsonMap, asString, asNumber, asJsonArray } from './util/json';
+import { JsonMap, JsonArray, isJsonMap, asJsonMap, asString, asNumber, asJsonArray } from '@salesforce/ts-json';
 
 /**
  * Prints a JSON schema in a human-friendly format.
