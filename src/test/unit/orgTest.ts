@@ -400,7 +400,7 @@ describe('Org Tests', () => {
                 orgs.push(org);
             }
 
-            await orgs[0].addUsername(orgs[1].getAuthInfo());
+            await orgs[0].addUsername(await AuthInfo.create(orgs[1].getUsername()));
         });
 
         it('should validate expected files', async () => {
@@ -478,7 +478,7 @@ describe('Org Tests', () => {
         it('validate is a scratch org', async () => {
             returnResult = { records: [ {} ] };
             const fields: Partial<AuthFields> = await org.checkScratchOrg();
-            expect(_isEqual(fields, connection.getAuthInfo().getFields())).to.be.true;
+            expect(_isEqual(fields, connection.getAuthInfoFields())).to.be.true;
         });
 
         it('validate is not scratch org', async () => {
@@ -596,8 +596,8 @@ describe('Org Tests', () => {
         });
 
         it('should read all auth files from an org file', async () => {
-            await orgs[0].addUsername(orgs[1].getConnection().getAuthInfo());
-            await orgs[0].addUsername(orgs[2].getConnection().getAuthInfo());
+            await orgs[0].addUsername(await AuthInfo.create(orgs[1].getUsername()));
+            await orgs[0].addUsername(await AuthInfo.create(orgs[2].getUsername()));
 
             const orgUsers: AuthInfo[] = await orgs[0].readUserAuthFiles();
             let expectedUsers = [mock0.username, mock1.username, mock2.username];
@@ -619,16 +619,16 @@ describe('Org Tests', () => {
         describe('removeUsername', () => {
             it('should remove all usernames', async () => {
 
-                await orgs[0].addUsername(orgs[1].getConnection().getAuthInfo());
-                await orgs[0].addUsername(orgs[2].getConnection().getAuthInfo());
+                await orgs[0].addUsername(orgs[1].getUsername());
+                await orgs[0].addUsername(orgs[2].getUsername());
 
                 let usersPresent: string[] = null;
-                await orgs[0].removeUsername(orgs[1].getConnection().getAuthInfo());
+                await orgs[0].removeUsername(orgs[1].getUsername());
                 usersPresent = $$.configStubs['OrgUsersConfig'].contents['usernames'];
                 expect(usersPresent.length).to.be.eq(2);
                 expect(usersPresent).to.not.include(mock1.username);
 
-                await orgs[0].removeUsername(orgs[2].getConnection().getAuthInfo());
+                await orgs[0].removeUsername(orgs[2].getUsername());
                 usersPresent = $$.configStubs['OrgUsersConfig'].contents['usernames'];
                 expect(usersPresent.length).to.be.eq(1);
                 expect(usersPresent).to.not.include(mock2.username);

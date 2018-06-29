@@ -82,14 +82,18 @@ describe('Config', () => {
             expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);
         });
 
-        it('calls Config.write with deleted file contents', async () => {
-            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(() => Promise.resolve(clone(configFileContents)));
+        it('calls Config.write with updated file contents', async () => {
+
+            $$.SANDBOX.stub(json, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
             const writeStub = $$.SANDBOX.stub(json, 'writeJson');
-            const { defaultdevhubusername } = configFileContents;
 
-            await Config.update(false, 'defaultusername');
+            const expectedFileContents = clone(configFileContents);
+            const newUsername = 'updated_val';
+            expectedFileContents.defaultusername = newUsername;
 
-            expect(writeStub.getCall(0).args[1]).to.deep.equal({ defaultdevhubusername });
+            await Config.update(false, 'defaultusername', newUsername);
+
+            expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);
         });
     });
 
@@ -104,6 +108,12 @@ describe('Config', () => {
             }
         });
 
+        it('enable preferpolling for org:create', async () => {
+            const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
+            config.set(Config.USE_BACKUP_POLLING_ORG_CREATE, 'true');
+            expect(config.get(Config.USE_BACKUP_POLLING_ORG_CREATE)).to.be.equal('true');
+        });
+
         it('InvalidConfigValue', async () => {
             const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
             try {
@@ -114,7 +124,7 @@ describe('Config', () => {
             }
         });
 
-        it('noPropertyInput validation', async () => {
+        it('PropertyInput validation', async () => {
             const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
             await config.set(Config.DEFAULT_USERNAME, 'foo@example.com');
             expect(config.get(Config.DEFAULT_USERNAME)).to.be.equal('foo@example.com');

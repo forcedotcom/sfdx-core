@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isString, cloneDeep, maxBy } from 'lodash';
+import { isString, maxBy } from 'lodash';
 import { Logger } from './logger';
-import { AuthInfo } from './authInfo';
+import { AuthFields, AuthInfo } from './authInfo';
 import { ConfigAggregator } from './config/configAggregator';
 import { Connection as JSForceConnection } from 'jsforce';
 import { Tooling as JSForceTooling } from 'jsforce';
@@ -185,8 +185,12 @@ export class Connection extends JSForceConnection {
      * Getter for the AuthInfo
      * @returns {AuthInfo} A cloned authInfo.
      */
-    public getAuthInfo(): AuthInfo {
-        return cloneDeep(this.authInfo);
+    public getAuthInfoFields(): AuthFields {
+        return this.authInfo.getFields();
+    }
+
+    public getConnectionOptions(): AuthFields {
+        return this.authInfo.getConnectionOptions();
     }
 
     /**
@@ -194,7 +198,15 @@ export class Connection extends JSForceConnection {
      * @returns {string}
      */
     public getUsername(): string {
-        return this.getAuthInfo().getFields().username;
+        return this.getAuthInfoFields().username;
+    }
+
+    /**
+     * Returns true if this connection is using access token auth.
+     * @returns {boolean}
+     */
+    public isUsingAccessToken(): boolean {
+        return this.authInfo.isUsingAccessToken();
     }
 
     /**
