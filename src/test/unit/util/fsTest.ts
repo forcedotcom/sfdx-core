@@ -137,36 +137,45 @@ describe('util/fs', () => {
             }
         });
 
-        it('should throw a ParseError for invalid multiline JSON file', () => {
+        it('should throw a ParseError for invalid multiline JSON file', async () => {
             readFileStub.returns(Promise.resolve(`{
                 "key": 12345,
                 "value": true,
             }`));
-            return fs.readJson('invalidJSON')
-                .then(() => assert.fail('readJson should have thrown a ParseError'))
-                .catch((rv) => expect(rv.message).to.contain('Parse error in file invalidJSON on line 4'));
+            try {
+                await fs.readJson('invalidJSON');
+                assert.fail('readJson should have thrown a ParseError');
+            } catch (err) {
+                expect(err.message).to.contain('Parse error in file invalidJSON on line 4');
+            }
         });
 
-        it('should throw a ParseError for invalid multiline JSON file 2', () => {
+        it('should throw a ParseError for invalid multiline JSON file 2', async () => {
             readFileStub.returns(Promise.resolve('{\n"a":}'));
-            return fs.readJson('invalidJSON2')
-                .then(() => assert.fail('readJson should have thrown a ParseError'))
-                .catch((rv) => expect(rv.message).to.contain('Parse error in file invalidJSON2 on line 2'));
+            try {
+                await fs.readJson('invalidJSON2');
+                assert.fail('readJson should have thrown a ParseError');
+            } catch (err) {
+                expect(err.message).to.contain('Parse error in file invalidJSON2 on line 2');
+            }
         });
 
-        it('should throw a ParseError for invalid single line JSON file', () => {
+        it('should throw a ParseError for invalid single line JSON file', async () => {
             readFileStub.returns(Promise.resolve('{ "key": 12345, "value": [1,2,3], }'));
-            return fs.readJson('invalidJSON_no_newline')
-                .then(() => assert.fail('readJson should have thrown a ParseError'))
-                .catch((rv) => expect(rv.message).to.contain('Parse error in file invalidJSON_no_newline on line 1'));
+            try {
+                await fs.readJson('invalidJSON_no_newline');
+                assert.fail('readJson should have thrown a ParseError');
+            } catch (err) {
+                expect(err.message).to.contain('Parse error in file invalidJSON_no_newline on line 1');
+            }
         });
 
-        it('should return a JSON object', () => {
+        it('should return a JSON object', async () => {
             const validJSON = { key: 12345, value: true };
             const validJSONStr = JSON.stringify(validJSON);
             readFileStub.returns(Promise.resolve(validJSONStr));
-            return fs.readJson('validJSONStr')
-                .then((rv) => expect(rv).to.eql(validJSON));
+            const rv = await fs.readJson('validJSONStr');
+            expect(rv).to.eql(validJSON);
         });
     });
 
