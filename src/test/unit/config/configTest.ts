@@ -110,29 +110,8 @@ describe('Config', () => {
 
         it('enable preferpolling for org:create', async () => {
             const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
-            config.set(Config.USE_POLLING_ORG_CREATE, 'true');
-            expect(config.get(Config.USE_POLLING_ORG_CREATE)).to.be.equal('true');
-        });
-
-        it('enable preferpolling for apex:test', async () => {
-            const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
-            config.set(Config.USE_POLLING_APEX_TEST, 'true');
-            expect(config.get(Config.USE_POLLING_APEX_TEST)).to.be.equal('true');
-        });
-
-        it('disable preferpolling for apex:test', async () => {
-            const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
-            config.set(Config.USE_POLLING_APEX_TEST, 'false');
-            expect(config.get(Config.USE_POLLING_APEX_TEST)).to.be.equal('false');
-        });
-
-        it('validation for apex:test', async () => {
-            const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
-            try {
-                config.set(Config.USE_POLLING_APEX_TEST, 'tru');
-            } catch (err) {
-                expect(err).to.have.property('name', 'InvalidConfigValue');
-            }
+            config.set(Config.USE_BACKUP_POLLING_ORG_CREATE, 'true');
+            expect(config.get(Config.USE_BACKUP_POLLING_ORG_CREATE)).to.be.equal('true');
         });
 
         it('InvalidConfigValue', async () => {
