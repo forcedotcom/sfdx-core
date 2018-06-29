@@ -3,7 +3,7 @@ import { StatusResult } from '../../../lib/status/client';
 import { Time, TIME_UNIT } from '../../../lib/util/time';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { shouldThrowAsync } from '../../testSetup';
+import { shouldThrow } from '../../testSetup';
 
 interface TestType {
     name: string;
@@ -61,7 +61,7 @@ describe('clientTest', () => {
 
         const client: PollingClient<TestType> = await PollingClient.init<TestType>(options);
         try {
-            await shouldThrowAsync(client.subscribe());
+            await shouldThrow(client.subscribe());
         } catch (e) {
             expect(callCount).to.be.equal(3);
             expect(e).to.have.property('name', 'ClientTimeout');
@@ -86,7 +86,7 @@ describe('clientTest', () => {
         };
         const client: PollingClient<TestType> = await PollingClient.init<TestType>(options);
         try {
-            await shouldThrowAsync(client.subscribe());
+            await shouldThrow(client.subscribe());
         } catch (e) {
             expect(callCount).to.be.equal(2);
             expect(e).to.have.property('name', TEST_VALUE);

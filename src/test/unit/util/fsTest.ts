@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { assert, expect } from 'chai';
-import { testSetup } from '../../testSetup';
+import { expect } from 'chai';
+import { testSetup, shouldThrow } from '../../testSetup';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import * as fs from '../../../lib/util/fs';
@@ -18,8 +18,7 @@ describe('util/fs', () => {
     describe('remove', () => {
         it ('should throw an error on falsy', async () => {
             try {
-                await fs.remove(undefined);
-                assert.fail('This test is designed to throw an error');
+                await shouldThrow(fs.remove(undefined));
             } catch (e) {
                 expect(e).to.have.property('name', 'PathIsNullOrUndefined');
             }
@@ -31,8 +30,7 @@ describe('util/fs', () => {
             await fs.remove(folderToDelete);
 
             try {
-                await fs.access(folderToDelete);
-                assert.fail('This test is designed to throw and error');
+                await shouldThrow(fs.access(folderToDelete));
             } catch (e) {
                 expect(e).to.have.property('code', 'ENOENT');
             }
@@ -48,8 +46,7 @@ describe('util/fs', () => {
 
             for (const path of [folderToDelete, fileToDelete]) {
                 try {
-                    await fs.access(path);
-                    assert.fail('This test is designed to throw and error');
+                    await shouldThrow(fs.access(path));
                 } catch (e) {
                     expect(e).to.have.property('code', 'ENOENT');
                 }
@@ -74,8 +71,7 @@ describe('util/fs', () => {
 
             for (const path of [file1, file2, nestedSub1, sub2, sub1]) {
                 try {
-                    await fs.access(path);
-                    assert.fail('This test is designed to throw and error');
+                    await shouldThrow(fs.access(path));
                 } catch (e) {
                     expect(e).to.have.property('code', 'ENOENT');
                 }
@@ -130,8 +126,7 @@ describe('util/fs', () => {
             readFileStub.returns(Promise.resolve(''));
 
             try {
-                await fs.readJson('emptyFile');
-                assert.fail('readJson should have thrown a ParseError');
+                await shouldThrow(fs.readJson('emptyFile'));
             } catch (error) {
                 expect(error.message).to.contain('Unexpected end of JSON input');
             }
@@ -143,8 +138,7 @@ describe('util/fs', () => {
                 "value": true,
             }`));
             try {
-                await fs.readJson('invalidJSON');
-                assert.fail('readJson should have thrown a ParseError');
+                await shouldThrow(fs.readJson('invalidJSON'));
             } catch (err) {
                 expect(err.message).to.contain('Parse error in file invalidJSON on line 4');
             }
@@ -153,8 +147,7 @@ describe('util/fs', () => {
         it('should throw a ParseError for invalid multiline JSON file 2', async () => {
             readFileStub.returns(Promise.resolve('{\n"a":}'));
             try {
-                await fs.readJson('invalidJSON2');
-                assert.fail('readJson should have thrown a ParseError');
+                await shouldThrow(fs.readJson('invalidJSON2'));
             } catch (err) {
                 expect(err.message).to.contain('Parse error in file invalidJSON2 on line 2');
             }
@@ -163,8 +156,7 @@ describe('util/fs', () => {
         it('should throw a ParseError for invalid single line JSON file', async () => {
             readFileStub.returns(Promise.resolve('{ "key": 12345, "value": [1,2,3], }'));
             try {
-                await fs.readJson('invalidJSON_no_newline');
-                assert.fail('readJson should have thrown a ParseError');
+                await shouldThrow(fs.readJson('invalidJSON_no_newline'));
             } catch (err) {
                 expect(err.message).to.contain('Parse error in file invalidJSON_no_newline on line 1');
             }
@@ -190,8 +182,7 @@ describe('util/fs', () => {
             readFileStub.returns(Promise.resolve('[]'));
 
             try {
-                await fs.readJsonMap('arrayFile');
-                assert.fail('readJsonMap should have thrown an error');
+                await shouldThrow(fs.readJsonMap('arrayFile'));
             } catch (error) {
                 expect(error.message).to.contain('Expected parsed JSON data to be an object');
             }
