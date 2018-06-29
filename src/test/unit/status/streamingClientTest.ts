@@ -253,4 +253,57 @@ describe('streaming client tests', () => {
             expect(e).to.have.property('name', StreamingTimeoutError.SUBSCRIBE);
         }
     });
+
+    describe('DefaultStreaming options', () => {
+        let options: DefaultStreamingOptions<string>;
+
+        beforeEach(async () => {
+            const org: Org = await Org.create(_username);
+
+            const streamProcessor = (): StatusResult<string> => {
+                return { completed: false };
+            };
+
+            options = new DefaultStreamingOptions(org, MOCK_API_VERSION, MOCK_TOPIC, streamProcessor);
+        });
+
+        it('setTimeout equal to default', async () => {
+
+            options.setSubscribeTimeout(DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
+            options.setHandshakeTimeout(DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT);
+
+            expect(options.handshakeTimeout).to.be.equal(DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT);
+            expect(options.subscribeTimeout).to.be.equal(DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
+        });
+
+        it('setTimeout greater than the default', async () => {
+            const newSubscribeTime: Time =
+                new Time((DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds + 1), TIME_UNIT.MILLISECONDS);
+            const newHandshakeTime: Time =
+                new Time((DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds + 1), TIME_UNIT.MILLISECONDS);
+            options.setSubscribeTimeout(newSubscribeTime);
+            options.setHandshakeTimeout(newHandshakeTime);
+            expect(options.subscribeTimeout.milliseconds).to.be.equal(newSubscribeTime.milliseconds);
+            expect(options.handshakeTimeout.milliseconds).to.be.equal(newHandshakeTime.milliseconds);
+        });
+
+        it('setTimeout less that the default', async () => {
+            const newSubscribeTime: Time =
+                new Time((DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds - 1), TIME_UNIT.MILLISECONDS);
+            const newHandshakeTime: Time =
+                new Time((DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds - 1), TIME_UNIT.MILLISECONDS);
+
+            try {
+                await shouldThrowAsync(Promise.resolve(options.setSubscribeTimeout(newSubscribeTime)));
+            } catch (e) {
+                expect(e).to.have.property('name', 'waitParamValidValueError');
+            }
+
+            try {
+                await shouldThrowAsync(Promise.resolve(options.setHandshakeTimeout(newHandshakeTime)));
+            } catch (e) {
+                expect(e).to.have.property('name', 'waitParamValidValueError');
+            }
+        });
+    });
 });
