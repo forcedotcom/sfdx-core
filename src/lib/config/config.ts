@@ -125,13 +125,7 @@ export class Config extends ConfigFile {
      * true if polling should be used over streaming when creating scratch orgs.
      * @type {string}
      */
-    public static readonly USE_POLLING_ORG_CREATE = 'usepolling.org:create';
-
-    /**
-     * true if polling should be used over streaming when running apex tests.
-     * @type {string}
-     */
-    public static readonly USE_POLLING_APEX_TEST = 'usepolling.apex:test';
+    public static readonly USE_BACKUP_POLLING_ORG_CREATE = 'useBackupPolling.org:create';
 
     /**
      * The api version
@@ -188,17 +182,10 @@ export class Config extends ConfigFile {
                     }
                 },
                 {
-                    key: Config.USE_POLLING_APEX_TEST,
+                    key: Config.USE_BACKUP_POLLING_ORG_CREATE,
                     input: {
                         validator: (value) => _.isNil(value) || (value === 'true') || value === 'false',
-                        failedMessage: `${Config.USE_POLLING_ORG_CREATE} must be a boolean value. true/false.`
-                    }
-                },
-                {
-                    key: Config.USE_POLLING_ORG_CREATE,
-                    input: {
-                        validator: (value) => _.isNil(value) || (value === 'true') || value === 'false',
-                        failedMessage: `${Config.USE_POLLING_ORG_CREATE} must be a boolean value. true/false.`
+                        failedMessage: `${Config.USE_BACKUP_POLLING_ORG_CREATE} must be a boolean value. true/false.`
                     }
                 }
 
