@@ -178,8 +178,8 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
 
     /**
      * Setter for the subscribe timeout.
-     * @param {Time} newTime The new subscribe timeout
-     * @throws An error if the newTime is less than the default time
+     * @param {Time} newTime The new subscribe timeout.
+     * @throws {SfdxError} An error if the newTime is less than the default time.
      */
     public setSubscribeTimeout(newTime: Time) {
         this.subscribeTimeout = this.validateTimeout(newTime,
@@ -187,9 +187,9 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
     }
 
     /**
-     * Setter for the handshake timeout
+     * Setter for the handshake timeout.
      * @param {Time} newTime The new handshake timeout
-     * @throws An error if the newTime is less than the default time
+     * @throws {SfdxError} An error if the newTime is less than the default time.
      */
     public setHandshakeTimeout(newTime: Time) {
         this.handshakeTimeout = this.validateTimeout(newTime,
