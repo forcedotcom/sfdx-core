@@ -255,7 +255,7 @@ export const testSetup = once((sinon?) => {
 
 /**
  * A pre-canned error for try/catch testing.
- * @see shouldThrowAsync
+ * @see shouldThrow
  * @type {SfdxError}
  */
 export const unexpectedResult: SfdxError = new SfdxError('This code was expected to failed',
