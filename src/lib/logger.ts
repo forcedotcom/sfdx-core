@@ -408,7 +408,7 @@ export class Logger {
      *
      * @returns {any} The low-level Bunyan logger.
      */
-    public getBunyanLogger(): Bunyan {
+    public getBunyanLogger(): any { // tslint:disable-line:no-any
         return this.bunyan;
     }
 
