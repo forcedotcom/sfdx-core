@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import * as sfdc from '../../../lib/util/sfdc';
 
-describe('util/index', () => {
+describe('util/sfdc', () => {
     describe('isSalesforceDomain', () => {
         it('is whitelist domain', () => {
             expect(sfdc.isSalesforceDomain('http://www.salesforce.com')).to.be.true;
@@ -92,6 +92,23 @@ describe('util/index', () => {
 
         it('should return false for "/my/path > err.log"', () => {
             expect(sfdc.validatePathDoesNotContainInvalidChars('/my/path > err.log')).to.be.false;
+        });
+    });
+
+    describe('findUpperCaseKeys', () => {
+        it('should return the first upper case key', () => {
+            const testObj = { lowercase: true, UpperCase: false, nested: { camelCase: true } };
+            expect(sfdc.findUpperCaseKeys(testObj)).to.equal('UpperCase');
+        });
+
+        it('should return the first nested upper case key', () => {
+            const testObj = { lowercase: true, uppercase: false, nested: { NestedUpperCase: true } };
+            expect(sfdc.findUpperCaseKeys(testObj)).to.equal('NestedUpperCase');
+        });
+
+        it('should return undefined when no upper case key is found', () => {
+            const testObj = { lowercase: true, uppercase: false, nested: { camelCase: true } };
+            expect(sfdc.findUpperCaseKeys(testObj)).to.be.undefined;
         });
     });
 });
