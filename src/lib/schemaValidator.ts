@@ -9,10 +9,10 @@ import * as path from 'path';
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
 import { SfdxError } from './sfdxError';
-import { AnyJson, JsonMap, Dictionary } from './types';
 import { Logger } from './logger';
 import { isString as _isString } from 'lodash';
-import { readJsonMap, getJsonValuesByName } from './util/json';
+import { readJsonMap } from './util/fs';
+import { AnyJson, JsonMap, Dictionary, getJsonValuesByName } from '@salesforce/ts-json';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.

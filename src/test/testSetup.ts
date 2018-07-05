@@ -16,10 +16,10 @@ import { ConfigFile } from '../lib/config/configFile';
 import { join as pathJoin } from 'path';
 import { tmpdir as osTmpdir } from 'os';
 import { ConfigContents } from '../lib/config/configStore';
-import { AnyJson, JsonMap } from '../lib/types';
 import { SfdxError } from '../lib/sfdxError';
 import { EventEmitter } from 'events';
 import { CometClient, CometSubscription } from '../lib/status/streamingClient';
+import { AnyJson, JsonMap } from '@salesforce/ts-json';
 import * as _ from 'lodash';
 
 /**
@@ -255,7 +255,7 @@ export const testSetup = once((sinon?) => {
 
 /**
  * A pre-canned error for try/catch testing.
- * @see shouldThrowAsync
+ * @see shouldThrow
  * @type {SfdxError}
  */
 export const unexpectedResult: SfdxError = new SfdxError('This code was expected to failed',
@@ -274,7 +274,7 @@ export const unexpectedResult: SfdxError = new SfdxError('This code was expected
  *  Just do this
  *
  *  try {
- *      shouldThrowAsync(call()); // If this succeeds unexpectedResultError is thrown.
+ *      await shouldThrow(call()); // If this succeeds unexpectedResultError is thrown.
  *  } catch(e) {
  *  ...
  *  }
@@ -282,10 +282,9 @@ export const unexpectedResult: SfdxError = new SfdxError('This code was expected
  * @param {Promise<AnyJson>} f The async function that is expected to throw.
  * @returns {Promise<void>}
  */
-export async function shouldThrowAsync(f: Promise<any>) {// tslint:disable-line:no-any
-    return Promise.resolve(f).then(() => {
-        throw unexpectedResult;
-    });
+export async function shouldThrow(f: Promise<any>): Promise<never> {// tslint:disable-line:no-any
+    await f;
+    throw unexpectedResult;
 }
 
 /**

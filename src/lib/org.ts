@@ -40,7 +40,7 @@ import { Global} from './global';
 import { OrgUsersConfig } from './config/orgUsersConfig';
 import { SfdxError } from './sfdxError';
 import { QueryResult } from 'jsforce';
-import { AnyJson, Dictionary } from './types';
+import { AnyJson, Dictionary } from '@salesforce/ts-json';
 import { trimTo15 } from './util/sfdc';
 import * as fs from './util/fs';
 

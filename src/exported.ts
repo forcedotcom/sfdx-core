@@ -110,8 +110,9 @@ export {
     AnyJson,
     Dictionary,
     JsonArray,
-    JsonMap
-} from './lib/types';
+    JsonMap,
+    Many
+} from '@salesforce/ts-json';
 
 export {
     StatusResult
@@ -145,10 +146,6 @@ export {
 
 // Utility sub-modules
 import * as fs from './lib/util/fs';
-import * as json from './lib/util/json';
+export { fs };
 import * as sfdc from './lib/util/sfdc';
-export {
-    fs,
-    json,
-    sfdc
-};
+export { sfdc };

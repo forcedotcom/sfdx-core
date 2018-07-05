@@ -10,6 +10,7 @@ import * as _ from 'lodash';
 import { Messages } from './messages';
 import { color } from './ux';
 import { Global, Mode } from './global';
+import { NamedError } from '@salesforce/ts-json';
 
 /**
  * A class to manage all the keys and tokens for a message bundle to use with SfdxError.
@@ -53,7 +54,7 @@ export class SfdxErrorConfig {
                 errorTokens: Array<string | boolean | number> = [],
                 actionKey?: string,
                 actionTokens?: Array<string | boolean | number>
-        ) {
+    ) {
         this.packageName = packageName;
         this.bundleName = bundleName;
         this.errorKey = errorKey;
@@ -166,7 +167,7 @@ export class SfdxErrorConfig {
  * throw new SfdxError(myErrMsg, 'MyErrorName');
  *
  */
-export class SfdxError extends Error {
+export class SfdxError extends NamedError {
     /**
      * Create a new SfdxError.
      * @param {string} packageName The message package name used to create the SfdxError.
@@ -187,9 +188,9 @@ export class SfdxError extends Error {
         let errorConfig: SfdxErrorConfig;
 
         if (_.isString(packageNameOrErrorConfig)) {
-            errorConfig = new SfdxErrorConfig(packageNameOrErrorConfig as string, bundleName, key, tokens);
+            errorConfig = new SfdxErrorConfig(packageNameOrErrorConfig, bundleName, key, tokens);
         } else {
-            errorConfig = packageNameOrErrorConfig as SfdxErrorConfig;
+            errorConfig = packageNameOrErrorConfig;
         }
 
         errorConfig.load();
@@ -243,10 +244,10 @@ export class SfdxError extends Error {
      * @param {string} [name] The error name. Defaults to 'SfdxError'.
      * @param {string[]} [actions] The action message(s).
      * @param {number} [exitCode] The exit code which will be used by SfdxCommand.
+     * @param {Error} [cause] The underlying error that caused this error to be raised.
      */
-    constructor(message: string, name?: string, actions?: string[], exitCode?: number) {
-        super(message);
-        this.name = name || 'SfdxError';
+    constructor(message: string, name?: string, actions?: string[], exitCode?: number, cause?: Error) {
+        super(name || 'SfdxError', message, cause);
         this.actions = actions;
         this.exitCode = exitCode || 1;
     }

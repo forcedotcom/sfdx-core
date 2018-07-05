@@ -23,7 +23,7 @@ import { SfdxError } from '../sfdxError';
 import { homedir as osHomedir } from 'os';
 import * as fs from '../util/fs';
 import { resolveProjectPath } from '../util/internal';
-import { readJsonMap, writeJson } from '../util/json';
+import { readJsonMap, writeJson } from '../util/fs';
 
 /**
  * The interface for Config options.

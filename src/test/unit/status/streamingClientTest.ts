@@ -9,7 +9,7 @@ import {
 
 import { Org } from '../../../lib/org';
 import { Connection } from '../../../lib/connection';
-import { shouldThrowAsync, StreamingMockCometClient, StreamingMockSubscriptionCall, testSetup } from '../../testSetup';
+import { shouldThrow, StreamingMockCometClient, StreamingMockSubscriptionCall, testSetup } from '../../testSetup';
 import { expect } from 'chai';
 import { Crypto } from '../../../lib/crypto';
 import { SfdxError } from '../../../lib/sfdxError';
@@ -105,7 +105,7 @@ describe('streaming client tests', () => {
 
         const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
         try {
-            await shouldThrowAsync(asyncStatusClient.subscribe(() => {
+            await shouldThrow(asyncStatusClient.subscribe(() => {
                 return Promise.resolve();
             }));
         } catch (e) {
@@ -145,7 +145,7 @@ describe('streaming client tests', () => {
 
         const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
         try {
-            await shouldThrowAsync(asyncStatusClient.subscribe(() => {
+            await shouldThrow(asyncStatusClient.subscribe(() => {
                 return Promise.resolve();
             }));
         } catch (e) {
@@ -213,7 +213,7 @@ describe('streaming client tests', () => {
         const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
 
         try {
-            await shouldThrowAsync(asyncStatusClient.handshake());
+            await shouldThrow(asyncStatusClient.handshake());
         } catch (e) {
             expect(e).to.have.property('name', StreamingTimeoutError.HANDSHAKE);
         }
@@ -246,7 +246,7 @@ describe('streaming client tests', () => {
 
         const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
         try {
-            await shouldThrowAsync(asyncStatusClient.subscribe( async () => {
+            await shouldThrow(asyncStatusClient.subscribe( async () => {
                 return Promise.resolve();
             }));
         } catch (e) {
@@ -294,13 +294,13 @@ describe('streaming client tests', () => {
                 new Time((DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds - 1), TIME_UNIT.MILLISECONDS);
 
             try {
-                await shouldThrowAsync(Promise.resolve(options.setSubscribeTimeout(newSubscribeTime)));
+                await shouldThrow(Promise.resolve(options.setSubscribeTimeout(newSubscribeTime)));
             } catch (e) {
                 expect(e).to.have.property('name', 'waitParamValidValueError');
             }
 
             try {
-                await shouldThrowAsync(Promise.resolve(options.setHandshakeTimeout(newHandshakeTime)));
+                await shouldThrow(Promise.resolve(options.setHandshakeTimeout(newHandshakeTime)));
             } catch (e) {
                 expect(e).to.have.property('name', 'waitParamValidValueError');
             }
