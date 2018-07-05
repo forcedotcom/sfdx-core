@@ -16,6 +16,7 @@
  * @property {string} LOGIN_URL The login url of the org. e.g. `https://login.salesforce.com` or `https://test.salesforce.com`.
  * @property {string} ORG_ID The org ID.
  * @property {string} STATUS The `OrgStatus` of the org.
+ * @property {string} SNAPSHOT The snapshot used to create the scratch org.
  */
 
 /**
@@ -65,7 +66,8 @@ export enum OrgFields {
     ORG_ID = 'orgId',
 
     // From Org
-    STATUS = 'status'
+    STATUS = 'status',
+    SNAPSHOT = 'snapshot'
 
     // Should it be on org? Leave it off for now, as it might
     // be confusing to the consumer what this actually is.
