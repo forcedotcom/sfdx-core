@@ -294,13 +294,13 @@ describe('streaming client tests', () => {
                 new Time((DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds - 1), TIME_UNIT.MILLISECONDS);
 
             try {
-                await shouldThrowAsync(Promise.resolve(options.setSubscribeTimeout(newSubscribeTime)));
+                await shouldThrow(Promise.resolve(options.setSubscribeTimeout(newSubscribeTime)));
             } catch (e) {
                 expect(e).to.have.property('name', 'waitParamValidValueError');
             }
 
             try {
-                await shouldThrowAsync(Promise.resolve(options.setHandshakeTimeout(newHandshakeTime)));
+                await shouldThrow(Promise.resolve(options.setHandshakeTimeout(newHandshakeTime)));
             } catch (e) {
                 expect(e).to.have.property('name', 'waitParamValidValueError');
             }
