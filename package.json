@@ -34,6 +34,7 @@
   ],
   "dependencies": {
     "@salesforce/ts-json": "0.0.2",
+    "@types/jsforce": "1.8.12",
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "chalk": "2.4.0",
     "cli-ux": "3.3.25",
@@ -48,7 +49,6 @@
     "@salesforce/dev-config": "1.0.4",
     "@types/chai": "4.0.4",
     "@types/jsen": "0.0.19",
-    "@types/jsforce": "1.8.12",
     "@types/lodash": "4.14.88",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "2.2.42",
