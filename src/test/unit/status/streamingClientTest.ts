@@ -14,6 +14,7 @@ import { expect } from 'chai';
 import { Crypto } from '../../../lib/crypto';
 import { SfdxError } from '../../../lib/sfdxError';
 import { Time, TIME_UNIT } from '../../../lib/util/time';
+import * as _ from 'lodash';
 
 const MOCK_API_VERSION: string = '43.0';
 const MOCK_TOPIC: string = 'topic';
@@ -234,7 +235,7 @@ describe('streaming client tests', () => {
             new DefaultStreamingOptions(org, MOCK_API_VERSION,
                 MOCK_TOPIC, streamProcessor);
 
-        options.handshakeTimeout = new Time(1, TIME_UNIT.MILLISECONDS);
+        options.subscribeTimeout = new Time(1, TIME_UNIT.MILLISECONDS);
 
         options.streamingImpl = {
             getCometClient: (url: string) => {
@@ -252,6 +253,50 @@ describe('streaming client tests', () => {
         } catch (e) {
             expect(e).to.have.property('name', StreamingTimeoutError.SUBSCRIBE);
         }
+    });
+
+    it ('subscribe should timeout setTimeout spy', async () => {
+        const JENNYS_NUMBER: number = 8675309;
+        const GHOSTBUSTERS_NUMBER: number = 5552368;
+
+        const setTimeoutSpy = $$.SANDBOX.spy(global, 'setTimeout');
+
+        const TEST_STRING: string = $$.uniqid();
+
+        const org: Org = await Org.create(_username);
+
+        const streamProcessor = (): StatusResult<string> => {
+            return {
+                completed: true
+            };
+        };
+
+        const options: StreamingOptions<string> =
+            new DefaultStreamingOptions(org, MOCK_API_VERSION,
+                MOCK_TOPIC, streamProcessor);
+
+        options.subscribeTimeout = new Time(JENNYS_NUMBER, TIME_UNIT.MILLISECONDS); // Jenny's phone number
+        options.handshakeTimeout = new Time(GHOSTBUSTERS_NUMBER, TIME_UNIT.MILLISECONDS); // Ghostbusters phone number
+
+        options.streamingImpl = {
+            getCometClient: (url: string) => {
+                return new StreamingMockCometClient({url, id: TEST_STRING,
+                    subscriptionCall: StreamingMockSubscriptionCall.CALLBACK});
+            },
+            setLogger: () => {}
+        };
+
+        const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
+        await asyncStatusClient.subscribe( async () => {
+            return Promise.resolve();
+        });
+
+        expect(setTimeoutSpy.called).to.be.true;
+        // Subscribe should call setTimeout with Jenny's number
+        expect(_.filter(setTimeoutSpy.getCalls(), (object) => object.lastArg === JENNYS_NUMBER)).to.have.length(1);
+        // Ensure setTimeout is not called with the handshake timeout.
+        expect(_.filter(setTimeoutSpy.getCalls(), (object) => object.lastArg === GHOSTBUSTERS_NUMBER)).to.have.length(0);
+
     });
 
     describe('DefaultStreaming options', () => {
