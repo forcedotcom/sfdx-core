@@ -312,6 +312,9 @@ export class StreamingClient<T> {
         }
 
         streamingClient.log(`Streaming client target url: ${streamingClient.targetUrl}`);
+        streamingClient.log(`options.subscribeTimeout (ms): ${options.subscribeTimeout.milliseconds}`);
+        streamingClient.log(`options.handshake (ms): ${options.handshakeTimeout.milliseconds}`);
+
         return streamingClient;
     }
 
@@ -396,7 +399,7 @@ export class StreamingClient<T> {
                     timeoutError.name = StreamingTimeoutError.SUBSCRIBE;
                     this.doTimeout(timeout, timeoutError);
                     subscribeReject(timeoutError);
-                }, this.options.handshakeTimeout.milliseconds);
+                }, this.options.subscribeTimeout.milliseconds);
 
                 // Initialize the subscription.
                 const subscription: CometSubscription = this.cometClient.subscribe(this.options.channel,
@@ -461,7 +464,9 @@ export class StreamingClient<T> {
         // unauthenticated connections are being made to salesforce. Let's close the dispatcher if it exists and
         // has no clientId.
         if (this.cometClient['_dispatcher']) {
+            this.log('Closing the faye dispatcher');
             const dispatcher = this.cometClient['_dispatcher'];
+            this.log(`dispatcher.clientId: ${dispatcher.clientId}`);
             if (!dispatcher.clientId) {
                 dispatcher.close();
             } else {
