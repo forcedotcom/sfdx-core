@@ -41,6 +41,7 @@
  * @property {string} privateKey
  * @property {string} refreshToken
  * @property {string} scratchAdminUsername
+ * @property {string} snapshot
  * @property {string} userId
  * @property {string} username
  * @property {string} usernames
@@ -83,6 +84,7 @@ export interface AuthFields {
     privateKey?: string;
     refreshToken?: string;
     scratchAdminUsername?: string;
+    snapshot?: string;
     userId?: string;
     username?: string;
     usernames?: string[];
