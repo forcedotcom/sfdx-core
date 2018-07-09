@@ -139,11 +139,6 @@ export {
     TIME_UNIT
 } from './lib/util/time';
 
-export {
-    TableOptions,
-    UX
-} from './lib/ux';
-
 // Utility sub-modules
 import * as fs from './lib/util/fs';
 export { fs };
