@@ -10,7 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { expect } from 'chai';
-import { SchemaPrinter } from '../../lib/schemaPrinter';
+import { SchemaPrinter, SchemaPropertyDefaultRenderer, SchemaPropertyRenderer } from '../../lib/schemaPrinter';
 import { LoggerLevel } from '../../lib/logger';
 import { JsonMap } from '@salesforce/ts-json';
 import { testSetup } from '../testSetup';
@@ -372,6 +372,34 @@ describe('SchemaPrinter', () => {
 
                 new SchemaPrinter($$.TEST_LOGGER, schema).getLines().forEach(((line) => expect(line).to.not.contain('undefined', `in ${schemaName}`)));
             });
+        });
+    });
+
+    describe('renderers', () => {
+        it('should be called using default', () => {
+            class MyRender extends SchemaPropertyDefaultRenderer {
+                public renderName(name) { return `${name}Test`; }
+            }
+
+            const schema = { properties: { testProperty: {} } };
+            const printer = new SchemaPrinter($$.TEST_LOGGER, schema, new MyRender());
+            expect(printer.getLine(0)).to.equal('testPropertyTest() - : ');
+        });
+        it('should be called using the defined renderer', () => {
+            class MyRender implements SchemaPropertyRenderer {
+                public renderName(name) { return `${name}Name`; }
+                public renderTitle(name) { return `${name}Title`; }
+                public renderDescription(name) { return `${name}Description`; }
+                public renderType(name) { return `${name}Type`; }
+            }
+
+            const schema = { properties: { testProperty: {
+                title: 'title',
+                description: 'description',
+                type: 'type'
+            } } };
+            const printer = new SchemaPrinter($$.TEST_LOGGER, schema, new MyRender());
+            expect(printer.getLine(0)).to.equal('testPropertyName(typeType) - titleTitle: descriptionDescription');
         });
     });
 });

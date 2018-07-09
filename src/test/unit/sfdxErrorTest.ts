@@ -8,7 +8,6 @@
 import { expect } from 'chai';
 
 import { SfdxErrorConfig, SfdxError } from '../../lib/sfdxError';
-import { color } from '../../lib/ux';
 import { Global, Mode } from '../../lib/global';
 import { Messages } from '../../lib/messages';
 import { testSetup } from '../testSetup';
@@ -130,80 +129,6 @@ describe('SfdxError', () => {
             const sfdxError = new SfdxError(message, name );
 
             expect(sfdxError.toObject()).to.deep.equal({ name, message, exitCode: 1, actions: undefined });
-        });
-    });
-
-    describe('format', () => {
-        beforeEach(() => {
-            color.enabled = false;
-        });
-
-        afterEach(() => {
-            color.enabled = true;
-        });
-
-        it('should return expected base formatting', () => {
-            // Set the mode to TEST
-            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(Mode.TEST);
-
-            const message = 'it\s a trap!';
-            const name = 'BadError';
-
-            const sfdxError = new SfdxError(message, name);
-            sfdxError.stack = 'stack for BadError';
-
-            const expectedFormat = ['ERROR: ', message];
-
-            expect(sfdxError.format()).to.deep.equal(expectedFormat);
-        });
-
-        it('should return expected formatting with a commandName set', () => {
-            // Set the mode to TEST
-            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(Mode.TEST);
-
-            const message = 'it\s a trap!';
-            const name = 'BadError';
-            const commandName = 'TestCommand1';
-
-            const sfdxError = new SfdxError(message, name);
-            sfdxError.stack = 'stack for BadError';
-            sfdxError.setCommandName(commandName);
-
-            const expectedFormat = [`ERROR running ${commandName}: `, message];
-
-            expect(sfdxError.format()).to.deep.equal(expectedFormat);
-        });
-
-        it('should return expected formatting with actions', () => {
-            // Set the mode to TEST
-            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(Mode.TEST);
-
-            const message = 'it\s a trap!';
-            const name = 'BadError';
-            const actions = ['take action 1', 'take action 2'];
-
-            const sfdxError = new SfdxError(message, name, actions);
-            sfdxError.stack = 'stack for BadError';
-
-            const expectedFormat = ['ERROR: ', message, '\n\nTry this:', `\n${actions[0]}`, `\n${actions[1]}`];
-
-            expect(sfdxError.format()).to.deep.equal(expectedFormat);
-        });
-
-        it('should return expected formatting with stack trace (in dev mode)', () => {
-            // Set the mode to DEVELOPMENT
-            $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns(Mode.DEVELOPMENT);
-
-            const message = 'it\s a trap!';
-            const name = 'BadError';
-
-            const sfdxError = new SfdxError(message, name);
-            sfdxError.stack = 'stack for BadError';
-
-            const stackMsg = `\n*** Internal Diagnostic ***\n\n${sfdxError.stack}\n******\n`;
-            const expectedFormat = ['ERROR: ', message, stackMsg];
-
-            expect(sfdxError.format()).to.deep.equal(expectedFormat);
         });
     });
 });

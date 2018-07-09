@@ -4,14 +4,56 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
+/**
+ * Render a schema property
+ * @callback SchemaPropertyRendererFunction
+ * @param {string} value The property value.
+ * @returns The new rendered value.
+ */
+/**
+ * Change how different properties on the schema are rendered.
+ * @typedef SchemaPropertyRenderer
+ * @property {SchemaPropertyRendererFunction} renderName Render the property name.
+ * @property {SchemaPropertyRendererFunction} renderTitle Render the property title.
+ * @property {SchemaPropertyRendererFunction} renderDescription Render the property description.
+ * @property {SchemaPropertyRendererFunction} renderType Render the property type.
+ */
 
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
-import { color } from './ux';
 import { JsonMap, JsonArray, isJsonMap, asJsonMap, asString, asNumber, asJsonArray } from '@salesforce/ts-json';
+
+export interface SchemaPropertyRenderer {
+    renderName(name: string): string;
+    renderTitle(title: string): string;
+    renderDescription(description: string): string;
+    renderType(propertyType: string): string;
+}
+
+/**
+ * A property renderer that just returns what is passed in.
+ * Used as the default renderer.
+ *
+ * @extends SchemaPropertyRenderer
+ */
+export class SchemaPropertyDefaultRenderer implements SchemaPropertyRenderer {
+    public renderName(name) { return name; }
+    public renderTitle(title) { return title; }
+    public renderDescription(description) { return description; }
+    public renderType(propertyType) { return propertyType; }
+}
 
 /**
  * Prints a JSON schema in a human-friendly format.
+ *
+ * @example
+ * import chalk from 'chalk';
+ * class MyPropertyRenderer extends SchemaPropertyDefaultRenderer {
+ *   renderName(name) { return chalk.bold.blue(name); }
+ * }
+ *
+ * const printer = new SchemaPrinter(logger, schema, new MyPropertyRenderer());
+ * printer.getLines().forEach(console.log);
  */
 export class SchemaPrinter {
     private logger: Logger;
@@ -22,8 +64,9 @@ export class SchemaPrinter {
      *
      * @param {Logger} logger The logger to use when emitting the printed schema.
      * @param {JsonMap} schema The schema to print.
+     * @param {SchemaPropertyRenderer} [propertyRenderer = new {@link SchemaPropertyDefaultRenderer}()] The property renderer.
      */
-    public constructor(logger: Logger, private schema: JsonMap) {
+    public constructor(logger: Logger, private schema: JsonMap, private propertyRenderer: SchemaPropertyRenderer = new SchemaPropertyDefaultRenderer()) {
         this.logger = logger.child('SchemaPrinter');
 
         if (!this.schema.properties && !this.schema.items) {
@@ -96,7 +139,7 @@ export class SchemaPrinter {
         }
 
         const add = this.addFn(level);
-        const property = new SchemaProperty(this.logger, this.schema, name, rawProperty);
+        const property = new SchemaProperty(this.logger, this.schema, name, rawProperty, this.propertyRenderer);
 
         add(property.renderHeader());
 
@@ -132,7 +175,8 @@ class SchemaProperty {
         private readonly logger: Logger,
         private readonly schema: JsonMap,
         private readonly name: string,
-        private rawProperty: JsonMap
+        private rawProperty: JsonMap,
+        private propertyRenderer: SchemaPropertyRenderer
     ) {
         this.name = name;
 
@@ -157,19 +201,19 @@ class SchemaProperty {
     }
 
     public renderName(): string {
-        return color.bold(this.name);
+        return this.propertyRenderer.renderName(this.name);
     }
 
     public renderTitle(): string {
-        return this.title ? color.underline(this.title) : '';
+        return this.propertyRenderer.renderTitle(this.title || '');
     }
 
     public renderDescription(): string {
-        return this.description ? color.dim(this.description) : '';
+        return this.propertyRenderer.renderDescription(this.description || '');
     }
 
     public renderType(): string {
-        return this.type ? color.dim(this.type) : '';
+        return this.propertyRenderer.renderType(this.type || '');
     }
 
     public renderHeader(): string {
@@ -181,7 +225,7 @@ class SchemaProperty {
             return '';
         }
         const minItems = this.minItems ? ` - min ${this.minItems}` : '';
-        const prop = new SchemaProperty(this.logger, this.schema, 'items', this.items);
+        const prop = new SchemaProperty(this.logger, this.schema, 'items', this.items, this.propertyRenderer);
         return `items(${prop.renderType()}${minItems}) - ${prop.renderTitle()}: ${prop.renderDescription()}`;
     }
 
