@@ -6,9 +6,9 @@
  */
 /**
  * Render a schema property
- * @callback SchemaPropertyRendererFunction
+ * @function SchemaPropertyRendererFunction
  * @param {string} value The property value.
- * @returns The new rendered value.
+ * @returns {string} The new rendered value.
  */
 /**
  * Change how different properties on the schema are rendered.
@@ -66,7 +66,11 @@ export class SchemaPrinter {
      * @param {JsonMap} schema The schema to print.
      * @param {SchemaPropertyRenderer} [propertyRenderer = new {@link SchemaPropertyDefaultRenderer}()] The property renderer.
      */
-    public constructor(logger: Logger, private schema: JsonMap, private propertyRenderer: SchemaPropertyRenderer = new SchemaPropertyDefaultRenderer()) {
+    public constructor(
+        logger: Logger,
+        private schema: JsonMap,
+        private propertyRenderer: SchemaPropertyRenderer = new SchemaPropertyDefaultRenderer()
+    ) {
         this.logger = logger.child('SchemaPrinter');
 
         if (!this.schema.properties && !this.schema.items) {
