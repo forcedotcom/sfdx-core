@@ -1,14 +1,10 @@
 {
     "extends": "./node_modules/@salesforce/dev-config/tsconfig",
     "compilerOptions": {
-        "sourceRoot": "src",
-        "outDir": "dist",
-        "typeRoots": [
-            "./node_modules/@types"
-        ],
-        "baseUrl": "./"
+        "sourceRoot": "./src",
+        "outDir": "./lib"
     },
     "include": [
-        "src/**/*.ts"
+        "./src/**/*.ts"
     ]
 }
