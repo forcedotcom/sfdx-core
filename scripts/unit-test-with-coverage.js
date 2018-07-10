@@ -10,13 +10,11 @@ const istanbulExecutable = path.join(
   __dirname,
   '..',
   'node_modules',
-  'istanbul',
-  'lib',
-  'cli.js'
+  '.bin',
+  'nyc'
 );
 
-shell.exec(`${istanbulExecutable} cover --report cobertura node_modules/mocha/bin/_mocha -- -t 2000 --recursive dist/test/unit -R xunit-file`);
-shell.exec(`${istanbulExecutable} report --report html json-summary`);
+shell.exec(`${istanbulExecutable} mocha -R xunit-file "test/unit/**/*.ts"`);
 
 let prefix = process.platform;
 

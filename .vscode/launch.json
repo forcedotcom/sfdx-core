@@ -17,7 +17,7 @@
             "request": "launch",
             "name": "Launch exports",
             "preLaunchTask": "compile",
-            "program": "${workspaceRoot}/dist/exports.js",
+            "program": "${workspaceRoot}/lib/exports.js",
             "sourceMaps": true,
             "outFiles": [
                 "${workspaceRoot}/out/**/*.js"

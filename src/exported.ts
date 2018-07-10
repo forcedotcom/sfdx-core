@@ -5,27 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Messages } from './lib/messages';
+import { Messages } from './messages';
 Messages.importMessagesDirectory(__dirname);
 
 export {
     Aliases,
     AliasGroup
-} from './lib/config/aliases';
+} from './config/aliases';
 
 export {
     AuthInfoConfig
-} from './lib/config/authInfoConfig';
+} from './config/authInfoConfig';
 
 export {
     ConfigFile,
     ConfigOptions
-} from './lib/config/configFile';
+} from './config/configFile';
 
 export {
     ConfigGroup,
     ConfigGroupOptions
-} from './lib/config/configGroup';
+} from './config/configGroup';
 
 export {
     BaseConfigStore,
@@ -33,40 +33,40 @@ export {
     ConfigEntry,
     ConfigStore,
     ConfigValue
-} from './lib/config/configStore';
+} from './config/configStore';
 
 export {
     OrgUsersConfig
-} from './lib/config/orgUsersConfig';
+} from './config/orgUsersConfig';
 
 export {
     ConfigPropertyMeta,
     ConfigPropertyMetaInput,
     ORG_DEFAULT,
     Config
-} from './lib/config/config';
+} from './config/config';
 
 export {
     ConfigInfo,
     LOCATIONS,
     ConfigAggregator
-} from './lib/config/configAggregator';
+} from './config/configAggregator';
 
 export {
     AuthFields,
     AuthInfo,
     SFDC_URLS
-} from './lib/authInfo';
+} from './authInfo';
 
 export {
     Connection,
     SFDX_HTTP_HEADERS
-} from './lib/connection';
+} from './connection';
 
 export {
     Mode,
     Global
-} from './lib/global';
+} from './global';
 
 export {
     Fields,
@@ -76,34 +76,34 @@ export {
     LoggerOptions,
     LoggerStream,
     Logger
-} from './lib/logger';
+} from './logger';
 
 export {
     Messages
-} from './lib/messages';
+} from './messages';
 
 export {
     Org,
     OrgFields
-} from './lib/org';
+} from './org';
 
 export {
     SfdxProject,
     SfdxProjectJson
-} from './lib/sfdxProject';
+} from './sfdxProject';
 
 export {
     SchemaPrinter
-} from './lib/schemaPrinter';
+} from './schemaPrinter';
 
 export {
     SchemaValidator
-} from './lib/schemaValidator';
+} from './schemaValidator';
 
 export {
     SfdxError,
     SfdxErrorConfig
-} from './lib/sfdxError';
+} from './sfdxError';
 
 export {
     AnyDictionary,
@@ -116,13 +116,13 @@ export {
 
 export {
     StatusResult
-} from './lib/status/client';
+} from './status/client';
 
 export {
     PollingOptions,
     DefaultPollingOptions,
     PollingClient
-} from './lib/status/pollingClient';
+} from './status/pollingClient';
 
 export {
     CometClient,
@@ -132,15 +132,15 @@ export {
     StreamingConnectionState,
     StreamingTimeoutError,
     StreamingOptions
-} from './lib/status/streamingClient';
+} from './status/streamingClient';
 
 export {
     Time,
     TIME_UNIT
-} from './lib/util/time';
+} from './util/time';
 
 // Utility sub-modules
-import * as fs from './lib/util/fs';
+import * as fs from './util/fs';
 export { fs };
-import * as sfdc from './lib/util/sfdc';
+import * as sfdc from './util/sfdc';
 export { sfdc };
