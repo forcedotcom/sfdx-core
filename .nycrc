@@ -1,0 +1,19 @@
+{
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "include": [
+      "**/src/**/*.ts"
+    ],
+    "exclude": [
+      "**/*.d.ts"
+    ],
+    "reporter": [
+      "cobertura",
+      "html",
+      "json-summary",
+      "json"
+    ],
+    "all": true
+}

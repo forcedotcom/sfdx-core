@@ -1,5 +1,5 @@
 node_modules
-dist
+lib
 .idea/*
 .sfdx
 .vscode/settings.json
@@ -8,6 +8,7 @@ yarn.lock
 yarn-error.log
 package-lock.json
 docs
+.nyc_output
 *coverage
 *xunit.xml
 *checkstyle.xml
