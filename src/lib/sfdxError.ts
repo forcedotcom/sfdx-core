@@ -8,7 +8,6 @@
 import * as _ from 'lodash';
 
 import { Messages } from './messages';
-import { color } from './ux';
 import { Global, Mode } from './global';
 import { NamedError } from '@salesforce/ts-json';
 
@@ -270,32 +269,6 @@ export class SfdxError extends NamedError {
     public setData(data: any): SfdxError { // tslint:disable-line:no-any
         this.data = data;
         return this;
-    }
-
-    /**
-     * Format errors and actions for human consumption. Adds 'ERROR running <command name>',
-     * and outputs all errors in red.  When there are actions, we add 'Try this:' in blue
-     * followed by each action in red on its own line.
-     * @returns {string[]} Returns decorated messages.
-     */
-    public format(): string[] {
-        const colorizedArgs: string[] = [];
-        const runningWith =  this.commandName ? ` running ${this.commandName}` : '';
-        colorizedArgs.push(color.bold(`ERROR${runningWith}: `));
-        colorizedArgs.push(color.red(this.message));
-
-        // Format any actions.
-        if (_.get(this, 'actions.length')) {
-            colorizedArgs.push(`\n\n${color.blue(color.bold('Try this:'))}`);
-            this.actions.forEach((action) => {
-                colorizedArgs.push(`\n${color.red(action)}`);
-            });
-        }
-        if (this.stack && Global.getEnvironmentMode() === Mode.DEVELOPMENT) {
-            colorizedArgs.push(color.red(`\n*** Internal Diagnostic ***\n\n${this.stack}\n******\n`));
-        }
-
-        return colorizedArgs;
     }
 
     /**
