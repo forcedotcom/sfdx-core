@@ -356,6 +356,18 @@ export class AuthInfo {
         return oauth2.getAuthorizationUrl(params);
     }
 
+    /**
+     * Forces the auth file to be re-read from disk for a given user.
+     * @param {string} username The username for the auth info to re-read.
+     * @returns {boolean} True if a value was removed.
+     */
+    public static updateInfo(username: string): boolean {
+        if (username) {
+            return AuthInfo.cache.delete(username);
+        }
+        return false;
+    }
+
     // The regular expression that filters files stored in $HOME/.sfdx
     private static authFilenameFilterRegEx: RegExp = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
 
