@@ -271,6 +271,28 @@ describe('AuthInfo', () => {
             decryptedRefreshToken = crypto.decrypt(authInfo.getFields().refreshToken);
         });
 
+        describe('updateInfo', () => {
+            it('cache hit and mis', async () => {
+                const postInitLookupCount: number = testMetadata.authInfoLookupCount;
+                const username = authInfo.getFields().username;
+
+                // username is cached at this point from before each
+                await AuthInfo.create(username);
+
+                // because it was cached there should be no change in the lookup count.
+                expect(testMetadata.authInfoLookupCount).to.equal(postInitLookupCount);
+
+                // clearCache will remove the username entry from the cache.
+                AuthInfo.clearCache(username);
+
+                // The cached name will cause a cache mis
+                await AuthInfo.create(username);
+
+                // And thus cause a re-read.
+                expect(testMetadata.authInfoLookupCount).to.equal(postInitLookupCount + 1);
+            });
+        });
+
         // Walk an object deeply looking for the attribute name of clientSecret or values that contain the client secret
         // or decrypted refresh token.
         const walkAndSearchForSecrets = function(obj: object) {
