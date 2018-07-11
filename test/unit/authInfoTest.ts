@@ -283,7 +283,7 @@ describe('AuthInfo', () => {
                 expect(testMetadata.authInfoLookupCount).to.equal(postInitLookupCount);
 
                 // updateInfo will remove the username entry from the cache.
-                AuthInfo.updateInfo(username);
+                AuthInfo.clearCache(username);
 
                 // The cached name will cause a cache mis
                 await AuthInfo.create(username);

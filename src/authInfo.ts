@@ -361,7 +361,7 @@ export class AuthInfo {
      * @param {string} username The username for the auth info to re-read.
      * @returns {boolean} True if a value was removed.
      */
-    public static updateInfo(username: string): boolean {
+    public static clearCache(username: string): boolean {
         if (username) {
             return AuthInfo.cache.delete(username);
         }
