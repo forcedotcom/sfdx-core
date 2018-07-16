@@ -298,9 +298,10 @@ export class StreamingClient<T> {
      */
     public static async init<U>(options: StreamingOptions<U>): Promise<StreamingClient<U>> {
 
-        const streamingClient: StreamingClient<U> = new StreamingClient<U>(options);
+        const streamingClient: StreamingClient<U> =
+            new StreamingClient<U>(options, await Logger.child('StreamingClient'));
+
         await streamingClient.options.org.refreshAuth();
-        streamingClient.logger = await Logger.child('StreamingClient');
 
         const accessToken = options.org.getConnection().getConnectionOptions().accessToken;
 
@@ -326,10 +327,13 @@ export class StreamingClient<T> {
     /**
      * Constructs a streaming client.
      * @param {StreamingOptions<T>} options Config options for the StreamingClient
+     * @param {Logger} logger The child logger to use for streaming.
      * @see {@link StreamingOptions}
+     * @private
      */
-    private constructor(options: StreamingOptions<T>) {
+    private constructor(options: StreamingOptions<T>, logger: Logger) {
 
+        this.logger = logger;
         this.options = options;
 
         const instanceUrl: string = asString(options.org.getConnection().getAuthInfoFields().instanceUrl);
@@ -453,7 +457,7 @@ export class StreamingClient<T> {
     private doTimeout(timeout: NodeJS.Timer, error: SfdxError) {
         this.disconnect();
         clearTimeout(timeout);
-        this.log(error);
+        this.log(JSON.stringify(error));
         return error;
     }
 
@@ -475,8 +479,15 @@ export class StreamingClient<T> {
         }
     }
 
-    private log(message) {
-        this.logger.debug(message);
+    /**
+     * Simple inner log wrapper
+     * @param {string} message The message to log
+     * @private
+     */
+    private log(message: string) {
+        if (this.logger) {
+            this.logger.debug(message);
+        }
     }
 
 }
