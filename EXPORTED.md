@@ -19,6 +19,10 @@ Create an instance of an API connection to a Salesforce org.
 
 Create a representation of an org based on an already authenticated alias, username, or default. The representation has a [connection]{@link Connection} and other useful methods for interacting with an org and its users.
 
+## [StreamingClient]{@link StreamingClient}
+
+Create an instance of a streaming API connection to a Salesforce org for a particular streaming channel.
+
 ## {@link ConfigFile}
 
 Represents a config file at either a local or global path. The config file extends the {@link ConfigStore} which provides map-like functions to interact with config values. The following classes are config files.
@@ -36,10 +40,6 @@ Aggregates local, global, and environment config values using {@link Config} and
 ## {@link SfdxProject}
 
 Represents a Salesforce DX project, defined by the file `sfdx-project.json`.
-
-## {@link UX}
-
-Helper methods for user experiences related to interacting with the terminal.
 
 ## {@link Logger}
 
