@@ -154,7 +154,7 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
         this.org = org;
         this.apiVersion = apiVersion;
 
-        if (_.startsWith(apiVersion, '/system')) {
+        if (_.startsWith(channel, '/system')) {
             this.apiVersion = '36.0';
         }
 
@@ -257,8 +257,8 @@ export enum StreamingTimeoutError {
  *          throw new SfdxError('Not found.', 'NotFound');
  *      }
  *
- *      if (message.payload.status !== 'Active')) {
- *          return  { completed: false }
+ *      if (message.payload.status !== 'Active') {
+ *          return  { completed: false };
  *      }
  *
  *      return {
