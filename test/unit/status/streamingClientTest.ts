@@ -41,6 +41,14 @@ describe('streaming client tests', () => {
         $$.SANDBOX.stub(Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     });
 
+    it ('should set options apiVersion on system topics', async () => {
+        const org: Org = await Org.create(_username);
+        const options: StreamingOptions<string> =
+            new DefaultStreamingOptions(org, MOCK_API_VERSION,
+            '/system/Logging', () => ({ completed: true }));
+        expect(options.apiVersion).to.equal('36.0');
+    });
+
     it ('should complete successfully', async () => {
 
         const TEST_STRING: string = $$.uniqid();
