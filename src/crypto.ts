@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { join as pathJoin } from 'path';
 import * as os from 'os';
 import { isNil } from 'lodash';
 import * as crypto from 'crypto';
@@ -95,14 +96,20 @@ export class Crypto {
 
         logger.debug(`retryStatus: ${retryStatus}`);
 
+        const messagesPath = pathJoin(__dirname, '..', 'messages');
+        logger.debug(`messagesPath: ${messagesPath}`);
+        Messages.importMessagesDirectory(messagesPath);
+        logger.debug('Finished loading messages');
+
         this.messages = Messages.loadMessages('@salesforce/core', 'encryption');
+
         this.noResetOnClose = noResetOnClose;
 
         try {
             this._key.consume(Buffer.from((await keychainPromises.getPassword(await this.getKeyChain(platform), KEY_NAME, ACCOUNT)).password, 'utf8'));
             return this;
         } catch (err) {
-            // No password found
+            // No password founds
             if (err.name  === 'PasswordNotFoundError') {
                 // If we already tried to create a new key then bail.
                 if (retryStatus === 'KEY_SET') {
