@@ -4,43 +4,55 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
-/**
- * Render a schema property
- * @function SchemaPropertyRendererFunction
- * @param {string} value The property value.
- * @returns {string} The new rendered value.
- */
-/**
- * Change how different properties on the schema are rendered.
- * @typedef SchemaPropertyRenderer
- * @property {SchemaPropertyRendererFunction} renderName Render the property name.
- * @property {SchemaPropertyRendererFunction} renderTitle Render the property title.
- * @property {SchemaPropertyRendererFunction} renderDescription Render the property description.
- * @property {SchemaPropertyRendererFunction} renderType Render the property type.
- */
 
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { JsonMap, JsonArray, isJsonMap, asJsonMap, asString, asNumber, asJsonArray } from '@salesforce/ts-json';
 
-export interface SchemaPropertyRenderer {
-    renderName(name: string): string;
-    renderTitle(title: string): string;
-    renderDescription(description: string): string;
-    renderType(propertyType: string): string;
-}
-
 /**
- * A property renderer that just returns what is passed in.
- * Used as the default renderer.
- *
- * @extends SchemaPropertyRenderer
+ * Renders schema properties.  By default, this is simply an identity transform.  Subclasses may provide more
+ * interesting decorations of each values, such as ANSI coloring.
  */
-export class SchemaPropertyDefaultRenderer implements SchemaPropertyRenderer {
-    public renderName(name) { return name; }
-    public renderTitle(title) { return title; }
-    public renderDescription(description) { return description; }
-    public renderType(propertyType) { return propertyType; }
+export class SchemaPropertyRenderer {
+    /**
+     * Renders a name.
+     *
+     * @param {string} name The name value to render.
+     * @returns {string}
+     */
+    public renderName(name: string): string {
+        return name;
+    }
+
+    /**
+     * Renders a title.
+     *
+     * @param {string} name The title value to render.
+     * @returns {string}
+     */
+    public renderTitle(title: string): string {
+        return title;
+    }
+
+    /**
+     * Renders a description.
+     *
+     * @param {string} description The description value to render.
+     * @returns {string}
+     */
+    public renderDescription(description: string): string {
+        return description;
+    }
+
+    /**
+     * Renders a type.
+     *
+     * @param {string} type The type value to render.
+     * @returns {string}
+     */
+    public renderType(propertyType: string): string {
+        return propertyType;
+    }
 }
 
 /**
@@ -48,7 +60,7 @@ export class SchemaPropertyDefaultRenderer implements SchemaPropertyRenderer {
  *
  * @example
  * import chalk from 'chalk';
- * class MyPropertyRenderer extends SchemaPropertyDefaultRenderer {
+ * class MyPropertyRenderer extends SchemaPropertyRenderer {
  *   renderName(name) { return chalk.bold.blue(name); }
  * }
  *
@@ -64,12 +76,12 @@ export class SchemaPrinter {
      *
      * @param {Logger} logger The logger to use when emitting the printed schema.
      * @param {JsonMap} schema The schema to print.
-     * @param {SchemaPropertyRenderer} [propertyRenderer = new {@link SchemaPropertyDefaultRenderer}()] The property renderer.
+     * @param {SchemaPropertyRenderer} [propertyRenderer = new {@link SchemaPropertyRenderer}()] The property renderer.
      */
     public constructor(
         logger: Logger,
         private schema: JsonMap,
-        private propertyRenderer: SchemaPropertyRenderer = new SchemaPropertyDefaultRenderer()
+        private propertyRenderer: SchemaPropertyRenderer = new SchemaPropertyRenderer()
     ) {
         this.logger = logger.child('SchemaPrinter');
 
