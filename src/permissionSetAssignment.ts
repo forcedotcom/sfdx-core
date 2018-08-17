@@ -6,17 +6,23 @@ import { ErrorResult, QueryResult, RecordResult, SuccessResult } from 'jsforce';
 import { SfdxError } from './sfdxError';
 import { Messages } from './messages';
 
+/**
+ * Map of fields name for a permission set assignment
+ */
 export const FIELDS = {
     assigneeId: 'AssigneeId',
     permissionSetId: 'PermissionSetId'
 };
 
+/**
+ * Permission set assignment fields
+ */
 export type PermissionSetAssignmentFields = {
     -readonly [K in keyof typeof FIELDS]: string
 };
 
 /**
- * A class for assigning a Salesforce User to one or more Permission Sets.
+ * A class for assigning a Salesforce User to one or more permission sets.
  */
 export class PermissionSetAssignment {
 
@@ -38,7 +44,7 @@ export class PermissionSetAssignment {
 
     /**
      * constructor
-     * @param org {Org} The org containing the User and Permission Set.
+     * @param org {Org} The org containing the user and permission set.
      * @param logger {Logger} A Logger instance.
      */
     private constructor(org: Org, logger: Logger) {
@@ -47,8 +53,8 @@ export class PermissionSetAssignment {
     }
 
     /**
-     * Assigns a user to one or more Permission Sets.
-     * @param id {string} A User id
+     * Assigns a user to one or more permission sets.
+     * @param id {string} A user id
      * @param permSetString {string[]} An array of permission set names.
      */
     public async create(id: string, permSetString: string): Promise<PermissionSetAssignmentFields> {
@@ -118,7 +124,7 @@ export class PermissionSetAssignment {
     }
 
     /**
-     * Parses a Permission Set name based on if it has a namespace.
+     * Parses a permission set name based on if it has a namespace or not.
      * @param permSetString {string} The permission set string.
      */
     private parsePermissionSetString(permSetString: string): { nsPrefix: string, permSetName: string } {

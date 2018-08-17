@@ -97,9 +97,8 @@ export class Crypto {
         logger.debug(`retryStatus: ${retryStatus}`);
 
         const messagesPath = pathJoin(__dirname, '..', 'messages');
-        logger.debug(`messagesPath: ${messagesPath}`);
         Messages.importMessagesDirectory(messagesPath);
-        logger.debug('Finished loading messages');
+        logger.debug(`messagesPath: ${messagesPath}`);
 
         this.messages = Messages.loadMessages('@salesforce/core', 'encryption');
 
@@ -109,7 +108,7 @@ export class Crypto {
             this._key.consume(Buffer.from((await keychainPromises.getPassword(await this.getKeyChain(platform), KEY_NAME, ACCOUNT)).password, 'utf8'));
             return this;
         } catch (err) {
-            // No password founds
+            // No password found
             if (err.name  === 'PasswordNotFoundError') {
                 // If we already tried to create a new key then bail.
                 if (retryStatus === 'KEY_SET') {

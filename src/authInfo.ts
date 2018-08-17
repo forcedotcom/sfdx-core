@@ -252,7 +252,7 @@ function base64UrlEscape(base64Encoded: string): string {
  * // Using the AuthInfo
  * const connection = await Connection.create(authInfo);
  *
- * @see https://developer.salesforce.com/docs/atla.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm
+ * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
 export class AuthInfo {
