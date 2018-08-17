@@ -6,7 +6,6 @@
  */
 
 import { EOL } from 'os';
-import { format } from 'util';
 import { SecureBuffer } from './secureBuffer';
 import { Connection } from './connection';
 import { Logger } from './logger';
@@ -398,7 +397,7 @@ export class User {
         this.logger.debug(`user create response.statusCode: ${response.statusCode}`);
         if (!(response.statusCode === 201 || response.statusCode === 200)) {
             const messages: Messages = Messages.loadMessages('@salesforce/core', 'user');
-            let message = format(messages.getMessage('invalidHttpResponseCreatingUser'), response.statusCode);
+            let message = messages.getMessage('invalidHttpResponseCreatingUser', [response.statusCode]);
 
             if (responseBody) {
                 const errors: string[] = _.get(responseBody, 'Errors');
