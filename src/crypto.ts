@@ -23,7 +23,7 @@ const _algo = 'aes-256-gcm';
 const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
 
-Messages.importMessagesDirectory(pathJoin(__dirname, '..', 'messages'));
+Messages.importMessagesDirectory(pathJoin(__dirname));
 
 interface CredType {
     username: string;
