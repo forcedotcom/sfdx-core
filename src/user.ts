@@ -164,7 +164,7 @@ export class User {
     /**
      * Initialize a new instance of a user.
      * @param org {Org} The org associated with the user.
-     * @returns {Promise<User>} A user instance
+     * @returns {User} A user instance
      */
     public static async init(org: Org): Promise<User> {
         if (!org) {
@@ -179,7 +179,7 @@ export class User {
 
     /**
      * Generate default password for a user.
-     * @returns {SecureBuffer<void>>} An encrypted buffer containing a utf8 encoded password.
+     * @returns {SecureBuffer} An encrypted buffer containing a utf8 encoded password.
      */
     public static generatePasswordUtf8(): SecureBuffer<void> {
         // Fill an array with random characters from random requirement sets
