@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+import * as _ from 'lodash';
 import { isString, maxBy } from 'lodash';
 import { Logger } from './logger';
 import { AuthFields, AuthInfo } from './authInfo';
@@ -17,6 +19,7 @@ import { QueryResult } from 'jsforce';
 import { ExecuteOptions } from 'jsforce';
 import { SfdxError } from './sfdxError';
 import { validateApiVersion } from './util/sfdc';
+import { JsonMap } from '@salesforce/ts-json';
 
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
@@ -97,6 +100,8 @@ export class Connection extends JSForceConnection {
     // the jsForce connection.tooling.logger and connection.logger.
     private logger: Logger;
     private _logger: Logger;
+    private _transport: { httpRequest: (info: RequestInfo) => JsonMap };
+    private _normalizeUrl: (url: string) => string;
 
     private authInfo: AuthInfo;
 
@@ -128,6 +133,29 @@ export class Connection extends JSForceConnection {
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, _request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
         return super.request(_request, options);
+    }
+
+    /**
+     * Send REST API request with given HTTP request info, with connected session information
+     * and SFDX headers. This method returns a raw http response which includes a response body and statusCode.
+     *
+     * @override
+     *
+     * @param {RequestInfo | string} request HTTP request object or URL to GET request.
+     * @returns {Promise<JsonMap>} The request Promise.
+     */
+    public async requestRaw(request: RequestInfo): Promise<JsonMap> {
+
+        const _headers = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` }  : {};
+
+        _.merge(_headers, SFDX_HTTP_HEADERS, request.headers);
+
+        return this._transport.httpRequest({
+            method: request.method,
+            url: request.url,
+            headers: _headers,
+            body: request.body
+        });
     }
 
     /**
@@ -207,6 +235,14 @@ export class Connection extends JSForceConnection {
      */
     public isUsingAccessToken(): boolean {
         return this.authInfo.isUsingAccessToken();
+    }
+
+    /**
+     * Normalize a Salesforce url to include a instance information.
+     * @param url {string} partial url.
+     */
+    public normalizeUrl(url: string): string {
+        return this._normalizeUrl(url);
     }
 
     /**

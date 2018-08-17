@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { join as pathJoin } from 'path';
 import * as os from 'os';
 import { isNil } from 'lodash';
 import * as crypto from 'crypto';
@@ -21,6 +22,8 @@ const _algo = 'aes-256-gcm';
 
 const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
+
+Messages.importMessagesDirectory(pathJoin(__dirname));
 
 interface CredType {
     username: string;
@@ -96,6 +99,7 @@ export class Crypto {
         logger.debug(`retryStatus: ${retryStatus}`);
 
         this.messages = Messages.loadMessages('@salesforce/core', 'encryption');
+
         this.noResetOnClose = noResetOnClose;
 
         try {
