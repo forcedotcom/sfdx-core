@@ -252,7 +252,7 @@ function base64UrlEscape(base64Encoded: string): string {
  * // Using the AuthInfo
  * const connection = await Connection.create(authInfo);
  *
- * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm
+ * @see https://developer.salesforce.com/docs/atla.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
 export class AuthInfo {
@@ -280,7 +280,6 @@ export class AuthInfo {
 
         // If the username is an access token, use that for auth and don't persist
         const accessTokenMatch = _.isString(username) && username.match(/^(00D\w{12,15})![\.\w]*$/);
-        console.log(`accessTokenMatch: ${accessTokenMatch}`);
         if (accessTokenMatch) {
             // Need to setup the logger and authInfoCrypto since we don't call init()
             authInfo.logger = await Logger.child('AuthInfo');
@@ -403,8 +402,6 @@ export class AuthInfo {
     public async init(options?: OAuth2Options): Promise<AuthInfo> {
         this.logger = await Logger.child('AuthInfo');
         authInfoCrypto = await AuthInfoCrypto.create();
-
-        console.log(`options: ${options}`);
 
         // If options were passed, use those before checking cache and reading an auth file.
         let authConfig: OAuth2Options;

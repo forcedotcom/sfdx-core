@@ -11,7 +11,7 @@ import { AnyJson } from '@salesforce/ts-json';
 import { Org, OrgFields } from '../../src/org';
 import { OAuth2 } from 'jsforce';
 import { expect, assert } from 'chai';
-import { testSetup } from '../../src/testSetup';
+import { testSetup, MockTestOrgData } from '../../src/testSetup';
 import { ConfigFile } from '../../src/config/configFile';
 import { Crypto } from '../../src/crypto';
 import { Config } from '../../src/config/config';
@@ -29,80 +29,6 @@ import * as fs from '../../src/util/fs';
 const $$ = testSetup();
 
 // Setup the test environment.
-
-class MockTestOrgData {
-    public testId: string;
-    public alias: string;
-    public username: string;
-    public devHubUsername: string;
-    public orgId: string;
-    public loginUrl: string;
-    public instanceUrl: string;
-    public clientId: string;
-    public clientSecret: string;
-    public authcode: string;
-    public accessToken: string;
-    public refreshToken: string;
-
-    constructor() {
-        this.testId = $$.uniqid();
-        this.orgId = `${this.testId}`;
-        this.username = `admin_${this.testId}@gb.org`;
-        this.loginUrl = `http://login.${this.testId}.salesforce.com`;
-        this.instanceUrl = `http://instance.${this.testId}.salesforce.com`;
-        this.clientId = `${this.testId}/client_id`;
-        this.clientSecret = `${this.testId}/client_secret`;
-        this.authcode = `${this.testId}/authcode`;
-        this.accessToken = `${this.testId}/accessToken`;
-        this.refreshToken =  '${this.testId}/refreshToken';
-    }
-
-    public createDevHubUsername(username: string): void {
-        this.devHubUsername = username;
-    }
-
-    public makeDevHub(): void {
-        _set(this, 'isDevHub', true);
-    }
-
-    public createUser(user: string): MockTestOrgData {
-        const userMock = new MockTestOrgData();
-        userMock.username = user;
-        userMock.alias = this.alias;
-        userMock.devHubUsername = this.devHubUsername;
-        userMock.orgId = this.orgId;
-        userMock.loginUrl = this.loginUrl;
-        userMock.instanceUrl = this.instanceUrl;
-        userMock.clientId = this.clientId;
-        userMock.clientSecret = this.clientSecret;
-        return userMock;
-    }
-
-    public async getConfig(): Promise<ConfigContents> {
-        const crypto = await Crypto.create();
-        const config = new Map<string, ConfigValue>();
-        config.set('orgId', this.orgId);
-        config.set('accessToken', crypto.encrypt(this.accessToken));
-        config.set('refreshToken', crypto.encrypt(this.refreshToken));
-        config.set('instanceUrl', this.instanceUrl);
-        config.set('loginUrl', this.loginUrl);
-        config.set('username', this.username);
-        config.set('createdOrgInstance', 'CS1');
-        config.set('created', '1519163543003');
-        // config.set('devHubUsername', 'tn@su-blitz.org');
-
-        if (this.devHubUsername) {
-            config.set('devHubUsername', this.devHubUsername);
-        }
-
-        const isDevHub = _get(this, 'isDevHub');
-        if (isDevHub) {
-            config.set('isDevHub', isDevHub);
-        }
-
-        return config;
-    }
-}
 
 describe('Org Tests', () => {
 
