@@ -67,8 +67,9 @@ async function _retrieveUserFields(username: string): Promise<UserFields> {
 
     const fromFields: string[] = _.keys(REQUIRED_FIELDS).map((value) => _.upperFirst(value));
     const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
-    this.logger.debug('Successfully retrieved the admin user for this org.');
     const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
+
+    this.logger.debug('Successfully retrieved the admin user for this org.');
 
     if (result.totalSize === 1) {
         const results = _.mapKeys(result.records[0], (value, key: string) => _.lowerFirst(key));
@@ -308,10 +309,6 @@ export class User {
             const newUserAuthFields: AuthFields = newUserAuthInfo.getFields();
             newUserAuthFields.userId = refreshTokenSecret.userId;
 
-            this.logger.debug(`AuthInfo created for user: ${newUserAuthInfo.getUsername()}`);
-
-            this.logger.debug(`Created connection for user: ${newUserAuthInfo.getUsername()}`);
-
             // Make sure we can connect and if so save the auth info.
             await this.describeUserAndSave(newUserAuthInfo);
 
@@ -344,6 +341,8 @@ export class User {
     private async describeUserAndSave(newUserAuthInfo: AuthInfo): Promise<AuthInfo> {
 
         const connection = await Connection.create(newUserAuthInfo);
+
+        this.logger.debug(`Created connection for user: ${newUserAuthInfo.getUsername()}`);
 
         const userDescribe: DescribeSObjectResult = await connection.describe('User');
 
