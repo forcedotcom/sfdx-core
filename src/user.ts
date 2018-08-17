@@ -157,9 +157,15 @@ export class DefaultUserFields {
 
 /**
  * A class for creating a User, generating a password for a user, and assigning a user to one or more permission sets.
+ * See methods for examples.
  */
 export class User {
 
+    /**
+     * Initialize a new instance of a user.
+     * @param org {Org} The org associated with the user.
+     * @returns {Promise<User>} A user instance
+     */
     public static async init(org: Org): Promise<User> {
         if (!org) {
             throw SfdxError.create('@salesforce/core',
@@ -171,6 +177,10 @@ export class User {
         return new User(org, logger);
     }
 
+    /**
+     * Generate default password for a user.
+     * @returns {SecureBuffer<void>>} An encrypted buffer containing a utf8 encoded password.
+     */
     public static generatePasswordUtf8(): SecureBuffer<void> {
         // Fill an array with random characters from random requirement sets
         const pass = Array(PASSWORD_LENGTH - ALL.length).fill(9).map(() => {
@@ -262,6 +272,7 @@ export class User {
      * Salesforce CRM Content User
      *
      * @param fields {UserFields} The required fields for creating a user.
+     * @returns {Promise<AuthInfo>} An AuthInfo object for the new user.
      *
      * @example
      * const org = await Org.create(await Connection.create(await AuthInfo.create('fooUser')));
@@ -311,8 +322,13 @@ export class User {
     }
 
     /**
-     * Method to retrieve the UserFields for the user.
+     * Method to retrieve the UserFields for a user.
      * @param username {string} The username of the user
+     *
+     * @example
+     * const org = await Org.create(await Connection.create(await AuthInfo.create('fooUser')));
+     * const user: User = await User.init(org);
+     * const fields: UserFields = await user.retrieve('boris@thecat.com')
      */
     public async retrieve(username: string): Promise<UserFields> {
         return await getUserFields.call(this, username);

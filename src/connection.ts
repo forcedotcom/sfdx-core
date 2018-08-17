@@ -128,8 +128,7 @@ export class Connection extends JSForceConnection {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, _request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
-        const obj = await super.request(_request, options);
-        return obj;
+        return super.request(_request, options);
     }
 
     /**
