@@ -98,6 +98,7 @@ export class Connection extends JSForceConnection {
     // the jsForce connection.tooling.logger and connection.logger.
     private logger: Logger;
     private _logger: Logger;
+    private _transport: { httpRequest: (info: RequestInfo) => JsonMap };
 
     private authInfo: AuthInfo;
 
@@ -141,7 +142,7 @@ export class Connection extends JSForceConnection {
      * @returns {Promise<JsonMap>} The request Promise.
      */
     public async requestRaw(request: RequestInfo): Promise<JsonMap> {
-        return this['_transport'].httpRequest({
+        return this._transport.httpRequest({
             method: request.method,
             url: request.url,
             headers: request.headers,
