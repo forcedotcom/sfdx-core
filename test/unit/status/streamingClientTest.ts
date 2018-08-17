@@ -31,7 +31,7 @@ describe('streaming client tests', () => {
 
         const crypto = await Crypto.create();
 
-        $$.configStubs['AuthInfoConfig'] = { contents: {
+        $$.configStubs.AuthInfoConfig = { contents: {
                 orgId: _id,
                 username: _username,
                 instanceUrl: 'http://www.example.com',
