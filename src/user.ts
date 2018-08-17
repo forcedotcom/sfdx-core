@@ -405,7 +405,6 @@ export class User {
                 if (errors && errors.length > 0) {
                     message = `${message} causes:${EOL}`;
                     _.each(_.get(responseBody, 'Errors'), (singleMessage) => {
-                        console.log(`singleMessage: ${singleMessage}`);
                         message = `${message}${EOL}${singleMessage.description}`;
                     });
                 }
