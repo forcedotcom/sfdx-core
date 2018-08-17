@@ -177,5 +177,37 @@ describe('permission set assignment tests', () => {
                 expect(e).to.have.property('name', 'errorsEncounteredCreatingAssignment');
             }
         });
+
+        it ('permset assignment with empty errors', async () => {
+            let query: string = '';
+            $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
+                query = _.toLower(_query);
+                if (query.includes('from permissionset')) {
+                    return {
+                        records: [ { Id: '123456' } ],
+                        totalSize: 1
+                    };
+                }
+
+                return {};
+            });
+
+            $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
+                return {
+                    create() {
+                        return Promise.resolve({ errors: []});
+                    }
+                };
+            });
+
+            const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
+            const PERM_SET_NAME = 'Foo';
+            const NS = 'NS';
+            try {
+                await shouldThrow(assignment.create('123456', `${NS}__${PERM_SET_NAME}`));
+            } catch (e) {
+                expect(e).to.have.property('name', 'notSuccessfulButNoErrorsReported');
+            }
+        });
     });
 });

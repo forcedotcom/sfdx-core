@@ -181,7 +181,7 @@ describe('User Tests', () => {
                     }
                 };
             });
-            $$.configStubs['AuthInfoConfig'] = { contents: await user1.getConfig() };
+            $$.configStubs.AuthInfoConfig = { contents: await user1.getConfig() };
             const connection: Connection = await Connection.create(await AuthInfo.create(user1.username));
             org = await Org.create(connection);
 

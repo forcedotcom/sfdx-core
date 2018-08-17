@@ -105,13 +105,19 @@ export class PermissionSetAssignment {
             } else {
                 const messages: Messages = Messages.loadMessages(
                     '@salesforce/core', 'permissionSetAssignment');
-                let message = `${messages.getMessage('errorsEncounteredCreatingAssignment')}:${EOL}`;
+                let message = messages.getMessage('errorsEncounteredCreatingAssignment');
 
-                _.each((createResponse as ErrorResult).errors, (_message) => {
-                    message = `${message}${_message}${EOL}`;
-                });
-
-                throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');
+                const errors = (createResponse as ErrorResult).errors;
+                if (errors && errors.length > 0) {
+                    message = `${message}:${EOL}`;
+                    _.each((createResponse as ErrorResult).errors, (_message) => {
+                        message = `${message}${_message}${EOL}`;
+                    });
+                    throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');
+                } else {
+                    throw SfdxError.create('@salesforce/core',
+                        'permissionSetAssignment', 'notSuccessfulButNoErrorsReported');
+                }
             }
         }
     }

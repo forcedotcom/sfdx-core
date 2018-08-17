@@ -1,4 +1,5 @@
 import { EOL } from 'os';
+import { format } from 'util';
 import { SecureBuffer } from './secureBuffer';
 import { Connection } from './connection';
 import { Logger } from './logger';
@@ -385,7 +386,7 @@ export class User {
         };
 
         if (this.org.getConnection().accessToken) {
-            info.headers['Authorization'] = `Bearer ${this.org.getConnection().accessToken}`;
+            // info.headers['Authorization'] = `Bearer ${this.org.getConnection().accessToken}`;
         }
 
         const response: JsonMap = await this.org.getConnection().requestRaw(info);
@@ -394,13 +395,17 @@ export class User {
         this.logger.debug(`user create response.statusCode: ${response.statusCode}`);
         if (!(response.statusCode === 201 || response.statusCode === 200)) {
             const messages: Messages = Messages.loadMessages('@salesforce/core', 'user');
-            let message = messages.getMessage('invalidHttpResponseCreatingUser');
+            let message = format(messages.getMessage('invalidHttpResponseCreatingUser'), response.statusCode);
 
             if (responseBody) {
-                message = `${message} causes:${EOL}`;
-                _.each(_.get(responseBody, 'Errors'), (singleMessage) => {
-                    message = `${message}${EOL}${singleMessage.description}`;
-                });
+                const errors: string[] = _.get(responseBody, 'Errors');
+                if (errors && errors.length > 0) {
+                    message = `${message} causes:${EOL}`;
+                    _.each(_.get(responseBody, 'Errors'), (singleMessage) => {
+                        console.log(`singleMessage: ${singleMessage}`);
+                        message = `${message}${EOL}${singleMessage.description}`;
+                    });
+                }
             }
             this.logger.debug(message);
             throw new SfdxError(message, 'UserCreateHttpError');
