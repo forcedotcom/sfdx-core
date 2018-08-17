@@ -285,40 +285,36 @@ export class User {
      * const info: AuthInfo = await user.create(fields);
      */
     public async create(fields: UserFields): Promise<AuthInfo> {
-        try {
-            // Create a user and get a refresh token
-            const refreshTokenSecret: { buffer: SecureBuffer<string>, userId: string } =
-                await this.createUserInternal(fields);
+        // Create a user and get a refresh token
+        const refreshTokenSecret: { buffer: SecureBuffer<string>, userId: string } =
+            await this.createUserInternal(fields);
 
-            // Create the initial auth info
-            const adminUserAuthFields: AuthFields = this.org.getConnection().getAuthInfoFields();
+        // Create the initial auth info
+        const adminUserAuthFields: AuthFields = this.org.getConnection().getAuthInfoFields();
 
-            // Setup oauth options for the new user
-            const oauthOptions: OAuth2Options = {
-                loginUrl: adminUserAuthFields.loginUrl,
-                refreshToken: refreshTokenSecret.buffer.value((buffer: Buffer): string => buffer.toString('utf8')),
-                clientId: adminUserAuthFields.clientId,
-                clientSecret: adminUserAuthFields.clientSecret,
-                privateKey: adminUserAuthFields.privateKey
-            };
+        // Setup oauth options for the new user
+        const oauthOptions: OAuth2Options = {
+            loginUrl: adminUserAuthFields.loginUrl,
+            refreshToken: refreshTokenSecret.buffer.value((buffer: Buffer): string => buffer.toString('utf8')),
+            clientId: adminUserAuthFields.clientId,
+            clientSecret: adminUserAuthFields.clientSecret,
+            privateKey: adminUserAuthFields.privateKey
+        };
 
-            // Create an auth info object for the new user
-            const newUserAuthInfo: AuthInfo = await AuthInfo.create(fields.username, oauthOptions);
+        // Create an auth info object for the new user
+        const newUserAuthInfo: AuthInfo = await AuthInfo.create(fields.username, oauthOptions);
 
-            // Update the auth info object with created user id.
-            const newUserAuthFields: AuthFields = newUserAuthInfo.getFields();
-            newUserAuthFields.userId = refreshTokenSecret.userId;
+        // Update the auth info object with created user id.
+        const newUserAuthFields: AuthFields = newUserAuthInfo.getFields();
+        newUserAuthFields.userId = refreshTokenSecret.userId;
 
-            // Make sure we can connect and if so save the auth info.
-            await this.describeUserAndSave(newUserAuthInfo);
+        // Make sure we can connect and if so save the auth info.
+        await this.describeUserAndSave(newUserAuthInfo);
 
-            // Let the org know there is a new user. See $HOME/.sfdx/[orgid].json for the mapping.
-            await this.org.addUsername(newUserAuthInfo);
+        // Let the org know there is a new user. See $HOME/.sfdx/[orgid].json for the mapping.
+        await this.org.addUsername(newUserAuthInfo);
 
-            return newUserAuthInfo;
-        } catch (e) {
-            throw e;
-        }
+        return newUserAuthInfo;
     }
 
     /**
