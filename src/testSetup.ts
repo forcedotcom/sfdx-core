@@ -53,7 +53,12 @@ export interface TestContext {
     TEST_LOGGER: Logger;
     id: string;
     uniqid: () => string;
-    configStubs: { [configName: string]: ConfigStub };
+    configStubs: {
+        [configName: string]: ConfigStub,
+        AuthInfoConfig?: ConfigStub,
+        Aliases?: ConfigStub,
+        SfdxProject?: ConfigStub
+    };
     localPathRetriever: (uid: string) => Promise<string>;
     globalPathRetriever: (uid: string) => Promise<string>;
     rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
@@ -143,7 +148,7 @@ function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Prom
  *    $$.SANDBOX.stub(MyClass.prototype, 'myMethod').returnsFake(() => {});
  *
  *    // Set the contents that is used when aliases are read. Same for all config files.
- *    $$.configStubs['Aliases'].content = { 'myTestAlias': 'user@company.com' };
+ *    $$.configStubs.Aliases = { contents: { 'myTestAlias': 'user@company.com' } };
  *
  *    // Will use the contents set above.
  *    const username = Aliases.fetch('myTestAlias');
