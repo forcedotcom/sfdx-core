@@ -110,7 +110,7 @@ describe('Org Tests', () => {
 
     beforeEach(async () => {
         testData = new MockTestOrgData();
-        $$.configStubs['AuthInfoConfig'] = { contents: await testData.getConfig() };
+        $$.configStubs.AuthInfoConfig = { contents: await testData.getConfig() };
         $$.SANDBOX.stub(Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     });
 
@@ -264,7 +264,7 @@ describe('Org Tests', () => {
         };
 
         beforeEach(() => {
-            $$.configStubs['AuthInfoConfig'] = { retrieveContents: configFileReadJsonMock };
+            $$.configStubs.AuthInfoConfig = { retrieveContents: configFileReadJsonMock };
         });
 
         it('should remove all assets associated with the org', async () => {
@@ -513,7 +513,7 @@ describe('Org Tests', () => {
                 }
                 return Promise.resolve(await testData.getConfig());
             };
-            $$.configStubs['AuthInfoConfig'] = { retrieveContents: retrieve};
+            $$.configStubs.AuthInfoConfig = { retrieveContents: retrieve};
         });
 
         it('steel thread', async () => {
@@ -584,7 +584,7 @@ describe('Org Tests', () => {
                     throw new Error(`Unhandled Path: ${path}`);
                 }
             };
-            $$.configStubs['AuthInfoConfig'] = { retrieveContents: retrieve};
+            $$.configStubs.AuthInfoConfig = { retrieveContents: retrieve};
 
             orgs[0] = await Org.create(
                 await Connection.create(await AuthInfo.create(mock0.username)));
@@ -623,12 +623,12 @@ describe('Org Tests', () => {
 
                 let usersPresent: string[] = null;
                 await orgs[0].removeUsername(orgs[1].getUsername());
-                usersPresent = $$.configStubs['OrgUsersConfig'].contents['usernames'];
+                usersPresent = $$.configStubs.OrgUsersConfig.contents['usernames'];
                 expect(usersPresent.length).to.be.eq(2);
                 expect(usersPresent).to.not.include(mock1.username);
 
                 await orgs[0].removeUsername(orgs[2].getUsername());
-                usersPresent = $$.configStubs['OrgUsersConfig'].contents['usernames'];
+                usersPresent = $$.configStubs.OrgUsersConfig.contents['usernames'];
                 expect(usersPresent.length).to.be.eq(1);
                 expect(usersPresent).to.not.include(mock2.username);
             });
