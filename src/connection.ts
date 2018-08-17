@@ -99,6 +99,7 @@ export class Connection extends JSForceConnection {
     private logger: Logger;
     private _logger: Logger;
     private _transport: { httpRequest: (info: RequestInfo) => JsonMap };
+    private _normalizeUrl: (url: string) => string;
 
     private authInfo: AuthInfo;
 
@@ -229,8 +230,12 @@ export class Connection extends JSForceConnection {
         return this.authInfo.isUsingAccessToken();
     }
 
+    /**
+     * Normalize a Salesforce url to include a instance information.
+     * @param url {string} partial url.
+     */
     public normalizeUrl(url: string): string {
-        return this['_normalizeUrl'](url);
+        return this._normalizeUrl(url);
     }
 
     /**
