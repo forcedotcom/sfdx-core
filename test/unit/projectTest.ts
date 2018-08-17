@@ -61,7 +61,7 @@ describe('SfdxProject', async () => {
             delete process.env.FORCE_SFDC_LOGIN_URL;
         });
         it('gets default login url', async () => {
-            $$.configStubs['SfdxProjectJson'] = { contents: {} };
+            $$.configStubs.SfdxProjectJson = { contents: {} };
             const project = await SfdxProject.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['sfdcLoginUrl']).to.equal('https://login.salesforce.com');
@@ -74,7 +74,7 @@ describe('SfdxProject', async () => {
                     return {};
                 }
             };
-            $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
+            $$.configStubs.SfdxProjectJson = { retrieveContents: read };
             const project = await SfdxProject.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['sfdcLoginUrl']).to.equal('globalUrl');
@@ -87,7 +87,7 @@ describe('SfdxProject', async () => {
                     return { sfdcLoginUrl: 'localUrl' };
                 }
             };
-            $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
+            $$.configStubs.SfdxProjectJson = { retrieveContents: read };
             const project = await SfdxProject.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['sfdcLoginUrl']).to.equal('localUrl');
@@ -101,7 +101,7 @@ describe('SfdxProject', async () => {
                     return { sfdcLoginUrl: 'localUrl' };
                 }
             };
-            $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
+            $$.configStubs.SfdxProjectJson = { retrieveContents: read };
             const project = await SfdxProject.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['sfdcLoginUrl']).to.equal('envarUrl');
@@ -114,8 +114,8 @@ describe('SfdxProject', async () => {
                     return { apiVersion: 39.0 };
                 }
             };
-            $$.configStubs['SfdxProjectJson'] = { retrieveContents: read };
-            $$.configStubs['Config'] = { contents: { apiVersion: 40.0 } };
+            $$.configStubs.SfdxProjectJson = { retrieveContents: read };
+            $$.configStubs.Config = { contents: { apiVersion: 40.0 } };
             const project = await SfdxProject.resolve();
             const config = await project.resolveProjectConfig();
             expect(config['apiVersion']).to.equal(40.0);
