@@ -54,7 +54,7 @@ export type UserFields = {
  * Helper method to lookup UserFields
  * @param username {string} The username
  */
-async function getUserFields(username: string): Promise<UserFields> {
+async function _retrieveUserFields(username: string): Promise<UserFields> {
 
     const connection: Connection = await Connection.create( await AuthInfo.create(username));
 
@@ -91,10 +91,10 @@ async function getUserFields(username: string): Promise<UserFields> {
  * @param name {string} The name of the profile.
  * @param connection {Connection} The connection for the query.
  */
-async function getProfileId(name: string, connection: Connection): Promise<string> {
+async function _retrieveProfileId(name: string, connection: Connection): Promise<string> {
     if (!validateSalesforceId(name)) {
         const profileQuery = `SELECT Id FROM Profile WHERE name='${name}'`;
-        const result: QueryResult<string> = await connection.query<string>(profileQuery);
+        const result: QueryResult<string[]> = await connection.query<string[]>(profileQuery);
         if (result.records.length > 0) {
             return result.records[0]['Id'];
         }
@@ -120,9 +120,9 @@ export class DefaultUserFields {
     public static async init(templateUser: string, newUserName?: string): Promise<DefaultUserFields> {
         const fields: DefaultUserFields = new DefaultUserFields(newUserName);
         const initLogger: Logger = await Logger.child('DefaultUserFields');
-        const userFields: UserFields = await getUserFields.call({ logger:  initLogger}, templateUser);
+        const userFields: UserFields = await _retrieveUserFields.call({ logger:  initLogger}, templateUser);
         _.merge(fields, userFields);
-        fields.profileId = await getProfileId('Standard User',
+        fields.profileId = await _retrieveProfileId('Standard User',
             await Connection.create(await AuthInfo.create(templateUser)));
         fields.id = '';
         initLogger.debug(`Standard User profileId: ${fields.profileId}`);
@@ -206,21 +206,16 @@ export class User {
      * Assigns a password to a user. For a user to have the ability to assign their own password, the org needs the
      * following org preference: SelfSetPasswordInApi
      * @param info {AuthInfo} The AuthInfo object for user to assign the password to.
-     * @param password {SecureBuffer} A SecureBuffer containing the new password.
+     * @param password {SecureBuffer} [throwWhenRemoveFails = User.generatePasswordUtf8()] A SecureBuffer containing the new password.
      */
-    public async assignPassword(info: AuthInfo, password?: SecureBuffer<void>) {
+    public async assignPassword(info: AuthInfo, password: SecureBuffer<void> = User.generatePasswordUtf8()) {
 
         this.logger.debug(`Attempting to set password for userId: ${info.getFields().userId} username: ${info.getFields().username}`);
 
         const userConnection = await Connection.create(info);
 
-        let securePassword: SecureBuffer<void> = password;
-        if (!securePassword) {
-            securePassword = User.generatePasswordUtf8();
-        }
-
         return new Promise((resolve, reject) => {
-            securePassword.value(async (buffer: Buffer) => {
+            password.value(async (buffer: Buffer) => {
                 try {
                     const soap = userConnection['soap'];
                     await soap.setPassword(info.getFields().userId, buffer.toString('utf8'));
@@ -256,9 +251,10 @@ export class User {
         }
 
         const assignments: PermissionSetAssignment = await PermissionSetAssignment.init(this.org);
-        _.each(permsetNames, async (permsetName: string) => {
+
+        for (const permsetName of permsetNames) {
             await assignments.create(id, permsetName);
-        });
+        }
     }
 
     /**
@@ -331,7 +327,7 @@ export class User {
      * const fields: UserFields = await user.retrieve('boris@thecat.com')
      */
     public async retrieve(username: string): Promise<UserFields> {
-        return await getUserFields.call(this, username);
+        return await _retrieveUserFields.call(this, username);
     }
 
     /**

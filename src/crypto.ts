@@ -23,6 +23,8 @@ const _algo = 'aes-256-gcm';
 const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
 
+Messages.importMessagesDirectory(pathJoin(__dirname, '..', 'messages'));
+
 interface CredType {
     username: string;
     password: string;
@@ -95,10 +97,6 @@ export class Crypto {
         }
 
         logger.debug(`retryStatus: ${retryStatus}`);
-
-        const messagesPath = pathJoin(__dirname, '..', 'messages');
-        Messages.importMessagesDirectory(messagesPath);
-        logger.debug(`messagesPath: ${messagesPath}`);
 
         this.messages = Messages.loadMessages('@salesforce/core', 'encryption');
 

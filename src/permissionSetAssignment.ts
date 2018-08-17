@@ -9,17 +9,10 @@ import { Messages } from './messages';
 /**
  * Map of fields name for a permission set assignment
  */
-export const FIELDS = {
-    assigneeId: 'AssigneeId',
-    permissionSetId: 'PermissionSetId'
-};
-
-/**
- * Permission set assignment fields
- */
-export type PermissionSetAssignmentFields = {
-    -readonly [K in keyof typeof FIELDS]: string
-};
+export interface PermissionSetAssignmentFields {
+    assigneeId: string;
+    permissionSetId: string;
+}
 
 /**
  * A class for assigning a Salesforce User to one or more permission sets.
