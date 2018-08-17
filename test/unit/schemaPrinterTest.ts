@@ -10,7 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { expect } from 'chai';
-import { SchemaPrinter, SchemaPropertyDefaultRenderer, SchemaPropertyRenderer } from '../../src/schemaPrinter';
+import { SchemaPrinter, SchemaPropertyRenderer } from '../../src/schemaPrinter';
 import { LoggerLevel } from '../../src/logger';
 import { JsonMap } from '@salesforce/ts-json';
 import { testSetup } from '../../src/testSetup';
@@ -377,12 +377,12 @@ describe('SchemaPrinter', () => {
 
     describe('renderers', () => {
         it('should be called using default', () => {
-            class MyRender extends SchemaPropertyDefaultRenderer {
+            class MyRenderer extends SchemaPropertyRenderer {
                 public renderName(name) { return `${name}Test`; }
             }
 
             const schema = { properties: { testProperty: {} } };
-            const printer = new SchemaPrinter($$.TEST_LOGGER, schema, new MyRender());
+            const printer = new SchemaPrinter($$.TEST_LOGGER, schema, new MyRenderer());
             expect(printer.getLine(0)).to.equal('testPropertyTest() - : ');
         });
         it('should be called using the defined renderer', () => {
