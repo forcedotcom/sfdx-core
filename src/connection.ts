@@ -17,6 +17,7 @@ import { QueryResult } from 'jsforce';
 import { ExecuteOptions } from 'jsforce';
 import { SfdxError } from './sfdxError';
 import { validateApiVersion } from './util/sfdc';
+import { JsonMap } from '@salesforce/ts-json';
 
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
@@ -127,7 +128,26 @@ export class Connection extends JSForceConnection {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, _request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
-        return super.request(_request, options);
+        const obj = await super.request(_request, options);
+        return obj;
+    }
+
+    /**
+     * Send REST API request with given HTTP request info, with connected session information
+     * and SFDX headers. This method returns a raw http response which includes a response body and statusCode.
+     *
+     * @override
+     *
+     * @param {RequestInfo | string} request HTTP request object or URL to GET request.
+     * @returns {Promise<JsonMap>} The request Promise.
+     */
+    public async requestRaw(request: RequestInfo): Promise<JsonMap> {
+        return this['_transport'].httpRequest({
+            method: request.method,
+            url: request.url,
+            headers: request.headers,
+            body: request.body
+        });
     }
 
     /**
@@ -207,6 +227,10 @@ export class Connection extends JSForceConnection {
      */
     public isUsingAccessToken(): boolean {
         return this.authInfo.isUsingAccessToken();
+    }
+
+    public normalizeUrl(url: string): string {
+        return this['_normalizeUrl'](url);
     }
 
     /**
