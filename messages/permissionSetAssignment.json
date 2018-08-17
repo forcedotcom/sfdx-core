@@ -5,5 +5,6 @@
     "unexpectedType": "An unexpected response was returned from the permission set assignment.",
     "assignCommandPermissionSetNotFoundError": "Permission set \"%s\" not found in target org. Do you need to push source?",
     "assignCommandPermissionSetNotFoundForNSError": "Permission set \"%s\" for namespace \"%s\" not found in target org. Do you need to push source or install the package?",
-    "errorsEncounteredCreatingAssignment": "Error(s) were reported"
+    "errorsEncounteredCreatingAssignment": "Error(s) were reported",
+    "notSuccessfulButNoErrorsReported": "The permission set assignment failed but no errors were reported."
 }
