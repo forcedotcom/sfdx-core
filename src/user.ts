@@ -386,7 +386,7 @@ export class User {
         };
 
         if (this.org.getConnection().accessToken) {
-            // info.headers['Authorization'] = `Bearer ${this.org.getConnection().accessToken}`;
+            info.headers['Authorization'] = `Bearer ${this.org.getConnection().accessToken}`;
         }
 
         const response: JsonMap = await this.org.getConnection().requestRaw(info);
