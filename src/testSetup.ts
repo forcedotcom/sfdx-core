@@ -57,7 +57,8 @@ export interface TestContext {
         [configName: string]: ConfigStub,
         AuthInfoConfig?: ConfigStub,
         Aliases?: ConfigStub,
-        SfdxProject?: ConfigStub
+        SfdxProjectJson?: ConfigStub,
+        SfdxConfig?: ConfigStub
     };
     localPathRetriever: (uid: string) => Promise<string>;
     globalPathRetriever: (uid: string) => Promise<string>;
