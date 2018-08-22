@@ -6,9 +6,9 @@
  */
 
 import * as _ from 'lodash';
-import { ConfigContents } from './config/configStore';
-import { ConfigFile, ConfigOptions } from './config/configFile';
 import { ConfigAggregator } from './config/configAggregator';
+import { ConfigFile, ConfigOptions } from './config/configFile';
+import { ConfigContents } from './config/configStore';
 import { SfdxError } from './sfdxError';
 import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
 import { findUpperCaseKeys } from './util/sfdc';
@@ -90,10 +90,8 @@ export class SfdxProject {
     private projectConfig: any; // tslint:disable-line:no-any
 
     // Dynamically referenced in retrieveSfdxProjectJson
-    // tslint:disable-next-line:no-unused-variable
-    private sfdxProjectJson: SfdxProjectJson;
-    // tslint:disable-next-line:no-unused-variable
-    private sfdxProjectJsonGlobal: SfdxProjectJson;
+    private sfdxProjectJson!: SfdxProjectJson;
+    private sfdxProjectJsonGlobal!: SfdxProjectJson;
 
     /**
      * Do not directly construct instances of this class -- use {@link Project.resolve} instead.

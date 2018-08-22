@@ -21,8 +21,8 @@
  * @typedef {Map<string, ConfigValue>} ConfigContents
  */
 
+import { AnyJson, JsonMap } from '@salesforce/ts-types';
 import * as _ from 'lodash';
-import { JsonMap, AnyJson } from '@salesforce/ts-types';
 
 /**
  * The allowed types stored in a config store.

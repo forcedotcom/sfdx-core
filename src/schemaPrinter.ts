@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { asJsonArray, asJsonMap, asNumber, asString, isJsonMap, JsonArray, JsonMap } from '@salesforce/ts-types';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
-import { JsonMap, JsonArray, isJsonMap, asJsonMap, asString, asNumber, asJsonArray } from '@salesforce/ts-types';
 
 /**
  * Renders schema properties.  By default, this is simply an identity transform.  Subclasses may provide more
@@ -103,7 +103,7 @@ export class SchemaPrinter {
                 add('');
             }
 
-            Object.keys(this.schema.properties).forEach((key) => {
+            Object.keys(this.schema.properties).forEach(key => {
                 const properties = asJsonMap(this.schema.properties);
                 if (!properties) {
                     return;
@@ -139,7 +139,7 @@ export class SchemaPrinter {
      * Prints the accumulated set of schema lines as info log lines to the logger.
      */
     public print(): void {
-        this.lines.forEach((line) => this.logger.info(line));
+        this.lines.forEach(line => this.logger.info(line));
     }
 
     private addFn(level: number): (line: string) => void {
@@ -160,14 +160,14 @@ export class SchemaPrinter {
         add(property.renderHeader());
 
         if (property.type === 'object' && property.properties) {
-            Object.keys(property.properties).forEach((key) => {
+            Object.keys(property.properties).forEach(key => {
                 this.parseProperty(key, property.getProperty(key), level + 1);
             });
         }
         if (property.type === 'array') {
             add(`    ${property.renderArrayHeader()}`);
             if (property.items && property.items.type === 'object' && property.items.properties) {
-                Object.keys(property.items.properties).forEach((key) => {
+                Object.keys(property.items.properties).forEach(key => {
                     const items = asJsonMap(property.items);
                     if (!items) {
                         return;
@@ -205,7 +205,7 @@ class SchemaProperty {
 
         const oneOfs = asJsonArray(this.rawProperty.oneOf);
         if (oneOfs && !this.rawProperty.type) {
-            this.rawProperty.type = oneOfs.map((value) => {
+            this.rawProperty.type = oneOfs.map(value => {
                 return isJsonMap(value) ? value.type || value.$ref : value;
             }).join('|');
         }

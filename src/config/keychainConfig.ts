@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigFile, ConfigOptions } from './configFile';
-import { ConfigContents } from './configStore';
 import { isNil as _isNil } from 'lodash';
 import { dirname as pathDirname } from 'path';
 import * as fs from '../util/fs';
+import { ConfigFile, ConfigOptions } from './configFile';
+import { ConfigContents } from './configStore';
 
 /**
  * Represent a key chain config backed by a json file.

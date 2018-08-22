@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as _ from 'lodash';
+import * as childProcess from 'child_process';
 import * as nodeFs from 'fs';
+import * as _ from 'lodash';
 import * as os from 'os';
 import * as path from 'path';
-import * as childProcess from 'child_process';
-import { SfdxError, SfdxErrorConfig } from './sfdxError';
-import { Global } from './global';
-import { KeychainConfig } from './config/keychainConfig';
 import { ConfigFile } from './config/configFile';
+import { KeychainConfig } from './config/keychainConfig';
+import { Global } from './global';
+import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import * as fs from './util/fs';
 
 /* tslint:disable: no-bitwise */
@@ -109,10 +109,10 @@ export class KeychainAccess {
         let stdout = '';
         let stderr = '';
 
-        credManager.stdout.on('data', (data) => { stdout += data; });
-        credManager.stderr.on('data', (data) => { stderr += data; });
+        credManager.stdout.on('data', data => { stdout += data; });
+        credManager.stderr.on('data', data => { stderr += data; });
 
-        credManager.on('close', async (code) => {
+        credManager.on('close', async code => {
             try {
                 return await this.osImpl.onGetCommandClose(code, stdout, stderr, opts, fn);
             } catch (e) {
@@ -160,10 +160,10 @@ export class KeychainAccess {
         let stdout = '';
         let stderr = '';
 
-        credManager.stdout.on('data', (data) => { stdout += data; });
-        credManager.stderr.on('data', (data) => { stderr += data; });
+        credManager.stdout.on('data', data => { stdout += data; });
+        credManager.stderr.on('data', data => { stderr += data; });
 
-        credManager.on('close', async (code) => await this.osImpl.onSetCommandClose(code, stdout, stderr, opts, fn));
+        credManager.on('close', async code => await this.osImpl.onSetCommandClose(code, stdout, stderr, opts, fn));
 
         credManager.stdin.end();
     }
@@ -365,7 +365,7 @@ export class GenericKeychainAccess {
 
     public async getPassword(opts, fn): Promise<any> { // tslint:disable-line:no-any
         // validate the file in .sfdx
-        await this.isValidFileAccess(async (fileAccessError) => {
+        await this.isValidFileAccess(async fileAccessError => {
 
             // the file checks out.
             if (_.isNil(fileAccessError)) {
@@ -384,7 +384,7 @@ export class GenericKeychainAccess {
                             fn(err);
                         }
                     })
-                    .catch((readJsonErr) => {
+                    .catch(readJsonErr => {
                         fn(readJsonErr);
                     });
             } else {
@@ -399,7 +399,7 @@ export class GenericKeychainAccess {
 
     public async setPassword(opts, fn): Promise<any> { // tslint:disable-line:no-any
         // validate the file in .sfdx
-        await this.isValidFileAccess(async (fileAccessError) => {
+        await this.isValidFileAccess(async fileAccessError => {
             // if there is a validation error
             if (!_.isNil(fileAccessError)) {
 
@@ -437,7 +437,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
     protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<void> {
         const secretFile: string = path.join(await ConfigFile.resolveRootFolder(true),
             Global.STATE_FOLDER, KeychainConfig.getDefaultOptions().filename);
-        await super.isValidFileAccess(async (err) => {
+        await super.isValidFileAccess(async err => {
             if (!_.isNil(err)) {
                 await cb(err);
             } else {
