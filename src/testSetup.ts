@@ -18,7 +18,7 @@ import { ConfigContents, ConfigValue } from './config/configStore';
 import { SfdxError } from './sfdxError';
 import { EventEmitter } from 'events';
 import { CometClient, CometSubscription } from './status/streamingClient';
-import { AnyJson, JsonMap } from '@salesforce/ts-json';
+import { AnyJson, JsonMap } from '@salesforce/ts-types';
 import * as _ from 'lodash';
 
 /**

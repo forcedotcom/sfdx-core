@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as path from 'path';
 import * as _ from 'lodash';
-import { AnyJson, JsonMap } from '@salesforce/ts-json';
+import { AnyJson, JsonMap } from '@salesforce/ts-types';
 
 class Key {
     constructor(private packageName, private bundleName) {}

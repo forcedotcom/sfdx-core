@@ -7,7 +7,7 @@
 
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
-import { JsonMap, JsonArray, isJsonMap, asJsonMap, asString, asNumber, asJsonArray } from '@salesforce/ts-json';
+import { JsonMap, JsonArray, isJsonMap, asJsonMap, asString, asNumber, asJsonArray } from '@salesforce/ts-types';
 
 /**
  * Renders schema properties.  By default, this is simply an identity transform.  Subclasses may provide more

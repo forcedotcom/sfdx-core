@@ -11,8 +11,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as mkdirpLib from 'mkdirp';
-import * as json from '@salesforce/ts-json';
-import { JsonMap, AnyJson } from '@salesforce/ts-json';
+import { JsonMap, AnyJson } from '@salesforce/ts-types';
+import { parseJson, parseJsonMap } from '@salesforce/kit';
 import { promisify } from 'util';
 import { SfdxError } from '../sfdxError';
 
@@ -173,7 +173,7 @@ export async function traverseForFile(dir: string, file: string): Promise<string
  */
 export async function readJson(jsonPath: string, throwOnEmpty?: boolean): Promise<AnyJson> {
     const fileData = await readFile(jsonPath, 'utf8');
-    return await json.parseJson(fileData, jsonPath, throwOnEmpty);
+    return await parseJson(fileData, jsonPath, throwOnEmpty);
 }
 
 /**
@@ -185,7 +185,7 @@ export async function readJson(jsonPath: string, throwOnEmpty?: boolean): Promis
  */
 export async function readJsonMap(jsonPath: string, throwOnEmpty?: boolean): Promise<JsonMap> {
     const fileData = await readFile(jsonPath, 'utf8');
-    return await json.parseJsonMap(fileData, jsonPath, throwOnEmpty);
+    return await parseJsonMap(fileData, jsonPath, throwOnEmpty);
 }
 
 /**
