@@ -28,22 +28,22 @@
  * @property {string} MISSING The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
  */
 
-import { join as pathJoin } from 'path';
-import { Aliases } from './config/aliases';
-import { Connection } from './connection';
-import { Logger } from './logger';
-import { Config } from './config/config';
-import { ConfigContents } from './config/configStore';
-import { ConfigAggregator, ConfigInfo } from './config/configAggregator';
-import { get as _get, filter as _filter, isString as _isString } from 'lodash';
-import { AuthFields, AuthInfo } from './authInfo';
-import { Global} from './global';
-import { OrgUsersConfig } from './config/orgUsersConfig';
-import { SfdxError } from './sfdxError';
-import { QueryResult } from 'jsforce';
 import { AnyJson, Dictionary } from '@salesforce/ts-types';
-import { trimTo15 } from './util/sfdc';
+import { QueryResult } from 'jsforce';
+import { filter as _filter, get as _get, isString as _isString } from 'lodash';
+import { join as pathJoin } from 'path';
+import { AuthFields, AuthInfo } from './authInfo';
+import { Aliases } from './config/aliases';
+import { Config } from './config/config';
+import { ConfigAggregator, ConfigInfo } from './config/configAggregator';
+import { ConfigContents } from './config/configStore';
+import { OrgUsersConfig } from './config/orgUsersConfig';
+import { Connection } from './connection';
+import { Global} from './global';
+import { Logger } from './logger';
+import { SfdxError } from './sfdxError';
 import * as fs from './util/fs';
+import { trimTo15 } from './util/sfdc';
 
 export enum OrgStatus {
     ACTIVE = 'ACTIVE',
@@ -84,7 +84,7 @@ export enum OrgFields {
 }
 
 const _manageDelete = function(cb, dirPath, throwWhenRemoveFails) {
-    return cb().catch((e) => {
+    return cb().catch(e => {
         if (throwWhenRemoveFails) {
             throw e;
         } else {
@@ -359,7 +359,7 @@ export class Org {
         const contents: ConfigContents = await config.read();
         const thisUsername = this.getUsername();
         const usernames: string[] = contents.get('usernames') as string[] || [thisUsername];
-        return Promise.all(usernames.map((username) => {
+        return Promise.all(usernames.map(username => {
             if (username === thisUsername) {
                 return AuthInfo.create(this.getConnection().getUsername());
             } else {
@@ -431,7 +431,7 @@ export class Org {
         const contents: ConfigContents = await orgConfig.read();
 
         const targetUser = _auth.getFields().username;
-        contents.set('usernames', _filter(contents.get('usernames') as string[], (username) => username !== targetUser));
+        contents.set('usernames', _filter(contents.get('usernames') as string[], username => username !== targetUser));
 
         await orgConfig.write();
         return this;

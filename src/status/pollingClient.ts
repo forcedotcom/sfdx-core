@@ -6,10 +6,10 @@
  */
 
 import { setInterval } from 'timers';
-import { Time, TIME_UNIT } from '../util/time';
-import { SfdxError } from '../sfdxError';
-import { StatusResult } from './client';
 import { Logger } from '../logger';
+import { SfdxError } from '../sfdxError';
+import { Time, TIME_UNIT } from '../util/time';
+import { StatusResult } from './client';
 
 /**
  * Options for the polling client.

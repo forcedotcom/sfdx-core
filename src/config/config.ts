@@ -27,12 +27,12 @@
  */
 
 import * as _ from 'lodash';
-import { Messages } from '../messages';
-import { ConfigContents, ConfigValue } from './configStore';
-import { ConfigFile, ConfigOptions } from './configFile';
-import { SfdxError } from '../sfdxError';
 import { Crypto } from '../crypto';
+import { Messages } from '../messages';
+import { SfdxError } from '../sfdxError';
 import { isSalesforceDomain, validateApiVersion } from '../util/sfdc';
+import { ConfigFile, ConfigOptions } from './configFile';
+import { ConfigContents, ConfigValue } from './configStore';
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
@@ -155,7 +155,7 @@ export class Config extends ConfigFile {
                     key: 'instanceUrl',
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
-                        validator: (value) => _.isNil(value) || isSalesforceDomain(value),
+                        validator: value => _.isNil(value) || isSalesforceDomain(value),
                         failedMessage: Config.messages.getMessage('InvalidInstanceUrl')
                     }
                 },
@@ -177,14 +177,14 @@ export class Config extends ConfigFile {
                     key: 'restDeploy',
                     hidden: true,
                     input: {
-                        validator: (value) => value.toString() === 'true' || value.toString() === 'false',
+                        validator: value => value.toString() === 'true' || value.toString() === 'false',
                         failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
                     }
                 },
                 {
                     key: Config.USE_BACKUP_POLLING_ORG_CREATE,
                     input: {
-                        validator: (value) => _.isNil(value) || (value === 'true') || value === 'false',
+                        validator: value => _.isNil(value) || (value === 'true') || value === 'false',
                         failedMessage: `${Config.USE_BACKUP_POLLING_ORG_CREATE} must be a boolean value. true/false.`
                     }
                 }
@@ -294,7 +294,7 @@ export class Config extends ConfigFile {
      */
     public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
 
-        const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
+        const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
 
         if (!property) {
             throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);

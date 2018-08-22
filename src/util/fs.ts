@@ -8,11 +8,11 @@
  * @module fs
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as mkdirpLib from 'mkdirp';
-import { JsonMap, AnyJson } from '@salesforce/ts-types';
 import { parseJson, parseJsonMap } from '@salesforce/kit';
+import { AnyJson, JsonMap } from '@salesforce/ts-types';
+import * as fs from 'fs';
+import * as mkdirpLib from 'mkdirp';
+import * as path from 'path';
 import { promisify } from 'util';
 import { SfdxError } from '../sfdxError';
 
@@ -124,12 +124,12 @@ export async function remove(dirPath: string): Promise<void> {
         throw new SfdxError(`The path: ${dirPath} doesn\'t exist or access is denied.`, 'DirMissingOrNoAccess');
     }
     const files = await readdir(dirPath);
-    const stats = await Promise.all(files.map((file) => stat(path.join(dirPath, file))));
+    const stats = await Promise.all(files.map(file => stat(path.join(dirPath, file))));
     const metas = stats.map((value, index) => {
         value['path'] = path.join(dirPath, files[index]);
         return value;
     });
-    await Promise.all(metas.map((meta) => {
+    await Promise.all(metas.map(meta => {
         if (meta.isDirectory()) {
             return remove(meta['path']);
         } else {

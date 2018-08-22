@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Time, TIME_UNIT } from '../util/time';
-import { Org } from '../org';
-import * as Faye from 'faye';
-import { JsonMap, asString } from '@salesforce/ts-types';
-import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
+import { asString, JsonMap } from '@salesforce/ts-types';
 import { EventEmitter } from 'events';
+import * as Faye from 'faye';
 import * as _ from 'lodash';
+import { Logger } from '../logger';
+import { Org } from '../org';
+import { SfdxError } from '../sfdxError';
+import { Time, TIME_UNIT } from '../util/time';
 import { StatusResult } from './client';
 
 /**
@@ -168,7 +168,7 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
             },
             setLogger: (logLine: (message: string) => void) => {
                 Faye.logger = {};
-                _.each(['info', 'error', 'fatal', 'warn', 'debug'], (element) => {
+                _.each(['info', 'error', 'fatal', 'warn', 'debug'], element => {
                     _.set(Faye.logger, element, logLine);
                 });
             }
@@ -407,7 +407,7 @@ export class StreamingClient<T> {
 
                 // Initialize the subscription.
                 const subscription: CometSubscription = this.cometClient.subscribe(this.options.channel,
-                    (message) => {
+                    message => {
                         try {
                             // The result of the stream processor determines the state of the outer promise.
                             const result: StatusResult<T> = this.options.streamProcessor(message);
@@ -430,7 +430,7 @@ export class StreamingClient<T> {
                     subscriptionResolve();
                 });
 
-                subscription.errback((error) => {
+                subscription.errback(error => {
                     subscriptionReject(error);
                 });
             })
@@ -439,7 +439,7 @@ export class StreamingClient<T> {
                 // will affect the streaming events. I.E. create an org or run apex tests.
                 return streamInit();
             })
-            .catch((error) => {
+            .catch(error => {
                 // Need to catch the subscription rejection or it will result in an unhandled rejection error.
                 clearTimeout(timeout);
 

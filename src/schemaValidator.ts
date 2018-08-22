@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
+import { getJsonValuesByName } from '@salesforce/kit';
+import { AnyJson, Dictionary, JsonMap } from '@salesforce/ts-types';
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
-import { SfdxError } from './sfdxError';
-import { Logger } from './logger';
 import { isString as _isString } from 'lodash';
+import * as path from 'path';
+import { Logger } from './logger';
+import { SfdxError } from './sfdxError';
 import { readJsonMap } from './util/fs';
-import { AnyJson, JsonMap, Dictionary } from '@salesforce/ts-types';
-import { getJsonValuesByName } from '@salesforce/kit';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.
@@ -91,11 +91,11 @@ export class SchemaValidator {
     private async loadExternalSchemas(schema: JsonMap): Promise<Dictionary<JsonMap>> {
         const externalSchemas: Dictionary<JsonMap> = {};
         const promises = getJsonValuesByName<string>(schema, '$ref')
-            .map((ref) => ref && ref.match(/([\w\.]+)#/))
-            .map((match) => match && match[1])
-            .filter((uri) => !!uri)
-            .map((uri) => this.loadExternalSchema(uri));
-        (await Promise.all(promises)).forEach((externalSchema) => {
+            .map(ref => ref && ref.match(/([\w\.]+)#/))
+            .map(match => match && match[1])
+            .filter(uri => !!uri)
+            .map(uri => this.loadExternalSchema(uri));
+        (await Promise.all(promises)).forEach(externalSchema => {
             if (_isString(externalSchema.id)) {
                 externalSchemas[externalSchema.id] = externalSchema;
             } else {
@@ -134,10 +134,10 @@ export class SchemaValidator {
      * @private
      */
     private getErrorsText(errors: JsenValidateError[], schema: JsonMap): string {
-        return errors.map((error) => {
+        return errors.map(error => {
             const property = error.path.match(/^([a-zA-Z0-9\.]+)\.([a-zA-Z0-9]+)$/);
 
-            const getPropValue = (prop) => {
+            const getPropValue = prop => {
                 const reducer = (obj, name) => {
                     return (obj.properties && obj.properties[name]) || (name === '0' && obj.items) || obj[name] || obj[prop];
                 };
