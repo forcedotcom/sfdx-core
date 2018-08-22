@@ -8,7 +8,7 @@
 import { Time, TIME_UNIT } from '../util/time';
 import { Org } from '../org';
 import * as Faye from 'faye';
-import { JsonMap, asString } from '@salesforce/ts-json';
+import { JsonMap, asString } from '@salesforce/ts-types';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { EventEmitter } from 'events';

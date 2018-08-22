@@ -9,7 +9,7 @@ import { DefaultUserFields, User, UserFields } from '../../src/user';
 import { shouldThrow, testSetup, MockTestOrgData } from '../../src/testSetup';
 import { expect } from 'chai';
 import { Org } from '../../src/org';
-import { AnyJson } from '@salesforce/ts-json';
+import { AnyJson } from '@salesforce/ts-types';
 import { AuthInfo } from '../../src/authInfo';
 import { Connection } from '../../src/connection';
 import { RequestInfo } from 'jsforce';

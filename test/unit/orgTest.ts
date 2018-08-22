@@ -7,7 +7,7 @@
 import { constants as fsConstants } from 'fs';
 import { AuthInfo, AuthFields } from '../../src/authInfo';
 import { Connection } from '../../src/connection';
-import { AnyJson } from '@salesforce/ts-json';
+import { AnyJson } from '@salesforce/ts-types';
 import { Org, OrgFields } from '../../src/org';
 import { OAuth2 } from 'jsforce';
 import { expect, assert } from 'chai';

@@ -19,7 +19,7 @@ import { QueryResult } from 'jsforce';
 import { ExecuteOptions } from 'jsforce';
 import { SfdxError } from './sfdxError';
 import { validateApiVersion } from './util/sfdc';
-import { JsonMap } from '@salesforce/ts-json';
+import { JsonMap } from '@salesforce/ts-types';
 
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to

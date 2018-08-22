@@ -16,7 +16,7 @@ import { Org } from './org';
 import { validateSalesforceId } from './util/sfdc';
 import { PermissionSetAssignment } from './permissionSetAssignment';
 import { SfdxError } from './sfdxError';
-import { JsonMap } from '@salesforce/ts-json';
+import { JsonMap } from '@salesforce/ts-types';
 import { Messages } from './messages';
 import { DescribeSObjectResult } from '../node_modules/@types/jsforce/describe-result';
 

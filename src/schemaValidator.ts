@@ -12,7 +12,8 @@ import { SfdxError } from './sfdxError';
 import { Logger } from './logger';
 import { isString as _isString } from 'lodash';
 import { readJsonMap } from './util/fs';
-import { AnyJson, JsonMap, Dictionary, getJsonValuesByName } from '@salesforce/ts-json';
+import { AnyJson, JsonMap, Dictionary } from '@salesforce/ts-types';
+import { getJsonValuesByName } from '@salesforce/kit';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.
