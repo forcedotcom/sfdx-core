@@ -48,22 +48,22 @@
  * @property {string} userProfileName
  */
 
-import { parse as urlParse } from 'url';
+import { JsonMap } from '@salesforce/ts-types';
+import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
-import { randomBytes, createHash } from 'crypto';
-import * as _ from 'lodash';
 import { OAuth2, OAuth2Options } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
+import * as _ from 'lodash';
+import { parse as urlParse } from 'url';
 import { AuthInfoConfig } from './config/authInfoConfig';
-import { ConfigFile } from './config/configFile';
 import { ConfigAggregator } from './config/configAggregator';
-import { Global } from './global';
-import { SfdxError, SfdxErrorConfig } from './sfdxError';
-import { Logger } from './logger';
+import { ConfigFile } from './config/configFile';
 import { SFDX_HTTP_HEADERS } from './connection';
 import { Crypto } from './crypto';
-import { JsonMap } from '@salesforce/ts-types';
+import { Global } from './global';
+import { Logger } from './logger';
+import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import * as fs from './util/fs';
 
 // Fields that are persisted in auth files
@@ -158,7 +158,7 @@ export enum SFDC_URLS {
 const INTERNAL_URL_PARTS = ['.internal.', '.vpod.', 'stm.salesforce.com', '.blitz.salesforce.com', 'mobile1.t.salesforce.com'];
 
 function isInternalUrl(loginUrl: string = ''): boolean {
-    return loginUrl.startsWith('https://gs1.') || _.some(INTERNAL_URL_PARTS, (part) => loginUrl.includes(part));
+    return loginUrl.startsWith('https://gs1.') || _.some(INTERNAL_URL_PARTS, part => loginUrl.includes(part));
 }
 
 function getJwtAudienceUrl(options) {
@@ -308,7 +308,7 @@ export class AuthInfo {
      */
     public static async listAllAuthFiles(): Promise<string[]> {
         const globalFiles = await fs.readdir(Global.DIR);
-        const authFiles = globalFiles.filter((file) => file.match(AuthInfo.authFilenameFilterRegEx));
+        const authFiles = globalFiles.filter(file => file.match(AuthInfo.authFilenameFilterRegEx));
 
         // Want to throw a clean error if no files are found.
         if (_.isEmpty(authFiles)) {

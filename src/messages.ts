@@ -11,11 +11,11 @@
  * stub issues.
  */
 
-import * as fs from 'fs';
-import * as util from 'util';
-import * as path from 'path';
-import * as _ from 'lodash';
 import { AnyJson, JsonMap } from '@salesforce/ts-types';
+import * as fs from 'fs';
+import * as _ from 'lodash';
+import * as path from 'path';
+import * as util from 'util';
 
 class Key {
     constructor(private packageName, private bundleName) {}
@@ -218,7 +218,7 @@ export class Messages {
 
         moduleMessagesDirPath += `${path.sep}messages`;
 
-        fs.readdirSync(moduleMessagesDirPath).forEach((file) => {
+        fs.readdirSync(moduleMessagesDirPath).forEach(file => {
             const filePath = path.join(moduleMessagesDirPath, file);
             const stat = fs.statSync(filePath);
 

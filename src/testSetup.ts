@@ -5,21 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { AnyJson, JsonMap } from '@salesforce/ts-types';
 import { randomBytes } from 'crypto';
+import { EventEmitter } from 'events';
 import { forEach, get as _get, once, set as _set } from 'lodash';
+import { tmpdir as osTmpdir } from 'os';
+import { join as pathJoin } from 'path';
+import { ConfigFile } from './config/configFile';
+import { ConfigContents, ConfigValue } from './config/configStore';
+import { Connection } from './connection';
+import { Crypto } from './crypto';
 import { Logger } from './logger';
 import { Messages } from './messages';
-import { Crypto } from './crypto';
-import { Connection } from './connection';
-import { ConfigFile } from './config/configFile';
-import { join as pathJoin } from 'path';
-import { tmpdir as osTmpdir } from 'os';
-import { ConfigContents, ConfigValue } from './config/configStore';
 import { SfdxError } from './sfdxError';
-import { EventEmitter } from 'events';
 import { CometClient, CometSubscription } from './status/streamingClient';
-import { AnyJson, JsonMap } from '@salesforce/ts-types';
-import * as _ from 'lodash';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -193,7 +192,7 @@ export const testSetup = once((sinon?) => {
         // Most core files create a child logger so stub this to return our test logger.
         testContext.SANDBOX.stub(Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
 
-        testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal) => testContext.rootPathRetriever(isGlobal, testContext.id));
+        testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake(isGlobal => testContext.rootPathRetriever(isGlobal, testContext.id));
 
         // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
         testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(async function() {
@@ -246,7 +245,7 @@ export const testSetup = once((sinon?) => {
 
     afterEach(() => {
         testContext.SANDBOX.restore();
-        forEach(testContext.SANDBOXES, (theSandbox) => theSandbox.restore());
+        forEach(testContext.SANDBOXES, theSandbox => theSandbox.restore());
         testContext.configStubs = {};
     });
 
@@ -377,7 +376,7 @@ export class StreamingMockCometClient extends CometClient {
     public subscribe(channel: string, callback: (message: JsonMap) => void): CometSubscription {
         const subscription: StreamingMockCometSubscription = new StreamingMockCometSubscription(this.options);
         subscription.on('subscriptionComplete', () => {
-            _.each(this.options.messagePlaylist, (message) => {
+            forEach(this.options.messagePlaylist, message => {
                 setTimeout(() => {
                     callback(message);
                 }, 0);

@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { EOL } from 'os';
-import * as _ from 'lodash';
-import { Logger } from './logger';
-import { Org } from './org';
 import { ErrorResult, QueryResult, RecordResult, SuccessResult } from 'jsforce';
-import { SfdxError } from './sfdxError';
+import * as _ from 'lodash';
+import { EOL } from 'os';
+import { Logger } from './logger';
 import { Messages } from './messages';
+import { Org } from './org';
+import { SfdxError } from './sfdxError';
 
 /**
  * Map of fields name for a permission set assignment
@@ -117,7 +117,7 @@ export class PermissionSetAssignment {
                 const errors = (createResponse as ErrorResult).errors;
                 if (errors && errors.length > 0) {
                     message = `${message}:${EOL}`;
-                    _.each((createResponse as ErrorResult).errors, (_message) => {
+                    _.each((createResponse as ErrorResult).errors, _message => {
                         message = `${message}${_message}${EOL}`;
                     });
                     throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');

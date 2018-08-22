@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SfdxError } from '../sfdxError';
 import { ConfigFile, ConfigOptions } from './configFile';
 import { ConfigGroup, ConfigGroupOptions } from './configGroup';
-import { SfdxError } from '../sfdxError';
 
 const ALIAS_FILE_NAME = 'alias.json';
 

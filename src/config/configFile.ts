@@ -14,16 +14,15 @@
  * @property {string} filePath The full file path where the config file is stored.
  */
 
-import { Stats as fsStats, constants as fsConstants } from 'fs';
-import { join as pathJoin, dirname as pathDirname } from 'path';
+import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { isBoolean as _isBoolean, isNil as _isNil } from 'lodash';
-import { BaseConfigStore, ConfigContents } from './configStore';
+import { homedir as osHomedir } from 'os';
+import { dirname as pathDirname, join as pathJoin } from 'path';
 import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
-import { homedir as osHomedir } from 'os';
-import * as fs from '../util/fs';
+import { access, mkdirp, readJsonMap, stat, unlink, writeJson } from '../util/fs';
 import { resolveProjectPath } from '../util/internal';
-import { readJsonMap, writeJson } from '../util/fs';
+import { BaseConfigStore, ConfigContents } from './configStore';
 
 /**
  * The interface for Config options.
@@ -160,7 +159,7 @@ export class ConfigFile extends BaseConfigStore {
      */
     public async access(perm: number): Promise<boolean> {
         try {
-            await fs.access(this.getPath(), perm);
+            await access(this.getPath(), perm);
             return true;
         } catch (err) {
             return false;
@@ -203,7 +202,7 @@ export class ConfigFile extends BaseConfigStore {
             this.setContents(newContents);
         }
 
-        await fs.mkdirp(pathDirname(this.getPath()));
+        await mkdirp(pathDirname(this.getPath()));
 
         await writeJson(this.getPath(), this.toObject());
 
@@ -226,7 +225,7 @@ export class ConfigFile extends BaseConfigStore {
      * @see {@link https://nodejs.org/api/fs.html#fs_fs_fstat_fd_callback|fs.stat}
      */
     public async stat(): Promise<fsStats> {
-        return fs.stat(this.getPath());
+        return stat(this.getPath());
     }
 
     /**
@@ -238,7 +237,7 @@ export class ConfigFile extends BaseConfigStore {
     public async unlink(): Promise<void> {
         const exists = await this.exists();
         if (exists) {
-            return await fs.unlink(this.getPath());
+            return await unlink(this.getPath());
         }
         throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
     }

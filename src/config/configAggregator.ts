@@ -24,11 +24,10 @@
  */
 
 import * as _ from 'lodash';
-
-import { Config, ConfigPropertyMeta } from './config';
 import { SfdxError } from '../sfdxError';
+import { Config, ConfigPropertyMeta } from './config';
 
-const propertyToEnvName = (property) => `SFDX_${_.snakeCase(property).toUpperCase()}`;
+const propertyToEnvName = property => `SFDX_${_.snakeCase(property).toUpperCase()}`;
 
 export const enum LOCATIONS {
     GLOBAL = 'Global',
@@ -121,7 +120,7 @@ export class ConfigAggregator {
      *  **`{name: 'UnknownConfigKey'}`:** An attempt to get a property that's not supported.
      */
     public getPropertyValue(key: string): string | boolean   {
-        if (this.getAllowedProperties().some((element) => key === element.key)) {
+        if (this.getAllowedProperties().some(element => key === element.key)) {
             return this.getConfig()[key];
         } else {
             throw new SfdxError(`Unknown config key: ${key}`, 'UnknownConfigKey');
