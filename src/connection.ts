@@ -5,21 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { JsonMap } from '@salesforce/ts-types';
+import { Tooling as JSForceTooling } from 'jsforce';
+import { ExecuteOptions } from 'jsforce';
+import { QueryResult } from 'jsforce';
+import { RequestInfo } from 'jsforce';
+import { ConnectionOptions } from 'jsforce';
+import { Connection as JSForceConnection } from 'jsforce';
+import { Promise as JsforcePromise } from 'jsforce';
 import * as _ from 'lodash';
 import { isString, maxBy } from 'lodash';
-import { Logger } from './logger';
 import { AuthFields, AuthInfo } from './authInfo';
 import { ConfigAggregator } from './config/configAggregator';
-import { Connection as JSForceConnection } from 'jsforce';
-import { Tooling as JSForceTooling } from 'jsforce';
-import { Promise as JsforcePromise } from 'jsforce';
-import { ConnectionOptions } from 'jsforce';
-import { RequestInfo } from 'jsforce';
-import { QueryResult } from 'jsforce';
-import { ExecuteOptions } from 'jsforce';
+import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { validateApiVersion } from './util/sfdc';
-import { JsonMap } from '@salesforce/ts-types';
 
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
@@ -261,8 +261,8 @@ export class Connection extends JSForceConnection {
 
         return new Promise<QueryResult<T>>((resolve, reject) =>
             this.query<T>(soql, _options)
-                .on('record', ((rec: T) => records.push(rec)))
-                .on('error', (err) => reject(err))
+                .on('record', (rec => records.push(rec)))
+                .on('error', err => reject(err))
                 .on('end', () => resolve({
                     done: true,
                     nextRecordsUrl: null,

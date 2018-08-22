@@ -5,16 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { join as pathJoin } from 'path';
-import * as os from 'os';
-import { isNil } from 'lodash';
 import * as crypto from 'crypto';
-
+import { isNil } from 'lodash';
+import * as os from 'os';
+import { join as pathJoin } from 'path';
+import { retrieveKeychain } from './keyChain';
 import { Logger } from './logger';
 import { Messages } from './messages';
-import { SfdxError } from './sfdxError';
-import { retrieveKeychain } from './keyChain';
 import { SecureBuffer } from './secureBuffer';
+import { SfdxError } from './sfdxError';
 
 const TAG_DELIMITER = ':';
 const BYTE_COUNT_FOR_IV = 6;
@@ -61,7 +60,7 @@ const keychainPromises = {
      */
     setPassword(_keychain, service, account, password): Promise<CredType> {
         return new Promise( (resolve, reject) =>
-            _keychain.setPassword({ service, account, password }, (err) => {
+            _keychain.setPassword({ service, account, password }, err => {
                 if (err) {
                     return reject(err);
                 }

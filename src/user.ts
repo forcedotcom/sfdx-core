@@ -5,20 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { JsonMap } from '@salesforce/ts-types';
+import { OAuth2Options, QueryResult, RequestInfo } from 'jsforce';
+import * as _ from 'lodash';
 import { EOL } from 'os';
-import { SecureBuffer } from './secureBuffer';
+import { DescribeSObjectResult } from '../node_modules/@types/jsforce/describe-result';
+import { AuthFields, AuthInfo } from './authInfo';
 import { Connection } from './connection';
 import { Logger } from './logger';
-import * as _ from 'lodash';
-import { OAuth2Options, QueryResult, RequestInfo } from 'jsforce';
-import { AuthInfo, AuthFields } from './authInfo';
-import { Org } from './org';
-import { validateSalesforceId } from './util/sfdc';
-import { PermissionSetAssignment } from './permissionSetAssignment';
-import { SfdxError } from './sfdxError';
-import { JsonMap } from '@salesforce/ts-types';
 import { Messages } from './messages';
-import { DescribeSObjectResult } from '../node_modules/@types/jsforce/describe-result';
+import { Org } from './org';
+import { PermissionSetAssignment } from './permissionSetAssignment';
+import { SecureBuffer } from './secureBuffer';
+import { SfdxError } from './sfdxError';
+import { validateSalesforceId } from './util/sfdc';
 
 const PASSWORD_LENGTH = 10;
 const LOWER = 'abcdefghijklmnopqrstuvwxyz';
@@ -28,7 +28,7 @@ const NUMBERS = '1234567890';
 const SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '[', ']', '|', '-'];
 const ALL = [LOWER, UPPER, NUMBERS, SYMBOLS.join('')];
 
-const rand = (len) => Math.floor(Math.random() * (len.length || len));
+const rand = len => Math.floor(Math.random() * (len.length || len));
 
 const scimEndpoint = '/services/scim/v1/Users';
 const scimHeaders = { 'auto-approve-user': 'true' };
@@ -65,7 +65,7 @@ async function _retrieveUserFields(username: string): Promise<UserFields> {
 
     const connection: Connection = await Connection.create( await AuthInfo.create(username));
 
-    const fromFields: string[] = _.keys(REQUIRED_FIELDS).map((value) => _.upperFirst(value));
+    const fromFields: string[] = _.keys(REQUIRED_FIELDS).map(value => _.upperFirst(value));
     const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
     const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
 
@@ -398,7 +398,7 @@ export class User {
                 const errors: string[] = _.get(responseBody, 'Errors');
                 if (errors && errors.length > 0) {
                     message = `${message} causes:${EOL}`;
-                    _.each(_.get(responseBody, 'Errors'), (singleMessage) => {
+                    _.each(_.get(responseBody, 'Errors'), singleMessage => {
                         message = `${message}${EOL}${singleMessage.description}`;
                     });
                 }

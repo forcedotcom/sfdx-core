@@ -11,11 +11,11 @@
  * @property {string} defaultGroup The default group for properties to go into.
  */
 
-import * as _ from 'lodash';
-import { ConfigValue, ConfigEntry, ConfigContents } from './configStore';
-import { ConfigFile, ConfigOptions } from './configFile';
-import { SfdxError } from '../sfdxError';
 import { JsonMap } from '@salesforce/ts-types';
+import * as _ from 'lodash';
+import { SfdxError } from '../sfdxError';
+import { ConfigFile, ConfigOptions } from './configFile';
+import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
 
 /**
  * The interface for Config options.

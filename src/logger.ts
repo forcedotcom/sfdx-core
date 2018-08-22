@@ -77,15 +77,15 @@
  * @typedef {string|number|boolean} FieldValue
  */
 
+import * as Bunyan from 'bunyan-sfdx-no-dtrace';
+import * as createDebugUtil from 'debug';
+import * as EventEmitter from 'events';
+import * as _ from 'lodash';
 import * as os from 'os';
 import * as path from 'path';
 import { Writable } from 'stream';
-import * as EventEmitter from 'events';
-import * as Bunyan from 'bunyan-sfdx-no-dtrace';
-import * as _ from 'lodash';
 import { Global, Mode } from './global';
 import { SfdxError } from './sfdxError';
-import * as createDebugUtil from 'debug';
 import * as fs from './util/fs';
 
 export type Serializer = (input: any) => any; // tslint:disable-line:no-any
@@ -173,8 +173,8 @@ export class Logger {
      * @see LoggerLevel
      */
     public static readonly LEVEL_NAMES = Object.values(LoggerLevel)
-        .filter((v) => _.isString(v))
-        .map((v) => v.toLowerCase());
+        .filter(v => _.isString(v))
+        .map(v => v.toLowerCase());
 
     /**
      * Gets the root logger with the default level and file stream.
@@ -264,7 +264,7 @@ export class Logger {
     private static readonly lifecycle = (() => {
         const events = new EventEmitter();
         events.setMaxListeners(0); // never warn on listener counts
-        process.on('uncaughtException', (err) => events.emit('uncaughtException', err));
+        process.on('uncaughtException', err => events.emit('uncaughtException', err));
         process.on('exit', () => events.emit('exit'));
         return events;
     })();
@@ -348,7 +348,7 @@ export class Logger {
         }
 
         // avoid multiple streams to same log file
-        if (!this.bunyan.streams.find((stream) => stream.type === 'file' && stream.path === logFile)) {
+        if (!this.bunyan.streams.find(stream => stream.type === 'file' && stream.path === logFile)) {
             // TODO: rotating-file
             // https://github.com/trentm/node-bunyan#stream-type-rotating-file
             this.addStream({ type: 'file', path: logFile, level: this.bunyan.level() as number });
@@ -465,7 +465,7 @@ export class Logger {
             }, '');
         } else {
             let content = '';
-            this.bunyan.streams.forEach(async (stream) => {
+            this.bunyan.streams.forEach(async stream => {
                 if (stream.type === 'file') {
                     content += await fs.readFile(stream.path, 'utf8');
                 }
@@ -495,7 +495,7 @@ export class Logger {
     public close(fn?: (stream: LoggerStream) => void): void {
         if (this.bunyan.streams) {
             try {
-                this.bunyan.streams.forEach((entry) => {
+                this.bunyan.streams.forEach(entry => {
                     if (fn) {
                         fn(entry);
                     }
@@ -617,7 +617,7 @@ export class Logger {
 
     private applyFilters(logLevel, ...args): undefined | any | any[] { // tslint:disable-line:no-any
         if (this.shouldLog(logLevel)) {
-            this.bunyan.filters.forEach((filter) => args = filter(...args));
+            this.bunyan.filters.forEach(filter => args = filter(...args));
         }
         return args && args.length === 1 ? args[0] : args;
     }
@@ -650,7 +650,7 @@ const FILTERED_KEYS = [
 ];
 
 // SFDX code and plugins should never show tokens or connect app information in the logs
-const _filter = (...args) => args.map((arg) => {
+const _filter = (...args) => args.map(arg => {
     if (_.isArray(arg)) {
         return _filter(...arg);
     }

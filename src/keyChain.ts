@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { keyChainImpl, KeyChain } from './keyChainImpl';
+import { KeyChain, keyChainImpl } from './keyChainImpl';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { isEnvVarTruthy } from './util/internal';

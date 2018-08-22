@@ -8,9 +8,9 @@
  * @module sfdc
  */
 
+import { asJsonMap, isJsonMap, JsonMap } from '@salesforce/ts-types';
+import { endsWith, findKey, includes, isNil } from 'lodash';
 import { URL } from 'url';
-import { findKey, includes, isNil, endsWith } from 'lodash';
-import { JsonMap, asJsonMap, isJsonMap } from '@salesforce/ts-types';
 
 /**
  * Returns `true` if a provided URL contains a Salesforce owned domain.
@@ -41,7 +41,7 @@ export function isSalesforceDomain(urlString: string): boolean {
         'trailhead.salesforce.com'
     ];
 
-    return !isNil(whitelistOfSalesforceDomainPatterns.find((pattern) => endsWith(url.hostname, pattern))) ||
+    return !isNil(whitelistOfSalesforceDomainPatterns.find(pattern => endsWith(url.hostname, pattern))) ||
         includes(whitelistOfSalesforceHosts, url.hostname);
 }
 
