@@ -8,8 +8,7 @@
 import * as _ from 'lodash';
 
 import { Messages } from './messages';
-import { Global, Mode } from './global';
-import { NamedError } from '@salesforce/ts-json';
+import { NamedError } from '@salesforce/kit';
 
 /**
  * A class to manage all the keys and tokens for a message bundle to use with SfdxError.

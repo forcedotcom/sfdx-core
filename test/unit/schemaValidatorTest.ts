@@ -10,7 +10,7 @@ import * as path from 'path';
 import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
 import { SchemaValidator } from '../../src/schemaValidator';
-import { AnyJson, JsonMap, isJsonMap } from '@salesforce/ts-json';
+import { AnyJson, JsonMap, isJsonMap } from '@salesforce/ts-types';
 import { testSetup } from '../../src/testSetup';
 
 const $$ = testSetup();

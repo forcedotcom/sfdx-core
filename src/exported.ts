@@ -106,15 +106,6 @@ export {
 } from './sfdxError';
 
 export {
-    AnyDictionary,
-    AnyJson,
-    Dictionary,
-    JsonArray,
-    JsonMap,
-    Many
-} from '@salesforce/ts-json';
-
-export {
     StatusResult
 } from './status/client';
 

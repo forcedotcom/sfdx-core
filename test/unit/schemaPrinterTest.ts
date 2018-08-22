@@ -12,7 +12,7 @@ import * as path from 'path';
 import { expect } from 'chai';
 import { SchemaPrinter, SchemaPropertyRenderer } from '../../src/schemaPrinter';
 import { LoggerLevel } from '../../src/logger';
-import { JsonMap } from '@salesforce/ts-json';
+import { JsonMap } from '@salesforce/ts-types';
 import { testSetup } from '../../src/testSetup';
 
 const $$ = testSetup();
