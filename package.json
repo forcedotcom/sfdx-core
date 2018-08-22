@@ -31,7 +31,8 @@
     "!lib/**/*.map"
   ],
   "dependencies": {
-    "@salesforce/ts-json": "0.0.2",
+    "@salesforce/kit": "0.0.2",
+    "@salesforce/ts-types": "0.1.0",
     "@types/jsforce": "1.8.12",
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "debug": "^3.1.0",

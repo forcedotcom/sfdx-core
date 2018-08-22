@@ -10,7 +10,7 @@
 
 import { URL } from 'url';
 import { findKey, includes, isNil, endsWith } from 'lodash';
-import { JsonMap, asJsonMap, isJsonMap } from '@salesforce/ts-json';
+import { JsonMap, asJsonMap, isJsonMap } from '@salesforce/ts-types';
 
 /**
  * Returns `true` if a provided URL contains a Salesforce owned domain.
