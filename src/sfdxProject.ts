@@ -119,17 +119,19 @@ export class SfdxProject {
      * @param {boolean} isGlobal True to get the global project file, otherwise the local project config.
      */
     public async retrieveSfdxProjectJson(isGlobal: boolean = false): Promise<SfdxProjectJson> {
-        const prop = `sfdxProjectJson${isGlobal ? 'Global' : ''}`;
         const options = SfdxProjectJson.getDefaultOptions(isGlobal);
-
-        if (!isGlobal) {
+        if (isGlobal) {
+            if (!this.sfdxProjectJsonGlobal) {
+                this.sfdxProjectJsonGlobal = await SfdxProjectJson.retrieve<SfdxProjectJson>(options);
+            }
+            return this.sfdxProjectJsonGlobal;
+        } else {
             options.rootFolder = this.getPath();
+            if (!this.sfdxProjectJson) {
+                this.sfdxProjectJson = await SfdxProjectJson.retrieve<SfdxProjectJson>(options);
+            }
+            return this.sfdxProjectJson;
         }
-
-        if (!this[prop]) {
-            this[prop] = await SfdxProjectJson.retrieve<SfdxProjectJson>(options);
-        }
-        return this[prop];
     }
 
     /**
