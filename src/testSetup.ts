@@ -36,11 +36,11 @@ export interface ConfigStub {
     readFn?: () => Promise<ConfigContents>;
     writeFn?: () => Promise<void>;
     // Used for read and write. Useful between config instances
-    contents?: object;
+    contents?: JsonMap;
     // Useful to override to conditionally get based on the config instance.
-    retrieveContents?: () => Promise<object>;
+    retrieveContents?: () => Promise<JsonMap>;
     // Useful to override to conditionally set based on the config instance.
-    updateContents?: () => Promise<object>;
+    updateContents?: () => Promise<JsonMap>;
 }
 
 /**
@@ -195,14 +195,14 @@ export const testSetup = once((sinon?) => {
         testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake(isGlobal => testContext.rootPathRetriever(isGlobal, testContext.id));
 
         // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
-        testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(async function() {
+        testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(async function(this: ConfigFile) {
             const stub = testContext.configStubs[this.constructor.name] || {};
 
             if (stub.readFn) {
                 return await stub.readFn.call(this);
             }
 
-            let contents = stub.contents || {};
+            let contents: JsonMap = stub.contents || {};
             if (stub.retrieveContents) {
                 contents = await stub.retrieveContents.call(this);
             }
@@ -210,7 +210,7 @@ export const testSetup = once((sinon?) => {
             this.setContentsFromObject(contents);
             return Promise.resolve(this.getContents());
         });
-        testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(newContents) {
+        testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(this: ConfigFile, newContents) {
             if (!testContext.configStubs[this.constructor.name]) {
                 testContext.configStubs[this.constructor.name] = {};
             }
@@ -235,7 +235,7 @@ export const testSetup = once((sinon?) => {
             getPassword: (data, cb) => cb(undefined, '12345678901234567890123456789012')
         }));
 
-        testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(request, options?) {
+        testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(this: Connection, request, options?) {
             if (request === `${this.instanceUrl}/services/data`) {
                 return Promise.resolve([{ version: '42.0' }]);
             }

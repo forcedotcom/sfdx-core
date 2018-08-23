@@ -61,7 +61,7 @@ export type UserFields = {
  * Helper method to lookup UserFields
  * @param username {string} The username
  */
-async function _retrieveUserFields(username: string): Promise<UserFields> {
+async function _retrieveUserFields(this: { logger: Logger }, username: string): Promise<UserFields> {
 
     const connection: Connection = await Connection.create( await AuthInfo.create(username));
 
@@ -128,7 +128,7 @@ export class DefaultUserFields {
     public static async init(templateUser: string, newUserName?: string): Promise<DefaultUserFields> {
         const fields: DefaultUserFields = new DefaultUserFields(newUserName);
         const initLogger: Logger = await Logger.child('DefaultUserFields');
-        const userFields: UserFields = await _retrieveUserFields.call({ logger:  initLogger}, templateUser);
+        const userFields: UserFields = await _retrieveUserFields.call({ logger: initLogger }, templateUser);
         _.merge(fields, userFields);
         fields.profileId = await _retrieveProfileId('Standard User',
             await Connection.create(await AuthInfo.create(templateUser)));

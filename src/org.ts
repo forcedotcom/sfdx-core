@@ -83,17 +83,6 @@ export enum OrgFields {
     // USER_PROFILE_NAME = 'userProfileName'
 }
 
-const _manageDelete = function(cb, dirPath, throwWhenRemoveFails) {
-    return cb().catch(e => {
-        if (throwWhenRemoveFails) {
-            throw e;
-        } else {
-            this.logger.warn(`failed to read directory ${dirPath}`);
-            return;
-        }
-    });
-};
-
 /**
  * Provides a way to manage a locally authenticated Org.
  *
@@ -215,8 +204,7 @@ export class Org {
             throw err;
         }
 
-        return _manageDelete.call(this, async () => await fs.remove(dataPath), dataPath,
-            throwWhenRemoveFails);
+        return this.manageDelete(async () => await fs.remove(dataPath), dataPath, throwWhenRemoveFails);
     }
 
     public async retrieveOrgUsersConfig(): Promise<OrgUsersConfig> {
@@ -268,8 +256,7 @@ export class Org {
             }
 
             const orgUsers: OrgUsersConfig = await this.retrieveOrgUsersConfig();
-            _manageDelete.call(this, async () => await orgUsers.unlink(), orgUsers.getPath(),
-                throwWhenRemoveFails);
+            this.manageDelete(async () => await orgUsers.unlink(), orgUsers.getPath(), throwWhenRemoveFails);
         }
 
         await aliases.write();
@@ -509,5 +496,16 @@ export class Org {
         } else {
             throw new SfdxError('Connection not specified', 'UndefinedConnection');
         }
+    }
+
+    private manageDelete(cb, dirPath, throwWhenRemoveFails): void {
+        return cb().catch(e => {
+            if (throwWhenRemoveFails) {
+                throw e;
+            } else {
+                this.logger.warn(`failed to read directory ${dirPath}`);
+                return;
+            }
+        });
     }
 }
