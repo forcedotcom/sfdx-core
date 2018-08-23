@@ -21,14 +21,6 @@ import { StatusResult } from './client';
  * @abstract
  */
 export abstract class CometClient extends EventEmitter {
-    // tslint:disable-next-line:no-unused-variable
-    private url: string;
-
-    protected constructor(url: string) {
-        super();
-        this.url = url;
-    }
-
     /**
      * Disable polling features.
      * @param {string} label Polling feature label.
