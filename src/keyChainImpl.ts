@@ -371,7 +371,7 @@ export class GenericKeychainAccess {
             if (_.isNil(fileAccessError)) {
 
                 // read it's contents
-                return KeychainConfig.retrieve()
+                return KeychainConfig.retrieve<KeychainConfig>()
                     .then((config: KeychainConfig) => {
                         // validate service name and account just because
                         if ((opts.service === config.get(SecretFields.SERVICE)) && (opts.account === config.get(SecretFields.ACCOUNT))) {
