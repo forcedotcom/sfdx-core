@@ -48,6 +48,7 @@
  * @property {string} userProfileName
  */
 
+import { cloneJson } from '@salesforce/kit';
 import { JsonMap } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
@@ -406,6 +407,7 @@ export class AuthInfo {
         // If options were passed, use those before checking cache and reading an auth file.
         let authConfig: OAuth2Options;
         if (options) {
+            options = cloneJson(options as JsonMap);
             // jwt flow
             // Support both sfdx and jsforce private key values
             if (!options.privateKey && options.privateKeyFile) {
