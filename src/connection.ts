@@ -171,10 +171,10 @@ export class Connection extends JSForceConnection {
      * @returns {Promise<string>} The max API version number. i.e 46.0
      */
     public async retrieveMaxApiVersion(): Promise<string> {
-        const versions: object[] = (await this.request(`${this.instanceUrl}/services/data`)) as object[];
+        const versions: Array<{version: string}> = (await this.request(`${this.instanceUrl}/services/data`)) as Array<{version: string}>;
         this.logger.debug(`response for org versions: ${versions}`);
-        // tslint:disable-next-line:no-any
-        return (maxBy(versions, (version: any) => version.version)).version;
+
+        return (maxBy<{version: string}>(versions, version => version.version)).version;
     }
 
     /**

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { cloneJson } from '@salesforce/kit';
 import * as dns from 'dns';
 import * as _ from 'lodash';
 import { assert, expect } from 'chai';
@@ -346,7 +347,7 @@ describe('AuthInfo', () => {
             });
         });
         describe('AuthInfo', () => {
-            it ('AuthINfo should not have a client secret or decrypted refresh token', () => {
+            it ('should not have a client secret or decrypted refresh token', () => {
                 const authInfoString: string = JSON.stringify(authInfo);
 
                 // verify the returned object doesn't have secrets
@@ -393,6 +394,7 @@ describe('AuthInfo', () => {
                     loginUrl: testMetadata.loginUrl,
                     privateKey: 'authInfoTest/jwt/server.key'
                 };
+                const jwtConfigClone = cloneJson(jwtConfig);
                 const authResponse = {
                     access_token: testMetadata.accessToken,
                     instance_url: testMetadata.instanceUrl,
@@ -424,9 +426,12 @@ describe('AuthInfo', () => {
                 expect(AuthInfo.prototype.init['firstCall'].args[0]).to.equal(jwtConfig);
                 expect(AuthInfo.prototype.update['called']).to.be.true;
                 expect(AuthInfo.prototype['buildJwtConfig']['called']).to.be.true;
-                expect(AuthInfo.prototype['buildJwtConfig']['firstCall'].args[0]).to.equal(jwtConfig);
+                expect(AuthInfo.prototype['buildJwtConfig']['firstCall'].args[0]).to.include(jwtConfig);
                 expect(fs.readFile['called']).to.be.true;
                 expect(AuthInfoConfig.getOptions(testMetadata.jwtUsername).filename).to.equal(`${testMetadata.jwtUsername}.json`);
+
+                // Verify the jwtConfig object was not mutated by init() or buildJwtConfig()
+                expect(jwtConfig).to.deep.equal(jwtConfigClone);
 
                 const expectedAuthConfig = {
                     accessToken: authResponse.access_token,
@@ -562,6 +567,7 @@ describe('AuthInfo', () => {
                 refreshToken: testMetadata.refreshToken,
                 loginUrl: testMetadata.loginUrl
             };
+            const refreshTokenConfigClone = cloneJson(refreshTokenConfig);
             const authResponse = {
                 access_token: testMetadata.accessToken,
                 instance_url: testMetadata.instanceUrl,
@@ -598,8 +604,11 @@ describe('AuthInfo', () => {
             expect(AuthInfo.prototype.init['firstCall'].args[0]).to.equal(refreshTokenConfig);
             expect(AuthInfo.prototype.update['called']).to.be.true;
             expect(AuthInfo.prototype['buildRefreshTokenConfig']['called']).to.be.true;
-            expect(AuthInfo.prototype['buildRefreshTokenConfig']['firstCall'].args[0]).to.equal(refreshTokenConfig);
+            expect(AuthInfo.prototype['buildRefreshTokenConfig']['firstCall'].args[0]).to.include(refreshTokenConfig);
             expect(AuthInfoConfig.getOptions(username).filename).to.equal(`${username}.json`);
+
+            // Verify the refreshTokenConfig object was not mutated by init() or buildRefreshTokenConfig()
+            expect(refreshTokenConfig).to.deep.equal(refreshTokenConfigClone);
 
             const expectedAuthConfig = {
                 accessToken: authResponse.access_token,
@@ -658,7 +667,7 @@ describe('AuthInfo', () => {
             expect(AuthInfo.prototype.init['firstCall'].args[0]).to.equal(refreshTokenConfig);
             expect(AuthInfo.prototype.update['called']).to.be.true;
             expect(AuthInfo.prototype['buildRefreshTokenConfig']['called']).to.be.true;
-            expect(AuthInfo.prototype['buildRefreshTokenConfig']['firstCall'].args[0]).to.equal(refreshTokenConfig);
+            expect(AuthInfo.prototype['buildRefreshTokenConfig']['firstCall'].args[0]).to.deep.equal(refreshTokenConfig);
 
             const expectedAuthConfig = {
                 accessToken: authResponse.access_token,
@@ -703,6 +712,7 @@ describe('AuthInfo', () => {
                 authCode: testMetadata.authCode,
                 loginUrl: testMetadata.loginUrl
             };
+            const authCodeConfigClone = cloneJson(authCodeConfig);
             const authResponse = {
                 access_token: testMetadata.accessToken,
                 instance_url: testMetadata.instanceUrl,
@@ -742,8 +752,11 @@ describe('AuthInfo', () => {
             expect(AuthInfo.prototype.init['firstCall'].args[0]).to.equal(authCodeConfig);
             expect(AuthInfo.prototype.update['called']).to.be.true;
             expect(AuthInfo.prototype['buildWebAuthConfig']['called']).to.be.true;
-            expect(AuthInfo.prototype['buildWebAuthConfig']['firstCall'].args[0]).to.equal(authCodeConfig);
+            expect(AuthInfo.prototype['buildWebAuthConfig']['firstCall'].args[0]).to.include(authCodeConfig);
             expect(AuthInfoConfig.getOptions(username).filename).to.equal(`${username}.json`);
+
+            // Verify the authCodeConfig object was not mutated by init() or buildWebAuthConfig()
+            expect(authCodeConfig).to.deep.equal(authCodeConfigClone);
 
             const expectedAuthConfig = {
                 accessToken: authResponse.access_token,
