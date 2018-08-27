@@ -48,6 +48,7 @@
  * @property {string} userProfileName
  */
 
+import { cloneJson } from '@salesforce/kit';
 import { JsonMap } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
@@ -406,6 +407,7 @@ export class AuthInfo {
         // If options were passed, use those before checking cache and reading an auth file.
         let authConfig: OAuth2Options;
         if (options) {
+            options = cloneJson(options);
             // jwt flow
             // Support both sfdx and jsforce private key values
             if (!options.privateKey && options.privateKeyFile) {
@@ -726,7 +728,7 @@ export class AuthInfo {
         // Make a REST call for the username directly.  Normally this is done via a connection
         // but we don't want to create circular dependencies or lots of snowflakes
         // within this file to support it.
-        const apiVersion = 'v42.0';  // !!! TODO: GET THIS FROM CONFIG.JS !!!
+        const apiVersion = 'v42.0';  // hardcoding to v42.0 just for this call is okay.
         const url = `${_authFields.instance_url}/services/data/${apiVersion}/sobjects/User/${userId}`;
         const headers = Object.assign({ Authorization: `Bearer ${_authFields.access_token}` }, SFDX_HTTP_HEADERS);
 
