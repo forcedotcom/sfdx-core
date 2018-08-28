@@ -142,7 +142,7 @@ describe('User Tests', () => {
             }
         });
 
-        it ('should create a user ', async () => {
+        it ('should create a user', async () => {
             $$.SANDBOX.stub(Connection.prototype, 'requestRaw').callsFake(async () => {
                 return Promise.resolve({
                     statusCode: 201,

@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, assert } from 'chai';
-
-import { Connection, SFDX_HTTP_HEADERS } from '../../src/connection';
-import { AuthInfo } from '../../src/authInfo';
+import { assert, expect } from 'chai';
 import * as jsforce from 'jsforce';
+import { AuthInfo } from '../../src/authInfo';
+import { Connection, SFDX_HTTP_HEADERS } from '../../src/connection';
 import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
@@ -122,7 +121,6 @@ describe('Connection', () => {
 
         expect(queryResults).to.deep.equal({
             done: true,
-            nextRecordsUrl: null,
             totalSize: 6,
             records: [...records1, ...records2]
         });
@@ -145,7 +143,6 @@ describe('Connection', () => {
 
         expect(queryResults).to.deep.equal({
             done: true,
-            nextRecordsUrl: null,
             totalSize: 6,
             records: [...records1, ...records2]
         });

@@ -310,6 +310,7 @@ describe('Org Tests', () => {
                 responseBody = { body: JSON.stringify({ Username: user.username, OrgId: user.orgId }) };
 
                 const userAuth = await AuthInfo.create(user.username, {
+                    authCode: 'test',
                     clientId: user.clientId,
                     clientSecret: user.clientSecret,
                     loginUrl: user.loginUrl

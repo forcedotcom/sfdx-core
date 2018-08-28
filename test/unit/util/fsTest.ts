@@ -6,9 +6,9 @@
  */
 
 import { expect } from 'chai';
-import { testSetup, shouldThrow } from '../../../src/testSetup';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
+import { shouldThrow, testSetup } from '../../../src/testSetup';
 import * as fs from '../../../src/util/fs';
 
 // Setup the test environment.
@@ -109,10 +109,10 @@ describe('util/fs', () => {
             expect(path).to.equal('/');
         });
 
-        it('should return null if not found', async () => {
+        it('should return undefined if not found', async () => {
             statFileStub.returns(Promise.reject(statError));
             const path = await fs.traverseForFile('/foo/bar/baz', 'fizz');
-            expect(path).to.equal(null);
+            expect(path).to.be.undefined;
         });
     });
     describe('readJson', () => {

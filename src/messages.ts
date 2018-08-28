@@ -11,7 +11,8 @@
  * stub issues.
  */
 
-import { AnyJson, JsonMap } from '@salesforce/ts-types';
+import { NamedError } from '@salesforce/kit';
+import { AnyJson, asString, ensureJsonMap, Optional } from '@salesforce/ts-types';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
@@ -186,7 +187,7 @@ export class Messages {
      */
     public static importMessagesDirectory(moduleDirectoryPath: string, truncateToProjectPath: boolean = true, packageName?: string): void {
         let moduleMessagesDirPath = moduleDirectoryPath;
-        let projectRoot: string = moduleDirectoryPath;
+        let projectRoot = moduleDirectoryPath;
 
         if (!path.isAbsolute(moduleDirectoryPath)) {
             throw new Error('Invalid module path. Relative URLs are not allowed.');
@@ -197,7 +198,7 @@ export class Messages {
                 fs.statSync(path.join(projectRoot, 'package.json'));
                 break;
             } catch (err) {
-                if (err.code !== 'ENOENT') { throw err; }
+                if (err.code !== 'ENOENT') throw err;
                 projectRoot = projectRoot.substring(0, projectRoot.lastIndexOf(path.sep));
             }
         }
@@ -207,18 +208,20 @@ export class Messages {
         }
 
         if (!packageName) {
+            const errMessage = `Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.`;
             try {
-                packageName = (this._readFile(path.join(moduleMessagesDirPath, 'package.json')) as JsonMap).name as string;
+                packageName = asString(ensureJsonMap(this._readFile(path.join(moduleMessagesDirPath, 'package.json'))).name);
+                if (!packageName) {
+                    throw new NamedError('MissingPackageName', errMessage);
+                }
             } catch (err) {
-                const error = new Error(`Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.\n${err.message}`);
-                error.name = 'MissingPackageName';
-                throw error;
+                throw new NamedError('MissingPackageName', errMessage, err);
             }
         }
 
         moduleMessagesDirPath += `${path.sep}messages`;
 
-        fs.readdirSync(moduleMessagesDirPath).forEach(file => {
+        for (const file of fs.readdirSync(moduleMessagesDirPath)) {
             const filePath = path.join(moduleMessagesDirPath, file);
             const stat = fs.statSync(filePath);
 
@@ -230,7 +233,7 @@ export class Messages {
                     this.importMessageFile(packageName, filePath);
                 }
             }
-        });
+        }
     }
 
     /**
@@ -243,18 +246,24 @@ export class Messages {
      */
     public static loadMessages(packageName: string, bundleName: string): Messages {
         const key = new Key(packageName, bundleName);
+        let messages: Optional<Messages>;
 
         if (this.isCached(packageName, bundleName)) {
-            return this.bundles.get(key.toString());
+            messages = this.bundles.get(key.toString());
+        } else if (this.loaders.has(key.toString())) {
+            const loader = this.loaders.get(key.toString());
+            if (loader) {
+                messages = loader(Messages.getLocale());
+                this.bundles.set(key.toString(), messages);
+                messages = this.bundles.get(key.toString());
+            }
         }
-        if (this.loaders.has(key.toString())) {
-            const loader: (locale: string) => Messages = this.loaders.get(key.toString());
-            const messages: Messages = loader(Messages.getLocale());
-            this.bundles.set(key.toString(), messages);
-            return this.bundles.get(key.toString());
+        if (messages) {
+            return messages;
         }
+
         // Don't use messages inside messages
-        throw new Error(`Missing bundle ${key.toString()} for locale ${Messages.getLocale()}.`);
+        throw new NamedError('MissingBundleError', `Missing bundle ${key.toString()} for locale ${Messages.getLocale()}.`);
     }
 
     /**
@@ -307,7 +316,7 @@ export class Messages {
     public getMessage(key: string, tokens: any[] = []): string { // tslint:disable-line:no-any
         if (!this.messages.has(key)) {
             // Don't use messages inside messages
-            throw new Error(`Missing message ${this.bundleName}:${key} for locale ${Messages.getLocale()}.`);
+            throw new NamedError('MissingMessageError', `Missing message ${this.bundleName}:${key} for locale ${Messages.getLocale()}.`);
         }
         return util.format(this.messages.get(key), ...tokens);
     }

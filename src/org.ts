@@ -28,7 +28,7 @@
  * @property {string} MISSING The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
  */
 
-import { AnyJson, Dictionary } from '@salesforce/ts-types';
+import { AnyJson, asAnyJson, asJsonArray, asString, Dictionary, ensure, Optional } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import { filter as _filter, get as _get, isString as _isString } from 'lodash';
 import { join as pathJoin } from 'path';
@@ -146,8 +146,8 @@ export class Org {
         if (!connection) {
             org.logger.debug('No connection specified. Trying default configurations');
             connection = isDevHub ?
-                _aggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME).value as string :
-                _aggregator.getInfo(Config.DEFAULT_USERNAME).value as string;
+                asString(_get(_aggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME), 'value')) :
+                asString(_get(_aggregator.getInfo(Config.DEFAULT_USERNAME), 'value'));
             if (!connection) {
                 throw new SfdxError(`No ${isDevHub ? 'default Devhub' : 'default' } username or Connection found.`, 'NoUsername' );
             }
@@ -219,7 +219,6 @@ export class Org {
      * @returns {Promise<void>}
      */
     public async remove(throwWhenRemoveFails?: false): Promise<void> {
-
         // If deleting via the access token there shouldn't be any auth config files
         // so just return;
         if (this.getConnection().isUsingAccessToken()) {
@@ -233,7 +232,7 @@ export class Org {
         for (const auth of auths) {
             const username = auth.getFields().username;
 
-            const aliasKeys = aliases.getKeysByValue(username) || [];
+            const aliasKeys = (username && aliases.getKeysByValue(username)) || [];
             aliases.unsetAll(aliasKeys);
 
             let orgForUser;
@@ -271,16 +270,16 @@ export class Org {
      */
     public async checkScratchOrg(devHubUsername?: string): Promise<Partial<AuthFields>> {
 
-        let targetDevHub: string | boolean = devHubUsername;
+        let targetDevHub = devHubUsername;
         if (!targetDevHub) {
-            targetDevHub = this.configAggregator.getPropertyValue(Config.DEFAULT_DEV_HUB_USERNAME);
+            targetDevHub = asString(this.configAggregator.getPropertyValue(Config.DEFAULT_DEV_HUB_USERNAME));
         }
 
         const devHubConnection = await Connection.create(await AuthInfo.create(targetDevHub as string));
 
-        const thisOrgAuthConfig: Partial<AuthFields> = this.getConnection().getAuthInfoFields();
+        const thisOrgAuthConfig = this.getConnection().getAuthInfoFields();
 
-        const trimmedId: string = trimTo15(thisOrgAuthConfig.orgId);
+        const trimmedId = trimTo15(thisOrgAuthConfig.orgId);
 
         const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg=\'${trimmedId}\'`;
 
@@ -307,7 +306,7 @@ export class Org {
      * Returns the Org object or null if this org is not affiliated with a Dev Hub (according to the local config).
      * @returns {Promise<Org>}
      */
-    public async getDevHubOrg(): Promise<Org> {
+    public async getDevHubOrg(): Promise<Optional<Org>> {
         if (this.isDevHubOrg()) {
             return Promise.resolve(this);
         } else if (this.getField(OrgFields.DEV_HUB_USERNAME)) {
@@ -365,29 +364,35 @@ export class Org {
      * await org.addUsername(userAuth);
      */
     public async addUsername(auth: AuthInfo | string): Promise<Org> {
-
         if (!auth) {
             throw new SfdxError('Missing auth info', 'MissingAuthInfo');
         }
 
-        const _auth: AuthInfo = _isString(auth) ? await AuthInfo.create(auth) : auth;
+        const _auth = _isString(auth) ? await AuthInfo.create(auth) : auth;
         this.logger.debug(`adding username ${_auth.getFields().username}`);
 
-        const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
+        const orgConfig = await this.retrieveOrgUsersConfig();
 
-        const contents: ConfigContents = await orgConfig.read();
-        const usernames = contents.get('usernames') as string[] || [];
+        const contents = await orgConfig.read();
+        // TODO: This is kind of screwy because contents values can be `AnyJson | object`...
+        // needs config refactoring to improve
+        const usernames = asJsonArray(asAnyJson(contents.get('usernames'))) || [];
+
+        if (!Array.isArray(usernames)) {
+            throw new SfdxError('Usernames is not an array', 'UnexpectedDataFormat');
+        }
 
         let shouldUpdate = false;
 
-        const thisUsername = this.getUsername();
+        const thisUsername = ensure(this.getUsername());
         if (!usernames.includes(thisUsername)) {
             usernames.push(thisUsername);
             shouldUpdate = true;
         }
 
-        if (auth) {
-            usernames.push(_auth.getFields().username);
+        const username = _auth.getFields().username;
+        if (username) {
+            usernames.push(username);
             shouldUpdate = true;
         }
 
@@ -395,6 +400,7 @@ export class Org {
             orgConfig.set('usernames', usernames);
             await orgConfig.write();
         }
+
         return this;
     }
 
@@ -436,9 +442,9 @@ export class Org {
 
     /**
      * Returns the admin username used to create the org.
-     * @return {string}
+     * @return {Optional<string>}
      */
-    public getUsername(): string {
+    public getUsername(): Optional<string> {
         return this.getConnection().getUsername();
     }
 

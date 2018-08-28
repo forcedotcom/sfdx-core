@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { asString, JsonMap } from '@salesforce/ts-types';
+import { ensure, JsonMap } from '@salesforce/ts-types';
 import { EventEmitter } from 'events';
 import * as Faye from 'faye';
 import * as _ from 'lodash';
@@ -188,15 +188,10 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
     }
 
     private validateTimeout(newTime: Time, existingTime: Time) {
-        if (newTime) {
-            if (newTime.milliseconds >= existingTime.milliseconds) {
-                return newTime;
-            } else {
-                throw SfdxError.create('@salesforce/core',
-                    'streaming', 'waitParamValidValueError',
-                    [existingTime.minutes]);
-            }
+        if (newTime.milliseconds >= existingTime.milliseconds) {
+            return newTime;
         }
+        throw SfdxError.create('@salesforce/core', 'streaming', 'waitParamValidValueError', [existingTime.minutes]);
     }
 }
 
@@ -328,7 +323,7 @@ export class StreamingClient<T> {
         this.logger = logger;
         this.options = options;
 
-        const instanceUrl: string = asString(options.org.getConnection().getAuthInfoFields().instanceUrl);
+        const instanceUrl = ensure(options.org.getConnection().getAuthInfoFields().instanceUrl);
         const urlElements = [instanceUrl, 'cometd', options.apiVersion];
 
         this.targetUrl = urlElements.join('/');

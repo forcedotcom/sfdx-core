@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { asJsonArray, asJsonMap, asNumber, asString, isJsonMap, JsonArray, JsonMap } from '@salesforce/ts-types';
+import { asJsonArray, asJsonMap, asNumber, asString, isJsonMap, JsonArray, JsonMap, Optional } from '@salesforce/ts-types';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 
@@ -245,40 +245,40 @@ class SchemaProperty {
         return `items(${prop.renderType()}${minItems}) - ${prop.renderTitle()}: ${prop.renderDescription()}`;
     }
 
-    public get title(): string | undefined {
+    public get title(): Optional<string> {
         return asString(this.rawProperty.title);
     }
 
-    public get description(): string | undefined {
+    public get description(): Optional<string> {
         return asString(this.rawProperty.description);
     }
 
-    public get type(): string | undefined { // tslint:disable-line:no-reserved-keywords
+    public get type(): Optional<string> {
         return asString(this.rawProperty.type);
     }
 
-    public get required(): JsonArray | undefined {
+    public get required(): Optional<JsonArray> {
         return asJsonArray(this.rawProperty.required);
     }
 
-    public get properties(): JsonMap | undefined {
+    public get properties(): Optional<JsonMap> {
         return asJsonMap(this.rawProperty.properties);
     }
 
-    public get items(): JsonMap | undefined {
+    public get items(): Optional<JsonMap> {
         return asJsonMap(this.rawProperty.items);
     }
 
-    public get minItems(): number | undefined {
+    public get minItems(): Optional<number> {
         return asNumber(this.rawProperty.minItems);
     }
 
-    public getProperty(key: string): JsonMap | undefined {
+    public getProperty(key: string): Optional<JsonMap> {
         const properties = this.getProperties();
         return asJsonMap(properties && properties[key]);
     }
 
-    public getProperties(): JsonMap | undefined {
+    public getProperties(): Optional<JsonMap> {
         return asJsonMap(this.rawProperty.properties);
     }
 }

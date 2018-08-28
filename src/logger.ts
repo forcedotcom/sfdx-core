@@ -113,7 +113,7 @@ export enum LoggerLevel {
 }
 
 export interface LoggerStream {
-    type?: string; // tslint:disable-line no-reserved-keywords
+    type?: string;
     level?: LoggerLevelValue;
     stream?: Writable;
     name?: string;
@@ -185,19 +185,19 @@ export class Logger {
         if (this.rootLogger) {
             return this.rootLogger;
         }
-        this.rootLogger = new Logger(Logger.ROOT_NAME).setLevel();
+        const rootLogger = this.rootLogger = new Logger(Logger.ROOT_NAME).setLevel();
         // disable log file writing, if applicable
         if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && Global.getEnvironmentMode() !== Mode.TEST) {
-            await this.rootLogger.addLogFileStream(Global.LOG_FILE_PATH);
+            await rootLogger.addLogFileStream(Global.LOG_FILE_PATH);
         }
 
         // The debug library does this for you, but no point setting up the stream if it isn't there
         if (process.env.DEBUG) {
             const debuggers = {};
 
-            debuggers['core'] = createDebugUtil(`${this.rootLogger.getName()}:core`);
+            debuggers['core'] = createDebugUtil(`${rootLogger.getName()}:core`);
 
-            this.rootLogger.addStream({
+            rootLogger.addStream({
                 name: 'debug',
                 stream: new Writable({
                     write: (chunk, encoding, next) => {
@@ -206,7 +206,7 @@ export class Logger {
                         if (json['log']) {
                             debuggerName = json['log'];
                             if (!debuggers[debuggerName]) {
-                                debuggers[debuggerName] = createDebugUtil(`${this.rootLogger.getName()}:${debuggerName}`);
+                                debuggers[debuggerName] = createDebugUtil(`${rootLogger.getName()}:${debuggerName}`);
                             }
                         }
                         debuggers[debuggerName](`${LoggerLevel[json.level]} ${json.msg}`);
@@ -218,7 +218,7 @@ export class Logger {
             });
         }
 
-        return this.rootLogger;
+        return rootLogger;
     }
 
     /**
@@ -270,7 +270,7 @@ export class Logger {
     })();
 
     // The sfdx root logger singleton
-    private static rootLogger: Logger;
+    private static rootLogger?: Logger;
 
     // The actual Bunyan logger
     private bunyan: Bunyan;

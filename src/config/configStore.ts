@@ -21,7 +21,7 @@
  * @typedef {Map<string, ConfigValue>} ConfigContents
  */
 
-import { AnyJson, JsonMap } from '@salesforce/ts-types';
+import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import * as _ from 'lodash';
 
 /**
@@ -46,7 +46,7 @@ export type ConfigContents = Map<string, ConfigValue>;
 export interface ConfigStore {
     // Map manipulation methods
     entries(): ConfigEntry[];
-    get(key): ConfigValue;
+    get(key): Optional<ConfigValue>;
     getKeysByValue(value: ConfigValue): string[];
     has(key): boolean;
     keys(): string[];
@@ -92,9 +92,9 @@ export abstract class BaseConfigStore implements ConfigStore {
     /**
      * Returns the value associated to the key, or undefined if there is none.
      * @param {string} key The key.
-     * @return {ConfigValue}
+     * @return {Optional<ConfigValue>}
      */
-    public get(key: string): ConfigValue { // tslint:disable-next-line no-reserved-keywords
+    public get(key: string): Optional<ConfigValue> {
         return this.contents.get(key);
     }
 
@@ -131,7 +131,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @param {ConfigValue} value The value.
      * @returns {ConfigContents} Returns the config object.
      */
-    public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
+    public set(key: string, value: ConfigValue): ConfigContents {
         return this.contents.set(key, value);
     }
 

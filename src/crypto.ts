@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 import { isNil } from 'lodash';
 import * as os from 'os';
@@ -130,9 +131,9 @@ export class Crypto {
      * Encrypts text.
      *
      * @param {string} text The text to encrypt.
-     * @returns {string|undefined} The encrypted string or undefined if no string was passed.
+     * @returns {Optional<string>} The encrypted string or undefined if no string was passed.
      */
-    public encrypt(text): string | undefined {
+    public encrypt(text): Optional<string> {
         if (isNil(text)) {
             return undefined;
         }
@@ -158,10 +159,10 @@ export class Crypto {
     /**
      * Decrypts text.
      * @param text The text to decrypt.
-     * @returns {string|undefined} If enableTokenEncryption is set to false or not defined in package.json then the text
+     * @returns {Optional<string>} If enableTokenEncryption is set to false or not defined in package.json then the text
      * is simply returned. The text is then assumed to be unencrypted.
      */
-    public decrypt(text): string | undefined {
+    public decrypt(text): Optional<string> {
         if (isNil(text)) {
             return undefined;
         }
