@@ -8,7 +8,7 @@
  * @module sfdc
  */
 
-import { asJsonMap, isJsonMap, JsonMap } from '@salesforce/ts-types';
+import { asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { endsWith, findKey, includes, isNil } from 'lodash';
 import { URL } from 'url';
 
@@ -49,9 +49,9 @@ export function isSalesforceDomain(urlString: string): boolean {
  * Converts an 18 character Salesforce ID to 15 characters.
  *
  * @param {string} id The id to convert.
- * @return {string}
+ * @return {Optional<string>}
  */
-export function trimTo15(id: string): string {
+export function trimTo15(id?: string): Optional<string> {
     if (id && id.length && id.length > 15) {
         id = id.substring(0, 15);
     }
@@ -100,10 +100,10 @@ export function validatePathDoesNotContainInvalidChars(value: string): boolean {
  * Returns the first key within the object that has an upper case first letter.
  *
  * @param {JsonMap} data The object in which to check key casing.
- * @returns {string}
+ * @returns {Optional<string>}
  */
-export function findUpperCaseKeys(data: JsonMap): string {
-    let key: string;
+export function findUpperCaseKeys(data?: JsonMap): Optional<string> {
+    let key: Optional<string>;
     findKey(data, (val, k) => {
         if (k[0] === k[0].toUpperCase()) {
             key = k;

@@ -1,3 +1,4 @@
+import { Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 
 const cipherName: string =  'aes256';
@@ -29,7 +30,7 @@ export class SecureBuffer <T> {
      * overwritten with random data. Do not make a copy of this buffer and persist it!
      * @return T - The value of the callback of type T
      */
-    public value(cb: (buffer: Buffer) => T): T   {
+    public value(cb: (buffer: Buffer) => T): Optional<T> {
         if (cb) {
             const cipher = crypto.createDecipheriv(cipherName, this.key, this.iv);
             const a = cipher.update(this.secret);

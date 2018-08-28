@@ -11,7 +11,7 @@
  * @property {string} defaultGroup The default group for properties to go into.
  */
 
-import { JsonMap } from '@salesforce/ts-types';
+import { JsonMap, Optional } from '@salesforce/ts-types';
 import * as _ from 'lodash';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile, ConfigOptions } from './configFile';
@@ -132,10 +132,10 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Returns a specified element from ConfigGroup.
      * @param {string} key The key.
-     * @returns {ConfigValue} The associated value.
+     * @returns {Optional<ConfigValue>} The associated value.
      * @override
      */
-    public get(key: string): ConfigValue { // tslint:disable-next-line no-reserved-keywords
+    public get(key: string): Optional<ConfigValue> {
         return this.getInGroup(key);
     }
 
@@ -175,7 +175,7 @@ export class ConfigGroup extends ConfigFile {
      * @returns {ConfigContents}
      * @override
      */
-    public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
+    public set(key: string, value: ConfigValue): ConfigContents {
         if (!this.getContents().has(this.defaultGroup)) {
             this.getContents().set(this.defaultGroup, new Map<string, ConfigValue>());
         }
@@ -195,7 +195,7 @@ export class ConfigGroup extends ConfigFile {
         if (groupContents) {
             return groupContents.delete(key);
         }
-        return;
+        return false;
     }
 
     /**
@@ -219,14 +219,13 @@ export class ConfigGroup extends ConfigFile {
      * Returns the value associated to the key and group, or undefined if there is none.
      * @param {string} key The key.
      * @param {string} [group ='default'] The group. Defaults to the default group.
-     * @returns {ConfigValue}
+     * @returns {Optional<ConfigValue>}
      */
-    public getInGroup(key: string, group?: string): ConfigValue {
+    public getInGroup(key: string, group?: string): Optional<ConfigValue> {
         const groupContents = this.getGroup(group);
         if (groupContents) {
             return groupContents.get(key);
         }
-        return;
     }
 
     /**

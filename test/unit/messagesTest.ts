@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { assert, expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { assert, expect } from 'chai';
-
 import { Messages } from '../../src/messages';
-import { testSetup } from '../../src/testSetup';
 import { SfdxError } from '../../src/sfdxError';
+import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ensure, Optional } from '@salesforce/ts-types';
 import * as childProcess from 'child_process';
 import * as nodeFs from 'fs';
 import * as _ from 'lodash';
@@ -90,8 +91,9 @@ export class KeychainAccess {
      * @param opts Options for the credential lookup.
      * @param fn Callback function (err, password).
      * @param retryCount Used internally to track the number of retries for getting a password out of the keychain.
+     * @returns {Promise<Optional<string>>}
      */
-    public async getPassword(opts, fn, retryCount = 0): Promise<string> {
+    public async getPassword(opts, fn, retryCount = 0): Promise<Optional<string>> {
         if (_.isNil(opts.service)) {
             fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
             return;
@@ -436,7 +438,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 
     protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<void> {
         const secretFile: string = path.join(await ConfigFile.resolveRootFolder(true),
-            Global.STATE_FOLDER, KeychainConfig.getDefaultOptions().filename);
+            Global.STATE_FOLDER, ensure(KeychainConfig.getDefaultOptions().filename));
         await super.isValidFileAccess(async err => {
             if (!_.isNil(err)) {
                 await cb(err);
@@ -452,7 +454,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
                         '@salesforce/core',
                         'encryption',
                         'GenericKeychainInvalidPermsError',
-                        null,
+                        undefined,
                         'GenericKeychainInvalidPermsErrorAction',
                         [secretFile, EXPECTED_OCTAL_PERM_VALUE]
                     );

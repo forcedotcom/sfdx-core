@@ -70,7 +70,7 @@ export class SfdxProject {
      * @throws InvalidProjectWorkspace If the current folder is not located in a workspace.
      * @returns {Promise<SfdxProject>} The resolved project.
      */
-    public static async resolve(path ?: string): Promise<SfdxProject> {
+    public static async resolve(path?: string): Promise<SfdxProject> {
         return new SfdxProject(await this.resolveProjectPath(path));
     }
 
@@ -83,7 +83,7 @@ export class SfdxProject {
      * @see fs.traverseForFile
      * @see {@link https://nodejs.org/api/process.html#process_process_cwd|process.cwd()}
      */
-    public static async resolveProjectPath(dir: string): Promise<string> {
+    public static async resolveProjectPath(dir?: string): Promise<string> {
         return resolveProjectPath(dir);
     }
 

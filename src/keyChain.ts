@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { env } from '@salesforce/kit';
 import { KeyChain, keyChainImpl } from './keyChainImpl';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
-import { isEnvVarTruthy } from './util/internal';
 
 /**
  * Gets the os level keychain impl.
@@ -21,7 +21,7 @@ export const retrieveKeychain = async (platform): Promise<KeyChain> => {
     const logger: Logger = await Logger.child('keyChain');
     logger.debug(`platform: ${platform}`);
 
-    const useGenericUnixKeychainVar = isEnvVarTruthy('SFDX_USE_GENERIC_UNIX_KEYCHAIN');
+    const useGenericUnixKeychainVar = env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN');
     const shouldUseGenericUnixKeychain = !!useGenericUnixKeychainVar && useGenericUnixKeychainVar;
 
     if (/^win/.test(platform)) {

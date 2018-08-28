@@ -26,6 +26,7 @@
  * @property {function} list `() => string[]` List the Org defaults.
  */
 
+import { ensure } from '@salesforce/ts-types';
 import * as _ from 'lodash';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
@@ -215,7 +216,7 @@ export class Config extends ConfigFile {
      * The value of a supported config property.
      * @param {boolean} isGlobal True for a global config. False for a local config.
      * @param {string} propertyName The name of the property to set.
-     * @param {string | boolean} value The property value.
+     * @param {ConfigValue} [value] The property value.
      * @returns {Promise<object>}
      */
     public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<object> {
@@ -288,11 +289,11 @@ export class Config extends ConfigFile {
     /**
      * Sets a value for a property.
      * @param {string} propertyName The property to set.
-     * @param {string | boolean} value The value of the property.
+     * @param {ConfigValue} value The value of the property.
      * @returns {Promise<void>}
      * @throws {SfdxError} **`{name: 'InvalidConfigValue'}`** Invalid configuration value.
      */
-    public set(key: string, value: ConfigValue): ConfigContents { // tslint:disable-next-line no-reserved-keywords
+    public set(key: string, value: ConfigValue): ConfigContents {
 
         const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
 
@@ -360,7 +361,7 @@ export class Config extends ConfigFile {
 
             this.forEach((key, value) => {
                 if (this.getPropertyConfig(key).encrypted) {
-                    this.set(key, encrypt ? this.crypto.encrypt(value) : this.crypto.decrypt(value));
+                    this.set(key, ensure(encrypt ? this.crypto.encrypt(value) : this.crypto.decrypt(value)));
                 }
             });
         }

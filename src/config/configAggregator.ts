@@ -23,6 +23,7 @@
  * @property {function} isEnvVar `() => boolean` Location is `LOCATIONS.ENVIRONMENT`.
  */
 
+import { Optional } from '@salesforce/ts-types';
 import * as _ from 'lodash';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
@@ -40,9 +41,9 @@ export const enum LOCATIONS {
  */
 export interface ConfigInfo {
     key: string;
-    location: LOCATIONS;
+    location?: LOCATIONS;
     value: string | boolean;
-    path: string;
+    path?: string;
     /**
      * @returns true if the config property is in the local project
      */
@@ -131,11 +132,10 @@ export class ConfigAggregator {
      * Get a resolved config property.
      *
      * @param {string} key The key of the property.
-     * @returns {ConfigInfo} The value of the property.
+     * @returns {ConfigInfo}
      */
     public getInfo(key: string): ConfigInfo {
         const location = this.getLocation(key);
-
         return {
             key,
             location,
@@ -156,20 +156,18 @@ export class ConfigAggregator {
      * 1. `LOCATIONS.ENVIRONMENT` if resolved to the global config.
      *
      * @param {string} key The key of the property.
-     * @returns {LOCATIONS}
+     * @returns {Optional<LOCATIONS>}
      */
-    public getLocation(key: string): LOCATIONS {
+    public getLocation(key: string): Optional<LOCATIONS> {
         if (!_.isNil(this.getEnvVars().get(key))) {
             return LOCATIONS.ENVIRONMENT;
         }
-
         if (this.getLocalConfig() && this.getLocalConfig().get(key)) {
             return LOCATIONS.LOCAL;
         }
         if (this.getGlobalConfig() && this.getGlobalConfig().get(key)) {
             return LOCATIONS.GLOBAL;
         }
-        return null;
     }
 
     /**
@@ -179,14 +177,15 @@ export class ConfigAggregator {
      * 1. `$SFDX_LOG_LEVEL` if resolved to an environment variable.
      * 1. `./.sfdx/sfdx-config.json` if resolved to the local config.
      * 1. `~/.sfdx/sfdx-config.json` if resolved to the global config.
+     * 1. `undefined`, if not resolved.
      *
-     * **Note:** that the path returns may be the absolute path instead of
-     * `./` and `~/`.
+     * **Note:** that the path returned may be the absolute path instead of
+     * relative paths such as `./` and `~/`.
      *
      * @param {string} key The key of the property.
-     * @returns {string}
+     * @returns {Optional<string>}
      */
-    public getPath(key: string): string {
+    public getPath(key: string): Optional<string> {
         if (!_.isNil(this.envVars[key])) {
             return `\$${propertyToEnvName(key)}`;
         }
@@ -196,7 +195,6 @@ export class ConfigAggregator {
         if (!_.isNil(_.get(this.getGlobalConfig(), `contents[${key}]`))) {
             return this.getGlobalConfig().getPath();
         }
-        return null;
     }
 
     /**
@@ -212,8 +210,10 @@ export class ConfigAggregator {
      * @returns {ConfigInfo[]}
      */
     public getConfigInfo(): ConfigInfo[] {
-        const info = _.map(_.keys(this.getConfig()), (key: string) => this.getInfo(key));
-        return _.sortBy(info, 'key');
+        const infos = Object.keys(this.getConfig())
+            .map(key => this.getInfo(key))
+            .filter((info): info is ConfigInfo => !!info);
+        return _.sortBy(infos, 'key');
     }
 
     /**
@@ -303,7 +303,6 @@ export class ConfigAggregator {
 
         this.setConfig(_.reduce(configs.filter(_.isObject), (result, configElement) =>
             _.merge(result, configElement), {}));
-
     }
 
     /**

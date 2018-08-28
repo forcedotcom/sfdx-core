@@ -4,7 +4,8 @@
         "sourceRoot": "./src",
         "outDir": "./lib",
         "noImplicitThis": true,
-        "strictFunctionTypes": true
+        "strictFunctionTypes": true,
+        "strictNullChecks": true
     },
     "include": [
         "./src/**/*.ts"

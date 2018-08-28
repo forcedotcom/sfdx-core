@@ -9,7 +9,7 @@
  */
 
 import { parseJson, parseJsonMap } from '@salesforce/kit';
-import { AnyJson, JsonMap } from '@salesforce/ts-types';
+import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import * as fs from 'fs';
 import * as mkdirpLib from 'mkdirp';
 import * as path from 'path';
@@ -146,10 +146,10 @@ export async function remove(dirPath: string): Promise<void> {
  *
  * @param {string} dir The directory path in which to start the upward search.
  * @param {string} file The file name to look for.
- * @returns {Promise<string>}
+ * @returns {Promise<Optional<string>>}
  */
-export async function traverseForFile(dir: string, file: string): Promise<string> {
-    let foundProjectDir: string = null;
+export async function traverseForFile(dir: string, file: string): Promise<Optional<string>> {
+    let foundProjectDir: Optional<string>;
     try {
         await stat(path.join(dir, file));
         foundProjectDir = dir;

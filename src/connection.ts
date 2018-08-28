@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { JsonMap } from '@salesforce/ts-types';
+import { asString, ensure, JsonMap, Optional } from '@salesforce/ts-types';
 import { Tooling as JSForceTooling } from 'jsforce';
 import { ExecuteOptions } from 'jsforce';
 import { QueryResult } from 'jsforce';
@@ -75,7 +75,7 @@ export class Connection extends JSForceConnection {
     public static async create(authInfo: AuthInfo, configAggregator?: ConfigAggregator): Promise<Connection> {
         const logger = await Logger.child('connection');
         const _aggregator = configAggregator || await ConfigAggregator.create();
-        const versionFromConfig = _aggregator.getInfo('apiVersion').value as string;
+        const versionFromConfig = asString(_aggregator.getInfo('apiVersion').value);
         const baseOptions: ConnectionOptions = {
             // Set the API version obtained from the config aggregator.
             // Will use jsforce default if undefined.
@@ -171,12 +171,12 @@ export class Connection extends JSForceConnection {
      * @returns {Promise<string>} The max API version number. i.e 46.0
      */
     public async retrieveMaxApiVersion(): Promise<string> {
-        const versions: Array<{version: string}> = (await this.request(`${this.instanceUrl}/services/data`)) as Array<{version: string}>;
+        type Versioned = { version: string };
+        const versions = (await this.request(`${this.instanceUrl}/services/data`)) as Versioned[];
         this.logger.debug(`response for org versions: ${versions}`);
-
-        return (maxBy<{version: string}>(versions, version => version.version)).version;
+        const max = ensure(maxBy<Versioned>(versions, version => version.version));
+        return max.version;
     }
-
     /**
      * Use the latest API version available on `this.instanceUrl`.
      */
@@ -223,9 +223,9 @@ export class Connection extends JSForceConnection {
 
     /**
      * Getter for the username of the Salesforce Org
-     * @returns {string}
+     * @returns {Optional<string>}
      */
-    public getUsername(): string {
+    public getUsername(): Optional<string> {
         return this.getAuthInfoFields().username;
     }
 
@@ -251,7 +251,7 @@ export class Connection extends JSForceConnection {
      * fetch size is 10,000 records.  Modify this via the options argument.
      * @param {string} soql The SOQL string.
      * @param {ExecuteOptions} options The query options.  NOTE: the autoFetch option will always be true.
-     * @returns {Promise.<QueryResult<T>>}
+     * @returns {Promise<QueryResult<T>>}
      */
     public async autoFetchQuery<T>(soql: string, options: ExecuteOptions = {}): Promise<QueryResult<T>> {
         const _options: ExecuteOptions = Object.assign(options, { autoFetch: true });
@@ -265,7 +265,6 @@ export class Connection extends JSForceConnection {
                 .on('error', err => reject(err))
                 .on('end', () => resolve({
                     done: true,
-                    nextRecordsUrl: null,
                     totalSize: records.length,
                     records
                 }))

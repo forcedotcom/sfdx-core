@@ -49,7 +49,7 @@
  */
 
 import { cloneJson } from '@salesforce/kit';
-import { JsonMap } from '@salesforce/ts-types';
+import { AnyJson, asString, ensure, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
 import { OAuth2, OAuth2Options } from 'jsforce';
@@ -98,7 +98,7 @@ class JwtOAuth2 extends OAuth2 {
         super(options);
     }
 
-    public async jwtAuthorize(innerToken: string, callback?): Promise<any> { // tslint:disable-line:no-any
+    public async jwtAuthorize(innerToken: string, callback?): Promise<AnyJson> { // tslint:disable-line:no-any
         return super['_postParams']({
             grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             assertion: innerToken
@@ -388,7 +388,7 @@ export class AuthInfo {
      * @private
      * @constructor
      */
-    private constructor(username: string) {
+    private constructor(username?: string) {
         this.fields.username = username;
     }
 
@@ -426,18 +426,19 @@ export class AuthInfo {
             // Update the auth fields WITH encryption
             this.update(authConfig);
         } else {
-            if (AuthInfo.cache.has(this.getUsername())) {
-                authConfig = AuthInfo.cache.get(this.getUsername());
+            const username = ensure(this.getUsername());
+            if (AuthInfo.cache.has(username)) {
+                authConfig = ensure(AuthInfo.cache.get(username));
             } else {
                 // Fetch from the persisted auth file
                 try {
                     const config: AuthInfoConfig =
-                        await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.getUsername()));
+                        await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
                     await config.read(true);
                     authConfig = config.toObject();
                 } catch (e) {
                     if (e.code === 'ENOENT') {
-                        throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [this.getUsername()]);
+                        throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [username]);
                     } else {
                         throw e;
                     }
@@ -448,7 +449,7 @@ export class AuthInfo {
         }
 
         // Cache the fields by username (fields are encrypted)
-        AuthInfo.cache.set(this.getUsername(), this.fields);
+        AuthInfo.cache.set(ensure(this.getUsername()), this.fields);
 
         return this;
     }
@@ -457,7 +458,7 @@ export class AuthInfo {
      * Get the username.
      * @returns {string}
      */
-    public getUsername(): string {
+    public getUsername(): Optional<string> {
         return this.fields.username;
     }
 
@@ -503,7 +504,8 @@ export class AuthInfo {
      */
     public async save(authData?: AuthFields): Promise<AuthInfo> {
         this.update(authData);
-        AuthInfo.cache.set(this.getUsername(), this.fields);
+        const username = ensure(this.getUsername());
+        AuthInfo.cache.set(username, this.fields);
 
         const dataToSave = _.clone(this.fields);
 
@@ -515,7 +517,7 @@ export class AuthInfo {
 
         this.logger.debug(dataToSave);
 
-        const config: ConfigFile = await AuthInfoConfig.create(AuthInfoConfig.getOptions(this.getUsername()));
+        const config: ConfigFile = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
         config.setContentsFromObject(dataToSave as JsonMap);
         await config.write();
 
@@ -530,8 +532,8 @@ export class AuthInfo {
      * @param {boolean} encrypt Encrypt the fields.
      * @returns {AuthInfo} For convenience `this` object is returned.
      */
-    public update(authData: AuthFields, encrypt: boolean = true): AuthInfo {
-        if (_.isPlainObject(authData)) {
+    public update(authData?: AuthFields, encrypt: boolean = true): AuthInfo {
+        if (authData && _.isPlainObject(authData)) {
             if (encrypt) {
                 authData = authInfoCrypto.encryptFields(authData);
             }
@@ -610,7 +612,7 @@ export class AuthInfo {
      */
     public getSfdxAuthUrl(): string {
         const decryptedFields = authInfoCrypto.decryptFields(this.fields);
-        const instanceUrl = decryptedFields.instanceUrl.replace(/^https?:\/\//, '');
+        const instanceUrl = ensure(decryptedFields.instanceUrl).replace(/^https?:\/\//, '');
         let sfdxAuthUrl = 'force://';
 
         if (decryptedFields.clientId) {
@@ -644,7 +646,7 @@ export class AuthInfo {
 
     // Build OAuth config for a JWT auth flow
     private async buildJwtConfig(options: OAuth2Options): Promise<AuthFields> {
-        const privateKeyContents = await fs.readFile(options.privateKey, 'utf8');
+        const privateKeyContents = await fs.readFile(ensure(options.privateKey), 'utf8');
         const audienceUrl = getJwtAudienceUrl(options);
         const jwtToken = await jwt.sign(
             {
@@ -660,23 +662,26 @@ export class AuthInfo {
         );
 
         const oauth2 = new JwtOAuth2({ loginUrl : options.loginUrl });
-        let _authFields;
+        let _authFields: JsonMap;
         try {
-            _authFields = await oauth2.jwtAuthorize(jwtToken);
+            _authFields = ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
         } catch (err) {
             throw SfdxError.create('@salesforce/core', 'core', 'JWTAuthError', [err.message]);
         }
 
         const authFields: AuthFields = {
-            accessToken: _authFields.access_token,
+            accessToken: asString(_authFields.access_token),
             orgId: _parseIdUrl(_authFields.id).orgId,
             loginUrl: options.loginUrl,
             privateKey: options.privateKey
         };
+
+        const instanceUrl = ensureString(_authFields.instance_url);
+        const parsedUrl = urlParse(instanceUrl);
         try {
             // Check if the url is resolvable. This can fail when my-domains have not been replicated.
-            await this.lookup(urlParse(_authFields.instance_url).hostname);
-            authFields.instanceUrl = _authFields.instance_url;
+            await this.lookup(ensure(parsedUrl.hostname));
+            authFields.instanceUrl = instanceUrl;
         } catch (err) {
             this.logger.debug(`Instance URL [${_authFields.instance_url}] is not available.  DNS lookup failed. Using loginUrl [${options.loginUrl}] instead. This may result in a "Destination URL not reset" error.`);
             authFields.instanceUrl = options.loginUrl;
@@ -694,7 +699,7 @@ export class AuthInfo {
         const oauth2 = new OAuth2(options);
         let _authFields;
         try {
-            _authFields = await oauth2.refreshToken(options.refreshToken);
+            _authFields = await oauth2.refreshToken(ensure(options.refreshToken));
         } catch (err) {
             throw SfdxError.create('@salesforce/core', 'core', 'RefreshTokenAuthError', [err.message]);
         }
@@ -718,7 +723,7 @@ export class AuthInfo {
         let _authFields;
         try {
             this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
-            _authFields = await oauth2.requestToken(options.authCode);
+            _authFields = await oauth2.requestToken(ensure(options.authCode));
         } catch (err) {
             throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeExchangeError', [err.message]);
         }

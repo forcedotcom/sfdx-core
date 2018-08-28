@@ -5,21 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { cloneJson } from '@salesforce/kit';
-import * as dns from 'dns';
-import * as _ from 'lodash';
 import { assert, expect } from 'chai';
-import { AuthInfo, AuthFields } from '../../src/authInfo';
+import * as dns from 'dns';
+import { OAuth2 } from 'jsforce';
+import * as Transport from 'jsforce/lib/transport';
+import * as jwt from 'jsonwebtoken';
+import * as _ from 'lodash';
+import { includes as _includes, toUpper as _toUpper } from 'lodash';
+import { AuthFields, AuthInfo } from '../../src/authInfo';
 import { AuthInfoConfig } from '../../src/config/authInfoConfig';
 import { ConfigFile } from '../../src/config/configFile';
 import { ConfigContents, ConfigValue } from '../../src/config/configStore';
 import { Crypto } from '../../src/crypto';
-import { OAuth2 } from 'jsforce';
-import * as Transport from 'jsforce/lib/transport';
-import * as jwt from 'jsonwebtoken';
-import { testSetup } from '../../src/testSetup';
-import { SfdxError } from '../../src/sfdxError';
-import { toUpper as _toUpper, includes as _includes } from 'lodash';
 import { ConfigAggregator } from '../../src/exported';
+import { SfdxError } from '../../src/sfdxError';
+import { testSetup } from '../../src/testSetup';
 import * as fs from '../../src/util/fs';
 
 const TEST_KEY = {
@@ -41,7 +41,7 @@ describe('AuthInfo No fs mock', () => {
             setPassword: () => Promise.resolve(),
             getPassword: (data, cb) => cb(undefined, TEST_KEY.key)
         }));
-        $$.SANDBOX.stub(AuthInfoConfig.prototype, 'read').callsFake(async function() {
+        $$.SANDBOX.stub(AuthInfoConfig.prototype, 'read').callsFake(async () => {
             const error = new SfdxError('Test error', 'testError');
             error['code'] = 'ENOENT';
             return Promise.reject(error);
@@ -51,7 +51,7 @@ describe('AuthInfo No fs mock', () => {
     it('missing config', async () => {
         const expectedErrorName = 'NamedOrgNotFound';
         try {
-            await AuthInfo.create('doesnot_exist@gb.com');
+            await AuthInfo.create('does_not_exist@gb.com');
             assert.fail(`should have thrown error with name: ${expectedErrorName}`);
         } catch (e) {
             expect(e).to.have.property('name', expectedErrorName);
@@ -217,7 +217,7 @@ describe('AuthInfo', () => {
 
         testMetadata = new MetaAuthDataMock();
 
-        $$.SANDBOX.stub(fs, 'stat').callsFake(async (path) => {
+        $$.SANDBOX.stub(fs, 'stat').callsFake(async path => {
             return testMetadata.statForKeyFile(path);
         });
 
@@ -296,9 +296,9 @@ describe('AuthInfo', () => {
 
         // Walk an object deeply looking for the attribute name of clientSecret or values that contain the client secret
         // or decrypted refresh token.
-        const walkAndSearchForSecrets = function(obj: object) {
+        const walkAndSearchForSecrets = (obj: object) => {
             const keys = _.keys(obj);
-            keys.forEach((key) => {
+            keys.forEach(key => {
                 if (_.isObject(obj[key])) {
                     walkAndSearchForSecrets(obj[key]);
                 }
@@ -362,7 +362,7 @@ describe('AuthInfo', () => {
 
     describe('create()', () => {
         it('should return an AuthInfo instance when passed an access token as username', async () => {
-            $$.SANDBOX.stub(ConfigAggregator.prototype, 'loadProperties').callsFake(async function() {});
+            $$.SANDBOX.stub(ConfigAggregator.prototype, 'loadProperties').callsFake(async () => { });
             $$.SANDBOX.stub(ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
 
             const username = '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';

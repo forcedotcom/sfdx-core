@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { JsonMap } from '@salesforce/ts-types';
+import { ensureJsonMap, ensureString } from '@salesforce/ts-types';
 import { OAuth2Options, QueryResult, RequestInfo } from 'jsforce';
 import * as _ from 'lodash';
 import { EOL } from 'os';
@@ -59,7 +59,7 @@ export type UserFields = {
 
 /**
  * Helper method to lookup UserFields
- * @param username {string} The username
+ * @param {string} username The username
  */
 async function _retrieveUserFields(this: { logger: Logger }, username: string): Promise<UserFields> {
 
@@ -96,8 +96,8 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
 
 /**
  * Gets the profile id associated with a profile name.
- * @param name {string} The name of the profile.
- * @param connection {Connection} The connection for the query.
+ * @param {string} name The name of the profile.
+ * @param {Connection} connection The connection for the query.
  */
 async function _retrieveProfileId(name: string, connection: Connection): Promise<string> {
     if (!validateSalesforceId(name)) {
@@ -122,8 +122,8 @@ export class DefaultUserFields {
     /**
      * Used to initialize default values for fields based on a templateUser user. This user will be part of the
      * Standard User profile.
-     * @param templateUser {string} The user to base the new user on. It's assumed the template user exists on the org already.
-     * @param newUserName {string} The name for the new user.
+     * @param {string} templateUser The user to base the new user on. It's assumed the template user exists on the org already.
+     * @param {string} [newUserName] The name for the new user.
      */
     public static async init(templateUser: string, newUserName?: string): Promise<DefaultUserFields> {
         const fields: DefaultUserFields = new DefaultUserFields(newUserName);
@@ -156,9 +156,9 @@ export class DefaultUserFields {
 
     /**
      * Constructor
-     * @param username The login username for User
+     * @param {string} [username] The login username for User
      */
-    private constructor(username: string) {
+    private constructor(username?: string) {
         this.username = `${Date.now()}_${username}`;
     }
 }
@@ -171,7 +171,7 @@ export class User {
 
     /**
      * Initialize a new instance of a user.
-     * @param org {Org} The org associated with the user.
+     * @param {Org} org The org associated with the user.
      * @returns {User} A user instance
      */
     public static async init(org: Org): Promise<User> {
@@ -213,8 +213,8 @@ export class User {
     /**
      * Assigns a password to a user. For a user to have the ability to assign their own password, the org needs the
      * following org preference: SelfSetPasswordInApi
-     * @param info {AuthInfo} The AuthInfo object for user to assign the password to.
-     * @param password {SecureBuffer} [throwWhenRemoveFails = User.generatePasswordUtf8()] A SecureBuffer containing the new password.
+     * @param {AuthInfo} info The AuthInfo object for user to assign the password to.
+     * @param {SecureBuffer} password [throwWhenRemoveFails = User.generatePasswordUtf8()] A SecureBuffer containing the new password.
      */
     public async assignPassword(info: AuthInfo, password: SecureBuffer<void> = User.generatePasswordUtf8()) {
 
@@ -238,8 +238,8 @@ export class User {
 
     /**
      * Methods to assign one or more permission set names to a user.
-     * @param id {string} The Salesforce id of the user to assign the permission set to.
-     * @param permsetNames {string[]} An array of permission set names.
+     * @param {string} id The Salesforce id of the user to assign the permission set to.
+     * @param {string[]} permsetNames An array of permission set names.
      *
      * @example
      * const org = await Org.create(await Connection.create(await AuthInfo.create('standardUser')));
@@ -275,7 +275,7 @@ export class User {
      * Standard User Licenses
      * Salesforce CRM Content User
      *
-     * @param fields {UserFields} The required fields for creating a user.
+     * @param {UserFields} fields The required fields for creating a user.
      * @returns {Promise<AuthInfo>} An AuthInfo object for the new user.
      *
      * @example
@@ -319,7 +319,7 @@ export class User {
 
     /**
      * Method to retrieve the UserFields for a user.
-     * @param username {string} The username of the user
+     * @param {string} username The username of the user
      *
      * @example
      * const org = await Org.create(await Connection.create(await AuthInfo.create('fooUser')));
@@ -332,7 +332,7 @@ export class User {
 
     /**
      * Helper method that verifies the server's User object is available and if so allows persisting the Auth information.
-     * @param newUserAuthInfo {AuthInfo} The AuthInfo for the new user.
+     * @param {AuthInfo} newUserAuthInfo The AuthInfo for the new user.
      */
     private async describeUserAndSave(newUserAuthInfo: AuthInfo): Promise<AuthInfo> {
 
@@ -353,7 +353,7 @@ export class User {
 
     /**
      * Helper that makes a REST request to create the user, and update additional required fields.
-     * @param fields {UserFields} The configuration the new user should have.
+     * @param {UserFields} fields The configuration the new user should have.
      */
     private async createUserInternal(fields: UserFields): Promise<{ buffer: SecureBuffer<string>, userId: string }> {
 
@@ -386,12 +386,12 @@ export class User {
             body
         };
 
-        const response: JsonMap = await this.org.getConnection().requestRaw(info);
+        const response = await this.org.getConnection().requestRaw(info);
         const responseBody = JSON.parse(response['body'] as string);
 
         this.logger.debug(`user create response.statusCode: ${response.statusCode}`);
         if (!(response.statusCode === 201 || response.statusCode === 200)) {
-            const messages: Messages = Messages.loadMessages('@salesforce/core', 'user');
+            const messages = Messages.loadMessages('@salesforce/core', 'user');
             let message = messages.getMessage('invalidHttpResponseCreatingUser', [response.statusCode]);
 
             if (responseBody) {
@@ -410,8 +410,10 @@ export class User {
         fields.id = responseBody['id'];
         await this.updateRequiredUserFields(fields);
 
-        const buffer: SecureBuffer<string> = new SecureBuffer<string>();
-        buffer.consume(Buffer.from(response.headers['auto-approve-user']));
+        const buffer = new SecureBuffer<string>();
+        const headers = ensureJsonMap(response.headers);
+        const autoApproveUser = ensureString(headers['auto-approve-user']);
+        buffer.consume(Buffer.from(autoApproveUser));
         return {
             buffer,
             userId: responseBody.id
@@ -420,7 +422,7 @@ export class User {
 
     /**
      * Update the remaining required fields for the user.
-     * @param fields {UserFields} The fields for the user.
+     * @param {UserFields} fields The fields for the user.
      */
     private async updateRequiredUserFields(fields: UserFields) {
         const leftOverRequiredFields = _.omit(fields, [

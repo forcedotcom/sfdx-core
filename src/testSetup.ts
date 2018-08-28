@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AnyJson, JsonMap } from '@salesforce/ts-types';
+import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { forEach, get as _get, once, set as _set } from 'lodash';
@@ -53,7 +53,7 @@ export interface TestContext {
     id: string;
     uniqid: () => string;
     configStubs: {
-        [configName: string]: ConfigStub,
+        [configName: string]: Optional<ConfigStub>,
         AuthInfoConfig?: ConfigStub,
         Aliases?: ConfigStub,
         SfdxProjectJson?: ConfigStub,
@@ -214,7 +214,8 @@ export const testSetup = once((sinon?) => {
             if (!testContext.configStubs[this.constructor.name]) {
                 testContext.configStubs[this.constructor.name] = {};
             }
-            const stub =  testContext.configStubs[this.constructor.name];
+            const stub = testContext.configStubs[this.constructor.name];
+            if (!stub) return;
 
             if (stub.writeFn) {
                 return await stub.writeFn.call(this, newContents);
@@ -226,8 +227,7 @@ export const testSetup = once((sinon?) => {
                 contents = await stub.updateContents.call(this);
             }
             this.setContents(contents);
-            testContext.configStubs[this.constructor.name].contents = this.toObject();
-            return Promise.resolve();
+            stub.contents = this.toObject();
         });
 
         testContext.SANDBOXES.CRYPTO.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
@@ -335,8 +335,10 @@ export class StreamingMockCometSubscription extends EventEmitter implements Come
 
     public errback(callback: (error: Error) => void): void {
         if (this.options.subscriptionCall === StreamingMockSubscriptionCall.ERRORBACK) {
+            const error = this.options.subscriptionErrbackError;
+            if (!error) return;
             setTimeout(() => {
-                callback(this.options.subscriptionErrbackError);
+                callback(error);
                 super.emit(StreamingMockCometSubscription.SUBSCRIPTION_FAILED);
             }, 0);
         }
@@ -462,8 +464,14 @@ export class MockTestOrgData {
         const crypto = await Crypto.create();
         const config = new Map<string, ConfigValue>();
         config.set('orgId', this.orgId);
-        config.set('accessToken', crypto.encrypt(this.accessToken));
-        config.set('refreshToken', crypto.encrypt(this.refreshToken));
+        const accessToken = crypto.encrypt(this.accessToken);
+        if (accessToken) {
+            config.set('accessToken', accessToken);
+        }
+        const refreshToken = crypto.encrypt(this.refreshToken);
+        if (refreshToken) {
+            config.set('refreshToken', refreshToken);
+        }
         config.set('instanceUrl', this.instanceUrl);
         config.set('loginUrl', this.loginUrl);
         config.set('username', this.username);

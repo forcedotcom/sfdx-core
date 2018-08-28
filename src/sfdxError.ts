@@ -6,8 +6,11 @@
  */
 
 import { NamedError } from '@salesforce/kit';
+import { ensure, Optional } from '@salesforce/ts-types';
 import * as _ from 'lodash';
 import { Messages } from './messages';
+
+export type Tokens = Array<string | boolean | number | null | undefined>;
 
 /**
  * A class to manage all the keys and tokens for a message bundle to use with SfdxError.
@@ -32,31 +35,31 @@ export class SfdxErrorConfig {
      */
     public errorKey: string;
 
-    private errorTokens: Array<string | boolean | number>;
+    private errorTokens: Tokens;
     private messages: Messages;
-    private actions: Map<string, Array<string | boolean | number>> = new Map();
+    private actions = new Map<string, Tokens>();
 
     /**
      * Create a new SfdxErrorConfig.
      * @param packageName {string} The name of the package.
      * @param bundleName {string} The message bundle.
      * @param errorKey {string} The error message key.
-     * @param errorTokens {Array<string | boolean | number>} The tokens to use when getting the error message.
+     * @param errorTokens {Tokens} The tokens to use when getting the error message.
      * @param [actionKey] {string} The action message key.
-     * @param [actionTokens] {Array<string | boolean | number>} The tokens to use when getting the action message(s).
+     * @param [actionTokens] {Tokens} The tokens to use when getting the action message(s).
      */
     constructor(packageName: string,
                 bundleName: string,
                 errorKey: string,
-                errorTokens: Array<string | boolean | number> = [],
+                errorTokens: Tokens = [],
                 actionKey?: string,
-                actionTokens?: Array<string | boolean | number>
+                actionTokens?: Tokens
     ) {
         this.packageName = packageName;
         this.bundleName = bundleName;
         this.errorKey = errorKey;
         this.errorTokens = errorTokens;
-        if (actionKey) {
+        if (actionKey && actionTokens) {
             this.actions.set(actionKey, actionTokens);
         }
     }
@@ -73,10 +76,10 @@ export class SfdxErrorConfig {
 
     /**
      * Set the error tokens.
-     * @param {Array<string | boolean | number>} tokens The tokens to set.
+     * @param {Tokens} tokens The tokens to set.
      * @returns {SfdxErrorConfig} For convenience `this` object is returned.
      */
-    public setErrorTokens(tokens: Array<string | boolean | number>): SfdxErrorConfig {
+    public setErrorTokens(tokens: Tokens): SfdxErrorConfig {
         this.errorTokens = tokens;
         return this;
     }
@@ -84,10 +87,10 @@ export class SfdxErrorConfig {
     /**
      * Add an error action to assist the user with a resolution.
      * @param {string} actionKey The action key in the message bundle.
-     * @param {Array<string | boolean | number>} [actionTokens] The action tokens for the string.
+     * @param {Tokens} [actionTokens] The action tokens for the string.
      * @returns {SfdxErrorConfig} For convenience `this` object is returned.
      */
-    public addAction(actionKey: string, actionTokens?: Array<string | boolean | number>): SfdxErrorConfig {
+    public addAction(actionKey: string, actionTokens: Tokens = []): SfdxErrorConfig {
         this.actions.set(actionKey, actionTokens);
         return this;
     }
@@ -115,15 +118,15 @@ export class SfdxErrorConfig {
 
     /**
      * Get the action messages using messages.getMessage.
-     * @returns {string[]} List of action messages.
+     * @returns {Optional<string[]>} List of action messages.
      * @throws {SfdxError} If errorMessages.load was not called first.
      */
-    public getActions(): string[] {
+    public getActions(): Optional<string[]> {
         if (!this.messages) {
             throw new SfdxError('SfdxErrorConfig not loaded.');
         }
 
-        if (this.actions.size === 0) { return; }
+        if (this.actions.size === 0) return;
 
         const actions: string[] = [];
         this.actions.forEach((tokens, key) => {
@@ -141,7 +144,6 @@ export class SfdxErrorConfig {
         this.actions = new Map();
         return this;
     }
-
 }
 
 /**
@@ -170,9 +172,9 @@ export class SfdxError extends NamedError {
      * @param {string} packageName The message package name used to create the SfdxError.
      * @param {string} bundleName The message bundle name used to create the SfdxError.
      * @param {string} key The key within the bundle for the message.
-     * @param {Array<string | boolean | number>} [tokens] The values to use for message tokenization.
+     * @param {Tokens} [tokens] The values to use for message tokenization.
      */
-    public static create(packageName: string, bundleName: string, key: string, tokens?: Array<string | boolean | number>): SfdxError;
+    public static create(packageName: string, bundleName: string, key: string, tokens?: Tokens): SfdxError;
 
     /**
      * Create a new SfdxError.
@@ -181,13 +183,13 @@ export class SfdxError extends NamedError {
     public static create(errorConfig: SfdxErrorConfig): SfdxError;
 
     // The create implementation function.
-    public static create(packageNameOrErrorConfig: string | SfdxErrorConfig, bundleName?: string, key?: string, tokens?: Array<string | boolean | number>): SfdxError {
+    public static create(nameOrConfig: string | SfdxErrorConfig, bundleName?: string, key?: string, tokens?: Tokens): SfdxError {
         let errorConfig: SfdxErrorConfig;
 
-        if (_.isString(packageNameOrErrorConfig)) {
-            errorConfig = new SfdxErrorConfig(packageNameOrErrorConfig, bundleName, key, tokens);
+        if (_.isString(nameOrConfig)) {
+            errorConfig = new SfdxErrorConfig(nameOrConfig, ensure(bundleName), ensure(key), tokens);
         } else {
-            errorConfig = packageNameOrErrorConfig;
+            errorConfig = nameOrConfig;
         }
 
         errorConfig.load();
@@ -202,8 +204,10 @@ export class SfdxError extends NamedError {
      */
     public static wrap(err: Error): SfdxError {
         const sfdxError = new SfdxError(err.message, err.name);
-        sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
-        sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
+        if (sfdxError.stack) {
+            sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
+            sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
+        }
         return sfdxError;
     }
 
@@ -220,7 +224,7 @@ export class SfdxError extends NamedError {
     /**
      * Action messages. Hints to the users regarding what can be done to fix related issues.
      */
-    public actions: string[];
+    public actions?: string[];
 
     /**
      * SfdxCommand can return this process exit code.

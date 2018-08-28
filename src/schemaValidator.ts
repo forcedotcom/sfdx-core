@@ -93,7 +93,7 @@ export class SchemaValidator {
         const promises = getJsonValuesByName<string>(schema, '$ref')
             .map(ref => ref && ref.match(/([\w\.]+)#/))
             .map(match => match && match[1])
-            .filter(uri => !!uri)
+            .filter((uri): uri is string => !!uri)
             .map(uri => this.loadExternalSchema(uri));
         (await Promise.all(promises)).forEach(externalSchema => {
             if (_isString(externalSchema.id)) {

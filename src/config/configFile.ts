@@ -116,7 +116,7 @@ export class ConfigFile extends BaseConfigStore {
         // Don't let users store config files in homedir without being in the
         // state folder.
         let configRootFolder = config.options.rootFolder ? config.options.rootFolder :
-            await this.resolveRootFolder(config.options.isGlobal);
+            await this.resolveRootFolder(!!config.options.isGlobal);
 
         if (_isGlobal || _isState) {
             configRootFolder = pathJoin(configRootFolder, Global.STATE_FOLDER);
@@ -255,7 +255,7 @@ export class ConfigFile extends BaseConfigStore {
      * @returns {boolean}
      */
     public isGlobal(): boolean {
-        return this.options.isGlobal;
+        return !!this.options.isGlobal;
     }
 
 }

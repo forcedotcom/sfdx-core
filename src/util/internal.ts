@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { size, toUpper } from 'lodash';
 import { SfdxError } from '../sfdxError';
 import { traverseForFile } from './fs';
 
@@ -33,20 +32,4 @@ export async function resolveProjectPath(dir: string = process.cwd()): Promise<s
         throw SfdxError.create('@salesforce/core', 'config', 'InvalidProjectWorkspace');
     }
     return projectPath;
-}
-
-/**
- * Returns `true` is an environment variable is "truthy". Truthiness is defined as set to a non-null, non-empty,
- * string that's not equal to `false`.
- *
- * @param {string} name The name of the environment variable to check.
- * @returns {boolean}
- * @private
- */
-export function isEnvVarTruthy(name: string): boolean {
-    if (!name) {
-        return false;
-    }
-    const value = process.env[name];
-    return value && size(value) > 0 && toUpper(value) !== 'FALSE';
 }
