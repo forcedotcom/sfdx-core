@@ -15,7 +15,7 @@
  */
 
 import { constants as fsConstants, Stats as fsStats } from 'fs';
-import { isBoolean as _isBoolean, isNil as _isNil } from 'lodash';
+import { isBoolean as _isBoolean } from 'lodash';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import { Global } from '../global';
@@ -198,7 +198,7 @@ export class ConfigFile extends BaseConfigStore {
      * @returns {Promise<object>} The written contents.
      */
     public async write(newContents?: ConfigContents): Promise<object> {
-        if (!_isNil(newContents)) {
+        if (newContents != null) {
             this.setContents(newContents);
         }
 

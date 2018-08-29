@@ -159,7 +159,7 @@ export class ConfigAggregator {
      * @returns {Optional<LOCATIONS>}
      */
     public getLocation(key: string): Optional<LOCATIONS> {
-        if (!_.isNil(this.getEnvVars().get(key))) {
+        if (this.getEnvVars().get(key) != null) {
             return LOCATIONS.ENVIRONMENT;
         }
         if (this.getLocalConfig() && this.getLocalConfig().get(key)) {
@@ -186,13 +186,13 @@ export class ConfigAggregator {
      * @returns {Optional<string>}
      */
     public getPath(key: string): Optional<string> {
-        if (!_.isNil(this.envVars[key])) {
+        if (this.envVars[key] != null) {
             return `\$${propertyToEnvName(key)}`;
         }
-        if (!_.isNil(_.get(this.getLocalConfig(), `contents[${key}]`))) {
+        if (_.get(this.getLocalConfig(), `contents[${key}]`) != null) {
             return this.getLocalConfig().getPath();
         }
-        if (!_.isNil(_.get(this.getGlobalConfig(), `contents[${key}]`))) {
+        if (_.get(this.getGlobalConfig(), `contents[${key}]`) != null) {
             return this.getGlobalConfig().getPath();
         }
     }
@@ -281,7 +281,7 @@ export class ConfigAggregator {
 
         this.setEnvVars(this.getAllowedProperties().reduce((obj, property) => {
             const val = process.env[propertyToEnvName(property.key)];
-            if (!_.isNil(val)) {
+            if (val != null) {
                 obj[property.key] = val;
             }
             return obj;

@@ -7,7 +7,6 @@
 
 import { Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
-import { isNil } from 'lodash';
 import * as os from 'os';
 import { join as pathJoin } from 'path';
 import { retrieveKeychain } from './keyChain';
@@ -134,11 +133,11 @@ export class Crypto {
      * @returns {Optional<string>} The encrypted string or undefined if no string was passed.
      */
     public encrypt(text): Optional<string> {
-        if (isNil(text)) {
+        if (text == null) {
             return undefined;
         }
 
-        if (isNil(this._key)) {
+        if (this._key == null) {
             const errMsg = this.messages.getMessage('KeychainPasswordCreationError');
             throw new SfdxError(errMsg, 'KeychainPasswordCreationError');
         }
@@ -163,7 +162,7 @@ export class Crypto {
      * is simply returned. The text is then assumed to be unencrypted.
      */
     public decrypt(text): Optional<string> {
-        if (isNil(text)) {
+        if (text == null) {
             return undefined;
         }
 

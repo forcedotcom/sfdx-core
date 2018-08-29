@@ -156,7 +156,7 @@ export class Config extends ConfigFile {
                     key: 'instanceUrl',
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
-                        validator: value => _.isNil(value) || isSalesforceDomain(value),
+                        validator: value => value == null || isSalesforceDomain(value),
                         failedMessage: Config.messages.getMessage('InvalidInstanceUrl')
                     }
                 },
@@ -185,7 +185,7 @@ export class Config extends ConfigFile {
                 {
                     key: Config.USE_BACKUP_POLLING_ORG_CREATE,
                     input: {
-                        validator: value => _.isNil(value) || (value === 'true') || value === 'false',
+                        validator: value => value == null || (value === 'true') || value === 'false',
                         failedMessage: `${Config.USE_BACKUP_POLLING_ORG_CREATE} must be a boolean value. true/false.`
                     }
                 }
@@ -225,7 +225,7 @@ export class Config extends ConfigFile {
 
         const content = await config.read();
 
-        if (_.isNil(value)) {
+        if (value == null) {
             content.delete(propertyName);
         } else {
             content.set(propertyName, value);
@@ -273,7 +273,7 @@ export class Config extends ConfigFile {
      * @return {Promise<ConfigContents>}
      */
     public async write(newContents?: ConfigContents): Promise<ConfigContents> {
-        if (!_.isNil(newContents)) {
+        if (newContents != null) {
             this.setContents(newContents);
         }
 
