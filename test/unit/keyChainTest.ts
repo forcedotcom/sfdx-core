@@ -49,7 +49,7 @@ describe('keyChain', () => {
                     expect(_keychain).to.have.property('osImpl');
                     const program = _keychain['osImpl'].getProgram();
                     const testArrayMeta = _.find(testArray, (elem) => program.includes(elem.validateString));
-                    expect(_.isNil(testArrayMeta)).to.be.false;
+                    expect(testArrayMeta == null).to.be.false;
                 });
             });
     });

@@ -9,7 +9,7 @@
  */
 
 import { asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
-import { endsWith, findKey, includes, isNil } from 'lodash';
+import { endsWith, findKey, includes } from 'lodash';
 import { URL } from 'url';
 
 /**
@@ -41,7 +41,7 @@ export function isSalesforceDomain(urlString: string): boolean {
         'trailhead.salesforce.com'
     ];
 
-    return !isNil(whitelistOfSalesforceDomainPatterns.find(pattern => endsWith(url.hostname, pattern))) ||
+    return whitelistOfSalesforceDomainPatterns.some(pattern => endsWith(url.hostname, pattern)) ||
         includes(whitelistOfSalesforceHosts, url.hostname);
 }
 
@@ -65,7 +65,7 @@ export function trimTo15(id?: string): Optional<string> {
  * @returns {boolean}
  */
 export function validateApiVersion(value: string): boolean {
-    return isNil(value) || /[1-9]\d\.0/.test(value);
+    return value == null || /[1-9]\d\.0/.test(value);
 }
 
 /**

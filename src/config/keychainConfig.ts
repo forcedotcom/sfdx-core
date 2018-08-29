@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isNil as _isNil } from 'lodash';
 import { dirname as pathDirname } from 'path';
 import * as fs from '../util/fs';
 import { ConfigFile, ConfigOptions } from './configFile';
@@ -35,7 +34,7 @@ export class KeychainConfig extends ConfigFile {
      * @returns {Promise<ConfigContents>} the written contents
      */
     public async write(newContents?: ConfigContents): Promise<ConfigContents> {
-        if (!_isNil(newContents)) {
+        if (newContents != null) {
             this.setContents(newContents);
         }
 

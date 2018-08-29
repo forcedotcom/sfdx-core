@@ -8,7 +8,6 @@
 import { ensure, Optional } from '@salesforce/ts-types';
 import * as childProcess from 'child_process';
 import * as nodeFs from 'fs';
-import * as _ from 'lodash';
 import * as os from 'os';
 import * as path from 'path';
 import { ConfigFile } from './config/configFile';
@@ -94,12 +93,12 @@ export class KeychainAccess {
      * @returns {Promise<Optional<string>>}
      */
     public async getPassword(opts, fn, retryCount = 0): Promise<Optional<string>> {
-        if (_.isNil(opts.service)) {
+        if (opts.service == null) {
             fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
             return;
         }
 
-        if (_.isNil(opts.account)) {
+        if (opts.account == null) {
             fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainAccountRequiredError'));
             return;
         }
@@ -140,17 +139,17 @@ export class KeychainAccess {
      */
     public async setPassword(opts, fn): Promise<void> {
 
-        if (_.isNil(opts.service)) {
+        if (opts.service == null) {
             fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
             return;
         }
 
-        if (_.isNil(opts.account)) {
+        if (opts.account == null) {
             fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainAccountRequiredError'));
             return;
         }
 
-        if (_.isNil(opts.password)) {
+        if (opts.password == null) {
             fn(SfdxError.create('@salesforce/core', 'encryption', 'PasswordRequiredError'));
             return;
         }
@@ -207,7 +206,7 @@ const _linuxImpl = {
 
             // This is a workaround for linux.
             // Calling secret-tool too fast can cause it to return an unexpected error. (below)
-            if (!_.isNil(stderr) &&
+            if (stderr != null &&
                 stderr.includes('invalid or unencryptable secret')) {
                 error['retry'] = true;
 
@@ -370,7 +369,7 @@ export class GenericKeychainAccess {
         await this.isValidFileAccess(async fileAccessError => {
 
             // the file checks out.
-            if (_.isNil(fileAccessError)) {
+            if (fileAccessError == null) {
 
                 // read it's contents
                 return KeychainConfig.retrieve<KeychainConfig>()
@@ -403,7 +402,7 @@ export class GenericKeychainAccess {
         // validate the file in .sfdx
         await this.isValidFileAccess(async fileAccessError => {
             // if there is a validation error
-            if (!_.isNil(fileAccessError)) {
+            if (fileAccessError != null) {
 
                 // file not found
                 if (fileAccessError.code === 'ENOENT') {
@@ -440,7 +439,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
         const secretFile: string = path.join(await ConfigFile.resolveRootFolder(true),
             Global.STATE_FOLDER, ensure(KeychainConfig.getDefaultOptions().filename));
         await super.isValidFileAccess(async err => {
-            if (!_.isNil(err)) {
+            if (err != null) {
                 await cb(err);
             } else {
                 const keyFile = await KeychainConfig.create();

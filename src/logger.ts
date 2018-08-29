@@ -254,7 +254,7 @@ export class Logger {
      */
     public static getLevelByName(levelName: string): LoggerLevelValue {
         const level = LoggerLevel[levelName && levelName.toUpperCase()];
-        if (_.isNil(level)) {
+        if (level == null) {
             throw new SfdxError('UnrecognizedLoggerLevelName');
         }
         return level;
@@ -394,7 +394,7 @@ export class Logger {
      *    **`{name: 'UnrecognizedLoggerLevelName'}`:** A value of `level` read from `SFDX_LOG_LEVEL` was invalid.
      */
     public setLevel(level?: LoggerLevelValue): Logger {
-        if (_.isNil(level)) {
+        if (level == null) {
             level = process.env.SFDX_LOG_LEVEL
                 ? Logger.getLevelByName(process.env.SFDX_LOG_LEVEL)
                 : Logger.DEFAULT_LEVEL;
