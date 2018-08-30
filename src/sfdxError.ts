@@ -7,9 +7,7 @@
 
 import { isString, NamedError } from '@salesforce/kit';
 import { ensure, Optional } from '@salesforce/ts-types';
-import { Messages } from './messages';
-
-export type Tokens = Array<string | boolean | number | null | undefined>;
+import { Messages, Tokens } from './messages';
 
 /**
  * A class to manage all the keys and tokens for a message bundle to use with SfdxError.

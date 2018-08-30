@@ -12,11 +12,13 @@
  */
 
 import { NamedError } from '@salesforce/kit';
-import { AnyJson, asString, ensureJsonMap, Optional } from '@salesforce/ts-types';
+import { AnyJson, asString, ensureJsonMap, ensureString, isAnyJson, Optional } from '@salesforce/ts-types';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as util from 'util';
+
+export type Tokens = Array<string | boolean | number | null | undefined>;
 
 class Key {
     constructor(private packageName, private bundleName) {}
@@ -142,11 +144,7 @@ export class Messages {
                 throw err;
             }
 
-            const map = new Map();
-
-            _.forEach(json, (value, key) => {
-                map.set(key, value);
-            });
+            const map = new Map<string, AnyJson>(Object.entries(json));
 
             return new Messages(bundleName, locale, map);
         };
@@ -299,25 +297,42 @@ export class Messages {
      * **Note:** Use {Messages.loadMessages} unless you are writing your own loader function.
      * @param {string} bundleName The bundle name.
      * @param {string} locale The locale.
-     * @param {Map<string, string>} messages The messages. Can not be modified once created.
+     * @param {Map<string, AnyJson>} messages The messages. Can not be modified once created.
      */
-    constructor(bundleName: string, locale: string, private messages: Map<string, string>) {
+    constructor(bundleName: string, locale: string, private messages: Map<string, AnyJson>) {
         this.bundleName = bundleName;
         this.locale = locale;
     }
 
     /**
      * Get a message using a message key and use the tokens as values for tokenization.
-     * @param key The key of the message.
-     * @param tokens The values to substitute in the message.
+     * @param {string} key The key of the message.
+     * @param {Tokens} tokens The values to substitute in the message.
      * @returns {string}
      * @see https://nodejs.org/api/util.html#util_util_format_format_args
      */
-    public getMessage(key: string, tokens: any[] = []): string { // tslint:disable-line:no-any
-        if (!this.messages.has(key)) {
+    public getMessage(key: string, tokens: Tokens = []): string {
+        return this.getMessageWithMap(key, tokens, this.messages);
+    }
+
+    private getMessageWithMap(key: string, tokens: Tokens = [], map: Map<string, AnyJson>): string {
+        // Allow nested keys for better grouping
+        const group = key.match(/([a-zA-Z0-9_-]+)\.(.*)/);
+        if (group) {
+            const parentKey = group[1];
+            const childKey = group[2];
+            const childObject = map.get(parentKey);
+            if (childObject && isAnyJson(childObject)) {
+                const childMap = new Map<string, AnyJson>(Object.entries(childObject));
+                return this.getMessageWithMap(childKey, tokens, childMap);
+            }
+        }
+
+        if (!map.has(key)) {
             // Don't use messages inside messages
             throw new NamedError('MissingMessageError', `Missing message ${this.bundleName}:${key} for locale ${Messages.getLocale()}.`);
         }
-        return util.format(this.messages.get(key), ...tokens);
+        const msg = ensureString(map.get(key));
+        return util.format(msg, ...tokens);
     }
 }
