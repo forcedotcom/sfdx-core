@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { NamedError } from '@salesforce/kit';
+import { isString, NamedError } from '@salesforce/kit';
 import { ensure, Optional } from '@salesforce/ts-types';
-import * as _ from 'lodash';
 import { Messages } from './messages';
 
 export type Tokens = Array<string | boolean | number | null | undefined>;
@@ -186,7 +185,7 @@ export class SfdxError extends NamedError {
     public static create(nameOrConfig: string | SfdxErrorConfig, bundleName?: string, key?: string, tokens?: Tokens): SfdxError {
         let errorConfig: SfdxErrorConfig;
 
-        if (_.isString(nameOrConfig)) {
+        if (isString(nameOrConfig)) {
             errorConfig = new SfdxErrorConfig(nameOrConfig, ensure(bundleName), ensure(key), tokens);
         } else {
             errorConfig = nameOrConfig;

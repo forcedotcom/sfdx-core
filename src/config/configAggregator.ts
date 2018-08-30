@@ -23,6 +23,7 @@
  * @property {function} isEnvVar `() => boolean` Location is `LOCATIONS.ENVIRONMENT`.
  */
 
+import { isObject } from '@salesforce/kit';
 import { Optional } from '@salesforce/ts-types';
 import * as _ from 'lodash';
 import { SfdxError } from '../sfdxError';
@@ -301,7 +302,7 @@ export class ConfigAggregator {
 
         configs.push(this.envVars);
 
-        this.setConfig(_.reduce(configs.filter(_.isObject), (result, configElement) =>
+        this.setConfig(_.reduce(configs.filter(isObject), (result, configElement) =>
             _.merge(result, configElement), {}));
     }
 

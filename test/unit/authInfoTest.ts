@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { cloneJson } from '@salesforce/kit';
+import { cloneJson, isString } from '@salesforce/kit';
 import { assert, expect } from 'chai';
 import * as dns from 'dns';
 import { OAuth2 } from 'jsforce';
@@ -306,7 +306,7 @@ describe('AuthInfo', () => {
 
                 // If the key is likely a clientSecret "ish" attribute and the value is a string.
                 // reminder:'clientSecretFn' is always legit.
-                if (_.includes(keyUpper, 'SECRET') && _.includes(keyUpper, 'CLIENT') && _.isString(obj[key])) {
+                if (_.includes(keyUpper, 'SECRET') && _.includes(keyUpper, 'CLIENT') && isString(obj[key])) {
                     throw new Error('Key indicates client secret.');
                 }
 

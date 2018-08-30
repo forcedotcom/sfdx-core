@@ -28,9 +28,10 @@
  * @property {string} MISSING The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
  */
 
+import { isString } from '@salesforce/kit';
 import { AnyJson, asAnyJson, asJsonArray, asString, Dictionary, ensure, Optional } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import { filter as _filter, get as _get, isString as _isString } from 'lodash';
+import { filter as _filter, get as _get } from 'lodash';
 import { join as pathJoin } from 'path';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Aliases } from './config/aliases';
@@ -153,7 +154,7 @@ export class Org {
             }
         }
 
-        if (_isString(connection)) {
+        if (isString(connection)) {
             org.logger.debug('connection type is string');
             const aliasValue: string = await Aliases.fetch(connection);
             _connection = await Connection.create(
@@ -368,7 +369,7 @@ export class Org {
             throw new SfdxError('Missing auth info', 'MissingAuthInfo');
         }
 
-        const _auth = _isString(auth) ? await AuthInfo.create(auth) : auth;
+        const _auth = isString(auth) ? await AuthInfo.create(auth) : auth;
         this.logger.debug(`adding username ${_auth.getFields().username}`);
 
         const orgConfig = await this.retrieveOrgUsersConfig();
@@ -415,7 +416,7 @@ export class Org {
             throw new SfdxError('Missing auth info', 'MissingAuthInfo');
         }
 
-        const _auth: AuthInfo = _isString(auth) ? await AuthInfo.create(auth) : auth;
+        const _auth: AuthInfo = isString(auth) ? await AuthInfo.create(auth) : auth;
 
         this.logger.debug(`removing username ${_auth.getFields().username}`);
 

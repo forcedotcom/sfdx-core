@@ -48,7 +48,7 @@
  * @property {string} userProfileName
  */
 
-import { cloneJson } from '@salesforce/kit';
+import { cloneJson, isEmpty, isPlainObject, isString } from '@salesforce/kit';
 import { AnyJson, asString, ensure, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
@@ -280,7 +280,7 @@ export class AuthInfo {
         const authInfo = new AuthInfo(username);
 
         // If the username is an access token, use that for auth and don't persist
-        const accessTokenMatch = _.isString(username) && username.match(/^(00D\w{12,15})![\.\w]*$/);
+        const accessTokenMatch = isString(username) && username.match(/^(00D\w{12,15})![\.\w]*$/);
         if (accessTokenMatch) {
             // Need to setup the logger and authInfoCrypto since we don't call init()
             authInfo.logger = await Logger.child('AuthInfo');
@@ -312,7 +312,7 @@ export class AuthInfo {
         const authFiles = globalFiles.filter(file => file.match(AuthInfo.authFilenameFilterRegEx));
 
         // Want to throw a clean error if no files are found.
-        if (_.isEmpty(authFiles)) {
+        if (isEmpty(authFiles)) {
             const errConfig: SfdxErrorConfig =
                 new SfdxErrorConfig('@salesforce/core', 'core', 'NoAuthInfoFound');
             throw SfdxError.create(errConfig);
@@ -329,7 +329,7 @@ export class AuthInfo {
     public static async hasAuthentications(): Promise<boolean> {
         try {
             const authFiles: string[] = await this.listAllAuthFiles();
-            return !_.isEmpty(authFiles);
+            return !isEmpty(authFiles);
         } catch (err) {
             if (err.name === 'OrgDataNotAvailableError' || err.code === 'ENOENT') {
                 return false;
@@ -533,7 +533,7 @@ export class AuthInfo {
      * @returns {AuthInfo} For convenience `this` object is returned.
      */
     public update(authData?: AuthFields, encrypt: boolean = true): AuthInfo {
-        if (authData && _.isPlainObject(authData)) {
+        if (authData && isPlainObject(authData)) {
             if (encrypt) {
                 authData = authInfoCrypto.encryptFields(authData);
             }

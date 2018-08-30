@@ -77,6 +77,7 @@
  * @typedef {string|number|boolean} FieldValue
  */
 
+import { isObject, isPlainObject, isString } from '@salesforce/kit';
 import * as Bunyan from 'bunyan-sfdx-no-dtrace';
 import * as createDebugUtil from 'debug';
 import * as EventEmitter from 'events';
@@ -173,7 +174,7 @@ export class Logger {
      * @see LoggerLevel
      */
     public static readonly LEVEL_NAMES = Object.values(LoggerLevel)
-        .filter(v => _.isString(v))
+        .filter(v => isString(v))
         .map(v => v.toLowerCase());
 
     /**
@@ -659,7 +660,7 @@ const _filter = (...args) => args.map(arg => {
         let _arg = arg;
 
         // Normalize all objects into a string. This include errors.
-        if (_.isObject(arg)) {
+        if (isObject(arg)) {
             _arg = JSON.stringify(arg);
         }
 
@@ -670,7 +671,7 @@ const _filter = (...args) => args.map(arg => {
             let expName = key;
 
             // Filtered keys can be strings or objects containing regular expression components.
-            if (_.isPlainObject(key)) {
+            if (isPlainObject(key)) {
                 expElement = key['regex'];
                 expName = key['name'];
             }
@@ -700,7 +701,7 @@ const _filter = (...args) => args.map(arg => {
         _arg = _arg.replace(/sid=(.*)/, `sid=<${HIDDEN}>`);
 
         // return an object if an object was logged; otherwise return the filtered string.
-        return _.isObject(arg) ? JSON.parse(_arg) : _arg;
+        return isObject(arg) ? JSON.parse(_arg) : _arg;
     } else {
         return arg;
     }
