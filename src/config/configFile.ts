@@ -14,8 +14,8 @@
  * @property {string} filePath The full file path where the config file is stored.
  */
 
+import { isBoolean } from '@salesforce/kit';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
-import { isBoolean as _isBoolean } from 'lodash';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import { Global } from '../global';
@@ -86,7 +86,7 @@ export class ConfigFile extends BaseConfigStore {
      * @returns {Promise<string>} The file path of the root folder.
      */
     public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
-        if (!_isBoolean(isGlobal)) {
+        if (!isBoolean(isGlobal)) {
             throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
         }
         return isGlobal ? osHomedir() : await resolveProjectPath();
@@ -110,8 +110,8 @@ export class ConfigFile extends BaseConfigStore {
             throw new SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
         }
 
-        const _isGlobal: boolean = _isBoolean(config.options.isGlobal) && config.options.isGlobal;
-        const _isState: boolean = _isBoolean(config.options.isState) && config.options.isState;
+        const _isGlobal: boolean = isBoolean(config.options.isGlobal) && config.options.isGlobal;
+        const _isState: boolean = isBoolean(config.options.isState) && config.options.isState;
 
         // Don't let users store config files in homedir without being in the
         // state folder.

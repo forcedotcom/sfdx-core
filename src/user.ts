@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ensureJsonMap, ensureString } from '@salesforce/ts-types';
+import { lowerFirst, upperFirst } from '@salesforce/kit';
+import { ensure, ensureJsonMap, ensureString } from '@salesforce/ts-types';
 import { OAuth2Options, QueryResult, RequestInfo } from 'jsforce';
 import * as _ from 'lodash';
 import { EOL } from 'os';
@@ -65,14 +66,14 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
 
     const connection: Connection = await Connection.create( await AuthInfo.create(username));
 
-    const fromFields: string[] = _.keys(REQUIRED_FIELDS).map(value => _.upperFirst(value));
+    const fromFields = _.keys(REQUIRED_FIELDS).map(value => ensure(upperFirst(value)));
     const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
     const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
 
     this.logger.debug('Successfully retrieved the admin user for this org.');
 
     if (result.totalSize === 1) {
-        const results = _.mapKeys(result.records[0], (value, key: string) => _.lowerFirst(key));
+        const results = _.mapKeys(result.records[0], (value, key: string) => lowerFirst(key));
 
         const fields: UserFields = {
             id: _.get(results, REQUIRED_FIELDS.id),
@@ -428,7 +429,7 @@ export class User {
         const leftOverRequiredFields = _.omit(fields, [
             REQUIRED_FIELDS.username, REQUIRED_FIELDS.email, REQUIRED_FIELDS.lastName, REQUIRED_FIELDS.profileId
         ]);
-        const object = _.mapKeys(leftOverRequiredFields, (value, key) => _.upperFirst(key));
+        const object = _.mapKeys(leftOverRequiredFields, (value, key) => upperFirst(key));
         await this.org.getConnection().sobject('User').update(object);
         this.logger.debug(`Successfully Updated additional properties for user: ${fields.username}`);
     }

@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getJsonValuesByName } from '@salesforce/kit';
+import { getJsonValuesByName, isString } from '@salesforce/kit';
 import { AnyJson, Dictionary, JsonMap } from '@salesforce/ts-types';
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
-import { isString as _isString } from 'lodash';
 import * as path from 'path';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
@@ -96,7 +95,7 @@ export class SchemaValidator {
             .filter((uri): uri is string => !!uri)
             .map(uri => this.loadExternalSchema(uri));
         (await Promise.all(promises)).forEach(externalSchema => {
-            if (_isString(externalSchema.id)) {
+            if (isString(externalSchema.id)) {
                 externalSchemas[externalSchema.id] = externalSchema;
             } else {
                 throw new SfdxError(`Unexpected external schema id type: ${typeof externalSchema.id}`, 'ValidationSchemaTypeError');

@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isBoolean, isNumber, isString } from '@salesforce/kit';
 import { assert, expect } from 'chai';
-import * as _ from 'lodash';
 import * as debug from 'debug/src/debug';
+import * as _ from 'lodash';
 import { Logger, LoggerLevel } from '../../src/logger';
 import { testSetup } from '../../src/testSetup';
 import * as fs from '../../src/util/fs';
@@ -257,7 +258,7 @@ describe('Logger', () => {
 
             // A test serializer
             logger.getBunyanLogger().serializers.config = (obj) => _.reduce(obj, (acc, val, key) => {
-                    if (_.isString(val) || _.isNumber(val) || _.isBoolean(val)) {
+                    if (isString(val) || isNumber(val) || isBoolean(val)) {
                         acc[key] = val;
                     }
                     return acc;

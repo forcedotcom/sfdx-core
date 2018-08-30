@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { upperFirst } from '@salesforce/kit';
 import { ErrorResult, QueryResult, RecordResult, SuccessResult } from 'jsforce';
 import * as _ from 'lodash';
 import { EOL } from 'os';
@@ -101,7 +102,7 @@ export class PermissionSetAssignment {
         let createResponse: SuccessResult | ErrorResult | RecordResult[];
 
         createResponse = await this.org.getConnection().sobject('PermissionSetAssignment')
-            .create(_.mapKeys(assignment, (value, key) => _.upperFirst(key)));
+            .create(_.mapKeys(assignment, (value, key) => upperFirst(key)));
 
         if ((createResponse as RecordResult[]).length) {
             throw SfdxError.create('@salesforce/core',
