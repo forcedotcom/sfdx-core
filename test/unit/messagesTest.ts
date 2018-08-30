@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { cloneJson } from '@salesforce/kit';
 import { assert, expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -24,6 +25,8 @@ describe('Messages', () => {
     const msgMap = new Map();
     msgMap.set('msg1', testMessages.msg1);
     msgMap.set('msg2', testMessages.msg2);
+    msgMap.set('msg3', cloneJson(testMessages));
+    msgMap.get('msg3').msg3 = cloneJson(testMessages);
 
     describe('getMessage', () => {
         const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
@@ -33,12 +36,28 @@ describe('Messages', () => {
             expect(messages.getMessage('msg2', ['blah', 864])).to.equal('test message 2 blah and 864');
         });
 
+        it('should return nested messages', () => {
+            expect(messages.getMessage('msg3.msg1')).to.equal(testMessages.msg1);
+            expect(messages.getMessage('msg3.msg2', ['blah', 864])).to.equal('test message 2 blah and 864');
+            expect(messages.getMessage('msg3.msg3.msg1')).to.equal(testMessages.msg1);
+            expect(messages.getMessage('msg3.msg3.msg2', ['blah', 864])).to.equal('test message 2 blah and 864');
+        });
+
         it('should throw an error if the message is not found', () => {
             try {
-                messages.getMessage('msg3');
+                messages.getMessage('msg4');
                 assert.fail('should have thrown an error that the message was not found');
             } catch (err) {
-                expect(err.message).to.equal('Missing message myBundle:msg3 for locale en_US.');
+                expect(err.message).to.equal('Missing message myBundle:msg4 for locale en_US.');
+            }
+        });
+
+        it('should throw an error if the nested message is not found', () => {
+            try {
+                messages.getMessage('msg3.msg4');
+                assert.fail('should have thrown an error that the message was not found');
+            } catch (err) {
+                expect(err.message).to.equal('Missing message myBundle:msg4 for locale en_US.');
             }
         });
     });
@@ -100,7 +119,7 @@ describe('Messages', () => {
             readdirSyncStub = $$.SANDBOX.stub(fs, 'readdirSync');
             readdirSyncStub.returns(msgFiles);
             statSyncStub = $$.SANDBOX.stub(fs, 'statSync');
-            statSyncStub.callsFake((statPath) => {
+            statSyncStub.callsFake(statPath => {
                 if (!statPath.match(/messages/) && statPath !== `${truncatePath}${path.sep}package.json`) { throw truncateErr; }
                 return { isDirectory: () => false, isFile: () => true };
             });

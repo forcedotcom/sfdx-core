@@ -4,9 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import { lowerFirst, upperFirst } from '@salesforce/kit';
-import { ensure, ensureJsonMap, ensureString } from '@salesforce/ts-types';
+import { asNumber, ensure, ensureJsonMap, ensureString } from '@salesforce/ts-types';
 import { OAuth2Options, QueryResult, RequestInfo } from 'jsforce';
 import * as _ from 'lodash';
 import { EOL } from 'os';
@@ -388,12 +387,13 @@ export class User {
         };
 
         const response = await this.org.getConnection().requestRaw(info);
-        const responseBody = JSON.parse(response['body'] as string);
+        const responseBody = JSON.parse(ensureString(response['body']));
+        const statusCode = asNumber(response.statusCode);
 
         this.logger.debug(`user create response.statusCode: ${response.statusCode}`);
-        if (!(response.statusCode === 201 || response.statusCode === 200)) {
+        if (!(statusCode === 201 || statusCode === 200)) {
             const messages = Messages.loadMessages('@salesforce/core', 'user');
-            let message = messages.getMessage('invalidHttpResponseCreatingUser', [response.statusCode]);
+            let message = messages.getMessage('invalidHttpResponseCreatingUser', [statusCode]);
 
             if (responseBody) {
                 const errors: string[] = _.get(responseBody, 'Errors');
