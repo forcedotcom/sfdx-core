@@ -39,13 +39,13 @@ describe('streaming client tests', () => {
             }
         };
         $$.SANDBOX.stub(Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
+        $$.SANDBOX.stub(Connection.prototype, 'getApiVersion').returns(MOCK_API_VERSION);
     });
 
     it ('should set options apiVersion on system topics', async () => {
         const org: Org = await Org.create(_username);
         const options: StreamingOptions<string> =
-            new DefaultStreamingOptions(org, MOCK_API_VERSION,
-            '/system/Logging', () => ({ completed: true }));
+            new DefaultStreamingOptions(org, '/system/Logging', () => ({ completed: true }));
         expect(options.apiVersion).to.equal('36.0');
     });
 
@@ -67,8 +67,9 @@ describe('streaming client tests', () => {
         };
 
         const options: StreamingOptions<string> =
-            new DefaultStreamingOptions(org, MOCK_API_VERSION,
-            MOCK_TOPIC, streamProcessor);
+            new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
+
+        expect(options.apiVersion).to.equal(MOCK_API_VERSION);
 
         options.streamingImpl = {
             getCometClient: (url: string) => {
@@ -101,8 +102,7 @@ describe('streaming client tests', () => {
         };
 
         const options: StreamingOptions<string> =
-            new DefaultStreamingOptions(org, MOCK_API_VERSION,
-                MOCK_TOPIC, streamProcessor);
+            new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
 
         options.streamingImpl = {
             getCometClient: (url: string) => {
@@ -140,8 +140,7 @@ describe('streaming client tests', () => {
         };
 
         const options: StreamingOptions<string> =
-            new DefaultStreamingOptions(org, MOCK_API_VERSION,
-                MOCK_TOPIC, streamProcessor);
+            new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
 
         options.streamingImpl = {
             getCometClient: (url: string) => {
@@ -179,8 +178,7 @@ describe('streaming client tests', () => {
         };
 
         const options: StreamingOptions<string> =
-            new DefaultStreamingOptions(org, MOCK_API_VERSION,
-                MOCK_TOPIC, streamProcessor);
+            new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
 
         options.streamingImpl = {
             getCometClient: (url: string) => {
@@ -206,8 +204,7 @@ describe('streaming client tests', () => {
         };
 
         const options: StreamingOptions<string> =
-            new DefaultStreamingOptions(org, MOCK_API_VERSION,
-                MOCK_TOPIC, streamProcessor);
+            new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
 
         options.handshakeTimeout = new Time(1, TIME_UNIT.MILLISECONDS);
 
@@ -240,8 +237,7 @@ describe('streaming client tests', () => {
         };
 
         const options: StreamingOptions<string> =
-            new DefaultStreamingOptions(org, MOCK_API_VERSION,
-                MOCK_TOPIC, streamProcessor);
+            new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
 
         options.subscribeTimeout = new Time(1, TIME_UNIT.MILLISECONDS);
 
@@ -280,8 +276,7 @@ describe('streaming client tests', () => {
         };
 
         const options: StreamingOptions<string> =
-            new DefaultStreamingOptions(org, MOCK_API_VERSION,
-                MOCK_TOPIC, streamProcessor);
+            new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
 
         options.subscribeTimeout = new Time(JENNYS_NUMBER, TIME_UNIT.MILLISECONDS); // Jenny's phone number
         options.handshakeTimeout = new Time(GHOSTBUSTERS_NUMBER, TIME_UNIT.MILLISECONDS); // Ghostbusters phone number
@@ -307,6 +302,25 @@ describe('streaming client tests', () => {
 
     });
 
+    it ('should throw a handshake error when the API version is incorrect', () => {
+        const context = {
+            log: () => {},
+            options: {
+                apiVersion: MOCK_API_VERSION
+            }
+        };
+        const apiVersionErrorMsg = {
+            channel: '/meta/handshake',
+            error: '400::API version in the URI is mandatory. URI format: \'/cometd/43.0\''
+        };
+
+        try {
+            shouldThrow(StreamingClient.prototype['incoming'].call(context, apiVersionErrorMsg, () => {}));
+        } catch (e) {
+            expect(e).to.have.property('name', 'handshakeApiVersionError');
+        }
+    });
+
     describe('DefaultStreaming options', () => {
         let options: DefaultStreamingOptions<string>;
 
@@ -317,7 +331,7 @@ describe('streaming client tests', () => {
                 return { completed: false };
             };
 
-            options = new DefaultStreamingOptions(org, MOCK_API_VERSION, MOCK_TOPIC, streamProcessor);
+            options = new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
         });
 
         it('setTimeout equal to default', async () => {

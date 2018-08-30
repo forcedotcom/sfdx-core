@@ -56,9 +56,7 @@ export class SfdxErrorConfig {
         this.bundleName = bundleName;
         this.errorKey = errorKey;
         this.errorTokens = errorTokens;
-        if (actionKey && actionTokens) {
-            this.actions.set(actionKey, actionTokens);
-        }
+        if (actionKey) this.addAction(actionKey, actionTokens);
     }
 
     /**
