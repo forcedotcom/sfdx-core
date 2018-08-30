@@ -11,7 +11,7 @@ import * as Faye from 'faye';
 import * as _ from 'lodash';
 import { Logger } from '../logger';
 import { Org } from '../org';
-import { SfdxError } from '../sfdxError';
+import { SfdxError, SfdxErrorConfig } from '../sfdxError';
 import { Time, TIME_UNIT } from '../util/time';
 import { StatusResult } from './client';
 
@@ -119,17 +119,12 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
     /**
      * Constructor for DefaultStreamingOptions
      * @param {Org} org The streaming target org
-     * @param {string} apiVersion The salesforce api version
      * @param {string} channel The streaming channel or topic. If the topic is a system topic then api 36.0 is used.
      * System topics are deprecated.
      * @param {function(JsonMap)} streamProcessor The function called that can process streaming messages.
      * @see {@link StatusResult}
      */
-    constructor(org: Org, apiVersion: string, channel: string, streamProcessor: (message: JsonMap) => StatusResult<T>) {
-
-        if (!apiVersion) {
-            throw new SfdxError('Missing apiVersion', 'MissingArg');
-        }
+    constructor(org: Org, channel: string, streamProcessor: (message: JsonMap) => StatusResult<T>) {
 
         if (!streamProcessor) {
             throw new SfdxError('Missing stream processor', 'MissingArg');
@@ -144,7 +139,7 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
         }
 
         this.org = org;
-        this.apiVersion = apiVersion;
+        this.apiVersion = org.getConnection().getApiVersion();
 
         if (_.startsWith(channel, '/system')) {
             this.apiVersion = '36.0';
@@ -285,12 +280,16 @@ export class StreamingClient<T> {
      */
     public static async init<U>(options: StreamingOptions<U>): Promise<StreamingClient<U>> {
 
+        // get the apiVersion from the connection if not already an option
+        const conn = options.org.getConnection();
+        options.apiVersion = options.apiVersion || conn.getApiVersion();
+
         const streamingClient: StreamingClient<U> =
             new StreamingClient<U>(options, await Logger.child('StreamingClient'));
 
         await streamingClient.options.org.refreshAuth();
 
-        const accessToken = options.org.getConnection().getConnectionOptions().accessToken;
+        const accessToken = conn.getConnectionOptions().accessToken;
 
         if (accessToken && accessToken.length > 5) {
             streamingClient.logger.debug(`accessToken: XXXXXX${accessToken.substring(accessToken.length - 5, accessToken.length - 1)}`);
@@ -301,7 +300,7 @@ export class StreamingClient<T> {
 
         streamingClient.log(`Streaming client target url: ${streamingClient.targetUrl}`);
         streamingClient.log(`options.subscribeTimeout (ms): ${options.subscribeTimeout.milliseconds}`);
-        streamingClient.log(`options.handshake (ms): ${options.handshakeTimeout.milliseconds}`);
+        streamingClient.log(`options.handshakeTimeout (ms): ${options.handshakeTimeout.milliseconds}`);
 
         return streamingClient;
     }
@@ -438,6 +437,21 @@ export class StreamingClient<T> {
 
     private incoming(message, cb): void {
         this.log(message);
+        // Look for a specific error message during the handshake.  If found, throw an error
+        // with actions for the user.
+        if (message &&
+            message.channel === '/meta/handshake' &&
+            message.error &&
+            message.error.includes('400::API version in the URI is mandatory')) {
+            const errConfig = new SfdxErrorConfig(
+                '@salesforce/core',
+                'streaming',
+                'handshakeApiVersionError',
+                [this.options.apiVersion],
+                'handshakeApiVersionErrorAction'
+            );
+            throw SfdxError.create(errConfig);
+        }
         cb(message);
     }
 
