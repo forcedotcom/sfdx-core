@@ -3,7 +3,7 @@ import {
     DefaultStreamingOptions,
     StreamingClient,
     StreamingConnectionState,
-    StreamingTimeoutError,
+    StreamingTimeoutErrorType,
     StreamingOptions
 } from '../../../src/status/streamingClient';
 
@@ -221,7 +221,7 @@ describe('streaming client tests', () => {
         try {
             await shouldThrow(asyncStatusClient.handshake());
         } catch (e) {
-            expect(e).to.have.property('name', StreamingTimeoutError.HANDSHAKE);
+            expect(e.name).to.equal(StreamingTimeoutErrorType.HANDSHAKE);
         }
     });
 
@@ -255,7 +255,7 @@ describe('streaming client tests', () => {
                 return Promise.resolve();
             }));
         } catch (e) {
-            expect(e).to.have.property('name', StreamingTimeoutError.SUBSCRIBE);
+            expect(e.name).to.equal(StreamingTimeoutErrorType.SUBSCRIBE);
         }
     });
 

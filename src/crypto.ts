@@ -73,9 +73,11 @@ export class Crypto {
         return await new Crypto().init();
     }
 
-    private messages: Messages;
-    private noResetOnClose: boolean;
     private _key: SecureBuffer<string> = new SecureBuffer();
+
+    // Initialized in init
+    private messages!: Messages;
+    private noResetOnClose!: boolean;
 
     constructor(private keyChain?: KeyChain) { }
 

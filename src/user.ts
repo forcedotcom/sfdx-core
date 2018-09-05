@@ -131,7 +131,6 @@ export class DefaultUserFields {
         _.merge(fields, userFields);
         fields.profileId = await _retrieveProfileId('Standard User',
             await Connection.create(await AuthInfo.create(templateUser)));
-        fields.id = '';
         initLogger.debug(`Standard User profileId: ${fields.profileId}`);
         if (newUserName) {
             fields.username = newUserName;
@@ -142,16 +141,17 @@ export class DefaultUserFields {
         return fields;
     }
 
-    public id: string;
-    public alias: string;
-    public emailEncodingKey: string;
-    public languageLocaleKey: string;
-    public lastName: string;
-    public localeSidKey: string;
-    public profileId: string;
-    public timeZoneSidKey: string;
+    public id = '';
+
     public username: string;
-    public email: string;
+    public alias?: string;
+    public emailEncodingKey?: string;
+    public languageLocaleKey?: string;
+    public lastName?: string;
+    public localeSidKey?: string;
+    public profileId?: string;
+    public timeZoneSidKey?: string;
+    public email?: string;
 
     /**
      * Constructor

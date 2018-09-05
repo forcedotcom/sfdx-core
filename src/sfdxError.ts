@@ -33,17 +33,17 @@ export class SfdxErrorConfig {
     public errorKey: string;
 
     private errorTokens: Tokens;
-    private messages: Messages;
+    private messages?: Messages;
     private actions = new Map<string, Tokens>();
 
     /**
      * Create a new SfdxErrorConfig.
-     * @param packageName {string} The name of the package.
-     * @param bundleName {string} The message bundle.
-     * @param errorKey {string} The error message key.
-     * @param errorTokens {Tokens} The tokens to use when getting the error message.
-     * @param [actionKey] {string} The action message key.
-     * @param [actionTokens] {Tokens} The tokens to use when getting the action message(s).
+     * @param {string} packageName The name of the package.
+     * @param {string} bundleName The message bundle.
+     * @param {string} errorKey The error message key.
+     * @param {Tokens} errorTokens The tokens to use when getting the error message.
+     * @param {string} [actionKey] The action message key.
+     * @param {Tokens} [actionTokens] The tokens to use when getting the action message(s).
      */
     constructor(packageName: string,
                 bundleName: string,
@@ -125,7 +125,10 @@ export class SfdxErrorConfig {
 
         const actions: string[] = [];
         this.actions.forEach((tokens, key) => {
-            actions.push(this.messages.getMessage(key, tokens));
+            const messages = this.messages;
+            if (messages) {
+                actions.push(messages.getMessage(key, tokens));
+            }
         });
         return actions;
     }
@@ -207,14 +210,9 @@ export class SfdxError extends NamedError {
     }
 
     /**
-     * The error name
-     */
-    public name: string;
-
-    /**
      * The message string. Error.message
      */
-    public message: string;
+    public message!: string;
 
     /**
      * Action messages. Hints to the users regarding what can be done to fix related issues.
@@ -229,7 +227,7 @@ export class SfdxError extends NamedError {
     /**
      * The related command name for this error.
      */
-    public commandName: string;
+    public commandName?: string;
 
     // Additional data helpful for consumers of this error.  E.g., API call result
     public data: any; // tslint:disable-line:no-any

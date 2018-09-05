@@ -96,14 +96,14 @@ export class Connection extends JSForceConnection {
         return conn;
     }
 
-    public tooling: Tooling;
-
+    // The following are all initialized in either this constructor or the super constructor, sometimes conditionally...
+    public tooling!: Tooling;
     // We want to use 1 logger for this class and the jsForce base classes so override
     // the jsForce connection.tooling.logger and connection.logger.
-    private logger: Logger;
-    private _logger: Logger;
-    private _transport: { httpRequest: (info: RequestInfo) => JsonMap };
-    private _normalizeUrl: (url: string) => string;
+    private logger!: Logger;
+    private _logger!: Logger;
+    private _transport!: { httpRequest: (info: RequestInfo) => JsonMap };
+    private _normalizeUrl!: (url: string) => string;
 
     private authInfo: AuthInfo;
 

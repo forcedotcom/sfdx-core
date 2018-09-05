@@ -252,7 +252,7 @@ export class Config extends ConfigFile {
     private static messages: Messages;
     private static propertyConfigMap: Dictionary<ConfigPropertyMeta>;
 
-    private crypto: Crypto;
+    private crypto?: Crypto;
 
     /**
      * @returns {Promise<object>} Read, assign, and return the config contents.
@@ -358,10 +358,11 @@ export class Config extends ConfigFile {
 
         if (hasEncryptedProperties) {
             await this.initCrypto();
+            const crypto = ensure(this.crypto);
 
             this.forEach((key, value) => {
                 if (this.getPropertyConfig(key).encrypted && isString(value)) {
-                    this.set(key, ensure(encrypt ? this.crypto.encrypt(value) : this.crypto.decrypt(value)));
+                    this.set(key, ensure(encrypt ? crypto.encrypt(value) : crypto.decrypt(value)));
                 }
             });
         }

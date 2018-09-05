@@ -204,9 +204,9 @@ export enum StreamingConnectionState {
 /**
  * Indicators to test error names for StreamingTimeouts
  */
-export enum StreamingTimeoutError {
-    HANDSHAKE = 'handshake',
-    SUBSCRIBE = 'subscribe'
+export enum StreamingTimeoutErrorType {
+    HANDSHAKE = 'genericHandshakeTimeoutMessage',
+    SUBSCRIBE = 'genericTimeoutMessage'
 }
 
 /**
@@ -352,8 +352,7 @@ export class StreamingClient<T> {
         return new Promise((resolve, reject) => {
             timeout = setTimeout(() => {
                 const timeoutError: SfdxError = SfdxError.create('@salesforce/core',
-                    'streaming', 'genericHandshakeTimeoutMessage', [this.targetUrl]);
-                timeoutError.name = StreamingTimeoutError.HANDSHAKE;
+                    'streaming', StreamingTimeoutErrorType.HANDSHAKE, [this.targetUrl]);
                 this.doTimeout(timeout, timeoutError);
                 reject(timeoutError);
             }, this.options.handshakeTimeout.milliseconds);
@@ -386,8 +385,7 @@ export class StreamingClient<T> {
 
                 timeout = setTimeout(() => {
                     const timeoutError: SfdxError = SfdxError.create('@salesforce/core',
-                        'streaming', 'genericTimeoutMessage');
-                    timeoutError.name = StreamingTimeoutError.SUBSCRIBE;
+                        'streaming', StreamingTimeoutErrorType.SUBSCRIBE);
                     this.doTimeout(timeout, timeoutError);
                     subscribeReject(timeoutError);
                 }, this.options.subscribeTimeout.milliseconds);
@@ -436,7 +434,7 @@ export class StreamingClient<T> {
         });
     }
 
-    private incoming(message: string, cb: AnyFunction): void {
+    private incoming(message: { channel?: string, error?: string }, cb: AnyFunction): void {
         this.log(message);
         // Look for a specific error message during the handshake.  If found, throw an error
         // with actions for the user.
@@ -484,13 +482,12 @@ export class StreamingClient<T> {
 
     /**
      * Simple inner log wrapper
-     * @param {string} message The message to log
+     * @param {any} message The message to log
      * @private
      */
-    private log(message: string) {
+    private log(message: any) { // tslint:disable-line:no-any
         if (this.logger) {
             this.logger.debug(message);
         }
     }
-
 }

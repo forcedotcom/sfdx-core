@@ -292,7 +292,6 @@ export class AuthInfo {
      * @returns {Promise<AuthInfo>}
      */
     public static async create(username?: string, options?: OAuth2Options): Promise<AuthInfo> {
-
         // Must specify either username and/or options
         if (!username && !options) {
             throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
@@ -399,9 +398,11 @@ export class AuthInfo {
     // All sensitive fields are encrypted
     private fields: AuthFields = { };
 
-    private usingAccessToken: boolean;
+    // Possibly overridden in create
+    private usingAccessToken = false;
 
-    private logger: Logger;
+    // Initialized in init
+    private logger!: Logger;
 
     /**
      * **Do not directly construct instances of this class -- use {@link AuthInfo.create} instead.**

@@ -21,7 +21,7 @@ export class SchemaValidator {
     private readonly schemasDir: string;
     private readonly logger: Logger;
 
-    private schema: JsonMap;
+    private schema?: JsonMap;
 
     /**
      * Creates a new `SchemaValidator` instance given a logger and path to a schema file.
