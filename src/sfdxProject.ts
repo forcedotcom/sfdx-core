@@ -99,7 +99,7 @@ export class SfdxProject {
      * @private
      * @constructor
      */
-    private constructor(private path) {}
+    private constructor(private path: string) { }
 
     /**
      * Returns the project path.

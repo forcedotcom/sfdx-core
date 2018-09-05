@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Optional } from '@salesforce/ts-types';
+import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 import * as os from 'os';
 import { join as pathJoin } from 'path';
 import { retrieveKeychain } from './keyChain';
+import { KeyChain } from './keyChainImpl';
 import { Logger } from './logger';
 import { Messages } from './messages';
 import { SecureBuffer } from './secureBuffer';
@@ -41,13 +42,11 @@ const keychainPromises = {
      * @param service The keychain service name.
      * @param account The keychain account name.
      */
-    getPassword(_keychain, service, account): Promise<CredType> {
+    getPassword(_keychain: KeyChain, service: string, account: string): Promise<CredType> {
         return new Promise((resolve, reject) =>
-            _keychain.getPassword({ service, account }, (err, password) => {
-                if (err) {
-                    return reject(err);
-                }
-                return resolve({ username: account, password });
+            _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
+                if (err) return reject(err);
+                return resolve({ username: account, password: ensure(password) });
             })
         );
     },
@@ -58,12 +57,10 @@ const keychainPromises = {
      * @param account The keychain account name.
      * @param password The password for the keychain item.
      */
-    setPassword(_keychain, service, account, password): Promise<CredType> {
-        return new Promise( (resolve, reject) =>
-            _keychain.setPassword({ service, account, password }, err => {
-                if (err) {
-                    return reject(err);
-                }
+    setPassword(_keychain: KeyChain, service: string, account: string, password: string): Promise<CredType> {
+        return new Promise((resolve, reject) =>
+            _keychain.setPassword({ service, account, password }, (err: Nullable<Error>) => {
+                if (err) return reject(err);
                 return resolve({ username: account, password });
             })
         );
@@ -80,7 +77,7 @@ export class Crypto {
     private noResetOnClose: boolean;
     private _key: SecureBuffer<string> = new SecureBuffer();
 
-    constructor(private keyChain?) { }
+    constructor(private keyChain?: KeyChain) { }
 
     /**
      * Initialize any crypto dependencies. In this case we need to generate an encryption key.
@@ -117,7 +114,7 @@ export class Crypto {
 
                 const key = crypto.randomBytes(Math.ceil(16)).toString('hex');
                 // Create a new password in the KeyChain.
-                await keychainPromises.setPassword(this.keyChain, KEY_NAME, ACCOUNT, key);
+                await keychainPromises.setPassword(ensure(this.keyChain), KEY_NAME, ACCOUNT, key);
 
                 return this.init('KEY_SET', platform);
             } else {
@@ -129,12 +126,12 @@ export class Crypto {
     /**
      * Encrypts text.
      *
-     * @param {string} text The text to encrypt.
+     * @param {string} [text] The text to encrypt.
      * @returns {Optional<string>} The encrypted string or undefined if no string was passed.
      */
-    public encrypt(text): Optional<string> {
+    public encrypt(text?: string): Optional<string> {
         if (text == null) {
-            return undefined;
+            return;
         }
 
         if (this._key == null) {
@@ -157,13 +154,13 @@ export class Crypto {
 
     /**
      * Decrypts text.
-     * @param text The text to decrypt.
+     * @param {string} [text] The text to decrypt.
      * @returns {Optional<string>} If enableTokenEncryption is set to false or not defined in package.json then the text
      * is simply returned. The text is then assumed to be unencrypted.
      */
-    public decrypt(text): Optional<string> {
+    public decrypt(text?: string): Optional<string> {
         if (text == null) {
-            return undefined;
+            return;
         }
 
         const tokens = text.split(TAG_DELIMITER);

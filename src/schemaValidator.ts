@@ -6,7 +6,7 @@
  */
 
 import { getJsonValuesByName, isString } from '@salesforce/kit';
-import { AnyJson, Dictionary, JsonMap } from '@salesforce/ts-types';
+import { AnyJson, asJsonArray, asJsonMap, Dictionary, getAsJsonArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
 import * as path from 'path';
@@ -136,16 +136,19 @@ export class SchemaValidator {
         return errors.map(error => {
             const property = error.path.match(/^([a-zA-Z0-9\.]+)\.([a-zA-Z0-9]+)$/);
 
-            const getPropValue = prop => {
-                const reducer = (obj, name) => {
-                    return (obj.properties && obj.properties[name]) || (name === '0' && obj.items) || obj[name] || obj[prop];
+            const getPropValue = (prop: string): Optional<AnyJson> => {
+                const reducer = (obj: Optional<AnyJson>, name: string): Optional<AnyJson> => {
+                    if (!isJsonMap(obj)) return;
+                    if (isJsonMap(obj.properties)) return obj.properties[name];
+                    if (name === '0') return asJsonArray(obj.items);
+                    return obj[name] || obj[prop];
                 };
                 return error.path.split('.').reduce(reducer, schema);
             };
 
-            const getEnumValues = () => {
-                const enumSchema = getPropValue('enum');
-                return enumSchema && enumSchema.enum ? enumSchema.enum.join(', ') : '';
+            const getEnumValues = (): string => {
+                const enumSchema = asJsonMap(getPropValue('enum'));
+                return enumSchema && getAsJsonArray(enumSchema, 'enum', []).join(', ') || '';
             };
 
             switch (error.keyword) {

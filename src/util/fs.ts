@@ -125,17 +125,8 @@ export async function remove(dirPath: string): Promise<void> {
     }
     const files = await readdir(dirPath);
     const stats = await Promise.all(files.map(file => stat(path.join(dirPath, file))));
-    const metas = stats.map((value, index) => {
-        value['path'] = path.join(dirPath, files[index]);
-        return value;
-    });
-    await Promise.all(metas.map(meta => {
-        if (meta.isDirectory()) {
-            return remove(meta['path']);
-        } else {
-            return unlink(meta['path']);
-        }
-    }));
+    const metas = stats.map((value, index) => Object.assign(value, { path: path.join(dirPath, files[index]) }));
+    await Promise.all(metas.map(meta => meta.isDirectory() ? remove(meta.path) : unlink(meta.path)));
     await rmdir(dirPath);
 }
 

@@ -24,12 +24,12 @@
  */
 
 import { isObject } from '@salesforce/kit';
-import { Optional } from '@salesforce/ts-types';
+import { Optional, RequiredDictionary } from '@salesforce/ts-types';
 import * as _ from 'lodash';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
-const propertyToEnvName = property => `SFDX_${_.snakeCase(property).toUpperCase()}`;
+const propertyToEnvName = (property: string) => `SFDX_${_.snakeCase(property).toUpperCase()}`;
 
 export const enum LOCATIONS {
     GLOBAL = 'Global',
@@ -95,7 +95,7 @@ export class ConfigAggregator {
     private allowedProperties: ConfigPropertyMeta[];
     private localConfig: Config;
     private globalConfig: Config;
-    private envVars: object;
+    private envVars: RequiredDictionary<string>;
     private config: object;
 
     /**
@@ -123,6 +123,7 @@ export class ConfigAggregator {
      */
     public getPropertyValue(key: string): string | boolean   {
         if (this.getAllowedProperties().some(element => key === element.key)) {
+            // @ts-ignore TODO: Need to sort out object types on config stuff
             return this.getConfig()[key];
         } else {
             throw new SfdxError(`Unknown config key: ${key}`, 'UnknownConfigKey');
@@ -286,7 +287,7 @@ export class ConfigAggregator {
                 obj[property.key] = val;
             }
             return obj;
-        }, {}));
+        }, {} as RequiredDictionary<string>));
 
         // Global config must be read first so it is on the left hand of the
         // object assign and is overwritten by the local config.
@@ -353,10 +354,10 @@ export class ConfigAggregator {
 
     /**
      * Sets the env variables.
-     * @param {object} envVars The env variables to set.
+     * @param {Dictionary<string>} envVars The env variables to set.
      * @private
      */
-    private setEnvVars(envVars: object) {
+    private setEnvVars(envVars: RequiredDictionary<string>) {
         this.envVars = envVars;
     }
 }

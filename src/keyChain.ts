@@ -16,7 +16,7 @@ import { SfdxError } from './sfdxError';
  * @returns {Promise<any>} The keychain impl.
  * @private
  */
-export const retrieveKeychain = async (platform): Promise<KeyChain> => {
+export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
 
     const logger: Logger = await Logger.child('keyChain');
     logger.debug(`platform: ${platform}`);

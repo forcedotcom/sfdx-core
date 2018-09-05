@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
+import { AnyFunction, AnyJson, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { forEach, get as _get, once, set as _set } from 'lodash';
@@ -192,7 +192,7 @@ export const testSetup = once((sinon?) => {
         // Most core files create a child logger so stub this to return our test logger.
         testContext.SANDBOX.stub(Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
 
-        testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake(isGlobal => testContext.rootPathRetriever(isGlobal, testContext.id));
+        testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) => testContext.rootPathRetriever(isGlobal, testContext.id));
 
         // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
         testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(async function(this: ConfigFile) {
@@ -210,7 +210,7 @@ export const testSetup = once((sinon?) => {
             this.setContentsFromObject(contents);
             return Promise.resolve(this.getContents());
         });
-        testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(this: ConfigFile, newContents) {
+        testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(this: ConfigFile, newContents: ConfigContents) {
             if (!testContext.configStubs[this.constructor.name]) {
                 testContext.configStubs[this.constructor.name] = {};
             }
@@ -232,10 +232,10 @@ export const testSetup = once((sinon?) => {
 
         testContext.SANDBOXES.CRYPTO.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
             setPassword: () => Promise.resolve(),
-            getPassword: (data, cb) => cb(undefined, '12345678901234567890123456789012')
+            getPassword: (data: object, cb: AnyFunction) => cb(undefined, '12345678901234567890123456789012')
         }));
 
-        testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(this: Connection, request, options?) {
+        testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(this: Connection, request: string, options?: Dictionary) {
             if (request === `${this.instanceUrl}/services/data`) {
                 return Promise.resolve([{ version: '42.0' }]);
             }

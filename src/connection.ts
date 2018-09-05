@@ -26,7 +26,8 @@ import { validateApiVersion } from './util/sfdc';
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
  * jsforce which expects .thenCall. Add .thenCall to the node promise to prevent breakage.
  */
-Promise.prototype['thenCall'] = JsforcePromise.prototype.thenCall;
+// @ts-ignore
+Promise.prototype.thenCall = JsforcePromise.prototype.thenCall;
 
 const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
 export const SFDX_HTTP_HEADERS = {
@@ -129,7 +130,7 @@ export class Connection extends JSForceConnection {
      * @param [options] HTTP API request options.
      * @returns {Promise<object>} The request Promise.
      */
-    public async request(request: RequestInfo | string, options?): Promise<object> {
+    public async request(request: RequestInfo | string, options?: object): Promise<object> {
         const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
         _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, _request.headers);
         this.logger.debug(`request: ${JSON.stringify(_request)}`);
