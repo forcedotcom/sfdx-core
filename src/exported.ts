@@ -121,7 +121,7 @@ export {
     DefaultStreamingOptions,
     StreamingClient,
     StreamingConnectionState,
-    StreamingTimeoutError,
+    StreamingTimeoutErrorType,
     StreamingOptions
 } from './status/streamingClient';
 

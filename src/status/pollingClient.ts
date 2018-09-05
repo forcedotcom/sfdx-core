@@ -85,8 +85,8 @@ export class PollingClient<T> {
     protected logger: Logger;
 
     private options: PollingOptions<T>;
-    private timeout: NodeJS.Timer;
-    private interval: NodeJS.Timer;
+    private timeout?: NodeJS.Timer;
+    private interval?: NodeJS.Timer;
 
     /**
      * Constructor

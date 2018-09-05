@@ -168,11 +168,13 @@ export class Org {
         return org;
     }
 
-    private logger: Logger;
-    private connection: Connection;
     // tslint:disable-next-line:no-unused-variable
     private status: OrgStatus = OrgStatus.UNKNOWN;
     private configAggregator: ConfigAggregator;
+
+    // Initialized in create
+    private logger!: Logger;
+    private connection!: Connection;
 
     /**
      * **Do not directly construct instances of this class -- use {@link Org.create} instead.**

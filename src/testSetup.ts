@@ -397,9 +397,9 @@ export class StreamingMockCometClient extends CometClient {
  */
 export class MockTestOrgData {
     public testId: string;
-    public alias: string;
+    public alias?: string;
     public username: string;
-    public devHubUsername: string;
+    public devHubUsername?: string;
     public orgId: string;
     public loginUrl: string;
     public instanceUrl: string;

@@ -148,8 +148,9 @@ export class ConfigFile extends BaseConfigStore {
         return config;
     }
 
-    private options: ConfigOptions;
-    private path: string;
+    // Initialized in create
+    private options!: ConfigOptions;
+    private path!: string;
 
     /**
      * Determines if the config file is read/write accessible.

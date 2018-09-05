@@ -72,7 +72,9 @@ export interface ConfigStore {
  * @implements {ConfigStore}
  */
 export abstract class BaseConfigStore implements ConfigStore {
-    private contents: ConfigContents;
+
+    // Initialized in setContents
+    private contents!: ConfigContents;
 
     public constructor(contents?: ConfigContents) {
         this.setContents(contents);

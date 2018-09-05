@@ -92,11 +92,12 @@ export class ConfigAggregator {
         return configAggregator;
     }
 
-    private allowedProperties: ConfigPropertyMeta[];
-    private localConfig: Config;
-    private globalConfig: Config;
-    private envVars: RequiredDictionary<string>;
-    private config: object;
+    // Initialized in loadProperties
+    private allowedProperties!: ConfigPropertyMeta[];
+    private localConfig!: Config;
+    private globalConfig!: Config;
+    private envVars!: RequiredDictionary<string>;
+    private config!: object;
 
     /**
      * **Do not directly construct instances of this class -- use {@link ConfigAggregator.resolve} instead.**

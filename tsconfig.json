@@ -3,10 +3,7 @@
     "compilerOptions": {
         "sourceRoot": "./src",
         "outDir": "./lib",
-        "noImplicitAny": true,
-        "noImplicitThis": true,
-        "strictFunctionTypes": true,
-        "strictNullChecks": true
+        "strict": true
     },
     "include": [
         "./src/**/*.ts"

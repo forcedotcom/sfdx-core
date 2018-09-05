@@ -1,4 +1,4 @@
-import { Optional } from '@salesforce/ts-types';
+import { ensure, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 
 const cipherName: string =  'aes256';
@@ -19,9 +19,10 @@ const cipherSize: number = 32;
  *
  */
 export class SecureBuffer <T> {
-    private secret: Buffer;
     private key = crypto.randomBytes(cipherSize);
     private iv = crypto.randomBytes(16);
+
+    private secret?: Buffer;
 
     /**
      * Invokes a callback with a decrypted version of the buffer.
@@ -33,7 +34,7 @@ export class SecureBuffer <T> {
     public value(cb: (buffer: Buffer) => T): Optional<T> {
         if (cb) {
             const cipher = crypto.createDecipheriv(cipherName, this.key, this.iv);
-            const a = cipher.update(this.secret);
+            const a = cipher.update(ensure(this.secret));
             const b = cipher.final();
             const c = Buffer.concat([a, b]);
             try {
