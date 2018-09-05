@@ -6,6 +6,7 @@
  */
 
 import { upperFirst } from '@salesforce/kit';
+import { Optional } from '@salesforce/ts-types';
 import { ErrorResult, QueryResult, RecordResult, SuccessResult } from 'jsforce';
 import * as _ from 'lodash';
 import { EOL } from 'os';
@@ -134,11 +135,11 @@ export class PermissionSetAssignment {
      * Parses a permission set name based on if it has a namespace or not.
      * @param permSetString {string} The permission set string.
      */
-    private parsePermissionSetString(permSetString: string): { nsPrefix: string, permSetName: string } {
+    private parsePermissionSetString(permSetString: string): { nsPrefix: Optional<string>, permSetName: Optional<string> } {
         const nsPrefixMatch = permSetString.match(/(\w+(?=__))(__)(.*)/);
 
-        let nsPrefix;
-        let permSetName;
+        let nsPrefix: Optional<string>;
+        let permSetName: Optional<string>;
         if (nsPrefixMatch) {
             try {
                 nsPrefix = nsPrefixMatch[1];

@@ -5,16 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ensure, Optional } from '@salesforce/ts-types';
+import { asString, ensure, Nullable } from '@salesforce/ts-types';
 import * as childProcess from 'child_process';
 import * as nodeFs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { ConfigFile } from './config/configFile';
+import { ConfigValue } from './config/configStore';
 import { KeychainConfig } from './config/keychainConfig';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import * as fs from './util/fs';
+
+export type FsIfc = Pick<typeof nodeFs, 'statSync'>;
 
 /* tslint:disable: no-bitwise */
 
@@ -25,7 +28,7 @@ const GET_PASSWORD_RETRY_COUNT: number = 3;
  * @param optionsArray CLI command args.
  * @private
  */
-function _optionsToString(optionsArray) {
+function _optionsToString(optionsArray: string[]) {
     return optionsArray.reduce((accum, element) => `${accum} ${element}`);
 }
 
@@ -37,7 +40,7 @@ function _optionsToString(optionsArray) {
  * @returns {boolean} `true` if the program is executable for the user. For Windows true is always returned.
  * @private
  */
-const _isExe = (mode, gid, uid) => {
+const _isExe = (mode: number, gid: number, uid: number) => {
     if (process.platform === 'win32') {
         return true;
     }
@@ -54,7 +57,7 @@ const _isExe = (mode, gid, uid) => {
  * @param isExeIfc Executable validation function.
  * @private
  */
-const _validateProgram = async (programPath, fsIfc, isExeIfc) => {
+const _validateProgram = async (programPath: string, fsIfc: FsIfc, isExeIfc: (mode: number, gid: number, uid: number) => boolean) => {
     let noPermission;
     try {
         const stats = fsIfc.statSync(programPath);
@@ -68,10 +71,15 @@ const _validateProgram = async (programPath, fsIfc, isExeIfc) => {
     }
 };
 
+export interface PasswordStore {
+    getPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void, retryCount?: number): Promise<void>;
+    setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void>;
+}
+
 /**
  * @private
  */
-export class KeychainAccess {
+export class KeychainAccess implements PasswordStore {
 
     /**
      * Abstract prototype for general cross platform keychain interaction.
@@ -79,7 +87,7 @@ export class KeychainAccess {
      * @param fsIfc The file system interface
      * @constructor
      */
-    constructor(private osImpl, private fsIfc) {}
+    constructor(private osImpl: OsImpl, private fsIfc: FsIfc) {}
 
     public async validateProgram() {
         await _validateProgram(this.osImpl.getProgram(), this.fsIfc, _isExe);
@@ -90,9 +98,8 @@ export class KeychainAccess {
      * @param opts Options for the credential lookup.
      * @param fn Callback function (err, password).
      * @param retryCount Used internally to track the number of retries for getting a password out of the keychain.
-     * @returns {Promise<Optional<string>>}
      */
-    public async getPassword(opts, fn, retryCount = 0): Promise<Optional<string>> {
+    public async getPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void, retryCount = 0): Promise<void> {
         if (opts.service == null) {
             fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
             return;
@@ -137,7 +144,7 @@ export class KeychainAccess {
      * @param opts Options for the credential lookup.
      * @param fn Callback function (err, password).
      */
-    public async setPassword(opts, fn): Promise<void> {
+    public async setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void> {
 
         if (opts.service == null) {
             fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
@@ -161,13 +168,28 @@ export class KeychainAccess {
         let stdout = '';
         let stderr = '';
 
-        credManager.stdout.on('data', data => { stdout += data; });
-        credManager.stderr.on('data', data => { stderr += data; });
+        credManager.stdout.on('data', (data: string) => { stdout += data; });
+        credManager.stderr.on('data', (data: string) => { stderr += data; });
 
-        credManager.on('close', async code => await this.osImpl.onSetCommandClose(code, stdout, stderr, opts, fn));
+        credManager.on('close', async (code: number) => await this.osImpl.onSetCommandClose(code, stdout, stderr, opts, fn));
 
         credManager.stdin.end();
     }
+}
+
+interface ProgramOpts {
+    account: string;
+    service: string;
+    password?: string;
+}
+interface OsImpl {
+    getProgram(): string;
+    getProgramOptions(opts: ProgramOpts): string[];
+    getCommandFunc(opts: ProgramOpts, fn: (program: string, opts: string[]) => childProcess.ChildProcess): childProcess.ChildProcess;
+    onGetCommandClose(code: number, stdout: string, stderr: string, opts: ProgramOpts, fn: (err: Nullable<Error>, result?: string) => void): Promise<void>;
+    setProgramOptions(opts: ProgramOpts): string[];
+    setCommandFunc(opts: ProgramOpts, fn: (program: string, opts: string[]) => childProcess.ChildProcess): childProcess.ChildProcess;
+    onSetCommandClose(code: number, stdout: string, stderr: string, opts: ProgramOpts, fn: (err: Nullable<Error>) => void): Promise<void>;
 }
 
 /**
@@ -177,7 +199,7 @@ export class KeychainAccess {
  *
  * @private
  */
-const _linuxImpl = {
+const _linuxImpl: OsImpl = {
     getProgram() {
         return process.env.SFDX_SECRET_TOOL_PATH || path.join(path.sep, 'usr', 'bin', 'secret-tool');
     },
@@ -208,7 +230,8 @@ const _linuxImpl = {
             // Calling secret-tool too fast can cause it to return an unexpected error. (below)
             if (stderr != null &&
                 stderr.includes('invalid or unencryptable secret')) {
-                error['retry'] = true;
+                // @ts-ignore TODO: make an error subclass with this field
+                error.retry = true;
 
                 // Throwing here allows us to perform a retry in KeychainAccess
                 throw error;
@@ -256,7 +279,7 @@ const _linuxImpl = {
  *
  * @private
  */
-const _darwinImpl = {
+const _darwinImpl: OsImpl = {
     getProgram() {
         return path.join(path.sep, 'usr', 'bin', 'security');
     },
@@ -289,15 +312,26 @@ const _darwinImpl = {
                     );
                     err = SfdxError.create(errorConfig);
             }
-            fn(err, null);
+            fn(err);
             return;
         }
 
         // For better or worse, the last line (containing the actual password) is actually written to stderr instead of
         // stdout. Reference: http://blog.macromates.com/2006/keychain-access-from-shell/
         if (/password/.test(stderr)) {
-            const password = stderr.match(/"(.*)"/, '')[1];
-            fn(null, password);
+            const match = stderr.match(/"(.*)"/);
+            if (!match || !match[1]) {
+                const errorConfig = new SfdxErrorConfig(
+                    '@salesforce/core',
+                    'encryption',
+                    'PasswordNotFoundError',
+                    [`\n${stdout} - ${stderr}`],
+                    'PasswordNotFoundErrorAction'
+                );
+                fn(SfdxError.create(errorConfig));
+            } else {
+                fn(null, match[1]);
+            }
         } else {
             const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
             const errorConfig = new SfdxErrorConfig(
@@ -313,8 +347,12 @@ const _darwinImpl = {
     },
 
     setProgramOptions(opts) {
-        return ['add-generic-password', '-a', opts.account, '-s',
-            opts.service, '-w', opts.password];
+        const result = ['add-generic-password', '-a', opts.account, '-s',
+            opts.service];
+        if (opts.password) {
+            result.push('-w', opts.password);
+        }
+        return result;
     },
 
     setCommandFunc(opts, fn) {
@@ -339,11 +377,11 @@ const _darwinImpl = {
     }
 };
 
-async function _writeFile(opts, fn) {
+async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: Map<string, ConfigValue>) => void) {
     try {
         const config = await KeychainConfig.create();
         config.set(SecretFields.ACCOUNT, opts.account);
-        config.set(SecretFields.KEY, opts.password);
+        config.set(SecretFields.KEY, opts.password || '');
         config.set(SecretFields.SERVICE, opts.service);
         await config.write();
 
@@ -362,9 +400,9 @@ enum SecretFields {
 /**
  * @private
  */
-export class GenericKeychainAccess {
+export class GenericKeychainAccess implements PasswordStore {
 
-    public async getPassword(opts, fn): Promise<any> { // tslint:disable-line:no-any
+    public async getPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void> {
         // validate the file in .sfdx
         await this.isValidFileAccess(async fileAccessError => {
 
@@ -376,7 +414,9 @@ export class GenericKeychainAccess {
                     .then((config: KeychainConfig) => {
                         // validate service name and account just because
                         if ((opts.service === config.get(SecretFields.SERVICE)) && (opts.account === config.get(SecretFields.ACCOUNT))) {
-                            fn(null, config.get(SecretFields.KEY));
+                            const key = config.get(SecretFields.KEY);
+                            // @ts-ignore TODO: Remove this ignore if we ever factor out `object` from `ConfigValue`
+                            fn(null, asString(key));
                         } else {
                             // if the service and account names don't match then maybe someone or something is editing
                             // that file. #donotallow
@@ -398,7 +438,7 @@ export class GenericKeychainAccess {
         });
     }
 
-    public async setPassword(opts, fn): Promise<any> { // tslint:disable-line:no-any
+    public async setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void> {
         // validate the file in .sfdx
         await this.isValidFileAccess(async fileAccessError => {
             // if there is a validation error
@@ -419,7 +459,7 @@ export class GenericKeychainAccess {
         });
     }
 
-    protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<void> {
+    protected async isValidFileAccess(cb: (error: Nullable<NodeJS.ErrnoException>) => Promise<void>): Promise<void> {
         try {
             const root = await ConfigFile.resolveRootFolder(true);
             await fs.access(path.join(root, Global.STATE_FOLDER), fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
@@ -435,7 +475,7 @@ export class GenericKeychainAccess {
  */
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 
-    protected async isValidFileAccess(cb: (val?) => Promise<void>): Promise<void> {
+    protected async isValidFileAccess(cb: (error: Nullable<Error>) => Promise<void>): Promise<void> {
         const secretFile: string = path.join(await ConfigFile.resolveRootFolder(true),
             Global.STATE_FOLDER, ensure(KeychainConfig.getDefaultOptions().filename));
         await super.isValidFileAccess(async err => {
@@ -447,7 +487,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
                 const octalModeStr  = (stats.mode & 0o777).toString(8);
                 const EXPECTED_OCTAL_PERM_VALUE = '600';
                 if (octalModeStr === EXPECTED_OCTAL_PERM_VALUE) {
-                    await cb();
+                    await cb(null);
                 } else {
                     const errorConfig = new SfdxErrorConfig(
                         '@salesforce/core',

@@ -29,7 +29,7 @@
  */
 
 import { isString } from '@salesforce/kit';
-import { AnyJson, asAnyJson, asJsonArray, asString, Dictionary, ensure, Optional } from '@salesforce/ts-types';
+import { AnyFunction, AnyJson, asAnyJson, asJsonArray, asString, Dictionary, ensure, Optional } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import { filter as _filter, get as _get } from 'lodash';
 import { join as pathJoin } from 'path';
@@ -190,7 +190,7 @@ export class Org {
      * @returns {Promise<void>}
      */
     public async cleanLocalOrgData(orgDataPath?: string, throwWhenRemoveFails: boolean = false): Promise<void> {
-        let dataPath;
+        let dataPath: string;
         try {
             const rootFolder: string = await Config.resolveRootFolder(false);
             dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
@@ -219,7 +219,7 @@ export class Org {
      * @param {boolean} [throwWhenRemoveFails = false] Determines if the call should throw an error or fail silently.
      * @returns {Promise<void>}
      */
-    public async remove(throwWhenRemoveFails?: false): Promise<void> {
+    public async remove(throwWhenRemoveFails = false): Promise<void> {
         // If deleting via the access token there shouldn't be any auth config files
         // so just return;
         if (this.getConnection().isUsingAccessToken()) {
@@ -256,7 +256,7 @@ export class Org {
             }
 
             const orgUsers: OrgUsersConfig = await this.retrieveOrgUsersConfig();
-            this.manageDelete(async () => await orgUsers.unlink(), orgUsers.getPath(), throwWhenRemoveFails);
+            await this.manageDelete(async () => await orgUsers.unlink(), orgUsers.getPath(), throwWhenRemoveFails);
         }
 
         await aliases.write();
@@ -470,6 +470,7 @@ export class Org {
      * @returns {AnyJson}
      */
     public getField(key: OrgFields): AnyJson {
+        // @ts-ignore TODO: Need to refactor storage of these values on both Org and AuthFields
         return this[key] || this.getConnection().getAuthInfoFields()[key];
     }
 
@@ -478,7 +479,9 @@ export class Org {
      * @returns {Dictionary<AnyJson>}
      */
     public getFields(keys: OrgFields[]): Dictionary<AnyJson> {
-        return keys.reduce((map, key) => { map[key] = this.getField(key); return map; }, {});
+        return keys.reduce((map, key) => {
+            map[key] = this.getField(key); return map;
+        }, {} as Dictionary<AnyJson>);
     }
 
     /**
@@ -505,7 +508,7 @@ export class Org {
         }
     }
 
-    private manageDelete(cb, dirPath, throwWhenRemoveFails): void {
+    private manageDelete(cb: AnyFunction<Promise<void>>, dirPath: string, throwWhenRemoveFails: boolean): Promise<void> {
         return cb().catch(e => {
             if (throwWhenRemoveFails) {
                 throw e;

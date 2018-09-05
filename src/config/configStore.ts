@@ -46,9 +46,9 @@ export type ConfigContents = Map<string, ConfigValue>;
 export interface ConfigStore {
     // Map manipulation methods
     entries(): ConfigEntry[];
-    get(key): Optional<ConfigValue>;
+    get(key: string): Optional<ConfigValue>;
     getKeysByValue(value: ConfigValue): string[];
-    has(key): boolean;
+    has(key: string): boolean;
     keys(): string[];
     set(key: string, value: ConfigValue): ConfigContents;
     unset(key: string): boolean;
@@ -62,9 +62,6 @@ export interface ConfigStore {
     // Content methods
     getContents(): ConfigContents;
     setContents(contents?: ConfigContents): void;
-
-    // Storage methods
-
 }
 
 /**
@@ -216,9 +213,10 @@ export abstract class BaseConfigStore implements ConfigStore {
      */
     public toObject(): JsonMap {
         return _.entries(this.contents).reduce((obj, entry: ConfigEntry) => {
+            // @ts-ignore TODO: refactor config to not intermingle js maps and json maps
             obj[entry[0]] = entry[1];
             return obj;
-        }, {});
+        }, {} as JsonMap);
     }
 
     /**

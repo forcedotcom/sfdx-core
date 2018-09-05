@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { env } from '@salesforce/kit';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from './util/fs';
@@ -57,7 +58,7 @@ export class Global {
      * @returns {Mode}
      */
     public static getEnvironmentMode(): Mode {
-        return Mode[(process.env.SFDX_ENV || Mode.PRODUCTION).toUpperCase()];
+        return Mode[env.getKeyOf('SFDX_ENV', Mode, Mode.PRODUCTION, value => value.toUpperCase())];
     }
 
     /**

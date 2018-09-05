@@ -49,10 +49,11 @@
  */
 
 import { cloneJson, isEmpty, isPlainObject, isString } from '@salesforce/kit';
-import { AnyJson, asString, ensure, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
+import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, JsonMap, keysOf, Nullable, Optional } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
-import { OAuth2, OAuth2Options } from 'jsforce';
+import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
+// @ts-ignore No typings directly available for jsforce/lib/transport
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import * as _ from 'lodash';
@@ -60,7 +61,7 @@ import { parse as urlParse } from 'url';
 import { AuthInfoConfig } from './config/authInfoConfig';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
-import { SFDX_HTTP_HEADERS } from './connection';
+import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { Crypto } from './crypto';
 import { Global } from './global';
 import { Logger } from './logger';
@@ -92,14 +93,22 @@ export interface AuthFields {
     userProfileName?: string;
 }
 
+export type RefreshFn = (conn: Connection, callback: (err: Nullable<Error>, accessToken?: string, res?: object) => Promise<void>) => Promise<void>;
+
+export type ConnectionOptions = AuthFields & {
+    oauth2?: Partial<OAuth2Options>,
+    refreshFn?: RefreshFn
+};
+
 // Extend OAuth2 to add JWT Bearer Token Flow support.
 class JwtOAuth2 extends OAuth2 {
     constructor(options: OAuth2Options) {
         super(options);
     }
 
-    public async jwtAuthorize(innerToken: string, callback?): Promise<AnyJson> { // tslint:disable-line:no-any
-        return super['_postParams']({
+    public async jwtAuthorize(innerToken: string, callback?: AnyFunction): Promise<AnyJson> { // tslint:disable-line:no-any
+        // @ts-ignore TODO: need better typings for jsforce
+        return super._postParams({
             grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             assertion: innerToken
         }, callback);
@@ -124,7 +133,7 @@ class AuthCodeOAuth2 extends OAuth2 {
      *
      * @param params
      */
-    public getAuthorizationUrl(params) {
+    public getAuthorizationUrl(params: object) {
         // code verifier must be a base 64 url encoded hash of 128 bytes of random data. Our random data is also
         // base 64 url encoded. See Connection.create();
         const codeChallenge = base64UrlEscape(createHash('sha256').update(this.codeVerifier).digest('base64'));
@@ -133,7 +142,7 @@ class AuthCodeOAuth2 extends OAuth2 {
         return super.getAuthorizationUrl(params);
     }
 
-    public async requestToken(code: string, callback?) {
+    public async requestToken(code: string, callback?: AnyFunction) {
         return super.requestToken(code, callback);
     }
 
@@ -145,9 +154,10 @@ class AuthCodeOAuth2 extends OAuth2 {
      * See https://github.com/jsforce/jsforce/issues/665
      */
     // tslint:disable-next-line:no-unused-variable
-    protected async _postParams(params, callback) {
+    protected async _postParams(params: object, callback: AnyFunction) {
         _.set(params, 'code_verifier', this.codeVerifier);
-        return super['_postParams'](params, callback);
+        // @ts-ignore TODO: need better typings for jsforce
+        return super._postParams(params, callback);
     }
 }
 
@@ -162,7 +172,7 @@ function isInternalUrl(loginUrl: string = ''): boolean {
     return loginUrl.startsWith('https://gs1.') || _.some(INTERNAL_URL_PARTS, part => loginUrl.includes(part));
 }
 
-function getJwtAudienceUrl(options) {
+function getJwtAudienceUrl(options: object) {
     // default audience must be...
     let audienceUrl: string = SFDC_URLS.production;
     const loginUrl = _.get(options, 'loginUrl', '');
@@ -184,7 +194,7 @@ function getJwtAudienceUrl(options) {
 
 // parses the id field returned from jsForce oauth2 methods to get
 // user ID and org ID.
-function _parseIdUrl(idUrl) {
+function _parseIdUrl(idUrl: string) {
     const idUrls = idUrl.split('/');
     const userId = idUrls.pop();
     const orgId = idUrls.pop();
@@ -208,18 +218,29 @@ class AuthInfoCrypto extends Crypto {
         return await new AuthInfoCrypto().init(undefined, undefined, true) as AuthInfoCrypto;
     }
 
-    private static readonly encryptedFields = ['accessToken', 'refreshToken', 'password', 'clientSecret'];
+    private static readonly encryptedFields: Array<keyof AuthFields> = ['accessToken', 'refreshToken', 'password', 'clientSecret'];
 
-    public decryptFields(fields: AuthFields) {
+    public decryptFields(fields: AuthFields): AuthFields {
         return this._crypt(fields, 'decrypt');
     }
 
-    public encryptFields(fields: AuthFields) {
+    public encryptFields(fields: AuthFields): AuthFields {
         return this._crypt(fields, 'encrypt');
     }
 
-    private _crypt(fields: AuthFields, method: string): AuthFields {
-        return _.mapValues(fields, (val, key) => AuthInfoCrypto.encryptedFields.includes(key) ? this[method](val) : val);
+    private _crypt(fields: AuthFields, method: 'encrypt' | 'decrypt'): AuthFields {
+        const copy: AuthFields = { };
+        for (const key of keysOf(fields)) {
+            const rawValue = fields[key];
+            if (rawValue !== undefined) {
+                if (isString(rawValue) && AuthInfoCrypto.encryptedFields.includes(key)) {
+                    copy[key] = this[method](asString(rawValue));
+                } else {
+                    copy[key] = rawValue;
+                }
+            }
+        }
+        return copy;
     }
 }
 
@@ -376,7 +397,7 @@ export class AuthInfo {
     private static cache: Map<string, AuthFields> = new Map();
 
     // All sensitive fields are encrypted
-    private fields: AuthFields = {};
+    private fields: AuthFields = { };
 
     private usingAccessToken: boolean;
 
@@ -548,8 +569,8 @@ export class AuthInfo {
      *
      * @returns {AuthFields}
      */
-    public getConnectionOptions(): AuthFields {
-        let json;
+    public getConnectionOptions(): ConnectionOptions {
+        let opts: ConnectionOptions;
 
         const { accessToken, instanceUrl } = this.fields;
 
@@ -557,10 +578,10 @@ export class AuthInfo {
             this.logger.info('Returning fields for a connection using access token.');
 
             // Just auth with the accessToken
-            json = { accessToken, instanceUrl };
+            opts = { accessToken, instanceUrl };
         } else if (this.isJwt()) {
             this.logger.info('Returning fields for a connection using JWT config.');
-            json = {
+            opts = {
                 accessToken,
                 instanceUrl,
                 refreshFn: this.refreshFn.bind(this)
@@ -573,7 +594,7 @@ export class AuthInfo {
             this.logger.info('Returning fields for a connection using OAuth config.');
 
             // Decrypt a user provided client secret or use the default.
-            json = {
+            opts = {
                 oauth2: {
                     loginUrl: instanceUrl || 'https://login.salesforce.com',
                     clientId: this.fields.clientId || DEFAULT_CONNECTED_APP_INFO.clientId,
@@ -586,7 +607,7 @@ export class AuthInfo {
         }
 
         // decrypt the fields
-        return authInfoCrypto.decryptFields(json);
+        return authInfoCrypto.decryptFields(opts);
     }
 
     /**
@@ -625,22 +646,22 @@ export class AuthInfo {
 
     // A callback function for a connection to refresh an access token.  This is used
     // both for a JWT connection and an OAuth connection.
-    private async refreshFn(conn, callback: (err, accessToken?, res?) => void): Promise<void> {
+    private async refreshFn(conn: Connection, callback: (err: Nullable<Error>, accessToken?: string, res?: object) => Promise<void>): Promise<void> {
         this.logger.info('Access token has expired. Updating...');
 
         try {
             await this.init(authInfoCrypto.decryptFields(this.fields));
             await this.save();
-            return await callback(null, authInfoCrypto.decrypt(this.fields.accessToken));
+            return await callback(null, authInfoCrypto.decrypt(asString(this.fields.accessToken)));
         } catch (err) {
             if (err.message && err.message.includes('Data Not Available')) {
-                const errConfig: SfdxErrorConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'OrgDataNotAvailableError', [this.getUsername()]);
+                const errConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'OrgDataNotAvailableError', [this.getUsername()]);
                 for (let i = 1; i < 5; i++) {
                     errConfig.addAction(`OrgDataNotAvailableErrorAction${i}`);
                 }
-                return callback(SfdxError.create(errConfig));
+                return await callback(SfdxError.create(errConfig));
             }
-            return callback(err);
+            return await callback(err);
         }
     }
 
@@ -671,7 +692,7 @@ export class AuthInfo {
 
         const authFields: AuthFields = {
             accessToken: asString(_authFields.access_token),
-            orgId: _parseIdUrl(_authFields.id).orgId,
+            orgId: _parseIdUrl(ensureString(_authFields.id)).orgId,
             loginUrl: options.loginUrl,
             privateKey: options.privateKey
         };
@@ -697,7 +718,7 @@ export class AuthInfo {
         }
 
         const oauth2 = new OAuth2(options);
-        let _authFields;
+        let _authFields: TokenResponse;
         try {
             _authFields = await oauth2.refreshToken(ensure(options.refreshToken));
         } catch (err) {
@@ -706,8 +727,11 @@ export class AuthInfo {
 
         return {
             accessToken: _authFields.access_token,
+            // @ts-ignore TODO: need better typings for jsforce
             instanceUrl: _authFields.instance_url,
+            // @ts-ignore TODO: need better typings for jsforce
             orgId: _parseIdUrl(_authFields.id).orgId,
+            // @ts-ignore TODO: need better typings for jsforce
             loginUrl: options.loginUrl || _authFields.instance_url,
             refreshToken: options.refreshToken,
             clientId: options.clientId,
@@ -728,12 +752,14 @@ export class AuthInfo {
             throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeExchangeError', [err.message]);
         }
 
+        // @ts-ignore TODO: need better typings for jsforce
         const { userId, orgId } = _parseIdUrl(_authFields.id);
 
         // Make a REST call for the username directly.  Normally this is done via a connection
         // but we don't want to create circular dependencies or lots of snowflakes
         // within this file to support it.
         const apiVersion = 'v42.0';  // hardcoding to v42.0 just for this call is okay.
+        // @ts-ignore TODO: need better typings
         const url = `${_authFields.instance_url}/services/data/${apiVersion}/sobjects/User/${userId}`;
         const headers = Object.assign({ Authorization: `Bearer ${_authFields.access_token}` }, SFDX_HTTP_HEADERS);
 
@@ -748,9 +774,11 @@ export class AuthInfo {
 
         return {
             accessToken: _authFields.access_token,
+            // @ts-ignore TODO: need better typings for jsforce
             instanceUrl: _authFields.instance_url,
             orgId,
             username,
+            // @ts-ignore TODO: need better typings for jsforce
             loginUrl: options.loginUrl || _authFields.instance_url,
             refreshToken: _authFields.refresh_token
         };

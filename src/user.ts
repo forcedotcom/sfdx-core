@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { lowerFirst, upperFirst } from '@salesforce/kit';
-import { asNumber, ensure, ensureJsonMap, ensureString } from '@salesforce/ts-types';
+import { asNumber, ensure, ensureJsonMap, ensureString, Many } from '@salesforce/ts-types';
 import { OAuth2Options, QueryResult, RequestInfo } from 'jsforce';
 import * as _ from 'lodash';
 import { EOL } from 'os';
@@ -24,11 +24,10 @@ const PASSWORD_LENGTH = 10;
 const LOWER = 'abcdefghijklmnopqrstuvwxyz';
 const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const NUMBERS = '1234567890';
-// eslint-disable-next-line no-useless-escape
 const SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '[', ']', '|', '-'];
 const ALL = [LOWER, UPPER, NUMBERS, SYMBOLS.join('')];
 
-const rand = len => Math.floor(Math.random() * (len.length || len));
+const rand = (len: Many<string>) => Math.floor(Math.random() * len.length);
 
 const scimEndpoint = '/services/scim/v1/Users';
 const scimHeaders = { 'auto-approve-user': 'true' };
@@ -102,9 +101,9 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
 async function _retrieveProfileId(name: string, connection: Connection): Promise<string> {
     if (!validateSalesforceId(name)) {
         const profileQuery = `SELECT Id FROM Profile WHERE name='${name}'`;
-        const result: QueryResult<string[]> = await connection.query<string[]>(profileQuery);
+        const result = await connection.query<{ Id: string }>(profileQuery);
         if (result.records.length > 0) {
-            return result.records[0]['Id'];
+            return result.records[0].Id;
         }
     }
     return name;
@@ -225,7 +224,8 @@ export class User {
         return new Promise((resolve, reject) => {
             password.value(async (buffer: Buffer) => {
                 try {
-                    const soap = userConnection['soap'];
+                    // @ts-ignore TODO: expose `soap` on Connection however appropriate
+                    const soap = userConnection.soap;
                     await soap.setPassword(info.getFields().userId, buffer.toString('utf8'));
                     this.logger.debug(`Set password for userId: ${info.getFields().userId}`);
                     resolve();

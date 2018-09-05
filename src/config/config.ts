@@ -26,7 +26,7 @@
  * @property {function} list `() => string[]` List the Org defaults.
  */
 
-import { ensure } from '@salesforce/ts-types';
+import { Dictionary, ensure, isString } from '@salesforce/ts-types';
 import * as _ from 'lodash';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
@@ -73,7 +73,7 @@ export interface ConfigPropertyMetaInput {
      * @param value The input value.
      * @returns {boolean} Returns true if the input data is valid.
      */
-    validator: (value) => {};
+    validator: (value: ConfigValue) => boolean;
 
     /**
      * The message to return in the error if the validation fails.
@@ -156,7 +156,7 @@ export class Config extends ConfigFile {
                     key: 'instanceUrl',
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
-                        validator: value => value == null || isSalesforceDomain(value),
+                        validator: value => value == null || (isString(value) && isSalesforceDomain(value)),
                         failedMessage: Config.messages.getMessage('InvalidInstanceUrl')
                     }
                 },
@@ -165,7 +165,7 @@ export class Config extends ConfigFile {
                     hidden: true,
                     input: {
                         // If a value is provided validate it otherwise no value is unset.
-                        validator: validateApiVersion,
+                        validator: value => isString(value) && validateApiVersion(value),
                         failedMessage: Config.messages.getMessage('InvalidApiVersion')
                     }
                 },
@@ -178,7 +178,7 @@ export class Config extends ConfigFile {
                     key: 'restDeploy',
                     hidden: true,
                     input: {
-                        validator: value => value.toString() === 'true' || value.toString() === 'false',
+                        validator: value => value != null && ['true', 'false'].includes(value.toString()),
                         failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
                     }
                 },
@@ -250,7 +250,7 @@ export class Config extends ConfigFile {
 
     private static allowedProperties: ConfigPropertyMeta[];
     private static messages: Messages;
-    private static propertyConfigMap;
+    private static propertyConfigMap: Dictionary<ConfigPropertyMeta>;
 
     private crypto: Crypto;
 
@@ -354,13 +354,13 @@ export class Config extends ConfigFile {
      */
     private async cryptProperties(encrypt: boolean): Promise<void> {
         const hasEncryptedProperties =
-            _.some(this.entries(), ([key, val]) => !!Config.propertyConfigMap[key].encrypted);
+            _.some(this.entries(), ([key, val]) => !!ensure(Config.propertyConfigMap[key]).encrypted);
 
         if (hasEncryptedProperties) {
             await this.initCrypto();
 
             this.forEach((key, value) => {
-                if (this.getPropertyConfig(key).encrypted) {
+                if (this.getPropertyConfig(key).encrypted && isString(value)) {
                     this.set(key, ensure(encrypt ? this.crypto.encrypt(value) : this.crypto.decrypt(value)));
                 }
             });

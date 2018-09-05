@@ -3,6 +3,7 @@
     "compilerOptions": {
         "sourceRoot": "./src",
         "outDir": "./lib",
+        "noImplicitAny": true,
         "noImplicitThis": true,
         "strictFunctionTypes": true,
         "strictNullChecks": true

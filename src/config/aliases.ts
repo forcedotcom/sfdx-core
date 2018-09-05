@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Dictionary } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile, ConfigOptions } from './configFile';
 import { ConfigGroup, ConfigGroupOptions } from './configGroup';
@@ -92,7 +93,7 @@ export class Aliases extends ConfigGroup {
      * const aliases = await Aliases.parseAndUpdate(['foo=bar', 'bar=baz'])
      */
     public static async parseAndUpdate(aliasKeyAndValues: string[], group: AliasGroup = AliasGroup.ORGS): Promise<object> {
-        const newAliases = {};
+        const newAliases: Dictionary<string> = { };
         if (aliasKeyAndValues.length === 0) {
             throw SfdxError.create('@salesforce/core', 'core', 'NoAliasesFound', []);
         }

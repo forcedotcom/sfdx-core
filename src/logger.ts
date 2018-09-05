@@ -78,8 +78,10 @@
  */
 
 import { isObject, isPlainObject, isString } from '@salesforce/kit';
+import { Dictionary, ensure, isKeyOf, Many, Optional } from '@salesforce/ts-types';
+// @ts-ignore No typings available for our copy of bunyan
 import * as Bunyan from 'bunyan-sfdx-no-dtrace';
-import * as createDebugUtil from 'debug';
+import * as Debug from 'debug';
 import * as EventEmitter from 'events';
 import * as _ from 'lodash';
 import * as os from 'os';
@@ -194,9 +196,9 @@ export class Logger {
 
         // The debug library does this for you, but no point setting up the stream if it isn't there
         if (process.env.DEBUG) {
-            const debuggers = {};
+            const debuggers: Dictionary<Debug.IDebugger> = {};
 
-            debuggers['core'] = createDebugUtil(`${rootLogger.getName()}:core`);
+            debuggers.core = Debug(`${rootLogger.getName()}:core`);
 
             rootLogger.addStream({
                 name: 'debug',
@@ -207,10 +209,10 @@ export class Logger {
                         if (json['log']) {
                             debuggerName = json['log'];
                             if (!debuggers[debuggerName]) {
-                                debuggers[debuggerName] = createDebugUtil(`${rootLogger.getName()}:${debuggerName}`);
+                                debuggers[debuggerName] = Debug(`${rootLogger.getName()}:${debuggerName}`);
                             }
                         }
-                        debuggers[debuggerName](`${LoggerLevel[json.level]} ${json.msg}`);
+                        ensure(debuggers[debuggerName])(`${LoggerLevel[json.level]} ${json.msg}`);
                         next();
                       }
                 }),
@@ -254,11 +256,11 @@ export class Logger {
      * @see LoggerLevel
      */
     public static getLevelByName(levelName: string): LoggerLevelValue {
-        const level = LoggerLevel[levelName && levelName.toUpperCase()];
-        if (level == null) {
+        levelName = levelName.toUpperCase();
+        if (!isKeyOf(levelName, LoggerLevel)) {
             throw new SfdxError('UnrecognizedLoggerLevelName');
         }
-        return level;
+        return LoggerLevel[levelName];
     }
 
     // Rollup all instance-specific process event listeners together to prevent global `MaxListenersExceededWarning`s.
@@ -349,7 +351,8 @@ export class Logger {
         }
 
         // avoid multiple streams to same log file
-        if (!this.bunyan.streams.find(stream => stream.type === 'file' && stream.path === logFile)) {
+        // tslint:disable-next-line:no-any No bunyan typings
+        if (!this.bunyan.streams.find((stream: any) => stream.type === 'file' && stream.path === logFile)) {
             // TODO: rotating-file
             // https://github.com/trentm/node-bunyan#stream-type-rotating-file
             this.addStream({ type: 'file', path: logFile, level: this.bunyan.level() as number });
@@ -466,7 +469,8 @@ export class Logger {
             }, '');
         } else {
             let content = '';
-            this.bunyan.streams.forEach(async stream => {
+            // tslint:disable-next-line:no-any No bunyan typings
+            this.bunyan.streams.forEach(async (stream: any) => {
                 if (stream.type === 'file') {
                     content += await fs.readFile(stream.path, 'utf8');
                 }
@@ -478,9 +482,9 @@ export class Logger {
     /**
      * Adds a filter to be applied to all logged messages.
      *
-     * @param {function} filter A function with signature `(...args) => any[]` that transforms log message arguments.
+     * @param {function} filter A function with signature `(...args: any[]) => any[]` that transforms log message arguments.
      */
-    public addFilter(filter: (...args) => any[]): void { // tslint:disable-line:no-any
+    public addFilter(filter: (...args: any[]) => any[]): void { // tslint:disable-line:no-any
         if (!this.bunyan.filters) {
             this.bunyan.filters = [];
         }
@@ -496,7 +500,8 @@ export class Logger {
     public close(fn?: (stream: LoggerStream) => void): void {
         if (this.bunyan.streams) {
             try {
-                this.bunyan.streams.forEach(entry => {
+                // tslint:disable-next-line:no-any No bunyan typings
+                this.bunyan.streams.forEach((entry: any) => {
                     if (fn) {
                         fn(entry);
                     }
@@ -616,9 +621,10 @@ export class Logger {
         return this;
     }
 
-    private applyFilters(logLevel, ...args): undefined | any | any[] { // tslint:disable-line:no-any
+    private applyFilters(logLevel: LoggerLevel, ...args: any[]): Optional<Many<any>> { // tslint:disable-line:no-any
         if (this.shouldLog(logLevel)) {
-            this.bunyan.filters.forEach(filter => args = filter(...args));
+            // tslint:disable-next-line:no-any No bunyan typings
+            this.bunyan.filters.forEach((filter: any) => args = filter(...args));
         }
         return args && args.length === 1 ? args[0] : args;
     }
@@ -636,10 +642,10 @@ export class Logger {
     }
 }
 
-type FilteredKey = string | object;
+type FilteredKey = string | { name: string, regex: string };
 
 // Ok to log clientid
-const FILTERED_KEYS = [
+const FILTERED_KEYS: FilteredKey[] = [
     'sid',
     // Any json attribute that contains the words "access" and "token" will have the attribute/value hidden
     { name: 'access_token', regex: 'access[^\'"]*token' },
@@ -651,59 +657,60 @@ const FILTERED_KEYS = [
 ];
 
 // SFDX code and plugins should never show tokens or connect app information in the logs
-const _filter = (...args) => args.map(arg => {
-    if (_.isArray(arg)) {
-        return _filter(...arg);
-    }
-
-    if (arg) {
-        let _arg = arg;
-
-        // Normalize all objects into a string. This include errors.
-        if (isObject(arg)) {
-            _arg = JSON.stringify(arg);
+const _filter = (...args: any[]): any => { // tslint:disable-line:no-any
+    return args.map(arg => {
+        if (_.isArray(arg)) {
+            return _filter(...arg);
         }
 
-        const HIDDEN = 'HIDDEN';
+        if (arg) {
+            let _arg = arg;
 
-        FILTERED_KEYS.forEach((key: FilteredKey) => {
-            let expElement = key;
-            let expName = key;
-
-            // Filtered keys can be strings or objects containing regular expression components.
-            if (isPlainObject(key)) {
-                expElement = key['regex'];
-                expName = key['name'];
+            // Normalize all objects into a string. This include errors.
+            if (isObject(arg)) {
+                _arg = JSON.stringify(arg);
             }
 
-            const hiddenAttrMessage = `"<${expName} - ${HIDDEN}>"`;
+            const HIDDEN = 'HIDDEN';
 
-            // Match all json attribute values case insensitive: ex. {" Access*^&(*()^* Token " : " 45143075913458901348905 \n\t" ...}
-            const regexTokens = new RegExp(`(['"][^'"]*${expElement}[^'"]*['"]\\s*:\\s*)['"][^'"]*['"]`, 'gi');
-            _arg = _arg.replace(regexTokens, `$1${hiddenAttrMessage}`);
+            FILTERED_KEYS.forEach((key: FilteredKey) => {
+                let expElement = key;
+                let expName = key;
 
-            // Match all key value attribute case insensitive: ex. {" key\t"    : ' access_token  ' , " value " : "  dsafgasr431 " ....}
-            const keyRegex = new RegExp(`(['"]\\s*key\\s*['"]\\s*:)\\s*['"]\\s*${expElement}\\s*['"]\\s*.\\s*['"]\\s*value\\s*['"]\\s*:\\s*['"]\\s*[^'"]*['"]`, 'gi');
-            _arg = _arg.replace(keyRegex, `$1${hiddenAttrMessage}`);
-        });
+                // Filtered keys can be strings or objects containing regular expression components.
+                if (isPlainObject(key)) {
+                    expElement = key.regex;
+                    expName = key.name;
+                }
 
-        // This is a jsforce message we are masking. This can be removed after the following pull request is committed
-        // and pushed to a jsforce release.
-        //
-        // Looking  For: "Refreshed access token = ..."
-        // Related Jsforce pull requests:
-        //  https://github.com/jsforce/jsforce/pull/598
-        //  https://github.com/jsforce/jsforce/pull/608
-        //  https://github.com/jsforce/jsforce/pull/609
-        const jsForceTokenRefreshRegEx = new RegExp('Refreshed(.*)access(.*)token(.*)=\\s*[^\'"\\s*]*');
-        _arg = _arg.replace(jsForceTokenRefreshRegEx, `<refresh_token - ${HIDDEN}>`);
+                const hiddenAttrMessage = `"<${expName} - ${HIDDEN}>"`;
 
-        _arg = _arg.replace(/sid=(.*)/, `sid=<${HIDDEN}>`);
+                // Match all json attribute values case insensitive: ex. {" Access*^&(*()^* Token " : " 45143075913458901348905 \n\t" ...}
+                const regexTokens = new RegExp(`(['"][^'"]*${expElement}[^'"]*['"]\\s*:\\s*)['"][^'"]*['"]`, 'gi');
+                _arg = _arg.replace(regexTokens, `$1${hiddenAttrMessage}`);
 
-        // return an object if an object was logged; otherwise return the filtered string.
-        return isObject(arg) ? JSON.parse(_arg) : _arg;
-    } else {
-        return arg;
-    }
+                // Match all key value attribute case insensitive: ex. {" key\t"    : ' access_token  ' , " value " : "  dsafgasr431 " ....}
+                const keyRegex = new RegExp(`(['"]\\s*key\\s*['"]\\s*:)\\s*['"]\\s*${expElement}\\s*['"]\\s*.\\s*['"]\\s*value\\s*['"]\\s*:\\s*['"]\\s*[^'"]*['"]`, 'gi');
+                _arg = _arg.replace(keyRegex, `$1${hiddenAttrMessage}`);
+            });
 
-});
+            // This is a jsforce message we are masking. This can be removed after the following pull request is committed
+            // and pushed to a jsforce release.
+            //
+            // Looking  For: "Refreshed access token = ..."
+            // Related Jsforce pull requests:
+            //  https://github.com/jsforce/jsforce/pull/598
+            //  https://github.com/jsforce/jsforce/pull/608
+            //  https://github.com/jsforce/jsforce/pull/609
+            const jsForceTokenRefreshRegEx = new RegExp('Refreshed(.*)access(.*)token(.*)=\\s*[^\'"\\s*]*');
+            _arg = _arg.replace(jsForceTokenRefreshRegEx, `<refresh_token - ${HIDDEN}>`);
+
+            _arg = _arg.replace(/sid=(.*)/, `sid=<${HIDDEN}>`);
+
+            // return an object if an object was logged; otherwise return the filtered string.
+            return isObject(arg) ? JSON.parse(_arg) : _arg;
+        } else {
+            return arg;
+        }
+    });
+};

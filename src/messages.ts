@@ -21,7 +21,7 @@ import * as util from 'util';
 export type Tokens = Array<string | boolean | number | null | undefined>;
 
 class Key {
-    constructor(private packageName, private bundleName) {}
+    constructor(private packageName: string, private bundleName: string) {}
 
     public toString() {
         return `${this.packageName}:${this.bundleName}`;

@@ -218,7 +218,7 @@ export class ConfigGroup extends ConfigFile {
     /**
      * Returns the value associated to the key and group, or undefined if there is none.
      * @param {string} key The key.
-     * @param {string} [group ='default'] The group. Defaults to the default group.
+     * @param {string} [group = 'default'] The group. Defaults to the default group.
      * @returns {Optional<ConfigValue>}
      */
     public getInGroup(key: string, group?: string): Optional<ConfigValue> {
@@ -235,12 +235,13 @@ export class ConfigGroup extends ConfigFile {
      */
     public toObject(): JsonMap {
         return _.entries(this.getContents()).reduce((obj, entry: ConfigEntry) => {
-            obj[entry[0]] = _.entries(entry[1] as ConfigContents).reduce((subobj, subentry: ConfigEntry) => {
-                subobj[subentry[0]] = subentry[1];
-                return subobj;
-            }, {});
+            obj[entry[0]] = _.entries(entry[1] as ConfigContents).reduce((sub, subentry: ConfigEntry) => {
+                // @ts-ignore TODO: refactor config to not intermingle js maps and json maps
+                sub[subentry[0]] = subentry[1];
+                return sub;
+            }, {} as JsonMap);
             return obj;
-        }, {});
+        }, {} as JsonMap);
     }
 
     /**

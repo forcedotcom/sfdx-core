@@ -411,10 +411,10 @@ describe('AuthInfo', () => {
                 const authInfo = await AuthInfo.create(testMetadata.jwtUsername, jwtConfig);
 
                 // Verify the returned AuthInfo instance
-                const authInfoJSON = authInfo.getConnectionOptions();
-                expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
-                expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
-                expect(authInfoJSON).to.have.property('refreshFn').and.is.a('function');
+                const authInfoConnOpts = authInfo.getConnectionOptions();
+                expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
+                expect(authInfoConnOpts).to.have.property('instanceUrl', authResponse.instance_url);
+                expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
                 expect(authInfo.getUsername()).to.equal(testMetadata.jwtUsername);
                 expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
                 expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
@@ -449,10 +449,10 @@ describe('AuthInfo', () => {
                 const authInfo = await AuthInfo.create(testMetadata.jwtUsername);
 
                 // Verify the returned AuthInfo instance
-                const authInfoJSON = authInfo.getConnectionOptions();
-                expect(authInfoJSON).to.have.property('accessToken', testMetadata.accessToken);
-                expect(authInfoJSON).to.have.property('instanceUrl', testMetadata.instanceUrl);
-                expect(authInfoJSON).to.have.property('refreshFn').and.is.a('function');
+                const authInfoConnOpts = authInfo.getConnectionOptions();
+                expect(authInfoConnOpts).to.have.property('accessToken', testMetadata.accessToken);
+                expect(authInfoConnOpts).to.have.property('instanceUrl', testMetadata.instanceUrl);
+                expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
                 expect(authInfo.getUsername()).to.equal(testMetadata.jwtUsername);
                 expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
                 expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
@@ -487,10 +487,10 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(username);
 
             // Verify the returned AuthInfo instance
-            const authInfoJSON = authInfo.getConnectionOptions();
-            expect(authInfoJSON).to.have.property('accessToken', testMetadata.accessToken);
-            expect(authInfoJSON).to.have.property('instanceUrl', testMetadata.instanceUrl);
-            expect(authInfoJSON).to.have.property('refreshFn').and.is.a('function');
+            const authInfoConnOpts = authInfo.getConnectionOptions();
+            expect(authInfoConnOpts).to.have.property('accessToken', testMetadata.accessToken);
+            expect(authInfoConnOpts).to.have.property('instanceUrl', testMetadata.instanceUrl);
+            expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
             expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
@@ -581,13 +581,13 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(username, refreshTokenConfig);
 
             // Verify the returned AuthInfo instance
-            const authInfoJSON = authInfo.getConnectionOptions();
-            expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
-            expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
-            expect(authInfoJSON).to.not.have.property('refreshToken');
-            expect(authInfoJSON['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl);
-            expect(authInfoJSON['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
-            expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
+            const authInfoConnOpts = authInfo.getConnectionOptions();
+            expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
+            expect(authInfoConnOpts).to.have.property('instanceUrl', authResponse.instance_url);
+            expect(authInfoConnOpts).to.not.have.property('refreshToken');
+            expect(authInfoConnOpts['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl);
+            expect(authInfoConnOpts['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
+            expect(authInfoConnOpts['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
             expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
@@ -643,13 +643,13 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(username, refreshTokenConfig);
 
             // Verify the returned AuthInfo instance
-            const authInfoJSON = authInfo.getConnectionOptions();
-            expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
-            expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
-            expect(authInfoJSON).to.not.have.property('refreshToken');
-            expect(authInfoJSON['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl);
-            expect(authInfoJSON['oauth2']).to.have.property('clientId', refreshTokenConfig.clientId);
-            expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
+            const authInfoConnOpts = authInfo.getConnectionOptions();
+            expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
+            expect(authInfoConnOpts).to.have.property('instanceUrl', authResponse.instance_url);
+            expect(authInfoConnOpts).to.not.have.property('refreshToken');
+            expect(authInfoConnOpts['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl);
+            expect(authInfoConnOpts['oauth2']).to.have.property('clientId', refreshTokenConfig.clientId);
+            expect(authInfoConnOpts['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
             expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
@@ -729,13 +729,13 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(null, authCodeConfig);
 
             // Verify the returned AuthInfo instance
-            const authInfoJSON = authInfo.getConnectionOptions();
-            expect(authInfoJSON).to.have.property('accessToken', authResponse.access_token);
-            expect(authInfoJSON).to.have.property('instanceUrl', authResponse.instance_url);
-            expect(authInfoJSON).to.not.have.property('refreshToken');
-            expect(authInfoJSON['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl); // why is this instanceUrl?
-            expect(authInfoJSON['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
-            expect(authInfoJSON['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
+            const authInfoConnOpts = authInfo.getConnectionOptions();
+            expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
+            expect(authInfoConnOpts).to.have.property('instanceUrl', authResponse.instance_url);
+            expect(authInfoConnOpts).to.not.have.property('refreshToken');
+            expect(authInfoConnOpts['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl); // why is this instanceUrl?
+            expect(authInfoConnOpts['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
+            expect(authInfoConnOpts['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
             expect(authInfo.getUsername()).to.equal(username);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;

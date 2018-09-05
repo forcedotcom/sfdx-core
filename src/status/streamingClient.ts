@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ensure, JsonMap } from '@salesforce/ts-types';
+import { AnyFunction, ensure, JsonMap } from '@salesforce/ts-types';
 import { EventEmitter } from 'events';
+// @ts-ignore No typings are available for faye
 import * as Faye from 'faye';
 import * as _ from 'lodash';
 import { Logger } from '../logger';
@@ -52,7 +53,7 @@ export abstract class CometClient extends EventEmitter {
     public abstract handshake(callback: () => void): void;
 
     /**
-     * Subscribes to Comet topics. Subscribe should perform a handshake if one hasn't benn performed yet.
+     * Subscribes to Comet topics. Subscribe should perform a handshake if one hasn't been performed yet.
      * @param {string} channel The topic to subscribe to.
      * @param {function(message)} callback The callback to execute once a message has been received.
      * @returns {CometSubscription} A subscription object.
@@ -435,7 +436,7 @@ export class StreamingClient<T> {
         });
     }
 
-    private incoming(message, cb): void {
+    private incoming(message: string, cb: AnyFunction): void {
         this.log(message);
         // Look for a specific error message during the handshake.  If found, throw an error
         // with actions for the user.
@@ -463,14 +464,15 @@ export class StreamingClient<T> {
     }
 
     private disconnect() {
-
         // This is a patch for faye. If Faye encounters errors while attempting to handshake it will keep trying
         // and will prevent the timeout from disconnecting. Here for example we will detect there is no client id but
         // unauthenticated connections are being made to salesforce. Let's close the dispatcher if it exists and
         // has no clientId.
-        if (this.cometClient['_dispatcher']) {
+        // @ts-ignore
+        if (this.cometClient._dispatcher) {
             this.log('Closing the faye dispatcher');
-            const dispatcher = this.cometClient['_dispatcher'];
+            // @ts-ignore
+            const dispatcher = this.cometClient._dispatcher;
             this.log(`dispatcher.clientId: ${dispatcher.clientId}`);
             if (!dispatcher.clientId) {
                 dispatcher.close();
