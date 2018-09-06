@@ -48,7 +48,7 @@
  * @property {string} userProfileName
  */
 
-import { cloneJson, isEmpty, isPlainObject, isString } from '@salesforce/kit';
+import { cloneJson, get, isEmpty, isPlainObject, isString, parseJsonMap, set } from '@salesforce/kit';
 import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, JsonMap, keysOf, Nullable, Optional } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
@@ -56,7 +56,6 @@ import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 // @ts-ignore No typings directly available for jsforce/lib/transport
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-import * as _ from 'lodash';
 import { parse as urlParse } from 'url';
 import { AuthInfoConfig } from './config/authInfoConfig';
 import { ConfigAggregator } from './config/configAggregator';
@@ -137,7 +136,7 @@ class AuthCodeOAuth2 extends OAuth2 {
         // code verifier must be a base 64 url encoded hash of 128 bytes of random data. Our random data is also
         // base 64 url encoded. See Connection.create();
         const codeChallenge = base64UrlEscape(createHash('sha256').update(this.codeVerifier).digest('base64'));
-        _.set(params, 'code_challenge', codeChallenge);
+        set(params, 'code_challenge', codeChallenge);
 
         return super.getAuthorizationUrl(params);
     }
@@ -155,7 +154,7 @@ class AuthCodeOAuth2 extends OAuth2 {
      */
     // tslint:disable-next-line:no-unused-variable
     protected async _postParams(params: object, callback: AnyFunction) {
-        _.set(params, 'code_verifier', this.codeVerifier);
+        set(params, 'code_verifier', this.codeVerifier);
         // @ts-ignore TODO: need better typings for jsforce
         return super._postParams(params, callback);
     }
@@ -169,14 +168,14 @@ export enum SFDC_URLS {
 const INTERNAL_URL_PARTS = ['.internal.', '.vpod.', 'stm.salesforce.com', '.blitz.salesforce.com', 'mobile1.t.salesforce.com'];
 
 function isInternalUrl(loginUrl: string = ''): boolean {
-    return loginUrl.startsWith('https://gs1.') || _.some(INTERNAL_URL_PARTS, part => loginUrl.includes(part));
+    return loginUrl.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some(part => loginUrl.includes(part));
 }
 
 function getJwtAudienceUrl(options: object) {
     // default audience must be...
     let audienceUrl: string = SFDC_URLS.production;
-    const loginUrl = _.get(options, 'loginUrl', '');
-    const createdOrgInstance = _.get(options, 'createdOrgInstance', '').trim().toLowerCase();
+    const loginUrl = get(options, 'loginUrl', '');
+    const createdOrgInstance = get(options, 'createdOrgInstance', '').trim().toLowerCase();
 
     if (process.env.SFDX_AUDIENCE_URL) {
         audienceUrl = process.env.SFDX_AUDIENCE_URL;
@@ -249,7 +248,7 @@ class AuthInfoCrypto extends Crypto {
 function base64UrlEscape(base64Encoded: string): string {
     // builtin node js base 64 encoding is not 64 url compatible.
     // See https://toolsn.ietf.org/html/rfc4648#section-5
-    return _.replace(base64Encoded, /\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    return base64Encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 /**
@@ -529,7 +528,7 @@ export class AuthInfo {
         const username = ensure(this.getUsername());
         AuthInfo.cache.set(username, this.fields);
 
-        const dataToSave = _.clone(this.fields);
+        const dataToSave = cloneJson(this.fields);
 
         // Do not persist the default client ID and secret
         if (dataToSave.clientId === DEFAULT_CONNECTED_APP_INFO.clientId) {
@@ -540,7 +539,7 @@ export class AuthInfo {
         this.logger.debug(dataToSave);
 
         const config: ConfigFile = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
-        config.setContentsFromObject(dataToSave as JsonMap);
+        config.setContentsFromObject(dataToSave);
         await config.write();
 
         this.logger.info(`Saved auth info for username: ${this.getUsername()}`);
@@ -768,7 +767,7 @@ export class AuthInfo {
         try {
             this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
             const response = await new Transport().httpRequest({ url, headers });
-            username = _.get(JSON.parse(response.body), 'Username');
+            username = get(parseJsonMap(response.body), 'Username');
         } catch (err) {
             throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
         }

@@ -8,8 +8,8 @@
  * @module sfdc
  */
 
+import { findKey } from '@salesforce/kit';
 import { asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
-import { endsWith, findKey, includes } from 'lodash';
 import { URL } from 'url';
 
 /**
@@ -41,8 +41,9 @@ export function isSalesforceDomain(urlString: string): boolean {
         'trailhead.salesforce.com'
     ];
 
-    return whitelistOfSalesforceDomainPatterns.some(pattern => endsWith(url.hostname, pattern)) ||
-        includes(whitelistOfSalesforceHosts, url.hostname);
+    return whitelistOfSalesforceDomainPatterns.some(pattern => {
+        return url.hostname.endsWith(pattern) || whitelistOfSalesforceHosts.includes(url.hostname);
+    });
 }
 
 /**

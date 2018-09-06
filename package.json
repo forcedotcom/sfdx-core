@@ -10,7 +10,7 @@
     "lint-report": "npm run lint -- -t checkstyle -o checkstyle.xml",
     "clean": "scripts/clean.js",
     "compile": "node_modules/.bin/tsc -p ./tsconfig.json",
-    "build": "npm run clean && npm run lint && npm run compile && npm run docgen",
+    "build": "npm run clean && npm run compile && npm run lint && npm run docgen",
     "watch": "tsc -w -p tsconfig.json",
     "test": "npm run lint && mocha \"test/**/*Test.ts\"",
     "test-with-coverage": "npm run lint-report && scripts/unit-test-with-coverage.js",
@@ -31,15 +31,14 @@
     "!lib/**/*.map"
   ],
   "dependencies": {
-    "@salesforce/kit": "0.1.0",
-    "@salesforce/ts-types": "0.6.0",
+    "@salesforce/kit": "0.2.0",
+    "@salesforce/ts-types": "0.7.0",
     "@types/jsforce": "1.8.12",
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "debug": "^3.1.0",
     "jsen": "0.6.6",
     "jsforce": "1.8.4",
     "jsonwebtoken": "7.0.0",
-    "lodash": "^4.17.4",
     "mkdirp": "0.5.1"
   },
   "devDependencies": {
@@ -48,7 +47,6 @@
     "@types/debug": "0.0.30",
     "@types/jsen": "0.0.19",
     "@types/jsonwebtoken": "7.2.8",
-    "@types/lodash": "4.14.88",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "2.2.42",
     "@types/node": "8.0.25",

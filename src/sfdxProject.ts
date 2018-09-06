@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as _ from 'lodash';
+import { defaults } from '@salesforce/kit';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile, ConfigOptions } from './config/configFile';
 import { ConfigContents } from './config/configStore';
@@ -150,14 +150,14 @@ export class SfdxProject {
             await global.read();
             await local.read();
 
-            const defaults = {
+            const defaultValues = {
                 sfdcLoginUrl: 'https://login.salesforce.com'
             };
 
-            this.projectConfig = _.defaults(local.toObject(), global.toObject(), defaults);
+            this.projectConfig = defaults(local.toObject(), global.toObject(), defaultValues);
 
             // Add fields in sfdx-config.json
-            _.assign(this.projectConfig, (await ConfigAggregator.create()).getConfig());
+            Object.assign(this.projectConfig, (await ConfigAggregator.create()).getConfig());
 
             // LEGACY - Allow override of sfdcLoginUrl via env var FORCE_SFDC_LOGIN_URL
             if (process.env.FORCE_SFDC_LOGIN_URL) {

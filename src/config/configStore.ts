@@ -22,7 +22,6 @@
  */
 
 import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
-import * as _ from 'lodash';
 
 /**
  * The allowed types stored in a config store.
@@ -85,7 +84,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {ConfigEntry}
      */
     public entries(): ConfigEntry[] {
-        return _.entries(this.contents);
+        return Array.from(this.contents.entries());
     }
 
     /**
@@ -103,7 +102,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {string[]}
      */
     public getKeysByValue(value: ConfigValue): string[] {
-        const matchedEntries = _.filter(this.entries(), (entry: ConfigEntry) => entry[1] === value);
+        const matchedEntries = this.entries().filter((entry: ConfigEntry) => entry[1] === value);
         // Only return the keys
         return matchedEntries.map((entry: ConfigEntry) => entry[0]);
     }
@@ -121,7 +120,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {string[]}
      */
     public keys(): string[] {
-        return _.keys(this.contents);
+        return Array.from(this.contents.keys());
     }
 
     /**
@@ -164,7 +163,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {ConfigValue[]}
      */
     public values(): ConfigValue[] {
-        return _.values(this.contents) as ConfigValue[];
+        return Array.from(this.contents.values());
     }
 
     /**
@@ -214,7 +213,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {JsonMap}
      */
     public toObject(): JsonMap {
-        return _.entries(this.contents).reduce((obj, entry: ConfigEntry) => {
+        return Array.from(this.contents.entries()).reduce((obj, entry: ConfigEntry) => {
             // @ts-ignore TODO: refactor config to not intermingle js maps and json maps
             obj[entry[0]] = entry[1];
             return obj;
@@ -222,10 +221,14 @@ export abstract class BaseConfigStore implements ConfigStore {
     }
 
     /**
-     * Convert a JSON object to a {@link ConfigContents} and set it as the config contents.
-     * @param {JsonMap} obj The object.
+     * Convert an object to a {@link ConfigContents} and set it as the config contents.
+     * @param {object} obj The object.
      */
-    public setContentsFromObject(obj: JsonMap): void {
-        this.contents = new Map<string, ConfigValue>(_.entries(obj as object));
+    public setContentsFromObject<T extends object>(obj: T): void {
+        if (obj instanceof Map) {
+            this.setContents(obj);
+        } else {
+            this.contents = new Map<string, ConfigValue>(Object.entries(obj));
+        }
     }
 }

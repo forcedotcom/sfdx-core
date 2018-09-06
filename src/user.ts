@@ -4,10 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { lowerFirst, upperFirst } from '@salesforce/kit';
-import { asNumber, ensure, ensureJsonMap, ensureString, Many } from '@salesforce/ts-types';
+import { get, lowerFirst, mapKeys, merge, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
+import { asJsonArray, asNumber, ensure, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
 import { OAuth2Options, QueryResult, RequestInfo } from 'jsforce';
-import * as _ from 'lodash';
 import { EOL } from 'os';
 import { DescribeSObjectResult } from '../node_modules/@types/jsforce/describe-result';
 import { AuthFields, AuthInfo } from './authInfo';
@@ -64,26 +63,26 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
 
     const connection: Connection = await Connection.create( await AuthInfo.create(username));
 
-    const fromFields = _.keys(REQUIRED_FIELDS).map(value => ensure(upperFirst(value)));
+    const fromFields = Object.keys(REQUIRED_FIELDS).map(value => ensure(upperFirst(value)));
     const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
     const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
 
     this.logger.debug('Successfully retrieved the admin user for this org.');
 
     if (result.totalSize === 1) {
-        const results = _.mapKeys(result.records[0], (value, key: string) => lowerFirst(key));
+        const results = mapKeys(result.records[0], (value, key: string) => lowerFirst(key));
 
         const fields: UserFields = {
-            id: _.get(results, REQUIRED_FIELDS.id),
+            id: get(results, REQUIRED_FIELDS.id),
             username,
-            alias: _.get(results, REQUIRED_FIELDS.alias),
-            email: _.get(results, REQUIRED_FIELDS.email),
-            emailEncodingKey: _.get(results, REQUIRED_FIELDS.emailEncodingKey),
-            languageLocaleKey: _.get(results, REQUIRED_FIELDS.languageLocaleKey),
-            localeSidKey: _.get(results, REQUIRED_FIELDS.localeSidKey),
-            profileId: _.get(results, REQUIRED_FIELDS.profileId),
-            lastName: _.get(results, REQUIRED_FIELDS.lastName),
-            timeZoneSidKey: _.get(results, REQUIRED_FIELDS.timeZoneSidKey)
+            alias: get(results, REQUIRED_FIELDS.alias),
+            email: get(results, REQUIRED_FIELDS.email),
+            emailEncodingKey: get(results, REQUIRED_FIELDS.emailEncodingKey),
+            languageLocaleKey: get(results, REQUIRED_FIELDS.languageLocaleKey),
+            localeSidKey: get(results, REQUIRED_FIELDS.localeSidKey),
+            profileId: get(results, REQUIRED_FIELDS.profileId),
+            lastName: get(results, REQUIRED_FIELDS.lastName),
+            timeZoneSidKey: get(results, REQUIRED_FIELDS.timeZoneSidKey)
         };
 
         return fields;
@@ -128,7 +127,7 @@ export class DefaultUserFields {
         const fields: DefaultUserFields = new DefaultUserFields(newUserName);
         const initLogger: Logger = await Logger.child('DefaultUserFields');
         const userFields: UserFields = await _retrieveUserFields.call({ logger: initLogger }, templateUser);
-        _.merge(fields, userFields);
+        merge(fields, userFields);
         fields.profileId = await _retrieveProfileId('Standard User',
             await Connection.create(await AuthInfo.create(templateUser)));
         initLogger.debug(`Standard User profileId: ${fields.profileId}`);
@@ -387,7 +386,7 @@ export class User {
         };
 
         const response = await this.org.getConnection().requestRaw(info);
-        const responseBody = JSON.parse(ensureString(response['body']));
+        const responseBody = parseJsonMap(ensureString(response['body']));
         const statusCode = asNumber(response.statusCode);
 
         this.logger.debug(`user create response.statusCode: ${response.statusCode}`);
@@ -396,10 +395,11 @@ export class User {
             let message = messages.getMessage('invalidHttpResponseCreatingUser', [statusCode]);
 
             if (responseBody) {
-                const errors: string[] = _.get(responseBody, 'Errors');
+                const errors = asJsonArray(responseBody.Errors);
                 if (errors && errors.length > 0) {
                     message = `${message} causes:${EOL}`;
-                    _.each(_.get(responseBody, 'Errors'), singleMessage => {
+                    errors.forEach(singleMessage => {
+                        if (!isJsonMap(singleMessage)) return;
                         message = `${message}${EOL}${singleMessage.description}`;
                     });
                 }
@@ -408,7 +408,7 @@ export class User {
             throw new SfdxError(message, 'UserCreateHttpError');
         }
 
-        fields.id = responseBody['id'];
+        fields.id = ensureString(responseBody.id);
         await this.updateRequiredUserFields(fields);
 
         const buffer = new SecureBuffer<string>();
@@ -417,7 +417,7 @@ export class User {
         buffer.consume(Buffer.from(autoApproveUser));
         return {
             buffer,
-            userId: responseBody.id
+            userId: fields.id
         };
     }
 
@@ -426,10 +426,10 @@ export class User {
      * @param {UserFields} fields The fields for the user.
      */
     private async updateRequiredUserFields(fields: UserFields) {
-        const leftOverRequiredFields = _.omit(fields, [
+        const leftOverRequiredFields = omit(fields, [
             REQUIRED_FIELDS.username, REQUIRED_FIELDS.email, REQUIRED_FIELDS.lastName, REQUIRED_FIELDS.profileId
         ]);
-        const object = _.mapKeys(leftOverRequiredFields, (value, key) => upperFirst(key));
+        const object = mapKeys(leftOverRequiredFields, (value, key) => upperFirst(key));
         await this.org.getConnection().sobject('User').update(object);
         this.logger.debug(`Successfully Updated additional properties for user: ${fields.username}`);
     }

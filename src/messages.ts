@@ -12,9 +12,8 @@
  */
 
 import { NamedError } from '@salesforce/kit';
-import { AnyJson, asString, ensureJsonMap, ensureString, isAnyJson, Optional } from '@salesforce/ts-types';
+import { AnyJson, asString, ensureJsonMap, ensureString, isAnyJson, isObject, Optional } from '@salesforce/ts-types';
 import * as fs from 'fs';
-import * as _ from 'lodash';
 import * as path from 'path';
 import * as util from 'util';
 
@@ -130,7 +129,7 @@ export class Messages {
             try {
                 json = JSON.parse(fileContents);
 
-                if (!_.isObject(json)) {
+                if (!isObject(json)) {
                     // Bubble up
                     throw new Error(`Unexpected token. Found returned content type '${typeof json}'.`);
                 }

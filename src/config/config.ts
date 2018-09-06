@@ -26,8 +26,8 @@
  * @property {function} list `() => string[]` List the Org defaults.
  */
 
+import { keyBy } from '@salesforce/kit';
 import { Dictionary, ensure, isString } from '@salesforce/ts-types';
-import * as _ from 'lodash';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
@@ -193,7 +193,7 @@ export class Config extends ConfigFile {
             ];
         }
 
-        Config.propertyConfigMap = _.keyBy(Config.allowedProperties, 'key');
+        Config.propertyConfigMap = keyBy(Config.allowedProperties, 'key');
 
         return await super.create(options) as T;
     }
@@ -353,8 +353,9 @@ export class Config extends ConfigFile {
      * @return {Promise<void>}
      */
     private async cryptProperties(encrypt: boolean): Promise<void> {
-        const hasEncryptedProperties =
-            _.some(this.entries(), ([key, val]) => !!ensure(Config.propertyConfigMap[key]).encrypted);
+        const hasEncryptedProperties = this.entries().some(([key]) => {
+            return !!ensure(Config.propertyConfigMap[key]).encrypted;
+        });
 
         if (hasEncryptedProperties) {
             await this.initCrypto();

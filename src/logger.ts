@@ -77,13 +77,13 @@
  * @typedef {string|number|boolean} FieldValue
  */
 
-import { isObject, isPlainObject, isString } from '@salesforce/kit';
-import { Dictionary, ensure, isKeyOf, Many, Optional } from '@salesforce/ts-types';
+// tslint:disable-next-line:ordered-imports
+import { isObject, isPlainObject, isString, parseJson, parseJsonMap } from '@salesforce/kit';
+import { Dictionary, ensure, ensureNumber, isArray, isKeyOf, Many, Optional } from '@salesforce/ts-types';
 // @ts-ignore No typings available for our copy of bunyan
 import * as Bunyan from 'bunyan-sfdx-no-dtrace';
 import * as Debug from 'debug';
 import * as EventEmitter from 'events';
-import * as _ from 'lodash';
 import * as os from 'os';
 import * as path from 'path';
 import { Writable } from 'stream';
@@ -204,15 +204,16 @@ export class Logger {
                 name: 'debug',
                 stream: new Writable({
                     write: (chunk, encoding, next) => {
-                        const json = JSON.parse(chunk.toString());
+                        const json = parseJsonMap(chunk.toString());
                         let debuggerName = 'core';
-                        if (json['log']) {
-                            debuggerName = json['log'];
+                        if (isString(json.log)) {
+                            debuggerName = json.log;
                             if (!debuggers[debuggerName]) {
                                 debuggers[debuggerName] = Debug(`${rootLogger.getName()}:${debuggerName}`);
                             }
                         }
-                        ensure(debuggers[debuggerName])(`${LoggerLevel[json.level]} ${json.msg}`);
+                        const level = LoggerLevel[ensureNumber(json.level)];
+                        ensure(debuggers[debuggerName])(`${level} ${json.msg}`);
                         next();
                       }
                 }),
@@ -659,7 +660,7 @@ const FILTERED_KEYS: FilteredKey[] = [
 // SFDX code and plugins should never show tokens or connect app information in the logs
 const _filter = (...args: any[]): any => { // tslint:disable-line:no-any
     return args.map(arg => {
-        if (_.isArray(arg)) {
+        if (isArray(arg)) {
             return _filter(...arg);
         }
 
@@ -708,7 +709,7 @@ const _filter = (...args: any[]): any => { // tslint:disable-line:no-any
             _arg = _arg.replace(/sid=(.*)/, `sid=<${HIDDEN}>`);
 
             // return an object if an object was logged; otherwise return the filtered string.
-            return isObject(arg) ? JSON.parse(_arg) : _arg;
+            return isObject(arg) ? parseJson(_arg) : _arg;
         } else {
             return arg;
         }

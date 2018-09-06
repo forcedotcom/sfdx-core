@@ -23,13 +23,12 @@
  * @property {function} isEnvVar `() => boolean` Location is `LOCATIONS.ENVIRONMENT`.
  */
 
-import { isObject } from '@salesforce/kit';
+import { get, isObject, merge, snakeCase, sortBy } from '@salesforce/kit';
 import { Optional, RequiredDictionary } from '@salesforce/ts-types';
-import * as _ from 'lodash';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
-const propertyToEnvName = (property: string) => `SFDX_${_.snakeCase(property).toUpperCase()}`;
+const propertyToEnvName = (property: string) => `SFDX_${snakeCase(property).toUpperCase()}`;
 
 export const enum LOCATIONS {
     GLOBAL = 'Global',
@@ -192,10 +191,10 @@ export class ConfigAggregator {
         if (this.envVars[key] != null) {
             return `\$${propertyToEnvName(key)}`;
         }
-        if (_.get(this.getLocalConfig(), `contents[${key}]`) != null) {
+        if (get(this.getLocalConfig(), `contents[${key}]`) != null) {
             return this.getLocalConfig().getPath();
         }
-        if (_.get(this.getGlobalConfig(), `contents[${key}]`) != null) {
+        if (get(this.getGlobalConfig(), `contents[${key}]`) != null) {
             return this.getGlobalConfig().getPath();
         }
     }
@@ -216,7 +215,7 @@ export class ConfigAggregator {
         const infos = Object.keys(this.getConfig())
             .map(key => this.getInfo(key))
             .filter((info): info is ConfigInfo => !!info);
-        return _.sortBy(infos, 'key');
+        return sortBy(infos, 'key');
     }
 
     /**
@@ -250,7 +249,7 @@ export class ConfigAggregator {
      * @returns {Map<string, string>}
      */
     public getEnvVars(): Map<string, string> {
-        return new Map<string, string>(_.entries(this.envVars));
+        return new Map(Object.entries(this.envVars));
     }
 
     /**
@@ -304,8 +303,9 @@ export class ConfigAggregator {
 
         configs.push(this.envVars);
 
-        this.setConfig(_.reduce(configs.filter(isObject), (result, configElement) =>
-            _.merge(result, configElement), {}));
+        const reduced = configs.filter(isObject)
+            .reduce((result, configElement) => merge(result, configElement), {});
+        this.setConfig(reduced);
     }
 
     /**

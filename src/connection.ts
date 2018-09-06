@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isString } from '@salesforce/kit';
+import { isString, maxBy, merge } from '@salesforce/kit';
 import { asString, ensure, JsonMap, Optional } from '@salesforce/ts-types';
 import { Tooling as JSForceTooling } from 'jsforce';
 import { ExecuteOptions } from 'jsforce';
@@ -14,8 +14,6 @@ import { RequestInfo } from 'jsforce';
 import { ConnectionOptions } from 'jsforce';
 import { Connection as JSForceConnection } from 'jsforce';
 import { Promise as JsforcePromise } from 'jsforce';
-import * as _ from 'lodash';
-import { maxBy } from 'lodash';
 import { AuthFields, AuthInfo } from './authInfo';
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
@@ -150,7 +148,7 @@ export class Connection extends JSForceConnection {
 
         const _headers = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` }  : {};
 
-        _.merge(_headers, SFDX_HTTP_HEADERS, request.headers);
+        merge(_headers, SFDX_HTTP_HEADERS, request.headers);
 
         return this._transport.httpRequest({
             method: request.method,
