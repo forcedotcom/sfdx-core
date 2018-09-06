@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { set } from '@salesforce/kit';
 import { AnyFunction, ensure, JsonMap } from '@salesforce/ts-types';
 import { EventEmitter } from 'events';
 // @ts-ignore No typings are available for faye
 import * as Faye from 'faye';
-import * as _ from 'lodash';
 import { Logger } from '../logger';
 import { Org } from '../org';
 import { SfdxError, SfdxErrorConfig } from '../sfdxError';
@@ -142,7 +142,7 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
         this.org = org;
         this.apiVersion = org.getConnection().getApiVersion();
 
-        if (_.startsWith(channel, '/system')) {
+        if (channel.startsWith('/system')) {
             this.apiVersion = '36.0';
         }
 
@@ -156,8 +156,8 @@ export class DefaultStreamingOptions<T> implements StreamingOptions<T> {
             },
             setLogger: (logLine: (message: string) => void) => {
                 Faye.logger = {};
-                _.each(['info', 'error', 'fatal', 'warn', 'debug'], element => {
-                    _.set(Faye.logger, element, logLine);
+                ['info', 'error', 'fatal', 'warn', 'debug'].forEach(element => {
+                    set(Faye.logger, element, logLine);
                 });
             }
         };

@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { upperFirst } from '@salesforce/kit';
+import { get, mapKeys, upperFirst } from '@salesforce/kit';
 import { Optional } from '@salesforce/ts-types';
 import { ErrorResult, QueryResult, RecordResult, SuccessResult } from 'jsforce';
-import * as _ from 'lodash';
 import { EOL } from 'os';
 import { Logger } from './logger';
 import { Messages } from './messages';
@@ -81,7 +80,7 @@ export class PermissionSetAssignment {
 
         const result: QueryResult<string> = await this.org.getConnection().query<string>(query);
 
-        const permissionSetId: string = _.get(result, 'records[0].Id');
+        const permissionSetId: string = get(result, 'records[0].Id');
 
         if (!permissionSetId) {
             if (nsPrefix) {
@@ -103,7 +102,7 @@ export class PermissionSetAssignment {
         let createResponse: SuccessResult | ErrorResult | RecordResult[];
 
         createResponse = await this.org.getConnection().sobject('PermissionSetAssignment')
-            .create(_.mapKeys(assignment, (value, key) => upperFirst(key)));
+            .create(mapKeys(assignment, (value, key) => upperFirst(key)));
 
         if ((createResponse as RecordResult[]).length) {
             throw SfdxError.create('@salesforce/core',
@@ -119,7 +118,7 @@ export class PermissionSetAssignment {
                 const errors = (createResponse as ErrorResult).errors;
                 if (errors && errors.length > 0) {
                     message = `${message}:${EOL}`;
-                    _.each((createResponse as ErrorResult).errors, _message => {
+                    errors.forEach(_message => {
                         message = `${message}${_message}${EOL}`;
                     });
                     throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');

@@ -28,10 +28,9 @@
  * @property {string} MISSING The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
  */
 
-import { isString } from '@salesforce/kit';
-import { AnyFunction, AnyJson, asAnyJson, asJsonArray, asString, Dictionary, ensure, Optional } from '@salesforce/ts-types';
+import { get, isString } from '@salesforce/kit';
+import { AnyFunction, AnyJson, asAnyJson, asJsonArray, asString, Dictionary, ensure, isArray, Optional } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import { filter as _filter, get as _get } from 'lodash';
 import { join as pathJoin } from 'path';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Aliases } from './config/aliases';
@@ -147,8 +146,8 @@ export class Org {
         if (!connection) {
             org.logger.debug('No connection specified. Trying default configurations');
             connection = isDevHub ?
-                asString(_get(_aggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME), 'value')) :
-                asString(_get(_aggregator.getInfo(Config.DEFAULT_USERNAME), 'value'));
+                asString(get(_aggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME), 'value')) :
+                asString(get(_aggregator.getInfo(Config.DEFAULT_USERNAME), 'value'));
             if (!connection) {
                 throw new SfdxError(`No ${isDevHub ? 'default Devhub' : 'default' } username or Connection found.`, 'NoUsername' );
             }
@@ -298,7 +297,7 @@ export class Org {
             throw err;
         }
 
-        if (_get(results, 'records.length') !== 1) {
+        if (get(results, 'records.length') !== 1) {
             throw new SfdxError('No results', 'NoResults');
         }
 
@@ -381,7 +380,7 @@ export class Org {
         // needs config refactoring to improve
         const usernames = asJsonArray(asAnyJson(contents.get('usernames'))) || [];
 
-        if (!Array.isArray(usernames)) {
+        if (!isArray(usernames)) {
             throw new SfdxError('Usernames is not an array', 'UnexpectedDataFormat');
         }
 
@@ -427,7 +426,8 @@ export class Org {
         const contents: ConfigContents = await orgConfig.read();
 
         const targetUser = _auth.getFields().username;
-        contents.set('usernames', _filter(contents.get('usernames') as string[], username => username !== targetUser));
+        const usernames = (contents.get('usernames') || []) as string[];
+        contents.set('usernames', usernames.filter(username => username !== targetUser));
 
         await orgConfig.write();
         return this;

@@ -7,8 +7,8 @@
 
 import { assert, expect } from 'chai';
 import { Config } from '../../../src/config/config';
-import { testSetup } from '../../../src/testSetup';
 import { ConfigFile } from '../../../src/config/configFile';
+import { testSetup } from '../../../src/testSetup';
 import * as fs from '../../../src/util/fs';
 
 // Setup the test environment.
@@ -19,7 +19,7 @@ const configFileContents = {
     defaultusername: 'configTest_default'
 };
 
-const clone = (obj) => JSON.parse(JSON.stringify(obj));
+const clone = obj => JSON.parse(JSON.stringify(obj));
 
 describe('Config', () => {
     let id: string;

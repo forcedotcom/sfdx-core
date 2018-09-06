@@ -12,7 +12,6 @@
  */
 
 import { JsonMap, Optional } from '@salesforce/ts-types';
-import * as _ from 'lodash';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile, ConfigOptions } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
@@ -97,7 +96,7 @@ export class ConfigGroup extends ConfigFile {
     public async updateValues(newEntries: object, group?: string): Promise<object> {
         // Make sure the contents are loaded
         await this.read();
-        _.forEach(newEntries, (val, key) => this.setInGroup(key, val, group || this.defaultGroup));
+        Object.entries(newEntries).forEach(([key, val]) => this.setInGroup(key, val, group || this.defaultGroup));
         await this.write();
         return newEntries;
     }
@@ -234,8 +233,8 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public toObject(): JsonMap {
-        return _.entries(this.getContents()).reduce((obj, entry: ConfigEntry) => {
-            obj[entry[0]] = _.entries(entry[1] as ConfigContents).reduce((sub, subentry: ConfigEntry) => {
+        return Array.from(this.getContents().entries()).reduce((obj, entry: ConfigEntry) => {
+            obj[entry[0]] = Array.from((entry[1] as ConfigContents).entries()).reduce((sub, subentry: ConfigEntry) => {
                 // @ts-ignore TODO: refactor config to not intermingle js maps and json maps
                 sub[subentry[0]] = subentry[1];
                 return sub;
@@ -245,13 +244,15 @@ export class ConfigGroup extends ConfigFile {
     }
 
     /**
-     * Convert a JSON object to a {@link ConfigContents} and set it as the config contents.
+     * Convert an object to a {@link ConfigContents} and set it as the config contents.
      * @param {object} obj The object.
      */
-    public setContentsFromObject(obj: object): void {
-        const contents = new Map<string, ConfigValue>(_.entries(obj));
-        _.entries(contents).forEach(([key, value]) => {
-            contents.set(key, new Map<string, ConfigValue>(_.entries(value)));
+    public setContentsFromObject<T extends object>(obj: T): void {
+        const contents = new Map<string, ConfigValue>(Object.entries(obj));
+        Array.from(contents.entries()).forEach(([key, value]) => {
+            if (value) {
+                contents.set(key, new Map<string, ConfigValue>(Object.entries(value)));
+            }
         });
         this.setContents(contents);
     }
@@ -274,7 +275,7 @@ export class ConfigGroup extends ConfigFile {
 
         content = content.get(group) as ConfigContents;
 
-        if (_.isUndefined(value)) {
+        if (value === undefined) {
             content.delete(key);
         } else {
             content.set(key, value);

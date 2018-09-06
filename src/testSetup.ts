@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { get, once, set } from '@salesforce/kit';
 import { AnyFunction, AnyJson, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
-import { forEach, get as _get, once, set as _set } from 'lodash';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { ConfigFile } from './config/configFile';
@@ -202,7 +202,8 @@ export const testSetup = once((sinon?) => {
                 return await stub.readFn.call(this);
             }
 
-            let contents: JsonMap = stub.contents || {};
+            let contents = stub.contents || {};
+
             if (stub.retrieveContents) {
                 contents = await stub.retrieveContents.call(this);
             }
@@ -245,7 +246,7 @@ export const testSetup = once((sinon?) => {
 
     afterEach(() => {
         testContext.SANDBOX.restore();
-        forEach(testContext.SANDBOXES, theSandbox => theSandbox.restore());
+        Object.values(testContext.SANDBOXES).forEach(theSandbox => theSandbox.restore());
         testContext.configStubs = {};
     });
 
@@ -378,7 +379,8 @@ export class StreamingMockCometClient extends CometClient {
     public subscribe(channel: string, callback: (message: JsonMap) => void): CometSubscription {
         const subscription: StreamingMockCometSubscription = new StreamingMockCometSubscription(this.options);
         subscription.on('subscriptionComplete', () => {
-            forEach(this.options.messagePlaylist, message => {
+            if (!this.options.messagePlaylist) return;
+            Object.values(this.options.messagePlaylist).forEach(message => {
                 setTimeout(() => {
                     callback(message);
                 }, 0);
@@ -429,7 +431,7 @@ export class MockTestOrgData {
     }
 
     public makeDevHub(): void {
-        _set(this, 'isDevHub', true);
+        set(this, 'isDevHub', true);
     }
 
     public createUser(user: string): MockTestOrgData {
@@ -484,7 +486,7 @@ export class MockTestOrgData {
             config.set('devHubUsername', this.devHubUsername);
         }
 
-        const isDevHub = _get(this, 'isDevHub');
+        const isDevHub = get(this, 'isDevHub');
         if (isDevHub) {
             config.set('isDevHub', isDevHub);
         }
