@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isString, NamedError } from '@salesforce/kit';
-import { ensure, Optional } from '@salesforce/ts-types';
+import { NamedError } from '@salesforce/kit';
+import { ensure, isString, Optional } from '@salesforce/ts-types';
 import { Messages, Tokens } from './messages';
 
 /**

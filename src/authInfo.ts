@@ -48,8 +48,8 @@
  * @property {string} userProfileName
  */
 
-import { cloneJson, get, isEmpty, isPlainObject, isString, parseJsonMap, set } from '@salesforce/kit';
-import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, JsonMap, keysOf, Nullable, Optional } from '@salesforce/ts-types';
+import { cloneJson, get, isEmpty, parseJsonMap, set } from '@salesforce/kit';
+import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, isPlainObject, isString, JsonMap, keysOf, Nullable, Optional } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
 import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';

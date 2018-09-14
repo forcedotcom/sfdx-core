@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isBoolean, isNumber, isString } from '@salesforce/kit';
+import { isBoolean, isNumber, isString } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
-import * as debug from 'debug/src/debug';
+import * as debug from 'debug';
 import * as _ from 'lodash';
 import { Logger, LoggerLevel } from '../../src/logger';
 import { testSetup } from '../../src/testSetup';
