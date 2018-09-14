@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getJsonValuesByName, isString } from '@salesforce/kit';
-import { AnyJson, asJsonArray, asJsonMap, Dictionary, getAsJsonArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { getJsonValuesByName } from '@salesforce/kit';
+import { AnyJson, asJsonArray, asJsonMap, Dictionary, getAsJsonArray, isJsonMap, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
 import * as path from 'path';

@@ -78,8 +78,8 @@
  */
 
 // tslint:disable-next-line:ordered-imports
-import { isObject, isPlainObject, isString, parseJson, parseJsonMap } from '@salesforce/kit';
-import { Dictionary, ensure, ensureNumber, isArray, isKeyOf, Many, Optional } from '@salesforce/ts-types';
+import { parseJson, parseJsonMap } from '@salesforce/kit';
+import { Dictionary, ensure, ensureNumber, isArray, isKeyOf, isObject, isPlainObject, isString, Many, Optional } from '@salesforce/ts-types';
 // @ts-ignore No typings available for our copy of bunyan
 import * as Bunyan from 'bunyan-sfdx-no-dtrace';
 import * as Debug from 'debug';

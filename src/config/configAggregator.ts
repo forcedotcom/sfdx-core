@@ -23,8 +23,8 @@
  * @property {function} isEnvVar `() => boolean` Location is `LOCATIONS.ENVIRONMENT`.
  */
 
-import { get, isObject, merge, snakeCase, sortBy } from '@salesforce/kit';
-import { Optional, RequiredDictionary } from '@salesforce/ts-types';
+import { get, merge, snakeCase, sortBy } from '@salesforce/kit';
+import { definiteEntries, Dictionary, isObject, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
@@ -95,7 +95,7 @@ export class ConfigAggregator {
     private allowedProperties!: ConfigPropertyMeta[];
     private localConfig!: Config;
     private globalConfig!: Config;
-    private envVars!: RequiredDictionary<string>;
+    private envVars!: Dictionary<string>;
     private config!: object;
 
     /**
@@ -249,7 +249,7 @@ export class ConfigAggregator {
      * @returns {Map<string, string>}
      */
     public getEnvVars(): Map<string, string> {
-        return new Map(Object.entries(this.envVars));
+        return new Map(definiteEntries(this.envVars));
     }
 
     /**
@@ -281,13 +281,14 @@ export class ConfigAggregator {
 
         this.setAllowedProperties(Config.getAllowedProperties());
 
+        const accumulator: Dictionary<string> = {};
         this.setEnvVars(this.getAllowedProperties().reduce((obj, property) => {
             const val = process.env[propertyToEnvName(property.key)];
             if (val != null) {
                 obj[property.key] = val;
             }
             return obj;
-        }, {} as RequiredDictionary<string>));
+        }, accumulator));
 
         // Global config must be read first so it is on the left hand of the
         // object assign and is overwritten by the local config.
@@ -358,7 +359,7 @@ export class ConfigAggregator {
      * @param {Dictionary<string>} envVars The env variables to set.
      * @private
      */
-    private setEnvVars(envVars: RequiredDictionary<string>) {
+    private setEnvVars(envVars: Dictionary<string>) {
         this.envVars = envVars;
     }
 }

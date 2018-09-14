@@ -28,8 +28,8 @@
  * @property {string} MISSING The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
  */
 
-import { get, isString } from '@salesforce/kit';
-import { AnyFunction, AnyJson, asAnyJson, asJsonArray, asString, Dictionary, ensure, isArray, Optional } from '@salesforce/ts-types';
+import { get } from '@salesforce/kit';
+import { AnyFunction, AnyJson, asAnyJson, asJsonArray, asString, Dictionary, ensure, isArray, isString, Optional } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import { join as pathJoin } from 'path';
 import { AuthFields, AuthInfo } from './authInfo';

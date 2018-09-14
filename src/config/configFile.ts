@@ -14,7 +14,7 @@
  * @property {string} filePath The full file path where the config file is stored.
  */
 
-import { isBoolean } from '@salesforce/kit';
+import { isBoolean } from '@salesforce/ts-types';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';

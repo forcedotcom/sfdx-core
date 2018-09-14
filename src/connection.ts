@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isString, maxBy, merge } from '@salesforce/kit';
-import { asString, ensure, JsonMap, Optional } from '@salesforce/ts-types';
+import { maxBy, merge } from '@salesforce/kit';
+import { asString, ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Tooling as JSForceTooling } from 'jsforce';
 import { ExecuteOptions } from 'jsforce';
 import { QueryResult } from 'jsforce';
