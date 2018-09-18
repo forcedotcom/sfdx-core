@@ -48,6 +48,14 @@
  * @property {string} userProfileName
  */
 
+/**
+ * Options for access token flow.
+ * @typedef AccessTokenOptions
+ * @property {string} accessToken
+ * @property {string} loginUrl
+ * @property {string} instanceUrl
+ */
+
 import { cloneJson, get, isEmpty, parseJsonMap, set } from '@salesforce/kit';
 import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, isPlainObject, isString, JsonMap, keysOf, Nullable, Optional } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
@@ -90,6 +98,12 @@ export interface AuthFields {
     username?: string;
     usernames?: string[];
     userProfileName?: string;
+}
+
+export interface AccessTokenOptions {
+    accessToken?: string;
+    loginUrl?: string;
+    instanceUrl?: string;
 }
 
 export type RefreshFn = (conn: Connection, callback: (err: Nullable<Error>, accessToken?: string, res?: object) => Promise<void>) => Promise<void>;
@@ -290,7 +304,7 @@ export class AuthInfo {
      *    **`{name: 'AuthInfoCreationError'}`:** Org information does not exist.
      * @returns {Promise<AuthInfo>}
      */
-    public static async create(username?: string, options?: OAuth2Options): Promise<AuthInfo> {
+    public static async create(username?: string, options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
         // Must specify either username and/or options
         if (!username && !options) {
             throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
@@ -421,27 +435,33 @@ export class AuthInfo {
      *    **`{name: 'NamedOrgNotFound'}`:** Org information does not exist.
      * @returns {Promise<AuthInfo>} For convenience `this` object is returned.
      */
-    public async init(options?: OAuth2Options): Promise<AuthInfo> {
+    public async init(options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
         this.logger = await Logger.child('AuthInfo');
         authInfoCrypto = await AuthInfoCrypto.create();
 
         // If options were passed, use those before checking cache and reading an auth file.
-        let authConfig: OAuth2Options;
+        let authConfig: AuthFields;
+
         if (options) {
             options = cloneJson(options);
-            // jwt flow
-            // Support both sfdx and jsforce private key values
-            if (!options.privateKey && options.privateKeyFile) {
-                options.privateKey = options.privateKeyFile;
-            }
-            if (options.privateKey) {
-                authConfig = await this.buildJwtConfig(options);
-            } else if (!options.authCode && options.refreshToken) {
-                // refresh token flow (from sfdxUrl or OAuth refreshFn)
-                authConfig = await this.buildRefreshTokenConfig(options);
+
+            if (this.isTokenOptions(options)) {
+                authConfig = options;
             } else {
-                // authcode exchange / web auth flow
-                authConfig = await this.buildWebAuthConfig(options);
+                // jwt flow
+                // Support both sfdx and jsforce private key values
+                if (!options.privateKey && options.privateKeyFile) {
+                    options.privateKey = options.privateKeyFile;
+                }
+                if (options.privateKey) {
+                    authConfig = await this.buildJwtConfig(options);
+                } else if (!options.authCode && options.refreshToken) {
+                    // refresh token flow (from sfdxUrl or OAuth refreshFn)
+                    authConfig = await this.buildRefreshTokenConfig(options);
+                } else {
+                    // authcode exchange / web auth flow
+                    authConfig = await this.buildWebAuthConfig(options);
+                }
             }
 
             // Update the auth fields WITH encryption
@@ -642,6 +662,16 @@ export class AuthInfo {
 
         sfdxAuthUrl += `${decryptedFields.refreshToken}@${instanceUrl}`;
         return sfdxAuthUrl;
+    }
+
+    private isTokenOptions(options: OAuth2Options | AccessTokenOptions): options is AccessTokenOptions {
+        // Although OAuth2Options does not contain refreshToken, privateKey, or privateKeyFile, a JS consumer could still pass those in
+        // which WILL have an access token as well, but it should be considered an OAuth2Options at that point.
+        return 'accessToken' in options
+            && !('refreshToken' in options)
+            && !('privateKey' in options)
+            && !('privateKeyFile' in options)
+            && !('authCode' in options);
     }
 
     // A callback function for a connection to refresh an access token.  This is used

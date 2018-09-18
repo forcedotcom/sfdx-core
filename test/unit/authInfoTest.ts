@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { cloneJson, isString } from '@salesforce/kit';
+import { cloneJson } from '@salesforce/kit';
+import { isString } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import * as dns from 'dns';
 import { OAuth2 } from 'jsforce';
@@ -369,6 +370,21 @@ describe('AuthInfo', () => {
             const authInfo = await AuthInfo.create(username);
 
             const expectedFields = { accessToken: username, instanceUrl: testMetadata.instanceUrl };
+            expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
+            expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
+            expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
+            expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
+            expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
+        });
+
+        it('should return an AuthInfo instance when passed an access token and instanceUrl for the access token flow', async () => {
+            $$.SANDBOX.stub(ConfigAggregator.prototype, 'loadProperties').callsFake(async () => { });
+            $$.SANDBOX.stub(ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
+
+            const accessToken = '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
+            const authInfo = await AuthInfo.create('test', { accessToken, instanceUrl: testMetadata.instanceUrl, loginUrl: testMetadata.instanceUrl });
+
+            const expectedFields = { accessToken, instanceUrl: testMetadata.instanceUrl };
             expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
             expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
             expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
