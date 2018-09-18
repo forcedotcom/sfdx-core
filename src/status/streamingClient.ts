@@ -6,7 +6,7 @@
  */
 
 import { set } from '@salesforce/kit';
-import { AnyFunction, ensure, JsonMap } from '@salesforce/ts-types';
+import { AnyFunction, Dictionary, ensure, JsonMap } from '@salesforce/ts-types';
 import { EventEmitter } from 'events';
 // @ts-ignore No typings are available for faye
 import * as Faye from 'faye';
@@ -34,7 +34,7 @@ export abstract class CometClient extends EventEmitter {
      * @param {JsonMap} extension The json function for the extension.
      * @abstract
      */
-    public abstract addExtension(extension: JsonMap): void;
+    public abstract addExtension(extension: Dictionary): void;
 
     /**
      * Sets an http header name/value.
@@ -236,24 +236,22 @@ export enum StreamingTimeoutErrorType {
  * @example
  *
  *  streamProcessor(message: JsonMap): StatusResult<string> {
- *      if (!message.payload.id) {
- *          throw new SfdxError('Not found.', 'NotFound');
- *      }
+ *      const payload = ensureJsonMap(message.payload);
+ *      const id = ensureString(payload.id);
  *
- *      if (message.payload.status !== 'Active') {
+ *      if (payload.status !== 'Active') {
  *          return  { completed: false };
  *      }
  *
  *      return {
  *          completed: true,
- *          payload: message.payload.id
- *      }
+ *          payload: id
+ *      };
  *  }
  *
  *  const org: Org = await Org.create(this.org.name);
  *  const options: StreamingOptions<string> =
- *      new DefaultStreamingOptions(org, org.getConnection().getApiVersion(),
- *      TOPIC, this.streamProcessor.bind(this));
+ *      new DefaultStreamingOptions(org, TOPIC, this.streamProcessor);
  *
  *  try  {
  *      const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
@@ -262,13 +260,13 @@ export enum StreamingTimeoutErrorType {
  *
  *      await asyncStatusClient.subscribe(async () => {
  *               // Now that we are subscribed, we can initiate the request that will cause the events to start streaming.
- *               const requestResponse = await org.getConnection().request(url);
- *               this.id = requestResponse.id;
+ *               const requestResponse = asJsonMap(asAnyJson(await org.getConnection().request(url)));
+ *               this.id = ensureString(requestResponse.id);
  *           });
  *
  *  } catch(e) {
  *      // handle streaming message errors and timeouts here. ex. If the handshake fails you could try polling.
- *      ....
+ *      // ....
  *  }
  *
  */
@@ -340,6 +338,21 @@ export class StreamingClient<T> {
         this.cometClient.disable('websocket');
     }
 
+    public replay(replayId: number) {
+        this.cometClient.addExtension({
+            outgoing: (message: { channel: string, ext?: JsonMap }, callback: AnyFunction): void => {
+                if (message.channel === '/meta/subscribe') {
+                    if (!message.ext) { message.ext = {}; }
+                    const replayFromMap: JsonMap = {};
+                    replayFromMap[this.options.channel] = replayId;
+                    // add "ext : { "replay" : { CHANNEL : REPLAY_VALUE }}" to subscribe message
+                    message.ext['replay'] = replayFromMap;
+                }
+                callback(message);
+            }
+        });
+    }
+
     /**
      * Provides a convenient way to handshake with the server endpoint before trying to subscribe.
      * @async
@@ -368,13 +381,13 @@ export class StreamingClient<T> {
 
     /**
      * Subscribe to streaming events.
-     * @param {function} streamInit - This function should call the platform apis that result in streaming updates on push topics.
+     * @param {function} [streamInit] - This function should call the platform apis that result in streaming updates on push topics.
      * @returns {Promise<T>} - When the streaming processor that's set in the options completes, it returns a payload in
      * the StatusResult object. The payload is just echoed here for convenience.
      * @async
      * @see {@link StatusResult}
      */
-    public subscribe(streamInit: () => Promise<void>): Promise<T> {
+    public subscribe(streamInit?: () => Promise<void>): Promise<T> {
         let timeout: NodeJS.Timer;
 
         // This outer promise is to hold the streaming promise chain open until the streaming processor
@@ -422,7 +435,7 @@ export class StreamingClient<T> {
             .then(() => {
                 // Now that we successfully have a subscription started up we are safe to initialize the function that
                 // will affect the streaming events. I.E. create an org or run apex tests.
-                return streamInit();
+                return streamInit && streamInit();
             })
             .catch(error => {
                 // Need to catch the subscription rejection or it will result in an unhandled rejection error.
