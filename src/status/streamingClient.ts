@@ -250,11 +250,10 @@ export enum StreamingTimeoutErrorType {
  *  }
  *
  *  const org: Org = await Org.create(this.org.name);
- *  const options: StreamingOptions<string> =
- *      new DefaultStreamingOptions(org, TOPIC, this.streamProcessor);
+ *  const options = new DefaultStreamingOptions(org, TOPIC, this.streamProcessor.bind(this));
  *
  *  try  {
- *      const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
+ *      const asyncStatusClient = await StreamingClient.init(options);
  *
  *      await asyncStatusClient.handshake();
  *
