@@ -638,6 +638,68 @@ describe('AuthInfo', () => {
             expect(AuthInfo.prototype.update['firstCall'].args[0]).to.deep.equal(expectedAuthConfig);
         });
 
+        it('should return a refresh token AuthInfo instance with username in auth options', async () => {
+            const username = 'authInfoTest_username_RefreshToken';
+            const refreshTokenConfig = {
+                refreshToken: testMetadata.refreshToken,
+                loginUrl: testMetadata.loginUrl,
+                username
+            };
+            const refreshTokenConfigClone = cloneJson(refreshTokenConfig);
+            const authResponse = {
+                access_token: testMetadata.accessToken,
+                instance_url: testMetadata.instanceUrl,
+                id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+            };
+
+            // Stub the http request (OAuth2.refreshToken())
+            _postParmsStub.returns(Promise.resolve(authResponse));
+
+            // Create the refresh token AuthInfo instance
+            const authInfo = await AuthInfo.create(undefined, refreshTokenConfig);
+
+            // Verify the returned AuthInfo instance
+            const authInfoConnOpts = authInfo.getConnectionOptions();
+            expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
+            expect(authInfoConnOpts).to.have.property('instanceUrl', authResponse.instance_url);
+            expect(authInfoConnOpts).to.not.have.property('refreshToken');
+            expect(authInfoConnOpts['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl);
+            expect(authInfoConnOpts['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
+            expect(authInfoConnOpts['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
+            expect(authInfo.getUsername()).to.equal(username);
+            expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
+            expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
+            expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
+            expect(authInfo.isOauth(), 'authInfo.isOauth() should be true').to.be.true;
+
+            // Verify authInfo.fields are encrypted
+            const crypto = await Crypto.create();
+            expect(crypto.decrypt(authInfo['fields'].accessToken)).equals(authResponse.access_token);
+            expect(crypto.decrypt(authInfo['fields'].refreshToken)).equals(refreshTokenConfig.refreshToken);
+
+            // Verify expected methods are called with expected args
+            expect(AuthInfo.prototype.init['called']).to.be.true;
+            expect(AuthInfo.prototype.init['firstCall'].args[0]).to.equal(refreshTokenConfig);
+            expect(AuthInfo.prototype.update['called']).to.be.true;
+            expect(AuthInfo.prototype['buildRefreshTokenConfig']['called']).to.be.true;
+            expect(AuthInfo.prototype['buildRefreshTokenConfig']['firstCall'].args[0]).to.include(refreshTokenConfig);
+            expect(AuthInfoConfig.getOptions(username).filename).to.equal(`${username}.json`);
+
+            // Verify the refreshTokenConfig object was not mutated by init() or buildRefreshTokenConfig()
+            expect(refreshTokenConfig).to.deep.equal(refreshTokenConfigClone);
+
+            const expectedAuthConfig = {
+                accessToken: authResponse.access_token,
+                instanceUrl: testMetadata.instanceUrl,
+                orgId: authResponse.id.split('/')[0],
+                loginUrl: refreshTokenConfig.loginUrl,
+                refreshToken: refreshTokenConfig.refreshToken,
+                clientId: testMetadata.defaultConnectedAppInfo.clientId,
+                clientSecret: testMetadata.defaultConnectedAppInfo.clientSecret
+            };
+            expect(AuthInfo.prototype.update['firstCall'].args[0]).to.deep.equal(expectedAuthConfig);
+        });
+
         it('should return a refresh token AuthInfo instance with custom clientId and clientSecret', async () => {
             const username = 'authInfoTest_username_RefreshToken_Custom';
             const refreshTokenConfig = {
