@@ -274,7 +274,7 @@ describe('AuthInfo', () => {
         });
 
         describe('updateInfo', () => {
-            it('cache hit and mis', async () => {
+            it('cache hit and miss', async () => {
                 const postInitLookupCount: number = testMetadata.authInfoLookupCount;
                 const username = authInfo.getFields().username;
 
@@ -326,7 +326,7 @@ describe('AuthInfo', () => {
                 const strObj: string = JSON.stringify(fields);
 
                 // verify the returned object doesn't have secrets
-                expect(walkAndSearchForSecrets(fields)).to.not.throw;
+                expect(() => walkAndSearchForSecrets(fields)).to.not.throw();
 
                 expect(strObj).does.not.include(testMetadata.defaultConnectedAppInfo.clientSecret);
                 expect(strObj).does.not.include(decryptedRefreshToken);
@@ -334,25 +334,25 @@ describe('AuthInfo', () => {
         });
 
         describe('getConnectionOptions', () => {
-
             it ('return value should not have a client secret or decrypted refresh token', () => {
                 const fields: AuthFields = authInfo.getConnectionOptions();
                 const strObj: string = JSON.stringify(fields);
 
                 // verify the returned object doesn't have secrets
-                expect(walkAndSearchForSecrets(fields)).to.not.throw;
+                expect(() => walkAndSearchForSecrets(fields)).to.not.throw();
 
                 // double check the stringified objects don't have secrets.
                 expect(strObj).does.not.include(testMetadata.defaultConnectedAppInfo.clientSecret);
                 expect(strObj).does.not.include(decryptedRefreshToken);
             });
         });
+
         describe('AuthInfo', () => {
             it ('should not have a client secret or decrypted refresh token', () => {
                 const authInfoString: string = JSON.stringify(authInfo);
 
                 // verify the returned object doesn't have secrets
-                expect(walkAndSearchForSecrets(authInfo)).to.not.throw;
+                expect(() => walkAndSearchForSecrets(authInfo)).to.not.throw();
 
                 // double check the stringified objects don't have secrets.
                 expect(authInfoString).does.not.include(testMetadata.defaultConnectedAppInfo.clientSecret);
