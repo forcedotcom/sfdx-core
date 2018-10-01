@@ -12,7 +12,7 @@
     "lint": "node_modules/.bin/tslint -p .",
     "lint-report": "npm run lint -- -t checkstyle -o checkstyle.xml",
     "prepare": "npm run build",
-    "test": "npm run lint && mocha \"test/**/*Test.ts\"",
+    "test": "npm run lint && nyc --reporter=lcov --reporter=text mocha \"test/**/*Test.ts\"",
     "test-with-coverage": "npm run lint-report && scripts/unit-test-with-coverage.js",
     "watch": "tsc -w -p tsconfig.json"
   },
@@ -54,7 +54,7 @@
     "docdash": "0.4.0",
     "jsdoc": "3.5.5",
     "mocha": "5.0.1",
-    "nyc": "^12.0.2",
+    "nyc": "13.0.1",
     "shelljs": "0.8.1",
     "sinon": "5.0.7",
     "source-map-support": "^0.5.3",
