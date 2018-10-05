@@ -126,6 +126,11 @@ export {
 } from './status/streamingClient';
 
 export {
+    MyDomainResolver,
+    MyDomainResolverOptions
+} from './status/myDomainResolver';
+
+export {
     Time,
     TIME_UNIT
 } from './util/time';

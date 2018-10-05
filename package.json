@@ -29,7 +29,7 @@
     "!lib/**/*.map"
   ],
   "dependencies": {
-    "@salesforce/kit": "0.4.0",
+    "@salesforce/kit": "0.7.0",
     "@salesforce/ts-types": "0.11.0",
     "@types/jsforce": "1.8.12",
     "bunyan-sfdx-no-dtrace": "1.8.2",

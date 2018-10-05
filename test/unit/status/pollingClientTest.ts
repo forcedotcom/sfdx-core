@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { PollingClient, PollingOptions } from '../../../src/status/pollingClient';
 import { StatusResult } from '../../../src/status/client';
 import { Time, TIME_UNIT } from '../../../src/util/time';
@@ -63,8 +70,8 @@ describe('clientTest', () => {
         try {
             await shouldThrow(client.subscribe());
         } catch (e) {
-            expect(callCount).to.be.equal(3);
-            expect(e).to.have.property('name', 'ClientTimeout');
+            expect(callCount).to.be.equal(4);
+            expect(e).to.have.property('name', 'PollingClientTimeout');
         }
     });
 
