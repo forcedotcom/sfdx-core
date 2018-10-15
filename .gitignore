@@ -12,4 +12,6 @@ docs
 *coverage
 *xunit.xml
 *checkstyle.xml
+coverage
+.nyc_output
 src/temp

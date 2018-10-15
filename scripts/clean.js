@@ -10,6 +10,7 @@ shell.rm('-rf', `docs`);
 shell.rm('-f', `*xunit.xml`);
 shell.rm('-f', `*checkstyle.xml`);
 shell.rm('-rf', `*coverage`);
+shell.rm('-rf', `.nyc_output`);
 
 // We don't check-in lock files, so just remove them in clean
 shell.rm('-f', `yarn.lock`);
