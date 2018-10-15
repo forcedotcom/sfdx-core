@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "0.21.1",
+  "version": "0.23.1",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "license": "BSD-3-Clause",
@@ -12,7 +12,7 @@
     "lint": "node_modules/.bin/tslint -p .",
     "lint-report": "npm run lint -- -t checkstyle -o checkstyle.xml",
     "prepare": "npm run build",
-    "test": "npm run lint && mocha \"test/**/*Test.ts\"",
+    "test": "npm run lint && nyc --reporter=lcov --reporter=text mocha \"test/**/*Test.ts\"",
     "test-with-coverage": "npm run lint-report && scripts/unit-test-with-coverage.js",
     "watch": "tsc -w -p tsconfig.json"
   },
@@ -29,7 +29,7 @@
     "!lib/**/*.map"
   ],
   "dependencies": {
-    "@salesforce/kit": "0.4.0",
+    "@salesforce/kit": "0.7.0",
     "@salesforce/ts-types": "0.11.0",
     "@types/jsforce": "1.8.12",
     "bunyan-sfdx-no-dtrace": "1.8.2",
@@ -40,7 +40,7 @@
     "mkdirp": "0.5.1"
   },
   "devDependencies": {
-    "@salesforce/dev-config": "1.1.3",
+    "@salesforce/dev-config": "1.1.4",
     "@types/chai": "4.0.4",
     "@types/debug": "0.0.30",
     "@types/jsen": "0.0.19",
@@ -54,7 +54,7 @@
     "docdash": "0.4.0",
     "jsdoc": "3.5.5",
     "mocha": "5.0.1",
-    "nyc": "^12.0.2",
+    "nyc": "13.0.1",
     "shelljs": "0.8.1",
     "sinon": "5.0.7",
     "source-map-support": "^0.5.3",

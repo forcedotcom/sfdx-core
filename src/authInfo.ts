@@ -310,7 +310,7 @@ export class AuthInfo {
             throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
         }
 
-        const authInfo = new AuthInfo(username);
+        const authInfo = new AuthInfo(username || get(options, 'username'));
 
         // If the username is an access token, use that for auth and don't persist
         const accessTokenMatch = isString(username) && username.match(/^(00D\w{12,15})![\.\w]*$/);

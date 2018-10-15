@@ -61,7 +61,7 @@ export class SfdxProjectJson extends ConfigFile {
  * @example
  * const project = await Project.resolve();
  * const projectJson = await project.resolveProjectConfig();
- * console.log(projectJson.sfdxLoginUrl);
+ * console.log(projectJson.sfdcLoginUrl);
  */
 export class SfdxProject {
     /**
