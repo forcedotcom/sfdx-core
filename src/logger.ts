@@ -79,7 +79,18 @@
 
 // tslint:disable-next-line:ordered-imports
 import { parseJson, parseJsonMap } from '@salesforce/kit';
-import { Dictionary, ensure, ensureNumber, isArray, isKeyOf, isObject, isPlainObject, isString, Many, Optional } from '@salesforce/ts-types';
+import {
+    Dictionary,
+    ensure,
+    ensureNumber,
+    isArray,
+    isKeyOf,
+    isObject,
+    isPlainObject,
+    isString,
+    Many,
+    Optional
+} from '@salesforce/ts-types';
 // @ts-ignore No typings available for our copy of bunyan
 import * as Bunyan from 'bunyan-sfdx-no-dtrace';
 import * as Debug from 'debug';
@@ -131,6 +142,17 @@ export interface Fields {
 }
 
 export type FieldValue = string | number | boolean;
+
+export interface LogLine {
+    name: string;
+    hostname: string;
+    pid: string;
+    log: string;
+    level: number;
+    msg: string;
+    time: string;
+    v: number;
+}
 
 /**
  * A logging abstraction powered by {@link https://github.com/cwallsfdc/node-bunyan|Bunyan} that provides both a default
@@ -450,7 +472,7 @@ export class Logger {
      *
      * @returns {Array<string>}
      */
-    public getBufferedRecords(): string[] {
+    public getBufferedRecords(): LogLine[] {
         if (this.bunyan.ringBuffer) {
             return this.bunyan.ringBuffer.records;
         }
@@ -464,8 +486,8 @@ export class Logger {
      */
     public readLogContentsAsText(): string {
         if (this.bunyan.ringBuffer) {
-            return this.getBufferedRecords().reduce((accum, value) => {
-                accum += (JSON.stringify(value) + os.EOL);
+            return this.getBufferedRecords().reduce((accum, line) => {
+                accum += (JSON.stringify(line) + os.EOL);
                 return accum;
             }, '');
         } else {

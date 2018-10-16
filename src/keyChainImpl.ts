@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { asString, ensure, Nullable } from '@salesforce/ts-types';
+import { asString, Dictionary, ensure, Nullable } from '@salesforce/ts-types';
 import * as childProcess from 'child_process';
 import * as nodeFs from 'fs';
 import * as os from 'os';
@@ -377,7 +377,7 @@ const _darwinImpl: OsImpl = {
     }
 };
 
-async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: Map<string, ConfigValue>) => void) {
+async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: Dictionary<ConfigValue>) => void) {
     try {
         const config = await KeychainConfig.create();
         config.set(SecretFields.ACCOUNT, opts.account);
