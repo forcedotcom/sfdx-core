@@ -223,12 +223,12 @@ export class Config extends ConfigFile {
 
         const config = await Config.create(Config.getDefaultOptions(isGlobal));
 
-        const content = await config.read();
+        const content: ConfigContents = await config.read();
 
         if (value == null) {
-            content.delete(propertyName);
+            delete content[propertyName];
         } else {
-            content.set(propertyName, value);
+            content[propertyName] = value;
         }
 
         return config.write(content);
