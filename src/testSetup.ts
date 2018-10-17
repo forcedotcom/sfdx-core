@@ -10,7 +10,7 @@ import {
     AnyFunction,
     AnyJson,
     Dictionary,
-    ensureJsonMap,
+    ensureString,
     JsonMap,
     Optional
 } from '@salesforce/ts-types';
@@ -19,7 +19,7 @@ import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents, ConfigValue } from './config/configStore';
+import { ConfigContents, ConfigValue, ensureConfigContents } from './config/configStore';
 import { Connection } from './connection';
 import { Crypto } from './crypto';
 import { Logger } from './logger';
@@ -204,18 +204,18 @@ export const testSetup = once((sinon?) => {
         },
 
         setConfigStubContents(name: string, value: ConfigContents) {
-            if (name && value) {
-                let configStub: Optional<ConfigStub> = this.configStubs[name];
+            if (ensureString(name) && ensureConfigContents(value)) {
+                const configStub: Optional<ConfigStub> = this.configStubs[name] || {};
 
                 const valueContents = new Map<string, ConfigValue>(Object.entries(value.contents || {}));
                 Array.from(valueContents.entries()).forEach(([groupKey, groupContents]) => {
                     if (groupContents) {
 
                         if (!get(configStub, `contents.${groupKey}`)) {
-                            set(groupContents, `contents.${groupKey}`, {});
+                            set(configStub || {}, `contents.${groupKey}`, {});
                         }
 
-                        const group: ConfigContents = get(ensureJsonMap(groupContents), `contents.${groupKey}`) as ConfigContents;
+                        const group: ConfigContents = get(configStub, `contents.${groupKey}`) as ConfigContents;
                         Object.entries(groupContents).forEach(([contentKey, contentValue]) => {
                             if (groupContents) {
                                 group[contentKey] = contentValue;

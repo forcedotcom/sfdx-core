@@ -248,7 +248,7 @@ export class ConfigGroup extends ConfigFile {
         Array.from(contents.entries()).forEach(([groupKey, groupContents]) => {
             if (groupContents) {
                 Object.entries(groupContents).forEach(([contentKey, contentValue]) => {
-                    this.setInGroup(contentKey, contentValue, groupKey)
+                    this.setInGroup(contentKey, contentValue, groupKey);
                 });
             }
         });
