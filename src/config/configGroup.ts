@@ -11,6 +11,7 @@
  * @property {string} defaultGroup The default group for properties to go into.
  */
 
+import { get, set } from '@salesforce/kit';
 import { AnyJson, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile, ConfigOptions } from './configFile';
@@ -205,9 +206,8 @@ export class ConfigGroup extends ConfigFile {
      * @param {string} [group = 'default'] The group.
      * @returns {ConfigContents} The contents.
      */
-    public getGroup(group?: string): Dictionary<AnyJson> {
-        const config: ConfigValue = this.getContents()[group || this.defaultGroup];
-        return config as Dictionary<AnyJson>;
+    public getGroup(group?: string): ConfigContents {
+        return this.getContents()[group || this.defaultGroup] as ConfigContents;
     }
 
     /**
@@ -219,7 +219,7 @@ export class ConfigGroup extends ConfigFile {
     public getInGroup(key: string, group?: string): Optional<ConfigValue> {
         const groupContents = this.getGroup(group);
         if (groupContents) {
-            return groupContents[key];
+            return get(groupContents, key);
         }
     }
 
@@ -270,7 +270,7 @@ export class ConfigGroup extends ConfigFile {
             super.set(group, {});
         }
         content = this.getGroup(group);
-        content[key] = value;
+        set(content, key, value);
 
         return content;
     }

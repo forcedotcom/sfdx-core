@@ -20,15 +20,15 @@
  * The type of content a config stores.
  * @typedef {Map<string, ConfigValue>} ConfigContents
  */
-
+import { get as _get, set as _set } from '@salesforce/kit';
 import {
     AnyJson,
     Dictionary,
-    isPlainObject,
+    isJsonMap,
     JsonMap,
     Optional
 } from '@salesforce/ts-types';
-import { SfdxError } from '../sfdxError';
+import { UnexpectedValueTypeError } from '@salesforce/ts-types/lib/errors';
 
 /**
  * The allowed types stored in a config store.
@@ -71,13 +71,15 @@ export interface ConfigStore {
 }
 
 /**
- * TODO
+ * Type guard for ConfigContents
+ * @param contents {ConfigContents} An `AnyJson` value to test.
+ * @param message {string} The error message to use if `value` is not type-compatible.
  */
-export function ensureConfigContents(contents?: ConfigContents): ConfigContents {
-    if (isPlainObject(contents)) {
-        return contents;
+export function ensureConfigContents(contents?: AnyJson, message?: string): ConfigContents {
+    if (isJsonMap(contents)) {
+        return contents as ConfigContents;
     }
-    throw new SfdxError('NOT HAPPEN');
+    throw new UnexpectedValueTypeError(message || 'Value is not ConfigContents');
 }
 
 /**
@@ -110,7 +112,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @return {Optional<ConfigValue>}
      */
     public get(key: string): Optional<ConfigValue> {
-        return this.contents[key];
+        return _get(this.contents, key);
     }
 
     /**
@@ -129,7 +131,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @param {string} key The key.
      */
     public has(key: string): boolean {
-        return !!this.contents[key];
+        return !!_get(this.contents, key);
     }
 
     /**
@@ -147,7 +149,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {ConfigContents} Returns the config object.
      */
     public set(key: string, value: ConfigValue): ConfigContents {
-        this.contents[key] = value;
+        _set(this.contents, key, value);
         return this.contents;
     }
 
@@ -241,7 +243,7 @@ export abstract class BaseConfigStore implements ConfigStore {
     public setContentsFromObject<T extends object>(obj: T): void {
         this.contents = {};
         Object.entries(obj).forEach(([key, value]) => {
-            this.contents[key] = value;
+            _set(this.contents, key, value);
         });
     }
 }
