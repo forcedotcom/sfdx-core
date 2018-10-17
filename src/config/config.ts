@@ -26,7 +26,7 @@
  * @property {function} list `() => string[]` List the Org defaults.
  */
 
-import { keyBy } from '@salesforce/kit';
+import { keyBy, set } from '@salesforce/kit';
 import { Dictionary, ensure, isString } from '@salesforce/ts-types';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
@@ -228,7 +228,7 @@ export class Config extends ConfigFile {
         if (value == null) {
             delete content[propertyName];
         } else {
-            content[propertyName] = value;
+            set(content, propertyName, value);
         }
 
         return config.write(content);

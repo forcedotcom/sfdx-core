@@ -346,7 +346,7 @@ export class Org {
         const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
         const contents: ConfigContents = await config.read();
         const thisUsername = this.getUsername();
-        const usernames: string[] = contents['usernames'] as string[] || [thisUsername];
+        const usernames: string[] = contents.usernames as string[] || [thisUsername];
         return Promise.all(usernames.map(username => {
             if (username === thisUsername) {
                 return AuthInfo.create(this.getConnection().getUsername());
@@ -378,7 +378,7 @@ export class Org {
         const contents = await orgConfig.read();
         // TODO: This is kind of screwy because contents values can be `AnyJson | object`...
         // needs config refactoring to improve
-        const usernames = contents['usernames'] || [];
+        const usernames = contents.usernames || [];
 
         if (!isArray(usernames)) {
             throw new SfdxError('Usernames is not an array', 'UnexpectedDataFormat');
@@ -426,8 +426,8 @@ export class Org {
         const contents: ConfigContents = await orgConfig.read();
 
         const targetUser = _auth.getFields().username;
-        const usernames = (contents['usernames'] || []) as string[];
-        contents['usernames'] = usernames.filter(username => username !== targetUser);
+        const usernames = (contents.usernames || []) as string[];
+        contents.usernames = usernames.filter(username => username !== targetUser);
 
         await orgConfig.write();
         return this;

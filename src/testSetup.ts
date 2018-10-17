@@ -218,7 +218,7 @@ export const testSetup = once((sinon?) => {
                         const group: ConfigContents = get(configStub, `contents.${groupKey}`) as ConfigContents;
                         Object.entries(groupContents).forEach(([contentKey, contentValue]) => {
                             if (groupContents) {
-                                group[contentKey] = contentValue;
+                                set(group, contentKey, contentValue);
                             }
                         });
                     }
