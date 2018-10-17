@@ -10,7 +10,7 @@ import * as sinon from 'sinon';
 
 import { ConfigGroup, ConfigGroupOptions } from '../../../src/config/configGroup';
 import { testSetup } from '../../../src/testSetup';
-import { ConfigValue } from '../../../src/config/configStore';
+import { ConfigContents } from '../../../src/config/configStore';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -135,24 +135,24 @@ describe('ConfigGroup', () => {
         it('set key value pair', async () => {
             store.set('test', 'val');
             await store.write();
-            $$.getConfigStub('ConfigGroup')
-            const value: ConfigValue = $$.configStubs.ConfigGroup.contents['default'];
-            expect(value!.test).to.equal('val');
+            const contents: ConfigContents = $$.getConfigStubContents('ConfigGroup', 'default');
+            expect(contents['test']).to.equal('val');
         });
 
         describe('updateValues', () => {
             it('one value', async () => {
                 await store.updateValues({ another: 'val' });
                 expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
-                expect($$.configStubs.ConfigGroup.contents['default'].another).to.equal('val');
+                const contents: ConfigContents = $$.getConfigStubContents('ConfigGroup', 'default');
+                expect(contents.another).to.equal('val');
             });
 
             it('two of same value', async () => {
                 await store.updateValues({ another: 'val', some: 'val' });
                 expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
-                expect($$.getConfigStub())
-                expect($$.configStubs.ConfigGroup.contents['default'].another).to.equal('val');
-                expect($$.configStubs.ConfigGroup.contents['default'].some).to.equal('val');
+                const contents: ConfigContents = $$.getConfigStubContents('ConfigGroup', 'default');
+                expect(contents.another).to.equal('val');
+                expect(contents.some).to.equal('val');
             });
         });
     });
