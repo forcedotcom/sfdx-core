@@ -12,6 +12,7 @@ import { Config } from '../../../src/config/config';
 import { testSetup } from '../../../src/testSetup';
 import { ConfigFile } from '../../../src/config/configFile';
 import * as fs from '../../../src/util/fs';
+import { ConfigContents } from '../../../src/config/configStore';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -58,9 +59,10 @@ describe('ConfigAggregator', () => {
 
     describe('initialization', () => {
         beforeEach(() => {
-            $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function() {
-                const config = this.isGlobal() ? await Promise.resolve(new Map([['defaultusername', 2]])) :
-                    await Promise.resolve(new Map([['defaultusername', 1]]));
+            $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function(this: Config) {
+                const config: ConfigContents = this.isGlobal() ?
+                    await Promise.resolve({ defaultusername: 2 }) :
+                    await Promise.resolve({ defaultusername: 1 });
                 this.setContents(config);
                 return config;
             });
@@ -79,7 +81,7 @@ describe('ConfigAggregator', () => {
 
     describe('locations', () => {
         it('local', async () => {
-            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path) => {
+            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path: string) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 2});
@@ -94,7 +96,7 @@ describe('ConfigAggregator', () => {
         });
 
         it('global', async () => {
-            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path) => {
+            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path: string) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({defaultusername: 2});
@@ -111,7 +113,7 @@ describe('ConfigAggregator', () => {
         it('env', async () => {
             process.env.SFDX_DEFAULTUSERNAME = 'test';
             const aggregator: ConfigAggregator = await ConfigAggregator.create();
-            $$.SANDBOX.stub(fs, 'readJson').callsFake(async (path) => {
+            $$.SANDBOX.stub(fs, 'readJson').callsFake(async (path: string) => {
                 if (path) {
                     if (path.includes(await $$.globalPathRetriever(id))) {
                         return Promise.resolve({ defaultusername: 1 });

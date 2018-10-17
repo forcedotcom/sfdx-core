@@ -21,12 +21,19 @@
  * @typedef {Map<string, ConfigValue>} ConfigContents
  */
 
-import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
+import {
+    AnyJson,
+    Dictionary,
+    isPlainObject,
+    JsonMap,
+    Optional
+} from '@salesforce/ts-types';
+import { SfdxError } from '../sfdxError';
 
 /**
  * The allowed types stored in a config store.
  */
-export type ConfigValue = AnyJson | object;
+export type ConfigValue = AnyJson;
 
 /**
  * The type of entries in a config store defined by the key and value type of {@link ConfigContents}.
@@ -36,7 +43,7 @@ export type ConfigEntry = [string, ConfigValue];
 /**
  * The type of content a config stores.
  */
-export type ConfigContents = Map<string, ConfigValue>;
+export type ConfigContents = Dictionary<ConfigValue>;
 
 /**
  * An interface for a config object with a persistent store.
@@ -64,6 +71,16 @@ export interface ConfigStore {
 }
 
 /**
+ * TODO
+ */
+export function ensureConfigContents(contents?: ConfigContents): ConfigContents {
+    if (isPlainObject(contents)) {
+        return contents;
+    }
+    throw new SfdxError('NOT HAPPEN');
+}
+
+/**
  * An abstract class that implements all the config management functions but
  * none of the storage functions.
  *
@@ -73,9 +90,9 @@ export interface ConfigStore {
 export abstract class BaseConfigStore implements ConfigStore {
 
     // Initialized in setContents
-    private contents!: ConfigContents;
+    private contents: ConfigContents = {};
 
-    public constructor(contents?: ConfigContents) {
+    protected constructor(contents?: ConfigContents) {
         this.setContents(contents);
     }
 
@@ -84,7 +101,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {ConfigEntry}
      */
     public entries(): ConfigEntry[] {
-        return Array.from(this.contents.entries());
+        return Object.entries(this.contents);
     }
 
     /**
@@ -93,7 +110,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @return {Optional<ConfigValue>}
      */
     public get(key: string): Optional<ConfigValue> {
-        return this.contents.get(key);
+        return this.contents[key];
     }
 
     /**
@@ -112,7 +129,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @param {string} key The key.
      */
     public has(key: string): boolean {
-        return this.contents.has(key);
+        return !!this.contents[key];
     }
 
     /**
@@ -120,7 +137,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {string[]}
      */
     public keys(): string[] {
-        return Array.from(this.contents.keys());
+        return Object.keys(this.contents);
     }
 
     /**
@@ -130,7 +147,8 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {ConfigContents} Returns the config object.
      */
     public set(key: string, value: ConfigValue): ConfigContents {
-        return this.contents.set(key, value);
+        this.contents[key] = value;
+        return this.contents;
     }
 
     /**
@@ -139,7 +157,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {boolean}
      */
     public unset(key: string): boolean {
-        return this.contents.delete(key);
+        return delete this.contents[key];
     }
 
     /**
@@ -155,7 +173,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * Removes all key/value pairs from the config object.
      */
     public clear(): void {
-        return this.contents.clear();
+        this.contents = {};
     }
 
     /**
@@ -163,7 +181,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {ConfigValue[]}
      */
     public values(): ConfigValue[] {
-        return Array.from(this.contents.values());
+        return Object.values(this.contents);
     }
 
     /**
@@ -182,7 +200,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @param {ConfigContents} contents The contents.
      */
     public setContents(contents?: ConfigContents): void {
-        this.contents = contents || new Map<string, ConfigValue>();
+        this.contents = contents || {};
     }
 
     /**
@@ -210,14 +228,10 @@ export abstract class BaseConfigStore implements ConfigStore {
 
     /**
      * Convert the config object to a JSON object.
-     * @returns {JsonMap}
+     * @returns {JsonMap} Returns the config contents. Same as calling ConfigStore.getContents
      */
     public toObject(): JsonMap {
-        return Array.from(this.contents.entries()).reduce((obj, entry: ConfigEntry) => {
-            // @ts-ignore TODO: refactor config to not intermingle js maps and json maps
-            obj[entry[0]] = entry[1];
-            return obj;
-        }, {} as JsonMap);
+        return this.contents;
     }
 
     /**
@@ -225,10 +239,9 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @param {object} obj The object.
      */
     public setContentsFromObject<T extends object>(obj: T): void {
-        if (obj instanceof Map) {
-            this.setContents(obj);
-        } else {
-            this.contents = new Map<string, ConfigValue>(Object.entries(obj));
-        }
+        this.contents = {};
+        Object.entries(obj).forEach(([key, value]) => {
+            this.contents[key] = value;
+        });
     }
 }
