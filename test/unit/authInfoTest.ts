@@ -18,7 +18,7 @@ import { OAuth2 } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 // @ts-ignore
-import { includes as _includes, toUpper as _toUpper } from 'lodash';
+import { includes as _includes } from 'lodash';
 import { AuthFields, AuthInfo } from '../../src/authInfo';
 import { AuthInfoConfig } from '../../src/config/authInfoConfig';
 import { ConfigFile } from '../../src/config/configFile';
@@ -170,7 +170,7 @@ class MetaAuthDataMock {
     }
 
     public async fetchConfigInfo(path: string): Promise<ConfigContents> {
-        if (_includes(_toUpper(path), '_JWT')) {
+        if (_includes(path.toUpperCase(), '_JWT')) {
             this._authInfoLookupCount = this._authInfoLookupCount + 1;
             //const configContents = new Map<string, ConfigValue>();
             const configContents = {};
