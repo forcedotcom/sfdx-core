@@ -208,7 +208,7 @@ export class ConfigGroup extends ConfigFile {
      * @param {string} [group = 'default'] The group.
      * @returns {ConfigContents} The contents.
      */
-    public getGroup(group: Optional<string> = this.defaultGroup): Optional<ConfigContents> {
+    public getGroup(group = this.defaultGroup): Optional<ConfigContents> {
         return get(this.getContents(), group);
     }
 
