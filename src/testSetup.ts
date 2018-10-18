@@ -19,7 +19,7 @@ import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents, ConfigValue } from './config/configStore';
+import { ConfigContents } from './config/configStore';
 import { Connection } from './connection';
 import { Crypto } from './crypto';
 import { Logger } from './logger';
@@ -195,37 +195,21 @@ export const testSetup = once((sinon?) => {
         globalPathRetriever: getTestGlobalPath,
         rootPathRetriever: retrieveRootPath,
         fakeConnectionRequest: defaultFakeConnectionRequest,
-        getConfigStubContents(name: string, group: Optional<string>): ConfigContents {
-            const _group = group || 'default';
+        getConfigStubContents(name: string, group?: Optional<string>): ConfigContents {
             const stub: Optional<ConfigStub> = this.configStubs[name];
-            if (stub && stub.contents && stub.contents[_group]) {
-                return ensureJsonMap(stub.contents[_group]);
+            if (stub && stub.contents) {
+                if (group && stub.contents[group]) {
+                    return ensureJsonMap(stub.contents[group]);
+                } else {
+                    return stub.contents;
+                }
             }
             return {};
         },
 
         setConfigStubContents(name: string, value: ConfigContents) {
             if (ensureString(name) && isJsonMap(value)) {
-                const configStub: Optional<ConfigStub> = this.configStubs[name] || {};
-
-                const valueContents = new Map<string, ConfigValue>(Object.entries(value.contents || {}));
-                Array.from(valueContents.entries()).forEach(([groupKey, groupContents]) => {
-                    if (groupContents) {
-
-                        if (!get(configStub, `contents.${groupKey}`)) {
-                            set(configStub || {}, `contents.${groupKey}`, {});
-                        }
-
-                        const group: ConfigContents = get(configStub, `contents.${groupKey}`) as ConfigContents;
-                        Object.entries(groupContents).forEach(([contentKey, contentValue]) => {
-                            if (groupContents) {
-                                set(group, contentKey, contentValue);
-                            }
-                        });
-                    }
-                });
-
-                this.configStubs[name] = configStub;
+                this.configStubs[name] = value;
             }
         }
     };
