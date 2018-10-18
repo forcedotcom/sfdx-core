@@ -44,7 +44,7 @@ describe('ConfigGroup', () => {
         store.set('test', 'val');
         expect(store.get('test')).equals('val');
         expect(store.getInGroup('test')).equals('val');
-        expect(store.getGroup('default')['test']).equals('val');
+        expect(store.getGroup('default').test).equals('val');
     });
 
     it ('setDefaultGroup: false value for groupname', async () => {
