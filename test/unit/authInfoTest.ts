@@ -9,7 +9,7 @@ import {
     AnyJson,
     ensureString,
     isBoolean,
-    isFunction,
+    isFunction, isJsonArray, isJsonMap,
     isNumber,
     isPlainObject,
     isString,
@@ -314,13 +314,17 @@ describe('AuthInfo', () => {
             });
         });
 
-        const includes = (element: JsonMap | string | AnyJson[], value: AnyJson) => {
+        //@todo move to kit.
+        const includes = (element: AnyJson, value: AnyJson) => {
             if (element && !isFunction(element) && !isBoolean(element) && !isNumber(element)) {
-                return isPlainObject(element) ? Object.values(element).includes(value) :
-                        element.includes(ensureString(value))
+                if (isJsonMap(element)) return Object.values(element).includes(value);
+
+                if (isJsonArray(element)) return element.includes(value);
+
+                if (isString(value)) return element.includes(value);
             }
             return false;
-        }
+        };
 
         // Walk an object deeply looking for the attribute name of clientSecret or values that contain the client secret
         // or decrypted refresh token.
