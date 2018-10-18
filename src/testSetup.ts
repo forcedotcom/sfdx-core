@@ -9,7 +9,7 @@ import { get, once, set } from '@salesforce/kit';
 import {
     AnyFunction,
     AnyJson,
-    Dictionary,
+    Dictionary, ensureJsonMap,
     ensureString, isJsonMap,
     JsonMap,
     Optional
@@ -195,10 +195,11 @@ export const testSetup = once((sinon?) => {
         globalPathRetriever: getTestGlobalPath,
         rootPathRetriever: retrieveRootPath,
         fakeConnectionRequest: defaultFakeConnectionRequest,
-        getConfigStubContents(name: string, group: string): ConfigContents {
+        getConfigStubContents(name: string, group: Optional<string>): ConfigContents {
+            const _group = group || 'default';
             const stub: Optional<ConfigStub> = this.configStubs[name];
-            if (stub && stub.contents && stub.contents[group]) {
-                return stub.contents[group] as ConfigContents;
+            if (stub && stub.contents && stub.contents[_group]) {
+                return ensureJsonMap(stub.contents[_group]);
             }
             return {};
         },
