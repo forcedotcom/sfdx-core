@@ -70,7 +70,7 @@ export interface TestContext {
     globalPathRetriever: (uid: string) => Promise<string>;
     rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
     fakeConnectionRequest: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>;
-    getConfigStubContents(name: string, group: string): ConfigContents;
+    getConfigStubContents(name: string, group: Optional<string>): ConfigContents;
     setConfigStubContents(name: string, value: ConfigContents): void;
 }
 
