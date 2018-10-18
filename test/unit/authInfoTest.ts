@@ -7,7 +7,11 @@
 import { cloneJson, get, set } from '@salesforce/kit';
 import {
     AnyJson,
-    ensureString, isPlainObject,
+    ensureString,
+    isBoolean,
+    isFunction,
+    isNumber,
+    isPlainObject,
     isString,
     JsonMap
 } from '@salesforce/ts-types';
@@ -18,9 +22,6 @@ import { OAuth2 } from 'jsforce';
 // Webstorm is reporting an error for the nested import
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-// @ts-ignore
-// @todo Add includes to kit?
-import { includes as _includes } from 'lodash';
 import { AuthFields, AuthInfo } from '../../src/authInfo';
 import { AuthInfoConfig } from '../../src/config/authInfoConfig';
 import { ConfigFile } from '../../src/config/configFile';
@@ -172,7 +173,7 @@ class MetaAuthDataMock {
     }
 
     public async fetchConfigInfo(path: string): Promise<ConfigContents> {
-        if (_includes(path.toUpperCase(), '_JWT')) {
+        if (path.toUpperCase().includes('JWT')) {
             this._authInfoLookupCount = this._authInfoLookupCount + 1;
             //const configContents = new Map<string, ConfigValue>();
             const configContents = {};
@@ -188,7 +189,7 @@ class MetaAuthDataMock {
     }
 
     public async statForKeyFile(path: string): Promise<any> { // tslint:disable-line:no-any
-        if (!_includes(path, 'key.json')) {
+        if (!path.includes('key.json')) {
             return new SfdxError(`Unexpected path: ${path}`, 'UnexpectedInput');
         }
 
@@ -313,6 +314,14 @@ describe('AuthInfo', () => {
             });
         });
 
+        const includes = (element: JsonMap | string | AnyJson[], value: AnyJson) => {
+            if (element && !isFunction(element) && !isBoolean(element) && !isNumber(element)) {
+                return isPlainObject(element) ? Object.values(element).includes(value) :
+                        element.includes(ensureString(value))
+            }
+            return false;
+        }
+
         // Walk an object deeply looking for the attribute name of clientSecret or values that contain the client secret
         // or decrypted refresh token.
         const walkAndSearchForSecrets = (obj: object) => {
@@ -329,11 +338,11 @@ describe('AuthInfo', () => {
                     throw new Error('Key indicates client secret.');
                 }
 
-                if (isString(get(obj, key)) && _includes(get(obj, key), testMetadata.defaultConnectedAppInfo.clientSecret)) {
+                if (includes(get(obj, key), testMetadata.defaultConnectedAppInfo.clientSecret)) {
                     throw new Error(`Client secret present as value in object with key: ${key}`);
                 }
 
-                if (isString(get(obj, key) && _includes(get(obj, key), decryptedRefreshToken))) {
+                if (includes(get(obj, key), decryptedRefreshToken)) {
                     throw new Error(`Refresh token present as value in object with key: ${key}`);
                 }
             });
