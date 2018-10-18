@@ -11,7 +11,8 @@
  * @property {string} defaultGroup The default group for properties to go into.
  */
 
-import { JsonMap, Optional } from '@salesforce/ts-types';
+import { get, set } from '@salesforce/kit';
+import { AnyJson, Dictionary, ensureJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile, ConfigOptions } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
@@ -122,8 +123,9 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public entries(): ConfigEntry[] {
-        if (this.getGroup()) {
-            return Array.from((this.getGroup()).entries());
+        const group = this.getGroup();
+        if (group) {
+            return Object.entries(group);
         }
         return [];
     }
@@ -145,8 +147,8 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public has(key: string): boolean {
-        return this.getContents().has(this.defaultGroup) &&
-            (this.getContents().get(this.defaultGroup) as ConfigContents).has(key);
+        const group = this.getGroup();
+        return !!group && super.has(this.defaultGroup) && !!group[key];
     }
 
     /**
@@ -155,7 +157,7 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public keys(): string[] {
-        return Array.from((this.getGroup(this.defaultGroup).keys()));
+        return Object.keys(this.getGroup(this.defaultGroup) || {});
     }
 
     /**
@@ -164,7 +166,7 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public values(): ConfigValue[] {
-        return Array.from((this.getGroup(this.defaultGroup).values()));
+        return Object.values(this.getGroup(this.defaultGroup) || {});
     }
 
     /**
@@ -175,12 +177,7 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public set(key: string, value: ConfigValue): ConfigContents {
-        if (!this.getContents().has(this.defaultGroup)) {
-            this.getContents().set(this.defaultGroup, new Map<string, ConfigValue>());
-        }
-        const contents = this.getContents().get(this.defaultGroup) as ConfigContents;
-        contents.set(key, value);
-        return contents;
+        return this.setInGroup(key, value, this.defaultGroup);
     }
 
     /**
@@ -192,7 +189,8 @@ export class ConfigGroup extends ConfigFile {
     public unset(key: string): boolean {
         const groupContents = this.getGroup(this.defaultGroup);
         if (groupContents) {
-            return groupContents.delete(key);
+            delete groupContents[key];
+            return true;
         }
         return false;
     }
@@ -202,7 +200,7 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public clear(): void {
-        this.getContents().delete(this.defaultGroup);
+        delete this.getContents()[this.defaultGroup];
     }
 
     /**
@@ -210,8 +208,8 @@ export class ConfigGroup extends ConfigFile {
      * @param {string} [group = 'default'] The group.
      * @returns {ConfigContents} The contents.
      */
-    public getGroup(group?: string): ConfigContents {
-        return this.getContents().get(group || this.defaultGroup) as ConfigContents;
+    public getGroup(group = this.defaultGroup): Optional<ConfigContents> {
+        return get(this.getContents(), group);
     }
 
     /**
@@ -223,7 +221,7 @@ export class ConfigGroup extends ConfigFile {
     public getInGroup(key: string, group?: string): Optional<ConfigValue> {
         const groupContents = this.getGroup(group);
         if (groupContents) {
-            return groupContents.get(key);
+            return groupContents[key];
         }
     }
 
@@ -233,8 +231,8 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public toObject(): JsonMap {
-        return Array.from(this.getContents().entries()).reduce((obj, entry: ConfigEntry) => {
-            obj[entry[0]] = Array.from((entry[1] as ConfigContents).entries()).reduce((sub, subentry: ConfigEntry) => {
+        return Array.from(Object.entries(this.getContents())).reduce((obj, entry: ConfigEntry) => {
+            obj[entry[0]] = Array.from(Object.entries(ensureJsonMap(entry[1]))).reduce((sub, subentry: ConfigEntry) => {
                 // @ts-ignore TODO: refactor config to not intermingle js maps and json maps
                 sub[subentry[0]] = subentry[1];
                 return sub;
@@ -249,12 +247,13 @@ export class ConfigGroup extends ConfigFile {
      */
     public setContentsFromObject<T extends object>(obj: T): void {
         const contents = new Map<string, ConfigValue>(Object.entries(obj));
-        Array.from(contents.entries()).forEach(([key, value]) => {
-            if (value) {
-                contents.set(key, new Map<string, ConfigValue>(Object.entries(value)));
+        Array.from(contents.entries()).forEach(([groupKey, groupContents]) => {
+            if (groupContents) {
+                Object.entries(groupContents).forEach(([contentKey, contentValue]) => {
+                    this.setInGroup(contentKey, contentValue, groupKey);
+                });
             }
         });
-        this.setContents(contents);
     }
 
     /**
@@ -265,21 +264,15 @@ export class ConfigGroup extends ConfigFile {
      * @returns {ConfigContents} The contents.
      */
     public setInGroup(key: string, value?: ConfigValue, group?: string): ConfigContents {
-        let content: ConfigContents = this.getContents();
+        let content: Dictionary<AnyJson>;
 
         group = group || this.defaultGroup;
 
-        if (!content.has(group)) {
-            content.set(group, new Map<string, ConfigValue>());
+        if (!super.has(group)) {
+            super.set(group, {});
         }
-
-        content = content.get(group) as ConfigContents;
-
-        if (value === undefined) {
-            content.delete(key);
-        } else {
-            content.set(key, value);
-        }
+        content = this.getGroup(group) || {};
+        set(content, key, value);
 
         return content;
     }
