@@ -10,6 +10,8 @@ import { Config } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
 import { testSetup } from '../../../src/testSetup';
 import * as fs from '../../../src/util/fs';
+import { ConfigContents } from '../../../src/config/configStore';
+import { ensureString, JsonMap } from '@salesforce/ts-types';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -19,7 +21,7 @@ const configFileContents = {
     defaultusername: 'configTest_default'
 };
 
-const clone = obj => JSON.parse(JSON.stringify(obj));
+const clone = (obj: JsonMap) => JSON.parse(JSON.stringify(obj));
 
 describe('Config', () => {
     let id: string;
@@ -56,10 +58,10 @@ describe('Config', () => {
                 .withArgs(config.getPath())
                 .returns(Promise.resolve(clone(configFileContents)));
 
-            const content = await config.read();
+            const content: ConfigContents = await config.read();
 
-            expect(content.get('defaultusername')).to.equal(configFileContents.defaultusername);
-            expect(content.get('defaultdevhubusername')).to.equal(configFileContents.defaultdevhubusername);
+            expect(content.defaultusername).to.equal(configFileContents.defaultusername);
+            expect(content.defaultdevhubusername).to.equal(configFileContents.defaultdevhubusername);
             expect(config.toObject()).to.deep.equal(configFileContents);
 
         });
@@ -133,10 +135,11 @@ describe('Config', () => {
         it('calls ConfigFile.write with encrypted values contents', async () => {
             const TEST_VAL = 'test';
 
-            const writeStub = $$.SANDBOX.stub(ConfigFile.prototype, ConfigFile.prototype.write.name).callsFake(async function() {
-                expect(this.get('isvDebuggerSid').length).to.be.greaterThan(TEST_VAL.length);
-                expect(this.get('isvDebuggerSid')).to.not.equal(TEST_VAL);
-            });
+            const writeStub = $$.SANDBOX.stub(ConfigFile.prototype, ConfigFile.prototype.write.name)
+                .callsFake(async function(this: Config) {
+                    expect(ensureString(this.get('isvDebuggerSid')).length).to.be.greaterThan(TEST_VAL.length);
+                    expect(ensureString(this.get('isvDebuggerSid'))).to.not.equal(TEST_VAL);
+                });
 
             const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
             await config.set(Config.ISV_DEBUGGER_SID, TEST_VAL);

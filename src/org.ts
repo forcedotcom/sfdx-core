@@ -29,7 +29,18 @@
  */
 
 import { get } from '@salesforce/kit';
-import { AnyFunction, AnyJson, asAnyJson, asJsonArray, asString, Dictionary, ensure, isArray, isString, Optional } from '@salesforce/ts-types';
+import {
+    AnyFunction,
+    AnyJson,
+    asString,
+    Dictionary,
+    ensure,
+    ensureJsonArray,
+    ensureString,
+    isArray,
+    isString, JsonArray,
+    Optional
+} from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import { join as pathJoin } from 'path';
 import { AuthFields, AuthInfo } from './authInfo';
@@ -346,12 +357,12 @@ export class Org {
         const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
         const contents: ConfigContents = await config.read();
         const thisUsername = this.getUsername();
-        const usernames: string[] = contents.get('usernames') as string[] || [thisUsername];
+        const usernames: JsonArray = ensureJsonArray(contents.usernames || [thisUsername]);
         return Promise.all(usernames.map(username => {
             if (username === thisUsername) {
                 return AuthInfo.create(this.getConnection().getUsername());
             } else {
-                return AuthInfo.create(username);
+                return AuthInfo.create(ensureString(username));
             }
         }));
     }
@@ -378,7 +389,7 @@ export class Org {
         const contents = await orgConfig.read();
         // TODO: This is kind of screwy because contents values can be `AnyJson | object`...
         // needs config refactoring to improve
-        const usernames = asJsonArray(asAnyJson(contents.get('usernames'))) || [];
+        const usernames = contents.usernames || [];
 
         if (!isArray(usernames)) {
             throw new SfdxError('Usernames is not an array', 'UnexpectedDataFormat');
@@ -426,8 +437,8 @@ export class Org {
         const contents: ConfigContents = await orgConfig.read();
 
         const targetUser = _auth.getFields().username;
-        const usernames = (contents.get('usernames') || []) as string[];
-        contents.set('usernames', usernames.filter(username => username !== targetUser));
+        const usernames = (contents.usernames || []) as string[];
+        contents.usernames = usernames.filter(username => username !== targetUser);
 
         await orgConfig.write();
         return this;

@@ -6,13 +6,20 @@
  */
 
 import { get, once, set } from '@salesforce/kit';
-import { AnyFunction, AnyJson, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
+import {
+    AnyFunction,
+    AnyJson,
+    Dictionary, ensureJsonMap,
+    ensureString, isJsonMap,
+    JsonMap,
+    Optional
+} from '@salesforce/ts-types';
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents, ConfigValue } from './config/configStore';
+import { ConfigContents } from './config/configStore';
 import { Connection } from './connection';
 import { Crypto } from './crypto';
 import { Logger } from './logger';
@@ -36,7 +43,7 @@ export interface ConfigStub {
     readFn?: () => Promise<ConfigContents>;
     writeFn?: () => Promise<void>;
     // Used for read and write. Useful between config instances
-    contents?: JsonMap;
+    contents?: ConfigContents;
     // Useful to override to conditionally get based on the config instance.
     retrieveContents?: () => Promise<JsonMap>;
     // Useful to override to conditionally set based on the config instance.
@@ -63,6 +70,8 @@ export interface TestContext {
     globalPathRetriever: (uid: string) => Promise<string>;
     rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
     fakeConnectionRequest: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>;
+    getConfigStubContents(name: string, group: Optional<string>): ConfigContents;
+    setConfigStubContents(name: string, value: ConfigContents): void;
 }
 
 const _uniqid = () => {
@@ -185,7 +194,24 @@ export const testSetup = once((sinon?) => {
         localPathRetriever: getTestLocalPath,
         globalPathRetriever: getTestGlobalPath,
         rootPathRetriever: retrieveRootPath,
-        fakeConnectionRequest: defaultFakeConnectionRequest
+        fakeConnectionRequest: defaultFakeConnectionRequest,
+        getConfigStubContents(name: string, group?: Optional<string>): ConfigContents {
+            const stub: Optional<ConfigStub> = this.configStubs[name];
+            if (stub && stub.contents) {
+                if (group && stub.contents[group]) {
+                    return ensureJsonMap(stub.contents[group]);
+                } else {
+                    return stub.contents;
+                }
+            }
+            return {};
+        },
+
+        setConfigStubContents(name: string, value: ConfigContents) {
+            if (ensureString(name) && isJsonMap(value)) {
+                this.configStubs[name] = value;
+            }
+        }
     };
 
     beforeEach(() => {
@@ -464,31 +490,34 @@ export class MockTestOrgData {
 
     public async getConfig(): Promise<ConfigContents> {
         const crypto = await Crypto.create();
-        const config = new Map<string, ConfigValue>();
-        config.set('orgId', this.orgId);
+        const config: Dictionary<AnyJson> = {};
+        config.orgId  = this.orgId;
+
         const accessToken = crypto.encrypt(this.accessToken);
         if (accessToken) {
-            config.set('accessToken', accessToken);
+            config.accessToken = accessToken;
         }
+
         const refreshToken = crypto.encrypt(this.refreshToken);
         if (refreshToken) {
-            config.set('refreshToken', refreshToken);
+            config.refreshToken = refreshToken;
         }
-        config.set('instanceUrl', this.instanceUrl);
-        config.set('loginUrl', this.loginUrl);
-        config.set('username', this.username);
-        config.set('createdOrgInstance', 'CS1');
-        config.set('created', '1519163543003');
-        config.set('userId', this.userId);
-        // config.set('devHubUsername', 'tn@su-blitz.org');
+
+        config.instanceUrl = this.instanceUrl;
+        config.loginUrl = this.loginUrl;
+        config.username = this.username;
+        config.createdOrgInstance = 'CS1';
+        config.created = '1519163543003';
+        config.userId = this.userId;
+        // config.devHubUsername = 'tn@su-blitz.org';
 
         if (this.devHubUsername) {
-            config.set('devHubUsername', this.devHubUsername);
+            config.devHubUsername = this.devHubUsername;
         }
 
         const isDevHub = get(this, 'isDevHub');
         if (isDevHub) {
-            config.set('isDevHub', isDevHub);
+            config.isDevHub = isDevHub;
         }
 
         return config;

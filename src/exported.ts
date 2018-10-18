@@ -73,6 +73,7 @@ export {
     FieldValue,
     LoggerLevel,
     LoggerLevelValue,
+    LogLine,
     LoggerOptions,
     LoggerStream,
     Logger

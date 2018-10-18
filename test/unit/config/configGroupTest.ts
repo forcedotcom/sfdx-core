@@ -10,6 +10,7 @@ import * as sinon from 'sinon';
 
 import { ConfigGroup, ConfigGroupOptions } from '../../../src/config/configGroup';
 import { testSetup } from '../../../src/testSetup';
+import { ensureJsonMap } from '@salesforce/ts-types';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -17,9 +18,12 @@ const $$ = testSetup();
 describe('ConfigGroup retrieve calls read', () => {
     const filename = 'test_keyvalue.json';
     beforeEach(async () => {
-        $$.configStubs.ConfigGroup = {
+        $$.setConfigStubContents('ConfigGroup', {
             contents: { orgs: { foo: 'foo@example.com' } }
-        };
+        });
+
+        const contents = $$.getConfigStubContents('ConfigGroup', 'orgs');
+        console.log(`contents: ${JSON.stringify(contents, null, 4)}`);
     });
 
     it('file already exists', async () => {
@@ -40,12 +44,12 @@ describe('ConfigGroup', () => {
         store.set('test', 'val');
         expect(store.get('test')).equals('val');
         expect(store.getInGroup('test')).equals('val');
-        expect(store.getGroup('default').get('test')).equals('val');
+        expect(ensureJsonMap(store.getGroup('default')).test).equals('val');
     });
 
     it ('setDefaultGroup: false value for groupname', async () => {
         try {
-            store.setDefaultGroup(undefined);
+            store.setDefaultGroup(undefined!);
             assert.fail('This call shouldn\'t succeed');
         } catch (e) {
             expect(e.name).equals('MissingGroupName');
@@ -56,7 +60,7 @@ describe('ConfigGroup', () => {
         store.setInGroup('test', 'val', 'worldly');
         expect(store.get('test')).equals(undefined);
         expect(store.getInGroup('test', 'worldly')).equals('val');
-        expect(store.getGroup('worldly').get('test')).equals('val');
+        expect(ensureJsonMap(store.getGroup('worldly'))['test']).equals('val');
     });
 
     it('set key value pair using default group', async () => {
@@ -67,7 +71,7 @@ describe('ConfigGroup', () => {
         expect(store.getInGroup('test')).equals('val2');
         expect(store.getInGroup('test', 'default')).equals('val');
         expect(store.getInGroup('test', 'worldly')).equals('val2');
-        expect(store.getGroup('worldly').get('test')).equals('val2');
+        expect(ensureJsonMap(store.getGroup('worldly'))['test']).equals('val2');
     });
 
     it('unset key', async () => {
@@ -131,21 +135,24 @@ describe('ConfigGroup', () => {
         it('set key value pair', async () => {
             store.set('test', 'val');
             await store.write();
-            expect($$.configStubs.ConfigGroup.contents['default'].test).to.equal('val');
+            const contents = $$.getConfigStubContents('ConfigGroup', 'default');
+            expect(contents['test']).to.equal('val');
         });
 
         describe('updateValues', () => {
             it('one value', async () => {
                 await store.updateValues({ another: 'val' });
                 expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
-                expect($$.configStubs.ConfigGroup.contents['default'].another).to.equal('val');
+                const contents = $$.getConfigStubContents('ConfigGroup', 'default');
+                expect(contents.another).to.equal('val');
             });
 
             it('two of same value', async () => {
                 await store.updateValues({ another: 'val', some: 'val' });
                 expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
-                expect($$.configStubs.ConfigGroup.contents['default'].another).to.equal('val');
-                expect($$.configStubs.ConfigGroup.contents['default'].some).to.equal('val');
+                const contents = $$.getConfigStubContents('ConfigGroup', 'default');
+                expect(contents.another).to.equal('val');
+                expect(contents.some).to.equal('val');
             });
         });
     });
