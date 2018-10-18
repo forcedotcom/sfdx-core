@@ -10,7 +10,7 @@ import {
     AnyFunction,
     AnyJson,
     Dictionary,
-    ensureString,
+    ensureString, isJsonMap,
     JsonMap,
     Optional
 } from '@salesforce/ts-types';
@@ -19,7 +19,7 @@ import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents, ConfigValue, ensureConfigContents } from './config/configStore';
+import { ConfigContents, ConfigValue } from './config/configStore';
 import { Connection } from './connection';
 import { Crypto } from './crypto';
 import { Logger } from './logger';
@@ -204,7 +204,7 @@ export const testSetup = once((sinon?) => {
         },
 
         setConfigStubContents(name: string, value: ConfigContents) {
-            if (ensureString(name) && ensureConfigContents(value)) {
+            if (ensureString(name) && isJsonMap(value)) {
                 const configStub: Optional<ConfigStub> = this.configStubs[name] || {};
 
                 const valueContents = new Map<string, ConfigValue>(Object.entries(value.contents || {}));
