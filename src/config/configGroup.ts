@@ -12,7 +12,7 @@
  */
 
 import { get, set } from '@salesforce/kit';
-import { AnyJson, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
+import { AnyJson, Dictionary, ensureJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile, ConfigOptions } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
@@ -232,7 +232,7 @@ export class ConfigGroup extends ConfigFile {
      */
     public toObject(): JsonMap {
         return Array.from(Object.entries(this.getContents())).reduce((obj, entry: ConfigEntry) => {
-            obj[entry[0]] = Array.from(Object.entries(entry[1] as ConfigContents)).reduce((sub, subentry: ConfigEntry) => {
+            obj[entry[0]] = Array.from(Object.entries(ensureJsonMap(entry[1]))).reduce((sub, subentry: ConfigEntry) => {
                 // @ts-ignore TODO: refactor config to not intermingle js maps and json maps
                 sub[subentry[0]] = subentry[1];
                 return sub;
