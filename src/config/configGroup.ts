@@ -123,8 +123,9 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public entries(): ConfigEntry[] {
-        if (this.getGroup()) {
-            return Object.entries(this.getGroup());
+        const group = this.getGroup();
+        if (group) {
+            return Object.entries(group);
         }
         return [];
     }
@@ -155,7 +156,7 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public keys(): string[] {
-        return Object.keys(this.getGroup(this.defaultGroup));
+        return Object.keys(this.getGroup(this.defaultGroup) || {});
     }
 
     /**
@@ -164,7 +165,7 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public values(): ConfigValue[] {
-        return Object.values(this.getGroup(this.defaultGroup));
+        return Object.values(this.getGroup(this.defaultGroup) || {});
     }
 
     /**
@@ -206,8 +207,8 @@ export class ConfigGroup extends ConfigFile {
      * @param {string} [group = 'default'] The group.
      * @returns {ConfigContents} The contents.
      */
-    public getGroup(group?: string): ConfigContents {
-        return this.getContents()[group || this.defaultGroup] as ConfigContents;
+    public getGroup(group?: string): Optional<ConfigContents> {
+        return get(this.getContents(), group || this.defaultGroup);
     }
 
     /**
@@ -269,7 +270,7 @@ export class ConfigGroup extends ConfigFile {
         if (!super.has(group)) {
             super.set(group, {});
         }
-        content = this.getGroup(group);
+        content = this.getGroup(group) || {};
         set(content, key, value);
 
         return content;
