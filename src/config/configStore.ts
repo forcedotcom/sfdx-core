@@ -24,11 +24,9 @@ import { get as _get, set as _set } from '@salesforce/kit';
 import {
     AnyJson,
     Dictionary,
-    isJsonMap,
     JsonMap,
     Optional
 } from '@salesforce/ts-types';
-import { UnexpectedValueTypeError } from '@salesforce/ts-types/lib/errors';
 
 /**
  * The allowed types stored in a config store.
@@ -68,18 +66,6 @@ export interface ConfigStore {
     // Content methods
     getContents(): ConfigContents;
     setContents(contents?: ConfigContents): void;
-}
-
-/**
- * Type guard for ConfigContents
- * @param contents {ConfigContents} An `AnyJson` value to test.
- * @param message {string} The error message to use if `value` is not type-compatible.
- */
-export function ensureConfigContents(contents?: AnyJson, message?: string): ConfigContents {
-    if (isJsonMap(contents)) {
-        return contents as ConfigContents;
-    }
-    throw new UnexpectedValueTypeError(message || 'Value is not ConfigContents');
 }
 
 /**

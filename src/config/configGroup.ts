@@ -15,7 +15,7 @@ import { get, set } from '@salesforce/kit';
 import { AnyJson, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile, ConfigOptions } from './configFile';
-import { ConfigContents, ConfigEntry, ConfigValue, ensureConfigContents } from './configStore';
+import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
 
 /**
  * The interface for Config options.
@@ -147,7 +147,8 @@ export class ConfigGroup extends ConfigFile {
      * @override
      */
     public has(key: string): boolean {
-        return super.has(this.defaultGroup) && !!ensureConfigContents(this.getGroup(this.defaultGroup))[key];
+        const group = this.getGroup();
+        return !!group && super.has(this.defaultGroup) && !!group[key];
     }
 
     /**
