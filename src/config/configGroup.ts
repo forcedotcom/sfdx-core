@@ -221,7 +221,7 @@ export class ConfigGroup extends ConfigFile {
     public getInGroup(key: string, group?: string): Optional<ConfigValue> {
         const groupContents = this.getGroup(group);
         if (groupContents) {
-            return get(groupContents, key);
+            return groupContents[key];
         }
     }
 
