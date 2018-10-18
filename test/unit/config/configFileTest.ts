@@ -5,9 +5,8 @@
  */
 'use strict';
 
-import * as Path from 'path';
 import { expect } from 'chai';
-
+import * as Path from 'path';
 import { ConfigFile, ConfigOptions } from '../../../src/config/configFile';
 import { testSetup } from '../../../src/testSetup';
 

@@ -5,26 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DefaultUserFields, User, UserFields } from '../../src/user';
-import { shouldThrow, testSetup, MockTestOrgData } from '../../src/testSetup';
-import { expect } from 'chai';
-import { Org } from '../../src/org';
 import { AnyJson } from '@salesforce/ts-types';
+import { expect } from 'chai';
+import { RequestInfo } from 'jsforce';
 import { AuthInfo } from '../../src/authInfo';
 import { Connection } from '../../src/connection';
-import { RequestInfo } from 'jsforce';
-import { SecureBuffer } from '../../src/secureBuffer';
+import { Org } from '../../src/org';
 import { PermissionSetAssignment } from '../../src/permissionSetAssignment';
+import { SecureBuffer } from '../../src/secureBuffer';
+import { MockTestOrgData, shouldThrow, testSetup } from '../../src/testSetup';
+import { DefaultUserFields, User, UserFields } from '../../src/user';
 
 const $$ = testSetup();
 
 describe('User Tests', () => {
-    let adminTestdata: MockTestOrgData;
+    let adminTestData: MockTestOrgData;
     let user1: MockTestOrgData;
 
     let refreshSpy;
     beforeEach( async () => {
-        adminTestdata = new MockTestOrgData();
+        adminTestData = new MockTestOrgData();
         user1 = new MockTestOrgData();
 
         $$.fakeConnectionRequest = (): Promise<AnyJson> => {
@@ -32,9 +32,9 @@ describe('User Tests', () => {
         };
 
         $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((query: string) => {
-            if (query.includes(adminTestdata.username)) {
+            if (query.includes(adminTestData.username)) {
                 return {
-                    records: [ adminTestdata.getMockUserInfo() ],
+                    records: [ adminTestData.getMockUserInfo() ],
                     totalSize: 1
                 };
             }
@@ -87,7 +87,7 @@ describe('User Tests', () => {
                 });
             });
             expect(refreshSpy.calledOnce).to.equal(false);
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestdata.username)));
+            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
             await User.init(org);
             expect(refreshSpy.calledOnce).to.equal(true);
         });
@@ -99,11 +99,11 @@ describe('User Tests', () => {
                 }`});
             });
 
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestdata.username)));
+            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
             const user = await User.init(org);
 
             try {
-                const fields: UserFields = await DefaultUserFields.init(adminTestdata.username, user1.username);
+                const fields: UserFields = await DefaultUserFields.init(adminTestData.username, user1.username);
                 await shouldThrow(user.create(fields));
             } catch ( e ) {
                 expect(e).to.have.property('name', 'UserCreateHttpError');
@@ -133,7 +133,7 @@ describe('User Tests', () => {
                 });
             });
 
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestdata.username)));
+            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
             const user: User = await User.init(org);
             try {
                 await shouldThrow(user.create(null));
@@ -153,7 +153,7 @@ describe('User Tests', () => {
                 });
             });
 
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestdata.username)));
+            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
             const user: User = await User.init(org);
             const fields: UserFields = await DefaultUserFields.init(org.getUsername());
             const info: AuthInfo = await user.create(fields);
@@ -226,7 +226,7 @@ describe('User Tests', () => {
                 });
             });
 
-            org = await Org.create(await Connection.create(await AuthInfo.create(adminTestdata.username)));
+            org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
 
         });
 
@@ -241,7 +241,7 @@ describe('User Tests', () => {
 
         it ('missing permsetNames', async () => {
             const user: User = await User.init(org);
-            const info: AuthInfo = await user.create(await DefaultUserFields.init(adminTestdata.username));
+            const info: AuthInfo = await user.create(await DefaultUserFields.init(adminTestData.username));
             const savedFields: UserFields = await user.retrieve(info.getUsername());
             try {
                 await shouldThrow(user.assignPermissionSets(savedFields.id, null));

@@ -2,18 +2,15 @@
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as dns from 'dns';
-
-import { expect } from 'chai';
-import { testSetup } from '../../../lib/testSetup';
-
-import { MyDomainResolver, MyDomainResolverOptions } from '../../../lib/status/myDomainResolver';
-import { Time, TIME_UNIT } from '../../../lib/util/time';
-
 import { AnyFunction } from '@salesforce/ts-types';
+import { expect } from 'chai';
+import * as dns from 'dns';
 import { URL } from 'url';
+import { MyDomainResolver, MyDomainResolverOptions } from '../../../lib/status/myDomainResolver';
+import { testSetup } from '../../../lib/testSetup';
+import { Time, TIME_UNIT } from '../../../lib/util/time';
 import { shouldThrow } from '../../../src/testSetup';
 
 const $$ = testSetup();

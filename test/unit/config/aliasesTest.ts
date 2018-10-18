@@ -2,16 +2,13 @@
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Thirdparty
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-
-// Local
-import { ConfigGroup } from '../../../src/config/configGroup';
 import { Aliases } from '../../../src/config/aliases';
+import { ConfigGroup } from '../../../src/config/configGroup';
 import { testSetup } from '../../../src/testSetup';
 
 // Setup the test environment.

@@ -2,15 +2,15 @@
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { JsonMap } from '@salesforce/ts-types';
+import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { expect } from 'chai';
-import { SchemaPrinter, SchemaPropertyRenderer } from '../../src/schemaPrinter';
 import { LoggerLevel } from '../../src/logger';
-import { JsonMap } from '@salesforce/ts-types';
+import { SchemaPrinter, SchemaPropertyRenderer } from '../../src/schemaPrinter';
 import { testSetup } from '../../src/testSetup';
 
 const $$ = testSetup();
@@ -364,11 +364,11 @@ describe('SchemaPrinter', () => {
 
     describe('schemas', () => {
         it('should not contain undefined', () => {
-            fs.readdirSync(SCHEMA_DIR).forEach((schemaName) => {
+            fs.readdirSync(SCHEMA_DIR).forEach(schemaName => {
                 const schemaPath = path.join(SCHEMA_DIR, schemaName);
                 const schema = loadSchema(schemaName, schemaPath);
 
-                new SchemaPrinter($$.TEST_LOGGER, schema).getLines().forEach(((line) => expect(line).to.not.contain('undefined', `in ${schemaName}`)));
+                new SchemaPrinter($$.TEST_LOGGER, schema).getLines().forEach((line => expect(line).to.not.contain('undefined', `in ${schemaName}`)));
             });
         });
     });

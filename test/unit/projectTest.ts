@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, assert } from 'chai';
-
+import { assert, expect } from 'chai';
 import { SfdxProject, SfdxProjectJson } from '../../src/sfdxProject';
-import * as internal from '../../src/util/internal';
 import { testSetup } from '../../src/testSetup';
+import * as internal from '../../src/util/internal';
 
 // Setup the test environment.
 const $$ = testSetup();

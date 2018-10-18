@@ -7,7 +7,6 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-
 import { Global, Mode } from '../../src/global';
 import { testSetup } from '../../src/testSetup';
 import * as fs from '../../src/util/fs';
