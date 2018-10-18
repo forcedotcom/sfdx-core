@@ -29,7 +29,18 @@
  */
 
 import { get } from '@salesforce/kit';
-import { AnyFunction, AnyJson, asString, Dictionary, ensure, isArray, isString, Optional } from '@salesforce/ts-types';
+import {
+    AnyFunction,
+    AnyJson,
+    asString,
+    Dictionary,
+    ensure,
+    ensureJsonArray,
+    ensureString,
+    isArray,
+    isString, JsonArray,
+    Optional
+} from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import { join as pathJoin } from 'path';
 import { AuthFields, AuthInfo } from './authInfo';
@@ -346,12 +357,12 @@ export class Org {
         const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
         const contents: ConfigContents = await config.read();
         const thisUsername = this.getUsername();
-        const usernames: string[] = contents.usernames as string[] || [thisUsername];
+        const usernames: JsonArray = ensureJsonArray(contents.usernames || [thisUsername]);
         return Promise.all(usernames.map(username => {
             if (username === thisUsername) {
                 return AuthInfo.create(this.getConnection().getUsername());
             } else {
-                return AuthInfo.create(username);
+                return AuthInfo.create(ensureString(username));
             }
         }));
     }
