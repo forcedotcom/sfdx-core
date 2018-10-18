@@ -15,9 +15,11 @@ import { assert, expect } from 'chai';
 import * as dns from 'dns';
 import { OAuth2 } from 'jsforce';
 // @ts-ignore
+// Webstorm is reporting an error for the nested import
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 // @ts-ignore
+// @todo Add includes to kit?
 import { includes as _includes } from 'lodash';
 import { AuthFields, AuthInfo } from '../../src/authInfo';
 import { AuthInfoConfig } from '../../src/config/authInfoConfig';
