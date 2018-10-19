@@ -59,7 +59,6 @@ export interface MyDomainResolverOptions {
  */
 export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
 
-    public options!: MyDomainResolverOptions;
     private logger!: Logger;
 
     /**
