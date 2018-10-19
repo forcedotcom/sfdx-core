@@ -16,9 +16,6 @@ jobs:
           command: .circleci/greenkeeper
       - run:
           name: Testing
-          command: yarn build
-      - run:
-          name: Testing
           command: yarn test
       - run:
           name: Submitting code coverage to codecov
