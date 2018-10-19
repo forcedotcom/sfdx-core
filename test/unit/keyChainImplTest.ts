@@ -52,33 +52,6 @@ describe('KeyChainImpl Tests', () => {
         });
     });
 
-    describe('service account attribute dependency Tests', () => {
-        it('Null service', async () => {
-            const callback = err => {
-                expect(err).to.have.property('name', 'KeyChainServiceRequiredError');
-            };
-            await keyChainImpl.darwin.getPassword({}, callback);
-            await keyChainImpl.darwin.setPassword({}, callback);
-        });
-
-        it('Null account', async () => {
-            const callback = err => {
-                expect(err).to.have.property('name', 'KeyChainAccountRequiredError');
-            };
-            await keyChainImpl.darwin.getPassword({ service: 'venkman' }, callback);
-            await keyChainImpl.darwin.setPassword({ service: 'venkman' }, callback);
-        });
-    });
-
-    describe('setPassword', () => {
-        it('Null password', async () => {
-            const callback = err => {
-                expect(err).to.have.property('name', 'PasswordRequiredError');
-            };
-            await keyChainImpl.darwin.setPassword({ service: 'venkman', account: 'spengler' }, callback);
-        });
-    });
-
     describe('OS Tests', () => {
 
         const platforms = {
