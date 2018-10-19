@@ -5,13 +5,13 @@
  */
 'use strict';
 
+import { ensureString, JsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { Config } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
+import { ConfigContents } from '../../../src/config/configStore';
 import { testSetup } from '../../../src/testSetup';
 import * as fs from '../../../src/util/fs';
-import { ConfigContents } from '../../../src/config/configStore';
-import { ensureString, JsonMap } from '@salesforce/ts-types';
 
 // Setup the test environment.
 const $$ = testSetup();

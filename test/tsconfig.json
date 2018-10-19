@@ -1,3 +1,6 @@
 {
-  "extends": "../tsconfig"
+  "extends": "../node_modules/@salesforce/dev-config/tsconfig",
+  "include": [
+    "unit/**/*.ts"
+  ]
 }

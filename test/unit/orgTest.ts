@@ -4,26 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AnyJson, ensureJsonArray, JsonArray } from '@salesforce/ts-types';
+import { assert, expect } from 'chai';
 import { constants as fsConstants } from 'fs';
-import { AuthInfo, AuthFields } from '../../src/authInfo';
-import { Connection } from '../../src/connection';
-import { AnyJson } from '@salesforce/ts-types';
-import { Org, OrgFields } from '../../src/org';
 import { OAuth2 } from 'jsforce';
-import { expect, assert } from 'chai';
-import { testSetup, MockTestOrgData } from '../../src/testSetup';
-import { ConfigFile } from '../../src/config/configFile';
-import { Crypto } from '../../src/crypto';
-import { Config } from '../../src/config/config';
-import { ConfigContents, ConfigValue } from '../../src/config/configStore';
+import * as Transport from 'jsforce/lib/transport';
+import { get as _get, isEqual as _isEqual, set as _set } from 'lodash';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
-import { Global } from '../../src/global';
-import { OrgUsersConfig } from '../../src/config/orgUsersConfig';
-import { ConfigAggregator } from '../../src/config/configAggregator';
+import { AuthFields, AuthInfo } from '../../src/authInfo';
 import { Aliases } from '../../src/config/aliases';
-import { set as _set, get as _get, isEqual as _isEqual } from 'lodash';
-import * as Transport from 'jsforce/lib/transport';
+import { Config } from '../../src/config/config';
+import { ConfigAggregator } from '../../src/config/configAggregator';
+import { ConfigFile } from '../../src/config/configFile';
+import { OrgUsersConfig } from '../../src/config/orgUsersConfig';
+import { Connection } from '../../src/connection';
+import { Global } from '../../src/global';
+import { Org, OrgFields } from '../../src/org';
+import { MockTestOrgData, testSetup } from '../../src/testSetup';
 import * as fs from '../../src/util/fs';
 
 const $$ = testSetup();
@@ -120,7 +118,7 @@ describe('Org Tests', () => {
         describe('mock remove', () => {
             let removeStub;
             beforeEach(() => {
-                removeStub = $$.SANDBOX.stub(fs, 'remove').callsFake((path) => {
+                removeStub = $$.SANDBOX.stub(fs, 'remove').callsFake(path => {
                     return Promise.resolve();
                 });
             });
@@ -221,7 +219,7 @@ describe('Org Tests', () => {
             const error: Error = new Error();
             error['code'] = 'ENOENT';
 
-            $$.SANDBOX.stub(ConfigFile.prototype, 'unlink').callsFake(async function() {
+            $$.SANDBOX.stub(ConfigFile.prototype, 'unlink').callsFake(async () => {
                 throw error;
             });
 
@@ -289,7 +287,7 @@ describe('Org Tests', () => {
             ];
 
             $$.SANDBOXES.CONFIG.restore();
-            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal) => $$.rootPathRetriever(isGlobal, $$.id));
+            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(isGlobal => $$.rootPathRetriever(isGlobal, $$.id));
 
             let userAuthResponse = null;
             $$.SANDBOX.stub(OAuth2.prototype, '_postParams').callsFake(() => Promise.resolve(userAuthResponse));
@@ -528,7 +526,7 @@ describe('Org Tests', () => {
             const orgUsers: AuthInfo[] = await orgs[0].readUserAuthFiles();
             let expectedUsers = [mock0.username, mock1.username, mock2.username];
             for (const info of orgUsers) {
-                expectedUsers = expectedUsers.filter((user) => info.getFields().username !== user);
+                expectedUsers = expectedUsers.filter(user => info.getFields().username !== user);
             }
             expect(expectedUsers.length).to.eq(0);
         });
@@ -537,7 +535,7 @@ describe('Org Tests', () => {
             const orgUsers: AuthInfo[] = await orgs[0].readUserAuthFiles();
             let expectedUsers = [mock0.username];
             for (const info of orgUsers) {
-                expectedUsers = expectedUsers.filter((user) => info.getFields().username !== user);
+                expectedUsers = expectedUsers.filter(user => info.getFields().username !== user);
             }
             expect(expectedUsers.length).to.eq(0);
         });
@@ -548,14 +546,14 @@ describe('Org Tests', () => {
                 await orgs[0].addUsername(orgs[1].getUsername());
                 await orgs[0].addUsername(orgs[2].getUsername());
 
-                let usersPresent: string[] = null;
+                let usersPresent: JsonArray = null;
                 await orgs[0].removeUsername(orgs[1].getUsername());
-                usersPresent = $$.configStubs.OrgUsersConfig.contents['usernames'];
+                usersPresent = ensureJsonArray($$.configStubs.OrgUsersConfig.contents.usernames);
                 expect(usersPresent.length).to.be.eq(2);
                 expect(usersPresent).to.not.include(mock1.username);
 
                 await orgs[0].removeUsername(orgs[2].getUsername());
-                usersPresent = $$.configStubs.OrgUsersConfig.contents['usernames'];
+                usersPresent = ensureJsonArray($$.configStubs.OrgUsersConfig.contents.usernames);
                 expect(usersPresent.length).to.be.eq(1);
                 expect(usersPresent).to.not.include(mock2.username);
             });

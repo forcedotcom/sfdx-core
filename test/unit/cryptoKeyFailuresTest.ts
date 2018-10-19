@@ -6,11 +6,11 @@
  */
 
 import { assert, expect } from 'chai';
-import * as os from 'os';
 import * as childProcess from 'child_process';
 import * as _crypto from 'crypto';
-import { testSetup } from '../../src/testSetup';
+import * as os from 'os';
 import { Crypto } from '../../src/crypto';
+import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();

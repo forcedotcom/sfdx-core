@@ -7,9 +7,9 @@
 
 import { expect } from 'chai';
 import * as _ from 'lodash';
-import { testSetup } from '../../src/testSetup';
-import { keyChainImpl, GenericWindowsKeychainAccess, GenericUnixKeychainAccess } from '../../src/keyChainImpl';
 import { retrieveKeychain } from '../../src/keyChain';
+import { GenericUnixKeychainAccess, GenericWindowsKeychainAccess, keyChainImpl } from '../../src/keyChainImpl';
+import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -41,14 +41,14 @@ describe('keyChain', () => {
             validateString: 'security'
         }];
 
-        const promiseArray = testArray.map((obj) => retrieveKeychain(obj.osName));
+        const promiseArray = testArray.map(obj => retrieveKeychain(obj.osName));
 
         return Promise.all(promiseArray)
-            .then((_keychains) => {
-                _.forEach(_keychains, (_keychain) => {
+            .then(_keychains => {
+                _.forEach(_keychains, _keychain => {
                     expect(_keychain).to.have.property('osImpl');
                     const program = _keychain['osImpl'].getProgram();
-                    const testArrayMeta = _.find(testArray, (elem) => program.includes(elem.validateString));
+                    const testArrayMeta = _.find(testArray, elem => program.includes(elem.validateString));
                     expect(testArrayMeta == null).to.be.false;
                 });
             });

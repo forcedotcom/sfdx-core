@@ -2,7 +2,7 @@
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /**
  * An enum of all possible locations for a config value.
@@ -24,7 +24,7 @@
  */
 
 import { get, merge, snakeCase, sortBy } from '@salesforce/kit';
-import { definiteEntries, Dictionary, isObject, Optional } from '@salesforce/ts-types';
+import { definiteEntriesOf, Dictionary, isObject, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
@@ -249,7 +249,7 @@ export class ConfigAggregator {
      * @returns {Map<string, string>}
      */
     public getEnvVars(): Map<string, string> {
-        return new Map(definiteEntries(this.envVars));
+        return new Map(definiteEntriesOf(this.envVars));
     }
 
     /**

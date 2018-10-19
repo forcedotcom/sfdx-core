@@ -6,10 +6,8 @@
  */
 
 import { expect } from 'chai';
-
-import { SfdxErrorConfig, SfdxError } from '../../src/sfdxError';
-import { Global, Mode } from '../../src/global';
 import { Messages } from '../../src/messages';
+import { SfdxError, SfdxErrorConfig } from '../../src/sfdxError';
 import { testSetup } from '../../src/testSetup';
 
 const testMessages = {
