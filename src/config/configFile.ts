@@ -102,7 +102,7 @@ export class ConfigFile extends BaseConfigStore {
      * @param {ConfigOptions} [options] The options used to create the file. Will use {@link ConfigFile.getDefaultOptions} by default.
      * {@link ConfigFile.getDefaultOptions} with no parameters by default.
      */
-    public static async create<T extends ConfigFile>(options?: ConfigOptions): Promise<T> {
+    public static async create<T extends ConfigFile>(options: ConfigOptions = {}): Promise<T> {
         const config: T = new this() as T;
         let defaultOptions = {};
         try {
