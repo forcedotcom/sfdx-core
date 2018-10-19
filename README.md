@@ -75,7 +75,7 @@ can find more information here:
 https://sinonjs.org/
 
 Sinon stubs and spys must be cleaned up after test invocations. To ease the use of Sinon with sfdx core we've exposed our
-sandbox in TestSetup. After adding your own stubs or spys to the sandbox we can cleanup the sandbox for you.
+sandbox in TestSetup. After adding your own stubs and/or spys we can cleanup the sandbox for you.
 
 ```
 import * as assert from 'assert';
