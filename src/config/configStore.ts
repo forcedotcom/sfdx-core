@@ -80,7 +80,7 @@ export abstract class BaseConfigStore implements ConfigStore {
     // Initialized in setContents
     private contents: ConfigContents = {};
 
-    protected constructor(contents?: ConfigContents) {
+    constructor(contents?: ConfigContents) {
         this.setContents(contents);
     }
 

@@ -5,8 +5,8 @@
  */
 'use strict';
 
-import * as Path from 'path';
 import { expect } from 'chai';
+import * as Path from 'path';
 
 import { ConfigFile, ConfigOptions } from '../../../src/config/configFile';
 import { testSetup } from '../../../src/testSetup';
@@ -28,6 +28,8 @@ class TestConfig extends ConfigFile {
             filePath
         };
     }
+
+    public static getFileName() { return 'testFileName'; }
 
     private static testId: string = $$.uniqid();
 }
@@ -63,6 +65,15 @@ describe('Config', () => {
             expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());
             expect(config.getPath()).to.not.contain('.sfdx');
             expect(config.getPath()).to.contain(Path.join('my', 'path', 'test'));
+        });
+    });
+
+    describe('default options', () => {
+        it(' get applied with passed in options', async () => {
+            // Pass in custom options
+            const config = await TestConfig.create({ isState: true });
+            // Creation doesn't fail with missing file name
+            expect(config.getPath()).contains('testFileName');
         });
     });
 });

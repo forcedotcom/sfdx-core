@@ -199,7 +199,7 @@ describe('Logger', () => {
             const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(0);
 
             // Log at the provided log level for each test entry
-            testLogEntries.forEach((entry) => logger[logLevel[0]](entry));
+            testLogEntries.forEach(entry => logger[logLevel[0]](entry));
 
             const logData = logger.readLogContentsAsText();
             expect(logData, `Logs should NOT contain '${sid}'`).to.not.contain(sid);
@@ -257,7 +257,7 @@ describe('Logger', () => {
             const logger = (await Logger.child('testSerializersLogger')).useMemoryLogging();
 
             // A test serializer
-            logger.getBunyanLogger().serializers.config = (obj) => _.reduce(obj, (acc, val, key) => {
+            logger.getBunyanLogger().serializers.config = obj => _.reduce(obj, (acc, val, key) => {
                     if (isString(val) || isNumber(val) || isBoolean(val)) {
                         acc[key] = val;
                     }
@@ -277,20 +277,20 @@ describe('Logger', () => {
         let output;
         beforeEach(() => {
             Logger.destroyRoot();
-            // enable debug logging
+            // @ts-ignore enable debug logging
             debug.useColors = () => false;
             debug.enable('*');
             output = '';
         });
 
         afterEach(() => {
-            debug.enable();
+            debug.enable('');
         });
 
         it('should use root in output', async () => {
             // Do this in the test because we want normal mocha output
             const out = $$.SANDBOX.stub(process.stdout, 'write');
-            const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
+            const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
                 output += error;
             });
             const logger = (await Logger.root());
@@ -303,7 +303,7 @@ describe('Logger', () => {
         it('should use child name in output', async () => {
             // Do this in the test because we want normal mocha output
             const out = $$.SANDBOX.stub(process.stdout, 'write');
-            const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
+            const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
                 output += error;
             });
             const logger = (await Logger.root()).child('test');
@@ -316,7 +316,7 @@ describe('Logger', () => {
         it('should include different level', async () => {
             // Do this in the test because we want normal mocha output
             const out = $$.SANDBOX.stub(process.stdout, 'write');
-            const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
+            const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
                 output += error;
             });
             const logger = (await Logger.root());

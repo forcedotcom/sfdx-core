@@ -1,18 +1,17 @@
 /*
- * Copyright, 1999-2016, salesforce.com
- * All Rights Reserved
- * Company Confidential
+ * Copyright (c) 2018, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-'use strict';
-
-import { expect, assert } from 'chai';
-import { ConfigAggregator } from '../../../src/config/configAggregator';
+import { assert, expect } from 'chai';
 import { Config } from '../../../src/config/config';
-import { testSetup } from '../../../src/testSetup';
+import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
-import * as fs from '../../../src/util/fs';
 import { ConfigContents } from '../../../src/config/configStore';
+import { testSetup } from '../../../src/testSetup';
+import * as fs from '../../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();

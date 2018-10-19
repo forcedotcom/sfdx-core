@@ -7,11 +7,11 @@
 
  /* tslint:disable: only-arrow-functions */
 
-import * as path from 'path';
 import { assert, expect } from 'chai';
 import * as fs from 'fs';
-import { testSetup } from '../../src/testSetup';
+import * as path from 'path';
 import { keyChainImpl } from '../../src/keyChainImpl';
+import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -49,33 +49,6 @@ describe('KeyChainImpl Tests', () => {
             } catch (err) {
                 expect(err).to.have.property('name', 'CredentialProgramAccessError');
             }
-        });
-    });
-
-    describe('service account attribute dependency Tests', () => {
-        it('Null service', async () => {
-            const callback = (err) => {
-                expect(err).to.have.property('name', 'KeyChainServiceRequiredError');
-            };
-            await keyChainImpl.darwin.getPassword({}, callback);
-            await keyChainImpl.darwin.setPassword({}, callback);
-        });
-
-        it('Null account', async () => {
-            const callback = (err) => {
-                expect(err).to.have.property('name', 'KeyChainAccountRequiredError');
-            };
-            await keyChainImpl.darwin.getPassword({ service: 'venkman' }, callback);
-            await keyChainImpl.darwin.setPassword({ service: 'venkman' }, callback);
-        });
-    });
-
-    describe('setPassword', () => {
-        it('Null password', async () => {
-            const callback = (err) => {
-                expect(err).to.have.property('name', 'PasswordRequiredError');
-            };
-            await keyChainImpl.darwin.setPassword({ service: 'venkman', account: 'spengler' }, callback);
         });
     });
 
@@ -168,7 +141,7 @@ describe('KeyChainImpl Tests', () => {
             }
         };
 
-        Object.keys(platforms).forEach((platformKey) => {
+        Object.keys(platforms).forEach(platformKey => {
             if (Object.hasOwnProperty.call(platforms, platformKey)) {
                 const platform = platforms[platformKey];
                 // this test is very much tied to various internal keychain impls. generic_unix doesn't rely on a

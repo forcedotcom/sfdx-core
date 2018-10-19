@@ -7,9 +7,9 @@
   "scripts": {
     "build": "npm run clean && npm run compile && npm run lint && npm run docgen",
     "clean": "scripts/clean.js",
-    "compile": "node_modules/.bin/tsc -p ./tsconfig.json",
+    "compile": "node_modules/.bin/tsc -p . && node_modules/.bin/tsc -p test --noEmit",
     "docgen": "npm run compile && node_modules/.bin/jsdoc lib --readme EXPORTED.md -r -c jsdoc.json --package package.json",
-    "lint": "node_modules/.bin/tslint -p .",
+    "lint": "node_modules/.bin/tslint -p . && node_modules/.bin/tslint -p test",
     "lint-report": "npm run lint -- -t checkstyle -o checkstyle.xml",
     "prepare": "npm run build",
     "test": "npm run lint && nyc --reporter=lcov --reporter=text mocha \"test/**/*Test.ts\"",
@@ -29,8 +29,8 @@
     "!lib/**/*.map"
   ],
   "dependencies": {
-    "@salesforce/kit": "0.7.0",
-    "@salesforce/ts-types": "0.11.0",
+    "@salesforce/kit": "0.9.0",
+    "@salesforce/ts-types": "0.14.0",
     "@types/jsforce": "1.8.12",
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "debug": "^3.1.0",
@@ -59,7 +59,8 @@
     "sinon": "5.0.7",
     "source-map-support": "^0.5.3",
     "ts-node": "4.1.0",
-    "typescript": "2.9.1",
+    "tslint": "5.11.0",
+    "typescript": "3.0.3",
     "xunit-file": "1.0.0"
   },
   "types": "lib/exported.d.ts"

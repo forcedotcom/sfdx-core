@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as _ from 'lodash';
-import { PermissionSetAssignment } from '../../src/permissionSetAssignment';
-import { MockTestOrgData, shouldThrow, testSetup } from '../../src/testSetup';
 import { expect } from 'chai';
+import * as _ from 'lodash';
+import { AuthInfo } from '../../src/authInfo';
 import { Connection } from '../../src/connection';
 import { Org } from '../../src/org';
-import { AuthInfo } from '../../src/authInfo';
+import { PermissionSetAssignment } from '../../src/permissionSetAssignment';
+import { MockTestOrgData, shouldThrow, testSetup } from '../../src/testSetup';
 
 const $$ = testSetup();
 
