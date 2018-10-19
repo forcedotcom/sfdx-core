@@ -2,15 +2,15 @@
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { AnyJson, isJsonMap, JsonMap } from '@salesforce/ts-types';
+import { assert, expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
 import { SchemaValidator } from '../../src/schemaValidator';
-import { AnyJson, JsonMap, isJsonMap } from '@salesforce/ts-types';
 import { testSetup } from '../../src/testSetup';
 
 const $$ = testSetup();
@@ -132,12 +132,12 @@ describe('schemaValidator', () => {
 
     describe('schemas', () => {
         it('should not have `not found` errors', () => {
-            fs.readdirSync(SCHEMA_DIR).forEach((schemaName) => {
+            fs.readdirSync(SCHEMA_DIR).forEach(schemaName => {
                 const schemaPath = path.join(SCHEMA_DIR, schemaName);
                 const validator = new SchemaValidator($$.TEST_LOGGER, schemaPath);
 
                 // If the schemas reference an invalid external error, then validation will fail.
-                return validator.validate({}).catch((err) => {
+                return validator.validate({}).catch(err => {
                     // We are passing in empty data, so it is OK if we get an actual data field validation error.
                     if (err.name !== 'ValidationSchemaFieldErrors') {
                         throw err;

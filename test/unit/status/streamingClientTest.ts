@@ -3,18 +3,18 @@ import {
     DefaultStreamingOptions,
     StreamingClient,
     StreamingConnectionState,
-    StreamingTimeoutErrorType,
-    StreamingOptions
+    StreamingOptions,
+    StreamingTimeoutErrorType
 } from '../../../src/status/streamingClient';
 
-import { Org } from '../../../src/org';
-import { Connection } from '../../../src/connection';
-import { shouldThrow, StreamingMockCometClient, StreamingMockSubscriptionCall, testSetup } from '../../../src/testSetup';
 import { expect } from 'chai';
-import { Crypto } from '../../../src/crypto';
-import { SfdxError } from '../../../src/sfdxError';
-import { Time, TIME_UNIT } from '../../../src/util/time';
 import * as _ from 'lodash';
+import { Connection } from '../../../src/connection';
+import { Crypto } from '../../../src/crypto';
+import { Org } from '../../../src/org';
+import { SfdxError } from '../../../src/sfdxError';
+import { shouldThrow, StreamingMockCometClient, StreamingMockSubscriptionCall, testSetup } from '../../../src/testSetup';
+import { Time, TIME_UNIT } from '../../../src/util/time';
 
 const MOCK_API_VERSION: string = '43.0';
 const MOCK_TOPIC: string = 'topic';
@@ -296,13 +296,13 @@ describe('streaming client tests', () => {
 
         expect(setTimeoutSpy.called).to.be.true;
         // Subscribe should call setTimeout with Jenny's number
-        expect(_.filter(setTimeoutSpy.getCalls(), (object) => object.lastArg === JENNYS_NUMBER)).to.have.length(1);
+        expect(_.filter(setTimeoutSpy.getCalls(), object => object.lastArg === JENNYS_NUMBER)).to.have.length(1);
         // Ensure setTimeout is not called with the handshake timeout.
-        expect(_.filter(setTimeoutSpy.getCalls(), (object) => object.lastArg === GHOSTBUSTERS_NUMBER)).to.have.length(0);
+        expect(_.filter(setTimeoutSpy.getCalls(), object => object.lastArg === GHOSTBUSTERS_NUMBER)).to.have.length(0);
 
     });
 
-    it ('should throw a handshake error when the API version is incorrect', () => {
+    it ('should throw a handshake error when the API version is incorrect', async () => {
         const context = {
             log: () => {},
             options: {
@@ -315,7 +315,7 @@ describe('streaming client tests', () => {
         };
 
         try {
-            shouldThrow(StreamingClient.prototype['incoming'].call(context, apiVersionErrorMsg, () => {}));
+            await shouldThrow(StreamingClient.prototype['incoming'].call(context, apiVersionErrorMsg, () => {}));
         } catch (e) {
             expect(e).to.have.property('name', 'handshakeApiVersionError');
         }

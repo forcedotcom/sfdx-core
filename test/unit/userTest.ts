@@ -5,26 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DefaultUserFields, User, UserFields } from '../../src/user';
-import { shouldThrow, testSetup, MockTestOrgData } from '../../src/testSetup';
-import { expect } from 'chai';
-import { Org } from '../../src/org';
 import { AnyJson } from '@salesforce/ts-types';
+import { expect } from 'chai';
 import { AuthInfo } from '../../src/authInfo';
 import { Connection } from '../../src/connection';
-import { RequestInfo } from 'jsforce';
-import { SecureBuffer } from '../../src/secureBuffer';
+import { Org } from '../../src/org';
 import { PermissionSetAssignment } from '../../src/permissionSetAssignment';
+import { SecureBuffer } from '../../src/secureBuffer';
+import { MockTestOrgData, shouldThrow, testSetup } from '../../src/testSetup';
+import { DefaultUserFields, DefaultUserFieldsOptions, User, UserFields } from '../../src/user';
 
 const $$ = testSetup();
 
 describe('User Tests', () => {
-    let adminTestdata: MockTestOrgData;
+    let adminTestData: MockTestOrgData;
     let user1: MockTestOrgData;
 
-    let refreshSpy;
+    let refreshSpy: sinon.SinonSpy;
     beforeEach( async () => {
-        adminTestdata = new MockTestOrgData();
+        adminTestData = new MockTestOrgData();
         user1 = new MockTestOrgData();
 
         $$.fakeConnectionRequest = (): Promise<AnyJson> => {
@@ -32,9 +31,9 @@ describe('User Tests', () => {
         };
 
         $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((query: string) => {
-            if (query.includes(adminTestdata.username)) {
+            if (query.includes(adminTestData.username)) {
                 return {
-                    records: [ adminTestdata.getMockUserInfo() ],
+                    records: [ adminTestData.getMockUserInfo() ],
                     totalSize: 1
                 };
             }
@@ -68,14 +67,6 @@ describe('User Tests', () => {
     });
 
     describe('init tests', () => {
-        it ('no org', async () => {
-            try {
-                await shouldThrow(User.init(null));
-            } catch (e) {
-                expect(e).to.have.property('name', 'orgRequired');
-            }
-        });
-
         it ('refresh auth called', async () => {
             $$.SANDBOX.stub(Connection.prototype, 'requestRaw').callsFake(async () => {
                 return Promise.resolve({
@@ -87,7 +78,7 @@ describe('User Tests', () => {
                 });
             });
             expect(refreshSpy.calledOnce).to.equal(false);
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestdata.username)));
+            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
             await User.init(org);
             expect(refreshSpy.calledOnce).to.equal(true);
         });
@@ -99,12 +90,16 @@ describe('User Tests', () => {
                 }`});
             });
 
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestdata.username)));
+            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
             const user = await User.init(org);
 
             try {
-                const fields: UserFields = await DefaultUserFields.init(adminTestdata.username, user1.username);
-                await shouldThrow(user.create(fields));
+                const options: DefaultUserFieldsOptions = {
+                    templateUser: adminTestData.username,
+                    newUserName: user1.username
+                };
+                const fields: DefaultUserFields = await DefaultUserFields.create(options);
+                await shouldThrow(user.create(fields.getFields()));
             } catch ( e ) {
                 expect(e).to.have.property('name', 'UserCreateHttpError');
             }
@@ -122,26 +117,6 @@ describe('User Tests', () => {
     });
 
     describe('createUser', () => {
-        it ('no fields provided', async () => {
-            $$.SANDBOX.stub(Connection.prototype, 'requestRaw').callsFake(async (info: RequestInfo) => {
-                return Promise.resolve({
-                    statusCode: 201,
-                    body: `{"id": "${user1.getMockUserInfo()['Id']}"}`,
-                    headers: {
-                        'auto-approve-user': user1.refreshToken
-                    }
-                });
-            });
-
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestdata.username)));
-            const user: User = await User.init(org);
-            try {
-                await shouldThrow(user.create(null));
-            } catch (e) {
-                expect(e).to.have.property('name', 'missingFields');
-            }
-        });
-
         it ('should create a user', async () => {
             $$.SANDBOX.stub(Connection.prototype, 'requestRaw').callsFake(async () => {
                 return Promise.resolve({
@@ -153,9 +128,13 @@ describe('User Tests', () => {
                 });
             });
 
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestdata.username)));
+            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
             const user: User = await User.init(org);
-            const fields: UserFields = await DefaultUserFields.init(org.getUsername());
+
+            const options: DefaultUserFieldsOptions = {
+                templateUser: org.getUsername() || ''
+            };
+            const fields = (await DefaultUserFields.create(options)).getFields();
             const info: AuthInfo = await user.create(fields);
 
             expect(info.getUsername()).to.equal(fields.username);
@@ -164,8 +143,8 @@ describe('User Tests', () => {
 
     describe('assignPassword', () => {
         let org: Org;
-        let userId;
-        let password;
+        let userId: string;
+        let password: string;
         beforeEach(async () => {
             $$.SANDBOX.stub(Connection, 'create').callsFake(() => {
                 return {
@@ -226,28 +205,8 @@ describe('User Tests', () => {
                 });
             });
 
-            org = await Org.create(await Connection.create(await AuthInfo.create(adminTestdata.username)));
+            org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
 
-        });
-
-        it ('missing fields', async () => {
-            const user: User = await User.init(org);
-            try {
-                await shouldThrow(user.assignPermissionSets(null, ['foo']));
-            } catch (e) {
-                expect(e).to.have.property('name', 'missingId');
-            }
-        });
-
-        it ('missing permsetNames', async () => {
-            const user: User = await User.init(org);
-            const info: AuthInfo = await user.create(await DefaultUserFields.init(adminTestdata.username));
-            const savedFields: UserFields = await user.retrieve(info.getUsername());
-            try {
-                await shouldThrow(user.assignPermissionSets(savedFields.id, null));
-            } catch (e) {
-                expect(e).to.have.property('name', 'permsetNamesAreRequired');
-            }
         });
 
         it ('Should assign the permission set', async () => {

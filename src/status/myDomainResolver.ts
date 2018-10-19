@@ -2,7 +2,7 @@
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { lookup } from 'dns';
@@ -59,7 +59,6 @@ export interface MyDomainResolverOptions {
  */
 export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
 
-    public options!: MyDomainResolverOptions;
     private logger!: Logger;
 
     /**
@@ -80,7 +79,7 @@ export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
                         lookupAsync = promisify(lookup);
                     }
                     self.logger.debug(`Attempting to resolve url: ${host}`);
-                    if (host && host.includes('.localhost.internal.salesforce.com')) {
+                    if (host && host.includes('.internal.salesforce.com')) {
                         return {
                             completed: true,
                             payload: '127.0.0.1'
