@@ -10,7 +10,6 @@ import * as Path from 'path';
 
 import { ConfigFile, ConfigOptions } from '../../../src/config/configFile';
 import { testSetup } from '../../../src/testSetup';
-import { deepStrictEqual } from 'assert';
 
 const $$ = testSetup();
 
