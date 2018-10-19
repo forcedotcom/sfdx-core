@@ -102,9 +102,15 @@ export class ConfigFile extends BaseConfigStore {
      * @param {ConfigOptions} [options] The options used to create the file. Will use {@link ConfigFile.getDefaultOptions} by default.
      * {@link ConfigFile.getDefaultOptions} with no parameters by default.
      */
-    public static async create<T extends ConfigFile>(options?: ConfigOptions): Promise<T> {
+    public static async create<T extends ConfigFile>(options: ConfigOptions = {}): Promise<T> {
         const config: T = new this() as T;
-        config.options = options || this.getDefaultOptions();
+        let defaultOptions = {};
+        try {
+            defaultOptions = this.getDefaultOptions();
+        } catch (e) { /* Some implementations don't let you call default options */ }
+
+        // Merge default and passed in options
+        config.options = Object.assign(defaultOptions, options);
 
         if (!config.options.filename) {
             throw new SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
