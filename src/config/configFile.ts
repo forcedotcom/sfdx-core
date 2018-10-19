@@ -104,7 +104,13 @@ export class ConfigFile extends BaseConfigStore {
      */
     public static async create<T extends ConfigFile>(options?: ConfigOptions): Promise<T> {
         const config: T = new this() as T;
-        config.options = options || this.getDefaultOptions();
+        let defaultOptions = {};
+        try {
+            defaultOptions = this.getDefaultOptions();
+        } catch (e) { /* Some implementations don't let you call default options */ }
+
+        // Merge default and passed in options
+        config.options = Object.assign(defaultOptions, options);
 
         if (!config.options.filename) {
             throw new SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
