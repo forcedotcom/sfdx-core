@@ -1,3 +1,11 @@
+**As a beta feature, Salesforce Core Libraries is a preview and isn’t part of the “Services” under your master
+subscription agreement with Salesforce. Use this feature at your sole discretion, and make your purchase decisions only
+on the basis of generally available products and features. Salesforce doesn’t guarantee general availability of this
+feature within any particular time frame or at all, and we can discontinue it at any time. This feature is for
+evaluation purposes only, not for production use. It’s offered as is and isn’t supported, and Salesforce has no
+liability for any harm or damage arising out of or in connection with it. All restrictions, Salesforce reservation of
+rights, obligations concerning the Services, and terms for related Non-Salesforce Applications and Content apply equally
+to your use of this feature.**
 # Salesforce DX Core Library (Beta)
 This library provides client-side management of Salesforce DX projects, org authentication, connections to Salesforce APIs, and other various utilities.
 
@@ -7,7 +15,7 @@ See the [API documentation](https://developer.salesforce.com/media/salesforce-cl
 
 
 The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components.
-This feature allows unit tests to execute without needing to contact salesforce.com.
+This feature allows unit tests to execute without needing to make API calls to salesforce.com.
 
 ### Mocking AuthInfo
 
@@ -31,11 +39,8 @@ describe('Mocking Auth data', () => {
 });
 
 ```
-
 After having a valid AuthInfo object you can then create fake connections to a Salesforce.com scratch org. This allows
 for writing test that can validate result responses for SOQL queries and REST endpoints.
-
-
 ```
 import * as assert from 'assert';
 
@@ -66,7 +71,6 @@ describe('Mocking a force server call', () => {
 });
 
 ```
-
 ### Using the Builtin Sinon Sandboxes
 
 sfdx-core uses Sinon as it's underlying mocking system. If you're unfamiliar with Sinon and it's sand-boxing concept you
@@ -75,8 +79,8 @@ can find more information here:
 https://sinonjs.org/
 
 Sinon stubs and spys must be cleaned up after test invocations. To ease the use of Sinon with sfdx core we've exposed our
-sandbox in TestSetup. After adding your own stubs and/or spys we can cleanup the sandbox for you.
-
+sandbox in TestSetup. After adding your own stubs and/or spys they will automatically be cleaned up after each test
+using mocha's afterEach method.
 ```
 import * as assert from 'assert';
 
@@ -94,13 +98,10 @@ describe('Using the built in Sinon sandbox.', () => {
 });
 
 ```
-
-
 ### Testing Expected Failures
 
 It's important to have negative tests that ensure proper error handling. With *shouldThrow* it's easy to test for expected
 async rejections.
-
 ```
 import * as assert from 'assert';
 
@@ -126,12 +127,10 @@ describe('Testing for expected errors', () => {
 });
 
 ```
-
 ### Testing Log Lines
 
 It's also useful to check expected values and content from log lines. TestSetup configures the sfdx-core logger to use an
 in memory LogLine storage structure. These can be easily accessed from tests.
-
 ```
 import * as assert from 'assert';
 
@@ -163,9 +162,3 @@ describe('Testing log lines', () => {
 });
 
 ```
-
-
-
-____
-**As a beta feature, Salesforce Core Libraries is a preview and isn’t part of the “Services” under your master subscription agreement with Salesforce. Use this feature at your sole discretion, and make your purchase decisions only on the basis of generally available products and features. Salesforce doesn’t guarantee general availability of this feature within any particular time frame or at all, and we can discontinue it at any time. This feature is for evaluation purposes only, not for production use. It’s offered as is and isn’t supported, and Salesforce has no liability for any harm or damage arising out of or in connection with it. All restrictions, Salesforce reservation of rights, obligations concerning the Services, and terms for related Non-Salesforce Applications and Content apply equally to your use of this feature.**
-____
