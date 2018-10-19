@@ -6,8 +6,8 @@
  */
 
 import { expect } from 'chai';
-import { testSetup } from '../../src/testSetup';
 import { Crypto } from '../../src/crypto';
+import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();

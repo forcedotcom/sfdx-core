@@ -1,3 +1,4 @@
+"use strict";
 /*
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
@@ -13,30 +14,16 @@
  * @property {boolean} isState If the file is in the state folder or no (.sfdx).
  * @property {string} filePath The full file path where the config file is stored.
  */
-
-import { isBoolean } from '@salesforce/ts-types';
-import { constants as fsConstants, Stats as fsStats } from 'fs';
-import { homedir as osHomedir } from 'os';
-import { dirname as pathDirname, join as pathJoin } from 'path';
-import { Global } from '../global';
-import { SfdxError } from '../sfdxError';
-import { access, mkdirp, readJsonMap, stat, unlink, writeJson } from '../util/fs';
-import { resolveProjectPath } from '../util/internal';
-import { BaseConfigStore, ConfigContents } from './configStore';
-
-/**
- * The interface for Config options.
- * *NOTE:* And changes to this interface must also change the jsdoc typedef header above.
- * @interface
- */
-export interface ConfigOptions {
-    rootFolder?: string;
-    filename?: string;
-    isGlobal?: boolean;
-    isState?: boolean;
-    filePath?: string;
-}
-
+Object.defineProperty(exports, "__esModule", { value: true });
+const ts_types_1 = require("@salesforce/ts-types");
+const fs_1 = require("fs");
+const os_1 = require("os");
+const path_1 = require("path");
+const global_1 = require("../global");
+const sfdxError_1 = require("../sfdxError");
+const fs_2 = require("../util/fs");
+const internal_1 = require("../util/internal");
+const configStore_1 = require("./configStore");
 /**
  * Represents a json config file used to manage settings and state. Global config
  * files are stored in the home directory hidden state folder (.sfdx) and local config
@@ -55,43 +42,40 @@ export interface ConfigOptions {
  * myConfig.set('mykey', 'myvalue');
  * await myconfig.write();
  */
-export class ConfigFile extends BaseConfigStore {
+class ConfigFile extends configStore_1.BaseConfigStore {
     /**
      * Returns the config's filename.
      * @returns {string}
      */
-    public static getFileName(): string {
+    static getFileName() {
         // Can not have abstract static methods, so throw a runtime error.
-        throw new SfdxError('Unknown filename for config file.');
+        throw new sfdxError_1.SfdxError('Unknown filename for config file.');
     }
-
     /**
      * Returns the default options for the config file.
      * @param {boolean} isGlobal If the file should be stored globally or locally.
      * @param {string} filename The name of the config file.
      * @return {ConfigOptions} The ConfigOptions.
      */
-    public static getDefaultOptions(isGlobal: boolean = false, filename?: string): ConfigOptions {
+    static getDefaultOptions(isGlobal = false, filename) {
         return {
             isGlobal,
             isState: true,
             filename: filename || this.getFileName()
         };
     }
-
     /**
      * Helper used to determined what the local and global folder point to.
      *
      * @param {boolean} isGlobal True if the config should be global. False for local.
      * @returns {Promise<string>} The file path of the root folder.
      */
-    public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
-        if (!isBoolean(isGlobal)) {
-            throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
+    static async resolveRootFolder(isGlobal) {
+        if (!ts_types_1.isBoolean(isGlobal)) {
+            throw new sfdxError_1.SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
         }
-        return isGlobal ? osHomedir() : await resolveProjectPath();
+        return isGlobal ? os_1.homedir() : await internal_1.resolveProjectPath();
     }
-
     /**
      * Create an instance of this config file, without actually reading or writing the file.
      * After the instance is created, you can call {@link ConfigFile.read} to read the existing
@@ -102,38 +86,30 @@ export class ConfigFile extends BaseConfigStore {
      * @param {ConfigOptions} [options] The options used to create the file. Will use {@link ConfigFile.getDefaultOptions} by default.
      * {@link ConfigFile.getDefaultOptions} with no parameters by default.
      */
-    public static async create<T extends ConfigFile>(options: ConfigOptions = {}): Promise<T> {
-        const config: T = new this() as T;
+    static async create(options = {}) {
+        const config = new this();
         let defaultOptions = {};
         try {
             defaultOptions = this.getDefaultOptions();
-        } catch (e) { /* Some implementations don't let you call default options */ }
-
+        }
+        catch (e) { /* Some implementations don't let you call default options */ }
         // Merge default and passed in options
         config.options = Object.assign(defaultOptions, options);
-
         if (!config.options.filename) {
-            throw new SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
+            throw new sfdxError_1.SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
         }
-
-        const _isGlobal: boolean = isBoolean(config.options.isGlobal) && config.options.isGlobal;
-        const _isState: boolean = isBoolean(config.options.isState) && config.options.isState;
-
+        const _isGlobal = ts_types_1.isBoolean(config.options.isGlobal) && config.options.isGlobal;
+        const _isState = ts_types_1.isBoolean(config.options.isState) && config.options.isState;
         // Don't let users store config files in homedir without being in the
         // state folder.
         let configRootFolder = config.options.rootFolder ? config.options.rootFolder :
             await this.resolveRootFolder(!!config.options.isGlobal);
-
         if (_isGlobal || _isState) {
-            configRootFolder = pathJoin(configRootFolder, Global.STATE_FOLDER);
+            configRootFolder = path_1.join(configRootFolder, global_1.Global.STATE_FOLDER);
         }
-
-        config.path = pathJoin(configRootFolder,
-            config.options.filePath ? config.options.filePath : '', config.options.filename);
-
+        config.path = path_1.join(configRootFolder, config.options.filePath ? config.options.filePath : '', config.options.filename);
         return config;
     }
-
     /**
      * Creates the config instance and reads the contents of the existing file, if there is one.
      *
@@ -148,31 +124,26 @@ export class ConfigFile extends BaseConfigStore {
      * @param {ConfigOptions} [options] The options used to create the file. Will use {@link ConfigFile.getDefaultOptions} by default.
      * {@link ConfigFile.getDefaultOptions} with no parameters by default.
      */
-    public static async retrieve<T extends ConfigFile>(options?: ConfigOptions): Promise<T> {
-        const config: T = await this.create(options) as T;
+    static async retrieve(options) {
+        const config = await this.create(options);
         await config.read();
         return config;
     }
-
-    // Initialized in create
-    private options!: ConfigOptions;
-    private path!: string;
-
     /**
      * Determines if the config file is read/write accessible.
      * @param {number} perm The permission.
      * @returns {Promise<boolean>} `true` if the user has capabilities specified by perm.
      * @see {@link https://nodejs.org/api/fs.html#fs_fs_access_path_mode_callback|fs.access}
      */
-    public async access(perm: number): Promise<boolean> {
+    async access(perm) {
         try {
-            await access(this.getPath(), perm);
+            await fs_2.access(this.getPath(), perm);
             return true;
-        } catch (err) {
+        }
+        catch (err) {
             return false;
         }
     }
-
     /**
      * Read the config file and set the config contents.
      * @param {boolean} [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
@@ -180,12 +151,13 @@ export class ConfigFile extends BaseConfigStore {
      * @throws {SfdxError}
      *    **`{name: 'UnexpectedJsonFileFormat'}`:** There was a problem reading or parsing the file.
      */
-    public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
+    async read(throwOnNotFound = false) {
         try {
-            const obj = await readJsonMap(this.getPath());
+            const obj = await fs_2.readJsonMap(this.getPath());
             this.setContentsFromObject(obj);
             return this.getContents();
-        } catch (err) {
+        }
+        catch (err) {
             if (err.code === 'ENOENT') {
                 if (!throwOnNotFound) {
                     this.setContents();
@@ -195,7 +167,6 @@ export class ConfigFile extends BaseConfigStore {
             throw err;
         }
     }
-
     /**
      * Write the config file with new contents. If no new contents are passed in
      * it will write the existing config contents that were set from {@link ConfigFile.read}, or an
@@ -204,65 +175,58 @@ export class ConfigFile extends BaseConfigStore {
      * @param {object} [newContents] The new contents of the file.
      * @returns {Promise<object>} The written contents.
      */
-    public async write(newContents?: ConfigContents): Promise<object> {
+    async write(newContents) {
         if (newContents != null) {
             this.setContents(newContents);
         }
-
-        await mkdirp(pathDirname(this.getPath()));
-
-        await writeJson(this.getPath(), this.toObject());
-
+        await fs_2.mkdirp(path_1.dirname(this.getPath()));
+        await fs_2.writeJson(this.getPath(), this.toObject());
         return this.getContents();
     }
-
     /**
      * Check to see if the config file exists.
      *
      * @returns {Promise<boolean>} True if the config file exists and has access, false otherwise.
      */
-    public async exists(): Promise<boolean> {
-        return await this.access(fsConstants.R_OK);
+    async exists() {
+        return await this.access(fs_1.constants.R_OK);
     }
-
     /**
      * Get the stats of the file.
      *
      * @returns {Promise<fs.Stats>} stats The stats of the file.
      * @see {@link https://nodejs.org/api/fs.html#fs_fs_fstat_fd_callback|fs.stat}
      */
-    public async stat(): Promise<fsStats> {
-        return stat(this.getPath());
+    async stat() {
+        return fs_2.stat(this.getPath());
     }
-
     /**
      * Delete the config file if it exists.
      *
      * @returns {Promise<boolean>} True if the file was deleted, false otherwise.
      * @see {@link https://nodejs.org/api/fs.html#fs_fs_unlink_path_callback|fs.unlink}
      */
-    public async unlink(): Promise<void> {
+    async unlink() {
         const exists = await this.exists();
         if (exists) {
-            return await unlink(this.getPath());
+            return await fs_2.unlink(this.getPath());
         }
-        throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
+        throw new sfdxError_1.SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
     }
-
     /**
      * Returns the path to the config file.
      * @returns {string}
      */
-    public getPath(): string {
+    getPath() {
         return this.path;
     }
-
     /**
      * Returns true if this config is using the global path, false otherwise.
      * @returns {boolean}
      */
-    public isGlobal(): boolean {
+    isGlobal() {
         return !!this.options.isGlobal;
     }
-
 }
+exports.ConfigFile = ConfigFile;
+//# sourceMappingURL=configFile.js.map

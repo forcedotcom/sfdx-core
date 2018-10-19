@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { get, lowerFirst, mapKeys, merge, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
+import { AsyncCreatable, get, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
 import { asJsonArray, asNumber, ensure, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
 import { OAuth2Options, QueryResult, RequestInfo } from 'jsforce';
+import { DescribeSObjectResult } from 'jsforce/describe-result';
 import { EOL } from 'os';
-import { DescribeSObjectResult } from '../node_modules/@types/jsforce/describe-result';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Connection } from './connection';
 import { Logger } from './logger';
@@ -108,14 +108,21 @@ async function _retrieveProfileId(name: string, connection: Connection): Promise
     return name;
 }
 
+export interface DefaultUserFieldsOptions {
+    templateUser: string;
+    newUserName?: string;
+}
+
 /**
  * Provides a default set of fields values that can be used to create a user. This is handy for
  * software development purposes.
  *
  * @example
- * const fields: UserFields = await DefaultUserFields.init(org);
+ * const fields = await DefaultUserFields.init(org);
  */
-export class DefaultUserFields {
+export class DefaultUserFields extends AsyncCreatable<DefaultUserFieldsOptions> {
+    private logger!: Logger;
+    private userFields!: UserFields;
 
     /**
      * Used to initialize default values for fields based on a templateUser user. This user will be part of the
@@ -123,41 +130,25 @@ export class DefaultUserFields {
      * @param {string} templateUser The user to base the new user on. It's assumed the template user exists on the org already.
      * @param {string} [newUserName] The name for the new user.
      */
-    public static async init(templateUser: string, newUserName?: string): Promise<DefaultUserFields> {
-        const fields: DefaultUserFields = new DefaultUserFields(newUserName);
-        const initLogger: Logger = await Logger.child('DefaultUserFields');
-        const userFields: UserFields = await _retrieveUserFields.call({ logger: initLogger }, templateUser);
-        merge(fields, userFields);
-        fields.profileId = await _retrieveProfileId('Standard User',
-            await Connection.create(await AuthInfo.create(templateUser)));
-        initLogger.debug(`Standard User profileId: ${fields.profileId}`);
-        if (newUserName) {
-            fields.username = newUserName;
-        } else {
-            fields.username = `${Date.now()}_${fields.username}`;
-        }
-
-        return fields;
+    public getFields(): UserFields {
+        return this.userFields;
     }
 
-    public id = '';
+    protected getDefaultOptions(): DefaultUserFieldsOptions {
+        return { templateUser: ''};
+    }
 
-    public username: string;
-    public alias?: string;
-    public emailEncodingKey?: string;
-    public languageLocaleKey?: string;
-    public lastName?: string;
-    public localeSidKey?: string;
-    public profileId?: string;
-    public timeZoneSidKey?: string;
-    public email?: string;
-
-    /**
-     * Constructor
-     * @param {string} [username] The login username for User
-     */
-    private constructor(username?: string) {
-        this.username = `${Date.now()}_${username}`;
+    protected async init(): Promise<void> {
+        this.logger = await Logger.child('DefaultUserFields');
+        this.userFields = await _retrieveUserFields.call({ logger: this.logger }, this.options.templateUser);
+        this.userFields.profileId = await _retrieveProfileId('Standard User',
+            await Connection.create(await AuthInfo.create(this.options.templateUser)));
+        this.logger.debug(`Standard User profileId: ${this.userFields.profileId}`);
+        if (this.options.newUserName) {
+            this.userFields.username = this.options.newUserName;
+        } else {
+            this.userFields.username = `${Date.now()}_${this.userFields.username}`;
+        }
     }
 }
 

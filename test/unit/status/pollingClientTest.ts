@@ -2,15 +2,15 @@
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { PollingClient, PollingOptions } from '../../../src/status/pollingClient';
-import { StatusResult } from '../../../src/status/client';
-import { Time, TIME_UNIT } from '../../../src/util/time';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+import { StatusResult } from '../../../src/status/client';
+import { PollingClient, PollingOptions } from '../../../src/status/pollingClient';
 import { shouldThrow } from '../../../src/testSetup';
+import { Time, TIME_UNIT } from '../../../src/util/time';
 
 interface TestType {
     name: string;

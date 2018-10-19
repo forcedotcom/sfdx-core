@@ -18,8 +18,7 @@ import {
 import { assert, expect } from 'chai';
 import * as dns from 'dns';
 import { OAuth2 } from 'jsforce';
-// @ts-ignore
-// Webstorm is reporting an error for the nested import
+// @ts-ignore WebStorm is reporting an error for the nested import
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { AuthFields, AuthInfo } from '../../src/authInfo';
@@ -175,7 +174,7 @@ class MetaAuthDataMock {
     public async fetchConfigInfo(path: string): Promise<ConfigContents> {
         if (path.toUpperCase().includes('JWT')) {
             this._authInfoLookupCount = this._authInfoLookupCount + 1;
-            //const configContents = new Map<string, ConfigValue>();
+            // const configContents = new Map<string, ConfigValue>();
             const configContents = {};
 
             set(configContents, 'instanceUrl', 'http://mydevhub.localhost.internal.salesforce.com:6109');
@@ -314,7 +313,7 @@ describe('AuthInfo', () => {
             });
         });
 
-        //@todo move to kit.
+        // @todo move to kit.
         const includes = (element: AnyJson, value: AnyJson) => {
             if (element && !isFunction(element) && !isBoolean(element) && !isNumber(element)) {
                 if (isJsonMap(element)) return Object.values(element).includes(value);
@@ -359,7 +358,6 @@ describe('AuthInfo', () => {
 
                 // verify the returned object doesn't have secrets
                 expect(() => walkAndSearchForSecrets(fields)).to.not.throw();
-
 
                 expect(strObj).does.not.include(ensureString(testMetadata.defaultConnectedAppInfo.clientSecret));
                 expect(strObj).does.not.include(decryptedRefreshToken);
