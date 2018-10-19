@@ -79,7 +79,7 @@ export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
                         lookupAsync = promisify(lookup);
                     }
                     self.logger.debug(`Attempting to resolve url: ${host}`);
-                    if (host && host.includes('.localhost.internal.salesforce.com')) {
+                    if (host && host.includes('.internal.salesforce.com')) {
                         return {
                             completed: true,
                             payload: '127.0.0.1'

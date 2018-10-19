@@ -44,6 +44,18 @@ describe('myDomainResolver', () => {
         expect(lookupAsyncSpy.callCount).to.be.equal(CALL_COUNT);
     });
 
+    it ('should resolve localhost', async () => {
+        const options: MyDomainResolverOptions = {
+            url: new URL('http://ghostbusters.internal.salesforce.com'),
+            timeout: new Time(50, TIME_UNIT.MILLISECONDS),
+            frequency: new Time(10, TIME_UNIT.MILLISECONDS)
+        };
+        const resolver: MyDomainResolver = await MyDomainResolver.create(options);
+        const ip = await resolver.resolve();
+        expect(ip).to.be.equal('127.0.0.1');
+        expect(lookupAsyncSpy.callCount).to.be.equal(0);
+    });
+
     it('should timeout', async () => {
         const options: MyDomainResolverOptions = {
             url: new URL(`https://${NEGATIVE_HOST}`),
