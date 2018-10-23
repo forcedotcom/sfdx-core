@@ -150,7 +150,7 @@ function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Prom
  *
  * const $$ = testSetup();
  *
- * describe(() =>{
+ * describe(() => {
  *  it('test', () => {
  *    // Stub out your own method
  *    $$.SANDBOX.stub(MyClass.prototype, 'myMethod').returnsFake(() => {});
