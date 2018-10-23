@@ -53,7 +53,7 @@ export interface ConfigStub {
  * Different configuration options when running before each
  */
 export interface TestContext {
-    SANDBOX: any; // tslint:disable-line:no-any
+    SANDBOX: sinon.SinonSandbox; // tslint:disable-line:no-any
     SANDBOXES: SandboxTypes;
     TEST_LOGGER: Logger;
     id: string;
@@ -150,7 +150,7 @@ function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Prom
  *
  * const $$ = testSetup();
  *
- * describe(() => {
+ * describe(() =>{
  *  it('test', () => {
  *    // Stub out your own method
  *    $$.SANDBOX.stub(MyClass.prototype, 'myMethod').returnsFake(() => {});
