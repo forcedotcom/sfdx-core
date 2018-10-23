@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { Crypto } from '../../src/crypto';
 import { testSetup } from '../../src/testSetup';
@@ -25,7 +26,7 @@ describe('CryptoTest', function() {
         // Testing crypto functionality, so restore global stubs.
         $$.SANDBOXES.CRYPTO.restore();
 
-        $$.SANDBOX.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
+        stubMethod($$.SANDBOX, Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
             setPassword: () => Promise.resolve(),
             getPassword: (data, cb) => cb(undefined, TEST_KEY.key)
         }));

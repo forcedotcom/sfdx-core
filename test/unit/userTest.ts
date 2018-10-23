@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { AuthInfo } from '../../src/authInfo';
@@ -29,7 +30,7 @@ describe('User Tests', () => {
             return Promise.resolve({});
         };
 
-        $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((query: string) => {
+        stubMethod($$.SANDBOX, Connection.prototype, 'query').callsFake((query: string) => {
             if (query.includes(adminTestData.username)) {
                 return {
                     records: [ adminTestData.getMockUserInfo() ],
@@ -51,15 +52,15 @@ describe('User Tests', () => {
             return {};
         });
 
-        $$.SANDBOX.stub(AuthInfo.prototype, 'buildRefreshTokenConfig').callsFake(() => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig').callsFake(() => {
             return {};
         });
 
-        $$.SANDBOX.stub(Connection.prototype, 'describe').callsFake(async () => {
+        stubMethod($$.SANDBOX, Connection.prototype, 'describe').callsFake(async () => {
             return Promise.resolve({fields: {}});
         });
 
-        refreshSpy = $$.SANDBOX.stub(Org.prototype, 'refreshAuth').callsFake(() => {
+        refreshSpy = stubMethod($$.SANDBOX, Org.prototype, 'refreshAuth').callsFake(() => {
             return Promise.resolve({});
         });
 
@@ -67,7 +68,7 @@ describe('User Tests', () => {
 
     describe('init tests', () => {
         it ('refresh auth called', async () => {
-            $$.SANDBOX.stub(Connection.prototype, 'requestRaw').callsFake(async () => {
+            stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(async () => {
                 return Promise.resolve({
                     statusCode: 201,
                     body: `{"id": "${user1.getMockUserInfo()['Id']}"}`,
@@ -83,7 +84,7 @@ describe('User Tests', () => {
         });
 
         it ('refresh auth called error code 400', async () => {
-            $$.SANDBOX.stub(Connection.prototype, 'requestRaw').callsFake(async () => {
+            stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(async () => {
                 return Promise.resolve({ body: `{
                     "statusCode": "400"
                 }`});
@@ -117,7 +118,7 @@ describe('User Tests', () => {
 
     describe('createUser', () => {
         it ('should create a user', async () => {
-            $$.SANDBOX.stub(Connection.prototype, 'requestRaw').callsFake(async () => {
+            stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(async () => {
                 return Promise.resolve({
                     statusCode: 201,
                     body: '{"id": "123456"}',
@@ -145,7 +146,7 @@ describe('User Tests', () => {
         let userId: string;
         let password: string;
         beforeEach(async () => {
-            $$.SANDBOX.stub(Connection, 'create').callsFake(() => {
+            stubMethod($$.SANDBOX, Connection, 'create').callsFake(() => {
                 return {
                     getUsername() {
                         return user1.username;
@@ -194,7 +195,7 @@ describe('User Tests', () => {
         let org: Org;
 
         beforeEach(async () => {
-            $$.SANDBOX.stub(Connection.prototype, 'requestRaw').callsFake(async () => {
+            stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(async () => {
                 return Promise.resolve({
                     statusCode: 201,
                     body: '{"id": "56789"}',
@@ -210,7 +211,7 @@ describe('User Tests', () => {
 
         it ('Should assign the permission set', async () => {
             const permSetAssignSpy =
-                $$.SANDBOX.stub(PermissionSetAssignment.prototype, 'create').returns(Promise.resolve({}));
+                stubMethod($$.SANDBOX, PermissionSetAssignment.prototype, 'create').returns(Promise.resolve({}));
 
             const user: User = await User.init(org);
             const fields: UserFields = await user.retrieve(user1.username);
