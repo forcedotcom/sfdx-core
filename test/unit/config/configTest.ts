@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { stubMethod } from '@salesforce/ts-sinon';
 import { ensureString, JsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { Config } from '../../../src/config/config';
@@ -30,7 +31,7 @@ describe('Config', () => {
         $$.SANDBOXES.CONFIG.restore();
 
         id = $$.uniqid();
-        $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder')
+        stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder')
             .callsFake((isGlobal: boolean) => $$.rootPathRetriever(isGlobal, id));
     });
 
@@ -53,7 +54,7 @@ describe('Config', () => {
         it('adds content of the config file from this.path to this.contents', async () => {
             const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
 
-            $$.SANDBOX.stub(fs, 'readJsonMap')
+            stubMethod($$.SANDBOX, fs, 'readJsonMap')
                 .withArgs(config.getPath())
                 .returns(Promise.resolve(clone(configFileContents)));
 
@@ -68,8 +69,8 @@ describe('Config', () => {
 
     describe('set', () => {
         it('calls Config.write with updated file contents', async () => {
-            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
-            const writeStub = $$.SANDBOX.stub(fs, 'writeJson');
+            stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
+            const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
 
             const expectedFileContents = clone(configFileContents);
             const newUsername = 'updated_val';
@@ -87,8 +88,8 @@ describe('Config', () => {
 
             await Config.update(false, 'defaultusername', newUsername);
 
-            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
-            const writeStub = $$.SANDBOX.stub(fs, 'writeJson');
+            stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
+            const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
             const { defaultdevhubusername } = configFileContents;
 
             await Config.update(false, 'defaultusername');
@@ -134,7 +135,7 @@ describe('Config', () => {
         it('calls ConfigFile.write with encrypted values contents', async () => {
             const TEST_VAL = 'test';
 
-            const writeStub = $$.SANDBOX.stub(ConfigFile.prototype, ConfigFile.prototype.write.name)
+            const writeStub = stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.write.name)
                 .callsFake(async function(this: Config) {
                     expect(ensureString(this.get('isvDebuggerSid')).length).to.be.greaterThan(TEST_VAL.length);
                     expect(ensureString(this.get('isvDebuggerSid'))).to.not.equal(TEST_VAL);

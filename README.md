@@ -22,8 +22,7 @@ This feature allows unit tests to execute without needing to make API calls to s
 Here you can mock authorization for a Salesforce scratch org.
 
 ```
-import * as assert from 'assert';
-
+import { strictEqual } from 'assert';
 import { MockTestOrgData, testSetup} from '@salesforce/core/lib/testSetup';
 import { AuthInfo } from '@salesforce/core';
 
@@ -32,23 +31,21 @@ const $$ = testSetup();
 describe('Mocking Auth data', () => {
     it ('example', async () => {
         const testData = new MockTestOrgData();
-        $$.configStubs.AuthInfoConfig = { contents: await testData.getConfig() };
+        $$.setConfigStubContents('AuthInfoConfig', { contents: await testData.getConfig() });
         const auth: AuthInfo = await AuthInfo.create(testData.username);
-        assert.equal(auth.getUsername(), testData.username);
+        strictEqual(auth.getUsername(), testData.username);
     });
 });
-
 ```
 After having a valid AuthInfo object you can then create fake connections to a Salesforce.com scratch org. This allows
-for writing test that can validate result responses for SOQL queries and REST endpoints.
+for writing tests that can validate result responses for SOQL queries and REST endpoints.
 ```
-import * as assert from 'assert';
-
-import { AnyJson } from '@salesforce/ts-types';
-import { QueryResult } from 'jsforce';
-
-import { MockTestOrgData, testSetup} from '@salesforce/core/lib/testSetup';
 import { AuthInfo, Connection, SfdxError } from '@salesforce/core';
+import { MockTestOrgData, testSetup} from '@salesforce/core/lib/testSetup';
+import { AnyJson, ensureJsonMap, JsonMap } from '@salesforce/ts-types';
+import { ensureString } from '@salesforce/ts-types';
+import { deepStrictEqual } from 'assert';
+import { QueryResult } from 'jsforce';
 
 const $$ = testSetup();
 
@@ -56,20 +53,20 @@ describe('Mocking a force server call', () => {
     it ('example', async () => {
         const records: AnyJson = { records: ['123456', '234567'] };
         const testData = new MockTestOrgData();
-        $$.configStubs.AuthInfoConfig = { contents: await testData.getConfig() };
+        $$.setConfigStubContents('AuthInfoConfig', { contents: await testData.getConfig() });
         $$.fakeConnectionRequest = (request: AnyJson): Promise<AnyJson> => {
-            if (request.url.includes('Account')) {
+            const _request: JsonMap = ensureJsonMap(request);
+            if (request && ensureString(_request.url).includes('Account')) {
                 return Promise.resolve(records);
             } else {
-                return Promise.reject(new SfdxError(`Unexpected request: ${request.url}`));
+                return Promise.reject(new SfdxError(`Unexpected request: ${_request.url}`));
             }
         };
         const connection: Connection = await Connection.create(await AuthInfo.create(testData.username));
         const result: QueryResult<{}> = await connection.query('select Id From Account');
-        assert.deepEqual(result, records);
+        deepStrictEqual(result, records);
     });
 });
-
 ```
 ### Using the Builtin Sinon Sandboxes
 
@@ -82,10 +79,10 @@ Sinon stubs and spys must be cleaned up after test invocations. To ease the use 
 sandbox in TestSetup. After adding your own stubs and/or spys they will automatically be cleaned up after each test
 using mocha's afterEach method.
 ```
-import * as assert from 'assert';
+import { strictEqual } from 'assert';
 
 import { testSetup } from '@salesforce/core/lib/testSetup';
-import * as os from "os";
+import * as os from 'os';
 
 const $$ = testSetup();
 
@@ -93,24 +90,21 @@ describe('Using the built in Sinon sandbox.', () => {
     it ('example', async () => {
         const unsupportedOS = 'LEO';
         $$.SANDBOX.stub(os, 'platform').returns(unsupportedOS);
-        assert.equal(os.platform(), unsupportedOS);
+        strictEqual(os.platform(), unsupportedOS);
     });
 });
-
 ```
 ### Testing Expected Failures
 
 It's important to have negative tests that ensure proper error handling. With *shouldThrow* it's easy to test for expected
 async rejections.
 ```
-import * as assert from 'assert';
-
-import { shouldThrow } from '@salesforce/core/lib/testSetup';
 import { SfdxError } from '@salesforce/core';
-
+import { shouldThrow } from '@salesforce/core/lib/testSetup';
+import { strictEqual } from 'assert';
 
 class TestObject {
-    public async method() {
+    public static async method() {
         throw new SfdxError('Error', 'ExpectedError');
     }
 }
@@ -118,24 +112,21 @@ class TestObject {
 describe('Testing for expected errors', () => {
     it ('example', async () => {
         try {
-            const obj = new TestObject();
-            await shouldThrow(obj.method());
-        } catch (e: SfdxError) {
-            assert.equal(e.name, 'ExpectedError');
+            await shouldThrow(TestObject.method());
+        } catch (e) {
+            strictEqual(e.name, 'ExpectedError');
         }
     });
 });
-
 ```
 ### Testing Log Lines
 
 It's also useful to check expected values and content from log lines. TestSetup configures the sfdx-core logger to use an
 in memory LogLine storage structure. These can be easily accessed from tests.
 ```
-import * as assert from 'assert';
-
 import { Logger, LogLine } from '@salesforce/core';
 import { testSetup } from '@salesforce/core/lib/testSetup';
+import { strictEqual } from 'assert';
 
 const $$ = testSetup();
 
@@ -146,7 +137,7 @@ class TestObject {
         this.logger = logger.child('TestObject');
     }
 
-    method() {
+    public method() {
         this.logger.error(TEST_STRING);
     }
 }
@@ -156,9 +147,8 @@ describe('Testing log lines', () => {
         const obj: TestObject = new TestObject($$.TEST_LOGGER);
         obj.method();
         const records: LogLine[] = $$.TEST_LOGGER.getBufferedRecords();
-        assert.equal(records.length, 1);
-        assert.equal(records[0].msg, TEST_STRING);
+        strictEqual(records.length, 1);
+        strictEqual(records[0].msg, TEST_STRING);
     });
 });
-
 ```

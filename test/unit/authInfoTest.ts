@@ -5,6 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { cloneJson, get, set } from '@salesforce/kit';
+import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import {
     AnyJson,
     ensureString,
@@ -46,11 +47,11 @@ describe('AuthInfo No fs mock', () => {
         $$.SANDBOXES.CRYPTO.restore();
         $$.SANDBOXES.CONFIG.restore();
 
-        $$.SANDBOX.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
+        stubMethod($$.SANDBOX, Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
             setPassword: () => Promise.resolve(),
             getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(undefined, TEST_KEY.key)
         }));
-        $$.SANDBOX.stub(AuthInfoConfig.prototype, 'read').callsFake(async () => {
+        stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'read').callsFake(async () => {
             const error = new SfdxError('Test error', 'testError');
             set(error, 'code', 'ENOENT');
             return Promise.reject(error);
@@ -235,16 +236,16 @@ describe('AuthInfo', () => {
 
         testMetadata = new MetaAuthDataMock();
 
-        $$.SANDBOX.stub(fs, 'stat').callsFake(async (path: string) => {
+        stubMethod($$.SANDBOX, fs, 'stat').callsFake(async (path: string) => {
             return testMetadata.statForKeyFile(path);
         });
 
         // Common stubs
-        configFileWrite = $$.SANDBOX.stub(ConfigFile.prototype, 'write').callsFake(async () => {
+        configFileWrite = stubMethod($$.SANDBOX, ConfigFile.prototype, 'write').callsFake(async () => {
             return Promise.resolve();
         });
 
-        $$.SANDBOX.stub(ConfigFile.prototype, 'read').callsFake(async function(this: AuthInfoConfig) {
+        stubMethod($$.SANDBOX, ConfigFile.prototype, 'read').callsFake(async function(this: AuthInfoConfig) {
             console.log(`this.constructor.name: ${JSON.stringify(this.constructor.name, null, 4)}`);
             this.setContentsFromObject(await testMetadata.fetchConfigInfo(this.getPath()));
             return this.getContents();
@@ -255,15 +256,15 @@ describe('AuthInfo', () => {
         testMetadata.encryptedRefreshToken = crypto.encrypt(testMetadata.refreshToken) || '';
 
         // These stubs return different objects based on the tests
-        _postParmsStub = $$.SANDBOX.stub(OAuth2.prototype, '_postParams');
-        readFileStub = $$.SANDBOX.stub(fs, 'readFile');
+        _postParmsStub = stubMethod($$.SANDBOX, OAuth2.prototype, '_postParams');
+        readFileStub = stubMethod($$.SANDBOX, fs, 'readFile');
 
         // Spies
-        authInfoInit = $$.SANDBOX.spy(AuthInfo.prototype, 'init');
-        authInfoUpdate = $$.SANDBOX.spy(AuthInfo.prototype, 'update');
-        authInfoBuildJwtConfig = $$.SANDBOX.spy(AuthInfo.prototype, 'buildJwtConfig');
-        authInfoBuildRefreshTokenConfig = $$.SANDBOX.spy(AuthInfo.prototype, 'buildRefreshTokenConfig');
-        authInfoBuildWebAuthConfig = $$.SANDBOX.spy(AuthInfo.prototype, 'buildWebAuthConfig');
+        authInfoInit = spyMethod($$.SANDBOX, AuthInfo.prototype, 'init');
+        authInfoUpdate = spyMethod($$.SANDBOX, AuthInfo.prototype, 'update');
+        authInfoBuildJwtConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildJwtConfig');
+        authInfoBuildRefreshTokenConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig');
+        authInfoBuildWebAuthConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildWebAuthConfig');
     });
 
     describe('Secret Tests', () => {
@@ -284,7 +285,7 @@ describe('AuthInfo', () => {
             // Stub the http requests (OAuth2.requestToken() and the request for the username)
             _postParmsStub.returns(Promise.resolve(authResponse));
             const responseBody = { body: JSON.stringify({ Username: testMetadata.username }) };
-            $$.SANDBOX.stub(Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+            stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
             authInfo = await AuthInfo.create(undefined, authCodeConfig);
 
             const crypto = await Crypto.create();
@@ -394,8 +395,8 @@ describe('AuthInfo', () => {
 
     describe('create()', () => {
         it('should return an AuthInfo instance when passed an access token as username', async () => {
-            $$.SANDBOX.stub(ConfigAggregator.prototype, 'loadProperties').callsFake(async () => { });
-            $$.SANDBOX.stub(ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
+            stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => { });
+            stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
 
             const username = '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
             const authInfo = await AuthInfo.create(username);
@@ -409,8 +410,8 @@ describe('AuthInfo', () => {
         });
 
         it('should return an AuthInfo instance when passed an access token and instanceUrl for the access token flow', async () => {
-            $$.SANDBOX.stub(ConfigAggregator.prototype, 'loadProperties').callsFake(async () => { });
-            $$.SANDBOX.stub(ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
+            stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => { });
+            stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
 
             const accessToken = '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
             const authInfo = await AuthInfo.create('test', { accessToken, instanceUrl: testMetadata.instanceUrl, loginUrl: testMetadata.instanceUrl });
@@ -451,8 +452,8 @@ describe('AuthInfo', () => {
                 // Stub file I/O, http requests, and the DNS lookup
                 readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
                 _postParmsStub.returns(Promise.resolve(authResponse));
-                $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-                $$.SANDBOX.stub(dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>
+                stubMethod($$.SANDBOX, jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
+                stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>
                     done(null, { address: '1.1.1.1', family: 4 }));
 
                 // Create the JWT AuthInfo instance
@@ -569,8 +570,8 @@ describe('AuthInfo', () => {
             // Stub file I/O, http requests, and the DNS lookup
             readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
             _postParmsStub.throws(new Error('authInfoTest_ERROR_MSG'));
-            $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-            $$.SANDBOX.stub(dns, 'lookup').callsFake((url: string,  done: (v: AnyJson, w: JsonMap) => {}) =>
+            stubMethod($$.SANDBOX, jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
+            stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string,  done: (v: AnyJson, w: JsonMap) => {}) =>
                 done(null, { address: '1.1.1.1', family: 4 }));
 
             // Create the JWT AuthInfo instance
@@ -598,8 +599,8 @@ describe('AuthInfo', () => {
             // Stub file I/O, http requests, and the DNS lookup
             readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
             _postParmsStub.returns(Promise.resolve(authResponse));
-            $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-            $$.SANDBOX.stub(dns, 'lookup').callsFake((url: string | Error,  done: (v: Error) => {}) =>
+            stubMethod($$.SANDBOX, jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
+            stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string | Error,  done: (v: Error) => {}) =>
                 done(new Error('authInfoTest_ERROR_MSG')));
 
             // Create the JWT AuthInfo instance
@@ -836,7 +837,7 @@ describe('AuthInfo', () => {
             // Stub the http requests (OAuth2.requestToken() and the request for the username)
             _postParmsStub.returns(Promise.resolve(authResponse));
             const responseBody = { body: JSON.stringify({ Username: username }) };
-            $$.SANDBOX.stub(Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+            stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
 
             // Create the refresh token AuthInfo instance
             const authInfo = await AuthInfo.create(undefined, authCodeConfig);
@@ -914,7 +915,7 @@ describe('AuthInfo', () => {
 
             // Stub the http request (OAuth2.requestToken())
             _postParmsStub.returns(Promise.resolve(authResponse));
-            $$.SANDBOX.stub(Transport.prototype, 'httpRequest').throws(new Error('authInfoTest_ERROR_MSG'));
+            stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').throws(new Error('authInfoTest_ERROR_MSG'));
 
             // Create the auth code AuthInfo instance
             try {
@@ -951,7 +952,7 @@ describe('AuthInfo', () => {
             // Stub the http request (OAuth2.refreshToken())
             _postParmsStub.returns(Promise.resolve(authResponse));
 
-            const cacheSetSpy: sinon.SinonSpy = $$.SANDBOX.spy(AuthInfo['cache'], 'set');
+            const cacheSetSpy: sinon.SinonSpy = spyMethod($$.SANDBOX, AuthInfo['cache'], 'set');
 
             // Create the AuthInfo instance
             const authInfo = await AuthInfo.create(username, refreshTokenConfig);
@@ -1166,8 +1167,8 @@ describe('AuthInfo', () => {
             readFileStub.returns(Promise.resolve('audienceUrlTest_privateKey'));
             _postParmsStub.returns(Promise.resolve(authResponse));
             const signStub: sinon.SinonStub =
-                $$.SANDBOX.stub(jwt, 'sign').returns(Promise.resolve('audienceUrlTest_jwtToken'));
-            $$.SANDBOX.stub(dns, 'lookup').callsFake((url: string,  done: (v: AnyJson, w: JsonMap) => {}) =>
+                stubMethod($$.SANDBOX, jwt, 'sign').returns(Promise.resolve('audienceUrlTest_jwtToken'));
+            stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string,  done: (v: AnyJson, w: JsonMap) => {}) =>
                 done(null, { address: '1.1.1.1', family: 4 }));
 
             await AuthInfo.prototype['buildJwtConfig'].call(context, Object.assign(defaults, options));
@@ -1219,7 +1220,7 @@ describe('AuthInfo', () => {
 
     describe('hasAuthentications', () => {
         it('should return false', async () => {
-            $$.SANDBOX.stub(AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+            stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
                 return Promise.resolve([]);
             });
 
@@ -1229,7 +1230,7 @@ describe('AuthInfo', () => {
 
         it('should return true', async () => {
 
-            $$.SANDBOX.stub(AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+            stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
                 return Promise.resolve(['file1']);
             });
 
@@ -1241,7 +1242,7 @@ describe('AuthInfo', () => {
     describe('listAllAuthFiles', () => {
         let files: string[];
         beforeEach(() => {
-            $$.SANDBOX.stub(fs, 'readdir').callsFake(() => Promise.resolve(files));
+            stubMethod($$.SANDBOX, fs, 'readdir').callsFake(() => Promise.resolve(files));
         });
         it('matches username', async () => {
             files = ['good@match.org.json'];
