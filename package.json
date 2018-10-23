@@ -40,6 +40,7 @@
     "mkdirp": "0.5.1"
   },
   "devDependencies": {
+    "@salesforce/ts-sinon": "0.2.2",
     "@salesforce/dev-config": "1.1.4",
     "@types/chai": "4.0.4",
     "@types/debug": "0.0.30",

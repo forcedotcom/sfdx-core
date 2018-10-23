@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureJsonArray, JsonArray } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { constants as fsConstants } from 'fs';
@@ -35,7 +36,7 @@ describe('Org Tests', () => {
     beforeEach(async () => {
         testData = new MockTestOrgData();
         $$.configStubs.AuthInfoConfig = { contents: await testData.getConfig() };
-        $$.SANDBOX.stub(Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
+        stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     });
 
     describe('fields', () => {
@@ -118,7 +119,7 @@ describe('Org Tests', () => {
         describe('mock remove', () => {
             let removeStub;
             beforeEach(() => {
-                removeStub = $$.SANDBOX.stub(fs, 'remove').callsFake(path => {
+                removeStub = stubMethod($$.SANDBOX, fs, 'remove').callsFake(path => {
                     return Promise.resolve();
                 });
             });
@@ -137,7 +138,7 @@ describe('Org Tests', () => {
             $$.SANDBOXES.CONFIG.restore();
             const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanLocalOrgData');
             let invalidProjectWorkspace = false;
-            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(() => {
+            stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
                     invalidProjectWorkspace = true;
                     const error = new Error();
@@ -146,7 +147,7 @@ describe('Org Tests', () => {
                 }
                 return $$.rootPathRetriever(false);
             });
-            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
+            stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
@@ -157,7 +158,7 @@ describe('Org Tests', () => {
         it('Random Error', async () => {
             $$.SANDBOXES.CONFIG.restore();
             const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanLocalOrgData');
-            $$.SANDBOX.stub(Config, 'resolveRootFolder').callsFake(() => {
+            stubMethod($$.SANDBOX, Config, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
                     const err = new Error();
                     err.name = 'gozer';
@@ -165,7 +166,7 @@ describe('Org Tests', () => {
                 }
                 return osTmpdir();
             });
-            $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
+            stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create(
                 await Connection.create(await AuthInfo.create(testData.username)));
@@ -197,12 +198,12 @@ describe('Org Tests', () => {
                 await Connection.create(await AuthInfo.create(testData.username)));
 
             const deletedPaths = [];
-            $$.SANDBOX.stub(ConfigFile.prototype, 'unlink').callsFake(function() {
+            stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function() {
                 deletedPaths.push(this.path);
                 return Promise.resolve({});
             });
 
-            $$.SANDBOX.stub(fs, 'remove').callsFake(() => {
+            stubMethod($$.SANDBOX, fs, 'remove').callsFake(() => {
                 return Promise.resolve({});
             });
 
@@ -219,11 +220,11 @@ describe('Org Tests', () => {
             const error: Error = new Error();
             error['code'] = 'ENOENT';
 
-            $$.SANDBOX.stub(ConfigFile.prototype, 'unlink').callsFake(async () => {
+            stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(async () => {
                 throw error;
             });
 
-            $$.SANDBOX.stub(fs, 'remove').callsFake(async () => {
+            stubMethod($$.SANDBOX, fs, 'remove').callsFake(async () => {
                 return Promise.reject(error);
             });
 
@@ -287,13 +288,13 @@ describe('Org Tests', () => {
             ];
 
             $$.SANDBOXES.CONFIG.restore();
-            $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(isGlobal => $$.rootPathRetriever(isGlobal, $$.id));
+            stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(isGlobal => $$.rootPathRetriever(isGlobal, $$.id));
 
             let userAuthResponse = null;
-            $$.SANDBOX.stub(OAuth2.prototype, '_postParams').callsFake(() => Promise.resolve(userAuthResponse));
+            stubMethod($$.SANDBOX, OAuth2.prototype, '_postParams').callsFake(() => Promise.resolve(userAuthResponse));
 
             let responseBody = null;
-            $$.SANDBOX.stub(Transport.prototype, 'httpRequest').callsFake(() => {
+            stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(() => {
                 return Promise.resolve(responseBody);
             });
 
@@ -377,7 +378,7 @@ describe('Org Tests', () => {
         let org: Org;
         let connection: Connection;
         beforeEach(async () => {
-            $$.SANDBOX.stub(Connection.prototype, 'query').callsFake(async () => {
+            stubMethod($$.SANDBOX, Connection.prototype, 'query').callsFake(async () => {
                 if (returnResult === 'throw') {
                     const error = new Error();
                     error.name = 'INVALID_TYPE';
