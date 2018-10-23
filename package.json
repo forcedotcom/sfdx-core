@@ -8,7 +8,7 @@
     "build": "npm run clean && npm run compile && npm run lint && npm run docgen",
     "clean": "scripts/clean.js",
     "compile": "node_modules/.bin/tsc -p . && node_modules/.bin/tsc -p test --noEmit",
-    "docgen": "npm run compile && node_modules/.bin/jsdoc lib --readme EXPORTED.md -r -c jsdoc.json --package package.json",
+    "docgen": "node_modules/.bin/jsdoc lib --readme EXPORTED.md -r -c jsdoc.json --package package.json",
     "lint": "node_modules/.bin/tslint -p . && node_modules/.bin/tslint -p test",
     "lint-report": "npm run lint -- -t checkstyle -o checkstyle.xml",
     "prepare": "npm run build",
