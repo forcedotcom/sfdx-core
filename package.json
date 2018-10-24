@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "0.23.1",
+  "version": "0.21.1",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "license": "BSD-3-Clause",
@@ -15,7 +15,7 @@
     "test": "npm run lint && nyc --reporter=lcov --reporter=text mocha \"test/**/*Test.ts\"",
     "test-with-coverage": "npm run lint-report && scripts/unit-test-with-coverage.js",
     "watch": "tsc -w -p tsconfig.json",
-    "semantic-release": "semantic-release"
+    "commit": "git-cz"
   },
   "keywords": [
     "force",
@@ -48,8 +48,8 @@
   "devDependencies": {
     "@commitlint/cli": "^7.2.1",
     "@commitlint/config-conventional": "^7.1.2",
-    "@salesforce/ts-sinon": "0.2.2",
     "@salesforce/dev-config": "1.1.4",
+    "@salesforce/ts-sinon": "0.2.2",
     "@types/chai": "4.0.4",
     "@types/debug": "0.0.30",
     "@types/jsen": "0.0.19",
@@ -60,6 +60,7 @@
     "@types/shelljs": "0.7.8",
     "@types/sinon": "4.3.2",
     "chai": "4.1.1",
+    "commitizen": "^3.0.4",
     "docdash": "0.4.0",
     "husky": "^1.1.2",
     "jsdoc": "3.5.5",
