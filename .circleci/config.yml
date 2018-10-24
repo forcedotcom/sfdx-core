@@ -5,6 +5,8 @@ jobs:
     docker:
       - image: node:latest
     working_directory: ~/cli
+    steps:
+      - checkout
   node-latest: &test
     <<: *base
     steps:
