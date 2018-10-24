@@ -1,10 +1,12 @@
 ---
 version: 2
 jobs:
-  node-latest: &test
+  base: &base
     docker:
       - image: node:latest
     working_directory: ~/cli
+  node-latest: &test
+    <<: *base
     steps:
       - checkout
       - restore_cache: &restore_cache
@@ -30,6 +32,23 @@ jobs:
     <<: *test
     docker:
       - image: node:8
+  release:
+    <<: *base
+    steps:
+      - checkout
+      - restore_cache: &restore_cache
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install dependencies
+          command: .circleci/greenkeeper
+      - run: yarn global add semantic-release@15
+      - run: semantic-release
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ~/cli/node_modules
+            - /usr/local/share/.cache/yarn
+            - /usr/local/share/.config/yarn
 
 workflows:
   version: 2
@@ -37,3 +56,9 @@ workflows:
     jobs:
       - node-latest
       - node-8
+      - release:
+          filters:
+            branches: {only: master}
+          requires:
+            - node-latest
+            - node-8
