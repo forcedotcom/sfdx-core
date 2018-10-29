@@ -22,9 +22,9 @@ import { set } from '@salesforce/kit';
 import {
     AnyJson,
     Dictionary,
-    has,
     JsonMap,
     Optional,
+    take,
     takeAnyJson
 } from '@salesforce/ts-types';
 
@@ -117,7 +117,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @param {string} key The key.
      */
     public has(key: string): boolean {
-        return has(this.contents, key);
+        return !!take(this.contents, key);
     }
 
     /**
