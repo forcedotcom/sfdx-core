@@ -4,17 +4,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { cloneJson, get, set } from '@salesforce/kit';
+import { cloneJson, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import {
     AnyJson,
     ensureString,
-    isBoolean,
-    isFunction, isJsonArray, isJsonMap,
-    isNumber,
-    isPlainObject,
-    isString,
-    JsonMap
+    JsonMap,
+    takeAnyJson,
+    takeJsonMap,
+    takeString,
+    toJsonMap
 } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import * as dns from 'dns';
@@ -330,25 +329,26 @@ describe('AuthInfo', () => {
 
         // Walk an object deeply looking for the attribute name of clientSecret or values that contain the client secret
         // or decrypted refresh token.
-        const walkAndSearchForSecrets = (obj: object) => {
+        const walkAndSearchForSecrets = (obj: JsonMap) => {
             const keys = Object.keys(obj);
             keys.forEach((key: string) => {
-                if (isPlainObject(get(obj, key))) {
-                    walkAndSearchForSecrets(get(obj, key));
+                const child = takeJsonMap(obj, key);
+                if (child) {
+                    walkAndSearchForSecrets(child);
                 }
                 const keyUpper = key.toUpperCase();
 
                 // If the key is likely a clientSecret "ish" attribute and the value is a string.
                 // reminder:'clientSecretFn' is always legit.
-                if (keyUpper.includes('SECRET') && keyUpper.includes('CLIENT') && isString(get(obj, key))) {
+                if (keyUpper.includes('SECRET') && keyUpper.includes('CLIENT') && takeString(obj, key)) {
                     throw new Error('Key indicates client secret.');
                 }
 
-                if (includes(get(obj, key), testMetadata.defaultConnectedAppInfo.clientSecret)) {
+                if (includes(takeAnyJson(obj, key), testMetadata.defaultConnectedAppInfo.clientSecret)) {
                     throw new Error(`Client secret present as value in object with key: ${key}`);
                 }
 
-                if (includes(get(obj, key), decryptedRefreshToken)) {
+                if (includes(takeAnyJson(obj, key), decryptedRefreshToken)) {
                     throw new Error(`Refresh token present as value in object with key: ${key}`);
                 }
             });
@@ -360,7 +360,7 @@ describe('AuthInfo', () => {
                 const strObj: string = JSON.stringify(fields);
 
                 // verify the returned object doesn't have secrets
-                expect(() => walkAndSearchForSecrets(fields)).to.not.throw();
+                expect(() => walkAndSearchForSecrets(toJsonMap(fields))).to.not.throw();
 
                 expect(strObj).does.not.include(ensureString(testMetadata.defaultConnectedAppInfo.clientSecret));
                 expect(strObj).does.not.include(decryptedRefreshToken);
@@ -373,7 +373,7 @@ describe('AuthInfo', () => {
                 const strObj: string = JSON.stringify(fields);
 
                 // verify the returned object doesn't have secrets
-                expect(() => walkAndSearchForSecrets(fields)).to.not.throw();
+                expect(() => walkAndSearchForSecrets(toJsonMap(fields))).to.not.throw();
 
                 // double check the stringified objects don't have secrets.
                 expect(strObj).does.not.include(ensureString(testMetadata.defaultConnectedAppInfo.clientSecret));
@@ -386,7 +386,7 @@ describe('AuthInfo', () => {
                 const authInfoString: string = JSON.stringify(authInfo);
 
                 // verify the returned object doesn't have secrets
-                expect(() => walkAndSearchForSecrets(authInfo)).to.not.throw();
+                expect(() => walkAndSearchForSecrets(toJsonMap(authInfo))).to.not.throw();
 
                 // double check the stringified objects don't have secrets.
                 expect(authInfoString).does.not.include(ensureString(testMetadata.defaultConnectedAppInfo.clientSecret));
@@ -555,7 +555,7 @@ describe('AuthInfo', () => {
             expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
 
             // Verify authInfo.fields are encrypted
-            expect(authInfo['fields'].accessToken).equals(get(jwtData, 'accessToken'));
+            expect(authInfo['fields'].accessToken).equals(takeString(jwtData, 'accessToken'));
 
             // Verify correct method calls
             expect(authInfoInit.called).to.be.true;

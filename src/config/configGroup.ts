@@ -11,8 +11,8 @@
  * @property {string} defaultGroup The default group for properties to go into.
  */
 
-import { get, set } from '@salesforce/kit';
-import { AnyJson, Dictionary, ensureJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { set } from '@salesforce/kit';
+import { ensureJsonMap, JsonMap, Optional, takeJsonMap } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile, ConfigOptions } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
@@ -209,7 +209,7 @@ export class ConfigGroup extends ConfigFile {
      * @returns {ConfigContents} The contents.
      */
     public getGroup(group = this.defaultGroup): Optional<ConfigContents> {
-        return get(this.getContents(), group);
+        return takeJsonMap(this.getContents(), group) || undefined;
     }
 
     /**
@@ -264,7 +264,7 @@ export class ConfigGroup extends ConfigFile {
      * @returns {ConfigContents} The contents.
      */
     public setInGroup(key: string, value?: ConfigValue, group?: string): ConfigContents {
-        let content: Dictionary<AnyJson>;
+        let content: JsonMap;
 
         group = group || this.defaultGroup;
 
