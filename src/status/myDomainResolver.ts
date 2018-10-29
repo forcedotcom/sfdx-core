@@ -11,12 +11,9 @@ import { promisify } from 'util';
 import { StatusResult } from './client';
 
 import { AsyncCreatable } from '@salesforce/kit';
-import { AnyFunction } from '@salesforce/ts-types';
 import { Logger } from '../logger';
 import { Time, TIME_UNIT } from '../util/time';
 import { PollingClient, PollingOptions } from './pollingClient';
-
-let lookupAsync: AnyFunction;
 
 /**
  * Options for the MyDomain DNS resolver
@@ -74,9 +71,6 @@ export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
                 let dnsResult: { address: string };
 
                 try {
-                    if (!lookupAsync) {
-                        lookupAsync = promisify(lookup);
-                    }
                     self.logger.debug(`Attempting to resolve url: ${host}`);
                     if (host && host.includes('.internal.salesforce.com')) {
                         return {
@@ -84,7 +78,7 @@ export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
                             payload: '127.0.0.1'
                         };
                     }
-                    dnsResult = await lookupAsync(host);
+                    dnsResult = await promisify(lookup)(host);
                     self.logger.debug(`Successfully resolved host: ${host} result: ${JSON.stringify(dnsResult)}`);
                     return {
                         completed: true,

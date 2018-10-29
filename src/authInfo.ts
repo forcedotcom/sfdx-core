@@ -57,7 +57,7 @@
  */
 
 import { AsyncCreatable, cloneJson, get, isEmpty, parseJsonMap, set } from '@salesforce/kit';
-import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, isPlainObject, isString, JsonMap, keysOf, Nullable, Optional } from '@salesforce/ts-types';
+import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, isPlainObject, isString, JsonMap, keysOf, Nullable, Optional, takeString } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
 import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
@@ -155,7 +155,7 @@ class AuthCodeOAuth2 extends OAuth2 {
         return super.getAuthorizationUrl(params);
     }
 
-    public async requestToken(code: string, callback?: AnyFunction) {
+    public async requestToken(code: string, callback?: (err: Error, tokenResponse: TokenResponse) => void) {
         return super.requestToken(code, callback);
     }
 
@@ -185,11 +185,11 @@ function isInternalUrl(loginUrl: string = ''): boolean {
     return loginUrl.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some(part => loginUrl.includes(part));
 }
 
-function getJwtAudienceUrl(options: object) {
+function getJwtAudienceUrl(options: OAuth2Options) {
     // default audience must be...
     let audienceUrl: string = SFDC_URLS.production;
-    const loginUrl = get(options, 'loginUrl', '');
-    const createdOrgInstance = get(options, 'createdOrgInstance', '').trim().toLowerCase();
+    const loginUrl = takeString(options, 'loginUrl', '');
+    const createdOrgInstance = takeString(options, 'createdOrgInstance', '').trim().toLowerCase();
 
     if (process.env.SFDX_AUDIENCE_URL) {
         audienceUrl = process.env.SFDX_AUDIENCE_URL;
@@ -788,11 +788,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
         const url = `${_authFields.instance_url}/services/data/${apiVersion}/sobjects/User/${userId}`;
         const headers = Object.assign({ Authorization: `Bearer ${_authFields.access_token}` }, SFDX_HTTP_HEADERS);
 
-        let username;
+        let username: Optional<string>;
         try {
             this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
             const response = await new Transport().httpRequest({ url, headers });
-            username = get(parseJsonMap(response.body), 'Username');
+            username = asString(parseJsonMap(response.body).Username);
         } catch (err) {
             throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
         }

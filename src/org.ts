@@ -27,18 +27,20 @@
  * @property {string} MISSING The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
  */
 
-import { AsyncCreatable, get } from '@salesforce/kit';
 import {
     AnyFunction,
     AnyJson,
+    AsyncCreatable,
     asString,
-    Dictionary,
     ensure,
     ensureJsonArray,
     ensureString,
     isArray,
     isString, JsonArray,
-    Optional
+    JsonMap,
+    Optional,
+    takeNumber,
+    takeString
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import { join as pathJoin } from 'path';
@@ -247,7 +249,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
             throw err;
         }
 
-        if (get(results, 'records.length') !== 1) {
+        if (takeNumber(results, 'records.length') !== 1) {
             throw new SfdxError('No results', 'NoResults');
         }
 
@@ -429,12 +431,12 @@ export class Org extends AsyncCreatable<OrgOptions> {
 
     /**
      * Returns a map of requested fields.
-     * @returns {Dictionary<AnyJson>}
+     * @returns {JsonMap}
      */
-    public getFields(keys: OrgFields[]): Dictionary<AnyJson> {
+    public getFields(keys: OrgFields[]): JsonMap {
         return keys.reduce((map, key) => {
             map[key] = this.getField(key); return map;
-        }, {} as Dictionary<AnyJson>);
+        }, {} as JsonMap);
     }
 
     /**
