@@ -30,17 +30,18 @@
 import {
     AnyFunction,
     AnyJson,
-    AsyncCreatable,
     asString,
+    AsyncCreatable,
     ensure,
     ensureJsonArray,
     ensureString,
+    getNumber,
+    getString,
     isArray,
-    isString, JsonArray,
+    isString,
+    JsonArray,
     JsonMap,
-    Optional,
-    takeNumber,
-    takeString
+    Optional
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import { join as pathJoin } from 'path';
@@ -249,7 +250,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
             throw err;
         }
 
-        if (takeNumber(results, 'records.length') !== 1) {
+        if (getNumber(results, 'records.length') !== 1) {
             throw new SfdxError('No results', 'NoResults');
         }
 

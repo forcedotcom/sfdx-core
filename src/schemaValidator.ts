@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getJsonValuesByName } from '@salesforce/kit';
-import { AnyJson, asJsonArray, asJsonMap, Dictionary, isJsonMap, isString, JsonMap, Optional, takeJsonArray } from '@salesforce/ts-types';
+import { AnyJson, asJsonArray, asJsonMap, Dictionary, getJsonArray, isJsonMap, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
 import * as path from 'path';
@@ -147,7 +147,7 @@ export class SchemaValidator {
 
             const getEnumValues = (): string => {
                 const enumSchema = asJsonMap(getPropValue('enum'));
-                return enumSchema && takeJsonArray(enumSchema, 'enum', []).join(', ') || '';
+                return enumSchema && getJsonArray(enumSchema, 'enum', []).join(', ') || '';
             };
 
             switch (error.keyword) {

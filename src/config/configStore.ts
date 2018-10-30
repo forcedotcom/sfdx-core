@@ -22,10 +22,10 @@ import { set } from '@salesforce/kit';
 import {
     AnyJson,
     Dictionary,
+    get,
+    getAnyJson,
     JsonMap,
-    Optional,
-    take,
-    takeAnyJson
+    Optional
 } from '@salesforce/ts-types';
 
 /**
@@ -98,7 +98,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @return {Optional<ConfigValue>}
      */
     public get(key: string): Optional<ConfigValue> {
-        return takeAnyJson(this.contents, key);
+        return getAnyJson(this.contents, key);
     }
 
     /**
@@ -117,7 +117,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @param {string} key The key.
      */
     public has(key: string): boolean {
-        return !!take(this.contents, key);
+        return !!get(this.contents, key);
     }
 
     /**

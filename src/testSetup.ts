@@ -10,10 +10,10 @@ import {
     AnyFunction,
     AnyJson,
     Dictionary, ensureJsonMap,
-    ensureString, isJsonMap,
+    ensureString, getBoolean,
+    isJsonMap,
     JsonMap,
-    Optional,
-    takeBoolean
+    Optional
 } from '@salesforce/ts-types';
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
@@ -517,7 +517,7 @@ export class MockTestOrgData {
             config.devHubUsername = this.devHubUsername;
         }
 
-        const isDevHub = takeBoolean(this, 'isDevHub');
+        const isDevHub = getBoolean(this, 'isDevHub');
         if (isDevHub) {
             config.isDevHub = isDevHub;
         }

@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
-import { asJsonArray, asNumber, ensure, ensureJsonMap, ensureString, isJsonMap, Many, takeString } from '@salesforce/ts-types';
+import { asJsonArray, asNumber, ensure, ensureJsonMap, ensureString, getString, isJsonMap, Many } from '@salesforce/ts-types';
 import { QueryResult, RequestInfo } from 'jsforce';
 import { DescribeSObjectResult } from 'jsforce/describe-result';
 import { EOL } from 'os';
@@ -73,16 +73,16 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
         const results = mapKeys(result.records[0], (value, key: string) => lowerFirst(key));
 
         const fields: UserFields = {
-            id: ensure(takeString(results, REQUIRED_FIELDS.id)),
+            id: ensure(getString(results, REQUIRED_FIELDS.id)),
             username,
-            alias: ensure(takeString(results, REQUIRED_FIELDS.alias)),
-            email: ensure(takeString(results, REQUIRED_FIELDS.email)),
-            emailEncodingKey: ensure(takeString(results, REQUIRED_FIELDS.emailEncodingKey)),
-            languageLocaleKey: ensure(takeString(results, REQUIRED_FIELDS.languageLocaleKey)),
-            localeSidKey: ensure(takeString(results, REQUIRED_FIELDS.localeSidKey)),
-            profileId: ensure(takeString(results, REQUIRED_FIELDS.profileId)),
-            lastName: ensure(takeString(results, REQUIRED_FIELDS.lastName)),
-            timeZoneSidKey: ensure(takeString(results, REQUIRED_FIELDS.timeZoneSidKey))
+            alias: ensure(getString(results, REQUIRED_FIELDS.alias)),
+            email: ensure(getString(results, REQUIRED_FIELDS.email)),
+            emailEncodingKey: ensure(getString(results, REQUIRED_FIELDS.emailEncodingKey)),
+            languageLocaleKey: ensure(getString(results, REQUIRED_FIELDS.languageLocaleKey)),
+            localeSidKey: ensure(getString(results, REQUIRED_FIELDS.localeSidKey)),
+            profileId: ensure(getString(results, REQUIRED_FIELDS.profileId)),
+            lastName: ensure(getString(results, REQUIRED_FIELDS.lastName)),
+            timeZoneSidKey: ensure(getString(results, REQUIRED_FIELDS.timeZoneSidKey))
         };
 
         return fields;

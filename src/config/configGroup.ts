@@ -12,7 +12,7 @@
  */
 
 import { set } from '@salesforce/kit';
-import { ensureJsonMap, JsonMap, Optional, takeJsonMap } from '@salesforce/ts-types';
+import { ensureJsonMap, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile, ConfigOptions } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
@@ -209,7 +209,7 @@ export class ConfigGroup extends ConfigFile {
      * @returns {ConfigContents} The contents.
      */
     public getGroup(group = this.defaultGroup): Optional<ConfigContents> {
-        return takeJsonMap(this.getContents(), group) || undefined;
+        return getJsonMap(this.getContents(), group) || undefined;
     }
 
     /**
