@@ -9,10 +9,10 @@ import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import {
     AnyJson,
     ensureString,
+    getAnyJson,
+    getJsonMap,
+    getString,
     JsonMap,
-    takeAnyJson,
-    takeJsonMap,
-    takeString,
     toJsonMap
 } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
@@ -332,7 +332,7 @@ describe('AuthInfo', () => {
         const walkAndSearchForSecrets = (obj: JsonMap) => {
             const keys = Object.keys(obj);
             keys.forEach((key: string) => {
-                const child = takeJsonMap(obj, key);
+                const child = getJsonMap(obj, key);
                 if (child) {
                     walkAndSearchForSecrets(child);
                 }
@@ -340,15 +340,15 @@ describe('AuthInfo', () => {
 
                 // If the key is likely a clientSecret "ish" attribute and the value is a string.
                 // reminder:'clientSecretFn' is always legit.
-                if (keyUpper.includes('SECRET') && keyUpper.includes('CLIENT') && takeString(obj, key)) {
+                if (keyUpper.includes('SECRET') && keyUpper.includes('CLIENT') && getString(obj, key)) {
                     throw new Error('Key indicates client secret.');
                 }
 
-                if (includes(takeAnyJson(obj, key), testMetadata.defaultConnectedAppInfo.clientSecret)) {
+                if (includes(getAnyJson(obj, key), testMetadata.defaultConnectedAppInfo.clientSecret)) {
                     throw new Error(`Client secret present as value in object with key: ${key}`);
                 }
 
-                if (includes(takeAnyJson(obj, key), decryptedRefreshToken)) {
+                if (includes(getAnyJson(obj, key), decryptedRefreshToken)) {
                     throw new Error(`Refresh token present as value in object with key: ${key}`);
                 }
             });
@@ -555,7 +555,7 @@ describe('AuthInfo', () => {
             expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
 
             // Verify authInfo.fields are encrypted
-            expect(authInfo['fields'].accessToken).equals(takeString(jwtData, 'accessToken'));
+            expect(authInfo['fields'].accessToken).equals(getString(jwtData, 'accessToken'));
 
             // Verify correct method calls
             expect(authInfoInit.called).to.be.true;

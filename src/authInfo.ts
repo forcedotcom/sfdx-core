@@ -56,8 +56,8 @@
  * @property {string} instanceUrl
  */
 
-import { AsyncCreatable, cloneJson, get, isEmpty, parseJsonMap, set } from '@salesforce/kit';
-import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, isPlainObject, isString, JsonMap, keysOf, Nullable, Optional, takeString } from '@salesforce/ts-types';
+import { AsyncCreatable, cloneJson, isEmpty, parseJsonMap, set } from '@salesforce/kit';
+import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, get, getString, isPlainObject, isString, JsonMap, keysOf, Nullable, Optional } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
 import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
@@ -188,8 +188,8 @@ function isInternalUrl(loginUrl: string = ''): boolean {
 function getJwtAudienceUrl(options: OAuth2Options) {
     // default audience must be...
     let audienceUrl: string = SFDC_URLS.production;
-    const loginUrl = takeString(options, 'loginUrl', '');
-    const createdOrgInstance = takeString(options, 'createdOrgInstance', '').trim().toLowerCase();
+    const loginUrl = getString(options, 'loginUrl', '');
+    const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
 
     if (process.env.SFDX_AUDIENCE_URL) {
         audienceUrl = process.env.SFDX_AUDIENCE_URL;

@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { mapKeys, upperFirst } from '@salesforce/kit';
-import { Optional, takeString } from '@salesforce/ts-types';
+import { getString, Optional } from '@salesforce/ts-types';
 import { ErrorResult, QueryResult, RecordResult, SuccessResult } from 'jsforce';
 import { EOL } from 'os';
 import { Logger } from './logger';
@@ -79,7 +79,7 @@ export class PermissionSetAssignment {
 
         const result: QueryResult<string> = await this.org.getConnection().query<string>(query);
 
-        const permissionSetId = takeString(result, 'records[0].Id');
+        const permissionSetId = getString(result, 'records[0].Id');
 
         if (!permissionSetId) {
             if (nsPrefix) {

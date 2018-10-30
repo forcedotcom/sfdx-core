@@ -24,7 +24,7 @@
  */
 
 import { merge, snakeCase, sortBy } from '@salesforce/kit';
-import { definiteEntriesOf, Dictionary, isObject, Optional, take } from '@salesforce/ts-types';
+import { definiteEntriesOf, Dictionary, get, isObject, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
@@ -191,10 +191,10 @@ export class ConfigAggregator {
         if (this.envVars[key] != null) {
             return `\$${propertyToEnvName(key)}`;
         }
-        if (take(this.getLocalConfig(), `contents[${key}]`) != null) {
+        if (get(this.getLocalConfig(), `contents[${key}]`) != null) {
             return this.getLocalConfig().getPath();
         }
-        if (take(this.getGlobalConfig(), `contents[${key}]`) != null) {
+        if (get(this.getGlobalConfig(), `contents[${key}]`) != null) {
             return this.getGlobalConfig().getPath();
         }
     }
