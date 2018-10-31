@@ -300,9 +300,7 @@ describe('streaming client tests', () => {
         };
 
         const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
-        await asyncStatusClient.subscribe( async (): Promise<void> => {
-            return Promise.resolve();
-        });
+        await asyncStatusClient.subscribe(() => Promise.resolve());
 
         expect(setTimeoutSpy.called).to.be.true;
         // Subscribe should call setTimeout with Jenny's number
