@@ -69,7 +69,7 @@ export interface TestContext {
     globalPathRetriever: (uid: string) => Promise<string>;
     rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
     fakeConnectionRequest: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>;
-    getConfigStubContents(name: string, group?: Optional<string>): ConfigContents;
+    getConfigStubContents(name: string, group?: string): ConfigContents;
     setConfigStubContents(name: string, value: ConfigContents): void;
 }
 
@@ -194,7 +194,7 @@ export const testSetup = once((sinon?) => {
         globalPathRetriever: getTestGlobalPath,
         rootPathRetriever: retrieveRootPath,
         fakeConnectionRequest: defaultFakeConnectionRequest,
-        getConfigStubContents(name: string, group?: Optional<string>): ConfigContents {
+        getConfigStubContents(name: string, group?: string): ConfigContents {
             const stub: Optional<ConfigStub> = this.configStubs[name];
             if (stub && stub.contents) {
                 if (group && stub.contents[group]) {

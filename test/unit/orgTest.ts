@@ -451,7 +451,6 @@ describe('Org Tests', () => {
                 }
                 return Promise.resolve(await testData.getConfig());
             };
-            // This really isn't correct. ConfigContents or Any Json needs to support having a function.
             $$.configStubs.AuthInfoConfig = { retrieveContents: retrieve};
         });
 
