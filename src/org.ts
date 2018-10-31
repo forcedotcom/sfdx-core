@@ -27,7 +27,7 @@
  * @property {string} MISSING The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
  */
 
-import { get } from '@salesforce/kit';
+import { AsyncCreatable, get } from '@salesforce/kit';
 import {
     AnyFunction,
     AnyJson,
@@ -94,6 +94,16 @@ export enum OrgFields {
 }
 
 /**
+ * Org Options
+ */
+export interface OrgOptions {
+    aliasOrUsername?: string;
+    connection?: Connection;
+    aggregator?: ConfigAggregator;
+    isDevHub?: boolean;
+}
+
+/**
  * Provides a way to manage a locally authenticated Org.
  *
  * @see {@link AuthInfo}
@@ -113,87 +123,15 @@ export enum OrgFields {
  *
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
-export class Org {
-
-    /**
-     * Static initializer that allows creating an instance of an org from a alias or a plain string username. If no
-     * username or alias is provided then the defaultusername is used. If isDevHub is true then the defaultdevhub is used.
-     * @param {string} [aliasOrUsername] The string alias or username.
-     * @param {ConfigAggregator} [aggregator] optional config aggregator.
-     * @param {boolean} [isDevHub] true if this org is a devhub. defaults to false.
-     * @return {Promise<Org>}
-     */
-    public static async create(aliasOrUsername?: string, aggregator?: ConfigAggregator, isDevHub?: boolean): Promise<Org>;
-
-    /**
-     * Static initializer that allows creating an instance of an org from a Connection object.
-     * @param {Connection} [connection] The connection
-     * @param {ConfigAggregator} [aggregator] A config aggregator. (Optional)
-     * @param {boolean} [isDevHub] True if this org is a devhub. defaults to false (Optional)
-     * @return {Promise<Org>}
-     */
-    // tslint:disable-next-line:unified-signatures
-    public static async create(connection?: Connection, aggregator?: ConfigAggregator, isDevHub?: boolean): Promise<Org>;
-
-    /**
-     * Static initializer that allows creating an instance of an org from an alias, username, or Connection. If no identifier
-     * is provided then the defaultusername is used. If isDevHub is true then the defaultdevhubusername is used.
-     * @see {@link Config}
-     * @param {string | Connection} [connection] The string alias or username.
-     * @param {ConfigAggregator} [aggregator] optional config aggregator.
-     * @param {boolean} [isDevHub] true if this org is a devhub. defaults to false.
-     * @return {Promise<Org>}
-     */
-    public static async create(connection?: string | Connection, aggregator?: ConfigAggregator, isDevHub?: boolean): Promise<Org> {
-        const _aggregator = aggregator ? aggregator : await ConfigAggregator.create();
-
-        const org = new Org(_aggregator);
-
-        org.logger = await Logger.child('Org');
-
-        let _connection: Connection;
-
-        if (!connection) {
-            org.logger.debug('No connection specified. Trying default configurations');
-            connection = isDevHub ?
-                asString(get(_aggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME), 'value')) :
-                asString(get(_aggregator.getInfo(Config.DEFAULT_USERNAME), 'value'));
-            if (!connection) {
-                throw new SfdxError(`No ${isDevHub ? 'default Devhub' : 'default' } username or Connection found.`, 'NoUsername' );
-            }
-        }
-
-        if (isString(connection)) {
-            org.logger.debug('connection type is string');
-            const aliasValue: string = await Aliases.fetch(connection);
-            _connection = await Connection.create(
-                await AuthInfo.create(aliasValue || connection), _aggregator);
-        } else {
-            _connection = connection;
-        }
-
-        org.logger.debug(`connection created for org user: ${_connection.getUsername()}`);
-        org.setConnection(_connection);
-        return org;
-    }
+export class Org extends AsyncCreatable<OrgOptions> {
 
     // tslint:disable-next-line:no-unused-variable
     private status: OrgStatus = OrgStatus.UNKNOWN;
-    private configAggregator: ConfigAggregator;
+    private configAggregator!: ConfigAggregator;
 
     // Initialized in create
     private logger!: Logger;
     private connection!: Connection;
-
-    /**
-     * **Do not directly construct instances of this class -- use {@link Org.create} instead.**
-     *
-     * @private
-     * @constructor
-     */
-    private constructor(_aggregator: ConfigAggregator) {
-        this.configAggregator = _aggregator;
-    }
 
     /**
      * Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.
@@ -253,7 +191,7 @@ export class Org {
             } else {
                 const _info = await AuthInfo.create(username);
                 const connection: Connection = await Connection.create(_info);
-                orgForUser = await Org.create(connection);
+                orgForUser = await Org.create({ connection });
             }
 
             const orgType = await this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
@@ -322,7 +260,8 @@ export class Org {
         if (this.isDevHubOrg()) {
             return Promise.resolve(this);
         } else if (this.getField(OrgFields.DEV_HUB_USERNAME)) {
-            return Org.create(await Connection.create(await AuthInfo.create(this.getField(OrgFields.DEV_HUB_USERNAME) as string)));
+            const devHubUsername = ensureString(this.getField(OrgFields.DEV_HUB_USERNAME));
+            return Org.create({ connection: await Connection.create(await AuthInfo.create(devHubUsername)) });
         }
     }
 
@@ -504,20 +443,30 @@ export class Org {
         return this.connection;
     }
 
-    /**
-     * Sets the JSForce connection to use for this org.
-     * @param {Connection} connection The connection to use.
-     * @returns {Org} For convenience `this` object is returned.
-     * @throws {SfdxError} **`{name: 'UndefinedConnection'}`** The connection was not defined.
-     * @see {@link http://jsforce.github.io/jsforce/doc/Connection.html}
-     */
-    private setConnection(connection: Connection): Org {
-        if (connection) {
-            this.connection = connection;
-            return this;
+    protected async init(): Promise<void> {
+        this.logger = await Logger.child('Org');
+
+        this.configAggregator = this.options.aggregator ?
+            this.options.aggregator : await ConfigAggregator.create();
+
+        if (!this.options.connection) {
+
+            if (this.options.aliasOrUsername == null) {
+                this.configAggregator = this.getConfigAggregator();
+                this.options.aliasOrUsername = this.options.isDevHub ?
+                    asString(get(this.configAggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME), 'value')) :
+                    asString(get(this.configAggregator.getInfo(Config.DEFAULT_USERNAME), 'value'));
+            }
+
+            // If no username is provided AuthInfo will throw an SfdxError.
+            this.connection = await Connection.create(await AuthInfo.create(this.options.aliasOrUsername));
         } else {
-            throw new SfdxError('Connection not specified', 'UndefinedConnection');
+            this.connection = this.options.connection;
         }
+    }
+
+    protected getDefaultOptions(): OrgOptions {
+        throw new SfdxError('Not Supported');
     }
 
     private manageDelete(cb: AnyFunction<Promise<void>>, dirPath: string, throwWhenRemoveFails: boolean): Promise<void> {

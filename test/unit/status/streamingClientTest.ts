@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { StatusResult } from '../../../src/status/client';
 import {
     DefaultStreamingOptions,
@@ -14,13 +15,16 @@ import {
 } from '../../../src/status/streamingClient';
 
 import { expect } from 'chai';
-import * as _ from 'lodash';
+import { SinonSpyCall } from 'sinon';
 import { Connection } from '../../../src/connection';
 import { Crypto } from '../../../src/crypto';
 import { Org } from '../../../src/org';
 import { SfdxError } from '../../../src/sfdxError';
 import { shouldThrow, StreamingMockCometClient, StreamingMockSubscriptionCall, testSetup } from '../../../src/testSetup';
 import { Time, TIME_UNIT } from '../../../src/util/time';
+
+import { get } from '@salesforce/kit';
+import { JsonMap } from '@salesforce/ts-types';
 
 const MOCK_API_VERSION: string = '43.0';
 const MOCK_TOPIC: string = 'topic';
@@ -44,12 +48,12 @@ describe('streaming client tests', () => {
                 accessToken: crypto.encrypt(_id)
             }
         };
-        $$.SANDBOX.stub(Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
-        $$.SANDBOX.stub(Connection.prototype, 'getApiVersion').returns(MOCK_API_VERSION);
+        stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
+        stubMethod($$.SANDBOX, Connection.prototype, 'getApiVersion').returns(MOCK_API_VERSION);
     });
 
     it ('should set options apiVersion on system topics', async () => {
-        const org: Org = await Org.create(_username);
+        const org: Org = await Org.create({ aliasOrUsername: _username });
         const options: StreamingOptions<string> =
             new DefaultStreamingOptions(org, '/system/Logging', () => ({ completed: true }));
         expect(options.apiVersion).to.equal('36.0');
@@ -59,9 +63,9 @@ describe('streaming client tests', () => {
 
         const TEST_STRING: string = $$.uniqid();
 
-        const org: Org = await Org.create(_username);
+        const org: Org = await Org.create({ aliasOrUsername: _username });
 
-        const streamProcessor = (message): StatusResult<string> => {
+        const streamProcessor = (message: JsonMap): StatusResult<string> => {
             if (message.id === TEST_STRING) {
                 return {
                     payload: TEST_STRING,
@@ -97,9 +101,9 @@ describe('streaming client tests', () => {
 
         const TEST_STRING: string = $$.uniqid();
 
-        const org: Org = await Org.create(_username);
+        const org: Org = await Org.create({ aliasOrUsername: _username });
 
-        const streamProcessor = (message): StatusResult<string> => {
+        const streamProcessor = (message: JsonMap): StatusResult<string> => {
             if (message.id === TEST_STRING) {
                 throw new SfdxError('TEST_ERROR', 'TEST_ERROR');
             } else {
@@ -132,9 +136,9 @@ describe('streaming client tests', () => {
 
         const TEST_STRING: string = $$.uniqid();
 
-        const org: Org = await Org.create(_username);
+        const org: Org = await Org.create({ aliasOrUsername: _username });
 
-        const streamProcessor = (message): StatusResult<string> => {
+        const streamProcessor = (message: JsonMap): StatusResult<string> => {
             if (message.id === TEST_STRING) {
                 return {
                     payload: TEST_STRING,
@@ -170,9 +174,9 @@ describe('streaming client tests', () => {
     it ('handshake should succeed', async () => {
         const TEST_STRING: string = $$.uniqid();
 
-        const org: Org = await Org.create(_username);
+        const org: Org = await Org.create({aliasOrUsername: _username });
 
-        const streamProcessor = (message): StatusResult<string> => {
+        const streamProcessor = (message: JsonMap): StatusResult<string> => {
             if (message.id === TEST_STRING) {
                 return {
                     payload: TEST_STRING,
@@ -203,7 +207,7 @@ describe('streaming client tests', () => {
     it ('handshake should timeout', async () => {
         const TEST_STRING: string = $$.uniqid();
 
-        const org: Org = await Org.create(_username);
+        const org: Org = await Org.create({ aliasOrUsername: _username });
 
         const streamProcessor = (): StatusResult<string> => {
             return { completed: false };
@@ -234,7 +238,7 @@ describe('streaming client tests', () => {
     it ('subscribe should timeout', async () => {
         const TEST_STRING: string = $$.uniqid();
 
-        const org: Org = await Org.create(_username);
+        const org: Org = await Org.create({ aliasOrUsername: _username });
 
         const streamProcessor = (): StatusResult<string> => {
             return {
@@ -257,7 +261,7 @@ describe('streaming client tests', () => {
 
         const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
         try {
-            await shouldThrow(asyncStatusClient.subscribe( async () => {
+            await shouldThrow(asyncStatusClient.subscribe( async (): Promise<void> => {
                 return Promise.resolve();
             }));
         } catch (e) {
@@ -269,11 +273,11 @@ describe('streaming client tests', () => {
         const JENNYS_NUMBER: number = 8675309;
         const GHOSTBUSTERS_NUMBER: number = 5552368;
 
-        const setTimeoutSpy = $$.SANDBOX.spy(global, 'setTimeout');
+        const setTimeoutSpy = spyMethod($$.SANDBOX, global, 'setTimeout');
 
         const TEST_STRING: string = $$.uniqid();
 
-        const org: Org = await Org.create(_username);
+        const org: Org = await Org.create({ aliasOrUsername: _username });
 
         const streamProcessor = (): StatusResult<string> => {
             return {
@@ -296,16 +300,15 @@ describe('streaming client tests', () => {
         };
 
         const asyncStatusClient: StreamingClient<string> = await StreamingClient.init(options);
-        await asyncStatusClient.subscribe( async () => {
-            return Promise.resolve();
-        });
+        await asyncStatusClient.subscribe(() => Promise.resolve());
 
         expect(setTimeoutSpy.called).to.be.true;
         // Subscribe should call setTimeout with Jenny's number
-        expect(_.filter(setTimeoutSpy.getCalls(), object => object.lastArg === JENNYS_NUMBER)).to.have.length(1);
+        expect(setTimeoutSpy.getCalls().filter((value: SinonSpyCall) =>
+            get(value, 'lastArg') === JENNYS_NUMBER)).to.have.length(1);
         // Ensure setTimeout is not called with the handshake timeout.
-        expect(_.filter(setTimeoutSpy.getCalls(), object => object.lastArg === GHOSTBUSTERS_NUMBER)).to.have.length(0);
-
+        expect(setTimeoutSpy.getCalls().filter((value: SinonSpyCall) =>
+            get(value, 'lastArg') === GHOSTBUSTERS_NUMBER)).to.have.length(0);
     });
 
     it ('should throw a handshake error when the API version is incorrect', async () => {
@@ -331,7 +334,7 @@ describe('streaming client tests', () => {
         let options: DefaultStreamingOptions<string>;
 
         beforeEach(async () => {
-            const org: Org = await Org.create(_username);
+            const org: Org = await Org.create({ aliasOrUsername: _username });
 
             const streamProcessor = (): StatusResult<string> => {
                 return { completed: false };
