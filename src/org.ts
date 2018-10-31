@@ -260,7 +260,8 @@ export class Org extends AsyncCreatable<OrgOptions> {
         if (this.isDevHubOrg()) {
             return Promise.resolve(this);
         } else if (this.getField(OrgFields.DEV_HUB_USERNAME)) {
-            return Org.create({connection: await Connection.create(await AuthInfo.create(this.getField(OrgFields.DEV_HUB_USERNAME) as string)) });
+            const devHubUsername = ensureString(this.getField(OrgFields.DEV_HUB_USERNAME));
+            return Org.create({ connection: await Connection.create(await AuthInfo.create(devHubUsername)) });
         }
     }
 
