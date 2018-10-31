@@ -35,7 +35,9 @@ describe('permission set assignment tests', () => {
 
         let org: Org;
         beforeEach(async () => {
-            org = await Org.create(await Connection.create(await AuthInfo.create(userTestdata.username)));
+            org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(userTestdata.username))
+            });
         });
 
         it ('no id', async () => {
