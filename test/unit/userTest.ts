@@ -78,7 +78,9 @@ describe('User Tests', () => {
                 });
             });
             expect(refreshSpy.calledOnce).to.equal(false);
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
+            const org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(adminTestData.username))
+            });
             await User.init(org);
             expect(refreshSpy.calledOnce).to.equal(true);
         });
@@ -90,7 +92,9 @@ describe('User Tests', () => {
                 }`});
             });
 
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
+            const org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(adminTestData.username))
+            });
             const user = await User.init(org);
 
             try {
@@ -128,7 +132,9 @@ describe('User Tests', () => {
                 });
             });
 
-            const org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
+            const org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(adminTestData.username))
+            });
             const user: User = await User.init(org);
 
             const options: DefaultUserFieldsOptions = {
@@ -169,7 +175,7 @@ describe('User Tests', () => {
             });
             $$.configStubs.AuthInfoConfig = { contents: await user1.getConfig() };
             const connection: Connection = await Connection.create(await AuthInfo.create(user1.username));
-            org = await Org.create(connection);
+            org = await Org.create({ connection });
 
         });
 
@@ -205,7 +211,9 @@ describe('User Tests', () => {
                 });
             });
 
-            org = await Org.create(await Connection.create(await AuthInfo.create(adminTestData.username)));
+            org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(adminTestData.username))
+            });
 
         });
 
