@@ -4,13 +4,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { stubMethod } from '@salesforce/ts-sinon';
-import { AnyJson, ensureJsonArray, JsonArray } from '@salesforce/ts-types';
+import { set } from '@salesforce/kit';
+import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
+import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap } from '@salesforce/ts-types';
+import { deepStrictEqual } from 'assert';
 import { assert, expect } from 'chai';
 import { constants as fsConstants } from 'fs';
 import { OAuth2 } from 'jsforce';
+// @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
-import { get as _get, isEqual as _isEqual, set as _set } from 'lodash';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { AuthFields, AuthInfo } from '../../src/authInfo';
@@ -41,31 +43,31 @@ describe('Org Tests', () => {
 
     describe('fields', () => {
         it('getField should get authinfo fields', async () => {
-            const org: Org = await Org.create(testData.username);
+            const org: Org = await Org.create({ aliasOrUsername: testData.username });
             expect(org.getField(OrgFields.ORG_ID)).to.eq(testData.orgId);
         });
 
         it('getField should get org properties', async () => {
-            const org: Org = await Org.create(testData.username);
+            const org: Org = await Org.create({ aliasOrUsername: testData.username });
             expect(org.getField(OrgFields.STATUS)).to.eq('UNKNOWN');
         });
 
         it('getFields should get a bunch of fields', async () => {
-            const org: Org = await Org.create(testData.username);
+            const org: Org = await Org.create({ aliasOrUsername: testData.username });
             expect(org.getFields([OrgFields.ORG_ID, OrgFields.STATUS])).to.deep.eq({ orgId: testData.orgId, status: 'UNKNOWN' });
         });
     });
 
     describe('org:create', () => {
         it('should create an org from a username', async () => {
-            const org: Org = await Org.create(testData.username);
+            const org: Org = await Org.create({ aliasOrUsername: testData.username });
             expect(org.getUsername()).to.eq(testData.username);
         });
 
         it('should create an org from an alias', async () => {
             const ALIAS: string = 'foo';
             await Aliases.parseAndUpdate([`${ALIAS}=${testData.username}`]);
-            const org: Org = await Org.create(ALIAS);
+            const org: Org = await Org.create({ aliasOrUsername: ALIAS });
             expect(org.getUsername()).to.eq(testData.username);
         });
 
@@ -77,7 +79,7 @@ describe('Org Tests', () => {
 
             const configAggregator: ConfigAggregator = await ConfigAggregator.create();
 
-            const org: Org = await Org.create(undefined, configAggregator);
+            const org: Org = await Org.create({ aggregator: configAggregator });
             expect(org.getUsername()).to.eq(testData.username);
         });
 
@@ -88,17 +90,17 @@ describe('Org Tests', () => {
 
             const configAggregator: ConfigAggregator = await ConfigAggregator.create();
 
-            const org: Org = await Org.create(undefined, configAggregator, true);
+            const org: Org = await Org.create({ aggregator: configAggregator, isDevHub: true });
             expect(org.getUsername()).to.eq(testData.username);
         });
 
         it('should expose getUsername', async () => {
-            const org: Org = await Org.create(testData.username);
+            const org: Org = await Org.create({ aliasOrUsername: testData.username });
             expect(org.getUsername()).to.eq(testData.username);
         });
 
         it('should expose getOrgId', async () => {
-            const org: Org = await Org.create(testData.username);
+            const org: Org = await Org.create({ aliasOrUsername: testData.username });
             expect(org.getOrgId()).to.eq(testData.orgId);
         });
 
@@ -109,7 +111,9 @@ describe('Org Tests', () => {
             $$.SANDBOXES.CONNECTION.restore();
             $$.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(() =>
                 Promise.resolve([{version: '89.0'}, {version: '90.0'}, {version: '88.0'}]));
-            const org: Org = await Org.create(await Connection.create(await AuthInfo.create(testData.username)));
+            const org: Org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(testData.username))
+            });
             const apiVersion = await org.retrieveMaxApiVersion();
             expect(apiVersion).to.equal('90.0');
         });
@@ -117,16 +121,17 @@ describe('Org Tests', () => {
 
     describe('cleanLocalOrgData', () => {
         describe('mock remove', () => {
-            let removeStub;
+            let removeStub: sinon.SinonStub;
             beforeEach(() => {
-                removeStub = stubMethod($$.SANDBOX, fs, 'remove').callsFake(path => {
+                removeStub = stubMethod($$.SANDBOX, fs, 'remove').callsFake(() => {
                     return Promise.resolve();
                 });
             });
 
             it('no org data path', async () => {
-                const org: Org = await Org.create(
-                    await Connection.create(await AuthInfo.create(testData.username)));
+                const org: Org = await Org.create({
+                    connection: await Connection.create(await AuthInfo.create(testData.username))
+                });
 
                 expect(removeStub.callCount).to.be.equal(0);
                 await org.cleanLocalOrgData();
@@ -136,7 +141,7 @@ describe('Org Tests', () => {
 
         it('InvalidProjectWorkspace', async () => {
             $$.SANDBOXES.CONFIG.restore();
-            const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanLocalOrgData');
+            const orgSpy = spyMethod($$.SANDBOX, Org.prototype, 'cleanLocalOrgData');
             let invalidProjectWorkspace = false;
             stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
@@ -149,15 +154,16 @@ describe('Org Tests', () => {
             });
             stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
-            const org: Org = await Org.create(
-                await Connection.create(await AuthInfo.create(testData.username)));
+            const org: Org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(testData.username))
+            });
             await org.cleanLocalOrgData(orgDataPath);
             expect(invalidProjectWorkspace).to.be.equal(true);
         });
 
         it('Random Error', async () => {
             $$.SANDBOXES.CONFIG.restore();
-            const orgSpy = $$.SANDBOX.spy(Org.prototype, 'cleanLocalOrgData');
+            const orgSpy = spyMethod($$.SANDBOX, Org.prototype, 'cleanLocalOrgData');
             stubMethod($$.SANDBOX, Config, 'resolveRootFolder').callsFake(() => {
                 if (orgSpy.callCount > 0) {
                     const err = new Error();
@@ -168,8 +174,9 @@ describe('Org Tests', () => {
             });
             stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
-            const org: Org = await Org.create(
-                await Connection.create(await AuthInfo.create(testData.username)));
+            const org: Org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(testData.username))
+            });
             try {
                 await org.cleanLocalOrgData(orgDataPath);
                 assert.fail('This should have failed');
@@ -180,8 +187,8 @@ describe('Org Tests', () => {
     });
 
     describe('remove', () => {
-        const configFileReadJsonMock = async function() {
-            if (this.path.includes(`${testData.username}.json`)) {
+        const configFileReadJsonMock = async function(this: ConfigFile) {
+            if (this.getPath().includes(`${testData.username}.json`)) {
                 return Promise.resolve(await testData.getConfig());
             }
 
@@ -194,12 +201,13 @@ describe('Org Tests', () => {
 
         it('should remove all assets associated with the org', async () => {
 
-            const org: Org = await Org.create(
-                await Connection.create(await AuthInfo.create(testData.username)));
+            const org: Org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(testData.username))
+            });
 
-            const deletedPaths = [];
-            stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function() {
-                deletedPaths.push(this.path);
+            const deletedPaths: string[] = [];
+            stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function(this: ConfigFile) {
+                deletedPaths.push(this.getPath());
                 return Promise.resolve({});
             });
 
@@ -214,11 +222,12 @@ describe('Org Tests', () => {
         });
 
         it('should not fail when no scratch org has been written', async () => {
-            const org: Org = await Org.create(
-                await Connection.create(await AuthInfo.create(testData.username)));
+            const org: Org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(testData.username))
+            });
 
             const error: Error = new Error();
-            error['code'] = 'ENOENT';
+            set(error, 'code', 'ENOENT');
 
             stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(async () => {
                 throw error;
@@ -237,8 +246,10 @@ describe('Org Tests', () => {
 
         it('should remove config setting', async () => {
             const configAggregator: ConfigAggregator = await ConfigAggregator.create();
-            const org: Org = await Org.create(
-                await Connection.create(await AuthInfo.create(testData.username)), configAggregator);
+            const org: Org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(testData.username)),
+                aggregator: configAggregator
+            });
 
             const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
             await config.set(Config.DEFAULT_USERNAME, testData.username);
@@ -257,8 +268,9 @@ describe('Org Tests', () => {
         });
 
         it('should remove the alias', async () => {
-            const org: Org = await Org.create(
-                await Connection.create(await AuthInfo.create(testData.username)));
+            const org: Org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(testData.username))
+            });
 
             await Aliases.parseAndUpdate([`foo=${testData.username}`]);
             let alias = await Aliases.fetch('foo');
@@ -288,12 +300,12 @@ describe('Org Tests', () => {
             ];
 
             $$.SANDBOXES.CONFIG.restore();
-            stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(isGlobal => $$.rootPathRetriever(isGlobal, $$.id));
+            stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) => $$.rootPathRetriever(isGlobal, $$.id));
 
-            let userAuthResponse = null;
+            let userAuthResponse: AnyJson = null;
             stubMethod($$.SANDBOX, OAuth2.prototype, '_postParams').callsFake(() => Promise.resolve(userAuthResponse));
 
-            let responseBody = null;
+            let responseBody: AnyJson = null;
             stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(() => {
                 return Promise.resolve(responseBody);
             });
@@ -319,8 +331,8 @@ describe('Org Tests', () => {
 
                 const configAggregator: ConfigAggregator = await ConfigAggregator.create();
 
-                const org: Org = await Org.create(
-                    await Connection.create(await AuthInfo.create(user.username)), configAggregator);
+                const org: Org = await Org.create({ connection:
+                    await Connection.create(await AuthInfo.create(user.username)), aggregator: configAggregator });
 
                 orgs.push(org);
             }
@@ -374,7 +386,7 @@ describe('Org Tests', () => {
     });
 
     describe('checkScratchOrg', () => {
-        let returnResult;
+        let returnResult: JsonMap | string;
         let org: Org;
         let connection: Connection;
         beforeEach(async () => {
@@ -391,7 +403,7 @@ describe('Org Tests', () => {
 
             const configAggregator: ConfigAggregator = await ConfigAggregator.create();
             connection = await Connection.create(await AuthInfo.create(testData.username));
-            org = await Org.create(connection, configAggregator);
+            org = await Org.create({ connection, aggregator: configAggregator });
 
             const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
             await config.set(Config.DEFAULT_DEV_HUB_USERNAME, fakeDevHub);
@@ -403,7 +415,7 @@ describe('Org Tests', () => {
         it('validate is a scratch org', async () => {
             returnResult = { records: [ {} ] };
             const fields: Partial<AuthFields> = await org.checkScratchOrg();
-            expect(_isEqual(fields, connection.getAuthInfoFields())).to.be.true;
+            deepStrictEqual(fields, connection.getAuthInfoFields());
         });
 
         it('validate is not scratch org', async () => {
@@ -431,44 +443,53 @@ describe('Org Tests', () => {
 
         const devHubUser = 'ray@gb.org';
         beforeEach(() => {
-            const retrieve = async function() {
-                if (this.path.includes(devHubUser)) {
+            const retrieve = async function(this: ConfigFile) {
+                if (this.getPath().includes(devHubUser)) {
                     const mockDevHubData: MockTestOrgData = new MockTestOrgData();
                     mockDevHubData.username = devHubUser;
                     return Promise.resolve(mockDevHubData.getConfig());
                 }
                 return Promise.resolve(await testData.getConfig());
             };
+            // This really isn't correct. ConfigContents or Any Json needs to support having a function.
             $$.configStubs.AuthInfoConfig = { retrieveContents: retrieve};
         });
 
         it('steel thread', async () => {
             testData.createDevHubUsername(devHubUser);
-            const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
+            const org: Org = await Org.create({
+                connection:  await Connection.create(await AuthInfo.create(testData.username))
+            });
 
-            const devHub: Org = await org.getDevHubOrg();
-            expect(devHub.getUsername()).eq(devHubUser);
+            const devHub: Org | undefined = await org.getDevHubOrg();
+            expect(devHub).to.not.be.undefined;
+            expect(devHub!.getUsername()).eq(devHubUser);
         });
 
         it('org is devhub', async () => {
             testData.makeDevHub();
-            const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
+            const org: Org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(testData.username))
+            });
 
-            const devHub: Org = await org.getDevHubOrg();
-            expect(devHub.getUsername()).eq(testData.username);
+            const devHub: Org | undefined = await org.getDevHubOrg();
+            expect(devHub).to.not.be.undefined;
+            expect(devHub!.getUsername()).eq(testData.username);
         });
     });
 
     describe('refresh auth', () => {
-        let url;
+        let url: string;
         beforeEach(() => {
             $$.fakeConnectionRequest = (requestInfo: AnyJson): Promise<AnyJson> => {
-                    url = requestInfo['url'];
-                    return Promise.resolve({});
-                };
+                url = ensureString(ensureJsonMap(requestInfo).url);
+                return Promise.resolve({});
+            };
         });
         it('should request an refresh token', async () => {
-            const org: Org = await Org.create( await Connection.create(await AuthInfo.create(testData.username)));
+            const org: Org = await Org.create({
+                connection: await Connection.create(await AuthInfo.create(testData.username))
+            });
             await org.refreshAuth();
             // Todo add the apiversion to the test string
             expect(url).to.include(`${testData.instanceUrl}/services/data/v`);
@@ -489,8 +510,8 @@ describe('Org Tests', () => {
             mock1 = new MockTestOrgData();
             mock2 = new MockTestOrgData();
 
-            const retrieve = async function() {
-                const path = this.path;
+            const retrieve = async function(this: ConfigFile) {
+                const path = this.getPath();
 
                 if (path && path.includes(mock0.username)) {
                     return mock0.getConfig();
@@ -512,12 +533,12 @@ describe('Org Tests', () => {
             };
             $$.configStubs.AuthInfoConfig = { retrieveContents: retrieve};
 
-            orgs[0] = await Org.create(
-                await Connection.create(await AuthInfo.create(mock0.username)));
-            orgs[1] = await Org.create(
-                await Connection.create(await AuthInfo.create(mock1.username)));
-            orgs[2] = await Org.create(
-                await Connection.create(await AuthInfo.create(mock2.username)));
+            orgs[0] = await Org.create({ connection:
+                await Connection.create(await AuthInfo.create(mock0.username)) });
+            orgs[1] = await Org.create({ connection:
+                await Connection.create(await AuthInfo.create(mock1.username)) });
+            orgs[2] = await Org.create({ connection:
+                await Connection.create(await AuthInfo.create(mock2.username)) });
         });
 
         it('should read all auth files from an org file', async () => {
@@ -544,17 +565,16 @@ describe('Org Tests', () => {
         describe('removeUsername', () => {
             it('should remove all usernames', async () => {
 
-                await orgs[0].addUsername(orgs[1].getUsername());
-                await orgs[0].addUsername(orgs[2].getUsername());
+                await orgs[0].addUsername(ensureString(orgs[1].getUsername()));
+                await orgs[0].addUsername(ensureString(orgs[2].getUsername()));
 
-                let usersPresent: JsonArray = null;
-                await orgs[0].removeUsername(orgs[1].getUsername());
-                usersPresent = ensureJsonArray($$.configStubs.OrgUsersConfig.contents.usernames);
+                await orgs[0].removeUsername(ensureString(orgs[1].getUsername()));
+                let usersPresent = ensureJsonArray($$.getConfigStubContents('OrgUsersConfig').usernames);
                 expect(usersPresent.length).to.be.eq(2);
                 expect(usersPresent).to.not.include(mock1.username);
 
-                await orgs[0].removeUsername(orgs[2].getUsername());
-                usersPresent = ensureJsonArray($$.configStubs.OrgUsersConfig.contents.usernames);
+                await orgs[0].removeUsername(ensureString(orgs[2].getUsername()));
+                usersPresent = ensureJsonArray($$.getConfigStubContents('OrgUsersConfig').usernames);
                 expect(usersPresent.length).to.be.eq(1);
                 expect(usersPresent).to.not.include(mock2.username);
             });
