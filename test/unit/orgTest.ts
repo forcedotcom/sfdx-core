@@ -6,7 +6,7 @@
  */
 import { set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
-import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap } from '@salesforce/ts-types';
+import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
 import { deepStrictEqual } from 'assert';
 import { assert, expect } from 'chai';
 import { constants as fsConstants } from 'fs';
@@ -460,8 +460,7 @@ describe('Org Tests', () => {
                 connection:  await Connection.create(await AuthInfo.create(testData.username))
             });
 
-            const devHub: Org | undefined = await org.getDevHubOrg();
-            expect(devHub).to.not.be.undefined;
+            const devHub: Optional<Org> = await org.getDevHubOrg();
             expect(devHub!.getUsername()).eq(devHubUser);
         });
 
@@ -471,8 +470,7 @@ describe('Org Tests', () => {
                 connection: await Connection.create(await AuthInfo.create(testData.username))
             });
 
-            const devHub: Org | undefined = await org.getDevHubOrg();
-            expect(devHub).to.not.be.undefined;
+            const devHub: Optional<Org> | undefined = await org.getDevHubOrg();
             expect(devHub!.getUsername()).eq(testData.username);
         });
     });
