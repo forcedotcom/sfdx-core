@@ -224,10 +224,10 @@ const DEFAULT_CONNECTED_APP_INFO = {
     clientSecret: '1384510088588713504'
 };
 
-let authInfoCrypto: AuthInfoCrypto;
-
 class AuthInfoCrypto extends Crypto {
-    private static readonly encryptedFields: Array<keyof AuthFields> = ['accessToken', 'refreshToken', 'password', 'clientSecret'];
+    private static readonly encryptedFields: Array<keyof AuthFields> = [
+        'accessToken', 'refreshToken', 'password', 'clientSecret'
+    ];
 
     public decryptFields(fields: AuthFields): AuthFields {
         return this._crypt(fields, 'decrypt');
@@ -375,6 +375,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
     // Initialized in init
     private logger!: Logger;
 
+    private authInfoCrypto!: AuthInfoCrypto;
+
     /**
      * Get the username.
      * @returns {string}
@@ -455,10 +457,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
      */
     public update(authData?: AuthFields, encrypt: boolean = true): AuthInfo {
         if (authData && isPlainObject(authData)) {
+            let copy = cloneJson<AuthFields>(authData);
             if (encrypt) {
-                authData = authInfoCrypto.encryptFields(authData);
+                copy = this.authInfoCrypto.encryptFields(copy);
             }
-            Object.assign(this.fields, authData);
+            Object.assign(this.fields, copy);
             this.logger.info(`Updated auth info for username: ${this.getUsername()}`);
         }
         return this;
@@ -507,7 +510,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
         }
 
         // decrypt the fields
-        return authInfoCrypto.decryptFields(opts);
+        return this.authInfoCrypto.decryptFields(opts);
     }
 
     /**
@@ -532,7 +535,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
      * @returns {string}
      */
     public getSfdxAuthUrl(): string {
-        const decryptedFields = authInfoCrypto.decryptFields(this.fields);
+        const decryptedFields = this.authInfoCrypto.decryptFields(this.fields);
         const instanceUrl = ensure(decryptedFields.instanceUrl).replace(/^https?:\/\//, '');
         let sfdxAuthUrl = 'force://';
 
@@ -562,7 +565,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
         if (accessTokenMatch) {
             // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
             this.logger = await Logger.child('AuthInfo');
-            authInfoCrypto = await AuthInfoCrypto.create({ noResetOnClose: true });
+            this.authInfoCrypto = await AuthInfoCrypto.create({ noResetOnClose: true });
 
             const aggregator: ConfigAggregator = await ConfigAggregator.create();
             const instanceUrl: string = aggregator.getPropertyValue('instanceUrl') as string || SFDC_URLS.production;
@@ -596,7 +599,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
      */
     private async initAuthOptions(options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
         this.logger = await Logger.child('AuthInfo');
-        authInfoCrypto = await AuthInfoCrypto.create();
+        this.authInfoCrypto = await AuthInfoCrypto.create();
 
         // If options were passed, use those before checking cache and reading an auth file.
         let authConfig: AuthFields;
@@ -670,9 +673,10 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
         this.logger.info('Access token has expired. Updating...');
 
         try {
-            await this.initAuthOptions(authInfoCrypto.decryptFields(this.fields));
+            const fields = this.authInfoCrypto.decryptFields(this.fields);
+            await this.initAuthOptions(fields);
             await this.save();
-            return await callback(null, authInfoCrypto.decrypt(asString(this.fields.accessToken)));
+            return await callback(null, fields.accessToken);
         } catch (err) {
             if (err.message && err.message.includes('Data Not Available')) {
                 const errConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'OrgDataNotAvailableError', [this.getUsername()]);

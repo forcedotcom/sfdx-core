@@ -319,9 +319,11 @@ describe('AuthInfo', () => {
             if (element && !isFunction(element) && !isBoolean(element) && !isNumber(element)) {
                 if (isJsonMap(element)) return Object.values(element).includes(value);
 
-                if (isJsonArray(element)) return element.includes(value);
+                if (element.includes) {// This could be a json Buffer.
+                    if (isJsonArray(element)) return element.includes(value);
 
-                if (isString(value)) return element.includes(value);
+                    if (isString(value)) return element.includes(value);
+                }
             }
             return false;
         };
@@ -996,8 +998,19 @@ describe('AuthInfo', () => {
     });
 
     describe('update()', () => {
+        let encryptStub: sinon.SinonStub;
+        let crypto: Crypto;
+        beforeEach(async () => {
+            crypto = await Crypto.create();
+            encryptStub = $$.SANDBOX.stub().callsFake((fields: AuthFields) => {
+                fields.password = crypto.encrypt(fields.password);
+                fields.clientSecret = crypto.encrypt(fields.clientSecret);
+                fields.accessToken = crypto.encrypt(fields.accessToken);
+                return fields;
+            });
+        });
+
         it('should encrypt the data before assigning to this.fields', async () => {
-            const crypto = await Crypto.create();
             const context: any = { // tslint:disable-line:no-any
                 getUsername: () => context.fields.username,
                 fields: {
@@ -1007,6 +1020,9 @@ describe('AuthInfo', () => {
                     orgId: '00DAuthInfoTest_orgId',
                     loginUrl: testMetadata.loginUrl,
                     refreshToken: crypto.encrypt(testMetadata.refreshToken)
+                },
+                authInfoCrypto: {
+                    encryptFields: encryptStub
                 },
                 logger: $$.TEST_LOGGER
             };
@@ -1047,6 +1063,17 @@ describe('AuthInfo', () => {
     });
 
     describe('refreshFn()', () => {
+        let crypto: Crypto;
+        let decryptStub: sinon.SinonStub;
+
+        beforeEach(async () => {
+            crypto = await Crypto.create();
+            decryptStub = $$.SANDBOX.stub().callsFake((fields: AuthFields) => {
+                fields.accessToken = crypto.decrypt(fields.accessToken);
+                return fields;
+            });
+        });
+
         it('should call init() and save()', async () => {
             const context = {
                 getUsername: () => '',
@@ -1056,6 +1083,7 @@ describe('AuthInfo', () => {
                     privateKey: 'authInfoTest/jwt/server.key',
                     accessToken: testMetadata.encryptedAccessToken
                 },
+                authInfoCrypto: { decryptFields: decryptStub },
                 initAuthOptions: $$.SANDBOX.stub(),
                 save: $$.SANDBOX.stub(),
                 logger: $$.TEST_LOGGER
@@ -1090,12 +1118,13 @@ describe('AuthInfo', () => {
                     privateKey: 'authInfoTest/jwt/server.key',
                     accessToken: testMetadata.encryptedAccessToken
                 },
-                init: $$.SANDBOX.stub(),
+                authInfoCrypto: { decryptFields: decryptStub },
+                initAuthOptions: $$.SANDBOX.stub(),
                 save: $$.SANDBOX.stub(),
                 logger: $$.TEST_LOGGER
             };
             const testCallback = $$.SANDBOX.spy();
-            context.init.throws(new Error('Error: Data Not Available'));
+            context.initAuthOptions.throws(new Error('Error: Data Not Available'));
             context.save.returns(Promise.resolve());
 
             await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
