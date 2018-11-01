@@ -227,10 +227,6 @@ const DEFAULT_CONNECTED_APP_INFO = {
 let authInfoCrypto: AuthInfoCrypto;
 
 class AuthInfoCrypto extends Crypto {
-    public static async create(): Promise<AuthInfoCrypto> {
-        return await new AuthInfoCrypto().init(undefined, undefined, true) as AuthInfoCrypto;
-    }
-
     private static readonly encryptedFields: Array<keyof AuthFields> = ['accessToken', 'refreshToken', 'password', 'clientSecret'];
 
     public decryptFields(fields: AuthFields): AuthFields {
@@ -317,7 +313,7 @@ export class AuthInfo {
         if (accessTokenMatch) {
             // Need to setup the logger and authInfoCrypto since we don't call init()
             authInfo.logger = await Logger.child('AuthInfo');
-            authInfoCrypto = await AuthInfoCrypto.create();
+            authInfoCrypto = await AuthInfoCrypto.create({ noResetOnClose: true });
 
             const aggregator: ConfigAggregator = await ConfigAggregator.create();
             const instanceUrl: string = aggregator.getPropertyValue('instanceUrl') as string || SFDC_URLS.production;
