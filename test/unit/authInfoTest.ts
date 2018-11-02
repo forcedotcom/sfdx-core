@@ -314,12 +314,12 @@ describe('AuthInfo', () => {
             });
         });
 
-        // @todo move to kit.
+        // @todo replace this with includes from kit.
         const includes = (element: AnyJson, value: AnyJson) => {
             if (element && !isFunction(element) && !isBoolean(element) && !isNumber(element)) {
                 if (isJsonMap(element)) return Object.values(element).includes(value);
 
-                if (element.includes) {// This could be a json Buffer.
+                if (element.includes) {
                     if (isJsonArray(element)) return element.includes(value);
 
                     if (isString(value)) return element.includes(value);
