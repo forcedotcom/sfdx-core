@@ -457,7 +457,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
      */
     public update(authData?: AuthFields, encrypt: boolean = true): AuthInfo {
         if (authData && isPlainObject(authData)) {
-            let copy = cloneJson<AuthFields>(authData);
+            let copy = cloneJson(authData);
             if (encrypt) {
                 copy = this.authInfoCrypto.encryptFields(copy);
             }
@@ -586,7 +586,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
      * Returns the default options when 'await AuthInfo.create()' is called without any called specified options.
      */
     protected getDefaultOptions(): AuthInfoOptions {
-        return {} as AuthInfoOptions;
+        const opts: AuthInfoOptions = {};
+        return opts;
     }
 
     /**
