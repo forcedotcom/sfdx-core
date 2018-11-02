@@ -5,7 +5,6 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import * as _ from 'lodash';
 import { AuthInfo } from '../../src/authInfo';
 import { Connection } from '../../src/connection';
 import { Org } from '../../src/org';
@@ -21,47 +20,19 @@ describe('permission set assignment tests', () => {
         userTestdata = new MockTestOrgData();
     });
 
-    describe('init tests', () => {
-        it ('no org', async () => {
-            try {
-                await shouldThrow(PermissionSetAssignment.init(null));
-            } catch (e) {
-                expect(e).to.have.property('name', 'orgRequired');
-            }
-        });
-    });
-
     describe('create tests', () => {
 
         let org: Org;
         beforeEach(async () => {
             org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(userTestdata.username))
+                connection: await Connection.create(await AuthInfo.create({ username: userTestdata.username }))
             });
-        });
-
-        it ('no id', async () => {
-            const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
-            try {
-                await shouldThrow(assignment.create(null, null));
-            } catch (e) {
-                expect(e).to.have.property('name', 'userIdRequired');
-            }
-        });
-
-        it ('no perm set', async () => {
-            const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
-            try {
-                await shouldThrow(assignment.create('123456', null));
-            } catch (e) {
-                expect(e).to.have.property('name', 'permSetRequired');
-            }
         });
 
         it ('should create a perm set assignment.', async () => {
             let query: string = '';
             $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
-                query = _.toLower(_query);
+                query = _query.toLowerCase();
                 if (query.includes('from permissionset')) {
                     return {
                         records: [ { Id: '123456' } ],
@@ -86,15 +57,15 @@ describe('permission set assignment tests', () => {
             await assignment.create('123456', `${NS}__${PERM_SET_NAME}`);
 
             expect(query).to.include('namespaceprefix');
-            expect(query).to.include(_.toLower(NS));
+            expect(query).to.include(NS.toLowerCase());
             expect(query).to.include('name');
-            expect(query).to.include(_.toLower(PERM_SET_NAME));
+            expect(query).to.include(PERM_SET_NAME.toLowerCase());
         });
 
         it ('Failed to find permsets with namespace', async () => {
             let query: string = '';
             $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
-                query = _.toLower(_query);
+                query = _query.toLowerCase();
                 if (query.includes('from permissionset')) {
                     return {
                         records: [],
@@ -126,7 +97,7 @@ describe('permission set assignment tests', () => {
         it ('Failed to find permsets without namespace', async () => {
             let query: string = '';
             $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
-                query = _.toLower(_query);
+                query = _query.toLowerCase();
                 if (query.includes('from permissionset')) {
                     return {
                         records: [],
@@ -157,7 +128,7 @@ describe('permission set assignment tests', () => {
         it ('permset assignment with errors', async () => {
             let query: string = '';
             $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
-                query = _.toLower(_query);
+                query = _query.toLowerCase();
                 if (query.includes('from permissionset')) {
                     return {
                         records: [ { Id: '123456' } ],
@@ -189,7 +160,7 @@ describe('permission set assignment tests', () => {
         it ('permset assignment with empty errors', async () => {
             let query: string = '';
             $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
-                query = _.toLower(_query);
+                query = _query.toLowerCase();
                 if (query.includes('from permissionset')) {
                     return {
                         records: [ { Id: '123456' } ],

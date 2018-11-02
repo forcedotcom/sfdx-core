@@ -56,7 +56,7 @@
  * @property {string} instanceUrl
  */
 
-import { cloneJson, get, isEmpty, parseJsonMap, set } from '@salesforce/kit';
+import { AsyncCreatable, cloneJson, get, isEmpty, parseJsonMap, set } from '@salesforce/kit';
 import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, isPlainObject, isString, JsonMap, keysOf, Nullable, Optional } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
@@ -224,14 +224,10 @@ const DEFAULT_CONNECTED_APP_INFO = {
     clientSecret: '1384510088588713504'
 };
 
-let authInfoCrypto: AuthInfoCrypto;
-
 class AuthInfoCrypto extends Crypto {
-    public static async create(): Promise<AuthInfoCrypto> {
-        return await new AuthInfoCrypto().init(undefined, undefined, true) as AuthInfoCrypto;
-    }
-
-    private static readonly encryptedFields: Array<keyof AuthFields> = ['accessToken', 'refreshToken', 'password', 'clientSecret'];
+    private static readonly encryptedFields: Array<keyof AuthFields> = [
+        'accessToken', 'refreshToken', 'password', 'clientSecret'
+    ];
 
     public decryptFields(fields: AuthFields): AuthFields {
         return this._crypt(fields, 'decrypt');
@@ -265,6 +261,12 @@ function base64UrlEscape(base64Encoded: string): string {
     return base64Encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
+interface AuthInfoOptions {
+    username?: string;
+    oauth2Options?: OAuth2Options;
+    accessTokenOptions?: AccessTokenOptions;
+}
+
 /**
  * Handles persistence and fetching of user authentication information using
  * JWT, OAuth, or refresh tokens. Sets up the refresh flows that jsForce will
@@ -290,51 +292,7 @@ function base64UrlEscape(base64Encoded: string): string {
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
-export class AuthInfo {
-
-    /**
-     * Create an instance of AuthInfo for the provided username and options.
-     * If options are not provided, attempt to read the authorization information from disk.
-     *
-     * @param {string} [username] The username for the authentication info.
-     * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
-     * @throws {SfdxError}
-     *    **`{name: 'NamedOrgNotFound'}`:** Org information does not exist.
-     * @throws {SfdxError}
-     *    **`{name: 'AuthInfoCreationError'}`:** Org information does not exist.
-     * @returns {Promise<AuthInfo>}
-     */
-    public static async create(username?: string, options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
-        // Must specify either username and/or options
-        if (!username && !options) {
-            throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
-        }
-
-        const authInfo = new AuthInfo(username || get(options, 'username'));
-
-        // If the username is an access token, use that for auth and don't persist
-        const accessTokenMatch = isString(username) && username.match(/^(00D\w{12,15})![\.\w]*$/);
-        if (accessTokenMatch) {
-            // Need to setup the logger and authInfoCrypto since we don't call init()
-            authInfo.logger = await Logger.child('AuthInfo');
-            authInfoCrypto = await AuthInfoCrypto.create();
-
-            const aggregator: ConfigAggregator = await ConfigAggregator.create();
-            const instanceUrl: string = aggregator.getPropertyValue('instanceUrl') as string || SFDC_URLS.production;
-
-            authInfo.update({
-                accessToken: username,
-                instanceUrl,
-                orgId: accessTokenMatch[1]
-            });
-
-            authInfo.usingAccessToken = true;
-        } else {
-            await authInfo.init(options);
-        }
-
-        return authInfo;
-    }
+export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
 
     /**
      * Get a list of all auth files stored in the global directory.
@@ -417,83 +375,7 @@ export class AuthInfo {
     // Initialized in init
     private logger!: Logger;
 
-    /**
-     * **Do not directly construct instances of this class -- use {@link AuthInfo.create} instead.**
-     *
-     * @private
-     * @constructor
-     */
-    private constructor(username?: string) {
-        this.fields.username = username;
-    }
-
-    /**
-     * Initialize an AuthInfo instance with the options. If options are not provided
-     * initialize from cache or by reading from persistence store.
-     * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
-     * @throws {SfdxError}
-     *    **`{name: 'NamedOrgNotFound'}`:** Org information does not exist.
-     * @returns {Promise<AuthInfo>} For convenience `this` object is returned.
-     */
-    public async init(options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
-        this.logger = await Logger.child('AuthInfo');
-        authInfoCrypto = await AuthInfoCrypto.create();
-
-        // If options were passed, use those before checking cache and reading an auth file.
-        let authConfig: AuthFields;
-
-        if (options) {
-            options = cloneJson(options);
-
-            if (this.isTokenOptions(options)) {
-                authConfig = options;
-            } else {
-                // jwt flow
-                // Support both sfdx and jsforce private key values
-                if (!options.privateKey && options.privateKeyFile) {
-                    options.privateKey = options.privateKeyFile;
-                }
-                if (options.privateKey) {
-                    authConfig = await this.buildJwtConfig(options);
-                } else if (!options.authCode && options.refreshToken) {
-                    // refresh token flow (from sfdxUrl or OAuth refreshFn)
-                    authConfig = await this.buildRefreshTokenConfig(options);
-                } else {
-                    // authcode exchange / web auth flow
-                    authConfig = await this.buildWebAuthConfig(options);
-                }
-            }
-
-            // Update the auth fields WITH encryption
-            this.update(authConfig);
-        } else {
-            const username = ensure(this.getUsername());
-            if (AuthInfo.cache.has(username)) {
-                authConfig = ensure(AuthInfo.cache.get(username));
-            } else {
-                // Fetch from the persisted auth file
-                try {
-                    const config: AuthInfoConfig =
-                        await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
-                    await config.read(true);
-                    authConfig = config.toObject();
-                } catch (e) {
-                    if (e.code === 'ENOENT') {
-                        throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [username]);
-                    } else {
-                        throw e;
-                    }
-                }
-            }
-            // Update the auth fields WITHOUT encryption (already encrypted)
-            this.update(authConfig, false);
-        }
-
-        // Cache the fields by username (fields are encrypted)
-        AuthInfo.cache.set(ensure(this.getUsername()), this.fields);
-
-        return this;
-    }
+    private authInfoCrypto!: AuthInfoCrypto;
 
     /**
      * Get the username.
@@ -575,10 +457,11 @@ export class AuthInfo {
      */
     public update(authData?: AuthFields, encrypt: boolean = true): AuthInfo {
         if (authData && isPlainObject(authData)) {
+            let copy = cloneJson(authData);
             if (encrypt) {
-                authData = authInfoCrypto.encryptFields(authData);
+                copy = this.authInfoCrypto.encryptFields(copy);
             }
-            Object.assign(this.fields, authData);
+            Object.assign(this.fields, copy);
             this.logger.info(`Updated auth info for username: ${this.getUsername()}`);
         }
         return this;
@@ -627,7 +510,7 @@ export class AuthInfo {
         }
 
         // decrypt the fields
-        return authInfoCrypto.decryptFields(opts);
+        return this.authInfoCrypto.decryptFields(opts);
     }
 
     /**
@@ -652,7 +535,7 @@ export class AuthInfo {
      * @returns {string}
      */
     public getSfdxAuthUrl(): string {
-        const decryptedFields = authInfoCrypto.decryptFields(this.fields);
+        const decryptedFields = this.authInfoCrypto.decryptFields(this.fields);
         const instanceUrl = ensure(decryptedFields.instanceUrl).replace(/^https?:\/\//, '');
         let sfdxAuthUrl = 'force://';
 
@@ -662,6 +545,117 @@ export class AuthInfo {
 
         sfdxAuthUrl += `${decryptedFields.refreshToken}@${instanceUrl}`;
         return sfdxAuthUrl;
+    }
+
+    /**
+     * Initializes an instance of the AuthInfo class.
+     */
+    public async init(): Promise<void> {
+        // Must specify either username and/or options
+        const options = this.options.oauth2Options || this.options.accessTokenOptions;
+        if (!this.options.username && !(this.options.oauth2Options || this.options.accessTokenOptions)) {
+            throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
+        }
+
+        this.fields.username = this.options.username || get(options, 'username');
+
+        // If the username is an access token, use that for auth and don't persist
+        const accessTokenMatch = isString(this.fields.username) &&
+            this.fields.username.match(/^(00D\w{12,15})![\.\w]*$/);
+        if (accessTokenMatch) {
+            // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
+            this.logger = await Logger.child('AuthInfo');
+            this.authInfoCrypto = await AuthInfoCrypto.create({ noResetOnClose: true });
+
+            const aggregator: ConfigAggregator = await ConfigAggregator.create();
+            const instanceUrl: string = aggregator.getPropertyValue('instanceUrl') as string || SFDC_URLS.production;
+
+            this.update({
+                accessToken: this.options.username,
+                instanceUrl,
+                orgId: accessTokenMatch[1]
+            });
+
+            this.usingAccessToken = true;
+        } else {
+            await this.initAuthOptions(options);
+        }
+    }
+
+    /**
+     * Returns the default options when 'await AuthInfo.create()' is called without any called specified options.
+     */
+    protected getDefaultOptions(): AuthInfoOptions {
+        const opts: AuthInfoOptions = {};
+        return opts;
+    }
+
+    /**
+     * Initialize this AuthInfo instance with the specified options. If options are not provided
+     * initialize from cache or by reading from persistence store.
+     * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
+     * @throws {SfdxError}
+     *    **`{name: 'NamedOrgNotFound'}`:** Org information does not exist.
+     * @returns {Promise<AuthInfo>} For convenience `this` object is returned.
+     */
+    private async initAuthOptions(options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
+        this.logger = await Logger.child('AuthInfo');
+        this.authInfoCrypto = await AuthInfoCrypto.create();
+
+        // If options were passed, use those before checking cache and reading an auth file.
+        let authConfig: AuthFields;
+
+        if (options) {
+            options = cloneJson(options);
+
+            if (this.isTokenOptions(options)) {
+                authConfig = options;
+            } else {
+                // jwt flow
+                // Support both sfdx and jsforce private key values
+                if (!options.privateKey && options.privateKeyFile) {
+                    options.privateKey = options.privateKeyFile;
+                }
+                if (options.privateKey) {
+                    authConfig = await this.buildJwtConfig(options);
+                } else if (!options.authCode && options.refreshToken) {
+                    // refresh token flow (from sfdxUrl or OAuth refreshFn)
+                    authConfig = await this.buildRefreshTokenConfig(options);
+                } else {
+                    // authcode exchange / web auth flow
+                    authConfig = await this.buildWebAuthConfig(options);
+                }
+            }
+
+            // Update the auth fields WITH encryption
+            this.update(authConfig);
+        } else {
+            const username = ensure(this.getUsername());
+            if (AuthInfo.cache.has(username)) {
+                authConfig = ensure(AuthInfo.cache.get(username));
+            } else {
+                // Fetch from the persisted auth file
+                try {
+                    const config: AuthInfoConfig =
+                        await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
+                    await config.read(true);
+                    authConfig = config.toObject();
+                } catch (e) {
+                    if (e.code === 'ENOENT') {
+                        throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [username]);
+                    } else {
+                        throw e;
+                    }
+                }
+            }
+            // Update the auth fields WITHOUT encryption (already encrypted)
+            this.update(authConfig, false);
+        }
+
+        // Cache the fields by username (fields are encrypted)
+        AuthInfo.cache.set(ensure(this.getUsername()), this.fields);
+
+        return this;
     }
 
     private isTokenOptions(options: OAuth2Options | AccessTokenOptions): options is AccessTokenOptions {
@@ -680,9 +674,10 @@ export class AuthInfo {
         this.logger.info('Access token has expired. Updating...');
 
         try {
-            await this.init(authInfoCrypto.decryptFields(this.fields));
+            const fields = this.authInfoCrypto.decryptFields(this.fields);
+            await this.initAuthOptions(fields);
             await this.save();
-            return await callback(null, authInfoCrypto.decrypt(asString(this.fields.accessToken)));
+            return await callback(null, fields.accessToken);
         } catch (err) {
             if (err.message && err.message.includes('Data Not Available')) {
                 const errConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'OrgDataNotAvailableError', [this.getUsername()]);
