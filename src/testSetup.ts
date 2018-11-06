@@ -7,13 +7,15 @@
 
 import { once, set } from '@salesforce/kit';
 import {
-    AnyFunction,
-    AnyJson,
-    Dictionary, ensureJsonMap,
-    ensureString, getBoolean,
-    isJsonMap,
-    JsonMap,
-    Optional
+  AnyFunction,
+  AnyJson,
+  Dictionary,
+  ensureJsonMap,
+  ensureString,
+  getBoolean,
+  isJsonMap,
+  JsonMap,
+  Optional
 } from '@salesforce/ts-types';
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
@@ -34,65 +36,74 @@ import { CometClient, CometSubscription } from './status/streamingClient';
  * on the TestContext.
  */
 export interface SandboxTypes {
-    DEFAULT: any; // tslint:disable-line:no-any
-    CRYPTO: any; // tslint:disable-line:no-any
-    CONFIG: any; // tslint:disable-line:no-any
-    CONNECTION: any; // tslint:disable-line:no-any
+  DEFAULT: any; // tslint:disable-line:no-any
+  CRYPTO: any; // tslint:disable-line:no-any
+  CONFIG: any; // tslint:disable-line:no-any
+  CONNECTION: any; // tslint:disable-line:no-any
 }
 
 export interface ConfigStub {
-    readFn?: () => Promise<ConfigContents>;
-    writeFn?: () => Promise<void>;
-    // Used for read and write. Useful between config instances
-    contents?: ConfigContents;
-    // Useful to override to conditionally get based on the config instance.
-    retrieveContents?: () => Promise<JsonMap>;
-    // Useful to override to conditionally set based on the config instance.
-    updateContents?: () => Promise<JsonMap>;
+  readFn?: () => Promise<ConfigContents>;
+  writeFn?: () => Promise<void>;
+  // Used for read and write. Useful between config instances
+  contents?: ConfigContents;
+  // Useful to override to conditionally get based on the config instance.
+  retrieveContents?: () => Promise<JsonMap>;
+  // Useful to override to conditionally set based on the config instance.
+  updateContents?: () => Promise<JsonMap>;
 }
 
 /**
  * Different configuration options when running before each
  */
 export interface TestContext {
-    SANDBOX: sinon.SinonSandbox; // tslint:disable-line:no-any
-    SANDBOXES: SandboxTypes;
-    TEST_LOGGER: Logger;
-    id: string;
-    uniqid: () => string;
-    configStubs: {
-        [configName: string]: Optional<ConfigStub>,
-        AuthInfoConfig?: ConfigStub,
-        Aliases?: ConfigStub,
-        SfdxProjectJson?: ConfigStub,
-        SfdxConfig?: ConfigStub
-    };
-    localPathRetriever: (uid: string) => Promise<string>;
-    globalPathRetriever: (uid: string) => Promise<string>;
-    rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
-    fakeConnectionRequest: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>;
-    getConfigStubContents(name: string, group?: string): ConfigContents;
-    setConfigStubContents(name: string, value: ConfigContents): void;
+  SANDBOX: sinon.SinonSandbox; // tslint:disable-line:no-any
+  SANDBOXES: SandboxTypes;
+  TEST_LOGGER: Logger;
+  id: string;
+  uniqid: () => string;
+  configStubs: {
+    [configName: string]: Optional<ConfigStub>;
+    AuthInfoConfig?: ConfigStub;
+    Aliases?: ConfigStub;
+    SfdxProjectJson?: ConfigStub;
+    SfdxConfig?: ConfigStub;
+  };
+  localPathRetriever: (uid: string) => Promise<string>;
+  globalPathRetriever: (uid: string) => Promise<string>;
+  rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
+  fakeConnectionRequest: (
+    request: AnyJson,
+    options?: AnyJson
+  ) => Promise<AnyJson>;
+  getConfigStubContents(name: string, group?: string): ConfigContents;
+  setConfigStubContents(name: string, value: ConfigContents): void;
 }
 
 const _uniqid = () => {
-    return randomBytes(16).toString('hex');
+  return randomBytes(16).toString('hex');
 };
 
 function getTestLocalPath(uid: string): Promise<string> {
-    return Promise.resolve(pathJoin(osTmpdir(), uid, 'sfdx_core', 'local'));
+  return Promise.resolve(pathJoin(osTmpdir(), uid, 'sfdx_core', 'local'));
 }
 
 function getTestGlobalPath(uid: string): Promise<string> {
-    return Promise.resolve(pathJoin(osTmpdir(), uid, 'sfdx_core', 'global'));
+  return Promise.resolve(pathJoin(osTmpdir(), uid, 'sfdx_core', 'global'));
 }
 
-async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Promise<string> {
-    return isGlobal ? await getTestGlobalPath(uid) : await getTestLocalPath(uid);
+async function retrieveRootPath(
+  isGlobal: boolean,
+  uid: string = _uniqid()
+): Promise<string> {
+  return isGlobal ? await getTestGlobalPath(uid) : await getTestLocalPath(uid);
 }
 
-function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Promise<AnyJson> {
-    return Promise.resolve({ records: [] });
+function defaultFakeConnectionRequest(
+  request: AnyJson,
+  options?: AnyJson
+): Promise<AnyJson> {
+  return Promise.resolve({ records: [] });
 }
 
 /**
@@ -168,117 +179,147 @@ function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Prom
  */
 // tslint:disable-next-line:no-any
 export const testSetup = once((sinon?: any) => {
-    if (!sinon) {
-        try {
-            sinon = require('sinon');
-        } catch (e) {
-            throw new Error('The package sinon was not found. Add it to your package.json and pass it in to testSetup(sinon.sandbox)');
-        }
+  if (!sinon) {
+    try {
+      sinon = require('sinon');
+    } catch (e) {
+      throw new Error(
+        'The package sinon was not found. Add it to your package.json and pass it in to testSetup(sinon.sandbox)'
+      );
     }
+  }
 
-    // Import all the messages files in the sfdx-core messages dir.
-    // Messages.importMessagesDirectory(pathJoin(__dirname, '..', '..'));
-    Messages.importMessagesDirectory(pathJoin(__dirname));
-    // Create a global sinon sandbox and a test logger instance for use within tests.
-    const defaultSandbox = sinon.createSandbox();
-    const testContext: TestContext = {
-        SANDBOX: defaultSandbox,
-        SANDBOXES: {
-            DEFAULT: defaultSandbox,
-            CONFIG: sinon.createSandbox(),
-            CRYPTO: sinon.createSandbox(),
-            CONNECTION: sinon.createSandbox()
-        },
-        TEST_LOGGER: new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging(),
-        id: _uniqid(),
-        uniqid: _uniqid,
-        configStubs: {},
-        localPathRetriever: getTestLocalPath,
-        globalPathRetriever: getTestGlobalPath,
-        rootPathRetriever: retrieveRootPath,
-        fakeConnectionRequest: defaultFakeConnectionRequest,
-        getConfigStubContents(name: string, group?: string): ConfigContents {
-            const stub: Optional<ConfigStub> = this.configStubs[name];
-            if (stub && stub.contents) {
-                if (group && stub.contents[group]) {
-                    return ensureJsonMap(stub.contents[group]);
-                } else {
-                    return stub.contents;
-                }
-            }
-            return {};
-        },
-
-        setConfigStubContents(name: string, value: ConfigContents) {
-            if (ensureString(name) && isJsonMap(value)) {
-                this.configStubs[name] = value;
-            }
+  // Import all the messages files in the sfdx-core messages dir.
+  // Messages.importMessagesDirectory(pathJoin(__dirname, '..', '..'));
+  Messages.importMessagesDirectory(pathJoin(__dirname));
+  // Create a global sinon sandbox and a test logger instance for use within tests.
+  const defaultSandbox = sinon.createSandbox();
+  const testContext: TestContext = {
+    SANDBOX: defaultSandbox,
+    SANDBOXES: {
+      DEFAULT: defaultSandbox,
+      CONFIG: sinon.createSandbox(),
+      CRYPTO: sinon.createSandbox(),
+      CONNECTION: sinon.createSandbox()
+    },
+    TEST_LOGGER: new Logger({
+      name: 'SFDX_Core_Test_Logger'
+    }).useMemoryLogging(),
+    id: _uniqid(),
+    uniqid: _uniqid,
+    configStubs: {},
+    localPathRetriever: getTestLocalPath,
+    globalPathRetriever: getTestGlobalPath,
+    rootPathRetriever: retrieveRootPath,
+    fakeConnectionRequest: defaultFakeConnectionRequest,
+    getConfigStubContents(name: string, group?: string): ConfigContents {
+      const stub: Optional<ConfigStub> = this.configStubs[name];
+      if (stub && stub.contents) {
+        if (group && stub.contents[group]) {
+          return ensureJsonMap(stub.contents[group]);
+        } else {
+          return stub.contents;
         }
-    };
+      }
+      return {};
+    },
 
-    beforeEach(() => {
-        // Most core files create a child logger so stub this to return our test logger.
-        testContext.SANDBOX.stub(Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
+    setConfigStubContents(name: string, value: ConfigContents) {
+      if (ensureString(name) && isJsonMap(value)) {
+        this.configStubs[name] = value;
+      }
+    }
+  };
 
-        testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) => testContext.rootPathRetriever(isGlobal, testContext.id));
+  beforeEach(() => {
+    // Most core files create a child logger so stub this to return our test logger.
+    testContext.SANDBOX.stub(Logger, 'child').returns(
+      Promise.resolve(testContext.TEST_LOGGER)
+    );
 
-        // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
-        testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(async function(this: ConfigFile) {
-            const stub = testContext.configStubs[this.constructor.name] || {};
+    testContext.SANDBOXES.CONFIG.stub(
+      ConfigFile,
+      'resolveRootFolder'
+    ).callsFake((isGlobal: boolean) =>
+      testContext.rootPathRetriever(isGlobal, testContext.id)
+    );
 
-            if (stub.readFn) {
-                return await stub.readFn.call(this);
-            }
+    // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
+    testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(
+      async function(this: ConfigFile) {
+        const stub = testContext.configStubs[this.constructor.name] || {};
 
-            let contents = stub.contents || {};
+        if (stub.readFn) {
+          return await stub.readFn.call(this);
+        }
 
-            if (stub.retrieveContents) {
-                contents = await stub.retrieveContents.call(this);
-            }
+        let contents = stub.contents || {};
 
-            this.setContentsFromObject(contents);
-            return Promise.resolve(this.getContents());
-        });
-        testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(this: ConfigFile, newContents: ConfigContents) {
-            if (!testContext.configStubs[this.constructor.name]) {
-                testContext.configStubs[this.constructor.name] = {};
-            }
-            const stub = testContext.configStubs[this.constructor.name];
-            if (!stub) return;
+        if (stub.retrieveContents) {
+          contents = await stub.retrieveContents.call(this);
+        }
 
-            if (stub.writeFn) {
-                return await stub.writeFn.call(this, newContents);
-            }
+        this.setContentsFromObject(contents);
+        return Promise.resolve(this.getContents());
+      }
+    );
+    testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(
+      async function(this: ConfigFile, newContents: ConfigContents) {
+        if (!testContext.configStubs[this.constructor.name]) {
+          testContext.configStubs[this.constructor.name] = {};
+        }
+        const stub = testContext.configStubs[this.constructor.name];
+        if (!stub) return;
 
-            let contents = newContents || this.getContents();
+        if (stub.writeFn) {
+          return await stub.writeFn.call(this, newContents);
+        }
 
-            if (stub.updateContents) {
-                contents = await stub.updateContents.call(this);
-            }
-            this.setContents(contents);
-            stub.contents = this.toObject();
-        });
+        let contents = newContents || this.getContents();
 
-        testContext.SANDBOXES.CRYPTO.stub(Crypto.prototype, 'getKeyChain').callsFake(() => Promise.resolve({
-            setPassword: () => Promise.resolve(),
-            getPassword: (data: object, cb: AnyFunction) => cb(undefined, '12345678901234567890123456789012')
-        }));
+        if (stub.updateContents) {
+          contents = await stub.updateContents.call(this);
+        }
+        this.setContents(contents);
+        stub.contents = this.toObject();
+      }
+    );
 
-        testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(this: Connection, request: string, options?: Dictionary) {
-            if (request === `${this.instanceUrl}/services/data`) {
-                return Promise.resolve([{ version: '42.0' }]);
-            }
-            return testContext.fakeConnectionRequest.call(this, request, options);
-        });
+    testContext.SANDBOXES.CRYPTO.stub(
+      Crypto.prototype,
+      'getKeyChain'
+    ).callsFake(() =>
+      Promise.resolve({
+        setPassword: () => Promise.resolve(),
+        getPassword: (data: object, cb: AnyFunction) =>
+          cb(undefined, '12345678901234567890123456789012')
+      })
+    );
+
+    testContext.SANDBOXES.CONNECTION.stub(
+      Connection.prototype,
+      'request'
+    ).callsFake(function(
+      this: Connection,
+      request: string,
+      options?: Dictionary
+    ) {
+      if (request === `${this.instanceUrl}/services/data`) {
+        return Promise.resolve([{ version: '42.0' }]);
+      }
+      return testContext.fakeConnectionRequest.call(this, request, options);
     });
+  });
 
-    afterEach(() => {
-        testContext.SANDBOX.restore();
-        Object.values(testContext.SANDBOXES).forEach(theSandbox => theSandbox.restore());
-        testContext.configStubs = {};
-    });
+  afterEach(() => {
+    testContext.SANDBOX.restore();
+    Object.values(testContext.SANDBOXES).forEach(theSandbox =>
+      theSandbox.restore()
+    );
+    testContext.configStubs = {};
+  });
 
-    return testContext;
+  return testContext;
 });
 
 /**
@@ -286,8 +327,10 @@ export const testSetup = once((sinon?: any) => {
  * @see shouldThrow
  * @type {SfdxError}
  */
-export const unexpectedResult: SfdxError = new SfdxError('This code was expected to failed',
-    'UnexpectedResult');
+export const unexpectedResult: SfdxError = new SfdxError(
+  'This code was expected to failed',
+  'UnexpectedResult'
+);
 
 /**
  * Use for this testing pattern:
@@ -310,9 +353,9 @@ export const unexpectedResult: SfdxError = new SfdxError('This code was expected
  * @param {Promise<AnyJson>} f The async function that is expected to throw.
  * @returns {Promise<void>}
  */
-export async function shouldThrow(f: Promise<any>): Promise<never> {// tslint:disable-line:no-any
-    await f;
-    throw unexpectedResult;
+export async function shouldThrow(f: Promise<unknown>): Promise<never> {
+  await f;
+  throw unexpectedResult;
 }
 
 /**
@@ -320,58 +363,63 @@ export async function shouldThrow(f: Promise<any>): Promise<never> {// tslint:di
  * Enable errback to simulate a subscription failure.
  */
 export enum StreamingMockSubscriptionCall {
-    CALLBACK,
-    ERRORBACK
+  CALLBACK,
+  ERRORBACK
 }
 
 /**
  * Additional subscription options for the StreamingMock.
  */
 export interface StreamingMockCometSubscriptionOptions {
-    // Target URL
-    url: string;
-    // Simple id to associate with this instance.
-    id: string;
-    // What is the subscription outcome a successful callback or an error?
-    subscriptionCall: StreamingMockSubscriptionCall;
-    // If it's an error that states what that error should be.
-    subscriptionErrbackError?: SfdxError;
-    // A list of messages to playback for the client. One message per process tick.
-    messagePlaylist?: JsonMap[];
+  // Target URL
+  url: string;
+  // Simple id to associate with this instance.
+  id: string;
+  // What is the subscription outcome a successful callback or an error?
+  subscriptionCall: StreamingMockSubscriptionCall;
+  // If it's an error that states what that error should be.
+  subscriptionErrbackError?: SfdxError;
+  // A list of messages to playback for the client. One message per process tick.
+  messagePlaylist?: JsonMap[];
 }
 
 /**
  * Simulates a comet subscription to a streaming channel.
  */
-export class StreamingMockCometSubscription extends EventEmitter implements CometSubscription {
-    public static SUBSCRIPTION_COMPLETE: string = 'subscriptionComplete';
-    public static SUBSCRIPTION_FAILED: string = 'subscriptionFailed';
-    private options: StreamingMockCometSubscriptionOptions;
+export class StreamingMockCometSubscription extends EventEmitter
+  implements CometSubscription {
+  public static SUBSCRIPTION_COMPLETE: string = 'subscriptionComplete';
+  public static SUBSCRIPTION_FAILED: string = 'subscriptionFailed';
+  private options: StreamingMockCometSubscriptionOptions;
 
-    constructor(options: StreamingMockCometSubscriptionOptions) {
-        super();
-        this.options = options;
-    }
+  constructor(options: StreamingMockCometSubscriptionOptions) {
+    super();
+    this.options = options;
+  }
 
-    public callback(callback: () => void): void {
-        if (this.options.subscriptionCall === StreamingMockSubscriptionCall.CALLBACK) {
-            setTimeout(() => {
-                callback();
-                super.emit(StreamingMockCometSubscription.SUBSCRIPTION_COMPLETE);
-            }, 0);
-        }
+  public callback(callback: () => void): void {
+    if (
+      this.options.subscriptionCall === StreamingMockSubscriptionCall.CALLBACK
+    ) {
+      setTimeout(() => {
+        callback();
+        super.emit(StreamingMockCometSubscription.SUBSCRIPTION_COMPLETE);
+      }, 0);
     }
+  }
 
-    public errback(callback: (error: Error) => void): void {
-        if (this.options.subscriptionCall === StreamingMockSubscriptionCall.ERRORBACK) {
-            const error = this.options.subscriptionErrbackError;
-            if (!error) return;
-            setTimeout(() => {
-                callback(error);
-                super.emit(StreamingMockCometSubscription.SUBSCRIPTION_FAILED);
-            }, 0);
-        }
+  public errback(callback: (error: Error) => void): void {
+    if (
+      this.options.subscriptionCall === StreamingMockSubscriptionCall.ERRORBACK
+    ) {
+      const error = this.options.subscriptionErrbackError;
+      if (!error) return;
+      setTimeout(() => {
+        callback(error);
+        super.emit(StreamingMockCometSubscription.SUBSCRIPTION_FAILED);
+      }, 0);
     }
+  }
 }
 
 /**
@@ -380,148 +428,155 @@ export class StreamingMockCometSubscription extends EventEmitter implements Come
  * latency.
  */
 export class StreamingMockCometClient extends CometClient {
-    private readonly options: StreamingMockCometSubscriptionOptions;
+  private readonly options: StreamingMockCometSubscriptionOptions;
 
-    /**
-     * Constructor
-     * @param {StreamingMockCometSubscriptionOptions} options Extends the StreamingClient options.
-     */
-    constructor(options: StreamingMockCometSubscriptionOptions) {
-        super();
-        this.options = options;
-        if (!this.options.messagePlaylist) {
-            this.options.messagePlaylist = [{ id:  this.options.id }];
-        }
+  /**
+   * Constructor
+   * @param {StreamingMockCometSubscriptionOptions} options Extends the StreamingClient options.
+   */
+  constructor(options: StreamingMockCometSubscriptionOptions) {
+    super();
+    this.options = options;
+    if (!this.options.messagePlaylist) {
+      this.options.messagePlaylist = [{ id: this.options.id }];
     }
+  }
 
-    public addExtension(extension: JsonMap): void {}
+  public addExtension(extension: JsonMap): void {}
 
-    public disable(label: string): void {}
+  public disable(label: string): void {}
 
-    public handshake(callback: () => void): void {
-        setTimeout(() => { callback(); }, 0);
-    }
+  public handshake(callback: () => void): void {
+    setTimeout(() => {
+      callback();
+    }, 0);
+  }
 
-    public setHeader(name: string, value: string): void {}
+  public setHeader(name: string, value: string): void {}
 
-    public subscribe(channel: string, callback: (message: JsonMap) => void): CometSubscription {
-        const subscription: StreamingMockCometSubscription = new StreamingMockCometSubscription(this.options);
-        subscription.on('subscriptionComplete', () => {
-            if (!this.options.messagePlaylist) return;
-            Object.values(this.options.messagePlaylist).forEach(message => {
-                setTimeout(() => {
-                    callback(message);
-                }, 0);
-            });
-        });
-        return subscription;
-    }
+  public subscribe(
+    channel: string,
+    callback: (message: JsonMap) => void
+  ): CometSubscription {
+    const subscription: StreamingMockCometSubscription = new StreamingMockCometSubscription(
+      this.options
+    );
+    subscription.on('subscriptionComplete', () => {
+      if (!this.options.messagePlaylist) return;
+      Object.values(this.options.messagePlaylist).forEach(message => {
+        setTimeout(() => {
+          callback(message);
+        }, 0);
+      });
+    });
+    return subscription;
+  }
 
-    public disconnect(): Promise<void> {
-        return Promise.resolve();
-    }
+  public disconnect(): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 /**
  * Mock class for OrgData.
  */
 export class MockTestOrgData {
-    public testId: string;
-    public alias?: string;
-    public username: string;
-    public devHubUsername?: string;
-    public orgId: string;
-    public loginUrl: string;
-    public instanceUrl: string;
-    public clientId: string;
-    public clientSecret: string;
-    public authcode: string;
-    public accessToken: string;
-    public refreshToken: string;
-    public userId: string;
+  public testId: string;
+  public alias?: string;
+  public username: string;
+  public devHubUsername?: string;
+  public orgId: string;
+  public loginUrl: string;
+  public instanceUrl: string;
+  public clientId: string;
+  public clientSecret: string;
+  public authcode: string;
+  public accessToken: string;
+  public refreshToken: string;
+  public userId: string;
 
-    constructor(id: string = _uniqid()) {
-        this.testId = id;
-        this.userId = `user_id_${this.testId}`;
-        this.orgId = `${this.testId}`;
-        this.username = `admin_${this.testId}@gb.org`;
-        this.loginUrl = `http://login.${this.testId}.salesforce.com`;
-        this.instanceUrl = `http://instance.${this.testId}.salesforce.com`;
-        this.clientId = `${this.testId}/client_id`;
-        this.clientSecret = `${this.testId}/client_secret`;
-        this.authcode = `${this.testId}/authcode`;
-        this.accessToken = `${this.testId}/accessToken`;
-        this.refreshToken =  `${this.testId}/refreshToken`;
+  constructor(id: string = _uniqid()) {
+    this.testId = id;
+    this.userId = `user_id_${this.testId}`;
+    this.orgId = `${this.testId}`;
+    this.username = `admin_${this.testId}@gb.org`;
+    this.loginUrl = `http://login.${this.testId}.salesforce.com`;
+    this.instanceUrl = `http://instance.${this.testId}.salesforce.com`;
+    this.clientId = `${this.testId}/client_id`;
+    this.clientSecret = `${this.testId}/client_secret`;
+    this.authcode = `${this.testId}/authcode`;
+    this.accessToken = `${this.testId}/accessToken`;
+    this.refreshToken = `${this.testId}/refreshToken`;
+  }
+
+  public createDevHubUsername(username: string): void {
+    this.devHubUsername = username;
+  }
+
+  public makeDevHub(): void {
+    set(this, 'isDevHub', true);
+  }
+
+  public createUser(user: string): MockTestOrgData {
+    const userMock = new MockTestOrgData();
+    userMock.username = user;
+    userMock.alias = this.alias;
+    userMock.devHubUsername = this.devHubUsername;
+    userMock.orgId = this.orgId;
+    userMock.loginUrl = this.loginUrl;
+    userMock.instanceUrl = this.instanceUrl;
+    userMock.clientId = this.clientId;
+    userMock.clientSecret = this.clientSecret;
+    return userMock;
+  }
+
+  public getMockUserInfo(): JsonMap {
+    return {
+      Id: this.userId,
+      Username: this.username,
+      LastName: `user_lastname_${this.testId}`,
+      Alias: this.alias || 'user_alias_blah',
+      TimeZoneSidKey: `user_timezonesidkey_${this.testId}`,
+      LocaleSidKey: `user_localesidkey_${this.testId}`,
+      EmailEncodingKey: `user_emailencodingkey_${this.testId}`,
+      ProfileId: `user_profileid_${this.testId}`,
+      LanguageLocaleKey: `user_languagelocalekey_${this.testId}`,
+      Email: `user_email@${this.testId}.com`
+    };
+  }
+
+  public async getConfig(): Promise<ConfigContents> {
+    const crypto = await Crypto.create();
+    const config: JsonMap = {};
+    config.orgId = this.orgId;
+
+    const accessToken = crypto.encrypt(this.accessToken);
+    if (accessToken) {
+      config.accessToken = accessToken;
     }
 
-    public createDevHubUsername(username: string): void {
-        this.devHubUsername = username;
+    const refreshToken = crypto.encrypt(this.refreshToken);
+    if (refreshToken) {
+      config.refreshToken = refreshToken;
     }
 
-    public makeDevHub(): void {
-        set(this, 'isDevHub', true);
+    config.instanceUrl = this.instanceUrl;
+    config.loginUrl = this.loginUrl;
+    config.username = this.username;
+    config.createdOrgInstance = 'CS1';
+    config.created = '1519163543003';
+    config.userId = this.userId;
+    // config.devHubUsername = 'tn@su-blitz.org';
+
+    if (this.devHubUsername) {
+      config.devHubUsername = this.devHubUsername;
     }
 
-    public createUser(user: string): MockTestOrgData {
-        const userMock = new MockTestOrgData();
-        userMock.username = user;
-        userMock.alias = this.alias;
-        userMock.devHubUsername = this.devHubUsername;
-        userMock.orgId = this.orgId;
-        userMock.loginUrl = this.loginUrl;
-        userMock.instanceUrl = this.instanceUrl;
-        userMock.clientId = this.clientId;
-        userMock.clientSecret = this.clientSecret;
-        return userMock;
+    const isDevHub = getBoolean(this, 'isDevHub');
+    if (isDevHub) {
+      config.isDevHub = isDevHub;
     }
 
-    public getMockUserInfo(): JsonMap {
-        return {
-            Id: this.userId,
-            Username: this.username,
-            LastName: `user_lastname_${this.testId}`,
-            Alias: this.alias || 'user_alias_blah',
-            TimeZoneSidKey: `user_timezonesidkey_${this.testId}`,
-            LocaleSidKey: `user_localesidkey_${this.testId}`,
-            EmailEncodingKey: `user_emailencodingkey_${this.testId}`,
-            ProfileId: `user_profileid_${this.testId}`,
-            LanguageLocaleKey: `user_languagelocalekey_${this.testId}`,
-            Email: `user_email@${this.testId}.com`
-        };
-    }
-
-    public async getConfig(): Promise<ConfigContents> {
-        const crypto = await Crypto.create();
-        const config: JsonMap = {};
-        config.orgId  = this.orgId;
-
-        const accessToken = crypto.encrypt(this.accessToken);
-        if (accessToken) {
-            config.accessToken = accessToken;
-        }
-
-        const refreshToken = crypto.encrypt(this.refreshToken);
-        if (refreshToken) {
-            config.refreshToken = refreshToken;
-        }
-
-        config.instanceUrl = this.instanceUrl;
-        config.loginUrl = this.loginUrl;
-        config.username = this.username;
-        config.createdOrgInstance = 'CS1';
-        config.created = '1519163543003';
-        config.userId = this.userId;
-        // config.devHubUsername = 'tn@su-blitz.org';
-
-        if (this.devHubUsername) {
-            config.devHubUsername = this.devHubUsername;
-        }
-
-        const isDevHub = getBoolean(this, 'isDevHub');
-        if (isDevHub) {
-            config.isDevHub = isDevHub;
-        }
-
-        return config;
-    }
+    return config;
+  }
 }

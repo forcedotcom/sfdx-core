@@ -9,7 +9,13 @@
  */
 
 import { findKey } from '@salesforce/kit';
-import { AnyJson, asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import {
+  AnyJson,
+  asJsonMap,
+  isJsonMap,
+  JsonMap,
+  Optional
+} from '@salesforce/ts-types';
 import { URL } from 'url';
 
 /**
@@ -19,31 +25,34 @@ import { URL } from 'url';
  * @returns {boolean}
  */
 export function isSalesforceDomain(urlString: string): boolean {
-    let url: URL;
+  let url: URL;
 
-    try {
-        url = new URL(urlString);
-    } catch (e) {
-        return false;
-    }
+  try {
+    url = new URL(urlString);
+  } catch (e) {
+    return false;
+  }
 
-    // Source https://help.salesforce.com/articleView?id=000003652&type=1
-    const whitelistOfSalesforceDomainPatterns: string[] = [
-        '.content.force.com',
-        '.force.com',
-        '.salesforce.com',
-        '.salesforceliveagent.com',
-        '.secure.force.com'
-    ];
+  // Source https://help.salesforce.com/articleView?id=000003652&type=1
+  const whitelistOfSalesforceDomainPatterns: string[] = [
+    '.content.force.com',
+    '.force.com',
+    '.salesforce.com',
+    '.salesforceliveagent.com',
+    '.secure.force.com'
+  ];
 
-    const whitelistOfSalesforceHosts: string[] = [
-        'developer.salesforce.com',
-        'trailhead.salesforce.com'
-    ];
+  const whitelistOfSalesforceHosts: string[] = [
+    'developer.salesforce.com',
+    'trailhead.salesforce.com'
+  ];
 
-    return whitelistOfSalesforceDomainPatterns.some(pattern => {
-        return url.hostname.endsWith(pattern) || whitelistOfSalesforceHosts.includes(url.hostname);
-    });
+  return whitelistOfSalesforceDomainPatterns.some(pattern => {
+    return (
+      url.hostname.endsWith(pattern) ||
+      whitelistOfSalesforceHosts.includes(url.hostname)
+    );
+  });
 }
 
 /**
@@ -53,10 +62,10 @@ export function isSalesforceDomain(urlString: string): boolean {
  * @return {Optional<string>}
  */
 export function trimTo15(id?: string): Optional<string> {
-    if (id && id.length && id.length > 15) {
-        id = id.substring(0, 15);
-    }
-    return id;
+  if (id && id.length && id.length > 15) {
+    id = id.substring(0, 15);
+  }
+  return id;
 }
 
 /**
@@ -66,7 +75,7 @@ export function trimTo15(id?: string): Optional<string> {
  * @returns {boolean}
  */
 export function validateApiVersion(value: string): boolean {
-    return value == null || /[1-9]\d\.0/.test(value);
+  return value == null || /[1-9]\d\.0/.test(value);
 }
 
 /**
@@ -76,7 +85,7 @@ export function validateApiVersion(value: string): boolean {
  * @returns {boolean}
  */
 export function validateEmail(value: string): boolean {
-    return /^[^.][^@]*@[^.]+(\.[^.\s]+)+$/.test(value);
+  return /^[^.][^@]*@[^.]+(\.[^.\s]+)+$/.test(value);
 }
 
 /**
@@ -85,7 +94,10 @@ export function validateEmail(value: string): boolean {
  * @returns {boolean}
  */
 export function validateSalesforceId(value: string): boolean {
-    return /[a-zA-Z0-9]{18}|[a-zA-Z0-9]{15}/.test(value) && (value.length === 15 || value.length === 18);
+  return (
+    /[a-zA-Z0-9]{18}|[a-zA-Z0-9]{15}/.test(value) &&
+    (value.length === 15 || value.length === 18)
+  );
 }
 
 /**
@@ -94,7 +106,7 @@ export function validateSalesforceId(value: string): boolean {
  * @returns {boolean}
  */
 export function validatePathDoesNotContainInvalidChars(value: string): boolean {
-    return !/[\[:"\?<>\|\]]+/.test(value);
+  return !/[\[:"\?<>\|\]]+/.test(value);
 }
 
 /**
@@ -104,14 +116,14 @@ export function validatePathDoesNotContainInvalidChars(value: string): boolean {
  * @returns {Optional<string>}
  */
 export function findUpperCaseKeys(data?: JsonMap): Optional<string> {
-    let key: Optional<string>;
-    findKey(data, (val: AnyJson, k: string) => {
-        if (k[0] === k[0].toUpperCase()) {
-            key = k;
-        } else if (isJsonMap(val)) {
-            key = findUpperCaseKeys(asJsonMap(val));
-        }
-        return key;
-    });
+  let key: Optional<string>;
+  findKey(data, (val: AnyJson, k: string) => {
+    if (k[0] === k[0].toUpperCase()) {
+      key = k;
+    } else if (isJsonMap(val)) {
+      key = findUpperCaseKeys(asJsonMap(val));
+    }
     return key;
+  });
+  return key;
 }

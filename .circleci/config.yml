@@ -1,4 +1,3 @@
----
 version: 2
 jobs:
   base: &base
@@ -16,6 +15,9 @@ jobs:
       - run:
           name: Install dependencies
           command: .circleci/greenkeeper
+      - run:
+          name: Building
+          command: yarn build
       - run:
           name: Testing
           command: yarn test
@@ -54,13 +56,13 @@ jobs:
 
 workflows:
   version: 2
-  "sfdx-core":
+  'sfdx-core':
     jobs:
       - node-latest
       - node-8
       - release:
           filters:
-            branches: {only: master}
+            branches: { only: master }
           requires:
             - node-latest
             - node-8

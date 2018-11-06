@@ -24,18 +24,20 @@ Here you can mock authorization for a Salesforce scratch org.
 
 ```typescript
 import { strictEqual } from 'assert';
-import { MockTestOrgData, testSetup} from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { AuthInfo } from '@salesforce/core';
 
 const $$ = testSetup();
 
 describe('Mocking Auth data', () => {
-    it ('example', async () => {
-        const testData = new MockTestOrgData();
-        $$.setConfigStubContents('AuthInfoConfig', { contents: await testData.getConfig() });
-        const auth: AuthInfo = await AuthInfo.create(testData.username);
-        strictEqual(auth.getUsername(), testData.username);
+  it('example', async () => {
+    const testData = new MockTestOrgData();
+    $$.setConfigStubContents('AuthInfoConfig', {
+      contents: await testData.getConfig()
     });
+    const auth: AuthInfo = await AuthInfo.create(testData.username);
+    strictEqual(auth.getUsername(), testData.username);
+  });
 });
 ```
 
@@ -44,7 +46,7 @@ for writing tests that can validate result responses for SOQL queries and REST e
 
 ```typescript
 import { AuthInfo, Connection, SfdxError } from '@salesforce/core';
-import { MockTestOrgData, testSetup} from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { AnyJson, ensureJsonMap, JsonMap } from '@salesforce/ts-types';
 import { ensureString } from '@salesforce/ts-types';
 import { deepStrictEqual } from 'assert';
@@ -53,22 +55,30 @@ import { QueryResult } from 'jsforce';
 const $$ = testSetup();
 
 describe('Mocking a force server call', () => {
-    it ('example', async () => {
-        const records: AnyJson = { records: ['123456', '234567'] };
-        const testData = new MockTestOrgData();
-        $$.setConfigStubContents('AuthInfoConfig', { contents: await testData.getConfig() });
-        $$.fakeConnectionRequest = (request: AnyJson): Promise<AnyJson> => {
-            const _request: JsonMap = ensureJsonMap(request);
-            if (request && ensureString(_request.url).includes('Account')) {
-                return Promise.resolve(records);
-            } else {
-                return Promise.reject(new SfdxError(`Unexpected request: ${_request.url}`));
-            }
-        };
-        const connection: Connection = await Connection.create(await AuthInfo.create(testData.username));
-        const result: QueryResult<{}> = await connection.query('select Id From Account');
-        deepStrictEqual(result, records);
+  it('example', async () => {
+    const records: AnyJson = { records: ['123456', '234567'] };
+    const testData = new MockTestOrgData();
+    $$.setConfigStubContents('AuthInfoConfig', {
+      contents: await testData.getConfig()
     });
+    $$.fakeConnectionRequest = (request: AnyJson): Promise<AnyJson> => {
+      const _request: JsonMap = ensureJsonMap(request);
+      if (request && ensureString(_request.url).includes('Account')) {
+        return Promise.resolve(records);
+      } else {
+        return Promise.reject(
+          new SfdxError(`Unexpected request: ${_request.url}`)
+        );
+      }
+    };
+    const connection: Connection = await Connection.create(
+      await AuthInfo.create(testData.username)
+    );
+    const result: QueryResult<{}> = await connection.query(
+      'select Id From Account'
+    );
+    deepStrictEqual(result, records);
+  });
 });
 ```
 
@@ -92,17 +102,17 @@ import * as os from 'os';
 const $$ = testSetup();
 
 describe('Using the built in Sinon sandbox.', () => {
-    it ('example', async () => {
-        const unsupportedOS = 'LEO';
-        $$.SANDBOX.stub(os, 'platform').returns(unsupportedOS);
-        strictEqual(os.platform(), unsupportedOS);
-    });
+  it('example', async () => {
+    const unsupportedOS = 'LEO';
+    $$.SANDBOX.stub(os, 'platform').returns(unsupportedOS);
+    strictEqual(os.platform(), unsupportedOS);
+  });
 });
 ```
 
 ### Testing Expected Failures
 
-It's important to have negative tests that ensure proper error handling. With *shouldThrow* it's easy to test for expected
+It's important to have negative tests that ensure proper error handling. With _shouldThrow_ it's easy to test for expected
 async rejections.
 
 ```typescript
@@ -111,19 +121,19 @@ import { shouldThrow } from '@salesforce/core/lib/testSetup';
 import { strictEqual } from 'assert';
 
 class TestObject {
-    public static async method() {
-        throw new SfdxError('Error', 'ExpectedError');
-    }
+  public static async method() {
+    throw new SfdxError('Error', 'ExpectedError');
+  }
 }
 
 describe('Testing for expected errors', () => {
-    it ('example', async () => {
-        try {
-            await shouldThrow(TestObject.method());
-        } catch (e) {
-            strictEqual(e.name, 'ExpectedError');
-        }
-    });
+  it('example', async () => {
+    try {
+      await shouldThrow(TestObject.method());
+    } catch (e) {
+      strictEqual(e.name, 'ExpectedError');
+    }
+  });
 });
 ```
 
@@ -142,22 +152,22 @@ const $$ = testSetup();
 const TEST_STRING = 'foo was here';
 
 class TestObject {
-    constructor(private logger: Logger) {
-        this.logger = logger.child('TestObject');
-    }
+  constructor(private logger: Logger) {
+    this.logger = logger.child('TestObject');
+  }
 
-    public method() {
-        this.logger.error(TEST_STRING);
-    }
+  public method() {
+    this.logger.error(TEST_STRING);
+  }
 }
 
 describe('Testing log lines', () => {
-    it ('example', async () => {
-        const obj: TestObject = new TestObject($$.TEST_LOGGER);
-        obj.method();
-        const records: LogLine[] = $$.TEST_LOGGER.getBufferedRecords();
-        strictEqual(records.length, 1);
-        strictEqual(records[0].msg, TEST_STRING);
-    });
+  it('example', async () => {
+    const obj: TestObject = new TestObject($$.TEST_LOGGER);
+    obj.method();
+    const records: LogLine[] = $$.TEST_LOGGER.getBufferedRecords();
+    strictEqual(records.length, 1);
+    strictEqual(records[0].msg, TEST_STRING);
+  });
 });
 ```
