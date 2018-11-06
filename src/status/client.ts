@@ -9,6 +9,6 @@
  * @interface
  */
 export interface StatusResult<T> {
-    payload?: T;
-    completed: boolean;
+  payload?: T;
+  completed: boolean;
 }

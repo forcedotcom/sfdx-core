@@ -10,22 +10,26 @@ import { BaseConfigStore } from '../../../src/config/configStore';
 class TestConfig extends BaseConfigStore {}
 
 describe('ConfigStore', () => {
-    it('for each value', async () => {
-        const config = new TestConfig();
-        config.set('1', 'a');
-        config.set('2', 'b');
+  it('for each value', async () => {
+    const config = new TestConfig();
+    config.set('1', 'a');
+    config.set('2', 'b');
 
-        let st = '';
-        config.forEach((key, val) => { st += `${key}${val}`; });
-        expect(st).to.equal('1a2b');
+    let st = '';
+    config.forEach((key, val) => {
+      st += `${key}${val}`;
     });
-    it('await each value', async () => {
-        const config = new TestConfig();
-        config.set('1', 'a');
-        config.set('2', 'b');
+    expect(st).to.equal('1a2b');
+  });
+  it('await each value', async () => {
+    const config = new TestConfig();
+    config.set('1', 'a');
+    config.set('2', 'b');
 
-        let st = '';
-        await config.awaitEach(async (key, val) => { st += `${key}${val}`; });
-        expect(st).to.equal('1a2b');
+    let st = '';
+    await config.awaitEach(async (key, val) => {
+      st += `${key}${val}`;
     });
+    expect(st).to.equal('1a2b');
+  });
 });

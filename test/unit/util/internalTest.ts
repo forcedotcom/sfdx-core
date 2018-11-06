@@ -7,5 +7,5 @@
 // import { expect } from 'chai';
 
 describe('util/internal', () => {
-    // TODO ;)
+  // TODO ;)
 });

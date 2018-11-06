@@ -19,20 +19,20 @@ import { PollingClient, PollingOptions } from './pollingClient';
  * Options for the MyDomain DNS resolver
  */
 export interface MyDomainResolverOptions {
-    /**
-     * The host to resolve
-     */
-    url: URL;
+  /**
+   * The host to resolve
+   */
+  url: URL;
 
-    /**
-     * The retry interval
-     */
-    timeout?: Time;
+  /**
+   * The retry interval
+   */
+  timeout?: Time;
 
-    /**
-     * The retry timeout
-     */
-    frequency?: Time;
+  /**
+   * The retry timeout
+   */
+  frequency?: Time;
 }
 
 /**
@@ -54,64 +54,70 @@ export interface MyDomainResolverOptions {
  * })();
  */
 export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
+  public static DEFAULT_DOMAIN = new URL('https://login.salesforce.com');
 
-    private logger!: Logger;
+  private logger!: Logger;
 
-    private options: MyDomainResolverOptions;
+  private options: MyDomainResolverOptions;
 
-    public constructor(options?: MyDomainResolverOptions) {
-        super(options);
-        this.options = options || { url : new URL('login.salesforce.com') };
-    }
+  public constructor(options?: MyDomainResolverOptions) {
+    super(options);
+    this.options = options || { url: MyDomainResolver.DEFAULT_DOMAIN };
+  }
 
-    /**
-     * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
-     * given the optional interval.
-     * @returns {Promise<string>} The resolved ip address.
-     */
-    public async resolve(): Promise<string> {
+  /**
+   * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
+   * given the optional interval.
+   * @returns {Promise<string>} The resolved ip address.
+   */
+  public async resolve(): Promise<string> {
+    const self: MyDomainResolver = this;
+    const pollingOptions: PollingOptions<string> = {
+      async poll(): Promise<StatusResult<string>> {
+        const host: string = self.options.url.host;
+        let dnsResult: { address: string };
 
-        const self: MyDomainResolver = this;
-        const pollingOptions: PollingOptions<string> = {
-            async poll(): Promise<StatusResult<string>> {
-                const host: string = self.options.url.host;
-                let dnsResult: { address: string };
+        try {
+          self.logger.debug(`Attempting to resolve url: ${host}`);
+          if (host && host.includes('.internal.salesforce.com')) {
+            return {
+              completed: true,
+              payload: '127.0.0.1'
+            };
+          }
+          dnsResult = await promisify(lookup)(host);
+          self.logger.debug(
+            `Successfully resolved host: ${host} result: ${JSON.stringify(
+              dnsResult
+            )}`
+          );
+          return {
+            completed: true,
+            payload: dnsResult.address
+          };
+        } catch (e) {
+          self.logger.debug(`An error occurred trying to resolve: ${host}`);
+          self.logger.debug(`Error: ${e.message}`);
+          self.logger.debug('Re-trying dns lookup again....');
+          return {
+            completed: false
+          };
+        }
+      },
+      timeout: this.options.timeout || new Time(30, TIME_UNIT.SECONDS),
+      frequency: this.options.frequency || new Time(10, TIME_UNIT.SECONDS),
+      timeoutErrorName: 'MyDomainResolverTimeoutError'
+    };
+    const client: PollingClient<string> = await PollingClient.init<string>(
+      pollingOptions
+    );
+    return client.subscribe();
+  }
 
-                try {
-                    self.logger.debug(`Attempting to resolve url: ${host}`);
-                    if (host && host.includes('.internal.salesforce.com')) {
-                        return {
-                            completed: true,
-                            payload: '127.0.0.1'
-                        };
-                    }
-                    dnsResult = await promisify(lookup)(host);
-                    self.logger.debug(`Successfully resolved host: ${host} result: ${JSON.stringify(dnsResult)}`);
-                    return {
-                        completed: true,
-                        payload: dnsResult.address
-                    };
-                } catch (e) {
-                    self.logger.debug(`An error occurred trying to resolve: ${host}`);
-                    self.logger.debug(`Error: ${e.message}`);
-                    self.logger.debug('Re-trying dns lookup again....');
-                    return {
-                        completed: false
-                    };
-                }
-            },
-            timeout: this.options.timeout || new Time(30, TIME_UNIT.SECONDS),
-            frequency: this.options.frequency || new Time(10, TIME_UNIT.SECONDS),
-            timeoutErrorName: 'MyDomainResolverTimeoutError'
-        };
-        const client: PollingClient<string> = await PollingClient.init<string>(pollingOptions);
-        return client.subscribe();
-    }
-
-    /**
-     * Used to initialize asynchronous components.
-     */
-    protected async init(): Promise<void> {
-        this.logger = await Logger.child('MyDomainResolver');
-    }
+  /**
+   * Used to initialize asynchronous components.
+   */
+  protected async init(): Promise<void> {
+    this.logger = await Logger.child('MyDomainResolver');
+  }
 }
