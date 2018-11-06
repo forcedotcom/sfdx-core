@@ -54,13 +54,15 @@ export interface MyDomainResolverOptions {
  * })();
  */
 export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
+  public static DEFAULT_DOMAIN = new URL('https://login.salesforce.com');
+
   private logger!: Logger;
 
   private options: MyDomainResolverOptions;
 
   public constructor(options?: MyDomainResolverOptions) {
     super(options);
-    this.options = options || { url: new URL('login.salesforce.com') };
+    this.options = options || { url: MyDomainResolver.DEFAULT_DOMAIN };
   }
 
   /**
