@@ -7,140 +7,92 @@
 import { Messages } from './messages';
 Messages.importMessagesDirectory(__dirname);
 
-export {
-    Aliases,
-    AliasGroup
-} from './config/aliases';
+export { Aliases, AliasGroup } from './config/aliases';
+
+export { AuthInfoConfig } from './config/authInfoConfig';
+
+export { ConfigFile, ConfigOptions } from './config/configFile';
+
+export { ConfigGroup, ConfigGroupOptions } from './config/configGroup';
 
 export {
-    AuthInfoConfig
-} from './config/authInfoConfig';
-
-export {
-    ConfigFile,
-    ConfigOptions
-} from './config/configFile';
-
-export {
-    ConfigGroup,
-    ConfigGroupOptions
-} from './config/configGroup';
-
-export {
-    BaseConfigStore,
-    ConfigContents,
-    ConfigEntry,
-    ConfigStore,
-    ConfigValue
+  BaseConfigStore,
+  ConfigContents,
+  ConfigEntry,
+  ConfigStore,
+  ConfigValue
 } from './config/configStore';
 
-export {
-    OrgUsersConfig
-} from './config/orgUsersConfig';
+export { OrgUsersConfig } from './config/orgUsersConfig';
 
 export {
-    ConfigPropertyMeta,
-    ConfigPropertyMetaInput,
-    ORG_DEFAULT,
-    Config
+  ConfigPropertyMeta,
+  ConfigPropertyMetaInput,
+  ORG_DEFAULT,
+  Config
 } from './config/config';
 
 export {
-    ConfigInfo,
-    LOCATIONS,
-    ConfigAggregator
+  ConfigInfo,
+  LOCATIONS,
+  ConfigAggregator
 } from './config/configAggregator';
 
-export {
-    AuthFields,
-    AuthInfo,
-    SFDC_URLS
-} from './authInfo';
+export { AuthFields, AuthInfo, SFDC_URLS } from './authInfo';
+
+export { Connection, SFDX_HTTP_HEADERS } from './connection';
+
+export { Mode, Global } from './global';
 
 export {
-    Connection,
-    SFDX_HTTP_HEADERS
-} from './connection';
-
-export {
-    Mode,
-    Global
-} from './global';
-
-export {
-    Fields,
-    FieldValue,
-    LoggerLevel,
-    LoggerLevelValue,
-    LogLine,
-    LoggerOptions,
-    LoggerStream,
-    Logger
+  Fields,
+  FieldValue,
+  LoggerLevel,
+  LoggerLevelValue,
+  LogLine,
+  LoggerOptions,
+  LoggerStream,
+  Logger
 } from './logger';
 
-export {
-    Messages
-} from './messages';
+export { Messages } from './messages';
+
+export { Org, OrgFields } from './org';
+
+export { SfdxProject, SfdxProjectJson } from './sfdxProject';
+
+export { SchemaPrinter } from './schemaPrinter';
+
+export { SchemaValidator } from './schemaValidator';
+
+export { SfdxError, SfdxErrorConfig } from './sfdxError';
+
+export { StatusResult } from './status/client';
 
 export {
-    Org,
-    OrgFields
-} from './org';
-
-export {
-    SfdxProject,
-    SfdxProjectJson
-} from './sfdxProject';
-
-export {
-    SchemaPrinter
-} from './schemaPrinter';
-
-export {
-    SchemaValidator
-} from './schemaValidator';
-
-export {
-    SfdxError,
-    SfdxErrorConfig
-} from './sfdxError';
-
-export {
-    StatusResult
-} from './status/client';
-
-export {
-    PollingOptions,
-    DefaultPollingOptions,
-    PollingClient
+  PollingOptions,
+  DefaultPollingOptions,
+  PollingClient
 } from './status/pollingClient';
 
 export {
-    CometClient,
-    CometSubscription,
-    DefaultStreamingOptions,
-    StreamingClient,
-    StreamingConnectionState,
-    StreamingTimeoutErrorType,
-    StreamingOptions
+  CometClient,
+  CometSubscription,
+  DefaultStreamingOptions,
+  StreamingClient,
+  StreamingConnectionState,
+  StreamingTimeoutErrorType,
+  StreamingOptions
 } from './status/streamingClient';
 
 export {
-    MyDomainResolver,
-    MyDomainResolverOptions
+  MyDomainResolver,
+  MyDomainResolverOptions
 } from './status/myDomainResolver';
 
-export {
-    Time,
-    TIME_UNIT
-} from './util/time';
+export { Time, TIME_UNIT } from './util/time';
 
-export {
-    DefaultUserFields,
-    REQUIRED_FIELDS,
-    User,
-    UserFields
-} from './user';
+export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './user';
 
 // Utility sub-modules
 import * as fs from './util/fs';

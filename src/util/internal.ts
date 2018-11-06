@@ -25,10 +25,16 @@ export const SFDX_PROJECT_JSON = 'sfdx-project.json';
  * @see {@link https://nodejs.org/api/process.html#process_process_cwd|process.cwd()}
  * @private
  */
-export async function resolveProjectPath(dir: string = process.cwd()): Promise<string> {
-    const projectPath = await traverseForFile(dir, SFDX_PROJECT_JSON);
-    if (!projectPath) {
-        throw SfdxError.create('@salesforce/core', 'config', 'InvalidProjectWorkspace');
-    }
-    return projectPath;
+export async function resolveProjectPath(
+  dir: string = process.cwd()
+): Promise<string> {
+  const projectPath = await traverseForFile(dir, SFDX_PROJECT_JSON);
+  if (!projectPath) {
+    throw SfdxError.create(
+      '@salesforce/core',
+      'config',
+      'InvalidProjectWorkspace'
+    );
+  }
+  return projectPath;
 }

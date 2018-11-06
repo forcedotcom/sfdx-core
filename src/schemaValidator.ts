@@ -14,7 +14,8 @@ import {
   isJsonMap,
   isString,
   JsonMap,
-  Optional
+  Optional,
+  get
 } from '@salesforce/ts-types';
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
@@ -183,10 +184,11 @@ export class SchemaValidator {
 
         switch (error.keyword) {
           case 'additionalProperties':
-            // tslint:disable-next-line:no-any because @types/jsen lacks a declaration for `additionalProperties`
-            return `${error.path} should NOT have additional properties '${
-              (error as any).additionalProperties
-            }'`;
+            // Missing Typing
+            const additionalProperties = get(error, 'additionalProperties');
+            return `${
+              error.path
+            } should NOT have additional properties '${additionalProperties}'`;
           case 'required':
             if (property) {
               return `${property[1]} should have required property ${

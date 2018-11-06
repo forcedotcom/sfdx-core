@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { NamedError } from '@salesforce/kit';
-import { ensure, isString, Optional } from '@salesforce/ts-types';
+import { ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages, Tokens } from './messages';
 
 /**
@@ -15,132 +15,135 @@ import { Messages, Tokens } from './messages';
  * SfdxError.create(new SfdxErrorConfig('MyPackage', 'apex', 'runTest').addAction('apexErrorAction1', [className]));
  */
 export class SfdxErrorConfig {
+  /**
+   * The name of the package
+   */
+  public readonly packageName: string;
 
-    /**
-     * The name of the package
-     */
-    public readonly packageName: string;
+  /**
+   * The name of the bundle
+   */
+  public readonly bundleName: string;
 
-    /**
-     * The name of the bundle
-     */
-    public readonly bundleName: string;
+  /**
+   * The error key
+   */
+  public errorKey: string;
 
-    /**
-     * The error key
-     */
-    public errorKey: string;
+  private errorTokens: Tokens;
+  private messages?: Messages;
+  private actions = new Map<string, Tokens>();
 
-    private errorTokens: Tokens;
-    private messages?: Messages;
-    private actions = new Map<string, Tokens>();
+  /**
+   * Create a new SfdxErrorConfig.
+   * @param {string} packageName The name of the package.
+   * @param {string} bundleName The message bundle.
+   * @param {string} errorKey The error message key.
+   * @param {Tokens} errorTokens The tokens to use when getting the error message.
+   * @param {string} [actionKey] The action message key.
+   * @param {Tokens} [actionTokens] The tokens to use when getting the action message(s).
+   */
+  constructor(
+    packageName: string,
+    bundleName: string,
+    errorKey: string,
+    errorTokens: Tokens = [],
+    actionKey?: string,
+    actionTokens?: Tokens
+  ) {
+    this.packageName = packageName;
+    this.bundleName = bundleName;
+    this.errorKey = errorKey;
+    this.errorTokens = errorTokens;
+    if (actionKey) this.addAction(actionKey, actionTokens);
+  }
 
-    /**
-     * Create a new SfdxErrorConfig.
-     * @param {string} packageName The name of the package.
-     * @param {string} bundleName The message bundle.
-     * @param {string} errorKey The error message key.
-     * @param {Tokens} errorTokens The tokens to use when getting the error message.
-     * @param {string} [actionKey] The action message key.
-     * @param {Tokens} [actionTokens] The tokens to use when getting the action message(s).
-     */
-    constructor(packageName: string,
-                bundleName: string,
-                errorKey: string,
-                errorTokens: Tokens = [],
-                actionKey?: string,
-                actionTokens?: Tokens
-    ) {
-        this.packageName = packageName;
-        this.bundleName = bundleName;
-        this.errorKey = errorKey;
-        this.errorTokens = errorTokens;
-        if (actionKey) this.addAction(actionKey, actionTokens);
+  /**
+   * Set the error key.
+   * @param {string} key The key to set.
+   * @returns {SfdxErrorConfig} For convenience `this` object is returned.
+   */
+  public setErrorKey(key: string): SfdxErrorConfig {
+    this.errorKey = key;
+    return this;
+  }
+
+  /**
+   * Set the error tokens.
+   * @param {Tokens} tokens The tokens to set.
+   * @returns {SfdxErrorConfig} For convenience `this` object is returned.
+   */
+  public setErrorTokens(tokens: Tokens): SfdxErrorConfig {
+    this.errorTokens = tokens;
+    return this;
+  }
+
+  /**
+   * Add an error action to assist the user with a resolution.
+   * @param {string} actionKey The action key in the message bundle.
+   * @param {Tokens} [actionTokens] The action tokens for the string.
+   * @returns {SfdxErrorConfig} For convenience `this` object is returned.
+   */
+  public addAction(
+    actionKey: string,
+    actionTokens: Tokens = []
+  ): SfdxErrorConfig {
+    this.actions.set(actionKey, actionTokens);
+    return this;
+  }
+
+  /**
+   * Load the messages using Messages.loadMessages.
+   * @returns {Messages} Returns the loaded messages.
+   */
+  public load(): Messages {
+    this.messages = Messages.loadMessages(this.packageName, this.bundleName);
+    return this.messages;
+  }
+
+  /**
+   * Get the error message using messages.getMessage.
+   * @returns {string}
+   * @throws {SfdxError} If errorMessages.load was not called first.
+   */
+  public getError(): string {
+    if (!this.messages) {
+      throw new SfdxError('SfdxErrorConfig not loaded.');
+    }
+    return this.messages.getMessage(this.errorKey, this.errorTokens);
+  }
+
+  /**
+   * Get the action messages using messages.getMessage.
+   * @returns {Optional<string[]>} List of action messages.
+   * @throws {SfdxError} If errorMessages.load was not called first.
+   */
+  public getActions(): Optional<string[]> {
+    if (!this.messages) {
+      throw new SfdxError('SfdxErrorConfig not loaded.');
     }
 
-    /**
-     * Set the error key.
-     * @param {string} key The key to set.
-     * @returns {SfdxErrorConfig} For convenience `this` object is returned.
-     */
-    public setErrorKey(key: string): SfdxErrorConfig {
-        this.errorKey = key;
-        return this;
-    }
+    if (this.actions.size === 0) return;
 
-    /**
-     * Set the error tokens.
-     * @param {Tokens} tokens The tokens to set.
-     * @returns {SfdxErrorConfig} For convenience `this` object is returned.
-     */
-    public setErrorTokens(tokens: Tokens): SfdxErrorConfig {
-        this.errorTokens = tokens;
-        return this;
-    }
+    const actions: string[] = [];
+    this.actions.forEach((tokens, key) => {
+      const messages = this.messages;
+      if (messages) {
+        actions.push(messages.getMessage(key, tokens));
+      }
+    });
+    return actions;
+  }
 
-    /**
-     * Add an error action to assist the user with a resolution.
-     * @param {string} actionKey The action key in the message bundle.
-     * @param {Tokens} [actionTokens] The action tokens for the string.
-     * @returns {SfdxErrorConfig} For convenience `this` object is returned.
-     */
-    public addAction(actionKey: string, actionTokens: Tokens = []): SfdxErrorConfig {
-        this.actions.set(actionKey, actionTokens);
-        return this;
-    }
-
-    /**
-     * Load the messages using Messages.loadMessages.
-     * @returns {Messages} Returns the loaded messages.
-     */
-    public load(): Messages {
-        this.messages = Messages.loadMessages(this.packageName, this.bundleName);
-        return this.messages;
-    }
-
-    /**
-     * Get the error message using messages.getMessage.
-     * @returns {string}
-     * @throws {SfdxError} If errorMessages.load was not called first.
-     */
-    public getError(): string {
-        if (!this.messages) {
-            throw new SfdxError('SfdxErrorConfig not loaded.');
-        }
-        return this.messages.getMessage(this.errorKey, this.errorTokens);
-    }
-
-    /**
-     * Get the action messages using messages.getMessage.
-     * @returns {Optional<string[]>} List of action messages.
-     * @throws {SfdxError} If errorMessages.load was not called first.
-     */
-    public getActions(): Optional<string[]> {
-        if (!this.messages) {
-            throw new SfdxError('SfdxErrorConfig not loaded.');
-        }
-
-        if (this.actions.size === 0) return;
-
-        const actions: string[] = [];
-        this.actions.forEach((tokens, key) => {
-            const messages = this.messages;
-            if (messages) {
-                actions.push(messages.getMessage(key, tokens));
-            }
-        });
-        return actions;
-    }
-
-    /**
-     * Remove all actions from this error config. Useful when reusing SfdxErrorConfig.
-     * for other error messages within the same bundle.
-     * @returns {SfdxErrorConfig} For convenience `this` object is returned.
-     */
-    public removeActions(): SfdxErrorConfig {
-        this.actions = new Map();
-        return this;
-    }
+  /**
+   * Remove all actions from this error config. Useful when reusing SfdxErrorConfig.
+   * for other error messages within the same bundle.
+   * @returns {SfdxErrorConfig} For convenience `this` object is returned.
+   */
+  public removeActions(): SfdxErrorConfig {
+    this.actions = new Map();
+    return this;
+  }
 }
 
 /**
@@ -164,127 +167,155 @@ export class SfdxErrorConfig {
  *
  */
 export class SfdxError extends NamedError {
-    /**
-     * Create a new SfdxError.
-     * @param {string} packageName The message package name used to create the SfdxError.
-     * @param {string} bundleName The message bundle name used to create the SfdxError.
-     * @param {string} key The key within the bundle for the message.
-     * @param {Tokens} [tokens] The values to use for message tokenization.
-     */
-    public static create(packageName: string, bundleName: string, key: string, tokens?: Tokens): SfdxError;
+  /**
+   * Create a new SfdxError.
+   * @param {string} packageName The message package name used to create the SfdxError.
+   * @param {string} bundleName The message bundle name used to create the SfdxError.
+   * @param {string} key The key within the bundle for the message.
+   * @param {Tokens} [tokens] The values to use for message tokenization.
+   */
+  public static create(
+    packageName: string,
+    bundleName: string,
+    key: string,
+    tokens?: Tokens
+  ): SfdxError;
 
-    /**
-     * Create a new SfdxError.
-     * @param {SfdxErrorConfig} errorConfig The SfdxErrorConfig object used to create the SfdxError.
-     */
-    public static create(errorConfig: SfdxErrorConfig): SfdxError;
+  /**
+   * Create a new SfdxError.
+   * @param {SfdxErrorConfig} errorConfig The SfdxErrorConfig object used to create the SfdxError.
+   */
+  public static create(errorConfig: SfdxErrorConfig): SfdxError;
 
-    // The create implementation function.
-    public static create(nameOrConfig: string | SfdxErrorConfig, bundleName?: string, key?: string, tokens?: Tokens): SfdxError {
-        let errorConfig: SfdxErrorConfig;
+  // The create implementation function.
+  public static create(
+    nameOrConfig: string | SfdxErrorConfig,
+    bundleName?: string,
+    key?: string,
+    tokens?: Tokens
+  ): SfdxError {
+    let errorConfig: SfdxErrorConfig;
 
-        if (isString(nameOrConfig)) {
-            errorConfig = new SfdxErrorConfig(nameOrConfig, ensure(bundleName), ensure(key), tokens);
-        } else {
-            errorConfig = nameOrConfig;
-        }
-
-        errorConfig.load();
-
-        return new SfdxError(errorConfig.getError(), errorConfig.errorKey, errorConfig.getActions());
+    if (isString(nameOrConfig)) {
+      errorConfig = new SfdxErrorConfig(
+        nameOrConfig,
+        ensure(bundleName),
+        ensure(key),
+        tokens
+      );
+    } else {
+      errorConfig = nameOrConfig;
     }
 
-    /**
-     * Convert an Error to an SfdxError.
-     * @param {Error} err The error to convert.
-     * @returns {SfdxError}
-     */
-    public static wrap(err: Error): SfdxError {
-        const sfdxError = new SfdxError(err.message, err.name);
-        if (sfdxError.stack) {
-            sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
-            sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
-        }
-        return sfdxError;
+    errorConfig.load();
+
+    return new SfdxError(
+      errorConfig.getError(),
+      errorConfig.errorKey,
+      errorConfig.getActions()
+    );
+  }
+
+  /**
+   * Convert an Error to an SfdxError.
+   * @param {Error} err The error to convert.
+   * @returns {SfdxError}
+   */
+  public static wrap(err: Error): SfdxError {
+    const sfdxError = new SfdxError(err.message, err.name);
+    if (sfdxError.stack) {
+      sfdxError.stack = sfdxError.stack.replace(
+        `${err.name}: ${err.message}`,
+        'Outer stack:'
+      );
+      sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
+    }
+    return sfdxError;
+  }
+
+  /**
+   * The message string. Error.message
+   */
+  public message!: string;
+
+  /**
+   * Action messages. Hints to the users regarding what can be done to fix related issues.
+   */
+  public actions?: string[];
+
+  /**
+   * SfdxCommand can return this process exit code.
+   */
+  public exitCode: number;
+
+  /**
+   * The related command name for this error.
+   */
+  public commandName?: string;
+
+  // Additional data helpful for consumers of this error.  E.g., API call result
+  public data: any; // tslint:disable-line:no-any
+
+  /**
+   * Create an SfdxError.
+   * @param {string} message The error message.
+   * @param {string} [name] The error name. Defaults to 'SfdxError'.
+   * @param {string[]} [actions] The action message(s).
+   * @param {number} [exitCode] The exit code which will be used by SfdxCommand.
+   * @param {Error} [cause] The underlying error that caused this error to be raised.
+   */
+  constructor(
+    message: string,
+    name?: string,
+    actions?: string[],
+    exitCode?: number,
+    cause?: Error
+  ) {
+    super(name || 'SfdxError', message, cause);
+    this.actions = actions;
+    this.exitCode = exitCode || 1;
+  }
+
+  /**
+   * Sets the name of the command.
+   * @param {string} commandName The command name.
+   * @returns {SfdxError} For convenience `this` object is returned.
+   */
+  public setCommandName(commandName: string): SfdxError {
+    this.commandName = commandName;
+    return this;
+  }
+
+  /**
+   * An additional payload for the error.
+   * @param {any} data The payload data.
+   * @returns {SfdxError} For convenience `this` object is returned.
+   */
+  public setData(data: unknown): SfdxError {
+    this.data = data;
+    return this;
+  }
+
+  /**
+   * Convert an SfdxError's state to an object.
+   * @returns {object} A plain object representing the state of this error.
+   */
+  public toObject(): object {
+    const obj: JsonMap = {
+      name: this.name,
+      message: this.message || this.name,
+      exitCode: this.exitCode,
+      actions: this.actions
+    };
+
+    if (this.commandName) {
+      obj.commandName = this.commandName;
     }
 
-    /**
-     * The message string. Error.message
-     */
-    public message!: string;
-
-    /**
-     * Action messages. Hints to the users regarding what can be done to fix related issues.
-     */
-    public actions?: string[];
-
-    /**
-     * SfdxCommand can return this process exit code.
-     */
-    public exitCode: number;
-
-    /**
-     * The related command name for this error.
-     */
-    public commandName?: string;
-
-    // Additional data helpful for consumers of this error.  E.g., API call result
-    public data: any; // tslint:disable-line:no-any
-
-    /**
-     * Create an SfdxError.
-     * @param {string} message The error message.
-     * @param {string} [name] The error name. Defaults to 'SfdxError'.
-     * @param {string[]} [actions] The action message(s).
-     * @param {number} [exitCode] The exit code which will be used by SfdxCommand.
-     * @param {Error} [cause] The underlying error that caused this error to be raised.
-     */
-    constructor(message: string, name?: string, actions?: string[], exitCode?: number, cause?: Error) {
-        super(name || 'SfdxError', message, cause);
-        this.actions = actions;
-        this.exitCode = exitCode || 1;
+    if (this.data) {
+      obj.data = this.data;
     }
 
-    /**
-     * Sets the name of the command.
-     * @param {string} commandName The command name.
-     * @returns {SfdxError} For convenience `this` object is returned.
-     */
-    public setCommandName(commandName: string): SfdxError {
-        this.commandName = commandName;
-        return this;
-    }
-
-    /**
-     * An additional payload for the error.
-     * @param {any} data The payload data.
-     * @returns {SfdxError} For convenience `this` object is returned.
-     */
-    public setData(data: any): SfdxError { // tslint:disable-line:no-any
-        this.data = data;
-        return this;
-    }
-
-    /**
-     * Convert an SfdxError's state to an object.
-     * @returns {object} A plain object representing the state of this error.
-     */
-    public toObject(): object {
-        const obj: any = { // tslint:disable-line:no-any
-            name: this.name,
-            message: this.message || this.name,
-            exitCode: this.exitCode,
-            actions: this.actions
-        };
-
-        if (this.commandName) {
-            obj.commandName = this.commandName;
-        }
-
-        if (this.data) {
-            obj.data = this.data;
-        }
-
-        return obj;
-    }
+    return obj;
+  }
 }

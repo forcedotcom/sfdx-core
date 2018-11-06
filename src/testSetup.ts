@@ -353,8 +353,7 @@ export const unexpectedResult: SfdxError = new SfdxError(
  * @param {Promise<AnyJson>} f The async function that is expected to throw.
  * @returns {Promise<void>}
  */
-export async function shouldThrow(f: Promise<any>): Promise<never> {
-  // tslint:disable-line:no-any
+export async function shouldThrow(f: Promise<unknown>): Promise<never> {
   await f;
   throw unexpectedResult;
 }
