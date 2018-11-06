@@ -11,10 +11,10 @@ import { URL } from 'url';
 import {
   MyDomainResolver,
   MyDomainResolverOptions
-} from '../../../lib/status/myDomainResolver';
-import { testSetup } from '../../../lib/testSetup';
-import { Time, TIME_UNIT } from '../../../lib/util/time';
+} from '../../../src/status/myDomainResolver';
+import { testSetup } from '../../../src/testSetup';
 import { shouldThrow } from '../../../src/testSetup';
+import { Time, TIME_UNIT } from '../../../src/util/time';
 
 const $$ = testSetup();
 
@@ -28,7 +28,10 @@ describe('myDomainResolver', () => {
   beforeEach(() => {
     lookupAsyncSpy = $$.SANDBOX.stub(dns, 'lookup').callsFake(
       (host: string, callback: AnyFunction) => {
-        if (host === POSITIVE_HOST && lookupAsyncSpy.callCount === CALL_COUNT) {
+        if (
+          (host === POSITIVE_HOST && lookupAsyncSpy.callCount === CALL_COUNT) ||
+          host === MyDomainResolver.DEFAULT_DOMAIN.host
+        ) {
           callback(null, { address: TEST_IP });
         } else {
           callback(new Error());
@@ -47,6 +50,13 @@ describe('myDomainResolver', () => {
     const ip = await resolver.resolve();
     expect(ip).to.be.equal(TEST_IP);
     expect(lookupAsyncSpy.callCount).to.be.equal(CALL_COUNT);
+  });
+
+  it('should resolve with defaults', async () => {
+    const resolver: MyDomainResolver = await MyDomainResolver.create();
+    const ip = await resolver.resolve();
+    expect(ip).to.be.equal(TEST_IP);
+    expect(lookupAsyncSpy.callCount).to.be.equal(1);
   });
 
   it('should resolve localhost', async () => {
