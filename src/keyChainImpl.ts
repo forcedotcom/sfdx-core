@@ -543,6 +543,7 @@ enum SecretFields {
 /**
  * @private
  */
+// istanbul ignore next - getPassword/setPassword is always mocked out
 export class GenericKeychainAccess implements PasswordStore {
   public async getPassword(
     opts: ProgramOpts,
@@ -638,6 +639,7 @@ export class GenericKeychainAccess implements PasswordStore {
 /**
  * @private
  */
+// istanbul ignore next - getPassword/setPassword is always mocked out
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
   protected async isValidFileAccess(
     cb: (error: Nullable<Error>) => Promise<void>
