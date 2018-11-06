@@ -101,7 +101,7 @@ export class PermissionSetAssignment {
         let createResponse: SuccessResult | ErrorResult | RecordResult[];
 
         createResponse = await this.org.getConnection().sobject('PermissionSetAssignment')
-            .create(mapKeys(assignment, (value, key) => upperFirst(key)));
+            .create(mapKeys(assignment, (value: unknown, key: string) => upperFirst(key)));
 
         if ((createResponse as RecordResult[]).length) {
             throw SfdxError.create('@salesforce/core',

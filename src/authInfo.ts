@@ -57,7 +57,7 @@
  */
 
 import { AsyncCreatable, cloneJson, isEmpty, parseJsonMap, set } from '@salesforce/kit';
-import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, get, getString, isPlainObject, isString, JsonMap, keysOf, Nullable, Optional } from '@salesforce/ts-types';
+import { AnyFunction, AnyJson, asString, ensure, ensureJsonMap, ensureString, getString, isPlainObject, isString, JsonMap, keysOf, Nullable, Optional } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
 import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
@@ -377,6 +377,16 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
 
     private authInfoCrypto!: AuthInfoCrypto;
 
+    private options: AuthInfoOptions;
+
+    /**
+     * @ignore
+     */
+    public constructor(options?: AuthInfoOptions) {
+        super(options);
+        this.options = options || {};
+    }
+
     /**
      * Get the username.
      * @returns {string}
@@ -557,7 +567,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
             throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
         }
 
-        this.fields.username = this.options.username || get(options, 'username');
+        this.fields.username = this.options.username || getString(options, 'username') || undefined;
 
         // If the username is an access token, use that for auth and don't persist
         const accessTokenMatch = isString(this.fields.username) &&
@@ -580,14 +590,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
         } else {
             await this.initAuthOptions(options);
         }
-    }
-
-    /**
-     * Returns the default options when 'await AuthInfo.create()' is called without any called specified options.
-     */
-    protected getDefaultOptions(): AuthInfoOptions {
-        const opts: AuthInfoOptions = {};
-        return opts;
     }
 
     /**

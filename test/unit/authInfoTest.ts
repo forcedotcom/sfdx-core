@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { cloneJson, set } from '@salesforce/kit';
+import { cloneJson, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import {
     AnyJson,
     ensureString,
-    getAnyJson,
+    get,
     getJsonMap,
     getString,
     JsonMap,
@@ -313,20 +313,6 @@ describe('AuthInfo', () => {
             });
         });
 
-        // @todo replace this with includes from kit.
-        const includes = (element: AnyJson, value: AnyJson) => {
-            if (element && !isFunction(element) && !isBoolean(element) && !isNumber(element)) {
-                if (isJsonMap(element)) return Object.values(element).includes(value);
-
-                if (element.includes) {
-                    if (isJsonArray(element)) return element.includes(value);
-
-                    if (isString(value)) return element.includes(value);
-                }
-            }
-            return false;
-        };
-
         // Walk an object deeply looking for the attribute name of clientSecret or values that contain the client secret
         // or decrypted refresh token.
         const walkAndSearchForSecrets = (obj: JsonMap) => {
@@ -344,11 +330,11 @@ describe('AuthInfo', () => {
                     throw new Error('Key indicates client secret.');
                 }
 
-                if (includes(getAnyJson(obj, key), testMetadata.defaultConnectedAppInfo.clientSecret)) {
+                if (includes(get(obj, key), testMetadata.defaultConnectedAppInfo.clientSecret)) {
                     throw new Error(`Client secret present as value in object with key: ${key}`);
                 }
 
-                if (includes(getAnyJson(obj, key), decryptedRefreshToken)) {
+                if (includes(get(obj, key), decryptedRefreshToken)) {
                     throw new Error(`Refresh token present as value in object with key: ${key}`);
                 }
             });

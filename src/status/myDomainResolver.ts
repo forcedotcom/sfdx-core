@@ -57,6 +57,13 @@ export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
 
     private logger!: Logger;
 
+    private options: MyDomainResolverOptions;
+
+    public constructor(options?: MyDomainResolverOptions) {
+        super(options);
+        this.options = options || { url : new URL('login.salesforce.com') };
+    }
+
     /**
      * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
      * given the optional interval.
@@ -106,12 +113,5 @@ export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
      */
     protected async init(): Promise<void> {
         this.logger = await Logger.child('MyDomainResolver');
-    }
-
-    /**
-     * Returns the default options.
-     */
-    protected getDefaultOptions(): MyDomainResolverOptions {
-        return { url : new URL('login.salesforce.com') };
     }
 }

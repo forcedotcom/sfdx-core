@@ -173,7 +173,7 @@ export class Connection extends JSForceConnection {
         type Versioned = { version: string };
         const versions = (await this.request(`${this.instanceUrl}/services/data`)) as Versioned[];
         this.logger.debug(`response for org versions: ${versions}`);
-        const max = ensure(maxBy<Versioned>(versions, version => version.version));
+        const max = ensure(maxBy(versions, (version: Versioned) => version.version));
         return max.version;
     }
     /**
