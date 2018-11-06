@@ -28,10 +28,10 @@ describe('myDomainResolver', () => {
   beforeEach(() => {
     lookupAsyncSpy = $$.SANDBOX.stub(dns, 'lookup').callsFake(
       (host: string, callback: AnyFunction) => {
-        if (
-          (host === POSITIVE_HOST && lookupAsyncSpy.callCount === CALL_COUNT) ||
-          host === MyDomainResolver.DEFAULT_DOMAIN.host
-        ) {
+        const isDefaultHost = host === MyDomainResolver.DEFAULT_DOMAIN.host;
+        const isPositiveComplete =
+          host === POSITIVE_HOST && lookupAsyncSpy.callCount === CALL_COUNT;
+        if (isDefaultHost || isPositiveComplete) {
           callback(null, { address: TEST_IP });
         } else {
           callback(new Error());
