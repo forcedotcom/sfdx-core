@@ -61,7 +61,7 @@ export type UserFields = {
  */
 async function _retrieveUserFields(this: { logger: Logger }, username: string): Promise<UserFields> {
 
-    const connection: Connection = await Connection.create( await AuthInfo.create(username));
+    const connection: Connection = await Connection.create( await AuthInfo.create({ username }));
 
     const fromFields = Object.keys(REQUIRED_FIELDS).map(value => ensure(upperFirst(value)));
     const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
@@ -108,6 +108,10 @@ async function _retrieveProfileId(name: string, connection: Connection): Promise
     return name;
 }
 
+/**
+ * Used to initialize default values for fields based on a templateUser user. This user will be part of the
+ * Standard User profile.
+ */
 export interface DefaultUserFieldsOptions {
     templateUser: string;
     newUserName?: string;
@@ -118,18 +122,15 @@ export interface DefaultUserFieldsOptions {
  * software development purposes.
  *
  * @example
- * const fields = await DefaultUserFields.init(org);
+ * const options: DefaultUserFieldsOptions = {
+ *     templateUser: org.getUsername() || ''
+ * };
+ * const fields = (await DefaultUserFields.create(options)).getFields();
  */
 export class DefaultUserFields extends AsyncCreatable<DefaultUserFieldsOptions> {
     private logger!: Logger;
     private userFields!: UserFields;
 
-    /**
-     * Used to initialize default values for fields based on a templateUser user. This user will be part of the
-     * Standard User profile.
-     * @param {string} templateUser The user to base the new user on. It's assumed the template user exists on the org already.
-     * @param {string} [newUserName] The name for the new user.
-     */
     public getFields(): UserFields {
         return this.userFields;
     }
@@ -142,7 +143,7 @@ export class DefaultUserFields extends AsyncCreatable<DefaultUserFieldsOptions> 
         this.logger = await Logger.child('DefaultUserFields');
         this.userFields = await _retrieveUserFields.call({ logger: this.logger }, this.options.templateUser);
         this.userFields.profileId = await _retrieveProfileId('Standard User',
-            await Connection.create(await AuthInfo.create(this.options.templateUser)));
+            await Connection.create(await AuthInfo.create({ username: this.options.templateUser })));
         this.logger.debug(`Standard User profileId: ${this.userFields.profileId}`);
         if (this.options.newUserName) {
             this.userFields.username = this.options.newUserName;
@@ -292,7 +293,9 @@ export class User {
         };
 
         // Create an auth info object for the new user
-        const newUserAuthInfo: AuthInfo = await AuthInfo.create(fields.username, oauthOptions);
+        const newUserAuthInfo: AuthInfo = await AuthInfo.create({
+            username: fields.username, oauth2Options: oauthOptions
+        });
 
         // Update the auth info object with created user id.
         const newUserAuthFields: AuthFields = newUserAuthInfo.getFields();

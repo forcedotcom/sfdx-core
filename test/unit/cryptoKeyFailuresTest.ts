@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AnyJson } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import * as childProcess from 'child_process';
 import * as _crypto from 'crypto';
@@ -17,9 +18,9 @@ const $$ = testSetup();
 const spawnReturnFake = {
     sdtoutData: 'stdout test data',
     sdterrData: 'stdout test data',
-    stdout: { on: (action, cb) => { cb(spawnReturnFake.sdtoutData); } },
-    stderr: { on: (action, cb) => { cb(spawnReturnFake.sdterrData); } },
-    on: (action, cb) => { cb(17); },
+    stdout: { on: (action: string, cb: (data: AnyJson) => void) => { cb(spawnReturnFake.sdtoutData); } },
+    stderr: { on: (action: string, cb: (data: AnyJson) => void) => { cb(spawnReturnFake.sdterrData); } },
+    on: (action: string, cb: (data: AnyJson) => void) => { cb(17); },
     stdin: { end: () => {} }
 };
 
@@ -57,7 +58,7 @@ if (os.platform() === 'darwin') {
             spawnStub.withArgs(programArg, setOptionsArg).returns(spawnReturnFake);
 
             try {
-                await new Crypto().init();
+                await Crypto.create();
                 assert.fail('Should have thrown an SetCredentialError for Crypto.init()');
             } catch (err) {
                 expect(err.name).to.equal('SetCredentialError');
@@ -75,7 +76,7 @@ if (os.platform() === 'darwin') {
             $$.SANDBOX.stub(childProcess, 'spawn').withArgs(programArg, optionsArg).returns(spawnReturnFake);
 
             try {
-                await new Crypto().init('KEY_SET');
+                await Crypto.create({ retryStatus: 'KEY_SET' });
                 assert.fail('Should have thrown an PasswordNotFoundError for Crypto.init()');
             } catch (err) {
                 expect(err.name).to.equal('PasswordNotFoundError');
@@ -89,7 +90,7 @@ if (os.platform() === 'darwin') {
             $$.SANDBOX.stub(os, 'platform').returns(unsupportedOS);
 
             try {
-                await new Crypto().init();
+                await Crypto.create();
                 assert.fail('Should have thrown an UnsupportedOperatingSystemError for Crypto.init()');
             } catch (err) {
                 expect(err.name).to.equal('UnsupportedOperatingSystemError');

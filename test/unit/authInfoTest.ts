@@ -61,7 +61,7 @@ describe('AuthInfo No fs mock', () => {
     it('missing config', async () => {
         const expectedErrorName = 'NamedOrgNotFound';
         try {
-            await AuthInfo.create('does_not_exist@gb.com');
+            await AuthInfo.create({ username: 'does_not_exist@gb.com' });
             assert.fail(`should have thrown error with name: ${expectedErrorName}`);
         } catch (e) {
             expect(e).to.have.property('name', expectedErrorName);
@@ -260,7 +260,7 @@ describe('AuthInfo', () => {
         readFileStub = stubMethod($$.SANDBOX, fs, 'readFile');
 
         // Spies
-        authInfoInit = spyMethod($$.SANDBOX, AuthInfo.prototype, 'init');
+        authInfoInit = spyMethod($$.SANDBOX, AuthInfo.prototype, 'initAuthOptions');
         authInfoUpdate = spyMethod($$.SANDBOX, AuthInfo.prototype, 'update');
         authInfoBuildJwtConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildJwtConfig');
         authInfoBuildRefreshTokenConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig');
@@ -286,7 +286,7 @@ describe('AuthInfo', () => {
             _postParmsStub.returns(Promise.resolve(authResponse));
             const responseBody = { body: JSON.stringify({ Username: testMetadata.username }) };
             stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
-            authInfo = await AuthInfo.create(undefined, authCodeConfig);
+            authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
 
             const crypto = await Crypto.create();
             decryptedRefreshToken = crypto.decrypt(authInfo.getFields().refreshToken) || '';
@@ -298,7 +298,7 @@ describe('AuthInfo', () => {
                 const username = authInfo.getFields().username || '';
 
                 // username is cached at this point from before each
-                await AuthInfo.create(username);
+                await AuthInfo.create({ username });
 
                 // because it was cached there should be no change in the lookup count.
                 expect(testMetadata.authInfoLookupCount).to.equal(postInitLookupCount);
@@ -307,21 +307,23 @@ describe('AuthInfo', () => {
                 AuthInfo.clearCache(username);
 
                 // The cached name will cause a cache mis
-                await AuthInfo.create(username);
+                await AuthInfo.create({ username });
 
                 // And thus cause a re-read.
                 expect(testMetadata.authInfoLookupCount).to.equal(postInitLookupCount + 1);
             });
         });
 
-        // @todo move to kit.
+        // @todo replace this with includes from kit.
         const includes = (element: AnyJson, value: AnyJson) => {
             if (element && !isFunction(element) && !isBoolean(element) && !isNumber(element)) {
                 if (isJsonMap(element)) return Object.values(element).includes(value);
 
-                if (isJsonArray(element)) return element.includes(value);
+                if (element.includes) {
+                    if (isJsonArray(element)) return element.includes(value);
 
-                if (isString(value)) return element.includes(value);
+                    if (isString(value)) return element.includes(value);
+                }
             }
             return false;
         };
@@ -399,7 +401,7 @@ describe('AuthInfo', () => {
             stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
 
             const username = '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
-            const authInfo = await AuthInfo.create(username);
+            const authInfo = await AuthInfo.create({ username });
 
             const expectedFields = { accessToken: username, instanceUrl: testMetadata.instanceUrl };
             expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
@@ -414,7 +416,12 @@ describe('AuthInfo', () => {
             stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
 
             const accessToken = '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
-            const authInfo = await AuthInfo.create('test', { accessToken, instanceUrl: testMetadata.instanceUrl, loginUrl: testMetadata.instanceUrl });
+            const authInfo = await AuthInfo.create({
+                username: 'test',
+                accessTokenOptions: {
+                    accessToken, instanceUrl: testMetadata.instanceUrl, loginUrl: testMetadata.instanceUrl
+                }
+            });
 
             const expectedFields = { accessToken, instanceUrl: testMetadata.instanceUrl };
             expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
@@ -457,7 +464,7 @@ describe('AuthInfo', () => {
                     done(null, { address: '1.1.1.1', family: 4 }));
 
                 // Create the JWT AuthInfo instance
-                const authInfo = await AuthInfo.create(testMetadata.jwtUsername, jwtConfig);
+                const authInfo = await AuthInfo.create({ username: testMetadata.jwtUsername, oauth2Options: jwtConfig });
 
                 // Verify the returned AuthInfo instance
                 const authInfoConnOpts = authInfo.getConnectionOptions();
@@ -495,7 +502,7 @@ describe('AuthInfo', () => {
             // This test relies on the previous test caching the AuthInfo.
             it('should return a cached JWT AuthInfo instance when passed a username', async () => {
                 // Create the JWT AuthInfo instance
-                const authInfo = await AuthInfo.create(testMetadata.jwtUsername);
+                const authInfo = await AuthInfo.create({ username: testMetadata.jwtUsername });
 
                 // Verify the returned AuthInfo instance
                 const authInfoConnOpts = authInfo.getConnectionOptions();
@@ -534,7 +541,7 @@ describe('AuthInfo', () => {
             };
 
             // Create the JWT AuthInfo instance
-            const authInfo = await AuthInfo.create(username);
+            const authInfo = await AuthInfo.create({ username });
 
             // Verify the returned AuthInfo instance
             const authInfoConnOpts = authInfo.getConnectionOptions();
@@ -576,7 +583,7 @@ describe('AuthInfo', () => {
 
             // Create the JWT AuthInfo instance
             try {
-                await AuthInfo.create(username, jwtConfig);
+                await AuthInfo.create({ username, oauth2Options: jwtConfig });
                 assert.fail('should have thrown an error within AuthInfo.buildJwtConfig()');
             } catch (err) {
                 expect(err.name).to.equal('JWTAuthError');
@@ -604,7 +611,7 @@ describe('AuthInfo', () => {
                 done(new Error('authInfoTest_ERROR_MSG')));
 
             // Create the JWT AuthInfo instance
-            const authInfo = await AuthInfo.create(username, jwtConfig);
+            const authInfo = await AuthInfo.create({ username, oauth2Options: jwtConfig });
 
             expect(authInfo.getConnectionOptions()).to.have.property('instanceUrl', jwtConfig.loginUrl);
         });
@@ -630,7 +637,7 @@ describe('AuthInfo', () => {
             _postParmsStub.returns(Promise.resolve(authResponse));
 
             // Create the refresh token AuthInfo instance
-            const authInfo = await AuthInfo.create(username, refreshTokenConfig);
+            const authInfo = await AuthInfo.create({ username, oauth2Options: refreshTokenConfig });
 
             // Verify the returned AuthInfo instance
             const authInfoConnOpts = authInfo.getConnectionOptions();
@@ -692,7 +699,7 @@ describe('AuthInfo', () => {
             _postParmsStub.returns(Promise.resolve(authResponse));
 
             // Create the refresh token AuthInfo instance
-            const authInfo = await AuthInfo.create(undefined, refreshTokenConfig);
+            const authInfo = await AuthInfo.create({ oauth2Options: refreshTokenConfig });
 
             // Verify the returned AuthInfo instance
             const authInfoConnOpts = authInfo.getConnectionOptions();
@@ -754,7 +761,7 @@ describe('AuthInfo', () => {
             _postParmsStub.returns(Promise.resolve(authResponse));
 
             // Create the refresh token AuthInfo instance
-            const authInfo = await AuthInfo.create(username, refreshTokenConfig);
+            const authInfo = await AuthInfo.create({ username, oauth2Options: refreshTokenConfig });
 
             // Verify the returned AuthInfo instance
             const authInfoConnOpts = authInfo.getConnectionOptions();
@@ -809,7 +816,7 @@ describe('AuthInfo', () => {
 
             // Create the refresh token AuthInfo instance
             try {
-                await AuthInfo.create(username, refreshTokenConfig);
+                await AuthInfo.create({ username, oauth2Options: refreshTokenConfig });
                 assert.fail('should have thrown an error within AuthInfo.buildRefreshTokenConfig()');
             } catch (err) {
                 expect(err.name).to.equal('RefreshTokenAuthError');
@@ -840,7 +847,7 @@ describe('AuthInfo', () => {
             stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
 
             // Create the refresh token AuthInfo instance
-            const authInfo = await AuthInfo.create(undefined, authCodeConfig);
+            const authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
 
             // Verify the returned AuthInfo instance
             const authInfoConnOpts = authInfo.getConnectionOptions();
@@ -894,7 +901,7 @@ describe('AuthInfo', () => {
 
             // Create the auth code AuthInfo instance
             try {
-                await AuthInfo.create(undefined, authCodeConfig);
+                await AuthInfo.create({ oauth2Options: authCodeConfig });
                 assert.fail('should have thrown an error within AuthInfo.buildWebAuthConfig()');
             } catch (err) {
                 expect(err.name).to.equal('AuthCodeExchangeError');
@@ -919,7 +926,7 @@ describe('AuthInfo', () => {
 
             // Create the auth code AuthInfo instance
             try {
-                await AuthInfo.create(undefined, authCodeConfig);
+                await AuthInfo.create({ oauth2Options: authCodeConfig });
                 assert.fail('should have thrown an error within AuthInfo.buildWebAuthConfig()');
             } catch (err) {
                 expect(err.name).to.equal('AuthCodeUsernameRetrievalError');
@@ -955,7 +962,7 @@ describe('AuthInfo', () => {
             const cacheSetSpy: sinon.SinonSpy = spyMethod($$.SANDBOX, AuthInfo['cache'], 'set');
 
             // Create the AuthInfo instance
-            const authInfo = await AuthInfo.create(username, refreshTokenConfig);
+            const authInfo = await AuthInfo.create({ username, oauth2Options: refreshTokenConfig });
 
             expect(authInfo.getUsername()).to.equal(username);
 
@@ -991,8 +998,19 @@ describe('AuthInfo', () => {
     });
 
     describe('update()', () => {
+        let encryptStub: sinon.SinonStub;
+        let crypto: Crypto;
+        beforeEach(async () => {
+            crypto = await Crypto.create();
+            encryptStub = $$.SANDBOX.stub().callsFake((fields: AuthFields) => {
+                fields.password = crypto.encrypt(fields.password);
+                fields.clientSecret = crypto.encrypt(fields.clientSecret);
+                fields.accessToken = crypto.encrypt(fields.accessToken);
+                return fields;
+            });
+        });
+
         it('should encrypt the data before assigning to this.fields', async () => {
-            const crypto = await Crypto.create();
             const context: any = { // tslint:disable-line:no-any
                 getUsername: () => context.fields.username,
                 fields: {
@@ -1002,6 +1020,9 @@ describe('AuthInfo', () => {
                     orgId: '00DAuthInfoTest_orgId',
                     loginUrl: testMetadata.loginUrl,
                     refreshToken: crypto.encrypt(testMetadata.refreshToken)
+                },
+                authInfoCrypto: {
+                    encryptFields: encryptStub
                 },
                 logger: $$.TEST_LOGGER
             };
@@ -1042,6 +1063,17 @@ describe('AuthInfo', () => {
     });
 
     describe('refreshFn()', () => {
+        let crypto: Crypto;
+        let decryptStub: sinon.SinonStub;
+
+        beforeEach(async () => {
+            crypto = await Crypto.create();
+            decryptStub = $$.SANDBOX.stub().callsFake((fields: AuthFields) => {
+                fields.accessToken = crypto.decrypt(fields.accessToken);
+                return fields;
+            });
+        });
+
         it('should call init() and save()', async () => {
             const context = {
                 getUsername: () => '',
@@ -1051,26 +1083,27 @@ describe('AuthInfo', () => {
                     privateKey: 'authInfoTest/jwt/server.key',
                     accessToken: testMetadata.encryptedAccessToken
                 },
-                init: $$.SANDBOX.stub(),
+                authInfoCrypto: { decryptFields: decryptStub },
+                initAuthOptions: $$.SANDBOX.stub(),
                 save: $$.SANDBOX.stub(),
                 logger: $$.TEST_LOGGER
             };
             const testCallback = $$.SANDBOX.stub();
             testCallback.returns(Promise.resolve());
 
-            context.init.returns(Promise.resolve());
+            context.initAuthOptions.returns(Promise.resolve());
             context.save.returns(Promise.resolve());
 
             await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
 
-            expect(context.init.called, 'Should have called AuthInfo.init() during refreshFn()').to.be.true;
+            expect(context.initAuthOptions.called, 'Should have called AuthInfo.initAuthOptions() during refreshFn()').to.be.true;
             const expectedInitArgs = {
                 loginUrl: context.fields.loginUrl,
                 clientId: context.fields.clientId,
                 privateKey: context.fields.privateKey,
                 accessToken: testMetadata.accessToken
             };
-            expect(context.init.firstCall.args[0]).to.deep.equal(expectedInitArgs);
+            expect(context.initAuthOptions.firstCall.args[0]).to.deep.equal(expectedInitArgs);
             expect(context.save.called, 'Should have called AuthInfo.save() during refreshFn()').to.be.true;
             expect(testCallback.called, 'Should have called the callback passed to refreshFn()').to.be.true;
             expect(testCallback.firstCall.args[1]).to.equal(testMetadata.accessToken);
@@ -1085,12 +1118,13 @@ describe('AuthInfo', () => {
                     privateKey: 'authInfoTest/jwt/server.key',
                     accessToken: testMetadata.encryptedAccessToken
                 },
-                init: $$.SANDBOX.stub(),
+                authInfoCrypto: { decryptFields: decryptStub },
+                initAuthOptions: $$.SANDBOX.stub(),
                 save: $$.SANDBOX.stub(),
                 logger: $$.TEST_LOGGER
             };
             const testCallback = $$.SANDBOX.spy();
-            context.init.throws(new Error('Error: Data Not Available'));
+            context.initAuthOptions.throws(new Error('Error: Data Not Available'));
             context.save.returns(Promise.resolve());
 
             await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
@@ -1133,7 +1167,7 @@ describe('AuthInfo', () => {
             _postParmsStub.returns(Promise.resolve(authResponse));
 
             // Create the refresh token AuthInfo instance
-            const authInfo = await AuthInfo.create(username, refreshTokenConfig);
+            const authInfo = await AuthInfo.create({ username, oauth2Options: refreshTokenConfig });
 
             expect(authInfo.getSfdxAuthUrl()).to.contain(`force://SalesforceDevelopmentExperience:1384510088588713504:${testMetadata.refreshToken}@mydevhub.localhost.internal.salesforce.com:6109`);
         });

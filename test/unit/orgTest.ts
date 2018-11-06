@@ -112,7 +112,7 @@ describe('Org Tests', () => {
             $$.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(() =>
                 Promise.resolve([{version: '89.0'}, {version: '90.0'}, {version: '88.0'}]));
             const org: Org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(testData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: testData.username }))
             });
             const apiVersion = await org.retrieveMaxApiVersion();
             expect(apiVersion).to.equal('90.0');
@@ -130,7 +130,7 @@ describe('Org Tests', () => {
 
             it('no org data path', async () => {
                 const org: Org = await Org.create({
-                    connection: await Connection.create(await AuthInfo.create(testData.username))
+                    connection: await Connection.create(await AuthInfo.create({ username: testData.username }))
                 });
 
                 expect(removeStub.callCount).to.be.equal(0);
@@ -155,7 +155,7 @@ describe('Org Tests', () => {
             stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(testData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: testData.username }))
             });
             await org.cleanLocalOrgData(orgDataPath);
             expect(invalidProjectWorkspace).to.be.equal(true);
@@ -175,7 +175,7 @@ describe('Org Tests', () => {
             stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
             const orgDataPath = 'foo';
             const org: Org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(testData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: testData.username }))
             });
             try {
                 await org.cleanLocalOrgData(orgDataPath);
@@ -202,7 +202,7 @@ describe('Org Tests', () => {
         it('should remove all assets associated with the org', async () => {
 
             const org: Org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(testData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: testData.username }))
             });
 
             const deletedPaths: string[] = [];
@@ -223,7 +223,7 @@ describe('Org Tests', () => {
 
         it('should not fail when no scratch org has been written', async () => {
             const org: Org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(testData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: testData.username }))
             });
 
             const error: Error = new Error();
@@ -247,7 +247,7 @@ describe('Org Tests', () => {
         it('should remove config setting', async () => {
             const configAggregator: ConfigAggregator = await ConfigAggregator.create();
             const org: Org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(testData.username)),
+                connection: await Connection.create(await AuthInfo.create({ username: testData.username })),
                 aggregator: configAggregator
             });
 
@@ -269,7 +269,7 @@ describe('Org Tests', () => {
 
         it('should remove the alias', async () => {
             const org: Org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(testData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: testData.username }))
             });
 
             await Aliases.parseAndUpdate([`foo=${testData.username}`]);
@@ -320,11 +320,14 @@ describe('Org Tests', () => {
 
                 responseBody = { body: JSON.stringify({ Username: user.username, OrgId: user.orgId }) };
 
-                const userAuth = await AuthInfo.create(user.username, {
-                    authCode: 'test',
-                    clientId: user.clientId,
-                    clientSecret: user.clientSecret,
-                    loginUrl: user.loginUrl
+                const userAuth = await AuthInfo.create({
+                    username: user.username,
+                    oauth2Options: {
+                        authCode: 'test',
+                        clientId: user.clientId,
+                        clientSecret: user.clientSecret,
+                        loginUrl: user.loginUrl
+                    }
                 });
 
                 await userAuth.save( {orgId: user.orgId});
@@ -332,12 +335,12 @@ describe('Org Tests', () => {
                 const configAggregator: ConfigAggregator = await ConfigAggregator.create();
 
                 const org: Org = await Org.create({ connection:
-                    await Connection.create(await AuthInfo.create(user.username)), aggregator: configAggregator });
+                    await Connection.create(await AuthInfo.create({ username: user.username })), aggregator: configAggregator });
 
                 orgs.push(org);
             }
 
-            await orgs[0].addUsername(await AuthInfo.create(orgs[1].getUsername()));
+            await orgs[0].addUsername(await AuthInfo.create({ username: orgs[1].getUsername() }));
         });
 
         it('should validate expected files', async () => {
@@ -402,7 +405,7 @@ describe('Org Tests', () => {
             const fakeDevHub = 'foo@devhub.com';
 
             const configAggregator: ConfigAggregator = await ConfigAggregator.create();
-            connection = await Connection.create(await AuthInfo.create(testData.username));
+            connection = await Connection.create(await AuthInfo.create({ username: testData.username }));
             org = await Org.create({ connection, aggregator: configAggregator });
 
             const config: Config = await Config.create<Config>(Config.getDefaultOptions(true));
@@ -457,7 +460,7 @@ describe('Org Tests', () => {
         it('steel thread', async () => {
             testData.createDevHubUsername(devHubUser);
             const org: Org = await Org.create({
-                connection:  await Connection.create(await AuthInfo.create(testData.username))
+                connection:  await Connection.create(await AuthInfo.create({ username: testData.username }))
             });
 
             const devHub: Optional<Org> = await org.getDevHubOrg();
@@ -467,7 +470,7 @@ describe('Org Tests', () => {
         it('org is devhub', async () => {
             testData.makeDevHub();
             const org: Org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(testData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: testData.username }))
             });
 
             const devHub: Optional<Org> | undefined = await org.getDevHubOrg();
@@ -485,7 +488,7 @@ describe('Org Tests', () => {
         });
         it('should request an refresh token', async () => {
             const org: Org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(testData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: testData.username }))
             });
             await org.refreshAuth();
             // Todo add the apiversion to the test string
@@ -531,16 +534,16 @@ describe('Org Tests', () => {
             $$.configStubs.AuthInfoConfig = { retrieveContents: retrieve};
 
             orgs[0] = await Org.create({ connection:
-                await Connection.create(await AuthInfo.create(mock0.username)) });
+                await Connection.create(await AuthInfo.create({ username: mock0.username })) });
             orgs[1] = await Org.create({ connection:
-                await Connection.create(await AuthInfo.create(mock1.username)) });
+                await Connection.create(await AuthInfo.create({ username: mock1.username })) });
             orgs[2] = await Org.create({ connection:
-                await Connection.create(await AuthInfo.create(mock2.username)) });
+                await Connection.create(await AuthInfo.create({ username: mock2.username })) });
         });
 
         it('should read all auth files from an org file', async () => {
-            await orgs[0].addUsername(await AuthInfo.create(orgs[1].getUsername()));
-            await orgs[0].addUsername(await AuthInfo.create(orgs[2].getUsername()));
+            await orgs[0].addUsername(await AuthInfo.create({ username: orgs[1].getUsername() }));
+            await orgs[0].addUsername(await AuthInfo.create({ username: orgs[2].getUsername() }));
 
             const orgUsers: AuthInfo[] = await orgs[0].readUserAuthFiles();
             let expectedUsers = [mock0.username, mock1.username, mock2.username];
