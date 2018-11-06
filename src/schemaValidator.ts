@@ -10,12 +10,12 @@ import {
   asJsonArray,
   asJsonMap,
   Dictionary,
+  get,
   getJsonArray,
   isJsonMap,
   isString,
   JsonMap,
-  Optional,
-  get
+  Optional
 } from '@salesforce/ts-types';
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
