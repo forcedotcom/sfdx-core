@@ -27,11 +27,11 @@
  * @property {string} MISSING The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
  */
 
+import { AsyncCreatable } from '@salesforce/kit';
 import {
     AnyFunction,
     AnyJson,
     asString,
-    AsyncCreatable,
     ensure,
     ensureJsonArray,
     ensureString,
@@ -135,6 +135,16 @@ export class Org extends AsyncCreatable<OrgOptions> {
     // Initialized in create
     private logger!: Logger;
     private connection!: Connection;
+
+    private options: OrgOptions;
+
+    /**
+     * @ignore
+     */
+    public constructor(options?: OrgOptions) {
+        super(options);
+        this.options = options || {};
+    }
 
     /**
      * Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.
@@ -458,9 +468,10 @@ export class Org extends AsyncCreatable<OrgOptions> {
 
             if (this.options.aliasOrUsername == null) {
                 this.configAggregator = this.getConfigAggregator();
-                this.options.aliasOrUsername = this.options.isDevHub ?
-                    asString(get(this.configAggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME), 'value')) :
-                    asString(get(this.configAggregator.getInfo(Config.DEFAULT_USERNAME), 'value'));
+                const aliasOrUsername = this.options.isDevHub ?
+                    getString(this.configAggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME), 'value') :
+                    getString(this.configAggregator.getInfo(Config.DEFAULT_USERNAME), 'value');
+                this.options.aliasOrUsername = aliasOrUsername || undefined;
             }
 
             // If no username is provided AuthInfo will throw an SfdxError.

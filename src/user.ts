@@ -70,7 +70,7 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
     this.logger.debug('Successfully retrieved the admin user for this org.');
 
     if (result.totalSize === 1) {
-        const results = mapKeys(result.records[0], (value, key: string) => lowerFirst(key));
+        const results = mapKeys(result.records[0], (value: unknown, key: string) => lowerFirst(key));
 
         const fields: UserFields = {
             id: ensure(getString(results, REQUIRED_FIELDS.id)),
@@ -131,12 +131,15 @@ export class DefaultUserFields extends AsyncCreatable<DefaultUserFieldsOptions> 
     private logger!: Logger;
     private userFields!: UserFields;
 
-    public getFields(): UserFields {
-        return this.userFields;
+    private options: DefaultUserFieldsOptions;
+
+    public constructor(options: DefaultUserFieldsOptions) {
+        super(options);
+        this.options = options || { templateUser: '' };
     }
 
-    protected getDefaultOptions(): DefaultUserFieldsOptions {
-        return { templateUser: ''};
+    public getFields(): UserFields {
+        return this.userFields;
     }
 
     protected async init(): Promise<void> {
@@ -423,7 +426,7 @@ export class User {
         const leftOverRequiredFields = omit(fields, [
             REQUIRED_FIELDS.username, REQUIRED_FIELDS.email, REQUIRED_FIELDS.lastName, REQUIRED_FIELDS.profileId
         ]);
-        const object = mapKeys(leftOverRequiredFields, (value, key) => upperFirst(key));
+        const object = mapKeys(leftOverRequiredFields, (value: unknown, key: string) => upperFirst(key));
         await this.org.getConnection().sobject('User').update(object);
         this.logger.debug(`Successfully Updated additional properties for user: ${fields.username}`);
     }

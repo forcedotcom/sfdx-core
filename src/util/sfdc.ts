@@ -9,7 +9,7 @@
  */
 
 import { findKey } from '@salesforce/kit';
-import { asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { AnyJson, asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { URL } from 'url';
 
 /**
@@ -105,7 +105,7 @@ export function validatePathDoesNotContainInvalidChars(value: string): boolean {
  */
 export function findUpperCaseKeys(data?: JsonMap): Optional<string> {
     let key: Optional<string>;
-    findKey(data, (val, k) => {
+    findKey(data, (val: AnyJson, k: string) => {
         if (k[0] === k[0].toUpperCase()) {
             key = k;
         } else if (isJsonMap(val)) {
