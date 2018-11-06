@@ -23,8 +23,8 @@
  * @property {function} isEnvVar `() => boolean` Location is `LOCATIONS.ENVIRONMENT`.
  */
 
-import { get, merge, snakeCase, sortBy } from '@salesforce/kit';
-import { definiteEntriesOf, Dictionary, isObject, Optional } from '@salesforce/ts-types';
+import { merge, snakeCase, sortBy } from '@salesforce/kit';
+import { definiteEntriesOf, Dictionary, get, isObject, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 

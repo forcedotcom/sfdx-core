@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { get, mapKeys, upperFirst } from '@salesforce/kit';
-import { Optional } from '@salesforce/ts-types';
+import { mapKeys, upperFirst } from '@salesforce/kit';
+import { getString, Optional } from '@salesforce/ts-types';
 import { ErrorResult, QueryResult, RecordResult, SuccessResult } from 'jsforce';
 import { EOL } from 'os';
 import { Logger } from './logger';
@@ -79,7 +79,7 @@ export class PermissionSetAssignment {
 
         const result: QueryResult<string> = await this.org.getConnection().query<string>(query);
 
-        const permissionSetId: string = get(result, 'records[0].Id');
+        const permissionSetId = getString(result, 'records[0].Id');
 
         if (!permissionSetId) {
             if (nsPrefix) {
@@ -101,7 +101,7 @@ export class PermissionSetAssignment {
         let createResponse: SuccessResult | ErrorResult | RecordResult[];
 
         createResponse = await this.org.getConnection().sobject('PermissionSetAssignment')
-            .create(mapKeys(assignment, (value, key) => upperFirst(key)));
+            .create(mapKeys(assignment, (value: unknown, key: string) => upperFirst(key)));
 
         if ((createResponse as RecordResult[]).length) {
             throw SfdxError.create('@salesforce/core',

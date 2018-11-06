@@ -23,8 +23,7 @@ import { SfdxError } from '../../../src/sfdxError';
 import { shouldThrow, StreamingMockCometClient, StreamingMockSubscriptionCall, testSetup } from '../../../src/testSetup';
 import { Time, TIME_UNIT } from '../../../src/util/time';
 
-import { get } from '@salesforce/kit';
-import { JsonMap } from '@salesforce/ts-types';
+import { get, JsonMap } from '@salesforce/ts-types';
 
 const MOCK_API_VERSION: string = '43.0';
 const MOCK_TOPIC: string = 'topic';
