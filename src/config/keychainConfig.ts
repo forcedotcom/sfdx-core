@@ -13,6 +13,7 @@ import { ConfigContents } from './configStore';
  * Represent a key chain config backed by a json file.
  * @private
  */
+// istanbul ignore next - getPassword/setPassword is always mocked out
 export class KeychainConfig extends ConfigFile {
   public static getFileName(): string {
     return 'key.json';
