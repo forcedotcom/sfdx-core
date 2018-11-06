@@ -908,7 +908,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
     const oauth2 = new AuthCodeOAuth2(options);
 
     // Exchange the auth code for an access token and refresh token.
-    let _authFields;
+    let _authFields: TokenResponse;
     try {
       this.logger.info(
         `Exchanging auth code for access token using loginUrl: ${
@@ -932,10 +932,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
     // but we don't want to create circular dependencies or lots of snowflakes
     // within this file to support it.
     const apiVersion = 'v42.0'; // hardcoding to v42.0 just for this call is okay.
-    // @ts-ignore TODO: need better typings
-    const url = `${
-      _authFields.instance_url
-    }/services/data/${apiVersion}/sobjects/User/${userId}`;
+    const instance = ensure(getString(_authFields, 'instance_url'));
+    const url = `${instance}/services/data/${apiVersion}/sobjects/User/${userId}`;
     const headers = Object.assign(
       { Authorization: `Bearer ${_authFields.access_token}` },
       SFDX_HTTP_HEADERS
