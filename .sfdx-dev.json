@@ -1,0 +1,8 @@
+{
+  "test": {
+    "testsPath": "test/**/*Test.ts"
+  },
+  "clean": {
+    "files": ["yarn.lock", "package-lock.json"]
+  }
+}
