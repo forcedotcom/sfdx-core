@@ -9,7 +9,6 @@ import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import {
     AnyJson,
     ensureString,
-    get,
     getJsonMap,
     getString,
     JsonMap,
@@ -330,11 +329,11 @@ describe('AuthInfo', () => {
                     throw new Error('Key indicates client secret.');
                 }
 
-                if (includes(get(obj, key), testMetadata.defaultConnectedAppInfo.clientSecret)) {
+                if (includes(getJsonMap(obj, key), testMetadata.defaultConnectedAppInfo.clientSecret)) {
                     throw new Error(`Client secret present as value in object with key: ${key}`);
                 }
 
-                if (includes(get(obj, key), decryptedRefreshToken)) {
+                if (includes(getJsonMap(obj, key), decryptedRefreshToken)) {
                     throw new Error(`Refresh token present as value in object with key: ${key}`);
                 }
             });
