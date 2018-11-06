@@ -16,38 +16,45 @@ import { SfdxError } from './sfdxError';
  * @private
  */
 export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
+  const logger: Logger = await Logger.child('keyChain');
+  logger.debug(`platform: ${platform}`);
 
-    const logger: Logger = await Logger.child('keyChain');
-    logger.debug(`platform: ${platform}`);
+  const useGenericUnixKeychainVar = env.getBoolean(
+    'SFDX_USE_GENERIC_UNIX_KEYCHAIN'
+  );
+  const shouldUseGenericUnixKeychain =
+    !!useGenericUnixKeychainVar && useGenericUnixKeychainVar;
 
-    const useGenericUnixKeychainVar = env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN');
-    const shouldUseGenericUnixKeychain = !!useGenericUnixKeychainVar && useGenericUnixKeychainVar;
-
-    if (/^win/.test(platform)) {
-        return keyChainImpl.generic_windows;
-    } else if (/darwin/.test(platform)) {
-        // OSX can use the generic keychain. This is useful when running under an
-        // automation user.
-        if (shouldUseGenericUnixKeychain) {
-            return keyChainImpl.generic_unix;
-        } else {
-            return keyChainImpl.darwin;
-        }
-    } else if (/linux/.test(platform)) {
-        // Use the generic keychain if specified
-        if (shouldUseGenericUnixKeychain) {
-            return keyChainImpl.generic_unix;
-        } else {
-            // otherwise try and use the builtin keychain
-            try {
-                await keyChainImpl.linux.validateProgram();
-                return keyChainImpl.linux;
-            } catch (e) {
-                // If the builtin keychain is not available use generic
-                return keyChainImpl.generic_unix;
-            }
-        }
+  if (/^win/.test(platform)) {
+    return keyChainImpl.generic_windows;
+  } else if (/darwin/.test(platform)) {
+    // OSX can use the generic keychain. This is useful when running under an
+    // automation user.
+    if (shouldUseGenericUnixKeychain) {
+      return keyChainImpl.generic_unix;
     } else {
-        throw SfdxError.create('@salesforce/core', 'encryption', 'UnsupportedOperatingSystemError', [platform]);
+      return keyChainImpl.darwin;
     }
+  } else if (/linux/.test(platform)) {
+    // Use the generic keychain if specified
+    if (shouldUseGenericUnixKeychain) {
+      return keyChainImpl.generic_unix;
+    } else {
+      // otherwise try and use the builtin keychain
+      try {
+        await keyChainImpl.linux.validateProgram();
+        return keyChainImpl.linux;
+      } catch (e) {
+        // If the builtin keychain is not available use generic
+        return keyChainImpl.generic_unix;
+      }
+    }
+  } else {
+    throw SfdxError.create(
+      '@salesforce/core',
+      'encryption',
+      'UnsupportedOperatingSystemError',
+      [platform]
+    );
+  }
 };

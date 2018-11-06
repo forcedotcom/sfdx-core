@@ -139,10 +139,7 @@
                       "description": "The dependency version number"
                     }
                   },
-                  "required": [
-                    "packageId",
-                    "versionNumber"
-                  ]
+                  "required": ["packageId", "versionNumber"]
                 },
                 {
                   "type": "object",
@@ -153,26 +150,17 @@
                       "description": "The dependency subscriber package version ID (starts with 04t)"
                     }
                   },
-                  "required": [
-                    "subscriberPackageVersionId"
-                  ]
+                  "required": ["subscriberPackageVersionId"]
                 }
               ]
             }
           }
         },
         "additionalProperties": false,
-        "required" : [
-          "path",
-          "id",
-          "versionName",
-          "versionNumber"
-        ]
+        "required": ["path", "id", "versionName", "versionNumber"]
       }
     }
   },
   "additionalProperties": false,
-  "required": [
-    "sfdcLoginUrl"
-  ]
+  "required": ["sfdcLoginUrl"]
 }
