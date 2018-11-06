@@ -78,9 +78,19 @@ export class Crypto extends AsyncCreatable<CryptoOptions> {
 
     private _key: SecureBuffer<string> = new SecureBuffer();
 
+    private options: CryptoOptions;
+
     // Initialized in init
     private messages!: Messages;
     private noResetOnClose!: boolean;
+
+    /**
+     * @ignore
+     */
+    public constructor(options?: CryptoOptions) {
+        super(options);
+        this.options = options || {};
+    }
 
     /**
      * Encrypts text.
@@ -154,10 +164,6 @@ export class Crypto extends AsyncCreatable<CryptoOptions> {
         if (!this.noResetOnClose) {
             this._key.clear();
         }
-    }
-
-    protected getDefaultOptions(): CryptoOptions {
-        return {} as CryptoOptions;
     }
 
     protected async init(): Promise<void> {

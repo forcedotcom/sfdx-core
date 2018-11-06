@@ -4,12 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { get, once, set } from '@salesforce/kit';
+
+import { once, set } from '@salesforce/kit';
 import {
     AnyFunction,
     AnyJson,
     Dictionary, ensureJsonMap,
-    ensureString, isJsonMap,
+    ensureString, getBoolean,
+    isJsonMap,
     JsonMap,
     Optional
 } from '@salesforce/ts-types';
@@ -164,7 +166,8 @@ function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Prom
  *  });
  * });
  */
-export const testSetup = once((sinon?) => {
+// tslint:disable-next-line:no-any
+export const testSetup = once((sinon?: any) => {
     if (!sinon) {
         try {
             sinon = require('sinon');
@@ -477,7 +480,7 @@ export class MockTestOrgData {
             Id: this.userId,
             Username: this.username,
             LastName: `user_lastname_${this.testId}`,
-            Alias: this.alias,
+            Alias: this.alias || 'user_alias_blah',
             TimeZoneSidKey: `user_timezonesidkey_${this.testId}`,
             LocaleSidKey: `user_localesidkey_${this.testId}`,
             EmailEncodingKey: `user_emailencodingkey_${this.testId}`,
@@ -489,7 +492,7 @@ export class MockTestOrgData {
 
     public async getConfig(): Promise<ConfigContents> {
         const crypto = await Crypto.create();
-        const config: Dictionary<AnyJson> = {};
+        const config: JsonMap = {};
         config.orgId  = this.orgId;
 
         const accessToken = crypto.encrypt(this.accessToken);
@@ -514,7 +517,7 @@ export class MockTestOrgData {
             config.devHubUsername = this.devHubUsername;
         }
 
-        const isDevHub = get(this, 'isDevHub');
+        const isDevHub = getBoolean(this, 'isDevHub');
         if (isDevHub) {
             config.isDevHub = isDevHub;
         }

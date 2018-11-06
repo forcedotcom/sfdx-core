@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AsyncCreatable, get, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
-import { asJsonArray, asNumber, ensure, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
-import { OAuth2Options, QueryResult, RequestInfo } from 'jsforce';
+import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
+import { asJsonArray, asNumber, ensure, ensureJsonMap, ensureString, getString, isJsonMap, Many } from '@salesforce/ts-types';
+import { QueryResult, RequestInfo } from 'jsforce';
 import { DescribeSObjectResult } from 'jsforce/describe-result';
 import { EOL } from 'os';
 import { AuthFields, AuthInfo } from './authInfo';
@@ -63,26 +63,26 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
 
     const connection: Connection = await Connection.create( await AuthInfo.create({ username }));
 
-    const fromFields = Object.keys(REQUIRED_FIELDS).map(value => ensure(upperFirst(value)));
+    const fromFields = Object.keys(REQUIRED_FIELDS).map(upperFirst);
     const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
     const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
 
     this.logger.debug('Successfully retrieved the admin user for this org.');
 
     if (result.totalSize === 1) {
-        const results = mapKeys(result.records[0], (value, key: string) => lowerFirst(key));
+        const results = mapKeys(result.records[0], (value: unknown, key: string) => lowerFirst(key));
 
         const fields: UserFields = {
-            id: get(results, REQUIRED_FIELDS.id),
+            id: ensure(getString(results, REQUIRED_FIELDS.id)),
             username,
-            alias: get(results, REQUIRED_FIELDS.alias),
-            email: get(results, REQUIRED_FIELDS.email),
-            emailEncodingKey: get(results, REQUIRED_FIELDS.emailEncodingKey),
-            languageLocaleKey: get(results, REQUIRED_FIELDS.languageLocaleKey),
-            localeSidKey: get(results, REQUIRED_FIELDS.localeSidKey),
-            profileId: get(results, REQUIRED_FIELDS.profileId),
-            lastName: get(results, REQUIRED_FIELDS.lastName),
-            timeZoneSidKey: get(results, REQUIRED_FIELDS.timeZoneSidKey)
+            alias: ensure(getString(results, REQUIRED_FIELDS.alias)),
+            email: ensure(getString(results, REQUIRED_FIELDS.email)),
+            emailEncodingKey: ensure(getString(results, REQUIRED_FIELDS.emailEncodingKey)),
+            languageLocaleKey: ensure(getString(results, REQUIRED_FIELDS.languageLocaleKey)),
+            localeSidKey: ensure(getString(results, REQUIRED_FIELDS.localeSidKey)),
+            profileId: ensure(getString(results, REQUIRED_FIELDS.profileId)),
+            lastName: ensure(getString(results, REQUIRED_FIELDS.lastName)),
+            timeZoneSidKey: ensure(getString(results, REQUIRED_FIELDS.timeZoneSidKey))
         };
 
         return fields;
@@ -131,12 +131,15 @@ export class DefaultUserFields extends AsyncCreatable<DefaultUserFieldsOptions> 
     private logger!: Logger;
     private userFields!: UserFields;
 
-    public getFields(): UserFields {
-        return this.userFields;
+    private options: DefaultUserFieldsOptions;
+
+    public constructor(options: DefaultUserFieldsOptions) {
+        super(options);
+        this.options = options || { templateUser: '' };
     }
 
-    protected getDefaultOptions(): DefaultUserFieldsOptions {
-        return { templateUser: ''};
+    public getFields(): UserFields {
+        return this.userFields;
     }
 
     protected async init(): Promise<void> {
@@ -284,7 +287,7 @@ export class User {
         const adminUserAuthFields: AuthFields = this.org.getConnection().getAuthInfoFields();
 
         // Setup oauth options for the new user
-        const oauthOptions: OAuth2Options = {
+        const oauthOptions = {
             loginUrl: adminUserAuthFields.loginUrl,
             refreshToken: refreshTokenSecret.buffer.value((buffer: Buffer): string => buffer.toString('utf8')),
             clientId: adminUserAuthFields.clientId,
@@ -423,7 +426,7 @@ export class User {
         const leftOverRequiredFields = omit(fields, [
             REQUIRED_FIELDS.username, REQUIRED_FIELDS.email, REQUIRED_FIELDS.lastName, REQUIRED_FIELDS.profileId
         ]);
-        const object = mapKeys(leftOverRequiredFields, (value, key) => upperFirst(key));
+        const object = mapKeys(leftOverRequiredFields, (value: unknown, key: string) => upperFirst(key));
         await this.org.getConnection().sobject('User').update(object);
         this.logger.debug(`Successfully Updated additional properties for user: ${fields.username}`);
     }

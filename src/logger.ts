@@ -197,7 +197,7 @@ export class Logger {
      * @see LoggerLevel
      */
     public static readonly LEVEL_NAMES = Object.values(LoggerLevel)
-        .filter(v => isString(v))
+        .filter(isString)
         .map(v => v.toLowerCase());
 
     /**
@@ -279,7 +279,7 @@ export class Logger {
      */
     public static getLevelByName(levelName: string): LoggerLevelValue {
         levelName = levelName.toUpperCase();
-        if (!isKeyOf(levelName, LoggerLevel)) {
+        if (!isKeyOf(LoggerLevel, levelName)) {
             throw new SfdxError('UnrecognizedLoggerLevelName');
         }
         return LoggerLevel[levelName];

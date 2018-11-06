@@ -18,10 +18,12 @@
  * The type of content a config stores.
  * @typedef {Map<string, ConfigValue>} ConfigContents
  */
-import { get as _get, set as _set } from '@salesforce/kit';
+import { set } from '@salesforce/kit';
 import {
     AnyJson,
     Dictionary,
+    get,
+    getAnyJson,
     JsonMap,
     Optional
 } from '@salesforce/ts-types';
@@ -96,7 +98,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @return {Optional<ConfigValue>}
      */
     public get(key: string): Optional<ConfigValue> {
-        return _get(this.contents, key);
+        return getAnyJson(this.contents, key);
     }
 
     /**
@@ -115,7 +117,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @param {string} key The key.
      */
     public has(key: string): boolean {
-        return !!_get(this.contents, key);
+        return !!get(this.contents, key);
     }
 
     /**
@@ -133,7 +135,7 @@ export abstract class BaseConfigStore implements ConfigStore {
      * @returns {ConfigContents} Returns the config object.
      */
     public set(key: string, value: ConfigValue): ConfigContents {
-        _set(this.contents, key, value);
+        set(this.contents, key, value);
         return this.contents;
     }
 
@@ -227,7 +229,7 @@ export abstract class BaseConfigStore implements ConfigStore {
     public setContentsFromObject<T extends object>(obj: T): void {
         this.contents = {};
         Object.entries(obj).forEach(([key, value]) => {
-            _set(this.contents, key, value);
+            set(this.contents, key, value);
         });
     }
 }
