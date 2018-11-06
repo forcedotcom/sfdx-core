@@ -136,8 +136,10 @@ export class Org extends AsyncCreatable<OrgOptions> {
     /**
      * Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.
      * @param {string} [orgDataPath] A relative path other than "orgs/".
+     * @param throwWhenRemoveFails Should the remove org operations throw an error on failure?
      * @returns {Promise<void>}
      */
+
     public async cleanLocalOrgData(orgDataPath?: string, throwWhenRemoveFails: boolean = false): Promise<void> {
         let dataPath: string;
         try {
@@ -189,7 +191,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
             if (username === this.getUsername()) {
                 orgForUser = this;
             } else {
-                const _info = await AuthInfo.create(username);
+                const _info = await AuthInfo.create({ username });
                 const connection: Connection = await Connection.create(_info);
                 orgForUser = await Org.create({ connection });
             }
@@ -225,7 +227,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
             targetDevHub = asString(this.configAggregator.getPropertyValue(Config.DEFAULT_DEV_HUB_USERNAME));
         }
 
-        const devHubConnection = await Connection.create(await AuthInfo.create(targetDevHub as string));
+        const devHubConnection = await Connection.create(await AuthInfo.create({ username: targetDevHub }));
 
         const thisOrgAuthConfig = this.getConnection().getAuthInfoFields();
 
@@ -261,7 +263,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
             return Promise.resolve(this);
         } else if (this.getField(OrgFields.DEV_HUB_USERNAME)) {
             const devHubUsername = ensureString(this.getField(OrgFields.DEV_HUB_USERNAME));
-            return Org.create({ connection: await Connection.create(await AuthInfo.create(devHubUsername)) });
+            return Org.create({ connection: await Connection.create(await AuthInfo.create({ username: devHubUsername })) });
         }
     }
 
@@ -298,9 +300,9 @@ export class Org extends AsyncCreatable<OrgOptions> {
         const usernames: JsonArray = ensureJsonArray(contents.usernames || [thisUsername]);
         return Promise.all(usernames.map(username => {
             if (username === thisUsername) {
-                return AuthInfo.create(this.getConnection().getUsername());
+                return AuthInfo.create({ username: this.getConnection().getUsername() });
             } else {
-                return AuthInfo.create(ensureString(username));
+                return AuthInfo.create({ username: ensureString(username) });
             }
         }));
     }
@@ -319,7 +321,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
             throw new SfdxError('Missing auth info', 'MissingAuthInfo');
         }
 
-        const _auth = isString(auth) ? await AuthInfo.create(auth) : auth;
+        const _auth = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
         this.logger.debug(`adding username ${_auth.getFields().username}`);
 
         const orgConfig = await this.retrieveOrgUsersConfig();
@@ -366,7 +368,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
             throw new SfdxError('Missing auth info', 'MissingAuthInfo');
         }
 
-        const _auth: AuthInfo = isString(auth) ? await AuthInfo.create(auth) : auth;
+        const _auth: AuthInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
 
         this.logger.debug(`removing username ${_auth.getFields().username}`);
 
@@ -459,7 +461,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
             }
 
             // If no username is provided AuthInfo will throw an SfdxError.
-            this.connection = await Connection.create(await AuthInfo.create(this.options.aliasOrUsername));
+            this.connection = await Connection.create(await AuthInfo.create({ username: this.options.aliasOrUsername }));
         } else {
             this.connection = this.options.connection;
         }

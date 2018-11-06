@@ -79,7 +79,7 @@ describe('User Tests', () => {
             });
             expect(refreshSpy.calledOnce).to.equal(false);
             const org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(adminTestData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: adminTestData.username }))
             });
             await User.init(org);
             expect(refreshSpy.calledOnce).to.equal(true);
@@ -93,7 +93,7 @@ describe('User Tests', () => {
             });
 
             const org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(adminTestData.username))
+                connection: await Connection.create(await AuthInfo.create({username: adminTestData.username }))
             });
             const user = await User.init(org);
 
@@ -133,7 +133,7 @@ describe('User Tests', () => {
             });
 
             const org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(adminTestData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: adminTestData.username }))
             });
             const user: User = await User.init(org);
 
@@ -174,7 +174,7 @@ describe('User Tests', () => {
                 };
             });
             $$.configStubs.AuthInfoConfig = { contents: await user1.getConfig() };
-            const connection: Connection = await Connection.create(await AuthInfo.create(user1.username));
+            const connection: Connection = await Connection.create(await AuthInfo.create({ username: user1.username }));
             org = await Org.create({ connection });
 
         });
@@ -188,7 +188,7 @@ describe('User Tests', () => {
             const buffer: SecureBuffer<void> = new SecureBuffer<void>();
             buffer.consume(Buffer.from(TEST_PASSWORD));
 
-            const userAuthInfo = await AuthInfo.create(fields.username);
+            const userAuthInfo = await AuthInfo.create({ username: fields.username });
             await user.assignPassword(userAuthInfo, buffer);
 
             expect(userId).to.equal(user1.userId);
@@ -212,7 +212,7 @@ describe('User Tests', () => {
             });
 
             org = await Org.create({
-                connection: await Connection.create(await AuthInfo.create(adminTestData.username))
+                connection: await Connection.create(await AuthInfo.create({ username: adminTestData.username }))
             });
 
         });

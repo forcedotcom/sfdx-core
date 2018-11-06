@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AsyncCreatable } from '@salesforce/kit';
 import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 import * as os from 'os';
@@ -66,63 +67,20 @@ const keychainPromises = {
     }
 };
 
-export class Crypto {
+interface CryptoOptions {
+    keychain?: KeyChain;
+    platform?: string;
+    retryStatus?: string;
+    noResetOnClose?: boolean;
+}
 
-    public static async create(): Promise<Crypto> {
-        return await new Crypto().init();
-    }
+export class Crypto extends AsyncCreatable<CryptoOptions> {
 
     private _key: SecureBuffer<string> = new SecureBuffer();
 
     // Initialized in init
     private messages!: Messages;
     private noResetOnClose!: boolean;
-
-    constructor(private keyChain?: KeyChain) { }
-
-    /**
-     * Initialize any crypto dependencies. In this case we need to generate an encryption key.
-     *
-     * @param retryStatus A string message to track retries.
-     * @returns {Promise<Crypto>}
-     */
-    public async init(retryStatus?: string, platform?: string, noResetOnClose: boolean = false): Promise<Crypto> {
-        const logger = await Logger.child('crypto');
-
-        if (!platform) {
-            platform = os.platform();
-        }
-
-        logger.debug(`retryStatus: ${retryStatus}`);
-
-        this.messages = Messages.loadMessages('@salesforce/core', 'encryption');
-
-        this.noResetOnClose = noResetOnClose;
-
-        try {
-            this._key.consume(Buffer.from((await keychainPromises.getPassword(await this.getKeyChain(platform), KEY_NAME, ACCOUNT)).password, 'utf8'));
-            return this;
-        } catch (err) {
-            // No password found
-            if (err.name  === 'PasswordNotFoundError') {
-                // If we already tried to create a new key then bail.
-                if (retryStatus === 'KEY_SET') {
-                    logger.debug('a key was set but the retry to get the password failed.');
-                    throw err;
-                } else {
-                    logger.debug('password not found in keychain attempting to created one and re-init.');
-                }
-
-                const key = crypto.randomBytes(Math.ceil(16)).toString('hex');
-                // Create a new password in the KeyChain.
-                await keychainPromises.setPassword(ensure(this.keyChain), KEY_NAME, ACCOUNT, key);
-
-                return this.init('KEY_SET', platform);
-            } else {
-                throw err;
-            }
-        }
-    }
 
     /**
      * Encrypts text.
@@ -198,10 +156,52 @@ export class Crypto {
         }
     }
 
-    private async getKeyChain(platform: string) {
-        if (!this.keyChain) {
-            this.keyChain = await retrieveKeychain(platform);
+    protected getDefaultOptions(): CryptoOptions {
+        return {} as CryptoOptions;
+    }
+
+    protected async init(): Promise<void> {
+        const logger = await Logger.child('crypto');
+
+        if (!this.options.platform) {
+            this.options.platform = os.platform();
         }
-        return this.keyChain;
+
+        logger.debug(`retryStatus: ${this.options.retryStatus}`);
+
+        this.messages = Messages.loadMessages('@salesforce/core', 'encryption');
+
+        this.noResetOnClose = !!this.options.noResetOnClose;
+
+        try {
+            this._key.consume(Buffer.from((await keychainPromises.getPassword(
+                await this.getKeyChain(this.options.platform), KEY_NAME, ACCOUNT)).password, 'utf8'));
+        } catch (err) {
+            // No password found
+            if (err.name  === 'PasswordNotFoundError') {
+                // If we already tried to create a new key then bail.
+                if (this.options.retryStatus === 'KEY_SET') {
+                    logger.debug('a key was set but the retry to get the password failed.');
+                    throw err;
+                } else {
+                    logger.debug('password not found in keychain attempting to created one and re-init.');
+                }
+
+                const key = crypto.randomBytes(Math.ceil(16)).toString('hex');
+                // Create a new password in the KeyChain.
+                await keychainPromises.setPassword(ensure(this.options.keychain), KEY_NAME, ACCOUNT, key);
+
+                return this.init();
+            } else {
+                throw err;
+            }
+        }
+    }
+
+    private async getKeyChain(platform: string) {
+        if (!this.options.keychain) {
+            this.options.keychain = await retrieveKeychain(platform);
+        }
+        return this.options.keychain;
     }
 }
