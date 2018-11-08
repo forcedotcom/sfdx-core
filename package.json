@@ -65,6 +65,6 @@
     "url": "https://github.com/forcedotcom/sfdx-core.git"
   },
   "publishConfig": {
-    "access": "restricted"
+    "access": "public"
   }
 }
