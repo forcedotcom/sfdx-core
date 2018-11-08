@@ -43,6 +43,12 @@ jobs:
           fingerprints:
             - '0d:94:44:8a:82:3d:01:b0:58:fb:97:3a:a4:cd:f4:b2'
       - checkout
+      - run:
+          name: Set Github Info
+          command: |
+            git config credential.helper 'cache --timeout=120'
+            git config user.email "$GH_EMAIL"
+            git config user.name "Deployment Bot"
       - restore_cache: &restore_cache
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
@@ -56,6 +62,24 @@ jobs:
             - ~/cli/node_modules
             - /usr/local/share/.cache/yarn
             - /usr/local/share/.config/yarn
+  merge:
+    <<: *base
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - '0d:94:44:8a:82:3d:01:b0:58:fb:97:3a:a4:cd:f4:b2'
+      - checkout
+      - run:
+          name: Set Github Info
+          command: |
+            git config credential.helper 'cache --timeout=120'
+            git config user.email "$GH_EMAIL"
+            git config user.name "Deployment Bot"
+      - run: git fetch
+      - run: git checkout develop
+      - run: git pull origin develop
+      - run: git merge origin/master
+      - run: git push origin develop
 
 workflows:
   version: 2
@@ -69,3 +93,8 @@ workflows:
           requires:
             - node-latest
             - node-8
+      - merge:
+          filters:
+            branches: { only: master }
+          requires:
+            - release
