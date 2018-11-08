@@ -69,11 +69,7 @@ export { SfdxError, SfdxErrorConfig } from './sfdxError';
 
 export { StatusResult } from './status/client';
 
-export {
-  PollingOptions,
-  DefaultPollingOptions,
-  PollingClient
-} from './status/pollingClient';
+export { PollingClient } from './status/pollingClient';
 
 export {
   CometClient,
@@ -81,14 +77,10 @@ export {
   DefaultStreamingOptions,
   StreamingClient,
   StreamingConnectionState,
-  StreamingTimeoutErrorType,
-  StreamingOptions
+  StreamingTimeoutErrorType
 } from './status/streamingClient';
 
-export {
-  MyDomainResolver,
-  MyDomainResolverOptions
-} from './status/myDomainResolver';
+export { MyDomainResolver } from './status/myDomainResolver';
 
 export { Time, TIME_UNIT } from './util/time';
 

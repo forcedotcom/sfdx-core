@@ -9,6 +9,7 @@ import {
   asString,
   ensure,
   isString,
+  JsonCollection,
   JsonMap,
   Optional
 } from '@salesforce/ts-types';
@@ -138,20 +139,20 @@ export class Connection extends JSForceConnection {
    *
    * @override
    *
-   * @param {RequestInfo | string} request HTTP request object or URL to GET request.
-   * @param [options] HTTP API request options.
-   * @returns {Promise<object>} The request Promise.
+   * @param request HTTP request object or URL to GET request.
+   * @param options HTTP API request options.
    */
   public async request(
     request: RequestInfo | string,
-    options?: object
-  ): Promise<object> {
+    options?: JsonMap
+  ): Promise<JsonCollection> {
     const _request: RequestInfo = isString(request)
       ? { method: 'GET', url: request }
       : request;
     _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, _request.headers);
     this.logger.debug(`request: ${JSON.stringify(_request)}`);
-    return super.request(_request, options);
+    //  The "as" is a workaround for the jsforce typings.
+    return super.request(_request, options) as Promise<JsonCollection>;
   }
 
   /**
