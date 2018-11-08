@@ -14,7 +14,7 @@
     "install": "yarn sfdx-install",
     "lint": "yarn sfdx-lint",
     "test": "yarn sfdx-test",
-    "postcompile": "tsc -p test --noEmit; tsc -p typedocExamples --noEmit"
+    "postcompile": "tsc -p test; tsc -p typedocExamples"
   },
   "keywords": [
     "force",
