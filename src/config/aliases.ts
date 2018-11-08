@@ -33,7 +33,6 @@ export enum AliasGroup {
  * const aliases = await Aliases.retrieve<Aliases>();
  * aliases.set('myAlias', 'username@company.org');
  * await aliases.write();
- *
  * // Shorthand to get an alias.
  * const username: string = await Aliases.fetch('myAlias');
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm

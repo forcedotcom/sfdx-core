@@ -907,7 +907,7 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class="current tsd-kind-class tsd-has-type-parameter">
+		<li class="current tsd-kind-class">
 			<a href="defaultstreamingoptions.html" class="tsd-kind-icon">Default<wbr>Streaming<wbr>Options</a>
 			<ul>
 				<li class=" tsd-kind-constructor tsd-parent-kind-class">
@@ -959,14 +959,6 @@ img { max-width: 100%; }
 				</div>
 			</div>
 		</section>
-		<section class="tsd-panel tsd-type-parameters">
-			<h3>Type parameters</h3>
-			<ul class="tsd-type-parameters">
-				<li>
-					<h4>T</h4>
-				</li>
-			</ul>
-		</section>
 		<section class="tsd-panel tsd-hierarchy">
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
@@ -978,7 +970,7 @@ img { max-width: 100%; }
 		<section class="tsd-panel">
 			<h3>Implements</h3>
 			<ul class="tsd-hierarchy">
-				<li><a href="../interfaces/streamingoptions.html" class="tsd-signature-type">StreamingOptions</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
+				<li><a href="../interfaces/streamingclient.options.html" class="tsd-signature-type">Options</a></li>
 			</ul>
 		</section>
 		<section class="tsd-panel-group tsd-index-group">
@@ -1021,13 +1013,13 @@ img { max-width: 100%; }
 				<a name="constructor" class="tsd-anchor"></a>
 				<h3>constructor</h3>
 				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">new <wbr>Default<wbr>Streaming<wbr>Options<span class="tsd-signature-symbol">(</span>org<span class="tsd-signature-symbol">: </span><a href="org.html" class="tsd-signature-type">Org</a>, channel<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, streamProcessor<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="defaultstreamingoptions.html" class="tsd-signature-type">DefaultStreamingOptions</a></li>
+					<li class="tsd-signature tsd-kind-icon">new <wbr>Default<wbr>Streaming<wbr>Options<span class="tsd-signature-symbol">(</span>org<span class="tsd-signature-symbol">: </span><a href="org.html" class="tsd-signature-type">Org</a>, channel<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, streamProcessor<span class="tsd-signature-symbol">: </span><a href="../globals.html#streamprocessor" class="tsd-signature-type">StreamProcessor</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="defaultstreamingoptions.html" class="tsd-signature-type">DefaultStreamingOptions</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in status/streamingClient.ts:125</li>
+								<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L149">status/streamingClient.ts:149</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1060,30 +1052,12 @@ img { max-width: 100%; }
 								</div>
 							</li>
 							<li>
-								<h5>streamProcessor: <span class="tsd-signature-type">function</span></h5>
+								<h5>streamProcessor: <a href="../globals.html#streamprocessor" class="tsd-signature-type">StreamProcessor</a></h5>
 								<div class="tsd-comment tsd-typography">
 									<div class="lead">
 										<p>The function called that can process streaming messages.</p>
 									</div>
 								</div>
-								<ul class="tsd-parameters">
-									<li class="tsd-parameter-siganture">
-										<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
-											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">JsonMap</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
-										</ul>
-										<ul class="tsd-descriptions">
-											<li class="tsd-description">
-												<h4 class="tsd-parameters-title">Parameters</h4>
-												<ul class="tsd-parameters">
-													<li>
-														<h5>message: <span class="tsd-signature-type">JsonMap</span></h5>
-													</li>
-												</ul>
-												<h4 class="tsd-returns-title">Returns <a href="../interfaces/statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
-											</li>
-										</ul>
-									</li>
-								</ul>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="defaultstreamingoptions.html" class="tsd-signature-type">DefaultStreamingOptions</a></h4>
@@ -1098,9 +1072,9 @@ img { max-width: 100%; }
 				<h3>api<wbr>Version</h3>
 				<div class="tsd-signature tsd-kind-icon">api<wbr>Version<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
-					<p>Implementation of <a href="../interfaces/streamingoptions.html">StreamingOptions</a>.<a href="../interfaces/streamingoptions.html#apiversion">apiVersion</a></p>
+					<p>Implementation of <a href="../interfaces/streamingclient.options.html">Options</a>.<a href="../interfaces/streamingclient.options.html#apiversion">apiVersion</a></p>
 					<ul>
-						<li>Defined in status/streamingClient.ts:119</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L143">status/streamingClient.ts:143</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1109,9 +1083,9 @@ img { max-width: 100%; }
 				<h3>channel</h3>
 				<div class="tsd-signature tsd-kind-icon">channel<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
-					<p>Implementation of <a href="../interfaces/streamingoptions.html">StreamingOptions</a>.<a href="../interfaces/streamingoptions.html#channel">channel</a></p>
+					<p>Implementation of <a href="../interfaces/streamingclient.options.html">Options</a>.<a href="../interfaces/streamingclient.options.html#channel">channel</a></p>
 					<ul>
-						<li>Defined in status/streamingClient.ts:124</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L148">status/streamingClient.ts:148</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1120,9 +1094,9 @@ img { max-width: 100%; }
 				<h3>handshake<wbr>Timeout</h3>
 				<div class="tsd-signature tsd-kind-icon">handshake<wbr>Timeout<span class="tsd-signature-symbol">:</span> <a href="time.html" class="tsd-signature-type">Time</a></div>
 				<aside class="tsd-sources">
-					<p>Implementation of <a href="../interfaces/streamingoptions.html">StreamingOptions</a>.<a href="../interfaces/streamingoptions.html#handshaketimeout">handshakeTimeout</a></p>
+					<p>Implementation of <a href="../interfaces/streamingclient.options.html">Options</a>.<a href="../interfaces/streamingclient.options.html#handshaketimeout">handshakeTimeout</a></p>
 					<ul>
-						<li>Defined in status/streamingClient.ts:123</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L147">status/streamingClient.ts:147</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1131,52 +1105,31 @@ img { max-width: 100%; }
 				<h3>org</h3>
 				<div class="tsd-signature tsd-kind-icon">org<span class="tsd-signature-symbol">:</span> <a href="org.html" class="tsd-signature-type">Org</a></div>
 				<aside class="tsd-sources">
-					<p>Implementation of <a href="../interfaces/streamingoptions.html">StreamingOptions</a>.<a href="../interfaces/streamingoptions.html#org">org</a></p>
+					<p>Implementation of <a href="../interfaces/streamingclient.options.html">Options</a>.<a href="../interfaces/streamingclient.options.html#org">org</a></p>
 					<ul>
-						<li>Defined in status/streamingClient.ts:120</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L144">status/streamingClient.ts:144</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 				<a name="streamprocessor" class="tsd-anchor"></a>
 				<h3>stream<wbr>Processor</h3>
-				<div class="tsd-signature tsd-kind-icon">stream<wbr>Processor<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
+				<div class="tsd-signature tsd-kind-icon">stream<wbr>Processor<span class="tsd-signature-symbol">:</span> <a href="../globals.html#streamprocessor" class="tsd-signature-type">StreamProcessor</a></div>
 				<aside class="tsd-sources">
-					<p>Implementation of <a href="../interfaces/streamingoptions.html">StreamingOptions</a>.<a href="../interfaces/streamingoptions.html#streamprocessor">streamProcessor</a></p>
+					<p>Implementation of <a href="../interfaces/streamingclient.options.html">Options</a>.<a href="../interfaces/streamingclient.options.html#streamprocessor">streamProcessor</a></p>
 					<ul>
-						<li>Defined in status/streamingClient.ts:121</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L145">status/streamingClient.ts:145</a></li>
 					</ul>
 				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter-siganture">
-							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
-								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">JsonMap</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
-							</ul>
-							<ul class="tsd-descriptions">
-								<li class="tsd-description">
-									<h4 class="tsd-parameters-title">Parameters</h4>
-									<ul class="tsd-parameters">
-										<li>
-											<h5>message: <span class="tsd-signature-type">JsonMap</span></h5>
-										</li>
-									</ul>
-									<h4 class="tsd-returns-title">Returns <a href="../interfaces/statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
-								</li>
-							</ul>
-						</li>
-					</ul>
-				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 				<a name="streamingimpl" class="tsd-anchor"></a>
 				<h3>streaming<wbr>Impl</h3>
 				<div class="tsd-signature tsd-kind-icon">streaming<wbr>Impl<span class="tsd-signature-symbol">:</span> <a href="../interfaces/streamingclientifc.html" class="tsd-signature-type">StreamingClientIfc</a></div>
 				<aside class="tsd-sources">
-					<p>Implementation of <a href="../interfaces/streamingoptions.html">StreamingOptions</a>.<a href="../interfaces/streamingoptions.html#streamingimpl">streamingImpl</a></p>
+					<p>Implementation of <a href="../interfaces/streamingclient.options.html">Options</a>.<a href="../interfaces/streamingclient.options.html#streamingimpl">streamingImpl</a></p>
 					<ul>
-						<li>Defined in status/streamingClient.ts:125</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L149">status/streamingClient.ts:149</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1185,9 +1138,9 @@ img { max-width: 100%; }
 				<h3>subscribe<wbr>Timeout</h3>
 				<div class="tsd-signature tsd-kind-icon">subscribe<wbr>Timeout<span class="tsd-signature-symbol">:</span> <a href="time.html" class="tsd-signature-type">Time</a></div>
 				<aside class="tsd-sources">
-					<p>Implementation of <a href="../interfaces/streamingoptions.html">StreamingOptions</a>.<a href="../interfaces/streamingoptions.html#subscribetimeout">subscribeTimeout</a></p>
+					<p>Implementation of <a href="../interfaces/streamingclient.options.html">Options</a>.<a href="../interfaces/streamingclient.options.html#subscribetimeout">subscribeTimeout</a></p>
 					<ul>
-						<li>Defined in status/streamingClient.ts:122</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L146">status/streamingClient.ts:146</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1197,7 +1150,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>HANDSHAKE_<wbr>TIMEOUT<span class="tsd-signature-symbol">:</span> <a href="time.html" class="tsd-signature-type">Time</a><span class="tsd-signature-symbol"> =&nbsp;new Time(30,TIME_UNIT.SECONDS)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in status/streamingClient.ts:114</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L138">status/streamingClient.ts:138</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1207,7 +1160,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>SUBSCRIBE_<wbr>TIMEOUT<span class="tsd-signature-symbol">:</span> <a href="time.html" class="tsd-signature-type">Time</a><span class="tsd-signature-symbol"> =&nbsp;new Time(3,TIME_UNIT.MINUTES)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in status/streamingClient.ts:110</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L134">status/streamingClient.ts:134</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1224,7 +1177,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in status/streamingClient.ts:193</li>
+								<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L213">status/streamingClient.ts:213</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1233,7 +1186,7 @@ img { max-width: 100%; }
 							</div>
 							<dl class="tsd-comment-tags">
 								<dt>throws</dt>
-								<dd><p>{SfdxError} An error if the newTime is less than the default time.</p>
+								<dd><p>An error if the newTime is less than the default time.</p>
 								</dd>
 							</dl>
 						</div>
@@ -1260,7 +1213,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in status/streamingClient.ts:181</li>
+								<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/514da60/src/status/streamingClient.ts#L201">status/streamingClient.ts:201</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1269,7 +1222,7 @@ img { max-width: 100%; }
 							</div>
 							<dl class="tsd-comment-tags">
 								<dt>throws</dt>
-								<dd><p>{SfdxError} An error if the newTime is less than the default time.</p>
+								<dd><p>An error if the newTime is less than the default time.</p>
 								</dd>
 							</dl>
 						</div>

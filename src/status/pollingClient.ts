@@ -6,46 +6,12 @@
  */
 import { setInterval } from 'timers';
 
-import { AnyFunction } from '@salesforce/ts-types';
+import { AsyncCreatable } from '@salesforce/kit';
+import { AnyFunction, AnyJson, ensure } from '@salesforce/ts-types';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { Time, TIME_UNIT } from '../util/time';
 import { StatusResult } from './client';
-
-/**
- * Options for the polling client.
- * @interface
- */
-export interface PollingOptions<T> {
-  // Polling function
-  poll: () => Promise<StatusResult<T>>;
-  // How frequent should the polling function be called.
-  frequency: Time;
-  // Hard timeout for polling.
-  timeout: Time;
-  timeoutErrorName?: string;
-}
-
-/**
- * Default options set for polling. The default options specify a timeout of 3 minutes and polling frequency of 15
- * seconds;
- */
-export class DefaultPollingOptions<T> implements PollingOptions<T> {
-  public frequency: Time;
-  public poll: () => Promise<StatusResult<T>>;
-  public timeout: Time;
-
-  /**
-   * constructor
-   * @param {function} poll The function used for polling status.
-   * @see StatusResult
-   */
-  constructor(poll: () => Promise<StatusResult<T>>) {
-    this.poll = poll;
-    this.timeout = new Time(3, TIME_UNIT.MINUTES);
-    this.frequency = new Time(15, TIME_UNIT.SECONDS);
-  }
-}
 
 /**
  * This is a polling client that can be used to poll the status of long running tasks. It can be used as a replacement
@@ -53,64 +19,51 @@ export class DefaultPollingOptions<T> implements PollingOptions<T> {
  * want to use this? It can impact Salesforce API usage.
  *
  * @example
- *  const options: PollingOptions<string> = {
- *
- *      async poll(): Promise<StatusResult<string>>  {
- *          return Promise.resolve(doSoqlQuery();
- *      },
- *      frequency: new Time(10, TIME_UNIT.MILLISECONDS),
- *      timeout: new Time(1, TIME_UNIT.MINUTES)
- *  };
- *
- *  const client = new PollingClient(options);
- *
- *  const pollResult: string = await client.subscribe();
- *
- *  // do Something with pollResult
- *  ...
+ * const options: PollingClient.Options = {
+ *     async poll(): Promise<StatusResult>  {
+ *       return Promise.resolve({ completed: true, payload: 'Hello World' });
+ *     },
+ *     frequency: new Time(10, TIME_UNIT.MILLISECONDS),
+ *     timeout: new Time(1, TIME_UNIT.MINUTES)
+ *   };
+ * const client = new PollingClient(options);
+ * const pollResult = await client.subscribe();
+ * console.log(`pollResult: ${pollResult}`);
  */
-export class PollingClient<T> {
-  /**
-   * Initialize and return a polling client.
-   *
-   * @param {PollingOptions<U>} options Polling options.
-   * @returns {Promise<PollingClient<U>>}
-   * @see {@link PollingOptions}
-   * @see {@link DefaultPollingOptions}
-   * @async
-   */
-  public static async init<U>(
-    options: PollingOptions<U>
-  ): Promise<PollingClient<U>> {
-    return new PollingClient<U>(options, await Logger.child('PollingClient'));
-  }
+export class PollingClient extends AsyncCreatable<PollingClient.Options> {
+  protected logger!: Logger;
 
-  protected logger: Logger;
-
-  private options: PollingOptions<T>;
+  private options: PollingClient.Options;
   private timeout?: NodeJS.Timer;
   private interval?: NodeJS.Timer;
 
   /**
    * Constructor
-   * @param {PollingOptions<T>} options Polling client options
-   * @param {Logger} logger Internal logging instace
-   * @see {@link PollingClient.init}
+   * @param options Polling client options
+   * @see {@link AsyncCreatable.create}
+   * @throws if options is undefined
    */
-  protected constructor(options: PollingOptions<T>, logger: Logger) {
-    this.options = options;
-    this.logger = logger;
-    this.logger.debug('Polling enabled.');
+  public constructor(options?: PollingClient.Options) {
+    super(options);
+    this.options = ensure(options);
+  }
+
+  /**
+   * Asynchronous initializer.
+   * @async
+   */
+  public async init(): Promise<void> {
+    this.logger = await Logger.child(this.constructor.name);
   }
 
   /**
    * Returns a promise to call the specified polling function using the interval and timeout specified
    * in the polling options.
-   * @returns {Promise<T>} A promise to call the specified polling function using the interval and timeout specified
+   * @returns A promise to call the specified polling function using the interval and timeout specified
    * in the polling options.
    * @async
    */
-  public subscribe(): Promise<T> {
+  public subscribe(): Promise<AnyJson> {
     // This promise is held open while setInterval tries to resolve or reject.
     // If set interval can't do it then the timeout will reject.
     return new Promise((resolve, reject) => {
@@ -119,7 +72,7 @@ export class PollingClient<T> {
       // This try catch enables support for time{0} since setInterval only supports
       // time {1}. In other words, we should call first then wait for the first interval.
       this.doPoll()
-        .then((result: StatusResult<T> | undefined) => {
+        .then((result: StatusResult | undefined) => {
           if (result && result.completed) {
             resolve(result.payload);
           } else {
@@ -154,10 +107,10 @@ export class PollingClient<T> {
   private async doPoll(
     resolve?: AnyFunction,
     reject?: AnyFunction
-  ): Promise<StatusResult<T> | undefined> {
+  ): Promise<StatusResult | undefined> {
     try {
       // Poll can be an async function.
-      const sample: StatusResult<T> = await this.options.poll();
+      const sample: StatusResult = await this.options.poll();
       if (sample.completed) {
         this.clearAll();
         if (resolve) {
@@ -184,6 +137,43 @@ export class PollingClient<T> {
     if (this.timeout) {
       this.logger.debug('Clearing the timeout interval');
       clearTimeout(this.timeout);
+    }
+  }
+}
+
+export namespace PollingClient {
+  /**
+   * Options for the polling client.
+   * @interface
+   */
+  export interface Options {
+    // Polling function
+    poll: () => Promise<StatusResult>;
+    // How frequent should the polling function be called.
+    frequency: Time;
+    // Hard timeout for polling.
+    timeout: Time;
+    timeoutErrorName?: string;
+  }
+
+  /**
+   * Default options set for polling. The default options specify a timeout of 3 minutes and polling frequency of 15
+   * seconds;
+   */
+  export class DefaultPollingOptions implements PollingClient.Options {
+    public frequency: Time;
+    public poll: () => Promise<StatusResult>;
+    public timeout: Time;
+
+    /**
+     * constructor
+     * @param {function} poll The function used for polling status.
+     * @see StatusResult
+     */
+    constructor(poll: () => Promise<StatusResult>) {
+      this.poll = poll;
+      this.timeout = new Time(3, TIME_UNIT.MINUTES);
+      this.frequency = new Time(15, TIME_UNIT.SECONDS);
     }
   }
 }

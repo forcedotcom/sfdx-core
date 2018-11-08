@@ -13,7 +13,8 @@
     "format": "yarn sfdx-format",
     "install": "yarn sfdx-install",
     "lint": "yarn sfdx-lint",
-    "test": "yarn sfdx-test"
+    "test": "yarn sfdx-test",
+    "postcompile": "tsc -p test --noEmit; tsc -p typedocExamples --noEmit"
   },
   "keywords": [
     "force",
