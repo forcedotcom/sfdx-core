@@ -8,32 +8,13 @@ import { lookup } from 'dns';
 import { URL } from 'url';
 import { promisify } from 'util';
 
-import { StatusResult } from './client';
+import { AnyJson } from '@salesforce/ts-types';
 
 import { AsyncCreatable } from '@salesforce/kit';
 import { Logger } from '../logger';
 import { Time, TIME_UNIT } from '../util/time';
-import { PollingClient, PollingOptions } from './pollingClient';
-
-/**
- * Options for the MyDomain DNS resolver
- */
-export interface MyDomainResolverOptions {
-  /**
-   * The host to resolve
-   */
-  url: URL;
-
-  /**
-   * The retry interval
-   */
-  timeout?: Time;
-
-  /**
-   * The retry timeout
-   */
-  frequency?: Time;
-}
+import { StatusResult } from './client';
+import { PollingClient } from './pollingClient';
 
 /**
  * A class used to resolve MyDomains. After a ScratchOrg is created it's host name my not be propagated to the
@@ -53,14 +34,14 @@ export interface MyDomainResolverOptions {
  *   console.log(`Successfully resolved host: ${options.url} to address: ${ipAddress}`);
  * })();
  */
-export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
+export class MyDomainResolver extends AsyncCreatable<MyDomainResolver.Options> {
   public static DEFAULT_DOMAIN = new URL('https://login.salesforce.com');
 
   private logger!: Logger;
 
-  private options: MyDomainResolverOptions;
+  private options: MyDomainResolver.Options;
 
-  public constructor(options?: MyDomainResolverOptions) {
+  public constructor(options?: MyDomainResolver.Options) {
     super(options);
     this.options = options || { url: MyDomainResolver.DEFAULT_DOMAIN };
   }
@@ -70,10 +51,10 @@ export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
    * given the optional interval.
    * @returns {Promise<string>} The resolved ip address.
    */
-  public async resolve(): Promise<string> {
+  public async resolve(): Promise<AnyJson> {
     const self: MyDomainResolver = this;
-    const pollingOptions: PollingOptions<string> = {
-      async poll(): Promise<StatusResult<string>> {
+    const pollingOptions: PollingClient.Options = {
+      async poll(): Promise<StatusResult> {
         const host: string = self.options.url.host;
         let dnsResult: { address: string };
 
@@ -108,9 +89,7 @@ export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
       frequency: this.options.frequency || new Time(10, TIME_UNIT.SECONDS),
       timeoutErrorName: 'MyDomainResolverTimeoutError'
     };
-    const client: PollingClient<string> = await PollingClient.init<string>(
-      pollingOptions
-    );
+    const client = await PollingClient.create(pollingOptions);
     return client.subscribe();
   }
 
@@ -119,5 +98,27 @@ export class MyDomainResolver extends AsyncCreatable<MyDomainResolverOptions> {
    */
   protected async init(): Promise<void> {
     this.logger = await Logger.child('MyDomainResolver');
+  }
+}
+
+export namespace MyDomainResolver {
+  /**
+   * Options for the MyDomain DNS resolver
+   */
+  export interface Options {
+    /**
+     * The host to resolve
+     */
+    url: URL;
+
+    /**
+     * The retry interval
+     */
+    timeout?: Time;
+
+    /**
+     * The retry timeout
+     */
+    frequency?: Time;
   }
 }

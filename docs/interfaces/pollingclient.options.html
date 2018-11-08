@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>StreamingOptions | @salesforce/core</title>
+	<title>Options | @salesforce/core</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -907,29 +907,43 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class="current tsd-kind-interface tsd-has-type-parameter">
-			<a href="streamingoptions.html" class="tsd-kind-icon">Streaming<wbr>Options</a>
+		<li class="current tsd-kind-class">
+			<a href="../classes/pollingclient.html" class="tsd-kind-icon">Polling<wbr>Client</a>
 			<ul>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="streamingoptions.html#apiversion" class="tsd-kind-icon">api<wbr>Version</a>
+				<li class=" tsd-kind-class tsd-parent-kind-class">
+					<a href="../classes/pollingclient.defaultpollingoptions.html" class="tsd-kind-icon">Default<wbr>Polling<wbr>Options</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="streamingoptions.html#channel" class="tsd-kind-icon">channel</a>
+				<li class="current tsd-kind-interface tsd-parent-kind-class">
+					<a href="pollingclient.options.html" class="tsd-kind-icon">Options</a>
+					<ul>
+						<li class=" tsd-kind-property tsd-parent-kind-interface">
+							<a href="pollingclient.options.html#frequency" class="tsd-kind-icon">frequency</a>
+						</li>
+						<li class=" tsd-kind-property tsd-parent-kind-interface">
+							<a href="pollingclient.options.html#poll" class="tsd-kind-icon">poll</a>
+						</li>
+						<li class=" tsd-kind-property tsd-parent-kind-interface">
+							<a href="pollingclient.options.html#timeout" class="tsd-kind-icon">timeout</a>
+						</li>
+						<li class=" tsd-kind-property tsd-parent-kind-interface">
+							<a href="pollingclient.options.html#timeouterrorname" class="tsd-kind-icon">timeout<wbr>Error<wbr>Name</a>
+						</li>
+					</ul>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="streamingoptions.html#handshaketimeout" class="tsd-kind-icon">handshake<wbr>Timeout</a>
+				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
+					<a href="../classes/pollingclient.html#constructor" class="tsd-kind-icon">constructor</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="streamingoptions.html#org" class="tsd-kind-icon">org</a>
+				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
+					<a href="../classes/pollingclient.html#logger" class="tsd-kind-icon">logger</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="streamingoptions.html#streamprocessor" class="tsd-kind-icon">stream<wbr>Processor</a>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a href="../classes/pollingclient.html#init" class="tsd-kind-icon">init</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="streamingoptions.html#streamingimpl" class="tsd-kind-icon">streaming<wbr>Impl</a>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/pollingclient.html#subscribe" class="tsd-kind-icon">subscribe</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="streamingoptions.html#subscribetimeout" class="tsd-kind-icon">subscribe<wbr>Timeout</a>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+					<a href="../classes/pollingclient.html#create" class="tsd-kind-icon">create</a>
 				</li>
 			</ul>
 		</li>
@@ -940,7 +954,7 @@ img { max-width: 100%; }
 		<section class="tsd-panel tsd-comment">
 			<div class="tsd-comment tsd-typography">
 				<div class="lead">
-					<p>Options for the StreamingClient</p>
+					<p>Options for the polling client.</p>
 				</div>
 				<dl class="tsd-comment-tags">
 					<dt>interface</dt>
@@ -948,26 +962,18 @@ img { max-width: 100%; }
 				</dl>
 			</div>
 		</section>
-		<section class="tsd-panel tsd-type-parameters">
-			<h3>Type parameters</h3>
-			<ul class="tsd-type-parameters">
-				<li>
-					<h4>T</h4>
-				</li>
-			</ul>
-		</section>
 		<section class="tsd-panel tsd-hierarchy">
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="target">StreamingOptions</span>
+					<span class="target">Options</span>
 				</li>
 			</ul>
 		</section>
 		<section class="tsd-panel">
 			<h3>Implemented by</h3>
 			<ul class="tsd-hierarchy">
-				<li><a href="../classes/defaultstreamingoptions.html" class="tsd-signature-type">DefaultStreamingOptions</a></li>
+				<li><a href="../classes/pollingclient.defaultpollingoptions.html" class="tsd-signature-type">DefaultPollingOptions</a></li>
 			</ul>
 		</section>
 		<section class="tsd-panel-group tsd-index-group">
@@ -977,13 +983,10 @@ img { max-width: 100%; }
 					<section class="tsd-index-section ">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="streamingoptions.html#apiversion" class="tsd-kind-icon">api<wbr>Version</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="streamingoptions.html#channel" class="tsd-kind-icon">channel</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="streamingoptions.html#handshaketimeout" class="tsd-kind-icon">handshake<wbr>Timeout</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="streamingoptions.html#org" class="tsd-kind-icon">org</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="streamingoptions.html#streamprocessor" class="tsd-kind-icon">stream<wbr>Processor</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="streamingoptions.html#streamingimpl" class="tsd-kind-icon">streaming<wbr>Impl</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="streamingoptions.html#subscribetimeout" class="tsd-kind-icon">subscribe<wbr>Timeout</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="pollingclient.options.html#frequency" class="tsd-kind-icon">frequency</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="pollingclient.options.html#poll" class="tsd-kind-icon">poll</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="pollingclient.options.html#timeout" class="tsd-kind-icon">timeout</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="pollingclient.options.html#timeouterrorname" class="tsd-kind-icon">timeout<wbr>Error<wbr>Name</a></li>
 						</ul>
 					</section>
 				</div>
@@ -992,52 +995,22 @@ img { max-width: 100%; }
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="apiversion" class="tsd-anchor"></a>
-				<h3>api<wbr>Version</h3>
-				<div class="tsd-signature tsd-kind-icon">api<wbr>Version<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+				<a name="frequency" class="tsd-anchor"></a>
+				<h3>frequency</h3>
+				<div class="tsd-signature tsd-kind-icon">frequency<span class="tsd-signature-symbol">:</span> <a href="../classes/time.html" class="tsd-signature-type">Time</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in status/streamingClient.ts:99</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4bfdc80/src/status/pollingClient.ts#L153">status/pollingClient.ts:153</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="channel" class="tsd-anchor"></a>
-				<h3>channel</h3>
-				<div class="tsd-signature tsd-kind-icon">channel<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+				<a name="poll" class="tsd-anchor"></a>
+				<h3>poll</h3>
+				<div class="tsd-signature tsd-kind-icon">poll<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in status/streamingClient.ts:97</li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="handshaketimeout" class="tsd-anchor"></a>
-				<h3>handshake<wbr>Timeout</h3>
-				<div class="tsd-signature tsd-kind-icon">handshake<wbr>Timeout<span class="tsd-signature-symbol">:</span> <a href="../classes/time.html" class="tsd-signature-type">Time</a></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in status/streamingClient.ts:95</li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="org" class="tsd-anchor"></a>
-				<h3>org</h3>
-				<div class="tsd-signature tsd-kind-icon">org<span class="tsd-signature-symbol">:</span> <a href="../classes/org.html" class="tsd-signature-type">Org</a></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in status/streamingClient.ts:91</li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="streamprocessor" class="tsd-anchor"></a>
-				<h3>stream<wbr>Processor</h3>
-				<div class="tsd-signature tsd-kind-icon">stream<wbr>Processor<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in status/streamingClient.ts:101</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4bfdc80/src/status/pollingClient.ts#L151">status/pollingClient.ts:151</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -1045,17 +1018,11 @@ img { max-width: 100%; }
 					<ul class="tsd-parameters">
 						<li class="tsd-parameter-siganture">
 							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
-								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">JsonMap</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
+								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&gt;</span></li>
 							</ul>
 							<ul class="tsd-descriptions">
 								<li class="tsd-description">
-									<h4 class="tsd-parameters-title">Parameters</h4>
-									<ul class="tsd-parameters">
-										<li>
-											<h5>message: <span class="tsd-signature-type">JsonMap</span></h5>
-										</li>
-									</ul>
-									<h4 class="tsd-returns-title">Returns <a href="statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
+									<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
 								</li>
 							</ul>
 						</li>
@@ -1063,22 +1030,22 @@ img { max-width: 100%; }
 				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="streamingimpl" class="tsd-anchor"></a>
-				<h3>streaming<wbr>Impl</h3>
-				<div class="tsd-signature tsd-kind-icon">streaming<wbr>Impl<span class="tsd-signature-symbol">:</span> <a href="streamingclientifc.html" class="tsd-signature-type">StreamingClientIfc</a></div>
+				<a name="timeout" class="tsd-anchor"></a>
+				<h3>timeout</h3>
+				<div class="tsd-signature tsd-kind-icon">timeout<span class="tsd-signature-symbol">:</span> <a href="../classes/time.html" class="tsd-signature-type">Time</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in status/streamingClient.ts:103</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4bfdc80/src/status/pollingClient.ts#L155">status/pollingClient.ts:155</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="subscribetimeout" class="tsd-anchor"></a>
-				<h3>subscribe<wbr>Timeout</h3>
-				<div class="tsd-signature tsd-kind-icon">subscribe<wbr>Timeout<span class="tsd-signature-symbol">:</span> <a href="../classes/time.html" class="tsd-signature-type">Time</a></div>
+				<a name="timeouterrorname" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> timeout<wbr>Error<wbr>Name</h3>
+				<div class="tsd-signature tsd-kind-icon">timeout<wbr>Error<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in status/streamingClient.ts:93</li>
+						<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4bfdc80/src/status/pollingClient.ts#L156">status/pollingClient.ts:156</a></li>
 					</ul>
 				</aside>
 			</section>
