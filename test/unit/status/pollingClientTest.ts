@@ -6,21 +6,15 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+
+import { ensureJsonMap } from '@salesforce/ts-types';
+
 import { StatusResult } from '../../../src/status/client';
-import {
-  PollingClient,
-  PollingOptions
-} from '../../../src/status/pollingClient';
+import { PollingClient } from '../../../src/status/pollingClient';
 import { shouldThrow } from '../../../src/testSetup';
 import { Time, TIME_UNIT } from '../../../src/util/time';
 
-interface TestType {
-  name: string;
-}
-
-function* generator(
-  testName: string
-): IterableIterator<StatusResult<TestType>> {
+function* generator(testName: string): IterableIterator<StatusResult> {
   yield { completed: false };
   yield { completed: false };
   yield {
@@ -30,7 +24,7 @@ function* generator(
 }
 
 describe('clientTest', () => {
-  let sandbox;
+  let sandbox: sinon.SinonSandbox;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -42,28 +36,26 @@ describe('clientTest', () => {
 
   it('steel thread', async () => {
     const TEST_VALUE = 'foo';
-    const pollingResultGenerator: IterableIterator<
-      StatusResult<TestType>
-    > = generator(TEST_VALUE);
-    const options: PollingOptions<TestType> = {
-      async poll(): Promise<StatusResult<TestType>> {
+    const pollingResultGenerator: IterableIterator<StatusResult> = generator(
+      TEST_VALUE
+    );
+    const options: PollingClient.Options = {
+      async poll(): Promise<StatusResult> {
         return Promise.resolve(pollingResultGenerator.next().value);
       },
       frequency: new Time(10, TIME_UNIT.MILLISECONDS),
       timeout: new Time(1, TIME_UNIT.MINUTES)
     };
-    const client: PollingClient<TestType> = await PollingClient.init<TestType>(
-      options
-    );
+    const client: PollingClient = await PollingClient.create(options);
 
-    const pollResult: TestType = await client.subscribe();
+    const pollResult = ensureJsonMap(await client.subscribe());
 
     expect(pollResult.name).equals(TEST_VALUE);
   });
 
   it('should subscribeTimeout', async () => {
     let callCount: number = 0;
-    const options: PollingOptions<TestType> = {
+    const options: PollingClient.Options = {
       async poll() {
         callCount++;
         return Promise.resolve({ completed: false });
@@ -72,9 +64,7 @@ describe('clientTest', () => {
       timeout: new Time(300, TIME_UNIT.MILLISECONDS)
     };
 
-    const client: PollingClient<TestType> = await PollingClient.init<TestType>(
-      options
-    );
+    const client = await PollingClient.create(options);
     try {
       await shouldThrow(client.subscribe());
     } catch (e) {
@@ -86,7 +76,7 @@ describe('clientTest', () => {
   it('should error out', async () => {
     const TEST_VALUE = 'foo';
     let callCount: number = 0;
-    const options: PollingOptions<TestType> = {
+    const options: PollingClient.Options = {
       async poll() {
         callCount++;
         if (callCount === 2) {
@@ -99,9 +89,8 @@ describe('clientTest', () => {
       frequency: new Time(90, TIME_UNIT.MILLISECONDS),
       timeout: new Time(400, TIME_UNIT.MILLISECONDS)
     };
-    const client: PollingClient<TestType> = await PollingClient.init<TestType>(
-      options
-    );
+    const client = await PollingClient.create(options);
+
     try {
       await shouldThrow(client.subscribe());
     } catch (e) {

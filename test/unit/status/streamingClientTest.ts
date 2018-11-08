@@ -7,10 +7,10 @@
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { StatusResult } from '../../../src/status/client';
 import {
+  CometClient,
   DefaultStreamingOptions,
   StreamingClient,
   StreamingConnectionState,
-  StreamingOptions,
   StreamingTimeoutErrorType
 } from '../../../src/status/streamingClient';
 
@@ -62,7 +62,7 @@ describe('streaming client tests', () => {
 
   it('should set options apiVersion on system topics', async () => {
     const org: Org = await Org.create({ aliasOrUsername: _username });
-    const options: StreamingOptions<string> = new DefaultStreamingOptions(
+    const options: StreamingClient.Options = new DefaultStreamingOptions(
       org,
       '/system/Logging',
       () => ({ completed: true })
@@ -75,7 +75,7 @@ describe('streaming client tests', () => {
 
     const org: Org = await Org.create({ aliasOrUsername: _username });
 
-    const streamProcessor = (message: JsonMap): StatusResult<string> => {
+    const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
         return {
           payload: TEST_STRING,
@@ -86,7 +86,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingOptions<string> = new DefaultStreamingOptions(
+    const options: StreamingClient.Options = new DefaultStreamingOptions(
       org,
       MOCK_TOPIC,
       streamProcessor
@@ -95,7 +95,7 @@ describe('streaming client tests', () => {
     expect(options.apiVersion).to.equal(MOCK_API_VERSION);
 
     options.streamingImpl = {
-      getCometClient: (url: string) => {
+      getCometClient: (url: string): CometClient => {
         return new StreamingMockCometClient({
           url,
           id: TEST_STRING,
@@ -105,10 +105,10 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient<
-      string
-    > = await StreamingClient.init(options);
-    const value: string = await asyncStatusClient.subscribe(() => {
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
+    const value = await asyncStatusClient.subscribe(() => {
       return Promise.resolve();
     });
 
@@ -120,7 +120,7 @@ describe('streaming client tests', () => {
 
     const org: Org = await Org.create({ aliasOrUsername: _username });
 
-    const streamProcessor = (message: JsonMap): StatusResult<string> => {
+    const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
         throw new SfdxError('TEST_ERROR', 'TEST_ERROR');
       } else {
@@ -128,7 +128,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingOptions<string> = new DefaultStreamingOptions(
+    const options: StreamingClient.Options = new DefaultStreamingOptions(
       org,
       MOCK_TOPIC,
       streamProcessor
@@ -145,9 +145,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient<
-      string
-    > = await StreamingClient.init(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
     try {
       await shouldThrow(
         asyncStatusClient.subscribe(() => {
@@ -164,7 +164,7 @@ describe('streaming client tests', () => {
 
     const org: Org = await Org.create({ aliasOrUsername: _username });
 
-    const streamProcessor = (message: JsonMap): StatusResult<string> => {
+    const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
         return {
           payload: TEST_STRING,
@@ -175,7 +175,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingOptions<string> = new DefaultStreamingOptions(
+    const options: StreamingClient.Options = new DefaultStreamingOptions(
       org,
       MOCK_TOPIC,
       streamProcessor
@@ -193,9 +193,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient<
-      string
-    > = await StreamingClient.init(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
     try {
       await shouldThrow(
         asyncStatusClient.subscribe(() => {
@@ -212,7 +212,7 @@ describe('streaming client tests', () => {
 
     const org: Org = await Org.create({ aliasOrUsername: _username });
 
-    const streamProcessor = (message: JsonMap): StatusResult<string> => {
+    const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
         return {
           payload: TEST_STRING,
@@ -223,7 +223,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingOptions<string> = new DefaultStreamingOptions(
+    const options: StreamingClient.Options = new DefaultStreamingOptions(
       org,
       MOCK_TOPIC,
       streamProcessor
@@ -240,9 +240,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient<
-      string
-    > = await StreamingClient.init(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
 
     const result: StreamingConnectionState = await asyncStatusClient.handshake();
     expect(result).to.be.equal(StreamingConnectionState.CONNECTED);
@@ -253,11 +253,11 @@ describe('streaming client tests', () => {
 
     const org: Org = await Org.create({ aliasOrUsername: _username });
 
-    const streamProcessor = (): StatusResult<string> => {
+    const streamProcessor = (): StatusResult => {
       return { completed: false };
     };
 
-    const options: StreamingOptions<string> = new DefaultStreamingOptions(
+    const options: StreamingClient.Options = new DefaultStreamingOptions(
       org,
       MOCK_TOPIC,
       streamProcessor
@@ -276,9 +276,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient<
-      string
-    > = await StreamingClient.init(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
 
     try {
       await shouldThrow(asyncStatusClient.handshake());
@@ -292,13 +292,13 @@ describe('streaming client tests', () => {
 
     const org: Org = await Org.create({ aliasOrUsername: _username });
 
-    const streamProcessor = (): StatusResult<string> => {
+    const streamProcessor = (): StatusResult => {
       return {
         completed: false
       };
     };
 
-    const options: StreamingOptions<string> = new DefaultStreamingOptions(
+    const options: StreamingClient.Options = new DefaultStreamingOptions(
       org,
       MOCK_TOPIC,
       streamProcessor
@@ -317,9 +317,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient<
-      string
-    > = await StreamingClient.init(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
     try {
       await shouldThrow(
         asyncStatusClient.subscribe(
@@ -343,13 +343,13 @@ describe('streaming client tests', () => {
 
     const org: Org = await Org.create({ aliasOrUsername: _username });
 
-    const streamProcessor = (): StatusResult<string> => {
+    const streamProcessor = (): StatusResult => {
       return {
         completed: true
       };
     };
 
-    const options: StreamingOptions<string> = new DefaultStreamingOptions(
+    const options: StreamingClient.Options = new DefaultStreamingOptions(
       org,
       MOCK_TOPIC,
       streamProcessor
@@ -372,9 +372,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient<
-      string
-    > = await StreamingClient.init(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
     await asyncStatusClient.subscribe(() => Promise.resolve());
 
     expect(setTimeoutSpy.called).to.be.true;
@@ -423,12 +423,12 @@ describe('streaming client tests', () => {
   });
 
   describe('DefaultStreaming options', () => {
-    let options: DefaultStreamingOptions<string>;
+    let options: DefaultStreamingOptions;
 
     beforeEach(async () => {
       const org: Org = await Org.create({ aliasOrUsername: _username });
 
-      const streamProcessor = (): StatusResult<string> => {
+      const streamProcessor = (): StatusResult => {
         return { completed: false };
       };
 

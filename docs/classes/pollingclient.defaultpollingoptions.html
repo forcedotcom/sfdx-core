@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>MyDomainResolverOptions | @salesforce/core</title>
+	<title>DefaultPollingOptions | @salesforce/core</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -907,17 +907,43 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class="current tsd-kind-interface">
-			<a href="mydomainresolveroptions.html" class="tsd-kind-icon">My<wbr>Domain<wbr>Resolver<wbr>Options</a>
+		<li class="current tsd-kind-class">
+			<a href="pollingclient.html" class="tsd-kind-icon">Polling<wbr>Client</a>
 			<ul>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="mydomainresolveroptions.html#frequency" class="tsd-kind-icon">frequency</a>
+				<li class="current tsd-kind-class tsd-parent-kind-class">
+					<a href="pollingclient.defaultpollingoptions.html" class="tsd-kind-icon">Default<wbr>Polling<wbr>Options</a>
+					<ul>
+						<li class=" tsd-kind-constructor tsd-parent-kind-class">
+							<a href="pollingclient.defaultpollingoptions.html#constructor" class="tsd-kind-icon">constructor</a>
+						</li>
+						<li class=" tsd-kind-property tsd-parent-kind-class">
+							<a href="pollingclient.defaultpollingoptions.html#frequency" class="tsd-kind-icon">frequency</a>
+						</li>
+						<li class=" tsd-kind-property tsd-parent-kind-class">
+							<a href="pollingclient.defaultpollingoptions.html#poll" class="tsd-kind-icon">poll</a>
+						</li>
+						<li class=" tsd-kind-property tsd-parent-kind-class">
+							<a href="pollingclient.defaultpollingoptions.html#timeout" class="tsd-kind-icon">timeout</a>
+						</li>
+					</ul>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="mydomainresolveroptions.html#timeout" class="tsd-kind-icon">timeout</a>
+				<li class=" tsd-kind-interface tsd-parent-kind-class">
+					<a href="../interfaces/pollingclient.options.html" class="tsd-kind-icon">Options</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="mydomainresolveroptions.html#url" class="tsd-kind-icon">url</a>
+				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
+					<a href="pollingclient.html#constructor" class="tsd-kind-icon">constructor</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
+					<a href="pollingclient.html#logger" class="tsd-kind-icon">logger</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a href="pollingclient.html#init" class="tsd-kind-icon">init</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="pollingclient.html#subscribe" class="tsd-kind-icon">subscribe</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+					<a href="pollingclient.html#create" class="tsd-kind-icon">create</a>
 				</li>
 			</ul>
 		</li>
@@ -928,7 +954,8 @@ img { max-width: 100%; }
 		<section class="tsd-panel tsd-comment">
 			<div class="tsd-comment tsd-typography">
 				<div class="lead">
-					<p>Options for the MyDomain DNS resolver</p>
+					<p>Default options set for polling. The default options specify a timeout of 3 minutes and polling frequency of 15
+					seconds;</p>
 				</div>
 			</div>
 		</section>
@@ -936,8 +963,14 @@ img { max-width: 100%; }
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="target">MyDomainResolverOptions</span>
+					<span class="target">DefaultPollingOptions</span>
 				</li>
+			</ul>
+		</section>
+		<section class="tsd-panel">
+			<h3>Implements</h3>
+			<ul class="tsd-hierarchy">
+				<li><a href="../interfaces/pollingclient.options.html" class="tsd-signature-type">Options</a></li>
 			</ul>
 		</section>
 		<section class="tsd-panel-group tsd-index-group">
@@ -945,62 +978,124 @@ img { max-width: 100%; }
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section ">
+						<h3>Constructors</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="pollingclient.defaultpollingoptions.html#constructor" class="tsd-kind-icon">constructor</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="mydomainresolveroptions.html#frequency" class="tsd-kind-icon">frequency</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="mydomainresolveroptions.html#timeout" class="tsd-kind-icon">timeout</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="mydomainresolveroptions.html#url" class="tsd-kind-icon">url</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="pollingclient.defaultpollingoptions.html#frequency" class="tsd-kind-icon">frequency</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="pollingclient.defaultpollingoptions.html#poll" class="tsd-kind-icon">poll</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="pollingclient.defaultpollingoptions.html#timeout" class="tsd-kind-icon">timeout</a></li>
 						</ul>
 					</section>
 				</div>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Constructors</h2>
+			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+				<a name="constructor" class="tsd-anchor"></a>
+				<h3>constructor</h3>
+				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">new <wbr>Default<wbr>Polling<wbr>Options<span class="tsd-signature-symbol">(</span>poll<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="pollingclient.defaultpollingoptions.html" class="tsd-signature-type">DefaultPollingOptions</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in status/pollingClient.ts:166</li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>constructor</p>
+							</div>
+							<dl class="tsd-comment-tags">
+								<dt>see</dt>
+								<dd><p>StatusResult</p>
+								</dd>
+							</dl>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>poll: <span class="tsd-signature-type">function</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<div class="lead">
+										<p>The function used for polling status.</p>
+									</div>
+								</div>
+								<ul class="tsd-parameters">
+									<li class="tsd-parameter-siganture">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&gt;</span></li>
+										</ul>
+										<ul class="tsd-descriptions">
+											<li class="tsd-description">
+												<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <a href="pollingclient.defaultpollingoptions.html" class="tsd-signature-type">DefaultPollingOptions</a></h4>
+					</li>
+				</ul>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Properties</h2>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 				<a name="frequency" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> frequency</h3>
-				<div class="tsd-signature tsd-kind-icon">frequency<span class="tsd-signature-symbol">:</span> <a href="../classes/time.html" class="tsd-signature-type">Time</a></div>
+				<h3>frequency</h3>
+				<div class="tsd-signature tsd-kind-icon">frequency<span class="tsd-signature-symbol">:</span> <a href="time.html" class="tsd-signature-type">Time</a></div>
 				<aside class="tsd-sources">
+					<p>Implementation of <a href="../interfaces/pollingclient.options.html">Options</a>.<a href="../interfaces/pollingclient.options.html#frequency">frequency</a></p>
 					<ul>
-						<li>Defined in status/myDomainResolver.ts:35</li>
+						<li>Defined in status/pollingClient.ts:164</li>
 					</ul>
 				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>The retry timeout</p>
-					</div>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="poll" class="tsd-anchor"></a>
+				<h3>poll</h3>
+				<div class="tsd-signature tsd-kind-icon">poll<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
+				<aside class="tsd-sources">
+					<p>Implementation of <a href="../interfaces/pollingclient.options.html">Options</a>.<a href="../interfaces/pollingclient.options.html#poll">poll</a></p>
+					<ul>
+						<li>Defined in status/pollingClient.ts:165</li>
+					</ul>
+				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter-siganture">
+							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
+								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&gt;</span></li>
+							</ul>
+							<ul class="tsd-descriptions">
+								<li class="tsd-description">
+									<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/statusresult.html" class="tsd-signature-type">StatusResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
+								</li>
+							</ul>
+						</li>
+					</ul>
 				</div>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 				<a name="timeout" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> timeout</h3>
-				<div class="tsd-signature tsd-kind-icon">timeout<span class="tsd-signature-symbol">:</span> <a href="../classes/time.html" class="tsd-signature-type">Time</a></div>
+				<h3>timeout</h3>
+				<div class="tsd-signature tsd-kind-icon">timeout<span class="tsd-signature-symbol">:</span> <a href="time.html" class="tsd-signature-type">Time</a></div>
 				<aside class="tsd-sources">
+					<p>Implementation of <a href="../interfaces/pollingclient.options.html">Options</a>.<a href="../interfaces/pollingclient.options.html#timeout">timeout</a></p>
 					<ul>
-						<li>Defined in status/myDomainResolver.ts:30</li>
+						<li>Defined in status/pollingClient.ts:166</li>
 					</ul>
 				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>The retry interval</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="url" class="tsd-anchor"></a>
-				<h3>url</h3>
-				<div class="tsd-signature tsd-kind-icon">url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">URL</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in status/myDomainResolver.ts:25</li>
-					</ul>
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>The host to resolve</p>
-					</div>
-				</div>
 			</section>
 		</section>
 		<footer>
