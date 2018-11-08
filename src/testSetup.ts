@@ -434,7 +434,7 @@ export class StreamingMockCometClient extends CometClient {
    * Constructor
    * @param {StreamingMockCometSubscriptionOptions} options Extends the StreamingClient options.
    */
-  constructor(options: StreamingMockCometSubscriptionOptions) {
+  public constructor(options: StreamingMockCometSubscriptionOptions) {
     super();
     this.options = options;
     if (!this.options.messagePlaylist) {

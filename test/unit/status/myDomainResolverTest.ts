@@ -8,10 +8,7 @@ import { AnyFunction } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as dns from 'dns';
 import { URL } from 'url';
-import {
-  MyDomainResolver,
-  MyDomainResolverOptions
-} from '../../../src/status/myDomainResolver';
+import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { testSetup } from '../../../src/testSetup';
 import { shouldThrow } from '../../../src/testSetup';
 import { Time, TIME_UNIT } from '../../../src/util/time';
@@ -41,7 +38,7 @@ describe('myDomainResolver', () => {
   });
 
   it('should resolve', async () => {
-    const options: MyDomainResolverOptions = {
+    const options: MyDomainResolver.Options = {
       url: new URL(`http://${POSITIVE_HOST}`),
       timeout: new Time(50, TIME_UNIT.MILLISECONDS),
       frequency: new Time(10, TIME_UNIT.MILLISECONDS)
@@ -60,7 +57,7 @@ describe('myDomainResolver', () => {
   });
 
   it('should resolve localhost', async () => {
-    const options: MyDomainResolverOptions = {
+    const options: MyDomainResolver.Options = {
       url: new URL('http://ghostbusters.internal.salesforce.com'),
       timeout: new Time(50, TIME_UNIT.MILLISECONDS),
       frequency: new Time(10, TIME_UNIT.MILLISECONDS)
@@ -72,7 +69,7 @@ describe('myDomainResolver', () => {
   });
 
   it('should timeout', async () => {
-    const options: MyDomainResolverOptions = {
+    const options: MyDomainResolver.Options = {
       url: new URL(`https://${NEGATIVE_HOST}`),
       timeout: new Time(100, TIME_UNIT.MILLISECONDS),
       frequency: new Time(10, TIME_UNIT.MILLISECONDS)
