@@ -6,6 +6,6 @@
     "../node_modules/@types/node/index.d.ts"
   ],
   "compilerOptions": {
-    "outDir": "../lib"
+    "noEmit": true
   }
 }
