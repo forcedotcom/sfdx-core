@@ -18,7 +18,7 @@
  * The type of content a config stores.
  * @typedef {Map<string, ConfigValue>} ConfigContents
  */
-import { set } from '@salesforce/kit';
+import { AsyncCreatable, set } from '@salesforce/kit';
 import {
   AnyJson,
   Dictionary,
@@ -27,6 +27,7 @@ import {
   JsonMap,
   Optional
 } from '@salesforce/ts-types';
+import { ConfigContents } from './configStore';
 
 /**
  * The allowed types stored in a config store.
@@ -77,12 +78,18 @@ export interface ConfigStore {
  * **Note:** To see the interface, look in typescripts autocomplete help or the npm package's ConfigStore.d.ts file.
  * @implements {ConfigStore}
  */
-export abstract class BaseConfigStore implements ConfigStore {
-  // Initialized in setContents
-  private contents: ConfigContents = {};
+export abstract class BaseConfigStore<T extends BaseConfigStore.Options>
+  extends AsyncCreatable<T>
+  implements ConfigStore {
+  protected options: T;
 
-  constructor(contents?: ConfigContents) {
-    this.setContents(contents);
+  // Initialized in setContents
+  private contents!: ConfigContents;
+
+  public constructor(options: T) {
+    super(options);
+    this.options = options;
+    this.setContents(this.options.contents || {});
   }
 
   /**
@@ -231,10 +238,16 @@ export abstract class BaseConfigStore implements ConfigStore {
    * Convert an object to a {@link ConfigContents} and set it as the config contents.
    * @param {object} obj The object.
    */
-  public setContentsFromObject<T extends object>(obj: T): void {
+  public setContentsFromObject<U extends object>(obj: U): void {
     this.contents = {};
     Object.entries(obj).forEach(([key, value]) => {
       set(this.contents, key, value);
     });
+  }
+}
+
+export namespace BaseConfigStore {
+  export interface Options {
+    contents?: ConfigContents;
   }
 }

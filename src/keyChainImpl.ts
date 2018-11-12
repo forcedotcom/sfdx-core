@@ -522,7 +522,9 @@ async function _writeFile(
   fn: (error: Nullable<Error>, contents?: Dictionary<ConfigValue>) => void
 ) {
   try {
-    const config = await KeychainConfig.create();
+    const config = await KeychainConfig.create(
+      KeychainConfig.getDefaultOptions()
+    );
     config.set(SecretFields.ACCOUNT, opts.account);
     config.set(SecretFields.KEY, opts.password || '');
     config.set(SecretFields.SERVICE, opts.service);
@@ -554,7 +556,7 @@ export class GenericKeychainAccess implements PasswordStore {
       // the file checks out.
       if (fileAccessError == null) {
         // read it's contents
-        return KeychainConfig.retrieve<KeychainConfig>()
+        return KeychainConfig.create(KeychainConfig.getDefaultOptions())
           .then((config: KeychainConfig) => {
             // validate service name and account just because
             if (
@@ -653,7 +655,9 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
       if (err != null) {
         await cb(err);
       } else {
-        const keyFile = await KeychainConfig.create();
+        const keyFile = await KeychainConfig.create(
+          KeychainConfig.getDefaultOptions()
+        );
         const stats = await keyFile.stat();
         const octalModeStr = (stats.mode & 0o777).toString(8);
         const EXPECTED_OCTAL_PERM_VALUE = '600';

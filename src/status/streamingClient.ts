@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AsyncCreatable, set } from '@salesforce/kit';
+import { AsyncOptionalCreatable, set } from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
@@ -302,7 +302,9 @@ export enum StreamingTimeoutErrorType {
  * });
  *
  */
-export class StreamingClient extends AsyncCreatable<StreamingClient.Options> {
+export class StreamingClient extends AsyncOptionalCreatable<
+  StreamingClient.Options
+> {
   private readonly targetUrl: string;
   private readonly options: StreamingClient.Options;
   private logger!: Logger;

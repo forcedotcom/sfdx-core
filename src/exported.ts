@@ -11,9 +11,9 @@ export { Aliases, AliasGroup } from './config/aliases';
 
 export { AuthInfoConfig } from './config/authInfoConfig';
 
-export { ConfigFile, ConfigOptions } from './config/configFile';
+export { ConfigFile } from './config/configFile';
 
-export { ConfigGroup, ConfigGroupOptions } from './config/configGroup';
+export { ConfigGroup } from './config/configGroup';
 
 export {
   BaseConfigStore,

@@ -910,8 +910,11 @@ img { max-width: 100%; }
 		<li class="current tsd-kind-class">
 			<a href="config.html" class="tsd-kind-icon">Config</a>
 			<ul>
-				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 					<a href="config.html#constructor" class="tsd-kind-icon">constructor</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a href="config.html#options" class="tsd-kind-icon">options</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
 					<a href="config.html#api_version" class="tsd-kind-icon">API_<wbr>VERSION</a>
@@ -964,6 +967,9 @@ img { max-width: 100%; }
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="config.html#has" class="tsd-kind-icon">has</a>
 				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+					<a href="config.html#init" class="tsd-kind-icon">init</a>
+				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="config.html#isglobal" class="tsd-kind-icon">is<wbr>Global</a>
 				</li>
@@ -1006,13 +1012,13 @@ img { max-width: 100%; }
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
 					<a href="config.html#clear-1" class="tsd-kind-icon">clear</a>
 				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-overwrite tsd-is-static">
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
 					<a href="config.html#create" class="tsd-kind-icon">create</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
 					<a href="config.html#getallowedproperties" class="tsd-kind-icon">get<wbr>Allowed<wbr>Properties</a>
 				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-static">
 					<a href="config.html#getdefaultoptions" class="tsd-kind-icon">get<wbr>Default<wbr>Options</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-static">
@@ -1059,7 +1065,7 @@ img { max-width: 100%; }
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<a href="configfile.html" class="tsd-signature-type">ConfigFile</a>
+					<a href="configfile.html" class="tsd-signature-type">ConfigFile</a><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/configfile.options.html" class="tsd-signature-type">Options</a><span class="tsd-signature-symbol">&gt;</span>
 					<ul class="tsd-hierarchy">
 						<li>
 							<span class="target">Config</span>
@@ -1078,15 +1084,22 @@ img { max-width: 100%; }
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
-					<section class="tsd-index-section tsd-is-inherited">
+					<section class="tsd-index-section ">
+						<h3>Modules</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-module tsd-parent-kind-class"><a href="../modules/config.configfile.html" class="tsd-kind-icon">Config<wbr>File</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
 						<h3>Constructors</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><a href="config.html#constructor" class="tsd-kind-icon">constructor</a></li>
+							<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="config.html#constructor" class="tsd-kind-icon">constructor</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
+							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="config.html#options" class="tsd-kind-icon">options</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="config.html#api_version" class="tsd-kind-icon">API_<wbr>VERSION</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="config.html#default_dev_hub_username" class="tsd-kind-icon">DEFAULT_<wbr>DEV_<wbr>HUB_<wbr>USERNAME</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="config.html#default_username" class="tsd-kind-icon">DEFAULT_<wbr>USERNAME</a></li>
@@ -1109,6 +1122,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="config.html#getkeysbyvalue" class="tsd-kind-icon">get<wbr>Keys<wbr>ByValue</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="config.html#getpath" class="tsd-kind-icon">get<wbr>Path</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="config.html#has" class="tsd-kind-icon">has</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected"><a href="config.html#init" class="tsd-kind-icon">init</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="config.html#isglobal" class="tsd-kind-icon">is<wbr>Global</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="config.html#keys" class="tsd-kind-icon">keys</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="config.html#read" class="tsd-kind-icon">read</a></li>
@@ -1123,9 +1137,9 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="config.html#values" class="tsd-kind-icon">values</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="config.html#write" class="tsd-kind-icon">write</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="config.html#clear-1" class="tsd-kind-icon">clear</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-overwrite tsd-is-static"><a href="config.html#create" class="tsd-kind-icon">create</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static"><a href="config.html#create" class="tsd-kind-icon">create</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="config.html#getallowedproperties" class="tsd-kind-icon">get<wbr>Allowed<wbr>Properties</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="config.html#getdefaultoptions" class="tsd-kind-icon">get<wbr>Default<wbr>Options</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-static"><a href="config.html#getdefaultoptions" class="tsd-kind-icon">get<wbr>Default<wbr>Options</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-static"><a href="config.html#getfilename" class="tsd-kind-icon">get<wbr>File<wbr>Name</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="config.html#resolverootfolder" class="tsd-kind-icon">resolve<wbr>Root<wbr>Folder</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static"><a href="config.html#retrieve" class="tsd-kind-icon">retrieve</a></li>
@@ -1135,26 +1149,26 @@ img { max-width: 100%; }
 				</div>
 			</section>
 		</section>
-		<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
+		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Constructors</h2>
-			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 				<a name="constructor" class="tsd-anchor"></a>
 				<h3>constructor</h3>
-				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
-					<li class="tsd-signature tsd-kind-icon">new <wbr>Config<span class="tsd-signature-symbol">(</span>contents<span class="tsd-signature-symbol">?: </span><a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="config.html" class="tsd-signature-type">Config</a></li>
+				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
+					<li class="tsd-signature tsd-kind-icon">new <wbr>Config<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/config.configfile.options.html" class="tsd-signature-type">Options</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="config.html" class="tsd-signature-type">Config</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#constructor">constructor</a></p>
+							<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#constructor">constructor</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:82</li>
+								<li>Defined in config/config.ts:206</li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> contents: <a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a></h5>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="../interfaces/config.configfile.options.html" class="tsd-signature-type">Options</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="config.html" class="tsd-signature-type">Config</a></h4>
@@ -1164,6 +1178,17 @@ img { max-width: 100%; }
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Properties</h2>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+				<a name="options" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagProtected">Protected</span> options</h3>
+				<div class="tsd-signature tsd-kind-icon">options<span class="tsd-signature-symbol">:</span> <a href="../interfaces/configfile.options.html" class="tsd-signature-type">Options</a></div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#options-1">options</a></p>
+					<ul>
+						<li>Defined in config/configStore.ts:84</li>
+					</ul>
+				</aside>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
 				<a name="api_version" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagStatic">Static</span> API_<wbr>VERSION</h3>
@@ -1298,7 +1323,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#access">access</a></p>
 							<ul>
-								<li>Defined in config/configFile.ts:195</li>
+								<li>Defined in config/configFile.ts:130</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1336,7 +1361,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#awaiteach">awaitEach</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:213</li>
+								<li>Defined in config/configStore.ts:220</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1390,7 +1415,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#clear">clear</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#clear">clear</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:166</li>
+								<li>Defined in config/configStore.ts:173</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1414,7 +1439,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#entries">entries</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#entries">entries</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:92</li>
+								<li>Defined in config/configStore.ts:99</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1437,7 +1462,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#exists">exists</a></p>
 							<ul>
-								<li>Defined in config/configFile.ts:252</li>
+								<li>Defined in config/configFile.ts:187</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1461,7 +1486,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#foreach">forEach</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:201</li>
+								<li>Defined in config/configStore.ts:208</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1515,7 +1540,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#get">get</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#get">get</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:101</li>
+								<li>Defined in config/configStore.ts:108</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1548,7 +1573,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#getcontents">getContents</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#getcontents">getContents</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:182</li>
+								<li>Defined in config/configStore.ts:189</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1572,7 +1597,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#getkeysbyvalue">getKeysByValue</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#getkeysbyvalue">getKeysByValue</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:110</li>
+								<li>Defined in config/configStore.ts:117</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1604,7 +1629,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#getpath">getPath</a></p>
 							<ul>
-								<li>Defined in config/configFile.ts:287</li>
+								<li>Defined in config/configFile.ts:221</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1628,7 +1653,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#has">has</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#has">has</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:122</li>
+								<li>Defined in config/configStore.ts:129</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1649,6 +1674,24 @@ img { max-width: 100%; }
 					</li>
 				</ul>
 			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+				<a name="init" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagProtected">Protected</span> init</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+					<li class="tsd-signature tsd-kind-icon">init<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#init">init</a></p>
+							<ul>
+								<li>Defined in config/config.ts:278</li>
+							</ul>
+						</aside>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 				<a name="isglobal" class="tsd-anchor"></a>
 				<h3>is<wbr>Global</h3>
@@ -1660,7 +1703,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#isglobal">isGlobal</a></p>
 							<ul>
-								<li>Defined in config/configFile.ts:295</li>
+								<li>Defined in config/configFile.ts:228</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1684,7 +1727,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#keys">keys</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#keys">keys</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:130</li>
+								<li>Defined in config/configStore.ts:137</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1707,7 +1750,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#read">read</a></p>
 							<ul>
-								<li>Defined in config/config.ts:272</li>
+								<li>Defined in config/config.ts:215</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1729,7 +1772,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#set">set</a></p>
 							<p>Overrides <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#set">set</a></p>
 							<ul>
-								<li>Defined in config/config.ts:308</li>
+								<li>Defined in config/config.ts:251</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1770,7 +1813,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#setcontents">setContents</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#setcontents">setContents</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:193</li>
+								<li>Defined in config/configStore.ts:200</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1795,14 +1838,14 @@ img { max-width: 100%; }
 				<a name="setcontentsfromobject" class="tsd-anchor"></a>
 				<h3>set<wbr>Contents<wbr>From<wbr>Object</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited">
-					<li class="tsd-signature tsd-kind-icon">set<wbr>Contents<wbr>From<wbr>Object&lt;T&gt;<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">set<wbr>Contents<wbr>From<wbr>Object&lt;U&gt;<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">U</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#setcontentsfromobject">setContentsFromObject</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:234</li>
+								<li>Defined in config/configStore.ts:241</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1813,13 +1856,13 @@ img { max-width: 100%; }
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
 						<ul class="tsd-type-parameters">
 							<li>
-								<h4>T<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></h4>
+								<h4>U<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></h4>
 							</li>
 						</ul>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>obj: <span class="tsd-signature-type">T</span></h5>
+								<h5>obj: <span class="tsd-signature-type">U</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>The object.</p>
 								</div>
@@ -1840,7 +1883,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#stat">stat</a></p>
 							<ul>
-								<li>Defined in config/configFile.ts:262</li>
+								<li>Defined in config/configFile.ts:197</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1854,7 +1897,7 @@ img { max-width: 100%; }
 							</dl>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">fsStats</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						<p>stats The stats of the file.</p>
+						<p>The stats of the file.</p>
 					</li>
 				</ul>
 			</section>
@@ -1869,7 +1912,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#toobject">toObject</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:226</li>
+								<li>Defined in config/configStore.ts:233</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1893,7 +1936,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#unlink">unlink</a></p>
 							<ul>
-								<li>Defined in config/configFile.ts:272</li>
+								<li>Defined in config/configFile.ts:207</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1923,7 +1966,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#unset">unset</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#unset">unset</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:150</li>
+								<li>Defined in config/configStore.ts:157</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1956,7 +1999,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#unsetall">unsetAll</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#unsetall">unsetAll</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:159</li>
+								<li>Defined in config/configStore.ts:166</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1989,7 +2032,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#values">values</a></p>
 							<p>Inherited from <a href="baseconfigstore.html">BaseConfigStore</a>.<a href="baseconfigstore.html#values">values</a></p>
 							<ul>
-								<li>Defined in config/configStore.ts:174</li>
+								<li>Defined in config/configStore.ts:181</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2012,7 +2055,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#write">write</a></p>
 							<ul>
-								<li>Defined in config/config.ts:287</li>
+								<li>Defined in config/config.ts:230</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2043,7 +2086,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/config.ts:253</li>
+								<li>Defined in config/config.ts:192</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2055,55 +2098,49 @@ img { max-width: 100%; }
 					</li>
 				</ul>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-overwrite tsd-is-static">
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
 				<a name="create" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagStatic">Static</span> create</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-overwrite tsd-is-static">
-					<li class="tsd-signature tsd-kind-icon">create&lt;T&gt;<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><a href="../interfaces/configoptions.html" class="tsd-signature-type">ConfigOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+					<li class="tsd-signature tsd-kind-icon">create&lt;P, T&gt;<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#create">create</a></p>
+							<p>Inherited from AsyncCreatable.create</p>
 							<ul>
-								<li>Defined in config/config.ts:147</li>
+								<li>Defined in @salesforce/kit/lib/creatable.d.ts:10</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Creates an instance of an Config.</p>
+								<p>Asynchronously constructs and initializes a new instance of a concrete subclass with the provided <code>options</code>.</p>
 							</div>
-							<dl class="tsd-comment-tags">
-								<dt>throws</dt>
-								<dd><p>{SfdxError} <strong><code>{name: &#39;InvalidInstanceUrl&#39;}</code></strong> Invalid instance URL.</p>
-								</dd>
-								<dt>throws</dt>
-								<dd><p>{SfdxError} <strong><code>{name: &#39;InvalidApiVersion&#39;}</code></strong> Invalid API version.</p>
-								</dd>
-								<dt>example</dt>
-								<dd><p>const config: Config = await Sfdx.create<Config>({ isGlobal: false }};
-											config.set(allowedPropertyKey, value);
-									await config.write();</p>
-								</dd>
-							</dl>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
 						<ul class="tsd-type-parameters">
 							<li>
-								<h4>T<span class="tsd-signature-symbol">: </span><a href="configfile.html" class="tsd-signature-type">ConfigFile</a></h4>
+								<h4>P</h4>
+							</li>
+							<li>
+								<h4>T<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">AsyncCreatable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">&gt;</span></h4>
 							</li>
 						</ul>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>options: <a href="../interfaces/configoptions.html" class="tsd-signature-type">ConfigOptions</a></h5>
+								<h5>this: <span class="tsd-signature-type">object</span></h5>
+								<ul class="tsd-parameters">
+								</ul>
+							</li>
+							<li>
+								<h5>options: <span class="tsd-signature-type">P</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>The config options.</p>
+									<p>An options object providing initialization params to the async constructor.</p>
 								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						<p>An instance of Config.</p>
 					</li>
 				</ul>
 			</section>
@@ -2117,7 +2154,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/config.ts:215</li>
+								<li>Defined in config/config.ts:143</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2127,42 +2164,30 @@ img { max-width: 100%; }
 					</li>
 				</ul>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-static">
 				<a name="getdefaultoptions" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Default<wbr>Options</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Default<wbr>Options<span class="tsd-signature-symbol">(</span>isGlobal<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, filename<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/configoptions.html" class="tsd-signature-type">ConfigOptions</a></li>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-static">
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Default<wbr>Options<span class="tsd-signature-symbol">(</span>isGlobal<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, filename<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/configfile.options.html" class="tsd-signature-type">Options</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#getdefaultoptions">getDefaultOptions</a></p>
+							<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#getdefaultoptions">getDefaultOptions</a></p>
 							<ul>
-								<li>Defined in config/configFile.ts:81</li>
+								<li>Defined in config/config.ts:152</li>
 							</ul>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Returns the default options for the config file.</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> isGlobal: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>If the file should be stored globally or locally.</p>
-								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> filename: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The name of the config file.</p>
-								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <a href="../interfaces/configoptions.html" class="tsd-signature-type">ConfigOptions</a></h4>
-						<p>The ConfigOptions.</p>
+						<h4 class="tsd-returns-title">Returns <a href="../interfaces/configfile.options.html" class="tsd-signature-type">Options</a></h4>
 					</li>
 				</ul>
 			</section>
@@ -2177,7 +2202,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#getfilename">getFileName</a></p>
 							<ul>
-								<li>Defined in config/config.ts:208</li>
+								<li>Defined in config/config.ts:136</li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -2195,7 +2220,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#resolverootfolder">resolveRootFolder</a></p>
 							<ul>
-								<li>Defined in config/configFile.ts:98</li>
+								<li>Defined in config/configFile.ts:85</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2221,14 +2246,14 @@ img { max-width: 100%; }
 				<a name="retrieve" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagStatic">Static</span> retrieve</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
-					<li class="tsd-signature tsd-kind-icon">retrieve&lt;T&gt;<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/configoptions.html" class="tsd-signature-type">ConfigOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">retrieve&lt;T&gt;<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><a href="../interfaces/configfile.options.html" class="tsd-signature-type">Options</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#retrieve">retrieve</a></p>
 							<ul>
-								<li>Defined in config/configFile.ts:177</li>
+								<li>Defined in config/configFile.ts:109</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2242,13 +2267,13 @@ img { max-width: 100%; }
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
 						<ul class="tsd-type-parameters">
 							<li>
-								<h4>T<span class="tsd-signature-symbol">: </span><a href="configfile.html" class="tsd-signature-type">ConfigFile</a></h4>
+								<h4>T<span class="tsd-signature-symbol">: </span><a href="configfile.html" class="tsd-signature-type">ConfigFile</a><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/configfile.options.html" class="tsd-signature-type">Options</a><span class="tsd-signature-symbol">&gt;</span></h4>
 							</li>
 						</ul>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="../interfaces/configoptions.html" class="tsd-signature-type">ConfigOptions</a></h5>
+								<h5>options: <a href="../interfaces/configfile.options.html" class="tsd-signature-type">Options</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -2265,7 +2290,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/config.ts:231</li>
+								<li>Defined in config/config.ts:170</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">

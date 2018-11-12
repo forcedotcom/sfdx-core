@@ -910,7 +910,7 @@ img { max-width: 100%; }
 		<li class="current tsd-kind-class">
 			<a href="configaggregator.html" class="tsd-kind-icon">Config<wbr>Aggregator</a>
 			<ul>
-				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-private">
+				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite tsd-is-private">
 					<a href="configaggregator.html#constructor" class="tsd-kind-icon">constructor</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
@@ -940,10 +940,13 @@ img { max-width: 100%; }
 				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="configaggregator.html#getpropertyvalue" class="tsd-kind-icon">get<wbr>Property<wbr>Value</a>
 				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a href="configaggregator.html#init" class="tsd-kind-icon">init</a>
+				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="configaggregator.html#reload" class="tsd-kind-icon">reload</a>
 				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
 					<a href="configaggregator.html#create" class="tsd-kind-icon">create</a>
 				</li>
 			</ul>
@@ -978,7 +981,12 @@ img { max-width: 100%; }
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="target">ConfigAggregator</span>
+					<span class="tsd-signature-type">AsyncOptionalCreatable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">JsonMap</span><span class="tsd-signature-symbol">&gt;</span>
+					<ul class="tsd-hierarchy">
+						<li>
+							<span class="target">ConfigAggregator</span>
+						</li>
+					</ul>
 				</li>
 			</ul>
 		</section>
@@ -989,7 +997,7 @@ img { max-width: 100%; }
 					<section class="tsd-index-section tsd-is-private tsd-is-private-protected">
 						<h3>Constructors</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-private"><a href="configaggregator.html#constructor" class="tsd-kind-icon">constructor</a></li>
+							<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite tsd-is-private"><a href="configaggregator.html#constructor" class="tsd-kind-icon">constructor</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
@@ -1004,8 +1012,9 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="configaggregator.html#getlocation" class="tsd-kind-icon">get<wbr>Location</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="configaggregator.html#getpath" class="tsd-kind-icon">get<wbr>Path</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="configaggregator.html#getpropertyvalue" class="tsd-kind-icon">get<wbr>Property<wbr>Value</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="configaggregator.html#init" class="tsd-kind-icon">init</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="configaggregator.html#reload" class="tsd-kind-icon">reload</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="configaggregator.html#create" class="tsd-kind-icon">create</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static"><a href="configaggregator.html#create" class="tsd-kind-icon">create</a></li>
 						</ul>
 					</section>
 				</div>
@@ -1013,17 +1022,18 @@ img { max-width: 100%; }
 		</section>
 		<section class="tsd-panel-group tsd-member-group tsd-is-private tsd-is-private-protected">
 			<h2>Constructors</h2>
-			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-private">
+			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite tsd-is-private">
 				<a name="constructor" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagPrivate">Private</span> constructor</h3>
-				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-private">
-					<li class="tsd-signature tsd-kind-icon">new <wbr>Config<wbr>Aggregator<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="configaggregator.html" class="tsd-signature-type">ConfigAggregator</a></li>
+				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite tsd-is-private">
+					<li class="tsd-signature tsd-kind-icon">new <wbr>Config<wbr>Aggregator<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">JsonMap</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="configaggregator.html" class="tsd-signature-type">ConfigAggregator</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
+							<p>Overrides AsyncOptionalCreatable.__constructor</p>
 							<ul>
-								<li>Defined in config/configAggregator.ts:105</li>
+								<li>Defined in config/configAggregator.ts:98</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1035,6 +1045,12 @@ img { max-width: 100%; }
 								<dd></dd>
 							</dl>
 						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <span class="tsd-signature-type">JsonMap</span></h5>
+							</li>
+						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="configaggregator.html" class="tsd-signature-type">ConfigAggregator</a></h4>
 					</li>
 				</ul>
@@ -1052,7 +1068,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/configAggregator.ts:249</li>
+								<li>Defined in config/configAggregator.ts:248</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1074,7 +1090,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/configAggregator.ts:220</li>
+								<li>Defined in config/configAggregator.ts:219</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1107,7 +1123,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/configAggregator.ts:257</li>
+								<li>Defined in config/configAggregator.ts:256</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1129,7 +1145,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/configAggregator.ts:241</li>
+								<li>Defined in config/configAggregator.ts:240</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1151,7 +1167,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/configAggregator.ts:145</li>
+								<li>Defined in config/configAggregator.ts:144</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1182,7 +1198,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/configAggregator.ts:232</li>
+								<li>Defined in config/configAggregator.ts:231</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1204,7 +1220,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/configAggregator.ts:169</li>
+								<li>Defined in config/configAggregator.ts:168</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1241,7 +1257,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/configAggregator.ts:196</li>
+								<li>Defined in config/configAggregator.ts:195</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1281,7 +1297,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/configAggregator.ts:130</li>
+								<li>Defined in config/configAggregator.ts:129</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1311,6 +1327,24 @@ img { max-width: 100%; }
 					</li>
 				</ul>
 			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+				<a name="init" class="tsd-anchor"></a>
+				<h3>init</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<li class="tsd-signature tsd-kind-icon">init<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Overrides AsyncOptionalCreatable.init</p>
+							<ul>
+								<li>Defined in config/configAggregator.ts:110</li>
+							</ul>
+						</aside>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 				<a name="reload" class="tsd-anchor"></a>
 				<h3>reload</h3>
@@ -1321,7 +1355,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in config/configAggregator.ts:265</li>
+								<li>Defined in config/configAggregator.ts:264</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1333,28 +1367,49 @@ img { max-width: 100%; }
 					</li>
 				</ul>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
 				<a name="create" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagStatic">Static</span> create</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
-					<li class="tsd-signature tsd-kind-icon">create<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="configaggregator.html" class="tsd-signature-type">ConfigAggregator</a><span class="tsd-signature-symbol">&gt;</span></li>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+					<li class="tsd-signature tsd-kind-icon">create&lt;P, T&gt;<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">P</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
+							<p>Inherited from AsyncOptionalCreatable.create</p>
 							<ul>
-								<li>Defined in config/configAggregator.ts:94</li>
+								<li>Defined in @salesforce/kit/lib/creatable.d.ts:34</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Initialize the aggregator by reading and merging the global and local
-									sfdx config files, then resolving environment variables. This method
-								must be called before getting resolved config properties.</p>
+								<p>Asynchronously constructs and initializes a new instance of a concrete subclass with the optional <code>options</code>.</p>
 							</div>
 						</div>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="configaggregator.html" class="tsd-signature-type">ConfigAggregator</a><span class="tsd-signature-symbol">&gt;</span></h4>
-						<p>Returns the aggregated config object</p>
+						<h4 class="tsd-type-parameters-title">Type parameters</h4>
+						<ul class="tsd-type-parameters">
+							<li>
+								<h4>P</h4>
+							</li>
+							<li>
+								<h4>T<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">AsyncOptionalCreatable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							</li>
+						</ul>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>this: <span class="tsd-signature-type">object</span></h5>
+								<ul class="tsd-parameters">
+								</ul>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">P</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>An options object providing initialization params to the async constructor.</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>

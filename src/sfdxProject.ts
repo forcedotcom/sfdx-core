@@ -5,9 +5,12 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { defaults } from '@salesforce/kit';
+
 import { ConfigAggregator } from './config/configAggregator';
-import { ConfigFile, ConfigOptions } from './config/configFile';
+import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
+
+import { JsonMap } from '@salesforce/ts-types';
 import { SfdxError } from './sfdxError';
 import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
 import { findUpperCaseKeys } from './util/sfdc';
@@ -29,15 +32,24 @@ import { findUpperCaseKeys } from './util/sfdc';
  *
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm
  */
-export class SfdxProjectJson extends ConfigFile {
+export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
   public static getFileName() {
     return SFDX_PROJECT_JSON;
   }
 
-  public static getDefaultOptions(isGlobal: boolean = false): ConfigOptions {
-    const options = super.getDefaultOptions(isGlobal);
+  public static getDefaultOptions(
+    isGlobal: boolean = false
+  ): ConfigFile.Options {
+    const options = ConfigFile.getDefaultOptions(
+      isGlobal,
+      SfdxProjectJson.getFileName()
+    );
     options.isState = false;
     return options;
+  }
+
+  public constructor(options: ConfigFile.Options) {
+    super(options);
   }
 
   public async read(): Promise<ConfigContents> {
@@ -53,6 +65,15 @@ export class SfdxProjectJson extends ConfigFile {
     }
     return contents;
   }
+
+  public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
+    const defaultOptions: ConfigFile.Options = {
+      isState: false
+    };
+
+    Object.assign(defaultOptions, options || {});
+    return defaultOptions;
+  }
 }
 
 /**
@@ -60,7 +81,7 @@ export class SfdxProjectJson extends ConfigFile {
  * a hidden .sfdx folder that contains all the other local project config files.
  *
  * @example
- * const project = await Project.resolve();
+ * const project = await SfdxProject.resolve();
  * const projectJson = await project.resolveProjectConfig();
  * console.log(projectJson.sfdcLoginUrl);
  */
@@ -125,17 +146,13 @@ export class SfdxProject {
     const options = SfdxProjectJson.getDefaultOptions(isGlobal);
     if (isGlobal) {
       if (!this.sfdxProjectJsonGlobal) {
-        this.sfdxProjectJsonGlobal = await SfdxProjectJson.retrieve<
-          SfdxProjectJson
-        >(options);
+        this.sfdxProjectJsonGlobal = await SfdxProjectJson.create(options);
       }
       return this.sfdxProjectJsonGlobal;
     } else {
       options.rootFolder = this.getPath();
       if (!this.sfdxProjectJson) {
-        this.sfdxProjectJson = await SfdxProjectJson.retrieve<SfdxProjectJson>(
-          options
-        );
+        this.sfdxProjectJson = await SfdxProjectJson.create(options);
       }
       return this.sfdxProjectJson;
     }
@@ -148,7 +165,7 @@ export class SfdxProject {
    * @returns {object} A resolved config object that contains a bunch of different
    * properties, including some 3rd party custom properties.
    */
-  public async resolveProjectConfig(): Promise<object> {
+  public async resolveProjectConfig(): Promise<JsonMap> {
     if (!this.projectConfig) {
       // Get sfdx-project.json from the ~/.sfdx directory to provide defaults
       const global = await this.retrieveSfdxProjectJson(true);

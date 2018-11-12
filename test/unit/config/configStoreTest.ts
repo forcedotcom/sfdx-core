@@ -7,11 +7,13 @@
 import { expect } from 'chai';
 import { BaseConfigStore } from '../../../src/config/configStore';
 
-class TestConfig extends BaseConfigStore {}
+class TestConfig extends BaseConfigStore<BaseConfigStore.Options> {
+  public async init(): Promise<void> {}
+}
 
 describe('ConfigStore', () => {
   it('for each value', async () => {
-    const config = new TestConfig();
+    const config = await TestConfig.create({});
     config.set('1', 'a');
     config.set('2', 'b');
 
@@ -22,7 +24,7 @@ describe('ConfigStore', () => {
     expect(st).to.equal('1a2b');
   });
   it('await each value', async () => {
-    const config = new TestConfig();
+    const config = await TestConfig.create({});
     config.set('1', 'a');
     config.set('2', 'b');
 

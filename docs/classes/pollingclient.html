@@ -953,7 +953,7 @@ img { max-width: 100%; }
 								frequency: new Time(10, TIME_UNIT.MILLISECONDS),
 								timeout: new Time(1, TIME_UNIT.MINUTES)
 								};
-								const client = new PollingClient(options);
+								const client = await PollingClient.create(options);
 								const pollResult = await client.subscribe();
 						console.log(<code>pollResult: ${pollResult}</code>);</p>
 					</dd>
@@ -964,7 +964,7 @@ img { max-width: 100%; }
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="tsd-signature-type">AsyncCreatable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/pollingclient.options.html" class="tsd-signature-type">Options</a><span class="tsd-signature-symbol">&gt;</span>
+					<span class="tsd-signature-type">AsyncOptionalCreatable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/pollingclient.options.html" class="tsd-signature-type">Options</a><span class="tsd-signature-symbol">&gt;</span>
 					<ul class="tsd-hierarchy">
 						<li>
 							<span class="target">PollingClient</span>
@@ -1023,9 +1023,9 @@ img { max-width: 100%; }
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Overrides AsyncCreatable.__constructor</p>
+							<p>Overrides AsyncOptionalCreatable.__constructor</p>
 							<ul>
-								<li>Defined in status/pollingClient.ts:38</li>
+								<li>Defined in status/pollingClient.ts:40</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1065,7 +1065,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">logger<span class="tsd-signature-symbol">:</span> <a href="logger.html" class="tsd-signature-type">Logger</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in status/pollingClient.ts:34</li>
+						<li>Defined in status/pollingClient.ts:36</li>
 					</ul>
 				</aside>
 			</section>
@@ -1081,9 +1081,9 @@ img { max-width: 100%; }
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Overrides AsyncCreatable.init</p>
+							<p>Overrides AsyncOptionalCreatable.init</p>
 							<ul>
-								<li>Defined in status/pollingClient.ts:55</li>
+								<li>Defined in status/pollingClient.ts:57</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1109,7 +1109,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in status/pollingClient.ts:66</li>
+								<li>Defined in status/pollingClient.ts:68</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1137,14 +1137,14 @@ img { max-width: 100%; }
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from AsyncCreatable.create</p>
+							<p>Inherited from AsyncOptionalCreatable.create</p>
 							<ul>
-								<li>Defined in @salesforce/kit/lib/creatable.d.ts:10</li>
+								<li>Defined in @salesforce/kit/lib/creatable.d.ts:34</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Asynchronously constructs and initializes a new instance of a concrete subclass with the provided <code>options</code>.</p>
+								<p>Asynchronously constructs and initializes a new instance of a concrete subclass with the optional <code>options</code>.</p>
 							</div>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -1153,7 +1153,7 @@ img { max-width: 100%; }
 								<h4>P</h4>
 							</li>
 							<li>
-								<h4>T<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">AsyncCreatable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">&gt;</span></h4>
+								<h4>T<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">AsyncOptionalCreatable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">&gt;</span></h4>
 							</li>
 						</ul>
 						<h4 class="tsd-parameters-title">Parameters</h4>

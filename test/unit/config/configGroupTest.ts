@@ -7,10 +7,7 @@
 import { ensureJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  ConfigGroup,
-  ConfigGroupOptions
-} from '../../../src/config/configGroup';
+import { ConfigGroup } from '../../../src/config/configGroup';
 import { testSetup } from '../../../src/testSetup';
 
 // Setup the test environment.
@@ -28,20 +25,23 @@ describe('ConfigGroup retrieve calls read', () => {
   });
 
   it('file already exists', async () => {
-    const options: ConfigGroupOptions = ConfigGroup.getOptions(
+    const options: ConfigGroup.Options = ConfigGroup.getOptions(
       'orgs',
       filename
     );
-    const store: ConfigGroup = await ConfigGroup.retrieve<ConfigGroup>(options);
+
+    const store = (await ConfigGroup.retrieve(options)) as ConfigGroup<
+      ConfigGroup.Options
+    >;
     expect(store.getInGroup('foo', 'orgs')).to.eq('foo@example.com');
   });
 });
 
 describe('ConfigGroup', () => {
-  let store: ConfigGroup;
+  let store: ConfigGroup<ConfigGroup.Options>;
 
   beforeEach(async () => {
-    store = await ConfigGroup.create<ConfigGroup>(
+    store = await ConfigGroup.create(
       ConfigGroup.getOptions('default', 'testfetchConfigInfos.json')
     );
   });

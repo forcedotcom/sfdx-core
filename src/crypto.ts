@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AsyncCreatable } from '@salesforce/kit';
+import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 import * as os from 'os';
@@ -88,7 +88,7 @@ interface CryptoOptions {
   noResetOnClose?: boolean;
 }
 
-export class Crypto extends AsyncCreatable<CryptoOptions> {
+export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   private _key: SecureBuffer<string> = new SecureBuffer();
 
   private options: CryptoOptions;

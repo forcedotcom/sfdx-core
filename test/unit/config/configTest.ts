@@ -38,7 +38,7 @@ describe('Config', () => {
 
   describe('instantiation', () => {
     it('using global', async () => {
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
       expect(config.getPath()).to.not.contain(await $$.localPathRetriever(id));
@@ -46,7 +46,7 @@ describe('Config', () => {
       expect(config.getPath()).to.contain('sfdx-config.json');
     });
     it('not using global', async () => {
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(false)
       );
       expect(config.getPath()).to.contain(await $$.localPathRetriever(id));
@@ -57,7 +57,7 @@ describe('Config', () => {
 
   describe('read', () => {
     it('adds content of the config file from this.path to this.contents', async () => {
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
 
@@ -115,7 +115,7 @@ describe('Config', () => {
 
   describe('set', () => {
     it('UnknownConfigKey', async () => {
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
       try {
@@ -127,7 +127,7 @@ describe('Config', () => {
     });
 
     it('enable preferpolling for org:create', async () => {
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
       config.set(Config.USE_BACKUP_POLLING_ORG_CREATE, 'true');
@@ -137,7 +137,7 @@ describe('Config', () => {
     });
 
     it('InvalidConfigValue', async () => {
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
       try {
@@ -149,7 +149,7 @@ describe('Config', () => {
     });
 
     it('PropertyInput validation', async () => {
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
       await config.set(Config.DEFAULT_USERNAME, 'foo@example.com');
@@ -174,7 +174,7 @@ describe('Config', () => {
         expect(ensureString(this.get('isvDebuggerSid'))).to.not.equal(TEST_VAL);
       });
 
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
       await config.set(Config.ISV_DEBUGGER_SID, TEST_VAL);

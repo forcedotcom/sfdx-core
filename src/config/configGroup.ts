@@ -19,17 +19,8 @@ import {
   Optional
 } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
-import { ConfigFile, ConfigOptions } from './configFile';
+import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
-
-/**
- * The interface for Config options.
- * *NOTE:* And changes to this interface must also change the jsdoc typedef header above.
- * @interface
- */
-export interface ConfigGroupOptions extends ConfigOptions {
-  defaultGroup: string;
-}
 
 /**
  * A config file that stores config values in groups. e.g. to store different config
@@ -52,22 +43,7 @@ export interface ConfigGroupOptions extends ConfigOptions {
  * myConfig.setInGroup('myKey', 'myvalue', 'all'); // Manually set in another group.
  * await myconfig.write();
  */
-export class ConfigGroup extends ConfigFile {
-  /**
-   * Overrides {@link ConfigFile.create} to pass in {@link ConfigGroup.getOptions}.
-   * @override
-   * @see {@link ConfigFile.create}
-   */
-  public static async create<T extends ConfigFile>(
-    options: ConfigOptions
-  ): Promise<T> {
-    const config: T = (await super.create(options)) as T;
-    // First cast T to config file, before we can cast to ConfigGroup
-    const group: ConfigGroup = (config as ConfigFile) as ConfigGroup;
-    group.setDefaultGroup((options as ConfigGroupOptions).defaultGroup);
-    return config;
-  }
-
+export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   /**
    * Get ConfigGroup specific options, such as the default group.
    * @param {string} defaultGroup The default group to use when creating the config.
@@ -76,13 +52,24 @@ export class ConfigGroup extends ConfigFile {
   public static getOptions(
     defaultGroup: string,
     filename?: string
-  ): ConfigGroupOptions {
-    const options: ConfigGroupOptions = this.getDefaultOptions(
+  ): ConfigGroup.Options {
+    const options: ConfigFile.Options = ConfigFile.getDefaultOptions(
       true,
       filename
-    ) as ConfigGroupOptions;
-    options.defaultGroup = defaultGroup;
-    return options;
+    );
+    const configGroupOptions: ConfigGroup.Options = { defaultGroup };
+    Object.assign(configGroupOptions, options);
+    return configGroupOptions;
+  }
+
+  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(
+    options?: ConfigFile.Options
+  ): Promise<T> {
+    const aliases: ConfigFile<ConfigFile.Options> = await ConfigGroup.create(
+      (options as ConfigGroup.Options) || ConfigGroup.getDefaultOptions()
+    );
+    await aliases.read();
+    return aliases as T;
   }
 
   private defaultGroup: string = 'default';
@@ -274,7 +261,7 @@ export class ConfigGroup extends ConfigFile {
    * Convert an object to a {@link ConfigContents} and set it as the config contents.
    * @param {object} obj The object.
    */
-  public setContentsFromObject<T extends object>(obj: T): void {
+  public setContentsFromObject<U extends object>(obj: U): void {
     const contents = new Map<string, ConfigValue>(Object.entries(obj));
     Array.from(contents.entries()).forEach(([groupKey, groupContents]) => {
       if (groupContents) {
@@ -308,5 +295,21 @@ export class ConfigGroup extends ConfigFile {
     set(content, key, value);
 
     return content;
+  }
+
+  public async init(): Promise<void> {
+    await super.init();
+    this.setDefaultGroup(this.options.defaultGroup);
+  }
+}
+
+export namespace ConfigGroup {
+  /**
+   * The interface for Config options.
+   * *NOTE:* And changes to this interface must also change the jsdoc typedef header above.
+   * @interface
+   */
+  export interface Options extends ConfigFile.Options {
+    defaultGroup: string;
   }
 }

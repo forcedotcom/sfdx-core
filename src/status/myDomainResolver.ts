@@ -10,7 +10,7 @@ import { promisify } from 'util';
 
 import { AnyJson } from '@salesforce/ts-types';
 
-import { AsyncCreatable } from '@salesforce/kit';
+import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Logger } from '../logger';
 import { Time, TIME_UNIT } from '../util/time';
 import { StatusResult } from './client';
@@ -23,18 +23,20 @@ import { PollingClient } from './pollingClient';
  * @example
  *
  * (async () => {
- *  const options: MyDomainResolverOptions = {
- *       url: new URL('http://mydomain.salesforce.com'),
- *       timeout: new Time(5, TIME_UNIT.MINUTES),
- *       frequency: new Time(10, TIME_UNIT.SECONDS),
- *   };
+ * const options: MyDomainResolver.Options = {
+ *    url: new URL('http://mydomain.salesforce.com'),
+ *     timeout: new Time(5, TIME_UNIT.MINUTES),
+ *     frequency: new Time(10, TIME_UNIT.SECONDS)
+ * };
  *
  *   const resolver: MyDomainResolver = await MyDomainResolver.create(options);
- *   const ipAddress: string = await resolver.resolve();
+ *   const ipAddress: AnyJson = await resolver.resolve();
  *   console.log(`Successfully resolved host: ${options.url} to address: ${ipAddress}`);
  * })();
  */
-export class MyDomainResolver extends AsyncCreatable<MyDomainResolver.Options> {
+export class MyDomainResolver extends AsyncOptionalCreatable<
+  MyDomainResolver.Options
+> {
   public static DEFAULT_DOMAIN = new URL('https://login.salesforce.com');
 
   private logger!: Logger;
@@ -49,7 +51,7 @@ export class MyDomainResolver extends AsyncCreatable<MyDomainResolver.Options> {
   /**
    * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
    * given the optional interval.
-   * @returns {Promise<string>} The resolved ip address.
+   * @returns {Promise<AnyJson>} The resolved ip address.
    */
   public async resolve(): Promise<AnyJson> {
     const self: MyDomainResolver = this;

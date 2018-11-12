@@ -83,7 +83,7 @@ describe('Org Tests', () => {
     });
 
     it('should create an org from the default username', async () => {
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
       await config.set(Config.DEFAULT_USERNAME, testData.username);
@@ -96,7 +96,7 @@ describe('Org Tests', () => {
     });
 
     it('should create a default devhub org', async () => {
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
       await config.set(Config.DEFAULT_DEV_HUB_USERNAME, testData.username);
@@ -221,7 +221,9 @@ describe('Org Tests', () => {
   });
 
   describe('remove', () => {
-    const configFileReadJsonMock = async function(this: ConfigFile) {
+    const configFileReadJsonMock = async function(
+      this: ConfigFile<ConfigFile.Options>
+    ) {
       if (this.getPath().includes(`${testData.username}.json`)) {
         return Promise.resolve(await testData.getConfig());
       }
@@ -244,7 +246,7 @@ describe('Org Tests', () => {
 
       const deletedPaths: string[] = [];
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function(
-        this: ConfigFile
+        this: ConfigFile<ConfigFile.Options>
       ) {
         deletedPaths.push(this.getPath());
         return Promise.resolve({});
@@ -303,7 +305,7 @@ describe('Org Tests', () => {
         aggregator: configAggregator
       });
 
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
       await config.set(Config.DEFAULT_USERNAME, testData.username);
@@ -424,7 +426,7 @@ describe('Org Tests', () => {
     });
 
     it('should remove aliases and config settings', async () => {
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
 
@@ -488,7 +490,7 @@ describe('Org Tests', () => {
       );
       org = await Org.create({ connection, aggregator: configAggregator });
 
-      const config: Config = await Config.create<Config>(
+      const config: Config = await Config.create(
         Config.getDefaultOptions(true)
       );
       await config.set(Config.DEFAULT_DEV_HUB_USERNAME, fakeDevHub);
@@ -527,7 +529,7 @@ describe('Org Tests', () => {
   describe('getDevHubOrg', () => {
     const devHubUser = 'ray@gb.org';
     beforeEach(() => {
-      const retrieve = async function(this: ConfigFile) {
+      const retrieve = async function(this: ConfigFile<ConfigFile.Options>) {
         if (this.getPath().includes(devHubUser)) {
           const mockDevHubData: MockTestOrgData = new MockTestOrgData();
           mockDevHubData.username = devHubUser;
@@ -597,7 +599,9 @@ describe('Org Tests', () => {
       mock1 = new MockTestOrgData();
       mock2 = new MockTestOrgData();
 
-      const retrieve = async function(this: ConfigFile) {
+      const retrieve = async function(
+        this: ConfigFile<OrgUsersConfig.Options>
+      ) {
         const path = this.getPath();
 
         if (path && path.includes(mock0.username)) {
