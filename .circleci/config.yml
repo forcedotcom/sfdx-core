@@ -55,10 +55,11 @@ jobs:
           name: Install dependencies
           command: .circleci/greenkeeper
       - run: yarn global add semantic-release@15
+      - run: yarn global add @oclif/semantic-release@3
       - run:
           name: Compiling
           command: yarn compile
-      - run: semantic-release
+      - run: semantic-release -e @oclif/semantic-release
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
