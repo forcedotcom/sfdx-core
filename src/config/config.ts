@@ -32,7 +32,7 @@ import { Crypto } from '../crypto';
 import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
 import { isSalesforceDomain, validateApiVersion } from '../util/sfdc';
-import { ConfigFile, ConfigOptions } from './configFile';
+import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
@@ -94,7 +94,7 @@ export interface ConfigPropertyMetaInput {
  *
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_config_values.htm
  */
-export class Config extends ConfigFile {
+export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Username associated with the default dev hub org.
    * @type {string}
@@ -133,78 +133,6 @@ export class Config extends ConfigFile {
    */
   public static readonly API_VERSION = 'apiVersion';
 
-  /**
-   * Creates an instance of an Config.
-   * @param {ConfigOptions} options The config options.
-   * @return {Promise<Config>} An instance of Config.
-   * @throws {SfdxError} **`{name: 'InvalidInstanceUrl'}`** Invalid instance URL.
-   * @throws {SfdxError} **`{name: 'InvalidApiVersion'}`** Invalid API version.
-   * @example
-   * const config: Config = await Sfdx.create<Config>({ isGlobal: false }};
-   * config.set(allowedPropertyKey, value);
-   * await config.write();
-   */
-  public static async create<T extends ConfigFile>(
-    options: ConfigOptions
-  ): Promise<T> {
-    if (!Config.messages) {
-      Config.messages = Messages.loadMessages('@salesforce/core', 'config');
-    }
-
-    if (!Config.allowedProperties) {
-      Config.allowedProperties = [
-        {
-          key: 'instanceUrl',
-          input: {
-            // If a value is provided validate it otherwise no value is unset.
-            validator: value =>
-              value == null || (isString(value) && isSalesforceDomain(value)),
-            failedMessage: Config.messages.getMessage('InvalidInstanceUrl')
-          }
-        },
-        {
-          key: Config.API_VERSION,
-          hidden: true,
-          input: {
-            // If a value is provided validate it otherwise no value is unset.
-            validator: value => isString(value) && validateApiVersion(value),
-            failedMessage: Config.messages.getMessage('InvalidApiVersion')
-          }
-        },
-        { key: Config.DEFAULT_DEV_HUB_USERNAME },
-        { key: Config.DEFAULT_USERNAME },
-        { key: Config.ISV_DEBUGGER_SID, encrypted: true },
-        { key: Config.ISV_DEBUGGER_URL },
-        // This should be brought in by a plugin, but there isn't a way to do that right now.
-        {
-          key: 'restDeploy',
-          hidden: true,
-          input: {
-            validator: value =>
-              value != null && ['true', 'false'].includes(value.toString()),
-            failedMessage: Config.messages.getMessage(
-              'InvalidBooleanConfigValue'
-            )
-          }
-        },
-        {
-          key: Config.USE_BACKUP_POLLING_ORG_CREATE,
-          input: {
-            validator: value =>
-              value == null || value === 'true' || value === 'false',
-            failedMessage: `${
-              Config.USE_BACKUP_POLLING_ORG_CREATE
-            } must be a boolean value. true/false.`
-          }
-        }
-      ];
-    }
-
-    Config.propertyConfigMap = keyBy(Config.allowedProperties, 'key');
-
-    return (await super.create(options)) as T;
-  }
-
   public static getFileName(): string {
     return SFDX_CONFIG_FILE_NAME;
   }
@@ -219,6 +147,17 @@ export class Config extends ConfigFile {
       );
     }
     return Config.allowedProperties;
+  }
+
+  public static getDefaultOptions(
+    isGlobal: boolean = false,
+    filename?: string
+  ): ConfigFile.Options {
+    return {
+      isGlobal,
+      isState: true,
+      filename: filename || Config.getFileName()
+    };
   }
 
   /**
@@ -265,6 +204,10 @@ export class Config extends ConfigFile {
   private static propertyConfigMap: Dictionary<ConfigPropertyMeta>;
 
   private crypto?: Crypto;
+
+  public constructor(options?: ConfigFile.Options) {
+    super(options || Config.getDefaultOptions(false));
+  }
 
   /**
    * @returns {Promise<object>} Read, assign, and return the config contents.
@@ -330,6 +273,64 @@ export class Config extends ConfigFile {
       super.set(property.key, value);
     }
     return this.getContents();
+  }
+
+  protected async init(): Promise<void> {
+    await super.init();
+    if (!Config.messages) {
+      Config.messages = Messages.loadMessages('@salesforce/core', 'config');
+    }
+
+    if (!Config.allowedProperties) {
+      Config.allowedProperties = [
+        {
+          key: 'instanceUrl',
+          input: {
+            // If a value is provided validate it otherwise no value is unset.
+            validator: value =>
+              value == null || (isString(value) && isSalesforceDomain(value)),
+            failedMessage: Config.messages.getMessage('InvalidInstanceUrl')
+          }
+        },
+        {
+          key: Config.API_VERSION,
+          hidden: true,
+          input: {
+            // If a value is provided validate it otherwise no value is unset.
+            validator: value => isString(value) && validateApiVersion(value),
+            failedMessage: Config.messages.getMessage('InvalidApiVersion')
+          }
+        },
+        { key: Config.DEFAULT_DEV_HUB_USERNAME },
+        { key: Config.DEFAULT_USERNAME },
+        { key: Config.ISV_DEBUGGER_SID, encrypted: true },
+        { key: Config.ISV_DEBUGGER_URL },
+        // This should be brought in by a plugin, but there isn't a way to do that right now.
+        {
+          key: 'restDeploy',
+          hidden: true,
+          input: {
+            validator: value =>
+              value != null && ['true', 'false'].includes(value.toString()),
+            failedMessage: Config.messages.getMessage(
+              'InvalidBooleanConfigValue'
+            )
+          }
+        },
+        {
+          key: Config.USE_BACKUP_POLLING_ORG_CREATE,
+          input: {
+            validator: value =>
+              value == null || value === 'true' || value === 'false',
+            failedMessage: `${
+              Config.USE_BACKUP_POLLING_ORG_CREATE
+            } must be a boolean value. true/false.`
+          }
+        }
+      ];
+    }
+
+    Config.propertyConfigMap = keyBy(Config.allowedProperties, 'key');
   }
 
   /**

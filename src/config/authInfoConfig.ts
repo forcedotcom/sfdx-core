@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ConfigFile, ConfigOptions } from './configFile';
+import { ConfigFile } from './configFile';
 
 /**
  * An auth config file that stores information such as access tokens, usernames, etc.,
@@ -15,22 +15,12 @@ import { ConfigFile, ConfigOptions } from './configFile';
  * @example
  * const authInfo = await AuthInfoConfig.retrieve<AuthInfoConfig>(AuthInfoConfig.getOptions(username));
  */
-export class AuthInfoConfig extends ConfigFile {
-  public static getDefaultOptions(
-    isGlobal: boolean,
-    filename?: string
-  ): ConfigOptions {
-    throw Error(
-      'The method AuthInfoConfig.getDefaultOptions is not supported. Call AuthInfoConfig.getOptions().'
-    );
-  }
-
+export class AuthInfoConfig extends ConfigFile<ConfigFile.Options> {
   /**
    * Gets the config options for a given org ID.
-   * @param {string} orgId The orgId. Generally this org would have multiple users configured.
-   * @return {ConfigOptions} The ConfigOptions.
+   * @param username The username for the org.
    */
-  public static getOptions(username: string): ConfigOptions {
+  public static getOptions(username: string): ConfigFile.Options {
     return {
       isGlobal: true, // Only allow global auth files
       isState: true,

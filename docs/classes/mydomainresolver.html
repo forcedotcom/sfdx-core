@@ -943,13 +943,13 @@ img { max-width: 100%; }
 				<dl class="tsd-comment-tags">
 					<dt>example</dt>
 					<dd><p>(async () =&gt; {
-							const options: MyDomainResolverOptions = {
+							const options: MyDomainResolver.Options = {
 							url: new URL(&#39;<a href="http://mydomain.salesforce.com&#39;)">http://mydomain.salesforce.com&#39;)</a>,
 							timeout: new Time(5, TIME_UNIT.MINUTES),
-							frequency: new Time(10, TIME_UNIT.SECONDS),
+							frequency: new Time(10, TIME_UNIT.SECONDS)
 						};</p>
 						<p>  const resolver: MyDomainResolver = await MyDomainResolver.create(options);
-							const ipAddress: string = await resolver.resolve();
+							const ipAddress: AnyJson = await resolver.resolve();
 							console.log(<code>Successfully resolved host: ${options.url} to address: ${ipAddress}</code>);
 						})();</p>
 					</dd>
@@ -960,7 +960,7 @@ img { max-width: 100%; }
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="tsd-signature-type">AsyncCreatable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/mydomainresolver.options.html" class="tsd-signature-type">Options</a><span class="tsd-signature-symbol">&gt;</span>
+					<span class="tsd-signature-type">AsyncOptionalCreatable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/mydomainresolver.options.html" class="tsd-signature-type">Options</a><span class="tsd-signature-symbol">&gt;</span>
 					<ul class="tsd-hierarchy">
 						<li>
 							<span class="target">MyDomainResolver</span>
@@ -1013,9 +1013,9 @@ img { max-width: 100%; }
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Overrides AsyncCreatable.__constructor</p>
+							<p>Overrides AsyncOptionalCreatable.__constructor</p>
 							<ul>
-								<li>Defined in status/myDomainResolver.ts:42</li>
+								<li>Defined in status/myDomainResolver.ts:44</li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1037,7 +1037,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>DOMAIN<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">URL</span><span class="tsd-signature-symbol"> =&nbsp;new URL(&#x27;https://login.salesforce.com&#x27;)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in status/myDomainResolver.ts:38</li>
+						<li>Defined in status/myDomainResolver.ts:40</li>
 					</ul>
 				</aside>
 			</section>
@@ -1053,9 +1053,9 @@ img { max-width: 100%; }
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Overrides AsyncCreatable.init</p>
+							<p>Overrides AsyncOptionalCreatable.init</p>
 							<ul>
-								<li>Defined in status/myDomainResolver.ts:99</li>
+								<li>Defined in status/myDomainResolver.ts:101</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1077,7 +1077,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in status/myDomainResolver.ts:54</li>
+								<li>Defined in status/myDomainResolver.ts:56</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1100,14 +1100,14 @@ img { max-width: 100%; }
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from AsyncCreatable.create</p>
+							<p>Inherited from AsyncOptionalCreatable.create</p>
 							<ul>
-								<li>Defined in @salesforce/kit/lib/creatable.d.ts:10</li>
+								<li>Defined in @salesforce/kit/lib/creatable.d.ts:34</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Asynchronously constructs and initializes a new instance of a concrete subclass with the provided <code>options</code>.</p>
+								<p>Asynchronously constructs and initializes a new instance of a concrete subclass with the optional <code>options</code>.</p>
 							</div>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -1116,7 +1116,7 @@ img { max-width: 100%; }
 								<h4>P</h4>
 							</li>
 							<li>
-								<h4>T<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">AsyncCreatable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">&gt;</span></h4>
+								<h4>T<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">AsyncOptionalCreatable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">&gt;</span></h4>
 							</li>
 						</ul>
 						<h4 class="tsd-parameters-title">Parameters</h4>

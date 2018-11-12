@@ -6,7 +6,7 @@
  */
 import { dirname as pathDirname } from 'path';
 import * as fs from '../util/fs';
-import { ConfigFile, ConfigOptions } from './configFile';
+import { ConfigFile } from './configFile';
 import { ConfigContents } from './configStore';
 
 /**
@@ -14,7 +14,7 @@ import { ConfigContents } from './configStore';
  * @private
  */
 // istanbul ignore next - getPassword/setPassword is always mocked out
-export class KeychainConfig extends ConfigFile {
+export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
   public static getFileName(): string {
     return 'key.json';
   }
@@ -22,10 +22,11 @@ export class KeychainConfig extends ConfigFile {
   public static getDefaultOptions(
     isGlobal = true,
     filename?: string
-  ): ConfigOptions {
+  ): ConfigFile.Options {
     const config = super.getDefaultOptions(isGlobal);
     // The key file is ALWAYS in the global space.
     config.isGlobal = true;
+    config.filename = filename;
     return config;
   }
 

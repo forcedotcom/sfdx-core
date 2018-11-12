@@ -6,8 +6,8 @@
  */
 import { setInterval } from 'timers';
 
-import { AsyncCreatable } from '@salesforce/kit';
-import { AnyFunction, AnyJson, ensure } from '@salesforce/ts-types';
+import { AsyncOptionalCreatable } from '@salesforce/kit';
+import { AnyFunction, AnyJson, ensure, Optional } from '@salesforce/ts-types';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { Time, TIME_UNIT } from '../util/time';
@@ -20,17 +20,19 @@ import { StatusResult } from './client';
  *
  * @example
  * const options: PollingClient.Options = {
- *     async poll(): Promise<StatusResult>  {
+ *      async poll(): Promise<StatusResult>  {
  *       return Promise.resolve({ completed: true, payload: 'Hello World' });
  *     },
  *     frequency: new Time(10, TIME_UNIT.MILLISECONDS),
- *     timeout: new Time(1, TIME_UNIT.MINUTES)
+ *      timeout: new Time(1, TIME_UNIT.MINUTES)
  *   };
- * const client = new PollingClient(options);
+ * const client = await PollingClient.create(options);
  * const pollResult = await client.subscribe();
  * console.log(`pollResult: ${pollResult}`);
  */
-export class PollingClient extends AsyncCreatable<PollingClient.Options> {
+export class PollingClient extends AsyncOptionalCreatable<
+  PollingClient.Options
+> {
   protected logger!: Logger;
 
   private options: PollingClient.Options;
@@ -72,7 +74,7 @@ export class PollingClient extends AsyncCreatable<PollingClient.Options> {
       // This try catch enables support for time{0} since setInterval only supports
       // time {1}. In other words, we should call first then wait for the first interval.
       this.doPoll()
-        .then((result: StatusResult | undefined) => {
+        .then((result: Optional<StatusResult>) => {
           if (result && result.completed) {
             resolve(result.payload);
           } else {

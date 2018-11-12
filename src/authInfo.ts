@@ -87,7 +87,6 @@ import * as jwt from 'jsonwebtoken';
 import { parse as urlParse } from 'url';
 import { AuthInfoConfig } from './config/authInfoConfig';
 import { ConfigAggregator } from './config/configAggregator';
-import { ConfigFile } from './config/configFile';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { Crypto } from './crypto';
 import { Global } from './global';
@@ -454,9 +453,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
   /**
    * @ignore
    */
-  public constructor(options?: AuthInfoOptions) {
+  public constructor(options: AuthInfoOptions) {
     super(options);
-    this.options = options || {};
+    this.options = options;
   }
 
   /**
@@ -522,7 +521,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfoOptions> {
 
     this.logger.debug(dataToSave);
 
-    const config: ConfigFile = await AuthInfoConfig.create(
+    const config = await AuthInfoConfig.create(
       AuthInfoConfig.getOptions(username)
     );
     config.setContentsFromObject(dataToSave);

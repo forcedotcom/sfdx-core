@@ -23,12 +23,18 @@
  * @property {function} isEnvVar `() => boolean` Location is `LOCATIONS.ENVIRONMENT`.
  */
 
-import { merge, snakeCase, sortBy } from '@salesforce/kit';
+import {
+  AsyncOptionalCreatable,
+  merge,
+  snakeCase,
+  sortBy
+} from '@salesforce/kit';
 import {
   definiteEntriesOf,
   Dictionary,
   get,
   isObject,
+  JsonMap,
   Optional
 } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
@@ -83,20 +89,7 @@ export interface ConfigInfo {
  *
  * @hideconstructor
  */
-export class ConfigAggregator {
-  /**
-   * Initialize the aggregator by reading and merging the global and local
-   * sfdx config files, then resolving environment variables. This method
-   * must be called before getting resolved config properties.
-   *
-   * @returns {Promise<ConfigAggregator>} Returns the aggregated config object
-   */
-  public static async create(): Promise<ConfigAggregator> {
-    const configAggregator = new ConfigAggregator();
-    await configAggregator.loadProperties();
-    return configAggregator;
-  }
-
+export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   // Initialized in loadProperties
   private allowedProperties!: ConfigPropertyMeta[];
   private localConfig!: Config;
@@ -110,7 +103,13 @@ export class ConfigAggregator {
    * @private
    * @constructor
    */
-  protected constructor() {}
+  public constructor(options?: JsonMap) {
+    super(options || {});
+  }
+
+  public async init(): Promise<void> {
+    await this.loadProperties();
+  }
 
   /**
    * Retrieve the path to the config file.
@@ -276,18 +275,14 @@ export class ConfigAggregator {
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
     try {
-      this.setLocalConfig(
-        await Config.create<Config>(Config.getDefaultOptions(false))
-      );
+      this.setLocalConfig(await Config.create(Config.getDefaultOptions(false)));
     } catch (err) {
       if (err.name !== 'InvalidProjectWorkspace') {
         throw err;
       }
     }
 
-    this.setGlobalConfig(
-      await Config.create<Config>(Config.getDefaultOptions(true))
-    );
+    this.setGlobalConfig(await Config.create(Config.getDefaultOptions(true)));
 
     this.setAllowedProperties(Config.getAllowedProperties());
 

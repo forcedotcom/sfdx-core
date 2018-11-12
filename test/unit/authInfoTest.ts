@@ -196,7 +196,7 @@ class MetaAuthDataMock {
     }
   }
 
-  public async statForKeyFile(path: string): Promise<any> {
+  public async statForKeyFile(path: string): Promise<{}> {
     // tslint:disable-line:no-any
     if (!path.includes('key.json')) {
       return new SfdxError(`Unexpected path: ${path}`, 'UnexpectedInput');
@@ -400,11 +400,13 @@ describe('AuthInfo', () => {
 
     describe('getFields', () => {
       it('return value should not have a client secret or decrypted refresh token', () => {
-        const fields: AuthFields = authInfo.getFields();
+        const fields = authInfo.getFields();
         const strObj: string = JSON.stringify(fields);
 
         // verify the returned object doesn't have secrets
-        expect(() => walkAndSearchForSecrets(toJsonMap(fields))).to.not.throw();
+        expect(() =>
+          walkAndSearchForSecrets(toJsonMap(fields) || {})
+        ).to.not.throw();
 
         expect(strObj).does.not.include(
           ensureString(testMetadata.defaultConnectedAppInfo.clientSecret)
@@ -419,7 +421,9 @@ describe('AuthInfo', () => {
         const strObj: string = JSON.stringify(fields);
 
         // verify the returned object doesn't have secrets
-        expect(() => walkAndSearchForSecrets(toJsonMap(fields))).to.not.throw();
+        expect(() =>
+          walkAndSearchForSecrets(toJsonMap(fields) || {})
+        ).to.not.throw();
 
         // double check the stringified objects don't have secrets.
         expect(strObj).does.not.include(
@@ -435,7 +439,7 @@ describe('AuthInfo', () => {
 
         // verify the returned object doesn't have secrets
         expect(() =>
-          walkAndSearchForSecrets(toJsonMap(authInfo))
+          walkAndSearchForSecrets(toJsonMap(authInfo) || {})
         ).to.not.throw();
 
         // double check the stringified objects don't have secrets.
@@ -1271,7 +1275,7 @@ describe('AuthInfo', () => {
 
     it('should throw an error when neither username nor options have been passed', async () => {
       try {
-        await AuthInfo.create();
+        await AuthInfo.create({});
         assert.fail(
           'Expected AuthInfo.create() to throw an error when no params are passed'
         );
@@ -1362,7 +1366,7 @@ describe('AuthInfo', () => {
     });
 
     it('should encrypt the data before assigning to this.fields', async () => {
-      const context: any = {
+      const context = {
         // tslint:disable-line:no-any
         getUsername: () => context.fields.username,
         fields: {
@@ -1371,7 +1375,9 @@ describe('AuthInfo', () => {
           username: 'authInfoTest_updateTest',
           orgId: '00DAuthInfoTest_orgId',
           loginUrl: testMetadata.loginUrl,
-          refreshToken: crypto.encrypt(testMetadata.refreshToken)
+          refreshToken: crypto.encrypt(testMetadata.refreshToken),
+          password: '',
+          clientSecret: ''
         },
         authInfoCrypto: {
           encryptFields: encryptStub
@@ -1400,7 +1406,7 @@ describe('AuthInfo', () => {
     });
 
     it('should NOT encrypt the data when encrypt arg is false', async () => {
-      const context: any = {
+      const context = {
         // tslint:disable-line:no-any
         getUsername: () => context.fields.username,
         fields: {

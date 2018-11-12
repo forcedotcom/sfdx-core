@@ -996,13 +996,13 @@ img { max-width: 100%; }
 					</dd>
 					<dt>example</dt>
 					<dd><p>// Email username
-							const org1: Org = await Org.create(<a href="mailto:&#39;foo@example.com">&#39;foo@example.com</a>&#39;);
-							// An alias
-							const org2: Org = await Org.create(&#39;fooAlias&#39;);
+							const org1: Org = await Org.create({ aliasOrUsername: <a href="mailto:&#39;foo@example.com">&#39;foo@example.com</a>&#39; });//tslint:disable-line:no-unused-variable
 							// The defaultusername config property
-							const org2: Org = await Org.create();
+							const org2: Org = await Org.create({});
 							// Full Connection
-						const org3: Org = await Org.create(await Connection.create(await AuthInfo.create(<a href="mailto:&#39;bar@example.com">&#39;bar@example.com</a>&#39;)));</p>
+							const org3: Org = await Org.create({
+							connection: await Connection.create(await AuthInfo.create({ username: &#39;username&#39; }))
+						});</p>
 					</dd>
 					<dt>see</dt>
 					<dd><p><a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm">https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm</a></p>
@@ -1547,7 +1547,7 @@ img { max-width: 100%; }
 				<a name="create" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagStatic">Static</span> create</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
-					<li class="tsd-signature tsd-kind-icon">create&lt;P, T&gt;<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">P</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">create&lt;P, T&gt;<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -1579,7 +1579,7 @@ img { max-width: 100%; }
 								</ul>
 							</li>
 							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">P</a></h5>
+								<h5>options: <span class="tsd-signature-type">P</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>An options object providing initialization params to the async constructor.</p>
 								</div>

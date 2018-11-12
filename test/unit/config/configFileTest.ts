@@ -7,12 +7,12 @@
 import { expect } from 'chai';
 import * as Path from 'path';
 
-import { ConfigFile, ConfigOptions } from '../../../src/config/configFile';
+import { ConfigFile } from '../../../src/config/configFile';
 import { testSetup } from '../../../src/testSetup';
 
 const $$ = testSetup();
 
-class TestConfig extends ConfigFile {
+class TestConfig extends ConfigFile<ConfigFile.Options> {
   public static async getTestLocalPath() {
     return $$.localPathRetriever(TestConfig.testId);
   }
@@ -22,7 +22,7 @@ class TestConfig extends ConfigFile {
     isGlobal: boolean,
     isState?: boolean,
     filePath?: string
-  ): Promise<ConfigOptions> {
+  ): Promise<ConfigFile.Options> {
     return {
       rootFolder: await $$.rootPathRetriever(isGlobal, TestConfig.testId),
       filename,
@@ -37,12 +37,17 @@ class TestConfig extends ConfigFile {
   }
 
   private static testId: string = $$.uniqid();
+
+  public constructor(options: ConfigFile.Options) {
+    super(options);
+    options.filename = TestConfig.getFileName();
+  }
 }
 
 describe('Config', () => {
   describe('instantiation', () => {
     it('not using global has project dir', async () => {
-      const config: ConfigFile = await TestConfig.create(
+      const config = await TestConfig.create(
         await TestConfig.getOptions('test', false)
       );
       expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());

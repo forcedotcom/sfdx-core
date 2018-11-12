@@ -246,7 +246,7 @@ export const testSetup = once((sinon?: any) => {
 
     // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
     testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(
-      async function(this: ConfigFile) {
+      async function(this: ConfigFile<ConfigFile.Options>) {
         const stub = testContext.configStubs[this.constructor.name] || {};
 
         if (stub.readFn) {
@@ -264,7 +264,10 @@ export const testSetup = once((sinon?: any) => {
       }
     );
     testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(
-      async function(this: ConfigFile, newContents: ConfigContents) {
+      async function(
+        this: ConfigFile<ConfigFile.Options>,
+        newContents: ConfigContents
+      ) {
         if (!testContext.configStubs[this.constructor.name]) {
           testContext.configStubs[this.constructor.name] = {};
         }

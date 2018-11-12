@@ -6,8 +6,8 @@
  */
 import { Dictionary } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
-import { ConfigFile, ConfigOptions } from './configFile';
-import { ConfigGroup, ConfigGroupOptions } from './configGroup';
+import { ConfigFile } from './configFile';
+import { ConfigGroup } from './configGroup';
 
 const ALIAS_FILE_NAME = 'alias.json';
 
@@ -37,7 +37,7 @@ export enum AliasGroup {
  * const username: string = await Aliases.fetch('myAlias');
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
-export class Aliases extends ConfigGroup {
+export class Aliases extends ConfigGroup<ConfigGroup.Options> {
   /**
    * The aliases state file filename.
    * @override
@@ -51,40 +51,18 @@ export class Aliases extends ConfigGroup {
    * Get Aliases specific options.
    * @returns {ConfigGroupOptions}
    */
-  public static getOptions(): ConfigGroupOptions {
-    const options: ConfigGroupOptions = this.getDefaultOptions(
-      true,
-      this.getFileName()
-    ) as ConfigGroupOptions;
-    options.defaultGroup = AliasGroup.ORGS;
-    return options;
+  public static getDefaultOptions(): ConfigGroup.Options {
+    return ConfigGroup.getOptions(AliasGroup.ORGS, Aliases.getFileName());
   }
 
-  /**
-   * Overrides {@link ConfigFile.create} to pass in {@link Aliases.getOptions}.
-   * @override
-   * @param {ConfigOptions} options
-   * @see {@link ConfigFile.create}
-   * @returns {Promise<T>}
-   */
-  public static async create<T extends ConfigFile>(
-    options: ConfigOptions
+  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(
+    options?: ConfigFile.Options
   ): Promise<T> {
-    return (await super.create(options || Aliases.getOptions())) as T;
-  }
-
-  /**
-   * Overrides {@link ConfigFile.retrieve} to pass in {@link Aliases.getOptions}.
-   * @param {ConfigOptions} [options] Specify to override builtin options.
-   * @see {@link ConfigFile.retrieve}
-   * @see {@link ConfigGroupOptions}
-   * @returns {Promise<T>}
-   * @override
-   */
-  public static async retrieve<T extends ConfigFile>(
-    options?: ConfigOptions
-  ): Promise<T> {
-    return (await super.retrieve(options || Aliases.getOptions())) as T;
+    const aliases: ConfigFile<ConfigFile.Options> = await Aliases.create(
+      (options as ConfigGroup.Options) || Aliases.getDefaultOptions()
+    );
+    await aliases.read();
+    return aliases as T;
   }
 
   /**
@@ -117,7 +95,7 @@ export class Aliases extends ConfigGroup {
       newAliases[name] = value || undefined;
     }
 
-    const aliases: Aliases = await Aliases.retrieve<Aliases>();
+    const aliases: Aliases = await Aliases.create(Aliases.getDefaultOptions());
 
     return await aliases.updateValues(newAliases, group);
   }
@@ -132,6 +110,13 @@ export class Aliases extends ConfigGroup {
     key: string,
     group = AliasGroup.ORGS
   ): Promise<string> {
-    return (await Aliases.retrieve<Aliases>()).getInGroup(key, group) as string;
+    const aliases = (await Aliases.retrieve(
+      Aliases.getDefaultOptions()
+    )) as Aliases;
+    return aliases.getInGroup(key, group) as string;
+  }
+
+  public constructor(options: ConfigGroup.Options) {
+    super(options);
   }
 }

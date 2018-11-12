@@ -18,9 +18,12 @@ describe('Alias no key value mock', () => {
     const KEY = 'foo';
     const VALUE = 'bar';
     await Aliases.parseAndUpdate([`${KEY}=${VALUE}`]);
-    expect(await Aliases.fetch(KEY)).eq(VALUE);
+    const r = await Aliases.fetch(KEY);
+    expect(r).eq(VALUE);
 
-    const keys = (await Aliases.retrieve<Aliases>()).getKeysByValue(VALUE);
+    const keys = (await Aliases.retrieve(
+      Aliases.getDefaultOptions()
+    )).getKeysByValue(VALUE);
     expect(keys.length).eq(1);
     expect(keys[0]).eq(KEY);
   });
@@ -32,13 +35,13 @@ describe('Alias', () => {
       const key = 'test';
       const value = 'val';
 
-      const aliases = await Aliases.retrieve<Aliases>();
+      const aliases = await Aliases.retrieve();
       aliases.set(key, value);
       await aliases.write();
       expect(
         sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy)
       );
-      expect($$.configStubs.Aliases.contents).to.deep.equal({
+      expect($$.getConfigStubContents('Aliases')).to.deep.equal({
         orgs: { test: 'val' }
       });
     });
@@ -46,19 +49,22 @@ describe('Alias', () => {
 
   describe('#unset', () => {
     it('passes the correct values to FileKeyValueStore#unset', async () => {
-      $$.configStubs.Aliases = {
+      const testContents = {
         contents: {
           orgs: { test1: 'val', test2: 'val', test3: 'val' }
         }
       };
+
+      $$.setConfigStubContents('Aliases', testContents);
+
       const keyArray = ['test1', 'test3'];
-      const aliases = await Aliases.retrieve<Aliases>();
+      const aliases = await Aliases.retrieve();
       aliases.unsetAll(keyArray);
       await aliases.write();
       expect(
         sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy)
       );
-      expect($$.configStubs.Aliases.contents).to.deep.equal({
+      expect($$.getConfigStubContents('Aliases')).to.deep.equal({
         orgs: { test2: 'val' }
       });
     });
@@ -71,7 +77,7 @@ describe('Alias', () => {
         expect(
           sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy)
         );
-        expect($$.configStubs.Aliases.contents).to.deep.equal({
+        expect($$.getConfigStubContents('Aliases')).to.deep.equal({
           orgs: { another: 'val' }
         });
       });
@@ -81,7 +87,7 @@ describe('Alias', () => {
         expect(
           sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy)
         );
-        expect($$.configStubs.Aliases.contents).to.deep.equal({
+        expect($$.getConfigStubContents('Aliases')).to.deep.equal({
           orgs: {
             another: 'val',
             some: 'val'

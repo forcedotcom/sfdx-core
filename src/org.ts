@@ -116,13 +116,13 @@ export interface OrgOptions {
  *
  * @example
  * // Email username
- * const org1: Org = await Org.create('foo@example.com');
- * // An alias
- * const org2: Org = await Org.create('fooAlias');
+ * const org1: Org = await Org.create({ aliasOrUsername: 'foo@example.com' });//tslint:disable-line:no-unused-variable
  * // The defaultusername config property
- * const org2: Org = await Org.create();
+ * const org2: Org = await Org.create({});
  * // Full Connection
- * const org3: Org = await Org.create(await Connection.create(await AuthInfo.create('bar@example.com')));
+ * const org3: Org = await Org.create({
+ *   connection: await Connection.create(await AuthInfo.create({ username: 'username' }))
+ * });
  *
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
@@ -140,9 +140,9 @@ export class Org extends AsyncCreatable<OrgOptions> {
   /**
    * @ignore
    */
-  public constructor(options?: OrgOptions) {
+  public constructor(options: OrgOptions) {
     super(options);
-    this.options = options || {};
+    this.options = options;
   }
 
   /**
@@ -203,7 +203,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
     }
 
     const auths: AuthInfo[] = await this.readUserAuthFiles();
-    const aliases: Aliases = await Aliases.retrieve<Aliases>();
+    const aliases: Aliases = await Aliases.create(Aliases.getDefaultOptions());
     this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
 
     for (const auth of auths) {

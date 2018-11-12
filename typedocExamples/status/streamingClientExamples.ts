@@ -29,7 +29,7 @@ JSON.stringify({
       };
     };
 
-    const org = await Org.create();
+    const org = await Org.create({});
     const options = new DefaultStreamingOptions(
       org,
       'MyPushTopics',
