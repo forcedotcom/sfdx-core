@@ -28,6 +28,7 @@ import {
   JsonMap,
   Optional
 } from '@salesforce/ts-types';
+import { Dictionary } from '@salesforce/ts-types';
 import { ConfigContents } from './configStore';
 
 /**
@@ -43,7 +44,7 @@ export type ConfigEntry = [string, ConfigValue];
 /**
  * The type of content a config stores.
  */
-export type ConfigContents = JsonMap;
+export type ConfigContents = Dictionary<ConfigValue>;
 
 /**
  * An interface for a config object with a persistent store.
