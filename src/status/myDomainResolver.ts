@@ -8,7 +8,7 @@ import { lookup } from 'dns';
 import { URL } from 'url';
 import { promisify } from 'util';
 
-import { AnyJson } from '@salesforce/ts-types';
+import { ensureString } from '@salesforce/ts-types';
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Logger } from '../logger';
@@ -53,7 +53,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<
    * given the optional interval.
    * @returns {Promise<AnyJson>} The resolved ip address.
    */
-  public async resolve(): Promise<AnyJson> {
+  public async resolve(): Promise<string> {
     const self: MyDomainResolver = this;
     const pollingOptions: PollingClient.Options = {
       async poll(): Promise<StatusResult> {
@@ -92,7 +92,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<
       timeoutErrorName: 'MyDomainResolverTimeoutError'
     };
     const client = await PollingClient.create(pollingOptions);
-    return client.subscribe();
+    return ensureString(await client.subscribe());
   }
 
   /**

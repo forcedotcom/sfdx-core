@@ -203,7 +203,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
     }
 
     const auths: AuthInfo[] = await this.readUserAuthFiles();
-    const aliases: Aliases = await Aliases.create(Aliases.getDefaultOptions());
+    const aliases: Aliases = await Aliases.retrieve<Aliases>();
     this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
 
     for (const auth of auths) {

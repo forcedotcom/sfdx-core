@@ -95,7 +95,7 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
       newAliases[name] = value || undefined;
     }
 
-    const aliases: Aliases = await Aliases.create(Aliases.getDefaultOptions());
+    const aliases: Aliases = await Aliases.retrieve<Aliases>();
 
     return await aliases.updateValues(newAliases, group);
   }
