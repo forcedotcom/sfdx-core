@@ -13,8 +13,9 @@
     "format": "yarn sfdx-format",
     "install": "yarn sfdx-install",
     "lint": "yarn sfdx-lint",
-    "test": "yarn sfdx-test",
-    "postcompile": "tsc -p test; tsc -p typedocExamples"
+    "postcompile": "tsc -p test; tsc -p typedocExamples",
+    "prepack": "yarn sfdx-build",
+    "test": "yarn sfdx-test"
   },
   "keywords": [
     "force",
@@ -47,7 +48,6 @@
     "mkdirp": "0.5.1"
   },
   "devDependencies": {
-    "@salesforce/dev-config": "^1",
     "@salesforce/dev-scripts": "^0.3.1",
     "@salesforce/ts-sinon": "0.2.7",
     "@types/debug": "0.0.30",
