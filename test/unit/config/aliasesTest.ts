@@ -21,9 +21,7 @@ describe('Alias no key value mock', () => {
     const r = await Aliases.fetch(KEY);
     expect(r).eq(VALUE);
 
-    const keys = (await Aliases.retrieve(
-      Aliases.getDefaultOptions()
-    )).getKeysByValue(VALUE);
+    const keys = (await Aliases.retrieve()).getKeysByValue(VALUE);
     expect(keys.length).eq(1);
     expect(keys[0]).eq(KEY);
   });
