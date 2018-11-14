@@ -21,12 +21,14 @@
 import { AsyncCreatable, set } from '@salesforce/kit';
 import {
   AnyJson,
-  Dictionary,
+  definiteEntriesOf,
+  definiteValuesOf,
   get,
   getAnyJson,
   JsonMap,
   Optional
 } from '@salesforce/ts-types';
+import { Dictionary } from '@salesforce/ts-types';
 import { ConfigContents } from './configStore';
 
 /**
@@ -97,7 +99,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options>
    * @returns {ConfigEntry}
    */
   public entries(): ConfigEntry[] {
-    return Object.entries(this.contents);
+    return definiteEntriesOf(this.contents);
   }
 
   /**
@@ -179,7 +181,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options>
    * @returns {ConfigValue[]}
    */
   public values(): ConfigValue[] {
-    return Object.values(this.contents);
+    return definiteValuesOf(this.contents);
   }
 
   /**

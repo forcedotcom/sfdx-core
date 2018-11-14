@@ -13,7 +13,8 @@
 
 import { set } from '@salesforce/kit';
 import {
-  ensureJsonMap,
+  definiteEntriesOf,
+  definiteValuesOf,
   getJsonMap,
   JsonMap,
   Optional
@@ -133,7 +134,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   public entries(): ConfigEntry[] {
     const group = this.getGroup();
     if (group) {
-      return Object.entries(group);
+      return definiteEntriesOf(group);
     }
     return [];
   }
@@ -174,7 +175,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * @override
    */
   public values(): ConfigValue[] {
-    return Object.values(this.getGroup(this.defaultGroup) || {});
+    return definiteValuesOf(this.getGroup(this.defaultGroup) || {});
   }
 
   /**
@@ -239,22 +240,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * @override
    */
   public toObject(): JsonMap {
-    return Array.from(Object.entries(this.getContents())).reduce(
-      (obj, entry: ConfigEntry) => {
-        obj[entry[0]] = Array.from(
-          Object.entries(ensureJsonMap(entry[1]))
-        ).reduce(
-          (sub, subentry: ConfigEntry) => {
-            // @ts-ignore TODO: refactor config to not intermingle js maps and json maps
-            sub[subentry[0]] = subentry[1];
-            return sub;
-          },
-          {} as JsonMap
-        );
-        return obj;
-      },
-      {} as JsonMap
-    );
+    return this.getContents();
   }
 
   /**

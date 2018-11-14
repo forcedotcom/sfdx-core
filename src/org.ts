@@ -348,7 +348,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
   public async readUserAuthFiles(): Promise<AuthInfo[]> {
     const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
     const contents: ConfigContents = await config.read();
-    const thisUsername = this.getUsername();
+    const thisUsername = ensure(this.getUsername());
     const usernames: JsonArray = ensureJsonArray(
       contents.usernames || [thisUsername]
     );
