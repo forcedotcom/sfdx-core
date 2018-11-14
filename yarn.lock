@@ -304,27 +304,27 @@
     typescript "^3"
     xunit-file "^1"
 
-"@salesforce/kit@0.13.0":
-  version "0.13.0"
-  resolved "http://10.252.156.164:4880/@salesforce%2fkit/-/kit-0.13.0.tgz#72bf195b35d2775380d045578a17f3732d0aa8ae"
-  integrity sha512-NTkq+cFiECI/lHIf6SE4OgI8vOwWNMAyT2sob2Y95Tgvt1R8Hkdk3ZmhNpTJcpF0jhSkH2/rptuCZc4nOvoKOQ==
+"@salesforce/kit@0.13.3":
+  version "0.13.3"
+  resolved "http://10.252.156.164:4880/@salesforce%2fkit/-/kit-0.13.3.tgz#359c2398ffa1a15e7936b28927a9b00426f54ead"
+  integrity sha512-a5pFcuUGIYHAjanhb9caZtvysb8yCfZrv+WVwP5uCYyP2+5Pw+qxvrbMO5uPFpnt4tD38Z1yPSVWo/jdbJRsdw==
   dependencies:
-    "@salesforce/ts-types" "^0.19.0"
+    "@salesforce/ts-types" "^0.19.3"
     tslib "^1"
 
-"@salesforce/ts-sinon@0.2.4":
-  version "0.2.4"
-  resolved "http://10.252.156.164:4880/@salesforce%2fts-sinon/-/ts-sinon-0.2.4.tgz#ccb51fa825852a402458994ae7ee72a11870a8c1"
-  integrity sha512-ltazqgUwoq7gRk1vmifKu/rF25iqT7cfgrLxVMUK4O78tfZJKu15LFutUF+hCcYe5HXVqIK9RulF3Ehus3hBgQ==
+"@salesforce/ts-sinon@0.2.7":
+  version "0.2.7"
+  resolved "http://10.252.156.164:4880/@salesforce%2fts-sinon/-/ts-sinon-0.2.7.tgz#52032445e32eac13b7b89965d434df7bc27b80b1"
+  integrity sha512-D5YGBqLi7Mfsq4A1LMVW6ctAZjzrht6/ZCpQaHHt05yvcWtLG4tHJYWCSNlbFRF3hiy1i8KmpxqjfbM106jBEw==
   dependencies:
-    "@salesforce/ts-types" "^0.19.0"
+    "@salesforce/ts-types" "^0.19.3"
     sinon "5.0.7"
     tslib "^1.9.3"
 
-"@salesforce/ts-types@0.19.0", "@salesforce/ts-types@^0.19.0":
-  version "0.19.0"
-  resolved "http://10.252.156.164:4880/@salesforce%2fts-types/-/ts-types-0.19.0.tgz#e6ccb175e165c3045d5d14dc3e4da80cd1658a21"
-  integrity sha512-t29G2OI4BFM47I2T+6d/Sd5740WHgqXRaAZSPznSUeafdl4WuXPnQ0SE8wjgdOnaizVCWPtESK5yfWUlhr//wg==
+"@salesforce/ts-types@0.19.3", "@salesforce/ts-types@^0.19.3":
+  version "0.19.3"
+  resolved "http://10.252.156.164:4880/@salesforce%2fts-types/-/ts-types-0.19.3.tgz#df19fbddf33bf8dbdc00a27852cf6ed93251467b"
+  integrity sha512-YhmeVI5p8qqSqjcSH1xExDd73w2eATeWlf4B/UPQK4ZKxBgoTErBWHQ4cy4ETOMcHitDPlOMHstFK7tRh4y1bg==
   dependencies:
     tslib "^1"
 
