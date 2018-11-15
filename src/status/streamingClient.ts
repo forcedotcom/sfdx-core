@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AsyncOptionalCreatable, Env, set } from '@salesforce/kit';
+import { AsyncOptionalCreatable, Env, env, set } from '@salesforce/kit';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types';
 import { EventEmitter } from 'events';
 // @ts-ignore No typings are available for faye
@@ -116,126 +116,6 @@ function validateTimeout(newTime: Time, existingTime: Time) {
 }
 
 /**
- * Default Streaming Options. Uses Faye as the cometd impl.
- */
-export class DefaultStreamingOptions implements StreamingClient.Options {
-  public static readonly SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS = 'SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING';
-  public static readonly SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING = 'SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING';
-
-  public static readonly DEFAULT_SUBSCRIBE_TIMEOUT = new Time(3, TIME_UNIT.MINUTES);
-  public static readonly DEFAULT_HANDSHAKE_TIMEOUT = new Time(30, TIME_UNIT.SECONDS);
-
-  public apiVersion: string;
-  public org: Org;
-  public streamProcessor: StreamProcessor;
-  public subscribeTimeout: Time;
-  public handshakeTimeout: Time;
-  public channel: string;
-  public streamingImpl: StreamingClientIfc;
-
-  /**
-   * Constructor for DefaultStreamingOptions
-   * @param org The streaming target org
-   * @param channel The streaming channel or topic. If the topic is a system topic then api 36.0 is used.
-   * System topics are deprecated.
-   * @param streamProcessor The function called that can process streaming messages.
-   * @see {@link StatusResult}
-   */
-  constructor(org: Org, channel: string, streamProcessor: StreamProcessor) {
-    const env = new Env();
-    if (!streamProcessor) {
-      throw new SfdxError('Missing stream processor', 'MissingArg');
-    }
-
-    if (!org) {
-      throw new SfdxError('Missing org', 'MissingArg');
-    }
-
-    if (!channel) {
-      throw new SfdxError('Missing streaming channel', 'MissingArg');
-    }
-
-    this.org = org;
-    this.apiVersion = org.getConnection().getApiVersion();
-
-    if (channel.startsWith('/system')) {
-      this.apiVersion = '36.0';
-    }
-
-    if (!(parseFloat(this.apiVersion) > 0)) {
-      throw SfdxError.create('@salesforce/core', 'streaming', 'invalidApiVersion', [this.apiVersion]);
-    }
-
-    this.streamProcessor = streamProcessor;
-    this.channel = channel;
-    this.subscribeTimeout = DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT;
-    this.handshakeTimeout = DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT;
-    this.streamingImpl = {
-      getCometClient: (url: string) => {
-        const x = env.getString(DefaultStreamingOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS);
-        return new Faye.Client(url, {
-          // This parameter ensures all cookies regardless of path are included in subsequent requests. Otherwise
-          // only cookies with the path "/" and "/cometd" are known to be included.
-          // if SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS is *not* set the default to true.
-          cookiesAllowAllPaths:
-            x === undefined ? true : env.getBoolean(DefaultStreamingOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS),
-          // WARNING - The allows request/response exchanges to be written to the log instance which includes
-          // header and cookie information.
-          enableRequestResponseLogging: env.getBoolean(
-            DefaultStreamingOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING
-          )
-        });
-      },
-      setLogger: (logLine: (message: string) => void) => {
-        Faye.logger = {};
-        ['info', 'error', 'fatal', 'warn', 'debug'].forEach(element => {
-          set(Faye.logger, element, logLine);
-        });
-      }
-    };
-  }
-
-  /**
-   * Setter for the subscribe timeout.
-   * @param newTime The new subscribe timeout.
-   * @throws An error if the newTime is less than the default time.
-   */
-  public setSubscribeTimeout(newTime: Time) {
-    this.subscribeTimeout = validateTimeout(newTime, DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
-  }
-
-  /**
-   * Setter for the handshake timeout.
-   * @param newTime The new handshake timeout
-   * @throws An error if the newTime is less than the default time.
-   */
-  public setHandshakeTimeout(newTime: Time) {
-    this.handshakeTimeout = validateTimeout(newTime, DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT);
-  }
-}
-
-/**
- * Connection state
- * @typedef StreamingConnectionState
- * @property CONNECTED Used to indicated that the streaming client is connected.
- * @see {@link StreamingClient.handshake}
- */
-export enum StreamingConnectionState {
-  CONNECTED
-}
-
-/**
- * Indicators to test error names for StreamingTimeouts
- * @typedef StreamingConnectionState
- * @property HANDSHAKE - To indicate the error occurred on handshake
- * @property SUBSCRIBE - To indicate the error occured on subscribe
- */
-export enum StreamingTimeoutErrorType {
-  HANDSHAKE = 'genericHandshakeTimeoutMessage',
-  SUBSCRIBE = 'genericTimeoutMessage'
-}
-
-/**
  * Api wrapper to support Salesforce streaming. The client contains an internal implementation of a cometd specification.
  *
  * Salesforce client and timeout information
@@ -276,7 +156,7 @@ export enum StreamingTimeoutErrorType {
  *   };
  *
  * const org = await Org.create();
- * const options = new DefaultStreamingOptions(org, 'MyPushTopics', streamProcessor);
+ * const options = new StreamingClient.DefaultOptions(org, 'MyPushTopics', streamProcessor);
  *
  * const asyncStatusClient = await StreamingClient.create(options);
  *
@@ -397,7 +277,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
    * Provides a convenient way to handshake with the server endpoint before trying to subscribe.
    * @async
    */
-  public handshake(): Promise<StreamingConnectionState> {
+  public handshake(): Promise<StreamingClient.ConnectionState> {
     let timeout: NodeJS.Timer;
 
     return new Promise((resolve, reject) => {
@@ -405,7 +285,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
         const timeoutError: SfdxError = SfdxError.create(
           '@salesforce/core',
           'streaming',
-          StreamingTimeoutErrorType.HANDSHAKE,
+          StreamingClient.TimeoutErrorType.HANDSHAKE,
           [this.targetUrl]
         );
         this.doTimeout(timeout, timeoutError);
@@ -416,7 +296,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
         this.log('handshake completed');
         clearTimeout(timeout);
         this.log('cleared handshake timeout');
-        resolve(StreamingConnectionState.CONNECTED);
+        resolve(StreamingClient.ConnectionState.CONNECTED);
       });
     });
   }
@@ -441,7 +321,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
           const timeoutError: SfdxError = SfdxError.create(
             '@salesforce/core',
             'streaming',
-            StreamingTimeoutErrorType.SUBSCRIBE
+            StreamingClient.TimeoutErrorType.SUBSCRIBE
           );
           this.doTimeout(timeout, timeoutError);
           subscribeReject(timeoutError);
@@ -575,5 +455,128 @@ export namespace StreamingClient {
     streamProcessor: StreamProcessor;
     // The function for build the inner client impl. Allows for mocking.
     streamingImpl: StreamingClientIfc;
+  }
+
+  /**
+   * Default Streaming Options. Uses Faye as the cometd impl.
+   */
+  export class DefaultOptions implements StreamingClient.Options {
+    public static readonly SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS = 'SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING';
+    public static readonly SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING = 'SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING';
+
+    public static readonly DEFAULT_SUBSCRIBE_TIMEOUT = new Time(3, TIME_UNIT.MINUTES);
+    public static readonly DEFAULT_HANDSHAKE_TIMEOUT = new Time(30, TIME_UNIT.SECONDS);
+
+    public apiVersion: string;
+    public org: Org;
+    public streamProcessor: StreamProcessor;
+    public subscribeTimeout: Time;
+    public handshakeTimeout: Time;
+    public channel: string;
+    public streamingImpl: StreamingClientIfc;
+    private envDep: Env;
+
+    /**
+     * Constructor for DefaultStreamingOptions
+     * @param org The streaming target org
+     * @param channel The streaming channel or topic. If the topic is a system topic then api 36.0 is used.
+     * System topics are deprecated.
+     * @param streamProcessor The function called that can process streaming messages.
+     * @see {@link StatusResult}
+     */
+    constructor(org: Org, channel: string, streamProcessor: StreamProcessor, envDep: Env = env) {
+      if (!streamProcessor) {
+        throw new SfdxError('Missing stream processor', 'MissingArg');
+      }
+
+      if (!org) {
+        throw new SfdxError('Missing org', 'MissingArg');
+      }
+
+      if (!channel) {
+        throw new SfdxError('Missing streaming channel', 'MissingArg');
+      }
+
+      this.envDep = envDep;
+      this.org = org;
+      this.apiVersion = org.getConnection().getApiVersion();
+
+      if (channel.startsWith('/system')) {
+        this.apiVersion = '36.0';
+      }
+
+      if (!(parseFloat(this.apiVersion) > 0)) {
+        throw SfdxError.create('@salesforce/core', 'streaming', 'invalidApiVersion', [this.apiVersion]);
+      }
+
+      this.streamProcessor = streamProcessor;
+      this.channel = channel;
+      this.subscribeTimeout = StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT;
+      this.handshakeTimeout = StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT;
+      this.streamingImpl = {
+        getCometClient: (url: string) => {
+          const x = this.envDep.getString(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS);
+          return new Faye.Client(url, {
+            // This parameter ensures all cookies regardless of path are included in subsequent requests. Otherwise
+            // only cookies with the path "/" and "/cometd" are known to be included.
+            // if SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS is *not* set the default to true.
+            cookiesAllowAllPaths:
+              x === undefined
+                ? true
+                : this.envDep.getBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS),
+            // WARNING - The allows request/response exchanges to be written to the log instance which includes
+            // header and cookie information.
+            enableRequestResponseLogging: this.envDep.getBoolean(
+              StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING
+            )
+          });
+        },
+        setLogger: (logLine: (message: string) => void) => {
+          Faye.logger = {};
+          ['info', 'error', 'fatal', 'warn', 'debug'].forEach(element => {
+            set(Faye.logger, element, logLine);
+          });
+        }
+      };
+    }
+
+    /**
+     * Setter for the subscribe timeout.
+     * @param newTime The new subscribe timeout.
+     * @throws An error if the newTime is less than the default time.
+     */
+    public setSubscribeTimeout(newTime: Time) {
+      this.subscribeTimeout = validateTimeout(newTime, DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
+    }
+
+    /**
+     * Setter for the handshake timeout.
+     * @param newTime The new handshake timeout
+     * @throws An error if the newTime is less than the default time.
+     */
+    public setHandshakeTimeout(newTime: Time) {
+      this.handshakeTimeout = validateTimeout(newTime, DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT);
+    }
+  }
+
+  /**
+   * Connection state
+   * @typedef StreamingConnectionState
+   * @property CONNECTED Used to indicated that the streaming client is connected.
+   * @see {@link StreamingClient.handshake}
+   */
+  export enum ConnectionState {
+    CONNECTED
+  }
+
+  /**
+   * Indicators to test error names for StreamingTimeouts
+   * @typedef StreamingConnectionState
+   * @property HANDSHAKE - To indicate the error occurred on handshake
+   * @property SUBSCRIBE - To indicate the error occured on subscribe
+   */
+  export enum TimeoutErrorType {
+    HANDSHAKE = 'genericHandshakeTimeoutMessage',
+    SUBSCRIBE = 'genericTimeoutMessage'
   }
 }

@@ -6,13 +6,7 @@
  */
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { StatusResult } from '../../../src/status/client';
-import {
-  CometClient,
-  DefaultStreamingOptions,
-  StreamingClient,
-  StreamingConnectionState,
-  StreamingTimeoutErrorType
-} from '../../../src/status/streamingClient';
+import { CometClient, StreamingClient } from '../../../src/status/streamingClient';
 
 import { expect } from 'chai';
 import { SinonSpyCall } from 'sinon';
@@ -62,7 +56,7 @@ describe('streaming client tests', () => {
 
   it('should set options apiVersion on system topics', async () => {
     const org: Org = await Org.create({ aliasOrUsername: _username });
-    const options: StreamingClient.Options = new DefaultStreamingOptions(org, '/system/Logging', () => ({
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, '/system/Logging', () => ({
       completed: true
     }));
     expect(options.apiVersion).to.equal('36.0');
@@ -84,7 +78,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     expect(options.apiVersion).to.equal(MOCK_API_VERSION);
 
@@ -114,24 +108,21 @@ describe('streaming client tests', () => {
       };
     };
 
-    const env = new Env();
-    let reqRespCurrentValue: boolean;
-    let cookieAllPaths: boolean;
+    let env: Env;
 
     beforeEach(() => {
-      reqRespCurrentValue = env.getBoolean(DefaultStreamingOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING);
-      cookieAllPaths = env.getBoolean(DefaultStreamingOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS);
-    });
-
-    afterEach(() => {
-      env.setBoolean(DefaultStreamingOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING, reqRespCurrentValue);
-      env.setBoolean(DefaultStreamingOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS, cookieAllPaths);
+      env = new Env({});
     });
 
     function getStub(org: Org): sinon.SinonStub {
       const stub = $$.SANDBOX.stub(Faye, 'Client');
 
-      const options: StreamingClient.Options = new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
+      const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
+        org,
+        MOCK_TOPIC,
+        streamProcessor,
+        env
+      );
 
       options.streamingImpl.getCometClient('http://example.com');
       return stub;
@@ -149,7 +140,7 @@ describe('streaming client tests', () => {
     });
 
     it('set enableRequestResponseLogging', async () => {
-      env.setBoolean(DefaultStreamingOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING, true);
+      env.setBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING, true);
 
       const org: Org = await Org.create({ aliasOrUsername: _username });
       const stub = getStub(org);
@@ -162,7 +153,7 @@ describe('streaming client tests', () => {
     });
 
     it('unset cookiesAllowAllPaths', async () => {
-      env.setBoolean(DefaultStreamingOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS, true);
+      env.setBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS, true);
 
       const org: Org = await Org.create({ aliasOrUsername: _username });
       const stub = getStub(org);
@@ -181,7 +172,7 @@ describe('streaming client tests', () => {
       $$.SANDBOX.stub(Connection.prototype, 'getApiVersion').returns('$$');
 
       try {
-        await shouldThrow(Promise.resolve(new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor)));
+        await shouldThrow(Promise.resolve(new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor)));
       } catch (e) {
         expect(e).to.have.property('name', 'invalidApiVersion');
       }
@@ -201,7 +192,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -242,7 +233,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -284,7 +275,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -299,8 +290,8 @@ describe('streaming client tests', () => {
 
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
 
-    const result: StreamingConnectionState = await asyncStatusClient.handshake();
-    expect(result).to.be.equal(StreamingConnectionState.CONNECTED);
+    const result = await asyncStatusClient.handshake();
+    expect(result).to.be.equal(StreamingClient.ConnectionState.CONNECTED);
   });
 
   it('handshake should timeout', async () => {
@@ -312,7 +303,7 @@ describe('streaming client tests', () => {
       return { completed: false };
     };
 
-    const options: StreamingClient.Options = new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.handshakeTimeout = new Time(1, TIME_UNIT.MILLISECONDS);
 
@@ -332,7 +323,7 @@ describe('streaming client tests', () => {
     try {
       await shouldThrow(asyncStatusClient.handshake());
     } catch (e) {
-      expect(e.name).to.equal(StreamingTimeoutErrorType.HANDSHAKE);
+      expect(e.name).to.equal(StreamingClient.TimeoutErrorType.HANDSHAKE);
     }
   });
 
@@ -347,7 +338,7 @@ describe('streaming client tests', () => {
       };
     };
 
-    const options: StreamingClient.Options = new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.subscribeTimeout = new Time(1, TIME_UNIT.MILLISECONDS);
 
@@ -372,7 +363,7 @@ describe('streaming client tests', () => {
         )
       );
     } catch (e) {
-      expect(e.name).to.equal(StreamingTimeoutErrorType.SUBSCRIBE);
+      expect(e.name).to.equal(StreamingClient.TimeoutErrorType.SUBSCRIBE);
     }
   });
 
@@ -392,7 +383,7 @@ describe('streaming client tests', () => {
       };
     };
 
-    const options: StreamingClient.Options = new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.subscribeTimeout = new Time(JENNYS_NUMBER, TIME_UNIT.MILLISECONDS); // Jenny's phone number
     options.handshakeTimeout = new Time(GHOSTBUSTERS_NUMBER, TIME_UNIT.MILLISECONDS); // Ghostbusters phone number
@@ -442,7 +433,7 @@ describe('streaming client tests', () => {
   });
 
   describe('DefaultStreaming options', () => {
-    let options: DefaultStreamingOptions;
+    let options: StreamingClient.DefaultOptions;
 
     beforeEach(async () => {
       const org: Org = await Org.create({ aliasOrUsername: _username });
@@ -451,24 +442,24 @@ describe('streaming client tests', () => {
         return { completed: false };
       };
 
-      options = new DefaultStreamingOptions(org, MOCK_TOPIC, streamProcessor);
+      options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
     });
 
     it('setTimeout equal to default', async () => {
-      options.setSubscribeTimeout(DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
-      options.setHandshakeTimeout(DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT);
+      options.setSubscribeTimeout(StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
+      options.setHandshakeTimeout(StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT);
 
-      expect(options.handshakeTimeout).to.be.equal(DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT);
-      expect(options.subscribeTimeout).to.be.equal(DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
+      expect(options.handshakeTimeout).to.be.equal(StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT);
+      expect(options.subscribeTimeout).to.be.equal(StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
     });
 
     it('setTimeout greater than the default', async () => {
       const newSubscribeTime: Time = new Time(
-        DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds + 1,
+        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds + 1,
         TIME_UNIT.MILLISECONDS
       );
       const newHandshakeTime: Time = new Time(
-        DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds + 1,
+        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds + 1,
         TIME_UNIT.MILLISECONDS
       );
       options.setSubscribeTimeout(newSubscribeTime);
@@ -479,11 +470,11 @@ describe('streaming client tests', () => {
 
     it('setTimeout less that the default', async () => {
       const newSubscribeTime: Time = new Time(
-        DefaultStreamingOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds - 1,
+        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds - 1,
         TIME_UNIT.MILLISECONDS
       );
       const newHandshakeTime: Time = new Time(
-        DefaultStreamingOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds - 1,
+        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds - 1,
         TIME_UNIT.MILLISECONDS
       );
 
