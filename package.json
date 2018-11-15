@@ -46,7 +46,7 @@
     "jsforce": "1.8.4",
     "jsonwebtoken": "7.0.0",
     "mkdirp": "0.5.1",
-    "sfdx-faye": "^1.0.7"
+    "sfdx-faye": "^1.0.8"
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "^0.3.1",
