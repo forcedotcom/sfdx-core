@@ -11,7 +11,6 @@
     "compile": "yarn sfdx-compile",
     "docs": "yarn sfdx-docs",
     "format": "yarn sfdx-format",
-    "install": "yarn sfdx-install",
     "lint": "yarn sfdx-lint",
     "postcompile": "tsc -p test; tsc -p typedocExamples",
     "prepack": "yarn sfdx-build",
