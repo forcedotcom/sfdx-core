@@ -1,15 +1,7 @@
-import {
-  ensureJsonMap,
-  ensureString,
-  JsonCollection,
-  JsonMap
-} from '@salesforce/ts-types';
+import { ensureJsonMap, ensureString, JsonCollection, JsonMap } from '@salesforce/ts-types';
 import { Org, OrgFields } from '../../src/org';
 import { StatusResult } from '../../src/status/client';
-import {
-  DefaultStreamingOptions,
-  StreamingClient
-} from '../../src/status/streamingClient';
+import { StreamingClient } from '../../src/status/streamingClient';
 
 import { RequestInfo } from 'jsforce';
 
@@ -30,11 +22,7 @@ JSON.stringify({
     };
 
     const org = await Org.create({});
-    const options = new DefaultStreamingOptions(
-      org,
-      'MyPushTopics',
-      streamProcessor
-    );
+    const options = new StreamingClient.DefaultOptions(org, 'MyPushTopics', streamProcessor);
 
     const asyncStatusClient = await StreamingClient.create(options);
 

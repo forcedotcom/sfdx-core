@@ -15,28 +15,13 @@ export { ConfigFile } from './config/configFile';
 
 export { ConfigGroup } from './config/configGroup';
 
-export {
-  BaseConfigStore,
-  ConfigContents,
-  ConfigEntry,
-  ConfigStore,
-  ConfigValue
-} from './config/configStore';
+export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
 export { OrgUsersConfig } from './config/orgUsersConfig';
 
-export {
-  ConfigPropertyMeta,
-  ConfigPropertyMetaInput,
-  ORG_DEFAULT,
-  Config
-} from './config/config';
+export { ConfigPropertyMeta, ConfigPropertyMetaInput, ORG_DEFAULT, Config } from './config/config';
 
-export {
-  ConfigInfo,
-  LOCATIONS,
-  ConfigAggregator
-} from './config/configAggregator';
+export { ConfigInfo, LOCATIONS, ConfigAggregator } from './config/configAggregator';
 
 export { AuthFields, AuthInfo, SFDC_URLS } from './authInfo';
 
@@ -71,14 +56,7 @@ export { StatusResult } from './status/client';
 
 export { PollingClient } from './status/pollingClient';
 
-export {
-  CometClient,
-  CometSubscription,
-  DefaultStreamingOptions,
-  StreamingClient,
-  StreamingConnectionState,
-  StreamingTimeoutErrorType
-} from './status/streamingClient';
+export { CometClient, CometSubscription, StreamingClient } from './status/streamingClient';
 
 export { MyDomainResolver } from './status/myDomainResolver';
 
