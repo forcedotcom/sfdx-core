@@ -4692,9 +4692,9 @@ set-value@^2.0.0:
     is-plain-object "^2.0.3"
     split-string "^3.0.1"
 
-sfdx-faye@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/sfdx-faye/-/sfdx-faye-1.0.7.tgz#442f802ace619fba66912681dfe4a4a7d0ff318a"
+sfdx-faye@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/sfdx-faye/-/sfdx-faye-1.0.8.tgz#90059898802198ffd5ce035a2da0b9ad606069b4"
   dependencies:
     asap "~2.0.6"
     csprng "~0.1.2"
