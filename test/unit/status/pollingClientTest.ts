@@ -36,9 +36,7 @@ describe('clientTest', () => {
 
   it('steel thread', async () => {
     const TEST_VALUE = 'foo';
-    const pollingResultGenerator: IterableIterator<StatusResult> = generator(
-      TEST_VALUE
-    );
+    const pollingResultGenerator: IterableIterator<StatusResult> = generator(TEST_VALUE);
     const options: PollingClient.Options = {
       async poll(): Promise<StatusResult> {
         return Promise.resolve(pollingResultGenerator.next().value);

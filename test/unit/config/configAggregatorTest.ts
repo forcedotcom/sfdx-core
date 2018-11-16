@@ -22,8 +22,8 @@ describe('ConfigAggregator', () => {
     $$.SANDBOXES.CONFIG.restore();
 
     id = $$.uniqid();
-    $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake(
-      (isGlobal: boolean) => $$.rootPathRetriever(isGlobal, id)
+    $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
+      $$.rootPathRetriever(isGlobal, id)
     );
   });
 
@@ -41,9 +41,7 @@ describe('ConfigAggregator', () => {
     it('converts env vars', async () => {
       process.env.SFDX_DEFAULTUSERNAME = 'test';
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal(
-        'test'
-      );
+      expect(aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal('test');
     });
 
     describe('with no workspace', () => {
@@ -60,9 +58,7 @@ describe('ConfigAggregator', () => {
 
   describe('initialization', () => {
     beforeEach(() => {
-      $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function(
-        this: Config
-      ) {
+      $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function(this: Config) {
         const config: ConfigContents = this.isGlobal()
           ? await Promise.resolve({ defaultusername: 2 })
           : await Promise.resolve({ defaultusername: 1 });
@@ -72,17 +68,13 @@ describe('ConfigAggregator', () => {
     });
     it('local overrides global', async () => {
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(
-        await aggregator.getPropertyValue(Config.DEFAULT_USERNAME)
-      ).to.equal(1);
+      expect(await aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal(1);
     });
 
     it('env overrides local and global', async () => {
       process.env.SFDX_DEFAULTUSERNAME = 'test';
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(
-        await aggregator.getPropertyValue(Config.DEFAULT_USERNAME)
-      ).to.equal('test');
+      expect(await aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal('test');
     });
   });
 
@@ -114,9 +106,7 @@ describe('ConfigAggregator', () => {
         return Promise.resolve();
       });
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getLocation(Config.DEFAULT_USERNAME)).to.equal(
-        'Global'
-      );
+      expect(aggregator.getLocation(Config.DEFAULT_USERNAME)).to.equal('Global');
     });
 
     it('env', async () => {
@@ -132,9 +122,7 @@ describe('ConfigAggregator', () => {
         }
         return Promise.resolve();
       });
-      expect(aggregator.getLocation(Config.DEFAULT_USERNAME)).to.equal(
-        'Environment'
-      );
+      expect(aggregator.getLocation(Config.DEFAULT_USERNAME)).to.equal('Environment');
     });
 
     it('configInfo', async () => {

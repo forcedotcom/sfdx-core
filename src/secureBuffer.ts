@@ -67,10 +67,7 @@ export class SecureBuffer<T> {
       crypto.randomFillSync(this.secret);
     }
     const cipher = crypto.createCipheriv(cipherName, this.key, this.iv);
-    this.secret = Buffer.concat([
-      cipher.update(Buffer.from('')),
-      cipher.final()
-    ]);
+    this.secret = Buffer.concat([cipher.update(Buffer.from('')), cipher.final()]);
   }
 
   /**

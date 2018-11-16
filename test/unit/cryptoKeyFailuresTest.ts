@@ -55,23 +55,8 @@ if (os.platform() === 'darwin') {
       const buf = Buffer.from('testPassword', 'ascii');
       const pwd = buf.toString('hex');
       const programArg = '/usr/bin/security';
-      const getOptionsArg = [
-        'find-generic-password',
-        '-a',
-        'local',
-        '-s',
-        'sfdx',
-        '-g'
-      ];
-      const setOptionsArg = [
-        'add-generic-password',
-        '-a',
-        'local',
-        '-s',
-        'sfdx',
-        '-w',
-        pwd
-      ];
+      const getOptionsArg = ['find-generic-password', '-a', 'local', '-s', 'sfdx', '-g'];
+      const setOptionsArg = ['add-generic-password', '-a', 'local', '-s', 'sfdx', '-w', pwd];
       const currentUser = os.userInfo().username;
 
       // Setup stubs so that the spawn process to the encryption program returns
@@ -83,15 +68,11 @@ if (os.platform() === 'darwin') {
 
       try {
         await Crypto.create();
-        assert.fail(
-          'Should have thrown an SetCredentialError for Crypto.init()'
-        );
+        assert.fail('Should have thrown an SetCredentialError for Crypto.init()');
       } catch (err) {
         expect(err.name).to.equal('SetCredentialError');
         expect(err.message).to.equal(
-          `Command failed with response:\n${spawnReturnFake.sdtoutData} - ${
-            spawnReturnFake.sdterrData
-          }`
+          `Command failed with response:\n${spawnReturnFake.sdtoutData} - ${spawnReturnFake.sdterrData}`
         );
         expect(err.actions[0]).to.equal(
           `Determine why this command failed to set an encryption key for user ${currentUser}: [${programArg} ${setOptionsArg.join(
@@ -103,14 +84,7 @@ if (os.platform() === 'darwin') {
 
     it('should throw PasswordNotFoundError when unable to get/set a keychain password after retry', async () => {
       const programArg = '/usr/bin/security';
-      const optionsArg = [
-        'find-generic-password',
-        '-a',
-        'local',
-        '-s',
-        'sfdx',
-        '-g'
-      ];
+      const optionsArg = ['find-generic-password', '-a', 'local', '-s', 'sfdx', '-g'];
 
       // Setup stubs so that the spawn process to the encryption program returns
       // a fake to cause errors.
@@ -120,18 +94,12 @@ if (os.platform() === 'darwin') {
 
       try {
         await Crypto.create({ retryStatus: 'KEY_SET' });
-        assert.fail(
-          'Should have thrown an PasswordNotFoundError for Crypto.init()'
-        );
+        assert.fail('Should have thrown an PasswordNotFoundError for Crypto.init()');
       } catch (err) {
         expect(err.name).to.equal('PasswordNotFoundError');
-        expect(err.message).to.equal(
-          'Could not find password.\nstdout test data - stdout test data'
-        );
+        expect(err.message).to.equal('Could not find password.\nstdout test data - stdout test data');
         expect(err.actions[0]).to.equal(
-          `Ensure a valid password is returned with the following command: [${programArg} ${optionsArg.join(
-            ' '
-          )}].`
+          `Ensure a valid password is returned with the following command: [${programArg} ${optionsArg.join(' ')}].`
         );
       }
     });
@@ -142,14 +110,10 @@ if (os.platform() === 'darwin') {
 
       try {
         await Crypto.create();
-        assert.fail(
-          'Should have thrown an UnsupportedOperatingSystemError for Crypto.init()'
-        );
+        assert.fail('Should have thrown an UnsupportedOperatingSystemError for Crypto.init()');
       } catch (err) {
         expect(err.name).to.equal('UnsupportedOperatingSystemError');
-        expect(err.message).to.equal(
-          `Unsupported Operating System: ${unsupportedOS}`
-        );
+        expect(err.message).to.equal(`Unsupported Operating System: ${unsupportedOS}`);
       }
     });
   });

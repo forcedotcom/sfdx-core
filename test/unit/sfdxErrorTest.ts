@@ -50,11 +50,7 @@ describe('SfdxError', () => {
     });
 
     it('should return a new SfdxError when passed a bundle and key', async () => {
-      const testMsg1: SfdxError = SfdxError.create(
-        'pname',
-        'testMessages',
-        'Test1Error'
-      );
+      const testMsg1: SfdxError = SfdxError.create('pname', 'testMessages', 'Test1Error');
       expect(testMsg1).to.have.property('name', 'Test1Error');
       expect(testMsg1).to.have.property('message', testMessages.Test1Error);
       expect(testMsg1).to.have.property('actions', undefined);
@@ -63,35 +59,19 @@ describe('SfdxError', () => {
 
     it('should return a new SfdxError when passed a bundle, key, and error tokens', async () => {
       const tokens = ['token one'];
-      const testMsg1: SfdxError = SfdxError.create(
-        'pname',
-        'testMessages',
-        'Test2Error',
-        tokens
-      );
+      const testMsg1: SfdxError = SfdxError.create('pname', 'testMessages', 'Test2Error', tokens);
       expect(testMsg1).to.have.property('name', 'Test2Error');
-      expect(testMsg1).to.have.property(
-        'message',
-        testMessages.Test2Error.replace('%s', tokens[0])
-      );
+      expect(testMsg1).to.have.property('message', testMessages.Test2Error.replace('%s', tokens[0]));
       expect(testMsg1).to.have.property('actions', undefined);
       expect(testMsg1).to.have.property('exitCode', 1);
     });
 
     it('should return a new SfdxError when passed an SfdxErrorConfig object WITHOUT actions', async () => {
       const tokens = ['failure one'];
-      const errConfig = new SfdxErrorConfig(
-        'pname',
-        'testMessages',
-        'Test2Error',
-        tokens
-      );
+      const errConfig = new SfdxErrorConfig('pname', 'testMessages', 'Test2Error', tokens);
       const testMsg1: SfdxError = SfdxError.create(errConfig);
       expect(testMsg1).to.have.property('name', 'Test2Error');
-      expect(testMsg1).to.have.property(
-        'message',
-        testMessages.Test2Error.replace('%s', tokens[0])
-      );
+      expect(testMsg1).to.have.property('message', testMessages.Test2Error.replace('%s', tokens[0]));
       expect(testMsg1).to.have.property('actions', undefined);
       expect(testMsg1).to.have.property('exitCode', 1);
     });
@@ -100,23 +80,11 @@ describe('SfdxError', () => {
       const tokens = ['failure one', 2];
       const actionKey = 'Test3ErrorAction2';
       const actionTokens = ['reboot'];
-      const errConfig = new SfdxErrorConfig(
-        'pname',
-        'testMessages',
-        'Test3Error',
-        tokens,
-        actionKey,
-        actionTokens
-      );
+      const errConfig = new SfdxErrorConfig('pname', 'testMessages', 'Test3Error', tokens, actionKey, actionTokens);
       const testMsg1: SfdxError = SfdxError.create(errConfig);
       expect(testMsg1).to.have.property('name', 'Test3Error');
-      expect(testMsg1).to.have.property(
-        'message',
-        'This is test error message 3: failure one with error: 2'
-      );
-      expect(testMsg1).to.have.deep.property('actions', [
-        'Or take this action: reboot'
-      ]);
+      expect(testMsg1).to.have.property('message', 'This is test error message 3: failure one with error: 2');
+      expect(testMsg1).to.have.deep.property('actions', ['Or take this action: reboot']);
       expect(testMsg1).to.have.property('exitCode', 1);
     });
   });
@@ -180,11 +148,7 @@ describe('SfdxErrorConfig', () => {
     const packageName = 'pname';
     const bundleName: string = 'testMessages';
     const errorKey: string = 'Test1Error';
-    const errConfig: SfdxErrorConfig = new SfdxErrorConfig(
-      packageName,
-      bundleName,
-      errorKey
-    );
+    const errConfig: SfdxErrorConfig = new SfdxErrorConfig(packageName, bundleName, errorKey);
     expect(errConfig).to.have.property('packageName', packageName);
     expect(errConfig).to.have.property('bundleName', bundleName);
     expect(errConfig).to.have.property('errorKey', errorKey);

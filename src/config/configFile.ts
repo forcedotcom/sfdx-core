@@ -20,14 +20,7 @@ import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
-import {
-  access,
-  mkdirp,
-  readJsonMap,
-  stat,
-  unlink,
-  writeJson
-} from '../util/fs';
+import { access, mkdirp, readJsonMap, stat, unlink, writeJson } from '../util/fs';
 import { resolveProjectPath } from '../util/internal';
 import { BaseConfigStore, ConfigContents } from './configStore';
 
@@ -49,9 +42,7 @@ import { BaseConfigStore, ConfigContents } from './configStore';
  * myConfig.set('mykey', 'myvalue');
  * await myconfig.write();
  */
-export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<
-  T
-> {
+export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T> {
   /**
    * Returns the config's filename.
    */
@@ -65,10 +56,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<
    * @param isGlobal If the file should be stored globally or locally.
    * @param filename The name of the config file.
    */
-  public static getDefaultOptions(
-    isGlobal: boolean = false,
-    filename?: string
-  ): ConfigFile.Options {
+  public static getDefaultOptions(isGlobal: boolean = false, filename?: string): ConfigFile.Options {
     return {
       isGlobal,
       isState: true,
@@ -84,10 +72,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<
    */
   public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
     if (!isBoolean(isGlobal)) {
-      throw new SfdxError(
-        'isGlobal must be a boolean',
-        'InvalidTypeForIsGlobal'
-      );
+      throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
     }
     return isGlobal ? osHomedir() : await resolveProjectPath();
   }
@@ -106,9 +91,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<
    * @param {ConfigOptions} [options] The options used to create the file. Will use {@link ConfigFile.getDefaultOptions} by default.
    * {@link ConfigFile.getDefaultOptions} with no parameters by default.
    */
-  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(
-    options: ConfigFile.Options
-  ): Promise<T> {
+  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(options: ConfigFile.Options): Promise<T> {
     const configFile = await ConfigFile.create(options);
     await configFile.read();
     return configFile as T;
@@ -209,10 +192,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<
     if (exists) {
       return await unlink(this.getPath());
     }
-    throw new SfdxError(
-      `Target file doesn't exist. path: ${this.getPath()}`,
-      'TargetFileNotFound'
-    );
+    throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
   }
 
   /**
@@ -244,16 +224,11 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<
     this.options = Object.assign(defaultOptions, this.options);
 
     if (!this.options.filename) {
-      throw new SfdxError(
-        'The ConfigOptions filename parameter is invalid.',
-        'InvalidParameter'
-      );
+      throw new SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
     }
 
-    const _isGlobal: boolean =
-      isBoolean(this.options.isGlobal) && this.options.isGlobal;
-    const _isState: boolean =
-      isBoolean(this.options.isState) && this.options.isState;
+    const _isGlobal: boolean = isBoolean(this.options.isGlobal) && this.options.isGlobal;
+    const _isState: boolean = isBoolean(this.options.isState) && this.options.isState;
 
     // Don't let users store config files in homedir without being in the
     // state folder.
@@ -265,11 +240,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<
       configRootFolder = pathJoin(configRootFolder, Global.STATE_FOLDER);
     }
 
-    this.path = pathJoin(
-      configRootFolder,
-      this.options.filePath ? this.options.filePath : '',
-      this.options.filename
-    );
+    this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);
   }
 }
 

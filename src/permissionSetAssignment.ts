@@ -31,17 +31,10 @@ export class PermissionSetAssignment {
    */
   public static async init(org: Org): Promise<PermissionSetAssignment> {
     if (!org) {
-      throw SfdxError.create(
-        '@salesforce/core',
-        'permissionSetAssignment',
-        'orgRequired'
-      );
+      throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'orgRequired');
     }
 
-    return new PermissionSetAssignment(
-      org,
-      await Logger.child('PermissionSetAssignment')
-    );
+    return new PermissionSetAssignment(org, await Logger.child('PermissionSetAssignment'));
   }
 
   private logger: Logger;
@@ -62,29 +55,16 @@ export class PermissionSetAssignment {
    * @param id {string} A user id
    * @param permSetString {string[]} An array of permission set names.
    */
-  public async create(
-    id: string,
-    permSetString: string
-  ): Promise<PermissionSetAssignmentFields> {
+  public async create(id: string, permSetString: string): Promise<PermissionSetAssignmentFields> {
     if (!id) {
-      throw SfdxError.create(
-        '@salesforce/core',
-        'permissionSetAssignment',
-        'userIdRequired'
-      );
+      throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'userIdRequired');
     }
 
     if (!permSetString) {
-      throw SfdxError.create(
-        '@salesforce/core',
-        'permissionSetAssignment',
-        'permSetRequired'
-      );
+      throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'permSetRequired');
     }
 
-    const { nsPrefix, permSetName } = this.parsePermissionSetString(
-      permSetString
-    );
+    const { nsPrefix, permSetName } = this.parsePermissionSetString(permSetString);
 
     let query = `SELECT Id FROM PermissionSet WHERE Name='${permSetName}'`;
 
@@ -92,9 +72,7 @@ export class PermissionSetAssignment {
       query += ` AND NamespacePrefix='${nsPrefix}'`;
     }
 
-    const result: QueryResult<string> = await this.org
-      .getConnection()
-      .query<string>(query);
+    const result: QueryResult<string> = await this.org.getConnection().query<string>(query);
 
     const permissionSetId = getString(result, 'records[0].Id');
 
@@ -126,27 +104,16 @@ export class PermissionSetAssignment {
     createResponse = await this.org
       .getConnection()
       .sobject('PermissionSetAssignment')
-      .create(
-        mapKeys(assignment, (value: unknown, key: string) => upperFirst(key))
-      );
+      .create(mapKeys(assignment, (value: unknown, key: string) => upperFirst(key)));
 
     if ((createResponse as RecordResult[]).length) {
-      throw SfdxError.create(
-        '@salesforce/core',
-        'permissionSetAssignment',
-        'unexpectedType'
-      );
+      throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'unexpectedType');
     } else {
       if ((createResponse as SuccessResult).success) {
         return assignment;
       } else {
-        const messages: Messages = Messages.loadMessages(
-          '@salesforce/core',
-          'permissionSetAssignment'
-        );
-        let message = messages.getMessage(
-          'errorsEncounteredCreatingAssignment'
-        );
+        const messages: Messages = Messages.loadMessages('@salesforce/core', 'permissionSetAssignment');
+        let message = messages.getMessage('errorsEncounteredCreatingAssignment');
 
         const errors = (createResponse as ErrorResult).errors;
         if (errors && errors.length > 0) {
@@ -156,11 +123,7 @@ export class PermissionSetAssignment {
           });
           throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');
         } else {
-          throw SfdxError.create(
-            '@salesforce/core',
-            'permissionSetAssignment',
-            'notSuccessfulButNoErrorsReported'
-          );
+          throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'notSuccessfulButNoErrorsReported');
         }
       }
     }
@@ -181,9 +144,7 @@ export class PermissionSetAssignment {
       try {
         nsPrefix = nsPrefixMatch[1];
         permSetName = nsPrefixMatch[3];
-        this.logger.debug(
-          `Using namespacePrefix ${nsPrefix} for permission set ${permSetName}`
-        );
+        this.logger.debug(`Using namespacePrefix ${nsPrefix} for permission set ${permSetName}`);
       } catch (e) {
         // Don't fail if we parse wrong.
         this.logger.debug(e);

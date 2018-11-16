@@ -31,24 +31,20 @@ describe('Config', () => {
     $$.SANDBOXES.CONFIG.restore();
 
     id = $$.uniqid();
-    stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(
-      (isGlobal: boolean) => $$.rootPathRetriever(isGlobal, id)
+    stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
+      $$.rootPathRetriever(isGlobal, id)
     );
   });
 
   describe('instantiation', () => {
     it('using global', async () => {
-      const config: Config = await Config.create(
-        Config.getDefaultOptions(true)
-      );
+      const config: Config = await Config.create(Config.getDefaultOptions(true));
       expect(config.getPath()).to.not.contain(await $$.localPathRetriever(id));
       expect(config.getPath()).to.contain('.sfdx');
       expect(config.getPath()).to.contain('sfdx-config.json');
     });
     it('not using global', async () => {
-      const config: Config = await Config.create(
-        Config.getDefaultOptions(false)
-      );
+      const config: Config = await Config.create(Config.getDefaultOptions(false));
       expect(config.getPath()).to.contain(await $$.localPathRetriever(id));
       expect(config.getPath()).to.contain('.sfdx');
       expect(config.getPath()).to.contain('sfdx-config.json');
@@ -57,9 +53,7 @@ describe('Config', () => {
 
   describe('read', () => {
     it('adds content of the config file from this.path to this.contents', async () => {
-      const config: Config = await Config.create(
-        Config.getDefaultOptions(true)
-      );
+      const config: Config = await Config.create(Config.getDefaultOptions(true));
 
       stubMethod($$.SANDBOX, fs, 'readJsonMap')
         .withArgs(config.getPath())
@@ -67,21 +61,15 @@ describe('Config', () => {
 
       const content: ConfigContents = await config.read();
 
-      expect(content.defaultusername).to.equal(
-        configFileContents.defaultusername
-      );
-      expect(content.defaultdevhubusername).to.equal(
-        configFileContents.defaultdevhubusername
-      );
+      expect(content.defaultusername).to.equal(configFileContents.defaultusername);
+      expect(content.defaultdevhubusername).to.equal(configFileContents.defaultdevhubusername);
       expect(config.toObject()).to.deep.equal(configFileContents);
     });
   });
 
   describe('set', () => {
     it('calls Config.write with updated file contents', async () => {
-      stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () =>
-        Promise.resolve(clone(configFileContents))
-      );
+      stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
       const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
 
       const expectedFileContents = clone(configFileContents);
@@ -100,9 +88,7 @@ describe('Config', () => {
 
       await Config.update(false, 'defaultusername', newUsername);
 
-      stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () =>
-        Promise.resolve(clone(configFileContents))
-      );
+      stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
       const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
       const { defaultdevhubusername } = configFileContents;
 
@@ -115,9 +101,7 @@ describe('Config', () => {
 
   describe('set', () => {
     it('UnknownConfigKey', async () => {
-      const config: Config = await Config.create(
-        Config.getDefaultOptions(true)
-      );
+      const config: Config = await Config.create(Config.getDefaultOptions(true));
       try {
         config.set('foo', 'bar');
         assert.fail('Expected an error to be thrown.');
@@ -127,19 +111,13 @@ describe('Config', () => {
     });
 
     it('enable preferpolling for org:create', async () => {
-      const config: Config = await Config.create(
-        Config.getDefaultOptions(true)
-      );
+      const config: Config = await Config.create(Config.getDefaultOptions(true));
       config.set(Config.USE_BACKUP_POLLING_ORG_CREATE, 'true');
-      expect(config.get(Config.USE_BACKUP_POLLING_ORG_CREATE)).to.be.equal(
-        'true'
-      );
+      expect(config.get(Config.USE_BACKUP_POLLING_ORG_CREATE)).to.be.equal('true');
     });
 
     it('InvalidConfigValue', async () => {
-      const config: Config = await Config.create(
-        Config.getDefaultOptions(true)
-      );
+      const config: Config = await Config.create(Config.getDefaultOptions(true));
       try {
         config.set('apiVersion', '1');
         assert.fail('Expected an error to be thrown.');
@@ -149,13 +127,9 @@ describe('Config', () => {
     });
 
     it('PropertyInput validation', async () => {
-      const config: Config = await Config.create(
-        Config.getDefaultOptions(true)
-      );
+      const config: Config = await Config.create(Config.getDefaultOptions(true));
       await config.set(Config.DEFAULT_USERNAME, 'foo@example.com');
-      expect(config.get(Config.DEFAULT_USERNAME)).to.be.equal(
-        'foo@example.com'
-      );
+      expect(config.get(Config.DEFAULT_USERNAME)).to.be.equal('foo@example.com');
     });
   });
 
@@ -163,20 +137,14 @@ describe('Config', () => {
     it('calls ConfigFile.write with encrypted values contents', async () => {
       const TEST_VAL = 'test';
 
-      const writeStub = stubMethod(
-        $$.SANDBOX,
-        ConfigFile.prototype,
-        ConfigFile.prototype.write.name
-      ).callsFake(async function(this: Config) {
-        expect(
-          ensureString(this.get('isvDebuggerSid')).length
-        ).to.be.greaterThan(TEST_VAL.length);
-        expect(ensureString(this.get('isvDebuggerSid'))).to.not.equal(TEST_VAL);
-      });
-
-      const config: Config = await Config.create(
-        Config.getDefaultOptions(true)
+      const writeStub = stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.write.name).callsFake(
+        async function(this: Config) {
+          expect(ensureString(this.get('isvDebuggerSid')).length).to.be.greaterThan(TEST_VAL.length);
+          expect(ensureString(this.get('isvDebuggerSid'))).to.not.equal(TEST_VAL);
+        }
       );
+
+      const config: Config = await Config.create(Config.getDefaultOptions(true));
       await config.set(Config.ISV_DEBUGGER_SID, TEST_VAL);
       await config.write();
 
