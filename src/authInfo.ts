@@ -197,9 +197,9 @@ class AuthCodeOAuth2 extends OAuth2 {
   }
 }
 
-export enum SFDC_URLS {
-  sandbox = 'https://test.salesforce.com',
-  production = 'https://login.salesforce.com'
+export enum SfdcUrl {
+  SANDBOX = 'https://test.salesforce.com',
+  PRODUCTION = 'https://login.salesforce.com'
 }
 
 const INTERNAL_URL_PARTS = [
@@ -216,7 +216,7 @@ function isInternalUrl(loginUrl: string = ''): boolean {
 
 function getJwtAudienceUrl(options: OAuth2Options) {
   // default audience must be...
-  let audienceUrl: string = SFDC_URLS.production;
+  let audienceUrl: string = SfdcUrl.PRODUCTION;
   const loginUrl = getString(options, 'loginUrl', '');
   const createdOrgInstance = getString(options, 'createdOrgInstance', '')
     .trim()
@@ -228,7 +228,7 @@ function getJwtAudienceUrl(options: OAuth2Options) {
     // This is for internal developers when just doing authorize;
     audienceUrl = loginUrl;
   } else if (createdOrgInstance.startsWith('cs') || urlParse(loginUrl).hostname === 'test.salesforce.com') {
-    audienceUrl = SFDC_URLS.sandbox;
+    audienceUrl = SfdcUrl.SANDBOX;
   } else if (createdOrgInstance.startsWith('gs1')) {
     audienceUrl = 'https://gs1.salesforce.com';
   }
@@ -608,7 +608,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       });
 
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      const instanceUrl: string = (aggregator.getPropertyValue('instanceUrl') as string) || SFDC_URLS.production;
+      const instanceUrl: string = (aggregator.getPropertyValue('instanceUrl') as string) || SfdcUrl.PRODUCTION;
 
       this.update({
         accessToken: this.options.username,

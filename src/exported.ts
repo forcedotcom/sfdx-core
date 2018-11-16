@@ -21,9 +21,9 @@ export { OrgUsersConfig } from './config/orgUsersConfig';
 
 export { ConfigPropertyMeta, ConfigPropertyMetaInput, ORG_DEFAULT, Config } from './config/config';
 
-export { ConfigInfo, LOCATIONS, ConfigAggregator } from './config/configAggregator';
+export { ConfigInfo, Location, ConfigAggregator } from './config/configAggregator';
 
-export { AuthFields, AuthInfo, SFDC_URLS } from './authInfo';
+export { AuthFields, AuthInfo, SfdcUrl } from './authInfo';
 
 export { Connection, SFDX_HTTP_HEADERS } from './connection';
 

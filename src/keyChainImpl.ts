@@ -417,9 +417,9 @@ const _darwinImpl: OsImpl = {
 async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: Dictionary<ConfigValue>) => void) {
   try {
     const config = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
-    config.set(SecretFields.ACCOUNT, opts.account);
-    config.set(SecretFields.KEY, opts.password || '');
-    config.set(SecretFields.SERVICE, opts.service);
+    config.set(SecretField.ACCOUNT, opts.account);
+    config.set(SecretField.KEY, opts.password || '');
+    config.set(SecretField.SERVICE, opts.service);
     await config.write();
 
     fn(null, config.getContents());
@@ -428,7 +428,7 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
   }
 }
 
-enum SecretFields {
+enum SecretField {
   SERVICE = 'service',
   ACCOUNT = 'account',
   KEY = 'key'
@@ -448,11 +448,8 @@ export class GenericKeychainAccess implements PasswordStore {
         return KeychainConfig.create(KeychainConfig.getDefaultOptions())
           .then((config: KeychainConfig) => {
             // validate service name and account just because
-            if (
-              opts.service === config.get(SecretFields.SERVICE) &&
-              opts.account === config.get(SecretFields.ACCOUNT)
-            ) {
-              const key = config.get(SecretFields.KEY);
+            if (opts.service === config.get(SecretField.SERVICE) && opts.account === config.get(SecretField.ACCOUNT)) {
+              const key = config.get(SecretField.KEY);
               // @ts-ignore TODO: Remove this ignore if we ever factor out `object` from `ConfigValue`
               fn(null, asString(key));
             } else {
