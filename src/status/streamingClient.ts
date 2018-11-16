@@ -4,15 +4,26 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AsyncOptionalCreatable, Env, env, set } from '@salesforce/kit';
-import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types';
+import {
+  AsyncOptionalCreatable,
+  Duration,
+  Env,
+  env,
+  set
+} from '@salesforce/kit';
+import {
+  AnyFunction,
+  AnyJson,
+  ensure,
+  ensureString,
+  JsonMap
+} from '@salesforce/ts-types';
 import { EventEmitter } from 'events';
 // @ts-ignore No typings are available for faye
 import * as Faye from 'sfdx-faye';
 import { Logger } from '../logger';
 import { Org } from '../org';
 import { SfdxError, SfdxErrorConfig } from '../sfdxError';
-import { Time, TIME_UNIT } from '../util/time';
 import { StatusResult } from './client';
 
 import { resolve as resolveUrl } from 'url';
@@ -72,7 +83,10 @@ export abstract class CometClient extends EventEmitter {
    * @param channel The topic to subscribe to.
    * @param callback The callback to execute once a message has been received.
    */
-  public abstract subscribe(channel: string, callback: (message: JsonMap) => void): CometSubscription;
+  public abstract subscribe(
+    channel: string,
+    callback: (message: JsonMap) => void
+  ): CometSubscription;
   public abstract disconnect(): void;
 }
 
@@ -105,14 +119,19 @@ export interface CometSubscription {
 
 /**
  * Validation helper
- * @param newTime New Time to validate.
+ * @param newTime New Duration to validate.
  * @param existingTime Existing time to validate.
  */
-function validateTimeout(newTime: Time, existingTime: Time) {
+function validateTimeout(newTime: Duration, existingTime: Duration) {
   if (newTime.milliseconds >= existingTime.milliseconds) {
     return newTime;
   }
-  throw SfdxError.create('@salesforce/core', 'streaming', 'waitParamValidValueError', [existingTime.minutes]);
+  throw SfdxError.create(
+    '@salesforce/core',
+    'streaming',
+    'waitParamValidValueError',
+    [existingTime.minutes]
+  );
 }
 
 /**
@@ -178,7 +197,9 @@ function validateTimeout(newTime: Time, existingTime: Time) {
  * });
  *
  */
-export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Options> {
+export class StreamingClient extends AsyncOptionalCreatable<
+  StreamingClient.Options
+> {
   private readonly targetUrl: string;
   private readonly options: StreamingClient.Options;
   private logger!: Logger;
@@ -194,7 +215,9 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     super(options);
     this.options = ensure(options);
 
-    const instanceUrl = ensure(this.options.org.getConnection().getAuthInfoFields().instanceUrl);
+    const instanceUrl = ensure(
+      this.options.org.getConnection().getAuthInfoFields().instanceUrl
+    );
     /**
      * The salesforce network infrastructure issues a cookie called sfdx-stream if it sees /cometd in the url.
      * Without this cookie request response streams will experience intermittent client session failures.
@@ -211,12 +234,21 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
      * Enable SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING to debug potential session problems and to verify cookie
      * exchanges.
      */
-    this.targetUrl = resolveUrl(instanceUrl, `cometd/${this.options.apiVersion}`);
-    this.cometClient = this.options.streamingImpl.getCometClient(this.targetUrl);
+    this.targetUrl = resolveUrl(
+      instanceUrl,
+      `cometd/${this.options.apiVersion}`
+    );
+    this.cometClient = this.options.streamingImpl.getCometClient(
+      this.targetUrl
+    );
     this.options.streamingImpl.setLogger(this.log.bind(this));
 
-    this.cometClient.on('transport:up', () => this.log('Transport up event received'));
-    this.cometClient.on('transport:down', () => this.log('Transport down event received'));
+    this.cometClient.on('transport:up', () =>
+      this.log('Transport up event received')
+    );
+    this.cometClient.on('transport:down', () =>
+      this.log('Transport down event received')
+    );
 
     this.cometClient.addExtension({
       incoming: this.incoming.bind(this)
@@ -241,15 +273,31 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     const accessToken = conn.getConnectionOptions().accessToken;
 
     if (accessToken && accessToken.length > 5) {
-      this.logger.debug(`accessToken: XXXXXX${accessToken.substring(accessToken.length - 5, accessToken.length - 1)}`);
+      this.logger.debug(
+        `accessToken: XXXXXX${accessToken.substring(
+          accessToken.length - 5,
+          accessToken.length - 1
+        )}`
+      );
       this.cometClient.setHeader('Authorization', `OAuth ${accessToken}`);
     } else {
-      throw new SfdxError('Missing or invalid access token', 'MissingOrInvalidAccessToken');
+      throw new SfdxError(
+        'Missing or invalid access token',
+        'MissingOrInvalidAccessToken'
+      );
     }
 
     this.log(`Streaming client target url: ${this.targetUrl}`);
-    this.log(`options.subscribeTimeout (ms): ${this.options.subscribeTimeout.milliseconds}`);
-    this.log(`options.handshakeTimeout (ms): ${this.options.handshakeTimeout.milliseconds}`);
+    this.log(
+      `options.subscribeTimeout (ms): ${
+        this.options.subscribeTimeout.milliseconds
+      }`
+    );
+    this.log(
+      `options.handshakeTimeout (ms): ${
+        this.options.handshakeTimeout.milliseconds
+      }`
+    );
   }
 
   /**
@@ -328,24 +376,29 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
         }, this.options.subscribeTimeout.milliseconds);
 
         // Initialize the subscription.
-        const subscription: CometSubscription = this.cometClient.subscribe(this.options.channel, (message: JsonMap) => {
-          try {
-            // The result of the stream processor determines the state of the outer promise.
-            const result: StatusResult = this.options.streamProcessor(message);
+        const subscription: CometSubscription = this.cometClient.subscribe(
+          this.options.channel,
+          (message: JsonMap) => {
+            try {
+              // The result of the stream processor determines the state of the outer promise.
+              const result: StatusResult = this.options.streamProcessor(
+                message
+              );
 
-            // The stream processor says it's complete. Clean up and resolve the outer promise.
-            if (result && result.completed) {
+              // The stream processor says it's complete. Clean up and resolve the outer promise.
+              if (result && result.completed) {
+                clearTimeout(timeout);
+                this.cometClient.disconnect();
+                subscribeResolve(result.payload);
+              }
+            } catch (e) {
+              // it's completely valid for the stream processor to throw an error. If it does we will
+              // reject the outer promise. Keep in mind if we are here the subscription was resolved.
               clearTimeout(timeout);
-              this.cometClient.disconnect();
-              subscribeResolve(result.payload);
+              subscribeReject(e);
             }
-          } catch (e) {
-            // it's completely valid for the stream processor to throw an error. If it does we will
-            // reject the outer promise. Keep in mind if we are here the subscription was resolved.
-            clearTimeout(timeout);
-            subscribeReject(e);
           }
-        });
+        );
 
         subscription.callback(() => {
           subscriptionResolve();
@@ -383,7 +436,9 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
       message &&
       message.channel === '/meta/handshake' &&
       message.error &&
-      ensureString(message.error).includes('400::API version in the URI is mandatory')
+      ensureString(message.error).includes(
+        '400::API version in the URI is mandatory'
+      )
     ) {
       const errConfig = new SfdxErrorConfig(
         '@salesforce/core',
@@ -444,9 +499,9 @@ export namespace StreamingClient {
     // The org streaming target.
     org: Org;
     // The hard timeout that happens with subscribe
-    subscribeTimeout: Time;
+    subscribeTimeout: Duration;
     // The hard timeout that happens with a handshake.
-    handshakeTimeout: Time;
+    handshakeTimeout: Duration;
     // The streaming channel aka topic
     channel: string;
     // The salesforce api version
@@ -461,17 +516,19 @@ export namespace StreamingClient {
    * Default Streaming Options. Uses Faye as the cometd impl.
    */
   export class DefaultOptions implements StreamingClient.Options {
-    public static readonly SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS = 'SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING';
-    public static readonly SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING = 'SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING';
+    public static readonly SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS =
+      'SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING';
+    public static readonly SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING =
+      'SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING';
 
-    public static readonly DEFAULT_SUBSCRIBE_TIMEOUT = new Time(3, TIME_UNIT.MINUTES);
-    public static readonly DEFAULT_HANDSHAKE_TIMEOUT = new Time(30, TIME_UNIT.SECONDS);
+    public static readonly DEFAULT_SUBSCRIBE_TIMEOUT = Duration.minutes(3);
+    public static readonly DEFAULT_HANDSHAKE_TIMEOUT = Duration.seconds(30);
 
     public apiVersion: string;
     public org: Org;
     public streamProcessor: StreamProcessor;
-    public subscribeTimeout: Time;
-    public handshakeTimeout: Time;
+    public subscribeTimeout: Duration;
+    public handshakeTimeout: Duration;
     public channel: string;
     public streamingImpl: StreamingClientIfc;
     private envDep: Env;
@@ -484,7 +541,12 @@ export namespace StreamingClient {
      * @param streamProcessor The function called that can process streaming messages.
      * @see {@link StatusResult}
      */
-    constructor(org: Org, channel: string, streamProcessor: StreamProcessor, envDep: Env = env) {
+    constructor(
+      org: Org,
+      channel: string,
+      streamProcessor: StreamProcessor,
+      envDep: Env = env
+    ) {
       if (!streamProcessor) {
         throw new SfdxError('Missing stream processor', 'MissingArg');
       }
@@ -506,16 +568,26 @@ export namespace StreamingClient {
       }
 
       if (!(parseFloat(this.apiVersion) > 0)) {
-        throw SfdxError.create('@salesforce/core', 'streaming', 'invalidApiVersion', [this.apiVersion]);
+        throw SfdxError.create(
+          '@salesforce/core',
+          'streaming',
+          'invalidApiVersion',
+          [this.apiVersion]
+        );
       }
 
       this.streamProcessor = streamProcessor;
       this.channel = channel;
-      this.subscribeTimeout = StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT;
-      this.handshakeTimeout = StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT;
+      this.subscribeTimeout =
+        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT;
+      this.handshakeTimeout =
+        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT;
       this.streamingImpl = {
         getCometClient: (url: string) => {
-          const x = this.envDep.getString(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS);
+          const x = this.envDep.getString(
+            StreamingClient.DefaultOptions
+              .SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS
+          );
           return new Faye.Client(url, {
             // This parameter ensures all cookies regardless of path are included in subsequent requests. Otherwise
             // only cookies with the path "/" and "/cometd" are known to be included.
@@ -523,11 +595,15 @@ export namespace StreamingClient {
             cookiesAllowAllPaths:
               x === undefined
                 ? true
-                : this.envDep.getBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS),
+                : this.envDep.getBoolean(
+                    StreamingClient.DefaultOptions
+                      .SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS
+                  ),
             // WARNING - The allows request/response exchanges to be written to the log instance which includes
             // header and cookie information.
             enableRequestResponseLogging: this.envDep.getBoolean(
-              StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING
+              StreamingClient.DefaultOptions
+                .SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING
             )
           });
         },
@@ -545,8 +621,11 @@ export namespace StreamingClient {
      * @param newTime The new subscribe timeout.
      * @throws An error if the newTime is less than the default time.
      */
-    public setSubscribeTimeout(newTime: Time) {
-      this.subscribeTimeout = validateTimeout(newTime, DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
+    public setSubscribeTimeout(newTime: Duration) {
+      this.subscribeTimeout = validateTimeout(
+        newTime,
+        DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT
+      );
     }
 
     /**
@@ -554,8 +633,11 @@ export namespace StreamingClient {
      * @param newTime The new handshake timeout
      * @throws An error if the newTime is less than the default time.
      */
-    public setHandshakeTimeout(newTime: Time) {
-      this.handshakeTimeout = validateTimeout(newTime, DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT);
+    public setHandshakeTimeout(newTime: Duration) {
+      this.handshakeTimeout = validateTimeout(
+        newTime,
+        DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT
+      );
     }
   }
 
@@ -573,7 +655,7 @@ export namespace StreamingClient {
    * Indicators to test error names for StreamingTimeouts
    * @typedef StreamingConnectionState
    * @property HANDSHAKE - To indicate the error occurred on handshake
-   * @property SUBSCRIBE - To indicate the error occured on subscribe
+   * @property SUBSCRIBE - To indicate the error occurred on subscribe
    */
   export enum TimeoutErrorType {
     HANDSHAKE = 'genericHandshakeTimeoutMessage',

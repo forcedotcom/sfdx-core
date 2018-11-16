@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Time | @salesforce/core</title>
+	<title>Location | @salesforce/core</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -907,26 +907,17 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class="current tsd-kind-class">
-			<a href="time.html" class="tsd-kind-icon">Time</a>
+		<li class="current tsd-kind-enum">
+			<a href="location.html" class="tsd-kind-icon">Location</a>
 			<ul>
-				<li class=" tsd-kind-constructor tsd-parent-kind-class">
-					<a href="time.html#constructor" class="tsd-kind-icon">constructor</a>
+				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+					<a href="location.html#environment" class="tsd-kind-icon">ENVIRONMENT</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
-					<a href="time.html#milli_in_seconds" class="tsd-kind-icon">MILLI_<wbr>IN_<wbr>SECONDS</a>
+				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+					<a href="location.html#global" class="tsd-kind-icon">GLOBAL</a>
 				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
-					<a href="time.html#seconds_in_minute" class="tsd-kind-icon">SECONDS_<wbr>IN_<wbr>MINUTE</a>
-				</li>
-				<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-					<a href="time.html#milliseconds" class="tsd-kind-icon">milliseconds</a>
-				</li>
-				<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-					<a href="time.html#minutes" class="tsd-kind-icon">minutes</a>
-				</li>
-				<li class=" tsd-kind-get-signature tsd-parent-kind-class">
-					<a href="time.html#seconds" class="tsd-kind-icon">seconds</a>
+				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+					<a href="location.html#local" class="tsd-kind-icon">LOCAL</a>
 				</li>
 			</ul>
 		</li>
@@ -934,130 +925,50 @@ img { max-width: 100%; }
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
-		<section class="tsd-panel tsd-comment">
-			<div class="tsd-comment tsd-typography">
-				<div class="lead">
-					<p>Helper class to convert cli times between minutes, seconds, and milliseconds.</p>
-				</div>
-			</div>
-		</section>
-		<section class="tsd-panel tsd-hierarchy">
-			<h3>Hierarchy</h3>
-			<ul class="tsd-hierarchy">
-				<li>
-					<span class="target">Time</span>
-				</li>
-			</ul>
-		</section>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section ">
-						<h3>Constructors</h3>
+						<h3>Enumeration members</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="time.html#constructor" class="tsd-kind-icon">constructor</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section ">
-						<h3>Properties</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="time.html#milli_in_seconds" class="tsd-kind-icon">MILLI_<wbr>IN_<wbr>SECONDS</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="time.html#seconds_in_minute" class="tsd-kind-icon">SECONDS_<wbr>IN_<wbr>MINUTE</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section ">
-						<h3>Accessors</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="time.html#milliseconds" class="tsd-kind-icon">milliseconds</a></li>
-							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="time.html#minutes" class="tsd-kind-icon">minutes</a></li>
-							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="time.html#seconds" class="tsd-kind-icon">seconds</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="location.html#environment" class="tsd-kind-icon">ENVIRONMENT</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="location.html#global" class="tsd-kind-icon">GLOBAL</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="location.html#local" class="tsd-kind-icon">LOCAL</a></li>
 						</ul>
 					</section>
 				</div>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Constructors</h2>
-			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
-				<a name="constructor" class="tsd-anchor"></a>
-				<h3>constructor</h3>
-				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">new <wbr>Time<span class="tsd-signature-symbol">(</span>quantity<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, unit<span class="tsd-signature-symbol">?: </span><a href="../enums/time_unit.html" class="tsd-signature-type">TIME_UNIT</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="time.html" class="tsd-signature-type">Time</a></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in util/time.ts:23</li>
-							</ul>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>quantity: <span class="tsd-signature-type">number</span></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> unit: <a href="../enums/time_unit.html" class="tsd-signature-type">TIME_UNIT</a><span class="tsd-signature-symbol"> =&nbsp;TIME_UNIT.MINUTES</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <a href="time.html" class="tsd-signature-type">Time</a></h4>
-					</li>
-				</ul>
-			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Properties</h2>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
-				<a name="milli_in_seconds" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagStatic">Static</span> MILLI_<wbr>IN_<wbr>SECONDS</h3>
-				<div class="tsd-signature tsd-kind-icon">MILLI_<wbr>IN_<wbr>SECONDS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;1000</span></div>
+			<h2>Enumeration members</h2>
+			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+				<a name="environment" class="tsd-anchor"></a>
+				<h3>ENVIRONMENT</h3>
+				<div class="tsd-signature tsd-kind-icon">ENVIRONMENT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;Environment&quot;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in util/time.ts:19</li>
+						<li>Defined in config/configAggregator.ts:49</li>
 					</ul>
 				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
-				<a name="seconds_in_minute" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagStatic">Static</span> SECONDS_<wbr>IN_<wbr>MINUTE</h3>
-				<div class="tsd-signature tsd-kind-icon">SECONDS_<wbr>IN_<wbr>MINUTE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;60</span></div>
+			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+				<a name="global" class="tsd-anchor"></a>
+				<h3>GLOBAL</h3>
+				<div class="tsd-signature tsd-kind-icon">GLOBAL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;Global&quot;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in util/time.ts:20</li>
+						<li>Defined in config/configAggregator.ts:47</li>
 					</ul>
 				</aside>
 			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Accessors</h2>
-			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-				<a name="milliseconds" class="tsd-anchor"></a>
-				<h3>milliseconds</h3>
-				<div class="tsd-signature tsd-kind-icon">milliseconds<span class="tsd-signature-symbol">:</span> </div>
+			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+				<a name="local" class="tsd-anchor"></a>
+				<h3>LOCAL</h3>
+				<div class="tsd-signature tsd-kind-icon">LOCAL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;Local&quot;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in util/time.ts:56</li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-				<a name="minutes" class="tsd-anchor"></a>
-				<h3>minutes</h3>
-				<div class="tsd-signature tsd-kind-icon">minutes<span class="tsd-signature-symbol">:</span> </div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in util/time.ts:30</li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
-				<a name="seconds" class="tsd-anchor"></a>
-				<h3>seconds</h3>
-				<div class="tsd-signature tsd-kind-icon">seconds<span class="tsd-signature-symbol">:</span> </div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in util/time.ts:43</li>
+						<li>Defined in config/configAggregator.ts:48</li>
 					</ul>
 				</aside>
 			</section>

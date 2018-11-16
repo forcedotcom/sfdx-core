@@ -56,7 +56,13 @@
  * @property {string} instanceUrl
  */
 
-import { AsyncCreatable, cloneJson, isEmpty, parseJsonMap, set } from '@salesforce/kit';
+import {
+  AsyncCreatable,
+  cloneJson,
+  isEmpty,
+  parseJsonMap,
+  set
+} from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
@@ -121,7 +127,11 @@ export interface AccessTokenOptions {
 
 export type RefreshFn = (
   conn: Connection,
-  callback: (err: Nullable<Error>, accessToken?: string, res?: object) => Promise<void>
+  callback: (
+    err: Nullable<Error>,
+    accessToken?: string,
+    res?: object
+  ) => Promise<void>
 ) => Promise<void>;
 
 export type ConnectionOptions = AuthFields & {
@@ -135,7 +145,10 @@ class JwtOAuth2 extends OAuth2 {
     super(options);
   }
 
-  public async jwtAuthorize(innerToken: string, callback?: AnyFunction): Promise<AnyJson> {
+  public async jwtAuthorize(
+    innerToken: string,
+    callback?: AnyFunction
+  ): Promise<AnyJson> {
     // tslint:disable-line:no-any
     // @ts-ignore TODO: need better typings for jsforce
     return super._postParams(
@@ -156,7 +169,9 @@ class AuthCodeOAuth2 extends OAuth2 {
     super(options);
 
     // Set a code verifier string for OAuth authorization
-    this.codeVerifier = base64UrlEscape(randomBytes(Math.ceil(128)).toString('base64'));
+    this.codeVerifier = base64UrlEscape(
+      randomBytes(Math.ceil(128)).toString('base64')
+    );
   }
 
   /**
@@ -178,7 +193,10 @@ class AuthCodeOAuth2 extends OAuth2 {
     return super.getAuthorizationUrl(params);
   }
 
-  public async requestToken(code: string, callback?: (err: Error, tokenResponse: TokenResponse) => void) {
+  public async requestToken(
+    code: string,
+    callback?: (err: Error, tokenResponse: TokenResponse) => void
+  ) {
     return super.requestToken(code, callback);
   }
 
@@ -197,9 +215,9 @@ class AuthCodeOAuth2 extends OAuth2 {
   }
 }
 
-export enum SFDC_URLS {
-  sandbox = 'https://test.salesforce.com',
-  production = 'https://login.salesforce.com'
+export enum SfdcUrl {
+  SANDBOX = 'https://test.salesforce.com',
+  PRODUCTION = 'https://login.salesforce.com'
 }
 
 const INTERNAL_URL_PARTS = [
@@ -211,12 +229,15 @@ const INTERNAL_URL_PARTS = [
 ];
 
 function isInternalUrl(loginUrl: string = ''): boolean {
-  return loginUrl.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some(part => loginUrl.includes(part));
+  return (
+    loginUrl.startsWith('https://gs1.') ||
+    INTERNAL_URL_PARTS.some(part => loginUrl.includes(part))
+  );
 }
 
 function getJwtAudienceUrl(options: OAuth2Options) {
   // default audience must be...
-  let audienceUrl: string = SFDC_URLS.production;
+  let audienceUrl: string = SfdcUrl.PRODUCTION;
   const loginUrl = getString(options, 'loginUrl', '');
   const createdOrgInstance = getString(options, 'createdOrgInstance', '')
     .trim()
@@ -227,8 +248,11 @@ function getJwtAudienceUrl(options: OAuth2Options) {
   } else if (isInternalUrl(loginUrl)) {
     // This is for internal developers when just doing authorize;
     audienceUrl = loginUrl;
-  } else if (createdOrgInstance.startsWith('cs') || urlParse(loginUrl).hostname === 'test.salesforce.com') {
-    audienceUrl = SFDC_URLS.sandbox;
+  } else if (
+    createdOrgInstance.startsWith('cs') ||
+    urlParse(loginUrl).hostname === 'test.salesforce.com'
+  ) {
+    audienceUrl = SfdcUrl.SANDBOX;
   } else if (createdOrgInstance.startsWith('gs1')) {
     audienceUrl = 'https://gs1.salesforce.com';
   }
@@ -271,12 +295,18 @@ class AuthInfoCrypto extends Crypto {
     return this._crypt(fields, 'encrypt');
   }
 
-  private _crypt(fields: AuthFields, method: 'encrypt' | 'decrypt'): AuthFields {
+  private _crypt(
+    fields: AuthFields,
+    method: 'encrypt' | 'decrypt'
+  ): AuthFields {
     const copy: AuthFields = {};
     for (const key of keysOf(fields)) {
       const rawValue = fields[key];
       if (rawValue !== undefined) {
-        if (isString(rawValue) && AuthInfoCrypto.encryptedFields.includes(key)) {
+        if (
+          isString(rawValue) &&
+          AuthInfoCrypto.encryptedFields.includes(key)
+        ) {
           copy[key] = this[method](asString(rawValue));
         } else {
           copy[key] = rawValue;
@@ -330,11 +360,17 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public static async listAllAuthFiles(): Promise<string[]> {
     const globalFiles = await fs.readdir(Global.DIR);
-    const authFiles = globalFiles.filter(file => file.match(AuthInfo.authFilenameFilterRegEx));
+    const authFiles = globalFiles.filter(file =>
+      file.match(AuthInfo.authFilenameFilterRegEx)
+    );
 
     // Want to throw a clean error if no files are found.
     if (isEmpty(authFiles)) {
-      const errConfig: SfdxErrorConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'NoAuthInfoFound');
+      const errConfig: SfdxErrorConfig = new SfdxErrorConfig(
+        '@salesforce/core',
+        'core',
+        'NoAuthInfoFound'
+      );
       throw SfdxError.create(errConfig);
     }
 
@@ -479,7 +515,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
     this.logger.debug(dataToSave);
 
-    const config = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
+    const config = await AuthInfoConfig.create(
+      AuthInfoConfig.getOptions(username)
+    );
     config.setContentsFromObject(dataToSave);
     await config.write();
 
@@ -575,11 +613,16 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public getSfdxAuthUrl(): string {
     const decryptedFields = this.authInfoCrypto.decryptFields(this.fields);
-    const instanceUrl = ensure(decryptedFields.instanceUrl).replace(/^https?:\/\//, '');
+    const instanceUrl = ensure(decryptedFields.instanceUrl).replace(
+      /^https?:\/\//,
+      ''
+    );
     let sfdxAuthUrl = 'force://';
 
     if (decryptedFields.clientId) {
-      sfdxAuthUrl += `${decryptedFields.clientId}:${decryptedFields.clientSecret}:`;
+      sfdxAuthUrl += `${decryptedFields.clientId}:${
+        decryptedFields.clientSecret
+      }:`;
     }
 
     sfdxAuthUrl += `${decryptedFields.refreshToken}@${instanceUrl}`;
@@ -591,15 +634,26 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public async init(): Promise<void> {
     // Must specify either username and/or options
-    const options = this.options.oauth2Options || this.options.accessTokenOptions;
-    if (!this.options.username && !(this.options.oauth2Options || this.options.accessTokenOptions)) {
-      throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
+    const options =
+      this.options.oauth2Options || this.options.accessTokenOptions;
+    if (
+      !this.options.username &&
+      !(this.options.oauth2Options || this.options.accessTokenOptions)
+    ) {
+      throw SfdxError.create(
+        '@salesforce/core',
+        'core',
+        'AuthInfoCreationError'
+      );
     }
 
-    this.fields.username = this.options.username || getString(options, 'username') || undefined;
+    this.fields.username =
+      this.options.username || getString(options, 'username') || undefined;
 
     // If the username is an access token, use that for auth and don't persist
-    const accessTokenMatch = isString(this.fields.username) && this.fields.username.match(/^(00D\w{12,15})![\.\w]*$/);
+    const accessTokenMatch =
+      isString(this.fields.username) &&
+      this.fields.username.match(/^(00D\w{12,15})![\.\w]*$/);
     if (accessTokenMatch) {
       // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
       this.logger = await Logger.child('AuthInfo');
@@ -608,7 +662,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       });
 
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      const instanceUrl: string = (aggregator.getPropertyValue('instanceUrl') as string) || SFDC_URLS.production;
+      const instanceUrl: string =
+        (aggregator.getPropertyValue('instanceUrl') as string) ||
+        SfdcUrl.PRODUCTION;
 
       this.update({
         accessToken: this.options.username,
@@ -630,7 +686,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    *    **`{name: 'NamedOrgNotFound'}`:** Org information does not exist.
    * @returns {Promise<AuthInfo>} For convenience `this` object is returned.
    */
-  private async initAuthOptions(options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
+  private async initAuthOptions(
+    options?: OAuth2Options | AccessTokenOptions
+  ): Promise<AuthInfo> {
     this.logger = await Logger.child('AuthInfo');
     this.authInfoCrypto = await AuthInfoCrypto.create();
 
@@ -668,12 +726,19 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       } else {
         // Fetch from the persisted auth file
         try {
-          const config: AuthInfoConfig = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
+          const config: AuthInfoConfig = await AuthInfoConfig.create(
+            AuthInfoConfig.getOptions(username)
+          );
           await config.read(true);
           authConfig = config.toObject();
         } catch (e) {
           if (e.code === 'ENOENT') {
-            throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [username]);
+            throw SfdxError.create(
+              '@salesforce/core',
+              'core',
+              'NamedOrgNotFound',
+              [username]
+            );
           } else {
             throw e;
           }
@@ -689,7 +754,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     return this;
   }
 
-  private isTokenOptions(options: OAuth2Options | AccessTokenOptions): options is AccessTokenOptions {
+  private isTokenOptions(
+    options: OAuth2Options | AccessTokenOptions
+  ): options is AccessTokenOptions {
     // Although OAuth2Options does not contain refreshToken, privateKey, or privateKeyFile, a JS consumer could still pass those in
     // which WILL have an access token as well, but it should be considered an OAuth2Options at that point.
     return (
@@ -705,7 +772,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   // both for a JWT connection and an OAuth connection.
   private async refreshFn(
     conn: Connection,
-    callback: (err: Nullable<Error>, accessToken?: string, res?: object) => Promise<void>
+    callback: (
+      err: Nullable<Error>,
+      accessToken?: string,
+      res?: object
+    ) => Promise<void>
   ): Promise<void> {
     this.logger.info('Access token has expired. Updating...');
 
@@ -716,9 +787,12 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       return await callback(null, fields.accessToken);
     } catch (err) {
       if (err.message && err.message.includes('Data Not Available')) {
-        const errConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'OrgDataNotAvailableError', [
-          this.getUsername()
-        ]);
+        const errConfig = new SfdxErrorConfig(
+          '@salesforce/core',
+          'core',
+          'OrgDataNotAvailableError',
+          [this.getUsername()]
+        );
         for (let i = 1; i < 5; i++) {
           errConfig.addAction(`OrgDataNotAvailableErrorAction${i}`);
         }
@@ -730,7 +804,10 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   // Build OAuth config for a JWT auth flow
   private async buildJwtConfig(options: OAuth2Options): Promise<AuthFields> {
-    const privateKeyContents = await fs.readFile(ensure(options.privateKey), 'utf8');
+    const privateKeyContents = await fs.readFile(
+      ensure(options.privateKey),
+      'utf8'
+    );
     const audienceUrl = getJwtAudienceUrl(options);
     const jwtToken = await jwt.sign(
       {
@@ -750,7 +827,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     try {
       _authFields = ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
     } catch (err) {
-      throw SfdxError.create('@salesforce/core', 'core', 'JWTAuthError', [err.message]);
+      throw SfdxError.create('@salesforce/core', 'core', 'JWTAuthError', [
+        err.message
+      ]);
     }
 
     const authFields: AuthFields = {
@@ -768,7 +847,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       authFields.instanceUrl = instanceUrl;
     } catch (err) {
       this.logger.debug(
-        `Instance URL [${_authFields.instance_url}] is not available.  DNS lookup failed. Using loginUrl [${
+        `Instance URL [${
+          _authFields.instance_url
+        }] is not available.  DNS lookup failed. Using loginUrl [${
           options.loginUrl
         }] instead. This may result in a "Destination URL not reset" error.`
       );
@@ -779,7 +860,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a refresh token auth flow
-  private async buildRefreshTokenConfig(options: OAuth2Options): Promise<AuthFields> {
+  private async buildRefreshTokenConfig(
+    options: OAuth2Options
+  ): Promise<AuthFields> {
     if (!options.clientId) {
       Object.assign(options, DEFAULT_CONNECTED_APP_INFO);
     }
@@ -789,7 +872,12 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     try {
       _authFields = await oauth2.refreshToken(ensure(options.refreshToken));
     } catch (err) {
-      throw SfdxError.create('@salesforce/core', 'core', 'RefreshTokenAuthError', [err.message]);
+      throw SfdxError.create(
+        '@salesforce/core',
+        'core',
+        'RefreshTokenAuthError',
+        [err.message]
+      );
     }
 
     return {
@@ -807,16 +895,27 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   }
 
   // build an OAuth config given an auth code.
-  private async buildWebAuthConfig(options: OAuth2Options): Promise<AuthFields> {
+  private async buildWebAuthConfig(
+    options: OAuth2Options
+  ): Promise<AuthFields> {
     const oauth2 = new AuthCodeOAuth2(options);
 
     // Exchange the auth code for an access token and refresh token.
     let _authFields: TokenResponse;
     try {
-      this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
+      this.logger.info(
+        `Exchanging auth code for access token using loginUrl: ${
+          options.loginUrl
+        }`
+      );
       _authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
-      throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeExchangeError', [err.message]);
+      throw SfdxError.create(
+        '@salesforce/core',
+        'core',
+        'AuthCodeExchangeError',
+        [err.message]
+      );
     }
 
     // @ts-ignore TODO: need better typings for jsforce
@@ -828,15 +927,25 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     const apiVersion = 'v42.0'; // hardcoding to v42.0 just for this call is okay.
     const instance = ensure(getString(_authFields, 'instance_url'));
     const url = `${instance}/services/data/${apiVersion}/sobjects/User/${userId}`;
-    const headers = Object.assign({ Authorization: `Bearer ${_authFields.access_token}` }, SFDX_HTTP_HEADERS);
+    const headers = Object.assign(
+      { Authorization: `Bearer ${_authFields.access_token}` },
+      SFDX_HTTP_HEADERS
+    );
 
     let username: Optional<string>;
     try {
-      this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
+      this.logger.info(
+        `Sending request for Username after successful auth code exchange to URL: ${url}`
+      );
       const response = await new Transport().httpRequest({ url, headers });
       username = asString(parseJsonMap(response.body).Username);
     } catch (err) {
-      throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
+      throw SfdxError.create(
+        '@salesforce/core',
+        'core',
+        'AuthCodeUsernameRetrievalError',
+        [orgId, err.message]
+      );
     }
 
     return {
@@ -852,16 +961,20 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   }
 
   // See https://nodejs.org/api/dns.html#dns_dns_lookup_hostname_options_callback
-  private async lookup(host: string): Promise<{ address: string; family: number }> {
-    return new Promise<{ address: string; family: number }>((resolve, reject) => {
-      dns.lookup(host, (err, address: string, family: number) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ address, family });
-        }
-      });
-    });
+  private async lookup(
+    host: string
+  ): Promise<{ address: string; family: number }> {
+    return new Promise<{ address: string; family: number }>(
+      (resolve, reject) => {
+        dns.lookup(host, (err, address: string, family: number) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({ address, family });
+          }
+        });
+      }
+    );
   }
 }
 

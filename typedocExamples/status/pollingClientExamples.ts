@@ -1,6 +1,6 @@
+import { Duration } from '@salesforce/kit';
 import { StatusResult } from '../../src/status/client';
 import { PollingClient } from '../../src/status/pollingClient';
-import { Time, TIME_UNIT } from '../../src/util/time';
 
 JSON.stringify({
   classDoc: async () => {
@@ -8,8 +8,8 @@ JSON.stringify({
       async poll(): Promise<StatusResult> {
         return Promise.resolve({ completed: true, payload: 'Hello World' });
       },
-      frequency: new Time(10, TIME_UNIT.MILLISECONDS),
-      timeout: new Time(1, TIME_UNIT.MINUTES)
+      frequency: Duration.milliseconds(10),
+      timeout: Duration.minutes(1)
     };
     const client = new PollingClient(options);
     const pollResult = await client.subscribe();

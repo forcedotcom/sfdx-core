@@ -6,7 +6,10 @@
  */
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { StatusResult } from '../../../src/status/client';
-import { CometClient, StreamingClient } from '../../../src/status/streamingClient';
+import {
+  CometClient,
+  StreamingClient
+} from '../../../src/status/streamingClient';
 
 import { expect } from 'chai';
 import { SinonSpyCall } from 'sinon';
@@ -20,9 +23,8 @@ import {
   StreamingMockSubscriptionCall,
   testSetup
 } from '../../../src/testSetup';
-import { Time, TIME_UNIT } from '../../../src/util/time';
 
-import { Env } from '@salesforce/kit';
+import { Duration, Env } from '@salesforce/kit';
 import { get, JsonMap } from '@salesforce/ts-types';
 
 // @ts-ignore
@@ -50,15 +52,23 @@ describe('streaming client tests', () => {
         accessToken: crypto.encrypt(_id)
       }
     };
-    stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
-    stubMethod($$.SANDBOX, Connection.prototype, 'getApiVersion').returns(MOCK_API_VERSION);
+    stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(
+      Promise.resolve()
+    );
+    stubMethod($$.SANDBOX, Connection.prototype, 'getApiVersion').returns(
+      MOCK_API_VERSION
+    );
   });
 
   it('should set options apiVersion on system topics', async () => {
     const org: Org = await Org.create({ aliasOrUsername: _username });
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, '/system/Logging', () => ({
-      completed: true
-    }));
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
+      org,
+      '/system/Logging',
+      () => ({
+        completed: true
+      })
+    );
     expect(options.apiVersion).to.equal('36.0');
   });
 
@@ -78,7 +88,11 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
+      org,
+      MOCK_TOPIC,
+      streamProcessor
+    );
 
     expect(options.apiVersion).to.equal(MOCK_API_VERSION);
 
@@ -93,7 +107,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
     const value = await asyncStatusClient.subscribe(() => {
       return Promise.resolve();
     });
@@ -136,11 +152,18 @@ describe('streaming client tests', () => {
       expect(stub.args[0]).to.have.length(2);
       const clientOptions = stub.args[0][1];
       expect(clientOptions).to.have.property('cookiesAllowAllPaths', true);
-      expect(clientOptions).to.have.property('enableRequestResponseLogging', false);
+      expect(clientOptions).to.have.property(
+        'enableRequestResponseLogging',
+        false
+      );
     });
 
     it('set enableRequestResponseLogging', async () => {
-      env.setBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING, true);
+      env.setBoolean(
+        StreamingClient.DefaultOptions
+          .SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING,
+        true
+      );
 
       const org: Org = await Org.create({ aliasOrUsername: _username });
       const stub = getStub(org);
@@ -149,11 +172,17 @@ describe('streaming client tests', () => {
       expect(stub.args[0]).to.have.length(2);
 
       const clientOptions = stub.args[0][1];
-      expect(clientOptions).to.have.property('enableRequestResponseLogging', true);
+      expect(clientOptions).to.have.property(
+        'enableRequestResponseLogging',
+        true
+      );
     });
 
     it('unset cookiesAllowAllPaths', async () => {
-      env.setBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS, true);
+      env.setBoolean(
+        StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS,
+        true
+      );
 
       const org: Org = await Org.create({ aliasOrUsername: _username });
       const stub = getStub(org);
@@ -172,7 +201,11 @@ describe('streaming client tests', () => {
       $$.SANDBOX.stub(Connection.prototype, 'getApiVersion').returns('$$');
 
       try {
-        await shouldThrow(Promise.resolve(new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor)));
+        await shouldThrow(
+          Promise.resolve(
+            new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor)
+          )
+        );
       } catch (e) {
         expect(e).to.have.property('name', 'invalidApiVersion');
       }
@@ -192,7 +225,11 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
+      org,
+      MOCK_TOPIC,
+      streamProcessor
+    );
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -205,7 +242,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
     try {
       await shouldThrow(
         asyncStatusClient.subscribe(() => {
@@ -233,7 +272,11 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
+      org,
+      MOCK_TOPIC,
+      streamProcessor
+    );
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -247,7 +290,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
     try {
       await shouldThrow(
         asyncStatusClient.subscribe(() => {
@@ -275,7 +320,11 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
+      org,
+      MOCK_TOPIC,
+      streamProcessor
+    );
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -288,7 +337,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
 
     const result = await asyncStatusClient.handshake();
     expect(result).to.be.equal(StreamingClient.ConnectionState.CONNECTED);
@@ -303,9 +354,13 @@ describe('streaming client tests', () => {
       return { completed: false };
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
+      org,
+      MOCK_TOPIC,
+      streamProcessor
+    );
 
-    options.handshakeTimeout = new Time(1, TIME_UNIT.MILLISECONDS);
+    options.handshakeTimeout = Duration.milliseconds(1);
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -318,7 +373,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
 
     try {
       await shouldThrow(asyncStatusClient.handshake());
@@ -338,9 +395,13 @@ describe('streaming client tests', () => {
       };
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
+      org,
+      MOCK_TOPIC,
+      streamProcessor
+    );
 
-    options.subscribeTimeout = new Time(1, TIME_UNIT.MILLISECONDS);
+    options.subscribeTimeout = Duration.milliseconds(1);
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -353,7 +414,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
     try {
       await shouldThrow(
         asyncStatusClient.subscribe(
@@ -383,10 +446,14 @@ describe('streaming client tests', () => {
       };
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
+      org,
+      MOCK_TOPIC,
+      streamProcessor
+    );
 
-    options.subscribeTimeout = new Time(JENNYS_NUMBER, TIME_UNIT.MILLISECONDS); // Jenny's phone number
-    options.handshakeTimeout = new Time(GHOSTBUSTERS_NUMBER, TIME_UNIT.MILLISECONDS); // Ghostbusters phone number
+    options.subscribeTimeout = Duration.milliseconds(JENNYS_NUMBER); // Jenny's phone number
+    options.handshakeTimeout = Duration.milliseconds(GHOSTBUSTERS_NUMBER); // Ghostbusters phone number
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -399,17 +466,27 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
-    const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const asyncStatusClient: StreamingClient = await StreamingClient.create(
+      options
+    );
     await asyncStatusClient.subscribe(() => Promise.resolve());
 
     expect(setTimeoutSpy.called).to.be.true;
     // Subscribe should call setTimeout with Jenny's number
     expect(
-      setTimeoutSpy.getCalls().filter((value: SinonSpyCall) => get(value, 'lastArg') === JENNYS_NUMBER)
+      setTimeoutSpy
+        .getCalls()
+        .filter(
+          (value: SinonSpyCall) => get(value, 'lastArg') === JENNYS_NUMBER
+        )
     ).to.have.length(1);
     // Ensure setTimeout is not called with the handshake timeout.
     expect(
-      setTimeoutSpy.getCalls().filter((value: SinonSpyCall) => get(value, 'lastArg') === GHOSTBUSTERS_NUMBER)
+      setTimeoutSpy
+        .getCalls()
+        .filter(
+          (value: SinonSpyCall) => get(value, 'lastArg') === GHOSTBUSTERS_NUMBER
+        )
     ).to.have.length(0);
   });
 
@@ -422,11 +499,18 @@ describe('streaming client tests', () => {
     };
     const apiVersionErrorMsg = {
       channel: '/meta/handshake',
-      error: "400::API version in the URI is mandatory. URI format: '/cometd/43.0'"
+      error:
+        "400::API version in the URI is mandatory. URI format: '/cometd/43.0'"
     };
 
     try {
-      await shouldThrow(StreamingClient.prototype['incoming'].call(context, apiVersionErrorMsg, () => {}));
+      await shouldThrow(
+        StreamingClient.prototype['incoming'].call(
+          context,
+          apiVersionErrorMsg,
+          () => {}
+        )
+      );
     } catch (e) {
       expect(e).to.have.property('name', 'handshakeApiVersionError');
     }
@@ -442,50 +526,70 @@ describe('streaming client tests', () => {
         return { completed: false };
       };
 
-      options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+      options = new StreamingClient.DefaultOptions(
+        org,
+        MOCK_TOPIC,
+        streamProcessor
+      );
     });
 
     it('setTimeout equal to default', async () => {
-      options.setSubscribeTimeout(StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
-      options.setHandshakeTimeout(StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT);
+      options.setSubscribeTimeout(
+        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT
+      );
+      options.setHandshakeTimeout(
+        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT
+      );
 
-      expect(options.handshakeTimeout).to.be.equal(StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT);
-      expect(options.subscribeTimeout).to.be.equal(StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
+      expect(options.handshakeTimeout).to.be.equal(
+        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT
+      );
+      expect(options.subscribeTimeout).to.be.equal(
+        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT
+      );
     });
 
     it('setTimeout greater than the default', async () => {
-      const newSubscribeTime: Time = new Time(
-        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds + 1,
-        TIME_UNIT.MILLISECONDS
+      const newSubscribeTime: Duration = Duration.milliseconds(
+        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds +
+          1
       );
-      const newHandshakeTime: Time = new Time(
-        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds + 1,
-        TIME_UNIT.MILLISECONDS
+      const newHandshakeTime: Duration = Duration.milliseconds(
+        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds +
+          1
       );
       options.setSubscribeTimeout(newSubscribeTime);
       options.setHandshakeTimeout(newHandshakeTime);
-      expect(options.subscribeTimeout.milliseconds).to.be.equal(newSubscribeTime.milliseconds);
-      expect(options.handshakeTimeout.milliseconds).to.be.equal(newHandshakeTime.milliseconds);
+      expect(options.subscribeTimeout.milliseconds).to.be.equal(
+        newSubscribeTime.milliseconds
+      );
+      expect(options.handshakeTimeout.milliseconds).to.be.equal(
+        newHandshakeTime.milliseconds
+      );
     });
 
     it('setTimeout less that the default', async () => {
-      const newSubscribeTime: Time = new Time(
-        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds - 1,
-        TIME_UNIT.MILLISECONDS
+      const newSubscribeTime: Duration = Duration.milliseconds(
+        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds -
+          1
       );
-      const newHandshakeTime: Time = new Time(
-        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds - 1,
-        TIME_UNIT.MILLISECONDS
+      const newHandshakeTime: Duration = Duration.milliseconds(
+        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds -
+          1
       );
 
       try {
-        await shouldThrow(Promise.resolve(options.setSubscribeTimeout(newSubscribeTime)));
+        await shouldThrow(
+          Promise.resolve(options.setSubscribeTimeout(newSubscribeTime))
+        );
       } catch (e) {
         expect(e).to.have.property('name', 'waitParamValidValueError');
       }
 
       try {
-        await shouldThrow(Promise.resolve(options.setHandshakeTimeout(newHandshakeTime)));
+        await shouldThrow(
+          Promise.resolve(options.setHandshakeTimeout(newHandshakeTime))
+        );
       } catch (e) {
         expect(e).to.have.property('name', 'waitParamValidValueError');
       }

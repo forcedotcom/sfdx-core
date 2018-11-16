@@ -945,8 +945,8 @@ img { max-width: 100%; }
 					<dd><p>(async () =&gt; {
 							const options: MyDomainResolver.Options = {
 							url: new URL(&#39;<a href="http://mydomain.salesforce.com&#39;)">http://mydomain.salesforce.com&#39;)</a>,
-							timeout: new Time(5, TIME_UNIT.MINUTES),
-							frequency: new Time(10, TIME_UNIT.SECONDS)
+							timeout: Duration.minutes(5),
+							frequency: Duration.seconds(10)
 						};</p>
 						<p>  const resolver: MyDomainResolver = await MyDomainResolver.create(options);
 							const ipAddress: AnyJson = await resolver.resolve();
@@ -1015,7 +1015,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides AsyncOptionalCreatable.__constructor</p>
 							<ul>
-								<li>Defined in status/myDomainResolver.ts:42</li>
+								<li>Defined in status/myDomainResolver.ts:43</li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1037,7 +1037,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>DOMAIN<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">URL</span><span class="tsd-signature-symbol"> =&nbsp;new URL(&#x27;https://login.salesforce.com&#x27;)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in status/myDomainResolver.ts:38</li>
+						<li>Defined in status/myDomainResolver.ts:39</li>
 					</ul>
 				</aside>
 			</section>
@@ -1055,7 +1055,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides AsyncOptionalCreatable.init</p>
 							<ul>
-								<li>Defined in status/myDomainResolver.ts:95</li>
+								<li>Defined in status/myDomainResolver.ts:100</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1077,7 +1077,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in status/myDomainResolver.ts:54</li>
+								<li>Defined in status/myDomainResolver.ts:55</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
