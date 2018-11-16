@@ -14,20 +14,11 @@ import { testSetup } from '../../src/testSetup';
 
 const $$ = testSetup();
 
-const SCHEMA_DIR = path.join(
-  __dirname,
-  '..',
-  '..',
-  'test',
-  'unit',
-  'fixtures',
-  'schemas'
-);
+const SCHEMA_DIR = path.join(__dirname, '..', '..', 'test', 'unit', 'fixtures', 'schemas');
 
 const getIndent = (level: LoggerLevel) => ' '.repeat(level * 4);
 
-const getLine = (schema: JsonMap, line: number = 0) =>
-  new SchemaPrinter($$.TEST_LOGGER, schema).getLine(line);
+const getLine = (schema: JsonMap, line: number = 0) => new SchemaPrinter($$.TEST_LOGGER, schema).getLine(line);
 
 describe('SchemaPrinter', () => {
   it('throws with no schema properties', () => {
@@ -114,9 +105,7 @@ describe('SchemaPrinter', () => {
       const title = 'myTitle';
       const description = 'my description';
       // Check the entire line
-      const expected = `${getIndent(
-        1
-      )}${name}(${jsType}) - ${title}: ${description}`;
+      const expected = `${getIndent(1)}${name}(${jsType}) - ${title}: ${description}`;
       const properties = {
         testProperty: {
           title,
@@ -374,10 +363,7 @@ describe('SchemaPrinter', () => {
       const position = parseInt(err.message.match(/position (\d+)/)[1], 10);
 
       const start = position - 20 >= 0 ? position - 20 : 0;
-      const end =
-        position + 20 > fileContents.length
-          ? fileContents.length
-          : position + 20;
+      const end = position + 20 > fileContents.length ? fileContents.length : position + 20;
       const errorPortion = fileContents.substring(start, end);
 
       let totalCharCount = 0;
@@ -391,9 +377,7 @@ describe('SchemaPrinter', () => {
         return curLineNumber + 1;
       }, 1);
       throw new Error(
-        `Parse error in file ${schemaName} on line ${lineNumber}\n${errorPortion}\n${' '.repeat(
-          position - start
-        )}^`
+        `Parse error in file ${schemaName} on line ${lineNumber}\n${errorPortion}\n${' '.repeat(position - start)}^`
       );
     }
     return schema;
@@ -407,9 +391,7 @@ describe('SchemaPrinter', () => {
 
         new SchemaPrinter($$.TEST_LOGGER, schema)
           .getLines()
-          .forEach(line =>
-            expect(line).to.not.contain('undefined', `in ${schemaName}`)
-          );
+          .forEach(line => expect(line).to.not.contain('undefined', `in ${schemaName}`));
       });
     });
   });
@@ -423,11 +405,7 @@ describe('SchemaPrinter', () => {
       }
 
       const schema = { properties: { testProperty: {} } };
-      const printer = new SchemaPrinter(
-        $$.TEST_LOGGER,
-        schema,
-        new MyRenderer()
-      );
+      const printer = new SchemaPrinter($$.TEST_LOGGER, schema, new MyRenderer());
       expect(printer.getLine(0)).to.equal('testPropertyTest() - : ');
     });
     it('should be called using the defined renderer', () => {
@@ -456,9 +434,7 @@ describe('SchemaPrinter', () => {
         }
       };
       const printer = new SchemaPrinter($$.TEST_LOGGER, schema, new MyRender());
-      expect(printer.getLine(0)).to.equal(
-        'testPropertyName(typeType) - titleTitle: descriptionDescription'
-      );
+      expect(printer.getLine(0)).to.equal('testPropertyName(typeType) - titleTitle: descriptionDescription');
     });
   });
 });

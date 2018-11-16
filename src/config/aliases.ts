@@ -55,9 +55,7 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
     return ConfigGroup.getOptions(AliasGroup.ORGS, Aliases.getFileName());
   }
 
-  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(
-    options?: ConfigFile.Options
-  ): Promise<T> {
+  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(options?: ConfigFile.Options): Promise<T> {
     const aliases: ConfigFile<ConfigFile.Options> = await Aliases.create(
       (options as ConfigGroup.Options) || Aliases.getDefaultOptions()
     );
@@ -87,9 +85,7 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
       const split = arg.split('=');
 
       if (split.length !== 2) {
-        throw SfdxError.create('@salesforce/core', 'core', 'InvalidFormat', [
-          arg
-        ]);
+        throw SfdxError.create('@salesforce/core', 'core', 'InvalidFormat', [arg]);
       }
       const [name, value] = split;
       newAliases[name] = value || undefined;
@@ -106,13 +102,8 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
    * @param {string} [group=AliasGroup.Orgs] The group the alias belongs to. Defaults to Orgs
    * @returns {Promise<string>} The promise resolved when the alias is retrieved
    */
-  public static async fetch(
-    key: string,
-    group = AliasGroup.ORGS
-  ): Promise<string> {
-    const aliases = (await Aliases.retrieve(
-      Aliases.getDefaultOptions()
-    )) as Aliases;
+  public static async fetch(key: string, group = AliasGroup.ORGS): Promise<string> {
+    const aliases = (await Aliases.retrieve(Aliases.getDefaultOptions())) as Aliases;
     return aliases.getInGroup(key, group) as string;
   }
 

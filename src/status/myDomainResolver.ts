@@ -34,9 +34,7 @@ import { PollingClient } from './pollingClient';
  *   console.log(`Successfully resolved host: ${options.url} to address: ${ipAddress}`);
  * })();
  */
-export class MyDomainResolver extends AsyncOptionalCreatable<
-  MyDomainResolver.Options
-> {
+export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Options> {
   public static DEFAULT_DOMAIN = new URL('https://login.salesforce.com');
 
   private logger!: Logger;
@@ -69,11 +67,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<
             };
           }
           dnsResult = await promisify(lookup)(host);
-          self.logger.debug(
-            `Successfully resolved host: ${host} result: ${JSON.stringify(
-              dnsResult
-            )}`
-          );
+          self.logger.debug(`Successfully resolved host: ${host} result: ${JSON.stringify(dnsResult)}`);
           return {
             completed: true,
             payload: dnsResult.address

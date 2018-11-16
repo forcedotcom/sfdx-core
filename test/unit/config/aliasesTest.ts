@@ -36,9 +36,7 @@ describe('Alias', () => {
       const aliases = await Aliases.retrieve();
       aliases.set(key, value);
       await aliases.write();
-      expect(
-        sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy)
-      );
+      expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
       expect($$.getConfigStubContents('Aliases')).to.deep.equal({
         orgs: { test: 'val' }
       });
@@ -59,9 +57,7 @@ describe('Alias', () => {
       const aliases = await Aliases.retrieve();
       aliases.unsetAll(keyArray);
       await aliases.write();
-      expect(
-        sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy)
-      );
+      expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
       expect($$.getConfigStubContents('Aliases')).to.deep.equal({
         orgs: { test2: 'val' }
       });
@@ -72,9 +68,7 @@ describe('Alias', () => {
     describe('passes the right values to FileKeyValueStore#updateValues', () => {
       it('for one value', async () => {
         await Aliases.parseAndUpdate(['another=val']);
-        expect(
-          sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy)
-        );
+        expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
         expect($$.getConfigStubContents('Aliases')).to.deep.equal({
           orgs: { another: 'val' }
         });
@@ -82,9 +76,7 @@ describe('Alias', () => {
 
       it('for two of same value', async () => {
         await Aliases.parseAndUpdate(['another=val', 'some=val']);
-        expect(
-          sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy)
-        );
+        expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
         expect($$.getConfigStubContents('Aliases')).to.deep.equal({
           orgs: {
             another: 'val',

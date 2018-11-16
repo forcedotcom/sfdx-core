@@ -25,14 +25,9 @@ describe('ConfigGroup retrieve calls read', () => {
   });
 
   it('file already exists', async () => {
-    const options: ConfigGroup.Options = ConfigGroup.getOptions(
-      'orgs',
-      filename
-    );
+    const options: ConfigGroup.Options = ConfigGroup.getOptions('orgs', filename);
 
-    const store = (await ConfigGroup.retrieve(options)) as ConfigGroup<
-      ConfigGroup.Options
-    >;
+    const store = (await ConfigGroup.retrieve(options)) as ConfigGroup<ConfigGroup.Options>;
     expect(store.getInGroup('foo', 'orgs')).to.eq('foo@example.com');
   });
 });
@@ -41,9 +36,7 @@ describe('ConfigGroup', () => {
   let store: ConfigGroup<ConfigGroup.Options>;
 
   beforeEach(async () => {
-    store = await ConfigGroup.create(
-      ConfigGroup.getOptions('default', 'testfetchConfigInfos.json')
-    );
+    store = await ConfigGroup.create(ConfigGroup.getOptions('default', 'testfetchConfigInfos.json'));
   });
 
   it('set key value pair', async () => {
@@ -134,11 +127,7 @@ describe('ConfigGroup', () => {
 
     expect(store.keys()).to.deep.equal(['test1', 'test2', 'test3']);
     expect(store.values()).to.deep.equal(['val1', 'val2', 'val3']);
-    expect(store.entries()).to.deep.equal([
-      ['test1', 'val1'],
-      ['test2', 'val2'],
-      ['test3', 'val3']
-    ]);
+    expect(store.entries()).to.deep.equal([['test1', 'val1'], ['test2', 'val2'], ['test3', 'val3']]);
   });
 
   describe('write', () => {
@@ -152,18 +141,14 @@ describe('ConfigGroup', () => {
     describe('updateValues', () => {
       it('one value', async () => {
         await store.updateValues({ another: 'val' });
-        expect(
-          sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy)
-        );
+        expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
         const contents = $$.getConfigStubContents('ConfigGroup', 'default');
         expect(contents.another).to.equal('val');
       });
 
       it('two of same value', async () => {
         await store.updateValues({ another: 'val', some: 'val' });
-        expect(
-          sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy)
-        );
+        expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
         const contents = $$.getConfigStubContents('ConfigGroup', 'default');
         expect(contents.another).to.equal('val');
         expect(contents.some).to.equal('val');

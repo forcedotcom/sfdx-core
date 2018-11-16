@@ -47,50 +47,31 @@ class TestConfig extends ConfigFile<ConfigFile.Options> {
 describe('Config', () => {
   describe('instantiation', () => {
     it('not using global has project dir', async () => {
-      const config = await TestConfig.create(
-        await TestConfig.getOptions('test', false)
-      );
+      const config = await TestConfig.create(await TestConfig.getOptions('test', false));
       expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());
     });
     it('using global does not have project dir', async () => {
-      const config = await TestConfig.create(
-        await TestConfig.getOptions('test', true)
-      );
-      expect(config.getPath()).to.not.contain(
-        await TestConfig.getTestLocalPath()
-      );
+      const config = await TestConfig.create(await TestConfig.getOptions('test', true));
+      expect(config.getPath()).to.not.contain(await TestConfig.getTestLocalPath());
     });
     it('using state folder for global even when state is set to false', async () => {
-      const config = await TestConfig.create(
-        await TestConfig.getOptions('test', true, false)
-      );
-      expect(config.getPath()).to.not.contain(
-        await TestConfig.getTestLocalPath()
-      );
+      const config = await TestConfig.create(await TestConfig.getOptions('test', true, false));
+      expect(config.getPath()).to.not.contain(await TestConfig.getTestLocalPath());
       expect(config.getPath()).to.contain('.sfdx');
     });
     it('using local state folder', async () => {
-      const config = await TestConfig.create(
-        await TestConfig.getOptions('test', false, true)
-      );
+      const config = await TestConfig.create(await TestConfig.getOptions('test', false, true));
       expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());
       expect(config.getPath()).to.contain('.sfdx');
     });
     it('using local file', async () => {
-      const config = await TestConfig.create(
-        await TestConfig.getOptions('test', false, false)
-      );
+      const config = await TestConfig.create(await TestConfig.getOptions('test', false, false));
       expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());
       expect(config.getPath()).to.not.contain('.sfdx');
     });
     it('using local custom folder', async () => {
       const config = await TestConfig.create(
-        await TestConfig.getOptions(
-          'test',
-          false,
-          false,
-          Path.join('my', 'path')
-        )
+        await TestConfig.getOptions('test', false, false, Path.join('my', 'path'))
       );
       expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());
       expect(config.getPath()).to.not.contain('.sfdx');

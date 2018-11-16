@@ -24,11 +24,7 @@ describe('KeyChainImpl Tests', () => {
   describe('keychain program file issues', () => {
     it('File not found', async () => {
       try {
-        await keyChainImpl.validateProgram.bind(
-          null,
-          `/foo/bar/${$$.uniqid()}`,
-          fs
-        );
+        await keyChainImpl.validateProgram.bind(null, `/foo/bar/${$$.uniqid()}`, fs);
         assert('keyChainImpl.validateProgram() should have thrown an error');
       } catch (err) {
         expect(err).to.have.property('name', 'MissingCredentialProgramError');
@@ -47,12 +43,7 @@ describe('KeyChainImpl Tests', () => {
       };
 
       try {
-        await keyChainImpl.validateProgram.bind(
-          null,
-          `/foo/bar/${$$.uniqid()}`,
-          fsImpl,
-          () => false
-        );
+        await keyChainImpl.validateProgram.bind(null, `/foo/bar/${$$.uniqid()}`, fsImpl, () => false);
         assert('keyChainImpl.validateProgram() should have thrown an error');
       } catch (err) {
         expect(err).to.have.property('name', 'CredentialProgramAccessError');
@@ -88,10 +79,7 @@ describe('KeyChainImpl Tests', () => {
           .and.to.include(keyChainOptions.account);
       };
 
-      this.platformImpl.osImpl.getCommandFunc(
-        keyChainOptions,
-        testFunc.bind(this)
-      );
+      this.platformImpl.osImpl.getCommandFunc(keyChainOptions, testFunc.bind(this));
       done();
     };
 
@@ -100,13 +88,7 @@ describe('KeyChainImpl Tests', () => {
         expect(err).to.have.property('name', 'PasswordNotFoundError');
       };
 
-      this.platformImpl.osImpl.onGetCommandClose(
-        1,
-        'zuul',
-        'dana',
-        keyChainOptions,
-        responseFunc.bind(this)
-      );
+      this.platformImpl.osImpl.onGetCommandClose(1, 'zuul', 'dana', keyChainOptions, responseFunc.bind(this));
       done();
     };
 
@@ -115,13 +97,7 @@ describe('KeyChainImpl Tests', () => {
         expect(err).to.have.property('name', 'KeyChainUserCanceledError');
       };
 
-      this.platformImpl.osImpl.onGetCommandClose(
-        128,
-        'zuul',
-        'dana',
-        null,
-        responseFunc.bind(this)
-      );
+      this.platformImpl.osImpl.onGetCommandClose(128, 'zuul', 'dana', null, responseFunc.bind(this));
       done();
     };
 
@@ -134,10 +110,7 @@ describe('KeyChainImpl Tests', () => {
           expect(options)
             .to.include(keyChainOptions.service)
             .and.to.include(keyChainOptions.account);
-          this.platformImpl.osImpl.setCommandFunc(
-            keyChainOptions,
-            testFunc.bind(this)
-          );
+          this.platformImpl.osImpl.setCommandFunc(keyChainOptions, testFunc.bind(this));
         }
       };
       done();
@@ -167,10 +140,7 @@ describe('KeyChainImpl Tests', () => {
       it('OnSetFunc', _OnSetFunc.bind(this));
 
       if (this.platform === platforms.DARWIN) {
-        it(
-          'User canceled keychain user/password prompt',
-          _OnGetCommandMacUserCanceled.bind(this)
-        );
+        it('User canceled keychain user/password prompt', _OnGetCommandMacUserCanceled.bind(this));
       }
 
       if (this.platform === platforms.LINUX) {
@@ -183,18 +153,10 @@ describe('KeyChainImpl Tests', () => {
         const platform = platforms[platformKey];
         // this test is very much tied to various internal keychain impls. generic_unix doesn't rely on a
         // third-party program.
-        if (
-          !(
-            platform === platforms.GENERIC_UNIX ||
-            platform === platforms.GENERIC_WINDOWS
-          )
-        ) {
+        if (!(platform === platforms.GENERIC_UNIX || platform === platforms.GENERIC_WINDOWS)) {
           const platformImpl = keyChainImpl[platform];
 
-          describe(
-            `${platform} tests`,
-            _tests.bind({ platformImpl, platform })
-          );
+          describe(`${platform} tests`, _tests.bind({ platformImpl, platform }));
         }
       }
     });

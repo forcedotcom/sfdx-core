@@ -21,20 +21,14 @@ describe('SfdxProject', async () => {
   });
   describe('resolve', () => {
     it('with working directory', async () => {
-      $$.SANDBOX.stub(internal, 'resolveProjectPath').callsFake(
-        () => projectPath
-      );
+      $$.SANDBOX.stub(internal, 'resolveProjectPath').callsFake(() => projectPath);
       const project = await SfdxProject.resolve();
       expect(project.getPath()).to.equal(projectPath);
       const sfdxProject = await project.retrieveSfdxProjectJson();
-      expect(sfdxProject.getPath()).to.equal(
-        `${projectPath}/${SfdxProjectJson.getFileName()}`
-      );
+      expect(sfdxProject.getPath()).to.equal(`${projectPath}/${SfdxProjectJson.getFileName()}`);
     });
     it('with working directory throws with no sfdx-project.json', async () => {
-      $$.SANDBOX.stub(internal, 'resolveProjectPath').throws(
-        new Error('InvalidProjectWorkspace')
-      );
+      $$.SANDBOX.stub(internal, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspace'));
       try {
         await SfdxProject.resolve();
         assert.fail();
@@ -47,14 +41,10 @@ describe('SfdxProject', async () => {
       const project = await SfdxProject.resolve('/path');
       expect(project.getPath()).to.equal('/path');
       const sfdxProject = await project.retrieveSfdxProjectJson();
-      expect(sfdxProject.getPath()).to.equal(
-        `/path/${SfdxProjectJson.getFileName()}`
-      );
+      expect(sfdxProject.getPath()).to.equal(`/path/${SfdxProjectJson.getFileName()}`);
     });
     it('with path throws with no sfdx-project.json', async () => {
-      $$.SANDBOX.stub(internal, 'resolveProjectPath').throws(
-        new Error('InvalidProjectWorkspace')
-      );
+      $$.SANDBOX.stub(internal, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspace'));
       try {
         await SfdxProject.resolve();
         assert.fail();
@@ -66,9 +56,7 @@ describe('SfdxProject', async () => {
 
   describe('resolveProjectConfig', () => {
     beforeEach(() => {
-      $$.SANDBOX.stub(internal, 'resolveProjectPath').callsFake(
-        () => projectPath
-      );
+      $$.SANDBOX.stub(internal, 'resolveProjectPath').callsFake(() => projectPath);
       delete process.env.FORCE_SFDC_LOGIN_URL;
     });
     it('gets default login url', async () => {

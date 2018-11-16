@@ -97,9 +97,7 @@ export class SchemaPrinter {
       // No need to add to messages, since this should never happen. In fact,
       // this will cause a test failure if there is a command that uses a schema
       // with no properties defined.
-      throw new SfdxError(
-        'There is no purpose to print a schema with no properties or items'
-      );
+      throw new SfdxError('There is no purpose to print a schema with no properties or items');
     }
 
     const startLevel = 0;
@@ -159,23 +157,13 @@ export class SchemaPrinter {
     };
   }
 
-  private parseProperty(
-    name: string,
-    rawProperty?: JsonMap,
-    level: number = 0
-  ): void {
+  private parseProperty(name: string, rawProperty?: JsonMap, level: number = 0): void {
     if (!rawProperty) {
       return;
     }
 
     const add = this.addFn(level);
-    const property = new SchemaProperty(
-      this.logger,
-      this.schema,
-      name,
-      rawProperty,
-      this.propertyRenderer
-    );
+    const property = new SchemaProperty(this.logger, this.schema, name, rawProperty, this.propertyRenderer);
 
     add(property.renderHeader());
 
@@ -186,11 +174,7 @@ export class SchemaPrinter {
     }
     if (property.type === 'array') {
       add(`    ${property.renderArrayHeader()}`);
-      if (
-        property.items &&
-        property.items.type === 'object' &&
-        property.items.properties
-      ) {
+      if (property.items && property.items.type === 'object' && property.items.properties) {
         Object.keys(property.items.properties).forEach(key => {
           const items = asJsonMap(property.items);
           if (!items) {
@@ -224,11 +208,7 @@ class SchemaProperty {
     if (typeof this.rawProperty.$ref === 'string') {
       // Copy the referenced property while adding the original property's properties on top of that --
       // if they are defined here, they take precedence over referenced definition properties.
-      this.rawProperty = Object.assign(
-        {},
-        resolveRef(this.schema, this.rawProperty),
-        rawProperty
-      );
+      this.rawProperty = Object.assign({}, resolveRef(this.schema, this.rawProperty), rawProperty);
     }
 
     const oneOfs = asJsonArray(this.rawProperty.oneOf);
@@ -271,13 +251,7 @@ class SchemaProperty {
       return '';
     }
     const minItems = this.minItems ? ` - min ${this.minItems}` : '';
-    const prop = new SchemaProperty(
-      this.logger,
-      this.schema,
-      'items',
-      this.items,
-      this.propertyRenderer
-    );
+    const prop = new SchemaProperty(this.logger, this.schema, 'items', this.items, this.propertyRenderer);
     return `items(${prop.renderType()}${minItems}) - ${prop.renderTitle()}: ${prop.renderDescription()}`;
   }
 

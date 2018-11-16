@@ -102,10 +102,7 @@ export const stat = promisify(fs.stat);
  * @function mkdirp
  * @returns {Promise<void>}
  */
-export const mkdirp: (
-  folderPath: string,
-  mode?: string | object
-) => Promise<void> = promisify(mkdirpLib);
+export const mkdirp: (folderPath: string, mode?: string | object) => Promise<void> = promisify(mkdirpLib);
 
 /**
  * Deletes a folder recursively, removing all descending files and folders.
@@ -124,23 +121,12 @@ export async function remove(dirPath: string): Promise<void> {
   try {
     await access(dirPath, fs.constants.R_OK);
   } catch (err) {
-    throw new SfdxError(
-      `The path: ${dirPath} doesn\'t exist or access is denied.`,
-      'DirMissingOrNoAccess'
-    );
+    throw new SfdxError(`The path: ${dirPath} doesn\'t exist or access is denied.`, 'DirMissingOrNoAccess');
   }
   const files = await readdir(dirPath);
-  const stats = await Promise.all(
-    files.map(file => stat(path.join(dirPath, file)))
-  );
-  const metas = stats.map((value, index) =>
-    Object.assign(value, { path: path.join(dirPath, files[index]) })
-  );
-  await Promise.all(
-    metas.map(
-      meta => (meta.isDirectory() ? remove(meta.path) : unlink(meta.path))
-    )
-  );
+  const stats = await Promise.all(files.map(file => stat(path.join(dirPath, file))));
+  const metas = stats.map((value, index) => Object.assign(value, { path: path.join(dirPath, files[index]) }));
+  await Promise.all(metas.map(meta => (meta.isDirectory() ? remove(meta.path) : unlink(meta.path))));
   await rmdir(dirPath);
 }
 
@@ -153,10 +139,7 @@ export async function remove(dirPath: string): Promise<void> {
  * @param {string} file The file name to look for.
  * @returns {Promise<Optional<string>>}
  */
-export async function traverseForFile(
-  dir: string,
-  file: string
-): Promise<Optional<string>> {
+export async function traverseForFile(dir: string, file: string): Promise<Optional<string>> {
   let foundProjectDir: Optional<string>;
   try {
     await stat(path.join(dir, file));
@@ -180,10 +163,7 @@ export async function traverseForFile(
  * @param {boolean} [throwOnEmpty] Whether to throw an error if the JSON file is empty.
  * @return {Promise<AnyJson>} The contents of the file as a JSON object.
  */
-export async function readJson(
-  jsonPath: string,
-  throwOnEmpty?: boolean
-): Promise<AnyJson> {
+export async function readJson(jsonPath: string, throwOnEmpty?: boolean): Promise<AnyJson> {
   const fileData = await readFile(jsonPath, 'utf8');
   return await parseJson(fileData, jsonPath, throwOnEmpty);
 }
@@ -195,10 +175,7 @@ export async function readJson(
  * @param {boolean} [throwOnEmpty] Whether to throw an error if the JSON file is empty.
  * @return {Promise<JsonMap>} The contents of the file as a JSON object.
  */
-export async function readJsonMap(
-  jsonPath: string,
-  throwOnEmpty?: boolean
-): Promise<JsonMap> {
+export async function readJsonMap(jsonPath: string, throwOnEmpty?: boolean): Promise<JsonMap> {
   const fileData = await readFile(jsonPath, 'utf8');
   return await parseJsonMap(fileData, jsonPath, throwOnEmpty);
 }
@@ -210,10 +187,7 @@ export async function readJsonMap(
  * @param {object} data The JSON object to write.
  * @return {Promise<void>}
  */
-export async function writeJson(
-  jsonPath: string,
-  data: AnyJson
-): Promise<void> {
+export async function writeJson(jsonPath: string, data: AnyJson): Promise<void> {
   const fileData: string = JSON.stringify(data, null, 4);
   await writeFile(jsonPath, fileData, {
     encoding: 'utf8',

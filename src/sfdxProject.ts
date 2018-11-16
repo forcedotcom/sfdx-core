@@ -37,13 +37,8 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     return SFDX_PROJECT_JSON;
   }
 
-  public static getDefaultOptions(
-    isGlobal: boolean = false
-  ): ConfigFile.Options {
-    const options = ConfigFile.getDefaultOptions(
-      isGlobal,
-      SfdxProjectJson.getFileName()
-    );
+  public static getDefaultOptions(isGlobal: boolean = false): ConfigFile.Options {
+    const options = ConfigFile.getDefaultOptions(isGlobal, SfdxProjectJson.getFileName());
     options.isState = false;
     return options;
   }
@@ -58,10 +53,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
     const upperCaseKey = findUpperCaseKeys(this.toObject());
     if (upperCaseKey) {
-      throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [
-        upperCaseKey,
-        this.getPath()
-      ]);
+      throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
     }
     return contents;
   }
@@ -140,9 +132,7 @@ export class SfdxProject {
    *
    * @param {boolean} isGlobal True to get the global project file, otherwise the local project config.
    */
-  public async retrieveSfdxProjectJson(
-    isGlobal: boolean = false
-  ): Promise<SfdxProjectJson> {
+  public async retrieveSfdxProjectJson(isGlobal: boolean = false): Promise<SfdxProjectJson> {
     const options = SfdxProjectJson.getDefaultOptions(isGlobal);
     if (isGlobal) {
       if (!this.sfdxProjectJsonGlobal) {
@@ -178,17 +168,10 @@ export class SfdxProject {
         sfdcLoginUrl: 'https://login.salesforce.com'
       };
 
-      this.projectConfig = defaults(
-        local.toObject(),
-        global.toObject(),
-        defaultValues
-      );
+      this.projectConfig = defaults(local.toObject(), global.toObject(), defaultValues);
 
       // Add fields in sfdx-config.json
-      Object.assign(
-        this.projectConfig,
-        (await ConfigAggregator.create()).getConfig()
-      );
+      Object.assign(this.projectConfig, (await ConfigAggregator.create()).getConfig());
 
       // LEGACY - Allow override of sfdcLoginUrl via env var FORCE_SFDC_LOGIN_URL
       if (process.env.FORCE_SFDC_LOGIN_URL) {

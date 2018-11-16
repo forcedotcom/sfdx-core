@@ -34,9 +34,7 @@ export class Time {
       case TIME_UNIT.SECONDS:
         return Math.round(this.quantity / Time.SECONDS_IN_MINUTE);
       case TIME_UNIT.MILLISECONDS:
-        return Math.round(
-          this.quantity / Time.MILLI_IN_SECONDS / Time.SECONDS_IN_MINUTE
-        );
+        return Math.round(this.quantity / Time.MILLI_IN_SECONDS / Time.SECONDS_IN_MINUTE);
       default:
         return -1;
     }
