@@ -5,14 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { maxBy, merge } from '@salesforce/kit';
-import {
-  asString,
-  ensure,
-  isString,
-  JsonCollection,
-  JsonMap,
-  Optional
-} from '@salesforce/ts-types';
+import { asString, ensure, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
 import { Tooling as JSForceTooling } from 'jsforce';
 import { ExecuteOptions } from 'jsforce';
 import { QueryResult } from 'jsforce';
@@ -33,8 +26,7 @@ import { validateApiVersion } from './util/sfdc';
 // @ts-ignore
 Promise.prototype.thenCall = JsforcePromise.prototype.thenCall;
 
-const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS ||
-  ''}`;
+const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
 export const SFDX_HTTP_HEADERS = {
   'content-type': 'application/json',
   'user-agent': clientId
@@ -52,10 +44,7 @@ export interface Tooling extends JSForceTooling {
    * @param {ExecuteOptions} options The query options.  NOTE: the autoFetch option will always be true.
    * @returns {Promise.<QueryResult<T>>}
    */
-  autoFetchQuery<T>(
-    soql: string,
-    options?: ExecuteOptions
-  ): Promise<QueryResult<T>>;
+  autoFetchQuery<T>(soql: string, options?: ExecuteOptions): Promise<QueryResult<T>>;
 }
 
 /**
@@ -64,7 +53,9 @@ export interface Tooling extends JSForceTooling {
  *
  * @example
  * // Uses latest API version
- * const connection = await Connection.create(await AuthInfo.create(myAdminUsername));
+ * const connection = await Connection.create({
+ *     authInfo: await AuthInfo.create({ username: 'myAdminUsername' })
+ *   });
  * connection.query('SELECT Name from Account');
  *
  * // Use different API version
@@ -72,21 +63,11 @@ export interface Tooling extends JSForceTooling {
  * connection.query('SELECT Name from Account');
  */
 export class Connection extends JSForceConnection {
-  /**
-   * Create and return a connection to an org using authentication info.
-   * The returned connection uses the latest API version available on the
-   * server unless the apiVersion [config]{@link Config} value is set.
-   *
-   * @param {AuthInfo} authInfo The authentication info from the persistence store.
-   * @param {ConfigAggregator} [configAggregator] The aggregated config object.
-   * @returns {Promise<Connection>}
-   */
   public static async create(
-    authInfo: AuthInfo,
-    configAggregator?: ConfigAggregator
+    this: { new (options: Connection.Options): Connection },
+    options: Connection.Options
   ): Promise<Connection> {
-    const logger = await Logger.child('connection');
-    const _aggregator = configAggregator || (await ConfigAggregator.create());
+    const _aggregator = options.configAggregator || (await ConfigAggregator.create());
     const versionFromConfig = asString(_aggregator.getInfo('apiVersion').value);
     const baseOptions: ConnectionOptions = {
       // Set the API version obtained from the config aggregator.
@@ -98,11 +79,10 @@ export class Connection extends JSForceConnection {
     };
 
     // Get connection options from auth info and create a new jsForce connection
-    const connectionOptions: ConnectionOptions = Object.assign(
-      baseOptions,
-      authInfo.getConnectionOptions()
-    );
-    const conn = new Connection(connectionOptions, authInfo, logger);
+    options.connectionOptions = Object.assign(baseOptions, options.authInfo.getConnectionOptions());
+
+    const conn = new this(options);
+    await conn.init();
     if (!versionFromConfig) {
       await conn.useLatestApiVersion();
     }
@@ -117,20 +97,18 @@ export class Connection extends JSForceConnection {
   private _logger!: Logger;
   private _transport!: { httpRequest: (info: RequestInfo) => JsonMap };
   private _normalizeUrl!: (url: string) => string;
+  private options: Connection.Options;
 
-  private authInfo: AuthInfo;
-
-  constructor(options: ConnectionOptions, authInfo: AuthInfo, logger?: Logger) {
-    super(options);
+  constructor(options: Connection.Options) {
+    super(options.connectionOptions || {});
 
     this.tooling.autoFetchQuery = Connection.prototype.autoFetchQuery;
 
-    this.authInfo = authInfo;
+    this.options = options;
+  }
 
-    // Set the jsForce connection logger to be our Bunyan logger.
-    if (logger) {
-      this.logger = this._logger = this.tooling._logger = logger;
-    }
+  public async init(): Promise<void> {
+    this.logger = this._logger = this.tooling._logger = await Logger.child('connection');
   }
 
   /**
@@ -142,13 +120,8 @@ export class Connection extends JSForceConnection {
    * @param request HTTP request object or URL to GET request.
    * @param options HTTP API request options.
    */
-  public async request(
-    request: RequestInfo | string,
-    options?: JsonMap
-  ): Promise<JsonCollection> {
-    const _request: RequestInfo = isString(request)
-      ? { method: 'GET', url: request }
-      : request;
+  public async request(request: RequestInfo | string, options?: JsonMap): Promise<JsonCollection> {
+    const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
     _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, _request.headers);
     this.logger.debug(`request: ${JSON.stringify(_request)}`);
     //  The "as" is a workaround for the jsforce typings.
@@ -165,9 +138,7 @@ export class Connection extends JSForceConnection {
    * @returns {Promise<JsonMap>} The request Promise.
    */
   public async requestRaw(request: RequestInfo): Promise<JsonMap> {
-    const _headers = this.accessToken
-      ? { Authorization: `Bearer ${this.accessToken}` }
-      : {};
+    const _headers = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {};
 
     merge(_headers, SFDX_HTTP_HEADERS, request.headers);
 
@@ -193,13 +164,9 @@ export class Connection extends JSForceConnection {
    */
   public async retrieveMaxApiVersion(): Promise<string> {
     type Versioned = { version: string };
-    const versions = (await this.request(
-      `${this.instanceUrl}/services/data`
-    )) as Versioned[];
+    const versions = (await this.request(`${this.instanceUrl}/services/data`)) as Versioned[];
     this.logger.debug(`response for org versions: ${versions}`);
-    const max = ensure(
-      maxBy(versions, (version: Versioned) => version.version)
-    );
+    const max = ensure(maxBy(versions, (version: Versioned) => version.version));
     return max.version;
   }
   /**
@@ -242,11 +209,11 @@ export class Connection extends JSForceConnection {
    * @returns {AuthInfo} A cloned authInfo.
    */
   public getAuthInfoFields(): AuthFields {
-    return this.authInfo.getFields();
+    return this.options.authInfo.getFields();
   }
 
   public getConnectionOptions(): AuthFields {
-    return this.authInfo.getConnectionOptions();
+    return this.options.authInfo.getConnectionOptions();
   }
 
   /**
@@ -262,7 +229,7 @@ export class Connection extends JSForceConnection {
    * @returns {boolean}
    */
   public isUsingAccessToken(): boolean {
-    return this.authInfo.isUsingAccessToken();
+    return this.options.authInfo.isUsingAccessToken();
   }
 
   /**
@@ -281,10 +248,7 @@ export class Connection extends JSForceConnection {
    * @param {ExecuteOptions} options The query options.  NOTE: the autoFetch option will always be true.
    * @returns {Promise<QueryResult<T>>}
    */
-  public async autoFetchQuery<T>(
-    soql: string,
-    options: ExecuteOptions = {}
-  ): Promise<QueryResult<T>> {
+  public async autoFetchQuery<T>(soql: string, options: ExecuteOptions = {}): Promise<QueryResult<T>> {
     const _options: ExecuteOptions = Object.assign(options, {
       autoFetch: true
     });
@@ -304,5 +268,16 @@ export class Connection extends JSForceConnection {
           })
         )
     );
+  }
+}
+
+export namespace Connection {
+  /**
+   * Connection Options
+   */
+  export interface Options {
+    authInfo: AuthInfo;
+    configAggregator?: ConfigAggregator;
+    connectionOptions?: ConnectionOptions;
   }
 }
