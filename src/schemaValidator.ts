@@ -80,15 +80,9 @@ export class SchemaValidator {
     if (!validate(json)) {
       if (validate.errors) {
         const errors = this.getErrorsText(validate.errors, schema);
-        throw new SfdxError(
-          `Validation errors:\n${errors}`,
-          'ValidationSchemaFieldErrors'
-        );
+        throw new SfdxError(`Validation errors:\n${errors}`, 'ValidationSchemaFieldErrors');
       } else {
-        throw new SfdxError(
-          'Unknown schema validation error',
-          'ValidationSchemaUnknown'
-        );
+        throw new SfdxError('Unknown schema validation error', 'ValidationSchemaUnknown');
       }
     }
 
@@ -103,9 +97,7 @@ export class SchemaValidator {
    * @returns {Promise<Dictionary<JsonMap>>} A map of external schema local URIs to loaded schema JSON objects.
    * @private
    */
-  private async loadExternalSchemas(
-    schema: JsonMap
-  ): Promise<Dictionary<JsonMap>> {
+  private async loadExternalSchemas(schema: JsonMap): Promise<Dictionary<JsonMap>> {
     const externalSchemas: Dictionary<JsonMap> = {};
     const promises = getJsonValuesByName<string>(schema, '$ref')
       .map(ref => ref && ref.match(/([\w\.]+)#/))
@@ -139,10 +131,7 @@ export class SchemaValidator {
       return await readJsonMap(schemaPath);
     } catch (err) {
       if (err.code === 'ENOENT') {
-        throw new SfdxError(
-          `Schema not found: ${schemaPath}`,
-          'ValidationSchemaNotFound'
-        );
+        throw new SfdxError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');
       }
       throw err;
     }
@@ -162,10 +151,7 @@ export class SchemaValidator {
         const property = error.path.match(/^([a-zA-Z0-9\.]+)\.([a-zA-Z0-9]+)$/);
 
         const getPropValue = (prop: string): Optional<AnyJson> => {
-          const reducer = (
-            obj: Optional<AnyJson>,
-            name: string
-          ): Optional<AnyJson> => {
+          const reducer = (obj: Optional<AnyJson>, name: string): Optional<AnyJson> => {
             if (!isJsonMap(obj)) return;
             if (isJsonMap(obj.properties)) return obj.properties[name];
             if (name === '0') return asJsonArray(obj.items);
@@ -176,38 +162,26 @@ export class SchemaValidator {
 
         const getEnumValues = (): string => {
           const enumSchema = asJsonMap(getPropValue('enum'));
-          return (
-            (enumSchema && getJsonArray(enumSchema, 'enum', []).join(', ')) ||
-            ''
-          );
+          return (enumSchema && getJsonArray(enumSchema, 'enum', []).join(', ')) || '';
         };
 
         switch (error.keyword) {
           case 'additionalProperties':
             // Missing Typing
             const additionalProperties = get(error, 'additionalProperties');
-            return `${
-              error.path
-            } should NOT have additional properties '${additionalProperties}'`;
+            return `${error.path} should NOT have additional properties '${additionalProperties}'`;
           case 'required':
             if (property) {
-              return `${property[1]} should have required property ${
-                property[2]
-              }`;
+              return `${property[1]} should have required property ${property[2]}`;
             }
             return `should have required property '${error.path}'`;
           case 'oneOf':
             return `${error.path} should match exactly one schema in oneOf`;
           case 'enum':
-            return `${
-              error.path
-            } should be equal to one of the allowed values ${getEnumValues()}`;
+            return `${error.path} should be equal to one of the allowed values ${getEnumValues()}`;
           case 'type': {
-            const _path =
-              error.path === '' ? 'Root of JSON object' : error.path;
-            return `${_path} is an invalid type.  Expected type [${getPropValue(
-              'type'
-            )}]`;
+            const _path = error.path === '' ? 'Root of JSON object' : error.path;
+            return `${_path} is an invalid type.  Expected type [${getPropValue('type')}]`;
           }
           default:
             return `${error.path} invalid ${error.keyword}`;

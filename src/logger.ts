@@ -209,14 +209,9 @@ export class Logger {
     if (this.rootLogger) {
       return this.rootLogger;
     }
-    const rootLogger = (this.rootLogger = new Logger(
-      Logger.ROOT_NAME
-    ).setLevel());
+    const rootLogger = (this.rootLogger = new Logger(Logger.ROOT_NAME).setLevel());
     // disable log file writing, if applicable
-    if (
-      process.env.SFDX_DISABLE_LOG_FILE !== 'true' &&
-      Global.getEnvironmentMode() !== Mode.TEST
-    ) {
+    if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && Global.getEnvironmentMode() !== Mode.TEST) {
       await rootLogger.addLogFileStream(Global.LOG_FILE_PATH);
     }
 
@@ -235,9 +230,7 @@ export class Logger {
             if (isString(json.log)) {
               debuggerName = json.log;
               if (!debuggers[debuggerName]) {
-                debuggers[debuggerName] = Debug(
-                  `${rootLogger.getName()}:${debuggerName}`
-                );
+                debuggers[debuggerName] = Debug(`${rootLogger.getName()}:${debuggerName}`);
               }
             }
             const level = LoggerLevel[ensureNumber(json.level)];
@@ -296,9 +289,7 @@ export class Logger {
   private static readonly lifecycle = (() => {
     const events = new EventEmitter();
     events.setMaxListeners(0); // never warn on listener counts
-    process.on('uncaughtException', err =>
-      events.emit('uncaughtException', err)
-    );
+    process.on('uncaughtException', err => events.emit('uncaughtException', err));
     process.on('exit', () => events.emit('exit'));
     return events;
   })();
@@ -354,10 +345,7 @@ export class Logger {
    * @param {LoggerStream} stream The stream configuration to add.
    * @param {LoggerLevelValue} [defaultLevel] The default level of the stream.
    */
-  public addStream(
-    stream: LoggerStream,
-    defaultLevel?: LoggerLevelValue
-  ): void {
+  public addStream(stream: LoggerStream, defaultLevel?: LoggerLevelValue): void {
     this.bunyan.addStream(stream, defaultLevel);
   }
 
@@ -443,9 +431,7 @@ export class Logger {
    */
   public setLevel(level?: LoggerLevelValue): Logger {
     if (level == null) {
-      level = process.env.SFDX_LOG_LEVEL
-        ? Logger.getLevelByName(process.env.SFDX_LOG_LEVEL)
-        : Logger.DEFAULT_LEVEL;
+      level = process.env.SFDX_LOG_LEVEL ? Logger.getLevelByName(process.env.SFDX_LOG_LEVEL) : Logger.DEFAULT_LEVEL;
     }
     this.bunyan.level(level);
     return this;
@@ -555,19 +541,12 @@ export class Logger {
             fn(entry);
           }
           // close file streams, flush buffer to disk
-          if (
-            entry.type === 'file' &&
-            entry.stream &&
-            isFunction(entry.stream.end)
-          ) {
+          if (entry.type === 'file' && entry.stream && isFunction(entry.stream.end)) {
             entry.stream.end();
           }
         });
       } finally {
-        Logger.lifecycle.removeListener(
-          'uncaughtException',
-          this.uncaughtExceptionHandler
-        );
+        Logger.lifecycle.removeListener('uncaughtException', this.uncaughtExceptionHandler);
         Logger.lifecycle.removeListener('exit', this.exitHandler);
       }
     }
@@ -678,10 +657,7 @@ export class Logger {
     return this;
   }
 
-  private applyFilters(
-    logLevel: LoggerLevel,
-    ...args: Array<unknown>
-  ): Optional<Many<unknown>> {
+  private applyFilters(logLevel: LoggerLevel, ...args: Array<unknown>): Optional<Many<unknown>> {
     if (this.shouldLog(logLevel)) {
       // tslint:disable-next-line:no-any No bunyan typings
       this.bunyan.filters.forEach((filter: any) => (args = filter(...args)));
@@ -752,10 +728,7 @@ const _filter = (...args: Array<unknown>): unknown => {
         const hiddenAttrMessage = `"<${expName} - ${HIDDEN}>"`;
 
         // Match all json attribute values case insensitive: ex. {" Access*^&(*()^* Token " : " 45143075913458901348905 \n\t" ...}
-        const regexTokens = new RegExp(
-          `(['"][^'"]*${expElement}[^'"]*['"]\\s*:\\s*)['"][^'"]*['"]`,
-          'gi'
-        );
+        const regexTokens = new RegExp(`(['"][^'"]*${expElement}[^'"]*['"]\\s*:\\s*)['"][^'"]*['"]`, 'gi');
 
         _arg = _arg.replace(regexTokens, `$1${hiddenAttrMessage}`);
 
@@ -775,13 +748,8 @@ const _filter = (...args: Array<unknown>): unknown => {
       //  https://github.com/jsforce/jsforce/pull/598
       //  https://github.com/jsforce/jsforce/pull/608
       //  https://github.com/jsforce/jsforce/pull/609
-      const jsForceTokenRefreshRegEx = new RegExp(
-        'Refreshed(.*)access(.*)token(.*)=\\s*[^\'"\\s*]*'
-      );
-      _arg = _arg.replace(
-        jsForceTokenRefreshRegEx,
-        `<refresh_token - ${HIDDEN}>`
-      );
+      const jsForceTokenRefreshRegEx = new RegExp('Refreshed(.*)access(.*)token(.*)=\\s*[^\'"\\s*]*');
+      _arg = _arg.replace(jsForceTokenRefreshRegEx, `<refresh_token - ${HIDDEN}>`);
 
       _arg = _arg.replace(/sid=(.*)/, `sid=<${HIDDEN}>`);
 

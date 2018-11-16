@@ -7,11 +7,7 @@
 import { expect } from 'chai';
 import * as _ from 'lodash';
 import { retrieveKeychain } from '../../src/keyChain';
-import {
-  GenericUnixKeychainAccess,
-  GenericWindowsKeychainAccess,
-  keyChainImpl
-} from '../../src/keyChainImpl';
+import { GenericUnixKeychainAccess, GenericWindowsKeychainAccess, keyChainImpl } from '../../src/keyChainImpl';
 import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
@@ -51,9 +47,7 @@ describe('keyChain', () => {
       _.forEach(_keychains, _keychain => {
         expect(_keychain).to.have.property('osImpl');
         const program = _keychain['osImpl'].getProgram();
-        const testArrayMeta = _.find(testArray, elem =>
-          program.includes(elem.validateString)
-        );
+        const testArrayMeta = _.find(testArray, elem => program.includes(elem.validateString));
         expect(testArrayMeta == null).to.be.false;
       });
     });

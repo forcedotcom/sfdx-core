@@ -19,11 +19,8 @@ export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
   const logger: Logger = await Logger.child('keyChain');
   logger.debug(`platform: ${platform}`);
 
-  const useGenericUnixKeychainVar = env.getBoolean(
-    'SFDX_USE_GENERIC_UNIX_KEYCHAIN'
-  );
-  const shouldUseGenericUnixKeychain =
-    !!useGenericUnixKeychainVar && useGenericUnixKeychainVar;
+  const useGenericUnixKeychainVar = env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN');
+  const shouldUseGenericUnixKeychain = !!useGenericUnixKeychainVar && useGenericUnixKeychainVar;
 
   if (/^win/.test(platform)) {
     return keyChainImpl.generic_windows;
@@ -50,11 +47,6 @@ export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
       }
     }
   } else {
-    throw SfdxError.create(
-      '@salesforce/core',
-      'encryption',
-      'UnsupportedOperatingSystemError',
-      [platform]
-    );
+    throw SfdxError.create('@salesforce/core', 'encryption', 'UnsupportedOperatingSystemError', [platform]);
   }
 };

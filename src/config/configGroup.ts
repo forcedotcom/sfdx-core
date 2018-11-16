@@ -12,13 +12,7 @@
  */
 
 import { set } from '@salesforce/kit';
-import {
-  definiteEntriesOf,
-  definiteValuesOf,
-  getJsonMap,
-  JsonMap,
-  Optional
-} from '@salesforce/ts-types';
+import { definiteEntriesOf, definiteValuesOf, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
@@ -50,22 +44,14 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * @param {string} defaultGroup The default group to use when creating the config.
    * @param {string} [filename] The filename of the config file. Uses the static {@link getFileName} by default.
    */
-  public static getOptions(
-    defaultGroup: string,
-    filename?: string
-  ): ConfigGroup.Options {
-    const options: ConfigFile.Options = ConfigFile.getDefaultOptions(
-      true,
-      filename
-    );
+  public static getOptions(defaultGroup: string, filename?: string): ConfigGroup.Options {
+    const options: ConfigFile.Options = ConfigFile.getDefaultOptions(true, filename);
     const configGroupOptions: ConfigGroup.Options = { defaultGroup };
     Object.assign(configGroupOptions, options);
     return configGroupOptions;
   }
 
-  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(
-    options?: ConfigFile.Options
-  ): Promise<T> {
+  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(options?: ConfigFile.Options): Promise<T> {
     const aliases: ConfigFile<ConfigFile.Options> = await ConfigGroup.create(
       (options as ConfigGroup.Options) || ConfigGroup.getDefaultOptions()
     );
@@ -94,15 +80,10 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * @param {string} [group = 'default'] The group the property belongs to.
    * @returns {Promise<object>} The new property that was saved.
    */
-  public async updateValues(
-    newEntries: object,
-    group?: string
-  ): Promise<object> {
+  public async updateValues(newEntries: object, group?: string): Promise<object> {
     // Make sure the contents are loaded
     await this.read();
-    Object.entries(newEntries).forEach(([key, val]) =>
-      this.setInGroup(key, val, group || this.defaultGroup)
-    );
+    Object.entries(newEntries).forEach(([key, val]) => this.setInGroup(key, val, group || this.defaultGroup));
     await this.write();
     return newEntries;
   }
@@ -114,11 +95,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * @param {string} [group = 'default'] The group.
    * @returns {Promise<void>} The promise resolved when the value is set.
    */
-  public async updateValue(
-    key: string,
-    value: ConfigValue,
-    group?: string
-  ): Promise<void> {
+  public async updateValue(key: string, value: ConfigValue, group?: string): Promise<void> {
     // Make sure the content is loaded
     await this.read();
     this.setInGroup(key, value, group || this.defaultGroup);
@@ -265,11 +242,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * @param [group = 'default'] The group. Defaults to the default group.
    * @returns {ConfigContents} The contents.
    */
-  public setInGroup(
-    key: string,
-    value?: ConfigValue,
-    group?: string
-  ): ConfigContents {
+  public setInGroup(key: string, value?: ConfigValue, group?: string): ConfigContents {
     let content: JsonMap;
 
     group = group || this.defaultGroup;
