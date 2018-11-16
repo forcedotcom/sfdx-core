@@ -13,12 +13,7 @@ import { Org } from '../../src/org';
 import { PermissionSetAssignment } from '../../src/permissionSetAssignment';
 import { SecureBuffer } from '../../src/secureBuffer';
 import { MockTestOrgData, shouldThrow, testSetup } from '../../src/testSetup';
-import {
-  DefaultUserFields,
-  DefaultUserFieldsOptions,
-  User,
-  UserFields
-} from '../../src/user';
+import { DefaultUserFields, DefaultUserFieldsOptions, User, UserFields } from '../../src/user';
 
 const $$ = testSetup();
 
@@ -35,89 +30,75 @@ describe('User Tests', () => {
       return Promise.resolve({});
     };
 
-    stubMethod($$.SANDBOX, Connection.prototype, 'query').callsFake(
-      (query: string) => {
-        if (query.includes(adminTestData.username)) {
-          return {
-            records: [adminTestData.getMockUserInfo()],
-            totalSize: 1
-          };
-        }
-
-        if (query.includes(user1.username)) {
-          return {
-            records: [user1.getMockUserInfo()],
-            totalSize: 1
-          };
-        }
-
-        if (query.includes('Standard User')) {
-          return { records: [{ Id: '123456' }] };
-        }
-
-        return {};
+    stubMethod($$.SANDBOX, Connection.prototype, 'query').callsFake((query: string) => {
+      if (query.includes(adminTestData.username)) {
+        return {
+          records: [adminTestData.getMockUserInfo()],
+          totalSize: 1
+        };
       }
-    );
 
-    stubMethod(
-      $$.SANDBOX,
-      AuthInfo.prototype,
-      'buildRefreshTokenConfig'
-    ).callsFake(() => {
+      if (query.includes(user1.username)) {
+        return {
+          records: [user1.getMockUserInfo()],
+          totalSize: 1
+        };
+      }
+
+      if (query.includes('Standard User')) {
+        return { records: [{ Id: '123456' }] };
+      }
+
       return {};
     });
 
-    stubMethod($$.SANDBOX, Connection.prototype, 'describe').callsFake(
-      async () => {
-        return Promise.resolve({ fields: {} });
-      }
-    );
+    stubMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig').callsFake(() => {
+      return {};
+    });
 
-    refreshSpy = stubMethod($$.SANDBOX, Org.prototype, 'refreshAuth').callsFake(
-      () => {
-        return Promise.resolve({});
-      }
-    );
+    stubMethod($$.SANDBOX, Connection.prototype, 'describe').callsFake(async () => {
+      return Promise.resolve({ fields: {} });
+    });
+
+    refreshSpy = stubMethod($$.SANDBOX, Org.prototype, 'refreshAuth').callsFake(() => {
+      return Promise.resolve({});
+    });
   });
 
   describe('init tests', () => {
     it('refresh auth called', async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(
-        async () => {
-          return Promise.resolve({
-            statusCode: 201,
-            body: `{"id": "${user1.getMockUserInfo()['Id']}"}`,
-            headers: {
-              'auto-approve-user': user1.refreshToken
-            }
-          });
-        }
-      );
+      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(async () => {
+        return Promise.resolve({
+          statusCode: 201,
+          body: `{"id": "${user1.getMockUserInfo()['Id']}"}`,
+          headers: {
+            'auto-approve-user': user1.refreshToken
+          }
+        });
+      });
       expect(refreshSpy.calledOnce).to.equal(false);
       const org = await Org.create({
-        connection: await Connection.create(
-          await AuthInfo.create({ username: adminTestData.username })
-        )
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: adminTestData.username })
+        })
       });
       await User.init(org);
       expect(refreshSpy.calledOnce).to.equal(true);
     });
 
     it('refresh auth called error code 400', async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(
-        async () => {
-          return Promise.resolve({
-            body: `{
+      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(async () => {
+        return Promise.resolve({
+          body: `{
                     "statusCode": "400"
                 }`
-          });
-        }
-      );
+        });
+      });
 
       const org = await Org.create({
-        connection: await Connection.create(
-          await AuthInfo.create({ username: adminTestData.username })
-        )
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: adminTestData.username })
+        })
       });
       const user = await User.init(org);
 
@@ -126,9 +107,7 @@ describe('User Tests', () => {
           templateUser: adminTestData.username,
           newUserName: user1.username
         };
-        const fields: DefaultUserFields = await DefaultUserFields.create(
-          options
-        );
+        const fields: DefaultUserFields = await DefaultUserFields.create(options);
         await shouldThrow(user.create(fields.getFields()));
       } catch (e) {
         expect(e).to.have.property('name', 'UserCreateHttpError');
@@ -150,22 +129,20 @@ describe('User Tests', () => {
 
   describe('createUser', () => {
     it('should create a user', async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(
-        async () => {
-          return Promise.resolve({
-            statusCode: 201,
-            body: '{"id": "123456"}',
-            headers: {
-              'auto-approve-user': '789101'
-            }
-          });
-        }
-      );
+      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(async () => {
+        return Promise.resolve({
+          statusCode: 201,
+          body: '{"id": "123456"}',
+          headers: {
+            'auto-approve-user': '789101'
+          }
+        });
+      });
 
       const org = await Org.create({
-        connection: await Connection.create(
-          await AuthInfo.create({ username: adminTestData.username })
-        )
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: adminTestData.username })
+        })
       });
       const user: User = await User.init(org);
 
@@ -206,9 +183,9 @@ describe('User Tests', () => {
         };
       });
       $$.configStubs.AuthInfoConfig = { contents: await user1.getConfig() };
-      const connection: Connection = await Connection.create(
-        await AuthInfo.create({ username: user1.username })
-      );
+      const connection: Connection = await Connection.create({
+        authInfo: await AuthInfo.create({ username: user1.username })
+      });
       org = await Org.create({ connection });
     });
 
@@ -233,31 +210,27 @@ describe('User Tests', () => {
     let org: Org;
 
     beforeEach(async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(
-        async () => {
-          return Promise.resolve({
-            statusCode: 201,
-            body: '{"id": "56789"}',
-            headers: {
-              'auto-approve-user': '123456'
-            }
-          });
-        }
-      );
+      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').callsFake(async () => {
+        return Promise.resolve({
+          statusCode: 201,
+          body: '{"id": "56789"}',
+          headers: {
+            'auto-approve-user': '123456'
+          }
+        });
+      });
 
       org = await Org.create({
-        connection: await Connection.create(
-          await AuthInfo.create({ username: adminTestData.username })
-        )
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: adminTestData.username })
+        })
       });
     });
 
     it('Should assign the permission set', async () => {
-      const permSetAssignSpy = stubMethod(
-        $$.SANDBOX,
-        PermissionSetAssignment.prototype,
-        'create'
-      ).returns(Promise.resolve({}));
+      const permSetAssignSpy = stubMethod($$.SANDBOX, PermissionSetAssignment.prototype, 'create').returns(
+        Promise.resolve({})
+      );
 
       const user: User = await User.init(org);
       const fields: UserFields = await user.retrieve(user1.username);
