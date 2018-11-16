@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "0.24.2",
+  "version": "0.24.3",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "license": "BSD-3-Clause",
@@ -11,7 +11,6 @@
     "compile": "yarn sfdx-compile",
     "docs": "yarn sfdx-docs",
     "format": "yarn sfdx-format",
-    "install": "yarn sfdx-install",
     "lint": "yarn sfdx-lint",
     "postcompile": "tsc -p test; tsc -p typedocExamples",
     "prepack": "yarn sfdx-build",
