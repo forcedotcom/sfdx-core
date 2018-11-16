@@ -20,9 +20,8 @@ import {
   StreamingMockSubscriptionCall,
   testSetup
 } from '../../../src/testSetup';
-import { Time, TIME_UNIT } from '../../../src/util/time';
 
-import { Env } from '@salesforce/kit';
+import { Duration, Env } from '@salesforce/kit';
 import { get, JsonMap } from '@salesforce/ts-types';
 
 // @ts-ignore
@@ -305,7 +304,7 @@ describe('streaming client tests', () => {
 
     const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
-    options.handshakeTimeout = new Time(1, TIME_UNIT.MILLISECONDS);
+    options.handshakeTimeout = Duration.milliseconds(1);
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -340,7 +339,7 @@ describe('streaming client tests', () => {
 
     const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
-    options.subscribeTimeout = new Time(1, TIME_UNIT.MILLISECONDS);
+    options.subscribeTimeout = Duration.milliseconds(1);
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -385,8 +384,8 @@ describe('streaming client tests', () => {
 
     const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
-    options.subscribeTimeout = new Time(JENNYS_NUMBER, TIME_UNIT.MILLISECONDS); // Jenny's phone number
-    options.handshakeTimeout = new Time(GHOSTBUSTERS_NUMBER, TIME_UNIT.MILLISECONDS); // Ghostbusters phone number
+    options.subscribeTimeout = Duration.milliseconds(JENNYS_NUMBER); // Jenny's phone number
+    options.handshakeTimeout = Duration.milliseconds(GHOSTBUSTERS_NUMBER); // Ghostbusters phone number
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -454,13 +453,11 @@ describe('streaming client tests', () => {
     });
 
     it('setTimeout greater than the default', async () => {
-      const newSubscribeTime: Time = new Time(
-        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds + 1,
-        TIME_UNIT.MILLISECONDS
+      const newSubscribeTime: Duration = Duration.milliseconds(
+        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds + 1
       );
-      const newHandshakeTime: Time = new Time(
-        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds + 1,
-        TIME_UNIT.MILLISECONDS
+      const newHandshakeTime: Duration = Duration.milliseconds(
+        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds + 1
       );
       options.setSubscribeTimeout(newSubscribeTime);
       options.setHandshakeTimeout(newHandshakeTime);
@@ -469,13 +466,11 @@ describe('streaming client tests', () => {
     });
 
     it('setTimeout less that the default', async () => {
-      const newSubscribeTime: Time = new Time(
-        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds - 1,
-        TIME_UNIT.MILLISECONDS
+      const newSubscribeTime: Duration = Duration.milliseconds(
+        StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds - 1
       );
-      const newHandshakeTime: Time = new Time(
-        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds - 1,
-        TIME_UNIT.MILLISECONDS
+      const newHandshakeTime: Duration = Duration.milliseconds(
+        StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds - 1
       );
 
       try {

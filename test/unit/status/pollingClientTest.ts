@@ -9,10 +9,10 @@ import * as sinon from 'sinon';
 
 import { ensureJsonMap } from '@salesforce/ts-types';
 
+import { Duration } from '@salesforce/kit';
 import { StatusResult } from '../../../src/status/client';
 import { PollingClient } from '../../../src/status/pollingClient';
 import { shouldThrow } from '../../../src/testSetup';
-import { Time, TIME_UNIT } from '../../../src/util/time';
 
 function* generator(testName: string): IterableIterator<StatusResult> {
   yield { completed: false };
@@ -41,8 +41,8 @@ describe('clientTest', () => {
       async poll(): Promise<StatusResult> {
         return Promise.resolve(pollingResultGenerator.next().value);
       },
-      frequency: new Time(10, TIME_UNIT.MILLISECONDS),
-      timeout: new Time(1, TIME_UNIT.MINUTES)
+      frequency: Duration.milliseconds(10),
+      timeout: Duration.minutes(1)
     };
     const client: PollingClient = await PollingClient.create(options);
 
@@ -58,8 +58,8 @@ describe('clientTest', () => {
         callCount++;
         return Promise.resolve({ completed: false });
       },
-      frequency: new Time(90, TIME_UNIT.MILLISECONDS),
-      timeout: new Time(300, TIME_UNIT.MILLISECONDS)
+      frequency: Duration.milliseconds(90),
+      timeout: Duration.milliseconds(300)
     };
 
     const client = await PollingClient.create(options);
@@ -84,8 +84,8 @@ describe('clientTest', () => {
         }
         return Promise.resolve({ completed: false });
       },
-      frequency: new Time(90, TIME_UNIT.MILLISECONDS),
-      timeout: new Time(400, TIME_UNIT.MILLISECONDS)
+      frequency: Duration.milliseconds(90),
+      timeout: Duration.milliseconds(400)
     };
     const client = await PollingClient.create(options);
 

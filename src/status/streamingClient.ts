@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AsyncOptionalCreatable, Env, env, set } from '@salesforce/kit';
+import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types';
 import { EventEmitter } from 'events';
 // @ts-ignore No typings are available for faye
@@ -12,7 +12,6 @@ import * as Faye from 'sfdx-faye';
 import { Logger } from '../logger';
 import { Org } from '../org';
 import { SfdxError, SfdxErrorConfig } from '../sfdxError';
-import { Time, TIME_UNIT } from '../util/time';
 import { StatusResult } from './client';
 
 import { resolve as resolveUrl } from 'url';
@@ -105,10 +104,10 @@ export interface CometSubscription {
 
 /**
  * Validation helper
- * @param newTime New Time to validate.
+ * @param newTime New Duration to validate.
  * @param existingTime Existing time to validate.
  */
-function validateTimeout(newTime: Time, existingTime: Time) {
+function validateTimeout(newTime: Duration, existingTime: Duration) {
   if (newTime.milliseconds >= existingTime.milliseconds) {
     return newTime;
   }
@@ -444,9 +443,9 @@ export namespace StreamingClient {
     // The org streaming target.
     org: Org;
     // The hard timeout that happens with subscribe
-    subscribeTimeout: Time;
+    subscribeTimeout: Duration;
     // The hard timeout that happens with a handshake.
-    handshakeTimeout: Time;
+    handshakeTimeout: Duration;
     // The streaming channel aka topic
     channel: string;
     // The salesforce api version
@@ -464,14 +463,14 @@ export namespace StreamingClient {
     public static readonly SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS = 'SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING';
     public static readonly SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING = 'SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING';
 
-    public static readonly DEFAULT_SUBSCRIBE_TIMEOUT = new Time(3, TIME_UNIT.MINUTES);
-    public static readonly DEFAULT_HANDSHAKE_TIMEOUT = new Time(30, TIME_UNIT.SECONDS);
+    public static readonly DEFAULT_SUBSCRIBE_TIMEOUT = Duration.minutes(3);
+    public static readonly DEFAULT_HANDSHAKE_TIMEOUT = Duration.seconds(30);
 
     public apiVersion: string;
     public org: Org;
     public streamProcessor: StreamProcessor;
-    public subscribeTimeout: Time;
-    public handshakeTimeout: Time;
+    public subscribeTimeout: Duration;
+    public handshakeTimeout: Duration;
     public channel: string;
     public streamingImpl: StreamingClientIfc;
     private envDep: Env;
@@ -545,7 +544,7 @@ export namespace StreamingClient {
      * @param newTime The new subscribe timeout.
      * @throws An error if the newTime is less than the default time.
      */
-    public setSubscribeTimeout(newTime: Time) {
+    public setSubscribeTimeout(newTime: Duration) {
       this.subscribeTimeout = validateTimeout(newTime, DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
     }
 
@@ -554,7 +553,7 @@ export namespace StreamingClient {
      * @param newTime The new handshake timeout
      * @throws An error if the newTime is less than the default time.
      */
-    public setHandshakeTimeout(newTime: Time) {
+    public setHandshakeTimeout(newTime: Duration) {
       this.handshakeTimeout = validateTimeout(newTime, DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT);
     }
   }
@@ -573,7 +572,7 @@ export namespace StreamingClient {
    * Indicators to test error names for StreamingTimeouts
    * @typedef StreamingConnectionState
    * @property HANDSHAKE - To indicate the error occurred on handshake
-   * @property SUBSCRIBE - To indicate the error occured on subscribe
+   * @property SUBSCRIBE - To indicate the error occurred on subscribe
    */
   export enum TimeoutErrorType {
     HANDSHAKE = 'genericHandshakeTimeoutMessage',
