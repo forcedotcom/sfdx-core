@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { get, JsonMap } from '@salesforce/ts-types';
+
 import { assert, expect } from 'chai';
 import * as jsforce from 'jsforce';
 import { AuthInfo } from '../../src/authInfo';
@@ -15,7 +17,9 @@ const $$ = testSetup();
 
 describe('Connection', () => {
   const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
-  let requestMock;
+
+  let requestMock: sinon.SinonStub;
+  let initializeStub: sinon.SinonStub;
 
   const testAuthInfo = {
     isOauth: () => true,
@@ -24,30 +28,30 @@ describe('Connection', () => {
 
   beforeEach(() => {
     $$.SANDBOXES.CONNECTION.restore();
-    $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns({});
+    initializeStub = $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns({});
     requestMock = $$.SANDBOX.stub(jsforce.Connection.prototype, 'request')
       .onFirstCall()
       .returns(Promise.resolve([{ version: '42.0' }]));
   });
 
   it('create() should create a connection using AuthInfo and SFDX options', async () => {
-    const conn = await Connection.create(testAuthInfo as AuthInfo);
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
 
     expect(conn.request).to.exist;
     expect(conn['oauth2']).to.be.an('object');
-    expect(conn['authInfo']).to.exist;
-    expect(conn['loginUrl']).to.equal(testConnectionOptions.loginUrl);
-    expect(conn['callOptions'].client).to.contain('sfdx toolbelt:');
-    expect(jsforce.Connection.prototype.initialize['called']).to.be.true;
+    expect(get(conn, 'options.authInfo')).to.exist;
+    expect(get(conn, 'loginUrl')).to.equal(testConnectionOptions.loginUrl);
+    expect((get(conn, 'callOptions') as JsonMap).client).to.contain('sfdx toolbelt:');
+    expect(initializeStub.called).to.be.true;
   });
 
   it('create() should create a connection with the latest API version', async () => {
-    const conn = await Connection.create(testAuthInfo as AuthInfo);
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
     expect(conn.getApiVersion()).to.equal('42.0');
   });
 
   it('setApiVersion() should throw with invalid version', async () => {
-    const conn = await Connection.create(testAuthInfo as AuthInfo);
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
 
     try {
       conn.setApiVersion('v23.0');
@@ -65,16 +69,13 @@ describe('Connection', () => {
       headers: SFDX_HTTP_HEADERS
     };
 
-    const conn = await Connection.create(testAuthInfo as AuthInfo);
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
 
     // Test passing a string to conn.request()
     const response1 = await conn.request(testUrl);
-    expect(jsforce.Connection.prototype.request['called']).to.be.true;
-    expect(
-      jsforce.Connection.prototype.request['secondCall'].args[0]
-    ).to.deep.equal(expectedRequestInfo);
-    expect(jsforce.Connection.prototype.request['secondCall'].args[1]).to.be
-      .undefined;
+    expect(requestMock.called).to.be.true;
+    expect(requestMock.secondCall.args[0]).to.deep.equal(expectedRequestInfo);
+    expect(requestMock.secondCall.args[1]).to.be.undefined;
     expect(response1).to.deep.equal(testResponse);
   });
 
@@ -83,7 +84,7 @@ describe('Connection', () => {
     requestMock.onSecondCall().returns(Promise.resolve(testResponse));
     const testUrl = 'connectionTest/request/url/describe';
 
-    const conn = await Connection.create(testAuthInfo as AuthInfo);
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
 
     // Test passing a RequestInfo object and options to conn.request()
     const requestInfo = { method: 'POST', url: testUrl };
@@ -92,13 +93,9 @@ describe('Connection', () => {
     });
     const httpOptions = { responseType: 'json' };
     const response = await conn.request(requestInfo, httpOptions);
-    expect(jsforce.Connection.prototype.request['called']).to.be.true;
-    expect(
-      jsforce.Connection.prototype.request['secondCall'].args[0]
-    ).to.deep.equal(expectedRequestInfo);
-    expect(jsforce.Connection.prototype.request['secondCall'].args[1]).to.equal(
-      httpOptions
-    );
+    expect(requestMock.called).to.be.true;
+    expect(requestMock.secondCall.args[0]).to.deep.equal(expectedRequestInfo);
+    expect(requestMock.secondCall.args[1]).to.equal(httpOptions);
     expect(response).to.deep.equal(testResponse);
   });
 
@@ -106,7 +103,7 @@ describe('Connection', () => {
     const testResponse = { success: true };
     requestMock.onSecondCall().returns(Promise.resolve(testResponse));
 
-    const conn = await Connection.create(testAuthInfo as AuthInfo);
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
 
     const testUrl = '/services/data/v42.0/tooling/sobjects';
     const requestInfo = { method: 'GET', url: testUrl };
@@ -116,10 +113,8 @@ describe('Connection', () => {
 
     const response = await conn.tooling.describeGlobal();
 
-    expect(jsforce.Connection.prototype.request['called']).to.be.true;
-    expect(
-      jsforce.Connection.prototype.request['secondCall'].args[0]
-    ).to.deep.equal(expectedRequestInfo);
+    expect(requestMock.called).to.be.true;
+    expect(requestMock.secondCall.args[0]).to.deep.equal(expectedRequestInfo);
     expect(response).to.deep.equal(testResponse);
   });
 
@@ -133,7 +128,7 @@ describe('Connection', () => {
     const querySpy = $$.SANDBOX.spy(jsforce.Connection.prototype, 'query');
     const soql = 'TEST_SOQL';
 
-    const conn = await Connection.create(testAuthInfo as AuthInfo);
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
     const queryResults = await conn.autoFetchQuery(soql);
 
     expect(queryResults).to.deep.equal({
@@ -154,7 +149,7 @@ describe('Connection', () => {
     requestMock.onThirdCall().returns(Promise.resolve(queryResponse2));
     const soql = 'TEST_SOQL';
 
-    const conn = await Connection.create(testAuthInfo as AuthInfo);
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
     const queryResults = await conn.tooling.autoFetchQuery(soql);
 
@@ -164,16 +159,13 @@ describe('Connection', () => {
       records: [...records1, ...records2]
     });
     expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
-    expect(toolingQuerySpy.firstCall.args[1]).to.have.property(
-      'autoFetch',
-      true
-    );
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
   });
 
   it('autoFetch() should reject the promise upon query error', async () => {
     const errorMsg = 'QueryFailed';
     requestMock.onSecondCall().throws(new Error(errorMsg));
-    const conn = await Connection.create(testAuthInfo as AuthInfo);
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
 
     try {
       await conn.autoFetchQuery('TEST_SOQL');

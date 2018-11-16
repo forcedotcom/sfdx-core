@@ -24,27 +24,25 @@ describe('permission set assignment tests', () => {
     let org: Org;
     beforeEach(async () => {
       org = await Org.create({
-        connection: await Connection.create(
-          await AuthInfo.create({ username: userTestdata.username })
-        )
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: userTestdata.username })
+        })
       });
     });
 
     it('should create a perm set assignment.', async () => {
       let query: string = '';
-      $$.SANDBOX.stub(Connection.prototype, 'query').callsFake(
-        (_query: string) => {
-          query = _query.toLowerCase();
-          if (query.includes('from permissionset')) {
-            return {
-              records: [{ Id: '123456' }],
-              totalSize: 1
-            };
-          }
-
-          return {};
+      $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
+        query = _query.toLowerCase();
+        if (query.includes('from permissionset')) {
+          return {
+            records: [{ Id: '123456' }],
+            totalSize: 1
+          };
         }
-      );
+
+        return {};
+      });
 
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
         return {
@@ -54,9 +52,7 @@ describe('permission set assignment tests', () => {
         };
       });
 
-      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(
-        org
-      );
+      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
       const NS = 'NS';
       await assignment.create('123456', `${NS}__${PERM_SET_NAME}`);
@@ -69,19 +65,17 @@ describe('permission set assignment tests', () => {
 
     it('Failed to find permsets with namespace', async () => {
       let query: string = '';
-      $$.SANDBOX.stub(Connection.prototype, 'query').callsFake(
-        (_query: string) => {
-          query = _query.toLowerCase();
-          if (query.includes('from permissionset')) {
-            return {
-              records: [],
-              totalSize: 0
-            };
-          }
-
-          return {};
+      $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
+        query = _query.toLowerCase();
+        if (query.includes('from permissionset')) {
+          return {
+            records: [],
+            totalSize: 0
+          };
         }
-      );
+
+        return {};
+      });
 
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
         return {
@@ -91,38 +85,29 @@ describe('permission set assignment tests', () => {
         };
       });
 
-      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(
-        org
-      );
+      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
       const NS = 'NS';
       try {
-        await shouldThrow(
-          assignment.create('123456', `${NS}__${PERM_SET_NAME}`)
-        );
+        await shouldThrow(assignment.create('123456', `${NS}__${PERM_SET_NAME}`));
       } catch (e) {
-        expect(e).to.have.property(
-          'name',
-          'assignCommandPermissionSetNotFoundForNSError'
-        );
+        expect(e).to.have.property('name', 'assignCommandPermissionSetNotFoundForNSError');
       }
     });
 
     it('Failed to find permsets without namespace', async () => {
       let query: string = '';
-      $$.SANDBOX.stub(Connection.prototype, 'query').callsFake(
-        (_query: string) => {
-          query = _query.toLowerCase();
-          if (query.includes('from permissionset')) {
-            return {
-              records: [],
-              totalSize: 0
-            };
-          }
-
-          return {};
+      $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
+        query = _query.toLowerCase();
+        if (query.includes('from permissionset')) {
+          return {
+            records: [],
+            totalSize: 0
+          };
         }
-      );
+
+        return {};
+      });
 
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
         return {
@@ -132,35 +117,28 @@ describe('permission set assignment tests', () => {
         };
       });
 
-      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(
-        org
-      );
+      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
       try {
         await shouldThrow(assignment.create('123456', `${PERM_SET_NAME}`));
       } catch (e) {
-        expect(e).to.have.property(
-          'name',
-          'assignCommandPermissionSetNotFoundError'
-        );
+        expect(e).to.have.property('name', 'assignCommandPermissionSetNotFoundError');
       }
     });
 
     it('permset assignment with errors', async () => {
       let query: string = '';
-      $$.SANDBOX.stub(Connection.prototype, 'query').callsFake(
-        (_query: string) => {
-          query = _query.toLowerCase();
-          if (query.includes('from permissionset')) {
-            return {
-              records: [{ Id: '123456' }],
-              totalSize: 1
-            };
-          }
-
-          return {};
+      $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
+        query = _query.toLowerCase();
+        if (query.includes('from permissionset')) {
+          return {
+            records: [{ Id: '123456' }],
+            totalSize: 1
+          };
         }
-      );
+
+        return {};
+      });
 
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
         return {
@@ -170,38 +148,29 @@ describe('permission set assignment tests', () => {
         };
       });
 
-      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(
-        org
-      );
+      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
       const NS = 'NS';
       try {
-        await shouldThrow(
-          assignment.create('123456', `${NS}__${PERM_SET_NAME}`)
-        );
+        await shouldThrow(assignment.create('123456', `${NS}__${PERM_SET_NAME}`));
       } catch (e) {
-        expect(e).to.have.property(
-          'name',
-          'errorsEncounteredCreatingAssignment'
-        );
+        expect(e).to.have.property('name', 'errorsEncounteredCreatingAssignment');
       }
     });
 
     it('permset assignment with empty errors', async () => {
       let query: string = '';
-      $$.SANDBOX.stub(Connection.prototype, 'query').callsFake(
-        (_query: string) => {
-          query = _query.toLowerCase();
-          if (query.includes('from permissionset')) {
-            return {
-              records: [{ Id: '123456' }],
-              totalSize: 1
-            };
-          }
-
-          return {};
+      $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
+        query = _query.toLowerCase();
+        if (query.includes('from permissionset')) {
+          return {
+            records: [{ Id: '123456' }],
+            totalSize: 1
+          };
         }
-      );
+
+        return {};
+      });
 
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
         return {
@@ -211,15 +180,11 @@ describe('permission set assignment tests', () => {
         };
       });
 
-      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(
-        org
-      );
+      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
       const NS = 'NS';
       try {
-        await shouldThrow(
-          assignment.create('123456', `${NS}__${PERM_SET_NAME}`)
-        );
+        await shouldThrow(assignment.create('123456', `${NS}__${PERM_SET_NAME}`));
       } catch (e) {
         expect(e).to.have.property('name', 'notSuccessfulButNoErrorsReported');
       }

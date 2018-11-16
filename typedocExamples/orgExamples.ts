@@ -11,9 +11,9 @@ JSON.stringify({
     const org2: Org = await Org.create({});
     // Full Connection
     const org3: Org = await Org.create({
-      connection: await Connection.create(
-        await AuthInfo.create({ username: 'username' })
-      )
+      connection: await Connection.create({
+        authInfo: await AuthInfo.create({ username: 'username' })
+      })
     });
 
     console.log(org1);

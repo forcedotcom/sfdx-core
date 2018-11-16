@@ -4,14 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  AsyncCreatable,
-  lowerFirst,
-  mapKeys,
-  omit,
-  parseJsonMap,
-  upperFirst
-} from '@salesforce/kit';
+import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
 import {
   asJsonArray,
   asNumber,
@@ -39,23 +32,7 @@ const PASSWORD_LENGTH = 10;
 const LOWER = 'abcdefghijklmnopqrstuvwxyz';
 const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const NUMBERS = '1234567890';
-const SYMBOLS = [
-  '!',
-  '@',
-  '#',
-  '$',
-  '%',
-  '^',
-  '&',
-  '*',
-  '(',
-  ')',
-  '_',
-  '[',
-  ']',
-  '|',
-  '-'
-];
+const SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '[', ']', '|', '-'];
 const ALL = [LOWER, UPPER, NUMBERS, SYMBOLS.join('')];
 
 const rand = (len: Many<string>) => Math.floor(Math.random() * len.length);
@@ -83,46 +60,33 @@ export const REQUIRED_FIELDS = {
  * Required fields type needed to represent a Salesforce User object.
  * @see https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_objects_user.htm
  */
-export type UserFields = {
-  -readonly [K in keyof typeof REQUIRED_FIELDS]: string
-};
+export type UserFields = { -readonly [K in keyof typeof REQUIRED_FIELDS]: string };
 
 /**
  * Helper method to lookup UserFields
  * @param {string} username The username
  */
-async function _retrieveUserFields(
-  this: { logger: Logger },
-  username: string
-): Promise<UserFields> {
-  const connection: Connection = await Connection.create(
-    await AuthInfo.create({ username })
-  );
+async function _retrieveUserFields(this: { logger: Logger }, username: string): Promise<UserFields> {
+  const connection: Connection = await Connection.create({
+    authInfo: await AuthInfo.create({ username })
+  });
 
   const fromFields = Object.keys(REQUIRED_FIELDS).map(upperFirst);
   const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
-  const result: QueryResult<string[]> = await connection.query<string[]>(
-    requiredFieldsFromAdminQuery
-  );
+  const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
 
   this.logger.debug('Successfully retrieved the admin user for this org.');
 
   if (result.totalSize === 1) {
-    const results = mapKeys(result.records[0], (value: unknown, key: string) =>
-      lowerFirst(key)
-    );
+    const results = mapKeys(result.records[0], (value: unknown, key: string) => lowerFirst(key));
 
     const fields: UserFields = {
       id: ensure(getString(results, REQUIRED_FIELDS.id)),
       username,
       alias: ensure(getString(results, REQUIRED_FIELDS.alias)),
       email: ensure(getString(results, REQUIRED_FIELDS.email)),
-      emailEncodingKey: ensure(
-        getString(results, REQUIRED_FIELDS.emailEncodingKey)
-      ),
-      languageLocaleKey: ensure(
-        getString(results, REQUIRED_FIELDS.languageLocaleKey)
-      ),
+      emailEncodingKey: ensure(getString(results, REQUIRED_FIELDS.emailEncodingKey)),
+      languageLocaleKey: ensure(getString(results, REQUIRED_FIELDS.languageLocaleKey)),
       localeSidKey: ensure(getString(results, REQUIRED_FIELDS.localeSidKey)),
       profileId: ensure(getString(results, REQUIRED_FIELDS.profileId)),
       lastName: ensure(getString(results, REQUIRED_FIELDS.lastName)),
@@ -131,9 +95,7 @@ async function _retrieveUserFields(
 
     return fields;
   } else {
-    throw SfdxError.create('@salesforce/core', 'user', 'userQueryFailed', [
-      username
-    ]);
+    throw SfdxError.create('@salesforce/core', 'user', 'userQueryFailed', [username]);
   }
 }
 
@@ -142,10 +104,7 @@ async function _retrieveUserFields(
  * @param {string} name The name of the profile.
  * @param {Connection} connection The connection for the query.
  */
-async function _retrieveProfileId(
-  name: string,
-  connection: Connection
-): Promise<string> {
+async function _retrieveProfileId(name: string, connection: Connection): Promise<string> {
   if (!validateSalesforceId(name)) {
     const profileQuery = `SELECT Id FROM Profile WHERE name='${name}'`;
     const result = await connection.query<{ Id: string }>(profileQuery);
@@ -154,15 +113,6 @@ async function _retrieveProfileId(
     }
   }
   return name;
-}
-
-/**
- * Used to initialize default values for fields based on a templateUser user. This user will be part of the
- * Standard User profile.
- */
-export interface DefaultUserFieldsOptions {
-  templateUser: string;
-  newUserName?: string;
 }
 
 /**
@@ -175,15 +125,13 @@ export interface DefaultUserFieldsOptions {
  * };
  * const fields = (await DefaultUserFields.create(options)).getFields();
  */
-export class DefaultUserFields extends AsyncCreatable<
-  DefaultUserFieldsOptions
-> {
+export class DefaultUserFields extends AsyncCreatable<User.Options> {
   private logger!: Logger;
   private userFields!: UserFields;
 
-  private options: DefaultUserFieldsOptions;
+  private options: User.Options;
 
-  public constructor(options: DefaultUserFieldsOptions) {
+  public constructor(options: User.Options) {
     super(options);
     this.options = options || { templateUser: '' };
   }
@@ -194,15 +142,12 @@ export class DefaultUserFields extends AsyncCreatable<
 
   protected async init(): Promise<void> {
     this.logger = await Logger.child('DefaultUserFields');
-    this.userFields = await _retrieveUserFields.call(
-      { logger: this.logger },
-      this.options.templateUser
-    );
+    this.userFields = await _retrieveUserFields.call({ logger: this.logger }, this.options.templateUser);
     this.userFields.profileId = await _retrieveProfileId(
       'Standard User',
-      await Connection.create(
-        await AuthInfo.create({ username: this.options.templateUser })
-      )
+      await Connection.create({
+        authInfo: await AuthInfo.create({ username: this.options.templateUser })
+      })
     );
     this.logger.debug(`Standard User profileId: ${this.userFields.profileId}`);
     if (this.options.newUserName) {
@@ -266,30 +211,20 @@ export class User {
    * @param {AuthInfo} info The AuthInfo object for user to assign the password to.
    * @param {SecureBuffer} password [throwWhenRemoveFails = User.generatePasswordUtf8()] A SecureBuffer containing the new password.
    */
-  public async assignPassword(
-    info: AuthInfo,
-    password: SecureBuffer<void> = User.generatePasswordUtf8()
-  ) {
+  public async assignPassword(info: AuthInfo, password: SecureBuffer<void> = User.generatePasswordUtf8()) {
     this.logger.debug(
-      `Attempting to set password for userId: ${
-        info.getFields().userId
-      } username: ${info.getFields().username}`
+      `Attempting to set password for userId: ${info.getFields().userId} username: ${info.getFields().username}`
     );
 
-    const userConnection = await Connection.create(info);
+    const userConnection = await Connection.create({ authInfo: info });
 
     return new Promise((resolve, reject) => {
       password.value(async (buffer: Buffer) => {
         try {
           // @ts-ignore TODO: expose `soap` on Connection however appropriate
           const soap = userConnection.soap;
-          await soap.setPassword(
-            info.getFields().userId,
-            buffer.toString('utf8')
-          );
-          this.logger.debug(
-            `Set password for userId: ${info.getFields().userId}`
-          );
+          await soap.setPassword(info.getFields().userId, buffer.toString('utf8'));
+          this.logger.debug(`Set password for userId: ${info.getFields().userId}`);
           resolve();
         } catch (e) {
           reject(e);
@@ -309,25 +244,16 @@ export class User {
    * const fields: UserFields = await user.retrieve();
    * await user.assignPermissionSets(fields.id, ['sfdx', 'approver']);
    */
-  public async assignPermissionSets(
-    id: string,
-    permsetNames: string[]
-  ): Promise<void> {
+  public async assignPermissionSets(id: string, permsetNames: string[]): Promise<void> {
     if (!id) {
       throw SfdxError.create('@salesforce/core', 'user', 'missingId');
     }
 
     if (!permsetNames) {
-      throw SfdxError.create(
-        '@salesforce/core',
-        'user',
-        'permsetNamesAreRequired'
-      );
+      throw SfdxError.create('@salesforce/core', 'user', 'permsetNamesAreRequired');
     }
 
-    const assignments: PermissionSetAssignment = await PermissionSetAssignment.init(
-      this.org
-    );
+    const assignments: PermissionSetAssignment = await PermissionSetAssignment.init(this.org);
 
     for (const permsetName of permsetNames) {
       await assignments.create(id, permsetName);
@@ -361,16 +287,12 @@ export class User {
     } = await this.createUserInternal(fields);
 
     // Create the initial auth info
-    const adminUserAuthFields: AuthFields = this.org
-      .getConnection()
-      .getAuthInfoFields();
+    const adminUserAuthFields: AuthFields = this.org.getConnection().getAuthInfoFields();
 
     // Setup oauth options for the new user
     const oauthOptions = {
       loginUrl: adminUserAuthFields.loginUrl,
-      refreshToken: refreshTokenSecret.buffer.value(
-        (buffer: Buffer): string => buffer.toString('utf8')
-      ),
+      refreshToken: refreshTokenSecret.buffer.value((buffer: Buffer): string => buffer.toString('utf8')),
       clientId: adminUserAuthFields.clientId,
       clientSecret: adminUserAuthFields.clientSecret,
       privateKey: adminUserAuthFields.privateKey
@@ -412,28 +334,18 @@ export class User {
    * Helper method that verifies the server's User object is available and if so allows persisting the Auth information.
    * @param {AuthInfo} newUserAuthInfo The AuthInfo for the new user.
    */
-  private async describeUserAndSave(
-    newUserAuthInfo: AuthInfo
-  ): Promise<AuthInfo> {
-    const connection = await Connection.create(newUserAuthInfo);
+  private async describeUserAndSave(newUserAuthInfo: AuthInfo): Promise<AuthInfo> {
+    const connection = await Connection.create({ authInfo: newUserAuthInfo });
 
-    this.logger.debug(
-      `Created connection for user: ${newUserAuthInfo.getUsername()}`
-    );
+    this.logger.debug(`Created connection for user: ${newUserAuthInfo.getUsername()}`);
 
-    const userDescribe: DescribeSObjectResult = await connection.describe(
-      'User'
-    );
+    const userDescribe: DescribeSObjectResult = await connection.describe('User');
 
     if (userDescribe && userDescribe.fields) {
       await newUserAuthInfo.save();
       return newUserAuthInfo;
     } else {
-      throw SfdxError.create(
-        '@salesforce/core',
-        'user',
-        'problemsDescribingTheUserObject'
-      );
+      throw SfdxError.create('@salesforce/core', 'user', 'problemsDescribingTheUserObject');
     }
   }
 
@@ -441,9 +353,7 @@ export class User {
    * Helper that makes a REST request to create the user, and update additional required fields.
    * @param {UserFields} fields The configuration the new user should have.
    */
-  private async createUserInternal(
-    fields: UserFields
-  ): Promise<{ buffer: SecureBuffer<string>; userId: string }> {
+  private async createUserInternal(fields: UserFields): Promise<{ buffer: SecureBuffer<string>; userId: string }> {
     if (!fields) {
       throw SfdxError.create('@salesforce/core', 'user', 'missingFields');
     }
@@ -478,14 +388,10 @@ export class User {
     const responseBody = parseJsonMap(ensureString(response['body']));
     const statusCode = asNumber(response.statusCode);
 
-    this.logger.debug(
-      `user create response.statusCode: ${response.statusCode}`
-    );
+    this.logger.debug(`user create response.statusCode: ${response.statusCode}`);
     if (!(statusCode === 201 || statusCode === 200)) {
       const messages = Messages.loadMessages('@salesforce/core', 'user');
-      let message = messages.getMessage('invalidHttpResponseCreatingUser', [
-        statusCode
-      ]);
+      let message = messages.getMessage('invalidHttpResponseCreatingUser', [statusCode]);
 
       if (responseBody) {
         const errors = asJsonArray(responseBody.Errors);
@@ -525,16 +431,22 @@ export class User {
       REQUIRED_FIELDS.lastName,
       REQUIRED_FIELDS.profileId
     ]);
-    const object = mapKeys(
-      leftOverRequiredFields,
-      (value: unknown, key: string) => upperFirst(key)
-    );
+    const object = mapKeys(leftOverRequiredFields, (value: unknown, key: string) => upperFirst(key));
     await this.org
       .getConnection()
       .sobject('User')
       .update(object);
-    this.logger.debug(
-      `Successfully Updated additional properties for user: ${fields.username}`
-    );
+    this.logger.debug(`Successfully Updated additional properties for user: ${fields.username}`);
+  }
+}
+
+export namespace User {
+  /**
+   * Used to initialize default values for fields based on a templateUser user. This user will be part of the
+   * Standard User profile.
+   */
+  export interface Options {
+    templateUser: string;
+    newUserName?: string;
   }
 }

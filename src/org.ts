@@ -97,16 +97,6 @@ export enum OrgFields {
 }
 
 /**
- * Org Options
- */
-export interface OrgOptions {
-  aliasOrUsername?: string;
-  connection?: Connection;
-  aggregator?: ConfigAggregator;
-  isDevHub?: boolean;
-}
-
-/**
  * Provides a way to manage a locally authenticated Org.
  *
  * @see {@link AuthInfo}
@@ -126,7 +116,7 @@ export interface OrgOptions {
  *
  * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
-export class Org extends AsyncCreatable<OrgOptions> {
+export class Org extends AsyncCreatable<Org.Options> {
   // tslint:disable-next-line:no-unused-variable
   private status: OrgStatus = OrgStatus.UNKNOWN;
   private configAggregator!: ConfigAggregator;
@@ -135,12 +125,12 @@ export class Org extends AsyncCreatable<OrgOptions> {
   private logger!: Logger;
   private connection!: Connection;
 
-  private options: OrgOptions;
+  private options: Org.Options;
 
   /**
    * @ignore
    */
-  public constructor(options: OrgOptions) {
+  public constructor(options: Org.Options) {
     super(options);
     this.options = options;
   }
@@ -152,18 +142,11 @@ export class Org extends AsyncCreatable<OrgOptions> {
    * @returns {Promise<void>}
    */
 
-  public async cleanLocalOrgData(
-    orgDataPath?: string,
-    throwWhenRemoveFails: boolean = false
-  ): Promise<void> {
+  public async cleanLocalOrgData(orgDataPath?: string, throwWhenRemoveFails: boolean = false): Promise<void> {
     let dataPath: string;
     try {
       const rootFolder: string = await Config.resolveRootFolder(false);
-      dataPath = pathJoin(
-        rootFolder,
-        Global.STATE_FOLDER,
-        orgDataPath ? orgDataPath : 'orgs'
-      );
+      dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
       this.logger.debug(`cleaning data for path: ${dataPath}`);
     } catch (err) {
       if (err.name === 'InvalidProjectWorkspace') {
@@ -175,17 +158,11 @@ export class Org extends AsyncCreatable<OrgOptions> {
       throw err;
     }
 
-    return this.manageDelete(
-      async () => await fs.remove(dataPath),
-      dataPath,
-      throwWhenRemoveFails
-    );
+    return this.manageDelete(async () => await fs.remove(dataPath), dataPath, throwWhenRemoveFails);
   }
 
   public async retrieveOrgUsersConfig(): Promise<OrgUsersConfig> {
-    return await OrgUsersConfig.create(
-      OrgUsersConfig.getOptions(this.getOrgId())
-    );
+    return await OrgUsersConfig.create(OrgUsersConfig.getOptions(this.getOrgId()));
   }
 
   /**
@@ -217,36 +194,23 @@ export class Org extends AsyncCreatable<OrgOptions> {
         orgForUser = this;
       } else {
         const _info = await AuthInfo.create({ username });
-        const connection: Connection = await Connection.create(_info);
+        const connection: Connection = await Connection.create({ authInfo: _info });
         orgForUser = await Org.create({ connection });
       }
 
-      const orgType = (await this.isDevHubOrg())
-        ? Config.DEFAULT_DEV_HUB_USERNAME
-        : Config.DEFAULT_USERNAME;
+      const orgType = (await this.isDevHubOrg()) ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
 
-      const configInfo: ConfigInfo = await orgForUser.configAggregator.getInfo(
-        orgType
-      );
+      const configInfo: ConfigInfo = await orgForUser.configAggregator.getInfo(orgType);
 
       if (
-        (configInfo.value === username ||
-          aliasKeys.includes(configInfo.value as string)) &&
+        (configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
         (configInfo.isGlobal() || configInfo.isLocal())
       ) {
-        await Config.update(
-          configInfo.isGlobal() as boolean,
-          orgType,
-          undefined
-        );
+        await Config.update(configInfo.isGlobal() as boolean, orgType, undefined);
       }
 
       const orgUsers: OrgUsersConfig = await this.retrieveOrgUsersConfig();
-      await this.manageDelete(
-        async () => await orgUsers.unlink(),
-        orgUsers.getPath(),
-        throwWhenRemoveFails
-      );
+      await this.manageDelete(async () => await orgUsers.unlink(), orgUsers.getPath(), throwWhenRemoveFails);
     }
 
     await aliases.write();
@@ -259,19 +223,15 @@ export class Org extends AsyncCreatable<OrgOptions> {
    * @throws {SfdxError} **`{name: 'NotADevHub'}`** Not a Dev Hub.
    * @throws {SfdxError} **`{name: 'NoResults'}`** No results.
    */
-  public async checkScratchOrg(
-    devHubUsername?: string
-  ): Promise<Partial<AuthFields>> {
+  public async checkScratchOrg(devHubUsername?: string): Promise<Partial<AuthFields>> {
     let targetDevHub = devHubUsername;
     if (!targetDevHub) {
-      targetDevHub = asString(
-        this.configAggregator.getPropertyValue(Config.DEFAULT_DEV_HUB_USERNAME)
-      );
+      targetDevHub = asString(this.configAggregator.getPropertyValue(Config.DEFAULT_DEV_HUB_USERNAME));
     }
 
-    const devHubConnection = await Connection.create(
-      await AuthInfo.create({ username: targetDevHub })
-    );
+    const devHubConnection = await Connection.create({
+      authInfo: await AuthInfo.create({ username: targetDevHub })
+    });
 
     const thisOrgAuthConfig = this.getConnection().getAuthInfoFields();
 
@@ -281,14 +241,10 @@ export class Org extends AsyncCreatable<OrgOptions> {
 
     let results;
     try {
-      results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<
-        QueryResult<object>
-      >);
+      results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<object>>);
     } catch (err) {
       if (err.name === 'INVALID_TYPE') {
-        throw SfdxError.create('@salesforce/core', 'org', 'NotADevHub', [
-          devHubConnection.getUsername()
-        ]);
+        throw SfdxError.create('@salesforce/core', 'org', 'NotADevHub', [devHubConnection.getUsername()]);
       }
       throw err;
     }
@@ -308,13 +264,11 @@ export class Org extends AsyncCreatable<OrgOptions> {
     if (this.isDevHubOrg()) {
       return Promise.resolve(this);
     } else if (this.getField(OrgFields.DEV_HUB_USERNAME)) {
-      const devHubUsername = ensureString(
-        this.getField(OrgFields.DEV_HUB_USERNAME)
-      );
+      const devHubUsername = ensureString(this.getField(OrgFields.DEV_HUB_USERNAME));
       return Org.create({
-        connection: await Connection.create(
-          await AuthInfo.create({ username: devHubUsername })
-        )
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: devHubUsername })
+        })
       });
     }
   }
@@ -349,9 +303,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
     const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
     const contents: ConfigContents = await config.read();
     const thisUsername = ensure(this.getUsername());
-    const usernames: JsonArray = ensureJsonArray(
-      contents.usernames || [thisUsername]
-    );
+    const usernames: JsonArray = ensureJsonArray(contents.usernames || [thisUsername]);
     return Promise.all(
       usernames.map(username => {
         if (username === thisUsername) {
@@ -379,9 +331,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
       throw new SfdxError('Missing auth info', 'MissingAuthInfo');
     }
 
-    const _auth = isString(auth)
-      ? await AuthInfo.create({ username: auth })
-      : auth;
+    const _auth = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
     this.logger.debug(`adding username ${_auth.getFields().username}`);
 
     const orgConfig = await this.retrieveOrgUsersConfig();
@@ -428,9 +378,7 @@ export class Org extends AsyncCreatable<OrgOptions> {
       throw new SfdxError('Missing auth info', 'MissingAuthInfo');
     }
 
-    const _auth: AuthInfo = isString(auth)
-      ? await AuthInfo.create({ username: auth })
-      : auth;
+    const _auth: AuthInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
 
     this.logger.debug(`removing username ${_auth.getFields().username}`);
 
@@ -514,43 +462,31 @@ export class Org extends AsyncCreatable<OrgOptions> {
   protected async init(): Promise<void> {
     this.logger = await Logger.child('Org');
 
-    this.configAggregator = this.options.aggregator
-      ? this.options.aggregator
-      : await ConfigAggregator.create();
+    this.configAggregator = this.options.aggregator ? this.options.aggregator : await ConfigAggregator.create();
 
     if (!this.options.connection) {
       if (this.options.aliasOrUsername == null) {
         this.configAggregator = this.getConfigAggregator();
         const aliasOrUsername = this.options.isDevHub
-          ? getString(
-              this.configAggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME),
-              'value'
-            )
-          : getString(
-              this.configAggregator.getInfo(Config.DEFAULT_USERNAME),
-              'value'
-            );
+          ? getString(this.configAggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME), 'value')
+          : getString(this.configAggregator.getInfo(Config.DEFAULT_USERNAME), 'value');
         this.options.aliasOrUsername = aliasOrUsername || undefined;
       }
 
       // If no username is provided AuthInfo will throw an SfdxError.
-      this.connection = await Connection.create(
-        await AuthInfo.create({ username: this.options.aliasOrUsername })
-      );
+      this.connection = await Connection.create({
+        authInfo: await AuthInfo.create({ username: this.options.aliasOrUsername })
+      });
     } else {
       this.connection = this.options.connection;
     }
   }
 
-  protected getDefaultOptions(): OrgOptions {
+  protected getDefaultOptions(): Org.Options {
     throw new SfdxError('Not Supported');
   }
 
-  private manageDelete(
-    cb: AnyFunction<Promise<void>>,
-    dirPath: string,
-    throwWhenRemoveFails: boolean
-  ): Promise<void> {
+  private manageDelete(cb: AnyFunction<Promise<void>>, dirPath: string, throwWhenRemoveFails: boolean): Promise<void> {
     return cb().catch(e => {
       if (throwWhenRemoveFails) {
         throw e;
@@ -559,5 +495,17 @@ export class Org extends AsyncCreatable<OrgOptions> {
         return;
       }
     });
+  }
+}
+
+export namespace Org {
+  /**
+   * Constructor Options for and Org
+   */
+  export interface Options {
+    aliasOrUsername?: string;
+    connection?: Connection;
+    aggregator?: ConfigAggregator;
+    isDevHub?: boolean;
   }
 }
