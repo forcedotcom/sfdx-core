@@ -94,17 +94,13 @@ describe('util/fs', () => {
     });
 
     it('should find a file in a parent dir', async () => {
-      statFileStub
-        .withArgs('/foo/bar/baz/fizz')
-        .returns(Promise.reject(statError));
+      statFileStub.withArgs('/foo/bar/baz/fizz').returns(Promise.reject(statError));
       const path = await fs.traverseForFile('/foo/bar/baz', 'fizz');
       expect(path).to.equal('/foo/bar');
     });
 
     it('should find a file in the root dir', async () => {
-      statFileStub
-        .withArgs('/foo/bar/baz/fizz')
-        .returns(Promise.reject(statError));
+      statFileStub.withArgs('/foo/bar/baz/fizz').returns(Promise.reject(statError));
       statFileStub.withArgs('/foo/bar/fizz').returns(Promise.reject(statError));
       statFileStub.withArgs('/foo/fizz').returns(Promise.reject(statError));
       const path = await fs.traverseForFile('/foo/bar/baz', 'fizz');
@@ -144,9 +140,7 @@ describe('util/fs', () => {
       try {
         await shouldThrow(fs.readJson('invalidJSON'));
       } catch (err) {
-        expect(err.message).to.contain(
-          'Parse error in file invalidJSON on line 4'
-        );
+        expect(err.message).to.contain('Parse error in file invalidJSON on line 4');
       }
     });
 
@@ -155,22 +149,16 @@ describe('util/fs', () => {
       try {
         await shouldThrow(fs.readJson('invalidJSON2'));
       } catch (err) {
-        expect(err.message).to.contain(
-          'Parse error in file invalidJSON2 on line 2'
-        );
+        expect(err.message).to.contain('Parse error in file invalidJSON2 on line 2');
       }
     });
 
     it('should throw a ParseError for invalid single line JSON file', async () => {
-      readFileStub.returns(
-        Promise.resolve('{ "key": 12345, "value": [1,2,3], }')
-      );
+      readFileStub.returns(Promise.resolve('{ "key": 12345, "value": [1,2,3], }'));
       try {
         await shouldThrow(fs.readJson('invalidJSON_no_newline'));
       } catch (err) {
-        expect(err.message).to.contain(
-          'Parse error in file invalidJSON_no_newline on line 1'
-        );
+        expect(err.message).to.contain('Parse error in file invalidJSON_no_newline on line 1');
       }
     });
 
@@ -196,9 +184,7 @@ describe('util/fs', () => {
       try {
         await shouldThrow(fs.readJsonMap('arrayFile'));
       } catch (error) {
-        expect(error.message).to.contain(
-          'Expected parsed JSON data to be an object'
-        );
+        expect(error.message).to.contain('Expected parsed JSON data to be an object');
       }
     });
 
@@ -220,9 +206,7 @@ describe('util/fs', () => {
       await fs.writeJson(testFilePath, testJSON);
       expect(fs.writeFile['called']).to.be.true;
       expect(fs.writeFile['firstCall'].args[0]).to.equal(testFilePath);
-      expect(fs.writeFile['firstCall'].args[1]).to.deep.equal(
-        stringifiedTestJSON
-      );
+      expect(fs.writeFile['firstCall'].args[1]).to.deep.equal(stringifiedTestJSON);
       expect(fs.writeFile['firstCall'].args[2]).to.deep.equal({
         encoding: 'utf8',
         mode: '600'

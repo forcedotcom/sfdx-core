@@ -11,15 +11,7 @@
  */
 
 import { NamedError } from '@salesforce/kit';
-import {
-  AnyJson,
-  asString,
-  ensureJsonMap,
-  ensureString,
-  isAnyJson,
-  isObject,
-  Optional
-} from '@salesforce/ts-types';
+import { AnyJson, asString, ensureJsonMap, ensureString, isAnyJson, isObject, Optional } from '@salesforce/ts-types';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
@@ -106,11 +98,7 @@ export class Messages {
    * @param {string} bundle The name of the bundle.
    * @param {loaderFunction} loader The loader function.
    */
-  public static setLoaderFunction(
-    packageName: string,
-    bundle: string,
-    loader: (locale: string) => Messages
-  ): void {
+  public static setLoaderFunction(packageName: string, bundle: string, loader: (locale: string) => Messages): void {
     this.loaders.set(new Key(packageName, bundle).toString(), loader);
   }
 
@@ -123,19 +111,14 @@ export class Messages {
    * @param {string} filePath The messages file path.
    * @returns {loaderFunction}
    */
-  public static generateFileLoaderFunction(
-    bundleName: string,
-    filePath: string
-  ): (locale: string) => Messages {
+  public static generateFileLoaderFunction(bundleName: string, filePath: string): (locale: string) => Messages {
     return (locale: string): Messages => {
       // Anything can be returned by a js file, so stringify the results to ensure valid json is returned.
       const fileContents: string = JSON.stringify(this._readFile(filePath));
 
       // If the file is empty, JSON.stringify will turn it into "" which will validate on parse, so throw.
       if (!fileContents || fileContents === 'null' || fileContents === '""') {
-        const error = new Error(
-          `Invalid message file: ${filePath}. No content.`
-        );
+        const error = new Error(`Invalid message file: ${filePath}. No content.`);
         error.name = 'SfdxError';
         throw error;
       }
@@ -147,16 +130,12 @@ export class Messages {
 
         if (!isObject(json)) {
           // Bubble up
-          throw new Error(
-            `Unexpected token. Found returned content type '${typeof json}'.`
-          );
+          throw new Error(`Unexpected token. Found returned content type '${typeof json}'.`);
         }
       } catch (err) {
         // Provide a nicer error message for a common JSON parse error; Unexpected token
         if (err.message.startsWith('Unexpected token')) {
-          const parseError = new Error(
-            `Invalid JSON content in message file: ${filePath}\n${err.message}`
-          );
+          const parseError = new Error(`Invalid JSON content in message file: ${filePath}\n${err.message}`);
           parseError.name = err.name;
           throw parseError;
         }
@@ -177,24 +156,13 @@ export class Messages {
    * @param {string} filePath The path of the file.
    */
   public static importMessageFile(packageName: string, filePath: string): void {
-    if (
-      path.extname(filePath) !== '.json' &&
-      path.extname(filePath) !== '.js'
-    ) {
-      throw new Error(
-        `Only json and js message files are allowed, not ${path.extname(
-          filePath
-        )}`
-      );
+    if (path.extname(filePath) !== '.json' && path.extname(filePath) !== '.js') {
+      throw new Error(`Only json and js message files are allowed, not ${path.extname(filePath)}`);
     }
     const bundleName = path.basename(filePath, path.extname(filePath));
 
     if (!this.isCached(packageName, bundleName)) {
-      this.setLoaderFunction(
-        packageName,
-        bundleName,
-        Messages.generateFileLoaderFunction(bundleName, filePath)
-      );
+      this.setLoaderFunction(packageName, bundleName, Messages.generateFileLoaderFunction(bundleName, filePath));
     }
   }
 
@@ -231,10 +199,7 @@ export class Messages {
         break;
       } catch (err) {
         if (err.code !== 'ENOENT') throw err;
-        projectRoot = projectRoot.substring(
-          0,
-          projectRoot.lastIndexOf(path.sep)
-        );
+        projectRoot = projectRoot.substring(0, projectRoot.lastIndexOf(path.sep));
       }
     }
 
@@ -245,11 +210,7 @@ export class Messages {
     if (!packageName) {
       const errMessage = `Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.`;
       try {
-        packageName = asString(
-          ensureJsonMap(
-            this._readFile(path.join(moduleMessagesDirPath, 'package.json'))
-          ).name
-        );
+        packageName = asString(ensureJsonMap(this._readFile(path.join(moduleMessagesDirPath, 'package.json'))).name);
         if (!packageName) {
           throw new NamedError('MissingPackageName', errMessage);
         }
@@ -283,10 +244,7 @@ export class Messages {
    * @param {string} bundleName The name of the bundle to load.
    * @returns {Messages}
    */
-  public static loadMessages(
-    packageName: string,
-    bundleName: string
-  ): Messages {
+  public static loadMessages(packageName: string, bundleName: string): Messages {
     const key = new Key(packageName, bundleName);
     let messages: Optional<Messages>;
 
@@ -305,10 +263,7 @@ export class Messages {
     }
 
     // Don't use messages inside messages
-    throw new NamedError(
-      'MissingBundleError',
-      `Missing bundle ${key.toString()} for locale ${Messages.getLocale()}.`
-    );
+    throw new NamedError('MissingBundleError', `Missing bundle ${key.toString()} for locale ${Messages.getLocale()}.`);
   }
 
   /**
@@ -324,10 +279,7 @@ export class Messages {
   // override valueOf or equals for the === operator, which map uses. So, Use Map<String, Message>
 
   // A map of loading functions to dynamically load messages when they need to be used
-  private static loaders: Map<string, (locale: string) => Messages> = new Map<
-    string,
-    (locale: string) => Messages
-  >();
+  private static loaders: Map<string, (locale: string) => Messages> = new Map<string, (locale: string) => Messages>();
 
   // A map cache of messages bundles that have already been loaded
   private static bundles: Map<string, Messages> = new Map<string, Messages>();
@@ -349,11 +301,7 @@ export class Messages {
    * @param {string} locale The locale.
    * @param {Map<string, AnyJson>} messages The messages. Can not be modified once created.
    */
-  constructor(
-    bundleName: string,
-    locale: string,
-    private messages: Map<string, AnyJson>
-  ) {
+  constructor(bundleName: string, locale: string, private messages: Map<string, AnyJson>) {
     this.bundleName = bundleName;
     this.locale = locale;
   }
@@ -369,11 +317,7 @@ export class Messages {
     return this.getMessageWithMap(key, tokens, this.messages);
   }
 
-  private getMessageWithMap(
-    key: string,
-    tokens: Tokens = [],
-    map: Map<string, AnyJson>
-  ): string {
+  private getMessageWithMap(key: string, tokens: Tokens = [], map: Map<string, AnyJson>): string {
     // Allow nested keys for better grouping
     const group = key.match(/([a-zA-Z0-9_-]+)\.(.*)/);
     if (group) {
@@ -390,9 +334,7 @@ export class Messages {
       // Don't use messages inside messages
       throw new NamedError(
         'MissingMessageError',
-        `Missing message ${
-          this.bundleName
-        }:${key} for locale ${Messages.getLocale()}.`
+        `Missing message ${this.bundleName}:${key} for locale ${Messages.getLocale()}.`
       );
     }
     const msg = ensureString(map.get(key));

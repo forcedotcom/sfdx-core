@@ -30,9 +30,7 @@ import { StatusResult } from './client';
  * const pollResult = await client.subscribe();
  * console.log(`pollResult: ${pollResult}`);
  */
-export class PollingClient extends AsyncOptionalCreatable<
-  PollingClient.Options
-> {
+export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options> {
   protected logger!: Logger;
 
   private options: PollingClient.Options;
@@ -96,20 +94,12 @@ export class PollingClient extends AsyncOptionalCreatable<
         this.logger.debug('Polling timed out');
         this.clearAll();
         // @todo should go in messages.
-        reject(
-          new SfdxError(
-            'The client has timed out.',
-            this.options.timeoutErrorName || 'PollingClientTimeout'
-          )
-        );
+        reject(new SfdxError('The client has timed out.', this.options.timeoutErrorName || 'PollingClientTimeout'));
       }, this.options.timeout.milliseconds);
     });
   }
 
-  private async doPoll(
-    resolve?: AnyFunction,
-    reject?: AnyFunction
-  ): Promise<StatusResult | undefined> {
+  private async doPoll(resolve?: AnyFunction, reject?: AnyFunction): Promise<StatusResult | undefined> {
     try {
       // Poll can be an async function.
       const sample: StatusResult = await this.options.poll();

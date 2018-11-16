@@ -19,10 +19,7 @@ export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
     return 'key.json';
   }
 
-  public static getDefaultOptions(
-    isGlobal = true,
-    filename?: string
-  ): ConfigFile.Options {
+  public static getDefaultOptions(isGlobal = true, filename?: string): ConfigFile.Options {
     const config = super.getDefaultOptions(isGlobal);
     // The key file is ALWAYS in the global space.
     config.isGlobal = true;
@@ -44,11 +41,7 @@ export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
 
     await fs.mkdirp(pathDirname(this.getPath()));
 
-    await fs.writeFile(
-      this.getPath(),
-      JSON.stringify(this.getContents(), null, 4),
-      { mode: '600' }
-    );
+    await fs.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 4), { mode: '600' });
 
     return this.getContents();
   }

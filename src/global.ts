@@ -41,18 +41,12 @@ export class Global {
    *
    * @see Global.STATE_FOLDER
    */
-  public static readonly DIR: string = path.join(
-    os.homedir(),
-    Global.STATE_FOLDER
-  );
+  public static readonly DIR: string = path.join(os.homedir(), Global.STATE_FOLDER);
 
   /**
    * The full system path to the global log file.
    */
-  public static readonly LOG_FILE_PATH: string = path.join(
-    Global.DIR,
-    'sfdx.log'
-  );
+  public static readonly LOG_FILE_PATH: string = path.join(Global.DIR, 'sfdx.log');
 
   /**
    * Gets the current mode environment variable as a {@link Mode} instance.
@@ -63,11 +57,7 @@ export class Global {
    * @returns {Mode}
    */
   public static getEnvironmentMode(): Mode {
-    return Mode[
-      env.getKeyOf('SFDX_ENV', Mode, Mode.PRODUCTION, value =>
-        value.toUpperCase()
-      )
-    ];
+    return Mode[env.getKeyOf('SFDX_ENV', Mode, Mode.PRODUCTION, value => value.toUpperCase())];
   }
 
   /**

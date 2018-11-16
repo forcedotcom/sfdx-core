@@ -62,23 +62,14 @@ describe('Logger', () => {
     it('should throw an error with an invalid logger level string', () => {
       try {
         Logger.getLevelByName('invalid');
-        assert.fail(
-          'should have thrown an error trying to get an invalid level name'
-        );
+        assert.fail('should have thrown an error trying to get an invalid level name');
       } catch (err) {
         expect(err.message).to.equal('UnrecognizedLoggerLevelName');
       }
     });
 
     it('should list available level strings', () => {
-      expect(Logger.LEVEL_NAMES).to.deep.equal([
-        'trace',
-        'debug',
-        'info',
-        'warn',
-        'error',
-        'fatal'
-      ]);
+      expect(Logger.LEVEL_NAMES).to.deep.equal(['trace', 'debug', 'info', 'warn', 'error', 'fatal']);
     });
   });
 
@@ -135,10 +126,7 @@ describe('Logger', () => {
       expect(utilMkdirpStub.firstCall.args[1]).to.have.property('mode', '700');
       expect(utilWriteFileStub.firstCall.args[0]).to.equal(testLogFile);
       expect(utilWriteFileStub.firstCall.args[1]).to.equal('');
-      expect(utilWriteFileStub.firstCall.args[2]).to.have.property(
-        'mode',
-        '600'
-      );
+      expect(utilWriteFileStub.firstCall.args[2]).to.have.property('mode', '600');
       expect(addStreamStub.called).to.be.true;
     });
   });
@@ -149,10 +137,7 @@ describe('Logger', () => {
       const defaultLogger = await Logger.root();
       expect(defaultLogger).to.be.instanceof(Logger);
       expect(defaultLogger.getName()).to.equal('sfdx');
-      expect(
-        defaultLogger.addFilter['called'],
-        'new Logger() should have called addFilter()'
-      ).to.be.true;
+      expect(defaultLogger.addFilter['called'], 'new Logger() should have called addFilter()').to.be.true;
       const logger = await Logger.root();
       expect(logger).to.equal(defaultLogger);
     });
@@ -202,20 +187,10 @@ describe('Logger', () => {
       { key: ' refresh  _TOKEn ', value: ` ${sid} ` },
       { key: ' SfdX__AuthUrl  ', value: ` ${sid} ` }
     ];
-    const testLogEntries = [
-      simpleString,
-      stringWithObject,
-      jsforceStringWithToken,
-      obj1,
-      obj2,
-      arr1,
-      arr2
-    ];
+    const testLogEntries = [simpleString, stringWithObject, jsforceStringWithToken, obj1, obj2, arr1, arr2];
 
     async function runTest(logLevel: [string, number]) {
-      const logger = (await Logger.child('testLogger'))
-        .useMemoryLogging()
-        .setLevel(0);
+      const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(0);
 
       // Log at the provided log level for each test entry
       testLogEntries.forEach(entry => logger[logLevel[0]](entry));
@@ -223,10 +198,7 @@ describe('Logger', () => {
       const logData = logger.readLogContentsAsText();
       expect(logData, `Logs should NOT contain '${sid}'`).to.not.contain(sid);
       const logRecords = logger.getBufferedRecords();
-      expect(
-        logRecords[0],
-        `expected to log at level: ${logLevel[0]}`
-      ).to.have.property('level', logLevel[1]);
+      expect(logRecords[0], `expected to log at level: ${logLevel[0]}`).to.have.property('level', logLevel[1]);
     }
 
     it('should apply for log level: trace', () => {
@@ -278,9 +250,7 @@ describe('Logger', () => {
 
   describe('serializers', () => {
     it('should run properly after filters are applied', async () => {
-      const logger = (await Logger.child(
-        'testSerializersLogger'
-      )).useMemoryLogging();
+      const logger = (await Logger.child('testSerializersLogger')).useMemoryLogging();
 
       // A test serializer
       logger.getBunyanLogger().serializers.config = obj =>
@@ -299,8 +269,7 @@ describe('Logger', () => {
       const logRecords = logger.getBufferedRecords();
 
       // If the serializer was applied it should not log the 'foo' entry
-      const msgOnError =
-        'Expected the config serializer to remove the "foo" entry from the log record ';
+      const msgOnError = 'Expected the config serializer to remove the "foo" entry from the log record ';
       expect(logRecords[0], msgOnError).to.have.deep.property('config', {
         sid: '<sid - HIDDEN>'
       });

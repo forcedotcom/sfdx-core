@@ -99,8 +99,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * Username associated with the default dev hub org.
    * @type {string}
    */
-  public static readonly DEFAULT_DEV_HUB_USERNAME: string =
-    'defaultdevhubusername';
+  public static readonly DEFAULT_DEV_HUB_USERNAME: string = 'defaultdevhubusername';
 
   /**
    * Username associate with the default org.
@@ -124,8 +123,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * true if polling should be used over streaming when creating scratch orgs.
    * @type {string}
    */
-  public static readonly USE_BACKUP_POLLING_ORG_CREATE =
-    'useBackupPolling.org:create';
+  public static readonly USE_BACKUP_POLLING_ORG_CREATE = 'useBackupPolling.org:create';
 
   /**
    * The api version
@@ -142,17 +140,12 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    */
   public static getAllowedProperties(): ConfigPropertyMeta[] {
     if (!Config.allowedProperties) {
-      throw new SfdxError(
-        'Config meta information has not been initialized. Use Config.create()'
-      );
+      throw new SfdxError('Config meta information has not been initialized. Use Config.create()');
     }
     return Config.allowedProperties;
   }
 
-  public static getDefaultOptions(
-    isGlobal: boolean = false,
-    filename?: string
-  ): ConfigFile.Options {
+  public static getDefaultOptions(isGlobal: boolean = false, filename?: string): ConfigFile.Options {
     return {
       isGlobal,
       isState: true,
@@ -167,11 +160,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * @param {ConfigValue} [value] The property value.
    * @returns {Promise<object>}
    */
-  public static async update(
-    isGlobal: boolean,
-    propertyName: string,
-    value?: ConfigValue
-  ): Promise<object> {
+  public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<object> {
     const config = await Config.create(Config.getDefaultOptions(isGlobal));
 
     const content = await config.read();
@@ -249,25 +238,16 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * @throws {SfdxError} **`{name: 'InvalidConfigValue'}`** Invalid configuration value.
    */
   public set(key: string, value: ConfigValue): ConfigContents {
-    const property = Config.allowedProperties.find(
-      allowedProp => allowedProp.key === key
-    );
+    const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
 
     if (!property) {
-      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [
-        key
-      ]);
+      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
     }
     if (property.input) {
       if (property.input && property.input.validator(value)) {
         super.set(property.key, value);
       } else {
-        throw SfdxError.create(
-          '@salesforce/core',
-          'config',
-          'InvalidConfigValue',
-          [property.input.failedMessage]
-        );
+        throw SfdxError.create('@salesforce/core', 'config', 'InvalidConfigValue', [property.input.failedMessage]);
       }
     } else {
       super.set(property.key, value);
@@ -287,8 +267,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
           key: 'instanceUrl',
           input: {
             // If a value is provided validate it otherwise no value is unset.
-            validator: value =>
-              value == null || (isString(value) && isSalesforceDomain(value)),
+            validator: value => value == null || (isString(value) && isSalesforceDomain(value)),
             failedMessage: Config.messages.getMessage('InvalidInstanceUrl')
           }
         },
@@ -310,21 +289,15 @@ export class Config extends ConfigFile<ConfigFile.Options> {
           key: 'restDeploy',
           hidden: true,
           input: {
-            validator: value =>
-              value != null && ['true', 'false'].includes(value.toString()),
-            failedMessage: Config.messages.getMessage(
-              'InvalidBooleanConfigValue'
-            )
+            validator: value => value != null && ['true', 'false'].includes(value.toString()),
+            failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
           }
         },
         {
           key: Config.USE_BACKUP_POLLING_ORG_CREATE,
           input: {
-            validator: value =>
-              value == null || value === 'true' || value === 'false',
-            failedMessage: `${
-              Config.USE_BACKUP_POLLING_ORG_CREATE
-            } must be a boolean value. true/false.`
+            validator: value => value == null || value === 'true' || value === 'false',
+            failedMessage: `${Config.USE_BACKUP_POLLING_ORG_CREATE} must be a boolean value. true/false.`
           }
         }
       ];
@@ -363,9 +336,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     const prop = Config.propertyConfigMap[propertyName];
 
     if (!prop) {
-      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [
-        propertyName
-      ]);
+      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [propertyName]);
     }
     return prop;
   }
@@ -386,10 +357,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
       this.forEach((key, value) => {
         if (this.getPropertyConfig(key).encrypted && isString(value)) {
-          this.set(
-            key,
-            ensure(encrypt ? crypto.encrypt(value) : crypto.decrypt(value))
-          );
+          this.set(key, ensure(encrypt ? crypto.encrypt(value) : crypto.decrypt(value)));
         }
       });
     }

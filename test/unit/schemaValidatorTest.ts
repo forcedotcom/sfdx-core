@@ -14,15 +14,7 @@ import { testSetup } from '../../src/testSetup';
 
 const $$ = testSetup();
 
-const SCHEMA_DIR = path.join(
-  __dirname,
-  '..',
-  '..',
-  'test',
-  'unit',
-  'fixtures',
-  'schemas'
-);
+const SCHEMA_DIR = path.join(__dirname, '..', '..', 'test', 'unit', 'fixtures', 'schemas');
 
 /**
  * Validate a piece of data against a schema using a SchemaValidator instance.
@@ -33,10 +25,7 @@ const SCHEMA_DIR = path.join(
  * @return {Promise<void>}
  */
 const validate = (schema: JsonMap, json: AnyJson): Promise<AnyJson> => {
-  const validator = new SchemaValidator(
-    $$.TEST_LOGGER,
-    `${SCHEMA_DIR}/test.json`
-  );
+  const validator = new SchemaValidator($$.TEST_LOGGER, `${SCHEMA_DIR}/test.json`);
   sinon.stub(validator, 'load').callsFake(() => Promise.resolve(schema));
   return validator.validate(json);
 };
