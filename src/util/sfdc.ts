@@ -9,13 +9,7 @@
  */
 
 import { findKey } from '@salesforce/kit';
-import {
-  AnyJson,
-  asJsonMap,
-  isJsonMap,
-  JsonMap,
-  Optional
-} from '@salesforce/ts-types';
+import { AnyJson, asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { URL } from 'url';
 
 /**
@@ -42,16 +36,10 @@ export function isSalesforceDomain(urlString: string): boolean {
     '.secure.force.com'
   ];
 
-  const whitelistOfSalesforceHosts: string[] = [
-    'developer.salesforce.com',
-    'trailhead.salesforce.com'
-  ];
+  const whitelistOfSalesforceHosts: string[] = ['developer.salesforce.com', 'trailhead.salesforce.com'];
 
   return whitelistOfSalesforceDomainPatterns.some(pattern => {
-    return (
-      url.hostname.endsWith(pattern) ||
-      whitelistOfSalesforceHosts.includes(url.hostname)
-    );
+    return url.hostname.endsWith(pattern) || whitelistOfSalesforceHosts.includes(url.hostname);
   });
 }
 
@@ -94,10 +82,7 @@ export function validateEmail(value: string): boolean {
  * @returns {boolean}
  */
 export function validateSalesforceId(value: string): boolean {
-  return (
-    /[a-zA-Z0-9]{18}|[a-zA-Z0-9]{15}/.test(value) &&
-    (value.length === 15 || value.length === 18)
-  );
+  return /[a-zA-Z0-9]{18}|[a-zA-Z0-9]{15}/.test(value) && (value.length === 15 || value.length === 18);
 }
 
 /**

@@ -23,25 +23,12 @@
  * @property {function} isEnvVar `() => boolean` Location is `LOCATIONS.ENVIRONMENT`.
  */
 
-import {
-  AsyncOptionalCreatable,
-  merge,
-  snakeCase,
-  sortBy
-} from '@salesforce/kit';
-import {
-  definiteEntriesOf,
-  Dictionary,
-  get,
-  isObject,
-  JsonMap,
-  Optional
-} from '@salesforce/ts-types';
+import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
+import { definiteEntriesOf, Dictionary, get, isObject, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
-const propertyToEnvName = (property: string) =>
-  `SFDX_${snakeCase(property).toUpperCase()}`;
+const propertyToEnvName = (property: string) => `SFDX_${snakeCase(property).toUpperCase()}`;
 
 export const enum LOCATIONS {
   GLOBAL = 'Global',
@@ -311,9 +298,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
     configs.push(this.envVars);
 
-    const reduced = configs
-      .filter(isObject)
-      .reduce((result, configElement) => merge(result, configElement), {});
+    const reduced = configs.filter(isObject).reduce((result, configElement) => merge(result, configElement), {});
     this.setConfig(reduced);
   }
 

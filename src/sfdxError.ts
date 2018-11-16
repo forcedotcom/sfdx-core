@@ -84,10 +84,7 @@ export class SfdxErrorConfig {
    * @param {Tokens} [actionTokens] The action tokens for the string.
    * @returns {SfdxErrorConfig} For convenience `this` object is returned.
    */
-  public addAction(
-    actionKey: string,
-    actionTokens: Tokens = []
-  ): SfdxErrorConfig {
+  public addAction(actionKey: string, actionTokens: Tokens = []): SfdxErrorConfig {
     this.actions.set(actionKey, actionTokens);
     return this;
   }
@@ -174,12 +171,7 @@ export class SfdxError extends NamedError {
    * @param {string} key The key within the bundle for the message.
    * @param {Tokens} [tokens] The values to use for message tokenization.
    */
-  public static create(
-    packageName: string,
-    bundleName: string,
-    key: string,
-    tokens?: Tokens
-  ): SfdxError;
+  public static create(packageName: string, bundleName: string, key: string, tokens?: Tokens): SfdxError;
 
   /**
    * Create a new SfdxError.
@@ -197,23 +189,14 @@ export class SfdxError extends NamedError {
     let errorConfig: SfdxErrorConfig;
 
     if (isString(nameOrConfig)) {
-      errorConfig = new SfdxErrorConfig(
-        nameOrConfig,
-        ensure(bundleName),
-        ensure(key),
-        tokens
-      );
+      errorConfig = new SfdxErrorConfig(nameOrConfig, ensure(bundleName), ensure(key), tokens);
     } else {
       errorConfig = nameOrConfig;
     }
 
     errorConfig.load();
 
-    return new SfdxError(
-      errorConfig.getError(),
-      errorConfig.errorKey,
-      errorConfig.getActions()
-    );
+    return new SfdxError(errorConfig.getError(), errorConfig.errorKey, errorConfig.getActions());
   }
 
   /**
@@ -224,10 +207,7 @@ export class SfdxError extends NamedError {
   public static wrap(err: Error): SfdxError {
     const sfdxError = new SfdxError(err.message, err.name);
     if (sfdxError.stack) {
-      sfdxError.stack = sfdxError.stack.replace(
-        `${err.name}: ${err.message}`,
-        'Outer stack:'
-      );
+      sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
       sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
     }
     return sfdxError;
@@ -264,13 +244,7 @@ export class SfdxError extends NamedError {
    * @param {number} [exitCode] The exit code which will be used by SfdxCommand.
    * @param {Error} [cause] The underlying error that caused this error to be raised.
    */
-  constructor(
-    message: string,
-    name?: string,
-    actions?: string[],
-    exitCode?: number,
-    cause?: Error
-  ) {
+  constructor(message: string, name?: string, actions?: string[], exitCode?: number, cause?: Error) {
     super(name || 'SfdxError', message, cause);
     this.actions = actions;
     this.exitCode = exitCode || 1;

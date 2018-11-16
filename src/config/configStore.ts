@@ -19,15 +19,7 @@
  * @typedef {Map<string, ConfigValue>} ConfigContents
  */
 import { AsyncCreatable, set } from '@salesforce/kit';
-import {
-  AnyJson,
-  definiteEntriesOf,
-  definiteValuesOf,
-  get,
-  getAnyJson,
-  JsonMap,
-  Optional
-} from '@salesforce/ts-types';
+import { AnyJson, definiteEntriesOf, definiteValuesOf, get, getAnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import { Dictionary } from '@salesforce/ts-types';
 import { ConfigContents } from './configStore';
 
@@ -64,9 +56,7 @@ export interface ConfigStore {
   values(): ConfigValue[];
 
   forEach(actionFn: (key: string, value: ConfigValue) => void): void;
-  awaitEach(
-    actionFn: (key: string, value: ConfigValue) => Promise<void>
-  ): Promise<void>;
+  awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void>;
 
   // Content methods
   getContents(): ConfigContents;
@@ -80,8 +70,7 @@ export interface ConfigStore {
  * **Note:** To see the interface, look in typescripts autocomplete help or the npm package's ConfigStore.d.ts file.
  * @implements {ConfigStore}
  */
-export abstract class BaseConfigStore<T extends BaseConfigStore.Options>
-  extends AsyncCreatable<T>
+export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends AsyncCreatable<T>
   implements ConfigStore {
   protected options: T;
 
@@ -117,9 +106,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options>
    * @returns {string[]}
    */
   public getKeysByValue(value: ConfigValue): string[] {
-    const matchedEntries = this.entries().filter(
-      (entry: ConfigEntry) => entry[1] === value
-    );
+    const matchedEntries = this.entries().filter((entry: ConfigEntry) => entry[1] === value);
     // Only return the keys
     return matchedEntries.map((entry: ConfigEntry) => entry[0]);
   }
@@ -219,9 +206,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options>
    * @param {function} actionFn The function `(key: string, value: ConfigValue) => Promise<void>` to be called for each element.
    * @returns {Promise<void>}
    */
-  public async awaitEach(
-    actionFn: (key: string, value: ConfigValue) => Promise<void>
-  ): Promise<void> {
+  public async awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
     const entries = this.entries();
     for (const entry of entries) {
       await actionFn(entry[0], entry[1]);

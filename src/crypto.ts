@@ -41,19 +41,12 @@ const keychainPromises = {
    * @param service The keychain service name.
    * @param account The keychain account name.
    */
-  getPassword(
-    _keychain: KeyChain,
-    service: string,
-    account: string
-  ): Promise<CredType> {
+  getPassword(_keychain: KeyChain, service: string, account: string): Promise<CredType> {
     return new Promise((resolve, reject) =>
-      _keychain.getPassword(
-        { service, account },
-        (err: Nullable<Error>, password?: string) => {
-          if (err) return reject(err);
-          return resolve({ username: account, password: ensure(password) });
-        }
-      )
+      _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
+        if (err) return reject(err);
+        return resolve({ username: account, password: ensure(password) });
+      })
     );
   },
 
@@ -63,20 +56,12 @@ const keychainPromises = {
    * @param account The keychain account name.
    * @param password The password for the keychain item.
    */
-  setPassword(
-    _keychain: KeyChain,
-    service: string,
-    account: string,
-    password: string
-  ): Promise<CredType> {
+  setPassword(_keychain: KeyChain, service: string, account: string, password: string): Promise<CredType> {
     return new Promise((resolve, reject) =>
-      _keychain.setPassword(
-        { service, account, password },
-        (err: Nullable<Error>) => {
-          if (err) return reject(err);
-          return resolve({ username: account, password });
-        }
-      )
+      _keychain.setPassword({ service, account, password }, (err: Nullable<Error>) => {
+        if (err) return reject(err);
+        return resolve({ username: account, password });
+      })
     );
   }
 };
@@ -125,11 +110,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
 
     return this._key.value(
       (buffer: Buffer): string => {
-        const cipher = crypto.createCipheriv(
-          _algo,
-          buffer.toString('utf8'),
-          iv
-        );
+        const cipher = crypto.createCipheriv(_algo, buffer.toString('utf8'), iv);
 
         let encrypted = cipher.update(text, 'utf8', 'hex');
         encrypted += cipher.final('hex');
@@ -155,9 +136,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
 
     if (tokens.length !== 2) {
       const errMsg = this.messages.getMessage('InvalidEncryptedFormatError');
-      const actionMsg = this.messages.getMessage(
-        'InvalidEncryptedFormatErrorAction'
-      );
+      const actionMsg = this.messages.getMessage('InvalidEncryptedFormatErrorAction');
       throw new SfdxError(errMsg, 'InvalidEncryptedFormatError', [actionMsg]);
     }
 
@@ -166,11 +145,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     const secret = tokens[0].substring(BYTE_COUNT_FOR_IV * 2, tokens[0].length);
 
     return this._key.value((buffer: Buffer) => {
-      const decipher = crypto.createDecipheriv(
-        _algo,
-        buffer.toString('utf8'),
-        iv
-      );
+      const decipher = crypto.createDecipheriv(_algo, buffer.toString('utf8'), iv);
 
       let dec;
       try {
@@ -178,9 +153,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
         dec = decipher.update(secret, 'hex', 'utf8');
         dec += decipher.final('utf8');
       } catch (e) {
-        const errMsg = this.messages.getMessage('AuthDecryptError', [
-          e.message
-        ]);
+        const errMsg = this.messages.getMessage('AuthDecryptError', [e.message]);
         throw new SfdxError(errMsg, 'AuthDecryptError');
       }
       return dec;
@@ -209,11 +182,8 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     try {
       this._key.consume(
         Buffer.from(
-          (await keychainPromises.getPassword(
-            await this.getKeyChain(this.options.platform),
-            KEY_NAME,
-            ACCOUNT
-          )).password,
+          (await keychainPromises.getPassword(await this.getKeyChain(this.options.platform), KEY_NAME, ACCOUNT))
+            .password,
           'utf8'
         )
       );
@@ -222,24 +192,15 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
       if (err.name === 'PasswordNotFoundError') {
         // If we already tried to create a new key then bail.
         if (this.options.retryStatus === 'KEY_SET') {
-          logger.debug(
-            'a key was set but the retry to get the password failed.'
-          );
+          logger.debug('a key was set but the retry to get the password failed.');
           throw err;
         } else {
-          logger.debug(
-            'password not found in keychain attempting to created one and re-init.'
-          );
+          logger.debug('password not found in keychain attempting to created one and re-init.');
         }
 
         const key = crypto.randomBytes(Math.ceil(16)).toString('hex');
         // Create a new password in the KeyChain.
-        await keychainPromises.setPassword(
-          ensure(this.options.keychain),
-          KEY_NAME,
-          ACCOUNT,
-          key
-        );
+        await keychainPromises.setPassword(ensure(this.options.keychain), KEY_NAME, ACCOUNT, key);
 
         return this.init();
       } else {

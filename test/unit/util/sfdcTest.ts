@@ -14,13 +14,11 @@ describe('util/sfdc', () => {
     });
 
     it('is not whiteList or host', () => {
-      expect(sfdc.isSalesforceDomain('http://www.ghostbusters.com')).to.be
-        .false;
+      expect(sfdc.isSalesforceDomain('http://www.ghostbusters.com')).to.be.false;
     });
 
     it('is whiteList host', () => {
-      expect(sfdc.isSalesforceDomain('http://developer.salesforce.com')).to.be
-        .true;
+      expect(sfdc.isSalesforceDomain('http://developer.salesforce.com')).to.be.true;
     });
 
     it('falsy', () => {
@@ -80,23 +78,19 @@ describe('util/sfdc', () => {
 
   describe('validatePathDoesNotContainInvalidChars', () => {
     it('should return true for "/this/is/my/path"', () => {
-      expect(sfdc.validatePathDoesNotContainInvalidChars('/this/is/my/path')).to
-        .be.true;
+      expect(sfdc.validatePathDoesNotContainInvalidChars('/this/is/my/path')).to.be.true;
     });
 
     it('should return false for "this/is/path??"', () => {
-      expect(sfdc.validatePathDoesNotContainInvalidChars('this/is/path??')).to
-        .be.false;
+      expect(sfdc.validatePathDoesNotContainInvalidChars('this/is/path??')).to.be.false;
     });
 
     it('should return false for "[this/is/path]"', () => {
-      expect(sfdc.validatePathDoesNotContainInvalidChars('[this/is/path]')).to
-        .be.false;
+      expect(sfdc.validatePathDoesNotContainInvalidChars('[this/is/path]')).to.be.false;
     });
 
     it('should return false for "/my/path > err.log"', () => {
-      expect(sfdc.validatePathDoesNotContainInvalidChars('/my/path > err.log'))
-        .to.be.false;
+      expect(sfdc.validatePathDoesNotContainInvalidChars('/my/path > err.log')).to.be.false;
     });
   });
 
