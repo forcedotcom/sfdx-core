@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as sinon from 'sinon';
 
 import { once, set } from '@salesforce/kit';
 import {
@@ -57,7 +58,7 @@ export interface ConfigStub {
  * Different configuration options when running before each
  */
 export interface TestContext {
-  SANDBOX: sinon.SinonSandbox; // tslint:disable-line:no-any
+  SANDBOX: sinon.SinonSandbox;
   SANDBOXES: SandboxTypes;
   TEST_LOGGER: Logger;
   id: string;
@@ -178,10 +179,10 @@ function defaultFakeConnectionRequest(
  * });
  */
 // tslint:disable-next-line:no-any
-export const testSetup = once((sinon?: any) => {
-  if (!sinon) {
+export const testSetup = once((sinonInstance?: any) => {
+  if (!sinonInstance) {
     try {
-      sinon = require('sinon');
+      sinonInstance = require('sinon');
     } catch (e) {
       throw new Error(
         'The package sinon was not found. Add it to your package.json and pass it in to testSetup(sinon.sandbox)'
