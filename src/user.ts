@@ -116,15 +116,6 @@ async function _retrieveProfileId(name: string, connection: Connection): Promise
 }
 
 /**
- * Used to initialize default values for fields based on a templateUser user. This user will be part of the
- * Standard User profile.
- */
-export interface DefaultUserFieldsOptions {
-  templateUser: string;
-  newUserName?: string;
-}
-
-/**
  * Provides a default set of fields values that can be used to create a user. This is handy for
  * software development purposes.
  *
@@ -134,13 +125,13 @@ export interface DefaultUserFieldsOptions {
  * };
  * const fields = (await DefaultUserFields.create(options)).getFields();
  */
-export class DefaultUserFields extends AsyncCreatable<DefaultUserFieldsOptions> {
+export class DefaultUserFields extends AsyncCreatable<User.Options> {
   private logger!: Logger;
   private userFields!: UserFields;
 
-  private options: DefaultUserFieldsOptions;
+  private options: User.Options;
 
-  public constructor(options: DefaultUserFieldsOptions) {
+  public constructor(options: User.Options) {
     super(options);
     this.options = options || { templateUser: '' };
   }
@@ -446,5 +437,16 @@ export class User {
       .sobject('User')
       .update(object);
     this.logger.debug(`Successfully Updated additional properties for user: ${fields.username}`);
+  }
+}
+
+export namespace User {
+  /**
+   * Used to initialize default values for fields based on a templateUser user. This user will be part of the
+   * Standard User profile.
+   */
+  export interface Options {
+    templateUser: string;
+    newUserName?: string;
   }
 }

@@ -13,7 +13,7 @@ import { Org } from '../../src/org';
 import { PermissionSetAssignment } from '../../src/permissionSetAssignment';
 import { SecureBuffer } from '../../src/secureBuffer';
 import { MockTestOrgData, shouldThrow, testSetup } from '../../src/testSetup';
-import { DefaultUserFields, DefaultUserFieldsOptions, User, UserFields } from '../../src/user';
+import { DefaultUserFields, User, UserFields } from '../../src/user';
 
 const $$ = testSetup();
 
@@ -103,7 +103,7 @@ describe('User Tests', () => {
       const user = await User.init(org);
 
       try {
-        const options: DefaultUserFieldsOptions = {
+        const options: User.Options = {
           templateUser: adminTestData.username,
           newUserName: user1.username
         };
@@ -146,7 +146,7 @@ describe('User Tests', () => {
       });
       const user: User = await User.init(org);
 
-      const options: DefaultUserFieldsOptions = {
+      const options: User.Options = {
         templateUser: org.getUsername() || ''
       };
       const fields = (await DefaultUserFields.create(options)).getFields();
