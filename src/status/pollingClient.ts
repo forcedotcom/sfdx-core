@@ -6,11 +6,10 @@
  */
 import { setInterval } from 'timers';
 
-import { AsyncOptionalCreatable } from '@salesforce/kit';
+import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import { AnyFunction, AnyJson, ensure, Optional } from '@salesforce/ts-types';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
-import { Time, TIME_UNIT } from '../util/time';
 import { StatusResult } from './client';
 
 /**
@@ -23,8 +22,8 @@ import { StatusResult } from './client';
  *      async poll(): Promise<StatusResult>  {
  *       return Promise.resolve({ completed: true, payload: 'Hello World' });
  *     },
- *     frequency: new Time(10, TIME_UNIT.MILLISECONDS),
- *      timeout: new Time(1, TIME_UNIT.MINUTES)
+ *     frequency: Duration.milliseconds(10),
+ *      timeout: Duration.minutes(1)
  *   };
  * const client = await PollingClient.create(options);
  * const pollResult = await client.subscribe();
@@ -142,9 +141,9 @@ export namespace PollingClient {
     // Polling function
     poll: () => Promise<StatusResult>;
     // How frequent should the polling function be called.
-    frequency: Time;
+    frequency: Duration;
     // Hard timeout for polling.
-    timeout: Time;
+    timeout: Duration;
     timeoutErrorName?: string;
   }
 
@@ -153,9 +152,9 @@ export namespace PollingClient {
    * seconds;
    */
   export class DefaultPollingOptions implements PollingClient.Options {
-    public frequency: Time;
+    public frequency: Duration;
     public poll: () => Promise<StatusResult>;
-    public timeout: Time;
+    public timeout: Duration;
 
     /**
      * constructor
@@ -164,8 +163,8 @@ export namespace PollingClient {
      */
     constructor(poll: () => Promise<StatusResult>) {
       this.poll = poll;
-      this.timeout = new Time(3, TIME_UNIT.MINUTES);
-      this.frequency = new Time(15, TIME_UNIT.SECONDS);
+      this.timeout = Duration.minutes(3);
+      this.frequency = Duration.seconds(15);
     }
   }
 }

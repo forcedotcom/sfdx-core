@@ -10,9 +10,8 @@ import { promisify } from 'util';
 
 import { ensureString } from '@salesforce/ts-types';
 
-import { AsyncOptionalCreatable } from '@salesforce/kit';
+import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import { Logger } from '../logger';
-import { Time, TIME_UNIT } from '../util/time';
 import { StatusResult } from './client';
 import { PollingClient } from './pollingClient';
 
@@ -25,8 +24,8 @@ import { PollingClient } from './pollingClient';
  * (async () => {
  * const options: MyDomainResolver.Options = {
  *    url: new URL('http://mydomain.salesforce.com'),
- *     timeout: new Time(5, TIME_UNIT.MINUTES),
- *     frequency: new Time(10, TIME_UNIT.SECONDS)
+ *     timeout: Duration.minutes(5),
+ *     frequency: Duration.seconds(10)
  * };
  *
  *   const resolver: MyDomainResolver = await MyDomainResolver.create(options);
@@ -81,8 +80,8 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
           };
         }
       },
-      timeout: this.options.timeout || new Time(30, TIME_UNIT.SECONDS),
-      frequency: this.options.frequency || new Time(10, TIME_UNIT.SECONDS),
+      timeout: this.options.timeout || Duration.seconds(30),
+      frequency: this.options.frequency || Duration.seconds(10),
       timeoutErrorName: 'MyDomainResolverTimeoutError'
     };
     const client = await PollingClient.create(pollingOptions);
@@ -110,11 +109,11 @@ export namespace MyDomainResolver {
     /**
      * The retry interval
      */
-    timeout?: Time;
+    timeout?: Duration;
 
     /**
      * The retry timeout
      */
-    frequency?: Time;
+    frequency?: Duration;
   }
 }

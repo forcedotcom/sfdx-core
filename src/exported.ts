@@ -60,8 +60,6 @@ export { CometClient, CometSubscription, StreamingClient } from './status/stream
 
 export { MyDomainResolver } from './status/myDomainResolver';
 
-export { Time, TIME_UNIT } from './util/time';
-
 export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './user';
 
 // Utility sub-modules

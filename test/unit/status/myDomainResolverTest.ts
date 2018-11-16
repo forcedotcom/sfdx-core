@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Duration } from '@salesforce/kit';
 import { AnyFunction } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as dns from 'dns';
@@ -11,7 +12,6 @@ import { URL } from 'url';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { testSetup } from '../../../src/testSetup';
 import { shouldThrow } from '../../../src/testSetup';
-import { Time, TIME_UNIT } from '../../../src/util/time';
 
 const $$ = testSetup();
 
@@ -37,8 +37,8 @@ describe('myDomainResolver', () => {
   it('should resolve', async () => {
     const options: MyDomainResolver.Options = {
       url: new URL(`http://${POSITIVE_HOST}`),
-      timeout: new Time(50, TIME_UNIT.MILLISECONDS),
-      frequency: new Time(10, TIME_UNIT.MILLISECONDS)
+      timeout: Duration.milliseconds(50),
+      frequency: Duration.milliseconds(10)
     };
     const resolver: MyDomainResolver = await MyDomainResolver.create(options);
     const ip = await resolver.resolve();
@@ -56,8 +56,8 @@ describe('myDomainResolver', () => {
   it('should resolve localhost', async () => {
     const options: MyDomainResolver.Options = {
       url: new URL('http://ghostbusters.internal.salesforce.com'),
-      timeout: new Time(50, TIME_UNIT.MILLISECONDS),
-      frequency: new Time(10, TIME_UNIT.MILLISECONDS)
+      timeout: Duration.milliseconds(50),
+      frequency: Duration.milliseconds(10)
     };
     const resolver: MyDomainResolver = await MyDomainResolver.create(options);
     const ip = await resolver.resolve();
@@ -68,8 +68,8 @@ describe('myDomainResolver', () => {
   it('should timeout', async () => {
     const options: MyDomainResolver.Options = {
       url: new URL(`https://${NEGATIVE_HOST}`),
-      timeout: new Time(100, TIME_UNIT.MILLISECONDS),
-      frequency: new Time(10, TIME_UNIT.MILLISECONDS)
+      timeout: Duration.milliseconds(50),
+      frequency: Duration.milliseconds(10)
     };
     const resolver: MyDomainResolver = await MyDomainResolver.create(options);
     try {
