@@ -6,7 +6,7 @@
  */
 /**
  * An enum of all possible locations for a config value.
- * @typedef LOCATIONS
+ * @typedef Location
  * @property {string} GLOBAL Represents the global config.
  * @property {string} LOCAL Represents the local project config.
  * @property {string} ENVIRONMENT Represents environment variables.
@@ -16,34 +16,21 @@
  * @typedef ConfigInfo
  * @property {string} key The config key.
  * @property {string | boolean} value The config value.
- * @property {LOCATIONS} location The location of the config property.
+ * @property {Location} location The location of the config property.
  * @property {string} path The path of the config value.
- * @property {function} isLocal `() => boolean` Location is `LOCATIONS.LOCAL`.
- * @property {function} isGlobal `() => boolean` Location is `LOCATIONS.GLOBAL`.
- * @property {function} isEnvVar `() => boolean` Location is `LOCATIONS.ENVIRONMENT`.
+ * @property {function} isLocal `() => boolean` Location is `Location.LOCAL`.
+ * @property {function} isGlobal `() => boolean` Location is `Location.GLOBAL`.
+ * @property {function} isEnvVar `() => boolean` Location is `Location.ENVIRONMENT`.
  */
 
-import {
-  AsyncOptionalCreatable,
-  merge,
-  snakeCase,
-  sortBy
-} from '@salesforce/kit';
-import {
-  definiteEntriesOf,
-  Dictionary,
-  get,
-  isObject,
-  JsonMap,
-  Optional
-} from '@salesforce/ts-types';
+import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
+import { definiteEntriesOf, Dictionary, get, isObject, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
-const propertyToEnvName = (property: string) =>
-  `SFDX_${snakeCase(property).toUpperCase()}`;
+const propertyToEnvName = (property: string) => `SFDX_${snakeCase(property).toUpperCase()}`;
 
-export const enum LOCATIONS {
+export const enum Location {
   GLOBAL = 'Global',
   LOCAL = 'Local',
   ENVIRONMENT = 'Environment'
@@ -54,7 +41,7 @@ export const enum LOCATIONS {
  */
 export interface ConfigInfo {
   key: string;
-  location?: LOCATIONS;
+  location?: Location;
   value: string | boolean;
   path?: string;
   /**
@@ -148,9 +135,9 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
       location,
       value: this.getPropertyValue(key),
       path: this.getPath(key),
-      isLocal: () => location === LOCATIONS.LOCAL,
-      isGlobal: () => location === LOCATIONS.GLOBAL,
-      isEnvVar: () => location === LOCATIONS.ENVIRONMENT
+      isLocal: () => location === Location.LOCAL,
+      isGlobal: () => location === Location.GLOBAL,
+      isEnvVar: () => location === Location.ENVIRONMENT
     };
   }
 
@@ -158,22 +145,22 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * Gets a resolved config property location.
    *
    * For example, `getLocation('logLevel')` will return:
-   * 1. `LOCATIONS.GLOBAL` if resolved to an environment variable.
-   * 1. `LOCATIONS.LOCAL` if resolved to local project config.
-   * 1. `LOCATIONS.ENVIRONMENT` if resolved to the global config.
+   * 1. `Location.GLOBAL` if resolved to an environment variable.
+   * 1. `Location.LOCAL` if resolved to local project config.
+   * 1. `Location.ENVIRONMENT` if resolved to the global config.
    *
    * @param {string} key The key of the property.
-   * @returns {Optional<LOCATIONS>}
+   * @returns {Optional<Location>}
    */
-  public getLocation(key: string): Optional<LOCATIONS> {
+  public getLocation(key: string): Optional<Location> {
     if (this.getEnvVars().get(key) != null) {
-      return LOCATIONS.ENVIRONMENT;
+      return Location.ENVIRONMENT;
     }
     if (this.getLocalConfig() && this.getLocalConfig().get(key)) {
-      return LOCATIONS.LOCAL;
+      return Location.LOCAL;
     }
     if (this.getGlobalConfig() && this.getGlobalConfig().get(key)) {
-      return LOCATIONS.GLOBAL;
+      return Location.GLOBAL;
     }
   }
 
@@ -311,9 +298,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
     configs.push(this.envVars);
 
-    const reduced = configs
-      .filter(isObject)
-      .reduce((result, configElement) => merge(result, configElement), {});
+    const reduced = configs.filter(isObject).reduce((result, configElement) => merge(result, configElement), {});
     this.setConfig(reduced);
   }
 
