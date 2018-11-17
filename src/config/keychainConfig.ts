@@ -19,12 +19,27 @@ export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
     return 'key.json';
   }
 
-  public static getDefaultOptions(isGlobal = true, filename?: string): ConfigFile.Options {
-    const config = super.getDefaultOptions(isGlobal);
-    // The key file is ALWAYS in the global space.
-    config.isGlobal = true;
-    config.filename = filename;
-    return config;
+  /**
+   * Gets default option for the KeychainConfig
+   */
+  public static getDefaultOptions(): ConfigFile.Options {
+    return ConfigFile.getDefaultOptions(true, KeychainConfig.getFileName());
+  }
+
+  /**
+   * Retrieves the global config state of the keychain
+   * @param options Option override otherwise the default options are used.
+   */
+  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(
+    options?: ConfigFile.Options
+  ): Promise<T> {
+    const keychainConfig: ConfigFile<
+      ConfigFile.Options
+    > = await KeychainConfig.create(
+      (options as ConfigFile.Options) || KeychainConfig.getDefaultOptions()
+    );
+    await keychainConfig.read();
+    return keychainConfig as T;
   }
 
   /**
@@ -41,7 +56,11 @@ export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
 
     await fs.mkdirp(pathDirname(this.getPath()));
 
-    await fs.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 4), { mode: '600' });
+    await fs.writeFile(
+      this.getPath(),
+      JSON.stringify(this.getContents(), null, 4),
+      { mode: '600' }
+    );
 
     return this.getContents();
   }
