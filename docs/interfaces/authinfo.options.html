@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>SFDC_URLS | @salesforce/core</title>
+	<title>Options | @salesforce/core</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -907,14 +907,73 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class="current tsd-kind-enum">
-			<a href="sfdc_urls.html" class="tsd-kind-icon">SFDC_<wbr>URLS</a>
+		<li class="current tsd-kind-class">
+			<a href="../classes/authinfo.html" class="tsd-kind-icon">Auth<wbr>Info</a>
 			<ul>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="sfdc_urls.html#production" class="tsd-kind-icon">production</a>
+				<li class="current tsd-kind-interface tsd-parent-kind-class">
+					<a href="authinfo.options.html" class="tsd-kind-icon">Options</a>
+					<ul>
+						<li class=" tsd-kind-property tsd-parent-kind-interface">
+							<a href="authinfo.options.html#accesstokenoptions" class="tsd-kind-icon">access<wbr>Token<wbr>Options</a>
+						</li>
+						<li class=" tsd-kind-property tsd-parent-kind-interface">
+							<a href="authinfo.options.html#oauth2options" class="tsd-kind-icon">oauth2<wbr>Options</a>
+						</li>
+						<li class=" tsd-kind-property tsd-parent-kind-interface">
+							<a href="authinfo.options.html#username" class="tsd-kind-icon">username</a>
+						</li>
+					</ul>
 				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="sfdc_urls.html#sandbox" class="tsd-kind-icon">sandbox</a>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#getconnectionoptions" class="tsd-kind-icon">get<wbr>Connection<wbr>Options</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#getfields" class="tsd-kind-icon">get<wbr>Fields</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#getsfdxauthurl" class="tsd-kind-icon">get<wbr>Sfdx<wbr>Auth<wbr>Url</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#getusername" class="tsd-kind-icon">get<wbr>Username</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a href="../classes/authinfo.html#init" class="tsd-kind-icon">init</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#isaccesstokenflow" class="tsd-kind-icon">is<wbr>Access<wbr>Token<wbr>Flow</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#isjwt" class="tsd-kind-icon">is<wbr>Jwt</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#isoauth" class="tsd-kind-icon">is<wbr>Oauth</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#isrefreshtokenflow" class="tsd-kind-icon">is<wbr>Refresh<wbr>Token<wbr>Flow</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#isusingaccesstoken" class="tsd-kind-icon">is<wbr>Using<wbr>Access<wbr>Token</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#save" class="tsd-kind-icon">save</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/authinfo.html#update" class="tsd-kind-icon">update</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a href="../classes/authinfo.html#clearcache" class="tsd-kind-icon">clear<wbr>Cache</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+					<a href="../classes/authinfo.html#create" class="tsd-kind-icon">create</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a href="../classes/authinfo.html#getauthorizationurl" class="tsd-kind-icon">get<wbr>Authorization<wbr>Url</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a href="../classes/authinfo.html#hasauthentications" class="tsd-kind-icon">has<wbr>Authentications</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a href="../classes/authinfo.html#listallauthfiles" class="tsd-kind-icon">list<wbr>All<wbr>Auth<wbr>Files</a>
 				</li>
 			</ul>
 		</li>
@@ -922,39 +981,65 @@ img { max-width: 100%; }
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
+		<section class="tsd-panel tsd-comment">
+			<div class="tsd-comment tsd-typography">
+				<div class="lead">
+					<p>Constrcutor options for AuthInfo</p>
+				</div>
+			</div>
+		</section>
+		<section class="tsd-panel tsd-hierarchy">
+			<h3>Hierarchy</h3>
+			<ul class="tsd-hierarchy">
+				<li>
+					<span class="target">Options</span>
+				</li>
+			</ul>
+		</section>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section ">
-						<h3>Enumeration members</h3>
+						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="sfdc_urls.html#production" class="tsd-kind-icon">production</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="sfdc_urls.html#sandbox" class="tsd-kind-icon">sandbox</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authinfo.options.html#accesstokenoptions" class="tsd-kind-icon">access<wbr>Token<wbr>Options</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authinfo.options.html#oauth2options" class="tsd-kind-icon">oauth2<wbr>Options</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authinfo.options.html#username" class="tsd-kind-icon">username</a></li>
 						</ul>
 					</section>
 				</div>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Enumeration members</h2>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="production" class="tsd-anchor"></a>
-				<h3>production</h3>
-				<div class="tsd-signature tsd-kind-icon">production<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;https://login.salesforce.com&quot;</span></div>
+			<h2>Properties</h2>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+				<a name="accesstokenoptions" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> access<wbr>Token<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">access<wbr>Token<wbr>Options<span class="tsd-signature-symbol">:</span> <a href="accesstokenoptions.html" class="tsd-signature-type">AccessTokenOptions</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in authInfo.ts:220</li>
+						<li>Defined in authInfo.ts:875</li>
 					</ul>
 				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="sandbox" class="tsd-anchor"></a>
-				<h3>sandbox</h3>
-				<div class="tsd-signature tsd-kind-icon">sandbox<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;https://test.salesforce.com&quot;</span></div>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+				<a name="oauth2options" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> oauth2<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">oauth2<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">OAuth2Options</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in authInfo.ts:219</li>
+						<li>Defined in authInfo.ts:874</li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+				<a name="username" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> username</h3>
+				<div class="tsd-signature tsd-kind-icon">username<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in authInfo.ts:873</li>
 					</ul>
 				</aside>
 			</section>

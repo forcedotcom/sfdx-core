@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>DefaultUserFieldsOptions | @salesforce/core</title>
+	<title>Options | @salesforce/core</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -907,14 +907,22 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class="current tsd-kind-interface">
-			<a href="defaultuserfieldsoptions.html" class="tsd-kind-icon">Default<wbr>User<wbr>Fields<wbr>Options</a>
+		<li class="current tsd-kind-class">
+			<a href="../classes/connection.html" class="tsd-kind-icon">Connection</a>
 			<ul>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="defaultuserfieldsoptions.html#newusername" class="tsd-kind-icon">new<wbr>User<wbr>Name</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="defaultuserfieldsoptions.html#templateuser" class="tsd-kind-icon">template<wbr>User</a>
+				<li class="current tsd-kind-interface tsd-parent-kind-class">
+					<a href="connection.options.html" class="tsd-kind-icon">Options</a>
+					<ul>
+						<li class=" tsd-kind-property tsd-parent-kind-interface">
+							<a href="connection.options.html#authinfo" class="tsd-kind-icon">auth<wbr>Info</a>
+						</li>
+						<li class=" tsd-kind-property tsd-parent-kind-interface">
+							<a href="connection.options.html#configaggregator" class="tsd-kind-icon">config<wbr>Aggregator</a>
+						</li>
+						<li class=" tsd-kind-property tsd-parent-kind-interface">
+							<a href="connection.options.html#connectionoptions" class="tsd-kind-icon">connection<wbr>Options</a>
+						</li>
+					</ul>
 				</li>
 			</ul>
 		</li>
@@ -925,8 +933,7 @@ img { max-width: 100%; }
 		<section class="tsd-panel tsd-comment">
 			<div class="tsd-comment tsd-typography">
 				<div class="lead">
-					<p>Used to initialize default values for fields based on a templateUser user. This user will be part of the
-					Standard User profile.</p>
+					<p>Connection Options</p>
 				</div>
 			</div>
 		</section>
@@ -934,7 +941,7 @@ img { max-width: 100%; }
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="target">DefaultUserFieldsOptions</span>
+					<span class="target">Options</span>
 				</li>
 			</ul>
 		</section>
@@ -945,8 +952,9 @@ img { max-width: 100%; }
 					<section class="tsd-index-section ">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="defaultuserfieldsoptions.html#newusername" class="tsd-kind-icon">new<wbr>User<wbr>Name</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="defaultuserfieldsoptions.html#templateuser" class="tsd-kind-icon">template<wbr>User</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="connection.options.html#authinfo" class="tsd-kind-icon">auth<wbr>Info</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="connection.options.html#configaggregator" class="tsd-kind-icon">config<wbr>Aggregator</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="connection.options.html#connectionoptions" class="tsd-kind-icon">connection<wbr>Options</a></li>
 						</ul>
 					</section>
 				</div>
@@ -955,22 +963,32 @@ img { max-width: 100%; }
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="newusername" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> new<wbr>User<wbr>Name</h3>
-				<div class="tsd-signature tsd-kind-icon">new<wbr>User<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+				<a name="authinfo" class="tsd-anchor"></a>
+				<h3>auth<wbr>Info</h3>
+				<div class="tsd-signature tsd-kind-icon">auth<wbr>Info<span class="tsd-signature-symbol">:</span> <a href="../classes/authinfo.html" class="tsd-signature-type">AuthInfo</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in user.ts:165</li>
+						<li>Defined in connection.ts:279</li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="templateuser" class="tsd-anchor"></a>
-				<h3>template<wbr>User</h3>
-				<div class="tsd-signature tsd-kind-icon">template<wbr>User<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+				<a name="configaggregator" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> config<wbr>Aggregator</h3>
+				<div class="tsd-signature tsd-kind-icon">config<wbr>Aggregator<span class="tsd-signature-symbol">:</span> <a href="../classes/configaggregator.html" class="tsd-signature-type">ConfigAggregator</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in user.ts:164</li>
+						<li>Defined in connection.ts:280</li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+				<a name="connectionoptions" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> connection<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">connection<wbr>Options<span class="tsd-signature-symbol">:</span> <a href="../globals.html#connectionoptions" class="tsd-signature-type">ConnectionOptions</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in connection.ts:281</li>
 					</ul>
 				</aside>
 			</section>
