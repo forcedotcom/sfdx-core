@@ -20,7 +20,7 @@ export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
   }
 
   /**
-   * Gets default option for the KeychainConfig
+   * Gets default options for the KeychainConfig
    */
   public static getDefaultOptions(): ConfigFile.Options {
     return ConfigFile.getDefaultOptions(true, KeychainConfig.getFileName());
