@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as sinonType from 'sinon';
 
 import { once, set } from '@salesforce/kit';
 import {
@@ -57,7 +58,7 @@ export interface ConfigStub {
  * Different configuration options when running before each
  */
 export interface TestContext {
-  SANDBOX: sinon.SinonSandbox; // tslint:disable-line:no-any
+  SANDBOX: sinonType.SinonSandbox; // tslint:disable-line:no-any
   SANDBOXES: SandboxTypes;
   TEST_LOGGER: Logger;
   id: string;
@@ -72,7 +73,10 @@ export interface TestContext {
   localPathRetriever: (uid: string) => Promise<string>;
   globalPathRetriever: (uid: string) => Promise<string>;
   rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
-  fakeConnectionRequest: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>;
+  fakeConnectionRequest: (
+    request: AnyJson,
+    options?: AnyJson
+  ) => Promise<AnyJson>;
   getConfigStubContents(name: string, group?: string): ConfigContents;
   setConfigStubContents(name: string, value: ConfigContents): void;
 }
@@ -89,11 +93,17 @@ function getTestGlobalPath(uid: string): Promise<string> {
   return Promise.resolve(pathJoin(osTmpdir(), uid, 'sfdx_core', 'global'));
 }
 
-async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Promise<string> {
+async function retrieveRootPath(
+  isGlobal: boolean,
+  uid: string = _uniqid()
+): Promise<string> {
   return isGlobal ? await getTestGlobalPath(uid) : await getTestLocalPath(uid);
 }
 
-function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Promise<AnyJson> {
+function defaultFakeConnectionRequest(
+  request: AnyJson,
+  options?: AnyJson
+): Promise<AnyJson> {
   return Promise.resolve({ records: [] });
 }
 
@@ -224,62 +234,76 @@ export const testSetup = once((sinon?: any) => {
 
   beforeEach(() => {
     // Most core files create a child logger so stub this to return our test logger.
-    testContext.SANDBOX.stub(Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
+    testContext.SANDBOX.stub(Logger, 'child').returns(
+      Promise.resolve(testContext.TEST_LOGGER)
+    );
 
-    testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
+    testContext.SANDBOXES.CONFIG.stub(
+      ConfigFile,
+      'resolveRootFolder'
+    ).callsFake((isGlobal: boolean) =>
       testContext.rootPathRetriever(isGlobal, testContext.id)
     );
 
     // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
-    testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(async function(
-      this: ConfigFile<ConfigFile.Options>
-    ) {
-      const stub = testContext.configStubs[this.constructor.name] || {};
+    testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(
+      async function(this: ConfigFile<ConfigFile.Options>) {
+        const stub = testContext.configStubs[this.constructor.name] || {};
 
-      if (stub.readFn) {
-        return await stub.readFn.call(this);
+        if (stub.readFn) {
+          return await stub.readFn.call(this);
+        }
+
+        let contents = stub.contents || {};
+
+        if (stub.retrieveContents) {
+          contents = await stub.retrieveContents.call(this);
+        }
+
+        this.setContentsFromObject(contents);
+        return Promise.resolve(this.getContents());
       }
+    );
+    testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(
+      async function(
+        this: ConfigFile<ConfigFile.Options>,
+        newContents: ConfigContents
+      ) {
+        if (!testContext.configStubs[this.constructor.name]) {
+          testContext.configStubs[this.constructor.name] = {};
+        }
+        const stub = testContext.configStubs[this.constructor.name];
+        if (!stub) return;
 
-      let contents = stub.contents || {};
+        if (stub.writeFn) {
+          return await stub.writeFn.call(this, newContents);
+        }
 
-      if (stub.retrieveContents) {
-        contents = await stub.retrieveContents.call(this);
+        let contents = newContents || this.getContents();
+
+        if (stub.updateContents) {
+          contents = await stub.updateContents.call(this);
+        }
+        this.setContents(contents);
+        stub.contents = this.toObject();
       }
+    );
 
-      this.setContentsFromObject(contents);
-      return Promise.resolve(this.getContents());
-    });
-    testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(
-      this: ConfigFile<ConfigFile.Options>,
-      newContents: ConfigContents
-    ) {
-      if (!testContext.configStubs[this.constructor.name]) {
-        testContext.configStubs[this.constructor.name] = {};
-      }
-      const stub = testContext.configStubs[this.constructor.name];
-      if (!stub) return;
-
-      if (stub.writeFn) {
-        return await stub.writeFn.call(this, newContents);
-      }
-
-      let contents = newContents || this.getContents();
-
-      if (stub.updateContents) {
-        contents = await stub.updateContents.call(this);
-      }
-      this.setContents(contents);
-      stub.contents = this.toObject();
-    });
-
-    testContext.SANDBOXES.CRYPTO.stub(Crypto.prototype, 'getKeyChain').callsFake(() =>
+    testContext.SANDBOXES.CRYPTO.stub(
+      Crypto.prototype,
+      'getKeyChain'
+    ).callsFake(() =>
       Promise.resolve({
         setPassword: () => Promise.resolve(),
-        getPassword: (data: object, cb: AnyFunction) => cb(undefined, '12345678901234567890123456789012')
+        getPassword: (data: object, cb: AnyFunction) =>
+          cb(undefined, '12345678901234567890123456789012')
       })
     );
 
-    testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(
+    testContext.SANDBOXES.CONNECTION.stub(
+      Connection.prototype,
+      'request'
+    ).callsFake(function(
       this: Connection,
       request: string,
       options?: Dictionary
@@ -293,7 +317,9 @@ export const testSetup = once((sinon?: any) => {
 
   afterEach(() => {
     testContext.SANDBOX.restore();
-    Object.values(testContext.SANDBOXES).forEach(theSandbox => theSandbox.restore());
+    Object.values(testContext.SANDBOXES).forEach(theSandbox =>
+      theSandbox.restore()
+    );
     testContext.configStubs = {};
   });
 
@@ -305,7 +331,10 @@ export const testSetup = once((sinon?: any) => {
  * @see shouldThrow
  * @type {SfdxError}
  */
-export const unexpectedResult: SfdxError = new SfdxError('This code was expected to failed', 'UnexpectedResult');
+export const unexpectedResult: SfdxError = new SfdxError(
+  'This code was expected to failed',
+  'UnexpectedResult'
+);
 
 /**
  * Use for this testing pattern:
@@ -361,7 +390,8 @@ export interface StreamingMockCometSubscriptionOptions {
 /**
  * Simulates a comet subscription to a streaming channel.
  */
-export class StreamingMockCometSubscription extends EventEmitter implements CometSubscription {
+export class StreamingMockCometSubscription extends EventEmitter
+  implements CometSubscription {
   public static SUBSCRIPTION_COMPLETE: string = 'subscriptionComplete';
   public static SUBSCRIPTION_FAILED: string = 'subscriptionFailed';
   private options: StreamingMockCometSubscriptionOptions;
@@ -372,7 +402,9 @@ export class StreamingMockCometSubscription extends EventEmitter implements Come
   }
 
   public callback(callback: () => void): void {
-    if (this.options.subscriptionCall === StreamingMockSubscriptionCall.CALLBACK) {
+    if (
+      this.options.subscriptionCall === StreamingMockSubscriptionCall.CALLBACK
+    ) {
       setTimeout(() => {
         callback();
         super.emit(StreamingMockCometSubscription.SUBSCRIPTION_COMPLETE);
@@ -381,7 +413,9 @@ export class StreamingMockCometSubscription extends EventEmitter implements Come
   }
 
   public errback(callback: (error: Error) => void): void {
-    if (this.options.subscriptionCall === StreamingMockSubscriptionCall.ERRORBACK) {
+    if (
+      this.options.subscriptionCall === StreamingMockSubscriptionCall.ERRORBACK
+    ) {
       const error = this.options.subscriptionErrbackError;
       if (!error) return;
       setTimeout(() => {
@@ -424,8 +458,13 @@ export class StreamingMockCometClient extends CometClient {
 
   public setHeader(name: string, value: string): void {}
 
-  public subscribe(channel: string, callback: (message: JsonMap) => void): CometSubscription {
-    const subscription: StreamingMockCometSubscription = new StreamingMockCometSubscription(this.options);
+  public subscribe(
+    channel: string,
+    callback: (message: JsonMap) => void
+  ): CometSubscription {
+    const subscription: StreamingMockCometSubscription = new StreamingMockCometSubscription(
+      this.options
+    );
     subscription.on('subscriptionComplete', () => {
       if (!this.options.messagePlaylist) return;
       Object.values(this.options.messagePlaylist).forEach(message => {

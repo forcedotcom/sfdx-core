@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>LOCATIONS | @salesforce/core</title>
+	<title>ConnectionState | @salesforce/core</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -907,17 +907,43 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class="current tsd-kind-enum">
-			<a href="locations.html" class="tsd-kind-icon">LOCATIONS</a>
+		<li class="current tsd-kind-class">
+			<a href="../classes/streamingclient.html" class="tsd-kind-icon">Streaming<wbr>Client</a>
 			<ul>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="locations.html#environment" class="tsd-kind-icon">ENVIRONMENT</a>
+				<li class="current tsd-kind-enum tsd-parent-kind-class tsd-is-static">
+					<a href="streamingclient.connectionstate.html" class="tsd-kind-icon">Connection<wbr>State</a>
+					<ul>
+						<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+							<a href="streamingclient.connectionstate.html#connected" class="tsd-kind-icon">CONNECTED</a>
+						</li>
+					</ul>
 				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="locations.html#global" class="tsd-kind-icon">GLOBAL</a>
+				<li class=" tsd-kind-enum tsd-parent-kind-class tsd-is-static">
+					<a href="streamingclient.timeouterrortype.html" class="tsd-kind-icon">Timeout<wbr>Error<wbr>Type</a>
 				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="locations.html#local" class="tsd-kind-icon">LOCAL</a>
+				<li class=" tsd-kind-class tsd-parent-kind-class">
+					<a href="../classes/streamingclient.defaultoptions.html" class="tsd-kind-icon">Default<wbr>Options</a>
+				</li>
+				<li class=" tsd-kind-interface tsd-parent-kind-class">
+					<a href="../interfaces/streamingclient.options.html" class="tsd-kind-icon">Options</a>
+				</li>
+				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
+					<a href="../classes/streamingclient.html#constructor" class="tsd-kind-icon">constructor</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/streamingclient.html#handshake" class="tsd-kind-icon">handshake</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a href="../classes/streamingclient.html#init" class="tsd-kind-icon">init</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/streamingclient.html#replay" class="tsd-kind-icon">replay</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="../classes/streamingclient.html#subscribe" class="tsd-kind-icon">subscribe</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+					<a href="../classes/streamingclient.html#create" class="tsd-kind-icon">create</a>
 				</li>
 			</ul>
 		</li>
@@ -925,6 +951,24 @@ img { max-width: 100%; }
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
+		<section class="tsd-panel tsd-comment">
+			<div class="tsd-comment tsd-typography">
+				<div class="lead">
+					<p>Connection state</p>
+				</div>
+				<dl class="tsd-comment-tags">
+					<dt>typedef</dt>
+					<dd><p>StreamingConnectionState</p>
+					</dd>
+					<dt>property</dt>
+					<dd><p>CONNECTED Used to indicated that the streaming client is connected.</p>
+					</dd>
+					<dt>see</dt>
+					<dd><p><a href="../classes/streamingclient.html#handshake">StreamingClient.handshake</a></p>
+					</dd>
+				</dl>
+			</div>
+		</section>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
@@ -932,9 +976,7 @@ img { max-width: 100%; }
 					<section class="tsd-index-section ">
 						<h3>Enumeration members</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="locations.html#environment" class="tsd-kind-icon">ENVIRONMENT</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="locations.html#global" class="tsd-kind-icon">GLOBAL</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="locations.html#local" class="tsd-kind-icon">LOCAL</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="streamingclient.connectionstate.html#connected" class="tsd-kind-icon">CONNECTED</a></li>
 						</ul>
 					</section>
 				</div>
@@ -943,32 +985,12 @@ img { max-width: 100%; }
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Enumeration members</h2>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="environment" class="tsd-anchor"></a>
-				<h3>ENVIRONMENT</h3>
-				<div class="tsd-signature tsd-kind-icon">ENVIRONMENT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;Environment&quot;</span></div>
+				<a name="connected" class="tsd-anchor"></a>
+				<h3>CONNECTED</h3>
+				<div class="tsd-signature tsd-kind-icon">CONNECTED<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in config/configAggregator.ts:49</li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="global" class="tsd-anchor"></a>
-				<h3>GLOBAL</h3>
-				<div class="tsd-signature tsd-kind-icon">GLOBAL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;Global&quot;</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in config/configAggregator.ts:47</li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="local" class="tsd-anchor"></a>
-				<h3>LOCAL</h3>
-				<div class="tsd-signature tsd-kind-icon">LOCAL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;Local&quot;</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in config/configAggregator.ts:48</li>
+						<li>Defined in status/streamingClient.ts:568</li>
 					</ul>
 				</aside>
 			</section>

@@ -910,6 +910,15 @@ img { max-width: 100%; }
 		<li class="current tsd-kind-class">
 			<a href="streamingclient.html" class="tsd-kind-icon">Streaming<wbr>Client</a>
 			<ul>
+				<li class=" tsd-kind-enum tsd-parent-kind-class tsd-is-static">
+					<a href="../enums/streamingclient.connectionstate.html" class="tsd-kind-icon">Connection<wbr>State</a>
+				</li>
+				<li class=" tsd-kind-enum tsd-parent-kind-class tsd-is-static">
+					<a href="../enums/streamingclient.timeouterrortype.html" class="tsd-kind-icon">Timeout<wbr>Error<wbr>Type</a>
+				</li>
+				<li class=" tsd-kind-class tsd-parent-kind-class">
+					<a href="streamingclient.defaultoptions.html" class="tsd-kind-icon">Default<wbr>Options</a>
+				</li>
 				<li class=" tsd-kind-interface tsd-parent-kind-class">
 					<a href="../interfaces/streamingclient.options.html" class="tsd-kind-icon">Options</a>
 				</li>
@@ -972,7 +981,7 @@ img { max-width: 100%; }
     payload: id
 };</code></pre><p>  };</p>
 						<p>const org = await Org.create();
-						const options = new DefaultStreamingOptions(org, &#39;MyPushTopics&#39;, streamProcessor);</p>
+						const options = new StreamingClient.DefaultOptions(org, &#39;MyPushTopics&#39;, streamProcessor);</p>
 						<p>const asyncStatusClient = await StreamingClient.create(options);</p>
 						<p>await asyncStatusClient.handshake();</p>
 						<p>const info: RequestInfo = {
@@ -1009,6 +1018,19 @@ img { max-width: 100%; }
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
+					<section class="tsd-index-section ">
+						<h3>Enumerations</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-enum tsd-parent-kind-class tsd-is-static"><a href="../enums/streamingclient.connectionstate.html" class="tsd-kind-icon">Connection<wbr>State</a></li>
+							<li class="tsd-kind-enum tsd-parent-kind-class tsd-is-static"><a href="../enums/streamingclient.timeouterrortype.html" class="tsd-kind-icon">Timeout<wbr>Error<wbr>Type</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
+						<h3>Classes</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-class tsd-parent-kind-class"><a href="streamingclient.defaultoptions.html" class="tsd-kind-icon">Default<wbr>Options</a></li>
+						</ul>
+					</section>
 					<section class="tsd-index-section ">
 						<h3>Interfaces</h3>
 						<ul class="tsd-index-list">
@@ -1047,7 +1069,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides AsyncOptionalCreatable.__constructor</p>
 							<ul>
-								<li>Defined in status/streamingClient.ts:311</li>
+								<li>Defined in status/streamingClient.ts:184</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1085,13 +1107,13 @@ img { max-width: 100%; }
 				<a name="handshake" class="tsd-anchor"></a>
 				<h3>handshake</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">handshake<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/streamingconnectionstate.html" class="tsd-signature-type">StreamingConnectionState</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">handshake<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/streamingclient.connectionstate.html" class="tsd-signature-type">ConnectionState</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in status/streamingClient.ts:416</li>
+								<li>Defined in status/streamingClient.ts:279</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1103,7 +1125,7 @@ img { max-width: 100%; }
 								<dd></dd>
 							</dl>
 						</div>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/streamingconnectionstate.html" class="tsd-signature-type">StreamingConnectionState</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/streamingclient.connectionstate.html" class="tsd-signature-type">ConnectionState</a><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -1118,7 +1140,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides AsyncOptionalCreatable.init</p>
 							<ul>
-								<li>Defined in status/streamingClient.ts:352</li>
+								<li>Defined in status/streamingClient.ts:231</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1144,7 +1166,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in status/streamingClient.ts:395</li>
+								<li>Defined in status/streamingClient.ts:258</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1175,7 +1197,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in status/streamingClient.ts:448</li>
+								<li>Defined in status/streamingClient.ts:311</li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
