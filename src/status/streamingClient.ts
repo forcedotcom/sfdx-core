@@ -360,6 +360,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
           return streamInit && streamInit();
         })
         .catch(error => {
+          this.disconnect();
           // Need to catch the subscription rejection or it will result in an unhandled rejection error.
           clearTimeout(timeout);
 
@@ -404,6 +405,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
   }
 
   private disconnect() {
+    this.log('Disconnecting the comet client');
     // This is a patch for faye. If Faye encounters errors while attempting to handshake it will keep trying
     // and will prevent the timeout from disconnecting. Here for example we will detect there is no client id but
     // unauthenticated connections are being made to salesforce. Let's close the dispatcher if it exists and
