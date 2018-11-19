@@ -8,9 +8,9 @@ import { JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { LoggerLevel } from '../../src/logger';
-import { SchemaPrinter, SchemaPropertyRenderer } from '../../src/schemaPrinter';
-import { testSetup } from '../../src/testSetup';
+import { LoggerLevel } from '../../../src/logger';
+import { SchemaPrinter, SchemaPropertyRenderer } from '../../../src/schema/printer';
+import { testSetup } from '../../../src/testSetup';
 
 const $$ = testSetup();
 
