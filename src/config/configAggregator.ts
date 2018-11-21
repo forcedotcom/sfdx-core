@@ -24,7 +24,19 @@
  */
 
 import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
-import { definiteEntriesOf, Dictionary, get, isObject, JsonMap, Optional } from '@salesforce/ts-types';
+import {
+  AnyJson,
+  asBoolean,
+  asNumber,
+  asString,
+  definiteEntriesOf,
+  Dictionary,
+  get,
+  isJsonMap,
+  JsonMap,
+  JsonPrimitive,
+  Optional
+} from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
@@ -42,7 +54,7 @@ export const enum Location {
 export interface ConfigInfo {
   key: string;
   location?: Location;
-  value: string | boolean;
+  value?: JsonPrimitive;
   path?: string;
   /**
    * @returns true if the config property is in the local project
@@ -82,7 +94,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   private localConfig!: Config;
   private globalConfig!: Config;
   private envVars!: Dictionary<string>;
-  private config!: object;
+  private config!: JsonMap;
 
   /**
    * **Do not directly construct instances of this class -- use {@link ConfigAggregator.resolve} instead.**
@@ -109,14 +121,14 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * Get a resolved config property.
    *
    * @param {string} key The key of the property.
-   * @returns {string | boolean}
+   * @returns {Optional<JsonPrimitive>}
    * @throws {SfdxError}
    *  **`{name: 'UnknownConfigKey'}`:** An attempt to get a property that's not supported.
    */
-  public getPropertyValue(key: string): string | boolean {
+  public getPropertyValue(key: string): Optional<JsonPrimitive> {
     if (this.getAllowedProperties().some(element => key === element.key)) {
-      // @ts-ignore TODO: Need to sort out object types on config stuff
-      return this.getConfig()[key];
+      const value = this.getConfig()[key];
+      return value === null ? null : asString(value) || asNumber(value) || asBoolean(value);
     } else {
       throw new SfdxError(`Unknown config key: ${key}`, 'UnknownConfigKey');
     }
@@ -230,9 +242,9 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
   /**
    * Get the resolved config object from the local, global and environment config instances.
-   * @returns {object}
+   * @returns {JsonMap}
    */
-  public getConfig(): object {
+  public getConfig(): JsonMap {
     return this.config;
   }
 
@@ -288,17 +300,18 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     // object assign and is overwritten by the local config.
 
     await this.globalConfig.read();
-    const configs = [this.globalConfig.toObject() as object];
+    const configs = [this.globalConfig.toObject()];
 
     // We might not be in a project workspace
     if (this.localConfig) {
       await this.localConfig.read();
-      configs.push(this.localConfig.toObject() as object);
+      configs.push(this.localConfig.toObject());
     }
 
     configs.push(this.envVars);
 
-    const reduced = configs.filter(isObject).reduce((result, configElement) => merge(result, configElement), {});
+    const json: JsonMap = {};
+    const reduced = configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
     this.setConfig(reduced);
   }
 
@@ -307,7 +320,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * @param config The config object to set.
    * @private
    */
-  private setConfig(config: object) {
+  private setConfig(config: JsonMap) {
     this.config = config;
   }
 
