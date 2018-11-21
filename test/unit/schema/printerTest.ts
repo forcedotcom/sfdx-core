@@ -14,7 +14,7 @@ import { testSetup } from '../../../src/testSetup';
 
 const $$ = testSetup();
 
-const SCHEMA_DIR = path.join(__dirname, '..', '..', 'test', 'unit', 'fixtures', 'schemas');
+const SCHEMA_DIR = path.join(__dirname, '..', '..', '..', 'test', 'unit', 'fixtures', 'schemas');
 
 const getIndent = (level: LoggerLevel) => ' '.repeat(level * 4);
 
