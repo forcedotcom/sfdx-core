@@ -222,6 +222,22 @@ describe('AuthInfo', () => {
 
   let testMetadata: MetaAuthDataMock;
 
+  function stubJwtRead() {
+    // Make the file read stub return JWT auth data
+    const jwtData = {};
+    set(jwtData, 'accessToken', testMetadata.encryptedAccessToken);
+    set(jwtData, 'clientId', testMetadata.clientId);
+    set(jwtData, 'loginUrl', testMetadata.loginUrl);
+    set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
+    set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
+
+    testMetadata.fetchConfigInfo = () => {
+      return Promise.resolve(jwtData);
+    };
+
+    return jwtData;
+  }
+
   beforeEach(async () => {
     // Testing config functionality, so restore global stubs.
     $$.SANDBOXES.CONFIG.restore();
@@ -288,6 +304,8 @@ describe('AuthInfo', () => {
 
     describe('updateInfo', () => {
       it('cache hit and miss', async () => {
+        stubJwtRead();
+
         const postInitLookupCount: number = testMetadata.authInfoLookupCount;
         const username = authInfo.getFields().username || '';
 
@@ -537,17 +555,7 @@ describe('AuthInfo', () => {
     it('should return a JWT AuthInfo instance when passed a username from an auth file', async () => {
       const username = 'authInfoTest_username_jwt-NOT-CACHED';
 
-      // Make the file read stub return JWT auth data
-      const jwtData = {};
-      set(jwtData, 'accessToken', testMetadata.encryptedAccessToken);
-      set(jwtData, 'clientId', testMetadata.clientId);
-      set(jwtData, 'loginUrl', testMetadata.loginUrl);
-      set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
-      set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
-
-      testMetadata.fetchConfigInfo = () => {
-        return Promise.resolve(jwtData);
-      };
+      const jwtData = stubJwtRead();
 
       // Create the JWT AuthInfo instance
       const authInfo = await AuthInfo.create({ username });
@@ -988,6 +996,8 @@ describe('AuthInfo', () => {
       _postParmsStub.returns(Promise.resolve(authResponse));
 
       const cacheSetSpy: sinon.SinonSpy = spyMethod($$.SANDBOX, AuthInfo['cache'], 'set');
+
+      stubJwtRead();
 
       // Create the AuthInfo instance
       const authInfo = await AuthInfo.create({

@@ -77,26 +77,6 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     return isGlobal ? osHomedir() : await resolveProjectPath();
   }
 
-  /**
-   * Creates the config instance and reads the contents of the existing file, if there is one.
-   *
-   * This is the same as
-   * ```
-   * const myConfig = await MyConfig.create<MyConfig>();
-   * await myConfig.read();
-   * ```
-   *
-   * **Note:** Cast to the extended class. e.g. `await MyConfig.retrieve<MyConfig>();`
-   *
-   * @param {ConfigOptions} [options] The options used to create the file. Will use {@link ConfigFile.getDefaultOptions} by default.
-   * {@link ConfigFile.getDefaultOptions} with no parameters by default.
-   */
-  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(options: ConfigFile.Options): Promise<T> {
-    const configFile = await ConfigFile.create(options);
-    await configFile.read();
-    return configFile as T;
-  }
-
   // Initialized in create
   private path!: string;
 
@@ -241,6 +221,8 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     }
 
     this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);
+
+    await this.read();
   }
 }
 

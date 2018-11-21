@@ -32,7 +32,7 @@ import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
  *         return 'myPluginConfigFilename.json';
  *     }
  * }
- * const myConfig = await MyPluginConfig.retrieve<MyPluginConfig>(ConfigGroup.getOptions('all'));
+ * const myConfig = await MyPluginConfig.create(ConfigGroup.getOptions('all'));
  * myconfig.setDefaultGroup('myCommand'); // Can be set in your command's init.
  * myConfig.set('mykey', 'myvalue'); // Sets 'myKey' for the 'myCommand' group.
  * myConfig.setInGroup('myKey', 'myvalue', 'all'); // Manually set in another group.
@@ -49,14 +49,6 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
     const configGroupOptions: ConfigGroup.Options = { defaultGroup };
     Object.assign(configGroupOptions, options);
     return configGroupOptions;
-  }
-
-  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(options?: ConfigFile.Options): Promise<T> {
-    const aliases: ConfigFile<ConfigFile.Options> = await ConfigGroup.create(
-      (options as ConfigGroup.Options) || ConfigGroup.getDefaultOptions()
-    );
-    await aliases.read();
-    return aliases as T;
   }
 
   private defaultGroup: string = 'default';

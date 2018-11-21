@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Dictionary, JsonMap } from '@salesforce/ts-types';
+import { asString, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
-import { ConfigFile } from './configFile';
 import { ConfigGroup } from './configGroup';
 
 const ALIAS_FILE_NAME = 'alias.json';
@@ -30,7 +29,7 @@ export enum AliasGroup {
  * @extends ConfigGroup
  *
  * @example
- * const aliases = await Aliases.retrieve<Aliases>();
+ * const aliases = await Aliases.create();
  * aliases.set('myAlias', 'username@company.org');
  * await aliases.write();
  * // Shorthand to get an alias.
@@ -53,14 +52,6 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
    */
   public static getDefaultOptions(): ConfigGroup.Options {
     return ConfigGroup.getOptions(AliasGroup.ORGS, Aliases.getFileName());
-  }
-
-  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(options?: ConfigFile.Options): Promise<T> {
-    const aliases: ConfigFile<ConfigFile.Options> = await Aliases.create(
-      (options as ConfigGroup.Options) || Aliases.getDefaultOptions()
-    );
-    await aliases.read();
-    return aliases as T;
   }
 
   /**
@@ -91,20 +82,20 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
       newAliases[name] = value || undefined;
     }
 
-    const aliases: Aliases = await Aliases.retrieve<Aliases>();
+    const aliases = await Aliases.create(Aliases.getDefaultOptions());
 
     return await aliases.updateValues(newAliases, group);
   }
 
   /**
-   * Get an alias from a key and group. Shorthand for `Alias.retrieve().get(key)`.
+   * Get an alias from a key and group. Shorthand for `Alias.create().get(key)`.
    * @param {string} key The value of the alias to match
    * @param {string} [group=AliasGroup.Orgs] The group the alias belongs to. Defaults to Orgs
-   * @returns {Promise<string>} The promise resolved when the alias is retrieved
+   * @returns {Promise<Optional<string>>} The promise resolved when the alias is created
    */
-  public static async fetch(key: string, group = AliasGroup.ORGS): Promise<string> {
-    const aliases = (await Aliases.retrieve(Aliases.getDefaultOptions())) as Aliases;
-    return aliases.getInGroup(key, group) as string;
+  public static async fetch(key: string, group = AliasGroup.ORGS): Promise<Optional<string>> {
+    const aliases = await Aliases.create(Aliases.getDefaultOptions());
+    return asString(aliases.getInGroup(key, group));
   }
 
   public constructor(options: ConfigGroup.Options) {
