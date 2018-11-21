@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Dictionary } from '@salesforce/ts-types';
+import { Dictionary, JsonMap } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile } from './configFile';
 import { ConfigGroup } from './configGroup';
@@ -68,14 +68,14 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
    * @param {array} aliasKeyAndValues An array of strings in the format `<alias>=<value>`.
    * Each element will be saved in the Aliases state file under the group.
    * @param {AliasGroup} [group = AliasGroup.ORGS] The group the alias belongs to. Defaults to ORGS.
-   * @returns {Promise<object>} The new aliases that were saved.
+   * @returns {Promise<JsonMap>} The new aliases that were saved.
    * @example
    * const aliases = await Aliases.parseAndUpdate(['foo=bar', 'bar=baz'])
    */
   public static async parseAndUpdate(
     aliasKeyAndValues: string[],
     group: AliasGroup = AliasGroup.ORGS
-  ): Promise<object> {
+  ): Promise<JsonMap> {
     const newAliases: Dictionary<string> = {};
     if (aliasKeyAndValues.length === 0) {
       throw SfdxError.create('@salesforce/core', 'core', 'NoAliasesFound', []);
