@@ -30,12 +30,8 @@ export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
    * Retrieves the global config state of the keychain
    * @param options Option override otherwise the default options are used.
    */
-  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(
-    options?: ConfigFile.Options
-  ): Promise<T> {
-    const keychainConfig: ConfigFile<
-      ConfigFile.Options
-    > = await KeychainConfig.create(
+  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(options?: ConfigFile.Options): Promise<T> {
+    const keychainConfig: ConfigFile<ConfigFile.Options> = await KeychainConfig.create(
       (options as ConfigFile.Options) || KeychainConfig.getDefaultOptions()
     );
     await keychainConfig.read();
@@ -56,11 +52,7 @@ export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
 
     await fs.mkdirp(pathDirname(this.getPath()));
 
-    await fs.writeFile(
-      this.getPath(),
-      JSON.stringify(this.getContents(), null, 4),
-      { mode: '600' }
-    );
+    await fs.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 4), { mode: '600' });
 
     return this.getContents();
   }

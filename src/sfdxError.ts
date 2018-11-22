@@ -272,9 +272,9 @@ export class SfdxError extends NamedError {
 
   /**
    * Convert an SfdxError's state to an object.
-   * @returns {object} A plain object representing the state of this error.
+   * @returns {JsonMap} A plain object representing the state of this error.
    */
-  public toObject(): object {
+  public toObject(): JsonMap {
     const obj: JsonMap = {
       name: this.name,
       message: this.message || this.name,

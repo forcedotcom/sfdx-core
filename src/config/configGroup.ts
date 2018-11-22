@@ -12,7 +12,7 @@
  */
 
 import { set } from '@salesforce/kit';
-import { definiteEntriesOf, definiteValuesOf, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { definiteEntriesOf, definiteValuesOf, Dictionary, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
@@ -76,11 +76,11 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Set a group of entries in a bulk save.
-   * @param {object} newEntries An object representing the aliases to set.
+   * @param {Dictionary<ConfigValue>} newEntries An object representing the aliases to set.
    * @param {string} [group = 'default'] The group the property belongs to.
-   * @returns {Promise<object>} The new property that was saved.
+   * @returns {Promise<JsonMap>} The new properties that were saved.
    */
-  public async updateValues(newEntries: object, group?: string): Promise<object> {
+  public async updateValues(newEntries: Dictionary<ConfigValue>, group?: string): Promise<Dictionary<ConfigValue>> {
     // Make sure the contents are loaded
     await this.read();
     Object.entries(newEntries).forEach(([key, val]) => this.setInGroup(key, val, group || this.defaultGroup));
