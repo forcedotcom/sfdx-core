@@ -24,19 +24,7 @@
  */
 
 import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
-import {
-  AnyJson,
-  asBoolean,
-  asNumber,
-  asString,
-  definiteEntriesOf,
-  Dictionary,
-  get,
-  isJsonMap,
-  JsonMap,
-  JsonPrimitive,
-  Optional
-} from '@salesforce/ts-types';
+import { AnyJson, definiteEntriesOf, Dictionary, get, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
@@ -54,7 +42,7 @@ export const enum Location {
 export interface ConfigInfo {
   key: string;
   location?: Location;
-  value?: JsonPrimitive;
+  value?: AnyJson;
   path?: string;
   /**
    * @returns true if the config property is in the local project
@@ -121,14 +109,13 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * Get a resolved config property.
    *
    * @param {string} key The key of the property.
-   * @returns {Optional<JsonPrimitive>}
+   * @returns {Optional<AnyJson>}
    * @throws {SfdxError}
    *  **`{name: 'UnknownConfigKey'}`:** An attempt to get a property that's not supported.
    */
-  public getPropertyValue(key: string): Optional<JsonPrimitive> {
+  public getPropertyValue(key: string): Optional<AnyJson> {
     if (this.getAllowedProperties().some(element => key === element.key)) {
-      const value = this.getConfig()[key];
-      return value === null ? null : asString(value) || asNumber(value) || asBoolean(value);
+      return this.getConfig()[key];
     } else {
       throw new SfdxError(`Unknown config key: ${key}`, 'UnknownConfigKey');
     }
