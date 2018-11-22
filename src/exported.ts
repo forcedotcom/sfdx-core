@@ -46,9 +46,9 @@ export { Org, OrgFields } from './org';
 
 export { SfdxProject, SfdxProjectJson } from './sfdxProject';
 
-export { SchemaPrinter } from './schemaPrinter';
+export { SchemaPrinter } from './schema/printer';
 
-export { SchemaValidator } from './schemaValidator';
+export { SchemaValidator } from './schema/validator';
 
 export { SfdxError, SfdxErrorConfig } from './sfdxError';
 
