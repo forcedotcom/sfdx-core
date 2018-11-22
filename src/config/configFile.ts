@@ -150,7 +150,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @param [newContents] The new contents of the file.
    * @returns The written contents.
    */
-  public async write(newContents?: ConfigContents): Promise<object> {
+  public async write(newContents?: ConfigContents): Promise<ConfigContents> {
     if (newContents != null) {
       this.setContents(newContents);
     }

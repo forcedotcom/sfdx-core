@@ -6,7 +6,7 @@
  */
 /**
  * The allowed types stored in a config store.
- * @typedef {(string | boolean | object)} ConfigValue
+ * @typedef {AnyJson} ConfigValue
  */
 /**
  * The type of entries in a config store defined by the key and value type of {@link ConfigContents}.

@@ -158,9 +158,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * @param {boolean} isGlobal True for a global config. False for a local config.
    * @param {string} propertyName The name of the property to set.
    * @param {ConfigValue} [value] The property value.
-   * @returns {Promise<object>}
+   * @returns {Promise<ConfigContents>}
    */
-  public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<object> {
+  public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<ConfigContents> {
     const config = await Config.create(Config.getDefaultOptions(isGlobal));
 
     const content = await config.read();
@@ -199,7 +199,8 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   }
 
   /**
-   * @returns {Promise<object>} Read, assign, and return the config contents.
+   * Read, assign, and return the config contents.
+   * @returns {Promise<ConfigContents>}
    */
   public async read(): Promise<ConfigContents> {
     try {
