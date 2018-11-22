@@ -14,8 +14,8 @@ import {
   JsonMap,
   Optional
 } from '@salesforce/ts-types';
-import { Logger } from './logger';
-import { SfdxError } from './sfdxError';
+import { Logger } from '../logger';
+import { SfdxError } from '../sfdxError';
 
 /**
  * Renders schema properties.  By default, this is simply an identity transform.  Subclasses may provide more
