@@ -41,7 +41,7 @@ describe('AuthInfo No fs mock', () => {
     stubMethod($$.SANDBOX, Crypto.prototype, 'getKeyChain').callsFake(() =>
       Promise.resolve({
         setPassword: () => Promise.resolve(),
-        getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(undefined, TEST_KEY.key)
+        getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(null, TEST_KEY.key)
       })
     );
     stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'read').callsFake(async () => {
@@ -140,10 +140,6 @@ class MetaAuthDataMock {
     return this._defaultConnectedAppInfo;
   }
 
-  set defaultConnectedAppInfo(value: AuthFields) {
-    this._defaultConnectedAppInfo = value;
-  }
-
   get encryptedAccessToken(): string {
     return this._encryptedAccessToken;
   }
@@ -222,22 +218,6 @@ describe('AuthInfo', () => {
 
   let testMetadata: MetaAuthDataMock;
 
-  function stubJwtRead() {
-    // Make the file read stub return JWT auth data
-    const jwtData = {};
-    set(jwtData, 'accessToken', testMetadata.encryptedAccessToken);
-    set(jwtData, 'clientId', testMetadata.clientId);
-    set(jwtData, 'loginUrl', testMetadata.loginUrl);
-    set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
-    set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
-
-    testMetadata.fetchConfigInfo = () => {
-      return Promise.resolve(jwtData);
-    };
-
-    return jwtData;
-  }
-
   beforeEach(async () => {
     // Testing config functionality, so restore global stubs.
     $$.SANDBOXES.CONFIG.restore();
@@ -304,8 +284,6 @@ describe('AuthInfo', () => {
 
     describe('updateInfo', () => {
       it('cache hit and miss', async () => {
-        stubJwtRead();
-
         const postInitLookupCount: number = testMetadata.authInfoLookupCount;
         const username = authInfo.getFields().username || '';
 
@@ -555,7 +533,16 @@ describe('AuthInfo', () => {
     it('should return a JWT AuthInfo instance when passed a username from an auth file', async () => {
       const username = 'authInfoTest_username_jwt-NOT-CACHED';
 
-      const jwtData = stubJwtRead();
+      // Make the file read stub return JWT auth data
+      const jwtData = {};
+      set(jwtData, 'accessToken', testMetadata.encryptedAccessToken);
+      set(jwtData, 'clientId', testMetadata.clientId);
+      set(jwtData, 'loginUrl', testMetadata.loginUrl);
+      set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
+      set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
+      testMetadata.fetchConfigInfo = () => {
+        return Promise.resolve(jwtData);
+      };
 
       // Create the JWT AuthInfo instance
       const authInfo = await AuthInfo.create({ username });
@@ -997,8 +984,6 @@ describe('AuthInfo', () => {
 
       const cacheSetSpy: sinon.SinonSpy = spyMethod($$.SANDBOX, AuthInfo['cache'], 'set');
 
-      stubJwtRead();
-
       // Create the AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
@@ -1012,6 +997,8 @@ describe('AuthInfo', () => {
 
       // Save new fields
       const changedData = { accessToken: testMetadata.accessToken };
+
+      stubMethod($$.SANDBOX, testMetadata, 'fetchConfigInfo').returns(Promise.resolve({}));
       await authInfo.save(changedData);
 
       expect(authInfoUpdate.called).to.be.true;
