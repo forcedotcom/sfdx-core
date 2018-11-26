@@ -10,7 +10,7 @@ export async function run() {
 
   const orgs = authFiles.map(authfile => authfile.replace('.json', ''));
   const orgsWithAliases = {};
-  const aliases: Aliases = await Aliases.retrieve<Aliases>();
+  const aliases = await Aliases.create();
 
   // Map the aliases onto the orgs
   for (const org of orgs) {

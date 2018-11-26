@@ -445,7 +445,7 @@ export class GenericKeychainAccess implements PasswordStore {
       // the file checks out.
       if (fileAccessError == null) {
         // read it's contents
-        return KeychainConfig.retrieve<KeychainConfig>()
+        return KeychainConfig.create(KeychainConfig.getDefaultOptions())
           .then((config: KeychainConfig) => {
             // validate service name and account just because
             if (opts.service === config.get(SecretField.SERVICE) && opts.account === config.get(SecretField.ACCOUNT)) {
