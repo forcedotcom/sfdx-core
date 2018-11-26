@@ -27,18 +27,6 @@ export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
   }
 
   /**
-   * Retrieves the global config state of the keychain
-   * @param options Option override otherwise the default options are used.
-   */
-  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(options?: ConfigFile.Options): Promise<T> {
-    const keychainConfig: ConfigFile<ConfigFile.Options> = await KeychainConfig.create(
-      (options as ConfigFile.Options) || KeychainConfig.getDefaultOptions()
-    );
-    await keychainConfig.read();
-    return keychainConfig as T;
-  }
-
-  /**
    * Write the config file with new contents. If no new contents are passed in
    * it will write this.contents that was set from read().
    *

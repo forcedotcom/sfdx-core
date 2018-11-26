@@ -88,7 +88,7 @@ export interface ConfigPropertyMetaInput {
  * @extends ConfigFile
  *
  * @example
- * const localConfig = await Config.retrieve<Config>();
+ * const localConfig = await Config.create();
  * localConfig.set('defaultusername', 'username@company.org');
  * await localConfig.write();
  *

@@ -41,7 +41,7 @@ describe('AuthInfo No fs mock', () => {
     stubMethod($$.SANDBOX, Crypto.prototype, 'getKeyChain').callsFake(() =>
       Promise.resolve({
         setPassword: () => Promise.resolve(),
-        getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(undefined, TEST_KEY.key)
+        getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(null, TEST_KEY.key)
       })
     );
     stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'read').callsFake(async () => {
@@ -138,10 +138,6 @@ class MetaAuthDataMock {
 
   get defaultConnectedAppInfo(): AuthFields {
     return this._defaultConnectedAppInfo;
-  }
-
-  set defaultConnectedAppInfo(value: AuthFields) {
-    this._defaultConnectedAppInfo = value;
   }
 
   get encryptedAccessToken(): string {
@@ -544,7 +540,6 @@ describe('AuthInfo', () => {
       set(jwtData, 'loginUrl', testMetadata.loginUrl);
       set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
       set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
-
       testMetadata.fetchConfigInfo = () => {
         return Promise.resolve(jwtData);
       };
@@ -1002,6 +997,8 @@ describe('AuthInfo', () => {
 
       // Save new fields
       const changedData = { accessToken: testMetadata.accessToken };
+
+      stubMethod($$.SANDBOX, testMetadata, 'fetchConfigInfo').returns(Promise.resolve({}));
       await authInfo.save(changedData);
 
       expect(authInfoUpdate.called).to.be.true;

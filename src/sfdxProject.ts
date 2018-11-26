@@ -24,7 +24,7 @@ import { findUpperCaseKeys } from './util/sfdc';
  * @extends ConfigFile
  *
  * @example
- * const project = await SfdxProjectJson.retrieve<SfdxProjectJson>();
+ * const project = await SfdxProjectJson.retrieve();
  * const myPluginProperties = project.get('myplugin') || {};
  * myPluginProperties.myprop = 'someValue';
  * project.set('myplugin', myPluginProperties);
