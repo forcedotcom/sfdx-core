@@ -51,7 +51,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
     return configGroupOptions;
   }
 
-  private defaultGroup: string = 'default';
+  private defaultGroup = 'default';
 
   /**
    * Sets the default group for all {@link BaseConfigStore} methods to use.

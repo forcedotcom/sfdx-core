@@ -52,7 +52,7 @@ describe('clientTest', () => {
   });
 
   it('should subscribeTimeout', async () => {
-    let callCount: number = 0;
+    let callCount = 0;
     const options: PollingClient.Options = {
       async poll() {
         callCount++;
@@ -73,7 +73,7 @@ describe('clientTest', () => {
 
   it('should error out', async () => {
     const TEST_VALUE = 'foo';
-    let callCount: number = 0;
+    let callCount = 0;
     const options: PollingClient.Options = {
       async poll() {
         callCount++;

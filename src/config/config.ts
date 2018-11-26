@@ -145,7 +145,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     return Config.allowedProperties;
   }
 
-  public static getDefaultOptions(isGlobal: boolean = false, filename?: string): ConfigFile.Options {
+  public static getDefaultOptions(isGlobal = false, filename?: string): ConfigFile.Options {
     return {
       isGlobal,
       isState: true,

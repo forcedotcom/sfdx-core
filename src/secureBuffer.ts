@@ -7,8 +7,8 @@
 import { ensure, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 
-const cipherName: string = 'aes256';
-const cipherSize: number = 32;
+const cipherName = 'aes256';
+const cipherSize = 32;
 
 /**
  * Used to store and retrieve a sensitive information in memory. This is not meant for at rest encryption.
