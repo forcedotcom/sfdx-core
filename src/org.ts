@@ -142,7 +142,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    * @returns {Promise<void>}
    */
 
-  public async cleanLocalOrgData(orgDataPath?: string, throwWhenRemoveFails: boolean = false): Promise<void> {
+  public async cleanLocalOrgData(orgDataPath?: string, throwWhenRemoveFails = false): Promise<void> {
     let dataPath: string;
     try {
       const rootFolder: string = await Config.resolveRootFolder(false);
@@ -206,7 +206,7 @@ export class Org extends AsyncCreatable<Org.Options> {
         (configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
         (configInfo.isGlobal() || configInfo.isLocal())
       ) {
-        await Config.update(configInfo.isGlobal() as boolean, orgType, undefined);
+        await Config.update(configInfo.isGlobal(), orgType, undefined);
       }
 
       const orgUsers: OrgUsersConfig = await this.retrieveOrgUsersConfig();
@@ -442,13 +442,11 @@ export class Org extends AsyncCreatable<Org.Options> {
    * @returns {JsonMap}
    */
   public getFields(keys: OrgFields[]): JsonMap {
-    return keys.reduce(
-      (map, key) => {
-        map[key] = this.getField(key);
-        return map;
-      },
-      {} as JsonMap
-    );
+    const json: JsonMap = {};
+    return keys.reduce((map, key) => {
+      map[key] = this.getField(key);
+      return map;
+    }, json);
   }
 
   /**

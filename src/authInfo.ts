@@ -210,7 +210,7 @@ const INTERNAL_URL_PARTS = [
   'mobile1.t.salesforce.com'
 ];
 
-function isInternalUrl(loginUrl: string = ''): boolean {
+function isInternalUrl(loginUrl = ''): boolean {
   return loginUrl.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some(part => loginUrl.includes(part));
 }
 
@@ -494,7 +494,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * @param {boolean} encrypt Encrypt the fields.
    * @returns {AuthInfo} For convenience `this` object is returned.
    */
-  public update(authData?: AuthFields, encrypt: boolean = true): AuthInfo {
+  public update(authData?: AuthFields, encrypt = true): AuthInfo {
     if (authData && isPlainObject(authData)) {
       let copy = cloneJson(authData);
       if (encrypt) {

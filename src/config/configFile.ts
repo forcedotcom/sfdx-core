@@ -56,7 +56,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @param isGlobal If the file should be stored globally or locally.
    * @param filename The name of the config file.
    */
-  public static getDefaultOptions(isGlobal: boolean = false, filename?: string): ConfigFile.Options {
+  public static getDefaultOptions(isGlobal = false, filename?: string): ConfigFile.Options {
     return {
       isGlobal,
       isState: true,
@@ -106,7 +106,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @throws {SfdxError}
    *    **`{name: 'UnexpectedJsonFileFormat'}`:** There was a problem reading or parsing the file.
    */
-  public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
+  public async read(throwOnNotFound = false): Promise<ConfigContents> {
     try {
       const obj = await readJsonMap(this.getPath());
       this.setContentsFromObject(obj);

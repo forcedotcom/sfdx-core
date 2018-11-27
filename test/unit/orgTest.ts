@@ -67,7 +67,7 @@ describe('Org Tests', () => {
     });
 
     it('should create an org from an alias', async () => {
-      const ALIAS: string = 'foo';
+      const ALIAS = 'foo';
       await Aliases.parseAndUpdate([`${ALIAS}=${testData.username}`]);
       const org: Org = await Org.create({ aliasOrUsername: ALIAS });
       expect(org.getUsername()).to.eq(testData.username);
@@ -310,9 +310,9 @@ describe('Org Tests', () => {
     beforeEach(async () => {
       orgs = [];
 
-      const orgIdUser: string = 'p.venkman@gb.org';
-      const addedUser: string = 'winston@gb.org';
-      const accessTokenUser: string = 'ltully@gb.org';
+      const orgIdUser = 'p.venkman@gb.org';
+      const addedUser = 'winston@gb.org';
+      const accessTokenUser = 'ltully@gb.org';
 
       const users = [
         new MockTestOrgData().createUser(orgIdUser),
@@ -495,7 +495,7 @@ describe('Org Tests', () => {
       });
 
       const devHub: Optional<Org> = await org.getDevHubOrg();
-      expect(devHub!.getUsername()).eq(devHubUser);
+      expect(devHub.getUsername()).eq(devHubUser);
     });
 
     it('org is devhub', async () => {
@@ -507,7 +507,7 @@ describe('Org Tests', () => {
       });
 
       const devHub: Optional<Org> | undefined = await org.getDevHubOrg();
-      expect(devHub!.getUsername()).eq(testData.username);
+      expect(devHub.getUsername()).eq(testData.username);
     });
   });
 

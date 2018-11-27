@@ -193,7 +193,7 @@ describe('User Tests', () => {
       const user: User = await User.init(org);
       const fields: UserFields = await user.retrieve(user1.username);
 
-      const TEST_PASSWORD: string = 'test123456';
+      const TEST_PASSWORD = 'test123456';
 
       const buffer: SecureBuffer<void> = new SecureBuffer<void>();
       buffer.consume(Buffer.from(TEST_PASSWORD));

@@ -48,7 +48,7 @@ describe('ConfigGroup', () => {
 
   it('setDefaultGroup: false value for groupname', async () => {
     try {
-      store.setDefaultGroup(undefined!);
+      store.setDefaultGroup(undefined);
       assert.fail("This call shouldn't succeed");
     } catch (e) {
       expect(e.name).equals('MissingGroupName');
