@@ -10,7 +10,7 @@ export async function run() {
 
   const orgs = authFiles.map(authfile => authfile.replace('.json', ''));
   const orgsWithAliases = {};
-  const aliases = await Aliases.create();
+  const aliases: Aliases = await Aliases.retrieve<Aliases>();
 
   // Map the aliases onto the orgs
   for (const org of orgs) {
@@ -19,9 +19,7 @@ export async function run() {
   }
 
   // Buffer length for displaying to the user
-  const len =
-    (_.max(_.map(_.values(orgsWithAliases), element => element || 0)) as string)
-      .length + 4;
+  const len = (_.max(_.map(_.values(orgsWithAliases), element => element || 0)) as string).length + 4;
 
   // Have the user select a user to add or remove alias
   const answer = await select(
@@ -43,9 +41,7 @@ export async function run() {
   const [alias, username] = strip(answer).split(/\s*: /);
 
   // Enter a new alias
-  const { newAlias } = await inquirer.prompt([
-    { name: 'newAlias', message: 'Enter a new alias (empty to remove):' }
-  ]);
+  const { newAlias } = await inquirer.prompt([{ name: 'newAlias', message: 'Enter a new alias (empty to remove):' }]);
 
   if (alias !== 'N/A') {
     // Remove the old one
@@ -55,9 +51,7 @@ export async function run() {
 
   if (newAlias) {
     aliases.set(newAlias, username);
-    console.log(
-      `Set alias ${chalk.green(newAlias)} to username ${chalk.green(username)}`
-    );
+    console.log(`Set alias ${chalk.green(newAlias)} to username ${chalk.green(username)}`);
   }
   await aliases.write();
 }

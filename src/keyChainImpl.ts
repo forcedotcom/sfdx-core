@@ -445,11 +445,12 @@ export class GenericKeychainAccess implements PasswordStore {
       // the file checks out.
       if (fileAccessError == null) {
         // read it's contents
-        return KeychainConfig.create(KeychainConfig.getDefaultOptions())
+        return KeychainConfig.retrieve<KeychainConfig>()
           .then((config: KeychainConfig) => {
             // validate service name and account just because
             if (opts.service === config.get(SecretField.SERVICE) && opts.account === config.get(SecretField.ACCOUNT)) {
               const key = config.get(SecretField.KEY);
+              // @ts-ignore TODO: Remove this ignore if we ever factor out `object` from `ConfigValue`
               fn(null, asString(key));
             } else {
               // if the service and account names don't match then maybe someone or something is editing

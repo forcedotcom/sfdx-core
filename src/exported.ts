@@ -19,7 +19,7 @@ export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue 
 
 export { OrgUsersConfig } from './config/orgUsersConfig';
 
-export { ConfigPropertyMeta, ConfigPropertyMetaInput, ORG_DEFAULT, Config } from './config/config';
+export { ConfigPropertyMeta, ConfigPropertyMetaInput, OrgDefault, Config } from './config/config';
 
 export { ConfigInfo, Location, ConfigAggregator } from './config/configAggregator';
 
@@ -46,9 +46,9 @@ export { Org, OrgFields } from './org';
 
 export { SfdxProject, SfdxProjectJson } from './sfdxProject';
 
-export { SchemaPrinter } from './schema/printer';
+export { SchemaPrinter } from './schemaPrinter';
 
-export { SchemaValidator } from './schema/validator';
+export { SchemaValidator } from './schemaValidator';
 
 export { SfdxError, SfdxErrorConfig } from './sfdxError';
 

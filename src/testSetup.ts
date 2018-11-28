@@ -115,9 +115,9 @@ function defaultFakeConnectionRequest(request: AnyJson, options?: AnyJson): Prom
  * retrieveContents is set. This will also contain the new config when @{link ConfigFile.write}
  * is called. This will persist through config instances, such as {@link Alias.update} and
  * {@link Alias.fetch}.
- * @property {function} retrieveContents A function `() => Promise<JsonMap>;` to conditionally
+ * @property {function} retrieveContents A function `() => Promise<object>;` to conditionally
  * read based on the config instance. The `this` value will be the config instance.
- * @property {function} updateContents A function `() => Promise<JsonMap>;` to conditionally
+ * @property {function} updateContents A function `() => Promise<object>;` to conditionally
  * set based on the config instance. The `this` value will be the config instance.
  */
 /**

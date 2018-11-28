@@ -12,7 +12,7 @@
  */
 
 import { set } from '@salesforce/kit';
-import { definiteEntriesOf, definiteValuesOf, Dictionary, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { definiteEntriesOf, definiteValuesOf, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
@@ -32,7 +32,7 @@ import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
  *         return 'myPluginConfigFilename.json';
  *     }
  * }
- * const myConfig = await MyPluginConfig.create(ConfigGroup.getOptions('all'));
+ * const myConfig = await MyPluginConfig.retrieve<MyPluginConfig>(ConfigGroup.getOptions('all'));
  * myconfig.setDefaultGroup('myCommand'); // Can be set in your command's init.
  * myConfig.set('mykey', 'myvalue'); // Sets 'myKey' for the 'myCommand' group.
  * myConfig.setInGroup('myKey', 'myvalue', 'all'); // Manually set in another group.
@@ -49,6 +49,14 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
     const configGroupOptions: ConfigGroup.Options = { defaultGroup };
     Object.assign(configGroupOptions, options);
     return configGroupOptions;
+  }
+
+  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(options?: ConfigFile.Options): Promise<T> {
+    const aliases: ConfigFile<ConfigFile.Options> = await ConfigGroup.create(
+      (options as ConfigGroup.Options) || ConfigGroup.getDefaultOptions()
+    );
+    await aliases.read();
+    return aliases as T;
   }
 
   private defaultGroup: string = 'default';
@@ -68,11 +76,11 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Set a group of entries in a bulk save.
-   * @param {Dictionary<ConfigValue>} newEntries An object representing the aliases to set.
+   * @param {object} newEntries An object representing the aliases to set.
    * @param {string} [group = 'default'] The group the property belongs to.
-   * @returns {Promise<JsonMap>} The new properties that were saved.
+   * @returns {Promise<object>} The new property that was saved.
    */
-  public async updateValues(newEntries: Dictionary<ConfigValue>, group?: string): Promise<Dictionary<ConfigValue>> {
+  public async updateValues(newEntries: object, group?: string): Promise<object> {
     // Make sure the contents are loaded
     await this.read();
     Object.entries(newEntries).forEach(([key, val]) => this.setInGroup(key, val, group || this.defaultGroup));

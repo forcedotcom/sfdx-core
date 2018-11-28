@@ -21,7 +21,7 @@ describe('Alias no key value mock', () => {
     const r = await Aliases.fetch(KEY);
     expect(r).eq(VALUE);
 
-    const keys = (await Aliases.create(Aliases.getDefaultOptions())).getKeysByValue(VALUE);
+    const keys = (await Aliases.retrieve()).getKeysByValue(VALUE);
     expect(keys.length).eq(1);
     expect(keys[0]).eq(KEY);
   });
@@ -33,7 +33,7 @@ describe('Alias', () => {
       const key = 'test';
       const value = 'val';
 
-      const aliases = await Aliases.create(Aliases.getDefaultOptions());
+      const aliases = await Aliases.retrieve();
       aliases.set(key, value);
       await aliases.write();
       expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
@@ -54,7 +54,7 @@ describe('Alias', () => {
       $$.setConfigStubContents('Aliases', testContents);
 
       const keyArray = ['test1', 'test3'];
-      const aliases = await Aliases.create(Aliases.getDefaultOptions());
+      const aliases = await Aliases.retrieve();
       aliases.unsetAll(keyArray);
       await aliases.write();
       expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));

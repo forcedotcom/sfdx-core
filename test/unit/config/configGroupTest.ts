@@ -27,7 +27,7 @@ describe('ConfigGroup retrieve calls read', () => {
   it('file already exists', async () => {
     const options: ConfigGroup.Options = ConfigGroup.getOptions('orgs', filename);
 
-    const store = await ConfigGroup.create(options);
+    const store = (await ConfigGroup.retrieve(options)) as ConfigGroup<ConfigGroup.Options>;
     expect(store.getInGroup('foo', 'orgs')).to.eq('foo@example.com');
   });
 });

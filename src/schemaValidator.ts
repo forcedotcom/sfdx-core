@@ -20,9 +20,9 @@ import {
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
 import * as path from 'path';
-import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
-import { readJsonMap } from '../util/fs';
+import { Logger } from './logger';
+import { SfdxError } from './sfdxError';
+import { readJsonMap } from './util/fs';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.

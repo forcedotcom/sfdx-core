@@ -24,7 +24,7 @@ import { findUpperCaseKeys } from './util/sfdc';
  * @extends ConfigFile
  *
  * @example
- * const project = await SfdxProjectJson.retrieve();
+ * const project = await SfdxProjectJson.retrieve<SfdxProjectJson>();
  * const myPluginProperties = project.get('myplugin') || {};
  * myPluginProperties.myprop = 'someValue';
  * project.set('myplugin', myPluginProperties);
@@ -152,7 +152,7 @@ export class SfdxProject {
    * The project config is resolved from local and global {@link SfdxProjectJson},
    * {@link ConfigAggregator}, and a set of defaults. It is recommended to use
    * this when reading values from SfdxProjectJson.
-   * @returns {JsonMap} A resolved config object that contains a bunch of different
+   * @returns {object} A resolved config object that contains a bunch of different
    * properties, including some 3rd party custom properties.
    */
   public async resolveProjectConfig(): Promise<JsonMap> {

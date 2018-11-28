@@ -4,35 +4,28 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/**
- * An enum of all possible locations for a config value.
- * @typedef Location
- * @property {string} GLOBAL Represents the global config.
- * @property {string} LOCAL Represents the local project config.
- * @property {string} ENVIRONMENT Represents environment variables.
- */
-/**
- * Information about a config property.
- * @typedef ConfigInfo
- * @property {string} key The config key.
- * @property {string | boolean} value The config value.
- * @property {Location} location The location of the config property.
- * @property {string} path The path of the config value.
- * @property {function} isLocal `() => boolean` Location is `Location.LOCAL`.
- * @property {function} isGlobal `() => boolean` Location is `Location.GLOBAL`.
- * @property {function} isEnvVar `() => boolean` Location is `Location.ENVIRONMENT`.
- */
 
 import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
-import { AnyJson, definiteEntriesOf, Dictionary, get, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { definiteEntriesOf, Dictionary, get, isObject, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
 const propertyToEnvName = (property: string) => `SFDX_${snakeCase(property).toUpperCase()}`;
 
 export const enum Location {
+  /**
+   * Represents the global config.
+   */
   GLOBAL = 'Global',
+
+  /**
+   * Represents the local project config.
+   */
   LOCAL = 'Local',
+
+  /**
+   * Represents environment variables.
+   */
   ENVIRONMENT = 'Environment'
 }
 
@@ -40,22 +33,38 @@ export const enum Location {
  * Information about a config property.
  */
 export interface ConfigInfo {
-  key: string;
-  location?: Location;
-  value?: AnyJson;
-  path?: string;
   /**
-   * @returns true if the config property is in the local project
+   * The config key.
+   */
+  key: string;
+
+  /**
+   * The location of the config property.
+   */
+  location?: Location;
+
+  /**
+   * The config value.
+   */
+  value: string | boolean;
+
+  /**
+   * The path of the config value.
+   */
+  path?: string;
+
+  /**
+   * Whether or not the location is `Location.LOCAL`.
    */
   isLocal: () => boolean;
 
   /**
-   * @returns true if the config property is in the global space
+   * Whether or not the location is `Location.GLOBAL`.
    */
   isGlobal: () => boolean;
 
   /**
-   * @returns true if the config property is an environment variable.
+   * Whether or not the location is `Location.ENVIRONMENT`.
    */
   isEnvVar: () => boolean;
 }
@@ -70,9 +79,10 @@ export interface ConfigInfo {
  *
  * Use {@link ConfigAggregator.create} to instantiate the aggregator.
  *
- * @example
+ * ```
  * const aggregator = await ConfigAggregator.create();
  * console.log(aggregator.getPropertyValue('defaultusername'));
+ * ```
  *
  * @hideconstructor
  */
@@ -82,12 +92,12 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   private localConfig!: Config;
   private globalConfig!: Config;
   private envVars!: Dictionary<string>;
-  private config!: JsonMap;
+  private config!: object;
 
   /**
    * **Do not directly construct instances of this class -- use {@link ConfigAggregator.resolve} instead.**
    *
-   * @private
+   * @ignore
    * @constructor
    */
   public constructor(options?: JsonMap) {
@@ -99,22 +109,16 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   }
 
   /**
-   * Retrieve the path to the config file.
-   * @callback retrieverFunction
-   * @param {boolean} isGlobal Is it the global or local project config file?
-   * @returns {Promise<string>} The path of the config file.
-   */
-
-  /**
    * Get a resolved config property.
    *
    * @param {string} key The key of the property.
-   * @returns {Optional<AnyJson>}
+   * @returns {string | boolean}
    * @throws {SfdxError}
    *  **`{name: 'UnknownConfigKey'}`:** An attempt to get a property that's not supported.
    */
-  public getPropertyValue(key: string): Optional<AnyJson> {
+  public getPropertyValue(key: string): string | boolean {
     if (this.getAllowedProperties().some(element => key === element.key)) {
+      // @ts-ignore TODO: Need to sort out object types on config stuff
       return this.getConfig()[key];
     } else {
       throw new SfdxError(`Unknown config key: ${key}`, 'UnknownConfigKey');
@@ -229,9 +233,9 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
   /**
    * Get the resolved config object from the local, global and environment config instances.
-   * @returns {JsonMap}
+   * @returns {object}
    */
-  public getConfig(): JsonMap {
+  public getConfig(): object {
     return this.config;
   }
 
@@ -287,18 +291,17 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     // object assign and is overwritten by the local config.
 
     await this.globalConfig.read();
-    const configs = [this.globalConfig.toObject()];
+    const configs = [this.globalConfig.toObject() as object];
 
     // We might not be in a project workspace
     if (this.localConfig) {
       await this.localConfig.read();
-      configs.push(this.localConfig.toObject());
+      configs.push(this.localConfig.toObject() as object);
     }
 
     configs.push(this.envVars);
 
-    const json: JsonMap = {};
-    const reduced = configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
+    const reduced = configs.filter(isObject).reduce((result, configElement) => merge(result, configElement), {});
     this.setConfig(reduced);
   }
 
@@ -307,7 +310,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * @param config The config object to set.
    * @private
    */
-  private setConfig(config: JsonMap) {
+  private setConfig(config: object) {
     this.config = config;
   }
 
