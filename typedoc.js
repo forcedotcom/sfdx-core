@@ -1,3 +1,3 @@
 module.exports = {
-  readme: 'EXPORTED.md'
+  theme: 'default'
 };

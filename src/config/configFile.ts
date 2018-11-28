@@ -89,8 +89,8 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
 
   /**
    * Read the config file and set the config contents. Returns the config contents of the config file.
+   * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
-   * **throws** *UnexpectedJsonFileFormat* There was a problem reading or parsing the file.
    */
   public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
     try {

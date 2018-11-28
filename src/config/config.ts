@@ -204,7 +204,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Sets a value for a property.
    *
-   * **throws** - *InvalidConfigValue* If the input validator fails.
+   * **Throws** *{@link SfdxError}{ name: 'InvalidConfigValue' }* If the input validator fails.
    * @param key The property to set.
    * @param value The value of the property.
    */

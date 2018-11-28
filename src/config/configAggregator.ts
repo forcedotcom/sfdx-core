@@ -110,7 +110,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   /**
    * Get a resolved config property.
    *
-   * **throws**: *UnknownConfigKey* An attempt to get a property that's not supported.
+   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKey' }* An attempt to get a property that's not supported.
    *
    * @param key The key of the property.
    */
