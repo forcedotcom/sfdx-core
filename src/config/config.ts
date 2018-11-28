@@ -6,14 +6,6 @@
  */
 /**
  * Contains meta information about sfdx config properties.
- * @typedef {object} ConfigPropertyMeta
- * @property {string} key The config property name.
- * @property {input} value Reference to the config data input validation.
- * @property {boolean} hidden True if the property should be indirectly hidden from the user.
- * @property {boolean} encrypted True if the property values should be stored encrypted.
- */
-/**
- * Contains meta information about sfdx config properties.
  * @typedef {object} ConfigPropertyMetaInput
  * @property {function} validator Test if the input value is valid.
  * @property {string} failedMessage The message to return in the error if the validation fails.
@@ -67,9 +59,8 @@ export interface ConfigPropertyMeta {
  */
 export interface ConfigPropertyMetaInput {
   /**
-   * Test if the input value is valid.
+   * Test if the input value is valid and returns true if the input data is valid.
    * @param value The input value.
-   * @returns {boolean} Returns true if the input data is valid.
    */
   validator: (value: ConfigValue) => boolean;
 
@@ -85,49 +76,41 @@ export interface ConfigPropertyMetaInput {
  * *Note:* It is not recommended to instantiate this object directly when resolving
  * config values. Instead use {@link ConfigAggregator}
  *
- * @extends ConfigFile
- *
- * @example
+ * ```
  * const localConfig = await Config.create();
  * localConfig.set('defaultusername', 'username@company.org');
  * await localConfig.write();
- *
- * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_config_values.htm
+ * ```
+ * https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_config_values.htm
  */
 export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Username associated with the default dev hub org.
-   * @type {string}
    */
   public static readonly DEFAULT_DEV_HUB_USERNAME: string = 'defaultdevhubusername';
 
   /**
    * Username associate with the default org.
-   * @type {string}
    */
   public static readonly DEFAULT_USERNAME: string = 'defaultusername';
 
   /**
    * The sid for the debugger configuration.
-   * @type {string}
    */
   public static readonly ISV_DEBUGGER_SID: string = 'isvDebuggerSid';
 
   /**
    * The url for the debugger configuration.
-   * @type {string}
    */
   public static readonly ISV_DEBUGGER_URL: string = 'isvDebuggerUrl';
 
   /**
    * true if polling should be used over streaming when creating scratch orgs.
-   * @type {string}
    */
   public static readonly USE_BACKUP_POLLING_ORG_CREATE = 'useBackupPolling.org:create';
 
   /**
    * The api version
-   * @type {string}
    */
   public static readonly API_VERSION = 'apiVersion';
 
@@ -136,7 +119,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   }
 
   /**
-   * @returns {ConfigPropertyMeta[]} Returns an object representing the supported allowed properties.
+   * Returns an object representing the supported allowed properties.
    */
   public static getAllowedProperties(): ConfigPropertyMeta[] {
     if (!Config.allowedProperties) {
@@ -145,6 +128,11 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     return Config.allowedProperties;
   }
 
+  /**
+   * Gets default options.
+   * @param isGlobal Make the config global.
+   * @param filename Override the default file. {@link Config.getFileName}
+   */
   public static getDefaultOptions(isGlobal: boolean = false, filename?: string): ConfigFile.Options {
     return {
       isGlobal,
@@ -155,10 +143,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * The value of a supported config property.
-   * @param {boolean} isGlobal True for a global config. False for a local config.
-   * @param {string} propertyName The name of the property to set.
-   * @param {ConfigValue} [value] The property value.
-   * @returns {Promise<ConfigContents>}
+   * @param isGlobal True for a global config. False for a local config.
+   * @param propertyName The name of the property to set.
+   * @param value The property value.
    */
   public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<ConfigContents> {
     const config = await Config.create(Config.getDefaultOptions(isGlobal));
@@ -176,7 +163,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Clear all the configured properties both local and global.
-   * @returns {Promise<void>}
    */
   public static async clear(): Promise<void> {
     let config = await Config.create(Config.getDefaultOptions(true));
@@ -200,7 +186,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Read, assign, and return the config contents.
-   * @returns {Promise<ConfigContents>}
    */
   public async read(): Promise<ConfigContents> {
     try {
@@ -214,8 +199,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Writes Config properties taking into account encrypted properties.
-   * @param {ConfigContents} newContents The new Config value to persist.
-   * @return {Promise<ConfigContents>}
+   * @param newContents The new Config value to persist.
    */
   public async write(newContents?: ConfigContents): Promise<ConfigContents> {
     if (newContents != null) {
@@ -233,10 +217,10 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Sets a value for a property.
-   * @param {string} propertyName The property to set.
-   * @param {ConfigValue} value The value of the property.
-   * @returns {Promise<void>}
-   * @throws {SfdxError} **`{name: 'InvalidConfigValue'}`** Invalid configuration value.
+   *
+   * **throws** - *InvalidConfigValue* If the input validator fails.
+   * @param key The property to set.
+   * @param value The value of the property.
    */
   public set(key: string, value: ConfigValue): ConfigContents {
     const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
@@ -256,6 +240,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     return this.getContents();
   }
 
+  /**
+   * Initializer for supported config types.
+   */
   protected async init(): Promise<void> {
     await super.init();
     if (!Config.messages) {
@@ -309,7 +296,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Initialize the crypto dependency.
-   * @return {Promise<void>}
    */
   private async initCrypto(): Promise<void> {
     if (!this.crypto) {
@@ -319,7 +305,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Closes the crypto dependency. Crypto should be close after it's used and no longer needed.
-   * @return {Promise<void>}
    */
   private async clearCrypto(): Promise<void> {
     if (this.crypto) {
@@ -330,8 +315,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Get an individual property config.
-   * @param {string} propertyName The name of the property.
-   * @return {ConfigPropertyMeta} The meta config.
+   * @param propertyName The name of the property.
    */
   private getPropertyConfig(propertyName: string): ConfigPropertyMeta {
     const prop = Config.propertyConfigMap[propertyName];
@@ -344,8 +328,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Encrypts and content properties that have a encryption attribute.
-   * @param {boolean} encrypt `true` to encrypt.
-   * @return {Promise<void>}
+   * @param encrypt `true` to encrypt.
    */
   private async cryptProperties(encrypt: boolean): Promise<void> {
     const hasEncryptedProperties = this.entries().some(([key]) => {
