@@ -4,20 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/**
- * Contains meta information about sfdx config properties.
- * @typedef {object} ConfigPropertyMetaInput
- * @property {function} validator Test if the input value is valid.
- * @property {string} failedMessage The message to return in the error if the validation fails.
- */
-/**
- * Supported Org Default Types.
- * @typedef {object} ORG_DEFAULT
- * @property {string} DEVHUB Default developer hub username.
- * @property {string} USERNAME Default username.
- * @property {function} list `() => string[]` List the Org defaults.
- */
-
 import { keyBy, set } from '@salesforce/kit';
 import { Dictionary, ensure, isString } from '@salesforce/ts-types';
 import { Crypto } from '../crypto';
@@ -59,7 +45,7 @@ export interface ConfigPropertyMeta {
  */
 export interface ConfigPropertyMetaInput {
   /**
-   * Test if the input value is valid and returns true if the input data is valid.
+   * Tests if the input value is valid and returns true if the input data is valid.
    * @param value The input value.
    */
   validator: (value: ConfigValue) => boolean;
@@ -105,15 +91,15 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   public static readonly ISV_DEBUGGER_URL: string = 'isvDebuggerUrl';
 
   /**
-   * true if polling should be used over streaming when creating scratch orgs.
-   */
-  public static readonly USE_BACKUP_POLLING_ORG_CREATE = 'useBackupPolling.org:create';
-
-  /**
    * The api version
    */
   public static readonly API_VERSION = 'apiVersion';
 
+  /**
+   * Returns the default file name for a config file.
+   *
+   * {@link SFDX_CONFIG_FILE_NAME}
+   */
   public static getFileName(): string {
     return SFDX_CONFIG_FILE_NAME;
   }
@@ -280,13 +266,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
             validator: value => value != null && ['true', 'false'].includes(value.toString()),
             failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
           }
-        },
-        {
-          key: Config.USE_BACKUP_POLLING_ORG_CREATE,
-          input: {
-            validator: value => value == null || value === 'true' || value === 'false',
-            failedMessage: `${Config.USE_BACKUP_POLLING_ORG_CREATE} must be a boolean value. true/false.`
-          }
         }
       ];
     }
@@ -348,10 +327,22 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   }
 }
 
+/**
+ * Supported Org Default Types.
+ */
 export const ORG_DEFAULT = {
+  /**
+   * Default developer hub username.
+   */
   DEVHUB: Config.DEFAULT_DEV_HUB_USERNAME,
+  /**
+   * Default username
+   */
   USERNAME: Config.DEFAULT_USERNAME,
 
+  /**
+   * List the Org defaults.
+   */
   list(): string[] {
     return [ORG_DEFAULT.DEVHUB, ORG_DEFAULT.USERNAME];
   }

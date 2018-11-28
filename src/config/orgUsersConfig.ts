@@ -8,14 +8,11 @@ import { ConfigFile } from './configFile';
 
 /**
  * A config file that stores usernames for an org.
- *
- * @extends ConfigFile
  */
 export class OrgUsersConfig extends ConfigFile<OrgUsersConfig.Options> {
   /**
    * Gets the config options for a given org ID.
-   * @param {string} orgId The orgId. Generally this org would have multiple users configured.
-   * @return {ConfigOptions} The ConfigOptions.
+   * @param orgId The orgId. Generally this org would have multiple users configured.
    */
   public static getOptions(orgId: string): OrgUsersConfig.Options {
     return {
@@ -26,13 +23,24 @@ export class OrgUsersConfig extends ConfigFile<OrgUsersConfig.Options> {
     };
   }
 
+  /**
+   * Constructor
+   * **Do not directly construct instances of this class -- use {@link OrgUsersConfig.create} instead.**
+   * @param options The options for the class instance
+   */
   public constructor(options: OrgUsersConfig.Options) {
     super(options);
   }
 }
 
 export namespace OrgUsersConfig {
+  /**
+   * The config file options.
+   */
   export interface Options extends ConfigFile.Options {
+    /**
+     * The org id associated with this user.
+     */
     orgId: string;
   }
 }

@@ -11,7 +11,6 @@ import { ConfigContents } from './configStore';
 
 /**
  * Represent a key chain config backed by a json file.
- * @private
  */
 // istanbul ignore next - getPassword/setPassword is always mocked out
 export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
@@ -28,10 +27,9 @@ export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Write the config file with new contents. If no new contents are passed in
-   * it will write this.contents that was set from read().
+   * it will write this.contents that was set from read(). Returns the written contents.
    *
-   * @param {ConfigContents} newContents the new contents of the file
-   * @returns {Promise<ConfigContents>} the written contents
+   * @param newContents the new contents of the file
    */
   public async write(newContents?: ConfigContents): Promise<ConfigContents> {
     if (newContents != null) {
