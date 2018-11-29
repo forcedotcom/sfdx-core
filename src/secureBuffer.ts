@@ -14,7 +14,7 @@ const cipherSize: number = 32;
  * Returns the intended type of the object to return. This is implementation specific.
  * @param {Buffer} buffer - A buffer containing the decrypted secret.
  */
-export type DecipherCallback<T> =  (buffer: Buffer) => T;
+export type DecipherCallback<T> = (buffer: Buffer) => T;
 
 /**
  * Used to store and retrieve a sensitive information in memory. This is not meant for at rest encryption.

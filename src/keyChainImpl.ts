@@ -14,7 +14,7 @@ import { ConfigValue } from './config/configStore';
 import { KeychainConfig } from './config/keychainConfig';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
-import * as fs from './util/fs';
+import { fs } from './util/fs';
 
 export type FsIfc = Pick<typeof nodeFs, 'statSync'>;
 
@@ -70,13 +70,11 @@ const _validateProgram = async (
     const stats = fsIfc.statSync(programPath);
     noPermission = !isExeIfc(stats.mode, stats.gid, stats.uid);
   } catch (e) {
-    throw SfdxError.create('@salesforce/core', 'encryption',
-      'MissingCredentialProgramError', [programPath]);
+    throw SfdxError.create('@salesforce/core', 'encryption', 'MissingCredentialProgramError', [programPath]);
   }
 
   if (noPermission) {
-    throw SfdxError.create('@salesforce/core', 'encryption',
-      'CredentialProgramAccessError', [programPath]);
+    throw SfdxError.create('@salesforce/core', 'encryption', 'CredentialProgramAccessError', [programPath]);
   }
 };
 

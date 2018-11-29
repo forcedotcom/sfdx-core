@@ -28,7 +28,7 @@ import * as path from 'path';
 import { Writable } from 'stream';
 import { Global, Mode } from './global';
 import { SfdxError } from './sfdxError';
-import * as fs from './util/fs';
+import { fs } from './util/fs';
 
 /**
  * A Bunyan `Serializer` function.
@@ -174,7 +174,6 @@ export interface LogLine {
  * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_log_messages.htm
  */
 export class Logger {
-
   /**
    * The name of the root sfdx `Logger`.
    */

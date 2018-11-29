@@ -11,7 +11,8 @@ import { stubMethod } from '@salesforce/ts-sinon';
 import {
   AnyFunction,
   AnyJson,
-  Dictionary, ensureAnyJson,
+  Dictionary,
+  ensureAnyJson,
   ensureJsonMap,
   ensureString,
   getBoolean,

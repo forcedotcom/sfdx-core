@@ -32,8 +32,8 @@ import { Connection } from './connection';
 import { Global } from './global';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
-import * as fs from './util/fs';
-import { trimTo15 } from './util/sfdc';
+import { fs } from './util/fs';
+import { sfdc } from './util/sfdc';
 
 /**
  * Scratch Org status.
@@ -261,7 +261,7 @@ export class Org extends AsyncCreatable<Org.Options> {
 
     const thisOrgAuthConfig = this.getConnection().getAuthInfoFields();
 
-    const trimmedId = trimTo15(thisOrgAuthConfig.orgId);
+    const trimmedId = sfdc.trimTo15(thisOrgAuthConfig.orgId);
 
     const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg=\'${trimmedId}\'`;
 

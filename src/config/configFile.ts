@@ -10,7 +10,7 @@ import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
-import { access, mkdirp, readJsonMap, stat, unlink, writeJson } from '../util/fs';
+import { fs } from '../util/fs';
 import { resolveProjectPath } from '../util/internal';
 import { BaseConfigStore, ConfigContents } from './configStore';
 
@@ -85,7 +85,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    */
   public async access(perm: number): Promise<boolean> {
     try {
-      await access(this.getPath(), perm);
+      await fs.access(this.getPath(), perm);
       return true;
     } catch (err) {
       return false;
@@ -99,7 +99,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    */
   public async read(throwOnNotFound: boolean = false): Promise<ConfigContents> {
     try {
-      const obj = await readJsonMap(this.getPath());
+      const obj = await fs.readJsonMap(this.getPath());
       this.setContentsFromObject(obj);
       return this.getContents();
     } catch (err) {
@@ -125,9 +125,9 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
       this.setContents(newContents);
     }
 
-    await mkdirp(pathDirname(this.getPath()));
+    await fs.mkdirp(pathDirname(this.getPath()));
 
-    await writeJson(this.getPath(), this.toObject());
+    await fs.writeJson(this.getPath(), this.toObject());
 
     return this.getContents();
   }
@@ -145,7 +145,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * {@link fs.stat}
    */
   public async stat(): Promise<fsStats> {
-    return stat(this.getPath());
+    return fs.stat(this.getPath());
   }
 
   /**
@@ -156,7 +156,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   public async unlink(): Promise<void> {
     const exists = await this.exists();
     if (exists) {
-      return await unlink(this.getPath());
+      return await fs.unlink(this.getPath());
     }
     throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
   }

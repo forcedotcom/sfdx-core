@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { dirname as pathDirname } from 'path';
-import * as fs from '../util/fs';
+import { fs } from '../util/fs';
 import { ConfigFile } from './configFile';
 import { ConfigContents } from './configStore';
 

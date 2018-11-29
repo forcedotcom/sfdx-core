@@ -44,9 +44,14 @@ export class SfdxErrorConfig {
    * @param actionKey The action message key.
    * @param actionTokens The tokens to use when getting the action message(s).
    */
-  constructor(packageName: string, bundleName: string, errorKey: string,
-              errorTokens: Tokens = [], actionKey?: string, actionTokens?: Tokens) {
-
+  constructor(
+    packageName: string,
+    bundleName: string,
+    errorKey: string,
+    errorTokens: Tokens = [],
+    actionKey?: string,
+    actionTokens?: Tokens
+  ) {
     this.packageName = packageName;
     this.bundleName = bundleName;
     this.errorKey = errorKey;
@@ -170,9 +175,12 @@ export class SfdxError extends NamedError {
   public static create(errorConfig: SfdxErrorConfig): SfdxError;
 
   // The create implementation function.
-  public static create(nameOrConfig: string | SfdxErrorConfig,
-                       bundleName?: string, key?: string, tokens?: Tokens): SfdxError {
-
+  public static create(
+    nameOrConfig: string | SfdxErrorConfig,
+    bundleName?: string,
+    key?: string,
+    tokens?: Tokens
+  ): SfdxError {
     let errorConfig: SfdxErrorConfig;
 
     if (isString(nameOrConfig)) {

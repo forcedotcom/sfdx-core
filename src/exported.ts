@@ -63,7 +63,5 @@ export { MyDomainResolver } from './status/myDomainResolver';
 export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './user';
 
 // Utility sub-modules
-import * as fs from './util/fs';
-export { fs };
-import * as sfdc from './util/sfdc';
-export { sfdc };
+export * from './util/fs';
+export * from './util/sfdc';

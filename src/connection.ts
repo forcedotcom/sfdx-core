@@ -17,7 +17,7 @@ import { AuthFields, AuthInfo } from './authInfo';
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
-import { validateApiVersion } from './util/sfdc';
+import { sfdc } from './util/sfdc';
 
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
@@ -62,7 +62,6 @@ export interface Tooling extends JSForceTooling {
  * ```
  */
 export class Connection extends JSForceConnection {
-
   /**
    * Creates an instance of a Connection. Performs additional async initializations.
    * @param options Constructor options.
@@ -204,7 +203,7 @@ export class Connection extends JSForceConnection {
    * @param version The API version.
    */
   public setApiVersion(version: string): void {
-    if (!validateApiVersion(version)) {
+    if (!sfdc.validateApiVersion(version)) {
       throw new SfdxError(
         `Invalid API version ${version}. Expecting format "[1-9][0-9].0", i.e. 42.0`,
         'IncorrectAPIVersion'

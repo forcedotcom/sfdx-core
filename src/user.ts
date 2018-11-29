@@ -26,7 +26,7 @@ import { Org } from './org';
 import { PermissionSetAssignment } from './permissionSetAssignment';
 import { SecureBuffer } from './secureBuffer';
 import { SfdxError } from './sfdxError';
-import { validateSalesforceId } from './util/sfdc';
+import { sfdc } from './util/sfdc';
 
 const PASSWORD_LENGTH = 10;
 const LOWER = 'abcdefghijklmnopqrstuvwxyz';
@@ -106,7 +106,7 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
  * @param connection The connection for the query.
  */
 async function _retrieveProfileId(name: string, connection: Connection): Promise<string> {
-  if (!validateSalesforceId(name)) {
+  if (!sfdc.validateSalesforceId(name)) {
     const profileQuery = `SELECT Id FROM Profile WHERE name='${name}'`;
     const result = await connection.query<{ Id: string }>(profileQuery);
     if (result.records.length > 0) {

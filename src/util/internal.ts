@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SfdxError } from '../sfdxError';
-import { traverseForFile } from './fs';
+import { fs } from './fs';
 /**
  * The name of the project config file.
  */
@@ -23,7 +23,7 @@ export const SFDX_PROJECT_JSON = 'sfdx-project.json';
  * @param dir The directory path to start traversing from.
  */
 export async function resolveProjectPath(dir: string = process.cwd()): Promise<string> {
-  const projectPath = await traverseForFile(dir, SFDX_PROJECT_JSON);
+  const projectPath = await fs.traverseForFile(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
     throw SfdxError.create('@salesforce/core', 'config', 'InvalidProjectWorkspace');
   }

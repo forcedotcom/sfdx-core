@@ -182,9 +182,11 @@ export class Messages {
    * i.e., the module is typescript and the messages folder is in the top level of the module directory.
    * @param packageName The npm package name. Figured out from the root directory's package.json.
    */
-  public static importMessagesDirectory(moduleDirectoryPath: string, truncateToProjectPath: boolean = true,
-                                        packageName?: string): void {
-
+  public static importMessagesDirectory(
+    moduleDirectoryPath: string,
+    truncateToProjectPath: boolean = true,
+    packageName?: string
+  ): void {
     let moduleMessagesDirPath = moduleDirectoryPath;
     let projectRoot = moduleDirectoryPath;
 
@@ -209,7 +211,9 @@ export class Messages {
     if (!packageName) {
       const errMessage = `Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.`;
       try {
-        packageName = asString(ensureJsonMap(Messages._readFile(path.join(moduleMessagesDirPath, 'package.json'))).name);
+        packageName = asString(
+          ensureJsonMap(Messages._readFile(path.join(moduleMessagesDirPath, 'package.json'))).name
+        );
         if (!packageName) {
           throw new NamedError('MissingPackageName', errMessage);
         }

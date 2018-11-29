@@ -22,7 +22,7 @@ import { JsenValidateError } from 'jsen';
 import * as path from 'path';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
-import { readJsonMap } from '../util/fs';
+import { fs } from '../util/fs';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.
@@ -49,7 +49,7 @@ export class SchemaValidator {
    */
   public async load(): Promise<JsonMap> {
     if (!this.schema) {
-      this.schema = await readJsonMap(this.schemaPath);
+      this.schema = await fs.readJsonMap(this.schemaPath);
       this.logger.debug(`Schema loaded for ${this.schemaPath}`);
     }
     return this.schema;
@@ -122,7 +122,7 @@ export class SchemaValidator {
   private async loadExternalSchema(uri: string): Promise<JsonMap> {
     const schemaPath = path.join(this.schemasDir, `${uri}.json`);
     try {
-      return await readJsonMap(schemaPath);
+      return await fs.readJsonMap(schemaPath);
     } catch (err) {
       if (err.code === 'ENOENT') {
         throw new SfdxError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');

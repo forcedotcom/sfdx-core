@@ -7,7 +7,7 @@
 import { env } from '@salesforce/kit';
 import * as os from 'os';
 import * as path from 'path';
-import * as fs from './util/fs';
+import { fs } from './util/fs';
 
 /**
  * Represents an environment mode.  Supports `production`, `development`, `demo`, and `test`

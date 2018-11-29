@@ -34,7 +34,7 @@ import { Crypto } from './crypto';
 import { Global } from './global';
 import { Logger } from './logger';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
-import * as fs from './util/fs';
+import { fs } from './util/fs';
 
 /**
  * Fields for authorization, organization, and local information.

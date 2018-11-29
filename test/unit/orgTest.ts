@@ -25,7 +25,7 @@ import { Connection } from '../../src/connection';
 import { Global } from '../../src/global';
 import { Org, OrgFields } from '../../src/org';
 import { MockTestOrgData, testSetup } from '../../src/testSetup';
-import * as fs from '../../src/util/fs';
+import { fs } from '../../src/util/fs';
 
 const $$ = testSetup();
 

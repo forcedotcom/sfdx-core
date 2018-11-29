@@ -215,6 +215,9 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   }
 }
 
+/**
+ * @ignore
+ */
 export namespace BaseConfigStore {
   /**
    * Options for the config store.

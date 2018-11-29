@@ -11,7 +11,7 @@ import { Config } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
 import { testSetup } from '../../../src/testSetup';
-import * as fs from '../../../src/util/fs';
+import { fs } from '../../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
