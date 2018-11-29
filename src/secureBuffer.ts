@@ -11,9 +11,15 @@ const cipherName: string = 'aes256';
 const cipherSize: number = 32;
 
 /**
+ * Returns the intended type of the object to return. This is implementation specific.
+ * @param {Buffer} buffer - A buffer containing the decrypted secret.
+ */
+export type DecipherCallback<T> =  (buffer: Buffer) => T;
+
+/**
  * Used to store and retrieve a sensitive information in memory. This is not meant for at rest encryption.
- * @example
  *
+ * ```
  * const sString: SecureBuffer<string> = new SecureBuffer();
  * sString.consume(secretTextBuffer);
  * const value: string = sString.value((buffer: Buffer): string => {
@@ -22,7 +28,7 @@ const cipherSize: number = 32;
  *     // returns something of type <T>
  *     return testReturnValue;
  * });
- *
+ * ```
  */
 export class SecureBuffer<T> {
   private key = crypto.randomBytes(cipherSize);
@@ -32,12 +38,11 @@ export class SecureBuffer<T> {
 
   /**
    * Invokes a callback with a decrypted version of the buffer.
-   * @param {DecipherCallback} cb - The callback containing the decrypted buffer parameter that returns a desired
+   * @param cb The callback containing the decrypted buffer parameter that returns a desired
    * typed object. It's important to understand that once the callback goes out of scope the buffer parameters is
    * overwritten with random data. Do not make a copy of this buffer and persist it!
-   * @return T - The value of the callback of type T
    */
-  public value(cb: (buffer: Buffer) => T): Optional<T> {
+  public value(cb: DecipherCallback<T>): Optional<T> {
     if (cb) {
       const cipher = crypto.createDecipheriv(cipherName, this.key, this.iv);
       const a = cipher.update(ensure(this.secret));
@@ -54,12 +59,6 @@ export class SecureBuffer<T> {
   }
 
   /**
-   * @callback DecipherCallback
-   * @param {Buffer} buffer - A buffer containing the decrypted secret.
-   * @returns T - The intended type of the object to return. This is implementation specific.
-   */
-
-  /**
    * Overwrites the value of the encrypted secret with random data.
    */
   public clear() {
@@ -72,7 +71,7 @@ export class SecureBuffer<T> {
 
   /**
    * Consumes a buffer of data that's intended to be secret.
-   * @param {Buffer} buffer - Data to encrypt. The input buffer is overwritten with random data after it's encrypted
+   * @param buffer - Data to encrypt. The input buffer is overwritten with random data after it's encrypted
    * and assigned internally.
    */
   public consume(buffer: Buffer) {

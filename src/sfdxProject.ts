@@ -21,16 +21,15 @@ import { findUpperCaseKeys } from './util/sfdc';
  * *Note:* Any non-standard (not owned by Salesforce) properties stored in sfdx-project.json should
  * be in a top level property that represents your project or plugin.
  *
- * @extends ConfigFile
- *
- * @example
+ * ```
  * const project = await SfdxProjectJson.retrieve();
  * const myPluginProperties = project.get('myplugin') || {};
  * myPluginProperties.myprop = 'someValue';
  * project.set('myplugin', myPluginProperties);
  * await project.write();
+ * ```
  *
- * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm
+ * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm
  */
 export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
   public static getFileName() {
@@ -72,30 +71,33 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
  * Represents an SFDX project directory. This directory contains a {@link SfdxProjectJson} config file as well as
  * a hidden .sfdx folder that contains all the other local project config files.
  *
- * @example
+ * ```
  * const project = await SfdxProject.resolve();
  * const projectJson = await project.resolveProjectConfig();
  * console.log(projectJson.sfdcLoginUrl);
+ * ```
  */
 export class SfdxProject {
   /**
    * Get a Project from a given path or from the working directory.
-   * @param {string} path The path of the project.
-   * @throws InvalidProjectWorkspace If the current folder is not located in a workspace.
-   * @returns {Promise<SfdxProject>} The resolved project.
+   * @param path The path of the project.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
    */
   public static async resolve(path?: string): Promise<SfdxProject> {
     return new SfdxProject(await this.resolveProjectPath(path));
   }
 
   /**
-   * Performs an upward directory search for an sfdx project file.
+   * Performs an upward directory search for an sfdx project file. Returns the absolute path to the project.
    *
-   * @param {string} [dir=process.cwd()] The directory path to start traversing from.
-   * @returns {Promise<string>} The absolute path to the project.
-   * @throws {SfdxError} **`{name: 'InvalidProjectWorkspace'}`** If the current folder is not located in a workspace.
-   * @see fs.traverseForFile
-   * @see {@link https://nodejs.org/api/process.html#process_process_cwd|process.cwd()}
+   * @param dir The directory path to start traversing from.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
+   *
+   * **See** {@link traverseForFile}
+   *
+   * **See** {@link https://nodejs.org/api/process.html#process_process_cwd|process.cwd()}
    */
   public static async resolveProjectPath(dir?: string): Promise<string> {
     return resolveProjectPath(dir);
@@ -108,16 +110,14 @@ export class SfdxProject {
   private sfdxProjectJsonGlobal!: SfdxProjectJson;
 
   /**
-   * Do not directly construct instances of this class -- use {@link Project.resolve} instead.
+   * Do not directly construct instances of this class -- use {@link SfdxProject.resolve} instead.
    *
-   * @private
-   * @constructor
+   * @hidden
    */
   private constructor(private path: string) {}
 
   /**
    * Returns the project path.
-   * @returns {string}
    */
   public getPath(): string {
     return this.path;
@@ -128,9 +128,9 @@ export class SfdxProject {
    * that are not checked in to the project specific file.
    *
    * *Note:* When reading values from {@link SfdxProjectJson}, it is recommended to use
-   * {@link Project.resolveProjectConfig} instead.
+   * {@link SfdxProject.resolveProjectConfig} instead.
    *
-   * @param {boolean} isGlobal True to get the global project file, otherwise the local project config.
+   * @param isGlobal True to get the global project file, otherwise the local project config.
    */
   public async retrieveSfdxProjectJson(isGlobal: boolean = false): Promise<SfdxProjectJson> {
     const options = SfdxProjectJson.getDefaultOptions(isGlobal);
@@ -152,7 +152,7 @@ export class SfdxProject {
    * The project config is resolved from local and global {@link SfdxProjectJson},
    * {@link ConfigAggregator}, and a set of defaults. It is recommended to use
    * this when reading values from SfdxProjectJson.
-   * @returns {JsonMap} A resolved config object that contains a bunch of different
+   * @returns A resolved config object that contains a bunch of different
    * properties, including some 3rd party custom properties.
    */
   public async resolveProjectConfig(): Promise<JsonMap> {

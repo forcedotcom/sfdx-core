@@ -58,13 +58,14 @@ export const REQUIRED_FIELDS = {
 
 /**
  * Required fields type needed to represent a Salesforce User object.
- * @see https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_objects_user.htm
+ *
+ * **See** https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_objects_user.htm
  */
 export type UserFields = { -readonly [K in keyof typeof REQUIRED_FIELDS]: string };
 
 /**
  * Helper method to lookup UserFields
- * @param {string} username The username
+ * @param username The username
  */
 async function _retrieveUserFields(this: { logger: Logger }, username: string): Promise<UserFields> {
   const connection: Connection = await Connection.create({
@@ -101,8 +102,8 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
 
 /**
  * Gets the profile id associated with a profile name.
- * @param {string} name The name of the profile.
- * @param {Connection} connection The connection for the query.
+ * @param name The name of the profile.
+ * @param connection The connection for the query.
  */
 async function _retrieveProfileId(name: string, connection: Connection): Promise<string> {
   if (!validateSalesforceId(name)) {
@@ -119,11 +120,12 @@ async function _retrieveProfileId(name: string, connection: Connection): Promise
  * Provides a default set of fields values that can be used to create a user. This is handy for
  * software development purposes.
  *
- * @example
+ * ```
  * const options: DefaultUserFieldsOptions = {
  *     templateUser: org.getUsername() || ''
  * };
  * const fields = (await DefaultUserFields.create(options)).getFields();
+ * ```
  */
 export class DefaultUserFields extends AsyncCreatable<User.Options> {
   private logger!: Logger;
@@ -131,15 +133,25 @@ export class DefaultUserFields extends AsyncCreatable<User.Options> {
 
   private options: User.Options;
 
+  /**
+   * @hidden
+   * @param options
+   */
   public constructor(options: User.Options) {
     super(options);
     this.options = options || { templateUser: '' };
   }
 
+  /**
+   * Get userfields
+   */
   public getFields(): UserFields {
     return this.userFields;
   }
 
+  /**
+   * Intialize asynchronous components.
+   */
   protected async init(): Promise<void> {
     this.logger = await Logger.child('DefaultUserFields');
     this.userFields = await _retrieveUserFields.call({ logger: this.logger }, this.options.templateUser);
@@ -164,9 +176,8 @@ export class DefaultUserFields extends AsyncCreatable<User.Options> {
  */
 export class User {
   /**
-   * Initialize a new instance of a user.
-   * @param {Org} org The org associated with the user.
-   * @returns {User} A user instance
+   * Initialize a new instance of a user and return it.
+   * @param org The org associated with the user.
    */
   public static async init(org: Org): Promise<User> {
     if (!org) {
@@ -179,8 +190,7 @@ export class User {
   }
 
   /**
-   * Generate default password for a user.
-   * @returns {SecureBuffer} An encrypted buffer containing a utf8 encoded password.
+   * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
    */
   public static generatePasswordUtf8(): SecureBuffer<void> {
     // Fill an array with random characters from random requirement sets
@@ -208,8 +218,8 @@ export class User {
   /**
    * Assigns a password to a user. For a user to have the ability to assign their own password, the org needs the
    * following org preference: SelfSetPasswordInApi
-   * @param {AuthInfo} info The AuthInfo object for user to assign the password to.
-   * @param {SecureBuffer} password [throwWhenRemoveFails = User.generatePasswordUtf8()] A SecureBuffer containing the new password.
+   * @param info The AuthInfo object for user to assign the password to.
+   * @param password [throwWhenRemoveFails = User.generatePasswordUtf8()] A SecureBuffer containing the new password.
    */
   public async assignPassword(info: AuthInfo, password: SecureBuffer<void> = User.generatePasswordUtf8()) {
     this.logger.debug(
@@ -235,14 +245,15 @@ export class User {
 
   /**
    * Methods to assign one or more permission set names to a user.
-   * @param {string} id The Salesforce id of the user to assign the permission set to.
-   * @param {string[]} permsetNames An array of permission set names.
+   * @param id The Salesforce id of the user to assign the permission set to.
+   * @param permsetNames An array of permission set names.
    *
-   * @example
+   * ```
    * const org = await Org.create(await Connection.create(await AuthInfo.create('standardUser')));
    * const user: User = await User.init(org)
    * const fields: UserFields = await user.retrieve();
    * await user.assignPermissionSets(fields.id, ['sfdx', 'approver']);
+   * ```
    */
   public async assignPermissionSets(id: string, permsetNames: string[]): Promise<void> {
     if (!id) {
@@ -270,14 +281,14 @@ export class User {
    * Standard User Licenses
    * Salesforce CRM Content User
    *
-   * @param {UserFields} fields The required fields for creating a user.
-   * @returns {Promise<AuthInfo>} An AuthInfo object for the new user.
+   * @param fields The required fields for creating a user.
    *
-   * @example
+   * ```
    * const org = await Org.create(await Connection.create(await AuthInfo.create('fooUser')));
    * const fields: UserFields = await DefaultUserFields.init(org);
    * const user: User = await User.init(org);
    * const info: AuthInfo = await user.create(fields);
+   * ```
    */
   public async create(fields: UserFields): Promise<AuthInfo> {
     // Create a user and get a refresh token
@@ -319,12 +330,13 @@ export class User {
 
   /**
    * Method to retrieve the UserFields for a user.
-   * @param {string} username The username of the user
+   * @param username The username of the user
    *
-   * @example
+   * ```
    * const org = await Org.create(await Connection.create(await AuthInfo.create('fooUser')));
    * const user: User = await User.init(org);
    * const fields: UserFields = await user.retrieve('boris@thecat.com')
+   * ```
    */
   public async retrieve(username: string): Promise<UserFields> {
     return await _retrieveUserFields.call(this, username);
@@ -332,7 +344,7 @@ export class User {
 
   /**
    * Helper method that verifies the server's User object is available and if so allows persisting the Auth information.
-   * @param {AuthInfo} newUserAuthInfo The AuthInfo for the new user.
+   * @param newUserAuthInfo The AuthInfo for the new user.
    */
   private async describeUserAndSave(newUserAuthInfo: AuthInfo): Promise<AuthInfo> {
     const connection = await Connection.create({ authInfo: newUserAuthInfo });
@@ -351,7 +363,7 @@ export class User {
 
   /**
    * Helper that makes a REST request to create the user, and update additional required fields.
-   * @param {UserFields} fields The configuration the new user should have.
+   * @param fields The configuration the new user should have.
    */
   private async createUserInternal(fields: UserFields): Promise<{ buffer: SecureBuffer<string>; userId: string }> {
     if (!fields) {
@@ -422,7 +434,7 @@ export class User {
 
   /**
    * Update the remaining required fields for the user.
-   * @param {UserFields} fields The fields for the user.
+   * @param fields The fields for the user.
    */
   private async updateRequiredUserFields(fields: UserFields) {
     const leftOverRequiredFields = omit(fields, [

@@ -21,15 +21,14 @@ import { PollingClient } from './pollingClient';
  *
  * ```
  * (async () => {
- * const options: MyDomainResolver.Options = {
- *    url: new URL('http://mydomain.salesforce.com'),
- *     timeout: Duration.minutes(5),
- *     frequency: Duration.seconds(10)
- * };
- *
- *   const resolver: MyDomainResolver = await MyDomainResolver.create(options);
- *   const ipAddress: AnyJson = await resolver.resolve();
- *   console.log(`Successfully resolved host: ${options.url} to address: ${ipAddress}`);
+ *  const options: MyDomainResolver.Options = {
+ *      url: new URL('http://mydomain.salesforce.com'),
+ *      timeout: Duration.minutes(5),
+ *      frequency: Duration.seconds(10)
+ *  };
+ *  const resolver: MyDomainResolver = await MyDomainResolver.create(options);
+ *  const ipAddress: AnyJson = await resolver.resolve();
+ *  console.log(`Successfully resolved host: ${options.url} to address: ${ipAddress}`);
  * })();
  * ```
  */

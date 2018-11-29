@@ -68,6 +68,11 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   // Initialized in create
   private path!: string;
 
+  /**
+   * Constructor
+   * **Do not directly construct instances of this class -- use {@link ConfigFile.create} instead.**
+   * @param options The options for the class instance
+   */
   public constructor(options: T) {
     super(options);
   }
