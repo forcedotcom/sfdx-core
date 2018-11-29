@@ -334,6 +334,7 @@ export const testSetup = once((sinon?: any) => {
  * A pre-canned error for try/catch testing.
  *
  * **See** {@link shouldThrow}
+ * @ignore
  */
 export const unexpectedResult: SfdxError = new SfdxError('This code was expected to failed', 'UnexpectedResult');
 
@@ -356,6 +357,7 @@ export const unexpectedResult: SfdxError = new SfdxError('This code was expected
  *  }
  * ```
  * @param f The async function that is expected to throw.
+ * @ignore
  */
 export async function shouldThrow(f: Promise<unknown>): Promise<never> {
   await f;

@@ -112,7 +112,7 @@ export class SfdxProject {
   /**
    * Do not directly construct instances of this class -- use {@link SfdxProject.resolve} instead.
    *
-   * @hidden
+   * @ignore
    */
   private constructor(private path: string) {}
 

@@ -240,7 +240,7 @@ export class Logger {
   /**
    * Destroys the root `Logger`.
    *
-   * @hidden
+   * @ignore
    */
   public static destroyRoot(): void {
     if (this.rootLogger) {

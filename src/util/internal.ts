@@ -8,6 +8,7 @@ import { SfdxError } from '../sfdxError';
 import { fs } from './fs';
 /**
  * The name of the project config file.
+ * @ignore
  */
 // This has to be defined on util to prevent circular deps with project and configFile.
 export const SFDX_PROJECT_JSON = 'sfdx-project.json';
@@ -21,6 +22,7 @@ export const SFDX_PROJECT_JSON = 'sfdx-project.json';
  *
  * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
  * @param dir The directory path to start traversing from.
+ * @ignore
  */
 export async function resolveProjectPath(dir: string = process.cwd()): Promise<string> {
   const projectPath = await fs.traverseForFile(dir, SFDX_PROJECT_JSON);

@@ -452,7 +452,7 @@ enum SecretField {
 
 // istanbul ignore next - getPassword/setPassword is always mocked out
 /**
- * @hidden
+ * @@ignore
  */
 export class GenericKeychainAccess implements PasswordStore {
   public async getPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void> {
@@ -525,7 +525,7 @@ export class GenericKeychainAccess implements PasswordStore {
 }
 
 /**
- * @hidden
+ * @ignore
  */
 // istanbul ignore next - getPassword/setPassword is always mocked out
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
@@ -562,12 +562,12 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 }
 
 /**
- * @hidden
+ * @ignore
  */
 export class GenericWindowsKeychainAccess extends GenericKeychainAccess {}
 
 /**
- * @hidden
+ * @ignore
  */
 export const keyChainImpl = {
   generic_unix: new GenericUnixKeychainAccess(),

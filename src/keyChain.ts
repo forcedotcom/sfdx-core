@@ -12,6 +12,7 @@ import { SfdxError } from './sfdxError';
 /**
  * Gets the os level keychain impl.
  * @param platform The os platform.
+ * @ignore
  */
 export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
   const logger: Logger = await Logger.child('keyChain');

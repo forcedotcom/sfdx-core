@@ -152,7 +152,7 @@ export class Org extends AsyncCreatable<Org.Options> {
   private options: Org.Options;
 
   /**
-   * @hidden
+   * @ignore
    */
   public constructor(options: Org.Options) {
     super(options);
@@ -185,7 +185,7 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
-   * @hidden
+   * @ignore
    */
   public async retrieveOrgUsersConfig(): Promise<OrgUsersConfig> {
     return await OrgUsersConfig.create(OrgUsersConfig.getOptions(this.getOrgId()));

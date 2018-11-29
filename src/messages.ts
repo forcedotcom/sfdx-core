@@ -79,7 +79,7 @@ export class Messages {
    * Internal readFile. Exposed for unit testing. Do not use util/fs.readFile as messages.js
    * should have no internal dependencies.
    * @param filePath read file target.
-   * @hidden
+   * @ignore
    */
   public static _readFile = (filePath: string): AnyJson => {
     return require(filePath);

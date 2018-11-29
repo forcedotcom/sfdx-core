@@ -134,7 +134,7 @@ export class DefaultUserFields extends AsyncCreatable<User.Options> {
   private options: User.Options;
 
   /**
-   * @hidden
+   * @ignore
    * @param options
    */
   public constructor(options: User.Options) {
