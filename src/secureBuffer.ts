@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { ensure, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 
@@ -12,7 +13,7 @@ const cipherSize: number = 32;
 
 /**
  * Returns the intended type of the object to return. This is implementation specific.
- * @param {Buffer} buffer - A buffer containing the decrypted secret.
+ * @param buffer A buffer containing the decrypted secret.
  */
 export type DecipherCallback<T> = (buffer: Buffer) => T;
 
@@ -38,7 +39,7 @@ export class SecureBuffer<T> {
 
   /**
    * Invokes a callback with a decrypted version of the buffer.
-   * @param cb The callback containing the decrypted buffer parameter that returns a desired
+   * @param cb The callback containing the decrypted buffer parameter that returns a desired.
    * typed object. It's important to understand that once the callback goes out of scope the buffer parameters is
    * overwritten with random data. Do not make a copy of this buffer and persist it!
    */
@@ -71,7 +72,7 @@ export class SecureBuffer<T> {
 
   /**
    * Consumes a buffer of data that's intended to be secret.
-   * @param buffer - Data to encrypt. The input buffer is overwritten with random data after it's encrypted
+   * @param buffer Data to encrypt. The input buffer is overwritten with random data after it's encrypted
    * and assigned internally.
    */
   public consume(buffer: Buffer) {

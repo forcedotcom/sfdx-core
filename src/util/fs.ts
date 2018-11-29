@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { parseJson, parseJsonMap } from '@salesforce/kit';
 import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import * as fsLib from 'fs';

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { AsyncCreatable, set } from '@salesforce/kit';
 import { AnyJson, definiteEntriesOf, definiteValuesOf, get, getAnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import { Dictionary } from '@salesforce/ts-types';

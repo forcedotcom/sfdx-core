@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { asString, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigGroup } from './configGroup';
@@ -57,10 +58,9 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
    * const aliases = await Aliases.parseAndUpdate(['foo=bar', 'bar=baz'])
    * ```
    */
-  public static async parseAndUpdate(
-    aliasKeyAndValues: string[],
-    group: AliasGroup = AliasGroup.ORGS
-  ): Promise<JsonMap> {
+  public static async parseAndUpdate(aliasKeyAndValues: string[],
+                                     group: AliasGroup = AliasGroup.ORGS): Promise<JsonMap> {
+
     const newAliases: Dictionary<string> = {};
     if (aliasKeyAndValues.length === 0) {
       throw SfdxError.create('@salesforce/core', 'core', 'NoAliasesFound', []);

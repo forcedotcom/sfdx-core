@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { keyBy, set } from '@salesforce/kit';
 import { Dictionary, ensure, isString } from '@salesforce/ts-types';
 import { Crypto } from '../crypto';

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { AsyncCreatable, cloneJson, isEmpty, parseJsonMap, set } from '@salesforce/kit';
 import {
   AnyFunction,
@@ -37,7 +38,7 @@ import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { fs } from './util/fs';
 
 /**
- * Fields for authorization, organization, and local information.
+ * Fields for authorization, org, and local information.
  */
 // Fields that are persisted in auth files
 export interface AuthFields {
@@ -82,15 +83,15 @@ export type RefreshFn = (
 ) => Promise<void>;
 
 /**
- * Options for Connection
+ * Options for {@link Connection}.
  */
 export type ConnectionOptions = AuthFields & {
   /**
-   * Oauth options
+   * OAuth options.
    */
   oauth2?: Partial<OAuth2Options>;
   /**
-   * refresh token callback.
+   * Refresh token callback.
    */
   refreshFn?: RefreshFn;
 };
@@ -164,7 +165,7 @@ class AuthCodeOAuth2 extends OAuth2 {
 }
 
 /**
- * Salesforce Urls
+ * Salesforce URLs.
  */
 export enum SfdcUrl {
   SANDBOX = 'https://test.salesforce.com',
@@ -583,8 +584,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   }
 
   /**
-   * Initialize this AuthInfo instance with the specified options. If options are not provided
-   * initialize from cache or by reading from persistence store. For convenience `this` object is returned.
+   * Initialize this AuthInfo instance with the specified options. If options are not provided, initialize it from cache
+   * or by reading from the persistence store. For convenience `this` object is returned.
    * @param options Options to be used for creating an OAuth2 instance.
    *
    * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFound' }* Org information does not exist.
@@ -826,7 +827,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
 export namespace AuthInfo {
   /**
-   * Constructor options for AuthInfo
+   * Constructor options for AuthInfo.
    */
   export interface Options {
     /**
@@ -834,7 +835,7 @@ export namespace AuthInfo {
      */
     username?: string;
     /**
-     * Oauth options.
+     * OAuth options.
      */
     oauth2Options?: OAuth2Options;
     /**
