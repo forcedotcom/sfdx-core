@@ -4,29 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/**
- * Org Fields.
- * @typedef OrgFields
- * @property {string} ALIAS The org alias.
- * @property {string} CREATED_ORG_INSTANCE The Salesforce instance the org was created on. e.g. `cs42`.
- * @property {string} DEV_HUB_USERNAME The username of the dev hub org that created this org. Only populated for scratch orgs.
- * @property {string} INSTANCE_URL The full url of the instance the org lives on.
- * @property {string} IS_DEV_HUB Is the current org a dev hub org. e.g. They have access to the `ScratchOrgInfo` object.
- * @property {string} LOGIN_URL The login url of the org. e.g. `https://login.salesforce.com` or `https://test.salesforce.com`.
- * @property {string} ORG_ID The org ID.
- * @property {string} STATUS The `OrgStatus` of the org.
- * @property {string} SNAPSHOT The snapshot used to create the scratch org.
- */
-
-/**
- * Scratch Org status.
- * @typedef OrgStatus
- * @property {string} ACTIVE The scratch org is active.
- * @property {string} EXPIRED The scratch org has expired.
- * @property {string} UNKNOWN The org is a scratch Org but no dev hub is indicated.
- * @property {string} MISSING The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
- */
-
 import { AsyncCreatable } from '@salesforce/kit';
 import {
   AnyFunction,
@@ -58,28 +35,71 @@ import { SfdxError } from './sfdxError';
 import * as fs from './util/fs';
 import { trimTo15 } from './util/sfdc';
 
+/**
+ * Scratch Org status.
+ */
 export enum OrgStatus {
+  /**
+   * The scratch org is active.
+   */
   ACTIVE = 'ACTIVE',
+  /**
+   * The scratch org has expired.
+   */
   EXPIRED = 'EXPIRED',
+  /**
+   * The org is a scratch Org but no dev hub is indicated.
+   */
   UNKNOWN = 'UNKNOWN',
+  /**
+   * The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
+   */
   MISSING = 'MISSING'
 }
 
+/**
+ * Org Fields.
+ */
 // A subset of fields from AuthInfoFields and properties that are specific to Org,
 // and properties that are defined on Org itself.
 export enum OrgFields {
+  /**
+   * The org alias.
+   */
   // From AuthInfo
   ALIAS = 'alias',
   CREATED = 'created',
+  /**
+   * The Salesforce instance the org was created on. e.g. `cs42`.
+   */
   CREATED_ORG_INSTANCE = 'createdOrgInstance',
+  /**
+   * The username of the dev hub org that created this org. Only populated for scratch orgs.
+   */
   DEV_HUB_USERNAME = 'devHubUsername',
+  /**
+   * The full url of the instance the org lives on.
+   */
   INSTANCE_URL = 'instanceUrl',
+  /**
+   * Is the current org a dev hub org. e.g. They have access to the `ScratchOrgInfo` object.
+   */
   IS_DEV_HUB = 'isDevHub',
+  /**
+   * The login url of the org. e.g. `https://login.salesforce.com` or `https://test.salesforce.com`.
+   */
   LOGIN_URL = 'loginUrl',
+  /**
+   *  The org ID.
+   */
   ORG_ID = 'orgId',
-
-  // From Org
+  /**
+   * The `OrgStatus` of the org.
+   */
   STATUS = 'status',
+  /**
+   * The snapshot used to create the scratch org.
+   */
   SNAPSHOT = 'snapshot'
 
   // Should it be on org? Leave it off for now, as it might
@@ -99,12 +119,15 @@ export enum OrgFields {
 /**
  * Provides a way to manage a locally authenticated Org.
  *
- * @see {@link AuthInfo}
- * @see {@link Connection}
- * @see {@link Aliases}
- * @see {@link Config}
+ * **See** {@link AuthInfo}
  *
- * @example
+ * **See** {@link Connection}
+ *
+ * **See** {@link Aliases}
+ *
+ * **See** {@link Config}
+ *
+ * ```
  * // Email username
  * const org1: Org = await Org.create({ aliasOrUsername: 'foo@example.com' });//tslint:disable-line:no-unused-variable
  * // The defaultusername config property
@@ -113,8 +136,9 @@ export enum OrgFields {
  * const org3: Org = await Org.create({
  *   connection: await Connection.create(await AuthInfo.create({ username: 'username' }))
  * });
+ * ```
  *
- * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
+ * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
 export class Org extends AsyncCreatable<Org.Options> {
   // tslint:disable-next-line:no-unused-variable
@@ -128,7 +152,7 @@ export class Org extends AsyncCreatable<Org.Options> {
   private options: Org.Options;
 
   /**
-   * @ignore
+   * @hidden
    */
   public constructor(options: Org.Options) {
     super(options);
@@ -137,9 +161,8 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.
-   * @param {string} [orgDataPath] A relative path other than "orgs/".
+   * @param orgDataPath A relative path other than "orgs/".
    * @param throwWhenRemoveFails Should the remove org operations throw an error on failure?
-   * @returns {Promise<void>}
    */
 
   public async cleanLocalOrgData(orgDataPath?: string, throwWhenRemoveFails: boolean = false): Promise<void> {
@@ -161,6 +184,9 @@ export class Org extends AsyncCreatable<Org.Options> {
     return this.manageDelete(async () => await fs.remove(dataPath), dataPath, throwWhenRemoveFails);
   }
 
+  /**
+   * @hidden
+   */
   public async retrieveOrgUsersConfig(): Promise<OrgUsersConfig> {
     return await OrgUsersConfig.create(OrgUsersConfig.getOptions(this.getOrgId()));
   }

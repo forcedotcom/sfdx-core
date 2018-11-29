@@ -25,19 +25,17 @@ const GET_PASSWORD_RETRY_COUNT: number = 3;
 /**
  * Helper to reduce an array of cli args down to a presentable string for logging.
  * @param optionsArray CLI command args.
- * @private
  */
 function _optionsToString(optionsArray: string[]) {
   return optionsArray.reduce((accum, element) => `${accum} ${element}`);
 }
 
 /**
- * Helper to determine if a program is executable
+ * Helper to determine if a program is executable. Returns `true` if the program is executable for the user. For
+ * Windows true is always returned.
  * @param mode Stats mode.
  * @param gid Unix group id.
  * @param uid Unix user id.
- * @returns {boolean} `true` if the program is executable for the user. For Windows true is always returned.
- * @private
  */
 const _isExe = (mode: number, gid: number, uid: number) => {
   if (process.platform === 'win32') {
@@ -53,10 +51,14 @@ const _isExe = (mode: number, gid: number, uid: number) => {
 
 /**
  * Private helper to validate that a program exists on the file system and is executable.
+ *
+ * **Throws** *{@link SfdxError}{ name: 'MissingCredentialProgramError' }* When the OS credential program isn't found.
+ *
+ * **Throws** *{@link SfdxError}{ name: 'CredentialProgramAccessError' }* When the OS credential program isn't accessible.
+ *
  * @param programPath The absolute path of the program.
  * @param fsIfc The file system interface.
  * @param isExeIfc Executable validation function.
- * @private
  */
 const _validateProgram = async (
   programPath: string,
@@ -68,20 +70,37 @@ const _validateProgram = async (
     const stats = fsIfc.statSync(programPath);
     noPermission = !isExeIfc(stats.mode, stats.gid, stats.uid);
   } catch (e) {
-    throw SfdxError.create('@salesforce/core', 'encryption', 'MissingCredentialProgramError', [programPath]);
+    throw SfdxError.create('@salesforce/core', 'encryption',
+      'MissingCredentialProgramError', [programPath]);
   }
 
   if (noPermission) {
-    throw SfdxError.create('@salesforce/core', 'encryption', 'CredentialProgramAccessError', [programPath]);
+    throw SfdxError.create('@salesforce/core', 'encryption',
+      'CredentialProgramAccessError', [programPath]);
   }
 };
 
+/**
+ * Basic keychain interface
+ */
 export interface PasswordStore {
+  /**
+   * Gets a password
+   * @param opts cli level password options.
+   * @param fn function callback for password
+   * @param retryCount number of reties to get the password
+   */
   getPassword(
     opts: ProgramOpts,
     fn: (error: Nullable<Error>, password?: string) => void,
     retryCount?: number
   ): Promise<void>;
+
+  /**
+   * Sets a password
+   * @param opts cli level password options.
+   * @param fn function callback for password
+   */
   setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void>;
 }
 
@@ -93,10 +112,12 @@ export class KeychainAccess implements PasswordStore {
    * Abstract prototype for general cross platform keychain interaction.
    * @param osImpl The platform impl for (linux, darwin, windows)
    * @param fsIfc The file system interface
-   * @constructor
    */
   constructor(private osImpl: OsImpl, private fsIfc: FsIfc) {}
 
+  /**
+   * Validates the os level program is executable
+   */
   public async validateProgram() {
     await _validateProgram(this.osImpl.getProgram(), this.fsIfc, _isExe);
   }
@@ -204,6 +225,7 @@ interface ProgramOpts {
   service: string;
   password?: string;
 }
+
 interface OsImpl {
   getProgram(): string;
   getProgramOptions(opts: ProgramOpts): string[];
@@ -236,8 +258,6 @@ interface OsImpl {
  * Linux implementation.
  *
  * Uses libsecret.
- *
- * @private
  */
 const _linuxImpl: OsImpl = {
   getProgram() {
@@ -314,8 +334,6 @@ const _linuxImpl: OsImpl = {
  * OSX implementation.
  *
  * /usr/bin/security is a cli front end for OSX keychain.
- *
- * @private
  */
 const _darwinImpl: OsImpl = {
   getProgram() {
@@ -434,10 +452,10 @@ enum SecretField {
   KEY = 'key'
 }
 
-/**
- * @private
- */
 // istanbul ignore next - getPassword/setPassword is always mocked out
+/**
+ * @hidden
+ */
 export class GenericKeychainAccess implements PasswordStore {
   public async getPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void> {
     // validate the file in .sfdx
@@ -509,7 +527,7 @@ export class GenericKeychainAccess implements PasswordStore {
 }
 
 /**
- * @private
+ * @hidden
  */
 // istanbul ignore next - getPassword/setPassword is always mocked out
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
@@ -546,12 +564,12 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
 }
 
 /**
- * @private
+ * @hidden
  */
 export class GenericWindowsKeychainAccess extends GenericKeychainAccess {}
 
 /**
- * @private
+ * @hidden
  */
 export const keyChainImpl = {
   generic_unix: new GenericUnixKeychainAccess(),

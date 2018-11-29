@@ -40,18 +40,16 @@ export interface Tooling extends JSForceTooling {
    * Executes a query and auto-fetches (i.e., "queryMore") all results.  This is especially
    * useful with large query result sizes, such as over 2000 records.  The default maximum
    * fetch size is 10,000 records.  Modify this via the options argument.
-   * @param {string} soql The SOQL string.
-   * @param {ExecuteOptions} options The query options.  NOTE: the autoFetch option will always be true.
-   * @returns {Promise.<QueryResult<T>>}
+   * @param soql The SOQL string.
+   * @param options The query options.  NOTE: the autoFetch option will always be true.
    */
   autoFetchQuery<T>(soql: string, options?: ExecuteOptions): Promise<QueryResult<T>>;
 }
 
 /**
  * Handles connections and requests to Salesforce Orgs.
- * @extends jsforce.Connection
  *
- * @example
+ * ```
  * // Uses latest API version
  * const connection = await Connection.create({
  *     authInfo: await AuthInfo.create({ username: 'myAdminUsername' })
@@ -61,8 +59,14 @@ export interface Tooling extends JSForceTooling {
  * // Use different API version
  * connection.setApiVersion("42.0");
  * connection.query('SELECT Name from Account');
+ * ```
  */
 export class Connection extends JSForceConnection {
+
+  /**
+   * Creates an instance of a Connection. Performs additional async initializations.
+   * @param options Constructor options.
+   */
   public static async create(
     this: { new (options: Connection.Options): Connection },
     options: Connection.Options
@@ -90,6 +94,9 @@ export class Connection extends JSForceConnection {
   }
 
   // The following are all initialized in either this constructor or the super constructor, sometimes conditionally...
+  /**
+   * Tooling api reference
+   */
   public tooling!: Tooling;
   // We want to use 1 logger for this class and the jsForce base classes so override
   // the jsForce connection.tooling.logger and connection.logger.
@@ -99,6 +106,11 @@ export class Connection extends JSForceConnection {
   private _normalizeUrl!: (url: string) => string;
   private options: Connection.Options;
 
+  /**
+   * Constructor
+   * **Do not directly construct instances of this class -- use {@link Connection.create} instead.**
+   * @param options The options for the class instance
+   */
   constructor(options: Connection.Options) {
     super(options.connectionOptions || {});
 
@@ -107,6 +119,9 @@ export class Connection extends JSForceConnection {
     this.options = options;
   }
 
+  /**
+   * Async initializer
+   */
   public async init(): Promise<void> {
     this.logger = this._logger = this.tooling._logger = await Logger.child('connection');
   }
@@ -114,8 +129,6 @@ export class Connection extends JSForceConnection {
   /**
    * Send REST API request with given HTTP request info, with connected session information
    * and SFDX headers.
-   *
-   * @override
    *
    * @param request HTTP request object or URL to GET request.
    * @param options HTTP API request options.
@@ -132,10 +145,7 @@ export class Connection extends JSForceConnection {
    * Send REST API request with given HTTP request info, with connected session information
    * and SFDX headers. This method returns a raw http response which includes a response body and statusCode.
    *
-   * @override
-   *
-   * @param {RequestInfo | string} request HTTP request object or URL to GET request.
-   * @returns {Promise<JsonMap>} The request Promise.
+   * @param request HTTP request object or URL to GET request.
    */
   public async requestRaw(request: RequestInfo): Promise<JsonMap> {
     const _headers = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {};
@@ -151,7 +161,7 @@ export class Connection extends JSForceConnection {
   }
 
   /**
-   * @returns {string} The Force API base url for the instance.
+   * The Force API base url for the instance.
    */
   public baseUrl(): string {
     // essentially the same as pathJoin(super.instanceUrl, 'services', 'data', `v${super.version}`);
@@ -160,7 +170,6 @@ export class Connection extends JSForceConnection {
 
   /**
    * Retrieves the highest api version that is supported by the target server instance.
-   * @returns {Promise<string>} The max API version number. i.e 46.0
    */
   public async retrieveMaxApiVersion(): Promise<string> {
     type Versioned = { version: string };
@@ -183,7 +192,6 @@ export class Connection extends JSForceConnection {
 
   /**
    * Get the API version used for all connection requests.
-   * @returns {string}
    */
   public getApiVersion(): string {
     return this.version;
@@ -191,8 +199,9 @@ export class Connection extends JSForceConnection {
 
   /**
    * Set the API version for all connection requests.
-   * @param {string} version The API version.
-   * @throws {SfdxError} **`{name: 'IncorrectAPIVersion'}`:** Incorrect API version.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'IncorrectAPIVersion' }* Incorrect API version.
+   * @param version The API version.
    */
   public setApiVersion(version: string): void {
     if (!validateApiVersion(version)) {
@@ -206,19 +215,20 @@ export class Connection extends JSForceConnection {
 
   /**
    * Getter for the AuthInfo
-   * @returns {AuthInfo} A cloned authInfo.
    */
   public getAuthInfoFields(): AuthFields {
     return this.options.authInfo.getFields();
   }
 
+  /**
+   * Getter for the auth fields
+   */
   public getConnectionOptions(): AuthFields {
     return this.options.authInfo.getConnectionOptions();
   }
 
   /**
    * Getter for the username of the Salesforce Org
-   * @returns {Optional<string>}
    */
   public getUsername(): Optional<string> {
     return this.getAuthInfoFields().username;
@@ -226,7 +236,6 @@ export class Connection extends JSForceConnection {
 
   /**
    * Returns true if this connection is using access token auth.
-   * @returns {boolean}
    */
   public isUsingAccessToken(): boolean {
     return this.options.authInfo.isUsingAccessToken();
@@ -234,7 +243,7 @@ export class Connection extends JSForceConnection {
 
   /**
    * Normalize a Salesforce url to include a instance information.
-   * @param url {string} partial url.
+   * @param url partial url.
    */
   public normalizeUrl(url: string): string {
     return this._normalizeUrl(url);
@@ -243,10 +252,9 @@ export class Connection extends JSForceConnection {
   /**
    * Executes a query and auto-fetches (i.e., "queryMore") all results.  This is especially
    * useful with large query result sizes, such as over 2000 records.  The default maximum
-   * fetch size is 10,000 records.  Modify this via the options argument.
-   * @param {string} soql The SOQL string.
-   * @param {ExecuteOptions} options The query options.  NOTE: the autoFetch option will always be true.
-   * @returns {Promise<QueryResult<T>>}
+   * fetch size is 10,000 records. Modify this via the options argument.
+   * @param soql The SOQL string.
+   * @param options The query options. NOTE: the autoFetch option will always be true.
    */
   public async autoFetchQuery<T>(soql: string, options: ExecuteOptions = {}): Promise<QueryResult<T>> {
     const _options: ExecuteOptions = Object.assign(options, {
@@ -276,8 +284,17 @@ export namespace Connection {
    * Connection Options
    */
   export interface Options {
+    /**
+     * AuthInfo instance
+     */
     authInfo: AuthInfo;
+    /**
+     * ConfigAggregator for getting defaults
+     */
     configAggregator?: ConfigAggregator;
+    /**
+     * Additional connection parameters
+     */
     connectionOptions?: ConnectionOptions;
   }
 }

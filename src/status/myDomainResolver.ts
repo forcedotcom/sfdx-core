@@ -19,19 +19,18 @@ import { PollingClient } from './pollingClient';
  * A class used to resolve MyDomains. After a ScratchOrg is created it's host name my not be propagated to the
  * Salesforce DNS service. This service is not exclusive to Salesforce My Domain URL and could be used for any hostname.
  *
- * @example
- *
+ * ```
  * (async () => {
- * const options: MyDomainResolver.Options = {
- *    url: new URL('http://mydomain.salesforce.com'),
- *     timeout: Duration.minutes(5),
- *     frequency: Duration.seconds(10)
- * };
- *
- *   const resolver: MyDomainResolver = await MyDomainResolver.create(options);
- *   const ipAddress: AnyJson = await resolver.resolve();
- *   console.log(`Successfully resolved host: ${options.url} to address: ${ipAddress}`);
+ *  const options: MyDomainResolver.Options = {
+ *      url: new URL('http://mydomain.salesforce.com'),
+ *      timeout: Duration.minutes(5),
+ *      frequency: Duration.seconds(10)
+ *  };
+ *  const resolver: MyDomainResolver = await MyDomainResolver.create(options);
+ *  const ipAddress: AnyJson = await resolver.resolve();
+ *  console.log(`Successfully resolved host: ${options.url} to address: ${ipAddress}`);
  * })();
+ * ```
  */
 export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Options> {
   public static DEFAULT_DOMAIN = new URL('https://login.salesforce.com');
@@ -47,8 +46,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
 
   /**
    * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
-   * given the optional interval.
-   * @returns {Promise<AnyJson>} The resolved ip address.
+   * given the optional interval. Returns the resolved ip address
    */
   public async resolve(): Promise<string> {
     const self: MyDomainResolver = this;

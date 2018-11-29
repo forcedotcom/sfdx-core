@@ -4,10 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/**
- * @module sfdc
- */
-
 import { findKey } from '@salesforce/kit';
 import { AnyJson, asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { URL } from 'url';
@@ -15,8 +11,7 @@ import { URL } from 'url';
 /**
  * Returns `true` if a provided URL contains a Salesforce owned domain.
  *
- * @param {string} urlString The URL to inspect.
- * @returns {boolean}
+ * @param urlString The URL to inspect.
  */
 export function isSalesforceDomain(urlString: string): boolean {
   let url: URL;
@@ -46,8 +41,7 @@ export function isSalesforceDomain(urlString: string): boolean {
 /**
  * Converts an 18 character Salesforce ID to 15 characters.
  *
- * @param {string} id The id to convert.
- * @return {Optional<string>}
+ * @param id The id to convert.
  */
 export function trimTo15(id?: string): Optional<string> {
   if (id && id.length && id.length > 15) {
@@ -60,7 +54,6 @@ export function trimTo15(id?: string): Optional<string> {
  * Tests whether an API version matches the format `i.0`.
  *
  * @param value The API version as a string.
- * @returns {boolean}
  */
 export function validateApiVersion(value: string): boolean {
   return value == null || /[1-9]\d\.0/.test(value);
@@ -70,7 +63,6 @@ export function validateApiVersion(value: string): boolean {
  * Tests whether an email matches the format `me@my.org`
  *
  * @param value The email as a string.
- * @returns {boolean}
  */
 export function validateEmail(value: string): boolean {
   return /^[^.][^@]*@[^.]+(\.[^.\s]+)+$/.test(value);
@@ -79,7 +71,6 @@ export function validateEmail(value: string): boolean {
 /**
  * Tests whether a Salesforce ID is in the correct format, a 15- or 18-character length string with only letters and numbers
  * @param value The ID as a string.
- * @returns {boolean}
  */
 export function validateSalesforceId(value: string): boolean {
   return /[a-zA-Z0-9]{18}|[a-zA-Z0-9]{15}/.test(value) && (value.length === 15 || value.length === 18);
@@ -88,7 +79,6 @@ export function validateSalesforceId(value: string): boolean {
 /**
  * Tests whether a path is in the correct format; the value doesn't include the characters "[", "]", "?", "<", ">", "?", "|"
  * @param value The path as a string.
- * @returns {boolean}
  */
 export function validatePathDoesNotContainInvalidChars(value: string): boolean {
   return !/[\[:"\?<>\|\]]+/.test(value);
@@ -97,8 +87,7 @@ export function validatePathDoesNotContainInvalidChars(value: string): boolean {
 /**
  * Returns the first key within the object that has an upper case first letter.
  *
- * @param {JsonMap} data The object in which to check key casing.
- * @returns {Optional<string>}
+ * @param data The object in which to check key casing.
  */
 export function findUpperCaseKeys(data?: JsonMap): Optional<string> {
   let key: Optional<string>;

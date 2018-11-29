@@ -10,10 +10,9 @@ import { ConfigFile } from './configFile';
  * An auth config file that stores information such as access tokens, usernames, etc.,
  * in the global sfdx directory (~/.sfdx).
  *
- * @extends ConfigFile
- *
- * @example
+ * ```
  * const authInfo = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
+ * ```
  */
 export class AuthInfoConfig extends ConfigFile<ConfigFile.Options> {
   /**

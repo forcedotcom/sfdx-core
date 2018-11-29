@@ -17,7 +17,7 @@ import { StatusResult } from './client';
  * for Streaming when streaming topics are not available or when streaming handshakes are failing. Why wouldn't you
  * want to use this? It can impact Salesforce API usage.
  *
- * @example
+ * ```
  * const options: PollingClient.Options = {
  *      async poll(): Promise<StatusResult>  {
  *       return Promise.resolve({ completed: true, payload: 'Hello World' });
@@ -28,6 +28,7 @@ import { StatusResult } from './client';
  * const client = await PollingClient.create(options);
  * const pollResult = await client.subscribe();
  * console.log(`pollResult: ${pollResult}`);
+ * ```
  */
 export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options> {
   protected logger!: Logger;
@@ -39,8 +40,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
   /**
    * Constructor
    * @param options Polling client options
-   * @see {@link AsyncCreatable.create}
-   * @throws if options is undefined
+   * {@link AsyncCreatable.create}
    */
   public constructor(options?: PollingClient.Options) {
     super(options);
@@ -49,7 +49,6 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
 
   /**
    * Asynchronous initializer.
-   * @async
    */
   public async init(): Promise<void> {
     this.logger = await Logger.child(this.constructor.name);
@@ -58,9 +57,6 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
   /**
    * Returns a promise to call the specified polling function using the interval and timeout specified
    * in the polling options.
-   * @returns A promise to call the specified polling function using the interval and timeout specified
-   * in the polling options.
-   * @async
    */
   public subscribe(): Promise<AnyJson> {
     // This promise is held open while setInterval tries to resolve or reject.
@@ -135,15 +131,26 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
 export namespace PollingClient {
   /**
    * Options for the polling client.
-   * @interface
    */
   export interface Options {
-    // Polling function
+    /**
+     * Polling function
+     */
     poll: () => Promise<StatusResult>;
-    // How frequent should the polling function be called.
+    /**
+     * How frequent should the polling function be called.
+     */
     frequency: Duration;
-    // Hard timeout for polling.
+    /**
+     * Hard timeout for polling.
+     */
     timeout: Duration;
+    /**
+     * Change the name of the timeout error
+     * ```
+     * if (err.name === 'MyChangedName) ...
+     * ```
+     */
     timeoutErrorName?: string;
   }
 
@@ -158,8 +165,8 @@ export namespace PollingClient {
 
     /**
      * constructor
-     * @param {function} poll The function used for polling status.
-     * @see StatusResult
+     * @param poll The function used for polling status.
+     * {@link StatusResult}
      */
     constructor(poll: () => Promise<StatusResult>) {
       this.poll = poll;

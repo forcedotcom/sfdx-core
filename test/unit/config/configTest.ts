@@ -110,12 +110,6 @@ describe('Config', () => {
       }
     });
 
-    it('enable preferpolling for org:create', async () => {
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(Config.USE_BACKUP_POLLING_ORG_CREATE, 'true');
-      expect(config.get(Config.USE_BACKUP_POLLING_ORG_CREATE)).to.be.equal('true');
-    });
-
     it('InvalidConfigValue', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
       try {
