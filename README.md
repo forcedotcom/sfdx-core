@@ -1,13 +1,23 @@
-# Salesforce DX Core Library
+# Description
 
-This library provides client-side management of Salesforce DX projects, org authentication, connections to Salesforce APIs, and other various utilities.
+The @salesforce/core library provides client-side management of Salesforce DX projects, org authentication, connections to Salesforce APIs, and other utilities. Much of the core functionality that powers the Salesforcedx plug-ins comes from this library. You can use this functionality in your plug-ins, too.
+
+# Usage
 
 See the [API documentation](https://forcedotcom.github.io/sfdx-core/).
 
-## Using TestSetup
+## Contributing 
 
-The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components.
-This feature allows unit tests to execute without needing to make API calls to salesforce.com.
+If you are interested in contributing, please take a look at the [CONTRIBUTING](https://github.com/forcedotcom/sfdx-core/blob/develop/CONTRIBUTING.md) guide.
+
+# Related Docs and Repositories
+
+* @forcedotcom/cli-packages - Base Salesforce CLI command
+* @forcedotcom/sfdx-plugin-generate - The generator plug-in for building plug-ins for Salesforce CLI
+
+# Using TestSetup
+
+The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components. This feature allows unit tests to execute without needing to make API calls to salesforce.com.
 
 ### Mocking AuthInfo
 
@@ -32,8 +42,7 @@ describe('Mocking Auth data', () => {
 });
 ```
 
-After having a valid AuthInfo object you can then create fake connections to a Salesforce.com scratch org. This allows
-for writing tests that can validate result responses for SOQL queries and REST endpoints.
+After having a valid AuthInfo object you can then create fake connections to a Salesforce.com scratch org. This allows for writing tests that can validate result responses for SOQL queries and REST endpoints.
 
 ```typescript
 import { AuthInfo, Connection, SfdxError } from '@salesforce/core';
@@ -67,16 +76,11 @@ describe('Mocking a force server call', () => {
 });
 ```
 
-### Using the Builtin Sinon Sandboxes
+### Using the Built-in Sinon Sandboxes
 
-sfdx-core uses Sinon as it's underlying mocking system. If you're unfamiliar with Sinon and it's sand-boxing concept you
-can find more information here:
-
+sfdx-core uses Sinon as its underlying mocking system. If you're unfamiliar with Sinon and it's sandboxing concept you can find more information here:
 https://sinonjs.org/
-
-Sinon stubs and spys must be cleaned up after test invocations. To ease the use of Sinon with sfdx core we've exposed our
-sandbox in TestSetup. After adding your own stubs and/or spys they will automatically be cleaned up after each test
-using mocha's afterEach method.
+Sinon stubs and spys must be cleaned up after test invocations. To ease the use of Sinon with sfdx core we've exposed our sandbox in TestSetup. After adding your own stubs and/or spys they will automatically be cleaned up after each test using mocha's afterEach method.
 
 ```typescript
 import { strictEqual } from 'assert';
@@ -97,8 +101,7 @@ describe('Using the built in Sinon sandbox.', () => {
 
 ### Testing Expected Failures
 
-It's important to have negative tests that ensure proper error handling. With _shouldThrow_ it's easy to test for expected
-async rejections.
+It's important to have negative tests that ensure proper error handling. With *shouldThrow* it's easy to test for expected async rejections.
 
 ```typescript
 import { SfdxError } from '@salesforce/core';
@@ -124,8 +127,7 @@ describe('Testing for expected errors', () => {
 
 ### Testing Log Lines
 
-It's also useful to check expected values and content from log lines. TestSetup configures the sfdx-core logger to use an
-in memory LogLine storage structure. These can be easily accessed from tests.
+It's also useful to check expected values and content from log lines. TestSetup configures the sfdx-core logger to use an in memory LogLine storage structure. These can be easily accessed from tests.
 
 ```typescript
 import { Logger, LogLine } from '@salesforce/core';
