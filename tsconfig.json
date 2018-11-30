@@ -1,10 +1,7 @@
 {
-    "extends": "./node_modules/@salesforce/dev-config/tsconfig",
-    "compilerOptions": {
-        "outDir": "./lib",
-        "strict": true
-    },
-    "include": [
-        "src/**/*.ts"
-    ]
+  "extends": "./node_modules/@salesforce/dev-config/tsconfig-strict",
+  "compilerOptions": {
+    "outDir": "./lib"
+  },
+  "include": ["src/**/*.ts"]
 }

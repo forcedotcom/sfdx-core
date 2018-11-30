@@ -4,57 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/**
- * Options for OAuth2.
- * @typedef OAuth2Options
- * @property {string} authzServiceUrl
- * @property {string} tokenServiceUrl
- * @property {string} clientId
- * @property {string} clientSecret
- * @property {string} httpProxy
- * @property {string} loginUrl
- * @property {string} proxyUrl
- * @property {string} redirectUri
- * @property {string} refreshToken
- * @property {string} revokeServiceUrl
- * @property {string} authCode
- * @property {string} privateKeyFile
- * @see https://jsforce.github.io/jsforce/doc/OAuth2.html
- */
-
-/**
- * Fields for authorization, organization, and local information.
- * @typedef AuthFields
- * @property {string} accessToken
- * @property {string} alias
- * @property {string} authCode
- * @property {string} clientId
- * @property {string} clientSecret
- * @property {string} created
- * @property {string} createdOrgInstance
- * @property {string} devHubUsername
- * @property {string} instanceUrl
- * @property {string} isDevHub
- * @property {string} loginUrl
- * @property {string} orgId
- * @property {string} password
- * @property {string} privateKey
- * @property {string} refreshToken
- * @property {string} scratchAdminUsername
- * @property {string} snapshot
- * @property {string} userId
- * @property {string} username
- * @property {string} usernames
- * @property {string} userProfileName
- */
-
-/**
- * Options for access token flow.
- * @typedef AccessTokenOptions
- * @property {string} accessToken
- * @property {string} loginUrl
- * @property {string} instanceUrl
- */
 
 import { AsyncCreatable, cloneJson, isEmpty, parseJsonMap, set } from '@salesforce/kit';
 import {
@@ -86,8 +35,11 @@ import { Crypto } from './crypto';
 import { Global } from './global';
 import { Logger } from './logger';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
-import * as fs from './util/fs';
+import { fs } from './util/fs';
 
+/**
+ * Fields for authorization, org, and local information.
+ */
 // Fields that are persisted in auth files
 export interface AuthFields {
   accessToken?: string;
@@ -113,19 +65,34 @@ export interface AuthFields {
   userProfileName?: string;
 }
 
+/**
+ * Options for access token flow.
+ */
 export interface AccessTokenOptions {
   accessToken?: string;
   loginUrl?: string;
   instanceUrl?: string;
 }
 
+/**
+ * A function to update a refresh token when the access token is expired.
+ */
 export type RefreshFn = (
   conn: Connection,
   callback: (err: Nullable<Error>, accessToken?: string, res?: object) => Promise<void>
 ) => Promise<void>;
 
+/**
+ * Options for {@link Connection}.
+ */
 export type ConnectionOptions = AuthFields & {
+  /**
+   * OAuth options.
+   */
   oauth2?: Partial<OAuth2Options>;
+  /**
+   * Refresh token callback.
+   */
   refreshFn?: RefreshFn;
 };
 
@@ -197,6 +164,9 @@ class AuthCodeOAuth2 extends OAuth2 {
   }
 }
 
+/**
+ * Salesforce URLs.
+ */
 export enum SfdcUrl {
   SANDBOX = 'https://test.salesforce.com',
   PRODUCTION = 'https://login.salesforce.com'
@@ -210,7 +180,7 @@ const INTERNAL_URL_PARTS = [
   'mobile1.t.salesforce.com'
 ];
 
-function isInternalUrl(loginUrl: string = ''): boolean {
+function isInternalUrl(loginUrl = ''): boolean {
   return loginUrl.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some(part => loginUrl.includes(part));
 }
 
@@ -304,7 +274,11 @@ function base64UrlEscape(base64Encoded: string): string {
  * use to keep tokens active. An AuthInfo can also be created with an access
  * token, but AuthInfos created with access tokens can't be persisted to disk.
  *
- * @example
+ * **See** [Authorization](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm)
+ *
+ * **See** [Salesforce DX Usernames and Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm)
+ *
+ * ```
  * // Creating a new authentication file.
  * const authInfo = await AuthInfo.create(myAdminUsername, {
  *     loginUrl, authCode, clientId, clientSecret
@@ -319,9 +293,7 @@ function base64UrlEscape(base64Encoded: string): string {
  *
  * // Using the AuthInfo
  * const connection = await Connection.create(authInfo);
- *
- * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm
- * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
+ * ```
  */
 export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   /**
@@ -344,7 +316,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Returns true if one or more authentications are persisted.
-   * @returns {Promise<boolean>}
    */
   public static async hasAuthentications(): Promise<boolean> {
     try {
@@ -360,8 +331,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Get the authorization URL.
-   * @param {OAuth2Options} options The options to generate the URL.
-   * @returns {string}
+   * @param options The options to generate the URL.
    */
   public static getAuthorizationUrl(options: OAuth2Options): string {
     const oauth2 = new AuthCodeOAuth2(options);
@@ -378,9 +348,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   }
 
   /**
-   * Forces the auth file to be re-read from disk for a given user.
-   * @param {string} username The username for the auth info to re-read.
-   * @returns {boolean} True if a value was removed.
+   * Forces the auth file to be re-read from disk for a given user. Returns `true` if a value was removed.
+   * @param username The username for the auth info to re-read.
    */
   public static clearCache(username: string): boolean {
     if (username) {
@@ -409,7 +378,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   private options: AuthInfo.Options;
 
   /**
-   * @ignore
+   * Constructor
+   * **Do not directly construct instances of this class -- use {@link AuthInfo.create} instead.**
+   * @param options The options for the class instance
    */
   public constructor(options: AuthInfo.Options) {
     super(options);
@@ -418,7 +389,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Get the username.
-   * @returns {string}
    */
   public getUsername(): Optional<string> {
     return this.fields.username;
@@ -426,7 +396,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Returns true if `this` is using the JWT flow.
-   * @returns {boolean}
    */
   public isJwt(): boolean {
     const { refreshToken, privateKey } = this.fields;
@@ -435,7 +404,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Returns true if `this` is using an access token flow.
-   * @returns {boolean}
    */
   public isAccessTokenFlow(): boolean {
     const { refreshToken, privateKey } = this.fields;
@@ -444,7 +412,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Returns true if `this` is using the oauth flow.
-   * @returns {boolean}
    */
   public isOauth(): boolean {
     return !this.isAccessTokenFlow() && !this.isJwt();
@@ -452,7 +419,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Returns true if `this` is using the refresh token flow.
-   * @returns {boolean}
    */
   public isRefreshTokenFlow(): boolean {
     const { refreshToken, authCode } = this.fields;
@@ -461,8 +427,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Updates the cache and persists the authentication fields (encrypted).
-   * @param {AuthFields} [authData] New data to save.
-   * @returns {Promise<AuthInfo>}
+   * @param authData New data to save.
    */
   public async save(authData?: AuthFields): Promise<AuthInfo> {
     this.update(authData);
@@ -489,12 +454,12 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Update the authorization fields, encrypting sensitive fields, but do not persist.
+   * For convenience `this` object is returned.
    *
-   * @param {AuthFields} authData Authorization fields to update.
-   * @param {boolean} encrypt Encrypt the fields.
-   * @returns {AuthInfo} For convenience `this` object is returned.
+   * @param authData Authorization fields to update.
+   * @param encrypt Encrypt the fields.
    */
-  public update(authData?: AuthFields, encrypt: boolean = true): AuthInfo {
+  public update(authData?: AuthFields, encrypt = true): AuthInfo {
     if (authData && isPlainObject(authData)) {
       let copy = cloneJson(authData);
       if (encrypt) {
@@ -508,8 +473,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Get the auth fields (decrypted) needed to make a connection.
-   *
-   * @returns {AuthFields}
    */
   public getConnectionOptions(): ConnectionOptions {
     let opts: ConnectionOptions;
@@ -554,7 +517,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Get the authorization fields.
-   * @returns {AuthFields}
    */
   public getFields(): AuthFields {
     return this.fields;
@@ -562,7 +524,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Returns true if this org is using access token auth.
-   * @returns {boolean}
    */
   public isUsingAccessToken(): boolean {
     return this.usingAccessToken;
@@ -570,8 +531,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Get the SFDX Auth URL.
-   * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_auth.htm#cli_reference_force_auth
-   * @returns {string}
+   *
+   * **See** [SFDX Authorization](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_auth.htm#cli_reference_force_auth)
    */
   public getSfdxAuthUrl(): string {
     const decryptedFields = this.authInfoCrypto.decryptFields(this.fields);
@@ -623,12 +584,12 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   }
 
   /**
-   * Initialize this AuthInfo instance with the specified options. If options are not provided
-   * initialize from cache or by reading from persistence store.
-   * @param {OAuth2Options} [options] Options to be used for creating an OAuth2 instance.
-   * @throws {SfdxError}
-   *    **`{name: 'NamedOrgNotFound'}`:** Org information does not exist.
-   * @returns {Promise<AuthInfo>} For convenience `this` object is returned.
+   * Initialize this AuthInfo instance with the specified options. If options are not provided, initialize it from cache
+   * or by reading from the persistence store. For convenience `this` object is returned.
+   * @param options Options to be used for creating an OAuth2 instance.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFound' }* Org information does not exist.
+   * @returns {Promise<AuthInfo>}
    */
   private async initAuthOptions(options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
     this.logger = await Logger.child('AuthInfo');
@@ -669,7 +630,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         // Fetch from the persisted auth file
         try {
           const config: AuthInfoConfig = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
-          await config.read(true);
           authConfig = config.toObject();
         } catch (e) {
           if (e.code === 'ENOENT') {
@@ -867,11 +827,20 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
 export namespace AuthInfo {
   /**
-   * Constrcutor options for AuthInfo
+   * Constructor options for AuthInfo.
    */
   export interface Options {
+    /**
+     * Org signup username.
+     */
     username?: string;
+    /**
+     * OAuth options.
+     */
     oauth2Options?: OAuth2Options;
+    /**
+     * Options for the access token auth.
+     */
     accessTokenOptions?: AccessTokenOptions;
   }
 }

@@ -27,7 +27,7 @@ describe('ConfigGroup retrieve calls read', () => {
   it('file already exists', async () => {
     const options: ConfigGroup.Options = ConfigGroup.getOptions('orgs', filename);
 
-    const store = (await ConfigGroup.retrieve(options)) as ConfigGroup<ConfigGroup.Options>;
+    const store = await ConfigGroup.create(options);
     expect(store.getInGroup('foo', 'orgs')).to.eq('foo@example.com');
   });
 });
@@ -48,7 +48,7 @@ describe('ConfigGroup', () => {
 
   it('setDefaultGroup: false value for groupname', async () => {
     try {
-      store.setDefaultGroup(undefined!);
+      store.setDefaultGroup(undefined);
       assert.fail("This call shouldn't succeed");
     } catch (e) {
       expect(e.name).equals('MissingGroupName');

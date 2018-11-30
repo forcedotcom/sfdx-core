@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { NamedError } from '@salesforce/kit';
 import { ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages, Tokens } from './messages';
@@ -11,8 +12,9 @@ import { Messages, Tokens } from './messages';
 /**
  * A class to manage all the keys and tokens for a message bundle to use with SfdxError.
  *
- * @example
+ * ```
  * SfdxError.create(new SfdxErrorConfig('MyPackage', 'apex', 'runTest').addAction('apexErrorAction1', [className]));
+ * ```
  */
 export class SfdxErrorConfig {
   /**
@@ -36,12 +38,12 @@ export class SfdxErrorConfig {
 
   /**
    * Create a new SfdxErrorConfig.
-   * @param {string} packageName The name of the package.
-   * @param {string} bundleName The message bundle.
-   * @param {string} errorKey The error message key.
-   * @param {Tokens} errorTokens The tokens to use when getting the error message.
-   * @param {string} [actionKey] The action message key.
-   * @param {Tokens} [actionTokens] The tokens to use when getting the action message(s).
+   * @param packageName The name of the package.
+   * @param bundleName The message bundle.
+   * @param errorKey The error message key.
+   * @param errorTokens The tokens to use when getting the error message.
+   * @param actionKey The action message key.
+   * @param actionTokens The tokens to use when getting the action message(s).
    */
   constructor(
     packageName: string,
@@ -60,7 +62,7 @@ export class SfdxErrorConfig {
 
   /**
    * Set the error key.
-   * @param {string} key The key to set.
+   * @param key The key to set.
    * @returns {SfdxErrorConfig} For convenience `this` object is returned.
    */
   public setErrorKey(key: string): SfdxErrorConfig {
@@ -70,8 +72,7 @@ export class SfdxErrorConfig {
 
   /**
    * Set the error tokens.
-   * @param {Tokens} tokens The tokens to set.
-   * @returns {SfdxErrorConfig} For convenience `this` object is returned.
+   * @param tokens The tokens to set. For convenience `this` object is returned.
    */
   public setErrorTokens(tokens: Tokens): SfdxErrorConfig {
     this.errorTokens = tokens;
@@ -79,10 +80,9 @@ export class SfdxErrorConfig {
   }
 
   /**
-   * Add an error action to assist the user with a resolution.
-   * @param {string} actionKey The action key in the message bundle.
-   * @param {Tokens} [actionTokens] The action tokens for the string.
-   * @returns {SfdxErrorConfig} For convenience `this` object is returned.
+   * Add an error action to assist the user with a resolution. For convenience `this` object is returned.
+   * @param actionKey The action key in the message bundle.
+   * @param actionTokens The action tokens for the string.
    */
   public addAction(actionKey: string, actionTokens: Tokens = []): SfdxErrorConfig {
     this.actions.set(actionKey, actionTokens);
@@ -90,8 +90,7 @@ export class SfdxErrorConfig {
   }
 
   /**
-   * Load the messages using Messages.loadMessages.
-   * @returns {Messages} Returns the loaded messages.
+   * Load the messages using `Messages.loadMessages`. Returns the loaded messages.
    */
   public load(): Messages {
     this.messages = Messages.loadMessages(this.packageName, this.bundleName);
@@ -100,8 +99,7 @@ export class SfdxErrorConfig {
 
   /**
    * Get the error message using messages.getMessage.
-   * @returns {string}
-   * @throws {SfdxError} If errorMessages.load was not called first.
+   * **Throws** If `errorMessages.load` was not called first.
    */
   public getError(): string {
     if (!this.messages) {
@@ -112,8 +110,7 @@ export class SfdxErrorConfig {
 
   /**
    * Get the action messages using messages.getMessage.
-   * @returns {Optional<string[]>} List of action messages.
-   * @throws {SfdxError} If errorMessages.load was not called first.
+   * **@throws** If `errorMessages.load` was not called first.
    */
   public getActions(): Optional<string[]> {
     if (!this.messages) {
@@ -133,9 +130,8 @@ export class SfdxErrorConfig {
   }
 
   /**
-   * Remove all actions from this error config. Useful when reusing SfdxErrorConfig.
-   * for other error messages within the same bundle.
-   * @returns {SfdxErrorConfig} For convenience `this` object is returned.
+   * Remove all actions from this error config. Useful when reusing SfdxErrorConfig for other error messages within
+   * the same bundle. For convenience `this` object is returned.
    */
   public removeActions(): SfdxErrorConfig {
     this.actions = new Map();
@@ -150,7 +146,7 @@ export class SfdxErrorConfig {
  * To throw an error in a synchronous function you must either pass the error message and actions
  * directly to the constructor, e.g.
  *
- * @example
+ * ```
  * // To load a message bundle:
  * Messages.importMessagesDirectory(__dirname);
  * this.messages = Messages.loadMessages('myPackageName', 'myBundleName');
@@ -161,21 +157,21 @@ export class SfdxErrorConfig {
  *
  * // To throw a non-bundle based error:
  * throw new SfdxError(myErrMsg, 'MyErrorName');
- *
+ * ```
  */
 export class SfdxError extends NamedError {
   /**
-   * Create a new SfdxError.
-   * @param {string} packageName The message package name used to create the SfdxError.
-   * @param {string} bundleName The message bundle name used to create the SfdxError.
-   * @param {string} key The key within the bundle for the message.
-   * @param {Tokens} [tokens] The values to use for message tokenization.
+   * Create a new `SfdxError`.
+   * @param packageName The message package name used to create the `SfdxError`.
+   * @param bundleName The message bundle name used to create the `SfdxError`.
+   * @param key The key within the bundle for the message.
+   * @param tokens The values to use for message tokenization.
    */
   public static create(packageName: string, bundleName: string, key: string, tokens?: Tokens): SfdxError;
 
   /**
    * Create a new SfdxError.
-   * @param {SfdxErrorConfig} errorConfig The SfdxErrorConfig object used to create the SfdxError.
+   * @param errorConfig The `SfdxErrorConfig` object used to create the SfdxError.
    */
   public static create(errorConfig: SfdxErrorConfig): SfdxError;
 
@@ -201,8 +197,7 @@ export class SfdxError extends NamedError {
 
   /**
    * Convert an Error to an SfdxError.
-   * @param {Error} err The error to convert.
-   * @returns {SfdxError}
+   * @param err The error to convert.
    */
   public static wrap(err: Error): SfdxError {
     const sfdxError = new SfdxError(err.message, err.name);
@@ -238,11 +233,11 @@ export class SfdxError extends NamedError {
 
   /**
    * Create an SfdxError.
-   * @param {string} message The error message.
-   * @param {string} [name] The error name. Defaults to 'SfdxError'.
-   * @param {string[]} [actions] The action message(s).
-   * @param {number} [exitCode] The exit code which will be used by SfdxCommand.
-   * @param {Error} [cause] The underlying error that caused this error to be raised.
+   * @param message The error message.
+   * @param name The error name. Defaults to 'SfdxError'.
+   * @param actions The action message(s).
+   * @param exitCode The exit code which will be used by SfdxCommand.
+   * @param cause The underlying error that caused this error to be raised.
    */
   constructor(message: string, name?: string, actions?: string[], exitCode?: number, cause?: Error) {
     super(name || 'SfdxError', message, cause);
@@ -251,9 +246,8 @@ export class SfdxError extends NamedError {
   }
 
   /**
-   * Sets the name of the command.
-   * @param {string} commandName The command name.
-   * @returns {SfdxError} For convenience `this` object is returned.
+   * Sets the name of the command. For convenience `this` object is returned.
+   * @param commandName The command name.
    */
   public setCommandName(commandName: string): SfdxError {
     this.commandName = commandName;
@@ -261,9 +255,8 @@ export class SfdxError extends NamedError {
   }
 
   /**
-   * An additional payload for the error.
-   * @param {any} data The payload data.
-   * @returns {SfdxError} For convenience `this` object is returned.
+   * An additional payload for the error. For convenience `this` object is returned.
+   * @param data The payload data.
    */
   public setData(data: unknown): SfdxError {
     this.data = data;
@@ -271,10 +264,9 @@ export class SfdxError extends NamedError {
   }
 
   /**
-   * Convert an SfdxError's state to an object.
-   * @returns {object} A plain object representing the state of this error.
+   * Convert an {@link SfdxError} state to an object. Returns a plain object representing the state of this error.
    */
-  public toObject(): object {
+  public toObject(): JsonMap {
     const obj: JsonMap = {
       name: this.name,
       message: this.message || this.name,

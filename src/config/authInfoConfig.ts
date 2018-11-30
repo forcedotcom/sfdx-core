@@ -4,16 +4,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { ConfigFile } from './configFile';
 
 /**
  * An auth config file that stores information such as access tokens, usernames, etc.,
  * in the global sfdx directory (~/.sfdx).
  *
- * @extends ConfigFile
- *
- * @example
- * const authInfo = await AuthInfoConfig.retrieve<AuthInfoConfig>(AuthInfoConfig.getOptions(username));
+ * ```
+ * const authInfo = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
+ * ```
  */
 export class AuthInfoConfig extends ConfigFile<ConfigFile.Options> {
   /**

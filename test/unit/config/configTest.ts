@@ -11,7 +11,7 @@ import { Config } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
 import { testSetup } from '../../../src/testSetup';
-import * as fs from '../../../src/util/fs';
+import { fs } from '../../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -108,12 +108,6 @@ describe('Config', () => {
       } catch (err) {
         expect(err).to.have.property('name', 'UnknownConfigKey');
       }
-    });
-
-    it('enable preferpolling for org:create', async () => {
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(Config.USE_BACKUP_POLLING_ORG_CREATE, 'true');
-      expect(config.get(Config.USE_BACKUP_POLLING_ORG_CREATE)).to.be.equal('true');
     });
 
     it('InvalidConfigValue', async () => {

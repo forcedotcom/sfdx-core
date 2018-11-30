@@ -4,20 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/**
- * The allowed types stored in a config store.
- * @typedef {(string | boolean | object)} ConfigValue
- */
-/**
- * The type of entries in a config store defined by the key and value type of {@link ConfigContents}.
- * @typedef {object} ConfigEntry
- * @property {string} key
- * @property {ConfigValue} value
- */
-/**
- * The type of content a config stores.
- * @typedef {Map<string, ConfigValue>} ConfigContents
- */
+
 import { AsyncCreatable, set } from '@salesforce/kit';
 import { AnyJson, definiteEntriesOf, definiteValuesOf, get, getAnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import { Dictionary } from '@salesforce/ts-types';
@@ -40,7 +27,6 @@ export type ConfigContents = Dictionary<ConfigValue>;
 
 /**
  * An interface for a config object with a persistent store.
- * @interface
  */
 export interface ConfigStore {
   // Map manipulation methods
@@ -68,7 +54,6 @@ export interface ConfigStore {
  * none of the storage functions.
  *
  * **Note:** To see the interface, look in typescripts autocomplete help or the npm package's ConfigStore.d.ts file.
- * @implements {ConfigStore}
  */
 export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends AsyncCreatable<T>
   implements ConfigStore {
@@ -77,6 +62,11 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   // Initialized in setContents
   private contents!: ConfigContents;
 
+  /**
+   * Constructor.
+   * @param options The options for the class instance.
+   * @ignore
+   */
   public constructor(options: T) {
     super(options);
     this.options = options;
@@ -85,7 +75,6 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns an array of {@link ConfigEntry} for each element in the config.
-   * @returns {ConfigEntry}
    */
   public entries(): ConfigEntry[] {
     return definiteEntriesOf(this.contents);
@@ -93,8 +82,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns the value associated to the key, or undefined if there is none.
-   * @param {string} key The key.
-   * @return {Optional<ConfigValue>}
+   * @param key The key.
    */
   public get(key: string): Optional<ConfigValue> {
     return getAnyJson(this.contents, key);
@@ -102,8 +90,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns the list of keys that contain a value.
-   * @param {ConfigValue} value The value to filter keys on.
-   * @returns {string[]}
+   * @param value The value to filter keys on.
    */
   public getKeysByValue(value: ConfigValue): string[] {
     const matchedEntries = this.entries().filter((entry: ConfigEntry) => entry[1] === value);
@@ -113,7 +100,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns a boolean asserting whether a value has been associated to the key in the config object or not.
-   * @param {string} key The key.
+   * @param key The key.
    */
   public has(key: string): boolean {
     return !!get(this.contents, key);
@@ -121,7 +108,6 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns an array that contains the keys for each element in the config object.
-   * @returns {string[]}
    */
   public keys(): string[] {
     return Object.keys(this.contents);
@@ -129,9 +115,8 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Sets the value for the key in the config object.
-   * @param {string} key The Key.
-   * @param {ConfigValue} value The value.
-   * @returns {ConfigContents} Returns the config object.
+   * @param key The Key.
+   * @param value The value.
    */
   public set(key: string, value: ConfigValue): ConfigContents {
     set(this.contents, key, value);
@@ -139,18 +124,18 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   }
 
   /**
-   * Returns true if an element in the config object existed and has been removed, or false if the element does not exist. {@link BaseConfigStore.has(key)} will return false afterwards.
-   * @param {string} key The key.
-   * @returns {boolean}
+   * Returns `true` if an element in the config object existed and has been removed, or `false` if the element does not
+   * exist. {@link BaseConfigStore.has} will return false afterwards.
+   * @param key The key.
    */
   public unset(key: string): boolean {
     return delete this.contents[key];
   }
 
   /**
-   * Returns true if all elements in the config object existed and have been removed, or false if all the elements do not exist (some may have been removed). {@link BaseConfigStore.has(key)} will return false afterwards.
-   * @param {string[]} keys The keys.
-   * @returns {boolean}
+   * Returns `true` if all elements in the config object existed and have been removed, or `false` if all the elements
+   * do not exist (some may have been removed). {@link BaseConfigStore.has(key)} will return false afterwards.
+   * @param keys The keys.
    */
   public unsetAll(keys: string[]): boolean {
     return keys.reduce((val, key) => val && this.unset(key), true);
@@ -165,7 +150,6 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns an array that contains the values for each element in the config object.
-   * @returns {ConfigValue[]}
    */
   public values(): ConfigValue[] {
     return definiteValuesOf(this.contents);
@@ -173,7 +157,6 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns the entire config contents.
-   * @returns {ConfigContents}
    */
   public getContents(): ConfigContents {
     if (!this.contents) {
@@ -184,7 +167,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Sets the entire config contents.
-   * @param {ConfigContents} contents The contents.
+   * @param contents The contents.
    */
   public setContents(contents?: ConfigContents): void {
     this.contents = contents || {};
@@ -203,7 +186,8 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Asynchronously invokes `actionFn` once for each key-value pair present in the config object.
-   * @param {function} actionFn The function `(key: string, value: ConfigValue) => Promise<void>` to be called for each element.
+   * @param {function} actionFn The function `(key: string, value: ConfigValue) => Promise<void>` to be called for
+   * each element.
    * @returns {Promise<void>}
    */
   public async awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
@@ -214,8 +198,8 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   }
 
   /**
-   * Convert the config object to a JSON object.
-   * @returns {JsonMap} Returns the config contents. Same as calling ConfigStore.getContents
+   * Convert the config object to a JSON object. Returns the config contents.
+   * Same as calling {@link ConfigStore.getContents}
    */
   public toObject(): JsonMap {
     return this.contents;
@@ -223,7 +207,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Convert an object to a {@link ConfigContents} and set it as the config contents.
-   * @param {object} obj The object.
+   * @param obj The object.
    */
   public setContentsFromObject<U extends object>(obj: U): void {
     this.contents = {};
@@ -233,8 +217,17 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   }
 }
 
+/**
+ * @ignore
+ */
 export namespace BaseConfigStore {
+  /**
+   * Options for the config store.
+   */
   export interface Options {
+    /**
+     * Intial contents for the config.
+     */
     contents?: ConfigContents;
   }
 }

@@ -21,7 +21,7 @@ import { Crypto } from '../../src/crypto';
 import { ConfigAggregator } from '../../src/exported';
 import { SfdxError } from '../../src/sfdxError';
 import { testSetup } from '../../src/testSetup';
-import * as fs from '../../src/util/fs';
+import { fs } from '../../src/util/fs';
 
 const TEST_KEY = {
   service: 'sfdx',
@@ -41,7 +41,7 @@ describe('AuthInfo No fs mock', () => {
     stubMethod($$.SANDBOX, Crypto.prototype, 'getKeyChain').callsFake(() =>
       Promise.resolve({
         setPassword: () => Promise.resolve(),
-        getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(undefined, TEST_KEY.key)
+        getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(null, TEST_KEY.key)
       })
     );
     stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'read').callsFake(async () => {
@@ -64,17 +64,17 @@ describe('AuthInfo No fs mock', () => {
 
 // Cleanly encapsulate the test data.
 class MetaAuthDataMock {
-  private _instanceUrl: string = 'http://mydevhub.localhost.internal.salesforce.com:6109';
-  private _accessToken: string = 'authInfoTest_access_token';
+  private _instanceUrl = 'http://mydevhub.localhost.internal.salesforce.com:6109';
+  private _accessToken = 'authInfoTest_access_token';
   private _encryptedAccessToken: string = this._accessToken;
-  private _refreshToken: string = 'authInfoTest_refresh_token';
+  private _refreshToken = 'authInfoTest_refresh_token';
   private _encryptedRefreshToken: string = this._refreshToken;
-  private _clientId: string = 'authInfoTest_client_id';
-  private _loginUrl: string = 'authInfoTest_login_url';
-  private _jwtUsername: string = 'authInfoTest_username_JWT';
-  private _redirectUri: string = 'http://localhost:1717/OauthRedirect';
-  private _authCode: string = 'authInfoTest_authCode';
-  private _authInfoLookupCount: number = 0;
+  private _clientId = 'authInfoTest_client_id';
+  private _loginUrl = 'authInfoTest_login_url';
+  private _jwtUsername = 'authInfoTest_username_JWT';
+  private _redirectUri = 'http://localhost:1717/OauthRedirect';
+  private _authCode = 'authInfoTest_authCode';
+  private _authInfoLookupCount = 0;
   private _defaultConnectedAppInfo: AuthFields = {
     clientId: 'SalesforceDevelopmentExperience',
     clientSecret: '1384510088588713504'
@@ -138,10 +138,6 @@ class MetaAuthDataMock {
 
   get defaultConnectedAppInfo(): AuthFields {
     return this._defaultConnectedAppInfo;
-  }
-
-  set defaultConnectedAppInfo(value: AuthFields) {
-    this._defaultConnectedAppInfo = value;
   }
 
   get encryptedAccessToken(): string {
@@ -544,7 +540,6 @@ describe('AuthInfo', () => {
       set(jwtData, 'loginUrl', testMetadata.loginUrl);
       set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
       set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
-
       testMetadata.fetchConfigInfo = () => {
         return Promise.resolve(jwtData);
       };
@@ -1002,6 +997,8 @@ describe('AuthInfo', () => {
 
       // Save new fields
       const changedData = { accessToken: testMetadata.accessToken };
+
+      stubMethod($$.SANDBOX, testMetadata, 'fetchConfigInfo').returns(Promise.resolve({}));
       await authInfo.save(changedData);
 
       expect(authInfoUpdate.called).to.be.true;

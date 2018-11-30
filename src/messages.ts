@@ -27,6 +27,12 @@ class Key {
 }
 
 /**
+ * A loader function to return messages.
+ * @param locale The local set by the framework.
+ */
+export type LoaderFunction = (locale: string) => Messages;
+
+/**
  * The core message framework manages messages and allows them to be accessible by
  * all plugins and consumers of sfdx-core. It is set up to handle localization down
  * the road at no additional effort to the consumer. Messages can be used for
@@ -56,7 +62,7 @@ class Key {
  * To allow tests to run, import the message directory in each test (it will only
  * do it once) or load the message file the test depends on individually.
  *
- * @example
+ * ```
  * // Create loader functions for all files in the messages directory
  * Messages.importMessagesDirectory(__dirname);
  *
@@ -66,12 +72,15 @@ class Key {
  *
  * // Messages now contains all the message in the bundleName file.
  * messages.getMessage('JsonParseError');
- *
- * @hideconstructor
+ * ```
  */
 export class Messages {
-  // Internal readFile. Exposed for unit testing. Do not use util/fs.readFile as messages.js
-  // should have no internal dependencies.
+  /**
+   * Internal readFile. Exposed for unit testing. Do not use util/fs.readFile as messages.js
+   * should have no internal dependencies.
+   * @param filePath read file target.
+   * @ignore
+   */
   public static _readFile = (filePath: string): AnyJson => {
     return require(filePath);
   };
@@ -79,26 +88,18 @@ export class Messages {
   /**
    * Get the locale. This will always return 'en_US' but will return the
    * machine's locale in the future.
-   * @returns {string}
    */
   public static getLocale(): string {
     return 'en_US';
   }
 
   /**
-   * A loader function.
-   * @callback loaderFunction
-   * @param {string} locale The local set by the framework.
-   * @returns {Message} The messages.
-   */
-
-  /**
    * Set a custom loader function for a package and bundle that will be called on {@link Messages.loadMessages}.
-   * @param {string} packageName The npm package name.
-   * @param {string} bundle The name of the bundle.
-   * @param {loaderFunction} loader The loader function.
+   * @param packageName The npm package name.
+   * @param bundle The name of the bundle.
+   * @param loader The loader function.
    */
-  public static setLoaderFunction(packageName: string, bundle: string, loader: (locale: string) => Messages): void {
+  public static setLoaderFunction(packageName: string, bundle: string, loader: LoaderFunction): void {
     this.loaders.set(new Key(packageName, bundle).toString(), loader);
   }
 
@@ -107,14 +108,13 @@ export class Messages {
    * overriding the bundleName is required, then manually pass the loader
    * function to {@link Messages.setLoaderFunction}.
    *
-   * @param {string} bundle The name of the bundle.
-   * @param {string} filePath The messages file path.
-   * @returns {loaderFunction}
+   * @param bundleName The name of the bundle.
+   * @param filePath The messages file path.
    */
-  public static generateFileLoaderFunction(bundleName: string, filePath: string): (locale: string) => Messages {
+  public static generateFileLoaderFunction(bundleName: string, filePath: string): LoaderFunction {
     return (locale: string): Messages => {
       // Anything can be returned by a js file, so stringify the results to ensure valid json is returned.
-      const fileContents: string = JSON.stringify(this._readFile(filePath));
+      const fileContents: string = JSON.stringify(Messages._readFile(filePath));
 
       // If the file is empty, JSON.stringify will turn it into "" which will validate on parse, so throw.
       if (!fileContents || fileContents === 'null' || fileContents === '""') {
@@ -152,8 +152,8 @@ export class Messages {
    * Add a single message file to the list of loading functions using the file name as the bundle name.
    * The loader will only be added if the bundle name is not already taken.
    *
-   * @param {string} packageName The npm package name.
-   * @param {string} filePath The path of the file.
+   * @param packageName The npm package name.
+   * @param filePath The path of the file.
    */
   public static importMessageFile(packageName: string, filePath: string): void {
     if (path.extname(filePath) !== '.json' && path.extname(filePath) !== '.js') {
@@ -161,7 +161,7 @@ export class Messages {
     }
     const bundleName = path.basename(filePath, path.extname(filePath));
 
-    if (!this.isCached(packageName, bundleName)) {
+    if (!Messages.isCached(packageName, bundleName)) {
       this.setLoaderFunction(packageName, bundleName, Messages.generateFileLoaderFunction(bundleName, filePath));
     }
   }
@@ -172,18 +172,19 @@ export class Messages {
    * typescript project and will truncate to root path (where the package.json file is). If your messages
    * directory is in another spot or you are not using typescript, pass in false for truncateToProjectPath.
    *
-   * @example
+   * ```
    * // e.g. If your message directory is in the project root, you would do:
    * Messages.importMessagesDirectory(__dirname);
+   * ```
    *
-   * @param {string} moduleDirectoryPath The path to load the messages folder.
-   * @param {boolean} [truncateToProjectPath=true] Will look for the messages directory in the project root (where the package.json file is located).
+   * @param moduleDirectoryPath The path to load the messages folder.
+   * @param truncateToProjectPath Will look for the messages directory in the project root (where the package.json file is located).
    * i.e., the module is typescript and the messages folder is in the top level of the module directory.
-   * @param {string} [packageName] The npm package name. Figured out from the root directory's package.json.
+   * @param packageName The npm package name. Figured out from the root directory's package.json.
    */
   public static importMessagesDirectory(
     moduleDirectoryPath: string,
-    truncateToProjectPath: boolean = true,
+    truncateToProjectPath = true,
     packageName?: string
   ): void {
     let moduleMessagesDirPath = moduleDirectoryPath;
@@ -210,7 +211,9 @@ export class Messages {
     if (!packageName) {
       const errMessage = `Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.`;
       try {
-        packageName = asString(ensureJsonMap(this._readFile(path.join(moduleMessagesDirPath, 'package.json'))).name);
+        packageName = asString(
+          ensureJsonMap(Messages._readFile(path.join(moduleMessagesDirPath, 'package.json'))).name
+        );
         if (!packageName) {
           throw new NamedError('MissingPackageName', errMessage);
         }
@@ -240,9 +243,8 @@ export class Messages {
    * Load messages for a given package and bundle. If the bundle is not already cached, use the loader function
    * created from {@link Messages.setLoaderFunction} or {@link Messages.importMessagesDirectory}.
    *
-   * @param {string} packageName The name of the npm package.
-   * @param {string} bundleName The name of the bundle to load.
-   * @returns {Messages}
+   * @param packageName The name of the npm package.
+   * @param bundleName The name of the bundle to load.
    */
   public static loadMessages(packageName: string, bundleName: string): Messages {
     const key = new Key(packageName, bundleName);
@@ -268,8 +270,8 @@ export class Messages {
 
   /**
    * Check if a bundle already been loaded.
-   * @param {string} packageName The npm package name.
-   * @param {string} bundleName The bundle name.
+   * @param packageName The npm package name.
+   * @param bundleName The bundle name.
    */
   public static isCached(packageName: string, bundleName: string) {
     return this.bundles.has(new Key(packageName, bundleName).toString());
@@ -297,9 +299,9 @@ export class Messages {
    * Create a new messages bundle.
    *
    * **Note:** Use {Messages.loadMessages} unless you are writing your own loader function.
-   * @param {string} bundleName The bundle name.
-   * @param {string} locale The locale.
-   * @param {Map<string, AnyJson>} messages The messages. Can not be modified once created.
+   * @param bundleName The bundle name.
+   * @param locale The locale.
+   * @param messages The messages. Can not be modified once created.
    */
   constructor(bundleName: string, locale: string, private messages: Map<string, AnyJson>) {
     this.bundleName = bundleName;
@@ -308,10 +310,10 @@ export class Messages {
 
   /**
    * Get a message using a message key and use the tokens as values for tokenization.
-   * @param {string} key The key of the message.
-   * @param {Tokens} tokens The values to substitute in the message.
-   * @returns {string}
-   * @see https://nodejs.org/api/util.html#util_util_format_format_args
+   * @param key The key of the message.
+   * @param tokens The values to substitute in the message.
+   *
+   * **See** https://nodejs.org/api/util.html#util_util_format_format_args
    */
   public getMessage(key: string, tokens: Tokens = []): string {
     return this.getMessageWithMap(key, tokens, this.messages);

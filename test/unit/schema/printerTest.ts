@@ -8,17 +8,17 @@ import { JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { LoggerLevel } from '../../src/logger';
-import { SchemaPrinter, SchemaPropertyRenderer } from '../../src/schemaPrinter';
-import { testSetup } from '../../src/testSetup';
+import { LoggerLevel } from '../../../src/logger';
+import { SchemaPrinter, SchemaPropertyRenderer } from '../../../src/schema/printer';
+import { testSetup } from '../../../src/testSetup';
 
 const $$ = testSetup();
 
-const SCHEMA_DIR = path.join(__dirname, '..', '..', 'test', 'unit', 'fixtures', 'schemas');
+const SCHEMA_DIR = path.join(__dirname, '..', '..', '..', 'test', 'unit', 'fixtures', 'schemas');
 
 const getIndent = (level: LoggerLevel) => ' '.repeat(level * 4);
 
-const getLine = (schema: JsonMap, line: number = 0) => new SchemaPrinter($$.TEST_LOGGER, schema).getLine(line);
+const getLine = (schema: JsonMap, line = 0) => new SchemaPrinter($$.TEST_LOGGER, schema).getLine(line);
 
 describe('SchemaPrinter', () => {
   it('throws with no schema properties', () => {
@@ -86,7 +86,7 @@ describe('SchemaPrinter', () => {
   });
 
   describe('object properties', () => {
-    const getPropertyLine = (properties: JsonMap, line: number = 0) =>
+    const getPropertyLine = (properties: JsonMap, line = 0) =>
       getLine(
         {
           properties: {

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { env } from '@salesforce/kit';
 import { KeyChain, keyChainImpl } from './keyChainImpl';
 import { Logger } from './logger';
@@ -12,8 +13,7 @@ import { SfdxError } from './sfdxError';
 /**
  * Gets the os level keychain impl.
  * @param platform The os platform.
- * @returns {Promise<any>} The keychain impl.
- * @private
+ * @ignore
  */
 export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
   const logger: Logger = await Logger.child('keyChain');

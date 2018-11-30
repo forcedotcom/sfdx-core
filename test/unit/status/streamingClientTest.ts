@@ -27,8 +27,8 @@ import { get, JsonMap } from '@salesforce/ts-types';
 // @ts-ignore
 import * as Faye from 'sfdx-faye';
 
-const MOCK_API_VERSION: string = '43.0';
-const MOCK_TOPIC: string = 'topic';
+const MOCK_API_VERSION = '43.0';
+const MOCK_TOPIC = 'topic';
 
 const $$ = testSetup();
 
@@ -246,7 +246,9 @@ describe('streaming client tests', () => {
       setLogger: () => {}
     };
 
+    const disconnectSpy = spyMethod($$.SANDBOX, StreamingClient.prototype, 'disconnect');
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    expect(disconnectSpy.called).to.be.false;
     try {
       await shouldThrow(
         asyncStatusClient.subscribe(() => {
@@ -255,6 +257,7 @@ describe('streaming client tests', () => {
       );
     } catch (e) {
       expect(e).to.have.property('name', TEST_STRING);
+      expect(disconnectSpy.called).to.be.true;
     }
   });
 
@@ -367,8 +370,8 @@ describe('streaming client tests', () => {
   });
 
   it('subscribe should timeout setTimeout spy', async () => {
-    const JENNYS_NUMBER: number = 8675309;
-    const GHOSTBUSTERS_NUMBER: number = 5552368;
+    const JENNYS_NUMBER = 8675309;
+    const GHOSTBUSTERS_NUMBER = 5552368;
 
     const setTimeoutSpy = spyMethod($$.SANDBOX, global, 'setTimeout');
 

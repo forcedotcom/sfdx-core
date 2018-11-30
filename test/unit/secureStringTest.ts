@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import { SecureBuffer } from '../../src/secureBuffer';
 
 describe('secureBuffer', async () => {
-  const secretText: string = 'FOO';
+  const secretText = 'FOO';
   const testReturnValue = 'BAR';
   const secretTextBuffer: Buffer = Buffer.from(secretText, 'utf8');
 

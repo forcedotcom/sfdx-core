@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { getJsonValuesByName } from '@salesforce/kit';
 import {
   AnyJson,
@@ -20,9 +21,9 @@ import {
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
 import * as path from 'path';
-import { Logger } from './logger';
-import { SfdxError } from './sfdxError';
-import { readJsonMap } from './util/fs';
+import { Logger } from '../logger';
+import { SfdxError } from '../sfdxError';
+import { fs } from '../util/fs';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.
@@ -36,8 +37,8 @@ export class SchemaValidator {
   /**
    * Creates a new `SchemaValidator` instance given a logger and path to a schema file.
    *
-   * @param {Logger} logger An {@link SfdxLogger} instance on which to base this class's logger.
-   * @param {string} schemaPath The path from which the schema with which to validate should be loaded.
+   * @param logger An {@link Logger} instance on which to base this class's logger.
+   * @param schemaPath The path from which the schema with which to validate should be loaded.
    */
   public constructor(logger: Logger, private schemaPath: string) {
     this.logger = logger.child('SchemaValidator');
@@ -46,12 +47,10 @@ export class SchemaValidator {
 
   /**
    * Loads a JSON schema from the `schemaPath` parameter provided at instantiation.
-   *
-   * @returns {Promise<AnyJson>}
    */
   public async load(): Promise<JsonMap> {
     if (!this.schema) {
-      this.schema = await readJsonMap(this.schemaPath);
+      this.schema = await fs.readJsonMap(this.schemaPath);
       this.logger.debug(`Schema loaded for ${this.schemaPath}`);
     }
     return this.schema;
@@ -61,9 +60,10 @@ export class SchemaValidator {
    * Performs validation of JSON data against the schema located at the `schemaPath` value provided
    * at instantiation.
    *
-   * @param {AnyJson} json A JSON value to validate against this instance's target schema.
-   * @returns {Promise<AnyJson>} The validated JSON data.
-   * @throws {SfdxError}
+   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldErrors' }* If there are known validations errors.
+   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknown' }* If there are unknown validations errors.
+   * @param json A JSON value to validate against this instance's target schema.
+   * @returns The validated JSON data.
    */
   public async validate(json: AnyJson): Promise<AnyJson> {
     const schema = await this.load();
@@ -91,11 +91,9 @@ export class SchemaValidator {
 
   /**
    * Loads local, external schemas from URIs relative to the local schema file.  Does not support loading from
-   * remote URIs.
+   * remote URIs. Returns a map of external schema local URIs to loaded schema JSON objects.
    *
-   * @param {JsonMap} schema The main schema to validate against.
-   * @returns {Promise<Dictionary<JsonMap>>} A map of external schema local URIs to loaded schema JSON objects.
-   * @private
+   * @param schema The main schema to validate against.
    */
   private async loadExternalSchemas(schema: JsonMap): Promise<Dictionary<JsonMap>> {
     const externalSchemas: Dictionary<JsonMap> = {};
@@ -120,15 +118,12 @@ export class SchemaValidator {
   /**
    * Load another schema relative to the primary schema when referenced.  Only supports local schema URIs.
    *
-   * @param {string} uri The first segment of the $ref schema.
-   * @param {function} callback The callback when the external schema is loaded.
-   * @return {Promise<JsonMap>}
-   * @private
+   * @param uri The first segment of the $ref schema.
    */
   private async loadExternalSchema(uri: string): Promise<JsonMap> {
     const schemaPath = path.join(this.schemasDir, `${uri}.json`);
     try {
-      return await readJsonMap(schemaPath);
+      return await fs.readJsonMap(schemaPath);
     } catch (err) {
       if (err.code === 'ENOENT') {
         throw new SfdxError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');
@@ -140,10 +135,8 @@ export class SchemaValidator {
   /**
    * Get a string representation of the schema validation errors.
    *
-   * @param {array} errors An array of JsenValidateError objects.
-   * @param {JsonMap} schema The validation schema.
-   * @return {string}
-   * @private
+   * @param errors An array of JsenValidateError objects.
+   * @param schema The validation schema.
    */
   private getErrorsText(errors: JsenValidateError[], schema: JsonMap): string {
     return errors

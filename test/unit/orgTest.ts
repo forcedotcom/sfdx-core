@@ -23,9 +23,9 @@ import { ConfigFile } from '../../src/config/configFile';
 import { OrgUsersConfig } from '../../src/config/orgUsersConfig';
 import { Connection } from '../../src/connection';
 import { Global } from '../../src/global';
-import { Org, OrgFields } from '../../src/org';
+import { Org } from '../../src/org';
 import { MockTestOrgData, testSetup } from '../../src/testSetup';
-import * as fs from '../../src/util/fs';
+import { fs } from '../../src/util/fs';
 
 const $$ = testSetup();
 
@@ -43,17 +43,17 @@ describe('Org Tests', () => {
   describe('fields', () => {
     it('getField should get authinfo fields', async () => {
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
-      expect(org.getField(OrgFields.ORG_ID)).to.eq(testData.orgId);
+      expect(org.getField(Org.Fields.ORG_ID)).to.eq(testData.orgId);
     });
 
     it('getField should get org properties', async () => {
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
-      expect(org.getField(OrgFields.STATUS)).to.eq('UNKNOWN');
+      expect(org.getField(Org.Fields.STATUS)).to.eq('UNKNOWN');
     });
 
     it('getFields should get a bunch of fields', async () => {
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
-      expect(org.getFields([OrgFields.ORG_ID, OrgFields.STATUS])).to.deep.eq({
+      expect(org.getFields([Org.Fields.ORG_ID, Org.Fields.STATUS])).to.deep.eq({
         orgId: testData.orgId,
         status: 'UNKNOWN'
       });
@@ -67,7 +67,7 @@ describe('Org Tests', () => {
     });
 
     it('should create an org from an alias', async () => {
-      const ALIAS: string = 'foo';
+      const ALIAS = 'foo';
       await Aliases.parseAndUpdate([`${ALIAS}=${testData.username}`]);
       const org: Org = await Org.create({ aliasOrUsername: ALIAS });
       expect(org.getUsername()).to.eq(testData.username);
@@ -310,9 +310,9 @@ describe('Org Tests', () => {
     beforeEach(async () => {
       orgs = [];
 
-      const orgIdUser: string = 'p.venkman@gb.org';
-      const addedUser: string = 'winston@gb.org';
-      const accessTokenUser: string = 'ltully@gb.org';
+      const orgIdUser = 'p.venkman@gb.org';
+      const addedUser = 'winston@gb.org';
+      const accessTokenUser = 'ltully@gb.org';
 
       const users = [
         new MockTestOrgData().createUser(orgIdUser),
@@ -495,7 +495,7 @@ describe('Org Tests', () => {
       });
 
       const devHub: Optional<Org> = await org.getDevHubOrg();
-      expect(devHub!.getUsername()).eq(devHubUser);
+      expect(devHub.getUsername()).eq(devHubUser);
     });
 
     it('org is devhub', async () => {
@@ -507,7 +507,7 @@ describe('Org Tests', () => {
       });
 
       const devHub: Optional<Org> | undefined = await org.getDevHubOrg();
-      expect(devHub!.getUsername()).eq(testData.username);
+      expect(devHub.getUsername()).eq(testData.username);
     });
   });
 

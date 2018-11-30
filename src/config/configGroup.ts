@@ -4,15 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/**
- * Options when creating the config file. Extends {@link ConfigOptions}.
- * @typedef {object} ConfigGroupOptions
- * @extends ConfigOptions
- * @property {string} defaultGroup The default group for properties to go into.
- */
 
 import { set } from '@salesforce/kit';
-import { definiteEntriesOf, definiteValuesOf, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { definiteEntriesOf, definiteValuesOf, Dictionary, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
@@ -23,26 +17,24 @@ import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
  *
  * **Note:** All config methods are overwritten to use the {@link ConfigGroup.setDefaultGroup}.
  *
- * @extends ConfigFile
- *
- * @example
- * class MyPluginConfig extents ConfigGroup {
- *     class MyConfig extents ConfigFile {
- *     public static getFileName(): string {
- *         return 'myPluginConfigFilename.json';
- *     }
+ * ```
+ * class MyPluginConfig extends ConfigGroup<ConfigGroup.Options> {
+ *   public static getFileName(): string {
+ *     return 'myPluginConfigFilename.json';
+ *   }
  * }
- * const myConfig = await MyPluginConfig.retrieve<MyPluginConfig>(ConfigGroup.getOptions('all'));
- * myconfig.setDefaultGroup('myCommand'); // Can be set in your command's init.
+ * const myConfig = await MyPluginConfig.create(ConfigGroup.getOptions('all'));
+ * myConfig.setDefaultGroup('myCommand'); // Can be set in your command's init.
  * myConfig.set('mykey', 'myvalue'); // Sets 'myKey' for the 'myCommand' group.
  * myConfig.setInGroup('myKey', 'myvalue', 'all'); // Manually set in another group.
- * await myconfig.write();
+ * await myConfig.write();
+ * ```
  */
 export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   /**
    * Get ConfigGroup specific options, such as the default group.
-   * @param {string} defaultGroup The default group to use when creating the config.
-   * @param {string} [filename] The filename of the config file. Uses the static {@link getFileName} by default.
+   * @param defaultGroup The default group to use when creating the config.
+   * @param filename The filename of the config file. Uses the static {@link getFileName} by default.
    */
   public static getOptions(defaultGroup: string, filename?: string): ConfigGroup.Options {
     const options: ConfigFile.Options = ConfigFile.getDefaultOptions(true, filename);
@@ -51,20 +43,12 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
     return configGroupOptions;
   }
 
-  public static async retrieve<T extends ConfigFile<ConfigFile.Options>>(options?: ConfigFile.Options): Promise<T> {
-    const aliases: ConfigFile<ConfigFile.Options> = await ConfigGroup.create(
-      (options as ConfigGroup.Options) || ConfigGroup.getDefaultOptions()
-    );
-    await aliases.read();
-    return aliases as T;
-  }
-
-  private defaultGroup: string = 'default';
+  private defaultGroup = 'default';
 
   /**
    * Sets the default group for all {@link BaseConfigStore} methods to use.
-   * @param {String} group The group.
-   * @throws {SfdxError} **`{name: 'MissingGroupName'}`:** The group parameter is null or undefined.
+   * **Throws** *{@link SfdxError}{ name: 'MissingGroupName' }* The group parameter is null or undefined.
+   * @param group The group.
    */
   public setDefaultGroup(group: string): void {
     if (!group) {
@@ -75,12 +59,11 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   }
 
   /**
-   * Set a group of entries in a bulk save.
-   * @param {object} newEntries An object representing the aliases to set.
-   * @param {string} [group = 'default'] The group the property belongs to.
-   * @returns {Promise<object>} The new property that was saved.
+   * Set a group of entries in a bulk save. Returns The new properties that were saved.
+   * @param newEntries An object representing the aliases to set.
+   * @param group The group the property belongs to.
    */
-  public async updateValues(newEntries: object, group?: string): Promise<object> {
+  public async updateValues(newEntries: Dictionary<ConfigValue>, group?: string): Promise<Dictionary<ConfigValue>> {
     // Make sure the contents are loaded
     await this.read();
     Object.entries(newEntries).forEach(([key, val]) => this.setInGroup(key, val, group || this.defaultGroup));
@@ -89,11 +72,10 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   }
 
   /**
-   * Set a value on a group.
-   * @param {string} key The key.
-   * @param {string} value The value.
-   * @param {string} [group = 'default'] The group.
-   * @returns {Promise<void>} The promise resolved when the value is set.
+   * Set a value on a group. Returns the promise resolved when the value is set.
+   * @param key The key.
+   * @param value The value.
+   * @param group The group.
    */
   public async updateValue(key: string, value: ConfigValue, group?: string): Promise<void> {
     // Make sure the content is loaded
@@ -105,8 +87,6 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Gets an array of key value pairs.
-   * @returns {ConfigEntry[]}
-   * @override
    */
   public entries(): ConfigEntry[] {
     const group = this.getGroup();
@@ -117,10 +97,8 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   }
 
   /**
-   * Returns a specified element from ConfigGroup.
-   * @param {string} key The key.
-   * @returns {Optional<ConfigValue>} The associated value.
-   * @override
+   * Returns a specified element from ConfigGroup. Returns the associated value.
+   * @param key The key.
    */
   public get(key: string): Optional<ConfigValue> {
     return this.getInGroup(key);
@@ -129,8 +107,6 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   /**
    * Returns a boolean if an element with the specified key exists in the default group.
    * @param {string} key The key.
-   * @returns {boolean}
-   * @override
    */
   public has(key: string): boolean {
     const group = this.getGroup();
@@ -139,8 +115,6 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Returns an array of the keys from the default group.
-   * @returns {string[]}
-   * @override
    */
   public keys(): string[] {
     return Object.keys(this.getGroup(this.defaultGroup) || {});
@@ -148,8 +122,6 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Returns an array of the values from the default group.
-   * @returns {ConfigValue[]}
-   * @override
    */
   public values(): ConfigValue[] {
     return definiteValuesOf(this.getGroup(this.defaultGroup) || {});
@@ -157,20 +129,16 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Add or updates an element with the specified key in the default group.
-   * @param {string} key The key.
-   * @param {ConfigValue} value The value.
-   * @returns {ConfigContents}
-   * @override
+   * @param key The key.
+   * @param value The value.
    */
   public set(key: string, value: ConfigValue): ConfigContents {
     return this.setInGroup(key, value, this.defaultGroup);
   }
 
   /**
-   * Removes an element with the specified key from the default group.
-   * @param {string} key The key.
-   * @returns {boolean} True if the item was deleted.
-   * @override
+   * Removes an element with the specified key from the default group. Returns `true` if the item was deleted.
+   * @param key The key.
    */
   public unset(key: string): boolean {
     const groupContents = this.getGroup(this.defaultGroup);
@@ -183,16 +151,14 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Remove all key value pairs from the default group.
-   * @override
    */
   public clear(): void {
     delete this.getContents()[this.defaultGroup];
   }
 
   /**
-   * Get all config content for a group.
+   * Get all config contents for a group.
    * @param {string} [group = 'default'] The group.
-   * @returns {ConfigContents} The contents.
    */
   public getGroup(group = this.defaultGroup): Optional<ConfigContents> {
     return getJsonMap(this.getContents(), group) || undefined;
@@ -200,9 +166,8 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Returns the value associated to the key and group, or undefined if there is none.
-   * @param {string} key The key.
-   * @param {string} [group = 'default'] The group. Defaults to the default group.
-   * @returns {Optional<ConfigValue>}
+   * @param key The key.
+   * @param group The group. Defaults to the default group.
    */
   public getInGroup(key: string, group?: string): Optional<ConfigValue> {
     const groupContents = this.getGroup(group);
@@ -213,8 +178,6 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Convert the config object to a json object.
-   * @returns {JsonMap}
-   * @override
    */
   public toObject(): JsonMap {
     return this.getContents();
@@ -238,9 +201,8 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   /**
    * Sets the value for the key and group in the config object.
    * @param key The key.
-   * @param [value] The value.
-   * @param [group = 'default'] The group. Defaults to the default group.
-   * @returns {ConfigContents} The contents.
+   * @param value The value.
+   * @param group The group. Uses the default group if not specified.
    */
   public setInGroup(key: string, value?: ConfigValue, group?: string): ConfigContents {
     let content: JsonMap;
@@ -256,6 +218,9 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
     return content;
   }
 
+  /**
+   * Initialize the asynchronous dependencies.
+   */
   public async init(): Promise<void> {
     await super.init();
     this.setDefaultGroup(this.options.defaultGroup);
@@ -264,11 +229,12 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
 export namespace ConfigGroup {
   /**
-   * The interface for Config options.
-   * *NOTE:* And changes to this interface must also change the jsdoc typedef header above.
-   * @interface
+   * Options when creating the config file.
    */
   export interface Options extends ConfigFile.Options {
+    /**
+     * The default group for properties to go into.
+     */
     defaultGroup: string;
   }
 }

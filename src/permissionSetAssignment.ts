@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { mapKeys, upperFirst } from '@salesforce/kit';
 import { getString, Optional } from '@salesforce/ts-types';
 import { ErrorResult, QueryResult, RecordResult, SuccessResult } from 'jsforce';
@@ -26,8 +27,8 @@ export interface PermissionSetAssignmentFields {
  */
 export class PermissionSetAssignment {
   /**
-   * Creates a new instance of PermissionSetAssignment
-   * @param org {PermissionSetAssignment} new instance of PermissionSetAssignment
+   * Creates a new instance of PermissionSetAssignment.
+   * @param org The target org for the assignment.
    */
   public static async init(org: Org): Promise<PermissionSetAssignment> {
     if (!org) {
@@ -40,11 +41,6 @@ export class PermissionSetAssignment {
   private logger: Logger;
   private org: Org;
 
-  /**
-   * constructor
-   * @param org {Org} The org containing the user and permission set.
-   * @param logger {Logger} A Logger instance.
-   */
   private constructor(org: Org, logger: Logger) {
     this.logger = logger;
     this.org = org;
@@ -52,8 +48,8 @@ export class PermissionSetAssignment {
 
   /**
    * Assigns a user to one or more permission sets.
-   * @param id {string} A user id
-   * @param permSetString {string[]} An array of permission set names.
+   * @param id A user id
+   * @param permSetString An array of permission set names.
    */
   public async create(id: string, permSetString: string): Promise<PermissionSetAssignmentFields> {
     if (!id) {
@@ -131,7 +127,7 @@ export class PermissionSetAssignment {
 
   /**
    * Parses a permission set name based on if it has a namespace or not.
-   * @param permSetString {string} The permission set string.
+   * @param permSetString The permission set string.
    */
   private parsePermissionSetString(
     permSetString: string
