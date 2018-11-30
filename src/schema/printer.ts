@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import {
   asJsonArray,
   asJsonMap,
@@ -25,8 +26,7 @@ export class SchemaPropertyRenderer {
   /**
    * Renders a name.
    *
-   * @param {string} name The name value to render.
-   * @returns {string}
+   * @param name The name value to render.
    */
   public renderName(name: string): string {
     return name;
@@ -35,8 +35,7 @@ export class SchemaPropertyRenderer {
   /**
    * Renders a title.
    *
-   * @param {string} name The title value to render.
-   * @returns {string}
+   * @param title The title value to render.
    */
   public renderTitle(title: string): string {
     return title;
@@ -45,8 +44,7 @@ export class SchemaPropertyRenderer {
   /**
    * Renders a description.
    *
-   * @param {string} description The description value to render.
-   * @returns {string}
+   * @param description The description value to render.
    */
   public renderDescription(description: string): string {
     return description;
@@ -55,8 +53,7 @@ export class SchemaPropertyRenderer {
   /**
    * Renders a type.
    *
-   * @param {string} type The type value to render.
-   * @returns {string}
+   * @param propertyType The type value to render.
    */
   public renderType(propertyType: string): string {
     return propertyType;
@@ -66,7 +63,7 @@ export class SchemaPropertyRenderer {
 /**
  * Prints a JSON schema in a human-friendly format.
  *
- * @example
+ * ```
  * import chalk from 'chalk';
  * class MyPropertyRenderer extends SchemaPropertyRenderer {
  *   renderName(name) { return chalk.bold.blue(name); }
@@ -74,6 +71,7 @@ export class SchemaPropertyRenderer {
  *
  * const printer = new SchemaPrinter(logger, schema, new MyPropertyRenderer());
  * printer.getLines().forEach(console.log);
+ * ```
  */
 export class SchemaPrinter {
   private logger: Logger;
@@ -82,9 +80,9 @@ export class SchemaPrinter {
   /**
    * Constructs a new `SchemaPrinter`.
    *
-   * @param {Logger} logger The logger to use when emitting the printed schema.
-   * @param {JsonMap} schema The schema to print.
-   * @param {SchemaPropertyRenderer} [propertyRenderer = new {@link SchemaPropertyRenderer}()] The property renderer.
+   * @param logger The logger to use when emitting the printed schema.
+   * @param schema The schema to print.
+   * @param propertyRenderer The property renderer.
    */
   public constructor(
     logger: Logger,
@@ -126,8 +124,6 @@ export class SchemaPrinter {
 
   /**
    * Gets a read-only array of ready-to-display lines.
-   *
-   * @returns {ReadonlyArray<string>}
    */
   public getLines(): ReadonlyArray<string> {
     return this.lines;
@@ -136,8 +132,7 @@ export class SchemaPrinter {
   /**
    * Gets a ready-to-display line by index.
    *
-   * @param {number} index The line index to get.
-   * @returns {string}
+   * @param index The line index to get.
    */
   public getLine(index: number): string {
     return this.lines[index];
@@ -296,10 +291,8 @@ class SchemaProperty {
 /**
  * Get the referenced definition by following the reference path on the current schema.
  *
- * @param {JsonMap} schema The source schema containing the property containing a `$ref` field.
- * @param {JsonMap} property The property that contains the `$ref` field.
- * @returns {JsonMap}
- * @private
+ * @param schema The source schema containing the property containing a `$ref` field.
+ * @param property The property that contains the `$ref` field.
  */
 function resolveRef(schema: JsonMap, property: JsonMap): JsonMap | null {
   const ref = property.$ref;

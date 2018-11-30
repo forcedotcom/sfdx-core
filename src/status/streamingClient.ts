@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types';
 import { EventEmitter } from 'events';
@@ -18,10 +19,19 @@ import { resolve as resolveUrl } from 'url';
 
 /**
  * Types for defining extensions.
- * @interface
  */
 export interface StreamingExtension {
+  /**
+   * Extension for outgoing message.
+   * @param message The message.
+   * @param callback The callback to invoke after the message is processed.
+   */
   outgoing?: (message: JsonMap, callback: AnyFunction) => void;
+  /**
+   * Extension for the incoming message.
+   * @param message The message.
+   * @param callback The callback to invoke after the message is processed.
+   */
   incoming?: (message: JsonMap, callback: AnyFunction) => void;
 }
 
@@ -33,20 +43,17 @@ export declare type StreamProcessor = (message: JsonMap) => StatusResult;
 /**
  * Comet client interface. The is to allow for mocking the inner streaming Cometd implementation.
  * The Faye implementation is used by default but it could be used to adapt another Cometd impl.
- * @abstract
  */
 export abstract class CometClient extends EventEmitter {
   /**
    * Disable polling features.
-   * @param {string} label Polling feature label.
-   * @abstract
+   * @param label Polling feature label.
    */
   public abstract disable(label: string): void;
 
   /**
    * Add a custom extension to the underlying client.
    * @param extension The json function for the extension.
-   * @abstract
    */
   public abstract addExtension(extension: StreamingExtension): void;
 
@@ -54,7 +61,6 @@ export abstract class CometClient extends EventEmitter {
    * Sets an http header name/value.
    * @param name The header name.
    * @param value The header value.
-   * @abstract
    */
   public abstract setHeader(name: string, value: string): void;
 
@@ -62,7 +68,6 @@ export abstract class CometClient extends EventEmitter {
    * handshake with the streaming channel
    * @param callback Callback for the handshake when it successfully completes. The handshake should throw
    * errors when errors are encountered.
-   * @abstract
    */
   public abstract handshake(callback: () => void): void;
 
@@ -72,13 +77,16 @@ export abstract class CometClient extends EventEmitter {
    * @param callback The callback to execute once a message has been received.
    */
   public abstract subscribe(channel: string, callback: (message: JsonMap) => void): CometSubscription;
+
+  /**
+   * Method to call to disconnect the client from the server.
+   */
   public abstract disconnect(): void;
 }
 
 /**
  * Inner streaming client interface. This implements the Cometd behavior.
  * Also allows for mocking the functional behavior.
- * @interface
  */
 export interface StreamingClientIfc {
   /**
@@ -138,8 +146,7 @@ function validateTimeout(newTime: Duration, existingTime: Duration) {
  * the client session times out, the authentication session remains active until the organization-specific timeout
  * policy goes into effect.
  *
- * @example
- *
+ * ```
  * const streamProcessor = (message: JsonMap): StatusResult => {
  *    const payload = ensureJsonMap(message.payload);
  *    const id = ensureString(payload.id);
@@ -175,7 +182,7 @@ function validateTimeout(newTime: Duration, existingTime: Duration) {
  *    const id = ensureJsonMap(requestResponse).id;
  *    console.log(`this.id: ${JSON.stringify(ensureString(id), null, 4)}`);
  * });
- *
+ * ```
  */
 export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Options> {
   private readonly targetUrl: string;
@@ -186,8 +193,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
   /**
    * Constructor
    * @param options Streaming client options
-   * @see {@link AsyncCreatable.create}
-   * @throws if options is undefined
+   * {@link AsyncCreatable.create}
    */
   public constructor(options?: StreamingClient.Options) {
     super(options);
@@ -226,7 +232,6 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
 
   /**
    * Asynchronous initializer.
-   * @async
    */
   public async init(): Promise<void> {
     // get the apiVersion from the connection if not already an option
@@ -274,7 +279,6 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
 
   /**
    * Provides a convenient way to handshake with the server endpoint before trying to subscribe.
-   * @async
    */
   public handshake(): Promise<StreamingClient.ConnectionState> {
     let timeout: NodeJS.Timer;
@@ -301,12 +305,12 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
   }
 
   /**
-   * Subscribe to streaming events.
-   * @param {function} [streamInit] - This function should call the platform apis that result in streaming updates on push topics.
-   * @returns {Promise} - When the streaming processor that's set in the options completes, it returns a payload in
-   * the StatusResult object. The payload is just echoed here for convenience.
-   * @async
-   * @see {@link StatusResult}
+   * Subscribe to streaming events. When the streaming processor that's set in the options completes execution it
+   * returns a payload in the StatusResult object. The payload is just echoed here for convenience.
+   *
+   * **Throws** *{@link SfdxError}{ name: '{@link StreamingClient.TimeoutErrorType.SUBSCRIBE}'}* When the subscribe timeout occurs.
+   * @param streamInit This function should call the platform apis that result in streaming updates on push topics.
+   * {@link StatusResult}
    */
   public subscribe(streamInit?: () => Promise<void>): Promise<AnyJson> {
     let timeout: NodeJS.Timer;
@@ -426,8 +430,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
 
   /**
    * Simple inner log wrapper
-   * @param {any} message The message to log
-   * @private
+   * @param message The message to log
    */
   private log(message: unknown) {
     if (this.logger) {
@@ -442,19 +445,33 @@ export namespace StreamingClient {
    * @interface
    */
   export interface Options {
-    // The org streaming target.
+    /**
+     * The org streaming target.
+     */
     org: Org;
-    // The hard timeout that happens with subscribe
+    /**
+     * The hard timeout that happens with subscribe
+     */
     subscribeTimeout: Duration;
-    // The hard timeout that happens with a handshake.
+    /**
+     * The hard timeout that happens with a handshake.
+     */
     handshakeTimeout: Duration;
-    // The streaming channel aka topic
+    /**
+     * The streaming channel aka topic
+     */
     channel: string;
-    // The salesforce api version
+    /**
+     * The salesforce api version
+     */
     apiVersion: string;
-    // The function for processing streaming messages
+    /**
+     * The function for processing streaming messages
+     */
     streamProcessor: StreamProcessor;
-    // The function for build the inner client impl. Allows for mocking.
+    /**
+     * The function for build the inner client impl. Allows for mocking.
+     */
     streamingImpl: StreamingClientIfc;
   }
 
@@ -543,8 +560,10 @@ export namespace StreamingClient {
 
     /**
      * Setter for the subscribe timeout.
+     *
+     * **Throws** An error if the newTime is less than the default time.
      * @param newTime The new subscribe timeout.
-     * @throws An error if the newTime is less than the default time.
+     * {@link DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT}
      */
     public setSubscribeTimeout(newTime: Duration) {
       this.subscribeTimeout = validateTimeout(newTime, DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
@@ -552,8 +571,10 @@ export namespace StreamingClient {
 
     /**
      * Setter for the handshake timeout.
+     *
+     * **Throws** An error if the newTime is less than the default time.
      * @param newTime The new handshake timeout
-     * @throws An error if the newTime is less than the default time.
+     * {@link DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT}
      */
     public setHandshakeTimeout(newTime: Duration) {
       this.handshakeTimeout = validateTimeout(newTime, DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT);
@@ -562,22 +583,26 @@ export namespace StreamingClient {
 
   /**
    * Connection state
-   * @typedef StreamingConnectionState
-   * @property CONNECTED Used to indicated that the streaming client is connected.
    * @see {@link StreamingClient.handshake}
    */
   export enum ConnectionState {
+    /**
+     * Used to indicated that the streaming client is connected.
+     */
     CONNECTED
   }
 
   /**
    * Indicators to test error names for StreamingTimeouts
-   * @typedef StreamingConnectionState
-   * @property HANDSHAKE - To indicate the error occurred on handshake
-   * @property SUBSCRIBE - To indicate the error occurred on subscribe
    */
   export enum TimeoutErrorType {
+    /**
+     * To indicate the error occurred on handshake
+     */
     HANDSHAKE = 'genericHandshakeTimeoutMessage',
+    /**
+     * To indicate the error occurred on subscribe
+     */
     SUBSCRIBE = 'genericTimeoutMessage'
   }
 }

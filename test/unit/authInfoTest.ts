@@ -21,7 +21,7 @@ import { Crypto } from '../../src/crypto';
 import { ConfigAggregator } from '../../src/exported';
 import { SfdxError } from '../../src/sfdxError';
 import { testSetup } from '../../src/testSetup';
-import * as fs from '../../src/util/fs';
+import { fs } from '../../src/util/fs';
 
 const TEST_KEY = {
   service: 'sfdx',

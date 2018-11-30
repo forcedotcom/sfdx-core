@@ -1,5 +1,5 @@
 import { ensureJsonMap, ensureString, JsonCollection, JsonMap } from '@salesforce/ts-types';
-import { Org, OrgFields } from '../../src/org';
+import { Org } from '../../src/org';
 import { StatusResult } from '../../src/status/client';
 import { StreamingClient } from '../../src/status/streamingClient';
 
@@ -30,7 +30,7 @@ JSON.stringify({
 
     const info: RequestInfo = {
       method: 'POST',
-      url: `${org.getField(OrgFields.INSTANCE_URL)}/SomeService`,
+      url: `${org.getField(Org.Fields.INSTANCE_URL)}/SomeService`,
       headers: { HEADER: 'HEADER_VALUE' },
       body: 'My content'
     };

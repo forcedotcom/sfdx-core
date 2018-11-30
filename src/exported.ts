@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { Messages } from './messages';
 Messages.importMessagesDirectory(__dirname);
 
@@ -19,9 +20,9 @@ export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue 
 
 export { OrgUsersConfig } from './config/orgUsersConfig';
 
-export { ConfigPropertyMeta, ConfigPropertyMetaInput, ORG_DEFAULT, Config } from './config/config';
+export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config } from './config/config';
 
-export { ConfigInfo, Location, ConfigAggregator } from './config/configAggregator';
+export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
 export { AuthFields, AuthInfo, SfdcUrl } from './authInfo';
 
@@ -42,7 +43,7 @@ export {
 
 export { Messages } from './messages';
 
-export { Org, OrgFields } from './org';
+export { Org } from './org';
 
 export { SfdxProject, SfdxProjectJson } from './sfdxProject';
 
@@ -63,7 +64,5 @@ export { MyDomainResolver } from './status/myDomainResolver';
 export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './user';
 
 // Utility sub-modules
-import * as fs from './util/fs';
-export { fs };
-import * as sfdc from './util/sfdc';
-export { sfdc };
+export * from './util/fs';
+export * from './util/sfdc';
