@@ -31,7 +31,7 @@ describe('permission set assignment tests', () => {
     });
 
     it('should create a perm set assignment.', async () => {
-      let query: string = '';
+      let query = '';
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
@@ -64,7 +64,7 @@ describe('permission set assignment tests', () => {
     });
 
     it('Failed to find permsets with namespace', async () => {
-      let query: string = '';
+      let query = '';
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
@@ -96,7 +96,7 @@ describe('permission set assignment tests', () => {
     });
 
     it('Failed to find permsets without namespace', async () => {
-      let query: string = '';
+      let query = '';
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
@@ -127,7 +127,7 @@ describe('permission set assignment tests', () => {
     });
 
     it('permset assignment with errors', async () => {
-      let query: string = '';
+      let query = '';
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
@@ -159,7 +159,7 @@ describe('permission set assignment tests', () => {
     });
 
     it('permset assignment with empty errors', async () => {
-      let query: string = '';
+      let query = '';
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {

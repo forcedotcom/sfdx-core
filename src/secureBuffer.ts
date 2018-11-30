@@ -8,8 +8,8 @@
 import { ensure, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 
-const cipherName: string = 'aes256';
-const cipherSize: number = 32;
+const cipherName = 'aes256';
+const cipherSize = 32;
 
 /**
  * Returns the intended type of the object to return. This is implementation specific.

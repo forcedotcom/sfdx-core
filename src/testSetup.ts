@@ -403,8 +403,8 @@ export interface StreamingMockCometSubscriptionOptions {
  * Simulates a comet subscription to a streaming channel.
  */
 export class StreamingMockCometSubscription extends EventEmitter implements CometSubscription {
-  public static SUBSCRIPTION_COMPLETE: string = 'subscriptionComplete';
-  public static SUBSCRIPTION_FAILED: string = 'subscriptionFailed';
+  public static SUBSCRIPTION_COMPLETE = 'subscriptionComplete';
+  public static SUBSCRIPTION_FAILED = 'subscriptionFailed';
   private options: StreamingMockCometSubscriptionOptions;
 
   constructor(options: StreamingMockCometSubscriptionOptions) {

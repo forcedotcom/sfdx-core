@@ -152,7 +152,7 @@ export class SchemaPrinter {
     };
   }
 
-  private parseProperty(name: string, rawProperty?: JsonMap, level: number = 0): void {
+  private parseProperty(name: string, rawProperty?: JsonMap, level = 0): void {
     if (!rawProperty) {
       return;
     }

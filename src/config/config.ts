@@ -120,7 +120,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * @param isGlobal Make the config global.
    * @param filename Override the default file. {@link Config.getFileName}
    */
-  public static getDefaultOptions(isGlobal: boolean = false, filename?: string): ConfigFile.Options {
+  public static getDefaultOptions(isGlobal = false, filename?: string): ConfigFile.Options {
     return {
       isGlobal,
       isState: true,

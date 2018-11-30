@@ -21,7 +21,7 @@ export type FsIfc = Pick<typeof nodeFs, 'statSync'>;
 
 /* tslint:disable: no-bitwise */
 
-const GET_PASSWORD_RETRY_COUNT: number = 3;
+const GET_PASSWORD_RETRY_COUNT = 3;
 
 /**
  * Helper to reduce an array of cli args down to a presentable string for logging.

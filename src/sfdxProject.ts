@@ -37,7 +37,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     return SFDX_PROJECT_JSON;
   }
 
-  public static getDefaultOptions(isGlobal: boolean = false): ConfigFile.Options {
+  public static getDefaultOptions(isGlobal = false): ConfigFile.Options {
     const options = ConfigFile.getDefaultOptions(isGlobal, SfdxProjectJson.getFileName());
     options.isState = false;
     return options;
@@ -133,7 +133,7 @@ export class SfdxProject {
    *
    * @param isGlobal True to get the global project file, otherwise the local project config.
    */
-  public async retrieveSfdxProjectJson(isGlobal: boolean = false): Promise<SfdxProjectJson> {
+  public async retrieveSfdxProjectJson(isGlobal = false): Promise<SfdxProjectJson> {
     const options = SfdxProjectJson.getDefaultOptions(isGlobal);
     if (isGlobal) {
       if (!this.sfdxProjectJsonGlobal) {

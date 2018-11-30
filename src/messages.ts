@@ -184,7 +184,7 @@ export class Messages {
    */
   public static importMessagesDirectory(
     moduleDirectoryPath: string,
-    truncateToProjectPath: boolean = true,
+    truncateToProjectPath = true,
     packageName?: string
   ): void {
     let moduleMessagesDirPath = moduleDirectoryPath;

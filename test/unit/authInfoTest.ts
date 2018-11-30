@@ -64,17 +64,17 @@ describe('AuthInfo No fs mock', () => {
 
 // Cleanly encapsulate the test data.
 class MetaAuthDataMock {
-  private _instanceUrl: string = 'http://mydevhub.localhost.internal.salesforce.com:6109';
-  private _accessToken: string = 'authInfoTest_access_token';
+  private _instanceUrl = 'http://mydevhub.localhost.internal.salesforce.com:6109';
+  private _accessToken = 'authInfoTest_access_token';
   private _encryptedAccessToken: string = this._accessToken;
-  private _refreshToken: string = 'authInfoTest_refresh_token';
+  private _refreshToken = 'authInfoTest_refresh_token';
   private _encryptedRefreshToken: string = this._refreshToken;
-  private _clientId: string = 'authInfoTest_client_id';
-  private _loginUrl: string = 'authInfoTest_login_url';
-  private _jwtUsername: string = 'authInfoTest_username_JWT';
-  private _redirectUri: string = 'http://localhost:1717/OauthRedirect';
-  private _authCode: string = 'authInfoTest_authCode';
-  private _authInfoLookupCount: number = 0;
+  private _clientId = 'authInfoTest_client_id';
+  private _loginUrl = 'authInfoTest_login_url';
+  private _jwtUsername = 'authInfoTest_username_JWT';
+  private _redirectUri = 'http://localhost:1717/OauthRedirect';
+  private _authCode = 'authInfoTest_authCode';
+  private _authInfoLookupCount = 0;
   private _defaultConnectedAppInfo: AuthFields = {
     clientId: 'SalesforceDevelopmentExperience',
     clientSecret: '1384510088588713504'

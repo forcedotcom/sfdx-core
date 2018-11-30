@@ -27,7 +27,7 @@ import { sfdc } from './util/sfdc';
 // @ts-ignore
 Promise.prototype.thenCall = JsforcePromise.prototype.thenCall;
 
-const clientId: string = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
+const clientId = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
 export const SFDX_HTTP_HEADERS = {
   'content-type': 'application/json',
   'user-agent': clientId

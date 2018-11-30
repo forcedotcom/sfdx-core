@@ -146,8 +146,8 @@ describe('SfdxError', () => {
 describe('SfdxErrorConfig', () => {
   it('is mutable except for bundle', () => {
     const packageName = 'pname';
-    const bundleName: string = 'testMessages';
-    const errorKey: string = 'Test1Error';
+    const bundleName = 'testMessages';
+    const errorKey = 'Test1Error';
     const errConfig: SfdxErrorConfig = new SfdxErrorConfig(packageName, bundleName, errorKey);
     expect(errConfig).to.have.property('packageName', packageName);
     expect(errConfig).to.have.property('bundleName', bundleName);
@@ -156,9 +156,9 @@ describe('SfdxErrorConfig', () => {
     expect(errConfig).to.have.deep.property('actions', new Map());
 
     // Set new config properties
-    const errorKey2: string = 'Test2Error';
+    const errorKey2 = 'Test2Error';
     const errorTokens2 = ['abcd', 123, false];
-    const actionKey: string = 'Action1';
+    const actionKey = 'Action1';
     const actionTokens = [true, 321, 'dcba'];
     errConfig
       .setErrorKey(errorKey2)
@@ -174,7 +174,7 @@ describe('SfdxErrorConfig', () => {
     expect(errConfig).to.have.deep.property('actions', actions);
 
     // add another action
-    const actionKey2: string = 'Action2';
+    const actionKey2 = 'Action2';
     const action2Tokens = [false, 9, 'hobbs'];
     errConfig.addAction(actionKey2, action2Tokens);
     actions.set(actionKey2, action2Tokens);
