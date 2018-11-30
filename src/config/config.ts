@@ -4,26 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/**
- * Contains meta information about sfdx config properties.
- * @typedef {object} ConfigPropertyMetaInput
- * @property {function} validator Test if the input value is valid.
- * @property {string} failedMessage The message to return in the error if the validation fails.
- */
-/**
- * Supported Org Default Types.
- * @typedef {object} ORG_DEFAULT
- * @property {string} DEVHUB Default developer hub username.
- * @property {string} USERNAME Default username.
- * @property {function} list `() => string[]` List the Org defaults.
- */
 
 import { keyBy, set } from '@salesforce/kit';
 import { Dictionary, ensure, isString } from '@salesforce/ts-types';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
-import { isSalesforceDomain, validateApiVersion } from '../util/sfdc';
+import { sfdc } from '../util/sfdc';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -59,7 +46,7 @@ export interface ConfigPropertyMeta {
  */
 export interface ConfigPropertyMetaInput {
   /**
-   * Test if the input value is valid and returns true if the input data is valid.
+   * Tests if the input value is valid and returns true if the input data is valid.
    * @param value The input value.
    */
   validator: (value: ConfigValue) => boolean;
@@ -105,15 +92,15 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   public static readonly ISV_DEBUGGER_URL: string = 'isvDebuggerUrl';
 
   /**
-   * true if polling should be used over streaming when creating scratch orgs.
-   */
-  public static readonly USE_BACKUP_POLLING_ORG_CREATE = 'useBackupPolling.org:create';
-
-  /**
    * The api version
    */
   public static readonly API_VERSION = 'apiVersion';
 
+  /**
+   * Returns the default file name for a config file.
+   *
+   * **See** {@link SFDX_CONFIG_FILE_NAME}
+   */
   public static getFileName(): string {
     return SFDX_CONFIG_FILE_NAME;
   }
@@ -218,7 +205,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Sets a value for a property.
    *
-   * **throws** - *InvalidConfigValue* If the input validator fails.
+   * **Throws** *{@link SfdxError}{ name: 'InvalidConfigValue' }* If the input validator fails.
    * @param key The property to set.
    * @param value The value of the property.
    */
@@ -255,7 +242,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
           key: 'instanceUrl',
           input: {
             // If a value is provided validate it otherwise no value is unset.
-            validator: value => value == null || (isString(value) && isSalesforceDomain(value)),
+            validator: value => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
             failedMessage: Config.messages.getMessage('InvalidInstanceUrl')
           }
         },
@@ -264,7 +251,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
           hidden: true,
           input: {
             // If a value is provided validate it otherwise no value is unset.
-            validator: value => isString(value) && validateApiVersion(value),
+            validator: value => isString(value) && sfdc.validateApiVersion(value),
             failedMessage: Config.messages.getMessage('InvalidApiVersion')
           }
         },
@@ -279,13 +266,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
           input: {
             validator: value => value != null && ['true', 'false'].includes(value.toString()),
             failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
-          }
-        },
-        {
-          key: Config.USE_BACKUP_POLLING_ORG_CREATE,
-          input: {
-            validator: value => value == null || value === 'true' || value === 'false',
-            failedMessage: `${Config.USE_BACKUP_POLLING_ORG_CREATE} must be a boolean value. true/false.`
           }
         }
       ];
@@ -347,12 +327,3 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     }
   }
 }
-
-export const ORG_DEFAULT = {
-  DEVHUB: Config.DEFAULT_DEV_HUB_USERNAME,
-  USERNAME: Config.DEFAULT_USERNAME,
-
-  list(): string[] {
-    return [ORG_DEFAULT.DEVHUB, ORG_DEFAULT.USERNAME];
-  }
-};

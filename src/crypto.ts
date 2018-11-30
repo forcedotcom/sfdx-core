@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
@@ -32,8 +33,6 @@ interface CredType {
 
 /**
  * osxKeyChain promise wrapper.
- * @type {{get: KeychainPromises.get, set: KeychainPromises.set}}
- * @private
  */
 const keychainPromises = {
   /**
@@ -73,6 +72,9 @@ interface CryptoOptions {
   noResetOnClose?: boolean;
 }
 
+/**
+ * Class for managing encrypting and decrypting private auth information.
+ */
 export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   private _key: SecureBuffer<string> = new SecureBuffer();
 
@@ -83,6 +85,9 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   private noResetOnClose!: boolean;
 
   /**
+   * Constructor
+   * **Do not directly construct instances of this class -- use {@link Crypto.create} instead.**
+   * @param options The options for the class instance.
    * @ignore
    */
   public constructor(options?: CryptoOptions) {
@@ -91,10 +96,8 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   }
 
   /**
-   * Encrypts text.
-   *
-   * @param {string} [text] The text to encrypt.
-   * @returns {Optional<string>} The encrypted string or undefined if no string was passed.
+   * Encrypts text. Returns the encrypted string or undefined if no string was passed.
+   * @param text The text to encrypt.
    */
   public encrypt(text?: string): Optional<string> {
     if (text == null) {
@@ -123,9 +126,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
 
   /**
    * Decrypts text.
-   * @param {string} [text] The text to decrypt.
-   * @returns {Optional<string>} If enableTokenEncryption is set to false or not defined in package.json then the text
-   * is simply returned. The text is then assumed to be unencrypted.
+   * @param text The text to decrypt.
    */
   public decrypt(text?: string): Optional<string> {
     if (text == null) {
@@ -160,12 +161,18 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     });
   }
 
+  /**
+   * Clears the crypto state. This should be called in a finally block.
+   */
   public close(): void {
     if (!this.noResetOnClose) {
       this._key.clear();
     }
   }
 
+  /**
+   * Initialize async components.
+   */
   protected async init(): Promise<void> {
     const logger = await Logger.child('crypto');
 

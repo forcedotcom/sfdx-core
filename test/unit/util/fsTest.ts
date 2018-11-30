@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
-import * as fs from '../../../src/util/fs';
+import { fs } from '../../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();

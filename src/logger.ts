@@ -4,77 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/**
- * A Bunyan `Serializer` function.
- *
- * @callback Serializer
- * @param {any} input The input to be serialized.
- * @returns {any} The serialized input.
- *
- * @see {@link https://github.com/cwallsfdc/node-bunyan#serializers|Bunyan Serializers API}
- */
-/**
- * A collection of named `Serializer`s.
- *
- * @typedef {Object<string, Serializer>} Serializers
- *
- * @see {@link https://github.com/cwallsfdc/node-bunyan#serializers|Bunyan Serializers API}
- */
-/**
- * The common set of `Logger` options.
- *
- * @typedef LoggerOptions
- * @property {string} name The logger name.
- * @property {Serializers} [serializers] The logger's serializers.
- * @property {boolean} [src] Whether or not to log source file, line, and function information.
- * @property {LoggerLevelValue} [level] The desired log level.
- * @property {Writable} [stream] A stream to write to.
- * @property {LoggerStream} [streams] An array of streams to write to.
- *
- * @see {@link https://github.com/cwallsfdc/node-bunyan#constructor-api|Bunyan Constructor API}
- */
-/**
- * Standard `Logger` levels.
- *
- * @typedef {number} LoggerLevel
- * @property TRACE
- * @property DEBUG
- * @property INFO
- * @property WARN
- * @property ERROR
- * @property FATAL
- *
- * @see {@link https://github.com/cwallsfdc/node-bunyan#levels|Bunyan Levels}
- */
-/**
- * A Bunyan stream configuration.
- *
- * @typedef LoggerStream
- * @property {type} [type] The type of stream -- may be inferred from other properties.
- * @property {level} [level] The desired log level for the stream.
- * @property {stream} [stream] The stream to write to.  Mutually exclusive with `path`.
- * @property {path} [path] A log file path to write to.  Mutually exclusive with `stream`.
- * @property {name} [name] The name of the stream.
- * @property {any} [extras] Additional type-specific configuration parameters.
- *
- * @see {@link https://github.com/cwallsfdc/node-bunyan#streams|Bunyan Streams}
- */
-/**
- * Any numeric `Logger` level.
- *
- * @typedef {LoggerLevel|number} LoggerLevelValue
- */
-/**
- * A collection of named `FieldValue`s.
- *
- * @typedef {Object<string, FieldValue>} Fields
- * @see {@link https://github.com/cwallsfdc/node-bunyan#log-record-fields|Bunyan Log Record Fields}
- */
-/**
- * All possible field value types.
- *
- * @typedef {string|number|boolean} FieldValue
- */
 
 // tslint:disable-next-line:ordered-imports
 import { parseJson, parseJsonMap } from '@salesforce/kit';
@@ -100,23 +29,59 @@ import * as path from 'path';
 import { Writable } from 'stream';
 import { Global, Mode } from './global';
 import { SfdxError } from './sfdxError';
-import * as fs from './util/fs';
+import { fs } from './util/fs';
 
+/**
+ * A Bunyan `Serializer` function.
+ * @param input The input to be serialized.
+ * **See** {@link https://github.com/cwallsfdc/node-bunyan#serializers|Bunyan Serializers API}
+ */
 export type Serializer = (input: any) => any; // tslint:disable-line:no-any
 
+/**
+ * A collection of named `Serializer`s.
+ *
+ * **See** {@link https://github.com/cwallsfdc/node-bunyan#serializers|Bunyan Serializers API}
+ */
 export interface Serializers {
   [key: string]: Serializer;
 }
 
+/**
+ * The common set of `Logger` options.
+ */
 export interface LoggerOptions {
+  /**
+   * The logger name.
+   */
   name: string;
+  /**
+   * The logger's serializers.
+   */
   serializers?: Serializers;
+  /**
+   * Whether or not to log source file, line, and function information.
+   */
   src?: boolean;
+  /**
+   * The desired log level.
+   */
   level?: LoggerLevelValue;
+  /**
+   * A stream to write to.
+   */
   stream?: Writable;
+  /**
+   * An array of streams to write to.
+   */
   streams?: LoggerStream[];
 }
 
+/**
+ * Standard `Logger` levels.
+ *
+ * **See** {@link https://github.com/cwallsfdc/node-bunyan#levels|Bunyan Levels}
+ */
 export enum LoggerLevel {
   TRACE = 10,
   DEBUG = 20,
@@ -126,23 +91,57 @@ export enum LoggerLevel {
   FATAL = 60
 }
 
+/**
+ * A Bunyan stream configuration.
+ *
+ * @see {@link https://github.com/cwallsfdc/node-bunyan#streams|Bunyan Streams}
+ */
 export interface LoggerStream {
+  /**
+   * The type of stream -- may be inferred from other properties.
+   */
   type?: string;
+  /**
+   * The desired log level for the stream.
+   */
   level?: LoggerLevelValue;
+  /**
+   * The stream to write to.  Mutually exclusive with `path`.
+   */
   stream?: Writable;
+  /**
+   * The name of the stream.
+   */
   name?: string;
+  /**
+   * A log file path to write to.  Mutually exclusive with `stream`.
+   */
   path?: string;
   [key: string]: any; // tslint:disable-line:no-any
 }
 
+/**
+ * Any numeric `Logger` level.
+ */
 export type LoggerLevelValue = LoggerLevel | number;
 
+/**
+ * A collection of named `FieldValue`s.
+ *
+ * **See** {@link https://github.com/cwallsfdc/node-bunyan#log-record-fields|Bunyan Log Record Fields}
+ */
 export interface Fields {
   [key: string]: FieldValue;
 }
 
+/**
+ * All possible field value types.
+ */
 export type FieldValue = string | number | boolean;
 
+/**
+ * Log line interface
+ */
 export interface LogLine {
   name: string;
   hostname: string;
@@ -158,43 +157,38 @@ export interface LogLine {
  * A logging abstraction powered by {@link https://github.com/cwallsfdc/node-bunyan|Bunyan} that provides both a default
  * logger configuration that will log to `sfdx.log`, and a way to create custom loggers based on the same foundation.
  *
- * @example
+ * ```
  * // Gets the root sfdx logger
  * const logger = await Logger.root();
- * @example
+ *
  * // Creates a child logger of the root sfdx logger with custom fields applied
  * const childLogger = await Logger.child('myRootChild', {tag: 'value'});
- * @example
+ *
  * // Creates a custom logger unaffiliated with the root logger
  * const myCustomLogger = new Logger('myCustomLogger');
- * @example
+ *
  * // Creates a child of a custom logger unaffiliated with the root logger with custom fields applied
  * const myCustomChildLogger = myCustomLogger.child('myCustomChild', {tag: 'value'});
+ * ```
+ * **See** https://github.com/cwallsfdc/node-bunyan
  *
- * @see https://github.com/cwallsfdc/node-bunyan
- * @see https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_log_messages.htm
+ * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_log_messages.htm
  */
 export class Logger {
   /**
    * The name of the root sfdx `Logger`.
-   *
-   * @type {string}
-   * @see Logger.root
    */
   public static readonly ROOT_NAME = 'sfdx';
 
   /**
    * The default `LoggerLevel` when constructing new `Logger` instances.
-   *
-   * @type {LoggerLevel}
    */
   public static readonly DEFAULT_LEVEL = LoggerLevel.WARN;
 
   /**
    * A list of all lower case `LoggerLevel` names.
    *
-   * @type {string[]}
-   * @see LoggerLevel
+   * **See** {@link LoggerLevel}
    */
   public static readonly LEVEL_NAMES = Object.values(LoggerLevel)
     .filter(isString)
@@ -202,8 +196,6 @@ export class Logger {
 
   /**
    * Gets the root logger with the default level and file stream.
-   *
-   * @returns {Promise<Logger>}
    */
   public static async root(): Promise<Logger> {
     if (this.rootLogger) {
@@ -261,9 +253,8 @@ export class Logger {
   /**
    * Create a child of the root logger, inheriting this instance's configuration such as `level`, `streams`, etc.
    *
-   * @param {string} name The name of the child logger.
-   * @param {Fields} [fields] Additional fields included in all log lines.
-   * @returns {Promise<Logger>}
+   * @param name The name of the child logger.
+   * @param fields Additional fields included in all log lines.
    */
   public static async child(name: string, fields?: Fields): Promise<Logger> {
     return (await Logger.root()).child(name, fields);
@@ -273,9 +264,9 @@ export class Logger {
    * Gets a numeric `LoggerLevel` value by string name.
    *
    * @param {string} levelName The level name to convert to a `LoggerLevel` enum value.
-   * @throws {SfdxError}
-   *    **`{name: 'UnrecognizedLoggerLevelName'}`:** The level name was not case-insensitively recognized as a valid `LoggerLevel` value.
-   * @see LoggerLevel
+   *
+   * **Throws** *{@link SfdxError}{ name: 'UnrecognizedLoggerLevelName' }* The level name was not case-insensitively recognized as a valid `LoggerLevel` value.
+   * @see {@Link LoggerLevel}
    */
   public static getLevelByName(levelName: string): LoggerLevelValue {
     levelName = levelName.toUpperCase();
@@ -303,9 +294,10 @@ export class Logger {
   /**
    * Constructs a new `Logger`.
    *
-   * @param {LoggerOptions|string} optionsOrName A set of `LoggerOptions` or name to use with the default options.
-   * @throws {SfdxError}
-   *    **`{name: 'RedundantRootLogger'}`:** More than one attempt is made to construct the root `Logger`.
+   * @param optionsOrName A set of `LoggerOptions` or name to use with the default options.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'RedundantRootLogger' }* More than one attempt is made to construct the root
+   * `Logger`.
    */
   public constructor(optionsOrName: LoggerOptions | string) {
     let options: LoggerOptions;
@@ -342,18 +334,17 @@ export class Logger {
   /**
    * Adds a stream.
    *
-   * @param {LoggerStream} stream The stream configuration to add.
-   * @param {LoggerLevelValue} [defaultLevel] The default level of the stream.
+   * @param stream The stream configuration to add.
+   * @param defaultLevel The default level of the stream.
    */
   public addStream(stream: LoggerStream, defaultLevel?: LoggerLevelValue): void {
     this.bunyan.addStream(stream, defaultLevel);
   }
 
   /**
-   * Adds a file stream to this logger.
+   * Adds a file stream to this logger. Resolved or rejected upon completion of the addition.
    *
-   * @param {string} logFile The path to the log file.  If it doesn't exist it will be created.
-   * @returns {Promise<void>} Resolved or rejected upon completion of the addition.
+   * @param logFile The path to the log file.  If it doesn't exist it will be created.
    */
   public async addLogFileStream(logFile: string): Promise<void> {
     try {
@@ -393,8 +384,6 @@ export class Logger {
 
   /**
    * Gets the name of this logger.
-   *
-   * @returns {string}
    */
   public getName(): string {
     return this.bunyan.name;
@@ -402,8 +391,6 @@ export class Logger {
 
   /**
    * Gets the current level of this logger.
-   *
-   * @returns {LoggerLevelValue}
    */
   public getLevel(): LoggerLevelValue {
     return this.bunyan.level();
@@ -412,22 +399,23 @@ export class Logger {
   /**
    * Set the logging level of all streams for this logger.  If a specific `level` is not provided, this method will
    * attempt to read it from the environment variable `SFDX_LOG_LEVEL`, and if not found,
-   * {@link Logger.DEFAULT_LOG_LEVEL} will be used instead.
-   *
-   * @example
-   * // Sets the level from the environment or default value
-   * logger.setLevel()
-   * @example
-   * // Set the level from the INFO enum
-   * logger.setLevel(LoggerLevel.INFO)
-   * @example
-   * // Sets the level case-insensitively from a string value
-   * logger.setLevel(Logger.getLevelByName('info'))
+   * {@link Logger.DEFAULT_LOG_LEVEL} will be used instead. For convenience `this` object is returned.
    *
    * @param {LoggerLevelValue} [level] The logger level.
-   * @returns {Logger} For convenience `this` object is returned.
-   * @throws {SfdxError}
-   *    **`{name: 'UnrecognizedLoggerLevelName'}`:** A value of `level` read from `SFDX_LOG_LEVEL` was invalid.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'UnrecognizedLoggerLevelName' }* A value of `level` read from `SFDX_LOG_LEVEL`
+   * was invalid.
+   *
+   * ```
+   * // Sets the level from the environment or default value
+   * logger.setLevel()
+   *
+   * // Set the level from the INFO enum
+   * logger.setLevel(LoggerLevel.INFO)
+   *
+   * // Sets the level case-insensitively from a string value
+   * logger.setLevel(Logger.getLevelByName('info'))
+   * ```
    */
   public setLevel(level?: LoggerLevelValue): Logger {
     if (level == null) {
@@ -439,8 +427,6 @@ export class Logger {
 
   /**
    * Gets the underlying Bunyan logger.
-   *
-   * @returns {any} The low-level Bunyan logger.
    */
   // tslint:disable-next-line:no-any
   public getBunyanLogger(): any {
@@ -451,8 +437,7 @@ export class Logger {
    * Compares the requested log level with the current log level.  Returns true if
    * the requested log level is greater than or equal to the current log level.
    *
-   * @param {LoggerLevelValue} level The requested log level to compare against the currently set log level.
-   * @returns {boolean}
+   * @param level The requested log level to compare against the currently set log level.
    */
   public shouldLog(level: LoggerLevelValue): boolean {
     if (typeof level === 'string') {
@@ -463,10 +448,9 @@ export class Logger {
 
   /**
    * Use in-memory logging for this logger instance instead of any parent streams. Useful for testing.
+   * For convenience this object is returned.
    *
    * **WARNING: This cannot be undone for this logger instance.**
-   *
-   * @returns {Logger} For convenience this object is returned.
    */
   public useMemoryLogging(): Logger {
     this.bunyan.streams = [];
@@ -481,8 +465,6 @@ export class Logger {
 
   /**
    * Gets an array of log line objects. Each element is an object that corresponds to a log line.
-   *
-   * @returns {Array<string>}
    */
   public getBufferedRecords(): LogLine[] {
     if (this.bunyan.ringBuffer) {
@@ -493,8 +475,6 @@ export class Logger {
 
   /**
    * Reads a text blob of all the log lines contained in memory or the log file.
-   *
-   * @returns {string}
    */
   public readLogContentsAsText(): string {
     if (this.bunyan.ringBuffer) {
@@ -517,7 +497,7 @@ export class Logger {
   /**
    * Adds a filter to be applied to all logged messages.
    *
-   * @param {function} filter A function with signature `(...args: any[]) => any[]` that transforms log message arguments.
+   * @param filter A function with signature `(...args: any[]) => any[]` that transforms log message arguments.
    */
   public addFilter(filter: (...args: Array<unknown>) => unknown): void {
     // tslint:disable-line:no-any
@@ -530,7 +510,7 @@ export class Logger {
   /**
    * Close the logger, including any streams, and remove all listeners.
    *
-   * @param {function} [fn] A function with signature `(stream: LoggerStream) => void` to call for each stream with
+   * @param fn A function with signature `(stream: LoggerStream) => void` to call for each stream with
    *                        the stream as an arg.
    */
   public close(fn?: (stream: LoggerStream) => void): void {
@@ -553,11 +533,10 @@ export class Logger {
   }
 
   /**
-   * Create a child logger, typically to add a few log record fields.
+   * Create a child logger, typically to add a few log record fields. For convenience this object is returned.
    *
-   * @param {string} name The name of the child logger that is emitted w/ log line as `log:<name>`.
-   * @param {Fields} [fields] Additional fields included in all log lines for the child logger.
-   * @returns {Logger} For convenience this object is returned.
+   * @param name The name of the child logger that is emitted w/ log line as `log:<name>`.
+   * @param fields Additional fields included in all log lines for the child logger.
    */
   public child(name: string, fields: Fields = {}): Logger {
     if (!name) {
@@ -577,11 +556,10 @@ export class Logger {
   }
 
   /**
-   * Add a field to all log lines for this logger.
+   * Add a field to all log lines for this logger. For convenience `this` object is returned.
    *
-   * @param {string} name The name of the field to add.
-   * @param {FieldValue} value The value of the field to be logged.
-   * @returns {Logger} For convenience `this` object is returned.
+   * @param name The name of the field to add.
+   * @param value The value of the field to be logged.
    */
   public addField(name: string, value: FieldValue): Logger {
     this.bunyan.fields[name] = value;
@@ -589,10 +567,9 @@ export class Logger {
   }
 
   /**
-   * Logs at `trace` level with filtering applied.
+   * Logs at `trace` level with filtering applied. For convenience `this` object is returned.
    *
-   * @param {...any} args Any number of arguments to be logged.
-   * @returns {Logger} For convenience `this` object is returned.
+   * @param args Any number of arguments to be logged.
    */
   // tslint:disable-next-line:no-any
   public trace(...args: any[]): Logger {
@@ -601,10 +578,9 @@ export class Logger {
   }
 
   /**
-   * Logs at `debug` level with filtering applied.
+   * Logs at `debug` level with filtering applied. For convenience `this` object is returned.
    *
-   * @param {...any} args Any number of arguments to be logged.
-   * @returns {Logger} For convenience `this` object is returned.
+   * @param args Any number of arguments to be logged.
    */
   public debug(...args: Array<unknown>): Logger {
     this.bunyan.debug(this.applyFilters(LoggerLevel.DEBUG, ...args));
@@ -612,10 +588,9 @@ export class Logger {
   }
 
   /**
-   * Logs at `info` level with filtering applied.
+   * Logs at `info` level with filtering applied. For convenience `this` object is returned.
    *
-   * @param {...any} args Any number of arguments to be logged.
-   * @returns {Logger} For convenience `this` object is returned.
+   * @param args Any number of arguments to be logged.
    */
   public info(...args: Array<unknown>): Logger {
     this.bunyan.info(this.applyFilters(LoggerLevel.INFO, ...args));
@@ -623,10 +598,9 @@ export class Logger {
   }
 
   /**
-   * Logs at `warn` level with filtering applied.
+   * Logs at `warn` level with filtering applied. For convenience `this` object is returned.
    *
-   * @param {...any} args Any number of arguments to be logged.
-   * @returns {Logger} For convenience `this` object is returned.
+   * @param args Any number of arguments to be logged.
    */
   public warn(...args: Array<unknown>): Logger {
     this.bunyan.warn(this.applyFilters(LoggerLevel.WARN, ...args));
@@ -634,10 +608,9 @@ export class Logger {
   }
 
   /**
-   * Logs at `error` level with filtering applied.
+   * Logs at `error` level with filtering applied. For convenience `this` object is returned.
    *
-   * @param {...any} args Any number of arguments to be logged.
-   * @returns {Logger} For convenience `this` object is returned.
+   * @param args Any number of arguments to be logged.
    */
   public error(...args: Array<unknown>): Logger {
     this.bunyan.error(this.applyFilters(LoggerLevel.ERROR, ...args));
@@ -645,10 +618,9 @@ export class Logger {
   }
 
   /**
-   * Logs at `fatal` level with filtering applied.
+   * Logs at `fatal` level with filtering applied. For convenience `this` object is returned.
    *
-   * @param {...any} args Any number of arguments to be logged.
-   * @returns {Logger} For convenience `this` object is returned.
+   * @param args Any number of arguments to be logged.
    */
   public fatal(...args: Array<unknown>): Logger {
     // always show fatal to stderr
