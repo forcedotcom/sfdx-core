@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>LoggerStream | @salesforce/core</title>
+	<title>Location | @salesforce/core</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,10 +52,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="loggerstream.html">LoggerStream</a>
+					<a href="../classes/configaggregator.html">ConfigAggregator</a>
+				</li>
+				<li>
+					<a href="configaggregator.location.html">Location</a>
 				</li>
 			</ul>
-			<h1>Interface LoggerStream</h1>
+			<h1>Enumeration Location</h1>
 		</div>
 	</div>
 </header>
@@ -65,29 +68,7 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>A Bunyan stream configuration.</p>
-					</div>
-					<dl class="tsd-comment-tags">
-						<dt>see</dt>
-						<dd><p><a href="https://github.com/cwallsfdc/node-bunyan#streams" class="external">Bunyan Streams</a></p>
-						</dd>
-					</dl>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-hierarchy">
-				<h3>Hierarchy</h3>
-				<ul class="tsd-hierarchy">
-					<li>
-						<span class="target">LoggerStream</span>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-kind-interface">
-				<h3 class="tsd-before-signature">Indexable</h3>
-				<div class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></div>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>A Bunyan stream configuration.</p>
+						<p>An enum of all possible locations for a config value.</p>
 					</div>
 				</div>
 			</section>
@@ -96,92 +77,60 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Properties</h3>
+							<h3>Enumeration members</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggerstream.html#level" class="tsd-kind-icon">level</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggerstream.html#name" class="tsd-kind-icon">name</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggerstream.html#path" class="tsd-kind-icon">path</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggerstream.html#stream" class="tsd-kind-icon">stream</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggerstream.html#type" class="tsd-kind-icon">type</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="configaggregator.location.html#environment" class="tsd-kind-icon">ENVIRONMENT</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="configaggregator.location.html#global" class="tsd-kind-icon">GLOBAL</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="configaggregator.location.html#local" class="tsd-kind-icon">LOCAL</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="level" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> level</h3>
-					<div class="tsd-signature tsd-kind-icon">level<span class="tsd-signature-symbol">:</span> <a href="../globals.html#loggerlevelvalue" class="tsd-signature-type">LoggerLevelValue</a></div>
+				<h2>Enumeration members</h2>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="environment" class="tsd-anchor"></a>
+					<h3>ENVIRONMENT</h3>
+					<div class="tsd-signature tsd-kind-icon">ENVIRONMENT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;Environment&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/logger.ts#L107">logger.ts:107</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/config/configAggregator.ts#L341">config/configAggregator.ts:341</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>The desired log level for the stream.</p>
+							<p>Represents environment variables.</p>
 						</div>
 					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="name" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> name</h3>
-					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="global" class="tsd-anchor"></a>
+					<h3>GLOBAL</h3>
+					<div class="tsd-signature tsd-kind-icon">GLOBAL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;Global&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/logger.ts#L115">logger.ts:115</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/config/configAggregator.ts#L331">config/configAggregator.ts:331</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>The name of the stream.</p>
+							<p>Represents the global config.</p>
 						</div>
 					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="path" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> path</h3>
-					<div class="tsd-signature tsd-kind-icon">path<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="local" class="tsd-anchor"></a>
+					<h3>LOCAL</h3>
+					<div class="tsd-signature tsd-kind-icon">LOCAL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;Local&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/logger.ts#L119">logger.ts:119</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/config/configAggregator.ts#L336">config/configAggregator.ts:336</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>A log file path to write to.  Mutually exclusive with <code>stream</code>.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="stream" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> stream</h3>
-					<div class="tsd-signature tsd-kind-icon">stream<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Writable</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/logger.ts#L111">logger.ts:111</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The stream to write to.  Mutually exclusive with <code>path</code>.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="type" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> type</h3>
-					<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/logger.ts#L103">logger.ts:103</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The type of stream -- may be inferred from other properties.</p>
+							<p>Represents the local project config.</p>
 						</div>
 					</div>
 				</section>
@@ -199,23 +148,58 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-interface">
-						<a href="loggerstream.html" class="tsd-kind-icon">Logger<wbr>Stream</a>
+					<li class="current tsd-kind-class">
+						<a href="../classes/configaggregator.html" class="tsd-kind-icon">Config<wbr>Aggregator</a>
 						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggerstream.html#level" class="tsd-kind-icon">level</a>
+							<li class="current tsd-kind-enum tsd-parent-kind-class tsd-is-static">
+								<a href="configaggregator.location.html" class="tsd-kind-icon">Location</a>
+								<ul>
+									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+										<a href="configaggregator.location.html#environment" class="tsd-kind-icon">ENVIRONMENT</a>
+									</li>
+									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+										<a href="configaggregator.location.html#global" class="tsd-kind-icon">GLOBAL</a>
+									</li>
+									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+										<a href="configaggregator.location.html#local" class="tsd-kind-icon">LOCAL</a>
+									</li>
+								</ul>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggerstream.html#name" class="tsd-kind-icon">name</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/configaggregator.html#getconfig" class="tsd-kind-icon">get<wbr>Config</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggerstream.html#path" class="tsd-kind-icon">path</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/configaggregator.html#getconfiginfo" class="tsd-kind-icon">get<wbr>Config<wbr>Info</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggerstream.html#stream" class="tsd-kind-icon">stream</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/configaggregator.html#getenvvars" class="tsd-kind-icon">get<wbr>Env<wbr>Vars</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggerstream.html#type" class="tsd-kind-icon">type</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/configaggregator.html#getglobalconfig" class="tsd-kind-icon">get<wbr>Global<wbr>Config</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/configaggregator.html#getinfo" class="tsd-kind-icon">get<wbr>Info</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/configaggregator.html#getlocalconfig" class="tsd-kind-icon">get<wbr>Local<wbr>Config</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/configaggregator.html#getlocation" class="tsd-kind-icon">get<wbr>Location</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/configaggregator.html#getpath" class="tsd-kind-icon">get<wbr>Path</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/configaggregator.html#getpropertyvalue" class="tsd-kind-icon">get<wbr>Property<wbr>Value</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+								<a href="../classes/configaggregator.html#init" class="tsd-kind-icon">init</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/configaggregator.html#reload" class="tsd-kind-icon">reload</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+								<a href="../classes/configaggregator.html#create" class="tsd-kind-icon">create</a>
 							</li>
 						</ul>
 					</li>
