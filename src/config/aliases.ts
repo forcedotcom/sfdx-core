@@ -51,12 +51,13 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
 
   /**
    * Updates a group of aliases in a bulk save and returns the new aliases that were saved.
-   * @param aliasKeyAndValues An array of strings in the format `<alias>=<value>`.
-   * Each element will be saved in the Aliases state file under the group.
-   * @param group The group the alias belongs to. Defaults to ORGS.
+   *
    * ```
    * const aliases = await Aliases.parseAndUpdate(['foo=bar', 'bar=baz'])
    * ```
+   * @param aliasKeyAndValues An array of strings in the format `<alias>=<value>`.
+   * Each element will be saved in the Aliases state file under the group.
+   * @param group The group the alias belongs to. Defaults to ORGS.
    */
   public static async parseAndUpdate(aliasKeyAndValues: string[],
                                      group: AliasGroup = AliasGroup.ORGS): Promise<JsonMap> {
@@ -83,9 +84,9 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
 
   /**
    * Get an alias from a key and group. Shorthand for `Alias.create().get(key)`. Returns the promise resolved when the
-   * alias is created
-   * @param key The value of the alias to match
-   * @param group The group the alias belongs to. Defaults to Orgs
+   * alias is created.
+   * @param key The value of the alias to match.
+   * @param group The group the alias belongs to. Defaults to Orgs.
    */
   public static async fetch(key: string, group = AliasGroup.ORGS): Promise<Optional<string>> {
     const aliases = await Aliases.create(Aliases.getDefaultOptions());

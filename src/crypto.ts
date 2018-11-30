@@ -87,7 +87,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   /**
    * Constructor
    * **Do not directly construct instances of this class -- use {@link Crypto.create} instead.**
-   * @param options The options for the class instance
+   * @param options The options for the class instance.
    * @ignore
    */
   public constructor(options?: CryptoOptions) {
@@ -171,7 +171,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   }
 
   /**
-   * Initialize async components
+   * Initialize async components.
    */
   protected async init(): Promise<void> {
     const logger = await Logger.child('crypto');

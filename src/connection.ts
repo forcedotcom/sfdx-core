@@ -95,7 +95,7 @@ export class Connection extends JSForceConnection {
 
   // The following are all initialized in either this constructor or the super constructor, sometimes conditionally...
   /**
-   * Tooling api reference
+   * Tooling api reference.
    */
   public tooling!: Tooling;
   // We want to use 1 logger for this class and the jsForce base classes so override
@@ -109,7 +109,8 @@ export class Connection extends JSForceConnection {
   /**
    * Constructor
    * **Do not directly construct instances of this class -- use {@link Connection.create} instead.**
-   * @param options The options for the class instance
+   * @param options The options for the class instance.
+   * @ignore
    */
   constructor(options: Connection.Options) {
     super(options.connectionOptions || {});
@@ -120,7 +121,7 @@ export class Connection extends JSForceConnection {
   }
 
   /**
-   * Async initializer
+   * Async initializer.
    */
   public async init(): Promise<void> {
     this.logger = this._logger = this.tooling._logger = await Logger.child('connection');
@@ -214,21 +215,21 @@ export class Connection extends JSForceConnection {
   }
 
   /**
-   * Getter for the AuthInfo
+   * Getter for the AuthInfo.
    */
   public getAuthInfoFields(): AuthFields {
     return this.options.authInfo.getFields();
   }
 
   /**
-   * Getter for the auth fields
+   * Getter for the auth fields.
    */
   public getConnectionOptions(): AuthFields {
     return this.options.authInfo.getConnectionOptions();
   }
 
   /**
-   * Getter for the username of the Salesforce Org
+   * Getter for the username of the Salesforce Org.
    */
   public getUsername(): Optional<string> {
     return this.getAuthInfoFields().username;
@@ -243,7 +244,7 @@ export class Connection extends JSForceConnection {
 
   /**
    * Normalize a Salesforce url to include a instance information.
-   * @param url partial url.
+   * @param url Partial url.
    */
   public normalizeUrl(url: string): string {
     return this._normalizeUrl(url);
@@ -281,19 +282,19 @@ export class Connection extends JSForceConnection {
 
 export namespace Connection {
   /**
-   * Connection Options
+   * Connection Options.
    */
   export interface Options {
     /**
-     * AuthInfo instance
+     * AuthInfo instance.
      */
     authInfo: AuthInfo;
     /**
-     * ConfigAggregator for getting defaults
+     * ConfigAggregator for getting defaults.
      */
     configAggregator?: ConfigAggregator;
     /**
-     * Additional connection parameters
+     * Additional connection parameters.
      */
     connectionOptions?: ConnectionOptions;
   }

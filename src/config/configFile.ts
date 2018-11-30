@@ -23,11 +23,13 @@ import { BaseConfigStore, ConfigContents } from './configStore';
  *
  * ```
  * class MyConfig extends ConfigFile {
- *      public static getFileName(): string {
- *        return 'myConfigFilename.json';
- *      }
- *    }
- * const myConfig = await MyConfig.create({});
+ *   public static getFileName(): string {
+ *     return 'myConfigFilename.json';
+ *   }
+ * }
+ * const myConfig = await MyConfig.create({
+ *   isGlobal: true
+ * });
  * myConfig.set('mykey', 'myvalue');
  * await myConfig.write();
  * ```
@@ -73,6 +75,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * Constructor
    * **Do not directly construct instances of this class -- use {@link ConfigFile.create} instead.**
    * @param options The options for the class instance
+   * @ignore
    */
   public constructor(options: T) {
     super(options);
@@ -82,7 +85,8 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * Determines if the config file is read/write accessible. Returns `true` if the user has capabilities specified
    * by perm.
    * @param {number} perm The permission.
-   * {@link fs.access}
+   *
+   * **See** {@link https://nodejs.org/dist/latest/docs/api/fs.html#fs_fs_access_path_mode_callback}
    */
   public async access(perm: number): Promise<boolean> {
     try {
@@ -115,9 +119,8 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
-   * Write the config file with new contents if no new contents are passed in. Returns the contents.
-   * it will write the existing config contents that were set from {@link ConfigFile.read}, or an
-   * empty file if {@link ConfigFile.read} was not called.
+   * Write the config file with new contents. If no new contents are provided it will write the existing config
+   * contents that were set from {@link ConfigFile.read}, or an empty file if {@link ConfigFile.read} was not called.
    *
    * @param newContents The new contents of the file.
    */

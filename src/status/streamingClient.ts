@@ -563,7 +563,7 @@ export namespace StreamingClient {
      *
      * **Throws** An error if the newTime is less than the default time.
      * @param newTime The new subscribe timeout.
-     * {@Link DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT}
+     * {@link DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT}
      */
     public setSubscribeTimeout(newTime: Duration) {
       this.subscribeTimeout = validateTimeout(newTime, DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT);
@@ -574,7 +574,7 @@ export namespace StreamingClient {
      *
      * **Throws** An error if the newTime is less than the default time.
      * @param newTime The new handshake timeout
-     * {@Link DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT}
+     * {@link DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT}
      */
     public setHandshakeTimeout(newTime: Duration) {
       this.handshakeTimeout = validateTimeout(newTime, DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT);

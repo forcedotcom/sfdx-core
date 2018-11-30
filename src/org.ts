@@ -37,87 +37,6 @@ import { fs } from './util/fs';
 import { sfdc } from './util/sfdc';
 
 /**
- * Scratch Org status.
- */
-export enum OrgStatus {
-  /**
-   * The scratch org is active.
-   */
-  ACTIVE = 'ACTIVE',
-  /**
-   * The scratch org has expired.
-   */
-  EXPIRED = 'EXPIRED',
-  /**
-   * The org is a scratch Org but no dev hub is indicated.
-   */
-  UNKNOWN = 'UNKNOWN',
-  /**
-   * The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
-   */
-  MISSING = 'MISSING'
-}
-
-/**
- * Org Fields.
- */
-// A subset of fields from AuthInfoFields and properties that are specific to Org,
-// and properties that are defined on Org itself.
-export enum OrgFields {
-  /**
-   * The org alias.
-   */
-  // From AuthInfo
-  ALIAS = 'alias',
-  CREATED = 'created',
-  /**
-   * The Salesforce instance the org was created on. e.g. `cs42`.
-   */
-  CREATED_ORG_INSTANCE = 'createdOrgInstance',
-  /**
-   * The username of the dev hub org that created this org. Only populated for scratch orgs.
-   */
-  DEV_HUB_USERNAME = 'devHubUsername',
-  /**
-   * The full url of the instance the org lives on.
-   */
-  INSTANCE_URL = 'instanceUrl',
-  /**
-   * Is the current org a dev hub org. e.g. They have access to the `ScratchOrgInfo` object.
-   */
-  IS_DEV_HUB = 'isDevHub',
-  /**
-   * The login url of the org. e.g. `https://login.salesforce.com` or `https://test.salesforce.com`.
-   */
-  LOGIN_URL = 'loginUrl',
-  /**
-   *  The org ID.
-   */
-  ORG_ID = 'orgId',
-  /**
-   * The `OrgStatus` of the org.
-   */
-  STATUS = 'status',
-  /**
-   * The snapshot used to create the scratch org.
-   */
-  SNAPSHOT = 'snapshot'
-
-  // Should it be on org? Leave it off for now, as it might
-  // be confusing to the consumer what this actually is.
-  // USERNAMES = 'usernames',
-
-  // Keep separation of concerns. I think these should be on a "user" that belongs to the org.
-  // Org can have a list of user objects that belong to it? Should connection be on user and org.getConnection()
-  // gets the orgs current user for the process? Maybe we just want to keep with the Org only model for
-  // the end of time?
-  // USER_ID = 'userId',
-  // USERNAME = 'username',
-  // PASSWORD = 'password',
-  // USER_PROFILE_NAME = 'userProfileName'
-}
-
-/**
  * Provides a way to manage a locally authenticated Org.
  *
  * **See** {@link AuthInfo}
@@ -143,7 +62,7 @@ export enum OrgFields {
  */
 export class Org extends AsyncCreatable<Org.Options> {
   // tslint:disable-next-line:no-unused-variable
-  private status: OrgStatus = OrgStatus.UNKNOWN;
+  private status: Org.Status = Org.Status.UNKNOWN;
   private configAggregator!: ConfigAggregator;
 
   // Initialized in create
@@ -196,8 +115,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    * Removes the scratch org config file at $HOME/.sfdx/[name].json, any project level org
    * files, all user auth files for the org, matching default config settings, and any
    * matching aliases.
-   * @param {boolean} [throwWhenRemoveFails = false] Determines if the call should throw an error or fail silently.
-   * @returns {Promise<void>}
+   * @param throwWhenRemoveFails Determines if the call should throw an error or fail silently.
    */
   public async remove(throwWhenRemoveFails = false): Promise<void> {
     // If deleting via the access token there shouldn't be any auth config files
@@ -245,10 +163,12 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
-   * @param {string} [devHubUsername] The username of the dev hub org.
-   * @returns {Promise<Config>}
-   * @throws {SfdxError} **`{name: 'NotADevHub'}`** Not a Dev Hub.
-   * @throws {SfdxError} **`{name: 'NoResults'}`** No results.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'NotADevHub' }* Not a Dev Hub.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'NoResults' }* No results.
+   *
+   * @param devHubUsername The username of the dev hub org.
    */
   public async checkScratchOrg(devHubUsername?: string): Promise<Partial<AuthFields>> {
     let targetDevHub = devHubUsername;
@@ -285,13 +205,12 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Returns the Org object or null if this org is not affiliated with a Dev Hub (according to the local config).
-   * @returns {Promise<Org>}
    */
   public async getDevHubOrg(): Promise<Optional<Org>> {
     if (this.isDevHubOrg()) {
       return Promise.resolve(this);
-    } else if (this.getField(OrgFields.DEV_HUB_USERNAME)) {
-      const devHubUsername = ensureString(this.getField(OrgFields.DEV_HUB_USERNAME));
+    } else if (this.getField(Org.Fields.DEV_HUB_USERNAME)) {
+      const devHubUsername = ensureString(this.getField(Org.Fields.DEV_HUB_USERNAME));
       return Org.create({
         connection: await Connection.create({
           authInfo: await AuthInfo.create({ username: devHubUsername })
@@ -302,15 +221,13 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Returns `true` if the org is a Dev Hub.
-   * @returns {Boolean}
    */
   public isDevHubOrg(): boolean {
-    return this.getField(OrgFields.IS_DEV_HUB) as boolean;
+    return this.getField(Org.Fields.IS_DEV_HUB) as boolean;
   }
 
   /**
    * Refreshes the auth for this org's instance by calling HTTP GET on the baseUrl of the connection object.
-   * @returns {Promise<void>}
    */
   public async refreshAuth(): Promise<void> {
     this.logger.debug('Refreshing auth for org.');
@@ -324,7 +241,6 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    *  Reads and returns the content of all user auth files for this org as an array.
-   *  @returns {Promise<AuthInfo[]>}
    */
   public async readUserAuthFiles(): Promise<AuthInfo[]> {
     const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
@@ -345,13 +261,15 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
-   * Adds a username to the user config for this org.
-   * @param {AuthInfo | string} auth The AuthInfo for the username to add.
-   * @returns {Promise<Org>} For convenience `this` object is returned.
-   * @example
+   * Adds a username to the user config for this org. For convenience `this` object is returned.
+   *
+   * ```
    * const org: Org = await Org.create(await Connection.create(await AuthInfo.create('foo@example.com')));
    * const userAuth: AuthInfo = await AuthInfo.create('bar@example.com');
    * await org.addUsername(userAuth);
+   * ```
+   *
+   * @param {AuthInfo | string} auth The AuthInfo for the username to add.
    */
   public async addUsername(auth: AuthInfo | string): Promise<Org> {
     if (!auth) {
@@ -395,10 +313,11 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
-   * Removes a username from the user config for this object.
+   * Removes a username from the user config for this object. For convenience `this` object is returned.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'MissingAuthInfo' }* Auth info is missing.
+   *
    * @param {AuthInfo | string} auth The AuthInfo containing the username to remove.
-   * @returns {Promise<Org>} For convenience `this` object is returned.
-   * @throws {SfdxError} **`{name: 'MissingAuthInfo'}`** Auth info is missing.
    */
   public async removeUsername(auth: AuthInfo | string): Promise<Org> {
     if (!auth) {
@@ -425,7 +344,6 @@ export class Org extends AsyncCreatable<Org.Options> {
    * Retrieves the highest api version that is supported by the target server instance. If the apiVersion configured for
    * Sfdx is greater than the one returned in this call an api version mismatch occurs. In the case of the CLI that
    * results in a warning.
-   * @returns {Promise<string>} The max api version number, i.e `46.0`.
    */
   public async retrieveMaxApiVersion(): Promise<string> {
     return await this.getConnection().retrieveMaxApiVersion();
@@ -433,7 +351,6 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Returns the admin username used to create the org.
-   * @return {Optional<string>}
    */
   public getUsername(): Optional<string> {
     return this.getConnection().getUsername();
@@ -441,15 +358,13 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Returns the orgId for this org.
-   * @return {string}
    */
   public getOrgId(): string {
-    return this.getField(OrgFields.ORG_ID) as string;
+    return this.getField(Org.Fields.ORG_ID) as string;
   }
 
   /**
    * Returns for the config aggregator.
-   * @returns {ConfigAggregator}
    */
   public getConfigAggregator(): ConfigAggregator {
     return this.configAggregator;
@@ -457,18 +372,16 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Returns an org field. Returns undefined if the field is not set or invalid.
-   * @returns {AnyJson}
    */
-  public getField(key: OrgFields): AnyJson {
+  public getField(key: Org.Fields): AnyJson {
     // @ts-ignore TODO: Need to refactor storage of these values on both Org and AuthFields
     return this[key] || this.getConnection().getAuthInfoFields()[key];
   }
 
   /**
    * Returns a map of requested fields.
-   * @returns {JsonMap}
    */
-  public getFields(keys: OrgFields[]): JsonMap {
+  public getFields(keys: Org.Fields[]): JsonMap {
     return keys.reduce(
       (map, key) => {
         map[key] = this.getField(key);
@@ -480,12 +393,14 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Returns the JSForce connection for the org.
-   * @returns {Connection}
    */
   public getConnection(): Connection {
     return this.connection;
   }
 
+  /**
+   * Initialize async components.
+   */
   protected async init(): Promise<void> {
     this.logger = await Logger.child('Org');
 
@@ -509,6 +424,9 @@ export class Org extends AsyncCreatable<Org.Options> {
     }
   }
 
+  /**
+   * **Throws** *{@link SfdxError} Throws and unsupported error.
+   */
   protected getDefaultOptions(): Org.Options {
     throw new SfdxError('Not Supported');
   }
@@ -527,7 +445,7 @@ export class Org extends AsyncCreatable<Org.Options> {
 
 export namespace Org {
   /**
-   * Constructor Options for and Org
+   * Constructor Options for and Org.
    */
   export interface Options {
     aliasOrUsername?: string;
@@ -535,4 +453,86 @@ export namespace Org {
     aggregator?: ConfigAggregator;
     isDevHub?: boolean;
   }
+
+  /**
+   * Scratch Org status.
+   */
+  export enum Status {
+    /**
+     * The scratch org is active.
+     */
+    ACTIVE = 'ACTIVE',
+    /**
+     * The scratch org has expired.
+     */
+    EXPIRED = 'EXPIRED',
+    /**
+     * The org is a scratch Org but no dev hub is indicated.
+     */
+    UNKNOWN = 'UNKNOWN',
+    /**
+     * The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
+     */
+    MISSING = 'MISSING'
+  }
+
+  /**
+   * Org Fields.
+   */
+  // A subset of fields from AuthInfoFields and properties that are specific to Org,
+  // and properties that are defined on Org itself.
+  export enum Fields {
+    /**
+     * The org alias.
+     */
+    // From AuthInfo
+    ALIAS = 'alias',
+    CREATED = 'created',
+    /**
+     * The Salesforce instance the org was created on. e.g. `cs42`.
+     */
+    CREATED_ORG_INSTANCE = 'createdOrgInstance',
+    /**
+     * The username of the dev hub org that created this org. Only populated for scratch orgs.
+     */
+    DEV_HUB_USERNAME = 'devHubUsername',
+    /**
+     * The full url of the instance the org lives on.
+     */
+    INSTANCE_URL = 'instanceUrl',
+    /**
+     * Is the current org a dev hub org. e.g. They have access to the `ScratchOrgInfo` object.
+     */
+    IS_DEV_HUB = 'isDevHub',
+    /**
+     * The login url of the org. e.g. `https://login.salesforce.com` or `https://test.salesforce.com`.
+     */
+    LOGIN_URL = 'loginUrl',
+    /**
+     *  The org ID.
+     */
+    ORG_ID = 'orgId',
+    /**
+     * The `OrgStatus` of the org.
+     */
+    STATUS = 'status',
+    /**
+     * The snapshot used to create the scratch org.
+     */
+    SNAPSHOT = 'snapshot'
+
+    // Should it be on org? Leave it off for now, as it might
+    // be confusing to the consumer what this actually is.
+    // USERNAMES = 'usernames',
+
+    // Keep separation of concerns. I think these should be on a "user" that belongs to the org.
+    // Org can have a list of user objects that belong to it? Should connection be on user and org.getConnection()
+    // gets the orgs current user for the process? Maybe we just want to keep with the Org only model for
+    // the end of time?
+    // USER_ID = 'userId',
+    // USERNAME = 'username',
+    // PASSWORD = 'password',
+    // USER_PROFILE_NAME = 'userProfileName'
+  }
+
 }

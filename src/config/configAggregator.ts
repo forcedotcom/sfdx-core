@@ -13,26 +13,6 @@ import { Config, ConfigPropertyMeta } from './config';
 const propertyToEnvName = (property: string) => `SFDX_${snakeCase(property).toUpperCase()}`;
 
 /**
- * An enum of all possible locations for a config value.
- */
-export const enum Location {
-  /**
-   * Represents the global config.
-   */
-  GLOBAL = 'Global',
-
-  /**
-   * Represents the local project config.
-   */
-  LOCAL = 'Local',
-
-  /**
-   * Represents environment variables.
-   */
-  ENVIRONMENT = 'Environment'
-}
-
-/**
  * Information about a config property.
  */
 export interface ConfigInfo {
@@ -44,7 +24,7 @@ export interface ConfigInfo {
   /**
    * The location of the config property.
    */
-  location?: Location;
+  location?: ConfigAggregator.Location;
 
   /**
    * The config value.
@@ -56,12 +36,12 @@ export interface ConfigInfo {
    */
   path?: string;
   /**
-   * `true` if the config property is in the local project
+   * `true` if the config property is in the local project.
    */
   isLocal: () => boolean;
 
   /**
-   * `true` if the config property is in the global space
+   * `true` if the config property is in the global space.
    */
   isGlobal: () => boolean;
 
@@ -96,6 +76,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
   /**
    * **Do not directly construct instances of this class -- use {@link ConfigAggregator.create} instead.**
+   * @ignore
    */
   public constructor(options?: JsonMap) {
     super(options || {});
@@ -135,9 +116,9 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
       location,
       value: this.getPropertyValue(key),
       path: this.getPath(key),
-      isLocal: () => location === Location.LOCAL,
-      isGlobal: () => location === Location.GLOBAL,
-      isEnvVar: () => location === Location.ENVIRONMENT
+      isLocal: () => location === ConfigAggregator.Location.LOCAL,
+      isGlobal: () => location === ConfigAggregator.Location.GLOBAL,
+      isEnvVar: () => location === ConfigAggregator.Location.ENVIRONMENT
     };
   }
 
@@ -151,15 +132,15 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    *
    * @param key The key of the property.
    */
-  public getLocation(key: string): Optional<Location> {
+  public getLocation(key: string): Optional<ConfigAggregator.Location> {
     if (this.getEnvVars().get(key) != null) {
-      return Location.ENVIRONMENT;
+      return ConfigAggregator.Location.ENVIRONMENT;
     }
     if (this.getLocalConfig() && this.getLocalConfig().get(key)) {
-      return Location.LOCAL;
+      return ConfigAggregator.Location.LOCAL;
     }
     if (this.getGlobalConfig() && this.getGlobalConfig().get(key)) {
-      return Location.GLOBAL;
+      return ConfigAggregator.Location.GLOBAL;
     }
   }
 
@@ -232,7 +213,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * Get the config properties that are environment variables.
    */
   public getEnvVars(): Map<string, string> {
-    return new Map(definiteEntriesOf(this.envVars));
+    return new Map<string, string>(definiteEntriesOf(this.envVars));
   }
 
   /**
@@ -336,5 +317,27 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   private setEnvVars(envVars: Dictionary<string>) {
     this.envVars = envVars;
+  }
+}
+
+export namespace ConfigAggregator {
+  /**
+   * An enum of all possible locations for a config value.
+   */
+  export const enum Location {
+    /**
+     * Represents the global config.
+     */
+    GLOBAL = 'Global',
+
+    /**
+     * Represents the local project config.
+     */
+    LOCAL = 'Local',
+
+    /**
+     * Represents environment variables.
+     */
+    ENVIRONMENT = 'Environment'
   }
 }

@@ -41,7 +41,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
   /**
    * Constructor
    * @param options Polling client options
-   * {@link AsyncCreatable.create}
+   * @ignore
    */
   public constructor(options?: PollingClient.Options) {
     super(options);
@@ -135,7 +135,7 @@ export namespace PollingClient {
    */
   export interface Options {
     /**
-     * Polling function
+     * Polling function.
      */
     poll: () => Promise<StatusResult>;
     /**
@@ -147,7 +147,8 @@ export namespace PollingClient {
      */
     timeout: Duration;
     /**
-     * Change the name of the timeout error
+     * Change the name of the timeout error.
+     *
      * ```
      * if (err.name === 'MyChangedName) ...
      * ```

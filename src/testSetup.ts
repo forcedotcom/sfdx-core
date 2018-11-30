@@ -115,26 +115,25 @@ export interface TestContext {
     SfdxConfig?: ConfigStub;
   };
   /**
-   * A function `(uid: string) => Promise<string>;`
-   * used when resolving the local path.
-   * @param uid Unique id
+   * A function used when resolving the local path.
+   * @param uid Unique id.
    */
   localPathRetriever: (uid: string) => Promise<string>;
   /**
    * A function used when resolving the global path.
-   * @param uid Unique id
+   * @param uid Unique id.
    */
   globalPathRetriever: (uid: string) => Promise<string>;
   /**
    * A function used for resolving paths. Calls localPathRetriever and globalPathRetriever.
-   * @param isGlobal `true` if the config is global
-   * @param uid user id
+   * @param isGlobal `true` if the config is global.
+   * @param uid user id.
    */
   rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
   /**
    * Used to mock http request to Salesforce.
-   * @param request An HttpRequest
-   * @param options Additional options
+   * @param request An HttpRequest.
+   * @param options Additional options.
    *
    * **See** {@link Connection.request}
    */
@@ -148,7 +147,7 @@ export interface TestContext {
   /**
    * Sets a config stub contents by name
    * @param name The name of the config stub.
-   * @param value The actual stub contents. (Mock data)
+   * @param value The actual stub contents. The Mock data.
    */
   setConfigStubContents(name: string, value: ConfigContents): void;
 }
@@ -173,34 +172,8 @@ function defaultFakeConnectionRequest(): Promise<AnyJson> {
   return Promise.resolve(ensureAnyJson({ records: [] }));
 }
 
-/**
- * Use to mock out different pieces of sfdx-core to make testing easier. This will mock out
- * logging to a file, config file reading and writing, local and global path resolution, and
- * *http request using connection (soon)*.
- *
- * ```
- * // In a mocha tests
- * import testSetup from '@salesforce/core/lib/testSetup';
- *
- * const $$ = testSetup();
- *
- * describe(() => {
- *  it('test', () => {
- *    // Stub out your own method
- *    $$.SANDBOX.stub(MyClass.prototype, 'myMethod').returnsFake(() => {});
- *
- *    // Set the contents that is used when aliases are read. Same for all config files.
- *    $$.configStubs.Aliases = { contents: { 'myTestAlias': 'user@company.com' } };
- *
- *    // Will use the contents set above.
- *    const username = Aliases.fetch('myTestAlias');
- *    expect(username).to.equal('user@company.com');
- *  });
- * });
- * ```
- */
 // tslint:disable-next-line:no-any
-export const testSetup = once((sinon?: any) => {
+const _testSetup = (sinon?: any) => {
   if (!sinon) {
     try {
       sinon = require('sinon');
@@ -329,13 +302,40 @@ export const testSetup = once((sinon?: any) => {
   });
 
   return testContext;
-});
+};
+
+/**
+ * Use to mock out different pieces of sfdx-core to make testing easier. This will mock out
+ * logging to a file, config file reading and writing, local and global path resolution, and
+ * *http request using connection (soon)*.
+ *
+ * ```
+ * // In a mocha tests
+ * import testSetup from '@salesforce/core/lib/testSetup';
+ *
+ * const $$ = testSetup();
+ *
+ * describe(() => {
+ *  it('test', () => {
+ *    // Stub out your own method
+ *    $$.SANDBOX.stub(MyClass.prototype, 'myMethod').returnsFake(() => {});
+ *
+ *    // Set the contents that is used when aliases are read. Same for all config files.
+ *    $$.configStubs.Aliases = { contents: { 'myTestAlias': 'user@company.com' } };
+ *
+ *    // Will use the contents set above.
+ *    const username = Aliases.fetch('myTestAlias');
+ *    expect(username).to.equal('user@company.com');
+ *  });
+ * });
+ * ```
+ */
+export const testSetup = once(_testSetup);
 
 /**
  * A pre-canned error for try/catch testing.
  *
  * **See** {@link shouldThrow}
- * @ignore
  */
 export const unexpectedResult: SfdxError = new SfdxError('This code was expected to failed', 'UnexpectedResult');
 
@@ -358,7 +358,6 @@ export const unexpectedResult: SfdxError = new SfdxError('This code was expected
  *  }
  * ```
  * @param f The async function that is expected to throw.
- * @ignore
  */
 export async function shouldThrow(f: Promise<unknown>): Promise<never> {
   await f;
@@ -379,7 +378,7 @@ export enum StreamingMockSubscriptionCall {
  */
 export interface StreamingMockCometSubscriptionOptions {
   /**
-   * Target URL
+   * Target URL.
    */
   url: string;
   /**
@@ -387,7 +386,7 @@ export interface StreamingMockCometSubscriptionOptions {
    */
   id: string;
   /**
-   * What is the subscription outcome a successful callback or an error?
+   * What is the subscription outcome a successful callback or an error?.
    */
   subscriptionCall: StreamingMockSubscriptionCall;
   /**

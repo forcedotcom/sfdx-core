@@ -80,14 +80,14 @@ const _validateProgram = async (
 };
 
 /**
- * Basic keychain interface
+ * Basic keychain interface.
  */
 export interface PasswordStore {
   /**
    * Gets a password
    * @param opts cli level password options.
-   * @param fn function callback for password
-   * @param retryCount number of reties to get the password
+   * @param fn function callback for password.
+   * @param retryCount number of reties to get the password.
    */
   getPassword(
     opts: ProgramOpts,
@@ -96,9 +96,9 @@ export interface PasswordStore {
   ): Promise<void>;
 
   /**
-   * Sets a password
+   * Sets a password.
    * @param opts cli level password options.
-   * @param fn function callback for password
+   * @param fn function callback for password.
    */
   setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void>;
 }
@@ -109,13 +109,13 @@ export interface PasswordStore {
 export class KeychainAccess implements PasswordStore {
   /**
    * Abstract prototype for general cross platform keychain interaction.
-   * @param osImpl The platform impl for (linux, darwin, windows)
-   * @param fsIfc The file system interface
+   * @param osImpl The platform impl for (linux, darwin, windows).
+   * @param fsIfc The file system interface.
    */
   constructor(private osImpl: OsImpl, private fsIfc: FsIfc) {}
 
   /**
-   * Validates the os level program is executable
+   * Validates the os level program is executable.
    */
   public async validateProgram() {
     await _validateProgram(this.osImpl.getProgram(), this.fsIfc, _isExe);

@@ -27,7 +27,7 @@ class Key {
 }
 
 /**
- * A loader function to return messages
+ * A loader function to return messages.
  * @param locale The local set by the framework.
  */
 export type LoaderFunction = (locale: string) => Messages;

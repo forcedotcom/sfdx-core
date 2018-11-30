@@ -99,7 +99,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Returns the default file name for a config file.
    *
-   * {@link SFDX_CONFIG_FILE_NAME}
+   * **See** {@link SFDX_CONFIG_FILE_NAME}
    */
   public static getFileName(): string {
     return SFDX_CONFIG_FILE_NAME;
@@ -327,24 +327,3 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     }
   }
 }
-
-/**
- * Supported Org Default Types.
- */
-export const ORG_DEFAULT = {
-  /**
-   * Default developer hub username.
-   */
-  DEVHUB: Config.DEFAULT_DEV_HUB_USERNAME,
-  /**
-   * Default username
-   */
-  USERNAME: Config.DEFAULT_USERNAME,
-
-  /**
-   * List the Org defaults.
-   */
-  list(): string[] {
-    return [ORG_DEFAULT.DEVHUB, ORG_DEFAULT.USERNAME];
-  }
-};

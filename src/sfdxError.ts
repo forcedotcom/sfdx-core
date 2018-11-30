@@ -90,7 +90,7 @@ export class SfdxErrorConfig {
   }
 
   /**
-   * Load the messages using Messages.loadMessages. Returns the loaded messages.
+   * Load the messages using `Messages.loadMessages`. Returns the loaded messages.
    */
   public load(): Messages {
     this.messages = Messages.loadMessages(this.packageName, this.bundleName);
@@ -99,7 +99,7 @@ export class SfdxErrorConfig {
 
   /**
    * Get the error message using messages.getMessage.
-   * **Throws** If errorMessages.load was not called first.
+   * **Throws** If `errorMessages.load` was not called first.
    */
   public getError(): string {
     if (!this.messages) {
@@ -110,7 +110,7 @@ export class SfdxErrorConfig {
 
   /**
    * Get the action messages using messages.getMessage.
-   * **@throws** If errorMessages.load was not called first.
+   * **@throws** If `errorMessages.load` was not called first.
    */
   public getActions(): Optional<string[]> {
     if (!this.messages) {
@@ -161,9 +161,9 @@ export class SfdxErrorConfig {
  */
 export class SfdxError extends NamedError {
   /**
-   * Create a new SfdxError.
-   * @param packageName The message package name used to create the SfdxError.
-   * @param bundleName The message bundle name used to create the SfdxError.
+   * Create a new `SfdxError`.
+   * @param packageName The message package name used to create the `SfdxError`.
+   * @param bundleName The message bundle name used to create the `SfdxError`.
    * @param key The key within the bundle for the message.
    * @param tokens The values to use for message tokenization.
    */
@@ -171,7 +171,7 @@ export class SfdxError extends NamedError {
 
   /**
    * Create a new SfdxError.
-   * @param errorConfig The SfdxErrorConfig object used to create the SfdxError.
+   * @param errorConfig The `SfdxErrorConfig` object used to create the SfdxError.
    */
   public static create(errorConfig: SfdxErrorConfig): SfdxError;
 
@@ -264,7 +264,7 @@ export class SfdxError extends NamedError {
   }
 
   /**
-   * Convert an SfdxError's state to an object. Returns a plain object representing the state of this error.
+   * Convert an {@link SfdxError} state to an object. Returns a plain object representing the state of this error.
    */
   public toObject(): JsonMap {
     const obj: JsonMap = {

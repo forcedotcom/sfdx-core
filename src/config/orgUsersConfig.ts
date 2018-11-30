@@ -25,9 +25,10 @@ export class OrgUsersConfig extends ConfigFile<OrgUsersConfig.Options> {
   }
 
   /**
-   * Constructor
+   * Constructor.
    * **Do not directly construct instances of this class -- use {@link OrgUsersConfig.create} instead.**
    * @param options The options for the class instance
+   * @ignore
    */
   public constructor(options: OrgUsersConfig.Options) {
     super(options);

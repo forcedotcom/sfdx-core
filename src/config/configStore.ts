@@ -63,8 +63,9 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   private contents!: ConfigContents;
 
   /**
-   * Constructor
-   * @param options The options for the class instance
+   * Constructor.
+   * @param options The options for the class instance.
+   * @ignore
    */
   public constructor(options: T) {
     super(options);
@@ -124,7 +125,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns `true` if an element in the config object existed and has been removed, or `false` if the element does not
-   * exist. {@link BaseConfigStore.has(key)} will return false afterwards.
+   * exist. {@link BaseConfigStore.has} will return false afterwards.
    * @param key The key.
    */
   public unset(key: string): boolean {
@@ -198,7 +199,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Convert the config object to a JSON object. Returns the config contents.
-   * Same as calling {@Link ConfigStore.getContents}
+   * Same as calling {@link ConfigStore.getContents}
    */
   public toObject(): JsonMap {
     return this.contents;

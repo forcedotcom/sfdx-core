@@ -27,8 +27,8 @@ export interface PermissionSetAssignmentFields {
  */
 export class PermissionSetAssignment {
   /**
-   * Creates a new instance of PermissionSetAssignment
-   * @param org new instance of PermissionSetAssignment
+   * Creates a new instance of PermissionSetAssignment.
+   * @param org The target org for the assignment.
    */
   public static async init(org: Org): Promise<PermissionSetAssignment> {
     if (!org) {

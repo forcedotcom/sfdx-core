@@ -20,9 +20,9 @@ export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue 
 
 export { OrgUsersConfig } from './config/orgUsersConfig';
 
-export { ConfigPropertyMeta, ConfigPropertyMetaInput, ORG_DEFAULT, Config } from './config/config';
+export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config } from './config/config';
 
-export { ConfigInfo, Location, ConfigAggregator } from './config/configAggregator';
+export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
 export { AuthFields, AuthInfo, SfdcUrl } from './authInfo';
 
@@ -43,7 +43,7 @@ export {
 
 export { Messages } from './messages';
 
-export { Org, OrgFields } from './org';
+export { Org } from './org';
 
 export { SfdxProject, SfdxProjectJson } from './sfdxProject';
 

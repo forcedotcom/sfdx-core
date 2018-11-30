@@ -7,7 +7,9 @@ JSON.stringify({
         return 'myConfigFilename.json';
       }
     }
-    const myConfig = await MyConfig.create({});
+    const myConfig = await MyConfig.create({
+      isGlobal: true
+    });
     myConfig.set('mykey', 'myvalue');
     await myConfig.write();
   }

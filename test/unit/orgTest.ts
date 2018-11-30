@@ -23,7 +23,7 @@ import { ConfigFile } from '../../src/config/configFile';
 import { OrgUsersConfig } from '../../src/config/orgUsersConfig';
 import { Connection } from '../../src/connection';
 import { Global } from '../../src/global';
-import { Org, OrgFields } from '../../src/org';
+import { Org } from '../../src/org';
 import { MockTestOrgData, testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
 
@@ -43,17 +43,17 @@ describe('Org Tests', () => {
   describe('fields', () => {
     it('getField should get authinfo fields', async () => {
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
-      expect(org.getField(OrgFields.ORG_ID)).to.eq(testData.orgId);
+      expect(org.getField(Org.Fields.ORG_ID)).to.eq(testData.orgId);
     });
 
     it('getField should get org properties', async () => {
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
-      expect(org.getField(OrgFields.STATUS)).to.eq('UNKNOWN');
+      expect(org.getField(Org.Fields.STATUS)).to.eq('UNKNOWN');
     });
 
     it('getFields should get a bunch of fields', async () => {
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
-      expect(org.getFields([OrgFields.ORG_ID, OrgFields.STATUS])).to.deep.eq({
+      expect(org.getFields([Org.Fields.ORG_ID, Org.Fields.STATUS])).to.deep.eq({
         orgId: testData.orgId,
         status: 'UNKNOWN'
       });

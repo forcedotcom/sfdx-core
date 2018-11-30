@@ -65,8 +65,8 @@ export const REQUIRED_FIELDS = {
 export type UserFields = { -readonly [K in keyof typeof REQUIRED_FIELDS]: string };
 
 /**
- * Helper method to lookup UserFields
- * @param username The username
+ * Helper method to lookup UserFields.
+ * @param username The username.
  */
 async function _retrieveUserFields(this: { logger: Logger }, username: string): Promise<UserFields> {
   const connection: Connection = await Connection.create({
@@ -136,7 +136,6 @@ export class DefaultUserFields extends AsyncCreatable<User.Options> {
 
   /**
    * @ignore
-   * @param options
    */
   public constructor(options: User.Options) {
     super(options);
@@ -144,14 +143,14 @@ export class DefaultUserFields extends AsyncCreatable<User.Options> {
   }
 
   /**
-   * Get userfields
+   * Get user fields.
    */
   public getFields(): UserFields {
     return this.userFields;
   }
 
   /**
-   * Intialize asynchronous components.
+   * Initialize asynchronous components.
    */
   protected async init(): Promise<void> {
     this.logger = await Logger.child('DefaultUserFields');
@@ -218,7 +217,7 @@ export class User {
 
   /**
    * Assigns a password to a user. For a user to have the ability to assign their own password, the org needs the
-   * following org preference: SelfSetPasswordInApi
+   * following org preference: SelfSetPasswordInApi.
    * @param info The AuthInfo object for user to assign the password to.
    * @param password [throwWhenRemoveFails = User.generatePasswordUtf8()] A SecureBuffer containing the new password.
    */
@@ -331,7 +330,7 @@ export class User {
 
   /**
    * Method to retrieve the UserFields for a user.
-   * @param username The username of the user
+   * @param username The username of the user.
    *
    * ```
    * const org = await Org.create(await Connection.create(await AuthInfo.create('fooUser')));

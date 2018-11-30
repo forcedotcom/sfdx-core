@@ -47,7 +47,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
 
   /**
    * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
-   * given the optional interval. Returns the resolved ip address
+   * given the optional interval. Returns the resolved ip address.
    */
   public async resolve(): Promise<string> {
     const self: MyDomainResolver = this;
@@ -97,21 +97,21 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
 
 export namespace MyDomainResolver {
   /**
-   * Options for the MyDomain DNS resolver
+   * Options for the MyDomain DNS resolver.
    */
   export interface Options {
     /**
-     * The host to resolve
+     * The host to resolve.
      */
     url: URL;
 
     /**
-     * The retry interval
+     * The retry interval.
      */
     timeout?: Duration;
 
     /**
-     * The retry timeout
+     * The retry timeout.
      */
     frequency?: Duration;
   }

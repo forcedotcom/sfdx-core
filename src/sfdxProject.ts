@@ -30,7 +30,7 @@ import { sfdc } from './util/sfdc';
  * await project.write();
  * ```
  *
- * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm
+ * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
  */
 export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
   public static getFileName() {
@@ -98,7 +98,7 @@ export class SfdxProject {
    *
    * **See** {@link traverseForFile}
    *
-   * **See** {@link https://nodejs.org/api/process.html#process_process_cwd|process.cwd()}
+   * **See** [process.cwd()](https://nodejs.org/api/process.html#process_process_cwd)
    */
   public static async resolveProjectPath(dir?: string): Promise<string> {
     return resolveProjectPath(dir);

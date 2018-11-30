@@ -202,7 +202,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * Sets the value for the key and group in the config object.
    * @param key The key.
    * @param value The value.
-   * @param group The group. Defaults to the default group.
+   * @param group The group. Uses the default group if not specified.
    */
   public setInGroup(key: string, value?: ConfigValue, group?: string): ConfigContents {
     let content: JsonMap;
@@ -219,7 +219,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   }
 
   /**
-   * Initialize the asynchronous dependencies
+   * Initialize the asynchronous dependencies.
    */
   public async init(): Promise<void> {
     await super.init();
