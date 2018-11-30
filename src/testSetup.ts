@@ -413,8 +413,8 @@ export class StreamingMockCometSubscription extends EventEmitter implements Come
   }
 
   /**
-   * Sets up a streaming subscription callback to occur after the setTimeout event loop phase
-   * @param callback The function to invoke
+   * Sets up a streaming subscription callback to occur after the setTimeout event loop phase.
+   * @param callback The function to invoke.
    */
   public callback(callback: () => void): void {
     if (this.options.subscriptionCall === StreamingMockSubscriptionCall.CALLBACK) {
@@ -426,8 +426,8 @@ export class StreamingMockCometSubscription extends EventEmitter implements Come
   }
 
   /**
-   * Sets up a streaming subscription errback to occur after the setTimeout event loop phase
-   * @param callback The function to invoke
+   * Sets up a streaming subscription errback to occur after the setTimeout event loop phase.
+   * @param callback The function to invoke.
    */
   public errback(callback: (error: Error) => void): void {
     if (this.options.subscriptionCall === StreamingMockSubscriptionCall.ERRORBACK) {

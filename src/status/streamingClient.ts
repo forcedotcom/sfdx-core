@@ -22,13 +22,13 @@ import { resolve as resolveUrl } from 'url';
  */
 export interface StreamingExtension {
   /**
-   * Extension for outgoing message
+   * Extension for outgoing message.
    * @param message The message.
    * @param callback The callback to invoke after the message is processed.
    */
   outgoing?: (message: JsonMap, callback: AnyFunction) => void;
   /**
-   * Extension for the incoming message
+   * Extension for the incoming message.
    * @param message The message.
    * @param callback The callback to invoke after the message is processed.
    */
