@@ -82,7 +82,7 @@ describe('User Tests', () => {
           authInfo: await AuthInfo.create({ username: adminTestData.username })
         })
       });
-      await User.init(org);
+      await User.create({ org });
       expect(refreshSpy.calledOnce).to.equal(true);
     });
 
@@ -100,15 +100,15 @@ describe('User Tests', () => {
           authInfo: await AuthInfo.create({ username: adminTestData.username })
         })
       });
-      const user = await User.init(org);
+      const user = await User.create({ org });
 
       try {
-        const options: User.Options = {
+        const options: DefaultUserFields.Options = {
           templateUser: adminTestData.username,
           newUserName: user1.username
         };
         const fields: DefaultUserFields = await DefaultUserFields.create(options);
-        await shouldThrow(user.create(fields.getFields()));
+        await shouldThrow(user.createUser(fields.getFields()));
       } catch (e) {
         expect(e).to.have.property('name', 'UserCreateHttpError');
       }
@@ -144,13 +144,13 @@ describe('User Tests', () => {
           authInfo: await AuthInfo.create({ username: adminTestData.username })
         })
       });
-      const user: User = await User.init(org);
+      const user: User = await User.create({ org });
 
-      const options: User.Options = {
+      const options: DefaultUserFields.Options = {
         templateUser: org.getUsername() || ''
       };
       const fields = (await DefaultUserFields.create(options)).getFields();
-      const info: AuthInfo = await user.create(fields);
+      const info: AuthInfo = await user.createUser(fields);
 
       expect(info.getUsername()).to.equal(fields.username);
     });
@@ -190,7 +190,7 @@ describe('User Tests', () => {
     });
 
     it('should set password', async () => {
-      const user: User = await User.init(org);
+      const user: User = await User.create({ org });
       const fields: UserFields = await user.retrieve(user1.username);
 
       const TEST_PASSWORD = 'test123456';
@@ -232,7 +232,7 @@ describe('User Tests', () => {
         Promise.resolve({})
       );
 
-      const user: User = await User.init(org);
+      const user: User = await User.create({ org });
       const fields: UserFields = await user.retrieve(user1.username);
 
       await user.assignPermissionSets(fields.id, ['TestPermSet']);

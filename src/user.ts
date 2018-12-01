@@ -5,7 +5,14 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
+import {
+  AsyncCreatable,
+  lowerFirst,
+  mapKeys,
+  omit,
+  parseJsonMap,
+  upperFirst
+} from '@salesforce/kit';
 import {
   asJsonArray,
   asNumber,
@@ -122,22 +129,24 @@ async function _retrieveProfileId(name: string, connection: Connection): Promise
  * software development purposes.
  *
  * ```
- * const options: DefaultUserFieldsOptions = {
- *     templateUser: org.getUsername() || ''
+ * const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({username: 'user@example.com'})});
+ * const org: Org = await Org.create({ connection });
+ * const options: DefaultUserFields.Options = {
+ *   templateUser: org.getUsername()
  * };
  * const fields = (await DefaultUserFields.create(options)).getFields();
  * ```
  */
-export class DefaultUserFields extends AsyncCreatable<User.Options> {
+export class DefaultUserFields extends AsyncCreatable<DefaultUserFields.Options> {
   private logger!: Logger;
   private userFields!: UserFields;
 
-  private options: User.Options;
+  private options: DefaultUserFields.Options;
 
   /**
    * @ignore
    */
-  public constructor(options: User.Options) {
+  public constructor(options: DefaultUserFields.Options) {
     super(options);
     this.options = options || { templateUser: '' };
   }
@@ -170,24 +179,22 @@ export class DefaultUserFields extends AsyncCreatable<User.Options> {
   }
 }
 
+export namespace DefaultUserFields {
+  /**
+   * Used to initialize default values for fields based on a templateUser user. This user will be part of the
+   * Standard User profile.
+   */
+  export interface Options {
+    templateUser: string;
+    newUserName?: string;
+  }
+}
+
 /**
  * A class for creating a User, generating a password for a user, and assigning a user to one or more permission sets.
  * See methods for examples.
  */
-export class User {
-  /**
-   * Initialize a new instance of a user and return it.
-   * @param org The org associated with the user.
-   */
-  public static async init(org: Org): Promise<User> {
-    if (!org) {
-      throw SfdxError.create('@salesforce/core', 'user', 'orgRequired');
-    }
-    const logger = await Logger.child('User');
-    await org.refreshAuth();
-    logger.debug('Auth refresh ok');
-    return new User(org, logger);
-  }
+export class User extends AsyncCreatable<User.Options> {
 
   /**
    * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
@@ -208,11 +215,23 @@ export class User {
   }
 
   private org: Org;
-  private logger: Logger;
+  private logger!: Logger;
 
-  private constructor(org: Org, logger: Logger) {
-    this.org = org;
-    this.logger = logger;
+  /**
+   * @ignore
+   */
+  public constructor(options: User.Options) {
+    super(options);
+    this.org = options.org;
+  }
+
+  /**
+   * Initialize a new instance of a user and return it.
+   */
+  public async init(): Promise<void> {
+    this.logger = await Logger.child('User');
+    await this.org.refreshAuth();
+    this.logger.debug('Auth refresh ok');
   }
 
   /**
@@ -249,9 +268,11 @@ export class User {
    * @param permsetNames An array of permission set names.
    *
    * ```
-   * const org = await Org.create(await Connection.create(await AuthInfo.create('standardUser')));
-   * const user: User = await User.init(org)
-   * const fields: UserFields = await user.retrieve();
+   * const username = 'user@example.com';
+   * const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({ username })});
+   * const org = await Org.create({ connection });
+   * const user: User = await User.create({ org });
+   * const fields: UserFields = await user.retrieve(username);
    * await user.assignPermissionSets(fields.id, ['sfdx', 'approver']);
    * ```
    */
@@ -284,13 +305,15 @@ export class User {
    * @param fields The required fields for creating a user.
    *
    * ```
-   * const org = await Org.create(await Connection.create(await AuthInfo.create('fooUser')));
-   * const fields: UserFields = await DefaultUserFields.init(org);
-   * const user: User = await User.init(org);
-   * const info: AuthInfo = await user.create(fields);
+   * const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({username: 'user@example.com'})});
+   * const org = await Org.create({ connection });
+   *
+   * const defaultUserFields = await DefaultUserFields.create({ templateUser: 'devhub_user@example.com' });
+   * const user: User = await User.create({ org });
+   * const info: AuthInfo = await user.createUser(defaultUserFields.getFields());
    * ```
    */
-  public async create(fields: UserFields): Promise<AuthInfo> {
+  public async createUser(fields: UserFields): Promise<AuthInfo> {
     // Create a user and get a refresh token
     const refreshTokenSecret: {
       buffer: SecureBuffer<string>;
@@ -333,9 +356,11 @@ export class User {
    * @param username The username of the user.
    *
    * ```
-   * const org = await Org.create(await Connection.create(await AuthInfo.create('fooUser')));
-   * const user: User = await User.init(org);
-   * const fields: UserFields = await user.retrieve('boris@thecat.com')
+   * const username = 'boris@thecat.com';
+   * const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({ username })});
+   * const org = await Org.create({ connection });
+   * const user: User = await User.create({ org });
+   * const fields: UserFields = await user.retrieve(username);
    * ```
    */
   public async retrieve(username: string): Promise<UserFields> {
@@ -458,7 +483,6 @@ export namespace User {
    * Standard User profile.
    */
   export interface Options {
-    templateUser: string;
-    newUserName?: string;
+    org: Org;
   }
 }
