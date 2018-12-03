@@ -15,8 +15,8 @@ If you are interested in contributing, please take a look at the [CONTRIBUTING](
 
 # Related Docs and Repositories
 
-- [@salesforce/command](https://github.com/forcedotcom/cli-packages/tree/master/packages/command) - Contains the base Salesforce CLI command, `SfdxCommand`.
-- [@salesforce/plugin-generator](https://github.com/forcedotcom/sfdx-plugin-generate) - The generator plug-in for building plug-ins for the Salesforce CLI.
+- [@salesforce/command](https://github.com/forcedotcom/cli-packages/tree/master/packages/command) - Contains base Salesforce CLI command, `SfdxCommand`.
+- [@salesforce/plugin-generator](https://github.com/forcedotcom/sfdx-plugin-generate) - The generator plug-in for building plug-ins for Salesforce CLI.
 
 # Using TestSetup
 
