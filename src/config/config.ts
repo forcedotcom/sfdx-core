@@ -231,7 +231,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * Initializer for supported config types.
    */
   protected async init(): Promise<void> {
-    await super.init();
     if (!Config.messages) {
       Config.messages = Messages.loadMessages('@salesforce/core', 'config');
     }
@@ -272,6 +271,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     }
 
     Config.propertyConfigMap = keyBy(Config.allowedProperties, 'key');
+    // Super ConfigFile calls read, which has a dependecy on crypto, which finally has a dependency on
+    // Config.propertyConfigMap being set. This is why init is called after the setup.
+    await super.init();
   }
 
   /**
