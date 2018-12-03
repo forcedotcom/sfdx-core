@@ -1,3 +1,6 @@
+[![NPM](https://img.shields.io/npm/v/@salesforce/core.svg)](https://www.npmjs.com/package/@salesforce/core)
+[![CircleCI](https://circleci.com/gh/forcedotcom/sfdx-core.svg?style=svg&circle-token=2377ca31221869e9d13448313620486da80e595f)](https://circleci.com/gh/forcedotcom/sfdx-core)
+
 # Description
 
 The @salesforce/core library provides client-side management of Salesforce DX projects, org authentication, connections to Salesforce APIs, and other utilities. Much of the core functionality that powers the Salesforcedx plug-ins comes from this library. You can use this functionality in your plug-ins, too.
@@ -6,14 +9,14 @@ The @salesforce/core library provides client-side management of Salesforce DX pr
 
 See the [API documentation](https://forcedotcom.github.io/sfdx-core/).
 
-## Contributing 
+## Contributing
 
 If you are interested in contributing, please take a look at the [CONTRIBUTING](https://github.com/forcedotcom/sfdx-core/blob/develop/CONTRIBUTING.md) guide.
 
 # Related Docs and Repositories
 
-* @forcedotcom/cli-packages - Base Salesforce CLI command
-* @forcedotcom/sfdx-plugin-generate - The generator plug-in for building plug-ins for Salesforce CLI
+- @forcedotcom/cli-packages - Base Salesforce CLI command
+- @forcedotcom/sfdx-plugin-generate - The generator plug-in for building plug-ins for Salesforce CLI
 
 # Using TestSetup
 
@@ -101,7 +104,7 @@ describe('Using the built in Sinon sandbox.', () => {
 
 ### Testing Expected Failures
 
-It's important to have negative tests that ensure proper error handling. With *shouldThrow* it's easy to test for expected async rejections.
+It's important to have negative tests that ensure proper error handling. With _shouldThrow_ it's easy to test for expected async rejections.
 
 ```typescript
 import { SfdxError } from '@salesforce/core';
