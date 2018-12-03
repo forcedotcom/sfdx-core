@@ -5,7 +5,7 @@ import { StreamingClient } from '../../src/status/streamingClient';
 
 import { RequestInfo } from 'jsforce';
 
-JSON.stringify({
+export const streamingClientExamples = {
   classDoc: async () => {
     const streamProcessor = (message: JsonMap): StatusResult => {
       const payload = ensureJsonMap(message.payload);
@@ -43,4 +43,4 @@ JSON.stringify({
       console.log(`id: ${JSON.stringify(ensureString(id), null, 4)}`);
     });
   }
-});
+};

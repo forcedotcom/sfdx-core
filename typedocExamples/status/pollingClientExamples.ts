@@ -2,7 +2,7 @@ import { Duration } from '@salesforce/kit';
 import { StatusResult } from '../../src/status/client';
 import { PollingClient } from '../../src/status/pollingClient';
 
-JSON.stringify({
+export const pollingClientExamples = {
   classDoc: async () => {
     const options: PollingClient.Options = {
       async poll(): Promise<StatusResult> {
@@ -15,4 +15,4 @@ JSON.stringify({
     const pollResult = await client.subscribe();
     console.log(`pollResult: ${pollResult}`);
   }
-});
+};

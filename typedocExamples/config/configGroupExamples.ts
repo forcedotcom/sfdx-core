@@ -1,6 +1,6 @@
 import { ConfigGroup } from '../../src/config/configGroup';
 
-JSON.stringify({
+export const configGroupExamples = {
   classDoc: async () => {
     class MyPluginConfig extends ConfigGroup<ConfigGroup.Options> {
       public static getFileName(): string {
@@ -13,4 +13,4 @@ JSON.stringify({
     myConfig.setInGroup('myKey', 'myvalue', 'all'); // Manually set in another group.
     await myConfig.write();
   }
-});
+};
