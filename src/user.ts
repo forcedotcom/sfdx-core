@@ -138,6 +138,8 @@ async function _retrieveProfileId(name: string, connection: Connection): Promise
  * ```
  */
 export class DefaultUserFields extends AsyncCreatable<DefaultUserFields.Options> {
+
+  // Initialized in init
   private logger!: Logger;
   private userFields!: UserFields;
 
