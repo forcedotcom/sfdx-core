@@ -1,3 +1,6 @@
+[![NPM](https://img.shields.io/npm/v/@salesforce/core.svg)](https://www.npmjs.com/package/@salesforce/core)
+[![CircleCI](https://circleci.com/gh/forcedotcom/sfdx-core.svg?style=svg&circle-token=2377ca31221869e9d13448313620486da80e595f)](https://circleci.com/gh/forcedotcom/sfdx-core)
+
 # Description
 
 The @salesforce/core library provides client-side management of Salesforce DX projects, org authentication, connections to Salesforce APIs, and other utilities. Much of the core functionality that powers the Salesforcedx plug-ins comes from this library. You can use this functionality in your plug-ins, too.
@@ -6,20 +9,20 @@ The @salesforce/core library provides client-side management of Salesforce DX pr
 
 See the [API documentation](https://forcedotcom.github.io/sfdx-core/).
 
-## Contributing 
+## Contributing
 
 If you are interested in contributing, please take a look at the [CONTRIBUTING](https://github.com/forcedotcom/sfdx-core/blob/develop/CONTRIBUTING.md) guide.
 
 # Related Docs and Repositories
 
-* @forcedotcom/cli-packages - Base Salesforce CLI command
-* @forcedotcom/sfdx-plugin-generate - The generator plug-in for building plug-ins for Salesforce CLI
+- [@salesforce/command](https://github.com/forcedotcom/cli-packages/tree/master/packages/command) - Contains base Salesforce CLI command, `SfdxCommand`.
+- [@salesforce/plugin-generator](https://github.com/forcedotcom/sfdx-plugin-generate) - The generator plug-in for building plug-ins for Salesforce CLI.
 
 # Using TestSetup
 
 The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components. This feature allows unit tests to execute without needing to make API calls to salesforce.com.
 
-### Mocking AuthInfo
+## Mocking AuthInfo
 
 Here you can mock authorization for a Salesforce scratch org.
 
@@ -76,11 +79,11 @@ describe('Mocking a force server call', () => {
 });
 ```
 
-### Using the Built-in Sinon Sandboxes
+## Using the Built-in Sinon Sandboxes
 
 sfdx-core uses Sinon as its underlying mocking system. If you're unfamiliar with Sinon and it's sandboxing concept you can find more information here:
 https://sinonjs.org/
-Sinon stubs and spys must be cleaned up after test invocations. To ease the use of Sinon with sfdx core we've exposed our sandbox in TestSetup. After adding your own stubs and/or spys they will automatically be cleaned up after each test using mocha's afterEach method.
+Sinon `stub`s and `spy`s must be cleaned up after test invocations. To ease the use of Sinon with sfdx core we've exposed our sandbox in TestSetup. After adding your own `stub`s and/or `spy`s they will automatically be cleaned up after each test using mocha's afterEach method.
 
 ```typescript
 import { strictEqual } from 'assert';
@@ -99,9 +102,9 @@ describe('Using the built in Sinon sandbox.', () => {
 });
 ```
 
-### Testing Expected Failures
+## Testing Expected Failures
 
-It's important to have negative tests that ensure proper error handling. With *shouldThrow* it's easy to test for expected async rejections.
+It's important to have negative tests that ensure proper error handling. With `shouldThrow` it's easy to test for expected async rejections.
 
 ```typescript
 import { SfdxError } from '@salesforce/core';
@@ -125,7 +128,7 @@ describe('Testing for expected errors', () => {
 });
 ```
 
-### Testing Log Lines
+## Testing Log Lines
 
 It's also useful to check expected values and content from log lines. TestSetup configures the sfdx-core logger to use an in memory LogLine storage structure. These can be easily accessed from tests.
 
