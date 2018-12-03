@@ -3,7 +3,7 @@ import { AnyJson } from '@salesforce/ts-types';
 import { URL } from 'url';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
 
-JSON.stringify({
+export const myDomainResolverExamples = {
   classDoc: async () => {
     const options: MyDomainResolver.Options = {
       url: new URL('http://mydomain.salesforce.com'),
@@ -15,4 +15,4 @@ JSON.stringify({
     const ipAddress: AnyJson = await resolver.resolve();
     console.log(`Successfully resolved host: ${options.url} to address: ${ipAddress}`);
   }
-});
+};
