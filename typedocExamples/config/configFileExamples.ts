@@ -1,6 +1,6 @@
 import { ConfigFile } from '../../src/config/configFile';
 
-JSON.stringify({
+export const configFileExamples = {
   classDoc: async () => {
     class MyConfig extends ConfigFile<ConfigFile.Options> {
       public static getFileName(): string {
@@ -13,4 +13,4 @@ JSON.stringify({
     myConfig.set('mykey', 'myvalue');
     await myConfig.write();
   }
-});
+};

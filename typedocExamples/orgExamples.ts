@@ -3,7 +3,7 @@ import { Connection } from '../src/connection';
 import { Org } from '../src/org';
 
 // tslint:disable
-JSON.stringify({
+export const orgExamples = {
   classDoc: async () => {
     // Email username
     const org1: Org = await Org.create({ aliasOrUsername: 'foo@example.com' }); //tslint:disable-line:no-unused-variable
@@ -20,4 +20,4 @@ JSON.stringify({
     console.log(org2);
     console.log(org3);
   }
-});
+};

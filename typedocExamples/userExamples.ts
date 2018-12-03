@@ -4,7 +4,7 @@ import { Org } from '../src/org';
 import { Connection } from '../src/connection';
 import { AuthInfo } from '../src/authInfo';
 
-JSON.stringify({
+export const userExamples = {
   defaultUserFieldsClassDoc: async () => {
     const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({username: 'user@example.com'})});
     const org: Org = await Org.create({ connection });
@@ -42,4 +42,4 @@ JSON.stringify({
     const fields: UserFields = await user.retrieve(username);
     console.log(fields);
   }
-});
+};

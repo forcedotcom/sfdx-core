@@ -2,7 +2,7 @@
 import { AuthInfo } from '../src/authInfo';
 import { Connection } from '../src/connection';
 
-JSON.stringify({
+export const connectionExamples = {
   classDoc: async () => {
     // Uses latest API version
     const connection = await Connection.create({
@@ -14,4 +14,4 @@ JSON.stringify({
     connection.setApiVersion('42.0');
     connection.query('SELECT Name from Account');
   }
-});
+};
