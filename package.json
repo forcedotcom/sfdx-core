@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@salesforce/kit": "0.13.3",
+    "@salesforce/ts-sinon": "0.2.7",
     "@salesforce/ts-types": "0.19.3",
     "@types/jsforce": "1.8.12",
     "bunyan-sfdx-no-dtrace": "1.8.2",
@@ -49,7 +50,6 @@
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "0.3.7",
-    "@salesforce/ts-sinon": "0.2.7",
     "@types/debug": "0.0.30",
     "@types/jsen": "0.0.19",
     "@types/jsonwebtoken": "7.2.8",
