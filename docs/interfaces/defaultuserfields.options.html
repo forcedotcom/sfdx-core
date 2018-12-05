@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>PermissionSetAssignmentFields | @salesforce/core</title>
+	<title>Options | @salesforce/core</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,10 +52,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="permissionsetassignmentfields.html">PermissionSetAssignmentFields</a>
+					<a href="../classes/defaultuserfields.html">DefaultUserFields</a>
+				</li>
+				<li>
+					<a href="defaultuserfields.options.html">Options</a>
 				</li>
 			</ul>
-			<h1>Interface PermissionSetAssignmentFields</h1>
+			<h1>Interface Options</h1>
 		</div>
 	</div>
 </header>
@@ -65,7 +68,8 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Map of fields name for a permission set assignment</p>
+						<p>Used to initialize default values for fields based on a templateUser user. This user will be part of the
+						Standard User profile.</p>
 					</div>
 				</div>
 			</section>
@@ -73,7 +77,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">PermissionSetAssignmentFields</span>
+						<span class="target">Options</span>
 					</li>
 				</ul>
 			</section>
@@ -84,8 +88,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="permissionsetassignmentfields.html#assigneeid" class="tsd-kind-icon">assignee<wbr>Id</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="permissionsetassignmentfields.html#permissionsetid" class="tsd-kind-icon">permission<wbr>Set<wbr>Id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="defaultuserfields.options.html#newusername" class="tsd-kind-icon">new<wbr>User<wbr>Name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="defaultuserfields.options.html#templateuser" class="tsd-kind-icon">template<wbr>User</a></li>
 							</ul>
 						</section>
 					</div>
@@ -94,22 +98,22 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="assigneeid" class="tsd-anchor"></a>
-					<h3>assignee<wbr>Id</h3>
-					<div class="tsd-signature tsd-kind-icon">assignee<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="newusername" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> new<wbr>User<wbr>Name</h3>
+					<div class="tsd-signature tsd-kind-icon">new<wbr>User<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/83bce69/src/permissionSetAssignment.ts#L21">permissionSetAssignment.ts:21</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/83bce69/src/user.ts#L191">user.ts:191</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="permissionsetid" class="tsd-anchor"></a>
-					<h3>permission<wbr>Set<wbr>Id</h3>
-					<div class="tsd-signature tsd-kind-icon">permission<wbr>Set<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="templateuser" class="tsd-anchor"></a>
+					<h3>template<wbr>User</h3>
+					<div class="tsd-signature tsd-kind-icon">template<wbr>User<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/83bce69/src/permissionSetAssignment.ts#L22">permissionSetAssignment.ts:22</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/83bce69/src/user.ts#L190">user.ts:190</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -127,14 +131,28 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-interface">
-						<a href="permissionsetassignmentfields.html" class="tsd-kind-icon">Permission<wbr>Set<wbr>Assignment<wbr>Fields</a>
+					<li class="current tsd-kind-class">
+						<a href="../classes/defaultuserfields.html" class="tsd-kind-icon">Default<wbr>User<wbr>Fields</a>
 						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="permissionsetassignmentfields.html#assigneeid" class="tsd-kind-icon">assignee<wbr>Id</a>
+							<li class="current tsd-kind-interface tsd-parent-kind-class">
+								<a href="defaultuserfields.options.html" class="tsd-kind-icon">Options</a>
+								<ul>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="defaultuserfields.options.html#newusername" class="tsd-kind-icon">new<wbr>User<wbr>Name</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="defaultuserfields.options.html#templateuser" class="tsd-kind-icon">template<wbr>User</a>
+									</li>
+								</ul>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="permissionsetassignmentfields.html#permissionsetid" class="tsd-kind-icon">permission<wbr>Set<wbr>Id</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/defaultuserfields.html#getfields" class="tsd-kind-icon">get<wbr>Fields</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+								<a href="../classes/defaultuserfields.html#init" class="tsd-kind-icon">init</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+								<a href="../classes/defaultuserfields.html#create" class="tsd-kind-icon">create</a>
 							</li>
 						</ul>
 					</li>
