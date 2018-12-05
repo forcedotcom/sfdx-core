@@ -60,13 +60,22 @@
 	<div class="row">
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
-				<h1 id="salesforce-dx-core-library">Salesforce DX Core Library</h1>
-				<p>This library provides client-side management of Salesforce DX projects, org authentication, connections to Salesforce APIs, and other various utilities.</p>
+				<p><a href="https://www.npmjs.com/package/@salesforce/core"><img src="https://img.shields.io/npm/v/@salesforce/core.svg" alt="NPM"></a>
+				<a href="https://circleci.com/gh/forcedotcom/sfdx-core"><img src="https://circleci.com/gh/forcedotcom/sfdx-core.svg?style=svg&circle-token=2377ca31221869e9d13448313620486da80e595f" alt="CircleCI"></a></p>
+				<h1 id="description">Description</h1>
+				<p>The @salesforce/core library provides client-side management of Salesforce DX projects, org authentication, connections to Salesforce APIs, and other utilities. Much of the core functionality that powers the Salesforcedx plug-ins comes from this library. You can use this functionality in your plug-ins, too.</p>
+				<h1 id="usage">Usage</h1>
 				<p>See the <a href="https://forcedotcom.github.io/sfdx-core/">API documentation</a>.</p>
-				<h2 id="using-testsetup">Using TestSetup</h2>
-				<p>The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components.
-				This feature allows unit tests to execute without needing to make API calls to salesforce.com.</p>
-				<h3 id="mocking-authinfo">Mocking AuthInfo</h3>
+				<h2 id="contributing">Contributing</h2>
+				<p>If you are interested in contributing, please take a look at the <a href="https://github.com/forcedotcom/sfdx-core/blob/develop/CONTRIBUTING.md">CONTRIBUTING</a> guide.</p>
+				<h1 id="related-docs-and-repositories">Related Docs and Repositories</h1>
+				<ul>
+					<li><a href="https://github.com/forcedotcom/cli-packages/tree/master/packages/command">@salesforce/command</a> - Contains base Salesforce CLI command, <code>SfdxCommand</code>.</li>
+					<li><a href="https://github.com/forcedotcom/sfdx-plugin-generate">@salesforce/plugin-generator</a> - The generator plug-in for building plug-ins for Salesforce CLI.</li>
+				</ul>
+				<h1 id="using-testsetup">Using TestSetup</h1>
+				<p>The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components. This feature allows unit tests to execute without needing to make API calls to salesforce.com.</p>
+				<h2 id="mocking-authinfo">Mocking AuthInfo</h2>
 				<p>Here you can mock authorization for a Salesforce scratch org.</p>
 				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { strictEqual } <span class="hljs-keyword">from</span> <span class="hljs-string">'assert'</span>;
 <span class="hljs-keyword">import</span> { MockTestOrgData, testSetup } <span class="hljs-keyword">from</span> <span class="hljs-string">'@salesforce/core/lib/testSetup'</span>;
@@ -84,8 +93,7 @@ describe(<span class="hljs-string">'Mocking Auth data'</span>, <span class="hljs
     strictEqual(auth.getUsername(), testData.username);
   });
 });</code></pre>
-				<p>After having a valid AuthInfo object you can then create fake connections to a Salesforce.com scratch org. This allows
-				for writing tests that can validate result responses for SOQL queries and REST endpoints.</p>
+				<p>After having a valid AuthInfo object you can then create fake connections to a Salesforce.com scratch org. This allows for writing tests that can validate result responses for SOQL queries and REST endpoints.</p>
 				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { AuthInfo, Connection, SfdxError } <span class="hljs-keyword">from</span> <span class="hljs-string">'@salesforce/core'</span>;
 <span class="hljs-keyword">import</span> { MockTestOrgData, testSetup } <span class="hljs-keyword">from</span> <span class="hljs-string">'@salesforce/core/lib/testSetup'</span>;
 <span class="hljs-keyword">import</span> { AnyJson, ensureJsonMap, JsonMap } <span class="hljs-keyword">from</span> <span class="hljs-string">'@salesforce/ts-types'</span>;
@@ -115,13 +123,10 @@ describe(<span class="hljs-string">'Mocking a force server call'</span>, <span c
     deepStrictEqual(result, records);
   });
 });</code></pre>
-				<h3 id="using-the-builtin-sinon-sandboxes">Using the Builtin Sinon Sandboxes</h3>
-				<p>sfdx-core uses Sinon as it&#39;s underlying mocking system. If you&#39;re unfamiliar with Sinon and it&#39;s sand-boxing concept you
-				can find more information here:</p>
-				<p><a href="https://sinonjs.org/">https://sinonjs.org/</a></p>
-				<p>Sinon stubs and spys must be cleaned up after test invocations. To ease the use of Sinon with sfdx core we&#39;ve exposed our
-					sandbox in TestSetup. After adding your own stubs and/or spys they will automatically be cleaned up after each test
-				using mocha&#39;s afterEach method.</p>
+				<h2 id="using-the-built-in-sinon-sandboxes">Using the Built-in Sinon Sandboxes</h2>
+				<p>sfdx-core uses Sinon as its underlying mocking system. If you&#39;re unfamiliar with Sinon and it&#39;s sandboxing concept you can find more information here:
+					<a href="https://sinonjs.org/">https://sinonjs.org/</a>
+				Sinon <code>stub</code>s and <code>spy</code>s must be cleaned up after test invocations. To ease the use of Sinon with sfdx core we&#39;ve exposed our sandbox in TestSetup. After adding your own <code>stub</code>s and/or <code>spy</code>s they will automatically be cleaned up after each test using mocha&#39;s afterEach method.</p>
 				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { strictEqual } <span class="hljs-keyword">from</span> <span class="hljs-string">'assert'</span>;
 
 <span class="hljs-keyword">import</span> { testSetup } <span class="hljs-keyword">from</span> <span class="hljs-string">'@salesforce/core/lib/testSetup'</span>;
@@ -136,9 +141,8 @@ describe(<span class="hljs-string">'Using the built in Sinon sandbox.'</span>, <
     strictEqual(os.platform(), unsupportedOS);
   });
 });</code></pre>
-				<h3 id="testing-expected-failures">Testing Expected Failures</h3>
-				<p>It&#39;s important to have negative tests that ensure proper error handling. With <em>shouldThrow</em> it&#39;s easy to test for expected
-				async rejections.</p>
+				<h2 id="testing-expected-failures">Testing Expected Failures</h2>
+				<p>It&#39;s important to have negative tests that ensure proper error handling. With <code>shouldThrow</code> it&#39;s easy to test for expected async rejections.</p>
 				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { SfdxError } <span class="hljs-keyword">from</span> <span class="hljs-string">'@salesforce/core'</span>;
 <span class="hljs-keyword">import</span> { shouldThrow } <span class="hljs-keyword">from</span> <span class="hljs-string">'@salesforce/core/lib/testSetup'</span>;
 <span class="hljs-keyword">import</span> { strictEqual } <span class="hljs-keyword">from</span> <span class="hljs-string">'assert'</span>;
@@ -158,9 +162,8 @@ describe(<span class="hljs-string">'Testing for expected errors'</span>, <span c
     }
   });
 });</code></pre>
-				<h3 id="testing-log-lines">Testing Log Lines</h3>
-				<p>It&#39;s also useful to check expected values and content from log lines. TestSetup configures the sfdx-core logger to use an
-				in memory LogLine storage structure. These can be easily accessed from tests.</p>
+				<h2 id="testing-log-lines">Testing Log Lines</h2>
+				<p>It&#39;s also useful to check expected values and content from log lines. TestSetup configures the sfdx-core logger to use an in memory LogLine storage structure. These can be easily accessed from tests.</p>
 				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { Logger, LogLine } <span class="hljs-keyword">from</span> <span class="hljs-string">'@salesforce/core'</span>;
 <span class="hljs-keyword">import</span> { testSetup } <span class="hljs-keyword">from</span> <span class="hljs-string">'@salesforce/core/lib/testSetup'</span>;
 <span class="hljs-keyword">import</span> { strictEqual } <span class="hljs-keyword">from</span> <span class="hljs-string">'assert'</span>;

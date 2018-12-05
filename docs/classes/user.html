@@ -74,7 +74,12 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">User</span>
+						<span class="tsd-signature-type">AsyncCreatable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/user.options.html" class="tsd-signature-type">Options</a><span class="tsd-signature-symbol">&gt;</span>
+						<ul class="tsd-hierarchy">
+							<li>
+								<span class="target">User</span>
+							</li>
+						</ul>
 					</li>
 				</ul>
 			</section>
@@ -93,10 +98,11 @@
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="user.html#assignpassword" class="tsd-kind-icon">assign<wbr>Password</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="user.html#assignpermissionsets" class="tsd-kind-icon">assign<wbr>Permission<wbr>Sets</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="user.html#create" class="tsd-kind-icon">create</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="user.html#createuser" class="tsd-kind-icon">create<wbr>User</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="user.html#init" class="tsd-kind-icon">init</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="user.html#retrieve" class="tsd-kind-icon">retrieve</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static"><a href="user.html#create" class="tsd-kind-icon">create</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="user.html#generatepasswordutf8" class="tsd-kind-icon">generate<wbr>Password<wbr>Utf8</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="user.html#init" class="tsd-kind-icon">init</a></li>
 							</ul>
 						</section>
 					</div>
@@ -114,7 +120,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/user.ts#L224">user.ts:224</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/83bce69/src/user.ts#L245">user.ts:245</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -152,7 +158,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/user.ts#L258">user.ts:258</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/83bce69/src/user.ts#L281">user.ts:281</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -172,10 +178,12 @@
 									<h5>permsetNames: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>An array of permission set names.</p>
-										<pre><code>const org = await <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Org</span>.</span></span>create(await <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Connection</span>.</span></span>create(await <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">AuthInfo</span>.</span></span>create('standardUser')));
-const user: User = await <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">User</span>.</span></span>init(org)
-const fields: UserFields = await user.retrieve<span class="hljs-literal">()</span>;
-await user.assign<span class="hljs-constructor">PermissionSets(<span class="hljs-params">fields</span>.<span class="hljs-params">id</span>, ['<span class="hljs-params">sfdx</span>', '<span class="hljs-params">approver</span>'])</span>;</code></pre>
+										<pre><code>const username = <span class="hljs-string">'user@example.com'</span>;
+const <span class="hljs-keyword">connection</span>: <span class="hljs-keyword">Connection</span> = await <span class="hljs-keyword">Connection</span>.<span class="hljs-keyword">create</span>({authInfo: await AuthInfo.<span class="hljs-keyword">create</span>({ username })});
+const org = await Org.<span class="hljs-keyword">create</span>({ <span class="hljs-keyword">connection</span> });
+const <span class="hljs-keyword">user</span>: <span class="hljs-keyword">User</span> = await <span class="hljs-keyword">User</span>.<span class="hljs-keyword">create</span>({ org });
+const fields: UserFields = await <span class="hljs-keyword">user</span>.retrieve(username);
+await <span class="hljs-keyword">user</span>.assignPermissionSets(fields.id, [<span class="hljs-string">'sfdx'</span>, <span class="hljs-string">'approver'</span>]);</code></pre>
 									</div>
 								</li>
 							</ul>
@@ -184,16 +192,16 @@ await user.assign<span class="hljs-constructor">PermissionSets(<span class="hljs
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="create" class="tsd-anchor"></a>
-					<h3>create</h3>
+					<a name="createuser" class="tsd-anchor"></a>
+					<h3>create<wbr>User</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">create<span class="tsd-signature-symbol">(</span>fields<span class="tsd-signature-symbol">: </span><a href="../globals.html#userfields" class="tsd-signature-type">UserFields</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="authinfo.html" class="tsd-signature-type">AuthInfo</a><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">create<wbr>User<span class="tsd-signature-symbol">(</span>fields<span class="tsd-signature-symbol">: </span><a href="../globals.html#userfields" class="tsd-signature-type">UserFields</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="authinfo.html" class="tsd-signature-type">AuthInfo</a><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/user.ts#L293">user.ts:293</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/83bce69/src/user.ts#L318">user.ts:318</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -212,14 +220,39 @@ await user.assign<span class="hljs-constructor">PermissionSets(<span class="hljs
 									<h5>fields: <a href="../globals.html#userfields" class="tsd-signature-type">UserFields</a></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>The required fields for creating a user.</p>
-										<pre><code><span class="hljs-keyword">const</span> org = <span class="hljs-keyword">await</span> Org.create(<span class="hljs-keyword">await</span> Connection.create(<span class="hljs-keyword">await</span> AuthInfo.create(<span class="hljs-string">'fooUser'</span>)));
-<span class="hljs-keyword">const</span> fields: UserFields = <span class="hljs-keyword">await</span> DefaultUserFields.init(org);
-<span class="hljs-keyword">const</span> user: User = <span class="hljs-keyword">await</span> User.init(org);
-<span class="hljs-keyword">const</span> info: AuthInfo = <span class="hljs-keyword">await</span> user.create(fields);</code></pre>
+										<pre><code>const <span class="hljs-keyword">connection</span>: <span class="hljs-keyword">Connection</span> = await <span class="hljs-keyword">Connection</span>.<span class="hljs-keyword">create</span>({authInfo: await AuthInfo.<span class="hljs-keyword">create</span>({username: <span class="hljs-string">'user@example.com'</span>})});
+const org = await Org.<span class="hljs-keyword">create</span>({ <span class="hljs-keyword">connection</span> });
+
+const defaultUserFields = await DefaultUserFields.<span class="hljs-keyword">create</span>({ templateUser: <span class="hljs-string">'devhub_user@example.com'</span> });
+const <span class="hljs-keyword">user</span>: <span class="hljs-keyword">User</span> = await <span class="hljs-keyword">User</span>.<span class="hljs-keyword">create</span>({ org });
+const <span class="hljs-keyword">info</span>: AuthInfo = await <span class="hljs-keyword">user</span>.createUser(defaultUserFields.getFields());</code></pre>
 									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="authinfo.html" class="tsd-signature-type">AuthInfo</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a name="init" class="tsd-anchor"></a>
+					<h3>init</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+						<li class="tsd-signature tsd-kind-icon">init<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Overrides AsyncCreatable.init</p>
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/83bce69/src/user.ts#L233">user.ts:233</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Initialize a new instance of a user and return it.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -233,7 +266,7 @@ await user.assign<span class="hljs-constructor">PermissionSets(<span class="hljs
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/user.ts#L341">user.ts:341</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/83bce69/src/user.ts#L368">user.ts:368</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -247,13 +280,61 @@ await user.assign<span class="hljs-constructor">PermissionSets(<span class="hljs
 									<h5>username: <span class="tsd-signature-type">string</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>The username of the user.</p>
-										<pre><code><span class="hljs-keyword">const</span> org = <span class="hljs-keyword">await</span> Org.create(<span class="hljs-keyword">await</span> Connection.create(<span class="hljs-keyword">await</span> AuthInfo.create(<span class="hljs-string">'fooUser'</span>)));
-<span class="hljs-keyword">const</span> user: User = <span class="hljs-keyword">await</span> User.init(org);
-<span class="hljs-keyword">const</span> fields: UserFields = <span class="hljs-keyword">await</span> user.retrieve(<span class="hljs-string">'boris@thecat.com'</span>)</code></pre>
+										<pre><code>const username = <span class="hljs-string">'boris@thecat.com'</span>;
+const <span class="hljs-keyword">connection</span>: <span class="hljs-keyword">Connection</span> = await <span class="hljs-keyword">Connection</span>.<span class="hljs-keyword">create</span>({authInfo: await AuthInfo.<span class="hljs-keyword">create</span>({ username })});
+const org = await Org.<span class="hljs-keyword">create</span>({ <span class="hljs-keyword">connection</span> });
+const <span class="hljs-keyword">user</span>: <span class="hljs-keyword">User</span> = await <span class="hljs-keyword">User</span>.<span class="hljs-keyword">create</span>({ org });
+const fields: UserFields = await <span class="hljs-keyword">user</span>.retrieve(username);</code></pre>
 									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#userfields" class="tsd-signature-type">UserFields</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+					<a name="create" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> create</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">create&lt;P, T&gt;<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from AsyncCreatable.create</p>
+								<ul>
+									<li>Defined in @salesforce/kit/lib/creatable.d.ts:10</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Asynchronously constructs and initializes a new instance of a concrete subclass with the provided <code>options</code>.</p>
+								</div>
+							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>P</h4>
+								</li>
+								<li>
+									<h4>T<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">AsyncCreatable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">&gt;</span></h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>this: <span class="tsd-signature-type">object</span></h5>
+									<ul class="tsd-parameters">
+									</ul>
+								</li>
+								<li>
+									<h5>options: <span class="tsd-signature-type">P</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>An options object providing initialization params to the async constructor.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -267,7 +348,7 @@ await user.assign<span class="hljs-constructor">PermissionSets(<span class="hljs
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/user.ts#L195">user.ts:195</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/83bce69/src/user.ts#L204">user.ts:204</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -276,37 +357,6 @@ await user.assign<span class="hljs-constructor">PermissionSets(<span class="hljs
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <a href="securebuffer.html" class="tsd-signature-type">SecureBuffer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
-					<a name="init" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> init</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
-						<li class="tsd-signature tsd-kind-icon">init<span class="tsd-signature-symbol">(</span>org<span class="tsd-signature-symbol">: </span><a href="org.html" class="tsd-signature-type">Org</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="user.html" class="tsd-signature-type">User</a><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/98a7e5f/src/user.ts#L182">user.ts:182</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Initialize a new instance of a user and return it.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>org: <a href="org.html" class="tsd-signature-type">Org</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>The org associated with the user.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="user.html" class="tsd-signature-type">User</a><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -337,16 +387,19 @@ await user.assign<span class="hljs-constructor">PermissionSets(<span class="hljs
 								<a href="user.html#assignpermissionsets" class="tsd-kind-icon">assign<wbr>Permission<wbr>Sets</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="user.html#create" class="tsd-kind-icon">create</a>
+								<a href="user.html#createuser" class="tsd-kind-icon">create<wbr>User</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+								<a href="user.html#init" class="tsd-kind-icon">init</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="user.html#retrieve" class="tsd-kind-icon">retrieve</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
-								<a href="user.html#generatepasswordutf8" class="tsd-kind-icon">generate<wbr>Password<wbr>Utf8</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
+								<a href="user.html#create" class="tsd-kind-icon">create</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
-								<a href="user.html#init" class="tsd-kind-icon">init</a>
+								<a href="user.html#generatepasswordutf8" class="tsd-kind-icon">generate<wbr>Password<wbr>Utf8</a>
 							</li>
 						</ul>
 					</li>
