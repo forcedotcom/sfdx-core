@@ -39,7 +39,7 @@ describe('Mocking Auth data', () => {
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    const auth: AuthInfo = await AuthInfo.create(testData.username);
+    const auth: AuthInfo = await AuthInfo.create({ username: testData.username });
     strictEqual(auth.getUsername(), testData.username);
   });
 });
@@ -72,7 +72,9 @@ describe('Mocking a force server call', () => {
         return Promise.reject(new SfdxError(`Unexpected request: ${_request.url}`));
       }
     };
-    const connection: Connection = await Connection.create(await AuthInfo.create(testData.username));
+    const connection: Connection = await Connection.create({
+      authInfo: await AuthInfo.create({ username: testData.username })
+    });
     const result: QueryResult<{}> = await connection.query('select Id From Account');
     deepStrictEqual(result, records);
   });
