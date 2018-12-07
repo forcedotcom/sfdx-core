@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "license": "BSD-3-Clause",
@@ -46,7 +46,7 @@
     "jsforce": "1.8.4",
     "jsonwebtoken": "7.0.0",
     "mkdirp": "0.5.1",
-    "sfdx-faye": "^1.0.8"
+    "sfdx-faye": "^1.0.9"
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "0.3.7",
