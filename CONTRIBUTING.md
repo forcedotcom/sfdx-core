@@ -12,7 +12,7 @@
 1. Write appropriate tests for your changes. Try to achieve at least 95% code coverage on any new code. No pull request will be accepted without unit tests.
 1. Sign CLA (see [CLA](#cla) below).
 1. Send us a pull request when you are done. We'll review your code, suggest any
-   needed changes, and merge it in.f
+   needed changes, and merge it in.
 
 ### CLA
 
