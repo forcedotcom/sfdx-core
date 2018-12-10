@@ -413,9 +413,11 @@ export class Org extends AsyncCreatable<Org.Options> {
         this.options.aliasOrUsername = aliasOrUsername || undefined;
       }
 
+      // resolve alias
+      const username = await Aliases.fetch(this.options.aliasOrUsername) || this.options.aliasOrUsername;
       // If no username is provided AuthInfo will throw an SfdxError.
       this.connection = await Connection.create({
-        authInfo: await AuthInfo.create({ username: this.options.aliasOrUsername })
+        authInfo: await AuthInfo.create({ username })
       });
     } else {
       this.connection = this.options.connection;
