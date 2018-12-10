@@ -67,9 +67,12 @@ describe('Org Tests', () => {
     });
 
     it('should create an org from an alias', async () => {
-      const ALIAS = 'foo';
-      await Aliases.parseAndUpdate([`${ALIAS}=${testData.username}`]);
-      const org: Org = await Org.create({ aliasOrUsername: ALIAS });
+      const config = await testData.getConfig();
+      delete config.username;
+      $$.configStubs.AuthInfoConfig = { contents: config };
+      const alias = 'foo';
+      await Aliases.parseAndUpdate([`${alias}=${testData.username}`]);
+      const org: Org = await Org.create({ aliasOrUsername: alias });
       expect(org.getUsername()).to.eq(testData.username);
     });
 

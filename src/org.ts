@@ -413,9 +413,12 @@ export class Org extends AsyncCreatable<Org.Options> {
         this.options.aliasOrUsername = aliasOrUsername || undefined;
       }
 
-      // If no username is provided AuthInfo will throw an SfdxError.
+      const username = this.options.aliasOrUsername;
       this.connection = await Connection.create({
-        authInfo: await AuthInfo.create({ username: this.options.aliasOrUsername })
+        // If no username is provided or resolvable from an alias, AuthInfo will throw an SfdxError.
+        authInfo: await AuthInfo.create({
+          username: (username != null && (await Aliases.fetch(username))) || username
+        })
       });
     } else {
       this.connection = this.options.connection;
@@ -532,5 +535,4 @@ export namespace Org {
     // PASSWORD = 'password',
     // USER_PROFILE_NAME = 'userProfileName'
   }
-
 }
