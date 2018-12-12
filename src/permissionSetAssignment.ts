@@ -6,8 +6,8 @@
  */
 
 import { mapKeys, upperFirst } from '@salesforce/kit';
-import { getString, Optional } from '@salesforce/ts-types';
-import { ErrorResult, QueryResult, RecordResult, SuccessResult } from 'jsforce';
+import { getString, hasArray, Optional } from '@salesforce/ts-types';
+import { QueryResult, RecordResult } from 'jsforce';
 import { EOL } from 'os';
 import { Logger } from './logger';
 import { Messages } from './messages';
@@ -95,33 +95,29 @@ export class PermissionSetAssignment {
       permissionSetId
     };
 
-    let createResponse: SuccessResult | ErrorResult | RecordResult[];
+    let createResponse: RecordResult;
 
     createResponse = await this.org
       .getConnection()
       .sobject('PermissionSetAssignment')
       .create(mapKeys(assignment, (value: unknown, key: string) => upperFirst(key)));
 
-    if ((createResponse as RecordResult[]).length) {
-      throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'unexpectedType');
-    } else {
-      if ((createResponse as SuccessResult).success) {
-        return assignment;
-      } else {
-        const messages: Messages = Messages.loadMessages('@salesforce/core', 'permissionSetAssignment');
-        let message = messages.getMessage('errorsEncounteredCreatingAssignment');
+    if (hasArray(createResponse, 'errors')) {
+      const messages: Messages = Messages.loadMessages('@salesforce/core', 'permissionSetAssignment');
+      let message = messages.getMessage('errorsEncounteredCreatingAssignment');
 
-        const errors = (createResponse as ErrorResult).errors;
-        if (errors && errors.length > 0) {
-          message = `${message}:${EOL}`;
-          errors.forEach(_message => {
-            message = `${message}${_message}${EOL}`;
-          });
-          throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');
-        } else {
-          throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'notSuccessfulButNoErrorsReported');
-        }
+      const errors = createResponse.errors;
+      if (errors && errors.length > 0) {
+        message = `${message}:${EOL}`;
+        errors.forEach(_message => {
+          message = `${message}${_message}${EOL}`;
+        });
+        throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');
+      } else {
+        throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'notSuccessfulButNoErrorsReported');
       }
+    } else {
+      return assignment;
     }
   }
 
