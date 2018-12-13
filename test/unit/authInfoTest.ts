@@ -44,11 +44,14 @@ describe('AuthInfo No fs mock', () => {
         getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(null, TEST_KEY.key)
       })
     );
-    stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'read').callsFake(async () => {
-      const error = new SfdxError('Test error', 'testError');
-      set(error, 'code', 'ENOENT');
-      return Promise.reject(error);
-    });
+    // withArgs(true) to hit await config.read(true) with the unit test in class AuthInfo
+    stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'read')
+      .withArgs(true)
+      .callsFake(async () => {
+        const error = new SfdxError('Test error', 'testError');
+        set(error, 'code', 'ENOENT');
+        return Promise.reject(error);
+      });
   });
 
   it('missing config', async () => {
@@ -233,11 +236,14 @@ describe('AuthInfo', () => {
       return Promise.resolve();
     });
 
-    stubMethod($$.SANDBOX, ConfigFile.prototype, 'read').callsFake(async function(this: AuthInfoConfig) {
-      console.log(`this.constructor.name: ${JSON.stringify(this.constructor.name, null, 4)}`);
-      this.setContentsFromObject(await testMetadata.fetchConfigInfo(this.getPath()));
-      return this.getContents();
-    });
+    // Only count the MyConfig.read(false) call in the MyConfig.create method
+    stubMethod($$.SANDBOX, ConfigFile.prototype, 'read')
+      .withArgs(false)
+      .callsFake(async function(this: AuthInfoConfig) {
+        console.log(`this.constructor.name: ${JSON.stringify(this.constructor.name, null, 4)}`);
+        this.setContentsFromObject(await testMetadata.fetchConfigInfo(this.getPath()));
+        return this.getContents();
+      });
 
     const crypto = await Crypto.create();
     testMetadata.encryptedAccessToken = crypto.encrypt(testMetadata.accessToken) || '';

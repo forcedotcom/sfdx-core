@@ -630,6 +630,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         // Fetch from the persisted auth file
         try {
           const config: AuthInfoConfig = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
+          // Throw ENOENT if the config file doesn't exist
+          await config.read(true);
           authConfig = config.toObject();
         } catch (e) {
           if (e.code === 'ENOENT') {

@@ -212,7 +212,8 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
 
     this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);
 
-    await this.read();
+    // Explicit mention false as parameter to support stubMethod.withArgs() in unit tests
+    await this.read(false);
   }
 }
 
