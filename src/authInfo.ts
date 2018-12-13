@@ -444,7 +444,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
     this.logger.debug(dataToSave);
 
-    const config = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
+    const options = AuthInfoConfig.getOptions(username);
+    options.throwOnNotFound = false;
+    const config = await AuthInfoConfig.create(options);
     config.setContentsFromObject(dataToSave);
     await config.write();
 

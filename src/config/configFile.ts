@@ -182,7 +182,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   /**
    * Used to initialize asynchronous components.
    */
-  protected async init(): Promise<void> {
+  protected async init(throwOnNotFound?: boolean): Promise<void> {
     let defaultOptions = {};
     try {
       defaultOptions = ConfigFile.getDefaultOptions();
@@ -211,8 +211,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     }
 
     this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);
-
-    await this.read();
+    await this.read(throwOnNotFound);
   }
 }
 
