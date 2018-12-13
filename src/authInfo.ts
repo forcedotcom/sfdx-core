@@ -444,9 +444,10 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
     this.logger.debug(dataToSave);
 
-    const options = AuthInfoConfig.getOptions(username);
-    options.throwOnNotFound = false;
-    const config = await AuthInfoConfig.create(options);
+    const config = await AuthInfoConfig.create({
+      ...AuthInfoConfig.getOptions(username),
+      throwOnNotFound: false
+    });
     config.setContentsFromObject(dataToSave);
     await config.write();
 
@@ -631,7 +632,10 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       } else {
         // Fetch from the persisted auth file
         try {
-          const config: AuthInfoConfig = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
+          const config: AuthInfoConfig = await AuthInfoConfig.create({
+            ...AuthInfoConfig.getOptions(username),
+            throwOnNotFound: true
+          });
           authConfig = config.toObject();
         } catch (e) {
           if (e.code === 'ENOENT') {
