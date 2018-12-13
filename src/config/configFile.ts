@@ -182,7 +182,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   /**
    * Used to initialize asynchronous components.
    *
-   * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFound' }* If the username.json file is not found when
+   * **Throws** *`Error`{ code: 'ENOENT' }* If the username.json file is not found when
    * options.throwOnNotFound is true.
    */
   protected async init(): Promise<void> {
