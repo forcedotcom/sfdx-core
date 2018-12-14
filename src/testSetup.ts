@@ -337,7 +337,7 @@ export const testSetup = once(_testSetup);
  *
  * **See** {@link shouldThrow}
  */
-export const unexpectedResult: SfdxError = new SfdxError('This code was expected to failed', 'UnexpectedResult');
+export const unexpectedResult: SfdxError = new SfdxError('This code was expected to fail', 'UnexpectedResult');
 
 /**
  * Use for this testing pattern:

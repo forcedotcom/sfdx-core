@@ -234,7 +234,6 @@ describe('AuthInfo', () => {
     });
 
     stubMethod($$.SANDBOX, ConfigFile.prototype, 'read').callsFake(async function(this: AuthInfoConfig) {
-      console.log(`this.constructor.name: ${JSON.stringify(this.constructor.name, null, 4)}`);
       this.setContentsFromObject(await testMetadata.fetchConfigInfo(this.getPath()));
       return this.getContents();
     });
