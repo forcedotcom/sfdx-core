@@ -181,6 +181,9 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
 
   /**
    * Used to initialize asynchronous components.
+   *
+   * **Throws** *`Error`{ code: 'ENOENT' }* If the username.json file is not found when
+   * options.throwOnNotFound is true.
    */
   protected async init(): Promise<void> {
     let defaultOptions = {};
@@ -211,8 +214,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     }
 
     this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);
-
-    await this.read();
+    await this.read(this.options.throwOnNotFound);
   }
 }
 
@@ -241,5 +243,9 @@ export namespace ConfigFile {
      * The full file path where the config file is stored.
      */
     filePath?: string;
+    /**
+     * Indicates if init should throw if the corresponding config file is not found.
+     */
+    throwOnNotFound?: boolean;
   }
 }

@@ -503,13 +503,13 @@ export class GenericKeychainAccess implements PasswordStore {
         // file not found
         if (fileAccessError.code === 'ENOENT') {
           // create the file
-          _writeFile.call(this, opts, fn);
+          await _writeFile.call(this, opts, fn);
         } else {
           fn(fileAccessError);
         }
       } else {
         // the existing file validated. we can write the updated key
-        _writeFile.call(this, opts, fn);
+        await _writeFile.call(this, opts, fn);
       }
     });
   }
