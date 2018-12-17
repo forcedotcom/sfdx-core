@@ -23,7 +23,7 @@ _refs:
     command: yarn build
   test: &test
     name: Testing
-    command: yarn ci-test
+    command: yarn test
   coverage: &coverage
     name: Submitting code coverage to codecov
     command: |
