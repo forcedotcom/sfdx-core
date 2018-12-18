@@ -496,12 +496,10 @@
   resolved "https://registry.npmjs.org/@types/jsen/-/jsen-0.0.19.tgz#f6f7ed4b390a88a52e8ac965945a761cbd9c83e9"
   integrity sha512-0XpFleNckrCh6X240Zelb91R7I9REYIx6VFTbxWCn/ontOreJe0+/HYTXyPSDOYKbx6s/Uo44UQjSAulk6jAjw==
 
-"@types/jsforce@1.8.16":
-  version "1.8.16"
-  resolved "https://registry.npmjs.org/@types/jsforce/-/jsforce-1.8.16.tgz#9324ac4e2c798be693796f931d61a32f4fb38fa3"
-  integrity sha512-tMi1pkSmLtJBNAPu+i9RycoYL9dUfnhVWcF8/6ygK/Wpe1igaWSCBu7nORlVnJW6BC9mLLsl/B0TUIGICDJutg==
-  dependencies:
-    "@types/events" "*"
+"@types/jsforce@1.9.2":
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/@types/jsforce/-/jsforce-1.9.2.tgz#a321866dcb7c9c4c57a1d794d54ec52e3f07ff0b"
+  integrity sha512-ZRRPNf/e44QnFI8VEsPxzrM/+Y5vx/HGsMI8qE4JvBHDkSfoFWAdZ93uW6Oh3sHmcoShexcoTH9gufihTgYBLQ==
 
 "@types/jsonwebtoken@7.2.8":
   version "7.2.8"
