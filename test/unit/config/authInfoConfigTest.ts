@@ -1,12 +1,12 @@
-import { expect } from 'chai';
-
 import { set } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
-
-import { AuthInfoConfig } from '../../src/config/authInfoConfig';
-import { ConfigFile } from '../../src/config/configFile';
-import { SfdxError } from '../../src/sfdxError';
-import { shouldThrow, testSetup } from '../../src/testSetup';
+import { expect } from 'chai';
+import { AuthInfoConfig } from '../../../src/config/authInfoConfig';
+import { ConfigFile } from '../../../src/config/configFile';
+import { SfdxError } from '../../../src/sfdxError';
+import { shouldThrow, testSetup } from '../../../src/testSetup';
+import { fs } from '../../../src/util/fs';
+import { ErrnoException } from '../helpers';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -29,6 +29,7 @@ describe('AuthInfoConfigTest', () => {
   });
 
   it('init should throw', async () => {
+    $$.SANDBOX.stub(fs, 'readJsonMap').throws(new ErrnoException('File not found', { code: 'ENOENT' }));
     options.throwOnNotFound = true;
     try {
       await shouldThrow(AuthInfoConfig.create(options));
