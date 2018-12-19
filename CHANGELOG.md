@@ -1,3 +1,13 @@
+## [1.1.1](https://github.com/forcedotcom/sfdx-core/compare/v1.1.0...v1.1.1) (2018-12-19)
+
+
+### Bug Fixes
+
+* bump kit, ts-types, and ts-sinon versions ([1f088b4](https://github.com/forcedotcom/sfdx-core/commit/1f088b4))
+* downgrade jsforce to match sfdx toolbelt ([5fba254](https://github.com/forcedotcom/sfdx-core/commit/5fba254))
+* fix jsforce types reference ([407e3df](https://github.com/forcedotcom/sfdx-core/commit/407e3df))
+* migrate from /docs to gh-pages branch ([7d36139](https://github.com/forcedotcom/sfdx-core/commit/7d36139))
+
 # [1.1.0](https://github.com/forcedotcom/sfdx-core/compare/v1.0.3...v1.1.0) (2018-12-14)
 
 
