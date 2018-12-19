@@ -6,6 +6,7 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "build": "yarn sfdx-build",
+    "ci-docs": "yarn sfdx-ci-docs",
     "clean": "yarn sfdx-clean",
     "clean-all": "yarn sfdx-clean all",
     "compile": "yarn sfdx-compile",
@@ -37,9 +38,9 @@
     }
   },
   "dependencies": {
-    "@salesforce/kit": "0.13.3",
-    "@salesforce/ts-sinon": "0.2.7",
-    "@salesforce/ts-types": "0.19.3",
+    "@salesforce/kit": "0.13.6",
+    "@salesforce/ts-sinon": "0.2.10",
+    "@salesforce/ts-types": "0.20.2",
     "@types/jsforce": "1.9.2",
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "debug": "^3.1.0",

@@ -1,7 +1,8 @@
 {
   "extends": "@salesforce/dev-config/nyc",
-  "lines": 90,
-  "statements": 90,
-  "functions": 90,
-  "branches": 71
+  "lines": 88,
+  "statements": 87,
+  "functions": 89,
+  "branches": 74,
+  "exclude": ["**/*.d.ts", "test/**/*.ts"]
 }
