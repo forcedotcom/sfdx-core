@@ -45,7 +45,7 @@
     "bunyan-sfdx-no-dtrace": "1.8.2",
     "debug": "^3.1.0",
     "jsen": "0.6.6",
-    "jsforce": "1.9.1",
+    "jsforce": "1.8.5",
     "jsonwebtoken": "7.0.0",
     "mkdirp": "0.5.1",
     "sfdx-faye": "^1.0.9"

@@ -498,7 +498,7 @@
 
 "@types/jsforce@1.9.2":
   version "1.9.2"
-  resolved "https://registry.npmjs.org/@types/jsforce/-/jsforce-1.9.2.tgz#a321866dcb7c9c4c57a1d794d54ec52e3f07ff0b"
+  resolved "https://registry.yarnpkg.com/@types/jsforce/-/jsforce-1.9.2.tgz#a321866dcb7c9c4c57a1d794d54ec52e3f07ff0b"
   integrity sha512-ZRRPNf/e44QnFI8VEsPxzrM/+Y5vx/HGsMI8qE4JvBHDkSfoFWAdZ93uW6Oh3sHmcoShexcoTH9gufihTgYBLQ==
 
 "@types/jsonwebtoken@7.2.8":
@@ -842,11 +842,6 @@ balanced-match@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
-
-base64-url@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.npmjs.org/base64-url/-/base64-url-2.2.0.tgz#4bbd6a825df1be522d39e566a721ede51144041a"
-  integrity sha512-Y4qHHAE+rWjmAFPQmHPiiD+hWwM/XvuFLlP6kVxlwZJK7rjiE2uIQR9tZ37iEr1E6iCj9799yxMAmiXzITb3lQ==
 
 base@^0.11.1:
   version "0.11.2"
@@ -3160,12 +3155,11 @@ jsesc@^2.5.1:
   resolved "https://registry.npmjs.org/jsesc/-/jsesc-2.5.2.tgz#80564d2e483dacf6e8ef209650a67df3f0c283a4"
   integrity sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==
 
-jsforce@1.9.1:
-  version "1.9.1"
-  resolved "https://registry.npmjs.org/jsforce/-/jsforce-1.9.1.tgz#a112fb0b9ece04fe14d2e14bc72a76e46ff544de"
-  integrity sha512-AP4wVnz8guvF8zvHdk2xA2DZxvOq3MGbLNPu7tPVOyO38D1qt+psWpYmHgncjkmy9LoSk58K+dU56YE38zqMlg==
+jsforce@1.8.5:
+  version "1.8.5"
+  resolved "https://registry.npmjs.org/jsforce/-/jsforce-1.8.5.tgz#9d5b876e82147c5803ddada2186f0c0a49937e79"
+  integrity sha1-nVuHboIUfFgD3a2iGG8MCkmTfnk=
   dependencies:
-    base64-url "^2.2.0"
     co-prompt "^1.0.0"
     coffeescript "^1.10.0"
     commander "^2.9.0"
