@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/forcedotcom/sfdx-core/compare/v1.1.1...v1.1.2) (2018-12-21)
+
+
+### Bug Fixes
+
+* update contrib doc to trigger build ([28c6945](https://github.com/forcedotcom/sfdx-core/commit/28c6945))
+
 ## [1.1.1](https://github.com/forcedotcom/sfdx-core/compare/v1.1.0...v1.1.1) (2018-12-19)
 
 
