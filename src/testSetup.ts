@@ -293,6 +293,9 @@ const _testSetup = (sinon?: any) => {
       }
       return testContext.fakeConnectionRequest.call(this, request, options);
     });
+
+    // Always start with the default and tests beforeEach or it methods can override it.
+    testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
   });
 
   afterEach(() => {
