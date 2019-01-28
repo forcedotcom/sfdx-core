@@ -623,4 +623,25 @@ describe('Org Tests', () => {
       });
     });
   });
+
+  describe('determineDevHub', () => {
+    it('should return true and cache if dev hub', async () => {
+      const org: Org = await Org.create({ aliasOrUsername: testData.username });
+      $$.fakeConnectionRequest = async (request: AnyJson, options?: AnyJson) => {
+        return { records: [] };
+      };
+      expect(org.isDevHubOrg()).to.be.false;
+      expect(await org.determineIfDevHubOrg()).to.be.true;
+      expect(org.isDevHubOrg()).to.be.true;
+    });
+    it('should return false and cache if dev hub', async () => {
+      const org: Org = await Org.create({ aliasOrUsername: testData.username });
+      $$.fakeConnectionRequest = async (request: AnyJson, options?: AnyJson) => {
+        throw new Error();
+      };
+      expect(org.isDevHubOrg()).to.be.false;
+      expect(await org.determineIfDevHubOrg()).to.be.false;
+      expect(org.isDevHubOrg()).to.be.false;
+    });
+  });
 });
