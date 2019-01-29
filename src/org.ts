@@ -241,12 +241,20 @@ export class Org extends AsyncCreatable<Org.Options> {
    *
    * Use a cached value. If the cached value is not set, then check access to the
    * ScratchOrgInfo object to determine if the org is a dev hub.
+   *
+   * @param forceServerCheck Ignore the cached value and go straight to the server
+   * which will be required if the org flips on the dev hub after the value is already
+   * cached locally.
    */
-  public async determineIfDevHubOrg() {
+  public async determineIfDevHubOrg(forceServerCheck = false) {
+    const cachedIsDevHub = this.getField(Org.Fields.IS_DEV_HUB);
+    if (!forceServerCheck && isBoolean(cachedIsDevHub)) {
+      return cachedIsDevHub;
+    }
     if (this.isDevHubOrg()) {
       return true;
     }
-
+    this.logger.debug('isDevHub is not cached - querying server...');
     const conn = this.getConnection();
     let isDevHub = false;
     try {
