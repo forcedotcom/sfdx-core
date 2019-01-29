@@ -16,6 +16,7 @@ import {
   getNumber,
   getString,
   isArray,
+  isBoolean,
   isString,
   JsonArray,
   JsonMap,
@@ -143,7 +144,7 @@ export class Org extends AsyncCreatable<Org.Options> {
         orgForUser = await Org.create({ connection });
       }
 
-      const orgType = (await this.isDevHubOrg()) ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
+      const orgType = this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
 
       const configInfo: ConfigInfo = await orgForUser.configAggregator.getInfo(orgType);
 
@@ -208,7 +209,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    */
   public async getDevHubOrg(): Promise<Optional<Org>> {
     if (this.isDevHubOrg()) {
-      return Promise.resolve(this);
+      return this;
     } else if (this.getField(Org.Fields.DEV_HUB_USERNAME)) {
       const devHubUsername = ensureString(this.getField(Org.Fields.DEV_HUB_USERNAME));
       return Org.create({
@@ -221,9 +222,57 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Returns `true` if the org is a Dev Hub.
+   *
+   * **Note** This relies on a cached value in the auth file. If that property
+   * is not cached, this method will **always return false even if the org is a
+   * dev hub**. If you need accuracy, use the {@link Org.determineIfDevhub} method.
    */
   public isDevHubOrg(): boolean {
-    return this.getField(Org.Fields.IS_DEV_HUB) as boolean;
+    const isDevHub = this.getField(Org.Fields.IS_DEV_HUB);
+    if (isBoolean(isDevHub)) {
+      return isDevHub;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Returns `true` if the org is a Dev Hub.
+   *
+   * Use a cached value. If the cached value is not set, then check access to the
+   * ScratchOrgInfo object to determine if the org is a dev hub.
+   *
+   * @param forceServerCheck Ignore the cached value and go straight to the server
+   * which will be required if the org flips on the dev hub after the value is already
+   * cached locally.
+   */
+  public async determineIfDevHubOrg(forceServerCheck = false) {
+    const cachedIsDevHub = this.getField(Org.Fields.IS_DEV_HUB);
+    if (!forceServerCheck && isBoolean(cachedIsDevHub)) {
+      return cachedIsDevHub;
+    }
+    if (this.isDevHubOrg()) {
+      return true;
+    }
+    this.logger.debug('isDevHub is not cached - querying server...');
+    const conn = this.getConnection();
+    let isDevHub = false;
+    try {
+      await conn.query('SELECT Id FROM ScratchOrgInfo');
+      isDevHub = true;
+    } catch (err) {
+      /* Not a dev hub */
+    }
+
+    const username = ensure(this.getUsername());
+    const auth = await AuthInfo.create({ username });
+    await auth.save({ isDevHub });
+    AuthInfo.clearCache(username);
+    // Reset the connection with the updated auth file
+    this.connection = await Connection.create({
+      authInfo: await AuthInfo.create({ username })
+    });
+    return isDevHub;
   }
 
   /**

@@ -1,43 +1,35 @@
 {
-    // Use IntelliSense to learn about possible Node.js debug attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach to Remote",
-            "address": "localhost",
-            "port": 9229,
-            "localRoot": "${workspaceFolder}"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch exports",
-            "preLaunchTask": "compile",
-            "program": "${workspaceRoot}/lib/exports.js",
-            "sourceMaps": true,
-            "outFiles": [
-                "${workspaceRoot}/out/**/*.js"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Unit Tests",
-            "program": "${workspaceRoot}/node_modules/.bin/_mocha",
-            "preLaunchTask": "compile",
-            "args": [
-                "--timeout",
-                "999999",
-                "dist/test/unit/**/*.js"
-            ],
-            "sourceMaps": true,
-            "outFiles": [
-                "${workspaceRoot}/dist/**/*.js"
-            ]
-        }
-    ]
+  // Use IntelliSense to learn about possible Node.js debug attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Remote",
+      "address": "localhost",
+      "port": 9229,
+      "skipFiles": ["<node_internals>/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch exports",
+      "preLaunchTask": "compile",
+      "program": "${workspaceRoot}/lib/exports.js",
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/out/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Unit Tests",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
+      "preLaunchTask": "compile",
+      "args": ["--timeout", "999999", "dist/test/unit/**/*.js"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/dist/**/*.js"]
+    }
+  ]
 }
