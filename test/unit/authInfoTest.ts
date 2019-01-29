@@ -1010,13 +1010,18 @@ describe('AuthInfo', () => {
       const decryptedActualFields = configFileWrite.firstCall.thisValue.toObject();
       decryptedActualFields.accessToken = crypto.decrypt(decryptedActualFields.accessToken);
       decryptedActualFields.refreshToken = crypto.decrypt(decryptedActualFields.refreshToken);
+      decryptedActualFields.clientSecret = crypto.decrypt(decryptedActualFields.clientSecret);
       const expectedFields = {
         accessToken: changedData.accessToken,
         instanceUrl: testMetadata.instanceUrl,
         username,
         orgId: authResponse.id.split('/')[0],
         loginUrl: refreshTokenConfig.loginUrl,
-        refreshToken: refreshTokenConfig.refreshToken
+        refreshToken: refreshTokenConfig.refreshToken,
+        // clientId and clientSecret are now stored in the file, even the defaults.
+        // We just hard code the legacy values here to ensure old auth files will still work.
+        clientId: 'SalesforceDevelopmentExperience',
+        clientSecret: '1384510088588713504'
       };
       // Note that this also verifies the clientId and clientSecret are not persisted,
       // and that data is encrypted when saved (because we have to decrypt it to verify here).

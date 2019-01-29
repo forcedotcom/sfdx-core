@@ -220,9 +220,16 @@ function _parseIdUrl(idUrl: string) {
   };
 }
 
+// Legacy. The connected app info is owned by the thing that
+// creates new AuthInfos. Currently that is the auth:* commands which
+// aren't owned by this core library. These values need to be here
+// for any old auth files where the id and secret aren't stored.
+//
+// Ideally, this would be removed at some point in the distant future
+// when all auth files now have the clientId stored in it.
 const DEFAULT_CONNECTED_APP_INFO = {
-  clientId: 'SalesforceDevelopmentExperience',
-  clientSecret: '1384510088588713504'
+  legacyClientId: 'SalesforceDevelopmentExperience',
+  legacyClientSecret: '1384510088588713504'
 };
 
 class AuthInfoCrypto extends Crypto {
@@ -436,12 +443,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
     const dataToSave = cloneJson(this.fields);
 
-    // Do not persist the default client ID and secret
-    if (dataToSave.clientId === DEFAULT_CONNECTED_APP_INFO.clientId) {
-      delete dataToSave.clientId;
-      delete dataToSave.clientSecret;
-    }
-
     this.logger.debug(dataToSave);
 
     const config = await AuthInfoConfig.create({
@@ -505,7 +506,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       opts = {
         oauth2: {
           loginUrl: instanceUrl || 'https://login.salesforce.com',
-          clientId: this.fields.clientId || DEFAULT_CONNECTED_APP_INFO.clientId,
+          clientId: this.fields.clientId || DEFAULT_CONNECTED_APP_INFO.legacyClientId,
           redirectUri: 'http://localhost:1717/OauthRedirect'
         },
         accessToken,
@@ -746,8 +747,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   // Build OAuth config for a refresh token auth flow
   private async buildRefreshTokenConfig(options: OAuth2Options): Promise<AuthFields> {
+    // Ideally, this would be removed at some point in the distant future when all auth files
+    // now have the clientId stored in it.
     if (!options.clientId) {
-      Object.assign(options, DEFAULT_CONNECTED_APP_INFO);
+      options.clientId = DEFAULT_CONNECTED_APP_INFO.legacyClientId;
+      options.clientSecret = DEFAULT_CONNECTED_APP_INFO.legacyClientSecret;
     }
 
     const oauth2 = new OAuth2(options);
