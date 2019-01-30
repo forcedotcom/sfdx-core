@@ -225,7 +225,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    *
    * **Note** This relies on a cached value in the auth file. If that property
    * is not cached, this method will **always return false even if the org is a
-   * dev hub**. If you need accuracy, use the {@link Org.determineIfDevhub} method.
+   * dev hub**. If you need accuracy, use the {@link Org.determineIfDevHubOrg} method.
    */
   public isDevHubOrg(): boolean {
     const isDevHub = this.getField(Org.Fields.IS_DEV_HUB);
