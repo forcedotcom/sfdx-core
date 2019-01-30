@@ -1,3 +1,16 @@
+# [1.2.0](https://github.com/forcedotcom/sfdx-core/compare/v1.1.2...v1.2.0) (2019-01-30)
+
+
+### Bug Fixes
+
+* do not query server if cached ([d7ccf99](https://github.com/forcedotcom/sfdx-core/commit/d7ccf99))
+* update to allow stored connected app info ([66ea057](https://github.com/forcedotcom/sfdx-core/commit/66ea057))
+
+
+### Features
+
+* determine if a org is a dev hub ([586d7ba](https://github.com/forcedotcom/sfdx-core/commit/586d7ba))
+
 ## [1.1.2](https://github.com/forcedotcom/sfdx-core/compare/v1.1.1...v1.1.2) (2018-12-21)
 
 
