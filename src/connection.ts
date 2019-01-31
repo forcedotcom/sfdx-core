@@ -68,7 +68,7 @@ export class Connection extends JSForceConnection {
    * @param options Constructor options.
    */
   public static async create(
-    this: { new (options: Connection.Options): Connection },
+    this: new (options: Connection.Options) => Connection,
     options: Connection.Options
   ): Promise<Connection> {
     const _aggregator = options.configAggregator || (await ConfigAggregator.create());
