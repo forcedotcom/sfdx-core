@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/forcedotcom/sfdx-core/compare/v1.2.0...v1.2.1) (2019-01-31)
+
+
+### Bug Fixes
+
+* update docs ([789816e](https://github.com/forcedotcom/sfdx-core/commit/789816e))
+
 # [1.2.0](https://github.com/forcedotcom/sfdx-core/compare/v1.1.2...v1.2.0) (2019-01-30)
 
 
