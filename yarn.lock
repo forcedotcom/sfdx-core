@@ -287,23 +287,23 @@
     universal-user-agent "^2.0.0"
     url-template "^2.0.8"
 
-"@salesforce/dev-config@^1.4.2":
-  version "1.4.2"
-  resolved "https://registry.npmjs.org/@salesforce/dev-config/-/dev-config-1.4.2.tgz#8c5fe7083add4b9b26c76f86bb7dd9d19215b209"
-  integrity sha512-2dRrQpx39Lzuu2uOBroK/taX29VuypeReuEUz2XSS9OHSZm33KfIt57UYnMXrRWHg16NjquROSsTrhYU4RG9HQ==
+"@salesforce/dev-config@^1.4.4":
+  version "1.4.4"
+  resolved "http://10.252.156.164:4880/@salesforce%2fdev-config/-/dev-config-1.4.4.tgz#89f8283781c525491ed4ed8c4e38ea4b94621373"
+  integrity sha512-XDyT4DqAJb+IvD6i1Ly3vuOptwsqSkvC0tnDRkGsVi0R+YinR1HU7dbaJtaw/wSDFW8Me5HKseBqcUN6tu1P3w==
   dependencies:
     tslint "^5"
     tslint-microsoft-contrib "^5"
     typescript "3.1.6"
 
-"@salesforce/dev-scripts@0.3.9":
-  version "0.3.9"
-  resolved "https://registry.npmjs.org/@salesforce/dev-scripts/-/dev-scripts-0.3.9.tgz#13485ae8d2fbf2a3499202eb3f0b2eb707d2cbb0"
-  integrity sha512-Zo8oAhlIap51edrNC2E8aXEznxSrPC+i52D7ZZQ6vXZyDaOrckWmaNbfBdmOh0niKlTJy/XEM6ohxrDVe9IJXA==
+"@salesforce/dev-scripts@0.3.12":
+  version "0.3.12"
+  resolved "http://10.252.156.164:4880/@salesforce%2fdev-scripts/-/dev-scripts-0.3.12.tgz#0139478e0e792154a5e2bf0a1c03c06dab0c0b9d"
+  integrity sha512-bL2hFZ2Ac0cm0Av3LtlugQNiNlCSCeZPUThy6JJtB5A9de9mgEovMa1GyDxKCOOGPGJ3hk2JuToHaJVWiq9T3g==
   dependencies:
     "@commitlint/cli" "^7"
     "@commitlint/config-conventional" "^7"
-    "@salesforce/dev-config" "^1.4.2"
+    "@salesforce/dev-config" "^1.4.4"
     "@types/chai" "^4"
     "@types/mocha" "^5"
     "@types/node" "^10"

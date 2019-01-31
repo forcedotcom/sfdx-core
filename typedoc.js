@@ -1,3 +1,4 @@
 module.exports = {
-  theme: 'default'
+  theme: 'default',
+  readme: 'EXPORTED.md'
 };
