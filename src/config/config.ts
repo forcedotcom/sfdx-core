@@ -64,7 +64,7 @@ export interface ConfigPropertyMetaInput {
  * config values. Instead use {@link ConfigAggregator}
  *
  * ```
- * const localConfig = await Config.create();
+ * const localConfig = await Config.create({});
  * localConfig.set('defaultusername', 'username@company.org');
  * await localConfig.write();
  * ```
@@ -124,7 +124,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     return {
       isGlobal,
       isState: true,
-      filename: filename || Config.getFileName()
+      filename: filename || this.getFileName()
     };
   }
 

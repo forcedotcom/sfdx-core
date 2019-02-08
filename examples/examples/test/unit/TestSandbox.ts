@@ -1,6 +1,6 @@
-import { strictEqual } from 'assert';
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
+import { strictEqual } from 'assert';
 import * as os from 'os';
 
 const $$ = testSetup();

@@ -287,19 +287,26 @@ function base64UrlEscape(base64Encoded: string): string {
  *
  * ```
  * // Creating a new authentication file.
- * const authInfo = await AuthInfo.create(myAdminUsername, {
+ * const authInfo = await AuthInfo.create({
+ *   username: myAdminUsername,
+ *   oauth2Options: {
  *     loginUrl, authCode, clientId, clientSecret
- * });
+ *   }
+ * );
  * authInfo.save();
  *
  * // Creating an authorization info with an access token.
- * const authInfo = await AuthInfo.create(accessToken);
+ * const authInfo = await AuthInfo.create({
+ *   username: accessToken
+ * });
  *
  * // Using an existing authentication file.
- * const authInfo = await AuthInfo.create(myAdminUsername);
+ * const authInfo = await AuthInfo.create({
+ *   username: myAdminUsername
+ * });
  *
  * // Using the AuthInfo
- * const connection = await Connection.create(authInfo);
+ * const connection = await Connection.create({ authInfo });
  * ```
  */
 export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {

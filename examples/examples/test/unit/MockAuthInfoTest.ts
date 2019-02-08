@@ -1,6 +1,6 @@
-import { strictEqual } from 'assert';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { AuthInfo } from '@salesforce/core';
+import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { strictEqual } from 'assert';
 
 const $$ = testSetup();
 
@@ -10,7 +10,9 @@ describe('Mocking Auth data', () => {
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    const auth: AuthInfo = await AuthInfo.create(testData.username);
+    const auth: AuthInfo = await AuthInfo.create({
+      username: testData.username
+    });
     strictEqual(auth.getUsername(), testData.username);
   });
 });

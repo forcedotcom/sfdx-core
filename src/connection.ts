@@ -53,8 +53,8 @@ export interface Tooling extends JSForceTooling {
  * ```
  * // Uses latest API version
  * const connection = await Connection.create({
- *     authInfo: await AuthInfo.create({ username: 'myAdminUsername' })
- *   });
+ *   authInfo: await AuthInfo.create({ username: 'myAdminUsername' })
+ * });
  * connection.query('SELECT Name from Account');
  *
  * // Use different API version

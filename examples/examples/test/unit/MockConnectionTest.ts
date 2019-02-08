@@ -10,9 +10,11 @@ describe('Mocking an SFDX connection', () => {
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    const connection: Connection = await Connection.create(
-      await AuthInfo.create(testData.username)
-    );
+    const connection: Connection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: testData.username
+      })
+    });
     strictEqual(connection.accessToken, testData.accessToken);
   });
 });

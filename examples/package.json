@@ -4,7 +4,9 @@
   "description": "Examples using the SFDX Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "index.js",
   "license": "BSD-3-Clause",
-  "scripts": {},
+  "scripts": {
+    "test": "mocha examples/test/unit/** --opts examples/test/mocha.opts"
+  },
   "keywords": [
     "sfdx",
     "sfdx-core",
@@ -12,16 +14,16 @@
     "Salesforce CLI"
   ],
   "dependencies": {
-    "@salesforce/core": "^0.23.3",
+    "@salesforce/core": "^1",
     "chalk": "^2.4.1",
     "inquirer": "^6.0.0",
     "lodash": "^4.17.10",
-    "strip-ansi": "^4.0.0",
-    "@salesforce/ts-types": "0.14.0"
+    "strip-ansi": "^4.0.0"
   },
   "devDependencies": {
-    "@salesforce/dev-config": "^1.1.2",
-    "@salesforce/ts-sinon": "^0.2.2",
+    "@salesforce/ts-types": "^1",
+    "@salesforce/dev-config": "^1.4.4",
+    "@salesforce/ts-sinon": "^1",
     "@types/lodash": "^4.14.104",
     "@types/node": "^9.4.7",
     "@types/mocha": "^5.2.5",

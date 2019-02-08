@@ -52,7 +52,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     return {
       isGlobal,
       isState: true,
-      filename: filename || ConfigFile.getFileName()
+      filename: filename || this.getFileName()
     };
   }
 
@@ -182,14 +182,16 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   /**
    * Used to initialize asynchronous components.
    *
-   * **Throws** *`Error`{ code: 'ENOENT' }* If the username.json file is not found when
+   * **Throws** *`Error`{ code: 'ENOENT' }* If the {@link ConfigFile.getFilename} file is not found when
    * options.throwOnNotFound is true.
    */
   protected async init(): Promise<void> {
+    const statics = this.constructor as typeof ConfigFile;
     let defaultOptions = {};
     try {
-      defaultOptions = ConfigFile.getDefaultOptions();
+      defaultOptions = statics.getDefaultOptions();
     } catch (e) {
+      console.log(e);
       /* Some implementations don't let you call default options */
     }
 
