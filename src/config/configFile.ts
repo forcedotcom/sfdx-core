@@ -191,7 +191,6 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     try {
       defaultOptions = statics.getDefaultOptions();
     } catch (e) {
-      console.log(e);
       /* Some implementations don't let you call default options */
     }
 
