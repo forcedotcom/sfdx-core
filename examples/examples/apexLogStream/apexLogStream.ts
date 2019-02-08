@@ -1,11 +1,4 @@
-import {
-  AuthInfo,
-  DefaultStreamingOptions,
-  Org,
-  StatusResult,
-  StreamingClient,
-  StreamingOptions
-} from '@salesforce/core';
+import { AuthInfo, Org, StatusResult, StreamingClient } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import * as inquirer from 'inquirer';
@@ -13,31 +6,22 @@ import * as inquirer from 'inquirer';
 let org: Org;
 
 export async function run() {
-  function streamProcessor(message: JsonMap): StatusResult<string> {
-    console.log(
-      chalk.blue('Apex Log Found:'),
-      chalk.green(message.sobject['Id'])
-    );
-    console.log(
-      org
-        .getConnection()
-        .request(`/sobjects/ApexLog/${message.sobject['Id']}/Body`)
-    );
+  function streamProcessor(message: JsonMap): StatusResult {
+    console.log(chalk.blue('Apex Log Found:'), chalk.green(message.sobject['Id']));
+    console.log(org.getConnection().request(`/sobjects/ApexLog/${message.sobject['Id']}/Body`));
     // Listen forever to get all the logs until the stream timesout
     return { completed: false };
   }
 
   async function startStream(username) {
     org = await Org.create(username);
-    const options: StreamingOptions<string> = new DefaultStreamingOptions(
+    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
       org,
       '/systemTopic/Logging',
       streamProcessor
     );
 
-    const asyncStatusClient: StreamingClient<
-      string
-    > = await StreamingClient.init(options);
+    const asyncStatusClient = await StreamingClient.create(options);
 
     await asyncStatusClient.handshake();
     console.log('Handshaked!');

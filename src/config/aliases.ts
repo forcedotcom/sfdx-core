@@ -26,7 +26,7 @@ export enum AliasGroup {
  * **Note:** All aliases are stored at the global level.
  *
  * ```
- * const aliases = await Aliases.create();
+ * const aliases = await Aliases.create({});
  * aliases.set('myAlias', 'username@company.org');
  * await aliases.write();
  * // Shorthand to get an alias.
@@ -59,9 +59,10 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
    * Each element will be saved in the Aliases state file under the group.
    * @param group The group the alias belongs to. Defaults to ORGS.
    */
-  public static async parseAndUpdate(aliasKeyAndValues: string[],
-                                     group: AliasGroup = AliasGroup.ORGS): Promise<JsonMap> {
-
+  public static async parseAndUpdate(
+    aliasKeyAndValues: string[],
+    group: AliasGroup = AliasGroup.ORGS
+  ): Promise<JsonMap> {
     const newAliases: Dictionary<string> = {};
     if (aliasKeyAndValues.length === 0) {
       throw SfdxError.create('@salesforce/core', 'core', 'NoAliasesFound', []);
@@ -83,7 +84,7 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
   }
 
   /**
-   * Get an alias from a key and group. Shorthand for `Alias.create().get(key)`. Returns the promise resolved when the
+   * Get an alias from a key and group. Shorthand for `Alias.create({}).get(key)`. Returns the promise resolved when the
    * alias is created.
    * @param key The value of the alias to match.
    * @param group The group the alias belongs to. Defaults to Orgs.

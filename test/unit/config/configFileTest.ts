@@ -37,11 +37,6 @@ class TestConfig extends ConfigFile<ConfigFile.Options> {
   }
 
   private static testId: string = $$.uniqid();
-
-  public constructor(options: ConfigFile.Options) {
-    super(options);
-    options.filename = TestConfig.getFileName();
-  }
 }
 
 describe('Config', () => {

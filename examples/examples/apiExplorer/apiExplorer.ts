@@ -16,7 +16,7 @@ export async function run() {
 
   // Connect to the user
   const authInfo = await AuthInfo.create(connectionOrg);
-  const connection = await Connection.create(authInfo);
+  const connection = await Connection.create({ authInfo });
 
   console.log('Connected!\n');
 
@@ -28,9 +28,7 @@ export async function run() {
   // noinspection InfiniteLoopJS
   while (true) {
     try {
-      response = await connection.request(
-        await select('Select endpoint', options)
-      );
+      response = await connection.request(await select('Select endpoint', options));
       console.log('\n', chalk.green(JSON.stringify(response, null, 4)), '\n');
 
       // Only change the options if they are urls

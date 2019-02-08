@@ -5,14 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  AsyncCreatable,
-  lowerFirst,
-  mapKeys,
-  omit,
-  parseJsonMap,
-  upperFirst
-} from '@salesforce/kit';
+import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
 import {
   asJsonArray,
   asNumber,
@@ -129,7 +122,9 @@ async function _retrieveProfileId(name: string, connection: Connection): Promise
  * software development purposes.
  *
  * ```
- * const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({username: 'user@example.com'})});
+ * const connection: Connection = await Connection.create({
+ *   authInfo: await AuthInfo.create({ username: 'user@example.com' })
+ * });
  * const org: Org = await Org.create({ connection });
  * const options: DefaultUserFields.Options = {
  *   templateUser: org.getUsername()
@@ -138,7 +133,6 @@ async function _retrieveProfileId(name: string, connection: Connection): Promise
  * ```
  */
 export class DefaultUserFields extends AsyncCreatable<DefaultUserFields.Options> {
-
   // Initialized in init
   private logger!: Logger;
   private userFields!: UserFields;
@@ -197,7 +191,6 @@ export namespace DefaultUserFields {
  * See methods for examples.
  */
 export class User extends AsyncCreatable<User.Options> {
-
   /**
    * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
    */
@@ -271,7 +264,9 @@ export class User extends AsyncCreatable<User.Options> {
    *
    * ```
    * const username = 'user@example.com';
-   * const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({ username })});
+   * const connection: Connection = await Connection.create({
+   *   authInfo: await AuthInfo.create({ username })
+   * });
    * const org = await Org.create({ connection });
    * const user: User = await User.create({ org });
    * const fields: UserFields = await user.retrieve(username);
@@ -307,7 +302,9 @@ export class User extends AsyncCreatable<User.Options> {
    * @param fields The required fields for creating a user.
    *
    * ```
-   * const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({username: 'user@example.com'})});
+   * const connection: Connection = await Connection.create({
+   *   authInfo: await AuthInfo.create({ username: 'user@example.com' })
+   * });
    * const org = await Org.create({ connection });
    *
    * const defaultUserFields = await DefaultUserFields.create({ templateUser: 'devhub_user@example.com' });
@@ -359,7 +356,9 @@ export class User extends AsyncCreatable<User.Options> {
    *
    * ```
    * const username = 'boris@thecat.com';
-   * const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({ username })});
+   * const connection: Connection = await Connection.create({
+   *   authInfo: await AuthInfo.create({ username })
+   * });
    * const org = await Org.create({ connection });
    * const user: User = await User.create({ org });
    * const fields: UserFields = await user.retrieve(username);
