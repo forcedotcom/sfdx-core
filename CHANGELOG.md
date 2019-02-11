@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/forcedotcom/sfdx-core/compare/v1.2.1...v1.2.2) (2019-02-11)
+
+
+### Bug Fixes
+
+* use default options off the constructor ([368a5f1](https://github.com/forcedotcom/sfdx-core/commit/368a5f1))
+
 ## [1.2.1](https://github.com/forcedotcom/sfdx-core/compare/v1.2.0...v1.2.1) (2019-01-31)
 
 
