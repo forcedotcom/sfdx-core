@@ -161,7 +161,7 @@ function validateTimeout(newTime: Duration, existingTime: Duration) {
  *     };
  *   };
  *
- * const org = await Org.create();
+ * const org = await Org.create({});
  * const options = new StreamingClient.DefaultOptions(org, 'MyPushTopics', streamProcessor);
  *
  * const asyncStatusClient = await StreamingClient.create(options);

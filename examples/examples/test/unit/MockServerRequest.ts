@@ -19,17 +19,13 @@ describe('Mocking a force server call', () => {
       if (request && ensureString(_request.url).includes('Account')) {
         return Promise.resolve(records);
       } else {
-        return Promise.reject(
-          new SfdxError(`Unexpected request: ${_request.url}`)
-        );
+        return Promise.reject(new SfdxError(`Unexpected request: ${_request.url}`));
       }
     };
-    const connection: Connection = await Connection.create(
-      await AuthInfo.create(testData.username)
-    );
-    const result: QueryResult<{}> = await connection.query(
-      'select Id From Account'
-    );
+    const connection: Connection = await Connection.create({
+      authInfo: await AuthInfo.create({ username: testData.username })
+    });
+    const result: QueryResult<{}> = await connection.query('select Id From Account');
     deepStrictEqual(result, records);
   });
 });

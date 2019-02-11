@@ -50,12 +50,14 @@ import { sfdc } from './util/sfdc';
  *
  * ```
  * // Email username
- * const org1: Org = await Org.create({ aliasOrUsername: 'foo@example.com' });//tslint:disable-line:no-unused-variable
+ * const org1: Org = await Org.create({ aliasOrUsername: 'foo@example.com' });
  * // The defaultusername config property
  * const org2: Org = await Org.create({});
  * // Full Connection
  * const org3: Org = await Org.create({
- *   connection: await Connection.create(await AuthInfo.create({ username: 'username' }))
+ *   connection: await Connection.create({
+ *     authInfo: await AuthInfo.create({ username: 'username' })
+ *   })
  * });
  * ```
  *
@@ -313,8 +315,14 @@ export class Org extends AsyncCreatable<Org.Options> {
    * Adds a username to the user config for this org. For convenience `this` object is returned.
    *
    * ```
-   * const org: Org = await Org.create(await Connection.create(await AuthInfo.create('foo@example.com')));
-   * const userAuth: AuthInfo = await AuthInfo.create('bar@example.com');
+   * const org: Org = await Org.create({
+   *   connection: await Connection.create({
+   *     authInfo: await AuthInfo.create('foo@example.com')
+   *   })
+   * });
+   * const userAuth: AuthInfo = await AuthInfo.create({
+   *   username: 'bar@example.com'
+   * });
    * await org.addUsername(userAuth);
    * ```
    *
