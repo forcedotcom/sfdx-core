@@ -6,7 +6,7 @@
  */
 
 import { NamedError } from '@salesforce/kit';
-import { ensure, isString, JsonMap, Optional, getString, hasString, ensureString } from '@salesforce/ts-types';
+import { ensure, ensureString, getString, hasString, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages, Tokens } from './messages';
 
 /**
@@ -205,7 +205,8 @@ export class SfdxError extends NamedError {
       sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
       sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
     }
-    // Some errors may have a code, so don't look that information
+
+    // If the original error has a code, use that instead of name.
     if (hasString(err, 'code')) {
       sfdxError.code = ensureString(getString(err, 'code'));
     }
@@ -235,7 +236,10 @@ export class SfdxError extends NamedError {
   // Additional data helpful for consumers of this error.  E.g., API call result
   public data: any; // tslint:disable-line:no-any
 
-  public code?: string;
+  /**
+   * Some errors support `error.code` instead of `error.name`. This keeps backwards compatability.
+   */
+  public code: string;
 
   /**
    * Create an SfdxError.
@@ -247,6 +251,7 @@ export class SfdxError extends NamedError {
    */
   constructor(message: string, name?: string, actions?: string[], exitCode?: number, cause?: Error) {
     super(name || 'SfdxError', message, cause);
+    this.code = this.name;
     this.actions = actions;
     this.exitCode = exitCode || 1;
   }
