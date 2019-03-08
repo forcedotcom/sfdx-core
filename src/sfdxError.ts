@@ -6,7 +6,7 @@
  */
 
 import { NamedError } from '@salesforce/kit';
-import { ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
+import { ensure, isString, JsonMap, Optional, getString, hasString, ensureString } from '@salesforce/ts-types';
 import { Messages, Tokens } from './messages';
 
 /**
@@ -205,6 +205,10 @@ export class SfdxError extends NamedError {
       sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
       sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
     }
+    // Some errors may have a code, so don't look that information
+    if (hasString(err, 'code')) {
+      sfdxError.code = ensureString(getString(err, 'code'));
+    }
     return sfdxError;
   }
 
@@ -230,6 +234,8 @@ export class SfdxError extends NamedError {
 
   // Additional data helpful for consumers of this error.  E.g., API call result
   public data: any; // tslint:disable-line:no-any
+
+  public code?: string;
 
   /**
    * Create an SfdxError.
