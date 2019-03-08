@@ -6,7 +6,7 @@
  */
 
 import { NamedError } from '@salesforce/kit';
-import { ensure, ensureString, getString, hasString, isString, JsonMap, Optional } from '@salesforce/ts-types';
+import { ensure, hasString, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages, Tokens } from './messages';
 
 /**
@@ -208,7 +208,7 @@ export class SfdxError extends NamedError {
 
     // If the original error has a code, use that instead of name.
     if (hasString(err, 'code')) {
-      sfdxError.code = ensureString(getString(err, 'code'));
+      sfdxError.code = err.code;
     }
     return sfdxError;
   }
