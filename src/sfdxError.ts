@@ -239,7 +239,7 @@ export class SfdxError extends NamedError {
   /**
    * Some errors support `error.code` instead of `error.name`. This keeps backwards compatability.
    */
-  public code: string;
+  private _code?: string;
 
   /**
    * Create an SfdxError.
@@ -251,9 +251,16 @@ export class SfdxError extends NamedError {
    */
   constructor(message: string, name?: string, actions?: string[], exitCode?: number, cause?: Error) {
     super(name || 'SfdxError', message, cause);
-    this.code = this.name;
     this.actions = actions;
     this.exitCode = exitCode || 1;
+  }
+
+  public get code() {
+    return this._code || this.name;
+  }
+
+  public set code(code: string) {
+    this._code = code;
   }
 
   /**
