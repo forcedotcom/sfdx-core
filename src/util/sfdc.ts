@@ -83,7 +83,7 @@ export const sfdc = {
    * @param value The path as a string.
    */
   validatePathDoesNotContainInvalidChars: (value: string): boolean => {
-    return !/[\[:"\?<>\|\]]+/.test(value);
+    return !/[\["\?<>\|\]]+/.test(value);
   },
 
   /**
