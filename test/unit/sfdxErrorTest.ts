@@ -103,6 +103,18 @@ describe('SfdxError', () => {
         .to.contain('Outer stack:\n')
         .and.contain(myError.stack);
     });
+
+    it('should return a wrapped error with a code', () => {
+      class CodeError extends Error {
+        public code?: string;
+      }
+      const myErrorCode = 'OhMyError';
+      const myError = new CodeError('test');
+      myError.code = myErrorCode;
+      const mySfdxError = SfdxError.wrap(myError);
+      expect(mySfdxError).to.be.an.instanceOf(SfdxError);
+      expect(mySfdxError.code).to.equal(myErrorCode);
+    });
   });
 
   describe('toObject', () => {
