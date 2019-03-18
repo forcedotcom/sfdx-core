@@ -92,6 +92,9 @@ describe('util/sfdc', () => {
     it('should return false for "/my/path > err.log"', () => {
       expect(sfdc.validatePathDoesNotContainInvalidChars('/my/path > err.log')).to.be.false;
     });
+    it('should return true for "c:\\myfile"', () => {
+      expect(sfdc.validatePathDoesNotContainInvalidChars('c:\\myfile')).to.be.true;
+    });
   });
 
   describe('findUpperCaseKeys', () => {
