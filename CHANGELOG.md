@@ -1,3 +1,13 @@
+## [1.2.3](https://github.com/forcedotcom/sfdx-core/compare/v1.2.2...v1.2.3) (2019-03-18)
+
+
+### Bug Fixes
+
+* @W-5907580@ respect code if it exist ([5263fe2](https://github.com/forcedotcom/sfdx-core/commit/5263fe2))
+* do not let name and code get out-of-date is name is set ([3e5914e](https://github.com/forcedotcom/sfdx-core/commit/3e5914e))
+* security update and patch to allow colons in filepaths for windows ([a385b40](https://github.com/forcedotcom/sfdx-core/commit/a385b40))
+* use name by default for code ([c5283d3](https://github.com/forcedotcom/sfdx-core/commit/c5283d3))
+
 ## [1.2.2](https://github.com/forcedotcom/sfdx-core/compare/v1.2.1...v1.2.2) (2019-02-11)
 
 
