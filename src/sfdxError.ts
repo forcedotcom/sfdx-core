@@ -6,7 +6,7 @@
  */
 
 import { NamedError } from '@salesforce/kit';
-import { ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
+import { ensure, hasString, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages, Tokens } from './messages';
 
 /**
@@ -205,6 +205,11 @@ export class SfdxError extends NamedError {
       sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
       sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
     }
+
+    // If the original error has a code, use that instead of name.
+    if (hasString(err, 'code')) {
+      sfdxError.code = err.code;
+    }
     return sfdxError;
   }
 
@@ -232,6 +237,11 @@ export class SfdxError extends NamedError {
   public data: any; // tslint:disable-line:no-any
 
   /**
+   * Some errors support `error.code` instead of `error.name`. This keeps backwards compatability.
+   */
+  private _code?: string;
+
+  /**
    * Create an SfdxError.
    * @param message The error message.
    * @param name The error name. Defaults to 'SfdxError'.
@@ -243,6 +253,14 @@ export class SfdxError extends NamedError {
     super(name || 'SfdxError', message, cause);
     this.actions = actions;
     this.exitCode = exitCode || 1;
+  }
+
+  public get code() {
+    return this._code || this.name;
+  }
+
+  public set code(code: string) {
+    this._code = code;
   }
 
   /**
