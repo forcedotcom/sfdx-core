@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/forcedotcom/sfdx-core/compare/v1.2.3...v1.3.0) (2019-03-19)
+
+
+### Features
+
+* support wrapping a string ([2445003](https://github.com/forcedotcom/sfdx-core/commit/2445003))
+
 ## [1.2.3](https://github.com/forcedotcom/sfdx-core/compare/v1.2.2...v1.2.3) (2019-03-18)
 
 
