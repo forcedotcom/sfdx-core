@@ -115,6 +115,12 @@ describe('SfdxError', () => {
       expect(mySfdxError).to.be.an.instanceOf(SfdxError);
       expect(mySfdxError.code).to.equal(myErrorCode);
     });
+
+    it('should return a new error with just a string', () => {
+      const mySfdxError = SfdxError.wrap('test');
+      expect(mySfdxError).to.be.an.instanceOf(SfdxError);
+      expect(mySfdxError.message).to.equal('test');
+    });
   });
 
   describe('toObject', () => {
