@@ -199,7 +199,10 @@ export class SfdxError extends NamedError {
    * Convert an Error to an SfdxError.
    * @param err The error to convert.
    */
-  public static wrap(err: Error): SfdxError {
+  public static wrap(err: Error | string): SfdxError {
+    if (isString(err)) {
+      return new SfdxError(err);
+    }
     const sfdxError = new SfdxError(err.message, err.name);
     if (sfdxError.stack) {
       sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
