@@ -26,6 +26,7 @@ import { Global } from '../../src/global';
 import { Org } from '../../src/org';
 import { MockTestOrgData, testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
+import { AuthInfoConfig } from '../../src/config/authInfoConfig';
 
 const $$ = testSetup();
 
@@ -308,7 +309,7 @@ describe('Org Tests', () => {
     });
   });
 
-  describe('with multiple scratch org users', () => {
+  describe.only('with multiple scratch org users', () => {
     let orgs: Org[];
     beforeEach(async () => {
       orgs = [];
@@ -335,6 +336,9 @@ describe('Org Tests', () => {
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(() => {
         return Promise.resolve(responseBody);
       });
+
+      // stubMethod($$.SANDBOX, ConfigFile.prototype, 'read').callsFake(() => Promise.resolve({}));
+      $$.SANDBOX.stub(AuthInfoConfig.prototype, 'exists').returns(Promise.resolve(false));
 
       for (const user of users) {
         userAuthResponse = {
