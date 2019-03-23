@@ -573,7 +573,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     if (this.options.username && this.options.oauth2Options) {
       const authInfoConfig = await AuthInfoConfig.create({
         ...AuthInfoConfig.getOptions(this.options.username),
-        throwOnNotFound: true
+        throwOnNotFound: false
       });
       if (await authInfoConfig.exists()) {
         throw SfdxError.create(
