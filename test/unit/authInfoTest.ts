@@ -170,8 +170,6 @@ class MetaAuthDataMock {
       set(configContents, 'accessToken', this.encryptedAccessToken);
       set(configContents, 'privateKey', '123456');
       return Promise.resolve(configContents);
-    } else if (path.includes('_username_RefreshToken') || '_username_SaveTest1') {
-      return Promise.resolve({});
     } else {
       return Promise.reject(new SfdxError('Not mocked - unhandled test case', 'UnsupportedTestCase'));
     }
@@ -477,10 +475,6 @@ describe('AuthInfo', () => {
         expect(authInfoUpdate.called).to.be.true;
         expect(authInfoBuildJwtConfig.called).to.be.true;
         expect(authInfoBuildJwtConfig.firstCall.args[0]).to.include(jwtConfig);
-        expect(
-          testMetadata.authInfoLookupCount === 1,
-          'should have read an auth file once to ensure auth data did not already exist'
-        ).to.be.true;
         expect(readFileStub.called).to.be.true;
         expect(AuthInfoConfig.getOptions(testMetadata.jwtUsername).filename).to.equal(
           `${testMetadata.jwtUsername}.json`
@@ -491,7 +485,6 @@ describe('AuthInfo', () => {
 
         const expectedAuthConfig = {
           accessToken: authResponse.access_token,
-          clientId: testMetadata.clientId,
           instanceUrl: testMetadata.instanceUrl,
           orgId: authResponse.id.split('/')[0],
           loginUrl: jwtConfig.loginUrl,
@@ -528,7 +521,7 @@ describe('AuthInfo', () => {
           authInfoBuildJwtConfig.called,
           'should NOT have called AuthInfo.buildJwtConfig() - should get from cache'
         ).to.be.false;
-        expect(testMetadata.authInfoLookupCount === 1, 'should NOT have called Global.fetchConfigInfo() for auth info')
+        expect(testMetadata.authInfoLookupCount === 0, 'should NOT have called Global.fetchConfigInfo() for auth info')
           .to.be.true;
         expect(AuthInfoConfig.getOptions(testMetadata.jwtUsername).filename).to.equal(
           `${testMetadata.jwtUsername}.json`
@@ -580,36 +573,6 @@ describe('AuthInfo', () => {
         'should not have called Global.fetchConfigInfo() for auth info - using overridden instance'
       ).to.be.true;
       expect(AuthInfoConfig.getOptions(username).filename).to.equal(`${username}.json`);
-    });
-
-    it('should throw an AuthInfoOverwriteError when both username and oauth data passed and auth file exists', async () => {
-      const username = 'authInfoTest_username_jwt_from_auth_file';
-      const jwtConfig = {
-        clientId: testMetadata.clientId,
-        loginUrl: testMetadata.loginUrl,
-        privateKey: 'authInfoTest/jwt/server.key'
-      };
-
-      // Make the file read stub return JWT auth data
-      const jwtData = {};
-      set(jwtData, 'accessToken', testMetadata.encryptedAccessToken);
-      set(jwtData, 'clientId', testMetadata.clientId);
-      set(jwtData, 'loginUrl', testMetadata.loginUrl);
-      set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
-      set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
-      testMetadata.fetchConfigInfo = () => {
-        return Promise.resolve(jwtData);
-      };
-
-      $$.SANDBOX.stub(AuthInfoConfig.prototype, 'exists').returns(Promise.resolve(true));
-
-      // Create the JWT AuthInfo instance
-      try {
-        await AuthInfo.create({ username, oauth2Options: jwtConfig });
-        assert.fail('Error thrown', 'No Error thrown', 'Expected AuthInfo.create() to throw an AuthInfoOverwriteError');
-      } catch (err) {
-        expect(err.name).to.equal('AuthInfoOverwriteError');
-      }
     });
 
     it('should throw a JWTAuthError when auth fails via a OAuth2.jwtAuthorize()', async () => {

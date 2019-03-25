@@ -17,7 +17,6 @@ import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { AuthFields, AuthInfo } from '../../src/authInfo';
 import { Aliases } from '../../src/config/aliases';
-import { AuthInfoConfig } from '../../src/config/authInfoConfig';
 import { Config } from '../../src/config/config';
 import { ConfigAggregator } from '../../src/config/configAggregator';
 import { ConfigFile } from '../../src/config/configFile';
@@ -336,8 +335,6 @@ describe('Org Tests', () => {
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(() => {
         return Promise.resolve(responseBody);
       });
-
-      $$.SANDBOX.stub(AuthInfoConfig.prototype, 'exists').returns(Promise.resolve(false));
 
       for (const user of users) {
         userAuthResponse = {
