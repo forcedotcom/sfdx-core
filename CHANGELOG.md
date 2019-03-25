@@ -1,3 +1,11 @@
+## [1.3.1](https://github.com/forcedotcom/sfdx-core/compare/v1.3.0...v1.3.1) (2019-03-25)
+
+
+### Bug Fixes
+
+* prevent auth files from being inadvertently overwritten ([45195c1](https://github.com/forcedotcom/sfdx-core/commit/45195c1))
+* update test and don't throw when auth file not found ([75af396](https://github.com/forcedotcom/sfdx-core/commit/75af396))
+
 # [1.3.0](https://github.com/forcedotcom/sfdx-core/compare/v1.2.3...v1.3.0) (2019-03-19)
 
 
