@@ -568,6 +568,26 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
     }
 
+    // If a username AND oauth options were passed, ensure an auth file for the username doesn't
+    // already exist.  Throw if it does so we don't overwrite the auth file.
+    if (this.options.username && this.options.oauth2Options) {
+      const authInfoConfig = await AuthInfoConfig.create({
+        ...AuthInfoConfig.getOptions(this.options.username),
+        throwOnNotFound: false
+      });
+      if (await authInfoConfig.exists()) {
+        throw SfdxError.create(
+          new SfdxErrorConfig(
+            '@salesforce/core',
+            'core',
+            'AuthInfoOverwriteError',
+            undefined,
+            'AuthInfoOverwriteErrorAction'
+          )
+        );
+      }
+    }
+
     this.fields.username = this.options.username || getString(options, 'username') || undefined;
 
     // If the username is an access token, use that for auth and don't persist
@@ -731,7 +751,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       accessToken: asString(_authFields.access_token),
       orgId: _parseIdUrl(ensureString(_authFields.id)).orgId,
       loginUrl: options.loginUrl,
-      privateKey: options.privateKey
+      privateKey: options.privateKey,
+      clientId: options.clientId
     };
 
     const instanceUrl = ensureString(_authFields.instance_url);
