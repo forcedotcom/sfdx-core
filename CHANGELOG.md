@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/forcedotcom/sfdx-core/compare/v1.3.1...v1.3.2) (2019-03-25)
+
+
+### Bug Fixes
+
+* revert of throwing auth error ([f6ebe12](https://github.com/forcedotcom/sfdx-core/commit/f6ebe12))
+
 ## [1.3.1](https://github.com/forcedotcom/sfdx-core/compare/v1.3.0...v1.3.1) (2019-03-25)
 
 
