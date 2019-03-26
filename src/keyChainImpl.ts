@@ -571,12 +571,12 @@ export class GenericWindowsKeychainAccess extends GenericKeychainAccess {
       if (err != null) {
         await cb(err);
       } else {
-        const secretFile: string = path.join(
-          await ConfigFile.resolveRootFolder(true),
-          Global.STATE_FOLDER,
-          ensure(KeychainConfig.getDefaultOptions().filename)
-        );
         try {
+          const secretFile: string = path.join(
+            await ConfigFile.resolveRootFolder(true),
+            Global.STATE_FOLDER,
+            ensure(KeychainConfig.getDefaultOptions().filename)
+          );
           await fs.access(secretFile, fs.constants.R_OK | fs.constants.W_OK);
           await cb(null);
         } catch (e) {
