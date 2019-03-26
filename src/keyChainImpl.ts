@@ -567,16 +567,21 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
  */
 export class GenericWindowsKeychainAccess extends GenericKeychainAccess {
   protected async isValidFileAccess(cb: (error: Nullable<Error>) => Promise<void>): Promise<void> {
-    const secretFile: string = path.join(
-      await ConfigFile.resolveRootFolder(true),
-      Global.STATE_FOLDER,
-      ensure(KeychainConfig.getDefaultOptions().filename)
-    );
     await super.isValidFileAccess(async err => {
       if (err != null) {
         await cb(err);
       } else {
-        await fs.access(path.join(secretFile, Global.STATE_FOLDER), fs.constants.R_OK | fs.constants.W_OK);
+        const secretFile: string = path.join(
+          await ConfigFile.resolveRootFolder(true),
+          Global.STATE_FOLDER,
+          ensure(KeychainConfig.getDefaultOptions().filename)
+        );
+        try {
+          await fs.access(secretFile, fs.constants.R_OK | fs.constants.W_OK);
+          await cb(null);
+        } catch (e) {
+          await cb(err);
+        }
       }
     });
   }
