@@ -4,11 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Nullable } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as _ from 'lodash';
+import * as path from 'path';
 import { retrieveKeychain } from '../../src/keyChain';
 import { GenericUnixKeychainAccess, GenericWindowsKeychainAccess, keyChainImpl } from '../../src/keyChainImpl';
 import { testSetup } from '../../src/testSetup';
+import { fs } from '../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -67,5 +70,40 @@ describe('keyChain', () => {
     const win32Keychain = await retrieveKeychain('win32');
     expect(windowsKeychain).to.be.instanceOf(GenericWindowsKeychainAccess);
     expect(win32Keychain).to.be.instanceOf(GenericWindowsKeychainAccess);
+  });
+
+  it('no key.json file should result in a PasswordNotFoundError', async () => {
+    const TEST_PASSWORD = 'foo';
+    const windowsKeychain = await retrieveKeychain('windows');
+
+    const accessSpy = $$.SANDBOX.spy(fs, 'access');
+    const writeFileStub = $$.SANDBOX.stub(fs, 'writeFile').returns(Promise.resolve(null));
+    const mkdirpStub = $$.SANDBOX.stub(fs, 'mkdirp').returns(Promise.resolve());
+
+    const service = 'sfdx';
+    const account = 'local';
+
+    return windowsKeychain
+      .getPassword({ service, account }, (getPasswordError: Nullable<Error>) => {
+        expect(getPasswordError).have.property('name', 'PasswordNotFoundError');
+        expect(accessSpy.called).to.be.true;
+        const arg: string = accessSpy.args[0][0];
+        expect(arg.endsWith('.sfdx')).to.be.true;
+        accessSpy.resetHistory();
+      })
+      .then(() =>
+        windowsKeychain.setPassword(
+          { service, account, password: TEST_PASSWORD },
+          (setPasswordError: Nullable<Error>) => {
+            expect(setPasswordError).to.be.null;
+            expect(mkdirpStub.called).to.be.true;
+            expect(writeFileStub.called).to.be.true;
+            expect(writeFileStub.args).to.have.length(1);
+            expect(writeFileStub.args[0]).to.have.length(3);
+            expect(writeFileStub.args[0][0]).to.include(path.join('.sfdx', 'key.json'));
+            expect(writeFileStub.args[0][1]).to.include(TEST_PASSWORD);
+          }
+        )
+      );
   });
 });
