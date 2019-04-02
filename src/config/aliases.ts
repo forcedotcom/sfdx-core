@@ -8,6 +8,7 @@
 import { asString, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigGroup } from './configGroup';
+import { ConfigContents, ConfigValue } from './configStore';
 
 const ALIAS_FILE_NAME = 'alias.json';
 
@@ -101,5 +102,10 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
    */
   public constructor(options: ConfigGroup.Options) {
     super(options);
+  }
+
+  // Don't use kit's set to prevent nested object save
+  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue) {
+    contents[key] = value;
   }
 }

@@ -41,6 +41,29 @@ describe('Alias', () => {
         orgs: { test: 'val' }
       });
     });
+
+    it('supports aliases with dots', async () => {
+      const aliases = await Aliases.create(Aliases.getDefaultOptions());
+      aliases.set('test.with.dots', 'val');
+      await aliases.write();
+      expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
+      expect($$.getConfigStubContents('Aliases')).to.deep.equal({
+        orgs: { 'test.with.dots': 'val' }
+      });
+    });
+  });
+
+  it('gets aliases with dots', async () => {
+    const testContents = {
+      contents: {
+        orgs: { 'test.with.dots': 'val' }
+      }
+    };
+
+    $$.setConfigStubContents('Aliases', testContents);
+
+    const aliases = await Aliases.create(Aliases.getDefaultOptions());
+    expect(aliases.get('test.with.dots')).to.equal('val');
   });
 
   describe('#unset', () => {

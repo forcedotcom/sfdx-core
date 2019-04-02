@@ -119,7 +119,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
    * @param value The value.
    */
   public set(key: string, value: ConfigValue): ConfigContents {
-    set(this.contents, key, value);
+    this.setMethod(this.contents, key, value);
     return this.contents;
   }
 
@@ -212,8 +212,14 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   public setContentsFromObject<U extends object>(obj: U): void {
     this.contents = {};
     Object.entries(obj).forEach(([key, value]) => {
-      set(this.contents, key, value);
+      this.setMethod(this.contents, key, value);
     });
+  }
+
+  // Allows extended classes the ability to override the set method. i.e. maybe they don't want
+  // nexted object set from kit.
+  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue) {
+    set(contents, key, value);
   }
 }
 

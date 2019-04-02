@@ -124,5 +124,14 @@ describe('util/sfdc', () => {
       };
       expect(sfdc.findUpperCaseKeys(testObj)).to.be.undefined;
     });
+
+    it('should return the first nested upper case key unless blacklisted', () => {
+      const testObj = {
+        lowercase: true,
+        uppercase: false,
+        nested: { NestedUpperCase: true }
+      };
+      expect(sfdc.findUpperCaseKeys(testObj, ['nested'])).to.equal(undefined);
+    });
   });
 });

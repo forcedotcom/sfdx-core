@@ -19,6 +19,20 @@ describe('SfdxProject', async () => {
   beforeEach(async () => {
     projectPath = await $$.localPathRetriever($$.id);
   });
+
+  describe('json', async () => {
+    it('allows uppercase packaging aliases on write', async () => {
+      const json = await SfdxProjectJson.create({});
+      await json.write({ packageAliases: { MyName: 'somePackage' } });
+      expect($$.getConfigStubContents('SfdxProjectJson').packageAliases['MyName']).to.equal('somePackage');
+    });
+    it('allows uppercase packaging aliases on read', async () => {
+      $$.setConfigStubContents('SfdxProjectJson', { contents: { packageAliases: { MyName: 'somePackage' } } });
+      const json = await SfdxProjectJson.create({});
+      expect(json.get('packageAliases')['MyName']).to.equal('somePackage');
+    });
+  });
+
   describe('resolve', () => {
     it('with working directory', async () => {
       $$.SANDBOX.stub(internal, 'resolveProjectPath').callsFake(() => projectPath);
