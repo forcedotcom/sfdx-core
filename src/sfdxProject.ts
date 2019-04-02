@@ -33,6 +33,8 @@ import { sfdc } from './util/sfdc';
  * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
  */
 export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
+  public static BLACKLIST = ['packageAliases'];
+
   public static getFileName() {
     return SFDX_PROJECT_JSON;
   }
@@ -51,11 +53,21 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     const contents = await super.read();
 
     // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
-    const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject());
+    const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfdxProjectJson.BLACKLIST);
     if (upperCaseKey) {
       throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
     }
     return contents;
+  }
+
+  public async write(newContents?: ConfigContents): Promise<ConfigContents> {
+    // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
+    const upperCaseKey = sfdc.findUpperCaseKeys(newContents, SfdxProjectJson.BLACKLIST);
+    if (upperCaseKey) {
+      throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
+    }
+
+    return super.write(newContents);
   }
 
   public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
