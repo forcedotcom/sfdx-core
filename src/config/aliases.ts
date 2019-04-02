@@ -8,7 +8,7 @@
 import { asString, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigGroup } from './configGroup';
-import { ConfigValue, ConfigContents } from './configStore';
+import { ConfigContents, ConfigValue } from './configStore';
 
 const ALIAS_FILE_NAME = 'alias.json';
 
