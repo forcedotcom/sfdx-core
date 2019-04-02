@@ -655,6 +655,7 @@ type FilteredKey = string | { name: string; regex: string };
 // Ok to log clientid
 const FILTERED_KEYS: FilteredKey[] = [
   'sid',
+  'Authorization',
   // Any json attribute that contains the words "access" and "token" will have the attribute/value hidden
   { name: 'access_token', regex: 'access[^\'"]*token' },
   // Any json attribute that contains the words "refresh" and "token" will have the attribute/value hidden
