@@ -90,13 +90,17 @@ export const sfdc = {
    * Returns the first key within the object that has an upper case first letter.
    *
    * @param data The object in which to check key casing.
+   * @param sectionBlacklist properties in the object to exclude from the search. e.g. a blacklist of `["a"]` and data of `{ "a": { "B" : "b"}}` would ignore `B` because it is in the object value under `a`.
    */
-  findUpperCaseKeys: (data?: JsonMap): Optional<string> => {
+  findUpperCaseKeys: (data?: JsonMap, sectionBlacklist: string[] = []): Optional<string> => {
     let key: Optional<string>;
     findKey(data, (val: AnyJson, k: string) => {
       if (k[0] === k[0].toUpperCase()) {
         key = k;
       } else if (isJsonMap(val)) {
+        if (sectionBlacklist.includes(k)) {
+          return key;
+        }
         key = sfdc.findUpperCaseKeys(asJsonMap(val));
       }
       return key;

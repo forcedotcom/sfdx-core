@@ -5,7 +5,6 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { set } from '@salesforce/kit';
 import { definiteEntriesOf, definiteValuesOf, Dictionary, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile } from './configFile';
@@ -43,7 +42,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
     return configGroupOptions;
   }
 
-  private defaultGroup = 'default';
+  protected defaultGroup = 'default';
 
   /**
    * Sets the default group for all {@link BaseConfigStore} methods to use.
@@ -213,7 +212,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
       super.set(group, {});
     }
     content = this.getGroup(group) || {};
-    set(content, key, value);
+    this.setMethod(content, key, value);
 
     return content;
   }

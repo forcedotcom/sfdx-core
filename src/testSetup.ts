@@ -60,7 +60,7 @@ export interface ConfigStub {
    * A function that controls all aspects of {@link ConfigFile.write}. For example, it won't read the contents unless
    * explicitly done. Only use this if you know what you are doing. Use updateContents instead.
    */
-  writeFn?: () => Promise<void>;
+  writeFn?: (contents: AnyJson) => Promise<void>;
   /**
    * The contents that are used when @{link ConfigFile.read} unless retrieveContents is set. This will also contain the
    * new config when @{link ConfigFile.write} is called. This will persist through config instances,
@@ -291,7 +291,7 @@ const _testSetup = (sinon?: any) => {
       if (request === `${this.instanceUrl}/services/data`) {
         return Promise.resolve([{ version: '42.0' }]);
       }
-      return testContext.fakeConnectionRequest.call(this, request, options);
+      return testContext.fakeConnectionRequest.call(this, request, options as AnyJson);
     });
 
     // Always start with the default and tests beforeEach or it methods can override it.
