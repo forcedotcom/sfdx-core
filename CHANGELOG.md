@@ -1,3 +1,15 @@
+## [1.3.3](https://github.com/forcedotcom/sfdx-core/compare/v1.3.2...v1.3.3) (2019-04-04)
+
+
+### Bug Fixes
+
+* allow aliases with dots ([e8b17af](https://github.com/forcedotcom/sfdx-core/commit/e8b17af))
+* allow packageAliases in sfdx-project.json ([8d7b1fe](https://github.com/forcedotcom/sfdx-core/commit/8d7b1fe))
+* hide sensitive values from being logged ([8505f04](https://github.com/forcedotcom/sfdx-core/commit/8505f04))
+* move generating the secretfile path to the catch block ([2b9e57d](https://github.com/forcedotcom/sfdx-core/commit/2b9e57d))
+* potential missing key.json file on windows ([f94f127](https://github.com/forcedotcom/sfdx-core/commit/f94f127))
+* properly invoke callbacks ([f03838c](https://github.com/forcedotcom/sfdx-core/commit/f03838c))
+
 ## [1.3.2](https://github.com/forcedotcom/sfdx-core/compare/v1.3.1...v1.3.2) (2019-03-25)
 
 
