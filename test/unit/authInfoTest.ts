@@ -485,6 +485,7 @@ describe('AuthInfo', () => {
 
         const expectedAuthConfig = {
           accessToken: authResponse.access_token,
+          clientId: testMetadata.clientId,
           instanceUrl: testMetadata.instanceUrl,
           orgId: authResponse.id.split('/')[0],
           loginUrl: jwtConfig.loginUrl,
