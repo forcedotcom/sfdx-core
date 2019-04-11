@@ -731,7 +731,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       accessToken: asString(_authFields.access_token),
       orgId: _parseIdUrl(ensureString(_authFields.id)).orgId,
       loginUrl: options.loginUrl,
-      privateKey: options.privateKey
+      privateKey: options.privateKey,
+      clientId: options.clientId
     };
 
     const instanceUrl = ensureString(_authFields.instance_url);
