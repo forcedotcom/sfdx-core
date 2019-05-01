@@ -51,7 +51,7 @@
     "sfdx-faye": "^1.0.9"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "0.3.12",
+    "@salesforce/dev-scripts": "0.3.14",
     "@types/debug": "0.0.30",
     "@types/jsen": "0.0.19",
     "@types/jsonwebtoken": "8.3.2",
