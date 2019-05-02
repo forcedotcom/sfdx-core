@@ -70,7 +70,7 @@
 						other commands, settings, and parameters.</p>
 					</div>
 					<p><strong>Note:</strong> All aliases are stored at the global level.</p>
-					<pre><code><span class="hljs-keyword">const</span> aliases = <span class="hljs-keyword">await</span> Aliases.create();
+					<pre><code><span class="hljs-keyword">const</span> aliases = <span class="hljs-keyword">await</span> Aliases.create({});
 aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias'</span>, <span class="hljs-string">'username@company.org'</span>);
 <span class="hljs-keyword">await</span> aliases.write();
 <span class="hljs-comment">// Shorthand to get an alias.</span>
@@ -115,6 +115,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 						<section class="tsd-index-section tsd-is-inherited tsd-is-private-protected">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="aliases.html#defaultgroup" class="tsd-kind-icon">default<wbr>Group</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="aliases.html#options" class="tsd-kind-icon">options</a></li>
 							</ul>
 						</section>
@@ -143,6 +144,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-overwrite tsd-is-inherited"><a href="aliases.html#setcontentsfromobject" class="tsd-kind-icon">set<wbr>Contents<wbr>From<wbr>Object</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="aliases.html#setdefaultgroup" class="tsd-kind-icon">set<wbr>Default<wbr>Group</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="aliases.html#setingroup" class="tsd-kind-icon">set<wbr>InGroup</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected"><a href="aliases.html#setmethod" class="tsd-kind-icon">set<wbr>Method</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="aliases.html#stat" class="tsd-kind-icon">stat</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="aliases.html#toobject" class="tsd-kind-icon">to<wbr>Object</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="aliases.html#unlink" class="tsd-kind-icon">unlink</a></li>
@@ -177,7 +179,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Overrides ConfigFile.__constructor</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/aliases.ts#L94">config/aliases.ts:94</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/aliases.ts#L96">config/aliases.ts:96</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -205,13 +207,24 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 			<section class="tsd-panel-group tsd-member-group tsd-is-inherited tsd-is-private-protected">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="defaultgroup" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> default<wbr>Group</h3>
+					<div class="tsd-signature tsd-kind-icon">default<wbr>Group<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;default&quot;</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#defaultgroup">defaultGroup</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L45">config/configGroup.ts:45</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
 					<a name="options" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagProtected">Protected</span> options</h3>
 					<div class="tsd-signature tsd-kind-icon">options<span class="tsd-signature-symbol">:</span> <a href="../interfaces/configgroup.options.html" class="tsd-signature-type">Options</a></div>
 					<aside class="tsd-sources">
 						<p>Inherited from BaseConfigStore.options</p>
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configStore.ts#L60">config/configStore.ts:60</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configStore.ts#L60">config/configStore.ts:60</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -229,7 +242,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#access">access</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configFile.ts#L91">config/configFile.ts:91</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configFile.ts#L91">config/configFile.ts:91</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -263,7 +276,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from BaseConfigStore.awaitEach</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configStore.ts#L193">config/configStore.ts:193</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configStore.ts#L193">config/configStore.ts:193</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -319,7 +332,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#clear">clear</a></p>
 								<p>Overrides BaseConfigStore.clear</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L155">config/configGroup.ts:155</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L154">config/configGroup.ts:154</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -344,7 +357,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#entries">entries</a></p>
 								<p>Overrides BaseConfigStore.entries</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L91">config/configGroup.ts:91</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L90">config/configGroup.ts:90</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -367,7 +380,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#exists">exists</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configFile.ts#L142">config/configFile.ts:142</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configFile.ts#L142">config/configFile.ts:142</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -390,7 +403,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from BaseConfigStore.forEach</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configStore.ts#L180">config/configStore.ts:180</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configStore.ts#L180">config/configStore.ts:180</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -445,7 +458,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#get">get</a></p>
 								<p>Overrides BaseConfigStore.get</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L103">config/configGroup.ts:103</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L102">config/configGroup.ts:102</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -478,7 +491,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#getcontents">getContents</a></p>
 								<p>Inherited from BaseConfigStore.getContents</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configStore.ts#L161">config/configStore.ts:161</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configStore.ts#L161">config/configStore.ts:161</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -501,7 +514,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#getgroup">getGroup</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L163">config/configGroup.ts:163</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L162">config/configGroup.ts:162</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -530,7 +543,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#getingroup">getInGroup</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L172">config/configGroup.ts:172</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L171">config/configGroup.ts:171</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -569,7 +582,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#getkeysbyvalue">getKeysByValue</a></p>
 								<p>Inherited from BaseConfigStore.getKeysByValue</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configStore.ts#L95">config/configStore.ts:95</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configStore.ts#L95">config/configStore.ts:95</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -601,7 +614,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#getpath">getPath</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configFile.ts#L171">config/configFile.ts:171</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configFile.ts#L171">config/configFile.ts:171</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -626,7 +639,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#has">has</a></p>
 								<p>Overrides BaseConfigStore.has</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L111">config/configGroup.ts:111</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L110">config/configGroup.ts:110</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -659,7 +672,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#init">init</a></p>
 								<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#init">init</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L224">config/configGroup.ts:224</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L223">config/configGroup.ts:223</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -682,7 +695,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#isglobal">isGlobal</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configFile.ts#L178">config/configFile.ts:178</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configFile.ts#L178">config/configFile.ts:178</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -707,7 +720,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#keys">keys</a></p>
 								<p>Overrides BaseConfigStore.keys</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L119">config/configGroup.ts:119</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L118">config/configGroup.ts:118</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -730,7 +743,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#read">read</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configFile.ts#L105">config/configFile.ts:105</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configFile.ts#L105">config/configFile.ts:105</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -762,7 +775,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#set">set</a></p>
 								<p>Overrides BaseConfigStore.set</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L135">config/configGroup.ts:135</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L134">config/configGroup.ts:134</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -801,7 +814,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#setcontents">setContents</a></p>
 								<p>Inherited from BaseConfigStore.setContents</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configStore.ts#L172">config/configStore.ts:172</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configStore.ts#L172">config/configStore.ts:172</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -834,7 +847,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#setcontentsfromobject">setContentsFromObject</a></p>
 								<p>Overrides BaseConfigStore.setContentsFromObject</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L190">config/configGroup.ts:190</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L189">config/configGroup.ts:189</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -872,7 +885,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#setdefaultgroup">setDefaultGroup</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L53">config/configGroup.ts:53</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L52">config/configGroup.ts:52</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -905,7 +918,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#setingroup">setInGroup</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L207">config/configGroup.ts:207</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L206">config/configGroup.ts:206</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -938,6 +951,36 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 						</li>
 					</ul>
 				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+					<a name="setmethod" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> set<wbr>Method</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Method<span class="tsd-signature-symbol">(</span>contents<span class="tsd-signature-symbol">: </span><a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a>, key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">?: </span><a href="../globals.html#configvalue" class="tsd-signature-type">ConfigValue</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Overrides BaseConfigStore.setMethod</p>
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/aliases.ts#L108">config/aliases.ts:108</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>contents: <a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a></h5>
+								</li>
+								<li>
+									<h5>key: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> value: <a href="../globals.html#configvalue" class="tsd-signature-type">ConfigValue</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="stat" class="tsd-anchor"></a>
 					<h3>stat</h3>
@@ -949,7 +992,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#stat">stat</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configFile.ts#L151">config/configFile.ts:151</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configFile.ts#L151">config/configFile.ts:151</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -974,7 +1017,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#toobject">toObject</a></p>
 								<p>Overrides BaseConfigStore.toObject</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L182">config/configGroup.ts:182</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L181">config/configGroup.ts:181</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -997,7 +1040,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#unlink">unlink</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configFile.ts#L160">config/configFile.ts:160</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configFile.ts#L160">config/configFile.ts:160</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1023,7 +1066,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#unset">unset</a></p>
 								<p>Overrides BaseConfigStore.unset</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L143">config/configGroup.ts:143</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L142">config/configGroup.ts:142</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1056,7 +1099,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#unsetall">unsetAll</a></p>
 								<p>Inherited from BaseConfigStore.unsetAll</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configStore.ts#L140">config/configStore.ts:140</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configStore.ts#L140">config/configStore.ts:140</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1089,7 +1132,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#updatevalue">updateValue</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L80">config/configGroup.ts:80</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L79">config/configGroup.ts:79</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1133,7 +1176,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#updatevalues">updateValues</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L66">config/configGroup.ts:66</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L65">config/configGroup.ts:65</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1173,7 +1216,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#values">values</a></p>
 								<p>Overrides BaseConfigStore.values</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L126">config/configGroup.ts:126</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L125">config/configGroup.ts:125</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1196,7 +1239,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#write">write</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configFile.ts#L127">config/configFile.ts:127</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configFile.ts#L127">config/configFile.ts:127</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1274,12 +1317,12 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/aliases.ts#L91">config/aliases.ts:91</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/aliases.ts#L93">config/aliases.ts:93</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Get an alias from a key and group. Shorthand for <code>Alias.create().get(key)</code>. Returns the promise resolved when the
+									<p>Get an alias from a key and group. Shorthand for <code>Alias.create({}).get(key)</code>. Returns the promise resolved when the
 									alias is created.</p>
 								</div>
 							</div>
@@ -1313,7 +1356,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#getdefaultoptions">getDefaultOptions</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/aliases.ts#L48">config/aliases.ts:48</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/aliases.ts#L49">config/aliases.ts:49</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1336,7 +1379,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#getfilename">getFileName</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/aliases.ts#L41">config/aliases.ts:41</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/aliases.ts#L42">config/aliases.ts:42</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1359,7 +1402,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configgroup.html">ConfigGroup</a>.<a href="configgroup.html#getoptions">getOptions</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configGroup.ts#L39">config/configGroup.ts:39</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configGroup.ts#L38">config/configGroup.ts:38</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1396,7 +1439,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/aliases.ts#L62">config/aliases.ts:62</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/aliases.ts#L63">config/aliases.ts:63</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1436,7 +1479,7 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#resolverootfolder">resolveRootFolder</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/config/configFile.ts#L64">config/configFile.ts:64</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/config/configFile.ts#L64">config/configFile.ts:64</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1476,6 +1519,9 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 								<a href="aliases.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="aliases.html#defaultgroup" class="tsd-kind-icon">default<wbr>Group</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
 								<a href="aliases.html#options" class="tsd-kind-icon">options</a>
@@ -1545,6 +1591,9 @@ aliases.<span class="hljs-keyword">set</span>(<span class="hljs-string">'myAlias
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="aliases.html#setingroup" class="tsd-kind-icon">set<wbr>InGroup</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+								<a href="aliases.html#setmethod" class="tsd-kind-icon">set<wbr>Method</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="aliases.html#stat" class="tsd-kind-icon">stat</a>

@@ -73,19 +73,26 @@
 					<p><strong>See</strong> <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm">Authorization</a></p>
 					<p><strong>See</strong> <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm">Salesforce DX Usernames and Orgs</a></p>
 					<pre><code><span class="hljs-comment">// Creating a new authentication file.</span>
-<span class="hljs-keyword">const</span> authInfo = <span class="hljs-function">await AuthInfo.<span class="hljs-title">create</span><span class="hljs-params">(myAdminUsername, {
+<span class="hljs-keyword">const</span> authInfo = <span class="hljs-function">await AuthInfo.<span class="hljs-title">create</span><span class="hljs-params">({
+  username: myAdminUsername,
+  oauth2Options: {
     loginUrl, authCode, clientId, clientSecret
-})</span></span>;
+  }
+)</span></span>;
 authInfo.save();
 
 <span class="hljs-comment">// Creating an authorization info with an access token.</span>
-<span class="hljs-keyword">const</span> authInfo = <span class="hljs-function">await AuthInfo.<span class="hljs-title">create</span><span class="hljs-params">(accessToken)</span></span>;
+<span class="hljs-keyword">const</span> authInfo = <span class="hljs-function">await AuthInfo.<span class="hljs-title">create</span><span class="hljs-params">({
+  username: accessToken
+})</span></span>;
 
 <span class="hljs-comment">// Using an existing authentication file.</span>
-<span class="hljs-keyword">const</span> authInfo = <span class="hljs-function">await AuthInfo.<span class="hljs-title">create</span><span class="hljs-params">(myAdminUsername)</span></span>;
+<span class="hljs-keyword">const</span> authInfo = <span class="hljs-function">await AuthInfo.<span class="hljs-title">create</span><span class="hljs-params">({
+  username: myAdminUsername
+})</span></span>;
 
 <span class="hljs-comment">// Using the AuthInfo</span>
-<span class="hljs-keyword">const</span> connection = <span class="hljs-function">await Connection.<span class="hljs-title">create</span><span class="hljs-params">(authInfo)</span></span>;</code></pre>
+<span class="hljs-keyword">const</span> connection = <span class="hljs-function">await Connection.<span class="hljs-title">create</span><span class="hljs-params">({ authInfo })</span></span>;</code></pre>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
@@ -155,7 +162,7 @@ authInfo.save();
 							<aside class="tsd-sources">
 								<p>Overrides AsyncCreatable.__constructor</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L385">authInfo.ts:385</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L392">authInfo.ts:392</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -192,7 +199,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L481">authInfo.ts:481</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L488">authInfo.ts:488</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -214,7 +221,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L525">authInfo.ts:525</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L532">authInfo.ts:532</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -236,7 +243,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L541">authInfo.ts:541</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L548">authInfo.ts:548</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -259,7 +266,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L400">authInfo.ts:400</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L407">authInfo.ts:407</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -282,7 +289,7 @@ authInfo.save();
 							<aside class="tsd-sources">
 								<p>Overrides AsyncCreatable.init</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L557">authInfo.ts:557</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L564">authInfo.ts:564</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -304,7 +311,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L415">authInfo.ts:415</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L422">authInfo.ts:422</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -326,7 +333,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L407">authInfo.ts:407</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L414">authInfo.ts:414</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -348,7 +355,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L423">authInfo.ts:423</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L430">authInfo.ts:430</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -370,7 +377,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L430">authInfo.ts:430</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L437">authInfo.ts:437</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -392,7 +399,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L532">authInfo.ts:532</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L539">authInfo.ts:539</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -414,7 +421,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L439">authInfo.ts:439</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L446">authInfo.ts:446</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -445,7 +452,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L466">authInfo.ts:466</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L473">authInfo.ts:473</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -483,7 +490,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L361">authInfo.ts:361</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L368">authInfo.ts:368</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -560,7 +567,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L343">authInfo.ts:343</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L350">authInfo.ts:350</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -591,7 +598,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L327">authInfo.ts:327</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L334">authInfo.ts:334</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -613,7 +620,7 @@ authInfo.save();
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107a648/src/authInfo.ts#L310">authInfo.ts:310</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2a6afbb/src/authInfo.ts#L317">authInfo.ts:317</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
