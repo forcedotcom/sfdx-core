@@ -1,3 +1,11 @@
+## [1.3.4](https://github.com/forcedotcom/sfdx-core/compare/v1.3.3...v1.3.4) (2019-05-02)
+
+
+### Bug Fixes
+
+* add clientId to jwt fields ([8a7c040](https://github.com/forcedotcom/sfdx-core/commit/8a7c040))
+* force version bump to test ci-docs on release ([ecb6a66](https://github.com/forcedotcom/sfdx-core/commit/ecb6a66))
+
 ## [1.3.4](https://github.com/forcedotcom/sfdx-core/compare/v1.3.3...v1.3.4) (2019-05-01)
 
 
