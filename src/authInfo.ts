@@ -63,6 +63,7 @@ export interface AuthFields {
   username?: string;
   usernames?: string[];
   userProfileName?: string;
+  prodOrgUsername?: string;
 }
 
 /**
@@ -540,6 +541,10 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     return this.usingAccessToken;
   }
 
+  public getProdOrgUsername(): Optional<string> {
+    return this.fields.prodOrgUsername;
+  }
+
   /**
    * Get the SFDX Auth URL.
    *
@@ -569,6 +574,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     }
 
     this.fields.username = this.options.username || getString(options, 'username') || undefined;
+
+    // Copy the prodOrgUsername if it exists
+    if (this.options.prodOrgUsername) {
+      this.fields.prodOrgUsername = this.options.prodOrgUsername;
+    }
 
     // If the username is an access token, use that for auth and don't persist
     const accessTokenMatch = isString(this.fields.username) && this.fields.username.match(/^(00D\w{12,15})![\.\w]*$/);
@@ -860,5 +870,9 @@ export namespace AuthInfo {
      * Options for the access token auth.
      */
     accessTokenOptions?: AccessTokenOptions;
+    /**
+     * User who created a sandbox.
+     */
+    prodOrgUsername?: string;
   }
 }

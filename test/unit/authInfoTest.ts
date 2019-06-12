@@ -415,6 +415,36 @@ describe('AuthInfo', () => {
       expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
       expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
       expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
+      expect(authInfo.getProdOrgUsername()).to.be.undefined;
+    });
+
+    it('should include prodOrgUsername when provided', async () => {
+      stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
+      stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
+
+      const accessToken =
+        '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
+      const prodOrgUser = 'test@test.com';
+      const authInfo = await AuthInfo.create({
+        username: 'test',
+        accessTokenOptions: {
+          accessToken,
+          instanceUrl: testMetadata.instanceUrl,
+          loginUrl: testMetadata.instanceUrl
+        },
+        prodOrgUsername: prodOrgUser
+      });
+
+      const expectedFields = {
+        accessToken,
+        instanceUrl: testMetadata.instanceUrl
+      };
+      expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
+      expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
+      expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
+      expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
+      expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
+      expect(authInfo.getProdOrgUsername()).equal(prodOrgUser);
     });
 
     //
