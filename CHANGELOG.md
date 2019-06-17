@@ -1,3 +1,18 @@
+# [2.0.0](https://github.com/forcedotcom/sfdx-core/compare/v1.3.3...v2.0.0) (2019-06-17)
+
+
+### Bug Fixes
+
+* 🐛 prevent auth files from being accidentally overwritten ([06d96fc](https://github.com/forcedotcom/sfdx-core/commit/06d96fc)), closes [PR#114](https://github.com/PR/issues/114)
+* add clientId to jwt fields ([8a7c040](https://github.com/forcedotcom/sfdx-core/commit/8a7c040))
+* force version bump to test ci-docs on release ([ecb6a66](https://github.com/forcedotcom/sfdx-core/commit/ecb6a66))
+
+
+### BREAKING CHANGES
+
+* 🧨 some commands that call getCoreConnection with auth options and a
+username will now throw an error.
+
 ## [1.3.4](https://github.com/forcedotcom/sfdx-core/compare/v1.3.3...v1.3.4) (2019-05-02)
 
 
