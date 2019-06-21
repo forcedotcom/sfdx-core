@@ -8,7 +8,7 @@
 import { ensure, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 
-const cipherName = 'aes256';
+const cipherName = 'aes-256-cbc';
 const cipherSize = 32;
 
 /**
