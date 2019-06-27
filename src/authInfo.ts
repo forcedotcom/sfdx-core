@@ -551,7 +551,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     let sfdxAuthUrl = 'force://';
 
     if (decryptedFields.clientId) {
-      sfdxAuthUrl += `${decryptedFields.clientId}:${decryptedFields.clientSecret}:`;
+      sfdxAuthUrl += `${decryptedFields.clientId}:${decryptedFields.clientSecret || ''}:`;
     }
 
     sfdxAuthUrl += `${decryptedFields.refreshToken}@${instanceUrl}`;
