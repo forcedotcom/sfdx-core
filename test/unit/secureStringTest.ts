@@ -5,6 +5,8 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import * as crypto from 'crypto';
+import { stub } from 'sinon';
 import { SecureBuffer } from '../../src/secureBuffer';
 
 describe('secureBuffer', async () => {
@@ -48,5 +50,24 @@ describe('secureBuffer', async () => {
     sString.value((buffer: Buffer) => {
       expect(buffer.toString('utf8')).to.not.be.equal(secretText);
     });
+  });
+
+  it('test backwards compatibility between aes256 and aes-256-cbc', () => {
+    const key = Buffer.from('aaaabbbbccccddddeeeeffffgggghhhh');
+    const iv = Buffer.from('aaaabbbbccccdddd');
+    const cipher = crypto.createCipheriv('aes256', key, iv);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    const createCipherStub = stub(crypto, 'createCipheriv').returns(cipher);
+    const createDecipherStub = stub(crypto, 'createDecipheriv').returns(decipher);
+    try {
+      const secure = new SecureBuffer();
+      secure.consume(Buffer.from(secretText, 'utf8'));
+      expect(createCipherStub.calledOnce).to.be.true;
+      secure.value(val => expect(val.toString('utf8')).to.be.equal(secretText));
+      expect(createDecipherStub.calledOnce).to.be.true;
+    } finally {
+      createCipherStub.restore();
+      createDecipherStub.restore();
+    }
   });
 });
