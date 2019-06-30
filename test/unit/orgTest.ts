@@ -234,7 +234,10 @@ describe('Org Tests', () => {
       stubMethod($$.SANDBOX, fs, 'remove').callsFake(() => {
         return Promise.resolve({});
       });
-      await org.setSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME, 'foo@sandbox.com');
+
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async () => {
+        return Promise.resolve(true);
+      });
 
       await org.remove();
 
@@ -312,6 +315,34 @@ describe('Org Tests', () => {
 
       alias = await Aliases.fetch('foo');
       expect(alias).eq(undefined);
+    });
+
+    it('should not fail when no sandboxOrgConfig', async () => {
+      const org: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: testData.username })
+        })
+      });
+
+      const deletedPaths: string[] = [];
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function(this: ConfigFile<ConfigFile.Options>) {
+        deletedPaths.push(this.getPath());
+        return Promise.resolve({});
+      });
+
+      stubMethod($$.SANDBOX, fs, 'remove').callsFake(() => {
+        return Promise.resolve({});
+      });
+
+      await org.remove();
+
+      expect(deletedPaths).includes(
+        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.json`)
+      );
+
+      expect(deletedPaths).not.includes(
+        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.sandbox.json`)
+      );
     });
   });
 

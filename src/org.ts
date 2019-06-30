@@ -164,13 +164,16 @@ export class Org extends AsyncCreatable<Org.Options> {
 
     await aliases.write();
 
-    // Delete the sandbox org config file if it exists
+    // Delete the sandbox org config file if it exists.
+    // This is an optional file so don't throw an error when the file doesn't exist.
     const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
-    await this.manageDelete(
-      async () => await sandboxOrgConfig.unlink(),
-      sandboxOrgConfig.getPath(),
-      throwWhenRemoveFails
-    );
+    if (await sandboxOrgConfig.exists()) {
+      await this.manageDelete(
+        async () => await sandboxOrgConfig.unlink(),
+        sandboxOrgConfig.getPath(),
+        throwWhenRemoveFails
+      );
+    }
   }
 
   /**
