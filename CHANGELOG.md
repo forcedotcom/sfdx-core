@@ -1,3 +1,12 @@
+## [2.0.1](https://github.com/forcedotcom/sfdx-core/compare/v2.0.0...v2.0.1) (2019-07-02)
+
+
+### Bug Fixes
+
+* update secureBuffer cipherName ([1e8037b](https://github.com/forcedotcom/sfdx-core/commit/1e8037b))
+* update secureBuffer cipherName ([874d5b6](https://github.com/forcedotcom/sfdx-core/commit/874d5b6))
+* use empty string for client secret when client secret is undefined ([0d22a56](https://github.com/forcedotcom/sfdx-core/commit/0d22a56))
+
 # [2.0.0](https://github.com/forcedotcom/sfdx-core/compare/v1.3.3...v2.0.0) (2019-06-17)
 
 
