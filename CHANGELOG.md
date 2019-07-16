@@ -1,3 +1,18 @@
+# [2.1.0](https://github.com/forcedotcom/sfdx-core/compare/v2.0.1...v2.1.0) (2019-07-16)
+
+
+### Bug Fixes
+
+* update secureBuffer cipherName ([b55fcde](https://github.com/forcedotcom/sfdx-core/commit/b55fcde))
+* update secureBuffer cipherName ([8e66a0c](https://github.com/forcedotcom/sfdx-core/commit/8e66a0c))
+* use empty string for client secret when client secret is undefined ([9513551](https://github.com/forcedotcom/sfdx-core/commit/9513551))
+
+
+### Features
+
+* add config file for sandbox ([db2026e](https://github.com/forcedotcom/sfdx-core/commit/db2026e))
+* do not throw error on org.remove if sandbox config doesn't exist ([3912993](https://github.com/forcedotcom/sfdx-core/commit/3912993))
+
 ## [2.0.1](https://github.com/forcedotcom/sfdx-core/compare/v2.0.0...v2.0.1) (2019-07-02)
 
 
