@@ -22,6 +22,7 @@ import { Config } from '../../src/config/config';
 import { ConfigAggregator } from '../../src/config/configAggregator';
 import { ConfigFile } from '../../src/config/configFile';
 import { OrgUsersConfig } from '../../src/config/orgUsersConfig';
+import { SandboxOrgConfig } from '../../src/config/sandboxOrgConfig';
 import { Connection } from '../../src/connection';
 import { Global } from '../../src/global';
 import { Org } from '../../src/org';
@@ -234,10 +235,18 @@ describe('Org Tests', () => {
         return Promise.resolve({});
       });
 
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async () => {
+        return Promise.resolve(true);
+      });
+
       await org.remove();
 
       expect(deletedPaths).includes(
         pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.json`)
+      );
+
+      expect(deletedPaths).includes(
+        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.sandbox.json`)
       );
     });
 
@@ -306,6 +315,34 @@ describe('Org Tests', () => {
 
       alias = await Aliases.fetch('foo');
       expect(alias).eq(undefined);
+    });
+
+    it('should not fail when no sandboxOrgConfig', async () => {
+      const org: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: testData.username })
+        })
+      });
+
+      const deletedPaths: string[] = [];
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function(this: ConfigFile<ConfigFile.Options>) {
+        deletedPaths.push(this.getPath());
+        return Promise.resolve({});
+      });
+
+      stubMethod($$.SANDBOX, fs, 'remove').callsFake(() => {
+        return Promise.resolve({});
+      });
+
+      await org.remove();
+
+      expect(deletedPaths).includes(
+        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.json`)
+      );
+
+      expect(deletedPaths).not.includes(
+        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.sandbox.json`)
+      );
     });
   });
 
@@ -668,6 +705,17 @@ describe('Org Tests', () => {
       expect(await org.determineIfDevHubOrg(true)).to.be.true;
       expect(spy.called).to.be.true;
       expect(org.isDevHubOrg()).to.be.true;
+    });
+  });
+
+  describe('sandbox org config', () => {
+    it('set field', async () => {
+      const org: Org = await Org.create({ aliasOrUsername: testData.username });
+      expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.be.undefined;
+
+      await org.setSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME, 'user@sandbox.org');
+
+      expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.eq('user@sandbox.org');
     });
   });
 });

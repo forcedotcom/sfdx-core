@@ -30,6 +30,7 @@ import { Config } from './config/config';
 import { ConfigAggregator, ConfigInfo } from './config/configAggregator';
 import { ConfigContents } from './config/configStore';
 import { OrgUsersConfig } from './config/orgUsersConfig';
+import { SandboxOrgConfig } from './config/sandboxOrgConfig';
 import { Connection } from './connection';
 import { Global } from './global';
 import { Logger } from './logger';
@@ -162,6 +163,17 @@ export class Org extends AsyncCreatable<Org.Options> {
     }
 
     await aliases.write();
+
+    // Delete the sandbox org config file if it exists.
+    // This is an optional file so don't throw an error when the file doesn't exist.
+    const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
+    if (await sandboxOrgConfig.exists()) {
+      await this.manageDelete(
+        async () => await sandboxOrgConfig.unlink(),
+        sandboxOrgConfig.getPath(),
+        throwWhenRemoveFails
+      );
+    }
   }
 
   /**
@@ -398,6 +410,28 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
+   * Sets the key/value pair in the sandbox config for this org. For convenience `this` object is returned.
+   *
+   *
+   * @param {key} The key for this value
+   * @param {value} The value to save
+   */
+  public async setSandboxOrgConfigField(field: SandboxOrgConfig.Fields, value: string): Promise<Org> {
+    const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
+    sandboxOrgConfig.set(field, value);
+    await sandboxOrgConfig.write();
+    return this;
+  }
+
+  /**
+   * Returns an org config field. Returns undefined if the field is not set or invalid.
+   */
+  public async getSandboxOrgConfigField(field: SandboxOrgConfig.Fields) {
+    const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
+    return sandboxOrgConfig.get(field);
+  }
+
+  /**
    * Retrieves the highest api version that is supported by the target server instance. If the apiVersion configured for
    * Sfdx is greater than the one returned in this call an api version mismatch occurs. In the case of the CLI that
    * results in a warning.
@@ -487,6 +521,13 @@ export class Org extends AsyncCreatable<Org.Options> {
    */
   protected getDefaultOptions(): Org.Options {
     throw new SfdxError('Not Supported');
+  }
+
+  /**
+   * @ignore
+   */
+  private async retrieveSandboxOrgConfig(): Promise<SandboxOrgConfig> {
+    return await SandboxOrgConfig.create(SandboxOrgConfig.getOptions(this.getOrgId()));
   }
 
   private manageDelete(cb: AnyFunction<Promise<void>>, dirPath: string, throwWhenRemoveFails: boolean): Promise<void> {
