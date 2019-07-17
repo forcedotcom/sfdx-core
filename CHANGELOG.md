@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/forcedotcom/sfdx-core/compare/v2.1.0...v2.1.1) (2019-07-17)
+
+
+### Bug Fixes
+
+* yarn.lock ([70e75a2](https://github.com/forcedotcom/sfdx-core/commit/70e75a2))
+
 # [2.1.0](https://github.com/forcedotcom/sfdx-core/compare/v2.0.1...v2.1.0) (2019-07-16)
 
 
