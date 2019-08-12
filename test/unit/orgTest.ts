@@ -276,6 +276,14 @@ describe('Org Tests', () => {
     });
 
     it('should remove config setting', async () => {
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function() {
+        return this.path && this.path.endsWith(`${testData.orgId}.json`);
+      });
+
+      stubMethod($$.SANDBOX, fs, 'unlink').callsFake(() => {
+        return Promise.resolve({});
+      });
+
       const configAggregator: ConfigAggregator = await ConfigAggregator.create();
       const org: Org = await Org.create({
         connection: await Connection.create({
@@ -301,6 +309,13 @@ describe('Org Tests', () => {
     });
 
     it('should remove the alias', async () => {
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function() {
+        return this.path && this.path.endsWith(`${testData.orgId}.json`);
+      });
+
+      stubMethod($$.SANDBOX, fs, 'unlink').callsFake(() => {
+        return Promise.resolve({});
+      });
       const org: Org = await Org.create({
         connection: await Connection.create({
           authInfo: await AuthInfo.create({ username: testData.username })
@@ -335,10 +350,6 @@ describe('Org Tests', () => {
       });
 
       await org.remove();
-
-      expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.json`)
-      );
 
       expect(deletedPaths).not.includes(
         pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.sandbox.json`)
@@ -430,6 +441,8 @@ describe('Org Tests', () => {
       await config.set(Config.DEFAULT_USERNAME, ensureString(org0Username));
       await config.write();
 
+      expect(await config.exists()).to.be.true;
+
       const configAggregator = await orgs[0].getConfigAggregator().reload();
       const info = configAggregator.getInfo(Config.DEFAULT_USERNAME);
       expect(info).has.property('value', org0Username);
@@ -446,6 +459,12 @@ describe('Org Tests', () => {
 
       alias = await Aliases.fetch('foo');
       expect(alias).eq(undefined);
+
+      const configOrg0 = await AuthInfoConfig.create({
+        ...AuthInfoConfig.getOptions(orgs[0].getUsername()),
+        throwOnNotFound: false
+      });
+      expect(await configOrg0.exists()).to.be.false;
     });
 
     it('should not try to delete auth files when deleting an org via access token', async () => {
@@ -710,12 +729,40 @@ describe('Org Tests', () => {
 
   describe('sandbox org config', () => {
     it('set field', async () => {
+      // Stub exists so only the auth file and sandbox config file exist. No users config file.
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function() {
+        if (this.path && this.path.endsWith(`${testData.orgId}.json`)) {
+          return Promise.resolve(false);
+        }
+        return Promise.resolve(true);
+      });
+
+      // Stub to track the deleted paths.
+      const deletedPaths: string[] = [];
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function(this: ConfigFile<ConfigFile.Options>) {
+        deletedPaths.push(this.getPath());
+        return Promise.resolve({});
+      });
+
+      // Create an org and add a sandbox config
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
       expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.be.undefined;
-
       await org.setSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME, 'user@sandbox.org');
-
       expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.eq('user@sandbox.org');
+
+      // Remove the org
+      await org.remove();
+
+      // Expect there are only two files.
+      expect(deletedPaths).to.have.length(2);
+      // Expect the sandbox config is deleted.
+      expect(deletedPaths).includes(
+        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.sandbox.json`)
+      );
+      // Expect the auth file is deleted.
+      expect(deletedPaths).includes(
+        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${org.getUsername()}.json`)
+      );
     });
   });
 });
