@@ -729,6 +729,15 @@ describe('Org Tests', () => {
 
   describe('sandbox org config', () => {
     it('set field', async () => {
+      const org: Org = await Org.create({ aliasOrUsername: testData.username });
+      expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.be.undefined;
+
+      await org.setSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME, 'user@sandbox.org');
+
+      expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.eq('user@sandbox.org');
+    });
+
+    it('Test sandbox config removal.', async () => {
       // Stub exists so only the auth file and sandbox config file exist. No users config file.
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function() {
         if (this.path && this.path.endsWith(`${testData.orgId}.json`)) {

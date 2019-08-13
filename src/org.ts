@@ -379,7 +379,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    * @param {value} The value to save
    */
   public async setSandboxOrgConfigField(field: SandboxOrgConfig.Fields, value: string): Promise<Org> {
-    const sandboxOrgConfig: SandboxOrgConfig = await this.retrieveSandboxOrgConfig();
+    const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
     sandboxOrgConfig.set(field, value);
     await sandboxOrgConfig.write();
     return this;
@@ -450,25 +450,6 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
-   * Returns a promise to delete an auth info file from the local file system and any related cache information for
-   * this Org.. You don't want to call this method directly. Instead consider calling Org.remove()
-   */
-  public async removeAuth(): Promise<void> {
-    const username = ensure(this.getUsername());
-    this.logger.debug(`Removing auth for user: ${username}`);
-    const config = await AuthInfoConfig.create({
-      ...AuthInfoConfig.getOptions(username),
-      throwOnNotFound: false
-    });
-
-    this.logger.debug(`Clearing auth cache for user: ${username}`);
-    AuthInfo.clearCache(username);
-    if (await config.exists()) {
-      await config.unlink();
-    }
-  }
-
-  /**
    * Initialize async components.
    */
   protected async init(): Promise<void> {
@@ -502,6 +483,25 @@ export class Org extends AsyncCreatable<Org.Options> {
    */
   protected getDefaultOptions(): Org.Options {
     throw new SfdxError('Not Supported');
+  }
+
+  /**
+   * Returns a promise to delete an auth info file from the local file system and any related cache information for
+   * this Org.. You don't want to call this method directly. Instead consider calling Org.remove()
+   */
+  private async removeAuth(): Promise<void> {
+    const username = ensure(this.getUsername());
+    this.logger.debug(`Removing auth for user: ${username}`);
+    const config = await AuthInfoConfig.create({
+      ...AuthInfoConfig.getOptions(username),
+      throwOnNotFound: false
+    });
+
+    this.logger.debug(`Clearing auth cache for user: ${username}`);
+    AuthInfo.clearCache(username);
+    if (await config.exists()) {
+      await config.unlink();
+    }
   }
 
   /**
