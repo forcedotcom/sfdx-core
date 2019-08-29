@@ -168,6 +168,29 @@ describe('Logger', () => {
     });
   });
 
+  describe('debugCallback', () => {
+    it('should log', async () => {
+      const logger = (await Logger.child('testLogger')).useMemoryLogging();
+      logger.setLevel(LoggerLevel.DEBUG);
+      const FOO = 'foo';
+      const BAR = 'bar';
+      const spy = $$.SANDBOX.spy(() => [FOO, BAR]);
+      logger.debugCallback(spy);
+      expect(spy.callCount).to.be.equal(1);
+      expect(logger.readLogContentsAsText())
+        .to.include(FOO)
+        .and.to.include(BAR);
+    });
+
+    it("shouldn't log", async () => {
+      const logger = (await Logger.child('testLogger')).useMemoryLogging();
+      const fooSpy = $$.SANDBOX.spy(() => 'FOO');
+      const cbSpy = $$.SANDBOX.spy(() => `${fooSpy()}`);
+      logger.debugCallback(cbSpy);
+      expect(fooSpy.callCount).to.be.equal(0);
+      expect(cbSpy.callCount).to.be.equal(0);
+    });
+  });
   describe('filters', () => {
     const sid = 'SIDHERE!';
     const simpleString = `sid=${sid}`;
