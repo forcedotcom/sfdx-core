@@ -1,3 +1,12 @@
+## [2.1.2](https://github.com/forcedotcom/sfdx-core/compare/v2.1.1...v2.1.2) (2019-08-29)
+
+
+### Bug Fixes
+
+* add debug logger that accepts a function ([117dee4](https://github.com/forcedotcom/sfdx-core/commit/117dee4))
+* deleting and org auth file never worked ([a6a77c6](https://github.com/forcedotcom/sfdx-core/commit/a6a77c6))
+* review feedback ([7c1f630](https://github.com/forcedotcom/sfdx-core/commit/7c1f630))
+
 ## [2.1.1](https://github.com/forcedotcom/sfdx-core/compare/v2.1.0...v2.1.1) (2019-07-17)
 
 
