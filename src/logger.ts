@@ -588,6 +588,22 @@ export class Logger {
   }
 
   /**
+   * Logs at `debug` level with filtering applied.
+   *
+   * @param cb A callback that returns on array objects to be logged.
+   */
+  public debugCallback(cb: () => Array<unknown> | string) {
+    if (this.getLevel() === LoggerLevel.DEBUG || process.env.DEBUG) {
+      const result = cb();
+      if (isArray(result)) {
+        this.bunyan.debug(this.applyFilters(LoggerLevel.DEBUG, ...result));
+      } else {
+        this.bunyan.debug(this.applyFilters(LoggerLevel.DEBUG, ...[result]));
+      }
+    }
+  }
+
+  /**
    * Logs at `info` level with filtering applied. For convenience `this` object is returned.
    *
    * @param args Any number of arguments to be logged.
