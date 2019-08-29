@@ -26,6 +26,7 @@ import { QueryResult } from 'jsforce';
 import { join as pathJoin } from 'path';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Aliases } from './config/aliases';
+import { AuthInfoConfig } from './config/authInfoConfig';
 import { Config } from './config/config';
 import { ConfigAggregator, ConfigInfo } from './config/configAggregator';
 import { ConfigContents } from './config/configStore';
@@ -127,53 +128,14 @@ export class Org extends AsyncCreatable<Org.Options> {
     if (this.getConnection().isUsingAccessToken()) {
       return Promise.resolve();
     }
-
-    const auths: AuthInfo[] = await this.readUserAuthFiles();
-    const aliases: Aliases = await Aliases.create(Aliases.getDefaultOptions());
-    this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
-
-    for (const auth of auths) {
-      const username = auth.getFields().username;
-
-      const aliasKeys = (username && aliases.getKeysByValue(username)) || [];
-      aliases.unsetAll(aliasKeys);
-
-      let orgForUser;
-      if (username === this.getUsername()) {
-        orgForUser = this;
-      } else {
-        const _info = await AuthInfo.create({ username });
-        const connection: Connection = await Connection.create({ authInfo: _info });
-        orgForUser = await Org.create({ connection });
-      }
-
-      const orgType = this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
-
-      const configInfo: ConfigInfo = await orgForUser.configAggregator.getInfo(orgType);
-
-      if (
-        (configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
-        (configInfo.isGlobal() || configInfo.isLocal())
-      ) {
-        await Config.update(configInfo.isGlobal(), orgType, undefined);
-      }
-
-      const orgUsers: OrgUsersConfig = await this.retrieveOrgUsersConfig();
-      await this.manageDelete(async () => await orgUsers.unlink(), orgUsers.getPath(), throwWhenRemoveFails);
-    }
-
-    await aliases.write();
-
-    // Delete the sandbox org config file if it exists.
-    // This is an optional file so don't throw an error when the file doesn't exist.
-    const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
-    if (await sandboxOrgConfig.exists()) {
-      await this.manageDelete(
-        async () => await sandboxOrgConfig.unlink(),
-        sandboxOrgConfig.getPath(),
-        throwWhenRemoveFails
-      );
-    }
+    await this.removeSandboxConfig(throwWhenRemoveFails);
+    await this.removeUsers(throwWhenRemoveFails);
+    await this.removeUsersConfig();
+    // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's usersname is also
+    // included in the OrgUser config file.
+    //
+    // So, just in case no users are added to this org we will try the remove again.
+    await this.removeAuth();
   }
 
   /**
@@ -524,6 +486,36 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
+   * Returns a promise to delete an auth info file from the local file system and any related cache information for
+   * this Org.. You don't want to call this method directly. Instead consider calling Org.remove()
+   */
+  private async removeAuth(): Promise<void> {
+    const username = ensure(this.getUsername());
+    this.logger.debug(`Removing auth for user: ${username}`);
+    const config = await AuthInfoConfig.create({
+      ...AuthInfoConfig.getOptions(username),
+      throwOnNotFound: false
+    });
+
+    this.logger.debug(`Clearing auth cache for user: ${username}`);
+    AuthInfo.clearCache(username);
+    if (await config.exists()) {
+      await config.unlink();
+    }
+  }
+
+  /**
+   * Deletes the users config file
+   */
+  private async removeUsersConfig() {
+    const config = await this.retrieveOrgUsersConfig();
+    if (await config.exists()) {
+      this.logger.debug(`Removing org users config at: ${config.getPath()}`);
+      await config.unlink();
+    }
+  }
+
+  /**
    * @ignore
    */
   private async retrieveSandboxOrgConfig(): Promise<SandboxOrgConfig> {
@@ -539,6 +531,66 @@ export class Org extends AsyncCreatable<Org.Options> {
         return;
       }
     });
+  }
+
+  /**
+   * Remove the org users auth file.
+   * @param throwWhenRemoveFails true if manageDelete should throw or not if the deleted fails.
+   */
+  private async removeUsers(throwWhenRemoveFails: boolean) {
+    this.logger.debug(`Removing users associate with org: ${this.getOrgId()}`);
+    const config = await this.retrieveOrgUsersConfig();
+    this.logger.debug(`using path for org users: ${config.getPath()}`);
+    if (await config.exists()) {
+      const _auths: AuthInfo[] = await this.readUserAuthFiles();
+      const aliases: Aliases = await Aliases.create(Aliases.getDefaultOptions());
+      this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
+
+      for (const auth of _auths) {
+        const username = auth.getFields().username;
+
+        const aliasKeys = (username && aliases.getKeysByValue(username)) || [];
+        aliases.unsetAll(aliasKeys);
+
+        let orgForUser;
+        if (username === this.getUsername()) {
+          orgForUser = this;
+        } else {
+          const _info = await AuthInfo.create({ username });
+          const connection: Connection = await Connection.create({ authInfo: _info });
+          orgForUser = await Org.create({ connection });
+        }
+
+        const orgType = this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
+
+        const configInfo: ConfigInfo = await orgForUser.configAggregator.getInfo(orgType);
+
+        if (
+          (configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
+          (configInfo.isGlobal() || configInfo.isLocal())
+        ) {
+          await Config.update(configInfo.isGlobal(), orgType, undefined);
+        }
+        await orgForUser.removeAuth();
+      }
+
+      await aliases.write();
+    }
+  }
+
+  /**
+   * Remove an associate sandbox config.
+   * @param throwWhenRemoveFails true if manageDelete should throw or not if the deleted fails.
+   */
+  private async removeSandboxConfig(throwWhenRemoveFails: boolean) {
+    const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
+    if (await sandboxOrgConfig.exists()) {
+      await this.manageDelete(
+        async () => await sandboxOrgConfig.unlink(),
+        sandboxOrgConfig.getPath(),
+        throwWhenRemoveFails
+      );
+    }
   }
 }
 
