@@ -205,6 +205,7 @@ describe('streaming client tests', () => {
     };
 
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const disconnectSpy = spyMethod($$.SANDBOX, StreamingClient.prototype, 'disconnectClient');
     try {
       await shouldThrow(
         asyncStatusClient.subscribe(() => {
@@ -213,6 +214,7 @@ describe('streaming client tests', () => {
       );
     } catch (e) {
       expect(e).to.have.property('name', 'TEST_ERROR');
+      expect(disconnectSpy.called).to.be.true;
     }
   });
 
