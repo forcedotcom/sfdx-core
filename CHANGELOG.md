@@ -1,3 +1,10 @@
+## [2.1.3](https://github.com/forcedotcom/sfdx-core/compare/v2.1.2...v2.1.3) (2019-10-09)
+
+
+### Bug Fixes
+
+* make sure when stream processor throws an error we disconnect the streaming client ([6dc8de9](https://github.com/forcedotcom/sfdx-core/commit/6dc8de9cfbf7aebfadf50233d914c05cba6eda9a))
+
 ## [2.1.2](https://github.com/forcedotcom/sfdx-core/compare/v2.1.1...v2.1.2) (2019-08-29)
 
 
