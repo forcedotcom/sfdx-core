@@ -339,13 +339,14 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
             // The stream processor says it's complete. Clean up and resolve the outer promise.
             if (result && result.completed) {
               clearTimeout(timeout);
-              this.cometClient.disconnect();
+              this.disconnectClient();
               subscribeResolve(result.payload);
-            }
+            } // This 'if' is intended to be evaluated until it's completed or until the timeout fires.
           } catch (e) {
             // it's completely valid for the stream processor to throw an error. If it does we will
             // reject the outer promise. Keep in mind if we are here the subscription was resolved.
             clearTimeout(timeout);
+            this.disconnectClient();
             subscribeReject(e);
           }
         });
@@ -408,6 +409,12 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     return error;
   }
 
+  private disconnectClient() {
+    if (this.cometClient) {
+      this.cometClient.disconnect();
+    }
+  }
+
   private disconnect() {
     this.log('Disconnecting the comet client');
     // This is a patch for faye. If Faye encounters errors while attempting to handshake it will keep trying
@@ -423,7 +430,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
       if (!dispatcher.clientId) {
         dispatcher.close();
       } else {
-        this.cometClient.disconnect();
+        this.disconnectClient();
       }
     }
   }
