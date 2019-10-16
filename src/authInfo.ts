@@ -13,6 +13,7 @@ import {
   ensure,
   ensureJsonMap,
   ensureString,
+  get,
   getString,
   isPlainObject,
   isString,
@@ -23,7 +24,7 @@ import {
 } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
-import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
+import { Connection as JSConnection, OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 // @ts-ignore No typings directly available for jsforce/lib/transport
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
@@ -645,8 +646,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
           authConfig = await this.buildRefreshTokenConfig(options);
+        } else if (options.authCode && options.clientId) {
+          // auth using access token without using code verifier
+          authConfig = await this.authorize(options);
         } else {
-          // authcode exchange / web auth flow
+          // web auth flow
           authConfig = await this.buildWebAuthConfig(options);
         }
       }
@@ -771,6 +775,23 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     }
 
     return authFields;
+  }
+
+  private async authorize(options: OAuth2Options): Promise<AuthFields> {
+    const oauth2 = new OAuth2(options);
+    const connection = new JSConnection({ oauth2 });
+    const userInformation = await connection.authorize(ensureString(options.authCode));
+    const _refreshToken = get(connection, 'refreshToken');
+    return {
+      accessToken: connection.accessToken,
+      // @ts-ignore TODO: need better typings for jsforce
+      instanceUrl: connection.instanceUrl,
+      orgId: userInformation.organizationId,
+      username: userInformation.id,
+      // @ts-ignore TODO: need better typings for jsforce
+      loginUrl: options.loginUrl,
+      refreshToken: _refreshToken ? ensureString(_refreshToken) : undefined
+    };
   }
 
   // Build OAuth config for a refresh token auth flow

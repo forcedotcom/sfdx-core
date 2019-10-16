@@ -10,6 +10,7 @@ import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from
 import { assert, expect } from 'chai';
 import * as dns from 'dns';
 import { OAuth2 } from 'jsforce';
+import * as jsforce from 'jsforce';
 // @ts-ignore WebStorm is reporting an error for the nested import
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
@@ -79,6 +80,8 @@ class MetaAuthDataMock {
     clientId: 'SalesforceDevelopmentExperience',
     clientSecret: '1384510088588713504'
   };
+  private _clientSecret = 'client_secret';
+  private _orgId = 'testOrgId';
 
   constructor() {
     this._jwtUsername = `${this._jwtUsername}_${$$.uniqid()}`;
@@ -160,6 +163,14 @@ class MetaAuthDataMock {
     return this._authInfoLookupCount;
   }
 
+  get clientSecret(): string {
+    return this._clientSecret;
+  }
+
+  get orgId(): string {
+    return this._orgId;
+  }
+
   public async fetchConfigInfo(path: string): Promise<ConfigContents> {
     if (path.toUpperCase().includes('JWT')) {
       this._authInfoLookupCount = this._authInfoLookupCount + 1;
@@ -212,6 +223,7 @@ describe('AuthInfo', () => {
   let authInfoBuildJwtConfig: sinon.SinonSpy;
   let authInfoBuildRefreshTokenConfig: sinon.SinonSpy;
   let authInfoBuildWebAuthConfig: sinon.SinonSpy;
+  let authInfoAuthorize: sinon.SinonSpy;
 
   let configFileWrite: sinon.SinonStub;
 
@@ -254,6 +266,7 @@ describe('AuthInfo', () => {
     authInfoBuildJwtConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildJwtConfig');
     authInfoBuildRefreshTokenConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig');
     authInfoBuildWebAuthConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildWebAuthConfig');
+    authInfoAuthorize = spyMethod($$.SANDBOX, AuthInfo.prototype, 'authorize');
   });
 
   describe('Secret Tests', () => {
@@ -947,6 +960,41 @@ describe('AuthInfo', () => {
         refreshToken: authResponse.refresh_token
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
+    });
+
+    it('should return access token and refresh token when jsforce.authorize is called for auth code exchange', async () => {
+      const authCodeConfig = {
+        authCode: testMetadata.authCode,
+        loginUrl: testMetadata.loginUrl,
+        clientId: testMetadata.clientId,
+        clientSecret: testMetadata.clientSecret,
+        redirectUri: testMetadata.redirectUri,
+        username: testMetadata.username
+      };
+
+      const userInfo = {
+        username: testMetadata.username,
+        instanceUrl: testMetadata.instanceUrl,
+        orgId: testMetadata.orgId,
+        accessToken: testMetadata.accessToken,
+        refreshToken: testMetadata.refreshToken
+      };
+
+      const fakeConnection = {
+        tooling: {},
+        authorize: () => Promise.resolve(userInfo)
+      };
+
+      stubMethod($$.SANDBOX, jsforce, 'Connection').callsFake(() => fakeConnection);
+      const authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
+
+      expect(authInfoAuthorize.calledOnce).to.be.true;
+      expect(authInfoInit.calledOnce).to.be.true;
+      expect(authInfoUpdate.called).to.be.true;
+
+      // verify fields
+      expect(authInfo.getUsername()).to.equal(testMetadata.username);
+      expect(authInfo.getFields().loginUrl).to.equal(testMetadata.loginUrl);
     });
 
     it('should throw a AuthCodeExchangeError when auth fails via an auth code', async () => {
