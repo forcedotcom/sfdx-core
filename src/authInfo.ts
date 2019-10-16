@@ -24,8 +24,7 @@ import {
 } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
-import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
-import { Connection as JSConnection } from 'jsforce';
+import { Connection as JSConnection, OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 // @ts-ignore No typings directly available for jsforce/lib/transport
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
@@ -648,6 +647,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
           authConfig = await this.buildRefreshTokenConfig(options);
         } else if (options.authCode && options.clientId) {
+          // auth using access token without using code verifier
           authConfig = await this.authorize(options);
         } else {
           // web auth flow
