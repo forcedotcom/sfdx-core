@@ -962,9 +962,9 @@ describe('AuthInfo', () => {
     it('should return access token and refresh token when using authCode; verifier should be the same.', async () => {
       /**
        * The way web oauth works is first you must request a one-time auth code. Typically
-       * you send a hashed number, called a code challenge to the server when you request the code.
+       * you send a hashed number to the server; the number is called the code verifier and the hashed value the code_challenge
        * After the code is returned you then request an access token by passing along the returned code
-       * an you also include the code_challenge again. If these two items match from when the authcode was issued the
+       * an you also include the UNHASHED code verifier value. If these two items match from when the authcode was issued the
        * access/refresh tokens are then returned.
        *
        * Typically the authCode is obtained by authenticating to salesforce via a generated url that contains the
