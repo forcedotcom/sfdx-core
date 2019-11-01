@@ -994,12 +994,7 @@ describe('AuthInfo', () => {
       _postParmsStub.returns(Promise.resolve(authResponse));
       const responseBody = { body: JSON.stringify({ Username: username }) };
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
-
-      console.log(`callCount: ${authInfoExchangeToken.callCount}`);
-
-      const authInfo = await AuthInfo.create({ oauth2Options: options, oauth2 });
-      console.log(authInfo.getFields().accessToken);
-      console.log(`callCount: ${authInfoExchangeToken.callCount}`);
+      await AuthInfo.create({ oauth2Options: options, oauth2 });
       expect(authInfoExchangeToken.args.length).to.equal(1);
       expect(authInfoExchangeToken.args[0].length).to.equal(2);
       expect(authInfoExchangeToken.args[0][1]).to.have.property('codeVerifier', oauth2.codeVerifier);
