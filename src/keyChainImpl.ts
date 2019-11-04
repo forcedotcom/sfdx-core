@@ -149,12 +149,16 @@ export class KeychainAccess implements PasswordStore {
     let stdout = '';
     let stderr = '';
 
-    credManager.stdout.on('data', data => {
-      stdout += data;
-    });
-    credManager.stderr.on('data', data => {
-      stderr += data;
-    });
+    if (credManager.stdout) {
+      credManager.stdout.on('data', data => {
+        stdout += data;
+      });
+    }
+    if (credManager.stderr) {
+      credManager.stderr.on('data', data => {
+        stderr += data;
+      });
+    }
 
     credManager.on('close', async code => {
       try {
@@ -172,7 +176,9 @@ export class KeychainAccess implements PasswordStore {
       }
     });
 
-    credManager.stdin.end();
+    if (credManager.stdin) {
+      credManager.stdin.end();
+    }
   }
 
   /**
@@ -203,19 +209,26 @@ export class KeychainAccess implements PasswordStore {
     let stdout = '';
     let stderr = '';
 
-    credManager.stdout.on('data', (data: string) => {
-      stdout += data;
-    });
-    credManager.stderr.on('data', (data: string) => {
-      stderr += data;
-    });
+    if (credManager.stdout) {
+      credManager.stdout.on('data', (data: string) => {
+        stdout += data;
+      });
+    }
+
+    if (credManager.stderr) {
+      credManager.stderr.on('data', (data: string) => {
+        stderr += data;
+      });
+    }
 
     credManager.on(
       'close',
       async (code: number) => await this.osImpl.onSetCommandClose(code, stdout, stderr, opts, fn)
     );
 
-    credManager.stdin.end();
+    if (credManager.stdin) {
+      credManager.stdin.end();
+    }
   }
 }
 
@@ -307,7 +320,9 @@ const _linuxImpl: OsImpl = {
 
   setCommandFunc(opts, fn) {
     const secretTool = fn(_linuxImpl.getProgram(), _linuxImpl.setProgramOptions(opts));
-    secretTool.stdin.write(`${opts.password}\n`);
+    if (secretTool.stdin) {
+      secretTool.stdin.write(`${opts.password}\n`);
+    }
     return secretTool;
   },
 
