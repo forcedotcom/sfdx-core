@@ -69,11 +69,11 @@
 					</div>
 					<pre><code><span class="hljs-keyword">const</span> sString: SecureBuffer&lt;<span class="hljs-keyword">string</span>&gt; = <span class="hljs-keyword">new</span> SecureBuffer();
 sString.consume(secretTextBuffer);
-<span class="hljs-keyword">const</span> value: <span class="hljs-keyword">string</span> = sString.value((<span class="hljs-built_in">buffer</span>: Buffer): <span class="hljs-keyword">string</span> =&gt; {
-    <span class="hljs-keyword">const</span> password: <span class="hljs-keyword">string</span> = <span class="hljs-built_in">buffer</span>.toString(<span class="hljs-string">'utf8'</span>);
+<span class="hljs-keyword">const</span> <span class="hljs-keyword">value</span>: <span class="hljs-keyword">string</span> = sString.<span class="hljs-keyword">value</span>((buffer: Buffer): <span class="hljs-keyword">string</span> =&gt; {
+    <span class="hljs-keyword">const</span> password: <span class="hljs-keyword">string</span> = buffer.toString(<span class="hljs-string">'utf8'</span>);
     <span class="hljs-comment">// doSomething with the password</span>
     <span class="hljs-comment">// returns something of type &lt;T&gt;</span>
-    <span class="hljs-built_in">return</span> testReturnValue;
+    <span class="hljs-keyword">return</span> testReturnValue;
 });</code></pre>
 				</div>
 			</section>
@@ -120,7 +120,7 @@ sString.consume(secretTextBuffer);
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/10c12fc/src/secureBuffer.ts#L65">secureBuffer.ts:65</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/eba04a0/src/secureBuffer.ts#L65">secureBuffer.ts:65</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -142,7 +142,7 @@ sString.consume(secretTextBuffer);
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/10c12fc/src/secureBuffer.ts#L78">secureBuffer.ts:78</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/eba04a0/src/secureBuffer.ts#L78">secureBuffer.ts:78</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -174,7 +174,7 @@ sString.consume(secretTextBuffer);
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/10c12fc/src/secureBuffer.ts#L46">secureBuffer.ts:46</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/eba04a0/src/secureBuffer.ts#L46">secureBuffer.ts:46</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">

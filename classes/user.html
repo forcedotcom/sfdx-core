@@ -120,7 +120,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/10c12fc/src/user.ts#L238">user.ts:238</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/eba04a0/src/user.ts#L238">user.ts:238</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -158,7 +158,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/10c12fc/src/user.ts#L276">user.ts:276</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/eba04a0/src/user.ts#L276">user.ts:276</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -179,13 +179,13 @@
 									<div class="tsd-comment tsd-typography">
 										<p>An array of permission set names.</p>
 										<pre><code>const username = <span class="hljs-string">'user@example.com'</span>;
-const <span class="hljs-keyword">connection</span>: <span class="hljs-keyword">Connection</span> = await <span class="hljs-keyword">Connection</span>.<span class="hljs-keyword">create</span>({
-  authInfo: await AuthInfo.<span class="hljs-keyword">create</span>({ username })
+const connection:<span class="hljs-built_in"> Connection </span>= await Connection.create({
+  authInfo: await AuthInfo.create({ username })
 });
-const org = await Org.<span class="hljs-keyword">create</span>({ <span class="hljs-keyword">connection</span> });
-const <span class="hljs-keyword">user</span>: <span class="hljs-keyword">User</span> = await <span class="hljs-keyword">User</span>.<span class="hljs-keyword">create</span>({ org });
-const fields: UserFields = await <span class="hljs-keyword">user</span>.retrieve(username);
-await <span class="hljs-keyword">user</span>.assignPermissionSets(fields.id, [<span class="hljs-string">'sfdx'</span>, <span class="hljs-string">'approver'</span>]);</code></pre>
+const org = await Org.create({<span class="hljs-built_in"> connection </span>});
+const user:<span class="hljs-built_in"> User </span>= await User.create({ org });
+const fields: UserFields = await user.retrieve(username);
+await user.assignPermissionSets(fields.id, [<span class="hljs-string">'sfdx'</span>, <span class="hljs-string">'approver'</span>]);</code></pre>
 									</div>
 								</li>
 							</ul>
@@ -203,7 +203,7 @@ await <span class="hljs-keyword">user</span>.assignPermissionSets(fields.id, [<s
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/10c12fc/src/user.ts#L315">user.ts:315</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/eba04a0/src/user.ts#L315">user.ts:315</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -222,14 +222,14 @@ await <span class="hljs-keyword">user</span>.assignPermissionSets(fields.id, [<s
 									<h5>fields: <a href="../globals.html#userfields" class="tsd-signature-type">UserFields</a></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>The required fields for creating a user.</p>
-										<pre><code>const <span class="hljs-keyword">connection</span>: <span class="hljs-keyword">Connection</span> = await <span class="hljs-keyword">Connection</span>.<span class="hljs-keyword">create</span>({
-  authInfo: await AuthInfo.<span class="hljs-keyword">create</span>({ username: <span class="hljs-string">'user@example.com'</span> })
+										<pre><code>const connection:<span class="hljs-built_in"> Connection </span>= await Connection.create({
+  authInfo: await AuthInfo.create({ username: <span class="hljs-string">'user@example.com'</span> })
 });
-const org = await Org.<span class="hljs-keyword">create</span>({ <span class="hljs-keyword">connection</span> });
+const org = await Org.create({<span class="hljs-built_in"> connection </span>});
 
-const defaultUserFields = await DefaultUserFields.<span class="hljs-keyword">create</span>({ templateUser: <span class="hljs-string">'devhub_user@example.com'</span> });
-const <span class="hljs-keyword">user</span>: <span class="hljs-keyword">User</span> = await <span class="hljs-keyword">User</span>.<span class="hljs-keyword">create</span>({ org });
-const <span class="hljs-keyword">info</span>: AuthInfo = await <span class="hljs-keyword">user</span>.createUser(defaultUserFields.getFields());</code></pre>
+const defaultUserFields = await DefaultUserFields.create({ templateUser: <span class="hljs-string">'devhub_user@example.com'</span> });
+const user:<span class="hljs-built_in"> User </span>= await User.create({ org });
+const info: AuthInfo = await user.createUser(defaultUserFields.getFields());</code></pre>
 									</div>
 								</li>
 							</ul>
@@ -248,7 +248,7 @@ const <span class="hljs-keyword">info</span>: AuthInfo = await <span class="hljs
 							<aside class="tsd-sources">
 								<p>Overrides AsyncCreatable.init</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/10c12fc/src/user.ts#L226">user.ts:226</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/eba04a0/src/user.ts#L226">user.ts:226</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -270,7 +270,7 @@ const <span class="hljs-keyword">info</span>: AuthInfo = await <span class="hljs
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/10c12fc/src/user.ts#L367">user.ts:367</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/eba04a0/src/user.ts#L367">user.ts:367</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -285,12 +285,12 @@ const <span class="hljs-keyword">info</span>: AuthInfo = await <span class="hljs
 									<div class="tsd-comment tsd-typography">
 										<p>The username of the user.</p>
 										<pre><code>const username = <span class="hljs-string">'boris@thecat.com'</span>;
-const <span class="hljs-keyword">connection</span>: <span class="hljs-keyword">Connection</span> = await <span class="hljs-keyword">Connection</span>.<span class="hljs-keyword">create</span>({
-  authInfo: await AuthInfo.<span class="hljs-keyword">create</span>({ username })
+const connection:<span class="hljs-built_in"> Connection </span>= await Connection.create({
+  authInfo: await AuthInfo.create({ username })
 });
-const org = await Org.<span class="hljs-keyword">create</span>({ <span class="hljs-keyword">connection</span> });
-const <span class="hljs-keyword">user</span>: <span class="hljs-keyword">User</span> = await <span class="hljs-keyword">User</span>.<span class="hljs-keyword">create</span>({ org });
-const fields: UserFields = await <span class="hljs-keyword">user</span>.retrieve(username);</code></pre>
+const org = await Org.create({<span class="hljs-built_in"> connection </span>});
+const user:<span class="hljs-built_in"> User </span>= await User.create({ org });
+const fields: UserFields = await user.retrieve(username);</code></pre>
 									</div>
 								</li>
 							</ul>
@@ -354,7 +354,7 @@ const fields: UserFields = await <span class="hljs-keyword">user</span>.retrieve
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/10c12fc/src/user.ts#L197">user.ts:197</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/eba04a0/src/user.ts#L197">user.ts:197</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
