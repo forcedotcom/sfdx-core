@@ -13,7 +13,6 @@ import {
   ensure,
   ensureJsonMap,
   ensureString,
-  get,
   getString,
   isPlainObject,
   isString,
@@ -24,7 +23,7 @@ import {
 } from '@salesforce/ts-types';
 import { createHash, randomBytes } from 'crypto';
 import * as dns from 'dns';
-import { Connection as JSConnection, OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
+import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 // @ts-ignore No typings directly available for jsforce/lib/transport
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
@@ -116,9 +115,22 @@ class JwtOAuth2 extends OAuth2 {
   }
 }
 
-// Extend OAuth2 to add code verifier support for the auth code (web auth) flow
-class AuthCodeOAuth2 extends OAuth2 {
-  private codeVerifier: string;
+/**
+ * Extend OAuth2 to add code verifier support for the auth code (web auth) flow
+ * const oauth2 = new OAuth2WithVerifier({ loginUrl, clientSecret, clientId, redirectUri });
+ *
+ * const authUrl = oauth2.getAuthorizationUrl({
+ *    state: 'foo',
+ *    prompt: 'login',
+ *    scope: 'api web'
+ * });
+ * console.log(authUrl);
+ * const authCode = await retrieveCode();
+ * const authInfo = await AuthInfo.create({ oauth2Options: { clientId, clientSecret, loginUrl, authCode }, oauth2});
+ * console.log(`access token: ${authInfo.getFields().accessToken}`);
+ */
+export class OAuth2WithVerifier extends OAuth2 {
+  public readonly codeVerifier: string;
 
   constructor(options: OAuth2Options) {
     super(options);
@@ -349,7 +361,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * @param options The options to generate the URL.
    */
   public static getAuthorizationUrl(options: OAuth2Options): string {
-    const oauth2 = new AuthCodeOAuth2(options);
+    const oauth2 = new OAuth2WithVerifier(options);
 
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
@@ -641,17 +653,19 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         if (!options.privateKey && options.privateKeyFile) {
           options.privateKey = options.privateKeyFile;
         }
+
         if (options.privateKey) {
           authConfig = await this.buildJwtConfig(options);
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
           authConfig = await this.buildRefreshTokenConfig(options);
-        } else if (options.authCode && options.clientId) {
-          // auth using access token without using code verifier
-          authConfig = await this.authorize(options);
         } else {
-          // web auth flow
-          authConfig = await this.buildWebAuthConfig(options);
+          if (this.options.oauth2 instanceof OAuth2WithVerifier) {
+            // authcode exchange / web auth flow
+            authConfig = await this.exchangeToken(options, this.options.oauth2);
+          } else {
+            authConfig = await this.exchangeToken(options);
+          }
         }
       }
 
@@ -777,23 +791,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     return authFields;
   }
 
-  private async authorize(options: OAuth2Options): Promise<AuthFields> {
-    const oauth2 = new OAuth2(options);
-    const connection = new JSConnection({ oauth2 });
-    const userInformation = await connection.authorize(ensureString(options.authCode));
-    const _refreshToken = get(connection, 'refreshToken');
-    return {
-      accessToken: connection.accessToken,
-      // @ts-ignore TODO: need better typings for jsforce
-      instanceUrl: connection.instanceUrl,
-      orgId: userInformation.organizationId,
-      username: userInformation.id,
-      // @ts-ignore TODO: need better typings for jsforce
-      loginUrl: options.loginUrl,
-      refreshToken: _refreshToken ? ensureString(_refreshToken) : undefined
-    };
-  }
-
   // Build OAuth config for a refresh token auth flow
   private async buildRefreshTokenConfig(options: OAuth2Options): Promise<AuthFields> {
     // Ideally, this would be removed at some point in the distant future when all auth files
@@ -825,10 +822,12 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     };
   }
 
-  // build an OAuth config given an auth code.
-  private async buildWebAuthConfig(options: OAuth2Options): Promise<AuthFields> {
-    const oauth2 = new AuthCodeOAuth2(options);
-
+  /**
+   * Performs an authCode exchange but the Oauth2 feature of jsforce is extended to include a code_challenge
+   * @param options The oauth options
+   * @param oauth2 The oauth2 extension that includes a code_challenge
+   */
+  private async exchangeToken(options: OAuth2Options, oauth2: OAuth2 = new OAuth2(options)): Promise<AuthFields> {
     // Exchange the auth code for an access token and refresh token.
     let _authFields: TokenResponse;
     try {
@@ -901,5 +900,7 @@ export namespace AuthInfo {
      * Options for the access token auth.
      */
     accessTokenOptions?: AccessTokenOptions;
+
+    oauth2?: OAuth2;
   }
 }

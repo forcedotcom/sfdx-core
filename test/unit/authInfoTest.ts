@@ -9,12 +9,11 @@ import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import * as dns from 'dns';
-import { OAuth2 } from 'jsforce';
-import * as jsforce from 'jsforce';
+import { OAuth2, OAuth2Options } from 'jsforce';
 // @ts-ignore WebStorm is reporting an error for the nested import
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-import { AuthFields, AuthInfo } from '../../src/authInfo';
+import { AuthFields, AuthInfo, OAuth2WithVerifier } from '../../src/authInfo';
 import { AuthInfoConfig } from '../../src/config/authInfoConfig';
 import { ConfigFile } from '../../src/config/configFile';
 import { ConfigContents } from '../../src/config/configStore';
@@ -222,8 +221,7 @@ describe('AuthInfo', () => {
   let authInfoUpdate: sinon.SinonSpy;
   let authInfoBuildJwtConfig: sinon.SinonSpy;
   let authInfoBuildRefreshTokenConfig: sinon.SinonSpy;
-  let authInfoBuildWebAuthConfig: sinon.SinonSpy;
-  let authInfoAuthorize: sinon.SinonSpy;
+  let authInfoExchangeToken: sinon.SinonSpy;
 
   let configFileWrite: sinon.SinonStub;
 
@@ -265,8 +263,7 @@ describe('AuthInfo', () => {
     authInfoUpdate = spyMethod($$.SANDBOX, AuthInfo.prototype, 'update');
     authInfoBuildJwtConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildJwtConfig');
     authInfoBuildRefreshTokenConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig');
-    authInfoBuildWebAuthConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildWebAuthConfig');
-    authInfoAuthorize = spyMethod($$.SANDBOX, AuthInfo.prototype, 'authorize');
+    authInfoExchangeToken = spyMethod($$.SANDBOX, AuthInfo.prototype, 'exchangeToken');
   });
 
   describe('Secret Tests', () => {
@@ -944,8 +941,8 @@ describe('AuthInfo', () => {
       expect(authInfoInit.called).to.be.true;
       expect(authInfoInit.firstCall.args[0]).to.equal(authCodeConfig);
       expect(authInfoUpdate.called).to.be.true;
-      expect(authInfoBuildWebAuthConfig.called).to.be.true;
-      expect(authInfoBuildWebAuthConfig.firstCall.args[0]).to.include(authCodeConfig);
+      expect(authInfoExchangeToken.called).to.be.true;
+      expect(authInfoExchangeToken.firstCall.args[0]).to.include(authCodeConfig);
       expect(AuthInfoConfig.getOptions(username).filename).to.equal(`${username}.json`);
 
       // Verify the authCodeConfig object was not mutated by init() or buildWebAuthConfig()
@@ -962,39 +959,45 @@ describe('AuthInfo', () => {
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
 
-    it('should return access token and refresh token when jsforce.authorize is called for auth code exchange', async () => {
-      const authCodeConfig = {
-        authCode: testMetadata.authCode,
-        loginUrl: testMetadata.loginUrl,
-        clientId: testMetadata.clientId,
-        clientSecret: testMetadata.clientSecret,
-        redirectUri: testMetadata.redirectUri,
-        username: testMetadata.username
+    it('should return access token and refresh token when using authCode; verifier should be the same.', async () => {
+      /**
+       * The way web oauth works is first you must request a one-time auth code. Typically
+       * you send a hashed number to the server; the number is called the code verifier and the hashed value the code_challenge
+       * After the code is returned you then request an access token by passing along the returned code
+       * an you also include the UNHASHED code verifier value. If these two items match from when the authcode was issued the
+       * access/refresh tokens are then returned.
+       *
+       * Typically the authCode is obtained by authenticating to salesforce via a generated url that contains the
+       * connected app info plus this code challenge. After successful authentication the browser is sent a redirect url
+       * that includes the authCode.
+       *
+       * This test just makes sure the auth code exchange method is using the same codeVerifier. By creating the
+       * codeVerifier instance you can first generate the url then pass it to AuthInfo. Then everything lines up.
+       */
+      const clientId = 'clientId';
+      const clientSecret = 'clientSecret';
+      const loginUrl = 'loginUrl';
+      const redirectUri = 'redirectUri';
+      const username = 'authInfoTest_username_AuthCode';
+
+      const options: OAuth2Options = { clientId, clientSecret, loginUrl, redirectUri };
+      const oauth2 = new OAuth2WithVerifier(options);
+      options.authCode = '123456';
+
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testMetadata.refreshToken
       };
-
-      const userInfo = {
-        username: testMetadata.username,
-        instanceUrl: testMetadata.instanceUrl,
-        orgId: testMetadata.orgId,
-        accessToken: testMetadata.accessToken,
-        refreshToken: testMetadata.refreshToken
-      };
-
-      const fakeConnection = {
-        tooling: {},
-        authorize: () => Promise.resolve(userInfo)
-      };
-
-      stubMethod($$.SANDBOX, jsforce, 'Connection').callsFake(() => fakeConnection);
-      const authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
-
-      expect(authInfoAuthorize.calledOnce).to.be.true;
-      expect(authInfoInit.calledOnce).to.be.true;
-      expect(authInfoUpdate.called).to.be.true;
-
-      // verify fields
-      expect(authInfo.getUsername()).to.equal(testMetadata.username);
-      expect(authInfo.getFields().loginUrl).to.equal(testMetadata.loginUrl);
+      // Stub the http requests (OAuth2.requestToken() and the request for the username)
+      _postParmsStub.returns(Promise.resolve(authResponse));
+      const responseBody = { body: JSON.stringify({ Username: username }) };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      await AuthInfo.create({ oauth2Options: options, oauth2 });
+      expect(authInfoExchangeToken.args.length).to.equal(1);
+      expect(authInfoExchangeToken.args[0].length).to.equal(2);
+      expect(authInfoExchangeToken.args[0][1]).to.have.property('codeVerifier', oauth2.codeVerifier);
     });
 
     it('should throw a AuthCodeExchangeError when auth fails via an auth code', async () => {
