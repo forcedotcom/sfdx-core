@@ -1,6 +1,6 @@
 {
   "extends": "@salesforce/dev-config/nyc",
-  "lines": 88,
+  "lines": 87,
   "statements": 87,
   "functions": 89,
   "branches": 74,
