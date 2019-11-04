@@ -26,7 +26,7 @@ Agreement. You can do so by going to https://cla.salesforce.com/sign-cla.
 - Our work happens in _topic_ branches (feature and/or bug-fix).
   - feature as well as bug-fix branches are based on `develop`
   - branches _should_ be kept up-to-date using `rebase`
-  - see below for further merge instructions.
+  - see below for further merge instructions
 
 ### Merging between branches
 
