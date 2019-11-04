@@ -499,7 +499,7 @@ export class Logger {
    *
    * @param filter A function with signature `(...args: any[]) => any[]` that transforms log message arguments.
    */
-  public addFilter(filter: (...args: Array<unknown>) => unknown): void {
+  public addFilter(filter: (...args: unknown[]) => unknown): void {
     // tslint:disable-line:no-any
     if (!this.bunyan.filters) {
       this.bunyan.filters = [];
@@ -582,7 +582,7 @@ export class Logger {
    *
    * @param args Any number of arguments to be logged.
    */
-  public debug(...args: Array<unknown>): Logger {
+  public debug(...args: unknown[]): Logger {
     this.bunyan.debug(this.applyFilters(LoggerLevel.DEBUG, ...args));
     return this;
   }
@@ -592,7 +592,7 @@ export class Logger {
    *
    * @param cb A callback that returns on array objects to be logged.
    */
-  public debugCallback(cb: () => Array<unknown> | string) {
+  public debugCallback(cb: () => unknown[] | string) {
     if (this.getLevel() === LoggerLevel.DEBUG || process.env.DEBUG) {
       const result = cb();
       if (isArray(result)) {
@@ -608,7 +608,7 @@ export class Logger {
    *
    * @param args Any number of arguments to be logged.
    */
-  public info(...args: Array<unknown>): Logger {
+  public info(...args: unknown[]): Logger {
     this.bunyan.info(this.applyFilters(LoggerLevel.INFO, ...args));
     return this;
   }
@@ -618,7 +618,7 @@ export class Logger {
    *
    * @param args Any number of arguments to be logged.
    */
-  public warn(...args: Array<unknown>): Logger {
+  public warn(...args: unknown[]): Logger {
     this.bunyan.warn(this.applyFilters(LoggerLevel.WARN, ...args));
     return this;
   }
@@ -628,7 +628,7 @@ export class Logger {
    *
    * @param args Any number of arguments to be logged.
    */
-  public error(...args: Array<unknown>): Logger {
+  public error(...args: unknown[]): Logger {
     this.bunyan.error(this.applyFilters(LoggerLevel.ERROR, ...args));
     return this;
   }
@@ -638,14 +638,14 @@ export class Logger {
    *
    * @param args Any number of arguments to be logged.
    */
-  public fatal(...args: Array<unknown>): Logger {
+  public fatal(...args: unknown[]): Logger {
     // always show fatal to stderr
     console.error(...args);
     this.bunyan.fatal(this.applyFilters(LoggerLevel.FATAL, ...args));
     return this;
   }
 
-  private applyFilters(logLevel: LoggerLevel, ...args: Array<unknown>): Optional<Many<unknown>> {
+  private applyFilters(logLevel: LoggerLevel, ...args: unknown[]): Optional<Many<unknown>> {
     if (this.shouldLog(logLevel)) {
       // tslint:disable-next-line:no-any No bunyan typings
       this.bunyan.filters.forEach((filter: any) => (args = filter(...args)));
@@ -682,7 +682,7 @@ const FILTERED_KEYS: FilteredKey[] = [
 ];
 
 // SFDX code and plugins should never show tokens or connect app information in the logs
-const _filter = (...args: Array<unknown>): unknown => {
+const _filter = (...args: unknown[]): unknown => {
   return args.map(arg => {
     if (isArray(arg)) {
       return _filter(...arg);

@@ -532,6 +532,7 @@ export class MockTestOrgData {
   public accessToken: string;
   public refreshToken: string;
   public userId: string;
+  public redirectUri: string;
 
   constructor(id: string = _uniqid()) {
     this.testId = id;
@@ -545,6 +546,7 @@ export class MockTestOrgData {
     this.authcode = `${this.testId}/authcode`;
     this.accessToken = `${this.testId}/accessToken`;
     this.refreshToken = `${this.testId}/refreshToken`;
+    this.redirectUri = `http://${this.testId}/localhost:1717/OauthRedirect`;
   }
 
   public createDevHubUsername(username: string): void {
@@ -565,6 +567,7 @@ export class MockTestOrgData {
     userMock.instanceUrl = this.instanceUrl;
     userMock.clientId = this.clientId;
     userMock.clientSecret = this.clientSecret;
+    userMock.redirectUri = this.redirectUri;
     return userMock;
   }
 

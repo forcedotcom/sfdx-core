@@ -398,17 +398,16 @@ describe('Org Tests', () => {
         responseBody = {
           body: JSON.stringify({ Username: user.username, OrgId: user.orgId })
         };
-
+        const oauth2Options = {
+          authCode: 'test',
+          clientSecret: user.clientSecret,
+          loginUrl: user.loginUrl,
+          redirectUri: user.redirectUri
+        };
         const userAuth = await AuthInfo.create({
           username: user.username,
-          oauth2Options: {
-            authCode: 'test',
-            clientId: user.clientId,
-            clientSecret: user.clientSecret,
-            loginUrl: user.loginUrl
-          }
+          oauth2Options
         });
-
         await userAuth.save({ orgId: user.orgId });
 
         const configAggregator: ConfigAggregator = await ConfigAggregator.create();
