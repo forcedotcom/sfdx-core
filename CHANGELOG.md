@@ -1,3 +1,10 @@
+## [2.1.5](https://github.com/forcedotcom/sfdx-core/compare/v2.1.4...v2.1.5) (2019-11-15)
+
+
+### Bug Fixes
+
+* rogue import causing compile issue ([d0b5e5c](https://github.com/forcedotcom/sfdx-core/commit/d0b5e5c13dc497ef0ba98d460e91514ea0400d7a))
+
 ## [2.1.4](https://github.com/forcedotcom/sfdx-core/compare/v2.1.3...v2.1.4) (2019-11-04)
 
 
