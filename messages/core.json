@@ -1,6 +1,6 @@
 {
   "JsonParseError": "Parse error in file %s on line %s\n%s\n",
-  "AuthInfoCreationError": "Must pass a username and/or OAuth options when creating an AuthInfo instance.",
+  "AuthInfoCreationError": "We couldn’t create this sandbox or scratch org because the associated Dev Hub isn’t authorized. Authorize the Dev Hub and try again.",
   "AuthInfoOverwriteError": "Cannot create an AuthInfo instance that will overwrite existing auth data.",
   "AuthInfoOverwriteErrorAction": "Create the AuthInfo instance using existing auth data by just passing the username.  E.g., AuthInfo.create({ username: 'my@user.org' });",
   "AuthCodeExchangeError": "Error authenticating with auth code due to: %s",
