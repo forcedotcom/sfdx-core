@@ -97,6 +97,11 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   public static readonly API_VERSION = 'apiVersion';
 
   /**
+   * Disables telemetry reporting
+   */
+  public static readonly DISABLE_TELEMETRY = 'disableTelemetry';
+
+  /**
    * Returns the default file name for a config file.
    *
    * **See** {@link SFDX_CONFIG_FILE_NAME}
@@ -258,6 +263,13 @@ export class Config extends ConfigFile<ConfigFile.Options> {
         { key: Config.DEFAULT_USERNAME },
         { key: Config.ISV_DEBUGGER_SID, encrypted: true },
         { key: Config.ISV_DEBUGGER_URL },
+        {
+          key: Config.DISABLE_TELEMETRY,
+          input: {
+            validator: value => value == null || ['true', 'false'].includes(value.toString()),
+            failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
+          }
+        },
         // This should be brought in by a plugin, but there isn't a way to do that right now.
         {
           key: 'restDeploy',
