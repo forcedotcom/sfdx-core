@@ -1,3 +1,10 @@
+## [2.1.6](https://github.com/forcedotcom/sfdx-core/compare/v2.1.5...v2.1.6) (2020-01-13)
+
+
+### Bug Fixes
+
+* add config var for telemetry opt out ([f79ace3](https://github.com/forcedotcom/sfdx-core/commit/f79ace34462f586feb296b94ee369e1f7922341d))
+
 ## [2.1.5](https://github.com/forcedotcom/sfdx-core/compare/v2.1.4...v2.1.5) (2019-11-15)
 
 
