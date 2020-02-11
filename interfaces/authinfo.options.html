@@ -90,6 +90,7 @@
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authinfo.options.html#accesstokenoptions" class="tsd-kind-icon">access<wbr>Token<wbr>Options</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authinfo.options.html#oauth2" class="tsd-kind-icon">oauth2</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authinfo.options.html#oauth2options" class="tsd-kind-icon">oauth2<wbr>Options</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authinfo.options.html#parentusername" class="tsd-kind-icon">parent<wbr>Username</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authinfo.options.html#username" class="tsd-kind-icon">username</a></li>
 							</ul>
 						</section>
@@ -104,7 +105,7 @@
 					<div class="tsd-signature tsd-kind-icon">access<wbr>Token<wbr>Options<span class="tsd-signature-symbol">:</span> <a href="accesstokenoptions.html" class="tsd-signature-type">AccessTokenOptions</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/1fc0502/src/authInfo.ts#L902">authInfo.ts:902</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/70f997e/src/authInfo.ts#L928">authInfo.ts:928</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -119,7 +120,7 @@
 					<div class="tsd-signature tsd-kind-icon">oauth2<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">OAuth2</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/1fc0502/src/authInfo.ts#L904">authInfo.ts:904</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/70f997e/src/authInfo.ts#L930">authInfo.ts:930</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -129,7 +130,7 @@
 					<div class="tsd-signature tsd-kind-icon">oauth2<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">OAuth2Options</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/1fc0502/src/authInfo.ts#L898">authInfo.ts:898</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/70f997e/src/authInfo.ts#L924">authInfo.ts:924</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -139,12 +140,29 @@
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="parentusername" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> parent<wbr>Username</h3>
+					<div class="tsd-signature tsd-kind-icon">parent<wbr>Username<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/70f997e/src/authInfo.ts#L937">authInfo.ts:937</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>In certain situations, a new auth info wants to use the connected app
+								information from another parent org. Typically for scratch org or sandbox
+							creation.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="username" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> username</h3>
 					<div class="tsd-signature tsd-kind-icon">username<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/1fc0502/src/authInfo.ts#L894">authInfo.ts:894</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/70f997e/src/authInfo.ts#L920">authInfo.ts:920</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -181,6 +199,9 @@
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
 										<a href="authinfo.options.html#oauth2options" class="tsd-kind-icon">oauth2<wbr>Options</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="authinfo.options.html#parentusername" class="tsd-kind-icon">parent<wbr>Username</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
 										<a href="authinfo.options.html#username" class="tsd-kind-icon">username</a>
