@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/forcedotcom/sfdx-core/compare/v2.1.6...v2.2.0) (2020-02-11)
+
+
+### Features
+
+* create authinfo with a parent authinfo ([9b21226](https://github.com/forcedotcom/sfdx-core/commit/9b212264bafe458c95ae22fce11298c706d23393)), closes [#202](https://github.com/forcedotcom/sfdx-core/issues/202)
+
 ## [2.1.6](https://github.com/forcedotcom/sfdx-core/compare/v2.1.5...v2.1.6) (2020-01-13)
 
 
