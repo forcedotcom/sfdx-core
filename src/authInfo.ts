@@ -648,6 +648,23 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       if (this.isTokenOptions(options)) {
         authConfig = options;
       } else {
+        if (this.options.parentUsername) {
+          const parentUserFields = await this.loadAuthFromConfig(this.options.parentUsername);
+          const parentFields = this.authInfoCrypto.decryptFields(parentUserFields);
+
+          options.clientId = parentFields.clientId;
+
+          if (process.env.SFDX_CLIENT_SECRET) {
+            options.clientSecret = process.env.SFDX_CLIENT_SECRET;
+          } else {
+            // Grab whatever flow is defined
+            Object.assign(options, {
+              clientSecret: parentFields.clientSecret,
+              privateKey: parentFields.privateKey
+            });
+          }
+        }
+
         // jwt flow
         // Support both sfdx and jsforce private key values
         if (!options.privateKey && options.privateKeyFile) {
@@ -673,24 +690,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       this.update(authConfig);
     } else {
       const username = ensure(this.getUsername());
-      if (AuthInfo.cache.has(username)) {
-        authConfig = ensure(AuthInfo.cache.get(username));
-      } else {
-        // Fetch from the persisted auth file
-        try {
-          const config: AuthInfoConfig = await AuthInfoConfig.create({
-            ...AuthInfoConfig.getOptions(username),
-            throwOnNotFound: true
-          });
-          authConfig = config.toObject();
-        } catch (e) {
-          if (e.code === 'ENOENT') {
-            throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [username]);
-          } else {
-            throw e;
-          }
-        }
-      }
+      authConfig = await this.loadAuthFromConfig(username);
       // Update the auth fields WITHOUT encryption (already encrypted)
       this.update(authConfig, false);
     }
@@ -699,6 +699,27 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     AuthInfo.cache.set(ensure(this.getUsername()), this.fields);
 
     return this;
+  }
+
+  private async loadAuthFromConfig(username: string): Promise<AuthFields> {
+    if (AuthInfo.cache.has(username)) {
+      return ensure(AuthInfo.cache.get(username));
+    } else {
+      // Fetch from the persisted auth file
+      try {
+        const config: AuthInfoConfig = await AuthInfoConfig.create({
+          ...AuthInfoConfig.getOptions(username),
+          throwOnNotFound: true
+        });
+        return config.toObject();
+      } catch (e) {
+        if (e.code === 'ENOENT') {
+          throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [username]);
+        } else {
+          throw e;
+        }
+      }
+    }
   }
 
   private isTokenOptions(options: OAuth2Options | AccessTokenOptions): options is AccessTokenOptions {
@@ -781,9 +802,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       authFields.instanceUrl = instanceUrl;
     } catch (err) {
       this.logger.debug(
-        `Instance URL [${_authFields.instance_url}] is not available.  DNS lookup failed. Using loginUrl [${
-          options.loginUrl
-        }] instead. This may result in a "Destination URL not reset" error.`
+        `Instance URL [${_authFields.instance_url}] is not available.  DNS lookup failed. Using loginUrl [${options.loginUrl}] instead. This may result in a "Destination URL not reset" error.`
       );
       authFields.instanceUrl = options.loginUrl;
     }
@@ -840,21 +859,26 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     // @ts-ignore TODO: need better typings for jsforce
     const { userId, orgId } = _parseIdUrl(_authFields.id);
 
-    // Make a REST call for the username directly.  Normally this is done via a connection
-    // but we don't want to create circular dependencies or lots of snowflakes
-    // within this file to support it.
-    const apiVersion = 'v42.0'; // hardcoding to v42.0 just for this call is okay.
-    const instance = ensure(getString(_authFields, 'instance_url'));
-    const url = `${instance}/services/data/${apiVersion}/sobjects/User/${userId}`;
-    const headers = Object.assign({ Authorization: `Bearer ${_authFields.access_token}` }, SFDX_HTTP_HEADERS);
+    let username: Optional<string> = this.getUsername();
 
-    let username: Optional<string>;
-    try {
-      this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
-      const response = await new Transport().httpRequest({ url, headers });
-      username = asString(parseJsonMap(response.body).Username);
-    } catch (err) {
-      throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
+    // Only need to query for the username if it isn't known. For example, a new auth code exchange
+    // rather than refreshing a token on an existing connection.
+    if (!username) {
+      // Make a REST call for the username directly.  Normally this is done via a connection
+      // but we don't want to create circular dependencies or lots of snowflakes
+      // within this file to support it.
+      const apiVersion = 'v42.0'; // hardcoding to v42.0 just for this call is okay.
+      const instance = ensure(getString(_authFields, 'instance_url'));
+      const url = `${instance}/services/data/${apiVersion}/sobjects/User/${userId}`;
+      const headers = Object.assign({ Authorization: `Bearer ${_authFields.access_token}` }, SFDX_HTTP_HEADERS);
+
+      try {
+        this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
+        const response = await new Transport().httpRequest({ url, headers });
+        username = asString(parseJsonMap(response.body).Username);
+      } catch (err) {
+        throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
+      }
     }
 
     return {
@@ -865,7 +889,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       username,
       // @ts-ignore TODO: need better typings for jsforce
       loginUrl: options.loginUrl || _authFields.instance_url,
-      refreshToken: _authFields.refresh_token
+      refreshToken: _authFields.refresh_token,
+      clientId: options.clientId,
+      clientSecret: options.clientSecret
     };
   }
 
@@ -902,5 +928,12 @@ export namespace AuthInfo {
     accessTokenOptions?: AccessTokenOptions;
 
     oauth2?: OAuth2;
+
+    /**
+     * In certain situations, a new auth info wants to use the connected app
+     * information from another parent org. Typically for scratch org or sandbox
+     * creation.
+     */
+    parentUsername?: string;
   }
 }

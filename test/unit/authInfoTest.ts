@@ -403,6 +403,62 @@ describe('AuthInfo', () => {
       expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
     });
 
+    it('should return an AuthInfo instance when passed a parent username', async () => {
+      stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
+      stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
+
+      // Stub the http request (OAuth2.refreshToken())
+      // This will be called for both, and we want to make sure the clientSecrete is the
+      // same for both.
+      _postParmsStub.callsFake(params => {
+        expect(params.client_secret).to.deep.equal(testMetadata.clientSecret);
+        return {
+          access_token: testMetadata.accessToken,
+          instance_url: testMetadata.instanceUrl,
+          refresh_token: testMetadata.refreshToken,
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+        };
+      });
+
+      const parentUsername = 'test@test.com';
+      await AuthInfo.create({
+        username: parentUsername,
+        oauth2Options: {
+          clientId: testMetadata.clientId,
+          clientSecret: testMetadata.clientSecret,
+          loginUrl: testMetadata.instanceUrl,
+          authCode: testMetadata.authCode
+        }
+      });
+
+      const authInfo = await AuthInfo.create({
+        username: testMetadata.username,
+        parentUsername,
+        oauth2Options: {
+          loginUrl: testMetadata.instanceUrl,
+          authCode: testMetadata.authCode
+        }
+      });
+
+      expect(_postParmsStub.calledTwice).to.true;
+      expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
+      expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.true;
+      expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
+      expect(authInfo.isOauth(), 'authInfo.isOauth() should be true').to.be.true;
+
+      const expectedAuthConfig = {
+        accessToken: testMetadata.accessToken,
+        instanceUrl: testMetadata.instanceUrl,
+        username: testMetadata.username,
+        orgId: '00DAuthInfoTest_orgId',
+        loginUrl: testMetadata.instanceUrl,
+        refreshToken: testMetadata.refreshToken,
+        clientId: testMetadata.clientId,
+        clientSecret: testMetadata.clientSecret
+      };
+      expect(authInfoUpdate.secondCall.args[0]).to.deep.equal(expectedAuthConfig);
+    });
+
     it('should return an AuthInfo instance when passed an access token and instanceUrl for the access token flow', async () => {
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
@@ -918,6 +974,9 @@ describe('AuthInfo', () => {
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
 
+      // Ensure we query for the username
+      expect(Transport.prototype.httpRequest.called).to.be.true;
+
       // Verify the returned AuthInfo instance
       const authInfoConnOpts = authInfo.getConnectionOptions();
       expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
@@ -954,7 +1013,11 @@ describe('AuthInfo', () => {
         username,
         orgId: authResponse.id.split('/')[0],
         loginUrl: authCodeConfig.loginUrl,
-        refreshToken: authResponse.refresh_token
+        refreshToken: authResponse.refresh_token,
+        // These need to be passed in by the consumer. Since they are not, they will show up as undefined.
+        // In a non-test environment, the exchange will fail because no clientId is supplied.
+        clientId: undefined,
+        clientSecret: undefined
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
@@ -1298,9 +1361,7 @@ describe('AuthInfo', () => {
       });
 
       expect(authInfo.getSfdxAuthUrl()).to.contain(
-        `force://SalesforceDevelopmentExperience:1384510088588713504:${
-          testMetadata.refreshToken
-        }@mydevhub.localhost.internal.salesforce.com:6109`
+        `force://SalesforceDevelopmentExperience:1384510088588713504:${testMetadata.refreshToken}@mydevhub.localhost.internal.salesforce.com:6109`
       );
     });
 
@@ -1330,9 +1391,7 @@ describe('AuthInfo', () => {
       delete authInfo.getFields().clientSecret;
 
       expect(authInfo.getSfdxAuthUrl()).to.contain(
-        `force://SalesforceDevelopmentExperience::${
-          testMetadata.refreshToken
-        }@mydevhub.localhost.internal.salesforce.com:6109`
+        `force://SalesforceDevelopmentExperience::${testMetadata.refreshToken}@mydevhub.localhost.internal.salesforce.com:6109`
       );
     });
   });
