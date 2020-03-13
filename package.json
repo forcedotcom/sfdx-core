@@ -38,11 +38,11 @@
     }
   },
   "dependencies": {
+    "@salesforce/bunyan": "^2.0.0",
     "@salesforce/kit": "^1.0.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@salesforce/ts-types": "^1.0.0",
     "@types/jsforce": "1.9.2",
-    "bunyan-sfdx-no-dtrace": "1.8.2",
     "debug": "^3.1.0",
     "jsen": "0.6.6",
     "jsforce": "1.9.3",

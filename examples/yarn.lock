@@ -11,7 +11,6 @@
     "@salesforce/ts-sinon" "^1.0.0"
     "@salesforce/ts-types" "^1.0.0"
     "@types/jsforce" "1.9.2"
-    bunyan-sfdx-no-dtrace "1.8.2"
     debug "^3.1.0"
     jsen "0.6.6"
     jsforce "1.8.5"
@@ -251,16 +250,6 @@ builtin-modules@^1.1.1:
   version "1.1.1"
   resolved "https://registry.npmjs.org/builtin-modules/-/builtin-modules-1.1.1.tgz#270f076c5a72c02f5b65a47df94c5fe3a278892f"
   integrity sha1-Jw8HbFpywC9bZaR9+Uxf46J4iS8=
-
-bunyan-sfdx-no-dtrace@1.8.2:
-  version "1.8.2"
-  resolved "https://registry.npmjs.org/bunyan-sfdx-no-dtrace/-/bunyan-sfdx-no-dtrace-1.8.2.tgz#10682de07fec17ed14528b166995b1f18bbd4f9a"
-  integrity sha1-EGgt4H/sF+0UUosWaZWx8Yu9T5o=
-  optionalDependencies:
-    dtrace-provider "~0.6"
-    moment "^2.10.6"
-    mv "~2"
-    safe-json-stringify "~1"
 
 caseless@~0.12.0:
   version "0.12.0"
