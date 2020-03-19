@@ -172,8 +172,29 @@ function defaultFakeConnectionRequest(): Promise<AnyJson> {
   return Promise.resolve(ensureAnyJson({ records: [] }));
 }
 
-// tslint:disable-next-line:no-any
-const _testSetup = (sinon?: any) => {
+/**
+ * Instantiate a @salesforce/core test context. This is automatically created by `const $$ = testSetup()`
+ * but is useful if you don't want to have a global stub of @salesforce/core and you want to isolate it to
+ * a single describe.
+ *
+ * **Note:** Always call `stubContext` in your beforeEach to actual stub @salesforce/core.
+ *
+ * @example
+ * ```
+ * const $$ = instantiateContext();
+ *
+ * beforeEach(() => {
+ *   stubContext($$);
+ * });
+ *
+ * afterEach(() => {
+ *   restoreContext($$);
+ * });
+ * ```
+ * @param sinon
+ */
+// tslint:disable-next-line: no-any
+export const instantiateContext = (sinon?: any) => {
   if (!sinon) {
     try {
       sinon = require('sinon');
@@ -225,83 +246,140 @@ const _testSetup = (sinon?: any) => {
       }
     }
   };
+  return testContext;
+};
+
+/**
+ * Stub a @salesforce/core test context. This will mock out logging to a file, config file reading and writing,
+ * local and global path resolution, and http request using connection (soon)*.
+ *
+ * This is automatically stubbed in the global beforeEach created by
+ * `const $$ = testSetup()` but is useful if you don't want to have a global stub of @salesforce/core and you
+ * want to isolate it to a single describe.
+ *
+ * **Note:** Always call `restoreContext` in your afterEach.
+ *
+ * @example
+ * ```
+ * const $$ = instantiateContext();
+ *
+ * beforeEach(() => {
+ *   stubContext($$);
+ * });
+ *
+ * afterEach(() => {
+ *   restoreContext($$);
+ * });
+ * ```
+ * @param testContext
+ */
+export const stubContext = (testContext: TestContext) => {
+  // Most core files create a child logger so stub this to return our test logger.
+  stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
+
+  testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
+    testContext.rootPathRetriever(isGlobal, testContext.id)
+  );
+
+  // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
+  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(async function(
+    this: ConfigFile<ConfigFile.Options>
+  ) {
+    const stub: ConfigStub = testContext.configStubs[this.constructor.name] || {};
+
+    if (stub.readFn) {
+      return await stub.readFn.call(this);
+    }
+
+    let contents = stub.contents || {};
+
+    if (stub.retrieveContents) {
+      contents = await stub.retrieveContents.call(this);
+    }
+
+    this.setContentsFromObject(contents);
+    return Promise.resolve(this.getContents());
+  });
+  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(
+    this: ConfigFile<ConfigFile.Options>,
+    newContents: ConfigContents
+  ) {
+    if (!testContext.configStubs[this.constructor.name]) {
+      testContext.configStubs[this.constructor.name] = {};
+    }
+    const stub = testContext.configStubs[this.constructor.name];
+    if (!stub) return;
+
+    if (stub.writeFn) {
+      return await stub.writeFn.call(this, newContents);
+    }
+
+    let contents = newContents || this.getContents();
+
+    if (stub.updateContents) {
+      contents = await stub.updateContents.call(this);
+    }
+    this.setContents(contents);
+    stub.contents = this.toObject();
+  });
+
+  testContext.SANDBOXES.CRYPTO.stub(Crypto.prototype, 'getKeyChain').callsFake(() =>
+    Promise.resolve({
+      setPassword: () => Promise.resolve(),
+      getPassword: (data: object, cb: AnyFunction) => cb(undefined, '12345678901234567890123456789012')
+    })
+  );
+
+  testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(
+    this: Connection,
+    request: string,
+    options?: Dictionary
+  ) {
+    if (request === `${this.instanceUrl}/services/data`) {
+      return Promise.resolve([{ version: '42.0' }]);
+    }
+    return testContext.fakeConnectionRequest.call(this, request, options as AnyJson);
+  });
+
+  // Always start with the default and tests beforeEach or it methods can override it.
+  testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
+};
+
+/**
+ * Restore a @salesforce/core test context. This is automatically stubbed in the global beforeEach created by
+ * `const $$ = testSetup()` but is useful if you don't want to have a global stub of @salesforce/core and you
+ * want to isolate it to a single describe.
+ *
+ * @example
+ * ```
+ * const $$ = instantiateContext();
+ *
+ * beforeEach(() => {
+ *   stubContext($$);
+ * });
+ *
+ * afterEach(() => {
+ *   restoreContext($$);
+ * });
+ * ```
+ * @param testContext
+ */
+export const restoreContext = (testContext: TestContext) => {
+  testContext.SANDBOX.restore();
+  Object.values(testContext.SANDBOXES).forEach(theSandbox => theSandbox.restore());
+  testContext.configStubs = {};
+};
+
+// tslint:disable-next-line:no-any
+const _testSetup = (sinon?: any) => {
+  const testContext = instantiateContext(sinon);
 
   beforeEach(() => {
-    // Most core files create a child logger so stub this to return our test logger.
-    stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
-
-    testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
-      testContext.rootPathRetriever(isGlobal, testContext.id)
-    );
-
-    // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
-    testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(async function(
-      this: ConfigFile<ConfigFile.Options>
-    ) {
-      const stub: ConfigStub = testContext.configStubs[this.constructor.name] || {};
-
-      if (stub.readFn) {
-        return await stub.readFn.call(this);
-      }
-
-      let contents = stub.contents || {};
-
-      if (stub.retrieveContents) {
-        contents = await stub.retrieveContents.call(this);
-      }
-
-      this.setContentsFromObject(contents);
-      return Promise.resolve(this.getContents());
-    });
-    testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(
-      this: ConfigFile<ConfigFile.Options>,
-      newContents: ConfigContents
-    ) {
-      if (!testContext.configStubs[this.constructor.name]) {
-        testContext.configStubs[this.constructor.name] = {};
-      }
-      const stub = testContext.configStubs[this.constructor.name];
-      if (!stub) return;
-
-      if (stub.writeFn) {
-        return await stub.writeFn.call(this, newContents);
-      }
-
-      let contents = newContents || this.getContents();
-
-      if (stub.updateContents) {
-        contents = await stub.updateContents.call(this);
-      }
-      this.setContents(contents);
-      stub.contents = this.toObject();
-    });
-
-    testContext.SANDBOXES.CRYPTO.stub(Crypto.prototype, 'getKeyChain').callsFake(() =>
-      Promise.resolve({
-        setPassword: () => Promise.resolve(),
-        getPassword: (data: object, cb: AnyFunction) => cb(undefined, '12345678901234567890123456789012')
-      })
-    );
-
-    testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(
-      this: Connection,
-      request: string,
-      options?: Dictionary
-    ) {
-      if (request === `${this.instanceUrl}/services/data`) {
-        return Promise.resolve([{ version: '42.0' }]);
-      }
-      return testContext.fakeConnectionRequest.call(this, request, options as AnyJson);
-    });
-
-    // Always start with the default and tests beforeEach or it methods can override it.
-    testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
+    stubContext(testContext);
   });
 
   afterEach(() => {
-    testContext.SANDBOX.restore();
-    Object.values(testContext.SANDBOXES).forEach(theSandbox => theSandbox.restore());
-    testContext.configStubs = {};
+    restoreContext(testContext);
   });
 
   return testContext;
@@ -312,6 +390,8 @@ const _testSetup = (sinon?: any) => {
  * logging to a file, config file reading and writing, local and global path resolution, and
  * *http request using connection (soon)*.
  *
+ * **Note:** The testSetup should be outside of the describe. If you need to stub per test, use
+ * `instantiateContext`, `stubContext`, and `restoreContext`.
  * ```
  * // In a mocha tests
  * import testSetup from '@salesforce/core/lib/testSetup';
