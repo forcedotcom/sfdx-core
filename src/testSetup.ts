@@ -177,7 +177,7 @@ function defaultFakeConnectionRequest(): Promise<AnyJson> {
  * but is useful if you don't want to have a global stub of @salesforce/core and you want to isolate it to
  * a single describe.
  *
- * **Note:** Always call `stubContext` in your beforeEach to actual stub @salesforce/core.
+ * **Note:** Call `stubContext` in your beforeEach to have clean stubs of @salesforce/core every test run.
  *
  * @example
  * ```
