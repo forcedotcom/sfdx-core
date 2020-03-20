@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/forcedotcom/sfdx-core/compare/v2.2.0...v2.3.0) (2020-03-20)
+
+
+### Features
+
+* allow stubbing on single tests ([37cef1b](https://github.com/forcedotcom/sfdx-core/commit/37cef1bbf8f4d1c4909f13c1fac7757f1430e40b))
+
 # [2.2.0](https://github.com/forcedotcom/sfdx-core/compare/v2.1.6...v2.2.0) (2020-02-11)
 
 
