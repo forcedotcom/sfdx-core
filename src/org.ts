@@ -145,17 +145,15 @@ export class Org extends AsyncCreatable<Org.Options> {
    *
    * **Throws** *{@link SfdxError}{ name: 'NoResults' }* No results.
    *
-   * @param devHubUsername The username of the dev hub org.
+   * @param devHubUsernameOrAlias The username or alias of the dev hub org.
    */
-  public async checkScratchOrg(devHubUsername?: string): Promise<Partial<AuthFields>> {
-    let targetDevHub = devHubUsername;
-    if (!targetDevHub) {
-      targetDevHub = asString(this.configAggregator.getPropertyValue(Config.DEFAULT_DEV_HUB_USERNAME));
+  public async checkScratchOrg(devHubUsernameOrAlias?: string): Promise<Partial<AuthFields>> {
+    let aliasOrUsername = devHubUsernameOrAlias;
+    if (!aliasOrUsername) {
+      aliasOrUsername = asString(this.configAggregator.getPropertyValue(Config.DEFAULT_DEV_HUB_USERNAME));
     }
 
-    const devHubConnection = await Connection.create({
-      authInfo: await AuthInfo.create({ username: targetDevHub })
-    });
+    const devHubConnection = (await Org.create({ aliasOrUsername })).getConnection();
 
     const thisOrgAuthConfig = this.getConnection().getAuthInfoFields();
 
