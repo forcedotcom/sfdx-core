@@ -53,10 +53,14 @@ jobs:
       - run: *test
       - run: *coverage
       - save_cache: *save-cache
-  node-8:
+  node-10:
     <<: *node-test
     docker:
-      - image: node:8
+      - image: node:10
+  node-12:
+    <<: *node-test
+    docker:
+      - image: node:12
   release:
     <<: *defaults
     steps:
@@ -106,13 +110,15 @@ workflows:
   sfdx-core:
     jobs:
       - node-latest
-      - node-8
+      - node-12
+      - node-10
       - release:
           filters:
             branches: { only: master }
           requires:
             - node-latest
-            - node-8
+            - node-12
+            - node-10
       - merge:
           filters:
             branches: { only: master }

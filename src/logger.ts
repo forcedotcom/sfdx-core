@@ -6,6 +6,8 @@
  */
 
 // tslint:disable-next-line:ordered-imports
+// @ts-ignore No typings available for our copy of bunyan
+import * as Bunyan from '@salesforce/bunyan';
 import { parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   Dictionary,
@@ -20,8 +22,6 @@ import {
   Many,
   Optional
 } from '@salesforce/ts-types';
-// @ts-ignore No typings available for our copy of bunyan
-import * as Bunyan from 'bunyan-sfdx-no-dtrace';
 import * as Debug from 'debug';
 import * as EventEmitter from 'events';
 import * as os from 'os';
@@ -34,14 +34,14 @@ import { fs } from './util/fs';
 /**
  * A Bunyan `Serializer` function.
  * @param input The input to be serialized.
- * **See** {@link https://github.com/cwallsfdc/node-bunyan#serializers|Bunyan Serializers API}
+ * **See** {@link https://github.com/forcedotcom/node-bunyan#serializers|Bunyan Serializers API}
  */
 export type Serializer = (input: any) => any; // tslint:disable-line:no-any
 
 /**
  * A collection of named `Serializer`s.
  *
- * **See** {@link https://github.com/cwallsfdc/node-bunyan#serializers|Bunyan Serializers API}
+ * **See** {@link https://github.com/forcedotcom/node-bunyan#serializers|Bunyan Serializers API}
  */
 export interface Serializers {
   [key: string]: Serializer;
@@ -80,7 +80,7 @@ export interface LoggerOptions {
 /**
  * Standard `Logger` levels.
  *
- * **See** {@link https://github.com/cwallsfdc/node-bunyan#levels|Bunyan Levels}
+ * **See** {@link https://github.com/forcedotcom/node-bunyan#levels|Bunyan Levels}
  */
 export enum LoggerLevel {
   TRACE = 10,
@@ -94,7 +94,7 @@ export enum LoggerLevel {
 /**
  * A Bunyan stream configuration.
  *
- * @see {@link https://github.com/cwallsfdc/node-bunyan#streams|Bunyan Streams}
+ * @see {@link https://github.com/forcedotcom/node-bunyan#streams|Bunyan Streams}
  */
 export interface LoggerStream {
   /**
@@ -128,7 +128,7 @@ export type LoggerLevelValue = LoggerLevel | number;
 /**
  * A collection of named `FieldValue`s.
  *
- * **See** {@link https://github.com/cwallsfdc/node-bunyan#log-record-fields|Bunyan Log Record Fields}
+ * **See** {@link https://github.com/forcedotcom/node-bunyan#log-record-fields|Bunyan Log Record Fields}
  */
 export interface Fields {
   [key: string]: FieldValue;
@@ -154,7 +154,7 @@ export interface LogLine {
 }
 
 /**
- * A logging abstraction powered by {@link https://github.com/cwallsfdc/node-bunyan|Bunyan} that provides both a default
+ * A logging abstraction powered by {@link https://github.com/forcedotcom/node-bunyan|Bunyan} that provides both a default
  * logger configuration that will log to `sfdx.log`, and a way to create custom loggers based on the same foundation.
  *
  * ```
@@ -170,7 +170,7 @@ export interface LogLine {
  * // Creates a child of a custom logger unaffiliated with the root logger with custom fields applied
  * const myCustomChildLogger = myCustomLogger.child('myCustomChild', {tag: 'value'});
  * ```
- * **See** https://github.com/cwallsfdc/node-bunyan
+ * **See** https://github.com/forcedotcom/node-bunyan
  *
  * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_log_messages.htm
  */
