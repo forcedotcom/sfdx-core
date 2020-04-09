@@ -79,6 +79,7 @@ class MetaAuthDataMock {
     clientId: 'SalesforceDevelopmentExperience',
     clientSecret: '1384510088588713504'
   };
+  private _expirationDate = '12-02-20';
 
   constructor() {
     this._jwtUsername = `${this._jwtUsername}_${$$.uniqid()}`;
@@ -154,6 +155,14 @@ class MetaAuthDataMock {
 
   set encryptedRefreshToken(value: string) {
     this._encryptedRefreshToken = value;
+  }
+
+  get expirationDate(): string {
+    return this._expirationDate;
+  }
+
+  set expirationDate(value: string) {
+    this._expirationDate = value;
   }
 
   get authInfoLookupCount(): number {
@@ -1012,7 +1021,8 @@ describe('AuthInfo', () => {
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        expirationDate: testMetadata.expirationDate
       };
 
       // Stub the http request (OAuth2.refreshToken())
@@ -1032,7 +1042,7 @@ describe('AuthInfo', () => {
       authInfoUpdate.resetHistory();
 
       // Save new fields
-      const changedData = { accessToken: testMetadata.accessToken };
+      const changedData = { accessToken: testMetadata.accessToken, expirationDate: testMetadata.expirationDate };
 
       stubMethod($$.SANDBOX, testMetadata, 'fetchConfigInfo').returns(Promise.resolve({}));
       await authInfo.save(changedData);
@@ -1058,7 +1068,8 @@ describe('AuthInfo', () => {
         // clientId and clientSecret are now stored in the file, even the defaults.
         // We just hard code the legacy values here to ensure old auth files will still work.
         clientId: 'SalesforceDevelopmentExperience',
-        clientSecret: '1384510088588713504'
+        clientSecret: '1384510088588713504',
+        expirationDate: testMetadata.expirationDate
       };
       // Note that this also verifies the clientId and clientSecret are not persisted,
       // and that data is encrypted when saved (because we have to decrypt it to verify here).
