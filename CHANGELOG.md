@@ -1,3 +1,10 @@
+## [2.3.1](https://github.com/forcedotcom/sfdx-core/compare/v2.3.0...v2.3.1) (2020-04-13)
+
+
+### Bug Fixes
+
+* use new @salesfore/bunyan library, run tests in node 10 & 12 ([#211](https://github.com/forcedotcom/sfdx-core/issues/211)) ([249850d](https://github.com/forcedotcom/sfdx-core/commit/249850dfbf5da4199709e9573944a4da72d0581d))
+
 # [2.3.0](https://github.com/forcedotcom/sfdx-core/compare/v2.2.0...v2.3.0) (2020-03-20)
 
 
