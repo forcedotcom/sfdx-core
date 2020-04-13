@@ -63,6 +63,7 @@ export interface AuthFields {
   username?: string;
   usernames?: string[];
   userProfileName?: string;
+  expirationDate?: string;
 }
 
 /**
