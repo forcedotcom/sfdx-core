@@ -16,6 +16,8 @@
     "lint-fix": "yarn sfdx-lint --fix",
     "postcompile": "tsc -p test; tsc -p typedocExamples",
     "prepack": "yarn sfdx-build",
+    "prepare": "yarn run snyk-protect",
+    "snyk-protect": "snyk protect",
     "test": "yarn sfdx-test"
   },
   "keywords": [
@@ -47,20 +49,29 @@
     "jsen": "0.6.6",
     "jsforce": "1.9.3",
     "jsonwebtoken": "8.5.0",
-    "mkdirp": "0.5.1",
+    "mkdirp": "^0.5.5",
     "sfdx-faye": "^1.0.9"
+  },
+  "resolutions": {
+    "dot-prop": "^5.1.1",
+    "handlebars": "^4.5.3",
+    "minimist": "^1.2.5",
+    "mkdirp": "^0.5.5",
+    "yargs": "^13.3.2",
+    "yargs-parser": "^13.1.2"
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "0.3.14",
     "@types/debug": "0.0.30",
     "@types/jsen": "0.0.19",
     "@types/jsonwebtoken": "8.3.2",
-    "@types/mkdirp": "0.5.2",
+    "@types/mkdirp": "^0.5.2",
     "@types/shelljs": "0.7.8",
     "commitizen": "^3.0.5",
     "husky": "^1",
     "semantic-release": "^15.10.5",
-    "shelljs": "0.8.1"
+    "shelljs": "0.8.1",
+    "snyk": "^1.290.2"
   },
   "types": "lib/exported.d.ts",
   "repository": {
@@ -69,5 +80,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "snyk": true
 }
