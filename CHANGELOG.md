@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/forcedotcom/sfdx-core/compare/v2.3.1...v2.4.0) (2020-04-23)
+
+
+### Features
+
+* create auth info with sfdx auth url ([68dbfad](https://github.com/forcedotcom/sfdx-core/commit/68dbfad817202813555b5438c498b24bfdb5aa0f))
+
 ## [2.3.1](https://github.com/forcedotcom/sfdx-core/compare/v2.3.0...v2.3.1) (2020-04-13)
 
 
