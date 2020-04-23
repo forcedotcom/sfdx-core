@@ -611,6 +611,31 @@ describe('AuthInfo', () => {
       });
     });
 
+    it('should not cache when no username is supplied', async () => {
+      const cacheSize = AuthInfo['cache'].size;
+
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testMetadata.refreshToken
+      };
+
+      // Stub the http requests (OAuth2.requestToken() and the request for the username)
+      _postParmsStub.returns(Promise.resolve(authResponse));
+
+      // Create the AuthInfo instance with no username
+      await AuthInfo.create({
+        oauth2Options: {
+          refreshToken: testMetadata.refreshToken,
+          loginUrl: testMetadata.loginUrl,
+          clientId: testMetadata.clientId
+        }
+      });
+
+      expect(AuthInfo['cache'].size).to.equal(cacheSize);
+    });
+
     it('should return a JWT AuthInfo instance when passed a username from an auth file', async () => {
       const username = 'authInfoTest_username_jwt-NOT-CACHED';
 
@@ -1544,6 +1569,47 @@ describe('AuthInfo', () => {
         assert.fail();
       } catch (e) {
         expect(e).to.have.property('name', 'NoAuthInfoFound');
+      }
+    });
+  });
+
+  describe('parseSfdxAuthUrl()', () => {
+    it('should parse the correct url with no client secret', () => {
+      const options = AuthInfo.parseSfdxAuthUrl(
+        'force://PlatformCLI::5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com'
+      );
+
+      expect(options.refreshToken).to.equal(
+        '5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.'
+      );
+      expect(options.clientId).to.equal('PlatformCLI');
+      expect(options.clientSecret).to.equal('');
+      expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
+    });
+
+    it('should parse the correct url with client secret', () => {
+      const options = AuthInfo.parseSfdxAuthUrl(
+        'force://3MVG9SemV5D80oBfPBCgboxuJ9cOMLWNM1DDOZ8zgvJGsz13H3J66coUBCFF3N0zEgLYijlkqeWk4ot_Q2.4o:438437816653243682:5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com'
+      );
+
+      expect(options.refreshToken).to.equal(
+        '5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.'
+      );
+      expect(options.clientId).to.equal(
+        '3MVG9SemV5D80oBfPBCgboxuJ9cOMLWNM1DDOZ8zgvJGsz13H3J66coUBCFF3N0zEgLYijlkqeWk4ot_Q2.4o'
+      );
+      expect(options.clientSecret).to.equal('438437816653243682');
+      expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
+    });
+
+    it('should throw with incorrect url', () => {
+      try {
+        AuthInfo.parseSfdxAuthUrl(
+          'PlatformCLI::5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com'
+        );
+        assert.fail();
+      } catch (e) {
+        expect(e.name).to.equal('INVALID_SFDX_AUTH_URL');
       }
     });
   });

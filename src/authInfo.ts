@@ -386,6 +386,35 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     return false;
   }
 
+  /**
+   * Parse a sfdx auth url, usually obtained by `authInfo.getSfdxAuthUrl`.
+   *
+   * @example
+   * ```
+   * await AuthInfo.create(AuthInfo.parseSfdxAuthUrl(sfdxAuthUrl));
+   * ```
+   * @param sfdxAuthUrl
+   */
+  public static parseSfdxAuthUrl(sfdxAuthUrl: string) {
+    const match = sfdxAuthUrl.match(
+      /^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+)@([a-zA-Z0-9._-]+)/
+    );
+
+    if (!match) {
+      throw new SfdxError(
+        'Invalid sfdx auth url. Must be in the format `force://<clientId>:<clientSecret>:<refreshToken>@<loginUrl>`. The instanceUrl must not have the protocol set.',
+        'INVALID_SFDX_AUTH_URL'
+      );
+    }
+    const [, clientId, clientSecret, refreshToken, loginUrl] = match;
+    return {
+      clientId,
+      clientSecret,
+      refreshToken,
+      loginUrl: `https://${loginUrl}`
+    };
+  }
+
   // The regular expression that filters files stored in $HOME/.sfdx
   private static authFilenameFilterRegEx: RegExp = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
 
@@ -690,14 +719,16 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       // Update the auth fields WITH encryption
       this.update(authConfig);
     } else {
-      const username = ensure(this.getUsername());
-      authConfig = await this.loadAuthFromConfig(username);
+      authConfig = await this.loadAuthFromConfig(ensure(this.getUsername()));
       // Update the auth fields WITHOUT encryption (already encrypted)
       this.update(authConfig, false);
     }
 
-    // Cache the fields by username (fields are encrypted)
-    AuthInfo.cache.set(ensure(this.getUsername()), this.fields);
+    const username = this.getUsername();
+    if (username) {
+      // Cache the fields by username (fields are encrypted)
+      AuthInfo.cache.set(username, this.fields);
+    }
 
     return this;
   }
