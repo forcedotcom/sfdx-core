@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncCreatable, cloneJson, isEmpty, parseJsonMap, set } from '@salesforce/kit';
+import { AsyncCreatable, cloneJson, env, isEmpty, parseJsonMap, set } from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
@@ -361,7 +361,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * Get the authorization URL.
    * @param options The options to generate the URL.
    */
-  public static getAuthorizationUrl(options: OAuth2Options): string {
+  public static getAuthorizationUrl(options: OAuth2Options & { scope: string }): string {
     const oauth2 = new OAuth2WithVerifier(options);
 
     // The state parameter allows the redirectUri callback listener to ignore request
@@ -369,7 +369,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     const params = {
       state: randomBytes(Math.ceil(6)).toString('hex'),
       prompt: 'login',
-      scope: 'refresh_token api web'
+
+      // Default connected app is 'refresh_token api web'
+      scope: options.scope || env.getString('SFDX_AUTH_SCOPES', 'refresh_token api web')
     };
 
     return oauth2.getAuthorizationUrl(params);

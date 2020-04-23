@@ -47,7 +47,7 @@
     "jsen": "0.6.6",
     "jsforce": "1.9.3",
     "jsonwebtoken": "8.5.0",
-    "mkdirp": "0.5.1",
+    "mkdirp": "^1.0.4",
     "sfdx-faye": "^1.0.9"
   },
   "devDependencies": {
