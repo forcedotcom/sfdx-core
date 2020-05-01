@@ -5,7 +5,9 @@
   "main": "index.js",
   "license": "BSD-3-Clause",
   "scripts": {
-    "test": "mocha examples/test/unit/** --opts examples/test/mocha.opts"
+    "test": "mocha examples/test/unit/** --opts examples/test/mocha.opts",
+    "snyk-protect": "snyk protect",
+    "prepare": "yarn run snyk-protect"
   },
   "keywords": [
     "sfdx",
@@ -18,7 +20,8 @@
     "chalk": "^2.4.1",
     "inquirer": "^6.0.0",
     "lodash": "^4.17.10",
-    "strip-ansi": "^4.0.0"
+    "strip-ansi": "^4.0.0",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "@salesforce/ts-types": "^1",
@@ -32,5 +35,6 @@
     "sinon": "^6.1.4",
     "ts-node": "^7.0.0",
     "typescript": "^3.0.1"
-  }
+  },
+  "snyk": true
 }
