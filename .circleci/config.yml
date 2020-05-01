@@ -17,7 +17,7 @@ _refs:
       - /usr/local/share/.config/yarn
   install: &install
     name: Install dependencies
-    command: .circleci/greenkeeper
+    command: yarn
   build: &build
     name: Building
     command: yarn build
