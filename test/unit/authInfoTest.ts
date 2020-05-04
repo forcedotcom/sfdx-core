@@ -13,7 +13,7 @@ import { OAuth2, OAuth2Options } from 'jsforce';
 // @ts-ignore WebStorm is reporting an error for the nested import
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-import { resolve as pathResolve } from 'path';
+import * as pathImport from 'path';
 import { AuthFields, AuthInfo, OAuth2WithVerifier } from '../../src/authInfo';
 import { AuthInfoConfig } from '../../src/config/authInfoConfig';
 import { ConfigFile } from '../../src/config/configFile';
@@ -1335,7 +1335,7 @@ describe('AuthInfo', () => {
     });
 
     it('should path.resolve jwtkeyfilepath', async () => {
-      const pathSpy = $$.SANDBOX.spy(pathResolve);
+      const pathSpy = $$.SANDBOX.spy(pathImport, 'resolve');
       const context = {
         update: () => {},
         buildJwtConfig: () => {},
