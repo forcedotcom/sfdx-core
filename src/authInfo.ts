@@ -268,9 +268,13 @@ class AuthInfoCrypto extends Crypto {
       const rawValue = fields[key];
       if (rawValue !== undefined) {
         if (isString(rawValue) && AuthInfoCrypto.encryptedFields.includes(key)) {
-          copy[key] = this[method](asString(rawValue));
+          // Avoid TS2322 assignment error, reference:
+          // https://github.com/microsoft/TypeScript/issues/31663#issuecomment-518854171
+          // tslint:disable-next-line: no-any
+          (copy[key] as any) = this[method](asString(rawValue));
         } else {
-          copy[key] = rawValue;
+          // tslint:disable-next-line: no-any
+          (copy[key] as any) = rawValue;
         }
       }
     }
