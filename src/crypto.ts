@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncOptionalCreatable } from '@salesforce/kit';
+import { AsyncOptionalCreatable, env } from '@salesforce/kit';
 import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 import * as os from 'os';
@@ -111,17 +111,15 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
 
     const iv = crypto.randomBytes(BYTE_COUNT_FOR_IV).toString('hex');
 
-    return this._key.value(
-      (buffer: Buffer): string => {
-        const cipher = crypto.createCipheriv(_algo, buffer.toString('utf8'), iv);
+    return this._key.value((buffer: Buffer): string => {
+      const cipher = crypto.createCipheriv(_algo, buffer.toString('utf8'), iv);
 
-        let encrypted = cipher.update(text, 'utf8', 'hex');
-        encrypted += cipher.final('hex');
+      let encrypted = cipher.update(text, 'utf8', 'hex');
+      encrypted += cipher.final('hex');
 
-        const tag = cipher.getAuthTag().toString('hex');
-        return `${iv}${encrypted}${TAG_DELIMITER}${tag}`;
-      }
-    );
+      const tag = cipher.getAuthTag().toString('hex');
+      return `${iv}${encrypted}${TAG_DELIMITER}${tag}`;
+    });
   }
 
   /**
@@ -154,8 +152,13 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
         dec = decipher.update(secret, 'hex', 'utf8');
         dec += decipher.final('utf8');
       } catch (e) {
-        const errMsg = this.messages.getMessage('AuthDecryptError', [e.message]);
-        throw new SfdxError(errMsg, 'AuthDecryptError');
+        const useGenericUnixKeychain =
+          env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
+        if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
+          e.actions = Messages.loadMessages('@salesforce/core', 'crypto').getMessage('MacKeychainOutOfSync');
+        }
+        e.message = this.messages.getMessage('AuthDecryptError', [e.message]);
+        throw SfdxError.wrap(e);
       }
       return dec;
     });

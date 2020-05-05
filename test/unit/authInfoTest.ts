@@ -13,6 +13,7 @@ import { OAuth2, OAuth2Options } from 'jsforce';
 // @ts-ignore WebStorm is reporting an error for the nested import
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
+import * as pathImport from 'path';
 import { AuthFields, AuthInfo, OAuth2WithVerifier } from '../../src/authInfo';
 import { AuthInfoConfig } from '../../src/config/authInfoConfig';
 import { ConfigFile } from '../../src/config/configFile';
@@ -1331,6 +1332,22 @@ describe('AuthInfo', () => {
       expect(context.save.called, 'Should have called AuthInfo.save() during refreshFn()').to.be.true;
       expect(testCallback.called, 'Should have called the callback passed to refreshFn()').to.be.true;
       expect(testCallback.firstCall.args[1]).to.equal(testMetadata.accessToken);
+    });
+
+    it('should path.resolve jwtkeyfilepath', async () => {
+      const pathSpy = $$.SANDBOX.spy(pathImport, 'resolve');
+      const context = {
+        update: () => {},
+        buildJwtConfig: () => {},
+        isTokenOptions: () => false,
+        getUsername: () => '',
+        privateKeyFile: 'authInfoTest/jwt/server.key',
+        options: {}
+      };
+
+      await AuthInfo.prototype['initAuthOptions'].call(context, context, null);
+
+      expect(pathSpy.calledOnce).to.be.true;
     });
 
     it('should call the callback with OrgDataNotAvailableError when AuthInfo.init() fails', async () => {
