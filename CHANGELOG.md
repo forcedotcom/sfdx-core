@@ -1,3 +1,12 @@
+## [2.4.1](https://github.com/forcedotcom/sfdx-core/compare/v2.4.0...v2.4.1) (2020-05-05)
+
+
+### Bug Fixes
+
+* don't ship with ts-sinon ([b4005fb](https://github.com/forcedotcom/sfdx-core/commit/b4005fb27b3f85be1297b9cfec0bc7e0de91979d))
+* fixed test spy ([c1f4ba4](https://github.com/forcedotcom/sfdx-core/commit/c1f4ba42ba94a03c5e3e77e793558cfea947f78e))
+* path.resolve jwt key file path ([86e6957](https://github.com/forcedotcom/sfdx-core/commit/86e695757a68dca1ea659e801ead59e57e6632b9))
+
 # [2.4.0](https://github.com/forcedotcom/sfdx-core/compare/v2.3.1...v2.4.0) (2020-04-23)
 
 
