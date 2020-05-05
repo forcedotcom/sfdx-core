@@ -54,6 +54,7 @@
   },
   "resolutions": {
     "dot-prop": "^5.1.1",
+    "faye": "^1.2.5",
     "handlebars": "^4.5.3",
     "minimist": "^1.2.5",
     "mkdirp": "^0.5.5",
@@ -71,7 +72,7 @@
     "husky": "^1",
     "semantic-release": "^15.10.5",
     "shelljs": "0.8.1",
-    "snyk": "^1.290.2"
+    "snyk": "^1.319.0"
   },
   "types": "lib/exported.d.ts",
   "repository": {
