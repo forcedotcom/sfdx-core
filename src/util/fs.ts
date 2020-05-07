@@ -74,7 +74,7 @@ export const fs = {
    * Promisified version of {@link https://npmjs.com/package/mkdirp|mkdirp}.
    */
   // @ts-ignore TODO: figure out how to bind to correct promisify overload
-  mkdirp: (folderPath: string, mode?: string | object): Promise<void> => promisify(mkdirpLib)(folderPath, mode),
+  mkdirp: (folderPath: string, mode?: string | object): Promise<void> => mkdirpLib(folderPath, mode),
 
   /**
    * Deletes a folder recursively, removing all descending files and folders.
