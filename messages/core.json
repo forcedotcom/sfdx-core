@@ -15,6 +15,5 @@
   "NamedOrgNotFound": "No AuthInfo found for name %s",
   "NoAliasesFound": "Nothing to set",
   "InvalidFormat": "Setting aliases must be in the format <key>=<value> but found: [%s]",
-  "NoAuthInfoFound": "No authorization information can be found.",
-  "InvalidJsonCasing": "All JSON input must have heads down camelcase keys.  E.g., { sfdcLoginUrl: \"https://login.salesforce.com\" }\nFound \"%s\" at %s"
+  "NoAuthInfoFound": "No authorization information can be found."
 }

@@ -10,6 +10,7 @@ import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import { Global } from '../global';
+import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { resolveProjectPath } from '../util/internal';
@@ -68,6 +69,12 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     return isGlobal ? osHomedir() : await resolveProjectPath();
   }
 
+  // whether file contents have been read
+  protected hasRead = false;
+
+  // Assigned when read
+  protected logger!: Logger;
+
   // Initialized in create
   private path!: string;
 
@@ -103,9 +110,16 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
    */
   public async read(throwOnNotFound = false): Promise<ConfigContents> {
+    this.logger = await Logger.child(this.constructor.name);
     try {
-      const obj = await fs.readJsonMap(this.getPath());
-      this.setContentsFromObject(obj);
+      // Only need to read config files once.  They are kept up to date
+      // internally and updated persistently via write().
+      if (!this.hasRead) {
+        this.logger.info(`Reading config file: ${this.getPath()}`);
+        const obj = await fs.readJsonMap(this.getPath());
+        this.setContentsFromObject(obj);
+        this.hasRead = true;
+      }
       return this.getContents();
     } catch (err) {
       if (err.code === 'ENOENT') {
@@ -131,6 +145,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
 
     await fs.mkdirp(pathDirname(this.getPath()));
 
+    this.logger.info(`Writing to config file: ${this.getPath()}`);
     await fs.writeJson(this.getPath(), this.toObject());
 
     return this.getContents();
