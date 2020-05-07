@@ -17,8 +17,8 @@ import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
 
 // @ts-ignore
 import projectJsonSchema = require('@salesforce/schema/sfdx-project-schema.json');
-import { sfdc } from './util/sfdc';
 import { SfdxError } from './sfdxError';
+import { sfdc } from './util/sfdc';
 
 export interface PackageDirDependency {
   package: string;
