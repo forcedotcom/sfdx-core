@@ -10,13 +10,15 @@ import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 
-import { defaults } from '@salesforce/kit';
+import { defaults, env } from '@salesforce/kit';
 import { JsonMap } from '@salesforce/ts-types';
 import { SchemaValidator } from './schema/validator';
 import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
 
 // @ts-ignore
 import projectJsonSchema = require('@salesforce/schema/sfdx-project-schema.json');
+import { sfdc } from './util/sfdc';
+import { SfdxError } from './sfdxError';
 
 export interface PackageDirDependency {
   package: string;
@@ -88,12 +90,29 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
 
   public async read(): Promise<ConfigContents> {
     const contents = await super.read();
-    await this.schemaValidate();
+
+    // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
+    const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfdxProjectJson.BLACKLIST);
+    if (upperCaseKey) {
+      throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
+    }
+
+    if (env.getBoolean('SFDX_SCHEMA_VALIDATE', false)) {
+      await this.schemaValidate();
+    }
     return contents;
   }
 
   public async write(newContents?: ConfigContents): Promise<ConfigContents> {
-    await this.schemaValidate();
+    // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
+    const upperCaseKey = sfdc.findUpperCaseKeys(newContents, SfdxProjectJson.BLACKLIST);
+    if (upperCaseKey) {
+      throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
+    }
+
+    if (env.getBoolean('SFDX_SCHEMA_VALIDATE', false)) {
+      await this.schemaValidate();
+    }
     return super.write(newContents);
   }
 
@@ -166,6 +185,7 @@ export class SfdxProject {
       const project = new SfdxProject(await this.resolveProjectPath(_path));
       SfdxProject.instances.set(_path, project);
     }
+    // @ts-ignore Because of the pattern above this is guaranteed to return an instance
     return SfdxProject.instances.get(_path);
   }
 
