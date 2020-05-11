@@ -26,6 +26,7 @@ export const sfdc = {
 
     // Source https://help.salesforce.com/articleView?id=000003652&type=1
     const whitelistOfSalesforceDomainPatterns: string[] = [
+      '.cloudforce.com',
       '.content.force.com',
       '.force.com',
       '.salesforce.com',
