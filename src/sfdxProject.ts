@@ -97,9 +97,8 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
     }
 
-    if (env.getBoolean('SFDX_SCHEMA_VALIDATE', false)) {
-      await this.schemaValidate();
-    }
+    await this.schemaValidate();
+
     return contents;
   }
 
@@ -110,9 +109,8 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
     }
 
-    if (env.getBoolean('SFDX_SCHEMA_VALIDATE', false)) {
-      await this.schemaValidate();
-    }
+    await this.schemaValidate();
+
     return super.write(newContents);
   }
 
@@ -132,12 +130,20 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
    */
   public async schemaValidate(): Promise<void> {
     if (!this.hasRead) {
-      // read calls back into this method after setting this.hadRead = true
+      // read calls back into this method after necessarily setting this.hasRead=true
       await this.read();
     } else {
-      const validator = new SchemaValidator(this.logger, projectJsonSchema);
-      await validator.load();
-      await validator.validate(this.getContents());
+      try {
+        const validator = new SchemaValidator(this.logger, projectJsonSchema);
+        await validator.load();
+        await validator.validate(this.getContents());
+      } catch (err) {
+        if (env.getBoolean('SFDX_SCHEMA_VALIDATE', false)) {
+          throw err;
+        } else {
+          this.logger.warn(this.messages.getMessage('SchemaValidationWarning', [this.getPath()]));
+        }
+      }
     }
   }
 

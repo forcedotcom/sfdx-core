@@ -34,6 +34,15 @@ describe('SfdxProject', async () => {
   });
 
   describe('resolve', () => {
+    it('caches the sfdx-project.json per path', async () => {
+      // @ts-ignore  SfdxProject.instances is private so override for testing.
+      const instanceSetSpy = $$.SANDBOX.spy(SfdxProject.instances, 'set');
+      const project1 = await SfdxProject.resolve('foo');
+      expect(instanceSetSpy.calledOnce).to.be.true;
+      const project2 = await SfdxProject.resolve('foo');
+      expect(instanceSetSpy.calledOnce).to.be.true;
+      expect(project1).to.equal(project2);
+    });
     it('with working directory', async () => {
       $$.SANDBOX.stub(internal, 'resolveProjectPath').callsFake(() => projectPath);
       const project = await SfdxProject.resolve();
@@ -134,4 +143,12 @@ describe('SfdxProject', async () => {
       expect(config['apiVersion']).to.equal(40.0);
     });
   });
+});
+
+describe('SfdxProjectJson', () => {
+  it('read calls schemaValidate');
+  it('write calls schemaValidate');
+  it('getPackageDirectories replaces packageDir paths for the OS');
+  it('schemaValidate throws when SFDX_SCHEMA_VALIDATE=true');
+  it('schemaValidate warns when SFDX_SCHEMA_VALIDATE=false');
 });
