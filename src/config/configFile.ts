@@ -75,10 +75,8 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   // whether file contents have been read
   protected hasRead = false;
 
-  // Assigned when read
-  protected logger!: Logger;
-
   // Initialized in init
+  protected logger!: Logger;
   protected messages!: Messages;
 
   // Initialized in create
@@ -119,7 +117,6 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
    */
   public async read(throwOnNotFound = false, force = false): Promise<ConfigContents> {
-    this.logger = await Logger.child(this.constructor.name);
     try {
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
@@ -213,6 +210,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * options.throwOnNotFound is true.
    */
   protected async init(): Promise<void> {
+    this.logger = await Logger.child(this.constructor.name);
     const statics = this.constructor as typeof ConfigFile;
     let defaultOptions = {};
     try {

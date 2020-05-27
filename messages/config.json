@@ -5,5 +5,6 @@
   "InvalidApiVersion": "Specify a valid Salesforce API version, for example, 42.0",
   "InvalidBooleanConfigValue": "The config value can only be set to true or false.",
   "InvalidProjectWorkspace": "This directory does not contain a valid Salesforce DX project",
-  "SchemaValidationWarning": "The config file: %s is not schema valid"
+  "SchemaValidationWarning": "The config file: %s is not schema valid\nDue to: %s",
+  "SchemaValidationErrorAction": "Check the file: %s for invalid entries"
 }

@@ -15,8 +15,6 @@ import { JsonMap } from '@salesforce/ts-types';
 import { SchemaValidator } from './schema/validator';
 import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
 
-// @ts-ignore
-import projectJsonSchema = require('@salesforce/schema/sfdx-project-schema.json');
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
 
@@ -126,6 +124,9 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
   /**
    * Validates sfdx-project.json against the schema.
    *
+   * Set the `SFDX_SCHEMA_VALIDATE` environment variable to `true` to throw an error when schema validation fails.
+   * A warning is logged by default.
+   *
    * ***See*** [sfdx-project.schema.json] (https://raw.githubusercontent.com/forcedotcom/schemas/master/schemas/sfdx-project.schema.json)
    */
   public async schemaValidate(): Promise<void> {
@@ -134,14 +135,18 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       await this.read();
     } else {
       try {
-        const validator = new SchemaValidator(this.logger, projectJsonSchema);
+        const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
+        const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
         await validator.load();
         await validator.validate(this.getContents());
       } catch (err) {
         if (env.getBoolean('SFDX_SCHEMA_VALIDATE', false)) {
-          throw err;
+          err.name = 'SfdxSchemaValidationError';
+          const sfdxError = SfdxError.wrap(err);
+          sfdxError.actions = [this.messages.getMessage('SchemaValidationErrorAction', [this.getPath()])];
+          throw sfdxError;
         } else {
-          this.logger.warn(this.messages.getMessage('SchemaValidationWarning', [this.getPath()]));
+          this.logger.warn(this.messages.getMessage('SchemaValidationWarning', [this.getPath(), err.message]));
         }
       }
     }

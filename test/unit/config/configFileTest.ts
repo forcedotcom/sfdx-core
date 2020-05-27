@@ -151,5 +151,21 @@ describe('Config', () => {
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(testConfig.hasRead).to.be.false;
     });
+
+    it('forces another read of the config file with force=true', async () => {
+      readJsonMapStub.callsFake(async () => testFileContents);
+      // TestConfig.create() calls read()
+      config = await TestConfig.create(await TestConfig.getOptions('test', false, true));
+      expect(readJsonMapStub.calledOnce).to.be.true;
+
+      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      expect(config.hasRead).to.be.true;
+      expect(config.getContents()).to.deep.equal(testFileContents);
+
+      // Read again.  Stub should now be called twice.
+      const contents2 = await config.read(false, true);
+      expect(readJsonMapStub.calledTwice).to.be.true;
+      expect(contents2).to.deep.equal(testFileContents);
+    });
   });
 });

@@ -287,6 +287,9 @@ export const stubContext = (testContext: TestContext) => {
   ) {
     const stub: ConfigStub = testContext.configStubs[this.constructor.name] || {};
 
+    // @ts-ignore set this to true to avoid an infinite loop in tests when reading config files.
+    this.hasRead = true;
+
     if (stub.readFn) {
       return await stub.readFn.call(this);
     }
