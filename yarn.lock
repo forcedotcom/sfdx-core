@@ -370,6 +370,11 @@
     "@salesforce/ts-types" "^1.2.1"
     tslib "^1.10.0"
 
+"@salesforce/schemas@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/@salesforce/schemas/-/schemas-1.0.1.tgz#d1db56759d2b22a7688e1821aec564e979237ad2"
+  integrity sha512-78pP1GB/DbIS8nSWGL0GpQ27g02drrEo0vzYdRipGYAIXHMzlh1gqEsq0pOiIQlPm1MxWyEqbmf4GG5qSVsd0Q==
+
 "@salesforce/ts-sinon@^1.0.0":
   version "1.1.1"
   resolved "https://registry.npmjs.org/@salesforce/ts-sinon/-/ts-sinon-1.1.1.tgz#0d8bb57bd9d714ff1b01de22a5262488053515fb"
