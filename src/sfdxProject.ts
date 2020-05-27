@@ -18,13 +18,13 @@ import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
 
-export interface PackageDirDependency {
+export type PackageDirDependency = {
   package: string;
   versionNumber?: string;
   [k: string]: unknown;
-}
+};
 
-export interface PackageDir {
+export type PackageDir = {
   ancestorId?: string;
   ancestorVersion?: string;
   default?: boolean;
@@ -40,9 +40,9 @@ export interface PackageDir {
   versionDescription?: string;
   versionName?: string;
   versionNumber?: string;
-}
+};
 
-export interface ProjectJson {
+export type ProjectJson = ConfigContents & {
   packageDirectories: PackageDir[];
   namespace?: string;
   sourceApiVersion?: string;
@@ -51,7 +51,7 @@ export interface ProjectJson {
   oauthLocalPort?: number;
   plugins?: { [k: string]: unknown };
   packageAliases?: { [k: string]: string };
-}
+};
 
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
@@ -112,6 +112,10 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     return super.write(newContents);
   }
 
+  public getContents(): ProjectJson {
+    return super.getContents() as ProjectJson;
+  }
+
   public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
     const defaultOptions: ConfigFile.Options = {
       isState: false
@@ -124,8 +128,8 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
   /**
    * Validates sfdx-project.json against the schema.
    *
-   * Set the `SFDX_SCHEMA_VALIDATE` environment variable to `true` to throw an error when schema validation fails.
-   * A warning is logged by default.
+   * Set the `SFDX_PROJECT_JSON_VALIDATION` environment variable to `true` to throw an error when schema validation fails.
+   * A warning is logged by default when the file is invalid.
    *
    * ***See*** [sfdx-project.schema.json] (https://raw.githubusercontent.com/forcedotcom/schemas/master/schemas/sfdx-project.schema.json)
    */
@@ -140,7 +144,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
         await validator.load();
         await validator.validate(this.getContents());
       } catch (err) {
-        if (env.getBoolean('SFDX_SCHEMA_VALIDATE', false)) {
+        if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false)) {
           err.name = 'SfdxSchemaValidationError';
           const sfdxError = SfdxError.wrap(err);
           sfdxError.actions = [this.messages.getMessage('SchemaValidationErrorAction', [this.getPath()])];
@@ -162,7 +166,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       await this.read();
     }
 
-    const contents = (this.getContents() as unknown) as ProjectJson;
+    const contents = this.getContents();
     const packageDirs: PackageDir[] = contents.packageDirectories.map(packageDir => {
       // Change packageDir paths to have path separators that match the OS
       const regex = pathSep === '/' ? /\\/g : /\//g;

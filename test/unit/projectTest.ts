@@ -97,14 +97,14 @@ describe('SfdxProject', async () => {
       await SfdxProjectJson.create({});
       expect(loggerSpy.called).to.be.false;
     });
-    it('schemaValidate throws when SFDX_SCHEMA_VALIDATE=true and invalid file', async () => {
+    it('schemaValidate throws when SFDX_PROJECT_JSON_VALIDATION=true and invalid file', async () => {
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
           packageDirectories: [{ path: 'force-app', default: true }],
           foo: 'bar'
         }
       });
-      $$.SANDBOX.stub(env, 'getBoolean').callsFake(envVarName => envVarName === 'SFDX_SCHEMA_VALIDATE');
+      $$.SANDBOX.stub(env, 'getBoolean').callsFake(envVarName => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
       const expectedError = "Validation errors:\n should NOT have additional properties 'foo'";
       try {
         // create() calls read() which calls schemaValidate()
@@ -114,7 +114,7 @@ describe('SfdxProject', async () => {
         expect(e.message).to.equal(expectedError);
       }
     });
-    it('schemaValidate warns when SFDX_SCHEMA_VALIDATE=false and invalid file', async () => {
+    it('schemaValidate warns when SFDX_PROJECT_JSON_VALIDATION=false and invalid file', async () => {
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
           packageDirectories: [{ path: 'force-app', default: true }],

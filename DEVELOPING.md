@@ -1,6 +1,6 @@
 ## Pre-requisites
 
-1.  We are using Node 12. If you need to work with multiple versions of Node, you
+1.  We are using Node 10 LTS. If you need to work with multiple versions of Node, you
     might consider using [nvm](https://github.com/creationix/nvm).
 1.  This repository uses [yarn](https://yarnpkg.com/) to manage node dependencies. Please install yarn globally using `npm install --global yarn`.
 
@@ -28,7 +28,7 @@ This compiles the typescript to javascript.
 
 ### `yarn clean`
 
-This cleans all generated files and directories. Run `yarn cleal-all` will also clean up the node_module directories.
+This cleans all generated files and directories. Run `yarn clean-all` to also clean up the node_module directories.
 
 ### `yarn test`
 
@@ -37,9 +37,9 @@ This tests the typescript using ts-node.
 ### `yarn lint`
 
 This lints all the typescript. If there are no errors/warnings
-from tslint, then you get a clean output. But, if they are errors from tslint,
+from tslint, then you get clean output. But, if there are errors from tslint,
 you will see a long error that can be confusing – just focus on the tslint
-errors. The results of this is deeper than what the tslint extension in VS Code
+errors. The results of this are deeper than what the tslint extension in VS Code
 does because of [semantic lint
 rules](https://palantir.github.io/tslint/usage/type-checking/) which requires a
 tsconfig.json to be passed to tslint.
