@@ -158,5 +158,19 @@ export const fs = {
       encoding: 'utf8',
       mode: fs.DEFAULT_USER_FILE_MODE
     });
+  },
+
+  /**
+   * Checks if a file path exists
+   *
+   * @param filePath the file path to check the existence of
+   */
+  fileExists: async (filePath: string): Promise<boolean> => {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 };
