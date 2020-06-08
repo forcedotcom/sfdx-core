@@ -1,3 +1,15 @@
+# [2.5.0](https://github.com/forcedotcom/sfdx-core/compare/v2.4.1...v2.5.0) (2020-06-08)
+
+
+### Bug Fixes
+
+* update mkdirp for updated dep ([e2b471b](https://github.com/forcedotcom/sfdx-core/commit/e2b471b120edd1b55bca50d71a2fe8d995ef8bbd))
+
+
+### Features
+
+* add fs.fileExists ([0c5d0a7](https://github.com/forcedotcom/sfdx-core/commit/0c5d0a75867094f5b05d9d356f23c94c38d6213e))
+
 ## [2.4.1](https://github.com/forcedotcom/sfdx-core/compare/v2.4.0...v2.4.1) (2020-05-05)
 
 
