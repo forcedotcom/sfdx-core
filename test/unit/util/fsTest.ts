@@ -213,4 +213,17 @@ describe('util/fs', () => {
       });
     });
   });
+
+  describe('fileExists', () => {
+    it('should return true if the file exists', async () => {
+      $$.SANDBOX.stub(fs, 'access').returns(Promise.resolve(true));
+      const exists = await fs.fileExists('foo/bar.json');
+      expect(exists).to.be.true;
+    });
+
+    it('should return false if the file does not exist', async () => {
+      const exists = await fs.fileExists('foo/bar.json');
+      expect(exists).to.be.false;
+    });
+  });
 });
