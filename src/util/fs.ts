@@ -74,7 +74,7 @@ export const fs = {
    * Promisified version of {@link https://npmjs.com/package/mkdirp|mkdirp}.
    */
   // @ts-ignore TODO: figure out how to bind to correct promisify overload
-  mkdirp: (folderPath: string, mode?: string | object): Promise<void> => promisify(mkdirpLib)(folderPath, mode),
+  mkdirp: (folderPath: string, mode?: string | object): Promise<void> => mkdirpLib(folderPath, mode),
 
   /**
    * Deletes a folder recursively, removing all descending files and folders.
@@ -158,5 +158,19 @@ export const fs = {
       encoding: 'utf8',
       mode: fs.DEFAULT_USER_FILE_MODE
     });
+  },
+
+  /**
+   * Checks if a file path exists
+   *
+   * @param filePath the file path to check the existence of
+   */
+  fileExists: async (filePath: string): Promise<boolean> => {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 };

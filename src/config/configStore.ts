@@ -69,7 +69,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   public constructor(options: T) {
     super(options);
     this.options = options;
-    this.setContents(this.options.contents || {});
+    this.setContents(this.options.contents);
   }
 
   /**
@@ -216,7 +216,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   }
 
   // Allows extended classes the ability to override the set method. i.e. maybe they don't want
-  // nexted object set from kit.
+  // nested object set from kit.
   protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue) {
     set(contents, key, value);
   }

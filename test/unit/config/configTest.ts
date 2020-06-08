@@ -59,6 +59,10 @@ describe('Config', () => {
         .withArgs(config.getPath())
         .returns(Promise.resolve(clone(configFileContents)));
 
+      // Manipulate config.hasRead to force a read
+      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      config.hasRead = false;
+
       const content: ConfigContents = await config.read();
 
       expect(content.defaultusername).to.equal(configFileContents.defaultusername);

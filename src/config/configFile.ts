@@ -10,10 +10,14 @@ import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import { Global } from '../global';
+import { Logger } from '../logger';
+import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { resolveProjectPath } from '../util/internal';
 import { BaseConfigStore, ConfigContents } from './configStore';
+
+Messages.importMessagesDirectory(pathJoin(__dirname));
 
 /**
  * Represents a json config file used to manage settings and state. Global config
@@ -68,6 +72,13 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     return isGlobal ? osHomedir() : await resolveProjectPath();
   }
 
+  // whether file contents have been read
+  protected hasRead = false;
+
+  // Initialized in init
+  protected logger!: Logger;
+  protected messages!: Messages;
+
   // Initialized in create
   private path!: string;
 
@@ -98,14 +109,22 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
-   * Read the config file and set the config contents. Returns the config contents of the config file.
+   * Read the config file and set the config contents. Returns the config contents of the config file. As an
+   * optimization, files are only read once per process and updated in memory and via `write()`. To force
+   * a read from the filesystem pass `force=true`.
    * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
+   * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
    */
-  public async read(throwOnNotFound = false): Promise<ConfigContents> {
+  public async read(throwOnNotFound = false, force = false): Promise<ConfigContents> {
     try {
-      const obj = await fs.readJsonMap(this.getPath());
-      this.setContentsFromObject(obj);
+      // Only need to read config files once.  They are kept up to date
+      // internally and updated persistently via write().
+      if (!this.hasRead || force) {
+        this.logger.info(`Reading config file: ${this.getPath()}`);
+        const obj = await fs.readJsonMap(this.getPath());
+        this.setContentsFromObject(obj);
+      }
       return this.getContents();
     } catch (err) {
       if (err.code === 'ENOENT') {
@@ -115,6 +134,10 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
         }
       }
       throw err;
+    } finally {
+      // Necessarily set this even when an error happens to avoid infinite re-reading.
+      // To attempt another read, pass `force=true`.
+      this.hasRead = true;
     }
   }
 
@@ -131,6 +154,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
 
     await fs.mkdirp(pathDirname(this.getPath()));
 
+    this.logger.info(`Writing to config file: ${this.getPath()}`);
     await fs.writeJson(this.getPath(), this.toObject());
 
     return this.getContents();
@@ -186,6 +210,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * options.throwOnNotFound is true.
    */
   protected async init(): Promise<void> {
+    this.logger = await Logger.child(this.constructor.name);
     const statics = this.constructor as typeof ConfigFile;
     let defaultOptions = {};
     try {
@@ -213,6 +238,8 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     if (_isGlobal || _isState) {
       configRootFolder = pathJoin(configRootFolder, Global.STATE_FOLDER);
     }
+
+    this.messages = Messages.loadMessages('@salesforce/core', 'config');
 
     this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);
     await this.read(this.options.throwOnNotFound);
