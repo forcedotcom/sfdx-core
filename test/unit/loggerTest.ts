@@ -157,6 +157,17 @@ describe('Logger', () => {
       expect(Logger.root['called']).to.be.true;
       expect(rootLogger.addLogFileStream['called']).to.be.false;
     });
+
+    it('should log uncaught exception in root logger', async () => {
+      process.env.SFDX_ENV = 'dev';
+
+      $$.SANDBOX.stub(Logger.prototype, 'fatal');
+      const rootLogger = await Logger.root();
+
+      // @ts-ignore
+      Logger.lifecycle.emit('uncaughtException', 'testException');
+      expect(rootLogger.fatal['called']).to.be.true;
+    });
   });
 
   describe('child', () => {
@@ -165,6 +176,18 @@ describe('Logger', () => {
       const childLogger = await Logger.child(childLoggerName);
       expect(childLogger).to.be.instanceof(Logger);
       expect(childLogger.getName()).to.equal(childLoggerName);
+    });
+
+    it('should not log uncaught exception in child logger', async () => {
+      process.env.SFDX_ENV = 'dev';
+
+      $$.SANDBOX.stub(Logger.prototype, 'fatal');
+      const childLoggerName = 'myChildLogger';
+      const childLogger = await Logger.child(childLoggerName);
+
+      // @ts-ignore
+      Logger.lifecycle.emit('uncaughtException', 'testException');
+      expect(childLogger.fatal['called']).to.be.true;
     });
   });
 
