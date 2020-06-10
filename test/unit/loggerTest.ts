@@ -164,7 +164,7 @@ describe('Logger', () => {
       const rootLogger = await Logger.root();
       $$.SANDBOX.stub(rootLogger, 'fatal');
 
-      // @ts-ignore
+      // @ts-ignore to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
       expect(rootLogger.fatal['called']).to.be.true;
     });
@@ -185,7 +185,7 @@ describe('Logger', () => {
       const childLogger = await Logger.child(childLoggerName);
       $$.SANDBOX.stub(childLogger, 'fatal');
 
-      // @ts-ignore
+      // @ts-ignore to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
       expect(childLogger.fatal['called']).to.be.false;
     });
