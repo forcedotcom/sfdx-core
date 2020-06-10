@@ -108,7 +108,7 @@ describe('Config', () => {
       expect(config.getContents()).to.deep.equal(testFileContents);
 
       // Read again.  Stub should still only be called once.
-      const contents2 = await config.read();
+      const contents2 = await config.read(false, false);
       expect(readJsonMapStub.calledOnce).to.be.true;
       expect(contents2).to.deep.equal(testFileContents);
     });
