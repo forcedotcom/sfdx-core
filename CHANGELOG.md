@@ -1,3 +1,12 @@
+## [2.5.1](https://github.com/forcedotcom/sfdx-core/compare/v2.5.0...v2.5.1) (2020-06-11)
+
+
+### Bug Fixes
+
+* fix child logger unit test ([93da343](https://github.com/forcedotcom/sfdx-core/commit/93da3432e83e4db0f2642b54f618521ea53bc414))
+* log uncaught exception in root logger only ([7a80662](https://github.com/forcedotcom/sfdx-core/commit/7a806622e1007d363f317f90a392328f6b6d40e7))
+* mock audience url for unit test ([963b696](https://github.com/forcedotcom/sfdx-core/commit/963b6960e971adaafd43c31581ffc07686fc8378))
+
 # [2.5.0](https://github.com/forcedotcom/sfdx-core/compare/v2.4.1...v2.5.0) (2020-06-08)
 
 
