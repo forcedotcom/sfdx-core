@@ -1452,6 +1452,10 @@ describe('AuthInfo', () => {
   describe('audienceUrl', () => {
     const sfdxAudienceUrlSetting = process.env.SFDX_AUDIENCE_URL;
 
+    beforeEach(() => {
+      process.env.SFDX_AUDIENCE_URL = '';
+    });
+
     afterEach(() => {
       process.env.SFDX_AUDIENCE_URL = sfdxAudienceUrlSetting || '';
     });
