@@ -32,7 +32,7 @@ describe('lifecycleEvents', () => {
     chai.assert(Lifecycle.getInstance() === Lifecycle.getInstance());
   });
 
-  it('succsssful event registration and emitting causes runHook to be called', async () => {
+  it('succsssful event registration and emitting causes the callback to be called', async () => {
     Lifecycle.getInstance().on('test1', async result => {
       fake.bar('test1', result);
     });
@@ -68,7 +68,7 @@ describe('lifecycleEvents', () => {
     chai.expect(fakeSpy.callCount).to.be.equal(2);
   });
 
-  it('emitting an event that is not registered logs a warning and will not call runHook', async () => {
+  it('emitting an event that is not registered logs a warning and will not call the callback', async () => {
     await Lifecycle.getInstance().emit('test4', 'Expect failure');
     chai.expect(fakeSpy.callCount).to.be.equal(0);
     chai.expect(loggerSpy.callCount).to.be.equal(1);

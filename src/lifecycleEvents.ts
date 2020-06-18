@@ -5,14 +5,10 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AnyJson } from '@salesforce/ts-types';
+import { AnyJson, Dictionary } from '@salesforce/ts-types';
 import * as Debug from 'debug';
 
 type callback = (data: AnyJson) => Promise<void>;
-
-interface CallbackDictionary {
-  [key: string]: callback[];
-}
 
 /**
  * An asynchronous event listener and emitter that follows the singleton pattern.
@@ -27,7 +23,7 @@ export class Lifecycle {
 
   private static instance: Lifecycle;
   private debug = Debug(`sfdx:${this.constructor.name}`);
-  private listeners: CallbackDictionary;
+  private listeners: Dictionary<callback[]>;
 
   private constructor() {
     this.listeners = {};
@@ -38,30 +34,36 @@ export class Lifecycle {
   }
 
   public getListeners(eventName: string): callback[] {
-    if (!this.listeners[eventName]) {
+    const listeners = this.listeners[eventName];
+    if (listeners) {
+      return listeners;
+    } else {
       this.listeners[eventName] = [];
+      return [];
     }
-    return this.listeners[eventName];
   }
 
   public on<T extends AnyJson>(eventName: string, cb: (data: T | AnyJson) => Promise<void>) {
-    if (this.getListeners(eventName).length !== 0) {
+    const listeners = this.getListeners(eventName);
+    if (listeners.length !== 0) {
       this.debug(
-        `${this.listeners[eventName].length +
-          1} lifecycle events with the name ${eventName} have now been registered. When this event is emitted all ${this
-          .listeners[eventName].length + 1} listeners will fire.`
+        `${listeners.length +
+          1} lifecycle events with the name ${eventName} have now been registered. When this event is emitted all ${listeners.length +
+          1} listeners will fire.`
       );
     }
-    this.listeners[eventName].push(cb);
+    listeners.push(cb);
+    this.listeners[eventName] = listeners;
   }
 
   public async emit(eventName: string, data: AnyJson) {
-    if (this.getListeners(eventName).length === 0) {
+    const listeners = this.getListeners(eventName);
+    if (listeners.length === 0) {
       this.debug(
         `A lifecycle event with the name ${eventName} does not exist. An event must be registered before it can be emitted.`
       );
     } else {
-      this.listeners[eventName].forEach(async cb => {
+      listeners.forEach(async cb => {
         await cb(data);
       });
     }
