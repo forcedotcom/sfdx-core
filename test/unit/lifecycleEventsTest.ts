@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { stubMethod } from '@salesforce/ts-sinon';
+import { spyMethod } from '@salesforce/ts-sinon';
 import * as chai from 'chai';
 import { Lifecycle } from '../../src/LifecycleEvents';
 import { testSetup } from '../../src/testSetup';
@@ -12,20 +12,19 @@ import { testSetup } from '../../src/testSetup';
 const $$ = testSetup();
 
 describe('lifecycleEvents', () => {
-  let fake;
-  let fakeSpy;
-  let loggerSpy;
-
   class Foo {
-    public bar(name: string, result: string) {
+    public bar(name: string, result: {}) {
       return result[name];
     }
   }
 
+  let fakeSpy;
+  let loggerSpy;
+  const fake = new Foo();
+
   beforeEach(() => {
-    loggerSpy = stubMethod($$.SANDBOX, Lifecycle.getInstance(), 'debug');
-    fake = new Foo();
-    fakeSpy = stubMethod($$.SANDBOX, fake, 'bar');
+    loggerSpy = spyMethod($$.SANDBOX, Lifecycle.getInstance(), 'debug');
+    fakeSpy = spyMethod($$.SANDBOX, fake, 'bar');
   });
 
   it('getInstance is a functioning singleton pattern', async () => {
