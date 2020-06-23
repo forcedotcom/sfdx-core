@@ -6,7 +6,7 @@
  */
 import { spyMethod } from '@salesforce/ts-sinon';
 import * as chai from 'chai';
-import { Lifecycle } from '../../src/LifecycleEvents';
+import { Lifecycle } from '../../src/lifecycleEvents';
 import { testSetup } from '../../src/testSetup';
 
 const $$ = testSetup();
