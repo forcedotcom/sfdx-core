@@ -1,3 +1,17 @@
+# [2.6.0](https://github.com/forcedotcom/sfdx-core/compare/v2.5.1...v2.6.0) (2020-06-23)
+
+
+### Bug Fixes
+
+* added line breaks for readability ([0f8b857](https://github.com/forcedotcom/sfdx-core/commit/0f8b8576d6401ed88b424e60e2f9302003d9ea90))
+* fixed a capitalization that caused CircleCI to fail ([db803a7](https://github.com/forcedotcom/sfdx-core/commit/db803a7fc83ead6fccf84e1791ba668cd25d013e))
+* updated comments and async for loop ([fa3b580](https://github.com/forcedotcom/sfdx-core/commit/fa3b580d82b3bb389a4d1b7edf9340080d392f50))
+
+
+### Features
+
+* added lifecycleEvents.ts from toolbelt: an event listener/emitter ([099478c](https://github.com/forcedotcom/sfdx-core/commit/099478cf087c024d965bba16bb6341df64ce7edb))
+
 ## [2.5.1](https://github.com/forcedotcom/sfdx-core/compare/v2.5.0...v2.5.1) (2020-06-11)
 
 
