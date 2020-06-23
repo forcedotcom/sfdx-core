@@ -30,6 +30,8 @@ export { Connection, SFDX_HTTP_HEADERS } from './connection';
 
 export { Mode, Global } from './global';
 
+export { Lifecycle } from './lifecycleEvents';
+
 export {
   Fields,
   FieldValue,
