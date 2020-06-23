@@ -363,11 +363,11 @@
     xunit-file "^1"
 
 "@salesforce/kit@^1.0.0":
-  version "1.2.1"
-  resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-1.2.1.tgz#123f0edad6a934848db054f51d6524a1e8419043"
-  integrity sha512-ytpDL5TO4QAPcMl1flXXADMeBzARtoOZekWTMdL2O8PVdJo5Wbo9TNpJk0u6SN7qcxZvdbb6RAJpprp4qN2TZw==
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-1.2.2.tgz#9efaee2f520fba4c87a1e138fb31579cc5de69bd"
+  integrity sha512-MQXUh8Ka8oB1SOPUF1kOynXQWcLeZ8YWOyqPtg6j8U9NxLlkTF2vfUfhZEm//jXjejDy7CEes5rEKRHm2df/OA==
   dependencies:
-    "@salesforce/ts-types" "^1.2.1"
+    "@salesforce/ts-types" "^1.2.2"
     tslib "^1.10.0"
 
 "@salesforce/schemas@^1.0.1":
@@ -388,6 +388,13 @@
   version "1.2.1"
   resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-1.2.1.tgz#1f738d0e7df55843e78d2726617b9fdd17291842"
   integrity sha512-kEpyfvTRfwQFpDc1rfb6aaQbl5SDIwCksgr8ftJaooGXDVWFK9llso9cwimee+KVqTeQ6Jf4tZclcPb8I6G6sg==
+  dependencies:
+    tslib "^1.10.0"
+
+"@salesforce/ts-types@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@salesforce/ts-types/-/ts-types-1.2.2.tgz#2e6dc771fa42a2cfc1a2e6b13d2f789add0cdf7c"
+  integrity sha512-inTkNP5jwJTbKqmBv6Cku/ezU6+ErYbUH4YorDfgZ/wDCsdLc9UyPGKGMO8aZ78vvyUTYWEiDxWlMqb1QXEfEw==
   dependencies:
     tslib "^1.10.0"
 
