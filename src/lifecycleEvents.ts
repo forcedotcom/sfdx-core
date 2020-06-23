@@ -11,9 +11,13 @@ import * as Debug from 'debug';
 type callback = (data: AnyJson) => Promise<void>;
 
 /**
- * An asynchronous event listener and emitter that follows the singleton pattern. The singleton pattern allows lifecycle events to be emitted from deep within a library and still be consumed by any other library or tool. It allows other developers to react to certain situations or events in your library without them having to manually call the method themselves.
+ * An asynchronous event listener and emitter that follows the singleton pattern. The singleton pattern allows lifecycle
+ * events to be emitted from deep within a library and still be consumed by any other library or tool. It allows other
+ * developers to react to certain situations or events in your library without them having to manually call the method themselves.
  *
- * An example might be transforming metadata before it is deployed to an environment. As long as an event was emitted from the deploy library and you were listening on that event in the same process, you could transform the metadata before the deploy regardless of where in the code that metadata was initiated.
+ * An example might be transforming metadata before it is deployed to an environment. As long as an event was emitted from the
+ * deploy library and you were listening on that event in the same process, you could transform the metadata before the deploy
+ * regardless of where in the code that metadata was initiated.
  *
  * @example
  * ```
