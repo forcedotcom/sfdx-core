@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Duration, sleep } from '@salesforce/kit/lib/duration';
 import { spyMethod } from '@salesforce/ts-sinon';
 import * as chai from 'chai';
 import { Lifecycle } from '../../src/lifecycleEvents';
@@ -49,11 +50,12 @@ describe('lifecycleEvents', () => {
     chai.expect(fakeSpy.args[1][1]).to.be.equal('Also Success');
   });
 
-  it('an event registering twice logs a warning but creates two listeners', async () => {
+  it('an event registering twice logs a warning but creates two listeners that both fire when emitted', async () => {
     Lifecycle.getInstance().on('test3', async result => {
       fake.bar('test3', result);
     });
     Lifecycle.getInstance().on('test3', async result => {
+      await sleep(Duration.milliseconds(1));
       fake.bar('test3', result);
     });
     chai.expect(loggerSpy.callCount).to.be.equal(1);
