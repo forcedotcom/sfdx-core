@@ -7,11 +7,14 @@
 
 import { parseJson, parseJsonMap } from '@salesforce/kit';
 import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
+import * as crypto from 'crypto';
 import * as fsLib from 'fs';
 import * as mkdirpLib from 'mkdirp';
 import * as path from 'path';
 import { promisify } from 'util';
 import { SfdxError } from '../sfdxError';
+
+type PerformFunction = (filePath: string, file?: string, dir?: string) => Promise<void>;
 
 export const fs = {
   /**
@@ -172,5 +175,68 @@ export const fs = {
     } catch (err) {
       return false;
     }
+  },
+
+  /**
+   * Recursively act on all files or directories in a directory
+   *
+   * @param dir path to directory
+   * @param perform function to be run on contents of dir
+   * @param onType optional parameter to specify type to actOn
+   * @returns void
+   */
+
+  actOn: async (dir: string, perform: PerformFunction, onType: 'file' | 'dir' = 'file'): Promise<void> => {
+    for (const file of await fs.readdir(dir)) {
+      const filePath = path.join(dir, file);
+      const stat = await fs.stat(filePath);
+
+      if (stat) {
+        if (stat.isDirectory()) {
+          await fs.actOn(filePath, perform, onType);
+          if (onType === 'dir') {
+            await perform(filePath);
+          }
+        } else if (stat.isFile() && onType === 'file') {
+          await perform(filePath, file, dir);
+        }
+      }
+    }
+  },
+
+  /**
+   * Checks if files are the same
+   *
+   * @param file1Path the first file path to check
+   * @param file2Path the second file path to check
+   * @returns boolean
+   */
+  areFilesEqual: async (file1Path: string, file2Path: string): Promise<boolean> => {
+    try {
+      const file1Size = (await fs.stat(file1Path)).size;
+      const file2Size = (await fs.stat(file2Path)).size;
+      if (file1Size !== file2Size) {
+        return false;
+      }
+
+      const contentA = await fs.readFile(file1Path);
+      const contentB = await fs.readFile(file2Path);
+
+      return fs.getContentHash(contentA) === fs.getContentHash(contentB);
+    } catch (err) {
+      throw new SfdxError(`The path: ${err.path} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
+    }
+  },
+
+  /**
+   * Creates a hash for the string that's passed in
+   * @param contents The string passed into the function
+   * @returns string
+   */
+  getContentHash(contents: string | Buffer) {
+    return crypto
+      .createHash('sha1')
+      .update(contents)
+      .digest('hex');
   }
 };
