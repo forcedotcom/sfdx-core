@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/forcedotcom/sfdx-core/compare/v2.6.0...v2.7.0) (2020-07-01)
+
+
+### Features
+
+* adds areFilesEqual / actOn / getContentHash from toolbelt to core ([807dc72](https://github.com/forcedotcom/sfdx-core/commit/807dc729f414cda335fcba737580b53fc6ceddc1))
+
 # [2.6.0](https://github.com/forcedotcom/sfdx-core/compare/v2.5.1...v2.6.0) (2020-06-23)
 
 
