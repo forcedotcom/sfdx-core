@@ -17,7 +17,7 @@
     "@salesforce/core": "^1",
     "chalk": "^2.4.1",
     "inquirer": "^6.0.0",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.16",
     "strip-ansi": "^4.0.0"
   },
   "devDependencies": {
