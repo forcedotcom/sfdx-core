@@ -609,7 +609,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     // Must specify either username and/or options
     const options = this.options.oauth2Options || this.options.accessTokenOptions;
     if (!this.options.username && !(this.options.oauth2Options || this.options.accessTokenOptions)) {
-      throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
+      throw SfdxError.create('@salesforce/core', 'core', 'NoUsername');
     }
 
     // If a username AND oauth options were passed, ensure an auth file for the username doesn't

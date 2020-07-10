@@ -1146,7 +1146,7 @@ describe('AuthInfo', () => {
         await AuthInfo.create({});
         assert.fail('Expected AuthInfo.create() to throw an error when no params are passed');
       } catch (err) {
-        expect(err.name).to.equal('AuthInfoCreationError');
+        expect(err.name).to.equal('NoUsername');
       }
     });
   });
