@@ -8,7 +8,9 @@
 import { AnyJson, Dictionary } from '@salesforce/ts-types';
 import * as Debug from 'debug';
 
-type callback = (data: AnyJson) => Promise<void>;
+// Data of any type can be passed to the callback. Can be cast to any type that is given in emit().
+// tslint:disable-next-line:no-any
+type callback = (data: any) => Promise<void>;
 
 /**
  * An asynchronous event listener and emitter that follows the singleton pattern. The singleton pattern allows lifecycle
@@ -74,7 +76,7 @@ export class Lifecycle {
    * @param eventName The name of the event that is being listened for
    * @param cb The callback function to run when the event is emitted
    */
-  public on<T extends AnyJson>(eventName: string, cb: (data: T | AnyJson) => Promise<void>) {
+  public on<T = AnyJson>(eventName: string, cb: (data: T) => Promise<void>) {
     const listeners = this.getListeners(eventName);
     if (listeners.length !== 0) {
       this.debug(
@@ -92,7 +94,7 @@ export class Lifecycle {
    * @param eventName The name of the event to emit
    * @param data The argument to be passed to the callback function
    */
-  public async emit(eventName: string, data: AnyJson) {
+  public async emit<T = AnyJson>(eventName: string, data: T) {
     const listeners = this.getListeners(eventName);
     if (listeners.length === 0) {
       this.debug(
