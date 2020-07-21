@@ -25,7 +25,7 @@ export const sfdc = {
     }
 
     // Source https://help.salesforce.com/articleView?id=000003652&type=1
-    const whitelistOfSalesforceDomainPatterns: string[] = [
+    const allowlistOfSalesforceDomainPatterns: string[] = [
       '.cloudforce.com',
       '.content.force.com',
       '.force.com',
@@ -34,10 +34,10 @@ export const sfdc = {
       '.secure.force.com'
     ];
 
-    const whitelistOfSalesforceHosts: string[] = ['developer.salesforce.com', 'trailhead.salesforce.com'];
+    const allowlistOfSalesforceHosts: string[] = ['developer.salesforce.com', 'trailhead.salesforce.com'];
 
-    return whitelistOfSalesforceDomainPatterns.some(pattern => {
-      return url.hostname.endsWith(pattern) || whitelistOfSalesforceHosts.includes(url.hostname);
+    return allowlistOfSalesforceDomainPatterns.some(pattern => {
+      return url.hostname.endsWith(pattern) || allowlistOfSalesforceHosts.includes(url.hostname);
     });
   },
 
@@ -91,15 +91,15 @@ export const sfdc = {
    * Returns the first key within the object that has an upper case first letter.
    *
    * @param data The object in which to check key casing.
-   * @param sectionBlacklist properties in the object to exclude from the search. e.g. a blacklist of `["a"]` and data of `{ "a": { "B" : "b"}}` would ignore `B` because it is in the object value under `a`.
+   * @param sectionBlocklist properties in the object to exclude from the search. e.g. a blocklist of `["a"]` and data of `{ "a": { "B" : "b"}}` would ignore `B` because it is in the object value under `a`.
    */
-  findUpperCaseKeys: (data?: JsonMap, sectionBlacklist: string[] = []): Optional<string> => {
+  findUpperCaseKeys: (data?: JsonMap, sectionBlocklist: string[] = []): Optional<string> => {
     let key: Optional<string>;
     findKey(data, (val: AnyJson, k: string) => {
       if (k[0] === k[0].toUpperCase()) {
         key = k;
       } else if (isJsonMap(val)) {
-        if (sectionBlacklist.includes(k)) {
+        if (sectionBlocklist.includes(k)) {
           return key;
         }
         key = sfdc.findUpperCaseKeys(asJsonMap(val));
