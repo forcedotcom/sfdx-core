@@ -9,15 +9,15 @@ import { sfdc } from '../../../src/util/sfdc';
 
 describe('util/sfdc', () => {
   describe('isSalesforceDomain', () => {
-    it('is whitelist domain', () => {
+    it('is allowlist domain', () => {
       expect(sfdc.isSalesforceDomain('http://www.salesforce.com')).to.be.true;
     });
 
-    it('is not whiteList or host', () => {
+    it('is not allowlist or host', () => {
       expect(sfdc.isSalesforceDomain('http://www.ghostbusters.com')).to.be.false;
     });
 
-    it('is whiteList host', () => {
+    it('is allowlist host', () => {
       expect(sfdc.isSalesforceDomain('http://developer.salesforce.com')).to.be.true;
     });
 
@@ -125,7 +125,7 @@ describe('util/sfdc', () => {
       expect(sfdc.findUpperCaseKeys(testObj)).to.be.undefined;
     });
 
-    it('should return the first nested upper case key unless blacklisted', () => {
+    it('should return the first nested upper case key unless blocklisted', () => {
       const testObj = {
         lowercase: true,
         uppercase: false,
