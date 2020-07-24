@@ -255,14 +255,30 @@ export class Config extends ConfigFile<ConfigFile.Options> {
           hidden: true,
           input: {
             // If a value is provided validate it otherwise no value is unset.
-            validator: value => isString(value) && sfdc.validateApiVersion(value),
+            validator: value => value == null || (isString(value) && sfdc.validateApiVersion(value)),
             failedMessage: Config.messages.getMessage('InvalidApiVersion')
           }
         },
         { key: Config.DEFAULT_DEV_HUB_USERNAME },
         { key: Config.DEFAULT_USERNAME },
-        { key: Config.ISV_DEBUGGER_SID, encrypted: true },
-        { key: Config.ISV_DEBUGGER_URL },
+        {
+          key: Config.ISV_DEBUGGER_SID,
+          encrypted: true,
+          input: {
+            // If a value is provided validate it otherwise no value is unset.
+            validator: value => value == null || isString(value),
+            failedMessage: Config.messages.getMessage('InvalidIsvDebuggerSid')
+          }
+        },
+        {
+          key: Config.ISV_DEBUGGER_URL,
+          encrypted: true,
+          input: {
+            // If a value is provided validate it otherwise no value is unset.
+            validator: value => value == null || isString(value),
+            failedMessage: Config.messages.getMessage('InvalidIsvDebuggerUrl')
+          }
+        },
         {
           key: Config.DISABLE_TELEMETRY,
           input: {
