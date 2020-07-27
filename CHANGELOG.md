@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/forcedotcom/sfdx-core/compare/v2.7.0...v2.8.0) (2020-07-27)
+
+
+### Features
+
+* changed data to be more flexible type ([50414f9](https://github.com/forcedotcom/sfdx-core/commit/50414f936569993b5bdf96c90bf251bbd6083b10))
+
 # [2.7.0](https://github.com/forcedotcom/sfdx-core/compare/v2.6.0...v2.7.0) (2020-07-01)
 
 
