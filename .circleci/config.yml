@@ -69,7 +69,7 @@ jobs:
       - restore_cache: *restore-cache
       - run: *gh-config
       - run: *install
-      - run: yarn global add semantic-release@15
+      - run: yarn global add semantic-release@16
       - run: yarn global add @oclif/semantic-release@3
       - run: *build
       - run: semantic-release -e @oclif/semantic-release
