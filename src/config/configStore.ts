@@ -6,9 +6,16 @@
  */
 
 import { AsyncCreatable, set } from '@salesforce/kit';
-import { AnyJson, definiteEntriesOf, definiteValuesOf, Dictionary, get, getAnyJson, JsonMap, Optional } from '@salesforce/ts-types';
-import { SfdxError } from '../sfdxError';
-import { Config } from './config';
+import {
+  AnyJson,
+  definiteEntriesOf,
+  definiteValuesOf,
+  Dictionary,
+  get,
+  getAnyJson,
+  JsonMap,
+  Optional
+} from '@salesforce/ts-types';
 
 /**
  * The allowed types stored in a config store.
@@ -129,11 +136,6 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
    * @param key The key.
    */
   public unset(key: string): boolean {
-    const property = Config.getAllowedProperties().find(allowedProp => allowedProp.key === key);
-
-    if (!property) {
-      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
-    }
     return delete this.contents[key];
   }
 

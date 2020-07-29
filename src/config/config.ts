@@ -233,6 +233,21 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   }
 
   /**
+   * Unsets a value for a property.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKey' }* If the input validator fails.
+   * @param key The property to unset.
+   */
+  public unset(key: string): boolean {
+    const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
+
+    if (!property) {
+      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
+    }
+    return super.unset(property.key);
+  }
+
+  /**
    * Initializer for supported config types.
    */
   protected async init(): Promise<void> {
