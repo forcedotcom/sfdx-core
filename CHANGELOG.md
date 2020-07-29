@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/forcedotcom/sfdx-core/compare/v2.8.0...v2.9.0) (2020-07-29)
+
+
+### Features
+
+* overwriting configStore unset ([6095dd6](https://github.com/forcedotcom/sfdx-core/commit/6095dd69ab4ed5e4324e5a46d8ec5bed74bb538a))
+
 # [2.8.0](https://github.com/forcedotcom/sfdx-core/compare/v2.7.0...v2.8.0) (2020-07-27)
 
 
