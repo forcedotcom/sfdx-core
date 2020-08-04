@@ -6,14 +6,16 @@
  */
 
 import { maxBy, merge } from '@salesforce/kit';
-import { asString, ensure, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
-import { Tooling as JSForceTooling } from 'jsforce';
-import { ExecuteOptions } from 'jsforce';
-import { QueryResult } from 'jsforce';
-import { RequestInfo } from 'jsforce';
-import { ConnectionOptions } from 'jsforce';
-import { Connection as JSForceConnection } from 'jsforce';
-import { Promise as JsforcePromise } from 'jsforce';
+import { asString, ensure, getNumber, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
+import {
+  Connection as JSForceConnection,
+  ConnectionOptions,
+  ExecuteOptions,
+  Promise as JsforcePromise,
+  QueryResult,
+  RequestInfo,
+  Tooling as JSForceTooling
+} from 'jsforce';
 import { AuthFields, AuthInfo } from './authInfo';
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
@@ -258,25 +260,31 @@ export class Connection extends JSForceConnection {
    * @param options The query options. NOTE: the autoFetch option will always be true.
    */
   public async autoFetchQuery<T>(soql: string, options: ExecuteOptions = {}): Promise<QueryResult<T>> {
+    const config: ConfigAggregator = await ConfigAggregator.create();
+    // take the limit from the calling function, then the config, then default 10,000
+    const maxFetch: number = options.maxFetch || (config.getInfo('maxQueryLimit').value as number) || 10000;
+
     const _options: ExecuteOptions = Object.assign(options, {
-      autoFetch: true
+      autoFetch: true,
+      maxFetch
     });
-    const records: T[] = [];
 
     this._logger.debug(`Auto-fetching query: ${soql}`);
-
-    return new Promise<QueryResult<T>>((resolve, reject) =>
-      this.query<T>(soql, _options)
-        .on('record', rec => records.push(rec))
-        .on('error', err => reject(err))
-        .on('end', () =>
-          resolve({
-            done: true,
-            totalSize: records.length,
-            records
-          })
-        )
-    );
+    let returnedRecords = 0;
+    const query = this.query<T>(soql, _options)
+      .on('record', () => returnedRecords++)
+      .on('error', err => Promise.reject(err))
+      .on('end', () => {
+        // for compilation, if for some reason there's no 'totalSize' use the default fetch
+        const totalSize = getNumber(query, 'totalSize') || maxFetch;
+        if (totalSize >= returnedRecords) {
+          this._logger.warn(
+            `The query result is missing ${totalSize -
+              returnedRecords} records due to an API limit. Increase the number of records returned by setting the config value "maxQueryLimit" to ${totalSize} or greater than 10,000 (the default value).`
+          );
+        }
+      });
+    return query;
   }
 }
 

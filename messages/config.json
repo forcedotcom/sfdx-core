@@ -5,6 +5,7 @@
   "InvalidApiVersion": "Specify a valid Salesforce API version, for example, 42.0",
   "InvalidIsvDebuggerSid": "Specify a valid Debugger SID",
   "InvalidIsvDebuggerUrl": "Specify a valid Debugger URL",
+  "InvalidNumberConfigValue": "Specify a valid number, for example, 150000",
   "InvalidBooleanConfigValue": "The config value can only be set to true or false.",
   "InvalidProjectWorkspace": "This directory does not contain a valid Salesforce DX project",
   "SchemaValidationWarning": "The config file: %s is not schema valid\nDue to: %s",

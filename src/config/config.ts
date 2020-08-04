@@ -6,7 +6,7 @@
  */
 
 import { keyBy, set } from '@salesforce/kit';
-import { Dictionary, ensure, isString } from '@salesforce/ts-types';
+import { Dictionary, ensure, isNumber, isString } from '@salesforce/ts-types';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
@@ -100,6 +100,11 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * Disables telemetry reporting
    */
   public static readonly DISABLE_TELEMETRY = 'disableTelemetry';
+
+  /**
+   * allows users to override the 10,000 result query limit
+   */
+  public static readonly MAX_QUERY_LIMIT = 'maxQueryLimit';
 
   /**
    * Returns the default file name for a config file.
@@ -308,6 +313,13 @@ export class Config extends ConfigFile<ConfigFile.Options> {
           input: {
             validator: value => value != null && ['true', 'false'].includes(value.toString()),
             failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
+          }
+        },
+        {
+          key: Config.MAX_QUERY_LIMIT,
+          input: {
+            validator: value => isNumber(value),
+            failedMessage: Config.messages.getMessage('InvalidNumberConfigValue')
           }
         }
       ];
