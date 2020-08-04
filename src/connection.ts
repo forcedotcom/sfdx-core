@@ -273,7 +273,6 @@ export class Connection extends JSForceConnection {
     let returnedRecords = 0;
     const query = this.query<T>(soql, _options)
       .on('record', () => returnedRecords++)
-      .on('error', err => Promise.reject(err))
       .on('end', () => {
         // for compilation, if for some reason there's no 'totalSize' use the default fetch
         const totalSize = getNumber(query, 'totalSize') || maxFetch;
