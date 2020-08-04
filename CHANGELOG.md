@@ -1,3 +1,10 @@
+## [2.9.1](https://github.com/forcedotcom/sfdx-core/compare/v2.9.0...v2.9.1) (2020-08-04)
+
+
+### Bug Fixes
+
+* remove encrypted from ISV_URL ([d2c89fe](https://github.com/forcedotcom/sfdx-core/commit/d2c89fed3602f0f9e06a3cefa605268914d69d6e)), closes [#262](https://github.com/forcedotcom/sfdx-core/issues/262)
+
 # [2.9.0](https://github.com/forcedotcom/sfdx-core/compare/v2.8.0...v2.9.0) (2020-07-29)
 
 
