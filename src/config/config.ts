@@ -287,7 +287,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
         },
         {
           key: Config.ISV_DEBUGGER_URL,
-          encrypted: true,
           input: {
             // If a value is provided validate it otherwise no value is unset.
             validator: value => value == null || isString(value),
