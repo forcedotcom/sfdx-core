@@ -13,7 +13,7 @@ import { ConfigContents } from './config/configStore';
 import { defaults, env } from '@salesforce/kit';
 import { JsonMap } from '@salesforce/ts-types';
 import { SchemaValidator } from './schema/validator';
-import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
+import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
@@ -217,6 +217,21 @@ export class SfdxProject {
    */
   public static async resolveProjectPath(dir?: string): Promise<string> {
     return resolveProjectPath(dir);
+  }
+
+  /**
+   * Performs a synchronous upward directory search for an sfdx project file. Returns the absolute path to the project.
+   *
+   * @param dir The directory path to start traversing from.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
+   *
+   * **See** {@link traverseForFileSync}
+   *
+   * **See** [process.cwd()](https://nodejs.org/api/process.html#process_process_cwd)
+   */
+  public static resolveProjectPathSync(dir?: string): string {
+    return resolveProjectPathSync(dir);
   }
 
   // Cache of SfdxProject instances per path.
