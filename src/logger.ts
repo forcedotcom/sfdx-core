@@ -23,7 +23,7 @@ import {
   Optional
 } from '@salesforce/ts-types';
 import * as Debug from 'debug';
-import * as EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import * as os from 'os';
 import * as path from 'path';
 import { Writable } from 'stream';
@@ -654,11 +654,15 @@ export class Logger {
   }
 
   private uncaughtExceptionHandler = (err: Error) => {
-    // log the exception
-    // FIXME: good chance this won't be logged because
-    // process.exit was called before this is logged
-    // https://github.com/trentm/node-bunyan/issues/95
-    this.fatal(err);
+    // W-7558552
+    // Only log uncaught exceptions in root logger
+    if (this === Logger.rootLogger) {
+      // log the exception
+      // FIXME: good chance this won't be logged because
+      // process.exit was called before this is logged
+      // https://github.com/trentm/node-bunyan/issues/95
+      this.fatal(err);
+    }
   };
 
   private exitHandler = () => {

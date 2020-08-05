@@ -1,3 +1,75 @@
+## [2.9.1](https://github.com/forcedotcom/sfdx-core/compare/v2.9.0...v2.9.1) (2020-08-04)
+
+
+### Bug Fixes
+
+* remove encrypted from ISV_URL ([d2c89fe](https://github.com/forcedotcom/sfdx-core/commit/d2c89fed3602f0f9e06a3cefa605268914d69d6e)), closes [#262](https://github.com/forcedotcom/sfdx-core/issues/262)
+
+# [2.9.0](https://github.com/forcedotcom/sfdx-core/compare/v2.8.0...v2.9.0) (2020-07-29)
+
+
+### Features
+
+* overwriting configStore unset ([6095dd6](https://github.com/forcedotcom/sfdx-core/commit/6095dd69ab4ed5e4324e5a46d8ec5bed74bb538a))
+
+# [2.8.0](https://github.com/forcedotcom/sfdx-core/compare/v2.7.0...v2.8.0) (2020-07-27)
+
+
+### Features
+
+* changed data to be more flexible type ([50414f9](https://github.com/forcedotcom/sfdx-core/commit/50414f936569993b5bdf96c90bf251bbd6083b10))
+
+# [2.7.0](https://github.com/forcedotcom/sfdx-core/compare/v2.6.0...v2.7.0) (2020-07-01)
+
+
+### Features
+
+* adds areFilesEqual / actOn / getContentHash from toolbelt to core ([807dc72](https://github.com/forcedotcom/sfdx-core/commit/807dc729f414cda335fcba737580b53fc6ceddc1))
+
+# [2.6.0](https://github.com/forcedotcom/sfdx-core/compare/v2.5.1...v2.6.0) (2020-06-23)
+
+
+### Bug Fixes
+
+* added line breaks for readability ([0f8b857](https://github.com/forcedotcom/sfdx-core/commit/0f8b8576d6401ed88b424e60e2f9302003d9ea90))
+* fixed a capitalization that caused CircleCI to fail ([db803a7](https://github.com/forcedotcom/sfdx-core/commit/db803a7fc83ead6fccf84e1791ba668cd25d013e))
+* updated comments and async for loop ([fa3b580](https://github.com/forcedotcom/sfdx-core/commit/fa3b580d82b3bb389a4d1b7edf9340080d392f50))
+
+
+### Features
+
+* added lifecycleEvents.ts from toolbelt: an event listener/emitter ([099478c](https://github.com/forcedotcom/sfdx-core/commit/099478cf087c024d965bba16bb6341df64ce7edb))
+
+## [2.5.1](https://github.com/forcedotcom/sfdx-core/compare/v2.5.0...v2.5.1) (2020-06-11)
+
+
+### Bug Fixes
+
+* fix child logger unit test ([93da343](https://github.com/forcedotcom/sfdx-core/commit/93da3432e83e4db0f2642b54f618521ea53bc414))
+* log uncaught exception in root logger only ([7a80662](https://github.com/forcedotcom/sfdx-core/commit/7a806622e1007d363f317f90a392328f6b6d40e7))
+* mock audience url for unit test ([963b696](https://github.com/forcedotcom/sfdx-core/commit/963b6960e971adaafd43c31581ffc07686fc8378))
+
+# [2.5.0](https://github.com/forcedotcom/sfdx-core/compare/v2.4.1...v2.5.0) (2020-06-08)
+
+
+### Bug Fixes
+
+* update mkdirp for updated dep ([e2b471b](https://github.com/forcedotcom/sfdx-core/commit/e2b471b120edd1b55bca50d71a2fe8d995ef8bbd))
+
+
+### Features
+
+* add fs.fileExists ([0c5d0a7](https://github.com/forcedotcom/sfdx-core/commit/0c5d0a75867094f5b05d9d356f23c94c38d6213e))
+
+## [2.4.1](https://github.com/forcedotcom/sfdx-core/compare/v2.4.0...v2.4.1) (2020-05-05)
+
+
+### Bug Fixes
+
+* don't ship with ts-sinon ([b4005fb](https://github.com/forcedotcom/sfdx-core/commit/b4005fb27b3f85be1297b9cfec0bc7e0de91979d))
+* fixed test spy ([c1f4ba4](https://github.com/forcedotcom/sfdx-core/commit/c1f4ba42ba94a03c5e3e77e793558cfea947f78e))
+* path.resolve jwt key file path ([86e6957](https://github.com/forcedotcom/sfdx-core/commit/86e695757a68dca1ea659e801ead59e57e6632b9))
+
 # [2.4.0](https://github.com/forcedotcom/sfdx-core/compare/v2.3.1...v2.4.0) (2020-04-23)
 
 

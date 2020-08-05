@@ -1,0 +1,3 @@
+{
+  "MacKeychainOutOfSync": "\nWe’ve encountered an error with the Mac keychain being out of sync with your `sfdx` credentials. To fix the problem, sync your credentials by authenticating into your org again using the auth commands."
+}

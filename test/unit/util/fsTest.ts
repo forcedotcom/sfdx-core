@@ -213,4 +213,143 @@ describe('util/fs', () => {
       });
     });
   });
+
+  describe('fileExists', () => {
+    it('should return true if the file exists', async () => {
+      $$.SANDBOX.stub(fs, 'access').returns(Promise.resolve(true));
+      const exists = await fs.fileExists('foo/bar.json');
+      expect(exists).to.be.true;
+    });
+
+    it('should return false if the file does not exist', async () => {
+      const exists = await fs.fileExists('foo/bar.json');
+      expect(exists).to.be.false;
+    });
+  });
+
+  describe('areFilesEqual', () => {
+    afterEach(() => {
+      $$.SANDBOX.restore();
+    });
+
+    it('should return false if the files stat.size are different', async () => {
+      $$.SANDBOX.stub(fs, 'readFile')
+        .onCall(0)
+        .resolves({})
+        .onCall(1)
+        .resolves({});
+      $$.SANDBOX.stub(fs, 'stat')
+        .onCall(0)
+        .resolves({
+          size: 1
+        })
+        .onCall(1)
+        .resolves({
+          size: 2
+        });
+
+      const results = await fs.areFilesEqual('foo/bar.json', 'foo/bar2.json');
+      expect(results).to.be.false;
+    });
+
+    it('should return true if the file hashes are the same', async () => {
+      $$.SANDBOX.stub(fs, 'readFile')
+        .onCall(0)
+        .resolves(
+          `{
+            "key": 12345,
+            "value": true,
+        }`
+        )
+        .onCall(1)
+        .resolves(
+          `{
+            "key": 12345,
+            "value": true,
+        }`
+        );
+      $$.SANDBOX.stub(fs, 'stat')
+        .onCall(0)
+        .resolves({})
+        .onCall(1)
+        .resolves({});
+
+      const results = await fs.areFilesEqual('foo/bar.json', 'foo/bar2.json');
+      expect(results).to.be.true;
+    });
+
+    it('should return false if the file hashes are different', async () => {
+      $$.SANDBOX.stub(fs, 'readFile')
+        .onCall(0)
+        .resolves(
+          `{
+              "key": 12345,
+              "value": true,
+          }`
+        )
+        .onCall(1)
+        .resolves(
+          `{
+              "key": 12345,
+              "value": false,
+          }`
+        );
+
+      $$.SANDBOX.stub(fs, 'stat')
+        .onCall(0)
+        .resolves({})
+        .onCall(1)
+        .resolves({});
+      const results = await fs.areFilesEqual('foo/bar.json', 'foo/bsar2.json');
+      expect(results).to.be.false;
+    });
+
+    it('should return error when fs.readFile throws error', async () => {
+      $$.SANDBOX.stub(fs, 'stat')
+        .onCall(0)
+        .resolves({
+          size: 1
+        })
+        .onCall(1)
+        .resolves({
+          size: 2
+        });
+      try {
+        await fs.areFilesEqual('foo', 'bar');
+      } catch (e) {
+        expect(e.name).to.equal('DirMissingOrNoAccess');
+      }
+    });
+
+    it('should return error when fs.stat throws error', async () => {
+      try {
+        await fs.areFilesEqual('foo', 'bar');
+      } catch (e) {
+        expect(e.name).to.equal('DirMissingOrNoAccess');
+      }
+    });
+  });
+
+  describe('actOn', () => {
+    afterEach(() => {
+      $$.SANDBOX.restore();
+    });
+
+    it('should run custom functions against contents of a directory', async () => {
+      const actedOnArray = [];
+      $$.SANDBOX.stub(fs, 'readdir').resolves(['test1.json', 'test2.json']);
+      $$.SANDBOX.stub(fs, 'stat').resolves({
+        isDirectory: () => false,
+        isFile: () => true
+      });
+      const pathToFolder = pathJoin(osTmpdir(), 'foo');
+
+      await fs.actOn(pathToFolder, async file => {
+        actedOnArray.push(file), 'file';
+      });
+      const example = [pathJoin(pathToFolder, 'test1.json'), pathJoin(pathToFolder, 'test2.json')];
+
+      expect(actedOnArray).to.eql(example);
+    });
+  });
 });

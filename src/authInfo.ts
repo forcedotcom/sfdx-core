@@ -27,6 +27,7 @@ import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 // @ts-ignore No typings directly available for jsforce/lib/transport
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
+import { resolve as pathResolve } from 'path';
 import { parse as urlParse } from 'url';
 import { AuthInfoConfig } from './config/authInfoConfig';
 import { ConfigAggregator } from './config/configAggregator';
@@ -690,7 +691,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
             // Grab whatever flow is defined
             Object.assign(options, {
               clientSecret: parentFields.clientSecret,
-              privateKey: parentFields.privateKey
+              privateKey: parentFields.privateKey ? pathResolve(parentFields.privateKey) : parentFields.privateKey
             });
           }
         }
@@ -698,7 +699,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         // jwt flow
         // Support both sfdx and jsforce private key values
         if (!options.privateKey && options.privateKeyFile) {
-          options.privateKey = options.privateKeyFile;
+          options.privateKey = pathResolve(options.privateKeyFile);
         }
 
         if (options.privateKey) {

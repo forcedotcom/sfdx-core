@@ -4,17 +4,54 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { defaults } from '@salesforce/kit';
+import { sep as pathSep } from 'path';
 
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 
+import { defaults, env } from '@salesforce/kit';
 import { JsonMap } from '@salesforce/ts-types';
-import { SfdxError } from './sfdxError';
+import { SchemaValidator } from './schema/validator';
 import { resolveProjectPath, SFDX_PROJECT_JSON } from './util/internal';
+
+import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
+
+export type PackageDirDependency = {
+  package: string;
+  versionNumber?: string;
+  [k: string]: unknown;
+};
+
+export type PackageDir = {
+  ancestorId?: string;
+  ancestorVersion?: string;
+  default?: boolean;
+  definitionFile?: string;
+  dependencies?: PackageDirDependency[];
+  includeProfileUserLicenses?: boolean;
+  package?: string;
+  path: string;
+  postInstallScript?: string;
+  postInstallUrl?: string;
+  releaseNotesUrl?: string;
+  uninstallScript?: string;
+  versionDescription?: string;
+  versionName?: string;
+  versionNumber?: string;
+};
+
+export type ProjectJson = ConfigContents & {
+  packageDirectories: PackageDir[];
+  namespace?: string;
+  sourceApiVersion?: string;
+  sfdcLoginUrl?: string;
+  signupTargetLoginUrl?: string;
+  oauthLocalPort?: number;
+  plugins?: { [k: string]: unknown };
+  packageAliases?: { [k: string]: string };
+};
 
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
@@ -33,7 +70,7 @@ import { sfdc } from './util/sfdc';
  * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
  */
 export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
-  public static BLACKLIST = ['packageAliases'];
+  public static BLOCKLIST = ['packageAliases'];
 
   public static getFileName() {
     return SFDX_PROJECT_JSON;
@@ -53,21 +90,30 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     const contents = await super.read();
 
     // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
-    const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfdxProjectJson.BLACKLIST);
+    const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfdxProjectJson.BLOCKLIST);
     if (upperCaseKey) {
       throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
     }
+
+    await this.schemaValidate();
+
     return contents;
   }
 
   public async write(newContents?: ConfigContents): Promise<ConfigContents> {
     // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
-    const upperCaseKey = sfdc.findUpperCaseKeys(newContents, SfdxProjectJson.BLACKLIST);
+    const upperCaseKey = sfdc.findUpperCaseKeys(newContents, SfdxProjectJson.BLOCKLIST);
     if (upperCaseKey) {
       throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
     }
 
+    await this.schemaValidate();
+
     return super.write(newContents);
+  }
+
+  public getContents(): ProjectJson {
+    return super.getContents() as ProjectJson;
   }
 
   public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
@@ -77,6 +123,57 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
 
     Object.assign(defaultOptions, options || {});
     return defaultOptions;
+  }
+
+  /**
+   * Validates sfdx-project.json against the schema.
+   *
+   * Set the `SFDX_PROJECT_JSON_VALIDATION` environment variable to `true` to throw an error when schema validation fails.
+   * A warning is logged by default when the file is invalid.
+   *
+   * ***See*** [sfdx-project.schema.json] (https://raw.githubusercontent.com/forcedotcom/schemas/master/schemas/sfdx-project.schema.json)
+   */
+  public async schemaValidate(): Promise<void> {
+    if (!this.hasRead) {
+      // read calls back into this method after necessarily setting this.hasRead=true
+      await this.read();
+    } else {
+      try {
+        const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
+        const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
+        await validator.load();
+        await validator.validate(this.getContents());
+      } catch (err) {
+        if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false)) {
+          err.name = 'SfdxSchemaValidationError';
+          const sfdxError = SfdxError.wrap(err);
+          sfdxError.actions = [this.messages.getMessage('SchemaValidationErrorAction', [this.getPath()])];
+          throw sfdxError;
+        } else {
+          this.logger.warn(this.messages.getMessage('SchemaValidationWarning', [this.getPath(), err.message]));
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the `packageDirectories` within sfdx-project.json, first reading
+   * and validating the file if necessary.
+   */
+  public async getPackageDirectories(): Promise<PackageDir[]> {
+    // Ensure sfdx-project.json has first been read and validated.
+    if (!this.hasRead) {
+      await this.read();
+    }
+
+    const contents = this.getContents();
+    const packageDirs: PackageDir[] = contents.packageDirectories.map(packageDir => {
+      // Change packageDir paths to have path separators that match the OS
+      const regex = pathSep === '/' ? /\\/g : /\//g;
+      packageDir.path = packageDir.path.replace(regex, pathSep);
+      return packageDir;
+    });
+    return packageDirs;
   }
 }
 
@@ -98,7 +195,13 @@ export class SfdxProject {
    * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
    */
   public static async resolve(path?: string): Promise<SfdxProject> {
-    return new SfdxProject(await this.resolveProjectPath(path));
+    const _path = path || process.cwd();
+    if (!SfdxProject.instances.has(_path)) {
+      const project = new SfdxProject(await this.resolveProjectPath(_path));
+      SfdxProject.instances.set(_path, project);
+    }
+    // @ts-ignore Because of the pattern above this is guaranteed to return an instance
+    return SfdxProject.instances.get(_path);
   }
 
   /**
@@ -115,6 +218,9 @@ export class SfdxProject {
   public static async resolveProjectPath(dir?: string): Promise<string> {
     return resolveProjectPath(dir);
   }
+
+  // Cache of SfdxProject instances per path.
+  private static instances = new Map<string, SfdxProject>();
 
   private projectConfig: any; // tslint:disable-line:no-any
 
