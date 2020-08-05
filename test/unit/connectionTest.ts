@@ -9,7 +9,9 @@ import { get, JsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import * as jsforce from 'jsforce';
 import { AuthInfo } from '../../src/authInfo';
+import { ConfigAggregator } from '../../src/config/configAggregator';
 import { Connection, SFDX_HTTP_HEADERS } from '../../src/connection';
+import { Logger } from '../../src/logger';
 import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
@@ -119,12 +121,9 @@ describe('Connection', () => {
   });
 
   it('autoFetchQuery() should call this.query with proper args', async () => {
-    const records1 = [{ id: 1 }, { id: 2 }, { id: 3 }];
-    const records2 = [{ id: 4 }, { id: 5 }, { id: 6 }];
-    const queryResponse1 = { totalSize: 3, done: false, records: records1 };
-    const queryResponse2 = { totalSize: 3, done: true, records: records2 };
-    requestMock.onSecondCall().returns(Promise.resolve(queryResponse1));
-    requestMock.onThirdCall().returns(Promise.resolve(queryResponse2));
+    const records = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }];
+    const queryResponse = { totalSize: records.length, done: true, records };
+    requestMock.onSecondCall().returns(Promise.resolve(queryResponse));
     const querySpy = $$.SANDBOX.spy(jsforce.Connection.prototype, 'query');
     const soql = 'TEST_SOQL';
 
@@ -134,19 +133,16 @@ describe('Connection', () => {
     expect(queryResults).to.deep.equal({
       done: true,
       totalSize: 6,
-      records: [...records1, ...records2]
+      records: [...records]
     });
     expect(querySpy.firstCall.args[0]).to.equal(soql);
     expect(querySpy.firstCall.args[1]).to.have.property('autoFetch', true);
   });
 
   it('tooling.autoFetchQuery() should call this.query with proper args', async () => {
-    const records1 = [{ id: 7 }, { id: 8 }, { id: 9 }];
-    const records2 = [{ id: 10 }, { id: 11 }, { id: 12 }];
-    const queryResponse1 = { totalSize: 3, done: false, records: records1 };
-    const queryResponse2 = { totalSize: 3, done: true, records: records2 };
-    requestMock.onSecondCall().returns(Promise.resolve(queryResponse1));
-    requestMock.onThirdCall().returns(Promise.resolve(queryResponse2));
+    const records = [{ id: 7 }, { id: 8 }, { id: 9 }, { id: 10 }, { id: 11 }, { id: 12 }];
+    const queryResponse = { totalSize: records.length, done: true, records };
+    requestMock.onSecondCall().returns(Promise.resolve(queryResponse));
     const soql = 'TEST_SOQL';
 
     const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
@@ -156,10 +152,49 @@ describe('Connection', () => {
     expect(queryResults).to.deep.equal({
       done: true,
       totalSize: 6,
-      records: [...records1, ...records2]
+      records: [...records]
     });
     expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
+  });
+
+  it('tooling.autoFetchQuery() should respect the maxQueryLimit config variable', async () => {
+    const soql = 'TEST_SOQL';
+
+    const records = [{ id: 7 }, { id: 8 }, { id: 10 }, { id: 11 }, { id: 12 }];
+    const queryResponse = { totalSize: 50000, done: true, records };
+    requestMock.returns(Promise.resolve(queryResponse));
+
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 50000 });
+    await conn.tooling.autoFetchQuery(soql);
+
+    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 50000);
+  });
+
+  it('tooling.autoFetchQuery() should throw a warning when more than 10k records returned without the config', async () => {
+    const soql = 'TEST_SOQL';
+
+    const records = [{ id: 7 }, { id: 8 }, { id: 10 }, { id: 11 }, { id: 12 }];
+    const queryResponse = { totalSize: 5, done: true, records };
+    requestMock.returns(Promise.resolve(queryResponse));
+
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+    const loggerSpy = $$.SANDBOX.spy(Logger.prototype, 'warn');
+    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 });
+    await conn.tooling.autoFetchQuery(soql);
+
+    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
+    // if the config is limiting the results, we have a warning
+    expect(loggerSpy.args[0][0]).to.equal(
+      'The query result is missing 2 records due to an API limit. Increase the number of records returned by setting the config value "maxQueryLimit" to 5 or greater than 10,000 (the default value).'
+    );
   });
 
   it('autoFetch() should reject the promise upon query error', async () => {
