@@ -8,7 +8,7 @@
 import { parseJson, parseJsonMap } from '@salesforce/kit';
 import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
-import * as fsLib from 'fs';
+import * as fsLib from 'graceful-fs';
 import * as mkdirpLib from 'mkdirp';
 import * as path from 'path';
 import { promisify } from 'util';
