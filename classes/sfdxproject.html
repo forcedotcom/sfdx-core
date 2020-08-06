@@ -93,6 +93,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="sfdxproject.html#retrievesfdxprojectjson" class="tsd-kind-icon">retrieve<wbr>Sfdx<wbr>Project<wbr>Json</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="sfdxproject.html#resolve" class="tsd-kind-icon">resolve</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="sfdxproject.html#resolveprojectpath" class="tsd-kind-icon">resolve<wbr>Project<wbr>Path</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="sfdxproject.html#resolveprojectpathsync" class="tsd-kind-icon">resolve<wbr>Project<wbr>Path<wbr>Sync</a></li>
 							</ul>
 						</section>
 					</div>
@@ -110,7 +111,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2c7480d/src/sfdxProject.ts#L241">sfdxProject.ts:241</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/81361e7/src/sfdxProject.ts#L256">sfdxProject.ts:256</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -132,7 +133,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2c7480d/src/sfdxProject.ts#L277">sfdxProject.ts:277</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/81361e7/src/sfdxProject.ts#L292">sfdxProject.ts:292</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -158,7 +159,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2c7480d/src/sfdxProject.ts#L254">sfdxProject.ts:254</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/81361e7/src/sfdxProject.ts#L269">sfdxProject.ts:269</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -192,7 +193,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2c7480d/src/sfdxProject.ts#L197">sfdxProject.ts:197</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/81361e7/src/sfdxProject.ts#L197">sfdxProject.ts:197</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -224,7 +225,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/2c7480d/src/sfdxProject.ts#L218">sfdxProject.ts:218</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/81361e7/src/sfdxProject.ts#L218">sfdxProject.ts:218</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -245,6 +246,40 @@
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="resolveprojectpathsync" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> resolve<wbr>Project<wbr>Path<wbr>Sync</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">resolve<wbr>Project<wbr>Path<wbr>Sync<span class="tsd-signature-symbol">(</span>dir<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/81361e7/src/sfdxProject.ts#L233">sfdxProject.ts:233</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Performs a synchronous upward directory search for an sfdx project file. Returns the absolute path to the project.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> dir: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The directory path to start traversing from.</p>
+										<p><strong>Throws</strong> <em><a href="sfdxerror.html">SfdxError</a>{ name: &#39;InvalidProjectWorkspace&#39; }</em> If the current folder is not located in a workspace.</p>
+										<p><strong>See</strong> <a href="../globals.html#fs.traverseforfilesync">traverseForFileSync</a></p>
+										<p><strong>See</strong> <a href="https://nodejs.org/api/process.html#process_process_cwd">process.cwd()</a></p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -279,6 +314,9 @@
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
 								<a href="sfdxproject.html#resolveprojectpath" class="tsd-kind-icon">resolve<wbr>Project<wbr>Path</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="sfdxproject.html#resolveprojectpathsync" class="tsd-kind-icon">resolve<wbr>Project<wbr>Path<wbr>Sync</a>
 							</li>
 						</ul>
 					</li>
