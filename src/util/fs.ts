@@ -8,7 +8,7 @@
 import { parseJson, parseJsonMap } from '@salesforce/kit';
 import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
-import * as fsLib from 'fs';
+import * as fsLib from 'graceful-fs';
 import * as mkdirpLib from 'mkdirp';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -73,6 +73,8 @@ export const fs = {
    */
   stat: promisify(fsLib.stat),
 
+  statSync: fsLib.statSync,
+
   /**
    * Promisified version of {@link https://npmjs.com/package/mkdirp|mkdirp}.
    */
@@ -121,6 +123,31 @@ export const fs = {
         if (nextDir !== dir) {
           // stop at root
           foundProjectDir = await fs.traverseForFile(nextDir, file);
+        }
+      }
+    }
+    return foundProjectDir;
+  },
+
+  /**
+   * Searches a file path synchronously in an ascending manner (until reaching the filesystem root) for the first occurrence a
+   * specific file name.  Resolves with the directory path containing the located file, or `null` if the file was
+   * not found.
+   *
+   * @param dir The directory path in which to start the upward search.
+   * @param file The file name to look for.
+   */
+  traverseForFileSync: (dir: string, file: string): Optional<string> => {
+    let foundProjectDir: Optional<string>;
+    try {
+      fs.statSync(path.join(dir, file));
+      foundProjectDir = dir;
+    } catch (err) {
+      if (err && err.code === 'ENOENT') {
+        const nextDir = path.resolve(dir, '..');
+        if (nextDir !== dir) {
+          // stop at root
+          foundProjectDir = fs.traverseForFileSync(nextDir, file);
         }
       }
     }
