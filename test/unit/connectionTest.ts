@@ -192,9 +192,7 @@ describe('Connection', () => {
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
     // if the config is limiting the results, we have a warning
-    expect(loggerSpy.args[0][0]).to.equal(
-      'The query result is missing 2 records due to an API limit. Increase the number of records returned by setting the config value "maxQueryLimit" to 5 or greater than 10,000 (the default value).'
-    );
+    expect(loggerSpy.args[0][0]).to.equal('The query: TEST_SOQL result is missing 2 records due to an API limit.');
   });
 
   it('autoFetch() should reject the promise upon query error', async () => {

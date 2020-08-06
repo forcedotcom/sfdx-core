@@ -262,28 +262,38 @@ export class Connection extends JSForceConnection {
   public async autoFetchQuery<T>(soql: string, options: ExecuteOptions = {}): Promise<QueryResult<T>> {
     const config: ConfigAggregator = await ConfigAggregator.create();
     // take the limit from the calling function, then the config, then default 10,000
-    const maxFetch: number = options.maxFetch || (config.getInfo('maxQueryLimit').value as number) || 10000;
+    const maxFetch: number = (config.getInfo('maxQueryLimit').value as number) || options.maxFetch || 10000;
 
     const _options: ExecuteOptions = Object.assign(options, {
       autoFetch: true,
       maxFetch
     });
+    const records: T[] = [];
 
     this._logger.debug(`Auto-fetching query: ${soql}`);
-    let returnedRecords = 0;
-    const query = this.query<T>(soql, _options)
-      .on('record', () => returnedRecords++)
-      .on('end', () => {
-        // for compilation, if for some reason there's no 'totalSize' use the default fetch
-        const totalSize = getNumber(query, 'totalSize') || maxFetch;
-        if (totalSize >= returnedRecords) {
-          this._logger.warn(
-            `The query result is missing ${totalSize -
-              returnedRecords} records due to an API limit. Increase the number of records returned by setting the config value "maxQueryLimit" to ${totalSize} or greater than 10,000 (the default value).`
-          );
-        }
-      });
-    return query;
+
+    return new Promise<QueryResult<T>>((resolve, reject) => {
+      const query = this.query<T>(soql, _options)
+        .on('record', rec => records.push(rec))
+        .on('error', err => reject(err))
+        .on('end', () => {
+          const totalSize = getNumber(query, 'totalSize') || maxFetch;
+          if (totalSize >= records.length) {
+            process.emitWarning(
+              `The query result is missing ${totalSize -
+                records.length} records due to a 10,000 limit for performance reasons. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${totalSize} or greater than 10,000.`
+            );
+            this._logger.warn(
+              `The query: ${soql} result is missing ${totalSize - records.length} records due to an API limit.`
+            );
+          }
+          resolve({
+            done: true,
+            totalSize,
+            records
+          });
+        });
+    });
   }
 }
 
