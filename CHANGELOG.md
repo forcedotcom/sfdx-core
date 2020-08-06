@@ -1,3 +1,10 @@
+## [2.9.3](https://github.com/forcedotcom/sfdx-core/compare/v2.9.2...v2.9.3) (2020-08-06)
+
+
+### Bug Fixes
+
+* changed to be greater than, not greater than or equal to ([7f1a12d](https://github.com/forcedotcom/sfdx-core/commit/7f1a12d7a7d7aa460de5bb32a368f52c11219a4e))
+
 ## [2.9.2](https://github.com/forcedotcom/sfdx-core/compare/v2.9.1...v2.9.2) (2020-08-06)
 
 
