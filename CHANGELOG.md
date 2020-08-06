@@ -1,3 +1,12 @@
+## [2.9.2](https://github.com/forcedotcom/sfdx-core/compare/v2.9.1...v2.9.2) (2020-08-06)
+
+
+### Bug Fixes
+
+* maxQueryLimit config, return full jsforce result, fix build issue ([6c11196](https://github.com/forcedotcom/sfdx-core/commit/6c11196a48e19bca8d43fd994fa864bf3cb72cfa))
+* removed promise.reject ([d28d649](https://github.com/forcedotcom/sfdx-core/commit/d28d649f60ca1362380b4e5e408376561d6a64ed))
+* updated autoFetchQuery method ([4d018f6](https://github.com/forcedotcom/sfdx-core/commit/4d018f6d2c8e4d6b19179563f11db2ff1f9b5f3d))
+
 ## [2.9.1](https://github.com/forcedotcom/sfdx-core/compare/v2.9.0...v2.9.1) (2020-08-04)
 
 
