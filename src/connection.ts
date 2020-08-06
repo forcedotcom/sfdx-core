@@ -278,7 +278,7 @@ export class Connection extends JSForceConnection {
         .on('error', err => reject(err))
         .on('end', () => {
           const totalSize = getNumber(query, 'totalSize') || maxFetch;
-          if (totalSize >= records.length) {
+          if (totalSize > records.length) {
             process.emitWarning(
               `The query result is missing ${totalSize -
                 records.length} records due to a 10,000 limit for performance reasons. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${totalSize} or greater than 10,000.`
