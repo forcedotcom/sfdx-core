@@ -1,3 +1,11 @@
+## [2.9.4](https://github.com/forcedotcom/sfdx-core/compare/v2.9.3...v2.9.4) (2020-08-07)
+
+
+### Bug Fixes
+
+*  updated messaging ([7f9ab06](https://github.com/forcedotcom/sfdx-core/commit/7f9ab06ecbde1ac082f027f35f07002efb8dc7cf))
+* fix edge case, updated messaging ([a8f9a54](https://github.com/forcedotcom/sfdx-core/commit/a8f9a547893918b2a3f6a23e9bcfa99e13b28974))
+
 ## [2.9.3](https://github.com/forcedotcom/sfdx-core/compare/v2.9.2...v2.9.3) (2020-08-06)
 
 
