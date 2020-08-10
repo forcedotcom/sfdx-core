@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>ConfigStub | @salesforce/core</title>
+	<title>LoggerFormat | @salesforce/core</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,10 +52,10 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="configstub.html">ConfigStub</a>
+					<a href="loggerformat.html">LoggerFormat</a>
 				</li>
 			</ul>
-			<h1>Interface ConfigStub</h1>
+			<h1>Enumeration LoggerFormat</h1>
 		</div>
 	</div>
 </header>
@@ -65,116 +65,45 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Different hooks into <a href="../classes/configfile.html">ConfigFile</a> used for testing instead of doing file IO.</p>
+						<p> <code>Logger</code> format types.</p>
 					</div>
 				</div>
-			</section>
-			<section class="tsd-panel tsd-hierarchy">
-				<h3>Hierarchy</h3>
-				<ul class="tsd-hierarchy">
-					<li>
-						<span class="target">ConfigStub</span>
-					</li>
-				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Properties</h3>
+							<h3>Enumeration members</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="configstub.html#contents" class="tsd-kind-icon">contents</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="configstub.html#readfn" class="tsd-kind-icon">read<wbr>Fn</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="configstub.html#retrievecontents" class="tsd-kind-icon">retrieve<wbr>Contents</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="configstub.html#updatecontents" class="tsd-kind-icon">update<wbr>Contents</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="configstub.html#writefn" class="tsd-kind-icon">write<wbr>Fn</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="loggerformat.html#json" class="tsd-kind-icon">JSON</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="loggerformat.html#logfmt" class="tsd-kind-icon">LOGFMT</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="contents" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> contents</h3>
-					<div class="tsd-signature tsd-kind-icon">contents<span class="tsd-signature-symbol">:</span> <a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a></div>
+				<h2>Enumeration members</h2>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="json" class="tsd-anchor"></a>
+					<h3>JSON</h3>
+					<div class="tsd-signature tsd-kind-icon">JSON<span class="tsd-signature-symbol">:</span> </div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/testSetup.ts#L69">testSetup.ts:69</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/logger.ts#L104">logger.ts:104</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The contents that are used when @{link ConfigFile.read} unless retrieveContents is set. This will also contain the
-								new config when @{link ConfigFile.write} is called. This will persist through config instances,
-							such as {@link Alias.update} and {@link Alias.fetch}.</p>
-						</div>
-					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="readfn" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> read<wbr>Fn</h3>
-					<div class="tsd-signature tsd-kind-icon">read<wbr>Fn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="logfmt" class="tsd-anchor"></a>
+					<h3>LOGFMT</h3>
+					<div class="tsd-signature tsd-kind-icon">LOGFMT<span class="tsd-signature-symbol">:</span> </div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/testSetup.ts#L58">testSetup.ts:58</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/logger.ts#L105">logger.ts:105</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>readFn A function that controls all aspect of <a href="../classes/configfile.html#read">ConfigFile.read</a>. For example, it won&#39;t set the contents
-								unless explicitly done. Only use this if you know what you are doing. Use retrieveContents
-							instead.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="retrievecontents" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> retrieve<wbr>Contents</h3>
-					<div class="tsd-signature tsd-kind-icon">retrieve<wbr>Contents<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/testSetup.ts#L73">testSetup.ts:73</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A function to conditionally read based on the config instance. The <code>this</code> value will be the config instance.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="updatecontents" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> update<wbr>Contents</h3>
-					<div class="tsd-signature tsd-kind-icon">update<wbr>Contents<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/testSetup.ts#L77">testSetup.ts:77</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A function to conditionally set based on the config instance. The <code>this</code> value will be the config instance.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="writefn" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> write<wbr>Fn</h3>
-					<div class="tsd-signature tsd-kind-icon">write<wbr>Fn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/testSetup.ts#L63">testSetup.ts:63</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A function that controls all aspects of <a href="../classes/configfile.html#write">ConfigFile.write</a>. For example, it won&#39;t read the contents unless
-							explicitly done. Only use this if you know what you are doing. Use updateContents instead.</p>
-						</div>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -190,23 +119,14 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-interface">
-						<a href="configstub.html" class="tsd-kind-icon">Config<wbr>Stub</a>
+					<li class="current tsd-kind-enum">
+						<a href="loggerformat.html" class="tsd-kind-icon">Logger<wbr>Format</a>
 						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="configstub.html#contents" class="tsd-kind-icon">contents</a>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="loggerformat.html#json" class="tsd-kind-icon">JSON</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="configstub.html#readfn" class="tsd-kind-icon">read<wbr>Fn</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="configstub.html#retrievecontents" class="tsd-kind-icon">retrieve<wbr>Contents</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="configstub.html#updatecontents" class="tsd-kind-icon">update<wbr>Contents</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="configstub.html#writefn" class="tsd-kind-icon">write<wbr>Fn</a>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="loggerformat.html#logfmt" class="tsd-kind-icon">LOGFMT</a>
 							</li>
 						</ul>
 					</li>

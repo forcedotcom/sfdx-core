@@ -84,6 +84,7 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#format" class="tsd-kind-icon">format</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#level" class="tsd-kind-icon">level</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#name" class="tsd-kind-icon">name</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#serializers" class="tsd-kind-icon">serializers</a></li>
@@ -98,12 +99,27 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="format" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> format</h3>
+					<div class="tsd-signature tsd-kind-icon">format<span class="tsd-signature-symbol">:</span> <a href="../enums/loggerformat.html" class="tsd-signature-type">LoggerFormat</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/logger.ts#L62">logger.ts:62</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The logger format type. Current options include LogFmt or JSON (default).</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="level" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> level</h3>
 					<div class="tsd-signature tsd-kind-icon">level<span class="tsd-signature-symbol">:</span> <a href="../globals.html#loggerlevelvalue" class="tsd-signature-type">LoggerLevelValue</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c9bac46/src/logger.ts#L69">logger.ts:69</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/logger.ts#L75">logger.ts:75</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -118,7 +134,7 @@
 					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c9bac46/src/logger.ts#L57">logger.ts:57</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/logger.ts#L57">logger.ts:57</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -133,7 +149,7 @@
 					<div class="tsd-signature tsd-kind-icon">serializers<span class="tsd-signature-symbol">:</span> <a href="serializers.html" class="tsd-signature-type">Serializers</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c9bac46/src/logger.ts#L61">logger.ts:61</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/logger.ts#L67">logger.ts:67</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -148,7 +164,7 @@
 					<div class="tsd-signature tsd-kind-icon">src<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c9bac46/src/logger.ts#L65">logger.ts:65</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/logger.ts#L71">logger.ts:71</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -163,7 +179,7 @@
 					<div class="tsd-signature tsd-kind-icon">stream<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Writable</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c9bac46/src/logger.ts#L73">logger.ts:73</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/logger.ts#L79">logger.ts:79</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -178,7 +194,7 @@
 					<div class="tsd-signature tsd-kind-icon">streams<span class="tsd-signature-symbol">:</span> <a href="loggerstream.html" class="tsd-signature-type">LoggerStream</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c9bac46/src/logger.ts#L77">logger.ts:77</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/93b156c/src/logger.ts#L83">logger.ts:83</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -204,6 +220,9 @@
 					<li class="current tsd-kind-interface">
 						<a href="loggeroptions.html" class="tsd-kind-icon">Logger<wbr>Options</a>
 						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="loggeroptions.html#format" class="tsd-kind-icon">format</a>
+							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
 								<a href="loggeroptions.html#level" class="tsd-kind-icon">level</a>
 							</li>
