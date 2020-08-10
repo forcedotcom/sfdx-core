@@ -1,3 +1,10 @@
+# [2.10.0](https://github.com/forcedotcom/sfdx-core/compare/v2.9.4...v2.10.0) (2020-08-10)
+
+
+### Features
+
+* support logfmt style formatting ([#273](https://github.com/forcedotcom/sfdx-core/issues/273)) ([#274](https://github.com/forcedotcom/sfdx-core/issues/274)) ([93b156c](https://github.com/forcedotcom/sfdx-core/commit/93b156c6e82ee8029bd4c8ec714b75c89e0f531f))
+
 ## [2.9.4](https://github.com/forcedotcom/sfdx-core/compare/v2.9.3...v2.9.4) (2020-08-07)
 
 
