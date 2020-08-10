@@ -55,6 +55,12 @@ export interface LoggerOptions {
    * The logger name.
    */
   name: string;
+
+  /**
+   * The logger format type. Current options include LogFmt or JSON (default).
+   */
+  format?: LoggerFormat;
+
   /**
    * The logger's serializers.
    */
@@ -89,6 +95,14 @@ export enum LoggerLevel {
   WARN = 40,
   ERROR = 50,
   FATAL = 60
+}
+
+/**
+ *  `Logger` format types.
+ */
+export enum LoggerFormat {
+  JSON,
+  LOGFMT
 }
 
 /**
@@ -291,6 +305,7 @@ export class Logger {
   // The actual Bunyan logger
   private bunyan: Bunyan;
 
+  private format: LoggerFormat;
   /**
    * Constructs a new `Logger`.
    *
@@ -315,10 +330,31 @@ export class Logger {
       throw new SfdxError('RedundantRootLogger');
     }
 
+    // Inspect format to know what logging format to use then delete from options to
+    // ensure it doesn't conflict with Bunyan.
+    this.format = options.format || LoggerFormat.JSON;
+    delete options.format;
+
+    // If the log format is LOGFMT, we need to convert any stream(s) into a LOGFMT type stream.
+    if (this.format === LoggerFormat.LOGFMT && options.stream) {
+      const ls: LoggerStream = this.createLogFmtFormatterStream({ stream: options.stream });
+      options.stream = ls.stream;
+    }
+    if (this.format === LoggerFormat.LOGFMT && options.streams) {
+      const logFmtConvertedStreams: LoggerStream[] = [];
+      options.streams.forEach((ls: LoggerStream) => {
+        logFmtConvertedStreams.push(this.createLogFmtFormatterStream(ls));
+      });
+      options.streams = logFmtConvertedStreams;
+    }
+
     this.bunyan = new Bunyan(options);
     this.bunyan.name = options.name;
     this.bunyan.filters = [];
-    this.bunyan.streams = [];
+
+    if (!options.streams && !options.stream) {
+      this.bunyan.streams = [];
+    }
 
     // all SFDX loggers must filter sensitive data
     this.addFilter((...args) => _filter(...args));
@@ -338,6 +374,9 @@ export class Logger {
    * @param defaultLevel The default level of the stream.
    */
   public addStream(stream: LoggerStream, defaultLevel?: LoggerLevelValue): void {
+    if (this.format === LoggerFormat.LOGFMT) {
+      stream = this.createLogFmtFormatterStream(stream);
+    }
     this.bunyan.addStream(stream, defaultLevel);
   }
 
@@ -668,6 +707,32 @@ export class Logger {
   private exitHandler = () => {
     this.close();
   };
+
+  private createLogFmtFormatterStream(loggerStream: LoggerStream): LoggerStream {
+    const logFmtWriteableStream = new Writable({
+      write: (chunk, enc, cb) => {
+        try {
+          const parsedJSON = JSON.parse(chunk.toString());
+          const keys = Object.keys(parsedJSON);
+
+          let logEntry = '';
+          keys.forEach(key => {
+            logEntry += `${key}=${parsedJSON[key]} `;
+          });
+          if (loggerStream.stream) {
+            loggerStream.stream.write(logEntry.trimRight() + '\n');
+          }
+        } catch (error) {
+          if (loggerStream.stream) {
+            loggerStream.stream.write(chunk.toString());
+          }
+        }
+        cb(null);
+      }
+    });
+
+    return Object.assign({}, loggerStream, { stream: logFmtWriteableStream });
+  }
 }
 
 type FilteredKey = string | { name: string; regex: string };
