@@ -8,7 +8,7 @@ import { isBoolean, isNumber, isString } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import * as debug from 'debug';
 import * as _ from 'lodash';
-import { Logger, LoggerLevel } from '../../src/logger';
+import { Logger, LoggerFormat, LoggerLevel, LoggerStream } from '../../src/logger';
 import { testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
 
@@ -373,6 +373,39 @@ describe('Logger', () => {
       out.restore();
       err.restore();
       expect(output).to.contain('sfdx:core INFO info');
+    });
+  });
+
+  describe('addStream', () => {
+    it('should transform to logfmt streams', () => {
+      let output = '';
+
+      const out = $$.SANDBOX.stub(process.stdout, 'write');
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
+        output += error;
+      });
+
+      const testStream1: LoggerStream = {
+        name: 'test stream 1',
+        level: LoggerLevel.DEBUG,
+        stream: process.stderr
+      };
+      const testStream2: LoggerStream = {
+        name: 'test stream 2',
+        level: LoggerLevel.INFO,
+        stream: process.stdout
+      };
+
+      const testLogger = new Logger({ name: 'testLogger', format: LoggerFormat.LOGFMT });
+      testLogger.addStream(testStream1);
+      testLogger.addStream(testStream2);
+
+      // const logger = await Logger.root();
+      testLogger.addField('container_id', '1234567890');
+      testLogger.info('info');
+      out.restore();
+      err.restore();
+      expect(output).to.contain('container_id=1234567890');
     });
   });
 });
