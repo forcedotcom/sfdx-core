@@ -205,6 +205,15 @@ export const fs = {
   },
 
   /**
+   * Checks if a file path exists synchronously
+   *
+   * @param filePath the file path to check the existence of
+   */
+  fileExistsSync: (filePath: string): boolean => {
+    return fs.fileExistsSync(filePath);
+  },
+
+  /**
    * Recursively act on all files or directories in a directory
    *
    * @param dir path to directory
