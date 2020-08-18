@@ -114,6 +114,43 @@ describe('util/fs', () => {
       expect(path).to.be.undefined;
     });
   });
+
+  describe('traverseForFileSync', () => {
+    let statFileStub;
+    let statError;
+
+    beforeEach(() => {
+      statFileStub = $$.SANDBOX.stub(fs, 'statSync');
+      statError = new Error('test');
+      statError['code'] = 'ENOENT';
+    });
+
+    it('should find a file in the starting dir', () => {
+      const path = fs.traverseForFileSync('/foo/bar/baz', 'fizz');
+      expect(path).to.equal('/foo/bar/baz');
+    });
+
+    it('should find a file in a parent dir', () => {
+      statFileStub.withArgs('/foo/bar/baz/fizz').throws(statError);
+      const path = fs.traverseForFileSync('/foo/bar/baz', 'fizz');
+      expect(path).to.equal('/foo/bar');
+    });
+
+    it('should find a file in the root dir', () => {
+      statFileStub.withArgs('/foo/bar/baz/fizz').throws(statError);
+      statFileStub.withArgs('/foo/bar/fizz').throws(statError);
+      statFileStub.withArgs('/foo/fizz').throws(statError);
+      const path = fs.traverseForFileSync('/foo/bar/baz', 'fizz');
+      expect(path).to.equal('/');
+    });
+
+    it('should return undefined if not found', () => {
+      statFileStub.throws(statError);
+      const path = fs.traverseForFileSync('/foo/bar/baz', 'fizz');
+      expect(path).to.be.undefined;
+    });
+  });
+
   describe('readJson', () => {
     let readFileStub;
 

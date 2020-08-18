@@ -1,3 +1,27 @@
+## [2.9.4](https://github.com/forcedotcom/sfdx-core/compare/v2.9.3...v2.9.4) (2020-08-07)
+
+
+### Bug Fixes
+
+*  updated messaging ([7f9ab06](https://github.com/forcedotcom/sfdx-core/commit/7f9ab06ecbde1ac082f027f35f07002efb8dc7cf))
+* fix edge case, updated messaging ([a8f9a54](https://github.com/forcedotcom/sfdx-core/commit/a8f9a547893918b2a3f6a23e9bcfa99e13b28974))
+
+## [2.9.3](https://github.com/forcedotcom/sfdx-core/compare/v2.9.2...v2.9.3) (2020-08-06)
+
+
+### Bug Fixes
+
+* changed to be greater than, not greater than or equal to ([7f1a12d](https://github.com/forcedotcom/sfdx-core/commit/7f1a12d7a7d7aa460de5bb32a368f52c11219a4e))
+
+## [2.9.2](https://github.com/forcedotcom/sfdx-core/compare/v2.9.1...v2.9.2) (2020-08-06)
+
+
+### Bug Fixes
+
+* maxQueryLimit config, return full jsforce result, fix build issue ([6c11196](https://github.com/forcedotcom/sfdx-core/commit/6c11196a48e19bca8d43fd994fa864bf3cb72cfa))
+* removed promise.reject ([d28d649](https://github.com/forcedotcom/sfdx-core/commit/d28d649f60ca1362380b4e5e408376561d6a64ed))
+* updated autoFetchQuery method ([4d018f6](https://github.com/forcedotcom/sfdx-core/commit/4d018f6d2c8e4d6b19179563f11db2ff1f9b5f3d))
+
 ## [2.9.1](https://github.com/forcedotcom/sfdx-core/compare/v2.9.0...v2.9.1) (2020-08-04)
 
 
