@@ -273,9 +273,9 @@ export const fs = {
    * @param options
    * @returns
    */
-  statSync(filePath: fsLib.PathLike): fsLib.Stats {
+  /*statSync(filePath: fsLib.PathLike): fsLib.Stats {
     return fsLib.statSync(filePath);
-  },
+  },*/
 
   /**
    *

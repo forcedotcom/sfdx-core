@@ -391,12 +391,50 @@ describe('util/fs', () => {
     });
   });
 
-  describe('statSync', async () => {
+  describe('readFileSync', async () => {
     afterEach(() => {
       $$.SANDBOX.restore();
     });
-    it('should return the stats of a file', async () => {
-      $$.SANDBOX.stub(fsLib, 'statSync');
+    it('should read the file', async () => {
+      $$.SANDBOX.stub(fsLib, 'readFileSync')
+        .onCall(0)
+        .resolves({})
+        .onCall(1)
+        .resolves({});
+
+      const tempFolder = pathJoin(osTmpdir(), 'foo');
+      fs.readFileSync(tempFolder);
+      expect(fsLib.readFileSync['called']).to.be.true;
+    });
+  });
+
+  describe('unlinkSync', async () => {
+    it('should unlink a file', async () => {
+      $$.SANDBOX.stub(fsLib, 'unlinkSync');
+
+      const tempFolder = pathJoin(osTmpdir(), 'foo');
+      fs.unlinkSync(tempFolder);
+      expect(fsLib.unlinkSync['called']).to.be.true;
+    });
+  });
+
+  describe('writeFileSync', async () => {
+    it('should write file to a given path', async () => {
+      $$.SANDBOX.stub(fsLib, 'writeFileSync');
+      const tempFilePath = pathJoin(osTmpdir(), 'test');
+      fs.writeFileSync(tempFilePath, 'test123');
+      expect(fsLib.writeFileSync['called']).to.be.true;
+      expect(fsLib.writeFileSync['firstCall'].args[0]).to.equal(tempFilePath);
+    });
+  });
+
+  describe('mkdirSync', async () => {
+    it('create a directory', async () => {
+      $$.SANDBOX.stub(fsLib, 'mkdirSync');
+      const tempFilePath = pathJoin(osTmpdir(), 'testFolder');
+      fs.mkdirSync(tempFilePath);
+      expect(fsLib.mkdirSync['called']).to.be.true;
+      expect(fsLib.mkdirSync['firstCall'].args[0]).to.equal(tempFilePath);
     });
   });
 });
