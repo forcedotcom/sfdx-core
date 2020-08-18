@@ -488,6 +488,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * @param authData New data to save.
    */
   public async save(authData?: AuthFields): Promise<AuthInfo> {
+    console.log('****** Authinfo save ..');
     this.update(authData);
     const username = ensure(this.getUsername());
     AuthInfo.cache.set(username, this.fields);

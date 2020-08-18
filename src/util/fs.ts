@@ -238,5 +238,75 @@ export const fs = {
       .createHash('sha1')
       .update(contents)
       .digest('hex');
+  },
+
+  /**
+   *
+   * @param path path of the file
+   * @param options
+   * @returns
+   */
+  statSync(filePath: fsLib.PathLike): fsLib.Stats {
+    return fsLib.statSync(filePath);
+  },
+
+  /**
+   *
+   * @param filePath path of the file to read
+   * @param options Either the encoding for the result, or an object that contains the encoding and an optional flag.
+   * @returns string or Buffer
+   */
+  readFileSync(
+    filePath: fsLib.PathLike | number,
+    options?: { encoding?: string; flag?: string } | string
+  ): string | Buffer {
+    return fsLib.readFileSync(filePath, options);
+  },
+
+  /**
+   *
+   * @param filePath file path to the file to be deleted
+   * @returns void
+   */
+  unlinkSync(filePath: fsLib.PathLike): void {
+    fsLib.unlinkSync(filePath);
+  },
+
+  /**
+   *
+   * @param filePath A path to a file
+   * @param data The data to write
+   * @param options Either the encoding for the result, or an object that contains the encoding and an optional flag.
+   * @returns void
+   */
+  // tslint:disable-next-line:no-any
+  writeFileSync(filePath: fsLib.PathLike | number, data: any, options?: fsLib.WriteFileOptions): void {
+    fsLib.writeFileSync(filePath, data, options);
+  },
+  /**
+   * Checks if a file path exists synchronously
+   *
+   * @param filePath the file path to check the existence of
+   * @returns boolean
+   */
+  existsSync: (filePath: string): boolean => {
+    return fsLib.existsSync(filePath);
+  },
+
+  /**
+   * @filePath path to a file
+   * @returns void
+   */
+  mkdirSync: (filePath: string): void => {
+    return fsLib.mkdirSync(filePath);
+  },
+
+  /**
+   *
+   * @param filePath path to a file
+   * @returns a new `ReadStream` object.
+   */
+  createReadStream(filePath: fsLib.PathLike): fsLib.ReadStream {
+    return fsLib.createReadStream(filePath);
   }
 };

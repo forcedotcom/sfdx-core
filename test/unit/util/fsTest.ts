@@ -5,6 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import * as fsLib from 'graceful-fs';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
@@ -350,6 +351,15 @@ describe('util/fs', () => {
       const example = [pathJoin(pathToFolder, 'test1.json'), pathJoin(pathToFolder, 'test2.json')];
 
       expect(actedOnArray).to.eql(example);
+    });
+  });
+
+  describe('statSync', async () => {
+    afterEach(() => {
+      $$.SANDBOX.restore();
+    });
+    it('should return the stats of a file', async () => {
+      $$.SANDBOX.stub(fsLib, 'statSync');
     });
   });
 });
