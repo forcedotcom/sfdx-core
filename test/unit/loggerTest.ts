@@ -15,6 +15,9 @@ import { fs } from '../../src/util/fs';
 // Setup the test environment.
 const $$ = testSetup();
 
+// NOTE: These tests still use 'await' which is how it use to work and were left to make
+// sure we didn't regress the way they were used.
+
 describe('Logger', () => {
   const sfdxEnv = process.env.SFDX_ENV;
 
@@ -97,9 +100,9 @@ describe('Logger', () => {
     let utilWriteFileStub;
 
     beforeEach(() => {
-      utilAccessStub = $$.SANDBOX.stub(fs, 'access');
-      utilMkdirpStub = $$.SANDBOX.stub(fs, 'mkdirp');
-      utilWriteFileStub = $$.SANDBOX.stub(fs, 'writeFile');
+      utilAccessStub = $$.SANDBOX.stub(fs, 'accessSync');
+      utilMkdirpStub = $$.SANDBOX.stub(fs, 'mkdirpSync');
+      utilWriteFileStub = $$.SANDBOX.stub(fs, 'writeFileSync');
     });
 
     it('should not create a new log file if it exists already', async () => {

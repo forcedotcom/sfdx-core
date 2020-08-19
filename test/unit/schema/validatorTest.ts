@@ -24,10 +24,10 @@ const SCHEMA_DIR = path.join(__dirname, '..', '..', '..', 'test', 'unit', 'fixtu
  * @param {AnyJson} json The JSON value to validate.
  * @return {Promise<void>}
  */
-const validate = (schema: JsonMap, json: AnyJson): Promise<AnyJson> => {
+const validate = (schema: JsonMap, json: AnyJson): AnyJson => {
   const validator = new SchemaValidator($$.TEST_LOGGER, `${SCHEMA_DIR}/test.json`);
   sinon.stub(validator, 'load').callsFake(() => Promise.resolve(schema));
-  return validator.validate(json);
+  return validator.validateSync(json);
 };
 
 describe('schemaValidator', () => {
@@ -145,12 +145,14 @@ describe('schemaValidator', () => {
         const validator = new SchemaValidator($$.TEST_LOGGER, schemaPath);
 
         // If the schemas reference an invalid external error, then validation will fail.
-        return validator.validate({}).catch(err => {
+        try {
+          validator.validateSync({});
+        } catch (err) {
           // We are passing in empty data, so it is OK if we get an actual data field validation error.
           if (err.name !== 'ValidationSchemaFieldErrors') {
             throw err;
           }
-        });
+        }
       });
     });
   });

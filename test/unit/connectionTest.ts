@@ -30,6 +30,7 @@ describe('Connection', () => {
 
   beforeEach(() => {
     $$.SANDBOXES.CONNECTION.restore();
+    $$.SANDBOX.stub(process, 'emitWarning');
     initializeStub = $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns({});
     requestMock = $$.SANDBOX.stub(jsforce.Connection.prototype, 'request')
       .onFirstCall()

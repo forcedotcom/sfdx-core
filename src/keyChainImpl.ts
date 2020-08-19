@@ -5,13 +5,13 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { asString, Dictionary, ensure, Nullable } from '@salesforce/ts-types';
+import { asString, ensure, Nullable } from '@salesforce/ts-types';
 import * as childProcess from 'child_process';
 import * as nodeFs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { ConfigFile } from './config/configFile';
-import { ConfigValue } from './config/configStore';
+import { ConfigContents } from './config/configStore';
 import { KeychainConfig } from './config/keychainConfig';
 import { Global } from './global';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
@@ -100,7 +100,7 @@ export interface PasswordStore {
    * @param opts cli level password options.
    * @param fn function callback for password.
    */
-  setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void>;
+  setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: ConfigContents) => void): Promise<void>;
 }
 
 /**
@@ -186,7 +186,10 @@ export class KeychainAccess implements PasswordStore {
    * @param opts Options for the credential lookup.
    * @param fn Callback function (err, password).
    */
-  public async setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void> {
+  public async setPassword(
+    opts: ProgramOpts,
+    fn: (error: Nullable<Error>, contents?: ConfigContents) => void
+  ): Promise<void> {
     if (opts.service == null) {
       fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
       return;
@@ -446,7 +449,7 @@ const _darwinImpl: OsImpl = {
   }
 };
 
-async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: Dictionary<ConfigValue>) => void) {
+async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: ConfigContents) => void) {
   try {
     const config = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
     config.set(SecretField.ACCOUNT, opts.account);
@@ -510,7 +513,10 @@ export class GenericKeychainAccess implements PasswordStore {
     });
   }
 
-  public async setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void> {
+  public async setPassword(
+    opts: ProgramOpts,
+    fn: (error: Nullable<Error>, contents?: ConfigContents) => void
+  ): Promise<void> {
     // validate the file in .sfdx
     await this.isValidFileAccess(async fileAccessError => {
       // if there is a validation error

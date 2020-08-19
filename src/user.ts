@@ -68,7 +68,7 @@ export type UserFields = { -readonly [K in keyof typeof REQUIRED_FIELDS]: string
  * Helper method to lookup UserFields.
  * @param username The username.
  */
-async function _retrieveUserFields(this: { logger: Logger }, username: string): Promise<UserFields> {
+async function _retrieveUserFields(logger: Logger, username: string): Promise<UserFields> {
   const connection: Connection = await Connection.create({
     authInfo: await AuthInfo.create({ username })
   });
@@ -77,7 +77,7 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
   const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
   const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
 
-  this.logger.debug('Successfully retrieved the admin user for this org.');
+  logger.debug('Successfully retrieved the admin user for this org.');
 
   if (result.totalSize === 1) {
     const results = mapKeys(result.records[0], (value: unknown, key: string) => lowerFirst(key));
@@ -159,7 +159,7 @@ export class DefaultUserFields extends AsyncCreatable<DefaultUserFields.Options>
    */
   protected async init(): Promise<void> {
     this.logger = await Logger.child('DefaultUserFields');
-    this.userFields = await _retrieveUserFields.call({ logger: this.logger }, this.options.templateUser);
+    this.userFields = await _retrieveUserFields(this.logger, this.options.templateUser);
     this.userFields.profileId = await _retrieveProfileId(
       'Standard User',
       await Connection.create({
@@ -365,7 +365,7 @@ export class User extends AsyncCreatable<User.Options> {
    * ```
    */
   public async retrieve(username: string): Promise<UserFields> {
-    return await _retrieveUserFields.call(this, username);
+    return await _retrieveUserFields(this.logger, username);
   }
 
   /**

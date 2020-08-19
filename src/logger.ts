@@ -209,46 +209,38 @@ export class Logger {
     .map(v => v.toLowerCase());
 
   /**
-   * Gets the root logger with the default level and file stream.
+   * Gets the root logger with the default level, file stream, and DEBUG enabled.
    */
   public static async root(): Promise<Logger> {
     if (this.rootLogger) {
       return this.rootLogger;
     }
     const rootLogger = (this.rootLogger = new Logger(Logger.ROOT_NAME).setLevel());
+
     // disable log file writing, if applicable
     if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && Global.getEnvironmentMode() !== Mode.TEST) {
       await rootLogger.addLogFileStream(Global.LOG_FILE_PATH);
     }
 
-    // The debug library does this for you, but no point setting up the stream if it isn't there
-    if (process.env.DEBUG) {
-      const debuggers: Dictionary<Debug.IDebugger> = {};
+    rootLogger.enableDEBUG();
+    return rootLogger;
+  }
 
-      debuggers.core = Debug(`${rootLogger.getName()}:core`);
+  /**
+   * Gets the root logger with the default level, file stream, and DEBUG enabled.
+   */
+  public static getRoot(): Logger {
+    if (this.rootLogger) {
+      return this.rootLogger;
+    }
+    const rootLogger = (this.rootLogger = new Logger(Logger.ROOT_NAME).setLevel());
 
-      rootLogger.addStream({
-        name: 'debug',
-        stream: new Writable({
-          write: (chunk, encoding, next) => {
-            const json = parseJsonMap(chunk.toString());
-            let debuggerName = 'core';
-            if (isString(json.log)) {
-              debuggerName = json.log;
-              if (!debuggers[debuggerName]) {
-                debuggers[debuggerName] = Debug(`${rootLogger.getName()}:${debuggerName}`);
-              }
-            }
-            const level = LoggerLevel[ensureNumber(json.level)];
-            ensure(debuggers[debuggerName])(`${level} ${json.msg}`);
-            next();
-          }
-        }),
-        // Consume all levels
-        level: 0
-      });
+    // disable log file writing, if applicable
+    if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && Global.getEnvironmentMode() !== Mode.TEST) {
+      rootLogger.addLogFileStreamSync(Global.LOG_FILE_PATH);
     }
 
+    rootLogger.enableDEBUG();
     return rootLogger;
   }
 
@@ -272,6 +264,16 @@ export class Logger {
    */
   public static async child(name: string, fields?: Fields): Promise<Logger> {
     return (await Logger.root()).child(name, fields);
+  }
+
+  /**
+   * Create a child of the root logger, inheriting this instance's configuration such as `level`, `streams`, etc.
+   *
+   * @param name The name of the child logger.
+   * @param fields Additional fields included in all log lines.
+   */
+  public static childFromRoot(name: string, fields?: Fields): Logger {
+    return Logger.getRoot().child(name, fields);
   }
 
   /**
@@ -306,6 +308,8 @@ export class Logger {
   private bunyan: Bunyan;
 
   private format: LoggerFormat;
+  private debugEnabled = false;
+
   /**
    * Constructs a new `Logger`.
    *
@@ -399,6 +403,47 @@ export class Logger {
       }
       try {
         await fs.writeFile(logFile, '', { mode: fs.DEFAULT_USER_FILE_MODE });
+      } catch (err3) {
+        throw SfdxError.wrap(err3);
+      }
+    }
+
+    // avoid multiple streams to same log file
+    if (
+      !this.bunyan.streams.find(
+        // tslint:disable-next-line:no-any No bunyan typings
+        (stream: any) => stream.type === 'file' && stream.path === logFile
+      )
+    ) {
+      // TODO: rotating-file
+      // https://github.com/trentm/node-bunyan#stream-type-rotating-file
+      this.addStream({
+        type: 'file',
+        path: logFile,
+        level: this.bunyan.level() as number
+      });
+    }
+  }
+
+  /**
+   * Adds a file stream to this logger. Resolved or rejected upon completion of the addition.
+   *
+   * @param logFile The path to the log file.  If it doesn't exist it will be created.
+   */
+  public addLogFileStreamSync(logFile: string): void {
+    try {
+      // Check if we have write access to the log file (i.e., we created it already)
+      fs.accessSync(logFile, fs.constants.W_OK);
+    } catch (err1) {
+      try {
+        fs.mkdirpSync(path.dirname(logFile), {
+          mode: fs.DEFAULT_USER_DIR_MODE
+        });
+      } catch (err2) {
+        // noop; directory exists already
+      }
+      try {
+        fs.writeFileSync(logFile, '', { mode: fs.DEFAULT_USER_FILE_MODE });
       } catch (err3) {
         throw SfdxError.wrap(err3);
       }
@@ -682,6 +727,44 @@ export class Logger {
     console.error(...args);
     this.bunyan.fatal(this.applyFilters(LoggerLevel.FATAL, ...args));
     return this;
+  }
+
+  public enableDEBUG() {
+    // The debug library does this for you, but no point setting up the stream if it isn't there
+    if (process.env.DEBUG && !this.debugEnabled) {
+      const debuggers: Dictionary<Debug.IDebugger> = {};
+
+      debuggers.core = Debug(`${this.getName()}:core`);
+
+      this.addStream({
+        name: 'debug',
+        stream: new Writable({
+          write: (chunk, encoding, next) => {
+            try {
+              const json = parseJsonMap(chunk.toString());
+              const logLevel = ensureNumber(json.level);
+              if (this.getLevel() <= logLevel) {
+                let debuggerName = 'core';
+                if (isString(json.log)) {
+                  debuggerName = json.log;
+                  if (!debuggers[debuggerName]) {
+                    debuggers[debuggerName] = Debug(`${this.getName()}:${debuggerName}`);
+                  }
+                }
+                const level = LoggerLevel[logLevel];
+                ensure(debuggers[debuggerName])(`${level} ${json.msg}`);
+              }
+            } catch (err) {
+              // do nothing
+            }
+            next();
+          }
+        }),
+        // Consume all levels
+        level: 0
+      });
+      this.debugEnabled = true;
+    }
   }
 
   private applyFilters(logLevel: LoggerLevel, ...args: unknown[]): Optional<Many<unknown>> {

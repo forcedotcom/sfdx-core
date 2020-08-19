@@ -14,7 +14,7 @@ import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
-import { resolveProjectPath } from '../util/internal';
+import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
 import { BaseConfigStore, ConfigContents } from './configStore';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
@@ -72,6 +72,18 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     return isGlobal ? osHomedir() : await resolveProjectPath();
   }
 
+  /**
+   * Helper used to determined what the local and global folder point to. Returns the file path of the root folder.
+   *
+   * @param isGlobal True if the config should be global. False for local.
+   */
+  public static resolveRootFolderSync(isGlobal: boolean): string {
+    if (!isBoolean(isGlobal)) {
+      throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
+    }
+    return isGlobal ? osHomedir() : resolveProjectPathSync();
+  }
+
   // whether file contents have been read
   protected hasRead = false;
 
@@ -83,13 +95,27 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   private path!: string;
 
   /**
-   * Constructor
-   * **Do not directly construct instances of this class -- use {@link ConfigFile.create} instead.**
+   * Create an instance of a config file without reading the file. Call `read` or `readSync`
+   * after creating the ConfigFile OR instantiate with {@link ConfigFile.create} instead.
    * @param options The options for the class instance
    * @ignore
    */
   public constructor(options: T) {
     super(options);
+
+    this.logger = Logger.childFromRoot(this.constructor.name);
+    const statics = this.constructor as typeof ConfigFile;
+    let defaultOptions = {};
+    try {
+      defaultOptions = statics.getDefaultOptions();
+    } catch (e) {
+      /* Some implementations don't let you call default options */
+    }
+
+    // Merge default and passed in options
+    this.options = Object.assign(defaultOptions, this.options);
+
+    this.messages = Messages.loadMessages('@salesforce/core', 'config');
   }
 
   /**
@@ -102,6 +128,22 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   public async access(perm: number): Promise<boolean> {
     try {
       await fs.access(this.getPath(), perm);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  /**
+   * Determines if the config file is read/write accessible. Returns `true` if the user has capabilities specified
+   * by perm.
+   * @param {number} perm The permission.
+   *
+   * **See** {@link https://nodejs.org/dist/latest/docs/api/fs.html#fs_fs_access_path_mode_callback}
+   */
+  public accessSync(perm: number): boolean {
+    try {
+      fs.accessSync(this.getPath(), perm);
       return true;
     } catch (err) {
       return false;
@@ -142,6 +184,39 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
+   * Read the config file and set the config contents. Returns the config contents of the config file. As an
+   * optimization, files are only read once per process and updated in memory and via `write()`. To force
+   * a read from the filesystem pass `force=true`.
+   * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
+   * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
+   * @param [force = true] Optionally force the file to be read from disk even when already read within the process.
+   */
+  public readSync(throwOnNotFound = false, force = true): ConfigContents {
+    try {
+      // Only need to read config files once.  They are kept up to date
+      // internally and updated persistently via write().
+      if (!this.hasRead || force) {
+        this.logger.info(`Reading config file: ${this.getPath()}`);
+        const obj = fs.readJsonMapSync(this.getPath());
+        this.setContentsFromObject(obj);
+      }
+      return this.getContents();
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        if (!throwOnNotFound) {
+          this.setContents();
+          return this.getContents();
+        }
+      }
+      throw err;
+    } finally {
+      // Necessarily set this even when an error happens to avoid infinite re-reading.
+      // To attempt another read, pass `force=true`.
+      this.hasRead = true;
+    }
+  }
+
+  /**
    * Write the config file with new contents. If no new contents are provided it will write the existing config
    * contents that were set from {@link ConfigFile.read}, or an empty file if {@link ConfigFile.read} was not called.
    *
@@ -161,10 +236,36 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
+   * Write the config file with new contents. If no new contents are provided it will write the existing config
+   * contents that were set from {@link ConfigFile.read}, or an empty file if {@link ConfigFile.read} was not called.
+   *
+   * @param newContents The new contents of the file.
+   */
+  public writeSync(newContents?: ConfigContents): ConfigContents {
+    if (newContents != null) {
+      this.setContents(newContents);
+    }
+
+    fs.mkdirpSync(pathDirname(this.getPath()));
+
+    this.logger.info(`Writing to config file: ${this.getPath()}`);
+    fs.writeJsonSync(this.getPath(), this.toObject());
+
+    return this.getContents();
+  }
+
+  /**
    * Check to see if the config file exists. Returns `true` if the config file exists and has access, false otherwise.
    */
   public async exists(): Promise<boolean> {
     return await this.access(fsConstants.R_OK);
+  }
+
+  /**
+   * Check to see if the config file exists. Returns `true` if the config file exists and has access, false otherwise.
+   */
+  public async existsSync(): Promise<boolean> {
+    return this.accessSync(fsConstants.R_OK);
   }
 
   /**
@@ -174,6 +275,15 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    */
   public async stat(): Promise<fsStats> {
     return fs.stat(this.getPath());
+  }
+
+  /**
+   * Get the stats of the file. Returns the stats of the file.
+   *
+   * {@link fs.stat}
+   */
+  public statSync(): fsStats {
+    return fs.statSync(this.getPath());
   }
 
   /**
@@ -190,9 +300,41 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
+   * Delete the config file if it exists. Returns `true` if the file was deleted, `false` otherwise.
+   *
+   * {@link fs.unlink}
+   */
+  public unlinkSync(): void {
+    const exists = this.existsSync();
+    if (exists) {
+      return fs.unlinkSync(this.getPath());
+    }
+    throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
+  }
+
+  /**
    * Returns the path to the config file.
    */
   public getPath(): string {
+    if (!this.path) {
+      if (!this.options.filename) {
+        throw new SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
+      }
+
+      const _isGlobal: boolean = isBoolean(this.options.isGlobal) && this.options.isGlobal;
+      const _isState: boolean = isBoolean(this.options.isState) && this.options.isState;
+
+      // Don't let users store config files in homedir without being in the state folder.
+      let configRootFolder = this.options.rootFolder
+        ? this.options.rootFolder
+        : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
+
+      if (_isGlobal || _isState) {
+        configRootFolder = pathJoin(configRootFolder, Global.STATE_FOLDER);
+      }
+
+      this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);
+    }
     return this.path;
   }
 
@@ -210,38 +352,6 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * options.throwOnNotFound is true.
    */
   protected async init(): Promise<void> {
-    this.logger = await Logger.child(this.constructor.name);
-    const statics = this.constructor as typeof ConfigFile;
-    let defaultOptions = {};
-    try {
-      defaultOptions = statics.getDefaultOptions();
-    } catch (e) {
-      /* Some implementations don't let you call default options */
-    }
-
-    // Merge default and passed in options
-    this.options = Object.assign(defaultOptions, this.options);
-
-    if (!this.options.filename) {
-      throw new SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
-    }
-
-    const _isGlobal: boolean = isBoolean(this.options.isGlobal) && this.options.isGlobal;
-    const _isState: boolean = isBoolean(this.options.isState) && this.options.isState;
-
-    // Don't let users store config files in homedir without being in the
-    // state folder.
-    let configRootFolder = this.options.rootFolder
-      ? this.options.rootFolder
-      : await ConfigFile.resolveRootFolder(!!this.options.isGlobal);
-
-    if (_isGlobal || _isState) {
-      configRootFolder = pathJoin(configRootFolder, Global.STATE_FOLDER);
-    }
-
-    this.messages = Messages.loadMessages('@salesforce/core', 'config');
-
-    this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);
     await this.read(this.options.throwOnNotFound);
   }
 }
