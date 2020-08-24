@@ -717,7 +717,11 @@ export class Logger {
 
           let logEntry = '';
           keys.forEach(key => {
-            logEntry += `${key}=${parsedJSON[key]} `;
+            let logMsg = `${parsedJSON[key]}`;
+            if (logMsg.trim().includes(' ')) {
+              logMsg = `"${logMsg}"`;
+            }
+            logEntry += `${key}=${logMsg} `;
           });
           if (loggerStream.stream) {
             loggerStream.stream.write(logEntry.trimRight() + '\n');
