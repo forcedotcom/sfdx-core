@@ -116,7 +116,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
    * @param [force = true] Optionally force the file to be read from disk even when already read within the process.
    */
-  public async read(throwOnNotFound = false, force = true): Promise<ConfigContents> {
+  public async read(throwOnNotFound = false, force = false): Promise<ConfigContents> {
     try {
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
