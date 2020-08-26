@@ -7,10 +7,10 @@
 import { expect } from 'chai';
 import * as Path from 'path';
 
+import { assert } from '@salesforce/ts-types';
 import { ConfigFile } from '../../../src/config/configFile';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
-import { assert } from '@salesforce/ts-types';
 
 const $$ = testSetup();
 
@@ -67,9 +67,7 @@ describe('Config', () => {
       expect(config.getPath()).to.not.contain('.sfdx');
     });
     it('using local custom folder', () => {
-      const config = new TestConfig(
-        TestConfig.getOptions('test', false, false, Path.join('my', 'path'))
-      );
+      const config = new TestConfig(TestConfig.getOptions('test', false, false, Path.join('my', 'path')));
       expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
       expect(config.getPath()).to.not.contain('.sfdx');
       expect(config.getPath()).to.contain(Path.join('my', 'path', 'test'));
@@ -207,7 +205,7 @@ describe('Config', () => {
 
       const config = await TestConfig.create({ isGlobal: true });
 
-      const expected = { test: 'test'};
+      const expected = { test: 'test' };
       const actual = await config.write(expected);
       expect(expected).to.equal(actual);
       expect(expected).to.equal(config.getContents());
@@ -220,7 +218,7 @@ describe('Config', () => {
 
       const config = await TestConfig.create({ isGlobal: true });
 
-      const expected = { test: 'test'};
+      const expected = { test: 'test' };
       const actual = config.writeSync(expected);
       expect(expected).to.equal(actual);
       expect(expected).to.equal(config.getContents());
@@ -375,7 +373,7 @@ describe('Config', () => {
 
       try {
         // The above config doesn't matter because we don't read on creation and it is overridden in the read method.
-        (new TestConfig(configOptions)).readSync(true);
+        new TestConfig(configOptions).readSync(true);
         assert(false, 'should throw');
       } catch (e) {
         expect(e).to.have.property('name', 'FileNotFound');
