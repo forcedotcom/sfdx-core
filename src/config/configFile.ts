@@ -66,9 +66,6 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @param isGlobal True if the config should be global. False for local.
    */
   public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
-    if (!isBoolean(isGlobal)) {
-      throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
-    }
     return isGlobal ? osHomedir() : await resolveProjectPath();
   }
 
@@ -78,9 +75,6 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @param isGlobal True if the config should be global. False for local.
    */
   public static resolveRootFolderSync(isGlobal: boolean): string {
-    if (!isBoolean(isGlobal)) {
-      throw new SfdxError('isGlobal must be a boolean', 'InvalidTypeForIsGlobal');
-    }
     return isGlobal ? osHomedir() : resolveProjectPathSync();
   }
 
@@ -125,7 +119,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    *
    * **See** {@link https://nodejs.org/dist/latest/docs/api/fs.html#fs_fs_access_path_mode_callback}
    */
-  public async access(perm: number): Promise<boolean> {
+  public async access(perm?: number): Promise<boolean> {
     try {
       await fs.access(this.getPath(), perm);
       return true;
@@ -141,7 +135,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    *
    * **See** {@link https://nodejs.org/dist/latest/docs/api/fs.html#fs_fs_access_path_mode_callback}
    */
-  public accessSync(perm: number): boolean {
+  public accessSync(perm?: number): boolean {
     try {
       fs.accessSync(this.getPath(), perm);
       return true;
@@ -264,7 +258,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   /**
    * Check to see if the config file exists. Returns `true` if the config file exists and has access, false otherwise.
    */
-  public async existsSync(): Promise<boolean> {
+  public existsSync(): boolean {
     return this.accessSync(fsConstants.R_OK);
   }
 

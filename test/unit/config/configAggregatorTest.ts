@@ -25,6 +25,9 @@ describe('ConfigAggregator', () => {
     $$.SANDBOX.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
       $$.rootPathRetriever(isGlobal, id)
     );
+    $$.SANDBOX.stub(ConfigFile, 'resolveRootFolderSync').callsFake((isGlobal: boolean) =>
+      $$.rootPathRetrieverSync(isGlobal, id)
+    );
   });
 
   afterEach(() => {

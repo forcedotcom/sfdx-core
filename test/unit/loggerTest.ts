@@ -100,9 +100,9 @@ describe('Logger', () => {
     let utilWriteFileStub;
 
     beforeEach(() => {
-      utilAccessStub = $$.SANDBOX.stub(fs, 'accessSync');
-      utilMkdirpStub = $$.SANDBOX.stub(fs, 'mkdirpSync');
-      utilWriteFileStub = $$.SANDBOX.stub(fs, 'writeFileSync');
+      utilAccessStub = $$.SANDBOX.stub(fs, 'access');
+      utilMkdirpStub = $$.SANDBOX.stub(fs, 'mkdirp');
+      utilWriteFileStub = $$.SANDBOX.stub(fs, 'writeFile');
     });
 
     it('should not create a new log file if it exists already', async () => {
