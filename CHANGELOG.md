@@ -1,3 +1,21 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [2.11.0](https://github.com/forcedotcom/sfdx-core/compare/v2.10.0...v2.11.0) (2020-08-27)
+
+
+### Features
+
+* support array of messages when using getMessage ([ac7407a](https://github.com/forcedotcom/sfdx-core/commit/ac7407ad899fba3825082ba23f53b66101b699de))
+* support logfmt style formatting ([#273](https://github.com/forcedotcom/sfdx-core/issues/273)) ([2767cbf](https://github.com/forcedotcom/sfdx-core/commit/2767cbfe4ec356915140260dfb780ec3b39ccb84))
+
+
+### Bug Fixes
+
+* examples/package.json & examples/yarn.lock to reduce vulnerabilities ([d062ccc](https://github.com/forcedotcom/sfdx-core/commit/d062cccdd96d16f45dafd41425827299a26ed766))
+* wrap logfmt message with double quotes ([#280](https://github.com/forcedotcom/sfdx-core/issues/280)) ([3ef407b](https://github.com/forcedotcom/sfdx-core/commit/3ef407b667cdd65dc2bbd8259924e0b8b7ecb284))
+
 # [2.10.0](https://github.com/forcedotcom/sfdx-core/compare/v2.9.4...v2.10.0) (2020-08-10)
 
 ### Features
