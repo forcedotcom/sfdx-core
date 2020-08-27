@@ -214,6 +214,7 @@ describe('Logger', () => {
       expect(cbSpy.callCount).to.be.equal(0);
     });
   });
+
   describe('filters', () => {
     const sid = 'SIDHERE!';
     const simpleString = `sid=${sid}`;
@@ -380,32 +381,47 @@ describe('Logger', () => {
     it('should transform to logfmt streams', () => {
       let output = '';
 
-      const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
-        output += error;
+      const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake(info => {
+        output += info;
       });
 
-      const testStream1: LoggerStream = {
-        name: 'test stream 1',
-        level: LoggerLevel.DEBUG,
-        stream: process.stderr
-      };
-      const testStream2: LoggerStream = {
-        name: 'test stream 2',
+      const testStream: LoggerStream = {
+        name: 'test stream',
         level: LoggerLevel.INFO,
         stream: process.stdout
       };
 
       const testLogger = new Logger({ name: 'testLogger', format: LoggerFormat.LOGFMT });
-      testLogger.addStream(testStream1);
-      testLogger.addStream(testStream2);
-
-      // const logger = await Logger.root();
+      testLogger.addStream(testStream);
       testLogger.addField('container_id', '1234567890');
+
       testLogger.info('info');
       out.restore();
-      err.restore();
+
+      expect(output).to.contain('msg=info');
       expect(output).to.contain('container_id=1234567890');
+    });
+
+    it('should wrap LogFmt message with quotes', () => {
+      let output = '';
+
+      const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake(info => {
+        output += info;
+      });
+
+      const testStream: LoggerStream = {
+        name: 'test stream',
+        level: LoggerLevel.INFO,
+        stream: process.stdout
+      };
+
+      const testLogger = new Logger({ name: 'testLogger', format: LoggerFormat.LOGFMT });
+      testLogger.addStream(testStream);
+
+      testLogger.info('some long message with white space in between');
+      out.restore();
+
+      expect(output).to.contain('msg="some long message with white space in between"');
     });
   });
 });

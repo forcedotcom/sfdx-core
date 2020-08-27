@@ -11,8 +11,18 @@
  */
 
 import { NamedError } from '@salesforce/kit';
-import { AnyJson, asString, ensureJsonMap, ensureString, isAnyJson, isObject, Optional } from '@salesforce/ts-types';
+import {
+  AnyJson,
+  asString,
+  ensureJsonMap,
+  ensureString,
+  isAnyJson,
+  isArray,
+  isObject,
+  Optional
+} from '@salesforce/ts-types';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as util from 'util';
 
@@ -339,7 +349,13 @@ export class Messages {
         `Missing message ${this.bundleName}:${key} for locale ${Messages.getLocale()}.`
       );
     }
-    const msg = ensureString(map.get(key));
-    return util.format(msg, ...tokens);
+    const msg = map.get(key);
+    const messages = (isArray(msg) ? msg : [msg]) as string[];
+    return messages
+      .map(message => {
+        ensureString(message);
+        return util.format(message, ...tokens);
+      })
+      .join(os.EOL);
   }
 }

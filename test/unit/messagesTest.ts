@@ -18,7 +18,8 @@ const $$ = testSetup();
 describe('Messages', () => {
   const testMessages = {
     msg1: 'test message 1',
-    msg2: 'test message 2 %s and %s'
+    msg2: 'test message 2 %s and %s',
+    manyMsgs: ['hello', 'world', 'test message 2 %s and %s']
   };
 
   const msgMap = new Map();
@@ -26,6 +27,7 @@ describe('Messages', () => {
   msgMap.set('msg2', testMessages.msg2);
   msgMap.set('msg3', cloneJson(testMessages));
   msgMap.get('msg3').msg3 = cloneJson(testMessages);
+  msgMap.set('manyMsgs', testMessages.manyMsgs);
 
   describe('getMessage', () => {
     const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
@@ -58,6 +60,12 @@ describe('Messages', () => {
       } catch (err) {
         expect(err.message).to.equal('Missing message myBundle:msg4 for locale en_US.');
       }
+    });
+
+    it('should return single string from array of messages', () => {
+      expect(messages.getMessage('manyMsgs', ['blah', 864])).to.equal(
+        'hello blah 864\nworld blah 864\ntest message 2 blah and 864'
+      );
     });
   });
 
