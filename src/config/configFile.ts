@@ -309,7 +309,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
-   * Returns the path to the config file.
+   * Returns the absolute path to the config file.
    */
   public getPath(): string {
     if (!this.path) {
