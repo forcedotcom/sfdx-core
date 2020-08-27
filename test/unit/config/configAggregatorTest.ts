@@ -47,6 +47,12 @@ describe('ConfigAggregator', () => {
       expect(aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal('test');
     });
 
+    it('constructor creates local and global config', async () => {
+      const aggregator: ConfigAggregator = ConfigAggregator.getInstance();
+      expect(aggregator.getLocalConfig()).to.be.exist;
+      expect(aggregator.getGlobalConfig()).to.be.exist;
+    });
+
     describe('with no workspace', () => {
       it('does not have a local config', async () => {
         try {
@@ -57,6 +63,23 @@ describe('ConfigAggregator', () => {
         }
       });
     });
+  });
+
+  it('static getter', async () => {
+    const expected = '49.0';
+    $$.SANDBOX.stub(Config.prototype, 'readSync').returns({ apiVersion: expected });
+    expect(ConfigAggregator.getValue(Config.API_VERSION).value, expected);
+  });
+
+  it('reload decrypts config values', async () => {
+    // readSync doesn't decrypt values
+    $$.SANDBOX.stub(Config.prototype, 'readSync').returns({ isvDebuggerSid: 'encrypted' });
+    // read decrypts values
+    $$.SANDBOX.stub(Config.prototype, 'read').returns({ isvDebuggerSid: 'decrypted' });
+    const aggregator: ConfigAggregator = ConfigAggregator.getInstance();
+    expect(aggregator.getInfo('isvDebuggerSid').value).to.equal('encrypted');
+    await aggregator.reload();
+    expect(aggregator.getInfo('isvDebuggerSid').value).to.equal('decrypted');
   });
 
   describe('initialization', () => {

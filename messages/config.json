@@ -13,5 +13,6 @@
   "MissingDefaultPath": "In sfdx-project.json, be sure to specify which package directory (path) is the default. Example: [{ \"path\": \"packageDirectory1\", \"default\": true }, { \"path\": \"packageDirectory2\" }]",
   "InvalidPackageDirectory": "The path %s, specified in sfdx-project.json, does not exist. Be sure this directory is included in your project root.",
   "InvalidAbsolutePath": "The path %s, specified in sfdx-project.json, must be indicated as a relative path to the project root.",
-  "MultipleDefaultPaths": "In sfdx-project.json, indicate only one package directory (path) as the default."
+  "MultipleDefaultPaths": "In sfdx-project.json, indicate only one package directory (path) as the default.",
+  "InvalidWrite": "The writeSync method is not allowed on SfdxConfig. Use the async write method instead."
 }

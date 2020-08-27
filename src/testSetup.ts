@@ -35,6 +35,7 @@ import { SfdxError } from './sfdxError';
 import { SfdxProject } from './sfdxProject';
 import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
 import { fs } from './util/fs';
+import { ConfigAggregator } from './config/configAggregator';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -441,6 +442,10 @@ const _testSetup = (sinon?: any) => {
   const testContext = instantiateContext(sinon);
 
   beforeEach(() => {
+    // Allow each test to have their own config aggregator
+    // @ts-ignore clear for testing.
+    delete ConfigAggregator.instance;
+
     stubContext(testContext);
   });
 
