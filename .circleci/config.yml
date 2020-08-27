@@ -1,131 +1,28 @@
 version: 2.1
-
-_refs:
-  cwd: &cwd ~/jobs
-  ssh-config: &ssh-config
-    fingerprints:
-      - '0d:94:44:8a:82:3d:01:b0:58:fb:97:3a:a4:cd:f4:b2'
-  cache-config: &cache-config
-    key: dependency-cache-{{ checksum "package.json" }}
-  restore-cache: &restore-cache
-    <<: *cache-config
-  save-cache: &save-cache
-    <<: *cache-config
-    paths:
-      - ~/jobs/node_modules
-      - /usr/local/share/.cache/yarn
-      - /usr/local/share/.config/yarn
-  install: &install
-    name: Install dependencies
-    command: yarn
-  build: &build
-    name: Building
-    command: yarn build
-  test: &test
-    name: Testing
-    command: yarn test
-  coverage: &coverage
-    name: Submitting code coverage to codecov
-    command: |
-      ./node_modules/.bin/nyc report --reporter text-lcov > coverage.lcov
-      curl -s https://codecov.io/bash | bash
-  gh-config: &gh-config
-    name: Configuring GitHub
-    command: |
-      git config credential.helper 'cache --timeout=120'
-      git config user.email "$GH_EMAIL"
-      git config user.name "Deployment Bot"
-
-_defaults: &defaults
-  docker:
-    - image: node:latest
-  working_directory: *cwd
-
-jobs:
-  node-latest: &node-test
-    <<: *defaults
-    steps:
-      - add_ssh_keys: *ssh-config
-      - checkout
-      - restore_cache: *restore-cache
-      - run: *install
-      - run: *build
-      - run: *test
-      - run: *coverage
-      - save_cache: *save-cache
-  node-10:
-    <<: *node-test
-    docker:
-      - image: node:10
-  node-12:
-    <<: *node-test
-    docker:
-      - image: node:12
-  release:
-    <<: *defaults
-    steps:
-      - add_ssh_keys: *ssh-config
-      - checkout
-      - restore_cache: *restore-cache
-      - run: *gh-config
-      - run: *install
-      - run: yarn global add semantic-release@16
-      - run: yarn global add @oclif/semantic-release@3
-      - run: *build
-      - run: semantic-release -e @oclif/semantic-release
-      - run: git status
-      - save_cache: *save-cache
-  merge:
-    <<: *defaults
-    steps:
-      - add_ssh_keys: *ssh-config
-      - checkout
-      - restore_cache: *restore-cache
-      - run: *install
-      - run: *build
-      - run: *gh-config
-      - run:
-          name: Merging
-          command: |
-            git fetch
-            git checkout develop
-            git pull origin develop
-            git merge origin/master
-            git push origin develop
-      - save_cache: *save-cache
-  ci-docs:
-    <<: *defaults
-    steps:
-      - add_ssh_keys: *ssh-config
-      - checkout
-      - restore_cache: *restore-cache
-      - run: *install
-      - run: *build
-      - run: *gh-config
-      - run: yarn ci-docs
-      - save_cache: *save-cache
+orbs:
+  release-management: salesforce/npm-release-management@3
 
 workflows:
   version: 2
-  sfdx-core:
+  test-and-release:
     jobs:
-      - node-latest
-      - node-12
-      - node-10
-      - release:
-          filters:
-            branches: { only: master }
+      - release-management/test-package:
+          name: node-latest
+          node_version: latest
+          upload-coverage: true
+      - release-management/test-package:
+          name: node-12
+      - release-management/test-package:
+          node_version: '10'
+          name: node-10
+      - release-management/release-package:
+          post-job-steps:
+            - release-management/merge
+            - run: yarn ci-docs
           requires:
             - node-latest
             - node-12
             - node-10
-      - merge:
           filters:
-            branches: { only: master }
-          requires:
-            - release
-      - ci-docs:
-          filters:
-            branches: { only: master }
-          requires:
-            - release
+            branches:
+              only: master
