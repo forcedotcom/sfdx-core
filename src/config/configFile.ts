@@ -61,7 +61,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
-   * Helper used to determined what the local and global folder point to. Returns the file path of the root folder.
+   * Helper used to determine what the local and global folder point to. Returns the file path of the root folder.
    *
    * @param isGlobal True if the config should be global. False for local.
    */
@@ -70,7 +70,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
-   * Helper used to determined what the local and global folder point to. Returns the file path of the root folder.
+   * Helper used to determine what the local and global folder point to. Returns the file path of the root folder.
    *
    * @param isGlobal True if the config should be global. False for local.
    */
@@ -281,8 +281,9 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
-   * Delete the config file if it exists. Returns `true` if the file was deleted, `false` otherwise.
+   * Delete the config file if it exists.
    *
+   * **Throws** *`Error`{ name: 'TargetFileNotFound' }* If the {@link ConfigFile.getFilename} file is not found.
    * {@link fs.unlink}
    */
   public async unlink(): Promise<void> {
@@ -294,8 +295,9 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
-   * Delete the config file if it exists. Returns `true` if the file was deleted, `false` otherwise.
+   * Delete the config file if it exists.
    *
+   * **Throws** *`Error`{ name: 'TargetFileNotFound' }* If the {@link ConfigFile.getFilename} file is not found.
    * {@link fs.unlink}
    */
   public unlinkSync(): void {

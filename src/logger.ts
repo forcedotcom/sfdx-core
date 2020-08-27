@@ -729,6 +729,10 @@ export class Logger {
     return this;
   }
 
+  /**
+   * Enables logging to stdout when the DEBUG environment variable is used. It uses the logger
+   * name as the debug name, so you can do DEBUG=<logger-name> to filter the results to your logger.
+   */
   public enableDEBUG() {
     // The debug library does this for you, but no point setting up the stream if it isn't there
     if (process.env.DEBUG && !this.debugEnabled) {

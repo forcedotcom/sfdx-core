@@ -184,7 +184,7 @@ export class KeychainAccess implements PasswordStore {
   /**
    * Sets a password using the native program for credential management.
    * @param opts Options for the credential lookup.
-   * @param fn Callback function (err, password).
+   * @param fn Callback function (err, ConfigContents).
    */
   public async setPassword(
     opts: ProgramOpts,

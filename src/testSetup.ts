@@ -25,6 +25,7 @@ import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
+import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 import { Connection } from './connection';
@@ -35,7 +36,6 @@ import { SfdxError } from './sfdxError';
 import { SfdxProject } from './sfdxProject';
 import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
 import { fs } from './util/fs';
-import { ConfigAggregator } from './config/configAggregator';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
