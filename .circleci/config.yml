@@ -16,6 +16,7 @@ workflows:
           node_version: '10'
           name: node-10
       - release-management/release-package:
+          github-release: true
           post-job-steps:
             - release-management/merge
             - run: yarn ci-docs
