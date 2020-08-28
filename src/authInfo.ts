@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncCreatable, cloneJson, isEmpty, parseJsonMap, set, env } from '@salesforce/kit';
+import { AsyncCreatable, cloneJson, env, isEmpty, parseJsonMap, set } from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
