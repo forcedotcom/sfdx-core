@@ -282,6 +282,14 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
   }
 
   /**
+   * Get a list of the unique package names from within sfdx-project.json. Use {@link SfdxProject.getUniquePackageDirectories}
+   * for data other than the names.
+   */
+  public getUniquePackageNames(): string[] {
+    return this.getUniquePackageDirectories().map(pkgDir => pkgDir.name);
+  }
+
+  /**
    * Has package directories defined in the project.
    */
   public hasPackages(): boolean {
@@ -479,6 +487,14 @@ export class SfdxProject {
    */
   public getUniquePackageDirectories(): NamedPackageDir[] {
     return this.getSfdxProjectJson().getUniquePackageDirectories();
+  }
+
+  /**
+   * Get a list of the unique package names from within sfdx-project.json. Use {@link SfdxProject.getUniquePackageDirectories}
+   * for data other than the names.
+   */
+  public getUniquePackageNames(): string[] {
+    return this.getSfdxProjectJson().getUniquePackageNames();
   }
 
   /**

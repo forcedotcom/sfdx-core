@@ -49,7 +49,7 @@ export { Messages } from './messages';
 
 export { Org } from './org';
 
-export { SfdxProject, SfdxProjectJson } from './sfdxProject';
+export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
 
 export { SchemaPrinter } from './schema/printer';
 
