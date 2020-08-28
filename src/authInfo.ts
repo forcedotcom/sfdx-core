@@ -269,9 +269,9 @@ class AuthInfoCrypto extends Crypto {
       const rawValue = fields[key];
       if (rawValue !== undefined) {
         if (isString(rawValue) && AuthInfoCrypto.encryptedFields.includes(key)) {
-          copy[key] = this[method](asString(rawValue));
+          copy[key] = this[method](asString(rawValue)) as never;
         } else {
-          copy[key] = rawValue;
+          copy[key] = rawValue as never;
         }
       }
     }

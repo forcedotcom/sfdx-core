@@ -179,83 +179,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   public constructor(options?: ConfigFile.Options) {
     super(options || Config.getDefaultOptions(false));
-  }
 
-  /**
-   * Read, assign, and return the config contents.
-   */
-  public async read(): Promise<ConfigContents> {
-    try {
-      await super.read();
-      await this.cryptProperties(false);
-      return this.getContents();
-    } finally {
-      await this.clearCrypto();
-    }
-  }
-
-  /**
-   * Writes Config properties taking into account encrypted properties.
-   * @param newContents The new Config value to persist.
-   */
-  public async write(newContents?: ConfigContents): Promise<ConfigContents> {
-    if (newContents != null) {
-      this.setContents(newContents);
-    }
-
-    await this.cryptProperties(true);
-
-    await super.write();
-
-    await this.cryptProperties(false);
-
-    return this.getContents();
-  }
-
-  /**
-   * Sets a value for a property.
-   *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidConfigValue' }* If the input validator fails.
-   * @param key The property to set.
-   * @param value The value of the property.
-   */
-  public set(key: string, value: ConfigValue): ConfigContents {
-    const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
-
-    if (!property) {
-      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
-    }
-    if (property.input) {
-      if (property.input && property.input.validator(value)) {
-        super.set(property.key, value);
-      } else {
-        throw SfdxError.create('@salesforce/core', 'config', 'InvalidConfigValue', [property.input.failedMessage]);
-      }
-    } else {
-      super.set(property.key, value);
-    }
-    return this.getContents();
-  }
-
-  /**
-   * Unsets a value for a property.
-   *
-   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKey' }* If the input validator fails.
-   * @param key The property to unset.
-   */
-  public unset(key: string): boolean {
-    const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
-
-    if (!property) {
-      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
-    }
-    return super.unset(property.key);
-  }
-
-  /**
-   * Initializer for supported config types.
-   */
-  protected async init(): Promise<void> {
     if (!Config.messages) {
       Config.messages = Messages.loadMessages('@salesforce/core', 'config');
     }
@@ -325,7 +249,95 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     }
 
     Config.propertyConfigMap = keyBy(Config.allowedProperties, 'key');
-    // Super ConfigFile calls read, which has a dependecy on crypto, which finally has a dependency on
+  }
+
+  /**
+   * Read, assign, and return the config contents.
+   */
+  public async read(force = true): Promise<ConfigContents> {
+    try {
+      await super.read(false, force);
+      await this.cryptProperties(false);
+      return this.getContents();
+    } finally {
+      await this.clearCrypto();
+    }
+  }
+
+  /**
+   * Writes Config properties taking into account encrypted properties.
+   * @param newContents The new Config value to persist.
+   */
+  public async write(newContents?: ConfigContents): Promise<ConfigContents> {
+    if (newContents != null) {
+      this.setContents(newContents);
+    }
+
+    await this.cryptProperties(true);
+
+    await super.write();
+
+    await this.cryptProperties(false);
+
+    return this.getContents();
+  }
+
+  /**
+   * DO NOT CALL - The config file needs to encrypt values which can only be done asynchronously.
+   * Call {@link SfdxConfig.write} instead.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'InvalidWrite' }* Always.
+   * @param newContents Contents to write
+   */
+  public writeSync(newContents?: ConfigContents): ConfigContents {
+    throw SfdxError.create('@salesforce/core', 'config', 'InvalidWrite');
+  }
+
+  /**
+   * Sets a value for a property.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'InvalidConfigValue' }* If the input validator fails.
+   * @param key The property to set.
+   * @param value The value of the property.
+   */
+  public set(key: string, value: ConfigValue): ConfigContents {
+    const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
+
+    if (!property) {
+      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
+    }
+    if (property.input) {
+      if (property.input && property.input.validator(value)) {
+        super.set(property.key, value);
+      } else {
+        throw SfdxError.create('@salesforce/core', 'config', 'InvalidConfigValue', [property.input.failedMessage]);
+      }
+    } else {
+      super.set(property.key, value);
+    }
+    return this.getContents();
+  }
+
+  /**
+   * Unsets a value for a property.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKey' }* If the input validator fails.
+   * @param key The property to unset.
+   */
+  public unset(key: string): boolean {
+    const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
+
+    if (!property) {
+      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
+    }
+    return super.unset(property.key);
+  }
+
+  /**
+   * Initializer for supported config types.
+   */
+  protected async init(): Promise<void> {
+    // Super ConfigFile calls read, which has a dependency on crypto, which finally has a dependency on
     // Config.propertyConfigMap being set. This is why init is called after the setup.
     await super.init();
   }

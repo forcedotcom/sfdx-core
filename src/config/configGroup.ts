@@ -222,7 +222,9 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    */
   public async init(): Promise<void> {
     await super.init();
-    this.setDefaultGroup(this.options.defaultGroup);
+    if (this.options.defaultGroup) {
+      this.setDefaultGroup(this.options.defaultGroup);
+    }
   }
 }
 
@@ -234,6 +236,6 @@ export namespace ConfigGroup {
     /**
      * The default group for properties to go into.
      */
-    defaultGroup: string;
+    defaultGroup?: string;
   }
 }

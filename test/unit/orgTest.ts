@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { set } from '@salesforce/kit';
-import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
+import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
 import { deepStrictEqual } from 'assert';
 import { assert, expect } from 'chai';
@@ -154,16 +154,15 @@ describe('Org Tests', () => {
 
     it('InvalidProjectWorkspace', async () => {
       $$.SANDBOXES.CONFIG.restore();
-      const orgSpy = spyMethod($$.SANDBOX, Org.prototype, 'cleanLocalOrgData');
       let invalidProjectWorkspace = false;
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
-        if (orgSpy.callCount > 0) {
-          invalidProjectWorkspace = true;
-          const error = new Error();
-          error.name = 'InvalidProjectWorkspace';
-          throw error;
-        }
-        return $$.rootPathRetriever(false);
+        invalidProjectWorkspace = true;
+        const error = new Error();
+        error.name = 'InvalidProjectWorkspace';
+        throw error;
+      });
+      stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolderSync').callsFake(() => {
+        return $$.rootPathRetrieverSync(false);
       });
       stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
       const orgDataPath = 'foo';
@@ -178,13 +177,12 @@ describe('Org Tests', () => {
 
     it('Random Error', async () => {
       $$.SANDBOXES.CONFIG.restore();
-      const orgSpy = spyMethod($$.SANDBOX, Org.prototype, 'cleanLocalOrgData');
-      stubMethod($$.SANDBOX, Config, 'resolveRootFolder').callsFake(() => {
-        if (orgSpy.callCount > 0) {
-          const err = new Error();
-          err.name = 'gozer';
-          throw err;
-        }
+      stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
+        const err = new Error();
+        err.name = 'gozer';
+        throw err;
+      });
+      stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolderSync').callsFake(() => {
         return osTmpdir();
       });
       stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
@@ -373,8 +371,8 @@ describe('Org Tests', () => {
       ];
 
       $$.SANDBOXES.CONFIG.restore();
-      stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
-        $$.rootPathRetriever(isGlobal, $$.id)
+      stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolderSync').callsFake((isGlobal: boolean) =>
+        $$.rootPathRetrieverSync(isGlobal, $$.id)
       );
 
       let userAuthResponse: AnyJson = null;

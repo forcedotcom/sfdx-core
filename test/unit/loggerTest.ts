@@ -15,6 +15,9 @@ import { fs } from '../../src/util/fs';
 // Setup the test environment.
 const $$ = testSetup();
 
+// NOTE: These tests still use 'await' which is how it use to work and were left to make
+// sure we didn't regress the way they were used.
+
 describe('Logger', () => {
   const sfdxEnv = process.env.SFDX_ENV;
 
@@ -363,17 +366,32 @@ describe('Logger', () => {
       expect(output).to.contain('sfdx:test WARN warn');
     });
 
-    it('should include different level', async () => {
+    it('should include higher level', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
       const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
         output += error;
       });
       const logger = await Logger.root();
+      // Logger is debug by default. Debug is lower than info.
       logger.info('info');
       out.restore();
       err.restore();
       expect(output).to.contain('sfdx:core INFO info');
+    });
+
+    it('should not include lower level', async () => {
+      // Do this in the test because we want normal mocha output
+      const out = $$.SANDBOX.stub(process.stdout, 'write');
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
+        output += error;
+      });
+      const logger = await Logger.root();
+      logger.setLevel(LoggerLevel.FATAL);
+      logger.info('info');
+      out.restore();
+      err.restore();
+      expect(output).to.not.contain('sfdx:core INFO info');
     });
   });
 

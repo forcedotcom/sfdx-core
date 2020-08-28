@@ -34,6 +34,9 @@ describe('Config', () => {
     stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
       $$.rootPathRetriever(isGlobal, id)
     );
+    stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolderSync').callsFake((isGlobal: boolean) =>
+      $$.rootPathRetrieverSync(isGlobal, id)
+    );
   });
 
   describe('instantiation', () => {
@@ -103,7 +106,7 @@ describe('Config', () => {
     });
   });
 
-  describe('set', () => {
+  describe('set throws', () => {
     it('UnknownConfigKey', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
       try {
@@ -114,20 +117,68 @@ describe('Config', () => {
       }
     });
 
-    it('InvalidConfigValue', async () => {
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
-      try {
-        config.set('apiVersion', '1');
-        assert.fail('Expected an error to be thrown.');
-      } catch (err) {
-        expect(err).to.have.property('name', 'InvalidConfigValue');
-      }
+    describe('InvalidConfigValue', () => {
+      it('apiVersoin', async () => {
+        const config: Config = await Config.create(Config.getDefaultOptions(true));
+        try {
+          config.set('apiVersion', '1');
+          assert.fail('Expected an error to be thrown.');
+        } catch (err) {
+          expect(err).to.have.property('name', 'InvalidConfigValue');
+        }
+      });
+      it('isvDebuggerUrl', async () => {
+        const config: Config = await Config.create(Config.getDefaultOptions(true));
+        try {
+          config.set('isvDebuggerUrl', 23);
+          assert.fail('Expected an error to be thrown.');
+        } catch (err) {
+          expect(err).to.have.property('name', 'InvalidConfigValue');
+        }
+      });
+      it('isvDebuggerSid', async () => {
+        const config: Config = await Config.create(Config.getDefaultOptions(true));
+        try {
+          config.set('isvDebuggerSid', 23);
+          assert.fail('Expected an error to be thrown.');
+        } catch (err) {
+          expect(err).to.have.property('name', 'InvalidConfigValue');
+        }
+      });
     });
 
     it('PropertyInput validation', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
       await config.set(Config.DEFAULT_USERNAME, 'foo@example.com');
       expect(config.get(Config.DEFAULT_USERNAME)).to.be.equal('foo@example.com');
+    });
+  });
+
+  describe('unset', () => {
+    it('calls Config.write with updated file contents', async () => {
+      stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
+      const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
+
+      const expectedFileContents = clone(configFileContents);
+      delete expectedFileContents.defaultusername;
+
+      const config = await Config.create({ isGlobal: false });
+      config.unset('defaultusername');
+      await config.write();
+
+      expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);
+    });
+  });
+
+  describe('unset throws', () => {
+    it('UnknownConfigKey', async () => {
+      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      try {
+        config.unset('foo');
+        assert.fail('Expected an error to be thrown.');
+      } catch (err) {
+        expect(err).to.have.property('name', 'UnknownConfigKey');
+      }
     });
   });
 

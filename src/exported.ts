@@ -5,6 +5,8 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* istanbul ignore file */
+
 import { Messages } from './messages';
 Messages.importMessagesDirectory(__dirname);
 
@@ -47,7 +49,7 @@ export { Messages } from './messages';
 
 export { Org } from './org';
 
-export { SfdxProject, SfdxProjectJson } from './sfdxProject';
+export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
 
 export { SchemaPrinter } from './schema/printer';
 

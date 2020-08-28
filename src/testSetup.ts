@@ -25,6 +25,7 @@ import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
+import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 import { Connection } from './connection';
@@ -32,7 +33,9 @@ import { Crypto } from './crypto';
 import { Logger } from './logger';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
+import { SfdxProject } from './sfdxProject';
 import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
+import { fs } from './util/fs';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -40,10 +43,11 @@ import { CometClient, CometSubscription, StreamingExtension } from './status/str
  * on the TestContext.
  */
 export interface SandboxTypes {
-  DEFAULT: any; // tslint:disable-line:no-any
-  CRYPTO: any; // tslint:disable-line:no-any
-  CONFIG: any; // tslint:disable-line:no-any
-  CONNECTION: any; // tslint:disable-line:no-any
+  DEFAULT: sinon.SinonSandbox;
+  CRYPTO: sinon.SinonSandbox;
+  CONFIG: sinon.SinonSandbox;
+  PROJECT: sinon.SinonSandbox;
+  CONNECTION: sinon.SinonSandbox;
 }
 
 /**
@@ -60,10 +64,11 @@ export interface ConfigStub {
    * A function that controls all aspects of {@link ConfigFile.write}. For example, it won't read the contents unless
    * explicitly done. Only use this if you know what you are doing. Use updateContents instead.
    */
-  writeFn?: (contents: AnyJson) => Promise<void>;
+  writeFn?: (contents?: AnyJson) => Promise<void>;
   /**
-   * The contents that are used when @{link ConfigFile.read} unless retrieveContents is set. This will also contain the
-   * new config when @{link ConfigFile.write} is called. This will persist through config instances,
+   * The contents that are used with @{link ConfigFile.readSync} and @{link ConfigFile.read}. If retrieveContents is set,
+   * it will use that instead of @{link ConfigFile.read} but NOT @{link ConfigFile.readSync}. This will also contain the
+   * new config when @{link ConfigFile.write} or @{link ConfigFile.writeSync} is called. This will persist through config instances,
    * such as {@link Alias.update} and {@link Alias.fetch}.
    */
   contents?: ConfigContents;
@@ -115,21 +120,37 @@ export interface TestContext {
     SfdxConfig?: ConfigStub;
   };
   /**
-   * A function used when resolving the local path.
+   * A function used when resolving the local path. Calls localPathResolverSync by default.
    * @param uid Unique id.
    */
   localPathRetriever: (uid: string) => Promise<string>;
   /**
-   * A function used when resolving the global path.
+   * A function used when resolving the local path.
+   * @param uid Unique id.
+   */
+  localPathRetrieverSync: (uid: string) => string;
+  /**
+   * A function used when resolving the global path. Calls globalPathResolverSync by default.
    * @param uid Unique id.
    */
   globalPathRetriever: (uid: string) => Promise<string>;
+  /**
+   * A function used when resolving the global path.
+   * @param uid Unique id.
+   */
+  globalPathRetrieverSync: (uid: string) => string;
   /**
    * A function used for resolving paths. Calls localPathRetriever and globalPathRetriever.
    * @param isGlobal `true` if the config is global.
    * @param uid user id.
    */
   rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
+  /**
+   * A function used for resolving paths. Calls localPathRetrieverSync and globalPathRetrieverSync.
+   * @param isGlobal `true` if the config is global.
+   * @param uid user id.
+   */
+  rootPathRetrieverSync: (isGlobal: boolean, uid?: string) => string;
   /**
    * Used to mock http request to Salesforce.
    * @param request An HttpRequest.
@@ -156,16 +177,20 @@ const _uniqid = () => {
   return randomBytes(16).toString('hex');
 };
 
-function getTestLocalPath(uid: string): Promise<string> {
-  return Promise.resolve(pathJoin(osTmpdir(), uid, 'sfdx_core', 'local'));
+function getTestLocalPath(uid: string): string {
+  return pathJoin(osTmpdir(), uid, 'sfdx_core', 'local');
 }
 
-function getTestGlobalPath(uid: string): Promise<string> {
-  return Promise.resolve(pathJoin(osTmpdir(), uid, 'sfdx_core', 'global'));
+function getTestGlobalPath(uid: string): string {
+  return pathJoin(osTmpdir(), uid, 'sfdx_core', 'global');
+}
+
+function retrieveRootPathSync(isGlobal: boolean, uid: string = _uniqid()): string {
+  return isGlobal ? getTestGlobalPath(uid) : getTestLocalPath(uid);
 }
 
 async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Promise<string> {
-  return isGlobal ? await getTestGlobalPath(uid) : await getTestLocalPath(uid);
+  return retrieveRootPathSync(isGlobal, uid);
 }
 
 function defaultFakeConnectionRequest(): Promise<AnyJson> {
@@ -215,6 +240,7 @@ export const instantiateContext = (sinon?: any) => {
     SANDBOXES: {
       DEFAULT: defaultSandbox,
       CONFIG: sinon.createSandbox(),
+      PROJECT: sinon.createSandbox(),
       CRYPTO: sinon.createSandbox(),
       CONNECTION: sinon.createSandbox()
     },
@@ -224,9 +250,12 @@ export const instantiateContext = (sinon?: any) => {
     id: _uniqid(),
     uniqid: _uniqid,
     configStubs: {},
-    localPathRetriever: getTestLocalPath,
-    globalPathRetriever: getTestGlobalPath,
+    localPathRetriever: async (uid: string) => getTestLocalPath(uid),
+    localPathRetrieverSync: getTestLocalPath,
+    globalPathRetriever: async (uid: string) => getTestGlobalPath(uid),
+    globalPathRetrieverSync: getTestGlobalPath,
     rootPathRetriever: retrieveRootPath,
+    rootPathRetrieverSync: retrieveRootPathSync,
     fakeConnectionRequest: defaultFakeConnectionRequest,
     getConfigStubContents(name: string, group?: string): ConfigContents {
       const stub: Optional<ConfigStub> = this.configStubs[name];
@@ -276,37 +305,71 @@ export const instantiateContext = (sinon?: any) => {
 export const stubContext = (testContext: TestContext) => {
   // Most core files create a child logger so stub this to return our test logger.
   stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
+  stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
+
+  testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').callsFake(() =>
+    testContext.localPathRetriever(testContext.id)
+  );
+  testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPathSync').callsFake(() =>
+    testContext.localPathRetrieverSync(testContext.id)
+  );
 
   testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
     testContext.rootPathRetriever(isGlobal, testContext.id)
   );
+  testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolderSync').callsFake((isGlobal: boolean) =>
+    testContext.rootPathRetrieverSync(isGlobal, testContext.id)
+  );
 
-  // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
-  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(async function(
-    this: ConfigFile<ConfigFile.Options>
-  ) {
-    const stub: ConfigStub = testContext.configStubs[this.constructor.name] || {};
+  testContext.SANDBOXES.DEFAULT.stub(fs, 'existsSync').callsFake(() => true);
+
+  const initStubForRead = (configFile: ConfigFile<ConfigFile.Options>): ConfigStub => {
+    const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] || {};
+    // init calls read calls getPath which sets the path on the config file the first time.
+    // Since read is now stubbed, make sure to call getPath to initialize it.
+    configFile.getPath();
 
     // @ts-ignore set this to true to avoid an infinite loop in tests when reading config files.
-    this.hasRead = true;
+    configFile.hasRead = true;
+    return stub;
+  };
+
+  const readSync = function(this: ConfigFile<ConfigFile.Options>, newContents?: JsonMap): JsonMap {
+    const stub = initStubForRead(this);
+    this.setContentsFromObject(newContents || stub.contents || {});
+    return this.getContents();
+  };
+
+  const read = async function(this: ConfigFile<ConfigFile.Options>): Promise<JsonMap> {
+    const stub = initStubForRead(this);
 
     if (stub.readFn) {
       return await stub.readFn.call(this);
     }
 
-    let contents = stub.contents || {};
-
     if (stub.retrieveContents) {
-      contents = await stub.retrieveContents.call(this);
+      return readSync.call(this, await stub.retrieveContents.call(this));
+    } else {
+      return readSync.call(this);
     }
+  };
 
-    this.setContentsFromObject(contents);
-    return Promise.resolve(this.getContents());
-  });
-  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(async function(
-    this: ConfigFile<ConfigFile.Options>,
-    newContents: ConfigContents
-  ) {
+  // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
+  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
+  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(read);
+
+  const writeSync = function(this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): void {
+    if (!testContext.configStubs[this.constructor.name]) {
+      testContext.configStubs[this.constructor.name] = {};
+    }
+    const stub = testContext.configStubs[this.constructor.name];
+    if (!stub) return;
+
+    this.setContents(newContents || this.getContents());
+    stub.contents = this.toObject();
+  };
+
+  const write = async function(this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): Promise<void> {
     if (!testContext.configStubs[this.constructor.name]) {
       testContext.configStubs[this.constructor.name] = {};
     }
@@ -317,16 +380,17 @@ export const stubContext = (testContext: TestContext) => {
       return await stub.writeFn.call(this, newContents);
     }
 
-    let contents = newContents || this.getContents();
-
     if (stub.updateContents) {
-      contents = await stub.updateContents.call(this);
+      writeSync.call(this, await stub.updateContents.call(this));
+    } else {
+      writeSync.call(this);
     }
-    this.setContents(contents);
-    stub.contents = this.toObject();
-  });
+  };
 
-  testContext.SANDBOXES.CRYPTO.stub(Crypto.prototype, 'getKeyChain').callsFake(() =>
+  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'writeSync').callsFake(writeSync);
+  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(write);
+
+  stubMethod(testContext.SANDBOXES.CRYPTO, Crypto.prototype, 'getKeyChain').callsFake(() =>
     Promise.resolve({
       setPassword: () => Promise.resolve(),
       getPassword: (data: object, cb: AnyFunction) => cb(undefined, '12345678901234567890123456789012')
@@ -378,6 +442,10 @@ const _testSetup = (sinon?: any) => {
   const testContext = instantiateContext(sinon);
 
   beforeEach(() => {
+    // Allow each test to have their own config aggregator
+    // @ts-ignore clear for testing.
+    delete ConfigAggregator.instance;
+
     stubContext(testContext);
   });
 

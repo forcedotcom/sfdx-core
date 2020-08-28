@@ -57,6 +57,17 @@ export class SchemaValidator {
   }
 
   /**
+   * Loads a JSON schema from the `schemaPath` parameter provided at instantiation.
+   */
+  public loadSync(): JsonMap {
+    if (!this.schema) {
+      this.schema = fs.readJsonMapSync(this.schemaPath);
+      this.logger.debug(`Schema loaded for ${this.schemaPath}`);
+    }
+    return this.schema;
+  }
+
+  /**
    * Performs validation of JSON data against the schema located at the `schemaPath` value provided
    * at instantiation.
    *
@@ -66,8 +77,21 @@ export class SchemaValidator {
    * @returns The validated JSON data.
    */
   public async validate(json: AnyJson): Promise<AnyJson> {
-    const schema = await this.load();
-    const externalSchemas = await this.loadExternalSchemas(schema);
+    return this.validateSync(json);
+  }
+
+  /**
+   * Performs validation of JSON data against the schema located at the `schemaPath` value provided
+   * at instantiation.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldErrors' }* If there are known validations errors.
+   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknown' }* If there are unknown validations errors.
+   * @param json A JSON value to validate against this instance's target schema.
+   * @returns The validated JSON data.
+   */
+  public validateSync(json: AnyJson): AnyJson {
+    const schema = this.loadSync();
+    const externalSchemas = this.loadExternalSchemas(schema);
 
     // TODO: We should default to throw an error when a property is specified
     // that is not in the schema, but the only option to do this right now is
@@ -95,14 +119,14 @@ export class SchemaValidator {
    *
    * @param schema The main schema to validate against.
    */
-  private async loadExternalSchemas(schema: JsonMap): Promise<Dictionary<JsonMap>> {
+  private loadExternalSchemas(schema: JsonMap): Dictionary<JsonMap> {
     const externalSchemas: Dictionary<JsonMap> = {};
-    const promises = getJsonValuesByName<string>(schema, '$ref')
+    const schemas = getJsonValuesByName<string>(schema, '$ref')
       .map(ref => ref && ref.match(/([\w\.]+)#/))
       .map(match => match && match[1])
       .filter((uri): uri is string => !!uri)
       .map(uri => this.loadExternalSchema(uri));
-    (await Promise.all(promises)).forEach(externalSchema => {
+    schemas.forEach(externalSchema => {
       if (isString(externalSchema.id)) {
         externalSchemas[externalSchema.id] = externalSchema;
       } else {
@@ -120,10 +144,10 @@ export class SchemaValidator {
    *
    * @param uri The first segment of the $ref schema.
    */
-  private async loadExternalSchema(uri: string): Promise<JsonMap> {
+  private loadExternalSchema(uri: string): JsonMap {
     const schemaPath = path.join(this.schemasDir, `${uri}.json`);
     try {
-      return await fs.readJsonMap(schemaPath);
+      return fs.readJsonMapSync(schemaPath);
     } catch (err) {
       if (err.code === 'ENOENT') {
         throw new SfdxError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');

@@ -4,15 +4,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { sep as pathSep } from 'path';
+import { basename, dirname, isAbsolute, normalize, sep } from 'path';
 
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 
 import { defaults, env } from '@salesforce/kit';
-import { JsonMap } from '@salesforce/ts-types';
+import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { SchemaValidator } from './schema/validator';
+import { fs } from './util/fs';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
 import { SfdxError } from './sfdxError';
@@ -40,6 +41,17 @@ export type PackageDir = {
   versionDescription?: string;
   versionName?: string;
   versionNumber?: string;
+};
+
+export type NamedPackageDir = PackageDir & {
+  /**
+   * The [normalized](https://nodejs.org/api/path.html#path_path_normalize_path) path used as the package name.
+   */
+  name: string;
+  /**
+   * The absolute path of the package.
+   */
+  fullPath: string;
 };
 
 export type ProjectJson = ConfigContents & {
@@ -88,28 +100,30 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
 
   public async read(): Promise<ConfigContents> {
     const contents = await super.read();
-
-    // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
-    const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfdxProjectJson.BLOCKLIST);
-    if (upperCaseKey) {
-      throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
-    }
-
+    this.validateKeys();
     await this.schemaValidate();
+    return contents;
+  }
 
+  public readSync(): ConfigContents {
+    const contents = super.readSync();
+    this.validateKeys();
+    this.schemaValidateSync();
     return contents;
   }
 
   public async write(newContents?: ConfigContents): Promise<ConfigContents> {
-    // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
-    const upperCaseKey = sfdc.findUpperCaseKeys(newContents, SfdxProjectJson.BLOCKLIST);
-    if (upperCaseKey) {
-      throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
-    }
-
+    this.setContents(newContents);
+    this.validateKeys();
     await this.schemaValidate();
+    return super.write();
+  }
 
-    return super.write(newContents);
+  public writeSync(newContents?: ConfigContents): ConfigContents {
+    this.setContents(newContents);
+    this.validateKeys();
+    this.schemaValidateSync();
+    return super.writeSync();
   }
 
   public getContents(): ProjectJson {
@@ -161,19 +175,140 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
    * and validating the file if necessary.
    */
   public async getPackageDirectories(): Promise<PackageDir[]> {
-    // Ensure sfdx-project.json has first been read and validated.
+    return this.getPackageDirectoriesSync();
+  }
+
+  /**
+   * Validates sfdx-project.json against the schema.
+   *
+   * Set the `SFDX_PROJECT_JSON_VALIDATION` environment variable to `true` to throw an error when schema validation fails.
+   * A warning is logged by default when the file is invalid.
+   *
+   * ***See*** [sfdx-project.schema.json] (https://raw.githubusercontent.com/forcedotcom/schemas/master/schemas/sfdx-project.schema.json)
+   */
+  public schemaValidateSync(): void {
     if (!this.hasRead) {
-      await this.read();
+      // read calls back into this method after necessarily setting this.hasRead=true
+      this.readSync();
+    } else {
+      try {
+        const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
+        const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
+        validator.loadSync();
+        validator.validateSync(this.getContents());
+      } catch (err) {
+        if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false)) {
+          err.name = 'SfdxSchemaValidationError';
+          const sfdxError = SfdxError.wrap(err);
+          sfdxError.actions = [this.messages.getMessage('SchemaValidationErrorAction', [this.getPath()])];
+          throw sfdxError;
+        } else {
+          this.logger.warn(this.messages.getMessage('SchemaValidationWarning', [this.getPath(), err.message]));
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns a read-only list of `packageDirectories` within sfdx-project.json, first reading
+   * and validating the file if necessary. i.e. modifying this array will not affect the
+   * sfdx-project.json file.
+   */
+  public getPackageDirectoriesSync(): NamedPackageDir[] {
+    const contents = this.getContents();
+
+    // This has to be done on the fly so it won't be written back to the file
+    // This is a fast operation so no need to cache it so it stays immutable.
+    const packageDirs = contents.packageDirectories.map(packageDir => {
+      if (isAbsolute(packageDir.path)) {
+        throw new SfdxError(
+          'InvalidProjectWorkspace',
+          this.messages.getMessage('InvalidAbsolutePath', [packageDir.path])
+        );
+      }
+
+      const regex = sep === '/' ? /\\/g : /\//g;
+      // Change packageDir paths to have path separators that match the OS
+      const path = packageDir.path.replace(regex, sep);
+      // Normalize and remove any ending path separators
+      const name = normalize(path).replace(new RegExp(`\\${sep}$`), '');
+      // Always end in a path sep for standardization on folder paths
+      const fullPath = `${dirname(this.getPath())}${sep}${name}${sep}`;
+
+      if (!fs.existsSync(fullPath)) {
+        throw new SfdxError(
+          'InvalidPackageDirectory',
+          this.messages.getMessage('InvalidPackageDirectory', [packageDir.path])
+        );
+      }
+
+      return Object.assign({}, packageDir, { name, path, fullPath });
+    });
+
+    const defaultDirs = packageDirs.filter(packageDir => packageDir.default);
+
+    if (defaultDirs.length === 0) {
+      throw new SfdxError(this.messages.getMessage('MissingDefaultPath'));
+    } else if (defaultDirs.length > 1) {
+      throw new SfdxError(this.messages.getMessage('MultipleDefaultPaths'));
     }
 
-    const contents = this.getContents();
-    const packageDirs: PackageDir[] = contents.packageDirectories.map(packageDir => {
-      // Change packageDir paths to have path separators that match the OS
-      const regex = pathSep === '/' ? /\\/g : /\//g;
-      packageDir.path = packageDir.path.replace(regex, pathSep);
-      return packageDir;
-    });
     return packageDirs;
+  }
+
+  /**
+   * Returns a read-only list of `packageDirectories` within sfdx-project.json, first reading
+   * and validating the file if necessary. i.e. modifying this array will not affect the
+   * sfdx-project.json file.
+   *
+   * There can be multiple packages in packageDirectories that point to the same directory.
+   * This method only returns one packageDirectory entry per unique directory path. This is
+   * useful when doing source operations based on directories but probably not as useful
+   * for packaging operations that want to do something for each package entry.
+   */
+  public getUniquePackageDirectories(): NamedPackageDir[] {
+    const visited: Dictionary<boolean> = {};
+    const uniqueValues: NamedPackageDir[] = [];
+
+    // Keep original order defined in sfdx-project.json
+    this.getPackageDirectoriesSync().forEach(packageDir => {
+      if (!visited[packageDir.name]) {
+        visited[packageDir.name] = true;
+        uniqueValues.push(packageDir);
+      }
+    });
+
+    return uniqueValues;
+  }
+
+  /**
+   * Get a list of the unique package names from within sfdx-project.json. Use {@link SfdxProject.getUniquePackageDirectories}
+   * for data other than the names.
+   */
+  public getUniquePackageNames(): string[] {
+    return this.getUniquePackageDirectories().map(pkgDir => pkgDir.name);
+  }
+
+  /**
+   * Has package directories defined in the project.
+   */
+  public hasPackages(): boolean {
+    return this.getContents().packageDirectories.length > 0;
+  }
+
+  /**
+   * Has multiple package directories (MPD) defined in the project.
+   */
+  public hasMultiplePackages(): boolean {
+    return this.getContents().packageDirectories.length > 1;
+  }
+
+  private validateKeys(): void {
+    // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
+    const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfdxProjectJson.BLOCKLIST);
+    if (upperCaseKey) {
+      throw SfdxError.create('@salesforce/core', 'core', 'InvalidJsonCasing', [upperCaseKey, this.getPath()]);
+    }
   }
 }
 
@@ -195,13 +330,27 @@ export class SfdxProject {
    * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
    */
   public static async resolve(path?: string): Promise<SfdxProject> {
-    const _path = path || process.cwd();
-    if (!SfdxProject.instances.has(_path)) {
-      const project = new SfdxProject(await this.resolveProjectPath(_path));
-      SfdxProject.instances.set(_path, project);
+    path = path || process.cwd();
+    if (!SfdxProject.instances.has(path)) {
+      const project = new SfdxProject(await this.resolveProjectPath(path));
+      SfdxProject.instances.set(path, project);
     }
-    // @ts-ignore Because of the pattern above this is guaranteed to return an instance
-    return SfdxProject.instances.get(_path);
+    return ensure(SfdxProject.instances.get(path));
+  }
+
+  /**
+   * Get a Project from a given path or from the working directory.
+   * @param path The path of the project.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
+   */
+  public static getInstance(path?: string): SfdxProject {
+    path = path || process.cwd();
+    if (!SfdxProject.instances.has(path)) {
+      const project = new SfdxProject(this.resolveProjectPathSync(path));
+      SfdxProject.instances.set(path, project);
+    }
+    return ensure(SfdxProject.instances.get(path));
   }
 
   /**
@@ -243,6 +392,9 @@ export class SfdxProject {
   private sfdxProjectJson!: SfdxProjectJson;
   private sfdxProjectJsonGlobal!: SfdxProjectJson;
 
+  private packageDirectories?: NamedPackageDir[];
+  private activePackage: Nullable<NamedPackageDir>;
+
   /**
    * Do not directly construct instances of this class -- use {@link SfdxProject.resolve} instead.
    *
@@ -280,6 +432,159 @@ export class SfdxProject {
       }
       return this.sfdxProjectJson;
     }
+  }
+
+  /**
+   * Get the sfdx-project.json config. The global sfdx-project.json is used for user defaults
+   * that are not checked in to the project specific file.
+   *
+   * *Note:* When reading values from {@link SfdxProjectJson}, it is recommended to use
+   * {@link SfdxProject.resolveProjectConfig} instead.
+   *
+   * This is the sync method of {@link SfdxProject.resolveSfdxProjectJson}
+   *
+   * @param isGlobal True to get the global project file, otherwise the local project config.
+   */
+  public getSfdxProjectJson(isGlobal = false): SfdxProjectJson {
+    const options = SfdxProjectJson.getDefaultOptions(isGlobal);
+    if (isGlobal) {
+      if (!this.sfdxProjectJsonGlobal) {
+        this.sfdxProjectJsonGlobal = new SfdxProjectJson(options);
+        this.sfdxProjectJsonGlobal.readSync();
+      }
+      return this.sfdxProjectJsonGlobal;
+    } else {
+      options.rootFolder = this.getPath();
+      if (!this.sfdxProjectJson) {
+        this.sfdxProjectJson = new SfdxProjectJson(options);
+        this.sfdxProjectJson.readSync();
+      }
+      return this.sfdxProjectJson;
+    }
+  }
+
+  /**
+   * Returns a read-only list of `packageDirectories` within sfdx-project.json, first reading
+   * and validating the file if necessary. i.e. modifying this array will not affect the
+   * sfdx-project.json file.
+   */
+  public getPackageDirectories(): NamedPackageDir[] {
+    if (!this.packageDirectories) {
+      this.packageDirectories = this.getSfdxProjectJson().getPackageDirectoriesSync();
+    }
+    return this.packageDirectories;
+  }
+
+  /**
+   * Returns a read-only list of `packageDirectories` within sfdx-project.json, first reading
+   * and validating the file if necessary. i.e. modifying this array will not affect the
+   * sfdx-project.json file.
+   *
+   * There can be multiple packages in packageDirectories that point to the same directory.
+   * This method only returns one packageDirectory entry per unique directory path. This is
+   * useful when doing source operations based on directories but probably not as useful
+   * for packaging operations that want to do something for each package entry.
+   */
+  public getUniquePackageDirectories(): NamedPackageDir[] {
+    return this.getSfdxProjectJson().getUniquePackageDirectories();
+  }
+
+  /**
+   * Get a list of the unique package names from within sfdx-project.json. Use {@link SfdxProject.getUniquePackageDirectories}
+   * for data other than the names.
+   */
+  public getUniquePackageNames(): string[] {
+    return this.getSfdxProjectJson().getUniquePackageNames();
+  }
+
+  /**
+   * Returns the package from a file path.
+   * @param path A file path. E.g. /Users/jsmith/projects/ebikes-lwc/force-app/apex/my-cls.cls
+   */
+  public getPackageFromPath(path: string): Optional<NamedPackageDir> {
+    const packageDirs = this.getPackageDirectories();
+    const match = packageDirs.find(
+      packageDir => basename(path) === packageDir.name || path.includes(packageDir.fullPath)
+    );
+    return match;
+  }
+
+  /**
+   * Returns the package name, E.g. 'force-app', from a file path.
+   * @param path A file path. E.g. /Users/jsmith/projects/ebikes-lwc/force-app/apex/my-cls.cls
+   */
+  public getPackageNameFromPath(path: string): Optional<string> {
+    const packageDir = this.getPackageFromPath(path);
+    return packageDir ? packageDir.name : undefined;
+  }
+
+  /**
+   * Returns the package directory.
+   *
+   * @param packageName Name of the package directory.  E.g., 'force-app'
+   */
+  public getPackage(packageName: string): Optional<NamedPackageDir> {
+    const packageDirs = this.getPackageDirectories();
+    return packageDirs.find(packageDir => packageDir.name === packageName);
+  }
+
+  /**
+   * Returns the absolute path of the package directory ending with the path separator.
+   * E.g., /Users/jsmith/projects/ebikes-lwc/force-app/
+   *
+   * @param packageName Name of the package directory.  E.g., 'force-app'
+   */
+  public getPackagePath(packageName: string): Optional<string> {
+    const packageDir = this.getPackage(packageName);
+    return packageDir && packageDir.fullPath;
+  }
+
+  /**
+   * Has package directories defined in the project.
+   */
+  public hasPackages(): boolean {
+    return this.getSfdxProjectJson().hasPackages();
+  }
+
+  /**
+   * Has multiple package directories (MPD) defined in the project.
+   */
+  public hasMultiplePackages(): boolean {
+    return this.getSfdxProjectJson().hasMultiplePackages();
+  }
+
+  /**
+   * Get the currently activated package on the project. This has no implication on sfdx-project.json
+   * but is useful for keeping track of package and source specific options in a process.
+   */
+  public getActivePackage(): Nullable<NamedPackageDir> {
+    return this.activePackage;
+  }
+
+  /**
+   * Set the currently activated package on the project. This has no implication on sfdx-project.json
+   * but is useful for keeping track of package and source specific options in a process.
+   *
+   * @param pkgName The package name to activate. E.g. 'force-app'
+   */
+  public setActivePackage(packageName: Nullable<string>) {
+    if (packageName == null) {
+      this.activePackage = null;
+    } else {
+      this.activePackage = this.getPackage(packageName);
+    }
+  }
+
+  /**
+   * Get the project's default package directory defined in sfdx-project.json using first 'default: true'
+   * found. The first entry is returned if no default is specified.
+   */
+  public getDefaultPackage(): NamedPackageDir {
+    if (!this.hasPackages()) {
+      throw new SfdxError('The sfdx-project.json does not have any packageDirectories defined.');
+    }
+    const defaultPackage = this.getPackageDirectories().find(packageDir => packageDir.default === true);
+    return defaultPackage || this.getPackageDirectories()[0];
   }
 
   /**

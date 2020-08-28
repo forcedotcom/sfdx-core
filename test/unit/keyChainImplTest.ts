@@ -7,13 +7,42 @@
 /* tslint:disable: only-arrow-functions */
 
 import { assert, expect } from 'chai';
-import * as fs from 'fs';
-import * as path from 'path';
-import { keyChainImpl } from '../../src/keyChainImpl';
+import { KeychainAccess, keyChainImpl } from '../../src/keyChainImpl';
 import { testSetup } from '../../src/testSetup';
+import { fs } from '../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
+
+const testImpl = {
+  getProgram() {
+    return 'path/to/program';
+  },
+
+  getProgramOptions(opts) {
+    return [];
+  },
+
+  getCommandFunc(opts, fn) {
+    return fn(testImpl.getProgram(), testImpl.getProgramOptions(opts));
+  },
+
+  async onGetCommandClose(code, stdout, stderr, opts, fn) {
+    fn(null, '');
+  },
+
+  setProgramOptions(opts) {
+    return [];
+  },
+
+  setCommandFunc(opts, fn) {
+    return fn(testImpl.getProgram(), testImpl.setProgramOptions(opts));
+  },
+
+  async onSetCommandClose(code, stdout, stderr, opts, fn) {
+    fn();
+  }
+};
 
 describe('KeyChainImpl Tests', () => {
   beforeEach(() => {
@@ -48,6 +77,80 @@ describe('KeyChainImpl Tests', () => {
       } catch (err) {
         expect(err).to.have.property('name', 'CredentialProgramAccessError');
       }
+    });
+  });
+
+  describe('KeyChainAccess', () => {
+    describe('getPassword', () => {
+      it('missing program', async () => {
+        const access = new KeychainAccess(testImpl, fs);
+
+        try {
+          await access.getPassword({ account: '', service: '', password: '' }, () => {});
+          assert.fail('should throw');
+        } catch (error) {
+          expect(error.name).to.equal('MissingCredentialProgramError');
+        }
+      });
+      it('program access', async () => {
+        $$.SANDBOX.stub(fs, 'statSync').returns(true);
+        const access = new KeychainAccess(testImpl, fs);
+
+        try {
+          await access.getPassword({ account: '', service: '', password: '' }, () => {});
+          assert(false, 'should throw');
+        } catch (error) {
+          expect(error.name).to.equal('CredentialProgramAccessError');
+        }
+      });
+      it('requires account', async () => {
+        const access = new KeychainAccess(testImpl, fs);
+        let set = false;
+        await access.getPassword({ account: null, service: '', password: '' }, error => {
+          expect(error.name).to.equal('KeyChainAccountRequiredError');
+          set = true;
+        });
+        assert(set);
+      });
+      it('requires service', async () => {
+        const access = new KeychainAccess(testImpl, fs);
+        let set = false;
+        await access.getPassword({ account: '', service: null, password: '' }, error => {
+          expect(error.name).to.equal('KeyChainServiceRequiredError');
+          set = true;
+        });
+        assert(set);
+      });
+    });
+
+    describe('setPassword', () => {
+      it('requires account', async () => {
+        const access = new KeychainAccess(testImpl, fs);
+        let set = false;
+        await access.setPassword({ account: null, service: '', password: '' }, error => {
+          expect(error.name).to.equal('KeyChainAccountRequiredError');
+          set = true;
+        });
+        assert(set);
+      });
+      it('requires service', async () => {
+        const access = new KeychainAccess(testImpl, fs);
+        let set = false;
+        await access.setPassword({ account: '', service: null, password: '' }, error => {
+          expect(error.name).to.equal('KeyChainServiceRequiredError');
+          set = true;
+        });
+        assert(set);
+      });
+      it('requires service', async () => {
+        const access = new KeychainAccess(testImpl, fs);
+        let set = false;
+        await access.setPassword({ account: '', service: '', password: null }, error => {
+          expect(error.name).to.equal('PasswordRequiredError');
+          set = true;
+        });
+        assert(set);
+      });
     });
   });
 
@@ -105,7 +208,7 @@ describe('KeyChainImpl Tests', () => {
       const testFunc = function(pgmPath, options) {
         // passwords for linux are read properly from stdin. Boo Windows and Mac
         if (this.platform !== platforms.LINUX) {
-          expect(path).to.equal(this.platformImpl.osImpl.program);
+          expect(pgmPath).to.equal(this.platformImpl.osImpl.program);
           expect(options).to.include(keyChainOptions.password);
           expect(options)
             .to.include(keyChainOptions.service)

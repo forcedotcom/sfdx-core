@@ -26,7 +26,7 @@ const SCHEMA_DIR = path.join(__dirname, '..', '..', '..', 'test', 'unit', 'fixtu
  */
 const validate = (schema: JsonMap, json: AnyJson): Promise<AnyJson> => {
   const validator = new SchemaValidator($$.TEST_LOGGER, `${SCHEMA_DIR}/test.json`);
-  sinon.stub(validator, 'load').callsFake(() => Promise.resolve(schema));
+  sinon.stub(validator, 'loadSync').callsFake(() => schema);
   return validator.validate(json);
 };
 
@@ -37,8 +37,8 @@ describe('schemaValidator', () => {
         await validate(schema, data);
         assert.fail('Data is invalid but schema validated successfully');
       } catch (err) {
-        expect(err.name, err.message).to.equal(errorName);
         expect(err.message).to.contain(errorMsg);
+        expect(err.name, err.message).to.equal(errorName);
       }
     };
 

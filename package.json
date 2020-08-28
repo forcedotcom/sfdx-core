@@ -9,7 +9,7 @@
     "ci-docs": "yarn sfdx-ci-docs",
     "clean": "yarn sfdx-clean",
     "clean-all": "yarn sfdx-clean all",
-    "compile": "yarn sfdx-compile",
+    "compile": "tsc -v; tsc",
     "docs": "yarn sfdx-docs",
     "format": "yarn sfdx-format",
     "lint": "yarn sfdx-lint",
@@ -63,7 +63,8 @@
     "commitizen": "^3.0.5",
     "husky": "^1",
     "semantic-release": "^15.10.5",
-    "shelljs": "0.8.1"
+    "shelljs": "0.8.1",
+    "typescript": "^3.9.7"
   },
   "types": "lib/exported.d.ts",
   "repository": {

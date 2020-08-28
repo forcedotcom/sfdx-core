@@ -145,7 +145,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
    * @param keys The keys.
    */
   public unsetAll(keys: string[]): boolean {
-    return keys.reduce((val, key) => val && this.unset(key), true);
+    return keys.reduce((val: boolean, key) => val && this.unset(key), true);
   }
 
   /**

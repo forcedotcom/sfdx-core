@@ -67,6 +67,50 @@ export interface ConfigInfo {
  * ```
  */
 export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
+  /**
+   * Get the static ConfigAggregator instance. If one doesn't exist, one will be created with
+   * the **encrypted** config values. Encrypted config values need to be resolved
+   * asynchronously by calling {@link ConfigAggregator.reload}
+   */
+  // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
+  // We really don't want ConfigAggregator extended but typescript doesn't support a final.
+  public static getInstance<P, T extends AsyncOptionalCreatable<P>>(this: new () => T): T {
+    if (!ConfigAggregator.instance) {
+      ConfigAggregator.instance = new this();
+      (ConfigAggregator.instance as ConfigAggregator).loadPropertiesSync();
+    }
+    return ConfigAggregator.instance as T;
+  }
+
+  // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
+  // We really don't want ConfigAggregator extended but typescript doesn't support a final.
+  public static async create<P, T extends AsyncOptionalCreatable<P>>(
+    this: new (options?: P) => T,
+    options?: P
+  ): Promise<T> {
+    let config: ConfigAggregator = ConfigAggregator.instance as ConfigAggregator;
+    if (!config) {
+      config = ConfigAggregator.instance = (new this(options) as unknown) as ConfigAggregator;
+      await config.init();
+    }
+    if (ConfigAggregator.encrypted) {
+      await config.loadProperties();
+    }
+    return ConfigAggregator.instance as T;
+  }
+
+  /**
+   * Get the info for a given key. If the ConfigAggregator was not asynchronously created OR
+   * the {@link ConfigAggregator.reload} was not called, the config value may be encrypted.
+   * @param key The config key.
+   */
+  public static getValue(key: string): ConfigInfo {
+    return this.getInstance().getInfo(key);
+  }
+
+  private static instance: AsyncOptionalCreatable;
+  private static encrypted = true;
+
   // Initialized in loadProperties
   private allowedProperties!: ConfigPropertyMeta[];
   private localConfig!: Config;
@@ -80,6 +124,20 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   public constructor(options?: JsonMap) {
     super(options || {});
+
+    // Don't throw an project error with the aggregator, since it should resolve to global if
+    // there is no project.
+    try {
+      this.setLocalConfig(new Config(Config.getDefaultOptions(false)));
+    } catch (err) {
+      if (err.name !== 'InvalidProjectWorkspace') {
+        throw err;
+      }
+    }
+
+    this.setGlobalConfig(new Config(Config.getDefaultOptions(true)));
+
+    this.setAllowedProperties(Config.getAllowedProperties());
   }
 
   /**
@@ -228,20 +286,18 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * Loads all the properties and aggregates them according to location.
    */
   private async loadProperties(): Promise<void> {
-    // Don't throw an project error with the aggregator, since it should resolve to global if
-    // there is no project.
-    try {
-      this.setLocalConfig(await Config.create(Config.getDefaultOptions(false)));
-    } catch (err) {
-      if (err.name !== 'InvalidProjectWorkspace') {
-        throw err;
-      }
-    }
+    this.resolveProperties(await this.globalConfig.read(), this.localConfig && (await this.localConfig.read()));
+    ConfigAggregator.encrypted = false;
+  }
 
-    this.setGlobalConfig(await Config.create(Config.getDefaultOptions(true)));
+  /**
+   * Loads all the properties and aggregates them according to location.
+   */
+  private loadPropertiesSync(): void {
+    this.resolveProperties(this.globalConfig.readSync(), this.localConfig && this.localConfig.readSync());
+  }
 
-    this.setAllowedProperties(Config.getAllowedProperties());
-
+  private resolveProperties(globalConfig: JsonMap, localConfig?: JsonMap): void {
     const accumulator: Dictionary<string> = {};
     this.setEnvVars(
       this.getAllowedProperties().reduce((obj, property) => {
@@ -256,13 +312,11 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     // Global config must be read first so it is on the left hand of the
     // object assign and is overwritten by the local config.
 
-    await this.globalConfig.read();
-    const configs = [this.globalConfig.toObject()];
+    const configs = [globalConfig];
 
     // We might not be in a project workspace
-    if (this.localConfig) {
-      await this.localConfig.read();
-      configs.push(this.localConfig.toObject());
+    if (localConfig) {
+      configs.push(localConfig);
     }
 
     configs.push(this.envVars);
