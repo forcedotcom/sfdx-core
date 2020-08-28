@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { cloneJson, includes, set } from '@salesforce/kit';
+import { cloneJson, includes, set, env } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
@@ -1376,6 +1376,14 @@ describe('AuthInfo', () => {
   });
 
   describe('getAuthorizationUrl()', () => {
+    let scope;
+    beforeEach(() => {
+      scope = env.getString('SFDX_AUTH_SCOPES');
+    });
+    afterEach(() => {
+      env.setString('SFDX_AUTH_SCOPES', scope);
+    });
+
     it('should return the correct url', () => {
       const options = {
         clientId: testMetadata.clientId,
@@ -1388,6 +1396,52 @@ describe('AuthInfo', () => {
       expect(url).to.contain('state=');
       expect(url).to.contain('prompt=login');
       expect(url).to.contain('scope=refresh_token%20api%20web');
+    });
+
+    it('should return the correct url with modified scope', () => {
+      const options = {
+        clientId: testMetadata.clientId,
+        redirectUri: testMetadata.redirectUri,
+        loginUrl: testMetadata.loginUrl,
+        scope: 'test'
+      };
+      const url: string = AuthInfo.getAuthorizationUrl.call(null, options);
+
+      expect(url.startsWith(options.loginUrl), 'authorization URL should start with the loginUrl').to.be.true;
+      expect(url).to.contain('state=');
+      expect(url).to.contain('prompt=login');
+      expect(url).to.contain('scope=test');
+    });
+
+    it('should return the correct url with env scope', () => {
+      env.setString('SFDX_AUTH_SCOPES', 'from-env');
+      const options = {
+        clientId: testMetadata.clientId,
+        redirectUri: testMetadata.redirectUri,
+        loginUrl: testMetadata.loginUrl
+      };
+      const url: string = AuthInfo.getAuthorizationUrl.call(null, options);
+
+      expect(url.startsWith(options.loginUrl), 'authorization URL should start with the loginUrl').to.be.true;
+      expect(url).to.contain('state=');
+      expect(url).to.contain('prompt=login');
+      expect(url).to.contain('scope=from-env');
+    });
+
+    it('should return the correct url with option over env', () => {
+      env.setString('SFDX_AUTH_SCOPES', 'from-env');
+      const options = {
+        clientId: testMetadata.clientId,
+        redirectUri: testMetadata.redirectUri,
+        loginUrl: testMetadata.loginUrl,
+        scope: 'from-option'
+      };
+      const url: string = AuthInfo.getAuthorizationUrl.call(null, options);
+
+      expect(url.startsWith(options.loginUrl), 'authorization URL should start with the loginUrl').to.be.true;
+      expect(url).to.contain('state=');
+      expect(url).to.contain('prompt=login');
+      expect(url).to.contain('scope=from-option');
     });
   });
 
