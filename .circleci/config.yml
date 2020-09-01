@@ -6,6 +6,10 @@ workflows:
   version: 2
   test-and-release:
     jobs:
+      - release-management/validate-pr:
+          filters:
+            branches:
+              ignore: master
       - release-management/test-package:
           name: node-latest
           node_version: latest
