@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Crypto | @salesforce/core</title>
+	<title>AuthInfoCrypto | @salesforce/core</title>
 	<meta name="description" content="Documentation for @salesforce/core">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,36 +52,24 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="crypto.html">Crypto</a>
+					<a href="authinfocrypto.html">AuthInfoCrypto</a>
 				</li>
 			</ul>
-			<h1>Class Crypto</h1>
+			<h1>Class AuthInfoCrypto</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Class for managing encrypting and decrypting private auth information.</p>
-					</div>
-				</div>
-			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="tsd-signature-type">AsyncOptionalCreatable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/cryptooptions.html" class="tsd-signature-type">CryptoOptions</a><span class="tsd-signature-symbol">&gt;</span>
+						<a href="crypto.html" class="tsd-signature-type">Crypto</a>
 						<ul class="tsd-hierarchy">
 							<li>
-								<span class="target">Crypto</span>
-								<ul class="tsd-hierarchy">
-									<li>
-										<a href="authinfocrypto.html" class="tsd-signature-type">AuthInfoCrypto</a>
-									</li>
-								</ul>
+								<span class="target">AuthInfoCrypto</span>
 							</li>
 						</ul>
 					</li>
@@ -94,11 +82,13 @@
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="crypto.html#close" class="tsd-kind-icon">close</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="crypto.html#decrypt" class="tsd-kind-icon">decrypt</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="crypto.html#encrypt" class="tsd-kind-icon">encrypt</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected"><a href="crypto.html#init" class="tsd-kind-icon">init</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static"><a href="crypto.html#create" class="tsd-kind-icon">create</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="authinfocrypto.html#close" class="tsd-kind-icon">close</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="authinfocrypto.html#decrypt" class="tsd-kind-icon">decrypt</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="authinfocrypto.html#decryptfields" class="tsd-kind-icon">decrypt<wbr>Fields</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="authinfocrypto.html#encrypt" class="tsd-kind-icon">encrypt</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="authinfocrypto.html#encryptfields" class="tsd-kind-icon">encrypt<wbr>Fields</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-protected"><a href="authinfocrypto.html#init" class="tsd-kind-icon">init</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static"><a href="authinfocrypto.html#create" class="tsd-kind-icon">create</a></li>
 							</ul>
 						</section>
 					</div>
@@ -106,15 +96,16 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="close" class="tsd-anchor"></a>
 					<h3>close</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">close<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="crypto.html">Crypto</a>.<a href="crypto.html#close">close</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/crypto.ts#L177">src/crypto.ts:177</a></li>
 								</ul>
@@ -128,15 +119,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="decrypt" class="tsd-anchor"></a>
 					<h3>decrypt</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">decrypt<span class="tsd-signature-symbol">(</span>text<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="crypto.html">Crypto</a>.<a href="crypto.html#decrypt">decrypt</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/crypto.ts#L136">src/crypto.ts:136</a></li>
 								</ul>
@@ -160,14 +152,38 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="decryptfields" class="tsd-anchor"></a>
+					<h3>decrypt<wbr>Fields</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">decrypt<wbr>Fields<span class="tsd-signature-symbol">(</span>fields<span class="tsd-signature-symbol">: </span><a href="../interfaces/authfields.html" class="tsd-signature-type">AuthFields</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/authfields.html" class="tsd-signature-type">AuthFields</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/authInfo.ts#L254">src/authInfo.ts:254</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>fields: <a href="../interfaces/authfields.html" class="tsd-signature-type">AuthFields</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/authfields.html" class="tsd-signature-type">AuthFields</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="encrypt" class="tsd-anchor"></a>
 					<h3>encrypt</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">encrypt<span class="tsd-signature-symbol">(</span>text<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="crypto.html">Crypto</a>.<a href="crypto.html#encrypt">encrypt</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/crypto.ts#L108">src/crypto.ts:108</a></li>
 								</ul>
@@ -190,15 +206,39 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="encryptfields" class="tsd-anchor"></a>
+					<h3>encrypt<wbr>Fields</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">encrypt<wbr>Fields<span class="tsd-signature-symbol">(</span>fields<span class="tsd-signature-symbol">: </span><a href="../interfaces/authfields.html" class="tsd-signature-type">AuthFields</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/authfields.html" class="tsd-signature-type">AuthFields</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/authInfo.ts#L258">src/authInfo.ts:258</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>fields: <a href="../interfaces/authfields.html" class="tsd-signature-type">AuthFields</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/authfields.html" class="tsd-signature-type">AuthFields</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-protected">
 					<a name="init" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagProtected">Protected</span> init</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-protected">
 						<li class="tsd-signature tsd-kind-icon">init<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="crypto.html">Crypto</a>.<a href="crypto.html#init">init</a></p>
 								<p>Overrides AsyncOptionalCreatable.init</p>
 								<ul>
 									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/crypto.ts#L186">src/crypto.ts:186</a></li>
@@ -274,22 +314,28 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class">
-						<a href="crypto.html" class="tsd-kind-icon">Crypto</a>
+						<a href="authinfocrypto.html" class="tsd-kind-icon">Auth<wbr>Info<wbr>Crypto</a>
 						<ul>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="crypto.html#close" class="tsd-kind-icon">close</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="authinfocrypto.html#close" class="tsd-kind-icon">close</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="authinfocrypto.html#decrypt" class="tsd-kind-icon">decrypt</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="crypto.html#decrypt" class="tsd-kind-icon">decrypt</a>
+								<a href="authinfocrypto.html#decryptfields" class="tsd-kind-icon">decrypt<wbr>Fields</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="authinfocrypto.html#encrypt" class="tsd-kind-icon">encrypt</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="crypto.html#encrypt" class="tsd-kind-icon">encrypt</a>
+								<a href="authinfocrypto.html#encryptfields" class="tsd-kind-icon">encrypt<wbr>Fields</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
-								<a href="crypto.html#init" class="tsd-kind-icon">init</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-protected">
+								<a href="authinfocrypto.html#init" class="tsd-kind-icon">init</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
-								<a href="crypto.html#create" class="tsd-kind-icon">create</a>
+								<a href="authinfocrypto.html#create" class="tsd-kind-icon">create</a>
 							</li>
 						</ul>
 					</li>

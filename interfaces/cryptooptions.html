@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Fields | @salesforce/core</title>
+	<title>CryptoOptions | @salesforce/core</title>
 	<meta name="description" content="Documentation for @salesforce/core">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,48 +52,81 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../classes/sandboxorgconfig.html">SandboxOrgConfig</a>
-				</li>
-				<li>
-					<a href="sandboxorgconfig.fields.html">Fields</a>
+					<a href="cryptooptions.html">CryptoOptions</a>
 				</li>
 			</ul>
-			<h1>Enumeration Fields</h1>
+			<h1>Interface CryptoOptions</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">CryptoOptions</span>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Enumeration members</h3>
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="sandboxorgconfig.fields.html#prod_org_username" class="tsd-kind-icon">PROD_<wbr>ORG_<wbr>USERNAME</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="cryptooptions.html#keychain" class="tsd-kind-icon">keychain</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="cryptooptions.html#noresetonclose" class="tsd-kind-icon">no<wbr>Reset<wbr>OnClose</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="cryptooptions.html#platform" class="tsd-kind-icon">platform</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="cryptooptions.html#retrystatus" class="tsd-kind-icon">retry<wbr>Status</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Enumeration members</h2>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-					<a name="prod_org_username" class="tsd-anchor"></a>
-					<h3>PROD_<wbr>ORG_<wbr>USERNAME</h3>
-					<div class="tsd-signature tsd-kind-icon">PROD_<wbr>ORG_<wbr>USERNAME<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;prodOrgUsername&quot;</span></div>
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="keychain" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> keychain</h3>
+					<div class="tsd-signature tsd-kind-icon">keychain<span class="tsd-signature-symbol">:</span> <a href="../globals.html#keychain" class="tsd-signature-type">KeyChain</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/sandboxOrgConfig.ts#L54">src/config/sandboxOrgConfig.ts:54</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/crypto.ts#L73">src/crypto.ts:73</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The username of the user who created the sandbox.</p>
-						</div>
-					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="noresetonclose" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> no<wbr>Reset<wbr>OnClose</h3>
+					<div class="tsd-signature tsd-kind-icon">no<wbr>Reset<wbr>OnClose<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/crypto.ts#L76">src/crypto.ts:76</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="platform" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> platform</h3>
+					<div class="tsd-signature tsd-kind-icon">platform<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/crypto.ts#L74">src/crypto.ts:74</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="retrystatus" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> retry<wbr>Status</h3>
+					<div class="tsd-signature tsd-kind-icon">retry<wbr>Status<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/crypto.ts#L75">src/crypto.ts:75</a></li>
+						</ul>
+					</aside>
 				</section>
 			</section>
 		</div>
@@ -109,16 +142,20 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-class">
-						<a href="../classes/sandboxorgconfig.html" class="tsd-kind-icon">Sandbox<wbr>Org<wbr>Config</a>
+					<li class="current tsd-kind-interface">
+						<a href="cryptooptions.html" class="tsd-kind-icon">Crypto<wbr>Options</a>
 						<ul>
-							<li class="current tsd-kind-enum tsd-parent-kind-class tsd-is-static">
-								<a href="sandboxorgconfig.fields.html" class="tsd-kind-icon">Fields</a>
-								<ul>
-									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-										<a href="sandboxorgconfig.fields.html#prod_org_username" class="tsd-kind-icon">PROD_<wbr>ORG_<wbr>USERNAME</a>
-									</li>
-								</ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="cryptooptions.html#keychain" class="tsd-kind-icon">keychain</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="cryptooptions.html#noresetonclose" class="tsd-kind-icon">no<wbr>Reset<wbr>OnClose</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="cryptooptions.html#platform" class="tsd-kind-icon">platform</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="cryptooptions.html#retrystatus" class="tsd-kind-icon">retry<wbr>Status</a>
 							</li>
 						</ul>
 					</li>

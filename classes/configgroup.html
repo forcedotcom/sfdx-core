@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>ConfigGroup | @salesforce/core</title>
-	<meta name="description" content="">
+	<meta name="description" content="Documentation for @salesforce/core">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
@@ -13,7 +13,7 @@
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -71,13 +71,13 @@
 					<p><strong>Note:</strong> All config methods are overwritten to use the <a href="configgroup.html#setdefaultgroup">ConfigGroup.setDefaultGroup</a>.</p>
 					<pre><code><span class="hljs-keyword">class</span> MyPluginConfig extends ConfigGroup&lt;ConfigGroup.<span class="hljs-keyword">Options</span>&gt; {
   <span class="hljs-built_in">public</span> static getFileName(): string {
-    <span class="hljs-keyword">return</span> <span class="hljs-string">'myPluginConfigFilename.json'</span>;
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;myPluginConfigFilename.json&#x27;</span>;
   }
 }
-const myConfig = await MyPluginConfig.<span class="hljs-keyword">create</span>(ConfigGroup.getOptions(<span class="hljs-string">'all'</span>));
-myConfig.setDefaultGroup(<span class="hljs-string">'myCommand'</span>); // Can be <span class="hljs-keyword">set</span> <span class="hljs-keyword">in</span> your command<span class="hljs-string">'s init.
-myConfig.set('</span>mykey<span class="hljs-string">', '</span>myvalu<span class="hljs-string">e'); // Sets '</span>myKey<span class="hljs-string">' for the '</span>myCommand<span class="hljs-string">' group.
-myConfig.setInGroup('</span>myKey<span class="hljs-string">', '</span>myvalu<span class="hljs-string">e', '</span><span class="hljs-keyword">all</span><span class="hljs-string">'); // Manually set in another group.
+const myConfig = await MyPluginConfig.<span class="hljs-keyword">create</span>(ConfigGroup.getOptions(<span class="hljs-string">&#x27;all&#x27;</span>));
+myConfig.setDefaultGroup(<span class="hljs-string">&#x27;myCommand&#x27;</span>); // Can be <span class="hljs-keyword">set</span> <span class="hljs-keyword">in</span> your command<span class="hljs-string">&#x27;s init.
+myConfig.set(&#x27;</span>mykey<span class="hljs-string">&#x27;, &#x27;</span>myvalu<span class="hljs-string">e&#x27;); // Sets &#x27;</span>myKey<span class="hljs-string">&#x27; for the &#x27;</span>myCommand<span class="hljs-string">&#x27; group.
+myConfig.setInGroup(&#x27;</span>myKey<span class="hljs-string">&#x27;, &#x27;</span>myvalu<span class="hljs-string">e&#x27;, &#x27;</span><span class="hljs-keyword">all</span><span class="hljs-string">&#x27;); // Manually set in another group.
 await myConfig.write();</span></code></pre>
 				</div>
 			</section>
@@ -85,7 +85,7 @@ await myConfig.write();</span></code></pre>
 				<h3>Type parameters</h3>
 				<ul class="tsd-type-parameters">
 					<li>
-						<h4>T<span class="tsd-signature-symbol">: </span><a href="../interfaces/configgroup.options.html" class="tsd-signature-type">Options</a></h4>
+						<h4>T<span class="tsd-signature-symbol">: </span><a href="../interfaces/aliases.options.html" class="tsd-signature-type">Options</a></h4>
 					</li>
 				</ul>
 			</section>
@@ -118,12 +118,6 @@ await myConfig.write();</span></code></pre>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Modules</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-module tsd-parent-kind-class"><a href="../modules/configgroup.configfile.html" class="tsd-kind-icon">Config<wbr>File</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
 							<h3>Interfaces</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-interface tsd-parent-kind-class"><a href="../interfaces/configgroup.options.html" class="tsd-kind-icon">Options</a></li>
@@ -143,10 +137,12 @@ await myConfig.write();</span></code></pre>
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#access" class="tsd-kind-icon">access</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#accesssync" class="tsd-kind-icon">access<wbr>Sync</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#awaiteach" class="tsd-kind-icon">await<wbr>Each</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="configgroup.html#clear" class="tsd-kind-icon">clear</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="configgroup.html#entries" class="tsd-kind-icon">entries</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#exists" class="tsd-kind-icon">exists</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#existssync" class="tsd-kind-icon">exists<wbr>Sync</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#foreach" class="tsd-kind-icon">for<wbr>Each</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="configgroup.html#get" class="tsd-kind-icon">get</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#getcontents" class="tsd-kind-icon">get<wbr>Contents</a></li>
@@ -159,6 +155,7 @@ await myConfig.write();</span></code></pre>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#isglobal" class="tsd-kind-icon">is<wbr>Global</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="configgroup.html#keys" class="tsd-kind-icon">keys</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#read" class="tsd-kind-icon">read</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#readsync" class="tsd-kind-icon">read<wbr>Sync</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="configgroup.html#set" class="tsd-kind-icon">set</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#setcontents" class="tsd-kind-icon">set<wbr>Contents</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-overwrite"><a href="configgroup.html#setcontentsfromobject" class="tsd-kind-icon">set<wbr>Contents<wbr>From<wbr>Object</a></li>
@@ -166,19 +163,23 @@ await myConfig.write();</span></code></pre>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="configgroup.html#setingroup" class="tsd-kind-icon">set<wbr>InGroup</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="configgroup.html#setmethod" class="tsd-kind-icon">set<wbr>Method</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#stat" class="tsd-kind-icon">stat</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#statsync" class="tsd-kind-icon">stat<wbr>Sync</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="configgroup.html#toobject" class="tsd-kind-icon">to<wbr>Object</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#unlink" class="tsd-kind-icon">unlink</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#unlinksync" class="tsd-kind-icon">unlink<wbr>Sync</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="configgroup.html#unset" class="tsd-kind-icon">unset</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#unsetall" class="tsd-kind-icon">unset<wbr>All</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="configgroup.html#updatevalue" class="tsd-kind-icon">update<wbr>Value</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="configgroup.html#updatevalues" class="tsd-kind-icon">update<wbr>Values</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="configgroup.html#values" class="tsd-kind-icon">values</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#write" class="tsd-kind-icon">write</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="configgroup.html#writesync" class="tsd-kind-icon">write<wbr>Sync</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static"><a href="configgroup.html#create" class="tsd-kind-icon">create</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="configgroup.html#getdefaultoptions" class="tsd-kind-icon">get<wbr>Default<wbr>Options</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="configgroup.html#getfilename" class="tsd-kind-icon">get<wbr>File<wbr>Name</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="configgroup.html#getoptions" class="tsd-kind-icon">get<wbr>Options</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="configgroup.html#resolverootfolder" class="tsd-kind-icon">resolve<wbr>Root<wbr>Folder</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="configgroup.html#resolverootfoldersync" class="tsd-kind-icon">resolve<wbr>Root<wbr>Folder<wbr>Sync</a></li>
 							</ul>
 						</section>
 					</div>
@@ -189,21 +190,21 @@ await myConfig.write();</span></code></pre>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
 					<a name="defaultgroup" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagProtected">Protected</span> default<wbr>Group</h3>
-					<div class="tsd-signature tsd-kind-icon">default<wbr>Group<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;default&quot;</span></div>
+					<div class="tsd-signature tsd-kind-icon">default<wbr>Group<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;default&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L45">config/configGroup.ts:45</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L33">src/config/configGroup.ts:33</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
 					<a name="hasread" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagProtected">Protected</span> has<wbr>Read</h3>
-					<div class="tsd-signature tsd-kind-icon">has<wbr>Read<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
+					<div class="tsd-signature tsd-kind-icon">has<wbr>Read<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#hasread">hasRead</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L76">config/configFile.ts:76</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L43">src/config/configFile.ts:43</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -214,7 +215,7 @@ await myConfig.write();</span></code></pre>
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#logger">logger</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L79">config/configFile.ts:79</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L46">src/config/configFile.ts:46</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -225,7 +226,7 @@ await myConfig.write();</span></code></pre>
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#messages">messages</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L80">config/configFile.ts:80</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L47">src/config/configFile.ts:47</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -236,7 +237,7 @@ await myConfig.write();</span></code></pre>
 					<aside class="tsd-sources">
 						<p>Inherited from BaseConfigStore.options</p>
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configStore.ts#L67">config/configStore.ts:67</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configStore.ts#L68">src/config/configStore.ts:68</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -247,14 +248,14 @@ await myConfig.write();</span></code></pre>
 					<a name="access" class="tsd-anchor"></a>
 					<h3>access</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">access<span class="tsd-signature-symbol">(</span>perm<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">access<span class="tsd-signature-symbol">(</span>perm<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#access">access</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L102">config/configFile.ts:102</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L124">src/config/configFile.ts:124</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -266,7 +267,7 @@ await myConfig.write();</span></code></pre>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>perm: <span class="tsd-signature-type">number</span></h5>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> perm: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>The permission.</p>
 										<p><strong>See</strong> <a href="https://nodejs.org/dist/latest/docs/api/fs.html#fs_fs_access_path_mode_callback" class="external">https://nodejs.org/dist/latest/docs/api/fs.html#fs_fs_access_path_mode_callback</a></p>
@@ -278,17 +279,51 @@ await myConfig.write();</span></code></pre>
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="accesssync" class="tsd-anchor"></a>
+					<h3>access<wbr>Sync</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">access<wbr>Sync<span class="tsd-signature-symbol">(</span>perm<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#accesssync">accessSync</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L141">src/config/configFile.ts:141</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Determines if the config file is read/write accessible. Returns <code>true</code> if the user has capabilities specified
+									by perm.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> perm: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The permission.</p>
+										<p><strong>See</strong> <a href="https://nodejs.org/dist/latest/docs/api/fs.html#fs_fs_access_path_mode_callback" class="external">https://nodejs.org/dist/latest/docs/api/fs.html#fs_fs_access_path_mode_callback</a></p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="awaiteach" class="tsd-anchor"></a>
 					<h3>await<wbr>Each</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">await<wbr>Each<span class="tsd-signature-symbol">(</span>actionFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">await<wbr>Each<span class="tsd-signature-symbol">(</span>actionFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">: </span><a href="../globals.html#configvalue" class="tsd-signature-type">ConfigValue</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Inherited from BaseConfigStore.awaitEach</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configStore.ts#L200">config/configStore.ts:200</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configStore.ts#L211">src/config/configStore.ts:211</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -299,14 +334,14 @@ await myConfig.write();</span></code></pre>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>actionFn: <span class="tsd-signature-type">function</span></h5>
+									<h5>actionFn: <span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">: </span><a href="../globals.html#configvalue" class="tsd-signature-type">ConfigValue</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>The function <code>(key: string, value: ConfigValue) =&gt; Promise&lt;void&gt;</code> to be called for
 										each element.</p>
 									</div>
 									<ul class="tsd-parameters">
-										<li class="tsd-parameter-siganture">
-											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+										<li class="tsd-parameter-signature">
+											<ul class="tsd-signatures tsd-kind-type-literal">
 												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">: </span><a href="../globals.html#configvalue" class="tsd-signature-type">ConfigValue</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
@@ -343,7 +378,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#clear">clear</a></p>
 								<p>Overrides BaseConfigStore.clear</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L154">config/configGroup.ts:154</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L161">src/config/configGroup.ts:161</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -367,7 +402,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#entries">entries</a></p>
 								<p>Overrides BaseConfigStore.entries</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L90">config/configGroup.ts:90</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L93">src/config/configGroup.ts:93</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -390,7 +425,7 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#exists">exists</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L166">config/configFile.ts:166</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L259">src/config/configFile.ts:259</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -403,17 +438,40 @@ await myConfig.write();</span></code></pre>
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="existssync" class="tsd-anchor"></a>
+					<h3>exists<wbr>Sync</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">exists<wbr>Sync<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#existssync">existsSync</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L266">src/config/configFile.ts:266</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Check to see if the config file exists. Returns <code>true</code> if the config file exists and has access, false otherwise.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="foreach" class="tsd-anchor"></a>
 					<h3>for<wbr>Each</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">for<wbr>Each<span class="tsd-signature-symbol">(</span>actionFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">for<wbr>Each<span class="tsd-signature-symbol">(</span>actionFn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">: </span><a href="../globals.html#configvalue" class="tsd-signature-type">ConfigValue</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Inherited from BaseConfigStore.forEach</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configStore.ts#L187">config/configStore.ts:187</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configStore.ts#L197">src/config/configStore.ts:197</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -424,13 +482,13 @@ await myConfig.write();</span></code></pre>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>actionFn: <span class="tsd-signature-type">function</span></h5>
+									<h5>actionFn: <span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">: </span><a href="../globals.html#configvalue" class="tsd-signature-type">ConfigValue</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>The function <code>(key: string, value: ConfigValue) =&gt; void</code> to be called for each element.</p>
 									</div>
 									<ul class="tsd-parameters">
-										<li class="tsd-parameter-siganture">
-											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+										<li class="tsd-parameter-signature">
+											<ul class="tsd-signatures tsd-kind-type-literal">
 												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">: </span><a href="../globals.html#configvalue" class="tsd-signature-type">ConfigValue</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
@@ -467,7 +525,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#get">get</a></p>
 								<p>Overrides BaseConfigStore.get</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L102">config/configGroup.ts:102</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L106">src/config/configGroup.ts:106</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -500,7 +558,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#getcontents">getContents</a></p>
 								<p>Inherited from BaseConfigStore.getContents</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configStore.ts#L168">config/configStore.ts:168</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configStore.ts#L176">src/config/configStore.ts:176</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -522,7 +580,7 @@ await myConfig.write();</span></code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L162">config/configGroup.ts:162</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L170">src/config/configGroup.ts:170</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -533,7 +591,7 @@ await myConfig.write();</span></code></pre>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> group: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;this.defaultGroup</span></h5>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> group: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = this.defaultGroup</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -550,7 +608,7 @@ await myConfig.write();</span></code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L171">config/configGroup.ts:171</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L180">src/config/configGroup.ts:180</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -589,7 +647,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#getkeysbyvalue">getKeysByValue</a></p>
 								<p>Inherited from BaseConfigStore.getKeysByValue</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configStore.ts#L102">config/configStore.ts:102</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configStore.ts#L106">src/config/configStore.ts:106</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -621,12 +679,12 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#getpath">getPath</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L195">config/configFile.ts:195</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L319">src/config/configFile.ts:319</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Returns the path to the config file.</p>
+									<p>Returns the absolute path to the config file.</p>
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -645,7 +703,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#has">has</a></p>
 								<p>Overrides BaseConfigStore.has</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L110">config/configGroup.ts:110</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L115">src/config/configGroup.ts:115</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -677,7 +735,7 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Overrides <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#init">init</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L223">config/configGroup.ts:223</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L232">src/config/configGroup.ts:232</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -700,7 +758,7 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#isglobal">isGlobal</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L202">config/configFile.ts:202</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L345">src/config/configFile.ts:345</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -724,7 +782,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#keys">keys</a></p>
 								<p>Overrides BaseConfigStore.keys</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L118">config/configGroup.ts:118</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L123">src/config/configGroup.ts:123</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -747,7 +805,7 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#read">read</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L119">config/configFile.ts:119</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L159">src/config/configFile.ts:159</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -755,19 +813,54 @@ await myConfig.write();</span></code></pre>
 									<p>Read the config file and set the config contents. Returns the config contents of the config file. As an
 										optimization, files are only read once per process and updated in memory and via <code>write()</code>. To force
 										a read from the filesystem pass <code>force=true</code>.
-									<strong>Throws</strong> <em><a href="sfdxerror.html">SfdxError</a>{ name: &#39;UnexpectedJsonFileFormat&#39; }</em> There was a problem reading or parsing the file.</p>
+									<strong>Throws</strong> *<a href="sfdxerror.html">SfdxError</a>{ name: &#39;UnexpectedJsonFileFormat&#39; }* There was a problem reading or parsing the file.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> throwOnNotFound: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> throwOnNotFound: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
 								</li>
 								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> force: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></h5>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> force: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="readsync" class="tsd-anchor"></a>
+					<h3>read<wbr>Sync</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">read<wbr>Sync<span class="tsd-signature-symbol">(</span>throwOnNotFound<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, force<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#readsync">readSync</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L193">src/config/configFile.ts:193</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Read the config file and set the config contents. Returns the config contents of the config file. As an
+										optimization, files are only read once per process and updated in memory and via <code>write()</code>. To force
+										a read from the filesystem pass <code>force=true</code>.
+									<strong>Throws</strong> *<a href="sfdxerror.html">SfdxError</a>{ name: &#39;UnexpectedJsonFileFormat&#39; }* There was a problem reading or parsing the file.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> throwOnNotFound: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> force: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -783,7 +876,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#set">set</a></p>
 								<p>Overrides BaseConfigStore.set</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L134">config/configGroup.ts:134</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L140">src/config/configGroup.ts:140</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -822,7 +915,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#setcontents">setContents</a></p>
 								<p>Inherited from BaseConfigStore.setContents</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configStore.ts#L179">config/configStore.ts:179</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configStore.ts#L188">src/config/configStore.ts:188</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -854,7 +947,7 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Overrides BaseConfigStore.setContentsFromObject</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L189">config/configGroup.ts:189</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L199">src/config/configGroup.ts:199</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -865,7 +958,7 @@ await myConfig.write();</span></code></pre>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
-									<h4>U<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></h4>
+									<h4>U<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h4>
 								</li>
 							</ul>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -891,13 +984,13 @@ await myConfig.write();</span></code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L52">config/configGroup.ts:52</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L53">src/config/configGroup.ts:53</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Sets the default group for all {@link BaseConfigStore} methods to use.
-									<strong>Throws</strong> <em><a href="sfdxerror.html">SfdxError</a>{ name: &#39;MissingGroupName&#39; }</em> The group parameter is null or undefined.</p>
+									<strong>Throws</strong> *<a href="sfdxerror.html">SfdxError</a>{ name: &#39;MissingGroupName&#39; }* The group parameter is null or undefined.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -923,7 +1016,7 @@ await myConfig.write();</span></code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L206">config/configGroup.ts:206</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L217">src/config/configGroup.ts:217</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -967,7 +1060,7 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Inherited from BaseConfigStore.setMethod</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configStore.ts#L228">config/configStore.ts:228</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configStore.ts#L240">src/config/configStore.ts:240</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -997,16 +1090,40 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#stat">stat</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L175">config/configFile.ts:175</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L275">src/config/configFile.ts:275</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Get the stats of the file. Returns the stats of the file.</p>
 								</div>
-								<p><a href="../globals.html#fs.stat">fs.stat</a></p>
+								<p>{@link fs.stat}</p>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">fsStats</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="statsync" class="tsd-anchor"></a>
+					<h3>stat<wbr>Sync</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">stat<wbr>Sync<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">fsStats</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#statsync">statSync</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L284">src/config/configFile.ts:284</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get the stats of the file. Returns the stats of the file.</p>
+								</div>
+								<p>{@link fs.stat}</p>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">fsStats</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -1021,7 +1138,7 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Overrides BaseConfigStore.toObject</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L181">config/configGroup.ts:181</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L190">src/config/configGroup.ts:190</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1044,16 +1161,42 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#unlink">unlink</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L184">config/configFile.ts:184</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L294">src/config/configFile.ts:294</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Delete the config file if it exists. Returns <code>true</code> if the file was deleted, <code>false</code> otherwise.</p>
+									<p>Delete the config file if it exists.</p>
 								</div>
-								<p><a href="../globals.html#fs.unlink">fs.unlink</a></p>
+								<p><strong>Throws</strong> <em><code>Error</code>{ name: &#39;TargetFileNotFound&#39; }</em> If the {@link ConfigFile.getFilename} file is not found.
+								{@link fs.unlink}</p>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="unlinksync" class="tsd-anchor"></a>
+					<h3>unlink<wbr>Sync</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">unlink<wbr>Sync<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#unlinksync">unlinkSync</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L308">src/config/configFile.ts:308</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Delete the config file if it exists.</p>
+								</div>
+								<p><strong>Throws</strong> <em><code>Error</code>{ name: &#39;TargetFileNotFound&#39; }</em> If the {@link ConfigFile.getFilename} file is not found.
+								{@link fs.unlink}</p>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -1069,7 +1212,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#unset">unset</a></p>
 								<p>Overrides BaseConfigStore.unset</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L142">config/configGroup.ts:142</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L149">src/config/configGroup.ts:149</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1102,7 +1245,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#unsetall">unsetAll</a></p>
 								<p>Inherited from BaseConfigStore.unsetAll</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configStore.ts#L147">config/configStore.ts:147</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configStore.ts#L155">src/config/configStore.ts:155</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1134,7 +1277,7 @@ await myConfig.write();</span></code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L79">config/configGroup.ts:79</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L82">src/config/configGroup.ts:82</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1177,7 +1320,7 @@ await myConfig.write();</span></code></pre>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L65">config/configGroup.ts:65</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L67">src/config/configGroup.ts:67</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1216,7 +1359,7 @@ await myConfig.write();</span></code></pre>
 								<p>Implementation of <a href="../interfaces/configstore.html">ConfigStore</a>.<a href="../interfaces/configstore.html#values">values</a></p>
 								<p>Overrides BaseConfigStore.values</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L125">config/configGroup.ts:125</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L130">src/config/configGroup.ts:130</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1239,7 +1382,7 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#write">write</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L150">config/configFile.ts:150</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L224">src/config/configFile.ts:224</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1261,18 +1404,51 @@ await myConfig.write();</span></code></pre>
 						</li>
 					</ul>
 				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="writesync" class="tsd-anchor"></a>
+					<h3>write<wbr>Sync</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">write<wbr>Sync<span class="tsd-signature-symbol">(</span>newContents<span class="tsd-signature-symbol">?: </span><a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#writesync">writeSync</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L243">src/config/configFile.ts:243</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Write the config file with new contents. If no new contents are provided it will write the existing config
+									contents that were set from <a href="configfile.html#read">ConfigFile.read</a>, or an empty file if <a href="configfile.html#read">ConfigFile.read</a> was not called.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> newContents: <a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The new contents of the file.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../globals.html#configcontents" class="tsd-signature-type">ConfigContents</a></h4>
+						</li>
+					</ul>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
 					<a name="create" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> create</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
-						<li class="tsd-signature tsd-kind-icon">create&lt;P, T&gt;<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">create&lt;P, T&gt;<span class="tsd-signature-symbol">(</span>this<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{}</span>, options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">P</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Inherited from AsyncCreatable.create</p>
 								<ul>
-									<li>Defined in @salesforce/kit/lib/creatable.d.ts:10</li>
+									<li>Defined in node_modules/@salesforce/kit/lib/creatable.d.ts:17</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1292,7 +1468,7 @@ await myConfig.write();</span></code></pre>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>this: <span class="tsd-signature-type">object</span></h5>
+									<h5>this: <span class="tsd-signature-symbol">{}</span></h5>
 									<ul class="tsd-parameters">
 									</ul>
 								</li>
@@ -1311,14 +1487,14 @@ await myConfig.write();</span></code></pre>
 					<a name="getdefaultoptions" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Default<wbr>Options</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Default<wbr>Options<span class="tsd-signature-symbol">(</span>isGlobal<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, filename<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/configfile.options.html" class="tsd-signature-type">Options</a></li>
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Default<wbr>Options<span class="tsd-signature-symbol">(</span>isGlobal<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, filename<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/authinfoconfig.options.html" class="tsd-signature-type">Options</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#getdefaultoptions">getDefaultOptions</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L55">config/configFile.ts:55</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L90">src/config/configFile.ts:90</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1329,7 +1505,7 @@ await myConfig.write();</span></code></pre>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> isGlobal: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> isGlobal: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>If the file should be stored globally or locally.</p>
 									</div>
@@ -1341,7 +1517,7 @@ await myConfig.write();</span></code></pre>
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../interfaces/configfile.options.html" class="tsd-signature-type">Options</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/authinfoconfig.options.html" class="tsd-signature-type">Options</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -1356,7 +1532,7 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#getfilename">getFileName</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L45">config/configFile.ts:45</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L79">src/config/configFile.ts:79</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1372,13 +1548,13 @@ await myConfig.write();</span></code></pre>
 					<a name="getoptions" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Options</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Options<span class="tsd-signature-symbol">(</span>defaultGroup<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, filename<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/configgroup.options.html" class="tsd-signature-type">Options</a></li>
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Options<span class="tsd-signature-symbol">(</span>defaultGroup<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, filename<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/aliases.options.html" class="tsd-signature-type">Options</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configGroup.ts#L38">config/configGroup.ts:38</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configGroup.ts#L40">src/config/configGroup.ts:40</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1401,7 +1577,7 @@ await myConfig.write();</span></code></pre>
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../interfaces/configgroup.options.html" class="tsd-signature-type">Options</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/aliases.options.html" class="tsd-signature-type">Options</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -1416,12 +1592,12 @@ await myConfig.write();</span></code></pre>
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#resolverootfolder">resolveRootFolder</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/config/configFile.ts#L68">config/configFile.ts:68</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L103">src/config/configFile.ts:103</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Helper used to determined what the local and global folder point to. Returns the file path of the root folder.</p>
+									<p>Helper used to determine what the local and global folder point to. Returns the file path of the root folder.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1434,6 +1610,38 @@ await myConfig.write();</span></code></pre>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+					<a name="resolverootfoldersync" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> resolve<wbr>Root<wbr>Folder<wbr>Sync</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">resolve<wbr>Root<wbr>Folder<wbr>Sync<span class="tsd-signature-symbol">(</span>isGlobal<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="configfile.html">ConfigFile</a>.<a href="configfile.html#resolverootfoldersync">resolveRootFolderSync</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/configFile.ts#L112">src/config/configFile.ts:112</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Helper used to determine what the local and global folder point to. Returns the file path of the root folder.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>isGlobal: <span class="tsd-signature-type">boolean</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>True if the config should be global. False for local.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -1476,6 +1684,9 @@ await myConfig.write();</span></code></pre>
 								<a href="configgroup.html#access" class="tsd-kind-icon">access</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="configgroup.html#accesssync" class="tsd-kind-icon">access<wbr>Sync</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="configgroup.html#awaiteach" class="tsd-kind-icon">await<wbr>Each</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
@@ -1486,6 +1697,9 @@ await myConfig.write();</span></code></pre>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="configgroup.html#exists" class="tsd-kind-icon">exists</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="configgroup.html#existssync" class="tsd-kind-icon">exists<wbr>Sync</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="configgroup.html#foreach" class="tsd-kind-icon">for<wbr>Each</a>
@@ -1523,6 +1737,9 @@ await myConfig.write();</span></code></pre>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="configgroup.html#read" class="tsd-kind-icon">read</a>
 							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="configgroup.html#readsync" class="tsd-kind-icon">read<wbr>Sync</a>
+							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
 								<a href="configgroup.html#set" class="tsd-kind-icon">set</a>
 							</li>
@@ -1544,11 +1761,17 @@ await myConfig.write();</span></code></pre>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="configgroup.html#stat" class="tsd-kind-icon">stat</a>
 							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="configgroup.html#statsync" class="tsd-kind-icon">stat<wbr>Sync</a>
+							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
 								<a href="configgroup.html#toobject" class="tsd-kind-icon">to<wbr>Object</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="configgroup.html#unlink" class="tsd-kind-icon">unlink</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="configgroup.html#unlinksync" class="tsd-kind-icon">unlink<wbr>Sync</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
 								<a href="configgroup.html#unset" class="tsd-kind-icon">unset</a>
@@ -1568,6 +1791,9 @@ await myConfig.write();</span></code></pre>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="configgroup.html#write" class="tsd-kind-icon">write</a>
 							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="configgroup.html#writesync" class="tsd-kind-icon">write<wbr>Sync</a>
+							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
 								<a href="configgroup.html#create" class="tsd-kind-icon">create</a>
 							</li>
@@ -1583,6 +1809,9 @@ await myConfig.write();</span></code></pre>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
 								<a href="configgroup.html#resolverootfolder" class="tsd-kind-icon">resolve<wbr>Root<wbr>Folder</a>
 							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+								<a href="configgroup.html#resolverootfoldersync" class="tsd-kind-icon">resolve<wbr>Root<wbr>Folder<wbr>Sync</a>
+							</li>
 						</ul>
 					</li>
 				</ul>
@@ -1597,62 +1826,32 @@ await myConfig.write();</span></code></pre>
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
-				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
 				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
 				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
 			</ul>
 		</div>
 	</div>
 </footer>
 <div class="overlay"></div>
 <script src="../assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>

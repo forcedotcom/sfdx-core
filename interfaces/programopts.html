@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Fields | @salesforce/core</title>
+	<title>ProgramOpts | @salesforce/core</title>
 	<meta name="description" content="Documentation for @salesforce/core">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,48 +52,70 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../classes/sandboxorgconfig.html">SandboxOrgConfig</a>
-				</li>
-				<li>
-					<a href="sandboxorgconfig.fields.html">Fields</a>
+					<a href="programopts.html">ProgramOpts</a>
 				</li>
 			</ul>
-			<h1>Enumeration Fields</h1>
+			<h1>Interface ProgramOpts</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">ProgramOpts</span>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Enumeration members</h3>
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="sandboxorgconfig.fields.html#prod_org_username" class="tsd-kind-icon">PROD_<wbr>ORG_<wbr>USERNAME</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="programopts.html#account" class="tsd-kind-icon">account</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="programopts.html#password" class="tsd-kind-icon">password</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="programopts.html#service" class="tsd-kind-icon">service</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Enumeration members</h2>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-					<a name="prod_org_username" class="tsd-anchor"></a>
-					<h3>PROD_<wbr>ORG_<wbr>USERNAME</h3>
-					<div class="tsd-signature tsd-kind-icon">PROD_<wbr>ORG_<wbr>USERNAME<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;prodOrgUsername&quot;</span></div>
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="account" class="tsd-anchor"></a>
+					<h3>account</h3>
+					<div class="tsd-signature tsd-kind-icon">account<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/config/sandboxOrgConfig.ts#L54">src/config/sandboxOrgConfig.ts:54</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/keyChainImpl.ts#L249">src/keyChainImpl.ts:249</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The username of the user who created the sandbox.</p>
-						</div>
-					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="password" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> password</h3>
+					<div class="tsd-signature tsd-kind-icon">password<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/keyChainImpl.ts#L251">src/keyChainImpl.ts:251</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="service" class="tsd-anchor"></a>
+					<h3>service</h3>
+					<div class="tsd-signature tsd-kind-icon">service<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/keyChainImpl.ts#L250">src/keyChainImpl.ts:250</a></li>
+						</ul>
+					</aside>
 				</section>
 			</section>
 		</div>
@@ -109,16 +131,17 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-class">
-						<a href="../classes/sandboxorgconfig.html" class="tsd-kind-icon">Sandbox<wbr>Org<wbr>Config</a>
+					<li class="current tsd-kind-interface">
+						<a href="programopts.html" class="tsd-kind-icon">Program<wbr>Opts</a>
 						<ul>
-							<li class="current tsd-kind-enum tsd-parent-kind-class tsd-is-static">
-								<a href="sandboxorgconfig.fields.html" class="tsd-kind-icon">Fields</a>
-								<ul>
-									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-										<a href="sandboxorgconfig.fields.html#prod_org_username" class="tsd-kind-icon">PROD_<wbr>ORG_<wbr>USERNAME</a>
-									</li>
-								</ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="programopts.html#account" class="tsd-kind-icon">account</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="programopts.html#password" class="tsd-kind-icon">password</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="programopts.html#service" class="tsd-kind-icon">service</a>
 							</li>
 						</ul>
 					</li>

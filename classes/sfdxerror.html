@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>SfdxError | @salesforce/core</title>
-	<meta name="description" content="">
+	<meta name="description" content="Documentation for @salesforce/core">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
@@ -13,7 +13,7 @@
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -72,14 +72,14 @@
 					directly to the constructor, e.g.</p>
 					<pre><code><span class="hljs-comment">// To load a message bundle:</span>
 <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Messages</span>.</span></span>import<span class="hljs-constructor">MessagesDirectory(<span class="hljs-params">__dirname</span>)</span>;
-this.messages = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Messages</span>.</span></span>load<span class="hljs-constructor">Messages('<span class="hljs-params">myPackageName</span>', '<span class="hljs-params">myBundleName</span>')</span>;
+this.messages = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Messages</span>.</span></span>load<span class="hljs-constructor">Messages(&#x27;<span class="hljs-params">myPackageName</span>&#x27;, &#x27;<span class="hljs-params">myBundleName</span>&#x27;)</span>;
 <span class="hljs-comment">// Note that __dirname should contain a messages folder.</span>
 
 <span class="hljs-comment">// To throw an error associated with the message from the bundle:</span>
-throw <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">SfdxError</span>.</span></span>create('myPackageName', 'myBundleName', 'MyErrorMessageKey', <span class="hljs-literal">[<span class="hljs-identifier">messageToken1</span>]</span>);
+throw <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">SfdxError</span>.</span></span>create(&#x27;myPackageName&#x27;, &#x27;myBundleName&#x27;, &#x27;MyErrorMessageKey&#x27;, <span class="hljs-literal">[<span class="hljs-identifier">messageToken1</span>]</span>);
 
 <span class="hljs-comment">// To throw a non-bundle based error:</span>
-throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxError(<span class="hljs-params">myErrMsg</span>, 'MyErrorName')</span>;</code></pre>
+throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxError(<span class="hljs-params">myErrMsg</span>, &#x27;MyErrorName&#x27;)</span>;</code></pre>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
@@ -113,16 +113,16 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="sfdxerror.html#commandname" class="tsd-kind-icon">command<wbr>Name</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="sfdxerror.html#data" class="tsd-kind-icon">data</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="sfdxerror.html#exitcode" class="tsd-kind-icon">exit<wbr>Code</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="sfdxerror.html#fullstack" class="tsd-kind-icon">full<wbr>Stack</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-overwrite"><a href="sfdxerror.html#message" class="tsd-kind-icon">message</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="sfdxerror.html#name" class="tsd-kind-icon">name</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="sfdxerror.html#stack" class="tsd-kind-icon">stack</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-overwrite"><a href="sfdxerror.html#name" class="tsd-kind-icon">name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="sfdxerror.html#stack" class="tsd-kind-icon">stack</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Accessors</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="sfdxerror.html#code" class="tsd-kind-icon">code</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited"><a href="sfdxerror.html#fullstack" class="tsd-kind-icon">full<wbr>Stack</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -151,7 +151,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 							<aside class="tsd-sources">
 								<p>Overrides NamedError.__constructor</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L245">sfdxError.ts:245</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L196">src/sfdxError.ts:196</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -215,7 +215,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 					<div class="tsd-signature tsd-kind-icon">actions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L227">sfdxError.ts:227</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L177">src/sfdxError.ts:177</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -226,12 +226,12 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a name="cause" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> cause</h3>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> cause</h3>
 					<div class="tsd-signature tsd-kind-icon">cause<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">NamedErrorLike</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from NamedError.cause</p>
+						<p>Inherited from <a href="sfdxerror.html">SfdxError</a>.<a href="sfdxerror.html#cause">cause</a></p>
 						<ul>
-							<li>Defined in @salesforce/kit/lib/errors.d.ts:11</li>
+							<li>Defined in node_modules/@salesforce/kit/lib/errors.d.ts:11</li>
 						</ul>
 					</aside>
 				</section>
@@ -241,7 +241,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 					<div class="tsd-signature tsd-kind-icon">command<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L237">sfdxError.ts:237</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L187">src/sfdxError.ts:187</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -256,7 +256,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 					<div class="tsd-signature tsd-kind-icon">data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L240">sfdxError.ts:240</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L191">src/sfdxError.ts:191</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -266,7 +266,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 					<div class="tsd-signature tsd-kind-icon">exit<wbr>Code<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L232">sfdxError.ts:232</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L182">src/sfdxError.ts:182</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -275,17 +275,6 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 						</div>
 					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
-					<a name="fullstack" class="tsd-anchor"></a>
-					<h3>full<wbr>Stack</h3>
-					<div class="tsd-signature tsd-kind-icon">full<wbr>Stack<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span></div>
-					<aside class="tsd-sources">
-						<p>Inherited from NamedError.fullStack</p>
-						<ul>
-							<li>Defined in @salesforce/kit/lib/errors.d.ts:14</li>
-						</ul>
-					</aside>
-				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-overwrite">
 					<a name="message" class="tsd-anchor"></a>
 					<h3>message</h3>
@@ -293,7 +282,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 					<aside class="tsd-sources">
 						<p>Overrides Error.message</p>
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L222">sfdxError.ts:222</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L170">src/sfdxError.ts:170</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -302,27 +291,25 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 						</div>
 					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-overwrite">
 					<a name="name" class="tsd-anchor"></a>
 					<h3>name</h3>
-					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from NamedError.name</p>
-						<p>Overrides Error.name</p>
+						<p>Overrides NamedError.name</p>
 						<ul>
-							<li>Defined in @salesforce/kit/lib/errors.d.ts:10</li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L172">src/sfdxError.ts:172</a></li>
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a name="stack" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> stack</h3>
 					<div class="tsd-signature tsd-kind-icon">stack<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from Error.stack</p>
-						<p>Overrides Error.stack</p>
+						<p>Inherited from <a href="sfdxerror.html">SfdxError</a>.<a href="sfdxerror.html#stack">stack</a></p>
 						<ul>
-							<li>Defined in typescript/lib/lib.es5.d.ts:905</li>
+							<li>Defined in node_modules/typescript/lib/lib.es5.d.ts:975</li>
 						</ul>
 					</aside>
 				</section>
@@ -340,7 +327,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L261">sfdxError.ts:261</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L272">src/sfdxError.ts:272</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -348,7 +335,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L265">sfdxError.ts:265</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L276">src/sfdxError.ts:276</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -358,6 +345,24 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+					<a name="fullstack" class="tsd-anchor"></a>
+					<h3>full<wbr>Stack</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> fullStack<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="sfdxerror.html">SfdxError</a>.<a href="sfdxerror.html#fullstack">fullStack</a></p>
+								<ul>
+									<li>Defined in node_modules/@salesforce/kit/lib/errors.d.ts:14</li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -374,7 +379,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L273">sfdxError.ts:273</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L285">src/sfdxError.ts:285</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -405,7 +410,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L282">sfdxError.ts:282</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L295">src/sfdxError.ts:295</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -436,7 +441,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L290">sfdxError.ts:290</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L303">src/sfdxError.ts:303</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -459,7 +464,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L170">sfdxError.ts:170</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L221">src/sfdxError.ts:221</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -499,7 +504,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L176">sfdxError.ts:176</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L228">src/sfdxError.ts:228</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -530,7 +535,7 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/sfdxError.ts#L202">sfdxError.ts:202</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/sfdxError.ts#L255">src/sfdxError.ts:255</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -586,20 +591,20 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="sfdxerror.html#exitcode" class="tsd-kind-icon">exit<wbr>Code</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
-								<a href="sfdxerror.html#fullstack" class="tsd-kind-icon">full<wbr>Stack</a>
-							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-overwrite">
 								<a href="sfdxerror.html#message" class="tsd-kind-icon">message</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-overwrite">
 								<a href="sfdxerror.html#name" class="tsd-kind-icon">name</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 								<a href="sfdxerror.html#stack" class="tsd-kind-icon">stack</a>
 							</li>
 							<li class=" tsd-kind-accessor tsd-parent-kind-class">
 								<a href="sfdxerror.html#code" class="tsd-kind-icon">code</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
+								<a href="sfdxerror.html#fullstack" class="tsd-kind-icon">full<wbr>Stack</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="sfdxerror.html#setcommandname" class="tsd-kind-icon">set<wbr>Command<wbr>Name</a>
@@ -630,62 +635,32 @@ throw <span class="hljs-keyword">new</span> <span class="hljs-constructor">SfdxE
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
-				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
 				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
 				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
 			</ul>
 		</div>
 	</div>
 </footer>
 <div class="overlay"></div>
 <script src="../assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>

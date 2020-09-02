@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>Messages | @salesforce/core</title>
-	<meta name="description" content="">
+	<meta name="description" content="Documentation for @salesforce/core">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
@@ -13,7 +13,7 @@
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -82,7 +82,7 @@
 					that apply the tokens passed into {@link Message.getMessage}</p>
 					<p>A sample message file.</p>
 					<pre><code>{
-   <span class="hljs-symbol">'msgKey'</span>: <span class="hljs-symbol">'A</span> message displayed <span class="hljs-keyword">in</span> the terminal'
+   <span class="hljs-symbol">&#x27;msgKey&#x27;</span>: <span class="hljs-symbol">&#x27;A</span> message displayed <span class="hljs-keyword">in</span> the terminal&#x27;
 }</code></pre><p><strong>Note:</strong> When running unit tests individually, you may see errors that the messages aren&#39;t found.
 						This is because <code>index.js</code> isn&#39;t loaded when tests run like they are when the package is required.
 						To allow tests to run, import the message directory in each test (it will only
@@ -95,7 +95,7 @@
 const messages : Messages = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Messages</span>.</span></span>load<span class="hljs-constructor">Messages(<span class="hljs-params">packageName</span>, <span class="hljs-params">bundleName</span>)</span>;
 
 <span class="hljs-comment">// Messages now contains all the message in the bundleName file.</span>
-messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</code></pre>
+messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</span>;</code></pre>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
@@ -151,7 +151,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L306">messages.ts:306</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L100">src/messages.ts:100</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -196,11 +196,11 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="bundlename" class="tsd-anchor"></a>
-					<h3>bundle<wbr>Name</h3>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> bundle<wbr>Name</h3>
 					<div class="tsd-signature tsd-kind-icon">bundle<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L306">messages.ts:306</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L100">src/messages.ts:100</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -211,11 +211,11 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="locale" class="tsd-anchor"></a>
-					<h3>locale</h3>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> locale</h3>
 					<div class="tsd-signature tsd-kind-icon">locale<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L302">messages.ts:302</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L96">src/messages.ts:96</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -237,7 +237,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L328">messages.ts:328</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L326">src/messages.ts:326</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -254,7 +254,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 									</div>
 								</li>
 								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> tokens: <a href="../globals.html#tokens" class="tsd-signature-type">Tokens</a><span class="tsd-signature-symbol"> =&nbsp;[]</span></h5>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> tokens: <a href="../globals.html#tokens" class="tsd-signature-type">Tokens</a><span class="tsd-signature-symbol"> = []</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>The values to substitute in the message.</p>
 										<p><strong>See</strong> <a href="https://nodejs.org/api/util.html#util_util_format_format_args">https://nodejs.org/api/util.html#util_util_format_format_args</a></p>
@@ -275,7 +275,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L124">messages.ts:124</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L153">src/messages.ts:153</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -314,7 +314,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L102">messages.ts:102</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L130">src/messages.ts:130</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -337,7 +337,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L168">messages.ts:168</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L197">src/messages.ts:197</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -375,7 +375,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L195">messages.ts:195</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L224">src/messages.ts:224</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -397,7 +397,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 									</div>
 								</li>
 								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> truncateToProjectPath: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></h5>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> truncateToProjectPath: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>Will look for the messages directory in the project root (where the package.json file is located).
 										i.e., the module is typescript and the messages folder is in the top level of the module directory.</p>
@@ -424,7 +424,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L286">messages.ts:286</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L314">src/messages.ts:314</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -461,7 +461,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L259">messages.ts:259</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L286">src/messages.ts:286</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -499,7 +499,7 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/4cb36fd/src/messages.ts#L112">messages.ts:112</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ee8760d/src/messages.ts#L141">src/messages.ts:141</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -596,62 +596,32 @@ messages.get<span class="hljs-constructor">Message('JsonParseError')</span>;</co
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
-				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
 				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
 				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
 			</ul>
 		</div>
 	</div>
 </footer>
 <div class="overlay"></div>
 <script src="../assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>
