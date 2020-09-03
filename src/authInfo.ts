@@ -861,12 +861,25 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       throw SfdxError.create('@salesforce/core', 'core', 'RefreshTokenAuthError', [err.message]);
     }
 
+    // @ts-ignore TODO: need better typings for jsforce
+    const { orgId, userId } = _parseIdUrl(_authFields.id);
+
+    let username = this.getUsername();
+    if (!username) {
+      username = await this.retrieveUsername(
+        // @ts-ignore TODO: need better typings for jsforce
+        _authFields.instance_url,
+        _authFields.access_token,
+        ensureString(orgId),
+        ensureString(userId)
+      );
+    }
     return {
+      orgId,
+      username,
       accessToken: _authFields.access_token,
       // @ts-ignore TODO: need better typings for jsforce
       instanceUrl: _authFields.instance_url,
-      // @ts-ignore TODO: need better typings for jsforce
-      orgId: _parseIdUrl(_authFields.id).orgId,
       // @ts-ignore TODO: need better typings for jsforce
       loginUrl: options.loginUrl || _authFields.instance_url,
       refreshToken: options.refreshToken,
@@ -898,21 +911,13 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     // Only need to query for the username if it isn't known. For example, a new auth code exchange
     // rather than refreshing a token on an existing connection.
     if (!username) {
-      // Make a REST call for the username directly.  Normally this is done via a connection
-      // but we don't want to create circular dependencies or lots of snowflakes
-      // within this file to support it.
-      const apiVersion = 'v42.0'; // hardcoding to v42.0 just for this call is okay.
-      const instance = ensure(getString(_authFields, 'instance_url'));
-      const url = `${instance}/services/data/${apiVersion}/sobjects/User/${userId}`;
-      const headers = Object.assign({ Authorization: `Bearer ${_authFields.access_token}` }, SFDX_HTTP_HEADERS);
-
-      try {
-        this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
-        const response = await new Transport().httpRequest({ url, headers });
-        username = asString(parseJsonMap(response.body).Username);
-      } catch (err) {
-        throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
-      }
+      username = await this.retrieveUsername(
+        // @ts-ignore TODO: need better typings for jsforce
+        _authFields.instance_url,
+        _authFields.access_token,
+        ensureString(orgId),
+        ensureString(userId)
+      );
     }
 
     return {
@@ -927,6 +932,29 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       clientId: options.clientId,
       clientSecret: options.clientSecret
     };
+  }
+
+  private async retrieveUsername(
+    instanceUrl: string,
+    accessToken: string,
+    orgId: string,
+    userId: string
+  ): Promise<Optional<string>> {
+    // Make a REST call for the username directly.  Normally this is done via a connection
+    // but we don't want to create circular dependencies or lots of snowflakes
+    // within this file to support it.
+    const apiVersion = 'v42.0'; // hardcoding to v42.0 just for this call is okay.
+    const instance = ensure(instanceUrl);
+    const url = `${instance}/services/data/${apiVersion}/sobjects/User/${userId}`;
+    const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
+
+    try {
+      this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
+      const response = await new Transport().httpRequest({ url, headers });
+      return asString(parseJsonMap(response.body).Username);
+    } catch (err) {
+      throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
+    }
   }
 
   // See https://nodejs.org/api/dns.html#dns_dns_lookup_hostname_options_callback

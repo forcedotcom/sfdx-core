@@ -613,6 +613,9 @@ describe('AuthInfo', () => {
     });
 
     it('should not cache when no username is supplied', async () => {
+      const responseBody = { body: JSON.stringify({ Username: undefined }) };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+
       const cacheSize = AuthInfo['cache'].size;
 
       const authResponse = {
@@ -831,7 +834,8 @@ describe('AuthInfo', () => {
         loginUrl: refreshTokenConfig.loginUrl,
         refreshToken: refreshTokenConfig.refreshToken,
         clientId: testMetadata.defaultConnectedAppInfo.clientId,
-        clientSecret: testMetadata.defaultConnectedAppInfo.clientSecret
+        clientSecret: testMetadata.defaultConnectedAppInfo.clientSecret,
+        username
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
@@ -895,7 +899,8 @@ describe('AuthInfo', () => {
         loginUrl: refreshTokenConfig.loginUrl,
         refreshToken: refreshTokenConfig.refreshToken,
         clientId: testMetadata.defaultConnectedAppInfo.clientId,
-        clientSecret: testMetadata.defaultConnectedAppInfo.clientSecret
+        clientSecret: testMetadata.defaultConnectedAppInfo.clientSecret,
+        username
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
@@ -957,7 +962,8 @@ describe('AuthInfo', () => {
         loginUrl: refreshTokenConfig.loginUrl,
         refreshToken: refreshTokenConfig.refreshToken,
         clientId: refreshTokenConfig.clientId,
-        clientSecret: refreshTokenConfig.clientSecret
+        clientSecret: refreshTokenConfig.clientSecret,
+        username
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
