@@ -286,7 +286,9 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * Loads all the properties and aggregates them according to location.
    */
   private async loadProperties(): Promise<void> {
-    this.resolveProperties(await this.globalConfig.read(), this.localConfig && (await this.localConfig.read()));
+    const localConfig = (await this.localConfig.exists()) ? await this.localConfig.read() : undefined;
+    const globalConfig = await this.globalConfig.read();
+    this.resolveProperties(globalConfig, localConfig);
     ConfigAggregator.encrypted = false;
   }
 

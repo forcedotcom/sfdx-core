@@ -92,6 +92,7 @@ describe('ConfigAggregator', () => {
         this.setContents(config);
         return config;
       });
+      $$.SANDBOX.stub(Config.prototype, 'exists').returns(Promise.resolve(true));
     });
     it('local overrides global', async () => {
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
@@ -117,6 +118,7 @@ describe('ConfigAggregator', () => {
         }
         return Promise.resolve();
       });
+      $$.SANDBOX.stub(Config.prototype, 'exists').returns(Promise.resolve(true));
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
       expect(aggregator.getLocation(Config.DEFAULT_USERNAME)).to.equal('Local');
     });
