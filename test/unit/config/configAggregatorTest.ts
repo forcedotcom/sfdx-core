@@ -32,6 +32,7 @@ describe('ConfigAggregator', () => {
 
   afterEach(() => {
     delete process.env.SFDX_DEFAULTUSERNAME;
+    delete process.env.SFDX_CUSTOM_CONFIG_PROP;
   });
 
   describe('instantiation', () => {
@@ -160,6 +161,58 @@ describe('ConfigAggregator', () => {
       expect(info.key).to.equal('defaultusername');
       expect(info.value).to.equal('test');
       expect(info.location).to.equal('Environment');
+    });
+  });
+
+  describe('custom config properties', () => {
+    beforeEach(() => {
+      $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function(this: Config) {
+        const config: ConfigContents = await Promise.resolve({ CustomConfigProp: 'test' });
+        this.setContents(config);
+        return config;
+      });
+      // @ts-ignore
+      ConfigAggregator.instance = null;
+    });
+
+    it('creates local and global config with custom config properties', async () => {
+      const aggregator: ConfigAggregator = await ConfigAggregator.create({
+        customConfigProperties: [{ key: 'CustomConfigProp' }]
+      });
+
+      // @ts-ignore because getPropertyConfig is a private method
+      expect(aggregator.getLocalConfig().getPropertyConfig('CustomConfigProp')).to.exist;
+      // @ts-ignore because getPropertyConfig is a private method
+      expect(aggregator.getGlobalConfig().getPropertyConfig('CustomConfigProp')).to.exist;
+    });
+
+    it('creates local and global config with custom config properties using getInstance', async () => {
+      await ConfigAggregator.create({
+        customConfigProperties: [{ key: 'CustomConfigProp' }]
+      });
+
+      const instance = ConfigAggregator.getInstance();
+
+      // @ts-ignore because getPropertyConfig is a private method
+      expect(instance.getLocalConfig().getPropertyConfig('CustomConfigProp')).to.exist;
+      // @ts-ignore because getPropertyConfig is a private method
+      expect(instance.getGlobalConfig().getPropertyConfig('CustomConfigProp')).to.exist;
+    });
+
+    it('converts env vars for custom properties', async () => {
+      process.env.SFDX_CUSTOM_CONFIG_PROP = 'test';
+      const aggregator: ConfigAggregator = await ConfigAggregator.create({
+        customConfigProperties: [{ key: 'CustomConfigProp' }]
+      });
+      expect(aggregator.getPropertyValue('CustomConfigProp')).to.equal('test');
+    });
+
+    it('can get and set custom properties', async () => {
+      const aggregator: ConfigAggregator = await ConfigAggregator.create({
+        customConfigProperties: [{ key: 'CustomConfigProp' }]
+      });
+      expect(aggregator.getPropertyValue('CustomConfigProp')).to.equal('test');
+      expect(ConfigAggregator.getValue('CustomConfigProp').value).to.equal('test');
     });
   });
 });

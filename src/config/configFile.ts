@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isBoolean } from '@salesforce/ts-types';
+import { isBoolean, Nullable } from '@salesforce/ts-types';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
@@ -15,9 +15,50 @@ import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
-import { BaseConfigStore, ConfigContents } from './configStore';
+import { BaseConfigStore, ConfigContents, ConfigValue } from './configStore';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
+
+/**
+ * Interface for meta information about config properties
+ */
+export interface ConfigPropertyMeta {
+  /**
+   *  The config property name.
+   */
+  key: string;
+
+  /**
+   *  Reference to the config data input validation.
+   */
+  input?: ConfigPropertyMetaInput;
+
+  /**
+   *  True if the property should be indirectly hidden from the user.
+   */
+  hidden?: boolean;
+
+  /**
+   * True if the property values should be stored encrypted.
+   */
+  encrypted?: boolean;
+}
+
+/**
+ * Config property input validation
+ */
+export interface ConfigPropertyMetaInput {
+  /**
+   * Tests if the input value is valid and returns true if the input data is valid.
+   * @param value The input value.
+   */
+  validator: (value: ConfigValue) => boolean;
+
+  /**
+   * The message to return in the error if the validation fails.
+   */
+  failedMessage: string;
+}
 
 /**
  * Represents a json config file used to manage settings and state. Global config
@@ -48,15 +89,21 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   }
 
   /**
-   * Returns the default options for the config file.
-   * @param isGlobal If the file should be stored globally or locally.
-   * @param filename The name of the config file.
+   * Gets default options.
+   * @param isGlobal Make the config global.
+   * @param filename Override the default file. {@link Config.getFileName}
+   * @param customConfigProperties Add custom config properties.
    */
-  public static getDefaultOptions(isGlobal = false, filename?: string): ConfigFile.Options {
+  public static getDefaultOptions(
+    isGlobal = false,
+    filename?: Nullable<string>,
+    customConfigProperties?: ConfigPropertyMeta[]
+  ): ConfigFile.Options {
     return {
       isGlobal,
       isState: true,
-      filename: filename || this.getFileName()
+      filename: filename || this.getFileName(),
+      customConfigProperties: customConfigProperties || []
     };
   }
 
@@ -381,5 +428,9 @@ export namespace ConfigFile {
      * Indicates if init should throw if the corresponding config file is not found.
      */
     throwOnNotFound?: boolean;
+    /**
+     * Custom config properties
+     */
+    customConfigProperties?: ConfigPropertyMeta[];
   }
 }

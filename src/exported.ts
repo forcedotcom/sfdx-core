@@ -14,7 +14,7 @@ export { Aliases, AliasGroup } from './config/aliases';
 
 export { AuthInfoConfig } from './config/authInfoConfig';
 
-export { ConfigFile } from './config/configFile';
+export { ConfigFile, ConfigPropertyMeta, ConfigPropertyMetaInput } from './config/configFile';
 
 export { ConfigGroup } from './config/configGroup';
 
@@ -22,7 +22,7 @@ export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue 
 
 export { OrgUsersConfig } from './config/orgUsersConfig';
 
-export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config } from './config/config';
+export { Config } from './config/config';
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 

@@ -8,7 +8,8 @@
 import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
 import { AnyJson, definiteEntriesOf, Dictionary, get, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
-import { Config, ConfigPropertyMeta } from './config';
+import { Config } from './config';
+import { ConfigPropertyMeta } from './configFile';
 
 const propertyToEnvName = (property: string) => `SFDX_${snakeCase(property).toUpperCase()}`;
 
@@ -66,7 +67,7 @@ export interface ConfigInfo {
  * console.log(aggregator.getPropertyValue('defaultusername'));
  * ```
  */
-export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
+export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Options> {
   /**
    * Get the static ConfigAggregator instance. If one doesn't exist, one will be created with
    * the **encrypted** config values. Encrypted config values need to be resolved
@@ -74,7 +75,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
-  public static getInstance<P, T extends AsyncOptionalCreatable<P>>(this: new () => T): T {
+  public static getInstance<P, T extends AsyncOptionalCreatable<P>>(this: new (opts?: P) => T): T {
     if (!ConfigAggregator.instance) {
       ConfigAggregator.instance = new this();
       (ConfigAggregator.instance as ConfigAggregator).loadPropertiesSync();
@@ -122,21 +123,20 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * **Do not directly construct instances of this class -- use {@link ConfigAggregator.create} instead.**
    * @ignore
    */
-  public constructor(options?: JsonMap) {
+  public constructor(options: ConfigAggregator.Options = {}) {
     super(options || {});
 
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
     try {
-      this.setLocalConfig(new Config(Config.getDefaultOptions(false)));
+      this.setLocalConfig(new Config(Config.getDefaultOptions(false, null, options.customConfigProperties)));
     } catch (err) {
       if (err.name !== 'InvalidProjectWorkspace') {
         throw err;
       }
     }
 
-    this.setGlobalConfig(new Config(Config.getDefaultOptions(true)));
-
+    this.setGlobalConfig(new Config(Config.getDefaultOptions(true, null, options.customConfigProperties)));
     this.setAllowedProperties(Config.getAllowedProperties());
   }
 
@@ -394,4 +394,6 @@ export namespace ConfigAggregator {
      */
     ENVIRONMENT = 'Environment'
   }
+
+  export type Options = { customConfigProperties?: ConfigPropertyMeta[] } & JsonMap;
 }

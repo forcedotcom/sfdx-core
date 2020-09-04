@@ -52,6 +52,11 @@ describe('Config', () => {
       expect(config.getPath()).to.contain('.sfdx');
       expect(config.getPath()).to.contain('sfdx-config.json');
     });
+    it('using custom config properties', async () => {
+      await Config.create(Config.getDefaultOptions(true, null, [{ key: 'CustomConfigProp' }]));
+      // @ts-ignore because propertyConfigMap is a private member
+      expect(Config.propertyConfigMap.CustomConfigProp).to.exist;
+    });
   });
 
   describe('read', () => {
