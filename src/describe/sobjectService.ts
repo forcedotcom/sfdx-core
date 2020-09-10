@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '../connection';
-import { DescribeSObjectResult, SObject, SObjectDescribeAPI } from './sobjectApi';
+import { SObjectDescribeAPI } from './sobjectApi';
+import { DescribeSObjectResult, SObject } from './sobjectTypes';
 
 export enum SObjectType {
   ALL,

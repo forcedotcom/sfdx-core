@@ -9,12 +9,8 @@ import { RequestInfo } from 'jsforce';
 import { createSandbox, SinonSandbox } from 'sinon';
 import { AuthInfo } from '../../../src/authInfo';
 import { Connection } from '../../../src/connection';
-import {
-  BatchRequest,
-  BatchResponse,
-  DescribeSObjectResult,
-  SObjectDescribeAPI
-} from '../../../src/describe/sobjectApi';
+import { BatchRequest, BatchResponse, SObjectDescribeAPI } from '../../../src/describe/sobjectApi';
+import { DescribeSObjectResult } from '../../../src/describe/sobjectTypes';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { SObjectTestData } from './testData';
 

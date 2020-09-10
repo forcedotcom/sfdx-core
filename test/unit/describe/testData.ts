@@ -6,7 +6,7 @@
  */
 
 import { DescribeGlobalResult, DescribeGlobalSObjectResult } from 'jsforce';
-import { SObject } from '../../../src/describe/sobjectApi';
+import { SObject } from '../../../src/describe/sobjectTypes';
 export namespace SObjectTestData {
   const baseSObjectDesc: DescribeGlobalSObjectResult = {
     activateable: true,

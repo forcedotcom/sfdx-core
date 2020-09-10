@@ -8,8 +8,9 @@ import { assert, expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
 import { AuthInfo } from '../../../src/authInfo';
 import { Connection } from '../../../src/connection';
-import { DescribeSObjectResult, SObjectDescribeAPI } from '../../../src/describe/sobjectApi';
+import { SObjectDescribeAPI } from '../../../src/describe/sobjectApi';
 import { SObjectService, SObjectType } from '../../../src/describe/sobjectService';
+import { DescribeSObjectResult } from '../../../src/describe/sobjectTypes';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { SObjectTestData } from './testData';
 
