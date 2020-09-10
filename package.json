@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "0.3.14",
-    "@salesforce/ts-sinon": "^1.0.0",
+    "@salesforce/ts-sinon": "^1.2.2",
     "@types/debug": "0.0.30",
     "@types/jsen": "0.0.19",
     "@types/jsonwebtoken": "8.3.2",

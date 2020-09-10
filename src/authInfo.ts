@@ -28,8 +28,11 @@ import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { resolve as pathResolve } from 'path';
+import { basename, extname } from 'path';
 import { parse as urlParse } from 'url';
+import { Aliases } from './config/aliases';
 import { AuthInfoConfig } from './config/authInfoConfig';
+import { Config } from './config/config';
 import { ConfigAggregator } from './config/configAggregator';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { Crypto } from './crypto';
@@ -66,6 +69,16 @@ export interface AuthFields {
   userProfileName?: string;
   expirationDate?: string;
 }
+
+export type Authorization = {
+  alias: Optional<string>;
+  username: Optional<string>;
+  orgId: Optional<string>;
+  instanceUrl: Optional<string>;
+  accessToken?: string;
+  oauthMethod?: 'jwt' | 'web' | 'token' | 'unknown';
+  error?: string;
+};
 
 /**
  * Options for access token flow.
@@ -344,6 +357,49 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   }
 
   /**
+   * Get a list of all authorizations based on auth files stored in the global directory.
+   * @returns {Promise<Authorization[]>}
+   */
+  public static async listAllAuthorizations(): Promise<Authorization[]> {
+    const filenames = await AuthInfo.listAllAuthFiles();
+
+    const auths: Authorization[] = [];
+    const aliases = await Aliases.create(Aliases.getDefaultOptions());
+
+    for (const filename of filenames) {
+      const username = basename(filename, extname(filename));
+      try {
+        const config = await AuthInfo.create({ username });
+        const fields = config.getFields();
+        const usernameAliases = aliases.getKeysByValue(username);
+        auths.push({
+          alias: usernameAliases[0],
+          username: fields.username,
+          orgId: fields.orgId,
+          instanceUrl: fields.instanceUrl,
+          accessToken: config.getConnectionOptions().accessToken,
+          oauthMethod: config.isJwt() ? 'jwt' : config.isOauth() ? 'web' : 'token'
+        });
+      } catch (err) {
+        // Most likely, an error decrypting the token
+        const file = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
+        const contents = file.getContents();
+        const usernameAliases = aliases.getKeysByValue(contents.username as string);
+        auths.push({
+          alias: usernameAliases[0],
+          username: contents.username as string,
+          orgId: contents.orgId as string,
+          instanceUrl: contents.instanceUrl as string,
+          accessToken: undefined,
+          oauthMethod: 'unknown',
+          error: err.message
+        });
+      }
+    }
+    return auths;
+  }
+
+  /**
    * Returns true if one or more authentications are persisted.
    */
   public static async hasAuthentications(): Promise<boolean> {
@@ -601,6 +657,44 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
     sfdxAuthUrl += `${decryptedFields.refreshToken}@${instanceUrl}`;
     return sfdxAuthUrl;
+  }
+
+  /**
+   * Set the defaultusername or the defaultdevhubusername to the alias if
+   * it exists otherwise to the username. Method will try to set the local
+   * config first but will default to global config if that fails.
+   * @param options
+   */
+  public async setAsDefault(options: { defaultUsername?: boolean; defaultDevhubUsername?: boolean }) {
+    let config: Config;
+    // if we fail to create the local config, default to the global config
+    try {
+      config = await Config.create({ isGlobal: false });
+    } catch {
+      config = await Config.create({ isGlobal: true });
+    }
+
+    const username = ensureString(this.getUsername());
+    const aliases = await Aliases.create(Aliases.getDefaultOptions());
+    const value = aliases.getKeysByValue(username)[0] || username;
+
+    if (options.defaultUsername) {
+      config.set(Config.DEFAULT_USERNAME, value);
+    }
+
+    if (options.defaultDevhubUsername) {
+      config.set(Config.DEFAULT_DEV_HUB_USERNAME, value);
+    }
+    await config.write();
+  }
+
+  /**
+   * Sets the provided alias to the username
+   * @param alias alias to set
+   */
+  public async setAlias(alias: string) {
+    const username = this.getUsername();
+    await Aliases.parseAndUpdate([`${alias}=${username}`]);
   }
 
   /**
