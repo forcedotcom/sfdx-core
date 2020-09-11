@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { asString, ensure, Nullable } from '@salesforce/ts-types';
 import * as childProcess from 'child_process';
 import * as nodeFs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { asString, ensure, Nullable } from '@salesforce/ts-types';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 import { KeychainConfig } from './config/keychainConfig';
@@ -19,12 +19,11 @@ import { fs } from './util/fs';
 
 export type FsIfc = Pick<typeof nodeFs, 'statSync'>;
 
-/* tslint:disable: no-bitwise */
-
 const GET_PASSWORD_RETRY_COUNT = 3;
 
 /**
  * Helper to reduce an array of cli args down to a presentable string for logging.
+ *
  * @param optionsArray CLI command args.
  */
 function _optionsToString(optionsArray: string[]) {
@@ -34,6 +33,7 @@ function _optionsToString(optionsArray: string[]) {
 /**
  * Helper to determine if a program is executable. Returns `true` if the program is executable for the user. For
  * Windows true is always returned.
+ *
  * @param mode Stats mode.
  * @param gid Unix group id.
  * @param uid Unix user id.
@@ -85,6 +85,7 @@ const _validateProgram = async (
 export interface PasswordStore {
   /**
    * Gets a password
+   *
    * @param opts cli level password options.
    * @param fn function callback for password.
    * @param retryCount number of reties to get the password.
@@ -97,6 +98,7 @@ export interface PasswordStore {
 
   /**
    * Sets a password.
+   *
    * @param opts cli level password options.
    * @param fn function callback for password.
    */
@@ -109,10 +111,11 @@ export interface PasswordStore {
 export class KeychainAccess implements PasswordStore {
   /**
    * Abstract prototype for general cross platform keychain interaction.
+   *
    * @param osImpl The platform impl for (linux, darwin, windows).
    * @param fsIfc The file system interface.
    */
-  constructor(private osImpl: OsImpl, private fsIfc: FsIfc) {}
+  public constructor(private osImpl: OsImpl, private fsIfc: FsIfc) {}
 
   /**
    * Validates the os level program is executable.
@@ -123,6 +126,7 @@ export class KeychainAccess implements PasswordStore {
 
   /**
    * Returns a password using the native program for credential management.
+   *
    * @param opts Options for the credential lookup.
    * @param fn Callback function (err, password).
    * @param retryCount Used internally to track the number of retries for getting a password out of the keychain.
@@ -150,17 +154,18 @@ export class KeychainAccess implements PasswordStore {
     let stderr = '';
 
     if (credManager.stdout) {
-      credManager.stdout.on('data', data => {
+      credManager.stdout.on('data', (data) => {
         stdout += data;
       });
     }
     if (credManager.stderr) {
-      credManager.stderr.on('data', data => {
+      credManager.stderr.on('data', (data) => {
         stderr += data;
       });
     }
 
-    credManager.on('close', async code => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    credManager.on('close', async (code) => {
       try {
         return await this.osImpl.onGetCommandClose(code, stdout, stderr, opts, fn);
       } catch (e) {
@@ -183,6 +188,7 @@ export class KeychainAccess implements PasswordStore {
 
   /**
    * Sets a password using the native program for credential management.
+   *
    * @param opts Options for the credential lookup.
    * @param fn Callback function (err, ConfigContents).
    */
@@ -226,6 +232,7 @@ export class KeychainAccess implements PasswordStore {
 
     credManager.on(
       'close',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       async (code: number) => await this.osImpl.onSetCommandClose(code, stdout, stderr, opts, fn)
     );
 
@@ -303,6 +310,7 @@ const _linuxImpl: OsImpl = {
       // This is a workaround for linux.
       // Calling secret-tool too fast can cause it to return an unexpected error. (below)
       if (stderr != null && stderr.includes('invalid or unencryptable secret')) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore TODO: make an error subclass with this field
         error.retry = true;
 
@@ -344,7 +352,7 @@ const _linuxImpl: OsImpl = {
     } else {
       fn(null);
     }
-  }
+  },
 };
 
 /**
@@ -370,10 +378,11 @@ const _darwinImpl: OsImpl = {
 
     if (code !== 0) {
       switch (code) {
-        case 128:
+        case 128: {
           err = SfdxError.create('@salesforce/core', 'encryption', 'KeyChainUserCanceledError');
           break;
-        default:
+        }
+        default: {
           const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
           const errorConfig = new SfdxErrorConfig(
             '@salesforce/core',
@@ -384,6 +393,7 @@ const _darwinImpl: OsImpl = {
             [command]
           );
           err = SfdxError.create(errorConfig);
+        }
       }
       fn(err);
       return;
@@ -391,8 +401,8 @@ const _darwinImpl: OsImpl = {
 
     // For better or worse, the last line (containing the actual password) is actually written to stderr instead of
     // stdout. Reference: http://blog.macromates.com/2006/keychain-access-from-shell/
-    if (/password/.test(stderr)) {
-      const match = stderr.match(/"(.*)"/);
+    if (stderr.includes('password')) {
+      const match = RegExp(/"(.*)"/).exec(stderr);
       if (!match || !match[1]) {
         const errorConfig = new SfdxErrorConfig(
           '@salesforce/core',
@@ -446,7 +456,7 @@ const _darwinImpl: OsImpl = {
     } else {
       fn(null);
     }
-  }
+  },
 };
 
 async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: ConfigContents) => void) {
@@ -466,7 +476,7 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
 enum SecretField {
   SERVICE = 'service',
   ACCOUNT = 'account',
-  KEY = 'key'
+  KEY = 'key',
 }
 
 // istanbul ignore next - getPassword/setPassword is always mocked out
@@ -476,7 +486,7 @@ enum SecretField {
 export class GenericKeychainAccess implements PasswordStore {
   public async getPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, password?: string) => void): Promise<void> {
     // validate the file in .sfdx
-    await this.isValidFileAccess(async fileAccessError => {
+    await this.isValidFileAccess(async (fileAccessError) => {
       // the file checks out.
       if (fileAccessError == null) {
         // read it's contents
@@ -500,7 +510,7 @@ export class GenericKeychainAccess implements PasswordStore {
               fn(err);
             }
           })
-          .catch(readJsonErr => {
+          .catch((readJsonErr) => {
             fn(readJsonErr);
           });
       } else {
@@ -518,7 +528,7 @@ export class GenericKeychainAccess implements PasswordStore {
     fn: (error: Nullable<Error>, contents?: ConfigContents) => void
   ): Promise<void> {
     // validate the file in .sfdx
-    await this.isValidFileAccess(async fileAccessError => {
+    await this.isValidFileAccess(async (fileAccessError) => {
       // if there is a validation error
       if (fileAccessError != null) {
         // file not found
@@ -557,7 +567,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
       Global.STATE_FOLDER,
       ensure(KeychainConfig.getDefaultOptions().filename)
     );
-    await super.isValidFileAccess(async err => {
+    await super.isValidFileAccess(async (err) => {
       if (err != null) {
         await cb(err);
       } else {
@@ -588,7 +598,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
  */
 export class GenericWindowsKeychainAccess extends GenericKeychainAccess {
   protected async isValidFileAccess(cb: (error: Nullable<Error>) => Promise<void>): Promise<void> {
-    await super.isValidFileAccess(async err => {
+    await super.isValidFileAccess(async (err) => {
       if (err != null) {
         await cb(err);
       } else {
@@ -616,7 +626,7 @@ export const keyChainImpl = {
   generic_windows: new GenericWindowsKeychainAccess(),
   darwin: new KeychainAccess(_darwinImpl, nodeFs),
   linux: new KeychainAccess(_linuxImpl, nodeFs),
-  validateProgram: _validateProgram
+  validateProgram: _validateProgram,
 };
 
 export type KeyChain = GenericUnixKeychainAccess | GenericWindowsKeychainAccess | KeychainAccess;

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { lookup } from 'dns';
@@ -50,6 +50,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
    * given the optional interval. Returns the resolved ip address.
    */
   public async resolve(): Promise<string> {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self: MyDomainResolver = this;
     const pollingOptions: PollingClient.Options = {
       async poll(): Promise<StatusResult> {
@@ -61,27 +62,27 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
           if (host && host.includes('.internal.salesforce.com')) {
             return {
               completed: true,
-              payload: '127.0.0.1'
+              payload: '127.0.0.1',
             };
           }
           dnsResult = await promisify(lookup)(host);
           self.logger.debug(`Successfully resolved host: ${host} result: ${JSON.stringify(dnsResult)}`);
           return {
             completed: true,
-            payload: dnsResult.address
+            payload: dnsResult.address,
           };
         } catch (e) {
           self.logger.debug(`An error occurred trying to resolve: ${host}`);
           self.logger.debug(`Error: ${e.message}`);
           self.logger.debug('Re-trying dns lookup again....');
           return {
-            completed: false
+            completed: false,
           };
         }
       },
       timeout: this.options.timeout || Duration.seconds(30),
       frequency: this.options.frequency || Duration.seconds(10),
-      timeoutErrorName: 'MyDomainResolverTimeoutError'
+      timeoutErrorName: 'MyDomainResolverTimeoutError',
     };
     const client = await PollingClient.create(pollingOptions);
     return ensureString(await client.subscribe());

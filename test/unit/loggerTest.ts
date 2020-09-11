@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { isBoolean, isNumber, isString } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
@@ -167,6 +167,7 @@ describe('Logger', () => {
       const rootLogger = await Logger.root();
       $$.SANDBOX.stub(rootLogger, 'fatal');
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
       expect(rootLogger.fatal['called']).to.be.true;
@@ -188,6 +189,7 @@ describe('Logger', () => {
       const childLogger = await Logger.child(childLoggerName);
       $$.SANDBOX.stub(childLogger, 'fatal');
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
       expect(childLogger.fatal['called']).to.be.false;
@@ -203,9 +205,7 @@ describe('Logger', () => {
       const spy = $$.SANDBOX.spy(() => [FOO, BAR]);
       logger.debugCallback(spy);
       expect(spy.callCount).to.be.equal(1);
-      expect(logger.readLogContentsAsText())
-        .to.include(FOO)
-        .and.to.include(BAR);
+      expect(logger.readLogContentsAsText()).to.include(FOO).and.to.include(BAR);
     });
 
     it("shouldn't log", async () => {
@@ -222,7 +222,7 @@ describe('Logger', () => {
     const sid = 'SIDHERE!';
     const simpleString = `sid=${sid}`;
     const stringWithObject = ` The rain in Spain: ${JSON.stringify({
-      access_token: sid
+      access_token: sid,
     })}`;
     const jsforceStringWithToken = `Connection refresh completed. Refreshed access token = ${sid}`;
     const obj1 = { accessToken: `${sid}`, refreshToken: `${sid}` };
@@ -230,12 +230,12 @@ describe('Logger', () => {
     const arr1 = [
       { key: 'ACCESS token ', value: `${sid}` },
       { key: 'refresh  TOKEN', value: `${sid}` },
-      { key: 'Sfdx Auth Url', value: `${sid}` }
+      { key: 'Sfdx Auth Url', value: `${sid}` },
     ];
     const arr2 = [
       { key: ' AcCESS 78token', value: ` ${sid} ` },
       { key: ' refresh  _TOKEn ', value: ` ${sid} ` },
-      { key: ' SfdX__AuthUrl  ', value: ` ${sid} ` }
+      { key: ' SfdX__AuthUrl  ', value: ` ${sid} ` },
     ];
     const testLogEntries = [simpleString, stringWithObject, jsforceStringWithToken, obj1, obj2, arr1, arr2];
 
@@ -243,7 +243,7 @@ describe('Logger', () => {
       const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(0);
 
       // Log at the provided log level for each test entry
-      testLogEntries.forEach(entry => logger[logLevel[0]](entry));
+      testLogEntries.forEach((entry) => logger[logLevel[0]](entry));
 
       const logData = logger.readLogContentsAsText();
       expect(logData, `Logs should NOT contain '${sid}'`).to.not.contain(sid);
@@ -289,9 +289,7 @@ describe('Logger', () => {
       expect(logger.getBufferedRecords()).to.be.an('array').and.empty;
       logger.warn('this WILL be logged');
       const logRecords = logger.getBufferedRecords();
-      expect(logRecords)
-        .to.be.an('array')
-        .with.lengthOf(1);
+      expect(logRecords).to.be.an('array').with.lengthOf(1);
       expect(logRecords[0]).to.have.property('newField1', 'stringVal');
       expect(logRecords[0]).to.have.property('newField2', 9);
       expect(logRecords[0]).to.have.property('newField3', true);
@@ -303,7 +301,7 @@ describe('Logger', () => {
       const logger = (await Logger.child('testSerializersLogger')).useMemoryLogging();
 
       // A test serializer
-      logger.getBunyanLogger().serializers.config = obj =>
+      logger.getBunyanLogger().serializers.config = (obj) =>
         _.reduce(
           obj,
           (acc, val, key) => {
@@ -321,7 +319,7 @@ describe('Logger', () => {
       // If the serializer was applied it should not log the 'foo' entry
       const msgOnError = 'Expected the config serializer to remove the "foo" entry from the log record ';
       expect(logRecords[0], msgOnError).to.have.deep.property('config', {
-        sid: '<sid - HIDDEN>'
+        sid: '<sid - HIDDEN>',
       });
     });
   });
@@ -330,6 +328,7 @@ describe('Logger', () => {
     let output;
     beforeEach(() => {
       Logger.destroyRoot();
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore enable debug logging
       debug.useColors = () => false;
       debug.enable('*');
@@ -343,8 +342,8 @@ describe('Logger', () => {
     it('should use root in output', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
-        output += error;
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
+        return (output += error);
       });
       const logger = await Logger.root();
       logger.warn('warn');
@@ -356,8 +355,8 @@ describe('Logger', () => {
     it('should use child name in output', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
-        output += error;
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
+        return (output += error);
       });
       const logger = (await Logger.root()).child('test');
       logger.warn('warn');
@@ -369,8 +368,8 @@ describe('Logger', () => {
     it('should include higher level', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
-        output += error;
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
+        return (output += error);
       });
       const logger = await Logger.root();
       // Logger is debug by default. Debug is lower than info.
@@ -383,8 +382,8 @@ describe('Logger', () => {
     it('should not include lower level', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake(error => {
-        output += error;
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
+        return (output += error);
       });
       const logger = await Logger.root();
       logger.setLevel(LoggerLevel.FATAL);
@@ -399,14 +398,15 @@ describe('Logger', () => {
     it('should transform to logfmt streams', () => {
       let output = '';
 
-      const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake(info => {
-        output += info;
+      // @ts-ignore
+      const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake((info) => {
+        return (output += info);
       });
 
       const testStream: LoggerStream = {
         name: 'test stream',
         level: LoggerLevel.INFO,
-        stream: process.stdout
+        stream: process.stdout,
       };
 
       const testLogger = new Logger({ name: 'testLogger', format: LoggerFormat.LOGFMT });
@@ -423,14 +423,15 @@ describe('Logger', () => {
     it('should wrap LogFmt message with quotes', () => {
       let output = '';
 
-      const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake(info => {
-        output += info;
+      // @ts-ignore
+      const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake((info) => {
+        return (output += info);
       });
 
       const testStream: LoggerStream = {
         name: 'test stream',
         level: LoggerLevel.INFO,
-        stream: process.stdout
+        stream: process.stdout,
       };
 
       const testLogger = new Logger({ name: 'testLogger', format: LoggerFormat.LOGFMT });

@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncOptionalCreatable, env } from '@salesforce/kit';
-import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
 import * as os from 'os';
 import { join as pathJoin } from 'path';
+import { ensure, Nullable, Optional } from '@salesforce/ts-types';
+import { AsyncOptionalCreatable, env } from '@salesforce/kit';
 import { retrieveKeychain } from './keyChain';
 import { KeyChain } from './keyChainImpl';
 import { Logger } from './logger';
@@ -19,7 +19,7 @@ import { SfdxError } from './sfdxError';
 
 const TAG_DELIMITER = ':';
 const BYTE_COUNT_FOR_IV = 6;
-const _algo = 'aes-256-gcm';
+const ALGO = 'aes-256-gcm';
 
 const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
@@ -37,11 +37,13 @@ interface CredType {
 const keychainPromises = {
   /**
    * Gets a password item.
+   *
+   * @param _keychain
    * @param service The keychain service name.
    * @param account The keychain account name.
    */
   getPassword(_keychain: KeyChain, service: string, account: string): Promise<CredType> {
-    return new Promise((resolve, reject) =>
+    return new Promise((resolve, reject): {} =>
       _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
         if (err) return reject(err);
         return resolve({ username: account, password: ensure(password) });
@@ -51,18 +53,20 @@ const keychainPromises = {
 
   /**
    * Sets a generic password item in OSX keychain.
+   *
+   * @param _keychain
    * @param service The keychain service name.
    * @param account The keychain account name.
    * @param password The password for the keychain item.
    */
   setPassword(_keychain: KeyChain, service: string, account: string, password: string): Promise<CredType> {
-    return new Promise((resolve, reject) =>
+    return new Promise((resolve, reject): {} =>
       _keychain.setPassword({ service, account, password }, (err: Nullable<Error>) => {
         if (err) return reject(err);
         return resolve({ username: account, password });
       })
     );
-  }
+  },
 };
 
 interface CryptoOptions {
@@ -76,7 +80,7 @@ interface CryptoOptions {
  * Class for managing encrypting and decrypting private auth information.
  */
 export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
-  private _key: SecureBuffer<string> = new SecureBuffer();
+  private key: SecureBuffer<string> = new SecureBuffer();
 
   private options: CryptoOptions;
 
@@ -87,6 +91,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   /**
    * Constructor
    * **Do not directly construct instances of this class -- use {@link Crypto.create} instead.**
+   *
    * @param options The options for the class instance.
    * @ignore
    */
@@ -97,6 +102,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
 
   /**
    * Encrypts text. Returns the encrypted string or undefined if no string was passed.
+   *
    * @param text The text to encrypt.
    */
   public encrypt(text?: string): Optional<string> {
@@ -104,15 +110,15 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
       return;
     }
 
-    if (this._key == null) {
+    if (this.key == null) {
       const errMsg = this.messages.getMessage('KeychainPasswordCreationError');
       throw new SfdxError(errMsg, 'KeychainPasswordCreationError');
     }
 
     const iv = crypto.randomBytes(BYTE_COUNT_FOR_IV).toString('hex');
 
-    return this._key.value((buffer: Buffer): string => {
-      const cipher = crypto.createCipheriv(_algo, buffer.toString('utf8'), iv);
+    return this.key.value((buffer: Buffer): string => {
+      const cipher = crypto.createCipheriv(ALGO, buffer.toString('utf8'), iv);
 
       let encrypted = cipher.update(text, 'utf8', 'hex');
       encrypted += cipher.final('hex');
@@ -124,6 +130,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
 
   /**
    * Decrypts text.
+   *
    * @param text The text to decrypt.
    */
   public decrypt(text?: string): Optional<string> {
@@ -143,8 +150,8 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     const iv = tokens[0].substring(0, BYTE_COUNT_FOR_IV * 2);
     const secret = tokens[0].substring(BYTE_COUNT_FOR_IV * 2, tokens[0].length);
 
-    return this._key.value((buffer: Buffer) => {
-      const decipher = crypto.createDecipheriv(_algo, buffer.toString('utf8'), iv);
+    return this.key.value((buffer: Buffer) => {
+      const decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), iv);
 
       let dec;
       try {
@@ -169,7 +176,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
    */
   public close(): void {
     if (!this.noResetOnClose) {
-      this._key.clear();
+      this.key.clear();
     }
   }
 
@@ -190,7 +197,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     this.noResetOnClose = !!this.options.noResetOnClose;
 
     try {
-      this._key.consume(
+      this.key.consume(
         Buffer.from(
           (await keychainPromises.getPassword(await this.getKeyChain(this.options.platform), KEY_NAME, ACCOUNT))
             .password,
@@ -219,7 +226,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     }
   }
 
-  private async getKeyChain(platform: string) {
+  private async getKeyChain(platform: string): Promise<KeyChain> {
     if (!this.options.keychain) {
       this.options.keychain = await retrieveKeychain(platform);
     }

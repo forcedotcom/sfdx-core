@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { setInterval } from 'timers';
@@ -40,6 +40,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
 
   /**
    * Constructor
+   *
    * @param options Polling client options
    * @ignore
    */
@@ -73,6 +74,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
             resolve(result.payload);
           } else {
             this.interval = setInterval(
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               PollingClient.prototype.doPoll.bind(this, resolve, reject),
               this.options.frequency.milliseconds
             );
@@ -80,6 +82,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
         })
         .catch(() => {
           this.interval = setInterval(
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             PollingClient.prototype.doPoll.bind(this, resolve, reject),
             this.options.frequency.milliseconds
           );
@@ -117,7 +120,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
     }
   }
 
-  private clearAll() {
+  private clearAll(): void {
     if (this.interval) {
       this.logger.debug('Clearing the polling interval');
       clearInterval(this.interval);
@@ -167,10 +170,11 @@ export namespace PollingClient {
 
     /**
      * constructor
+     *
      * @param poll The function used for polling status.
      * {@link StatusResult}
      */
-    constructor(poll: () => Promise<StatusResult>) {
+    public constructor(poll: () => Promise<StatusResult>) {
       this.poll = poll;
       this.timeout = Duration.minutes(3);
       this.frequency = Duration.seconds(15);

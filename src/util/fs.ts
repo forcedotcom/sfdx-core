@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { parseJson, parseJsonMap } from '@salesforce/kit';
-import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
-import * as fsLib from 'graceful-fs';
-import * as mkdirpLib from 'mkdirp';
 import * as path from 'path';
 import { promisify } from 'util';
+import { parseJson, parseJsonMap } from '@salesforce/kit';
+import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
+import * as fsLib from 'graceful-fs';
+import * as mkdirpLib from 'mkdirp';
 import { SfdxError } from '../sfdxError';
 
 type PerformFunction = (filePath: string, file?: string, dir?: string) => Promise<void>;
@@ -86,6 +86,7 @@ export const fs = Object.assign({}, fsLib, {
    *
    * **Throws** *PathIsNullOrUndefined* The path is not defined.
    * **Throws** *DirMissingOrNoAccess* The folder or any sub-folder is missing or has no access.
+   *
    * @param {string} dirPath The path to remove.
    */
   remove: async (dirPath: string): Promise<void> => {
@@ -95,12 +96,12 @@ export const fs = Object.assign({}, fsLib, {
     try {
       await fs.access(dirPath, fsLib.constants.R_OK);
     } catch (err) {
-      throw new SfdxError(`The path: ${dirPath} doesn\'t exist or access is denied.`, 'DirMissingOrNoAccess');
+      throw new SfdxError(`The path: ${dirPath} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
     }
     const files = await fs.readdir(dirPath);
-    const stats = await Promise.all(files.map(file => fs.stat(path.join(dirPath, file))));
+    const stats = await Promise.all(files.map((file) => fs.stat(path.join(dirPath, file))));
     const metas = stats.map((value, index) => Object.assign(value, { path: path.join(dirPath, files[index]) }));
-    await Promise.all(metas.map(meta => (meta.isDirectory() ? fs.remove(meta.path) : fs.unlink(meta.path))));
+    await Promise.all(metas.map((meta) => (meta.isDirectory() ? fs.remove(meta.path) : fs.unlink(meta.path))));
     await fs.rmdir(dirPath);
   },
 
@@ -111,6 +112,7 @@ export const fs = Object.assign({}, fsLib, {
    *
    * **Throws** *PathIsNullOrUndefined* The path is not defined.
    * **Throws** *DirMissingOrNoAccess* The folder or any sub-folder is missing or has no access.
+   *
    * @param {string} dirPath The path to remove.
    */
   removeSync: (dirPath: string): void => {
@@ -120,7 +122,7 @@ export const fs = Object.assign({}, fsLib, {
     try {
       fs.accessSync(dirPath, fsLib.constants.R_OK);
     } catch (err) {
-      throw new SfdxError(`The path: ${dirPath} doesn\'t exist or access is denied.`, 'DirMissingOrNoAccess');
+      throw new SfdxError(`The path: ${dirPath} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
     }
     fs.actOnSync(
       dirPath,
@@ -196,7 +198,7 @@ export const fs = Object.assign({}, fsLib, {
    */
   readJson: async (jsonPath: string, throwOnEmpty?: boolean): Promise<AnyJson> => {
     const fileData = await fs.readFile(jsonPath, 'utf8');
-    return await parseJson(fileData, jsonPath, throwOnEmpty);
+    return parseJson(fileData, jsonPath, throwOnEmpty);
   },
 
   /**
@@ -242,7 +244,7 @@ export const fs = Object.assign({}, fsLib, {
     const fileData: string = JSON.stringify(data, null, 4);
     await fs.writeFile(jsonPath, fileData, {
       encoding: 'utf8',
-      mode: fs.DEFAULT_USER_FILE_MODE
+      mode: fs.DEFAULT_USER_FILE_MODE,
     });
   },
 
@@ -256,7 +258,7 @@ export const fs = Object.assign({}, fsLib, {
     const fileData: string = JSON.stringify(data, null, 4);
     fs.writeFileSync(jsonPath, fileData, {
       encoding: 'utf8',
-      mode: fs.DEFAULT_USER_FILE_MODE
+      mode: fs.DEFAULT_USER_FILE_MODE,
     });
   },
 
@@ -392,13 +394,11 @@ export const fs = Object.assign({}, fsLib, {
 
   /**
    * Creates a hash for the string that's passed in
+   *
    * @param contents The string passed into the function
    * @returns string
    */
   getContentHash(contents: string | Buffer) {
-    return crypto
-      .createHash('sha1')
-      .update(contents)
-      .digest('hex');
-  }
+    return crypto.createHash('sha1').update(contents).digest('hex');
+  },
 });

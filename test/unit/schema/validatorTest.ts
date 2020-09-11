@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AnyJson, isJsonMap, JsonMap } from '@salesforce/ts-types';
-import { assert, expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
+import { AnyJson, isJsonMap, JsonMap } from '@salesforce/ts-types';
+import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
 import { SchemaValidator } from '../../../src/schema/validator';
 import { testSetup } from '../../../src/testSetup';
@@ -46,7 +46,7 @@ describe('schemaValidator', () => {
       const schema = {
         type: 'object',
         additionalProperties: false,
-        properties: {}
+        properties: {},
       };
       const data = { notValid: true };
       await checkError(schema, data, 'ValidationSchemaFieldErrors', 'notValid');
@@ -57,9 +57,9 @@ describe('schemaValidator', () => {
         type: 'object',
         properties: {
           myEnum: {
-            enum: ['a', 'b', 'c']
-          }
-        }
+            enum: ['a', 'b', 'c'],
+          },
+        },
       };
       const data = { myEnum: 'invalid' };
       await checkError(schema, data, 'ValidationSchemaFieldErrors', 'a, b, c');
@@ -70,8 +70,8 @@ describe('schemaValidator', () => {
         type: 'array',
         items: {
           type: 'object',
-          properties: {}
-        }
+          properties: {},
+        },
       };
       const data = { myEnum: 'invalid' };
       await checkError(
@@ -89,7 +89,7 @@ describe('schemaValidator', () => {
     // isn't a developer error of invalid schema references in those files.
     it('should reject unknown schema', async () => {
       const schema = {
-        $ref: 'unknown#/unknown'
+        $ref: 'unknown#/unknown',
       };
       await checkError(schema, {}, 'ValidationSchemaNotFound', 'not found');
     });
@@ -100,14 +100,14 @@ describe('schemaValidator', () => {
       type: 'object',
       properties: {
         ref: {
-          $ref: 'scratchOrgDefinitionSchema#'
-        }
-      }
+          $ref: 'scratchOrgDefinitionSchema#',
+        },
+      },
     };
     const data = {
       ref: {
-        Email: 'myEmail'
-      }
+        Email: 'myEmail',
+      },
     };
     const validatedData = await validate(schema, data);
     if (!isJsonMap(validatedData) || !isJsonMap(validatedData.ref)) {
@@ -122,14 +122,14 @@ describe('schemaValidator', () => {
       type: 'object',
       properties: {
         ref: {
-          $ref: 'scratchOrgDefinitionSchema#definitions/name'
-        }
-      }
+          $ref: 'scratchOrgDefinitionSchema#definitions/name',
+        },
+      },
     };
     const data = {
       ref: {
-        Email: 'myEmail'
-      }
+        Email: 'myEmail',
+      },
     };
     const validatedData = await validate(schema, data);
     if (!isJsonMap(validatedData) || !isJsonMap(validatedData.ref)) {
@@ -140,12 +140,13 @@ describe('schemaValidator', () => {
 
   describe('schemas', () => {
     it('should not have `not found` errors', () => {
-      fs.readdirSync(SCHEMA_DIR).forEach(schemaName => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      fs.readdirSync(SCHEMA_DIR).forEach((schemaName) => {
         const schemaPath = path.join(SCHEMA_DIR, schemaName);
         const validator = new SchemaValidator($$.TEST_LOGGER, schemaPath);
 
         // If the schemas reference an invalid external error, then validation will fail.
-        return validator.validate({}).catch(err => {
+        return validator.validate({}).catch((err) => {
           // We are passing in empty data, so it is OK if we get an actual data field validation error.
           if (err.name !== 'ValidationSchemaFieldErrors') {
             throw err;

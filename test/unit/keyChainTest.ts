@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as path from 'path';
 import { Nullable } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as _ from 'lodash';
-import * as path from 'path';
 import { retrieveKeychain } from '../../src/keyChain';
 import { GenericUnixKeychainAccess, GenericWindowsKeychainAccess, keyChainImpl } from '../../src/keyChainImpl';
 import { testSetup } from '../../src/testSetup';
@@ -34,23 +34,23 @@ describe('keyChain', () => {
   });
 
   it('should return OSX keychain and lib secret', () => {
-    $$.SANDBOX.stub(keyChainImpl.linux, 'validateProgram').returns({});
+    $$.SANDBOX.stub(keyChainImpl.linux, 'validateProgram').resolves();
 
     const testArray = [
       { osName: 'linux', validateString: 'secret' },
       {
         osName: 'darwin',
-        validateString: 'security'
-      }
+        validateString: 'security',
+      },
     ];
 
-    const promiseArray = testArray.map(obj => retrieveKeychain(obj.osName));
+    const promiseArray = testArray.map((obj) => retrieveKeychain(obj.osName));
 
-    return Promise.all(promiseArray).then(_keychains => {
-      _.forEach(_keychains, _keychain => {
+    return Promise.all(promiseArray).then((_keychains) => {
+      _.forEach(_keychains, (_keychain: any) => {
         expect(_keychain).to.have.property('osImpl');
         const program = _keychain['osImpl'].getProgram();
-        const testArrayMeta = _.find(testArray, elem => program.includes(elem.validateString));
+        const testArrayMeta = _.find(testArray, (elem: any) => program.includes(elem.validateString));
         expect(testArrayMeta == null).to.be.false;
       });
     });
@@ -77,8 +77,8 @@ describe('keyChain', () => {
     const windowsKeychain = await retrieveKeychain('windows');
 
     const accessSpy = $$.SANDBOX.spy(fs, 'access');
-    const writeFileStub = $$.SANDBOX.stub(fs, 'writeFile').returns(Promise.resolve(null));
-    const mkdirpStub = $$.SANDBOX.stub(fs, 'mkdirp').returns(Promise.resolve());
+    const writeFileStub = $$.SANDBOX.stub(fs, 'writeFile').resolves(undefined);
+    const mkdirpStub = $$.SANDBOX.stub(fs, 'mkdirp').resolves();
 
     const service = 'sfdx';
     const account = 'local';
@@ -87,7 +87,7 @@ describe('keyChain', () => {
       .getPassword({ service, account }, (getPasswordError: Nullable<Error>) => {
         expect(getPasswordError).have.property('name', 'PasswordNotFoundError');
         expect(accessSpy.called).to.be.true;
-        const arg: string = accessSpy.args[0][0];
+        const arg: string = accessSpy.args[0][0] as string;
         expect(arg.endsWith('.sfdx')).to.be.true;
         accessSpy.resetHistory();
       })

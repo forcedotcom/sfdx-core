@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
 import * as crypto from 'crypto';
+import { expect } from 'chai';
 import { stub } from 'sinon';
 import { SecureBuffer } from '../../src/secureBuffer';
 
-describe('secureBuffer', async () => {
+describe('secureBuffer', () => {
   const secretText = 'FOO';
   const testReturnValue = 'BAR';
   const secretTextBuffer: Buffer = Buffer.from(secretText, 'utf8');
@@ -17,13 +17,11 @@ describe('secureBuffer', async () => {
   it('validate consuming a buffer - encrypting and decrypting', () => {
     const sString: SecureBuffer<string> = new SecureBuffer();
     sString.consume(secretTextBuffer);
-    const value = sString.value(
-      (buffer: Buffer): string => {
-        expect(buffer.toString('utf8')).to.be.equal(secretText);
-        expect(secretTextBuffer.toString('utf8')).to.not.be.equal(secretText);
-        return testReturnValue;
-      }
-    );
+    const value = sString.value((buffer: Buffer): string => {
+      expect(buffer.toString('utf8')).to.be.equal(secretText);
+      expect(secretTextBuffer.toString('utf8')).to.not.be.equal(secretText);
+      return testReturnValue;
+    });
     expect(value).to.equal(testReturnValue);
   });
 
@@ -63,7 +61,7 @@ describe('secureBuffer', async () => {
       const secure = new SecureBuffer();
       secure.consume(Buffer.from(secretText, 'utf8'));
       expect(createCipherStub.calledOnce).to.be.true;
-      secure.value(val => expect(val.toString('utf8')).to.be.equal(secretText));
+      secure.value((val) => expect(val.toString('utf8')).to.be.equal(secretText));
       expect(createDecipherStub.calledOnce).to.be.true;
     } finally {
       createCipherStub.restore();

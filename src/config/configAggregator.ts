@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
@@ -10,7 +10,7 @@ import { AnyJson, definiteEntriesOf, Dictionary, get, isJsonMap, JsonMap, Option
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
-const propertyToEnvName = (property: string) => `SFDX_${snakeCase(property).toUpperCase()}`;
+const propertyToEnvName = (property: string): string => `SFDX_${snakeCase(property).toUpperCase()}`;
 
 /**
  * Information about a config property.
@@ -67,6 +67,37 @@ export interface ConfigInfo {
  * ```
  */
 export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
+  private static instance: AsyncOptionalCreatable;
+  private static encrypted = true;
+
+  // Initialized in loadProperties
+  private allowedProperties!: ConfigPropertyMeta[];
+  private localConfig!: Config;
+  private globalConfig!: Config;
+  private envVars!: Dictionary<string>;
+  private config!: JsonMap;
+  /**
+   * **Do not directly construct instances of this class -- use {@link ConfigAggregator.create} instead.**
+   *
+   * @ignore
+   */
+  public constructor(options?: JsonMap) {
+    super(options || {});
+
+    // Don't throw an project error with the aggregator, since it should resolve to global if
+    // there is no project.
+    try {
+      this.setLocalConfig(new Config(Config.getDefaultOptions(false)));
+    } catch (err) {
+      if (err.name !== 'InvalidProjectWorkspace') {
+        throw err;
+      }
+    }
+
+    this.setGlobalConfig(new Config(Config.getDefaultOptions(true)));
+
+    this.setAllowedProperties(Config.getAllowedProperties());
+  }
   /**
    * Get the static ConfigAggregator instance. If one doesn't exist, one will be created with
    * the **encrypted** config values. Encrypted config values need to be resolved
@@ -102,42 +133,11 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   /**
    * Get the info for a given key. If the ConfigAggregator was not asynchronously created OR
    * the {@link ConfigAggregator.reload} was not called, the config value may be encrypted.
+   *
    * @param key The config key.
    */
   public static getValue(key: string): ConfigInfo {
     return this.getInstance().getInfo(key);
-  }
-
-  private static instance: AsyncOptionalCreatable;
-  private static encrypted = true;
-
-  // Initialized in loadProperties
-  private allowedProperties!: ConfigPropertyMeta[];
-  private localConfig!: Config;
-  private globalConfig!: Config;
-  private envVars!: Dictionary<string>;
-  private config!: JsonMap;
-
-  /**
-   * **Do not directly construct instances of this class -- use {@link ConfigAggregator.create} instead.**
-   * @ignore
-   */
-  public constructor(options?: JsonMap) {
-    super(options || {});
-
-    // Don't throw an project error with the aggregator, since it should resolve to global if
-    // there is no project.
-    try {
-      this.setLocalConfig(new Config(Config.getDefaultOptions(false)));
-    } catch (err) {
-      if (err.name !== 'InvalidProjectWorkspace') {
-        throw err;
-      }
-    }
-
-    this.setGlobalConfig(new Config(Config.getDefaultOptions(true)));
-
-    this.setAllowedProperties(Config.getAllowedProperties());
   }
 
   /**
@@ -155,7 +155,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * @param key The key of the property.
    */
   public getPropertyValue(key: string): Optional<AnyJson> {
-    if (this.getAllowedProperties().some(element => key === element.key)) {
+    if (this.getAllowedProperties().some((element) => key === element.key)) {
       return this.getConfig()[key];
     } else {
       throw new SfdxError(`Unknown config key: ${key}`, 'UnknownConfigKey');
@@ -176,7 +176,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
       path: this.getPath(key),
       isLocal: () => location === ConfigAggregator.Location.LOCAL,
       isGlobal: () => location === ConfigAggregator.Location.GLOBAL,
-      isEnvVar: () => location === ConfigAggregator.Location.ENVIRONMENT
+      isEnvVar: () => location === ConfigAggregator.Location.ENVIRONMENT,
     };
   }
 
@@ -218,7 +218,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   public getPath(key: string): Optional<string> {
     if (this.envVars[key] != null) {
-      return `\$${propertyToEnvName(key)}`;
+      return `$${propertyToEnvName(key)}`;
     }
     if (get(this.getLocalConfig(), `contents[${key}]`) != null) {
       return this.getLocalConfig().getPath();
@@ -241,7 +241,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   public getConfigInfo(): ConfigInfo[] {
     const infos = Object.keys(this.getConfig())
-      .map(key => this.getInfo(key))
+      .map((key) => this.getInfo(key))
       .filter((info): info is ConfigInfo => !!info);
     return sortBy(infos, 'key');
   }
@@ -328,6 +328,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
   /**
    * Set the resolved config object.
+   *
    * @param config The config object to set.
    */
   private setConfig(config: JsonMap) {
@@ -336,6 +337,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
   /**
    * Set the local config object.
+   *
    * @param config The config object value to set.
    */
   private setLocalConfig(config: Config) {
@@ -344,6 +346,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
   /**
    * Set the global config object.
+   *
    * @param config The config object value to set.
    */
   private setGlobalConfig(config: Config) {
@@ -359,6 +362,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
   /**
    * Set the allowed properties.
+   *
    * @param properties The properties to set.
    */
   private setAllowedProperties(properties: ConfigPropertyMeta[]) {
@@ -367,6 +371,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
   /**
    * Sets the env variables.
+   *
    * @param envVars The env variables to set.
    */
   private setEnvVars(envVars: Dictionary<string>) {
@@ -392,6 +397,6 @@ export namespace ConfigAggregator {
     /**
      * Represents environment variables.
      */
-    ENVIRONMENT = 'Environment'
+    ENVIRONMENT = 'Environment',
   }
 }

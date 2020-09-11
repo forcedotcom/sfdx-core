@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ensureJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
@@ -17,11 +17,8 @@ describe('ConfigGroup retrieve calls read', () => {
   const filename = 'test_keyvalue.json';
   beforeEach(async () => {
     $$.setConfigStubContents('ConfigGroup', {
-      contents: { orgs: { foo: 'foo@example.com' } }
+      contents: { orgs: { foo: 'foo@example.com' } },
     });
-
-    const contents = $$.getConfigStubContents('ConfigGroup', 'orgs');
-    console.log(`contents: ${JSON.stringify(contents, null, 4)}`);
   });
 
   it('file already exists', async () => {
@@ -48,6 +45,7 @@ describe('ConfigGroup', () => {
 
   it('setDefaultGroup: false value for groupname', async () => {
     try {
+      // @ts-ignore
       store.setDefaultGroup(undefined);
       assert.fail("This call shouldn't succeed");
     } catch (e) {
@@ -106,7 +104,7 @@ describe('ConfigGroup', () => {
 
   it('set contents from object', async () => {
     store.setContentsFromObject({
-      default: { test1: 'val1', test2: 'val2' }
+      default: { test1: 'val1', test2: 'val2' },
     });
     expect(store.get('test1')).equals('val1');
     expect(store.get('test2')).equals('val2');
@@ -116,18 +114,22 @@ describe('ConfigGroup', () => {
     store.set('test1', 'val1');
     store.set('test2', 'val2');
     expect(store.toObject()).to.deep.equal({
-      default: { test1: 'val1', test2: 'val2' }
+      default: { test1: 'val1', test2: 'val2' },
     });
   });
 
   it('returns a list of values under a group', async () => {
     store.setContentsFromObject({
-      default: { test1: 'val1', test2: 'val2', test3: 'val3' }
+      default: { test1: 'val1', test2: 'val2', test3: 'val3' },
     });
 
     expect(store.keys()).to.deep.equal(['test1', 'test2', 'test3']);
     expect(store.values()).to.deep.equal(['val1', 'val2', 'val3']);
-    expect(store.entries()).to.deep.equal([['test1', 'val1'], ['test2', 'val2'], ['test3', 'val3']]);
+    expect(store.entries()).to.deep.equal([
+      ['test1', 'val1'],
+      ['test2', 'val2'],
+      ['test3', 'val3'],
+    ]);
   });
 
   describe('write', () => {
@@ -141,6 +143,7 @@ describe('ConfigGroup', () => {
     describe('updateValues', () => {
       it('one value', async () => {
         await store.updateValues({ another: 'val' });
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
         const contents = $$.getConfigStubContents('ConfigGroup', 'default');
         expect(contents.another).to.equal('val');
@@ -148,6 +151,7 @@ describe('ConfigGroup', () => {
 
       it('two of same value', async () => {
         await store.updateValues({ another: 'val', some: 'val' });
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
         const contents = $$.getConfigStubContents('ConfigGroup', 'default');
         expect(contents.another).to.equal('val');

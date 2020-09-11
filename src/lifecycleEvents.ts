@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { AnyJson, Dictionary } from '@salesforce/ts-types';
 import * as Debug from 'debug';
 
 // Data of any type can be passed to the callback. Can be cast to any type that is given in emit().
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type callback = (data: any) => Promise<void>;
 
 /**
@@ -31,6 +31,13 @@ type callback = (data: any) => Promise<void>;
  * ```
  */
 export class Lifecycle {
+  private static instance: Lifecycle;
+  private debug = Debug(`sfdx:${this.constructor.name}`);
+  private readonly listeners: Dictionary<callback[]>;
+
+  private constructor() {
+    this.listeners = {};
+  }
   /**
    * Retrieve the singleton instance of this class so that all listeners and emitters can interact from any library or tool
    */
@@ -41,24 +48,18 @@ export class Lifecycle {
     return this.instance;
   }
 
-  private static instance: Lifecycle;
-  private debug = Debug(`sfdx:${this.constructor.name}`);
-  private listeners: Dictionary<callback[]>;
-
-  private constructor() {
-    this.listeners = {};
-  }
-
   /**
    * Remove all listeners for a given event
+   *
    * @param eventName The name of the event to remove listeners of
    */
-  public removeAllListeners(eventName: string) {
+  public removeAllListeners(eventName: string): void {
     this.listeners[eventName] = [];
   }
 
   /**
    * Get an array of listeners (callback functions) for a given event
+   *
    * @param eventName The name of the event to get listeners of
    */
   public getListeners(eventName: string): callback[] {
@@ -73,16 +74,19 @@ export class Lifecycle {
 
   /**
    * Create a new listener for a given event
+   *
    * @param eventName The name of the event that is being listened for
    * @param cb The callback function to run when the event is emitted
    */
-  public on<T = AnyJson>(eventName: string, cb: (data: T) => Promise<void>) {
+  public on<T = AnyJson>(eventName: string, cb: (data: T) => Promise<void>): void {
     const listeners = this.getListeners(eventName);
     if (listeners.length !== 0) {
       this.debug(
-        `${listeners.length +
-          1} lifecycle events with the name ${eventName} have now been registered. When this event is emitted all ${listeners.length +
-          1} listeners will fire.`
+        `${
+          listeners.length + 1
+        } lifecycle events with the name ${eventName} have now been registered. When this event is emitted all ${
+          listeners.length + 1
+        } listeners will fire.`
       );
     }
     listeners.push(cb);
@@ -91,10 +95,11 @@ export class Lifecycle {
 
   /**
    * Emit a given event, causing all callback functions to be run in the order they were registered
+   *
    * @param eventName The name of the event to emit
    * @param data The argument to be passed to the callback function
    */
-  public async emit<T = AnyJson>(eventName: string, data: T) {
+  public async emit<T = AnyJson>(eventName: string, data: T): Promise<void> {
     const listeners = this.getListeners(eventName);
     if (listeners.length === 0) {
       this.debug(

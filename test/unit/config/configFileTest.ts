@@ -1,20 +1,23 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
 import * as Path from 'path';
+import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';
 import { ConfigFile } from '../../../src/config/configFile';
+import { SfdxError } from '../../../src/exported';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 
 const $$ = testSetup();
 
 class TestConfig extends ConfigFile<ConfigFile.Options> {
+  private static testId: string = $$.uniqid();
+
   public static getTestLocalPath() {
     return $$.localPathRetrieverSync(TestConfig.testId);
   }
@@ -30,15 +33,13 @@ class TestConfig extends ConfigFile<ConfigFile.Options> {
       filename,
       isGlobal,
       isState,
-      filePath
+      filePath,
     };
   }
 
   public static getFileName() {
     return 'testFileName';
   }
-
-  private static testId: string = $$.uniqid();
 }
 
 describe('Config', () => {
@@ -75,33 +76,31 @@ describe('Config', () => {
   });
   describe('creation', () => {
     it('not using global has project dir', async () => {
-      const config = await TestConfig.create(await TestConfig.getOptions('test', false));
-      expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());
+      const config = await TestConfig.create(TestConfig.getOptions('test', false));
+      expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
     });
     it('using global does not have project dir', async () => {
-      const config = await TestConfig.create(await TestConfig.getOptions('test', true));
-      expect(config.getPath()).to.not.contain(await TestConfig.getTestLocalPath());
+      const config = await TestConfig.create(TestConfig.getOptions('test', true));
+      expect(config.getPath()).to.not.contain(TestConfig.getTestLocalPath());
     });
     it('using state folder for global even when state is set to false', async () => {
-      const config = await TestConfig.create(await TestConfig.getOptions('test', true, false));
-      expect(config.getPath()).to.not.contain(await TestConfig.getTestLocalPath());
+      const config = await TestConfig.create(TestConfig.getOptions('test', true, false));
+      expect(config.getPath()).to.not.contain(TestConfig.getTestLocalPath());
       expect(config.getPath()).to.contain('.sfdx');
     });
     it('using local state folder', async () => {
-      const config = await TestConfig.create(await TestConfig.getOptions('test', false, true));
-      expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());
+      const config = await TestConfig.create(TestConfig.getOptions('test', false, true));
+      expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
       expect(config.getPath()).to.contain('.sfdx');
     });
     it('using local file', async () => {
-      const config = await TestConfig.create(await TestConfig.getOptions('test', false, false));
-      expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());
+      const config = await TestConfig.create(TestConfig.getOptions('test', false, false));
+      expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
       expect(config.getPath()).to.not.contain('.sfdx');
     });
     it('using local custom folder', async () => {
-      const config = await TestConfig.create(
-        await TestConfig.getOptions('test', false, false, Path.join('my', 'path'))
-      );
-      expect(config.getPath()).to.contain(await TestConfig.getTestLocalPath());
+      const config = await TestConfig.create(TestConfig.getOptions('test', false, false, Path.join('my', 'path')));
+      expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
       expect(config.getPath()).to.not.contain('.sfdx');
       expect(config.getPath()).to.contain(Path.join('my', 'path', 'test'));
     });
@@ -228,11 +227,12 @@ describe('Config', () => {
   });
 
   describe('read()', () => {
-    let readJsonMapStub;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let readJsonMapStub: any;
     let config: TestConfig;
 
     const testFileContents = {
-      foo: 'bar'
+      foo: 'bar',
     };
 
     beforeEach(async () => {
@@ -243,9 +243,10 @@ describe('Config', () => {
     it('caches file contents', async () => {
       readJsonMapStub.callsFake(async () => testFileContents);
       // TestConfig.create() calls read()
-      config = await TestConfig.create(await TestConfig.getOptions('test', false, true));
+      config = await TestConfig.create(TestConfig.getOptions('test', false, true));
       expect(readJsonMapStub.calledOnce).to.be.true;
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal(testFileContents);
@@ -257,28 +258,29 @@ describe('Config', () => {
     });
 
     it('sets contents as empty object when file does not exist', async () => {
-      const err = new Error();
-      err['code'] = 'ENOENT';
+      const err = SfdxError.wrap(new Error());
+      err.code = 'ENOENT';
       readJsonMapStub.throws(err);
 
-      config = await TestConfig.create(await TestConfig.getOptions('test', false, true));
+      config = await TestConfig.create(TestConfig.getOptions('test', false, true));
       expect(readJsonMapStub.calledOnce).to.be.true;
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal({});
     });
 
     it('throws when file does not exist and throwOnNotFound=true', async () => {
-      const err = new Error('not here');
+      const err = SfdxError.wrap(new Error('not here'));
       err.name = 'FileNotFound';
-      err['code'] = 'ENOENT';
+      err.code = 'ENOENT';
       readJsonMapStub.throws(err);
 
       const configOptions = {
         filename: 'test',
         isGlobal: true,
-        throwOnNotFound: true
+        throwOnNotFound: true,
       };
 
       try {
@@ -289,8 +291,9 @@ describe('Config', () => {
     });
 
     it('sets hasRead=false by default', async () => {
-      const configOptions = await TestConfig.getOptions('test', false, true);
+      const configOptions = TestConfig.getOptions('test', false, true);
       const testConfig = new TestConfig(configOptions);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(testConfig.hasRead).to.be.false;
     });
@@ -298,9 +301,10 @@ describe('Config', () => {
     it('forces another read of the config file with force=true', async () => {
       readJsonMapStub.callsFake(async () => testFileContents);
       // TestConfig.create() calls read()
-      config = await TestConfig.create(await TestConfig.getOptions('test', false, true));
+      config = await TestConfig.create(TestConfig.getOptions('test', false, true));
       expect(readJsonMapStub.calledOnce).to.be.true;
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal(testFileContents);
@@ -313,11 +317,12 @@ describe('Config', () => {
   });
 
   describe('readSync()', () => {
-    let readJsonMapStub;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let readJsonMapStub: any;
     let config: TestConfig;
 
     const testFileContents = {
-      foo: 'bar'
+      foo: 'bar',
     };
 
     beforeEach(async () => {
@@ -331,10 +336,12 @@ describe('Config', () => {
       config = new TestConfig(TestConfig.getOptions('test', false, true));
       expect(readJsonMapStub.calledOnce).to.be.false;
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.false;
 
       config.readSync(false, false);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal(testFileContents);
@@ -346,29 +353,30 @@ describe('Config', () => {
     });
 
     it('sets contents as empty object when file does not exist', () => {
-      const err = new Error();
-      err['code'] = 'ENOENT';
+      const err = SfdxError.wrap(new Error());
+      err.code = 'ENOENT';
       readJsonMapStub.throws(err);
 
       config = new TestConfig(TestConfig.getOptions('test', false, true));
       config.readSync();
       expect(readJsonMapStub.calledOnce).to.be.true;
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal({});
     });
 
     it('throws when file does not exist and throwOnNotFound=true on method call', () => {
-      const err = new Error('not here');
+      const err = SfdxError.wrap(new Error('not here'));
       err.name = 'FileNotFound';
-      err['code'] = 'ENOENT';
+      err.code = 'ENOENT';
       readJsonMapStub.throws(err);
 
       const configOptions = {
         filename: 'test',
         isGlobal: true,
-        throwOnNotFound: false
+        throwOnNotFound: false,
       };
 
       try {
@@ -386,7 +394,8 @@ describe('Config', () => {
       config = new TestConfig(TestConfig.getOptions('test', false, true));
       config.readSync();
 
-      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      // -> hasRead is protected. Ignore for testing.
+      // @ts-ignore
       expect(config.hasRead).to.be.true;
 
       // Read again.  Stub should now be called twice.

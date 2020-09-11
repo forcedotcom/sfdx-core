@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
 import * as path from 'path';
+import { expect } from 'chai';
 import { Global, Mode } from '../../src/global';
 import { testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
@@ -40,20 +40,20 @@ describe('Global', () => {
 
   describe('createDir', () => {
     it('should create the global dir when no args passed', async () => {
-      $$.SANDBOX.stub(fs, 'mkdirp').returns(Promise.resolve());
+      const mkdirpSpy = $$.SANDBOX.spy(fs, 'mkdirp');
       await Global.createDir();
-      expect(fs.mkdirp['called']).to.be.true;
-      expect(fs.mkdirp['firstCall'].args[0]).to.equal(Global.DIR);
-      expect(fs.mkdirp['firstCall'].args[1]).to.equal(fs.DEFAULT_USER_DIR_MODE);
+      expect(mkdirpSpy.called).to.be.true;
+      expect(mkdirpSpy.firstCall.args[0]).to.equal(Global.DIR);
+      expect(mkdirpSpy.firstCall.args[1]).to.equal(fs.DEFAULT_USER_DIR_MODE);
     });
 
     it('should create a dir within the global dir when a dirPath is passed', async () => {
-      $$.SANDBOX.stub(fs, 'mkdirp').returns(Promise.resolve());
+      const mkdirpSpy = $$.SANDBOX.spy(fs, 'mkdirp');
       const dirPath = path.join('some', 'dir', 'path');
       await Global.createDir(dirPath);
-      expect(fs.mkdirp['called']).to.be.true;
-      expect(fs.mkdirp['firstCall'].args[0]).to.equal(path.join(Global.DIR, dirPath));
-      expect(fs.mkdirp['firstCall'].args[1]).to.equal(fs.DEFAULT_USER_DIR_MODE);
+      expect(mkdirpSpy.called).to.be.true;
+      expect(mkdirpSpy.firstCall.args[0]).to.equal(path.join(Global.DIR, dirPath));
+      expect(mkdirpSpy.firstCall.args[1]).to.equal(fs.DEFAULT_USER_DIR_MODE);
     });
   });
 });

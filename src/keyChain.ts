@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { env } from '@salesforce/kit';
@@ -12,6 +12,7 @@ import { SfdxError } from './sfdxError';
 
 /**
  * Gets the os level keychain impl.
+ *
  * @param platform The os platform.
  * @ignore
  */
@@ -20,11 +21,11 @@ export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
   logger.debug(`platform: ${platform}`);
 
   const useGenericUnixKeychainVar = env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN');
-  const shouldUseGenericUnixKeychain = !!useGenericUnixKeychainVar && useGenericUnixKeychainVar;
+  const shouldUseGenericUnixKeychain = useGenericUnixKeychainVar && useGenericUnixKeychainVar;
 
-  if (/^win/.test(platform)) {
+  if (platform.startsWith('win')) {
     return keyChainImpl.generic_windows;
-  } else if (/darwin/.test(platform)) {
+  } else if (platform.includes('darwin')) {
     // OSX can use the generic keychain. This is useful when running under an
     // automation user.
     if (shouldUseGenericUnixKeychain) {
@@ -32,7 +33,7 @@ export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
     } else {
       return keyChainImpl.darwin;
     }
-  } else if (/linux/.test(platform)) {
+  } else if (platform.includes('linux')) {
     // Use the generic keychain if specified
     if (shouldUseGenericUnixKeychain) {
       return keyChainImpl.generic_unix;

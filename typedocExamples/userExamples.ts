@@ -1,4 +1,3 @@
-// tslint:disable
 import { DefaultUserFields, User, UserFields } from '../src/user';
 import { Org } from '../src/org';
 import { Connection } from '../src/connection';
@@ -6,10 +5,12 @@ import { AuthInfo } from '../src/authInfo';
 
 export const userExamples = {
   defaultUserFieldsClassDoc: async () => {
-    const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({username: 'user@example.com'})});
+    const connection: Connection = await Connection.create({
+      authInfo: await AuthInfo.create({ username: 'user@example.com' }),
+    });
     const org: Org = await Org.create({ connection });
     const options: DefaultUserFields.Options = {
-      templateUser: org.getUsername()
+      templateUser: org.getUsername(),
     };
     const fields = (await DefaultUserFields.create(options)).getFields();
     console.log(fields);
@@ -17,15 +18,17 @@ export const userExamples = {
 
   assignPermissionSets: async () => {
     const username = 'user@example.com';
-    const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({ username })});
+    const connection: Connection = await Connection.create({ authInfo: await AuthInfo.create({ username }) });
     const org = await Org.create({ connection });
     const user: User = await User.create({ org });
-      const fields: UserFields = await user.retrieve(username);
+    const fields: UserFields = await user.retrieve(username);
     await user.assignPermissionSets(fields.id, ['sfdx', 'approver']);
   },
 
   createUser: async () => {
-    const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({username: 'user@example.com'})});
+    const connection: Connection = await Connection.create({
+      authInfo: await AuthInfo.create({ username: 'user@example.com' }),
+    });
     const org = await Org.create({ connection });
 
     const defaultUserFields = await DefaultUserFields.create({ templateUser: 'devhub_user@example.com' });
@@ -36,10 +39,10 @@ export const userExamples = {
 
   retrieve: async () => {
     const username = 'boris@thecat.com';
-    const connection: Connection = await Connection.create({authInfo: await AuthInfo.create({ username })});
+    const connection: Connection = await Connection.create({ authInfo: await AuthInfo.create({ username }) });
     const org = await Org.create({ connection });
     const user: User = await User.create({ org });
     const fields: UserFields = await user.retrieve(username);
     console.log(fields);
-  }
+  },
 };

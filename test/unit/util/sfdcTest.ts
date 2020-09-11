@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
 import { sfdc } from '../../../src/util/sfdc';
@@ -44,7 +44,7 @@ describe('util/sfdc', () => {
 
     it('should return false for 42.0', () => {
       const num = 42.0;
-      expect(sfdc.validateApiVersion(num as any)).to.be.false; // tslint:disable-line:no-any
+      expect(sfdc.validateApiVersion(num as never)).to.be.false;
     });
   });
 
@@ -102,7 +102,7 @@ describe('util/sfdc', () => {
       const testObj = {
         lowercase: true,
         UpperCase: false,
-        nested: { camelCase: true }
+        nested: { camelCase: true },
       };
       expect(sfdc.findUpperCaseKeys(testObj)).to.equal('UpperCase');
     });
@@ -111,7 +111,7 @@ describe('util/sfdc', () => {
       const testObj = {
         lowercase: true,
         uppercase: false,
-        nested: { NestedUpperCase: true }
+        nested: { NestedUpperCase: true },
       };
       expect(sfdc.findUpperCaseKeys(testObj)).to.equal('NestedUpperCase');
     });
@@ -120,7 +120,7 @@ describe('util/sfdc', () => {
       const testObj = {
         lowercase: true,
         uppercase: false,
-        nested: { camelCase: true }
+        nested: { camelCase: true },
       };
       expect(sfdc.findUpperCaseKeys(testObj)).to.be.undefined;
     });
@@ -129,7 +129,7 @@ describe('util/sfdc', () => {
       const testObj = {
         lowercase: true,
         uppercase: false,
-        nested: { NestedUpperCase: true }
+        nested: { NestedUpperCase: true },
       };
       expect(sfdc.findUpperCaseKeys(testObj, ['nested'])).to.equal(undefined);
     });

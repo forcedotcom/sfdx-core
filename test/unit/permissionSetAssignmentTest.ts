@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
 import { AuthInfo } from '../../src/authInfo';
@@ -25,30 +25,32 @@ describe('permission set assignment tests', () => {
     beforeEach(async () => {
       org = await Org.create({
         connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: userTestdata.username })
-        })
+          authInfo: await AuthInfo.create({ username: userTestdata.username }),
+        }),
       });
     });
 
     it('should create a perm set assignment.', async () => {
       let query = '';
+      // @ts-ignore
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
           return {
             records: [{ Id: '123456' }],
-            totalSize: 1
+            totalSize: 1,
           };
         }
 
         return {};
       });
 
+      // @ts-ignore
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
         return {
           create() {
             return Promise.resolve({ success: true });
-          }
+          },
         };
       });
 
@@ -65,23 +67,25 @@ describe('permission set assignment tests', () => {
 
     it('Failed to find permsets with namespace', async () => {
       let query = '';
+      // @ts-ignore
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
           return {
             records: [],
-            totalSize: 0
+            totalSize: 0,
           };
         }
 
         return {};
       });
 
+      // @ts-ignore
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
         return {
           create() {
             return Promise.resolve({ success: true });
-          }
+          },
         };
       });
 
@@ -97,23 +101,25 @@ describe('permission set assignment tests', () => {
 
     it('Failed to find permsets without namespace', async () => {
       let query = '';
+      // @ts-ignore
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
           return {
             records: [],
-            totalSize: 0
+            totalSize: 0,
           };
         }
 
         return {};
       });
 
+      // @ts-ignore
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
         return {
           create() {
             return Promise.resolve({ success: true });
-          }
+          },
         };
       });
 
@@ -128,23 +134,25 @@ describe('permission set assignment tests', () => {
 
     it('permset assignment with errors', async () => {
       let query = '';
+      // @ts-ignore
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
           return {
             records: [{ Id: '123456' }],
-            totalSize: 1
+            totalSize: 1,
           };
         }
 
         return {};
       });
 
+      // @ts-ignore
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
         return {
           create() {
             return Promise.resolve({ errors: ['error one', 'error two'] });
-          }
+          },
         };
       });
 
@@ -160,23 +168,25 @@ describe('permission set assignment tests', () => {
 
     it('permset assignment with empty errors', async () => {
       let query = '';
+      // @ts-ignore
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
           return {
             records: [{ Id: '123456' }],
-            totalSize: 1
+            totalSize: 1,
           };
         }
 
         return {};
       });
 
+      // @ts-ignore
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
         return {
           create() {
             return Promise.resolve({ errors: [] });
-          }
+          },
         };
       });
 

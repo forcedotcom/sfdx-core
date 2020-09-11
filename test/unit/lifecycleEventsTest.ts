@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Duration, sleep } from '@salesforce/kit/lib/duration';
 import { spyMethod } from '@salesforce/ts-sinon';
@@ -33,10 +33,10 @@ describe('lifecycleEvents', () => {
   });
 
   it('succsssful event registration and emitting causes the callback to be called', async () => {
-    Lifecycle.getInstance().on('test1', async result => {
+    Lifecycle.getInstance().on('test1', async (result) => {
       fake.bar('test1', result);
     });
-    Lifecycle.getInstance().on('test2', async result => {
+    Lifecycle.getInstance().on('test2', async (result) => {
       fake.bar('test1', result);
     });
     chai.expect(fakeSpy.callCount).to.be.equal(0);
@@ -51,10 +51,10 @@ describe('lifecycleEvents', () => {
   });
 
   it('an event registering twice logs a warning but creates two listeners that both fire when emitted', async () => {
-    Lifecycle.getInstance().on('test3', async result => {
+    Lifecycle.getInstance().on('test3', async (result) => {
       fake.bar('test3', result);
     });
-    Lifecycle.getInstance().on('test3', async result => {
+    Lifecycle.getInstance().on('test3', async (result) => {
       await sleep(Duration.milliseconds(1));
       fake.bar('test3', result);
     });
@@ -81,7 +81,7 @@ describe('lifecycleEvents', () => {
   });
 
   it('removeAllListeners works', async () => {
-    Lifecycle.getInstance().on('test5', async result => {
+    Lifecycle.getInstance().on('test5', async (result) => {
       fake.bar('test5', result);
     });
     await Lifecycle.getInstance().emit('test5', 'Success');
@@ -100,7 +100,7 @@ describe('lifecycleEvents', () => {
   });
 
   it('getListeners works', async () => {
-    const x = async result => {
+    const x = async (result) => {
       fake.bar('test6', result);
     };
     Lifecycle.getInstance().on('test6', x);

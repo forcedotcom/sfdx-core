@@ -1,15 +1,18 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
+import { expect } from 'chai';
+import { SinonSpyCall } from 'sinon';
+import { Duration, Env } from '@salesforce/kit';
+import { get, JsonMap } from '@salesforce/ts-types';
+import * as Faye from 'sfdx-faye';
 import { StatusResult } from '../../../src/status/client';
 import { CometClient, StreamingClient } from '../../../src/status/streamingClient';
 
-import { expect } from 'chai';
-import { SinonSpyCall } from 'sinon';
 import { Connection } from '../../../src/connection';
 import { Crypto } from '../../../src/crypto';
 import { Org } from '../../../src/org';
@@ -18,14 +21,8 @@ import {
   shouldThrow,
   StreamingMockCometClient,
   StreamingMockSubscriptionCall,
-  testSetup
+  testSetup,
 } from '../../../src/testSetup';
-
-import { Duration, Env } from '@salesforce/kit';
-import { get, JsonMap } from '@salesforce/ts-types';
-
-// @ts-ignore
-import * as Faye from 'sfdx-faye';
 
 const MOCK_API_VERSION = '43.0';
 const MOCK_TOPIC = 'topic';
@@ -33,30 +30,30 @@ const MOCK_TOPIC = 'topic';
 const $$ = testSetup();
 
 describe('streaming client tests', () => {
-  let _username: string;
+  let username: string;
 
   beforeEach(async () => {
-    const _id: string = $$.uniqid();
-    _username = `${_id}@test.com`;
+    const id: string = $$.uniqid();
+    username = `${id}@test.com`;
 
     const crypto = await Crypto.create();
 
     $$.configStubs.AuthInfoConfig = {
       contents: {
-        orgId: _id,
-        username: _username,
+        orgId: id,
+        username,
         instanceUrl: 'http://www.example.com',
-        accessToken: crypto.encrypt(_id)
-      }
+        accessToken: crypto.encrypt(id),
+      },
     };
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     stubMethod($$.SANDBOX, Connection.prototype, 'getApiVersion').returns(MOCK_API_VERSION);
   });
 
   it('should set options apiVersion on system topics', async () => {
-    const org: Org = await Org.create({ aliasOrUsername: _username });
+    const org: Org = await Org.create({ aliasOrUsername: username });
     const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, '/system/Logging', () => ({
-      completed: true
+      completed: true,
     }));
     expect(options.apiVersion).to.equal('36.0');
   });
@@ -64,13 +61,13 @@ describe('streaming client tests', () => {
   it('should complete successfully', async () => {
     const TEST_STRING: string = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: _username });
+    const org: Org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
         return {
           payload: TEST_STRING,
-          completed: true
+          completed: true,
         };
       } else {
         throw new SfdxError('unexpected message', 'UnexpectedMessage');
@@ -86,10 +83,10 @@ describe('streaming client tests', () => {
         return new StreamingMockCometClient({
           url,
           id: TEST_STRING,
-          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK
+          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
         });
       },
-      setLogger: () => {}
+      setLogger: () => {},
     };
 
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
@@ -101,9 +98,9 @@ describe('streaming client tests', () => {
   });
 
   describe('Faye options', () => {
-    const streamProcessor = (message: JsonMap): StatusResult => {
+    const streamProcessor = (): StatusResult => {
       return {
-        completed: true
+        completed: true,
       };
     };
 
@@ -128,7 +125,7 @@ describe('streaming client tests', () => {
     }
 
     it('expect default options', async () => {
-      const org: Org = await Org.create({ aliasOrUsername: _username });
+      const org: Org = await Org.create({ aliasOrUsername: username });
       const stub = getStub(org);
 
       expect(stub.args[0]).to.not.be.undefined;
@@ -141,7 +138,7 @@ describe('streaming client tests', () => {
     it('set enableRequestResponseLogging', async () => {
       env.setBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING, true);
 
-      const org: Org = await Org.create({ aliasOrUsername: _username });
+      const org: Org = await Org.create({ aliasOrUsername: username });
       const stub = getStub(org);
 
       expect(stub.args[0]).to.not.be.undefined;
@@ -154,7 +151,7 @@ describe('streaming client tests', () => {
     it('unset cookiesAllowAllPaths', async () => {
       env.setBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS, true);
 
-      const org: Org = await Org.create({ aliasOrUsername: _username });
+      const org: Org = await Org.create({ aliasOrUsername: username });
       const stub = getStub(org);
 
       expect(stub.args[0]).to.not.be.undefined;
@@ -165,7 +162,7 @@ describe('streaming client tests', () => {
     });
 
     it('bogus apiVersion', async () => {
-      const org: Org = await Org.create({ aliasOrUsername: _username });
+      const org: Org = await Org.create({ aliasOrUsername: username });
 
       $$.SANDBOX.restore();
       $$.SANDBOX.stub(Connection.prototype, 'getApiVersion').returns('$$');
@@ -181,7 +178,7 @@ describe('streaming client tests', () => {
   it('streamProcessor should throw an error', async () => {
     const TEST_STRING: string = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: _username });
+    const org: Org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
@@ -198,10 +195,10 @@ describe('streaming client tests', () => {
         return new StreamingMockCometClient({
           url,
           id: TEST_STRING,
-          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK
+          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
         });
       },
-      setLogger: () => {}
+      setLogger: () => {},
     };
 
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
@@ -221,13 +218,13 @@ describe('streaming client tests', () => {
   it('subscribe error back', async () => {
     const TEST_STRING: string = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: _username });
+    const org: Org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
         return {
           payload: TEST_STRING,
-          completed: true
+          completed: true,
         };
       } else {
         throw new SfdxError('unexpected message', 'UnexpectedMessage');
@@ -242,10 +239,10 @@ describe('streaming client tests', () => {
           url,
           id: TEST_STRING,
           subscriptionCall: StreamingMockSubscriptionCall.ERRORBACK,
-          subscriptionErrbackError: new SfdxError('TEST ERROR', TEST_STRING)
+          subscriptionErrbackError: new SfdxError('TEST ERROR', TEST_STRING),
         });
       },
-      setLogger: () => {}
+      setLogger: () => {},
     };
 
     const disconnectSpy = spyMethod($$.SANDBOX, StreamingClient.prototype, 'disconnect');
@@ -266,13 +263,13 @@ describe('streaming client tests', () => {
   it('handshake should succeed', async () => {
     const TEST_STRING: string = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: _username });
+    const org: Org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
         return {
           payload: TEST_STRING,
-          completed: true
+          completed: true,
         };
       } else {
         throw new SfdxError('unexpected message', 'UnexpectedMessage');
@@ -286,10 +283,10 @@ describe('streaming client tests', () => {
         return new StreamingMockCometClient({
           url,
           id: TEST_STRING,
-          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK
+          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
         });
       },
-      setLogger: () => {}
+      setLogger: () => {},
     };
 
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
@@ -301,7 +298,7 @@ describe('streaming client tests', () => {
   it('handshake should timeout', async () => {
     const TEST_STRING: string = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: _username });
+    const org: Org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (): StatusResult => {
       return { completed: false };
@@ -316,10 +313,10 @@ describe('streaming client tests', () => {
         return new StreamingMockCometClient({
           url,
           id: TEST_STRING,
-          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK
+          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
         });
       },
-      setLogger: () => {}
+      setLogger: () => {},
     };
 
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
@@ -334,11 +331,11 @@ describe('streaming client tests', () => {
   it('subscribe should timeout', async () => {
     const TEST_STRING: string = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: _username });
+    const org: Org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (): StatusResult => {
       return {
-        completed: false
+        completed: false,
       };
     };
 
@@ -351,10 +348,10 @@ describe('streaming client tests', () => {
         return new StreamingMockCometClient({
           url,
           id: TEST_STRING,
-          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK
+          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
         });
       },
-      setLogger: () => {}
+      setLogger: () => {},
     };
 
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
@@ -379,11 +376,11 @@ describe('streaming client tests', () => {
 
     const TEST_STRING: string = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: _username });
+    const org: Org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (): StatusResult => {
       return {
-        completed: true
+        completed: true,
       };
     };
 
@@ -397,10 +394,10 @@ describe('streaming client tests', () => {
         return new StreamingMockCometClient({
           url,
           id: TEST_STRING,
-          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK
+          subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
         });
       },
-      setLogger: () => {}
+      setLogger: () => {},
     };
 
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
@@ -421,12 +418,12 @@ describe('streaming client tests', () => {
     const context = {
       log: () => {},
       options: {
-        apiVersion: MOCK_API_VERSION
-      }
+        apiVersion: MOCK_API_VERSION,
+      },
     };
     const apiVersionErrorMsg = {
       channel: '/meta/handshake',
-      error: "400::API version in the URI is mandatory. URI format: '/cometd/43.0'"
+      error: "400::API version in the URI is mandatory. URI format: '/cometd/43.0'",
     };
 
     try {
@@ -440,7 +437,7 @@ describe('streaming client tests', () => {
     let options: StreamingClient.DefaultOptions;
 
     beforeEach(async () => {
-      const org: Org = await Org.create({ aliasOrUsername: _username });
+      const org: Org = await Org.create({ aliasOrUsername: username });
 
       const streamProcessor = (): StatusResult => {
         return { completed: false };

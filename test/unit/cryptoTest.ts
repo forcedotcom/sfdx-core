@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as os from 'os';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
-import * as _crypto from 'crypto';
-import * as os from 'os';
 import { Crypto } from '../../src/crypto';
 import { SfdxError } from '../../src/exported';
 import { Messages } from '../../src/messages';
@@ -19,12 +18,12 @@ const $$ = testSetup();
 const TEST_KEY = {
   service: 'sfdx',
   account: 'local',
-  key: '8e8fd1e6dc06a37bf420898dbc3ee35c'
+  key: '8e8fd1e6dc06a37bf420898dbc3ee35c',
 };
 
-describe('CryptoTest', function() {
+describe('CryptoTest', function () {
   const disableEncryptionEnvVar = process.env.SFDX_DISABLE_ENCRYPTION;
-  let crypto;
+  let crypto: Crypto;
 
   beforeEach(() => {
     // Testing crypto functionality, so restore global stubs.
@@ -33,7 +32,7 @@ describe('CryptoTest', function() {
     stubMethod($$.SANDBOX, Crypto.prototype, 'getKeyChain').callsFake(() =>
       Promise.resolve({
         setPassword: () => Promise.resolve(),
-        getPassword: (data, cb) => cb(undefined, TEST_KEY.key)
+        getPassword: (data: unknown, cb: (arg1: undefined, arg2: string) => {}) => cb(undefined, TEST_KEY.key),
       })
     );
   });
@@ -47,12 +46,13 @@ describe('CryptoTest', function() {
     this.timeout(3 * 60 * 1000);
 
     const text = 'Unencrypted text';
-    let secret;
+    let secret: string | undefined;
 
     it('Should have encrypted the string.', async () => {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
       secret = crypto.encrypt(text);
       expect(secret).to.not.equal(text);
@@ -62,6 +62,7 @@ describe('CryptoTest', function() {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
       const decrypted = crypto.decrypt(secret);
       expect(decrypted).to.equal(text);
@@ -71,6 +72,7 @@ describe('CryptoTest', function() {
       process.env.SFDX_DISABLE_ENCRYPTION = 'true';
 
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
       secret = crypto.encrypt(text);
       expect(secret).to.not.equal(text);
@@ -80,6 +82,7 @@ describe('CryptoTest', function() {
       delete process.env.SFDX_DISABLE_ENCRYPTION;
 
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
       secret = crypto.encrypt(text);
       expect(secret).to.not.equal(text);
@@ -89,6 +92,7 @@ describe('CryptoTest', function() {
       process.env.SFDX_DISABLE_ENCRYPTION = 'true';
 
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
       const str = '123456';
       const encrypted = crypto.encrypt(str);
@@ -101,16 +105,16 @@ describe('CryptoTest', function() {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
-      expect(Crypto.prototype.decrypt.bind(crypto, 'foo'))
-        .to.throw(Error)
-        .and.have.property('actions');
+      expect(Crypto.prototype.decrypt.bind(crypto, 'foo')).to.throw(Error).and.have.property('actions');
     });
 
     it('InvalidEncryptedFormatError name', async () => {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
       expect(Crypto.prototype.decrypt.bind(crypto, ''))
         .to.throw(Error)
@@ -121,7 +125,9 @@ describe('CryptoTest', function() {
       delete process.env.SFDX_DISABLE_ENCRYPTION;
 
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
+      // @ts-ignore
       secret = crypto.encrypt(null);
       expect(secret).to.equal(undefined);
     });
@@ -130,6 +136,7 @@ describe('CryptoTest', function() {
       delete process.env.SFDX_DISABLE_ENCRYPTION;
 
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
       secret = crypto.encrypt(undefined);
       expect(secret).to.equal(undefined);
@@ -138,10 +145,12 @@ describe('CryptoTest', function() {
     it('Decrypt should fail without env var, and add extra message', async () => {
       const message: string = Messages.loadMessages('@salesforce/core', 'crypto').getMessage('MacKeychainOutOfSync');
       const err = Error('Failed to decipher auth data. reason: Unsupported state or unable to authenticate data.');
-      const sfdxErr: object = SfdxError.wrap(err);
-      sfdxErr['actions'] = message;
+      const sfdxErr: SfdxError = SfdxError.wrap(err);
+      sfdxErr.actions = [];
+      sfdxErr.actions[0] = message;
       stubMethod($$.SANDBOX, os, 'platform').returns('darwin');
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
       $$.SANDBOX.stub(crypto, 'decrypt').throws(sfdxErr);
       expect(() => crypto.decrypt('abcdefghijklmnopqrstuvwxyz:123456789')).to.throw(
@@ -151,8 +160,8 @@ describe('CryptoTest', function() {
         // are there any better ways to assert on the actions of the error?
         crypto.decrypt('abcdefghijklmnopqrstuvwxyz:123456789');
         chai.assert.fail('the above must fail');
-      } catch (err) {
-        expect(err.actions).to.equal(message);
+      } catch (error) {
+        expect(error.actions[0]).to.equal(message);
       }
     });
 
@@ -166,9 +175,10 @@ describe('CryptoTest', function() {
           throw errorMessage;
         },
         update: () => {},
-        final: () => {}
+        final: () => {},
       }));
       crypto = new Crypto();
+      // @ts-ignore
       await crypto.init();
       expect(() => crypto.decrypt(secret)).to.not.throw(message);
       delete process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN;

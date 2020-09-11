@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { EOL } from 'os';
 import { mapKeys, upperFirst } from '@salesforce/kit';
 import { getString, hasArray, Optional } from '@salesforce/ts-types';
-import { QueryResult, RecordResult } from 'jsforce';
-import { EOL } from 'os';
+import { QueryResult } from 'jsforce';
 import { Logger } from './logger';
 import { Messages } from './messages';
 import { Org } from './org';
@@ -26,8 +26,16 @@ export interface PermissionSetAssignmentFields {
  * A class for assigning a Salesforce User to one or more permission sets.
  */
 export class PermissionSetAssignment {
+  private logger: Logger;
+  private org: Org;
+
+  private constructor(org: Org, logger: Logger) {
+    this.logger = logger;
+    this.org = org;
+  }
   /**
    * Creates a new instance of PermissionSetAssignment.
+   *
    * @param org The target org for the assignment.
    */
   public static async init(org: Org): Promise<PermissionSetAssignment> {
@@ -38,16 +46,9 @@ export class PermissionSetAssignment {
     return new PermissionSetAssignment(org, await Logger.child('PermissionSetAssignment'));
   }
 
-  private logger: Logger;
-  private org: Org;
-
-  private constructor(org: Org, logger: Logger) {
-    this.logger = logger;
-    this.org = org;
-  }
-
   /**
    * Assigns a user to one or more permission sets.
+   *
    * @param id A user id
    * @param permSetString An array of permission set names.
    */
@@ -92,12 +93,10 @@ export class PermissionSetAssignment {
 
     const assignment: PermissionSetAssignmentFields = {
       assigneeId: id,
-      permissionSetId
+      permissionSetId,
     };
 
-    let createResponse: RecordResult;
-
-    createResponse = await this.org
+    const createResponse = await this.org
       .getConnection()
       .sobject('PermissionSetAssignment')
       .create(mapKeys(assignment, (value: unknown, key: string) => upperFirst(key)));
@@ -109,7 +108,7 @@ export class PermissionSetAssignment {
       const errors = createResponse.errors;
       if (errors && errors.length > 0) {
         message = `${message}:${EOL}`;
-        errors.forEach(_message => {
+        errors.forEach((_message) => {
           message = `${message}${_message}${EOL}`;
         });
         throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');
@@ -123,12 +122,13 @@ export class PermissionSetAssignment {
 
   /**
    * Parses a permission set name based on if it has a namespace or not.
+   *
    * @param permSetString The permission set string.
    */
   private parsePermissionSetString(
     permSetString: string
   ): { nsPrefix: Optional<string>; permSetName: Optional<string> } {
-    const nsPrefixMatch = permSetString.match(/(\w+(?=__))(__)(.*)/);
+    const nsPrefixMatch = RegExp(/(\w+(?=__))(__)(.*)/).exec(permSetString);
 
     let nsPrefix: Optional<string>;
     let permSetName: Optional<string>;

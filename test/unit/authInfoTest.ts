@@ -1,19 +1,19 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as dns from 'dns';
+import * as pathImport from 'path';
 import { cloneJson, env, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
-import * as dns from 'dns';
 import { OAuth2, OAuth2Options } from 'jsforce';
-// @ts-ignore WebStorm is reporting an error for the nested import
+// @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-import * as pathImport from 'path';
 import { AuthFields, AuthInfo, OAuth2WithVerifier } from '../../src/authInfo';
 import { Aliases } from '../../src/config/aliases';
 import { AuthInfoConfig } from '../../src/config/authInfoConfig';
@@ -29,7 +29,7 @@ import { fs } from '../../src/util/fs';
 const TEST_KEY = {
   service: 'sfdx',
   account: 'local',
-  key: '8e8fd1e6dc06a37bf420898dbc3ee35c'
+  key: '8e8fd1e6dc06a37bf420898dbc3ee35c',
 };
 
 // Setup the test environment.
@@ -44,7 +44,7 @@ describe('AuthInfo No fs mock', () => {
     stubMethod($$.SANDBOX, Crypto.prototype, 'getKeyChain').callsFake(() =>
       Promise.resolve({
         setPassword: () => Promise.resolve(),
-        getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(null, TEST_KEY.key)
+        getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(null, TEST_KEY.key),
       })
     );
     stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'read').callsFake(async () => {
@@ -80,105 +80,105 @@ class MetaAuthDataMock {
   private _authInfoLookupCount = 0;
   private _defaultConnectedAppInfo: AuthFields = {
     clientId: 'SalesforceDevelopmentExperience',
-    clientSecret: '1384510088588713504'
+    clientSecret: '1384510088588713504',
   };
   private _expirationDate = '12-02-20';
   private _clientSecret = 'client_secret';
   private _orgId = 'testOrgId';
 
-  constructor() {
+  public constructor() {
     this._jwtUsername = `${this._jwtUsername}_${$$.uniqid()}`;
   }
 
-  get instanceUrl(): string {
+  public get instanceUrl(): string {
     return this._instanceUrl;
   }
 
-  set instanceUrl(value: string) {
+  public set instanceUrl(value: string) {
     this._instanceUrl = value;
   }
 
-  get accessToken(): string {
+  public get accessToken(): string {
     return this._accessToken;
   }
 
-  get refreshToken(): string {
+  public get refreshToken(): string {
     return this._refreshToken;
   }
 
-  get clientId(): string {
+  public get clientId(): string {
     return this._clientId;
   }
 
-  get loginUrl(): string {
+  public get loginUrl(): string {
     return this._loginUrl;
   }
 
-  set loginUrl(value: string) {
+  public set loginUrl(value: string) {
     this._loginUrl = value;
   }
 
-  get jwtUsername(): string {
+  public get jwtUsername(): string {
     return this._jwtUsername;
   }
 
-  set jwtUsername(value: string) {
+  public set jwtUsername(value: string) {
     this._jwtUsername = value;
   }
 
-  get username(): string {
+  public get username(): string {
     return this._jwtUsername;
   }
 
-  get redirectUri(): string {
+  public get redirectUri(): string {
     return this._redirectUri;
   }
 
-  get authCode(): string {
+  public get authCode(): string {
     return this._authCode;
   }
 
-  set authCode(value: string) {
+  public set authCode(value: string) {
     this._authCode = value;
   }
 
-  get defaultConnectedAppInfo(): AuthFields {
+  public get defaultConnectedAppInfo(): AuthFields {
     return this._defaultConnectedAppInfo;
   }
 
-  get encryptedAccessToken(): string {
+  public get encryptedAccessToken(): string {
     return this._encryptedAccessToken;
   }
 
-  set encryptedAccessToken(value: string) {
+  public set encryptedAccessToken(value: string) {
     this._encryptedAccessToken = value;
   }
 
-  get encryptedRefreshToken(): string {
+  public get encryptedRefreshToken(): string {
     return this._encryptedRefreshToken;
   }
 
-  set encryptedRefreshToken(value: string) {
+  public set encryptedRefreshToken(value: string) {
     this._encryptedRefreshToken = value;
   }
 
-  get expirationDate(): string {
+  public get expirationDate(): string {
     return this._expirationDate;
   }
 
-  set expirationDate(value: string) {
+  public set expirationDate(value: string) {
     this._expirationDate = value;
   }
 
-  get authInfoLookupCount(): number {
+  public get authInfoLookupCount(): number {
     return this._authInfoLookupCount;
   }
 
-  get clientSecret(): string {
+  public get clientSecret(): string {
     return this._clientSecret;
   }
 
-  get orgId(): string {
+  public get orgId(): string {
     return this._orgId;
   }
 
@@ -192,15 +192,12 @@ class MetaAuthDataMock {
       set(configContents, 'accessToken', this.encryptedAccessToken);
       set(configContents, 'privateKey', '123456');
       return Promise.resolve(configContents);
-    } else if (path.includes('_username_RefreshToken') || '_username_SaveTest1') {
-      return Promise.resolve({});
     } else {
-      return Promise.reject(new SfdxError('Not mocked - unhandled test case', 'UnsupportedTestCase'));
+      return Promise.resolve({});
     }
   }
 
   public async statForKeyFile(path: string): Promise<{}> {
-    // tslint:disable-line:no-any
     if (!path.includes('key.json')) {
       return new SfdxError(`Unexpected path: ${path}`, 'UnexpectedInput');
     }
@@ -223,7 +220,7 @@ class MetaAuthDataMock {
       atime: new Date('2018-02-06T16:32:14.271Z'),
       mtime: new Date('2018-02-06T01:08:30.026Z'),
       ctime: new Date('2018-02-06T01:08:30.026Z'),
-      birthtime: new Date('2017-11-14T16:49:25.000Z')
+      birthtime: new Date('2017-11-14T16:49:25.000Z'),
     });
   }
 }
@@ -257,7 +254,7 @@ describe('AuthInfo', () => {
       return Promise.resolve();
     });
 
-    stubMethod($$.SANDBOX, ConfigFile.prototype, 'read').callsFake(async function(this: AuthInfoConfig) {
+    stubMethod($$.SANDBOX, ConfigFile.prototype, 'read').callsFake(async function (this: AuthInfoConfig) {
       this.setContentsFromObject(await testMetadata.fetchConfigInfo(this.getPath()));
       return this.getContents();
     });
@@ -284,19 +281,19 @@ describe('AuthInfo', () => {
     beforeEach(async () => {
       const authCodeConfig = {
         authCode: testMetadata.authCode,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
         id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-        refresh_token: testMetadata.refreshToken
+        refresh_token: testMetadata.refreshToken,
       };
 
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
       const responseBody = {
-        body: JSON.stringify({ Username: testMetadata.username })
+        body: JSON.stringify({ Username: testMetadata.username }),
       };
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
       authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
@@ -406,7 +403,7 @@ describe('AuthInfo', () => {
 
       const expectedFields = {
         accessToken: username,
-        instanceUrl: testMetadata.instanceUrl
+        instanceUrl: testMetadata.instanceUrl,
       };
       expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
@@ -418,29 +415,28 @@ describe('AuthInfo', () => {
     it('should return an AuthInfo instance when passed a parent username', async () => {
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
-
       // Stub the http request (OAuth2.refreshToken())
       // This will be called for both, and we want to make sure the clientSecrete is the
       // same for both.
-      _postParmsStub.callsFake(params => {
+      _postParmsStub.callsFake((params) => {
         expect(params.client_secret).to.deep.equal(testMetadata.clientSecret);
         return {
           access_token: testMetadata.accessToken,
           instance_url: testMetadata.instanceUrl,
           refresh_token: testMetadata.refreshToken,
-          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
         };
       });
 
-      const parentUsername = 'test@test.com';
+      const parentUsername = 'test@test.com_username_SaveTest1';
       await AuthInfo.create({
         username: parentUsername,
         oauth2Options: {
           clientId: testMetadata.clientId,
           clientSecret: testMetadata.clientSecret,
           loginUrl: testMetadata.instanceUrl,
-          authCode: testMetadata.authCode
-        }
+          authCode: testMetadata.authCode,
+        },
       });
 
       const authInfo = await AuthInfo.create({
@@ -448,8 +444,8 @@ describe('AuthInfo', () => {
         parentUsername,
         oauth2Options: {
           loginUrl: testMetadata.instanceUrl,
-          authCode: testMetadata.authCode
-        }
+          authCode: testMetadata.authCode,
+        },
       });
 
       expect(_postParmsStub.calledTwice).to.true;
@@ -466,7 +462,7 @@ describe('AuthInfo', () => {
         loginUrl: testMetadata.instanceUrl,
         refreshToken: testMetadata.refreshToken,
         clientId: testMetadata.clientId,
-        clientSecret: testMetadata.clientSecret
+        clientSecret: testMetadata.clientSecret,
       };
       expect(authInfoUpdate.secondCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
@@ -482,13 +478,13 @@ describe('AuthInfo', () => {
         accessTokenOptions: {
           accessToken,
           instanceUrl: testMetadata.instanceUrl,
-          loginUrl: testMetadata.instanceUrl
-        }
+          loginUrl: testMetadata.instanceUrl,
+        },
       });
 
       const expectedFields = {
         accessToken,
-        instanceUrl: testMetadata.instanceUrl
+        instanceUrl: testMetadata.instanceUrl,
       };
       expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
@@ -513,13 +509,13 @@ describe('AuthInfo', () => {
         const jwtConfig = {
           clientId: testMetadata.clientId,
           loginUrl: testMetadata.loginUrl,
-          privateKey: 'authInfoTest/jwt/server.key'
+          privateKey: 'authInfoTest/jwt/server.key',
         };
         const jwtConfigClone = cloneJson(jwtConfig);
         const authResponse = {
           access_token: testMetadata.accessToken,
           instance_url: testMetadata.instanceUrl,
-          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
         };
 
         // Stub file I/O, http requests, and the DNS lookup
@@ -533,16 +529,14 @@ describe('AuthInfo', () => {
         // Create the JWT AuthInfo instance
         const authInfo = await AuthInfo.create({
           username: testMetadata.jwtUsername,
-          oauth2Options: jwtConfig
+          oauth2Options: jwtConfig,
         });
 
         // Verify the returned AuthInfo instance
         const authInfoConnOpts = authInfo.getConnectionOptions();
         expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
         expect(authInfoConnOpts).to.have.property('instanceUrl', authResponse.instance_url);
-        expect(authInfoConnOpts)
-          .to.have.property('refreshFn')
-          .and.is.a('function');
+        expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
         expect(authInfo.getUsername()).to.equal(testMetadata.jwtUsername);
         expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
         expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
@@ -573,7 +567,7 @@ describe('AuthInfo', () => {
           instanceUrl: testMetadata.instanceUrl,
           orgId: authResponse.id.split('/')[0],
           loginUrl: jwtConfig.loginUrl,
-          privateKey: jwtConfig.privateKey
+          privateKey: jwtConfig.privateKey,
         };
         expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
       });
@@ -582,16 +576,14 @@ describe('AuthInfo', () => {
       it('should return a cached JWT AuthInfo instance when passed a username', async () => {
         // Create the JWT AuthInfo instance
         const authInfo = await AuthInfo.create({
-          username: testMetadata.jwtUsername
+          username: testMetadata.jwtUsername,
         });
 
         // Verify the returned AuthInfo instance
         const authInfoConnOpts = authInfo.getConnectionOptions();
         expect(authInfoConnOpts).to.have.property('accessToken', testMetadata.accessToken);
         expect(authInfoConnOpts).to.have.property('instanceUrl', testMetadata.instanceUrl);
-        expect(authInfoConnOpts)
-          .to.have.property('refreshFn')
-          .and.is.a('function');
+        expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
         expect(authInfo.getUsername()).to.equal(testMetadata.jwtUsername);
         expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
         expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
@@ -624,7 +616,7 @@ describe('AuthInfo', () => {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
         id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-        refresh_token: testMetadata.refreshToken
+        refresh_token: testMetadata.refreshToken,
       };
 
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
@@ -635,8 +627,8 @@ describe('AuthInfo', () => {
         oauth2Options: {
           refreshToken: testMetadata.refreshToken,
           loginUrl: testMetadata.loginUrl,
-          clientId: testMetadata.clientId
-        }
+          clientId: testMetadata.clientId,
+        },
       });
 
       expect(AuthInfo['cache'].size).to.equal(cacheSize);
@@ -663,9 +655,7 @@ describe('AuthInfo', () => {
       const authInfoConnOpts = authInfo.getConnectionOptions();
       expect(authInfoConnOpts).to.have.property('accessToken', testMetadata.accessToken);
       expect(authInfoConnOpts).to.have.property('instanceUrl', testMetadata.instanceUrl);
-      expect(authInfoConnOpts)
-        .to.have.property('refreshFn')
-        .and.is.a('function');
+      expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
       expect(authInfo.getUsername()).to.equal(username);
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
       expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
@@ -693,7 +683,7 @@ describe('AuthInfo', () => {
       const jwtConfig = {
         clientId: testMetadata.clientId,
         loginUrl: testMetadata.loginUrl,
-        privateKey: 'authInfoTest/jwt/server.key'
+        privateKey: 'authInfoTest/jwt/server.key',
       };
 
       // Make the file read stub return JWT auth data
@@ -723,7 +713,7 @@ describe('AuthInfo', () => {
       const jwtConfig = {
         clientId: testMetadata.clientId,
         loginUrl: testMetadata.loginUrl,
-        privateKey: 'authInfoTest/jwt/server.key'
+        privateKey: 'authInfoTest/jwt/server.key',
       };
 
       // Stub file I/O, http requests, and the DNS lookup
@@ -748,12 +738,12 @@ describe('AuthInfo', () => {
       const jwtConfig = {
         clientId: testMetadata.clientId,
         loginUrl: testMetadata.loginUrl,
-        privateKey: 'authInfoTest/jwt/server.key'
+        privateKey: 'authInfoTest/jwt/server.key',
       };
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
       };
 
       // Stub file I/O, http requests, and the DNS lookup
@@ -767,7 +757,7 @@ describe('AuthInfo', () => {
       // Create the JWT AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
-        oauth2Options: jwtConfig
+        oauth2Options: jwtConfig,
       });
 
       expect(authInfo.getConnectionOptions()).to.have.property('instanceUrl', jwtConfig.loginUrl);
@@ -781,13 +771,13 @@ describe('AuthInfo', () => {
       const username = 'authInfoTest_username_RefreshToken';
       const refreshTokenConfig = {
         refreshToken: testMetadata.refreshToken,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
       const refreshTokenConfigClone = cloneJson(refreshTokenConfig);
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
       };
 
       // Stub the http request (OAuth2.refreshToken())
@@ -796,7 +786,7 @@ describe('AuthInfo', () => {
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
-        oauth2Options: refreshTokenConfig
+        oauth2Options: refreshTokenConfig,
       });
 
       // Verify the returned AuthInfo instance
@@ -837,7 +827,7 @@ describe('AuthInfo', () => {
         refreshToken: refreshTokenConfig.refreshToken,
         clientId: testMetadata.defaultConnectedAppInfo.clientId,
         clientSecret: testMetadata.defaultConnectedAppInfo.clientSecret,
-        username
+        username,
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
@@ -847,13 +837,13 @@ describe('AuthInfo', () => {
       const refreshTokenConfig = {
         refreshToken: testMetadata.refreshToken,
         loginUrl: testMetadata.loginUrl,
-        username
+        username,
       };
       const refreshTokenConfigClone = cloneJson(refreshTokenConfig);
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
       };
 
       // Stub the http request (OAuth2.refreshToken())
@@ -861,7 +851,7 @@ describe('AuthInfo', () => {
 
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({
-        oauth2Options: refreshTokenConfig
+        oauth2Options: refreshTokenConfig,
       });
 
       // Verify the returned AuthInfo instance
@@ -902,7 +892,7 @@ describe('AuthInfo', () => {
         refreshToken: refreshTokenConfig.refreshToken,
         clientId: testMetadata.defaultConnectedAppInfo.clientId,
         clientSecret: testMetadata.defaultConnectedAppInfo.clientSecret,
-        username
+        username,
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
@@ -913,12 +903,12 @@ describe('AuthInfo', () => {
         clientId: 'authInfoTest_clientId',
         clientSecret: 'authInfoTest_clientSecret',
         refreshToken: testMetadata.refreshToken,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
       };
 
       // Stub the http request (OAuth2.refreshToken())
@@ -927,7 +917,7 @@ describe('AuthInfo', () => {
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
-        oauth2Options: refreshTokenConfig
+        oauth2Options: refreshTokenConfig,
       });
 
       // Verify the returned AuthInfo instance
@@ -965,7 +955,7 @@ describe('AuthInfo', () => {
         refreshToken: refreshTokenConfig.refreshToken,
         clientId: refreshTokenConfig.clientId,
         clientSecret: refreshTokenConfig.clientSecret,
-        username
+        username,
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
@@ -976,7 +966,7 @@ describe('AuthInfo', () => {
         clientId: 'authInfoTest_clientId',
         clientSecret: 'authInfoTest_clientSecret',
         refreshToken: testMetadata.refreshToken,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
 
       // Stub the http request (OAuth2.refreshToken())
@@ -999,14 +989,14 @@ describe('AuthInfo', () => {
       const username = 'authInfoTest_username_AuthCode';
       const authCodeConfig = {
         authCode: testMetadata.authCode,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
       const authCodeConfigClone = cloneJson(authCodeConfig);
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
         id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-        refresh_token: testMetadata.refreshToken
+        refresh_token: testMetadata.refreshToken,
       };
 
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
@@ -1060,7 +1050,7 @@ describe('AuthInfo', () => {
         // These need to be passed in by the consumer. Since they are not, they will show up as undefined.
         // In a non-test environment, the exchange will fail because no clientId is supplied.
         clientId: undefined,
-        clientSecret: undefined
+        clientSecret: undefined,
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
@@ -1094,7 +1084,7 @@ describe('AuthInfo', () => {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
         id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-        refresh_token: testMetadata.refreshToken
+        refresh_token: testMetadata.refreshToken,
       };
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
@@ -1109,7 +1099,7 @@ describe('AuthInfo', () => {
     it('should throw a AuthCodeExchangeError when auth fails via an auth code', async () => {
       const authCodeConfig = {
         authCode: testMetadata.authCode,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
 
       // Stub the http request (OAuth2.requestToken())
@@ -1127,13 +1117,13 @@ describe('AuthInfo', () => {
     it('should throw a AuthCodeUsernameRetrievalError when username retrieval fails after auth code exchange', async () => {
       const authCodeConfig = {
         authCode: testMetadata.authCode,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
         id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-        refresh_token: testMetadata.refreshToken
+        refresh_token: testMetadata.refreshToken,
       };
 
       // Stub the http request (OAuth2.requestToken())
@@ -1164,13 +1154,13 @@ describe('AuthInfo', () => {
       const username = 'authInfoTest_username_SaveTest1';
       const refreshTokenConfig = {
         refreshToken: testMetadata.refreshToken,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
         id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-        expirationDate: testMetadata.expirationDate
+        expirationDate: testMetadata.expirationDate,
       };
 
       // Stub the http request (OAuth2.refreshToken())
@@ -1181,7 +1171,7 @@ describe('AuthInfo', () => {
       // Create the AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
-        oauth2Options: refreshTokenConfig
+        oauth2Options: refreshTokenConfig,
       });
 
       expect(authInfo.getUsername()).to.equal(username);
@@ -1217,7 +1207,7 @@ describe('AuthInfo', () => {
         // We just hard code the legacy values here to ensure old auth files will still work.
         clientId: 'SalesforceDevelopmentExperience',
         clientSecret: '1384510088588713504',
-        expirationDate: testMetadata.expirationDate
+        expirationDate: testMetadata.expirationDate,
       };
       // Note that this also verifies the clientId and clientSecret are not persisted,
       // and that data is encrypted when saved (because we have to decrypt it to verify here).
@@ -1240,7 +1230,7 @@ describe('AuthInfo', () => {
 
     it('should encrypt the data before assigning to this.fields', async () => {
       const context = {
-        // tslint:disable-line:no-any
+        // eslint disable-line @typescript-eslint/no-explicit-any
         getUsername: () => context.fields.username,
         fields: {
           accessToken: crypto.encrypt(testMetadata.accessToken),
@@ -1250,17 +1240,17 @@ describe('AuthInfo', () => {
           loginUrl: testMetadata.loginUrl,
           refreshToken: crypto.encrypt(testMetadata.refreshToken),
           password: '',
-          clientSecret: ''
+          clientSecret: '',
         },
         authInfoCrypto: {
-          encryptFields: encryptStub
+          encryptFields: encryptStub,
         },
-        logger: $$.TEST_LOGGER
+        logger: $$.TEST_LOGGER,
       };
       const updatedFields = {
         password: 'authInfoTest_password',
         clientSecret: 'authInfoTest_updateTest_clientSecret',
-        accessToken: 'authInfoTest_updateTest_ACCESS_TOKEN'
+        accessToken: 'authInfoTest_updateTest_ACCESS_TOKEN',
       };
       await AuthInfo.prototype.update.call(context, updatedFields);
       expect(crypto.decrypt(context.fields.accessToken)).to.equal(updatedFields.accessToken);
@@ -1272,7 +1262,7 @@ describe('AuthInfo', () => {
 
     it('should NOT encrypt the data when encrypt arg is false', async () => {
       const context = {
-        // tslint:disable-line:no-any
+        // eslint disable-line @typescript-eslint/no-explicit-any
         getUsername: () => context.fields.username,
         fields: {
           accessToken: testMetadata.accessToken,
@@ -1280,14 +1270,14 @@ describe('AuthInfo', () => {
           username: 'authInfoTest_updateTest',
           orgId: '00DAuthInfoTest_orgId',
           loginUrl: testMetadata.loginUrl,
-          refreshToken: testMetadata.refreshToken
+          refreshToken: testMetadata.refreshToken,
         },
-        logger: $$.TEST_LOGGER
+        logger: $$.TEST_LOGGER,
       };
       const updatedFields = {
         password: 'authInfoTest_password',
         clientSecret: 'authInfoTest_updateTest_clientSecret',
-        accessToken: 'authInfoTest_updateTest_ACCESS_TOKEN'
+        accessToken: 'authInfoTest_updateTest_ACCESS_TOKEN',
       };
       await AuthInfo.prototype.update.call(context, updatedFields, false);
       expect(context.fields).to.deep.equal(Object.assign(context.fields, updatedFields));
@@ -1313,19 +1303,19 @@ describe('AuthInfo', () => {
           loginUrl: testMetadata.loginUrl,
           clientId: testMetadata.clientId,
           privateKey: 'authInfoTest/jwt/server.key',
-          accessToken: testMetadata.encryptedAccessToken
+          accessToken: testMetadata.encryptedAccessToken,
         },
         authInfoCrypto: { decryptFields: decryptStub },
         initAuthOptions: $$.SANDBOX.stub(),
         save: $$.SANDBOX.stub(),
-        logger: $$.TEST_LOGGER
+        logger: $$.TEST_LOGGER,
       };
       const testCallback = $$.SANDBOX.stub();
       testCallback.returns(Promise.resolve());
 
       context.initAuthOptions.returns(Promise.resolve());
       context.save.returns(Promise.resolve());
-
+      // @ts-ignore
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
 
       expect(context.initAuthOptions.called, 'Should have called AuthInfo.initAuthOptions() during refreshFn()').to.be
@@ -1334,7 +1324,7 @@ describe('AuthInfo', () => {
         loginUrl: context.fields.loginUrl,
         clientId: context.fields.clientId,
         privateKey: context.fields.privateKey,
-        accessToken: testMetadata.accessToken
+        accessToken: testMetadata.accessToken,
       };
       expect(context.initAuthOptions.firstCall.args[0]).to.deep.equal(expectedInitArgs);
       expect(context.save.called, 'Should have called AuthInfo.save() during refreshFn()').to.be.true;
@@ -1350,10 +1340,10 @@ describe('AuthInfo', () => {
         isTokenOptions: () => false,
         getUsername: () => '',
         privateKeyFile: 'authInfoTest/jwt/server.key',
-        options: {}
+        options: {},
       };
 
-      await AuthInfo.prototype['initAuthOptions'].call(context, context, null);
+      await AuthInfo.prototype['initAuthOptions'].call(context, context);
 
       expect(pathSpy.calledOnce).to.be.true;
     });
@@ -1365,17 +1355,17 @@ describe('AuthInfo', () => {
           loginUrl: testMetadata.loginUrl,
           clientId: testMetadata.clientId,
           privateKey: 'authInfoTest/jwt/server.key',
-          accessToken: testMetadata.encryptedAccessToken
+          accessToken: testMetadata.encryptedAccessToken,
         },
         authInfoCrypto: { decryptFields: decryptStub },
         initAuthOptions: $$.SANDBOX.stub(),
         save: $$.SANDBOX.stub(),
-        logger: $$.TEST_LOGGER
+        logger: $$.TEST_LOGGER,
       };
       const testCallback = $$.SANDBOX.spy();
       context.initAuthOptions.throws(new Error('Error: Data Not Available'));
       context.save.returns(Promise.resolve());
-
+      // @ts-ignore
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
       expect(testCallback.called).to.be.true;
       const sfdxError = testCallback.firstCall.args[0];
@@ -1396,7 +1386,7 @@ describe('AuthInfo', () => {
       const options = {
         clientId: testMetadata.clientId,
         redirectUri: testMetadata.redirectUri,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
       const url: string = AuthInfo.getAuthorizationUrl.call(null, options);
 
@@ -1411,7 +1401,7 @@ describe('AuthInfo', () => {
         clientId: testMetadata.clientId,
         redirectUri: testMetadata.redirectUri,
         loginUrl: testMetadata.loginUrl,
-        scope: 'test'
+        scope: 'test',
       };
       const url: string = AuthInfo.getAuthorizationUrl.call(null, options);
 
@@ -1426,7 +1416,7 @@ describe('AuthInfo', () => {
       const options = {
         clientId: testMetadata.clientId,
         redirectUri: testMetadata.redirectUri,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
       const url: string = AuthInfo.getAuthorizationUrl.call(null, options);
 
@@ -1442,7 +1432,7 @@ describe('AuthInfo', () => {
         clientId: testMetadata.clientId,
         redirectUri: testMetadata.redirectUri,
         loginUrl: testMetadata.loginUrl,
-        scope: 'from-option'
+        scope: 'from-option',
       };
       const url: string = AuthInfo.getAuthorizationUrl.call(null, options);
 
@@ -1458,12 +1448,12 @@ describe('AuthInfo', () => {
       const username = 'authInfoTest_username_RefreshToken';
       const refreshTokenConfig = {
         refreshToken: testMetadata.refreshToken,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
       };
 
       // Stub the http request (OAuth2.refreshToken())
@@ -1472,7 +1462,7 @@ describe('AuthInfo', () => {
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
-        oauth2Options: refreshTokenConfig
+        oauth2Options: refreshTokenConfig,
       });
 
       expect(authInfo.getSfdxAuthUrl()).to.contain(
@@ -1484,13 +1474,13 @@ describe('AuthInfo', () => {
       const username = 'authInfoTest_username_RefreshToken';
       const refreshTokenConfig = {
         refreshToken: testMetadata.refreshToken,
-        loginUrl: testMetadata.loginUrl
+        loginUrl: testMetadata.loginUrl,
       };
 
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
       };
 
       // Stub the http request (OAuth2.refreshToken())
@@ -1499,7 +1489,7 @@ describe('AuthInfo', () => {
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
-        oauth2Options: refreshTokenConfig
+        oauth2Options: refreshTokenConfig,
       });
 
       // delete the client secret
@@ -1586,18 +1576,18 @@ describe('AuthInfo', () => {
     async function runTest(options: JsonMap, expectedUrl: string) {
       const context = {
         getUsername: () => testMetadata.jwtUsername,
-        logger: $$.TEST_LOGGER
+        logger: $$.TEST_LOGGER,
       };
       const defaults = {
         clientId: testMetadata.clientId,
         loginUrl: testMetadata.loginUrl,
-        privateKey: 'fake/pk'
+        privateKey: 'fake/pk',
       };
 
       const authResponse = {
         access_token: testMetadata.accessToken,
         instance_url: testMetadata.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
       };
 
       // Stub file I/O, http requests, and the DNS lookup
@@ -1728,13 +1718,13 @@ describe('AuthInfo', () => {
         // Stub the http request (OAuth2.refreshToken())
         // This will be called for both, and we want to make sure the clientSecrete is the
         // same for both.
-        _postParmsStub.callsFake(params => {
+        _postParmsStub.callsFake((params) => {
           expect(params.client_secret).to.deep.equal(testMetadata.clientSecret);
           return {
             access_token: testMetadata.accessToken,
             instance_url: testMetadata.instanceUrl,
             refresh_token: testMetadata.refreshToken,
-            id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+            id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
           };
         });
 
@@ -1744,13 +1734,11 @@ describe('AuthInfo', () => {
             clientId: testMetadata.clientId,
             clientSecret: testMetadata.clientSecret,
             loginUrl: testMetadata.instanceUrl,
-            authCode: testMetadata.authCode
-          }
+            authCode: testMetadata.authCode,
+          },
         });
 
-        stubMethod($$.SANDBOX, AuthInfo, 'create')
-          .withArgs({ username })
-          .returns(Promise.resolve(authInfo));
+        stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).returns(Promise.resolve(authInfo));
       });
 
       it('should return list of authorizations with web oauthMethod', async () => {
@@ -1762,8 +1750,8 @@ describe('AuthInfo', () => {
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
-            oauthMethod: 'web'
-          }
+            oauthMethod: 'web',
+          },
         ]);
       });
 
@@ -1777,8 +1765,8 @@ describe('AuthInfo', () => {
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
-            oauthMethod: 'jwt'
-          }
+            oauthMethod: 'jwt',
+          },
         ]);
       });
 
@@ -1793,8 +1781,8 @@ describe('AuthInfo', () => {
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
-            oauthMethod: 'token'
-          }
+            oauthMethod: 'token',
+          },
         ]);
       });
 
@@ -1808,8 +1796,8 @@ describe('AuthInfo', () => {
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
-            oauthMethod: 'web'
-          }
+            oauthMethod: 'web',
+          },
         ]);
       });
     });
@@ -1826,18 +1814,16 @@ describe('AuthInfo', () => {
           contents: {
             username,
             orgId: '00DAuthInfoTest_orgId',
-            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109'
-          }
+            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+          },
         });
 
         stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'getContents').returns({
           username,
           orgId: '00DAuthInfoTest_orgId',
-          instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109'
+          instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
         });
-        stubMethod($$.SANDBOX, AuthInfo, 'create')
-          .withArgs({ username })
-          .throws(new Error('FAIL!'));
+        stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).throws(new Error('FAIL!'));
       });
 
       it('should return list of authorizations with unknown oauthMethod', async () => {
@@ -1850,8 +1836,8 @@ describe('AuthInfo', () => {
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: undefined,
             oauthMethod: 'unknown',
-            error: 'FAIL!'
-          }
+            error: 'FAIL!',
+          },
         ]);
       });
 
@@ -1866,8 +1852,8 @@ describe('AuthInfo', () => {
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: undefined,
             oauthMethod: 'unknown',
-            error: 'FAIL!'
-          }
+            error: 'FAIL!',
+          },
         ]);
       });
     });

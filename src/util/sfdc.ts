@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { URL } from 'url';
 import { findKey } from '@salesforce/kit';
 import { AnyJson, asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
-import { URL } from 'url';
 
 export const sfdc = {
   /**
@@ -31,12 +31,12 @@ export const sfdc = {
       '.force.com',
       '.salesforce.com',
       '.salesforceliveagent.com',
-      '.secure.force.com'
+      '.secure.force.com',
     ];
 
     const allowlistOfSalesforceHosts: string[] = ['developer.salesforce.com', 'trailhead.salesforce.com'];
 
-    return allowlistOfSalesforceDomainPatterns.some(pattern => {
+    return allowlistOfSalesforceDomainPatterns.some((pattern) => {
       return url.hostname.endsWith(pattern) || allowlistOfSalesforceHosts.includes(url.hostname);
     });
   },
@@ -59,7 +59,7 @@ export const sfdc = {
    * @param value The API version as a string.
    */
   validateApiVersion: (value: string): boolean => {
-    return value == null || /[1-9]\d\.0/.test(value);
+    return value == null || /^[1-9]\d\.0$/.test(value);
   },
 
   /**
@@ -73,6 +73,7 @@ export const sfdc = {
 
   /**
    * Tests whether a Salesforce ID is in the correct format, a 15- or 18-character length string with only letters and numbers
+   *
    * @param value The ID as a string.
    */
   validateSalesforceId: (value: string): boolean => {
@@ -81,9 +82,11 @@ export const sfdc = {
 
   /**
    * Tests whether a path is in the correct format; the value doesn't include the characters "[", "]", "?", "<", ">", "?", "|"
+   *
    * @param value The path as a string.
    */
   validatePathDoesNotContainInvalidChars: (value: string): boolean => {
+    // eslint-disable-next-line no-useless-escape
     return !/[\["\?<>\|\]]+/.test(value);
   },
 
@@ -96,7 +99,7 @@ export const sfdc = {
   findUpperCaseKeys: (data?: JsonMap, sectionBlocklist: string[] = []): Optional<string> => {
     let key: Optional<string>;
     findKey(data, (val: AnyJson, k: string) => {
-      if (k[0] === k[0].toUpperCase()) {
+      if (k.substr(0, 1) === k.substr(0, 1).toUpperCase()) {
         key = k;
       } else if (isJsonMap(val)) {
         if (sectionBlocklist.includes(k)) {
@@ -107,5 +110,5 @@ export const sfdc = {
       return key;
     });
     return key;
-  }
+  },
 };
