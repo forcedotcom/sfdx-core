@@ -390,7 +390,7 @@
 
 "@salesforce/dev-scripts@0.3.14":
   version "0.3.14"
-  resolved "https://registry.yarnpkg.com/@salesforce/dev-scripts/-/dev-scripts-0.3.14.tgz#29ed5afe451ca70b633eb63e45bfad860b32670a"
+  resolved "https://registry.npmjs.org/@salesforce/dev-scripts/-/dev-scripts-0.3.14.tgz#29ed5afe451ca70b633eb63e45bfad860b32670a"
   integrity sha512-OQIKPSt1wX/VlzHknn2uXb/lsq9Wpawkur4OyKYmTrqBMqRJnsgqzfolXcPFrbgdQJrm4Dd+DWj6fWhIcrt6tg==
   dependencies:
     "@commitlint/cli" "^7"
@@ -428,9 +428,9 @@
   resolved "https://registry.yarnpkg.com/@salesforce/schemas/-/schemas-1.0.1.tgz#d1db56759d2b22a7688e1821aec564e979237ad2"
   integrity sha512-78pP1GB/DbIS8nSWGL0GpQ27g02drrEo0vzYdRipGYAIXHMzlh1gqEsq0pOiIQlPm1MxWyEqbmf4GG5qSVsd0Q==
 
-"@salesforce/ts-sinon@^1.0.0":
+"@salesforce/ts-sinon@^1.2.2":
   version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@salesforce/ts-sinon/-/ts-sinon-1.2.2.tgz#4d99437def324f9e5507a02c3b322a40ed769167"
+  resolved "https://registry.npmjs.org/@salesforce/ts-sinon/-/ts-sinon-1.2.2.tgz#4d99437def324f9e5507a02c3b322a40ed769167"
   integrity sha512-nzdkQeD5MHKkRrz8V8CvcY42cX7L2jsA3iog9iMEMgepp+5OP6zEoIk2XehtbaAzu6B8B5tr7FNu+GfGMIVt+g==
   dependencies:
     "@salesforce/ts-types" "^1.4.2"
@@ -519,7 +519,7 @@
 
 "@sinonjs/commons@^1", "@sinonjs/commons@^1.3.0", "@sinonjs/commons@^1.7.0":
   version "1.8.1"
-  resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.8.1.tgz#e7df00f98a203324f6dc7cc606cad9d4a8ab2217"
+  resolved "https://registry.npmjs.org/@sinonjs/commons/-/commons-1.8.1.tgz#e7df00f98a203324f6dc7cc606cad9d4a8ab2217"
   integrity sha512-892K+kWUUi3cl+LlqEWIDrhvLgdL79tECi8JZUyq6IviKy/DNhuzCRlbHUjxK89f4ypPMMaFnFuR9Ie6DoIMsw==
   dependencies:
     type-detect "4.0.8"
@@ -694,7 +694,7 @@
 
 "@types/sinon@^4":
   version "4.3.3"
-  resolved "https://registry.yarnpkg.com/@types/sinon/-/sinon-4.3.3.tgz#97cbbfddc3282b5fd40c7abf80b99db426fd4237"
+  resolved "https://registry.npmjs.org/@types/sinon/-/sinon-4.3.3.tgz#97cbbfddc3282b5fd40c7abf80b99db426fd4237"
   integrity sha512-Tt7w/ylBS/OEAlSCwzB0Db1KbxnkycP/1UkQpbvKFYoUuRn4uYsC3xh5TRPrOjTy0i8TIkSz1JdNL4GPVdf3KQ==
 
 JSONStream@^1.0.4, JSONStream@^1.3.4, JSONStream@^1.3.5:
@@ -6378,7 +6378,7 @@ signale@^1.2.1:
 
 sinon@5.1.1, sinon@^5:
   version "5.1.1"
-  resolved "https://registry.yarnpkg.com/sinon/-/sinon-5.1.1.tgz#19c59810ffb733ea6e76a28b94a71fc4c2f523b8"
+  resolved "https://registry.npmjs.org/sinon/-/sinon-5.1.1.tgz#19c59810ffb733ea6e76a28b94a71fc4c2f523b8"
   integrity sha512-h/3uHscbt5pQNxkf7Y/Lb9/OM44YNCicHakcq73ncbrIS8lXg+ZGOZbtuU+/km4YnyiCYfQQEwANaReJz7KDfw==
   dependencies:
     "@sinonjs/formatio" "^2.0.0"

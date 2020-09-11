@@ -15,11 +15,13 @@ import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import * as pathImport from 'path';
 import { AuthFields, AuthInfo, OAuth2WithVerifier } from '../../src/authInfo';
+import { Aliases } from '../../src/config/aliases';
 import { AuthInfoConfig } from '../../src/config/authInfoConfig';
+import { Config } from '../../src/config/config';
+import { ConfigAggregator } from '../../src/config/configAggregator';
 import { ConfigFile } from '../../src/config/configFile';
 import { ConfigContents } from '../../src/config/configStore';
 import { Crypto } from '../../src/crypto';
-import { ConfigAggregator } from '../../src/exported';
 import { SfdxError } from '../../src/sfdxError';
 import { testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
@@ -1509,6 +1511,67 @@ describe('AuthInfo', () => {
     });
   });
 
+  describe('setAlias', () => {
+    const username = 'authInfoTest_username';
+    const alias = 'MyAlias';
+
+    afterEach(() => {
+      AuthInfo.clearCache(username);
+    });
+
+    it('should set alias', async () => {
+      const aliasSpy = spyMethod($$.SANDBOX, Aliases, 'parseAndUpdate');
+      const authInfo = await AuthInfo.create({ username });
+      await authInfo.setAlias(alias);
+      expect(aliasSpy.calledOnce).to.be.true;
+      expect(aliasSpy.firstCall.args).to.deep.equal([[`${alias}=${username}`]]);
+    });
+  });
+
+  describe('setAsDefault', () => {
+    const username = 'authInfoTest_username';
+    const alias = 'MyAlias';
+    let configSpy: sinon.SinonSpy;
+
+    beforeEach(() => {
+      configSpy = spyMethod($$.SANDBOX, Config.prototype, 'set');
+    });
+
+    afterEach(() => {
+      AuthInfo.clearCache(username);
+    });
+
+    it('should set username to defaultusername', async () => {
+      const authInfo = await AuthInfo.create({ username });
+      await authInfo.setAsDefault({ defaultUsername: true });
+      expect(configSpy.called).to.be.true;
+      expect(configSpy.firstCall.args).to.deep.equal([Config.DEFAULT_USERNAME, username]);
+    });
+
+    it('should set username to defaultdevhubusername', async () => {
+      const authInfo = await AuthInfo.create({ username });
+      await authInfo.setAsDefault({ defaultDevhubUsername: true });
+      expect(configSpy.called).to.be.true;
+      expect(configSpy.firstCall.args).to.deep.equal([Config.DEFAULT_DEV_HUB_USERNAME, username]);
+    });
+
+    it('should set alias to defaultusername', async () => {
+      stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns([alias]);
+      const authInfo = await AuthInfo.create({ username });
+      await authInfo.setAsDefault({ defaultUsername: true });
+      expect(configSpy.called).to.be.true;
+      expect(configSpy.firstCall.args).to.deep.equal([Config.DEFAULT_USERNAME, alias]);
+    });
+
+    it('should set alias to defaultdevhubusername', async () => {
+      stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns([alias]);
+      const authInfo = await AuthInfo.create({ username });
+      await authInfo.setAsDefault({ defaultDevhubUsername: true });
+      expect(configSpy.called).to.be.true;
+      expect(configSpy.firstCall.args).to.deep.equal([Config.DEFAULT_DEV_HUB_USERNAME, alias]);
+    });
+  });
+
   describe('audienceUrl', () => {
     const sfdxAudienceUrlSetting = process.env.SFDX_AUDIENCE_URL;
 
@@ -1651,6 +1714,162 @@ describe('AuthInfo', () => {
       } catch (e) {
         expect(e).to.have.property('name', 'NoAuthInfoFound');
       }
+    });
+  });
+
+  describe('listAllAuthorizations', () => {
+    describe('with no AuthInfo.create errors', () => {
+      beforeEach(async () => {
+        const username = 'espresso@coffee.com';
+        const files = [`${username}.json`];
+        stubMethod($$.SANDBOX, fs, 'readdir').callsFake(() => Promise.resolve(files));
+        stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
+        stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
+        // Stub the http request (OAuth2.refreshToken())
+        // This will be called for both, and we want to make sure the clientSecrete is the
+        // same for both.
+        _postParmsStub.callsFake(params => {
+          expect(params.client_secret).to.deep.equal(testMetadata.clientSecret);
+          return {
+            access_token: testMetadata.accessToken,
+            instance_url: testMetadata.instanceUrl,
+            refresh_token: testMetadata.refreshToken,
+            id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId'
+          };
+        });
+
+        const authInfo = await AuthInfo.create({
+          username,
+          oauth2Options: {
+            clientId: testMetadata.clientId,
+            clientSecret: testMetadata.clientSecret,
+            loginUrl: testMetadata.instanceUrl,
+            authCode: testMetadata.authCode
+          }
+        });
+
+        stubMethod($$.SANDBOX, AuthInfo, 'create')
+          .withArgs({ username })
+          .returns(Promise.resolve(authInfo));
+      });
+
+      it('should return list of authorizations with web oauthMethod', async () => {
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            alias: undefined,
+            username: 'espresso@coffee.com',
+            orgId: '00DAuthInfoTest_orgId',
+            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            accessToken: 'authInfoTest_access_token',
+            oauthMethod: 'web'
+          }
+        ]);
+      });
+
+      it('should return list of authorizations with jwt oauthMethod', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'isJwt').returns(true);
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            alias: undefined,
+            username: 'espresso@coffee.com',
+            orgId: '00DAuthInfoTest_orgId',
+            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            accessToken: 'authInfoTest_access_token',
+            oauthMethod: 'jwt'
+          }
+        ]);
+      });
+
+      it('should return list of authorizations with token oauthMethod', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'isJwt').returns(false);
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'isOauth').returns(false);
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            alias: undefined,
+            username: 'espresso@coffee.com',
+            orgId: '00DAuthInfoTest_orgId',
+            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            accessToken: 'authInfoTest_access_token',
+            oauthMethod: 'token'
+          }
+        ]);
+      });
+
+      it('should return list of authorizations with alias', async () => {
+        stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns(['MyAlias']);
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            alias: 'MyAlias',
+            username: 'espresso@coffee.com',
+            orgId: '00DAuthInfoTest_orgId',
+            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            accessToken: 'authInfoTest_access_token',
+            oauthMethod: 'web'
+          }
+        ]);
+      });
+    });
+
+    describe('with AuthInfo.create errors', () => {
+      beforeEach(async () => {
+        const username = 'espresso@coffee.com';
+        const files = [`${username}.json`];
+        stubMethod($$.SANDBOX, fs, 'readdir').callsFake(() => Promise.resolve(files));
+        stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
+        stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
+
+        $$.setConfigStubContents('AuthInfoConfig', {
+          contents: {
+            username,
+            orgId: '00DAuthInfoTest_orgId',
+            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109'
+          }
+        });
+
+        stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'getContents').returns({
+          username,
+          orgId: '00DAuthInfoTest_orgId',
+          instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109'
+        });
+        stubMethod($$.SANDBOX, AuthInfo, 'create')
+          .withArgs({ username })
+          .throws(new Error('FAIL!'));
+      });
+
+      it('should return list of authorizations with unknown oauthMethod', async () => {
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            alias: undefined,
+            username: 'espresso@coffee.com',
+            orgId: '00DAuthInfoTest_orgId',
+            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            accessToken: undefined,
+            oauthMethod: 'unknown',
+            error: 'FAIL!'
+          }
+        ]);
+      });
+
+      it('should return list of authorizations with unknown oauthMethod and alias', async () => {
+        stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns(['MyAlias']);
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            alias: 'MyAlias',
+            username: 'espresso@coffee.com',
+            orgId: '00DAuthInfoTest_orgId',
+            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            accessToken: undefined,
+            oauthMethod: 'unknown',
+            error: 'FAIL!'
+          }
+        ]);
+      });
     });
   });
 

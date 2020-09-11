@@ -26,7 +26,9 @@ export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config } from './config/co
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
-export { AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl } from './authInfo';
+export { Authorization, AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl } from './authInfo';
+
+export { AuthConfigs, AuthRemover } from './authRemover';
 
 export { Connection, SFDX_HTTP_HEADERS } from './connection';
 
