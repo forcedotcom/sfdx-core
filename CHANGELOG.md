@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.12.0](https://github.com/forcedotcom/sfdx-core/compare/v2.11.0...v2.12.0) (2020-09-14)
+
+
+### Features
+
+* add a lot of sync method, add package directory information to the project ([#284](https://github.com/forcedotcom/sfdx-core/issues/284)) ([b973901](https://github.com/forcedotcom/sfdx-core/commit/b973901d69855debecc553452a6664dc482cc3c5))
+* add scope options ([#289](https://github.com/forcedotcom/sfdx-core/issues/289)) ([6bc23ec](https://github.com/forcedotcom/sfdx-core/commit/6bc23ecbb0f744e8575ac21b90a59bf540a79156))
+* support plugin-auth ([a1f6eca](https://github.com/forcedotcom/sfdx-core/commit/a1f6eca37d26cb869014e1cd7eafcc3eb5b5e830))
+
+
+### Bug Fixes
+
+* convert core from tslint -> eslint ([d4791c8](https://github.com/forcedotcom/sfdx-core/commit/d4791c8db200a18973d2164971395998693b3d03))
+* query for username during refresh token flow ([f640070](https://github.com/forcedotcom/sfdx-core/commit/f640070feef25c0589cbcad8868152a564be028c))
+* some changes regressed toolbelt ([#299](https://github.com/forcedotcom/sfdx-core/issues/299)) ([2c571a7](https://github.com/forcedotcom/sfdx-core/commit/2c571a729c4d62fc2da4427aa28ebfc769c92b97))
+
 ## [2.11.0](https://github.com/forcedotcom/sfdx-core/compare/v2.10.0...v2.11.0) (2020-08-27)
 
 
