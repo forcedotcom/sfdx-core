@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { randomBytes } from 'crypto';
+import { EventEmitter } from 'events';
+import { tmpdir as osTmpdir } from 'os';
+import { join as pathJoin } from 'path';
 import * as sinonType from 'sinon';
 
 import { once, set } from '@salesforce/kit';
@@ -19,12 +23,8 @@ import {
   getBoolean,
   isJsonMap,
   JsonMap,
-  Optional
+  Optional,
 } from '@salesforce/ts-types';
-import { randomBytes } from 'crypto';
-import { EventEmitter } from 'events';
-import { tmpdir as osTmpdir } from 'os';
-import { join as pathJoin } from 'path';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
@@ -121,38 +121,45 @@ export interface TestContext {
   };
   /**
    * A function used when resolving the local path. Calls localPathResolverSync by default.
+   *
    * @param uid Unique id.
    */
   localPathRetriever: (uid: string) => Promise<string>;
   /**
    * A function used when resolving the local path.
+   *
    * @param uid Unique id.
    */
   localPathRetrieverSync: (uid: string) => string;
   /**
    * A function used when resolving the global path. Calls globalPathResolverSync by default.
+   *
    * @param uid Unique id.
    */
   globalPathRetriever: (uid: string) => Promise<string>;
   /**
    * A function used when resolving the global path.
+   *
    * @param uid Unique id.
    */
   globalPathRetrieverSync: (uid: string) => string;
   /**
    * A function used for resolving paths. Calls localPathRetriever and globalPathRetriever.
+   *
    * @param isGlobal `true` if the config is global.
    * @param uid user id.
    */
   rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
   /**
    * A function used for resolving paths. Calls localPathRetrieverSync and globalPathRetrieverSync.
+   *
    * @param isGlobal `true` if the config is global.
    * @param uid user id.
    */
   rootPathRetrieverSync: (isGlobal: boolean, uid?: string) => string;
   /**
    * Used to mock http request to Salesforce.
+   *
    * @param request An HttpRequest.
    * @param options Additional options.
    *
@@ -161,19 +168,21 @@ export interface TestContext {
   fakeConnectionRequest: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>;
   /**
    * Gets a config stub contents by name.
+   *
    * @param name The name of the config.
    * @param group If the config supports groups.
    */
   getConfigStubContents(name: string, group?: string): ConfigContents;
   /**
    * Sets a config stub contents by name
+   *
    * @param name The name of the config stub.
    * @param value The actual stub contents. The Mock data.
    */
   setConfigStubContents(name: string, value: ConfigContents): void;
 }
 
-const _uniqid = () => {
+const uniqid = (): string => {
   return randomBytes(16).toString('hex');
 };
 
@@ -185,11 +194,12 @@ function getTestGlobalPath(uid: string): string {
   return pathJoin(osTmpdir(), uid, 'sfdx_core', 'global');
 }
 
-function retrieveRootPathSync(isGlobal: boolean, uid: string = _uniqid()): string {
+function retrieveRootPathSync(isGlobal: boolean, uid: string = uniqid()): string {
   return isGlobal ? getTestGlobalPath(uid) : getTestLocalPath(uid);
 }
 
-async function retrieveRootPath(isGlobal: boolean, uid: string = _uniqid()): Promise<string> {
+// eslint-disable-next-line @typescript-eslint/require-await
+async function retrieveRootPath(isGlobal: boolean, uid: string = uniqid()): Promise<string> {
   return retrieveRootPathSync(isGlobal, uid);
 }
 
@@ -218,7 +228,7 @@ function defaultFakeConnectionRequest(): Promise<AnyJson> {
  * ```
  * @param sinon
  */
-// tslint:disable-next-line: no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const instantiateContext = (sinon?: any) => {
   if (!sinon) {
     try {
@@ -242,16 +252,18 @@ export const instantiateContext = (sinon?: any) => {
       CONFIG: sinon.createSandbox(),
       PROJECT: sinon.createSandbox(),
       CRYPTO: sinon.createSandbox(),
-      CONNECTION: sinon.createSandbox()
+      CONNECTION: sinon.createSandbox(),
     },
     TEST_LOGGER: new Logger({
-      name: 'SFDX_Core_Test_Logger'
+      name: 'SFDX_Core_Test_Logger',
     }).useMemoryLogging(),
-    id: _uniqid(),
-    uniqid: _uniqid,
+    id: uniqid(),
+    uniqid,
     configStubs: {},
+    // eslint-disable-next-line @typescript-eslint/require-await
     localPathRetriever: async (uid: string) => getTestLocalPath(uid),
     localPathRetrieverSync: getTestLocalPath,
+    // eslint-disable-next-line @typescript-eslint/require-await
     globalPathRetriever: async (uid: string) => getTestGlobalPath(uid),
     globalPathRetrieverSync: getTestGlobalPath,
     rootPathRetriever: retrieveRootPath,
@@ -273,7 +285,7 @@ export const instantiateContext = (sinon?: any) => {
       if (ensureString(name) && isJsonMap(value)) {
         this.configStubs[name] = value;
       }
-    }
+    },
   };
   return testContext;
 };
@@ -329,18 +341,20 @@ export const stubContext = (testContext: TestContext) => {
     // Since read is now stubbed, make sure to call getPath to initialize it.
     configFile.getPath();
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore set this to true to avoid an infinite loop in tests when reading config files.
     configFile.hasRead = true;
     return stub;
   };
 
-  const readSync = function(this: ConfigFile<ConfigFile.Options>, newContents?: JsonMap): JsonMap {
+  const readSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: JsonMap): JsonMap {
     const stub = initStubForRead(this);
     this.setContentsFromObject(newContents || stub.contents || {});
     return this.getContents();
   };
 
-  const read = async function(this: ConfigFile<ConfigFile.Options>): Promise<JsonMap> {
+  const read = async function (this: ConfigFile<ConfigFile.Options>): Promise<JsonMap> {
     const stub = initStubForRead(this);
 
     if (stub.readFn) {
@@ -355,10 +369,12 @@ export const stubContext = (testContext: TestContext) => {
   };
 
   // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // @ts-ignore
   testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
   testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(read);
 
-  const writeSync = function(this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): void {
+  const writeSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): void {
     if (!testContext.configStubs[this.constructor.name]) {
       testContext.configStubs[this.constructor.name] = {};
     }
@@ -369,7 +385,7 @@ export const stubContext = (testContext: TestContext) => {
     stub.contents = this.toObject();
   };
 
-  const write = async function(this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): Promise<void> {
+  const write = async function (this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): Promise<void> {
     if (!testContext.configStubs[this.constructor.name]) {
       testContext.configStubs[this.constructor.name] = {};
     }
@@ -387,17 +403,18 @@ export const stubContext = (testContext: TestContext) => {
     }
   };
 
-  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'writeSync').callsFake(writeSync);
-  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(write);
+  stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'writeSync').callsFake(writeSync);
+
+  stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'write').callsFake(write);
 
   stubMethod(testContext.SANDBOXES.CRYPTO, Crypto.prototype, 'getKeyChain').callsFake(() =>
     Promise.resolve({
       setPassword: () => Promise.resolve(),
-      getPassword: (data: object, cb: AnyFunction) => cb(undefined, '12345678901234567890123456789012')
+      getPassword: (data: object, cb: AnyFunction) => cb(undefined, '12345678901234567890123456789012'),
     })
   );
 
-  testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function(
+  stubMethod(testContext.SANDBOXES.CONNECTION, Connection.prototype, 'request').callsFake(function (
     this: Connection,
     request: string,
     options?: Dictionary
@@ -433,16 +450,17 @@ export const stubContext = (testContext: TestContext) => {
  */
 export const restoreContext = (testContext: TestContext) => {
   testContext.SANDBOX.restore();
-  Object.values(testContext.SANDBOXES).forEach(theSandbox => theSandbox.restore());
+  Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
 };
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const _testSetup = (sinon?: any) => {
   const testContext = instantiateContext(sinon);
 
   beforeEach(() => {
     // Allow each test to have their own config aggregator
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore clear for testing.
     delete ConfigAggregator.instance;
 
@@ -511,6 +529,7 @@ export const unexpectedResult: SfdxError = new SfdxError('This code was expected
  *  ...
  *  }
  * ```
+ *
  * @param f The async function that is expected to throw.
  */
 export async function shouldThrow(f: Promise<unknown>): Promise<never> {
@@ -524,7 +543,7 @@ export async function shouldThrow(f: Promise<unknown>): Promise<never> {
  */
 export enum StreamingMockSubscriptionCall {
   CALLBACK,
-  ERRORBACK
+  ERRORBACK,
 }
 
 /**
@@ -561,13 +580,14 @@ export class StreamingMockCometSubscription extends EventEmitter implements Come
   public static SUBSCRIPTION_FAILED = 'subscriptionFailed';
   private options: StreamingMockCometSubscriptionOptions;
 
-  constructor(options: StreamingMockCometSubscriptionOptions) {
+  public constructor(options: StreamingMockCometSubscriptionOptions) {
     super();
     this.options = options;
   }
 
   /**
    * Sets up a streaming subscription callback to occur after the setTimeout event loop phase.
+   *
    * @param callback The function to invoke.
    */
   public callback(callback: () => void): void {
@@ -581,6 +601,7 @@ export class StreamingMockCometSubscription extends EventEmitter implements Come
 
   /**
    * Sets up a streaming subscription errback to occur after the setTimeout event loop phase.
+   *
    * @param callback The function to invoke.
    */
   public errback(callback: (error: Error) => void): void {
@@ -605,6 +626,7 @@ export class StreamingMockCometClient extends CometClient {
 
   /**
    * Constructor
+   *
    * @param {StreamingMockCometSubscriptionOptions} options Extends the StreamingClient options.
    */
   public constructor(options: StreamingMockCometSubscriptionOptions) {
@@ -618,15 +640,18 @@ export class StreamingMockCometClient extends CometClient {
   /**
    * Fake addExtension. Does nothing.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
   public addExtension(extension: StreamingExtension): void {}
 
   /**
    * Fake disable. Does nothing.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
   public disable(label: string): void {}
 
   /**
    * Fake handshake that invoke callback after the setTimeout event phase.
+   *
    * @param callback The function to invoke.
    */
   public handshake(callback: () => void): void {
@@ -638,10 +663,12 @@ export class StreamingMockCometClient extends CometClient {
   /**
    * Fake setHeader. Does nothing,
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
   public setHeader(name: string, value: string): void {}
 
   /**
    * Fake subscription that completed after the setTimout event phase.
+   *
    * @param channel The streaming channel.
    * @param callback The function to invoke after the subscription completes.
    */
@@ -649,7 +676,7 @@ export class StreamingMockCometClient extends CometClient {
     const subscription: StreamingMockCometSubscription = new StreamingMockCometSubscription(this.options);
     subscription.on('subscriptionComplete', () => {
       if (!this.options.messagePlaylist) return;
-      Object.values(this.options.messagePlaylist).forEach(message => {
+      Object.values(this.options.messagePlaylist).forEach((message) => {
         setTimeout(() => {
           callback(message);
         }, 0);
@@ -685,7 +712,7 @@ export class MockTestOrgData {
   public userId: string;
   public redirectUri: string;
 
-  constructor(id: string = _uniqid()) {
+  public constructor(id: string = uniqid()) {
     this.testId = id;
     this.userId = `user_id_${this.testId}`;
     this.orgId = `${this.testId}`;
@@ -733,7 +760,7 @@ export class MockTestOrgData {
       EmailEncodingKey: `user_emailencodingkey_${this.testId}`,
       ProfileId: `user_profileid_${this.testId}`,
       LanguageLocaleKey: `user_languagelocalekey_${this.testId}`,
-      Email: `user_email@${this.testId}.com`
+      Email: `user_email@${this.testId}.com`,
     };
   }
 

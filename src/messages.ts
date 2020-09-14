@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
-/*
- * NOTE: This is the lowest level class in core and should not import any
- * other local classes or utils to prevent circular dependencies or testing
- * stub issues.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { NamedError } from '@salesforce/kit';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import * as util from 'util';
 import {
   AnyJson,
   asString,
@@ -19,25 +17,23 @@ import {
   isAnyJson,
   isArray,
   isObject,
-  Optional
+  Optional,
 } from '@salesforce/ts-types';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import * as util from 'util';
+import { NamedError } from '@salesforce/kit';
 
 export type Tokens = Array<string | boolean | number | null | undefined>;
 
 class Key {
-  constructor(private packageName: string, private bundleName: string) {}
+  public constructor(private packageName: string, private bundleName: string) {}
 
-  public toString() {
+  public toString(): string {
     return `${this.packageName}:${this.bundleName}`;
   }
 }
 
 /**
  * A loader function to return messages.
+ *
  * @param locale The local set by the framework.
  */
 export type LoaderFunction = (locale: string) => Messages;
@@ -85,13 +81,45 @@ export type LoaderFunction = (locale: string) => Messages;
  * ```
  */
 export class Messages {
+  // It would be AWESOME to use Map<Key, Message> but js does an object instance comparison and doesn't let you
+  // override valueOf or equals for the === operator, which map uses. So, Use Map<String, Message>
+
+  // A map of loading functions to dynamically load messages when they need to be used
+  private static loaders: Map<string, (locale: string) => Messages> = new Map<string, (locale: string) => Messages>();
+
+  // A map cache of messages bundles that have already been loaded
+  private static bundles: Map<string, Messages> = new Map<string, Messages>();
+
+  /**
+   * The locale of the messages in this bundle.
+   */
+  public readonly locale: string;
+  /**
+   * The bundle name.
+   */
+  public readonly bundleName: string;
+  /**
+   * Create a new messages bundle.
+   *
+   * **Note:** Use {Messages.loadMessages} unless you are writing your own loader function.
+   *
+   * @param bundleName The bundle name.
+   * @param locale The locale.
+   * @param messages The messages. Can not be modified once created.
+   */
+  public constructor(bundleName: string, locale: string, private messages: Map<string, AnyJson>) {
+    this.bundleName = bundleName;
+    this.locale = locale;
+  }
+
   /**
    * Internal readFile. Exposed for unit testing. Do not use util/fs.readFile as messages.js
    * should have no internal dependencies.
+   *
    * @param filePath read file target.
    * @ignore
    */
-  public static _readFile = (filePath: string): AnyJson => {
+  public static readFile = (filePath: string): AnyJson => {
     return require(filePath);
   };
 
@@ -105,6 +133,7 @@ export class Messages {
 
   /**
    * Set a custom loader function for a package and bundle that will be called on {@link Messages.loadMessages}.
+   *
    * @param packageName The npm package name.
    * @param bundle The name of the bundle.
    * @param loader The loader function.
@@ -124,7 +153,7 @@ export class Messages {
   public static generateFileLoaderFunction(bundleName: string, filePath: string): LoaderFunction {
     return (locale: string): Messages => {
       // Anything can be returned by a js file, so stringify the results to ensure valid json is returned.
-      const fileContents: string = JSON.stringify(Messages._readFile(filePath));
+      const fileContents: string = JSON.stringify(Messages.readFile(filePath));
 
       // If the file is empty, JSON.stringify will turn it into "" which will validate on parse, so throw.
       if (!fileContents || fileContents === 'null' || fileContents === '""') {
@@ -221,9 +250,7 @@ export class Messages {
     if (!packageName) {
       const errMessage = `Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.`;
       try {
-        packageName = asString(
-          ensureJsonMap(Messages._readFile(path.join(moduleMessagesDirPath, 'package.json'))).name
-        );
+        packageName = asString(ensureJsonMap(Messages.readFile(path.join(moduleMessagesDirPath, 'package.json'))).name);
         if (!packageName) {
           throw new NamedError('MissingPackageName', errMessage);
         }
@@ -280,46 +307,17 @@ export class Messages {
 
   /**
    * Check if a bundle already been loaded.
+   *
    * @param packageName The npm package name.
    * @param bundleName The bundle name.
    */
-  public static isCached(packageName: string, bundleName: string) {
+  public static isCached(packageName: string, bundleName: string): boolean {
     return this.bundles.has(new Key(packageName, bundleName).toString());
-  }
-
-  // It would be AWESOME to use Map<Key, Message> but js does an object instance comparison and doesn't let you
-  // override valueOf or equals for the === operator, which map uses. So, Use Map<String, Message>
-
-  // A map of loading functions to dynamically load messages when they need to be used
-  private static loaders: Map<string, (locale: string) => Messages> = new Map<string, (locale: string) => Messages>();
-
-  // A map cache of messages bundles that have already been loaded
-  private static bundles: Map<string, Messages> = new Map<string, Messages>();
-
-  /**
-   * The locale of the messages in this bundle.
-   */
-  public readonly locale: string;
-  /**
-   * The bundle name.
-   */
-  public readonly bundleName: string;
-
-  /**
-   * Create a new messages bundle.
-   *
-   * **Note:** Use {Messages.loadMessages} unless you are writing your own loader function.
-   * @param bundleName The bundle name.
-   * @param locale The locale.
-   * @param messages The messages. Can not be modified once created.
-   */
-  constructor(bundleName: string, locale: string, private messages: Map<string, AnyJson>) {
-    this.bundleName = bundleName;
-    this.locale = locale;
   }
 
   /**
    * Get a message using a message key and use the tokens as values for tokenization.
+   *
    * @param key The key of the message.
    * @param tokens The values to substitute in the message.
    *
@@ -331,7 +329,7 @@ export class Messages {
 
   private getMessageWithMap(key: string, tokens: Tokens = [], map: Map<string, AnyJson>): string {
     // Allow nested keys for better grouping
-    const group = key.match(/([a-zA-Z0-9_-]+)\.(.*)/);
+    const group = RegExp(/([a-zA-Z0-9_-]+)\.(.*)/).exec(key);
     if (group) {
       const parentKey = group[1];
       const childKey = group[2];
@@ -352,7 +350,7 @@ export class Messages {
     const msg = map.get(key);
     const messages = (isArray(msg) ? msg : [msg]) as string[];
     return messages
-      .map(message => {
+      .map((message) => {
         ensureString(message);
         return util.format(message, ...tokens);
       })

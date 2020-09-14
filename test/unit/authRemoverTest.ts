@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
@@ -30,8 +30,8 @@ describe('AuthRemover', () => {
       const alias = 'MyAlias';
       $$.setConfigStubContents('Aliases', {
         contents: {
-          orgs: { [alias]: username }
-        }
+          orgs: { [alias]: username },
+        },
       });
       const remover = await AuthRemover.create();
       // @ts-ignore because private method
@@ -70,8 +70,8 @@ describe('AuthRemover', () => {
       const alias = 'MyAlias';
       $$.setConfigStubContents('Aliases', {
         contents: {
-          orgs: { [alias]: username }
-        }
+          orgs: { [alias]: username },
+        },
       });
       stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
       const remover = await AuthRemover.create();
@@ -84,8 +84,8 @@ describe('AuthRemover', () => {
       stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
       $$.setConfigStubContents('Config', {
         contents: {
-          [Config.DEFAULT_USERNAME]: username
-        }
+          [Config.DEFAULT_USERNAME]: username,
+        },
       });
       const remover = await AuthRemover.create();
       const authConfigs = await remover.findAuthConfigs();
@@ -98,13 +98,13 @@ describe('AuthRemover', () => {
       const alias = 'MyAlias';
       $$.setConfigStubContents('Aliases', {
         contents: {
-          orgs: { [alias]: username }
-        }
+          orgs: { [alias]: username },
+        },
       });
       $$.setConfigStubContents('Config', {
         contents: {
-          [Config.DEFAULT_USERNAME]: alias
-        }
+          [Config.DEFAULT_USERNAME]: alias,
+        },
       });
       const remover = await AuthRemover.create();
       const authConfigs = await remover.findAuthConfigs();
@@ -116,8 +116,8 @@ describe('AuthRemover', () => {
       stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
       $$.setConfigStubContents('Config', {
         contents: {
-          [Config.DEFAULT_USERNAME]: username
-        }
+          [Config.DEFAULT_USERNAME]: username,
+        },
       });
       const remover = await AuthRemover.create();
       const authConfigs = await remover.findAuthConfigs('user@example.com');
@@ -141,8 +141,8 @@ describe('AuthRemover', () => {
     it('should return auth files that belong to the defaultusername (username)', async () => {
       $$.setConfigStubContents('Config', {
         contents: {
-          [Config.DEFAULT_USERNAME]: username
-        }
+          [Config.DEFAULT_USERNAME]: username,
+        },
       });
       const remover = await AuthRemover.create();
       // @ts-ignore because private member
@@ -154,13 +154,13 @@ describe('AuthRemover', () => {
       const alias = 'MyAlias';
       $$.setConfigStubContents('Aliases', {
         contents: {
-          orgs: { [alias]: username }
-        }
+          orgs: { [alias]: username },
+        },
       });
       $$.setConfigStubContents('Config', {
         contents: {
-          [Config.DEFAULT_USERNAME]: alias
-        }
+          [Config.DEFAULT_USERNAME]: alias,
+        },
       });
       const remover = await AuthRemover.create();
       // @ts-ignore because private member
@@ -188,14 +188,14 @@ describe('AuthRemover', () => {
       const alias = 'MyAlias';
       $$.setConfigStubContents('Aliases', {
         contents: {
-          orgs: { [alias]: username }
-        }
+          orgs: { [alias]: username },
+        },
       });
       $$.setConfigStubContents('Config', {
         contents: {
           [Config.DEFAULT_USERNAME]: alias,
-          [Config.DEFAULT_DEV_HUB_USERNAME]: alias
-        }
+          [Config.DEFAULT_DEV_HUB_USERNAME]: alias,
+        },
       });
       const remover = await AuthRemover.create();
       // @ts-ignore because private member
@@ -210,7 +210,7 @@ describe('AuthRemover', () => {
         [Config.DEFAULT_USERNAME],
         [Config.DEFAULT_DEV_HUB_USERNAME],
         [Config.DEFAULT_USERNAME],
-        [Config.DEFAULT_DEV_HUB_USERNAME]
+        [Config.DEFAULT_DEV_HUB_USERNAME],
       ]);
       // expect one call each for global and local config
       expect(configWriteSpy.callCount).to.equal(2);
@@ -222,14 +222,14 @@ describe('AuthRemover', () => {
       const alias = 'MyAlias';
       $$.setConfigStubContents('Aliases', {
         contents: {
-          orgs: { [alias]: username }
-        }
+          orgs: { [alias]: username },
+        },
       });
       $$.setConfigStubContents('Config', {
         contents: {
           [Config.DEFAULT_USERNAME]: alias,
-          [Config.DEFAULT_DEV_HUB_USERNAME]: alias
-        }
+          [Config.DEFAULT_DEV_HUB_USERNAME]: alias,
+        },
       });
       const remover = await AuthRemover.create();
       // @ts-ignore because private member
@@ -254,9 +254,9 @@ describe('AuthRemover', () => {
         contents: {
           orgs: {
             MyAlias: username,
-            MyOtherAlias: username
-          }
-        }
+            MyOtherAlias: username,
+          },
+        },
       });
 
       const remover = await AuthRemover.create();

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { assert, expect } from 'chai';
 import { Config } from '../../../src/config/config';
@@ -75,7 +75,7 @@ describe('ConfigAggregator', () => {
     // readSync doesn't decrypt values
     $$.SANDBOX.stub(Config.prototype, 'readSync').returns({ isvDebuggerSid: 'encrypted' });
     // read decrypts values
-    $$.SANDBOX.stub(Config.prototype, 'read').returns({ isvDebuggerSid: 'decrypted' });
+    $$.SANDBOX.stub(Config.prototype, 'read').resolves({ isvDebuggerSid: 'decrypted' });
     const aggregator: ConfigAggregator = ConfigAggregator.getInstance();
     expect(aggregator.getInfo('isvDebuggerSid').value).to.equal('encrypted');
     await aggregator.reload();
@@ -84,28 +84,27 @@ describe('ConfigAggregator', () => {
 
   describe('initialization', () => {
     beforeEach(() => {
-      $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function(this: Config) {
-        const config: ConfigContents = this.isGlobal()
-          ? await Promise.resolve({ defaultusername: 2 })
-          : await Promise.resolve({ defaultusername: 1 });
+      $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function (this: Config) {
+        const config: ConfigContents = this.isGlobal() ? { defaultusername: 2 } : { defaultusername: 1 };
         this.setContents(config);
         return config;
       });
     });
     it('local overrides global', async () => {
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(await aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal(1);
+      expect(aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal(1);
     });
 
     it('env overrides local and global', async () => {
       process.env.SFDX_DEFAULTUSERNAME = 'test';
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(await aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal('test');
+      expect(aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal('test');
     });
   });
 
   describe('locations', () => {
     it('local', async () => {
+      // @ts-ignore
       $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {
@@ -121,6 +120,9 @@ describe('ConfigAggregator', () => {
     });
 
     it('global', async () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
       $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {
@@ -138,6 +140,7 @@ describe('ConfigAggregator', () => {
     it('env', async () => {
       process.env.SFDX_DEFAULTUSERNAME = 'test';
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      // @ts-ignore
       $$.SANDBOX.stub(fs, 'readJson').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {

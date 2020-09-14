@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isBoolean } from '@salesforce/ts-types';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
+import { isBoolean } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -39,6 +39,40 @@ Messages.importMessagesDirectory(pathJoin(__dirname));
  * ```
  */
 export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T> {
+  // whether file contents have been read
+  protected hasRead = false;
+
+  // Initialized in init
+  protected logger!: Logger;
+  protected messages!: Messages;
+
+  // Initialized in create
+  private path!: string;
+
+  /**
+   * Create an instance of a config file without reading the file. Call `read` or `readSync`
+   * after creating the ConfigFile OR instantiate with {@link ConfigFile.create} instead.
+   *
+   * @param options The options for the class instance
+   * @ignore
+   */
+  public constructor(options: T) {
+    super(options);
+
+    this.logger = Logger.childFromRoot(this.constructor.name);
+    const statics = this.constructor as typeof ConfigFile;
+    let defaultOptions = {};
+    try {
+      defaultOptions = statics.getDefaultOptions();
+    } catch (e) {
+      /* Some implementations don't let you call default options */
+    }
+
+    // Merge default and passed in options
+    this.options = Object.assign(defaultOptions, this.options);
+
+    this.messages = Messages.loadMessages('@salesforce/core', 'config');
+  }
   /**
    * Returns the config's filename.
    */
@@ -49,6 +83,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
 
   /**
    * Returns the default options for the config file.
+   *
    * @param isGlobal If the file should be stored globally or locally.
    * @param filename The name of the config file.
    */
@@ -56,7 +91,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     return {
       isGlobal,
       isState: true,
-      filename: filename || this.getFileName()
+      filename: filename || this.getFileName(),
     };
   }
 
@@ -78,43 +113,10 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
     return isGlobal ? osHomedir() : resolveProjectPathSync();
   }
 
-  // whether file contents have been read
-  protected hasRead = false;
-
-  // Initialized in init
-  protected logger!: Logger;
-  protected messages!: Messages;
-
-  // Initialized in create
-  private path!: string;
-
-  /**
-   * Create an instance of a config file without reading the file. Call `read` or `readSync`
-   * after creating the ConfigFile OR instantiate with {@link ConfigFile.create} instead.
-   * @param options The options for the class instance
-   * @ignore
-   */
-  public constructor(options: T) {
-    super(options);
-
-    this.logger = Logger.childFromRoot(this.constructor.name);
-    const statics = this.constructor as typeof ConfigFile;
-    let defaultOptions = {};
-    try {
-      defaultOptions = statics.getDefaultOptions();
-    } catch (e) {
-      /* Some implementations don't let you call default options */
-    }
-
-    // Merge default and passed in options
-    this.options = Object.assign(defaultOptions, this.options);
-
-    this.messages = Messages.loadMessages('@salesforce/core', 'config');
-  }
-
   /**
    * Determines if the config file is read/write accessible. Returns `true` if the user has capabilities specified
    * by perm.
+   *
    * @param {number} perm The permission.
    *
    * **See** {@link https://nodejs.org/dist/latest/docs/api/fs.html#fs_fs_access_path_mode_callback}
@@ -131,6 +133,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
   /**
    * Determines if the config file is read/write accessible. Returns `true` if the user has capabilities specified
    * by perm.
+   *
    * @param {number} perm The permission.
    *
    * **See** {@link https://nodejs.org/dist/latest/docs/api/fs.html#fs_fs_access_path_mode_callback}
@@ -149,6 +152,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * optimization, files are only read once per process and updated in memory and via `write()`. To force
    * a read from the filesystem pass `force=true`.
    * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
+   *
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
    * @param [force = true] Optionally force the file to be read from disk even when already read within the process.
    */
@@ -182,6 +186,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * optimization, files are only read once per process and updated in memory and via `write()`. To force
    * a read from the filesystem pass `force=true`.
    * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
+   *
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
    * @param [force = true] Optionally force the file to be read from disk even when already read within the process.
    */

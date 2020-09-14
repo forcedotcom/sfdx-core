@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { stubMethod } from '@salesforce/ts-sinon';
 import { ensureString, JsonMap } from '@salesforce/ts-types';
@@ -18,7 +18,7 @@ const $$ = testSetup();
 
 const configFileContents = {
   defaultdevhubusername: 'configTest_devhub',
-  defaultusername: 'configTest_default'
+  defaultusername: 'configTest_default',
 };
 
 const clone = (obj: JsonMap) => JSON.parse(JSON.stringify(obj));
@@ -63,6 +63,7 @@ describe('Config', () => {
         .returns(Promise.resolve(clone(configFileContents)));
 
       // Manipulate config.hasRead to force a read
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       config.hasRead = false;
 
@@ -101,7 +102,7 @@ describe('Config', () => {
 
       await Config.update(false, 'defaultusername');
       expect(writeStub.getCall(0).args[1]).to.deep.equal({
-        defaultdevhubusername
+        defaultdevhubusername,
       });
     });
   });
@@ -149,7 +150,7 @@ describe('Config', () => {
 
     it('PropertyInput validation', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      await config.set(Config.DEFAULT_USERNAME, 'foo@example.com');
+      config.set(Config.DEFAULT_USERNAME, 'foo@example.com');
       expect(config.get(Config.DEFAULT_USERNAME)).to.be.equal('foo@example.com');
     });
   });
@@ -187,14 +188,14 @@ describe('Config', () => {
       const TEST_VAL = 'test';
 
       const writeStub = stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.write.name).callsFake(
-        async function(this: Config) {
+        async function (this: Config) {
           expect(ensureString(this.get('isvDebuggerSid')).length).to.be.greaterThan(TEST_VAL.length);
           expect(ensureString(this.get('isvDebuggerSid'))).to.not.equal(TEST_VAL);
         }
       );
 
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      await config.set(Config.ISV_DEBUGGER_SID, TEST_VAL);
+      config.set(Config.ISV_DEBUGGER_SID, TEST_VAL);
       await config.write();
 
       expect(writeStub.called).to.be.true;

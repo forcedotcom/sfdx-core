@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
+import { expect } from 'chai';
 import { shouldThrow, testSetup, unexpectedResult } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 
@@ -398,7 +398,7 @@ describe('util/fs', () => {
       expect(writeStub.firstCall.args[1]).to.deep.equal(stringifiedTestJSON);
       expect(writeStub.firstCall.args[2]).to.deep.equal({
         encoding: 'utf8',
-        mode: '600'
+        mode: '600',
       });
     });
   });
@@ -415,14 +415,15 @@ describe('util/fs', () => {
       expect(writeStub.firstCall.args[1]).to.deep.equal(stringifiedTestJSON);
       expect(writeStub.firstCall.args[2]).to.deep.equal({
         encoding: 'utf8',
-        mode: '600'
+        mode: '600',
       });
     });
   });
 
   describe('fileExists', () => {
     it('should return true if the file exists', async () => {
-      $$.SANDBOX.stub(fs, 'access').returns(Promise.resolve(true));
+      // @ts-ignore
+      $$.SANDBOX.stub(fs, 'access').resolves(true);
       const exists = await fs.fileExists('foo/bar.json');
       expect(exists).to.be.true;
     });
@@ -435,6 +436,7 @@ describe('util/fs', () => {
 
   describe('fileExistsSync', () => {
     it('should return true if the file exists', () => {
+      // @ts-ignore
       $$.SANDBOX.stub(fs, 'accessSync').returns(true);
       const exists = fs.fileExistsSync('foo/bar.json');
       expect(exists).to.be.true;
@@ -452,19 +454,18 @@ describe('util/fs', () => {
     });
 
     it('should return false if the files stat.size are different', async () => {
-      $$.SANDBOX.stub(fs, 'readFile')
-        .onCall(0)
-        .resolves({})
-        .onCall(1)
-        .resolves({});
+      // @ts-ignore
+      $$.SANDBOX.stub(fs, 'readFile').onCall(0).resolves({}).onCall(1).resolves({});
       $$.SANDBOX.stub(fs, 'stat')
         .onCall(0)
+        // @ts-ignore
         .resolves({
-          size: 1
+          size: 1,
         })
         .onCall(1)
+        // @ts-ignore
         .resolves({
-          size: 2
+          size: 2,
         });
 
       const results = await fs.areFilesEqual('foo/bar.json', 'foo/bar2.json');
@@ -487,11 +488,8 @@ describe('util/fs', () => {
             "value": true,
         }`
         );
-      $$.SANDBOX.stub(fs, 'stat')
-        .onCall(0)
-        .resolves({})
-        .onCall(1)
-        .resolves({});
+      // @ts-ignore
+      $$.SANDBOX.stub(fs, 'stat').onCall(0).resolves({}).onCall(1).resolves({});
 
       const results = await fs.areFilesEqual('foo/bar.json', 'foo/bar2.json');
       expect(results).to.be.true;
@@ -514,11 +512,8 @@ describe('util/fs', () => {
           }`
         );
 
-      $$.SANDBOX.stub(fs, 'stat')
-        .onCall(0)
-        .resolves({})
-        .onCall(1)
-        .resolves({});
+      // @ts-ignore
+      $$.SANDBOX.stub(fs, 'stat').onCall(0).resolves({}).onCall(1).resolves({});
       const results = await fs.areFilesEqual('foo/bar.json', 'foo/bsar2.json');
       expect(results).to.be.false;
     });
@@ -526,12 +521,14 @@ describe('util/fs', () => {
     it('should return error when fs.readFile throws error', async () => {
       $$.SANDBOX.stub(fs, 'stat')
         .onCall(0)
+        // @ts-ignore
         .resolves({
-          size: 1
+          size: 1,
         })
         .onCall(1)
+        // @ts-ignore
         .resolves({
-          size: 2
+          size: 2,
         });
       try {
         await fs.areFilesEqual('foo', 'bar');
@@ -556,14 +553,16 @@ describe('util/fs', () => {
 
     it('should run custom functions against contents of a directory', async () => {
       const actedOnArray = [];
+      // @ts-ignore
       $$.SANDBOX.stub(fs, 'readdir').resolves(['test1.json', 'test2.json']);
+      // @ts-ignore
       $$.SANDBOX.stub(fs, 'stat').resolves({
         isDirectory: () => false,
-        isFile: () => true
+        isFile: () => true,
       });
       const pathToFolder = pathJoin(osTmpdir(), 'foo');
 
-      await fs.actOn(pathToFolder, async file => {
+      await fs.actOn(pathToFolder, async (file) => {
         actedOnArray.push(file), 'file';
       });
       const example = [pathJoin(pathToFolder, 'test1.json'), pathJoin(pathToFolder, 'test2.json')];

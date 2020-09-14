@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { AsyncCreatable, set } from '@salesforce/kit';
@@ -14,7 +14,7 @@ import {
   get,
   getAnyJson,
   JsonMap,
-  Optional
+  Optional,
 } from '@salesforce/ts-types';
 
 /**
@@ -62,7 +62,8 @@ export interface ConfigStore {
  *
  * **Note:** To see the interface, look in typescripts autocomplete help or the npm package's ConfigStore.d.ts file.
  */
-export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends AsyncCreatable<T>
+export abstract class BaseConfigStore<T extends BaseConfigStore.Options>
+  extends AsyncCreatable<T>
   implements ConfigStore {
   protected options: T;
 
@@ -71,6 +72,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Constructor.
+   *
    * @param options The options for the class instance.
    * @ignore
    */
@@ -89,6 +91,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns the value associated to the key, or undefined if there is none.
+   *
    * @param key The key.
    */
   public get(key: string): Optional<ConfigValue> {
@@ -97,6 +100,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns the list of keys that contain a value.
+   *
    * @param value The value to filter keys on.
    */
   public getKeysByValue(value: ConfigValue): string[] {
@@ -107,6 +111,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Returns a boolean asserting whether a value has been associated to the key in the config object or not.
+   *
    * @param key The key.
    */
   public has(key: string): boolean {
@@ -122,6 +127,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Sets the value for the key in the config object.
+   *
    * @param key The Key.
    * @param value The value.
    */
@@ -133,6 +139,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   /**
    * Returns `true` if an element in the config object existed and has been removed, or `false` if the element does not
    * exist. {@link BaseConfigStore.has} will return false afterwards.
+   *
    * @param key The key.
    */
   public unset(key: string): boolean {
@@ -142,6 +149,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
   /**
    * Returns `true` if all elements in the config object existed and have been removed, or `false` if all the elements
    * do not exist (some may have been removed). {@link BaseConfigStore.has(key)} will return false afterwards.
+   *
    * @param keys The keys.
    */
   public unsetAll(keys: string[]): boolean {
@@ -174,6 +182,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Sets the entire config contents.
+   *
    * @param contents The contents.
    */
   public setContents(contents?: ConfigContents): void {
@@ -182,6 +191,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Invokes `actionFn` once for each key-value pair present in the config object.
+   *
    * @param {function} actionFn The function `(key: string, value: ConfigValue) => void` to be called for each element.
    */
   public forEach(actionFn: (key: string, value: ConfigValue) => void): void {
@@ -193,6 +203,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Asynchronously invokes `actionFn` once for each key-value pair present in the config object.
+   *
    * @param {function} actionFn The function `(key: string, value: ConfigValue) => Promise<void>` to be called for
    * each element.
    * @returns {Promise<void>}
@@ -214,6 +225,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options> extends
 
   /**
    * Convert an object to a {@link ConfigContents} and set it as the config contents.
+   *
    * @param obj The object.
    */
   public setContentsFromObject<U extends object>(obj: U): void {

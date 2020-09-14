@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { maxBy, merge } from '@salesforce/kit';
@@ -14,7 +14,7 @@ import {
   Promise as JsforcePromise,
   QueryResult,
   RequestInfo,
-  Tooling as JSForceTooling
+  Tooling as JSForceTooling,
 } from 'jsforce';
 import { AuthFields, AuthInfo } from './authInfo';
 import { ConfigAggregator } from './config/configAggregator';
@@ -26,13 +26,14 @@ import { sfdc } from './util/sfdc';
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
  * jsforce which expects .thenCall. Add .thenCall to the node promise to prevent breakage.
  */
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 Promise.prototype.thenCall = JsforcePromise.prototype.thenCall;
 
 const clientId = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
 export const SFDX_HTTP_HEADERS = {
   'content-type': 'application/json',
-  'user-agent': clientId
+  'user-agent': clientId,
 };
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
@@ -43,6 +44,7 @@ export interface Tooling extends JSForceTooling {
    * Executes a query and auto-fetches (i.e., "queryMore") all results.  This is especially
    * useful with large query result sizes, such as over 2000 records.  The default maximum
    * fetch size is 10,000 records.  Modify this via the options argument.
+   *
    * @param soql The SOQL string.
    * @param options The query options.  NOTE: the autoFetch option will always be true.
    */
@@ -65,23 +67,51 @@ export interface Tooling extends JSForceTooling {
  * ```
  */
 export class Connection extends JSForceConnection {
+  // The following are all initialized in either this constructor or the super constructor, sometimes conditionally...
+  /**
+   * Tooling api reference.
+   */
+  public tooling!: Tooling;
+  // We want to use 1 logger for this class and the jsForce base classes so override
+  // the jsForce connection.tooling.logger and connection.logger.
+  private logger!: Logger;
+  private transport!: { httpRequest: (info: RequestInfo) => JsonMap };
+  private _normalizeUrl!: (url: string) => string;
+  private options: Connection.Options;
+
+  /**
+   * Constructor
+   * **Do not directly construct instances of this class -- use {@link Connection.create} instead.**
+   *
+   * @param options The options for the class instance.
+   * @ignore
+   */
+  public constructor(options: Connection.Options) {
+    super(options.connectionOptions || {});
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    this.tooling.autoFetchQuery = Connection.prototype.autoFetchQuery;
+
+    this.options = options;
+  }
   /**
    * Creates an instance of a Connection. Performs additional async initializations.
+   *
    * @param options Constructor options.
    */
   public static async create(
     this: new (options: Connection.Options) => Connection,
     options: Connection.Options
   ): Promise<Connection> {
-    const _aggregator = options.configAggregator || (await ConfigAggregator.create());
-    const versionFromConfig = asString(_aggregator.getInfo('apiVersion').value);
+    const configAggregator = options.configAggregator || (await ConfigAggregator.create());
+    const versionFromConfig = asString(configAggregator.getInfo('apiVersion').value);
     const baseOptions: ConnectionOptions = {
       // Set the API version obtained from the config aggregator.
       // Will use jsforce default if undefined.
       version: versionFromConfig,
       callOptions: {
-        client: clientId
-      }
+        client: clientId,
+      },
     };
 
     // Get connection options from auth info and create a new jsForce connection
@@ -94,39 +124,12 @@ export class Connection extends JSForceConnection {
     }
     return conn;
   }
-
-  // The following are all initialized in either this constructor or the super constructor, sometimes conditionally...
-  /**
-   * Tooling api reference.
-   */
-  public tooling!: Tooling;
-  // We want to use 1 logger for this class and the jsForce base classes so override
-  // the jsForce connection.tooling.logger and connection.logger.
-  private logger!: Logger;
-  private _logger!: Logger;
-  private _transport!: { httpRequest: (info: RequestInfo) => JsonMap };
-  private _normalizeUrl!: (url: string) => string;
-  private options: Connection.Options;
-
-  /**
-   * Constructor
-   * **Do not directly construct instances of this class -- use {@link Connection.create} instead.**
-   * @param options The options for the class instance.
-   * @ignore
-   */
-  constructor(options: Connection.Options) {
-    super(options.connectionOptions || {});
-
-    this.tooling.autoFetchQuery = Connection.prototype.autoFetchQuery;
-
-    this.options = options;
-  }
-
   /**
    * Async initializer.
    */
   public async init(): Promise<void> {
-    this.logger = this._logger = this.tooling._logger = await Logger.child('connection');
+    // eslint-disable-next-line no-underscore-dangle
+    this.logger = this.tooling._logger = await Logger.child('connection');
   }
 
   /**
@@ -137,11 +140,11 @@ export class Connection extends JSForceConnection {
    * @param options HTTP API request options.
    */
   public async request(request: RequestInfo | string, options?: JsonMap): Promise<JsonCollection> {
-    const _request: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
-    _request.headers = Object.assign({}, SFDX_HTTP_HEADERS, _request.headers);
-    this.logger.debug(`request: ${JSON.stringify(_request)}`);
+    const requestInfo: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
+    requestInfo.headers = Object.assign({}, SFDX_HTTP_HEADERS, requestInfo.headers);
+    this.logger.debug(`request: ${JSON.stringify(requestInfo)}`);
     //  The "as" is a workaround for the jsforce typings.
-    return super.request(_request, options) as Promise<JsonCollection>;
+    return super.request(requestInfo, options) as Promise<JsonCollection>;
   }
 
   /**
@@ -151,15 +154,15 @@ export class Connection extends JSForceConnection {
    * @param request HTTP request object or URL to GET request.
    */
   public async requestRaw(request: RequestInfo): Promise<JsonMap> {
-    const _headers = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {};
+    const headers = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {};
 
-    merge(_headers, SFDX_HTTP_HEADERS, request.headers);
+    merge(headers, SFDX_HTTP_HEADERS, request.headers);
 
-    return this._transport.httpRequest({
+    return this.transport.httpRequest({
       method: request.method,
       url: request.url,
-      headers: _headers,
-      body: request.body
+      headers,
+      body: request.body,
     });
   }
 
@@ -204,6 +207,7 @@ export class Connection extends JSForceConnection {
    * Set the API version for all connection requests.
    *
    * **Throws** *{@link SfdxError}{ name: 'IncorrectAPIVersion' }* Incorrect API version.
+   *
    * @param version The API version.
    */
   public setApiVersion(version: string): void {
@@ -246,6 +250,7 @@ export class Connection extends JSForceConnection {
 
   /**
    * Normalize a Salesforce url to include a instance information.
+   *
    * @param url Partial url.
    */
   public normalizeUrl(url: string): string {
@@ -256,41 +261,38 @@ export class Connection extends JSForceConnection {
    * Executes a query and auto-fetches (i.e., "queryMore") all results.  This is especially
    * useful with large query result sizes, such as over 2000 records.  The default maximum
    * fetch size is 10,000 records. Modify this via the options argument.
+   *
    * @param soql The SOQL string.
-   * @param options The query options. NOTE: the autoFetch option will always be true.
+   * @param executeOptions The query options. NOTE: the autoFetch option will always be true.
    */
-  public async autoFetchQuery<T>(soql: string, options: ExecuteOptions = {}): Promise<QueryResult<T>> {
+  public async autoFetchQuery<T>(soql: string, executeOptions: ExecuteOptions = {}): Promise<QueryResult<T>> {
     const config: ConfigAggregator = await ConfigAggregator.create();
     // take the limit from the calling function, then the config, then default 10,000
-    const maxFetch: number = (config.getInfo('maxQueryLimit').value as number) || options.maxFetch || 10000;
+    const maxFetch: number = (config.getInfo('maxQueryLimit').value as number) || executeOptions.maxFetch || 10000;
 
-    const _options: ExecuteOptions = Object.assign(options, {
+    const options: ExecuteOptions = Object.assign(executeOptions, {
       autoFetch: true,
-      maxFetch
+      maxFetch,
     });
     const records: T[] = [];
 
-    this._logger.debug(`Auto-fetching query: ${soql}`);
-
     return new Promise<QueryResult<T>>((resolve, reject) => {
-      const query = this.query<T>(soql, _options)
-        .on('record', rec => records.push(rec))
-        .on('error', err => reject(err))
+      const query = this.query<T>(soql, options)
+        .on('record', (rec) => records.push(rec))
+        .on('error', (err) => reject(err))
         .on('end', () => {
           const totalSize = getNumber(query, 'totalSize') || 0;
           if (totalSize > records.length) {
             process.emitWarning(
-              `The query result is missing ${totalSize -
-                records.length} records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${totalSize} or greater than ${maxFetch}.`
-            );
-            this._logger.warn(
-              `The query: ${soql} result is missing ${totalSize - records.length} records due to an API limit.`
+              `The query result is missing ${
+                totalSize - records.length
+              } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${totalSize} or greater than ${maxFetch}.`
             );
           }
           resolve({
             done: true,
             totalSize,
-            records
+            records,
           });
         });
     });

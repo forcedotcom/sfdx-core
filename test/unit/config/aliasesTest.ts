@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -38,7 +38,7 @@ describe('Alias', () => {
       await aliases.write();
       expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
       expect($$.getConfigStubContents('Aliases')).to.deep.equal({
-        orgs: { test: 'val' }
+        orgs: { test: 'val' },
       });
     });
 
@@ -48,7 +48,7 @@ describe('Alias', () => {
       await aliases.write();
       expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
       expect($$.getConfigStubContents('Aliases')).to.deep.equal({
-        orgs: { 'test.with.dots': 'val' }
+        orgs: { 'test.with.dots': 'val' },
       });
     });
   });
@@ -56,8 +56,8 @@ describe('Alias', () => {
   it('gets aliases with dots', async () => {
     const testContents = {
       contents: {
-        orgs: { 'test.with.dots': 'val' }
-      }
+        orgs: { 'test.with.dots': 'val' },
+      },
     };
 
     $$.setConfigStubContents('Aliases', testContents);
@@ -70,8 +70,8 @@ describe('Alias', () => {
     it('passes the correct values to FileKeyValueStore#unset', async () => {
       const testContents = {
         contents: {
-          orgs: { test1: 'val', test2: 'val', test3: 'val' }
-        }
+          orgs: { test1: 'val', test2: 'val', test3: 'val' },
+        },
       };
 
       $$.setConfigStubContents('Aliases', testContents);
@@ -82,7 +82,7 @@ describe('Alias', () => {
       await aliases.write();
       expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
       expect($$.getConfigStubContents('Aliases')).to.deep.equal({
-        orgs: { test2: 'val' }
+        orgs: { test2: 'val' },
       });
     });
   });
@@ -93,7 +93,7 @@ describe('Alias', () => {
         await Aliases.parseAndUpdate(['another=val']);
         expect(sinon.assert.calledOnce(ConfigGroup.prototype.write as sinon.SinonSpy));
         expect($$.getConfigStubContents('Aliases')).to.deep.equal({
-          orgs: { another: 'val' }
+          orgs: { another: 'val' },
         });
       });
 
@@ -103,8 +103,8 @@ describe('Alias', () => {
         expect($$.getConfigStubContents('Aliases')).to.deep.equal({
           orgs: {
             another: 'val',
-            some: 'val'
-          }
+            some: 'val',
+          },
         });
       });
     });

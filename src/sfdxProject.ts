@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { basename, dirname, isAbsolute, normalize, sep } from 'path';
 
+import { defaults, env } from '@salesforce/kit';
+import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 
-import { defaults, env } from '@salesforce/kit';
-import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { SchemaValidator } from './schema/validator';
 import { fs } from './util/fs';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
@@ -20,9 +20,9 @@ import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
 
 export type PackageDirDependency = {
+  [k: string]: unknown;
   package: string;
   versionNumber?: string;
-  [k: string]: unknown;
 };
 
 export type PackageDir = {
@@ -84,6 +84,10 @@ export type ProjectJson = ConfigContents & {
 export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
   public static BLOCKLIST = ['packageAliases'];
 
+  public constructor(options: ConfigFile.Options) {
+    super(options);
+  }
+
   public static getFileName() {
     return SFDX_PROJECT_JSON;
   }
@@ -92,10 +96,6 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     const options = ConfigFile.getDefaultOptions(isGlobal, SfdxProjectJson.getFileName());
     options.isState = false;
     return options;
-  }
-
-  public constructor(options: ConfigFile.Options) {
-    super(options);
   }
 
   public async read(): Promise<ConfigContents> {
@@ -132,7 +132,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
 
   public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
     const defaultOptions: ConfigFile.Options = {
-      isState: false
+      isState: false,
     };
 
     Object.assign(defaultOptions, options || {});
@@ -174,6 +174,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
    * Returns the `packageDirectories` within sfdx-project.json, first reading
    * and validating the file if necessary.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async getPackageDirectories(): Promise<PackageDir[]> {
     return this.getPackageDirectoriesSync();
   }
@@ -219,7 +220,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
 
     // This has to be done on the fly so it won't be written back to the file
     // This is a fast operation so no need to cache it so it stays immutable.
-    const packageDirs = (contents.packageDirectories || []).map(packageDir => {
+    const packageDirs = (contents.packageDirectories || []).map((packageDir) => {
       if (isAbsolute(packageDir.path)) {
         throw new SfdxError(
           'InvalidProjectWorkspace',
@@ -245,7 +246,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       return Object.assign({}, packageDir, { name, path, fullPath });
     });
 
-    const defaultDirs = packageDirs.filter(packageDir => packageDir.default);
+    const defaultDirs = packageDirs.filter((packageDir) => packageDir.default);
 
     if (defaultDirs.length === 0) {
       throw new SfdxError(this.messages.getMessage('MissingDefaultPath'));
@@ -271,7 +272,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     const uniqueValues: NamedPackageDir[] = [];
 
     // Keep original order defined in sfdx-project.json
-    this.getPackageDirectoriesSync().forEach(packageDir => {
+    this.getPackageDirectoriesSync().forEach((packageDir) => {
       if (!visited[packageDir.name]) {
         visited[packageDir.name] = true;
         uniqueValues.push(packageDir);
@@ -286,7 +287,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
    * for data other than the names.
    */
   public getUniquePackageNames(): string[] {
-    return this.getUniquePackageDirectories().map(pkgDir => pkgDir.name);
+    return this.getUniquePackageDirectories().map((pkgDir) => pkgDir.name);
   }
 
   /**
@@ -323,8 +324,28 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
  * ```
  */
 export class SfdxProject {
+  // Cache of SfdxProject instances per path.
+  private static instances = new Map<string, SfdxProject>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private projectConfig: any;
+
+  // Dynamically referenced in retrieveSfdxProjectJson
+  private sfdxProjectJson!: SfdxProjectJson;
+  private sfdxProjectJsonGlobal!: SfdxProjectJson;
+
+  private packageDirectories?: NamedPackageDir[];
+  private activePackage: Nullable<NamedPackageDir>;
+
+  /**
+   * Do not directly construct instances of this class -- use {@link SfdxProject.resolve} instead.
+   *
+   * @ignore
+   */
+  private constructor(private path: string) {}
+
   /**
    * Get a Project from a given path or from the working directory.
+   *
    * @param path The path of the project.
    *
    * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
@@ -340,6 +361,7 @@ export class SfdxProject {
 
   /**
    * Get a Project from a given path or from the working directory.
+   *
    * @param path The path of the project.
    *
    * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
@@ -382,25 +404,6 @@ export class SfdxProject {
   public static resolveProjectPathSync(dir?: string): string {
     return resolveProjectPathSync(dir);
   }
-
-  // Cache of SfdxProject instances per path.
-  private static instances = new Map<string, SfdxProject>();
-
-  private projectConfig: any; // tslint:disable-line:no-any
-
-  // Dynamically referenced in retrieveSfdxProjectJson
-  private sfdxProjectJson!: SfdxProjectJson;
-  private sfdxProjectJsonGlobal!: SfdxProjectJson;
-
-  private packageDirectories?: NamedPackageDir[];
-  private activePackage: Nullable<NamedPackageDir>;
-
-  /**
-   * Do not directly construct instances of this class -- use {@link SfdxProject.resolve} instead.
-   *
-   * @ignore
-   */
-  private constructor(private path: string) {}
 
   /**
    * Returns the project path.
@@ -499,18 +502,20 @@ export class SfdxProject {
 
   /**
    * Returns the package from a file path.
+   *
    * @param path A file path. E.g. /Users/jsmith/projects/ebikes-lwc/force-app/apex/my-cls.cls
    */
   public getPackageFromPath(path: string): Optional<NamedPackageDir> {
     const packageDirs = this.getPackageDirectories();
     const match = packageDirs.find(
-      packageDir => basename(path) === packageDir.name || path.includes(packageDir.fullPath)
+      (packageDir) => basename(path) === packageDir.name || path.includes(packageDir.fullPath)
     );
     return match;
   }
 
   /**
    * Returns the package name, E.g. 'force-app', from a file path.
+   *
    * @param path A file path. E.g. /Users/jsmith/projects/ebikes-lwc/force-app/apex/my-cls.cls
    */
   public getPackageNameFromPath(path: string): Optional<string> {
@@ -525,7 +530,7 @@ export class SfdxProject {
    */
   public getPackage(packageName: string): Optional<NamedPackageDir> {
     const packageDirs = this.getPackageDirectories();
-    return packageDirs.find(packageDir => packageDir.name === packageName);
+    return packageDirs.find((packageDir) => packageDir.name === packageName);
   }
 
   /**
@@ -583,7 +588,7 @@ export class SfdxProject {
     if (!this.hasPackages()) {
       throw new SfdxError('The sfdx-project.json does not have any packageDirectories defined.');
     }
-    const defaultPackage = this.getPackageDirectories().find(packageDir => packageDir.default === true);
+    const defaultPackage = this.getPackageDirectories().find((packageDir) => packageDir.default === true);
     return defaultPackage || this.getPackageDirectories()[0];
   }
 
@@ -591,6 +596,7 @@ export class SfdxProject {
    * The project config is resolved from local and global {@link SfdxProjectJson},
    * {@link ConfigAggregator}, and a set of defaults. It is recommended to use
    * this when reading values from SfdxProjectJson.
+   *
    * @returns A resolved config object that contains a bunch of different
    * properties, including some 3rd party custom properties.
    */
@@ -604,7 +610,7 @@ export class SfdxProject {
       await local.read();
 
       const defaultValues = {
-        sfdcLoginUrl: 'https://login.salesforce.com'
+        sfdcLoginUrl: 'https://login.salesforce.com',
       };
 
       this.projectConfig = defaults(local.toObject(), global.toObject(), defaultValues);

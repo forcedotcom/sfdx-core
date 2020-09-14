@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { env } from '@salesforce/kit';
 import * as os from 'os';
 import * as path from 'path';
+import { env } from '@salesforce/kit';
 import { fs } from './util/fs';
 
 /**
@@ -20,7 +20,7 @@ export enum Mode {
   PRODUCTION = 'production',
   DEVELOPMENT = 'development',
   DEMO = 'demo',
-  TEST = 'test'
+  TEST = 'test',
 }
 
 /**
@@ -52,7 +52,7 @@ export class Global {
    * ```
    */
   public static getEnvironmentMode(): Mode {
-    return Mode[env.getKeyOf('SFDX_ENV', Mode, Mode.PRODUCTION, value => value.toUpperCase())];
+    return Mode[env.getKeyOf('SFDX_ENV', Mode, Mode.PRODUCTION, (value) => value.toUpperCase())];
   }
 
   /**

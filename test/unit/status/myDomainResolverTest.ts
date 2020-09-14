@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as dns from 'dns';
+import { URL } from 'url';
 import { Duration } from '@salesforce/kit';
 import { AnyFunction } from '@salesforce/ts-types';
 import { expect } from 'chai';
-import * as dns from 'dns';
-import { URL } from 'url';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { testSetup } from '../../../src/testSetup';
 import { shouldThrow } from '../../../src/testSetup';
@@ -38,7 +38,7 @@ describe('myDomainResolver', () => {
     const options: MyDomainResolver.Options = {
       url: new URL(`http://${POSITIVE_HOST}`),
       timeout: Duration.milliseconds(50),
-      frequency: Duration.milliseconds(10)
+      frequency: Duration.milliseconds(10),
     };
     const resolver: MyDomainResolver = await MyDomainResolver.create(options);
     const ip = await resolver.resolve();
@@ -57,7 +57,7 @@ describe('myDomainResolver', () => {
     const options: MyDomainResolver.Options = {
       url: new URL('http://ghostbusters.internal.salesforce.com'),
       timeout: Duration.milliseconds(50),
-      frequency: Duration.milliseconds(10)
+      frequency: Duration.milliseconds(10),
     };
     const resolver: MyDomainResolver = await MyDomainResolver.create(options);
     const ip = await resolver.resolve();
@@ -69,7 +69,7 @@ describe('myDomainResolver', () => {
     const options: MyDomainResolver.Options = {
       url: new URL(`https://${NEGATIVE_HOST}`),
       timeout: Duration.milliseconds(50),
-      frequency: Duration.milliseconds(10)
+      frequency: Duration.milliseconds(10),
     };
     const resolver: MyDomainResolver = await MyDomainResolver.create(options);
     try {

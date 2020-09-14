@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { assert, expect } from 'chai';
 import { join, sep } from 'path';
+import { assert, expect } from 'chai';
 
 import { env } from '@salesforce/kit';
 import { SfdxProject, SfdxProjectJson } from '../../src/sfdxProject';
@@ -14,16 +14,17 @@ import { shouldThrow, testSetup } from '../../src/testSetup';
 // Setup the test environment.
 const $$ = testSetup();
 
-describe('SfdxProject', async () => {
+describe('SfdxProject', () => {
   let projectPath;
 
   beforeEach(async () => {
     projectPath = await $$.localPathRetriever($$.id);
-    // @ts-ignore  SfdxProject.instances is private so override for testing.
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
     SfdxProject.instances.clear();
   });
 
-  describe('json', async () => {
+  describe('json', () => {
     it('allows uppercase packaging aliases on write', async () => {
       const json = await SfdxProjectJson.create({});
       await json.write({ packageAliases: { MyName: 'somePackage' } });
@@ -74,9 +75,9 @@ describe('SfdxProject', async () => {
         contents: {
           packageDirectories: [
             { path: defaultPP, default: true },
-            { path: otherPP, default: false }
-          ]
-        }
+            { path: otherPP, default: false },
+          ],
+        },
       });
       const sfdxProjectJson = await SfdxProjectJson.create({});
       const packageDirs = await sfdxProjectJson.getPackageDirectories();
@@ -86,14 +87,14 @@ describe('SfdxProject', async () => {
           path: transformedDefaultPP,
           fullPath: `${join(projectPath, transformedDefaultPP)}${sep}`,
           name: transformedDefaultPP,
-          default: true
+          default: true,
         },
         {
           path: transformedOtherPP,
           fullPath: `${join(projectPath, transformedOtherPP)}${sep}`,
           name: transformedOtherPP,
-          default: false
-        }
+          default: false,
+        },
       ]);
     });
     it('schemaValidate validates sfdx-project.json', async () => {
@@ -101,11 +102,11 @@ describe('SfdxProject', async () => {
         contents: {
           packageDirectories: [
             { path: 'force-app', default: true },
-            { path: 'common', default: false }
+            { path: 'common', default: false },
           ],
           namespace: 'test_ns',
-          sourceApiVersion: '48.0'
-        }
+          sourceApiVersion: '48.0',
+        },
       });
       const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
       // create() calls read() which calls schemaValidate()
@@ -116,10 +117,10 @@ describe('SfdxProject', async () => {
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
           packageDirectories: [{ path: 'force-app', default: true }],
-          foo: 'bar'
-        }
+          foo: 'bar',
+        },
       });
-      $$.SANDBOX.stub(env, 'getBoolean').callsFake(envVarName => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
+      $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
       const expectedError = "Validation errors:\n should NOT have additional properties 'foo'";
       try {
         // create() calls read() which calls schemaValidate()
@@ -133,8 +134,8 @@ describe('SfdxProject', async () => {
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
           packageDirectories: [{ path: 'force-app', default: true }],
-          foo: 'bar'
-        }
+          foo: 'bar',
+        },
       });
       const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
       // create() calls read() which calls schemaValidate()
@@ -150,11 +151,11 @@ describe('SfdxProject', async () => {
         contents: {
           packageDirectories: [
             { path: 'force-app', default: true },
-            { path: 'common', default: false }
+            { path: 'common', default: false },
           ],
           namespace: 'test_ns',
-          sourceApiVersion: '48.0'
-        }
+          sourceApiVersion: '48.0',
+        },
       });
       const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
       const project = new SfdxProjectJson({});
@@ -165,10 +166,10 @@ describe('SfdxProject', async () => {
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
           packageDirectories: [{ path: 'force-app', default: true }],
-          foo: 'bar'
-        }
+          foo: 'bar',
+        },
       });
-      $$.SANDBOX.stub(env, 'getBoolean').callsFake(envVarName => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
+      $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
       const expectedError = "Validation errors:\n should NOT have additional properties 'foo'";
       try {
         const project = new SfdxProjectJson({});
@@ -183,8 +184,8 @@ describe('SfdxProject', async () => {
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
           packageDirectories: [{ path: 'force-app', default: true }],
-          foo: 'bar'
-        }
+          foo: 'bar',
+        },
       });
       const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
       const project = new SfdxProjectJson({});
@@ -196,6 +197,7 @@ describe('SfdxProject', async () => {
 
   describe('resolve', () => {
     it('caches the sfdx-project.json per path', async () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore  SfdxProject.instances is private so override for testing.
       const instanceSetSpy = $$.SANDBOX.spy(SfdxProject.instances, 'set');
       const project1 = await SfdxProject.resolve('foo');
@@ -222,7 +224,7 @@ describe('SfdxProject', async () => {
     });
     it('with path', async () => {
       $$.SANDBOXES.PROJECT.restore();
-      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').callsFake(() => '/path');
+      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').resolves('/path');
       const project = await SfdxProject.resolve('/path');
       expect(project.getPath()).to.equal('/path');
       const sfdxProject = await project.retrieveSfdxProjectJson();
@@ -251,7 +253,7 @@ describe('SfdxProject', async () => {
       expect(config['sfdcLoginUrl']).to.equal('https://login.salesforce.com');
     });
     it('gets global overrides default', async () => {
-      const read = async function() {
+      const read = async function () {
         if (this.isGlobal()) {
           return { sfdcLoginUrl: 'globalUrl' };
         } else {
@@ -264,7 +266,7 @@ describe('SfdxProject', async () => {
       expect(config['sfdcLoginUrl']).to.equal('globalUrl');
     });
     it('gets local overrides global', async () => {
-      const read = async function() {
+      const read = async function () {
         if (this.isGlobal()) {
           return { sfdcLoginUrl: 'globalUrl' };
         } else {
@@ -278,7 +280,7 @@ describe('SfdxProject', async () => {
     });
     it('gets env overrides local', async () => {
       process.env.FORCE_SFDC_LOGIN_URL = 'envarUrl';
-      const read = async function() {
+      const read = async function () {
         if (this.isGlobal()) {
           return { sfdcLoginUrl: 'globalUrl' };
         } else {
@@ -291,7 +293,7 @@ describe('SfdxProject', async () => {
       expect(config['sfdcLoginUrl']).to.equal('envarUrl');
     });
     it('gets config overrides local', async () => {
-      const read = async function() {
+      const read = async function () {
         if (this.isGlobal()) {
           return { apiVersion: 38.0 };
         } else {
@@ -315,9 +317,9 @@ describe('SfdxProject', async () => {
         contents: {
           packageDirectories: [
             { path: expectedPackage1, default: true },
-            { path: expectedPackage2, default: false }
-          ]
-        }
+            { path: expectedPackage2, default: false },
+          ],
+        },
       });
       const project = await SfdxProject.resolve();
       const packageDirs = project.getPackageDirectories();
@@ -328,14 +330,14 @@ describe('SfdxProject', async () => {
           path: expectedPackage1,
           fullPath: join(projectPath, expectedPackage1, sep),
           name: expectedPackage1,
-          default: true
+          default: true,
         },
         {
           path: expectedPackage2,
           fullPath: join(projectPath, expectedPackage2, sep),
           name: expectedPackage2,
-          default: false
-        }
+          default: false,
+        },
       ];
       expect(packageDirs).to.deep.equal(expected);
     });
@@ -348,9 +350,9 @@ describe('SfdxProject', async () => {
         contents: {
           packageDirectories: [
             { path: expectedPackage1, default: true },
-            { path: expectedPackage2, default: false }
-          ]
-        }
+            { path: expectedPackage2, default: false },
+          ],
+        },
       });
       const project = await SfdxProject.resolve();
       const actual = project.getDefaultPackage();
@@ -358,7 +360,7 @@ describe('SfdxProject', async () => {
         path: expectedPackage1,
         fullPath: join(projectPath, expectedPackage1, sep),
         name: expectedPackage1,
-        default: true
+        default: true,
       };
       expect(actual).to.deep.equal(expected);
     });
@@ -369,8 +371,8 @@ describe('SfdxProject', async () => {
 
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
-          packageDirectories: [{ path: expectedPackage, default: true }]
-        }
+          packageDirectories: [{ path: expectedPackage, default: true }],
+        },
       });
 
       const project = SfdxProject.getInstance();
@@ -379,7 +381,7 @@ describe('SfdxProject', async () => {
         fullPath: join(projectPath, expectedPackage, sep),
         path: expectedPackage,
         name: expectedName,
-        default: true
+        default: true,
       };
       expect(actual).to.deep.equal(expected);
     });
@@ -391,9 +393,9 @@ describe('SfdxProject', async () => {
         contents: {
           packageDirectories: [
             { path: expectedPackage1, default: true },
-            { path: expectedPackage1, default: false }
-          ]
-        }
+            { path: expectedPackage1, default: false },
+          ],
+        },
       });
       const project = await SfdxProject.resolve();
 
@@ -412,9 +414,9 @@ describe('SfdxProject', async () => {
             packageDirectories: [
               { path: expectedNestedPackage, default: false },
               { path: expectedPackage, default: true },
-              { path: expectedContainedPackage, default: false }
-            ]
-          }
+              { path: expectedContainedPackage, default: false },
+            ],
+          },
         });
       });
 
@@ -453,8 +455,8 @@ describe('SfdxProject', async () => {
       beforeEach(() => {
         $$.setConfigStubContents('SfdxProjectJson', {
           contents: {
-            packageDirectories: [{ path: expectedPackage, default: true }]
-          }
+            packageDirectories: [{ path: expectedPackage, default: true }],
+          },
         });
       });
 
@@ -474,8 +476,8 @@ describe('SfdxProject', async () => {
       beforeEach(() => {
         $$.setConfigStubContents('SfdxProjectJson', {
           contents: {
-            packageDirectories: [{ path: expectedPackage, default: true }]
-          }
+            packageDirectories: [{ path: expectedPackage, default: true }],
+          },
         });
       });
 
@@ -501,9 +503,9 @@ describe('SfdxProject', async () => {
           contents: {
             packageDirectories: [
               { path: 'force-app1', default: true },
-              { path: 'force-app2', default: true }
-            ]
-          }
+              { path: 'force-app2', default: true },
+            ],
+          },
         });
 
         expect(SfdxProject.getInstance().hasMultiplePackages()).to.equal(true);
@@ -512,8 +514,8 @@ describe('SfdxProject', async () => {
       it('should return false if the project does not have multiple packages', () => {
         $$.setConfigStubContents('SfdxProjectJson', {
           contents: {
-            packageDirectories: [{ path: 'force-app', default: true }]
-          }
+            packageDirectories: [{ path: 'force-app', default: true }],
+          },
         });
 
         expect(SfdxProject.getInstance().hasMultiplePackages()).to.equal(false);

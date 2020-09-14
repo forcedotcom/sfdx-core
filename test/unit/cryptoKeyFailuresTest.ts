@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AnyJson } from '@salesforce/ts-types';
-import { assert, expect } from 'chai';
 import * as childProcess from 'child_process';
 import * as _crypto from 'crypto';
 import * as os from 'os';
+import { AnyJson } from '@salesforce/ts-types';
+import { assert, expect } from 'chai';
 import { Crypto } from '../../src/crypto';
 import { testSetup } from '../../src/testSetup';
 
@@ -21,17 +21,17 @@ const spawnReturnFake = {
   stdout: {
     on: (action: string, cb: (data: AnyJson) => void) => {
       cb(spawnReturnFake.sdtoutData);
-    }
+    },
   },
   stderr: {
     on: (action: string, cb: (data: AnyJson) => void) => {
       cb(spawnReturnFake.sdterrData);
-    }
+    },
   },
   on: (action: string, cb: (data: AnyJson) => void) => {
     cb(17);
   },
-  stdin: { end: () => {} }
+  stdin: { end: () => {} },
 };
 
 if (os.platform() === 'darwin') {
@@ -61,9 +61,12 @@ if (os.platform() === 'darwin') {
 
       // Setup stubs so that the spawn process to the encryption program returns
       // a fake to cause errors.
+      // @ts-ignore
       $$.SANDBOX.stub(_crypto, 'randomBytes').returns(buf);
       const spawnStub = $$.SANDBOX.stub(childProcess, 'spawn');
+      // @ts-ignore
       spawnStub.withArgs(programArg, getOptionsArg).returns(spawnReturnFake);
+      // @ts-ignore
       spawnStub.withArgs(programArg, setOptionsArg).returns(spawnReturnFake);
 
       try {
@@ -88,9 +91,8 @@ if (os.platform() === 'darwin') {
 
       // Setup stubs so that the spawn process to the encryption program returns
       // a fake to cause errors.
-      $$.SANDBOX.stub(childProcess, 'spawn')
-        .withArgs(programArg, optionsArg)
-        .returns(spawnReturnFake);
+      // @ts-ignore
+      $$.SANDBOX.stub(childProcess, 'spawn').withArgs(programArg, optionsArg).returns(spawnReturnFake);
 
       try {
         await Crypto.create({ retryStatus: 'KEY_SET' });
@@ -106,6 +108,7 @@ if (os.platform() === 'darwin') {
 
     it('should throw when the OS is not supported', async () => {
       const unsupportedOS = 'LEO';
+      // @ts-ignore
       $$.SANDBOX.stub(os, 'platform').returns(unsupportedOS);
 
       try {

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -19,7 +19,7 @@ function* generator(testName: string): IterableIterator<StatusResult> {
   yield { completed: false };
   yield {
     completed: true,
-    payload: { name: testName }
+    payload: { name: testName },
   };
 }
 
@@ -42,7 +42,7 @@ describe('clientTest', () => {
         return Promise.resolve(pollingResultGenerator.next().value);
       },
       frequency: Duration.milliseconds(10),
-      timeout: Duration.minutes(1)
+      timeout: Duration.minutes(1),
     };
     const client: PollingClient = await PollingClient.create(options);
 
@@ -59,7 +59,7 @@ describe('clientTest', () => {
         return Promise.resolve({ completed: false });
       },
       frequency: Duration.milliseconds(90),
-      timeout: Duration.milliseconds(300)
+      timeout: Duration.milliseconds(300),
     };
 
     const client = await PollingClient.create(options);
@@ -85,7 +85,7 @@ describe('clientTest', () => {
         return Promise.resolve({ completed: false });
       },
       frequency: Duration.milliseconds(90),
-      timeout: Duration.milliseconds(400)
+      timeout: Duration.milliseconds(400),
     };
     const client = await PollingClient.create(options);
 

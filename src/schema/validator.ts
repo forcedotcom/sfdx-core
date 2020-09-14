@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
 import { getJsonValuesByName } from '@salesforce/kit';
 import {
   AnyJson,
@@ -16,11 +17,10 @@ import {
   isJsonMap,
   isString,
   JsonMap,
-  Optional
+  Optional,
 } from '@salesforce/ts-types';
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
-import * as path from 'path';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
@@ -73,9 +73,11 @@ export class SchemaValidator {
    *
    * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldErrors' }* If there are known validations errors.
    * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknown' }* If there are unknown validations errors.
+   *
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async validate(json: AnyJson): Promise<AnyJson> {
     return this.validateSync(json);
   }
@@ -86,6 +88,7 @@ export class SchemaValidator {
    *
    * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldErrors' }* If there are known validations errors.
    * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknown' }* If there are unknown validations errors.
+   *
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
    */
@@ -98,7 +101,7 @@ export class SchemaValidator {
     // to specify "removeAdditional: false" in every object.
     const validate = validator(schema, {
       greedy: true,
-      schemas: externalSchemas
+      schemas: externalSchemas,
     });
 
     if (!validate(json)) {
@@ -122,11 +125,12 @@ export class SchemaValidator {
   private loadExternalSchemas(schema: JsonMap): Dictionary<JsonMap> {
     const externalSchemas: Dictionary<JsonMap> = {};
     const schemas = getJsonValuesByName<string>(schema, '$ref')
-      .map(ref => ref && ref.match(/([\w\.]+)#/))
-      .map(match => match && match[1])
+      // eslint-disable-next-line no-useless-escape
+      .map((ref) => ref && RegExp(/([\w\.]+)#/).exec(ref))
+      .map((match) => match && match[1])
       .filter((uri): uri is string => !!uri)
-      .map(uri => this.loadExternalSchema(uri));
-    schemas.forEach(externalSchema => {
+      .map((uri) => this.loadExternalSchema(uri));
+    schemas.forEach((externalSchema) => {
       if (isString(externalSchema.id)) {
         externalSchemas[externalSchema.id] = externalSchema;
       } else {
@@ -164,8 +168,9 @@ export class SchemaValidator {
    */
   private getErrorsText(errors: JsenValidateError[], schema: JsonMap): string {
     return errors
-      .map(error => {
-        const property = error.path.match(/^([a-zA-Z0-9\.]+)\.([a-zA-Z0-9]+)$/);
+      .map((error) => {
+        // eslint-disable-next-line no-useless-escape
+        const property = RegExp(/^([a-zA-Z0-9\.]+)\.([a-zA-Z0-9]+)$/).exec(error.path);
 
         const getPropValue = (prop: string): Optional<AnyJson> => {
           const reducer = (obj: Optional<AnyJson>, name: string): Optional<AnyJson> => {
@@ -185,6 +190,7 @@ export class SchemaValidator {
         switch (error.keyword) {
           case 'additionalProperties':
             // Missing Typing
+            // eslint-disable-next-line no-case-declarations
             const additionalProperties = get(error, 'additionalProperties');
             return `${error.path} should NOT have additional properties '${additionalProperties}'`;
           case 'required':

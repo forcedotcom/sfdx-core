@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { asString, Dictionary, JsonMap, Optional } from '@salesforce/ts-types';
+import { asString, Dictionary, JsonMap, Optional } from '@salesforce/ts-types/lib';
 import { SfdxError } from '../sfdxError';
 import { ConfigGroup } from './configGroup';
 import { ConfigContents, ConfigValue } from './configStore';
@@ -16,7 +16,7 @@ const ALIAS_FILE_NAME = 'alias.json';
  * Different groups of aliases. Currently only support orgs.
  */
 export enum AliasGroup {
-  ORGS = 'orgs'
+  ORGS = 'orgs',
 }
 
 /**
@@ -37,6 +37,16 @@ export enum AliasGroup {
  */
 export class Aliases extends ConfigGroup<ConfigGroup.Options> {
   /**
+   * Constructor
+   * **Do not directly construct instances of this class -- use {@link Aliases.create} instead.**
+   *
+   * @param options The options for the class instance
+   */
+  public constructor(options: ConfigGroup.Options) {
+    super(options);
+  }
+
+  /**
    * The aliases state file filename.
    */
   public static getFileName(): string {
@@ -56,6 +66,7 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
    * ```
    * const aliases = await Aliases.parseAndUpdate(['foo=bar', 'bar=baz'])
    * ```
+   *
    * @param aliasKeyAndValues An array of strings in the format `<alias>=<value>`.
    * Each element will be saved in the Aliases state file under the group.
    * @param group The group the alias belongs to. Defaults to ORGS.
@@ -87,6 +98,7 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
   /**
    * Get an alias from a key and group. Shorthand for `Alias.create({}).get(key)`. Returns the promise resolved when the
    * alias is created.
+   *
    * @param key The value of the alias to match.
    * @param group The group the alias belongs to. Defaults to Orgs.
    */
@@ -95,17 +107,8 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
     return asString(aliases.getInGroup(key, group));
   }
 
-  /**
-   * Constructor
-   * **Do not directly construct instances of this class -- use {@link Aliases.create} instead.**
-   * @param options The options for the class instance
-   */
-  public constructor(options: ConfigGroup.Options) {
-    super(options);
-  }
-
   // Don't use kit's set to prevent nested object save
-  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue) {
+  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
     contents[key] = value;
   }
 }

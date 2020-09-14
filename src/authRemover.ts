@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
-import * as path from 'path';
 import { AuthInfo } from './authInfo';
 import { Aliases } from './config/aliases';
 import { AuthInfoConfig } from './config/authInfoConfig';
@@ -57,6 +57,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Removes the authentication and any configs or aliases associated with it
+   *
    * @param usernameOrAlias the username or alias that you want to remove
    */
   public async removeAuth(usernameOrAlias: string) {
@@ -82,6 +83,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
   /**
    * Finds authorization files for username/alias in the global .sfdx folder
    * **Throws** *{@link SfdxError}{ name: 'NoOrgFound' }* if no username, alias, or defaultusername
+   *
    * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured defaultusername
    * @returns {Promise<AuthConfigs>}
    */
@@ -90,7 +92,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
     let filenames: string[] = [];
     if (usernameOrAlias) {
       const authFileName = `${await this.resolveUsername(usernameOrAlias)}.json`;
-      filenames = authFiles.filter(f => f === authFileName);
+      filenames = authFiles.filter((f) => f === authFileName);
       if (filenames.length === 0) {
         filenames = await this.filterAuthFilesForDefaultUsername(authFiles);
       }
@@ -103,6 +105,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Finds all authorization files in the global .sfdx folder
+   *
    * @returns {Promise<AuthConfigs>}
    */
   public async findAllAuthConfigs(): Promise<AuthConfigs> {
@@ -120,6 +123,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Returns the username for a given alias if the alias exists.
+   *
    * @param usernameOrAlias username or alias
    * @returns {Promise<string>}
    */
@@ -130,6 +134,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Instantiates config class
+   *
    * @param isGlobal
    * @returns {Promise<Nullable<Config>>}
    */
@@ -147,6 +152,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * Filters the provided authorization file names for ones that belong to the
    * the configured defaultusername
    * **Throws** *{@link SfdxError}{ name: 'NoOrgFound' }* if no defaultusername is not configured
+   *
    * @param authFiles array of authorization file names
    * @returns {Promise<string[]>}
    */
@@ -160,13 +166,14 @@ export class AuthRemover extends AsyncOptionalCreatable {
       throw new SfdxError(message, 'NoOrgFound', [action]);
     } else {
       const authFileName = `${await this.resolveUsername(defaultUsername as string)}.json`;
-      filenames = authFiles.filter(f => f === authFileName);
+      filenames = authFiles.filter((f) => f === authFileName);
     }
     return filenames;
   }
 
   /**
    * Instantiates the AuthInfoConfig class for each auth file
+   *
    * @param filenames array of authorizaiton file names
    * @returns {Promise<AuthConfigs>}
    */
@@ -176,7 +183,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
         const username = path.basename(filename, '.json');
         const config = await AuthInfoConfig.create({
           ...AuthInfoConfig.getOptions(username),
-          throwOnNotFound: true
+          throwOnNotFound: true,
         });
         this.authConfigs.set(username, config);
       } catch {
@@ -188,6 +195,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Returns aliases for provided username
+   *
    * @param username username that's been aliased
    * @returns {Promise<string[]>}
    */
@@ -197,6 +205,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Unsets any configured values (both global and local) for provided username
+   *
    * @param username username that you want to remove from config files
    */
   private async unsetConfigValues(username: string) {
@@ -206,12 +215,12 @@ export class AuthRemover extends AsyncOptionalCreatable {
       if (config) {
         const keysWithUsername = config.getKeysByValue(username) || [];
         const keysWithAlias = aliases
-          .map(alias => config.getKeysByValue(alias))
-          .filter(k => !!k)
+          .map((alias) => config.getKeysByValue(alias))
+          .filter((k) => !!k)
           .reduce((x, y) => x.concat(y), []);
         const allKeys = keysWithUsername.concat(keysWithAlias);
         this.logger.debug(`Found these config keys to remove: ${allKeys}`);
-        allKeys.forEach(key => config.unset(key));
+        allKeys.forEach((key) => config.unset(key));
         await config.write();
       }
     }
@@ -219,18 +228,20 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Unsets any aliases for provided username
+   *
    * @param username username that you want to remove from aliases
    */
   private async unsetAliases(username: string) {
     this.logger.debug(`Clearing aliases for username: ${username}`);
     const existingAliases = this.aliases.getKeysByValue(username);
     this.logger.debug(`Found these aliases to remove: ${existingAliases}`);
-    existingAliases.forEach(alias => this.aliases.unset(alias));
+    existingAliases.forEach((alias) => this.aliases.unset(alias));
     await this.aliases.write();
   }
 
   /**
    * Deletes the authtorizaton file for provided username
+   *
    * @param username username that you want to delete
    */
   private async unlinkConfigFile(username: string) {
