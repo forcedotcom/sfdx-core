@@ -205,14 +205,14 @@ describe('KeyChainImpl Tests', () => {
 
     const _OnSetFunc = function (done: any) {
       const testFunc = function (pgmPath: any, options: any) {
-        // passwords for linux are read properly from stdin. Boo Windows and Mac
-        if (this.platform !== platforms.LINUX) {
-          expect(pgmPath).to.equal(this.platformImpl.osImpl.program);
-          expect(options).to.include(keyChainOptions.password);
-          expect(options).to.include(keyChainOptions.service).and.to.include(keyChainOptions.account);
-          this.platformImpl.osImpl.setCommandFunc(keyChainOptions, testFunc.bind(this));
-        }
+        expect(pgmPath).to.equal(this.platformImpl.osImpl.getProgram());
+        expect(options).to.include(keyChainOptions.password);
+        expect(options).to.include(keyChainOptions.service).and.to.include(keyChainOptions.account);
       };
+      // passwords for linux are read properly from stdin. Boo Windows and Mac
+      if (this.platform !== platforms.LINUX) {
+        this.platformImpl.osImpl.setCommandFunc(keyChainOptions, testFunc.bind(this));
+      }
       done();
     };
 
