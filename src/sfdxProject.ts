@@ -219,7 +219,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
 
     // This has to be done on the fly so it won't be written back to the file
     // This is a fast operation so no need to cache it so it stays immutable.
-    const packageDirs = contents.packageDirectories.map(packageDir => {
+    const packageDirs = (contents.packageDirectories || []).map(packageDir => {
       if (isAbsolute(packageDir.path)) {
         throw new SfdxError(
           'InvalidProjectWorkspace',
@@ -293,14 +293,14 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
    * Has package directories defined in the project.
    */
   public hasPackages(): boolean {
-    return this.getContents().packageDirectories.length > 0;
+    return this.getContents().packageDirectories && this.getContents().packageDirectories.length > 0;
   }
 
   /**
    * Has multiple package directories (MPD) defined in the project.
    */
   public hasMultiplePackages(): boolean {
-    return this.getContents().packageDirectories.length > 1;
+    return this.getContents().packageDirectories && this.getContents().packageDirectories.length > 1;
   }
 
   private validateKeys(): void {
