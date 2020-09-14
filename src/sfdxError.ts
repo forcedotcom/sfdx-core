@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { NamedError } from '@salesforce/kit';
@@ -38,6 +38,7 @@ export class SfdxErrorConfig {
 
   /**
    * Create a new SfdxErrorConfig.
+   *
    * @param packageName The name of the package.
    * @param bundleName The message bundle.
    * @param errorKey The error message key.
@@ -45,7 +46,7 @@ export class SfdxErrorConfig {
    * @param actionKey The action message key.
    * @param actionTokens The tokens to use when getting the action message(s).
    */
-  constructor(
+  public constructor(
     packageName: string,
     bundleName: string,
     errorKey: string,
@@ -62,6 +63,7 @@ export class SfdxErrorConfig {
 
   /**
    * Set the error key.
+   *
    * @param key The key to set.
    * @returns {SfdxErrorConfig} For convenience `this` object is returned.
    */
@@ -72,6 +74,7 @@ export class SfdxErrorConfig {
 
   /**
    * Set the error tokens.
+   *
    * @param tokens The tokens to set. For convenience `this` object is returned.
    */
   public setErrorTokens(tokens: Tokens): SfdxErrorConfig {
@@ -81,6 +84,7 @@ export class SfdxErrorConfig {
 
   /**
    * Add an error action to assist the user with a resolution. For convenience `this` object is returned.
+   *
    * @param actionKey The action key in the message bundle.
    * @param actionTokens The action tokens for the string.
    */
@@ -161,7 +165,54 @@ export class SfdxErrorConfig {
  */
 export class SfdxError extends NamedError {
   /**
+   * The message string. Error.message
+   */
+  public message!: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public name: any;
+
+  /**
+   * Action messages. Hints to the users regarding what can be done to fix related issues.
+   */
+  public actions?: string[];
+
+  /**
+   * SfdxCommand can return this process exit code.
+   */
+  public exitCode: number;
+
+  /**
+   * The related command name for this error.
+   */
+  public commandName?: string;
+
+  // Additional data helpful for consumers of this error.  E.g., API call result
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public data: any;
+
+  /**
+   * Some errors support `error.code` instead of `error.name`. This keeps backwards compatability.
+   */
+  private _code?: string;
+
+  /**
+   * Create an SfdxError.
+   *
+   * @param message The error message.
+   * @param name The error name. Defaults to 'SfdxError'.
+   * @param actions The action message(s).
+   * @param exitCode The exit code which will be used by SfdxCommand.
+   * @param cause The underlying error that caused this error to be raised.
+   */
+  public constructor(message: string, name?: string, actions?: string[], exitCode?: number, cause?: Error) {
+    super(name || 'SfdxError', message, cause);
+    this.actions = actions;
+    this.exitCode = exitCode || 1;
+  }
+
+  /**
    * Create a new `SfdxError`.
+   *
    * @param packageName The message package name used to create the `SfdxError`.
    * @param bundleName The message bundle name used to create the `SfdxError`.
    * @param key The key within the bundle for the message.
@@ -171,6 +222,7 @@ export class SfdxError extends NamedError {
 
   /**
    * Create a new SfdxError.
+   *
    * @param errorConfig The `SfdxErrorConfig` object used to create the SfdxError.
    */
   public static create(errorConfig: SfdxErrorConfig): SfdxError;
@@ -197,6 +249,7 @@ export class SfdxError extends NamedError {
 
   /**
    * Convert an Error to an SfdxError.
+   *
    * @param err The error to convert.
    */
   public static wrap(err: Error | string): SfdxError {
@@ -216,48 +269,6 @@ export class SfdxError extends NamedError {
     return sfdxError;
   }
 
-  /**
-   * The message string. Error.message
-   */
-  public message!: string;
-
-  /**
-   * Action messages. Hints to the users regarding what can be done to fix related issues.
-   */
-  public actions?: string[];
-
-  /**
-   * SfdxCommand can return this process exit code.
-   */
-  public exitCode: number;
-
-  /**
-   * The related command name for this error.
-   */
-  public commandName?: string;
-
-  // Additional data helpful for consumers of this error.  E.g., API call result
-  public data: any; // tslint:disable-line:no-any
-
-  /**
-   * Some errors support `error.code` instead of `error.name`. This keeps backwards compatability.
-   */
-  private _code?: string;
-
-  /**
-   * Create an SfdxError.
-   * @param message The error message.
-   * @param name The error name. Defaults to 'SfdxError'.
-   * @param actions The action message(s).
-   * @param exitCode The exit code which will be used by SfdxCommand.
-   * @param cause The underlying error that caused this error to be raised.
-   */
-  constructor(message: string, name?: string, actions?: string[], exitCode?: number, cause?: Error) {
-    super(name || 'SfdxError', message, cause);
-    this.actions = actions;
-    this.exitCode = exitCode || 1;
-  }
-
   public get code() {
     return this._code || this.name;
   }
@@ -268,6 +279,7 @@ export class SfdxError extends NamedError {
 
   /**
    * Sets the name of the command. For convenience `this` object is returned.
+   *
    * @param commandName The command name.
    */
   public setCommandName(commandName: string): SfdxError {
@@ -277,6 +289,7 @@ export class SfdxError extends NamedError {
 
   /**
    * An additional payload for the error. For convenience `this` object is returned.
+   *
    * @param data The payload data.
    */
   public setData(data: unknown): SfdxError {
@@ -292,7 +305,7 @@ export class SfdxError extends NamedError {
       name: this.name,
       message: this.message || this.name,
       exitCode: this.exitCode,
-      actions: this.actions
+      actions: this.actions,
     };
 
     if (this.commandName) {

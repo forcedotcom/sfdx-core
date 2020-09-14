@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { definiteEntriesOf, definiteValuesOf, Dictionary, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
@@ -30,8 +30,10 @@ import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
  * ```
  */
 export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
+  protected defaultGroup = 'default';
   /**
    * Get ConfigGroup specific options, such as the default group.
+   *
    * @param defaultGroup The default group to use when creating the config.
    * @param filename The filename of the config file. Uses the static {@link getFileName} by default.
    */
@@ -42,11 +44,10 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
     return configGroupOptions;
   }
 
-  protected defaultGroup = 'default';
-
   /**
    * Sets the default group for all {@link BaseConfigStore} methods to use.
    * **Throws** *{@link SfdxError}{ name: 'MissingGroupName' }* The group parameter is null or undefined.
+   *
    * @param group The group.
    */
   public setDefaultGroup(group: string): void {
@@ -59,6 +60,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Set a group of entries in a bulk save. Returns The new properties that were saved.
+   *
    * @param newEntries An object representing the aliases to set.
    * @param group The group the property belongs to.
    */
@@ -72,6 +74,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Set a value on a group. Returns the promise resolved when the value is set.
+   *
    * @param key The key.
    * @param value The value.
    * @param group The group.
@@ -97,6 +100,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Returns a specified element from ConfigGroup. Returns the associated value.
+   *
    * @param key The key.
    */
   public get(key: string): Optional<ConfigValue> {
@@ -105,6 +109,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Returns a boolean if an element with the specified key exists in the default group.
+   *
    * @param {string} key The key.
    */
   public has(key: string): boolean {
@@ -128,6 +133,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Add or updates an element with the specified key in the default group.
+   *
    * @param key The key.
    * @param value The value.
    */
@@ -137,6 +143,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Removes an element with the specified key from the default group. Returns `true` if the item was deleted.
+   *
    * @param key The key.
    */
   public unset(key: string): boolean {
@@ -157,6 +164,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Get all config contents for a group.
+   *
    * @param {string} [group = 'default'] The group.
    */
   public getGroup(group = this.defaultGroup): Optional<ConfigContents> {
@@ -165,6 +173,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Returns the value associated to the key and group, or undefined if there is none.
+   *
    * @param key The key.
    * @param group The group. Defaults to the default group.
    */
@@ -184,6 +193,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Convert an object to a {@link ConfigContents} and set it as the config contents.
+   *
    * @param {object} obj The object.
    */
   public setContentsFromObject<U extends object>(obj: U): void {
@@ -199,19 +209,18 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Sets the value for the key and group in the config object.
+   *
    * @param key The key.
    * @param value The value.
    * @param group The group. Uses the default group if not specified.
    */
   public setInGroup(key: string, value?: ConfigValue, group?: string): ConfigContents {
-    let content: JsonMap;
-
     group = group || this.defaultGroup;
 
     if (!super.has(group)) {
       super.set(group, {});
     }
-    content = this.getGroup(group) || {};
+    const content = this.getGroup(group) || {};
     this.setMethod(content, key, value);
 
     return content;
@@ -222,7 +231,9 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    */
   public async init(): Promise<void> {
     await super.init();
-    this.setDefaultGroup(this.options.defaultGroup);
+    if (this.options.defaultGroup) {
+      this.setDefaultGroup(this.options.defaultGroup);
+    }
   }
 }
 
@@ -234,6 +245,6 @@ export namespace ConfigGroup {
     /**
      * The default group for properties to go into.
      */
-    defaultGroup: string;
+    defaultGroup?: string;
   }
 }

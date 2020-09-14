@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { EOL } from 'os';
 import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
 import {
   asJsonArray,
@@ -14,11 +15,10 @@ import {
   ensureString,
   getString,
   isJsonMap,
-  Many
+  Many,
 } from '@salesforce/ts-types';
 import { QueryResult, RequestInfo } from 'jsforce';
 import { DescribeSObjectResult } from 'jsforce/describe-result';
-import { EOL } from 'os';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Connection } from './connection';
 import { Logger } from './logger';
@@ -36,7 +36,7 @@ const NUMBERS = '1234567890';
 const SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '[', ']', '|', '-'];
 const ALL = [LOWER, UPPER, NUMBERS, SYMBOLS.join('')];
 
-const rand = (len: Many<string>) => Math.floor(Math.random() * len.length);
+const rand = (len: Many<string>): number => Math.floor(Math.random() * len.length);
 
 const scimEndpoint = '/services/scim/v1/Users';
 const scimHeaders = { 'auto-approve-user': 'true' };
@@ -54,7 +54,7 @@ export const REQUIRED_FIELDS = {
   emailEncodingKey: 'emailEncodingKey',
   profileId: 'profileId',
   languageLocaleKey: 'languageLocaleKey',
-  email: 'email'
+  email: 'email',
 };
 
 /**
@@ -66,18 +66,20 @@ export type UserFields = { -readonly [K in keyof typeof REQUIRED_FIELDS]: string
 
 /**
  * Helper method to lookup UserFields.
+ *
+ * @param logger
  * @param username The username.
  */
-async function _retrieveUserFields(this: { logger: Logger }, username: string): Promise<UserFields> {
+async function retrieveUserFields(logger: Logger, username: string): Promise<UserFields> {
   const connection: Connection = await Connection.create({
-    authInfo: await AuthInfo.create({ username })
+    authInfo: await AuthInfo.create({ username }),
   });
 
   const fromFields = Object.keys(REQUIRED_FIELDS).map(upperFirst);
   const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
   const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
 
-  this.logger.debug('Successfully retrieved the admin user for this org.');
+  logger.debug('Successfully retrieved the admin user for this org.');
 
   if (result.totalSize === 1) {
     const results = mapKeys(result.records[0], (value: unknown, key: string) => lowerFirst(key));
@@ -92,7 +94,7 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
       localeSidKey: ensure(getString(results, REQUIRED_FIELDS.localeSidKey)),
       profileId: ensure(getString(results, REQUIRED_FIELDS.profileId)),
       lastName: ensure(getString(results, REQUIRED_FIELDS.lastName)),
-      timeZoneSidKey: ensure(getString(results, REQUIRED_FIELDS.timeZoneSidKey))
+      timeZoneSidKey: ensure(getString(results, REQUIRED_FIELDS.timeZoneSidKey)),
     };
 
     return fields;
@@ -103,10 +105,11 @@ async function _retrieveUserFields(this: { logger: Logger }, username: string): 
 
 /**
  * Gets the profile id associated with a profile name.
+ *
  * @param name The name of the profile.
  * @param connection The connection for the query.
  */
-async function _retrieveProfileId(name: string, connection: Connection): Promise<string> {
+async function retrieveProfileId(name: string, connection: Connection): Promise<string> {
   if (!sfdc.validateSalesforceId(name)) {
     const profileQuery = `SELECT Id FROM Profile WHERE name='${name}'`;
     const result = await connection.query<{ Id: string }>(profileQuery);
@@ -159,11 +162,11 @@ export class DefaultUserFields extends AsyncCreatable<DefaultUserFields.Options>
    */
   protected async init(): Promise<void> {
     this.logger = await Logger.child('DefaultUserFields');
-    this.userFields = await _retrieveUserFields.call({ logger: this.logger }, this.options.templateUser);
-    this.userFields.profileId = await _retrieveProfileId(
+    this.userFields = await retrieveUserFields(this.logger, this.options.templateUser);
+    this.userFields.profileId = await retrieveProfileId(
       'Standard User',
       await Connection.create({
-        authInfo: await AuthInfo.create({ username: this.options.templateUser })
+        authInfo: await AuthInfo.create({ username: this.options.templateUser }),
       })
     );
     this.logger.debug(`Standard User profileId: ${this.userFields.profileId}`);
@@ -191,24 +194,6 @@ export namespace DefaultUserFields {
  * See methods for examples.
  */
 export class User extends AsyncCreatable<User.Options> {
-  /**
-   * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
-   */
-  public static generatePasswordUtf8(): SecureBuffer<void> {
-    // Fill an array with random characters from random requirement sets
-    const pass = Array(PASSWORD_LENGTH - ALL.length)
-      .fill(9)
-      .map(() => {
-        const _set = ALL[rand(ALL)];
-        return _set[rand(_set)];
-      });
-
-    const secureBuffer: SecureBuffer<void> = new SecureBuffer<void>();
-    secureBuffer.consume(Buffer.from(pass.join(''), 'utf8'));
-
-    return secureBuffer;
-  }
-
   private org: Org;
   private logger!: Logger;
 
@@ -218,6 +203,23 @@ export class User extends AsyncCreatable<User.Options> {
   public constructor(options: User.Options) {
     super(options);
     this.org = options.org;
+  }
+  /**
+   * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
+   */
+  public static generatePasswordUtf8(): SecureBuffer<void> {
+    // Fill an array with random characters from random requirement sets
+    const pass = Array(PASSWORD_LENGTH - ALL.length)
+      .fill(9)
+      .map(() => {
+        const set = ALL[rand(ALL)];
+        return set[rand(set)];
+      });
+
+    const secureBuffer: SecureBuffer<void> = new SecureBuffer<void>();
+    secureBuffer.consume(Buffer.from(pass.join(''), 'utf8'));
+
+    return secureBuffer;
   }
 
   /**
@@ -232,6 +234,7 @@ export class User extends AsyncCreatable<User.Options> {
   /**
    * Assigns a password to a user. For a user to have the ability to assign their own password, the org needs the
    * following org preference: SelfSetPasswordInApi.
+   *
    * @param info The AuthInfo object for user to assign the password to.
    * @param password [throwWhenRemoveFails = User.generatePasswordUtf8()] A SecureBuffer containing the new password.
    */
@@ -243,8 +246,10 @@ export class User extends AsyncCreatable<User.Options> {
     const userConnection = await Connection.create({ authInfo: info });
 
     return new Promise((resolve, reject) => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       password.value(async (buffer: Buffer) => {
         try {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
           // @ts-ignore TODO: expose `soap` on Connection however appropriate
           const soap = userConnection.soap;
           await soap.setPassword(info.getFields().userId, buffer.toString('utf8'));
@@ -259,6 +264,7 @@ export class User extends AsyncCreatable<User.Options> {
 
   /**
    * Methods to assign one or more permission set names to a user.
+   *
    * @param id The Salesforce id of the user to assign the permission set to.
    * @param permsetNames An array of permission set names.
    *
@@ -328,13 +334,13 @@ export class User extends AsyncCreatable<User.Options> {
       refreshToken: refreshTokenSecret.buffer.value((buffer: Buffer): string => buffer.toString('utf8')),
       clientId: adminUserAuthFields.clientId,
       clientSecret: adminUserAuthFields.clientSecret,
-      privateKey: adminUserAuthFields.privateKey
+      privateKey: adminUserAuthFields.privateKey,
     };
 
     // Create an auth info object for the new user
     const newUserAuthInfo: AuthInfo = await AuthInfo.create({
       username: fields.username,
-      oauth2Options: oauthOptions
+      oauth2Options: oauthOptions,
     });
 
     // Update the auth info object with created user id.
@@ -352,6 +358,7 @@ export class User extends AsyncCreatable<User.Options> {
 
   /**
    * Method to retrieve the UserFields for a user.
+   *
    * @param username The username of the user.
    *
    * ```
@@ -365,11 +372,12 @@ export class User extends AsyncCreatable<User.Options> {
    * ```
    */
   public async retrieve(username: string): Promise<UserFields> {
-    return await _retrieveUserFields.call(this, username);
+    return await retrieveUserFields(this.logger, username);
   }
 
   /**
    * Helper method that verifies the server's User object is available and if so allows persisting the Auth information.
+   *
    * @param newUserAuthInfo The AuthInfo for the new user.
    */
   private async describeUserAndSave(newUserAuthInfo: AuthInfo): Promise<AuthInfo> {
@@ -389,6 +397,7 @@ export class User extends AsyncCreatable<User.Options> {
 
   /**
    * Helper that makes a REST request to create the user, and update additional required fields.
+   *
    * @param fields The configuration the new user should have.
    */
   private async createUserInternal(fields: UserFields): Promise<{ buffer: SecureBuffer<string>; userId: string }> {
@@ -400,14 +409,14 @@ export class User extends AsyncCreatable<User.Options> {
       username: fields.username,
       emails: [fields.email],
       name: {
-        familyName: fields.lastName
+        familyName: fields.lastName,
       },
       nickName: fields.username.substring(0, 40), // nickName has a max length of 40
       entitlements: [
         {
-          value: fields.profileId
-        }
-      ]
+          value: fields.profileId,
+        },
+      ],
     });
 
     this.logger.debug(`user create request body: ${body}`);
@@ -419,7 +428,7 @@ export class User extends AsyncCreatable<User.Options> {
       method: 'POST',
       url: scimUrl,
       headers: scimHeaders,
-      body
+      body,
     };
 
     const response = await this.org.getConnection().requestRaw(info);
@@ -435,7 +444,7 @@ export class User extends AsyncCreatable<User.Options> {
         const errors = asJsonArray(responseBody.Errors);
         if (errors && errors.length > 0) {
           message = `${message} causes:${EOL}`;
-          errors.forEach(singleMessage => {
+          errors.forEach((singleMessage) => {
             if (!isJsonMap(singleMessage)) return;
             message = `${message}${EOL}${singleMessage.description}`;
           });
@@ -454,26 +463,24 @@ export class User extends AsyncCreatable<User.Options> {
     buffer.consume(Buffer.from(autoApproveUser));
     return {
       buffer,
-      userId: fields.id
+      userId: fields.id,
     };
   }
 
   /**
    * Update the remaining required fields for the user.
+   *
    * @param fields The fields for the user.
    */
-  private async updateRequiredUserFields(fields: UserFields) {
+  private async updateRequiredUserFields(fields: UserFields): Promise<void> {
     const leftOverRequiredFields = omit(fields, [
       REQUIRED_FIELDS.username,
       REQUIRED_FIELDS.email,
       REQUIRED_FIELDS.lastName,
-      REQUIRED_FIELDS.profileId
+      REQUIRED_FIELDS.profileId,
     ]);
     const object = mapKeys(leftOverRequiredFields, (value: unknown, key: string) => upperFirst(key));
-    await this.org
-      .getConnection()
-      .sobject('User')
-      .update(object);
+    await this.org.getConnection().sobject('User').update(object);
     this.logger.debug(`Successfully Updated additional properties for user: ${fields.username}`);
   }
 }

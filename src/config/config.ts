@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { keyBy, set } from '@salesforce/kit';
@@ -47,6 +47,7 @@ export interface ConfigPropertyMeta {
 export interface ConfigPropertyMetaInput {
   /**
    * Tests if the input value is valid and returns true if the input data is valid.
+   *
    * @param value The input value.
    */
   validator: (value: ConfigValue) => boolean;
@@ -105,6 +106,84 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * allows users to override the 10,000 result query limit
    */
   public static readonly MAX_QUERY_LIMIT = 'maxQueryLimit';
+  private static allowedProperties: ConfigPropertyMeta[];
+  private static messages: Messages;
+  private static propertyConfigMap: Dictionary<ConfigPropertyMeta>;
+  private crypto?: Crypto;
+
+  public constructor(options?: ConfigFile.Options) {
+    super(options || Config.getDefaultOptions(false));
+
+    if (!Config.messages) {
+      Config.messages = Messages.loadMessages('@salesforce/core', 'config');
+    }
+
+    if (!Config.allowedProperties) {
+      Config.allowedProperties = [
+        {
+          key: 'instanceUrl',
+          input: {
+            // If a value is provided validate it otherwise no value is unset.
+            validator: (value) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
+            failedMessage: Config.messages.getMessage('InvalidInstanceUrl'),
+          },
+        },
+        {
+          key: Config.API_VERSION,
+          hidden: true,
+          input: {
+            // If a value is provided validate it otherwise no value is unset.
+            validator: (value) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
+            failedMessage: Config.messages.getMessage('InvalidApiVersion'),
+          },
+        },
+        { key: Config.DEFAULT_DEV_HUB_USERNAME },
+        { key: Config.DEFAULT_USERNAME },
+        {
+          key: Config.ISV_DEBUGGER_SID,
+          encrypted: true,
+          input: {
+            // If a value is provided validate it otherwise no value is unset.
+            validator: (value) => value == null || isString(value),
+            failedMessage: Config.messages.getMessage('InvalidIsvDebuggerSid'),
+          },
+        },
+        {
+          key: Config.ISV_DEBUGGER_URL,
+          input: {
+            // If a value is provided validate it otherwise no value is unset.
+            validator: (value) => value == null || isString(value),
+            failedMessage: Config.messages.getMessage('InvalidIsvDebuggerUrl'),
+          },
+        },
+        {
+          key: Config.DISABLE_TELEMETRY,
+          input: {
+            validator: (value) => value == null || ['true', 'false'].includes(value.toString()),
+            failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue'),
+          },
+        },
+        // This should be brought in by a plugin, but there isn't a way to do that right now.
+        {
+          key: 'restDeploy',
+          hidden: true,
+          input: {
+            validator: (value) => value != null && ['true', 'false'].includes(value.toString()),
+            failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue'),
+          },
+        },
+        {
+          key: Config.MAX_QUERY_LIMIT,
+          input: {
+            validator: (value) => isNumber(value),
+            failedMessage: Config.messages.getMessage('InvalidNumberConfigValue'),
+          },
+        },
+      ];
+    }
+
+    Config.propertyConfigMap = keyBy(Config.allowedProperties, 'key');
+  }
 
   /**
    * Returns the default file name for a config file.
@@ -127,6 +206,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Gets default options.
+   *
    * @param isGlobal Make the config global.
    * @param filename Override the default file. {@link Config.getFileName}
    */
@@ -134,12 +214,13 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     return {
       isGlobal,
       isState: true,
-      filename: filename || this.getFileName()
+      filename: filename || this.getFileName(),
     };
   }
 
   /**
    * The value of a supported config property.
+   *
    * @param isGlobal True for a global config. False for a local config.
    * @param propertyName The name of the property to set.
    * @param value The property value.
@@ -170,23 +251,12 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     config.clear();
     await config.write();
   }
-
-  private static allowedProperties: ConfigPropertyMeta[];
-  private static messages: Messages;
-  private static propertyConfigMap: Dictionary<ConfigPropertyMeta>;
-
-  private crypto?: Crypto;
-
-  public constructor(options?: ConfigFile.Options) {
-    super(options || Config.getDefaultOptions(false));
-  }
-
   /**
    * Read, assign, and return the config contents.
    */
-  public async read(): Promise<ConfigContents> {
+  public async read(force = true): Promise<ConfigContents> {
     try {
-      await super.read();
+      await super.read(false, force);
       await this.cryptProperties(false);
       return this.getContents();
     } finally {
@@ -196,6 +266,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Writes Config properties taking into account encrypted properties.
+   *
    * @param newContents The new Config value to persist.
    */
   public async write(newContents?: ConfigContents): Promise<ConfigContents> {
@@ -213,14 +284,28 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   }
 
   /**
+   * DO NOT CALL - The config file needs to encrypt values which can only be done asynchronously.
+   * Call {@link SfdxConfig.write} instead.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'InvalidWrite' }* Always.
+   *
+   * @param newContents Contents to write
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public writeSync(newContents?: ConfigContents): ConfigContents {
+    throw SfdxError.create('@salesforce/core', 'config', 'InvalidWrite');
+  }
+
+  /**
    * Sets a value for a property.
    *
    * **Throws** *{@link SfdxError}{ name: 'InvalidConfigValue' }* If the input validator fails.
+   *
    * @param key The property to set.
    * @param value The value of the property.
    */
   public set(key: string, value: ConfigValue): ConfigContents {
-    const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
+    const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
     if (!property) {
       throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
@@ -241,10 +326,11 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * Unsets a value for a property.
    *
    * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKey' }* If the input validator fails.
+   *
    * @param key The property to unset.
    */
   public unset(key: string): boolean {
-    const property = Config.allowedProperties.find(allowedProp => allowedProp.key === key);
+    const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
     if (!property) {
       throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
@@ -256,76 +342,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * Initializer for supported config types.
    */
   protected async init(): Promise<void> {
-    if (!Config.messages) {
-      Config.messages = Messages.loadMessages('@salesforce/core', 'config');
-    }
-
-    if (!Config.allowedProperties) {
-      Config.allowedProperties = [
-        {
-          key: 'instanceUrl',
-          input: {
-            // If a value is provided validate it otherwise no value is unset.
-            validator: value => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
-            failedMessage: Config.messages.getMessage('InvalidInstanceUrl')
-          }
-        },
-        {
-          key: Config.API_VERSION,
-          hidden: true,
-          input: {
-            // If a value is provided validate it otherwise no value is unset.
-            validator: value => value == null || (isString(value) && sfdc.validateApiVersion(value)),
-            failedMessage: Config.messages.getMessage('InvalidApiVersion')
-          }
-        },
-        { key: Config.DEFAULT_DEV_HUB_USERNAME },
-        { key: Config.DEFAULT_USERNAME },
-        {
-          key: Config.ISV_DEBUGGER_SID,
-          encrypted: true,
-          input: {
-            // If a value is provided validate it otherwise no value is unset.
-            validator: value => value == null || isString(value),
-            failedMessage: Config.messages.getMessage('InvalidIsvDebuggerSid')
-          }
-        },
-        {
-          key: Config.ISV_DEBUGGER_URL,
-          input: {
-            // If a value is provided validate it otherwise no value is unset.
-            validator: value => value == null || isString(value),
-            failedMessage: Config.messages.getMessage('InvalidIsvDebuggerUrl')
-          }
-        },
-        {
-          key: Config.DISABLE_TELEMETRY,
-          input: {
-            validator: value => value == null || ['true', 'false'].includes(value.toString()),
-            failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
-          }
-        },
-        // This should be brought in by a plugin, but there isn't a way to do that right now.
-        {
-          key: 'restDeploy',
-          hidden: true,
-          input: {
-            validator: value => value != null && ['true', 'false'].includes(value.toString()),
-            failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue')
-          }
-        },
-        {
-          key: Config.MAX_QUERY_LIMIT,
-          input: {
-            validator: value => isNumber(value),
-            failedMessage: Config.messages.getMessage('InvalidNumberConfigValue')
-          }
-        }
-      ];
-    }
-
-    Config.propertyConfigMap = keyBy(Config.allowedProperties, 'key');
-    // Super ConfigFile calls read, which has a dependecy on crypto, which finally has a dependency on
+    // Super ConfigFile calls read, which has a dependency on crypto, which finally has a dependency on
     // Config.propertyConfigMap being set. This is why init is called after the setup.
     await super.init();
   }
@@ -342,6 +359,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Closes the crypto dependency. Crypto should be close after it's used and no longer needed.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async clearCrypto(): Promise<void> {
     if (this.crypto) {
       this.crypto.close();
@@ -351,6 +369,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Get an individual property config.
+   *
    * @param propertyName The name of the property.
    */
   private getPropertyConfig(propertyName: string): ConfigPropertyMeta {
@@ -364,6 +383,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
   /**
    * Encrypts and content properties that have a encryption attribute.
+   *
    * @param encrypt `true` to encrypt.
    */
   private async cryptProperties(encrypt: boolean): Promise<void> {

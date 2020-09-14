@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { cloneJson } from '@salesforce/kit';
-import { assert, expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
+import { cloneJson } from '@salesforce/kit';
+import { assert, expect } from 'chai';
 import { Messages } from '../../src/messages';
 import { SfdxError } from '../../src/sfdxError';
 import { testSetup } from '../../src/testSetup';
@@ -19,7 +19,7 @@ describe('Messages', () => {
   const testMessages = {
     msg1: 'test message 1',
     msg2: 'test message 2 %s and %s',
-    manyMsgs: ['hello', 'world', 'test message 2 %s and %s']
+    manyMsgs: ['hello', 'world', 'test message 2 %s and %s'],
   };
 
   const msgMap = new Map();
@@ -81,6 +81,7 @@ describe('Messages', () => {
 
     it('should add the json message file to the map of loaders', () => {
       const loaderSetStub = $$.SANDBOX.stub(Messages, 'setLoaderFunction');
+      // @ts-ignore
       $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
       Messages.importMessageFile('package name', 'myPluginMessages.json');
       expect(loaderSetStub.firstCall.args[0]).to.equal('package name');
@@ -90,6 +91,7 @@ describe('Messages', () => {
 
     it('should add the js message file to the map of loaders', () => {
       const loaderSetStub = $$.SANDBOX.stub(Messages, 'setLoaderFunction');
+      // @ts-ignore
       $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
       Messages.importMessageFile('package name', 'myPluginMessages.js');
       expect(loaderSetStub.firstCall.args[0]).to.equal('package name');
@@ -100,6 +102,7 @@ describe('Messages', () => {
     it('should NOT add the message file to the map of loaders when the bundle already exists', () => {
       $$.SANDBOX.stub(Messages, 'isCached').returns(true);
       const loaderSetStub = $$.SANDBOX.stub(Messages, 'setLoaderFunction');
+      // @ts-ignore
       $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
       Messages.importMessageFile('package name', 'myPluginMessages.json');
       expect(loaderSetStub.called).to.be.false;
@@ -123,13 +126,13 @@ describe('Messages', () => {
       readdirSyncStub = $$.SANDBOX.stub(fs, 'readdirSync');
       readdirSyncStub.returns(msgFiles);
       statSyncStub = $$.SANDBOX.stub(fs, 'statSync');
-      statSyncStub.callsFake(statPath => {
+      statSyncStub.callsFake((statPath) => {
         if (!statPath.match(/messages/) && statPath !== `${truncatePath}${path.sep}package.json`) {
           throw truncateErr;
         }
         return { isDirectory: () => false, isFile: () => true };
       });
-      $$.SANDBOX.stub(Messages, '_readFile').returns({ name: 'pname' });
+      $$.SANDBOX.stub(Messages, 'readFile').returns({ name: 'pname' });
     });
 
     it('should import each message file', () => {
@@ -183,7 +186,7 @@ describe('Messages', () => {
       const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.json');
 
       try {
-        await loaderFn(Messages.getLocale());
+        loaderFn(Messages.getLocale());
         assert.fail('should have thrown an error that the message file was not found.');
       } catch (err) {
         expect(err.message).to.contain('Cannot find module');
@@ -193,7 +196,7 @@ describe('Messages', () => {
 
     it('should throw an error when the file is empty', () => {
       const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.json');
-      $$.SANDBOX.stub(Messages, '_readFile').returns('');
+      $$.SANDBOX.stub(Messages, 'readFile').returns('');
 
       try {
         loaderFn(Messages.getLocale());
@@ -206,7 +209,7 @@ describe('Messages', () => {
 
     it('should throw an error when the file is invalid JSON', () => {
       const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.json');
-      $$.SANDBOX.stub(Messages, '_readFile').returns('key1=value1,key2=value2');
+      $$.SANDBOX.stub(Messages, 'readFile').returns('key1=value1,key2=value2');
 
       try {
         loaderFn(Messages.getLocale());
@@ -221,7 +224,7 @@ describe('Messages', () => {
 
     it('should return a Messages object', () => {
       const loaderFn = Messages.generateFileLoaderFunction('myBundleName', 'myPluginMessages.json');
-      $$.SANDBOX.stub(Messages, '_readFile').returns(testMessages);
+      $$.SANDBOX.stub(Messages, 'readFile').returns(testMessages);
       const messages = loaderFn(Messages.getLocale());
       expect(messages).to.have.property('bundleName', 'myBundleName');
       expect(messages).to.have.property('locale', Messages.getLocale());

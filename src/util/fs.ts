@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { parseJson, parseJsonMap } from '@salesforce/kit';
-import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import * as crypto from 'crypto';
-import * as fsLib from 'graceful-fs';
-import * as mkdirpLib from 'mkdirp';
 import * as path from 'path';
 import { promisify } from 'util';
+import { parseJson, parseJsonMap } from '@salesforce/kit';
+import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
+import * as fsLib from 'graceful-fs';
+import * as mkdirpLib from 'mkdirp';
 import { SfdxError } from '../sfdxError';
 
 type PerformFunction = (filePath: string, file?: string, dir?: string) => Promise<void>;
+type PerformFunctionSync = (filePath: string, file?: string, dir?: string) => void;
 
-export const fs = {
+export const fs = Object.assign({}, fsLib, {
   /**
    * The default file system mode to use when creating directories.
    */
@@ -73,19 +74,19 @@ export const fs = {
    */
   stat: promisify(fsLib.stat),
 
-  statSync: fsLib.statSync,
-
   /**
    * Promisified version of {@link https://npmjs.com/package/mkdirp|mkdirp}.
    */
-  // @ts-ignore TODO: figure out how to bind to correct promisify overload
-  mkdirp: (folderPath: string, mode?: string | object): Promise<void> => mkdirpLib(folderPath, mode),
+  mkdirp: (folderPath: string, mode?: string | object): Promise<string | undefined> => mkdirpLib(folderPath, mode),
+
+  mkdirpSync: mkdirpLib.sync,
 
   /**
    * Deletes a folder recursively, removing all descending files and folders.
    *
    * **Throws** *PathIsNullOrUndefined* The path is not defined.
    * **Throws** *DirMissingOrNoAccess* The folder or any sub-folder is missing or has no access.
+   *
    * @param {string} dirPath The path to remove.
    */
   remove: async (dirPath: string): Promise<void> => {
@@ -95,13 +96,48 @@ export const fs = {
     try {
       await fs.access(dirPath, fsLib.constants.R_OK);
     } catch (err) {
-      throw new SfdxError(`The path: ${dirPath} doesn\'t exist or access is denied.`, 'DirMissingOrNoAccess');
+      throw new SfdxError(`The path: ${dirPath} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
     }
     const files = await fs.readdir(dirPath);
-    const stats = await Promise.all(files.map(file => fs.stat(path.join(dirPath, file))));
+    const stats = await Promise.all(files.map((file) => fs.stat(path.join(dirPath, file))));
     const metas = stats.map((value, index) => Object.assign(value, { path: path.join(dirPath, files[index]) }));
-    await Promise.all(metas.map(meta => (meta.isDirectory() ? fs.remove(meta.path) : fs.unlink(meta.path))));
+    await Promise.all(metas.map((meta) => (meta.isDirectory() ? fs.remove(meta.path) : fs.unlink(meta.path))));
     await fs.rmdir(dirPath);
+  },
+
+  /**
+   * Deletes a folder recursively, removing all descending files and folders.
+   *
+   * NOTE: It is recommended to call the asynchronous `remove` when possible as it will remove all files in parallel rather than serially.
+   *
+   * **Throws** *PathIsNullOrUndefined* The path is not defined.
+   * **Throws** *DirMissingOrNoAccess* The folder or any sub-folder is missing or has no access.
+   *
+   * @param {string} dirPath The path to remove.
+   */
+  removeSync: (dirPath: string): void => {
+    if (!dirPath) {
+      throw new SfdxError('Path is null or undefined.', 'PathIsNullOrUndefined');
+    }
+    try {
+      fs.accessSync(dirPath, fsLib.constants.R_OK);
+    } catch (err) {
+      throw new SfdxError(`The path: ${dirPath} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
+    }
+    fs.actOnSync(
+      dirPath,
+      (fullPath, file) => {
+        if (file) {
+          fs.unlinkSync(fullPath);
+        } else {
+          // All files in this directory will be acted on before the directory.
+          fs.rmdirSync(fullPath);
+        }
+      },
+      'all'
+    );
+    // Remove the top level
+    fs.rmdirSync(dirPath);
   },
 
   /**
@@ -162,7 +198,18 @@ export const fs = {
    */
   readJson: async (jsonPath: string, throwOnEmpty?: boolean): Promise<AnyJson> => {
     const fileData = await fs.readFile(jsonPath, 'utf8');
-    return await parseJson(fileData, jsonPath, throwOnEmpty);
+    return parseJson(fileData, jsonPath, throwOnEmpty);
+  },
+
+  /**
+   * Read a file and convert it to JSON. Returns the contents of the file as a JSON object
+   *
+   * @param jsonPath The path of the file.
+   * @param throwOnEmpty Whether to throw an error if the JSON file is empty.
+   */
+  readJsonSync: (jsonPath: string, throwOnEmpty?: boolean): AnyJson => {
+    const fileData = fs.readFileSync(jsonPath, 'utf8');
+    return parseJson(fileData, jsonPath, throwOnEmpty);
   },
 
   /**
@@ -173,7 +220,18 @@ export const fs = {
    */
   readJsonMap: async (jsonPath: string, throwOnEmpty?: boolean): Promise<JsonMap> => {
     const fileData = await fs.readFile(jsonPath, 'utf8');
-    return await parseJsonMap(fileData, jsonPath, throwOnEmpty);
+    return parseJsonMap(fileData, jsonPath, throwOnEmpty);
+  },
+
+  /**
+   * Read a file and convert it to JSON, throwing an error if the parsed contents are not a `JsonMap`.
+   *
+   * @param jsonPath The path of the file.
+   * @param throwOnEmpty Whether to throw an error if the JSON file is empty.
+   */
+  readJsonMapSync: (jsonPath: string, throwOnEmpty?: boolean): JsonMap => {
+    const fileData = fs.readFileSync(jsonPath, 'utf8');
+    return parseJsonMap(fileData, jsonPath, throwOnEmpty);
   },
 
   /**
@@ -186,7 +244,21 @@ export const fs = {
     const fileData: string = JSON.stringify(data, null, 4);
     await fs.writeFile(jsonPath, fileData, {
       encoding: 'utf8',
-      mode: fs.DEFAULT_USER_FILE_MODE
+      mode: fs.DEFAULT_USER_FILE_MODE,
+    });
+  },
+
+  /**
+   * Convert a JSON-compatible object to a `string` and write it to a file.
+   *
+   * @param jsonPath The path of the file to write.
+   * @param data The JSON object to write.
+   */
+  writeJsonSync: (jsonPath: string, data: AnyJson): void => {
+    const fileData: string = JSON.stringify(data, null, 4);
+    fs.writeFileSync(jsonPath, fileData, {
+      encoding: 'utf8',
+      mode: fs.DEFAULT_USER_FILE_MODE,
     });
   },
 
@@ -205,6 +277,20 @@ export const fs = {
   },
 
   /**
+   * Checks if a file path exists
+   *
+   * @param filePath the file path to check the existence of
+   */
+  fileExistsSync: (filePath: string): boolean => {
+    try {
+      fs.accessSync(filePath);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  },
+
+  /**
    * Recursively act on all files or directories in a directory
    *
    * @param dir path to directory
@@ -213,7 +299,7 @@ export const fs = {
    * @returns void
    */
 
-  actOn: async (dir: string, perform: PerformFunction, onType: 'file' | 'dir' = 'file'): Promise<void> => {
+  actOn: async (dir: string, perform: PerformFunction, onType: 'file' | 'dir' | 'all' = 'file'): Promise<void> => {
     for (const file of await fs.readdir(dir)) {
       const filePath = path.join(dir, file);
       const stat = await fs.stat(filePath);
@@ -221,11 +307,38 @@ export const fs = {
       if (stat) {
         if (stat.isDirectory()) {
           await fs.actOn(filePath, perform, onType);
-          if (onType === 'dir') {
+          if (onType === 'dir' || onType === 'all') {
             await perform(filePath);
           }
-        } else if (stat.isFile() && onType === 'file') {
+        } else if (stat.isFile() && (onType === 'file' || onType === 'all')) {
           await perform(filePath, file, dir);
+        }
+      }
+    }
+  },
+
+  /**
+   * Recursively act on all files or directories in a directory
+   *
+   * @param dir path to directory
+   * @param perform function to be run on contents of dir
+   * @param onType optional parameter to specify type to actOn
+   * @returns void
+   */
+
+  actOnSync: (dir: string, perform: PerformFunctionSync, onType: 'file' | 'dir' | 'all' = 'file'): void => {
+    for (const file of fs.readdirSync(dir)) {
+      const filePath = path.join(dir, file);
+      const stat = fs.statSync(filePath);
+
+      if (stat) {
+        if (stat.isDirectory()) {
+          fs.actOnSync(filePath, perform, onType);
+          if (onType === 'dir' || onType === 'all') {
+            perform(filePath);
+          }
+        } else if (stat.isFile() && (onType === 'file' || onType === 'all')) {
+          perform(filePath, file, dir);
         }
       }
     }
@@ -256,14 +369,36 @@ export const fs = {
   },
 
   /**
+   * Checks if files are the same
+   *
+   * @param file1Path the first file path to check
+   * @param file2Path the second file path to check
+   * @returns boolean
+   */
+  areFilesEqualSync: (file1Path: string, file2Path: string): boolean => {
+    try {
+      const file1Size = fs.statSync(file1Path).size;
+      const file2Size = fs.statSync(file2Path).size;
+      if (file1Size !== file2Size) {
+        return false;
+      }
+
+      const contentA = fs.readFileSync(file1Path);
+      const contentB = fs.readFileSync(file2Path);
+
+      return fs.getContentHash(contentA) === fs.getContentHash(contentB);
+    } catch (err) {
+      throw new SfdxError(`The path: ${err.path} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
+    }
+  },
+
+  /**
    * Creates a hash for the string that's passed in
+   *
    * @param contents The string passed into the function
    * @returns string
    */
   getContentHash(contents: string | Buffer) {
-    return crypto
-      .createHash('sha1')
-      .update(contents)
-      .digest('hex');
-  }
-};
+    return crypto.createHash('sha1').update(contents).digest('hex');
+  },
+});

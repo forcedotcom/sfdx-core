@@ -1,17 +1,16 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { get, JsonMap } from '@salesforce/ts-types';
 
 import { assert, expect } from 'chai';
 import * as jsforce from 'jsforce';
 import { AuthInfo } from '../../src/authInfo';
-import { ConfigAggregator } from '../../src/config/configAggregator';
+import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
 import { Connection, SFDX_HTTP_HEADERS } from '../../src/connection';
-import { Logger } from '../../src/logger';
 import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
@@ -25,12 +24,13 @@ describe('Connection', () => {
 
   const testAuthInfo = {
     isOauth: () => true,
-    getConnectionOptions: () => testConnectionOptions
+    getConnectionOptions: () => testConnectionOptions,
   };
 
   beforeEach(() => {
     $$.SANDBOXES.CONNECTION.restore();
-    initializeStub = $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns({});
+    $$.SANDBOX.stub(process, 'emitWarning');
+    initializeStub = $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns();
     requestMock = $$.SANDBOX.stub(jsforce.Connection.prototype, 'request')
       .onFirstCall()
       .returns(Promise.resolve([{ version: '42.0' }]));
@@ -58,7 +58,9 @@ describe('Connection', () => {
     try {
       conn.setApiVersion('v23.0');
       assert.fail();
-    } catch (e) {}
+    } catch (e) {
+      expect(e.message).to.contain('Invalid API version v23.0.');
+    }
   });
 
   it('request() should add SFDX headers and call super() for a URL arg', async () => {
@@ -68,7 +70,7 @@ describe('Connection', () => {
     const expectedRequestInfo = {
       method: 'GET',
       url: testUrl,
-      headers: SFDX_HTTP_HEADERS
+      headers: SFDX_HTTP_HEADERS,
     };
 
     const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
@@ -91,7 +93,7 @@ describe('Connection', () => {
     // Test passing a RequestInfo object and options to conn.request()
     const requestInfo = { method: 'POST', url: testUrl };
     const expectedRequestInfo = Object.assign({}, requestInfo, {
-      headers: SFDX_HTTP_HEADERS
+      headers: SFDX_HTTP_HEADERS,
     });
     const httpOptions = { responseType: 'json' };
     const response = await conn.request(requestInfo, httpOptions);
@@ -110,7 +112,7 @@ describe('Connection', () => {
     const testUrl = '/services/data/v42.0/tooling/sobjects';
     const requestInfo = { method: 'GET', url: testUrl };
     const expectedRequestInfo = Object.assign({}, requestInfo, {
-      headers: SFDX_HTTP_HEADERS
+      headers: SFDX_HTTP_HEADERS,
     });
 
     const response = await conn.tooling.describeGlobal();
@@ -133,7 +135,7 @@ describe('Connection', () => {
     expect(queryResults).to.deep.equal({
       done: true,
       totalSize: 6,
-      records: [...records]
+      records: [...records],
     });
     expect(querySpy.firstCall.args[0]).to.equal(soql);
     expect(querySpy.firstCall.args[1]).to.have.property('autoFetch', true);
@@ -152,7 +154,7 @@ describe('Connection', () => {
     expect(queryResults).to.deep.equal({
       done: true,
       totalSize: 6,
-      records: [...records]
+      records: [...records],
     });
     expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
@@ -167,7 +169,7 @@ describe('Connection', () => {
 
     const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
-    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 50000 });
+    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 50000 } as ConfigInfo);
     await conn.tooling.autoFetchQuery(soql);
 
     expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
@@ -184,15 +186,12 @@ describe('Connection', () => {
 
     const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
-    const loggerSpy = $$.SANDBOX.spy(Logger.prototype, 'warn');
-    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 });
+    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
     await conn.tooling.autoFetchQuery(soql);
 
     expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
-    // if the config is limiting the results, we have a warning
-    expect(loggerSpy.args[0][0]).to.equal('The query: TEST_SOQL result is missing 2 records due to an API limit.');
   });
 
   it('autoFetch() should reject the promise upon query error', async () => {

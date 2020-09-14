@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
-import { shouldThrow, testSetup } from '../../../src/testSetup';
+import { expect } from 'chai';
+import { shouldThrow, testSetup, unexpectedResult } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 
 // Setup the test environment.
@@ -74,6 +74,69 @@ describe('util/fs', () => {
         } catch (e) {
           expect(e).to.have.property('code', 'ENOENT');
         }
+      }
+    });
+  });
+
+  describe('removeSync', () => {
+    it('should throw an error on falsy', () => {
+      try {
+        fs.removeSync(undefined);
+        throw unexpectedResult;
+      } catch (e) {
+        expect(e).to.have.property('name', 'PathIsNullOrUndefined');
+      }
+    });
+
+    it('should remove a folder with no files', () => {
+      const folderToDelete = pathJoin(osTmpdir(), 'foo');
+      fs.mkdirpSync(folderToDelete);
+      fs.removeSync(folderToDelete);
+
+      try {
+        fs.accessSync(folderToDelete);
+        throw unexpectedResult;
+      } catch (e) {
+        expect(e).to.have.property('code', 'ENOENT');
+      }
+    });
+
+    it('should remove a folder with one file', () => {
+      const folderToDelete = pathJoin(osTmpdir(), 'foo');
+      const fileToDelete = pathJoin(folderToDelete, 'test.json');
+
+      fs.mkdirpSync(folderToDelete);
+      fs.writeJsonSync(fileToDelete, {});
+      fs.removeSync(folderToDelete);
+
+      for (const path of [folderToDelete, fileToDelete]) {
+        try {
+          fs.accessSync(path);
+          throw unexpectedResult;
+        } catch (e) {
+          expect(e).to.have.property('code', 'ENOENT');
+        }
+      }
+    });
+
+    it('should remove nested sub dirs', () => {
+      const folderToDelete = pathJoin(osTmpdir(), 'alpha');
+      const sub1 = pathJoin(folderToDelete, 'bravo');
+      const sub2 = pathJoin(folderToDelete, 'charlie');
+      const nestedSub1 = pathJoin(sub1, 'echo');
+      const file1 = pathJoin(nestedSub1, 'foo.txt');
+      const file2 = pathJoin(sub2, 'foo.txt');
+
+      fs.mkdirpSync(sub2);
+      fs.mkdirpSync(nestedSub1);
+
+      fs.writeJsonSync(file1, {});
+      fs.writeJsonSync(file2, {});
+
+      fs.removeSync(folderToDelete);
+
+      for (const path of [file1, file2, nestedSub1, sub2, sub1]) {
+        expect(fs.fileExistsSync(path)).to.be.false;
       }
     });
   });
@@ -208,6 +271,68 @@ describe('util/fs', () => {
     });
   });
 
+  describe('readJsonSync', () => {
+    let readFileStub;
+
+    beforeEach(() => {
+      readFileStub = $$.SANDBOX.stub(fs, 'readFileSync');
+    });
+
+    it('should throw a ParseError for empty JSON file', async () => {
+      readFileStub.returns('');
+
+      try {
+        fs.readJsonSync('emptyFile');
+        throw unexpectedResult;
+      } catch (error) {
+        expect(error.message).to.contain('Unexpected end of JSON input');
+      }
+    });
+
+    it('should throw a ParseError for invalid multiline JSON file', async () => {
+      readFileStub.returns(
+        `{
+            "key": 12345,
+            "value": true,
+        }`
+      );
+      try {
+        fs.readJsonSync('invalidJSON');
+        throw unexpectedResult;
+      } catch (err) {
+        expect(err.message).to.contain('Parse error in file invalidJSON on line 4');
+      }
+    });
+
+    it('should throw a ParseError for invalid multiline JSON file 2', async () => {
+      readFileStub.returns('{\n"a":}');
+      try {
+        fs.readJsonSync('invalidJSON2');
+        throw unexpectedResult;
+      } catch (err) {
+        expect(err.message).to.contain('Parse error in file invalidJSON2 on line 2');
+      }
+    });
+
+    it('should throw a ParseError for invalid single line JSON file', async () => {
+      readFileStub.returns('{ "key": 12345, "value": [1,2,3], }');
+      try {
+        fs.readJsonSync('invalidJSON_no_newline');
+        throw unexpectedResult;
+      } catch (err) {
+        expect(err.message).to.contain('Parse error in file invalidJSON_no_newline on line 1');
+      }
+    });
+
+    it('should return a JSON object', async () => {
+      const validJSON = { key: 12345, value: true };
+      const validJSONStr = JSON.stringify(validJSON);
+      readFileStub.returns(validJSONStr);
+      const rv = fs.readJsonSync('validJSONStr');
+      expect(rv).to.eql(validJSON);
+    });
+  });
+
   describe('readJsonMap', () => {
     let readFileStub;
 
@@ -234,26 +359,71 @@ describe('util/fs', () => {
     });
   });
 
+  describe('readJsonMapSync', () => {
+    let readFileStub;
+
+    beforeEach(() => {
+      readFileStub = $$.SANDBOX.stub(fs, 'readFileSync');
+    });
+
+    it('should throw an error for non-object JSON content', () => {
+      readFileStub.returns('[]');
+
+      try {
+        fs.readJsonMapSync('arrayFile');
+        throw unexpectedResult;
+      } catch (error) {
+        expect(error.message).to.contain('Expected parsed JSON data to be an object');
+      }
+    });
+
+    it('should return a JSON object', () => {
+      const validJSON = { key: 12345, value: true };
+      const validJSONStr = JSON.stringify(validJSON);
+      readFileStub.returns(validJSONStr);
+      const rv = fs.readJsonMapSync('validJSONStr');
+      expect(rv).to.eql(validJSON);
+    });
+  });
+
   describe('writeJson', () => {
     it('should call writeFile with correct args', async () => {
-      $$.SANDBOX.stub(fs, 'writeFile').returns(Promise.resolve(null));
+      const writeStub = $$.SANDBOX.stub(fs, 'writeFile').returns(Promise.resolve(null));
       const testFilePath = 'utilTest_testFilePath';
       const testJSON = { username: 'utilTest_username' };
       const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
       await fs.writeJson(testFilePath, testJSON);
-      expect(fs.writeFile['called']).to.be.true;
-      expect(fs.writeFile['firstCall'].args[0]).to.equal(testFilePath);
-      expect(fs.writeFile['firstCall'].args[1]).to.deep.equal(stringifiedTestJSON);
-      expect(fs.writeFile['firstCall'].args[2]).to.deep.equal({
+      expect(writeStub.called).to.be.true;
+      expect(writeStub.firstCall.args[0]).to.equal(testFilePath);
+      expect(writeStub.firstCall.args[1]).to.deep.equal(stringifiedTestJSON);
+      expect(writeStub.firstCall.args[2]).to.deep.equal({
         encoding: 'utf8',
-        mode: '600'
+        mode: '600',
+      });
+    });
+  });
+
+  describe('writeJsonSync', () => {
+    it('should call writeFile with correct args', () => {
+      const writeStub = $$.SANDBOX.stub(fs, 'writeFileSync').returns(null);
+      const testFilePath = 'utilTest_testFilePath';
+      const testJSON = { username: 'utilTest_username' };
+      const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
+      fs.writeJsonSync(testFilePath, testJSON);
+      expect(writeStub.called).to.be.true;
+      expect(writeStub.firstCall.args[0]).to.equal(testFilePath);
+      expect(writeStub.firstCall.args[1]).to.deep.equal(stringifiedTestJSON);
+      expect(writeStub.firstCall.args[2]).to.deep.equal({
+        encoding: 'utf8',
+        mode: '600',
       });
     });
   });
 
   describe('fileExists', () => {
     it('should return true if the file exists', async () => {
-      $$.SANDBOX.stub(fs, 'access').returns(Promise.resolve(true));
+      // @ts-ignore
+      $$.SANDBOX.stub(fs, 'access').resolves(true);
       const exists = await fs.fileExists('foo/bar.json');
       expect(exists).to.be.true;
     });
@@ -264,25 +434,38 @@ describe('util/fs', () => {
     });
   });
 
+  describe('fileExistsSync', () => {
+    it('should return true if the file exists', () => {
+      // @ts-ignore
+      $$.SANDBOX.stub(fs, 'accessSync').returns(true);
+      const exists = fs.fileExistsSync('foo/bar.json');
+      expect(exists).to.be.true;
+    });
+
+    it('should return false if the file does not exist', () => {
+      const exists = fs.fileExistsSync('foo/bar.json');
+      expect(exists).to.be.false;
+    });
+  });
+
   describe('areFilesEqual', () => {
     afterEach(() => {
       $$.SANDBOX.restore();
     });
 
     it('should return false if the files stat.size are different', async () => {
-      $$.SANDBOX.stub(fs, 'readFile')
-        .onCall(0)
-        .resolves({})
-        .onCall(1)
-        .resolves({});
+      // @ts-ignore
+      $$.SANDBOX.stub(fs, 'readFile').onCall(0).resolves({}).onCall(1).resolves({});
       $$.SANDBOX.stub(fs, 'stat')
         .onCall(0)
+        // @ts-ignore
         .resolves({
-          size: 1
+          size: 1,
         })
         .onCall(1)
+        // @ts-ignore
         .resolves({
-          size: 2
+          size: 2,
         });
 
       const results = await fs.areFilesEqual('foo/bar.json', 'foo/bar2.json');
@@ -305,11 +488,8 @@ describe('util/fs', () => {
             "value": true,
         }`
         );
-      $$.SANDBOX.stub(fs, 'stat')
-        .onCall(0)
-        .resolves({})
-        .onCall(1)
-        .resolves({});
+      // @ts-ignore
+      $$.SANDBOX.stub(fs, 'stat').onCall(0).resolves({}).onCall(1).resolves({});
 
       const results = await fs.areFilesEqual('foo/bar.json', 'foo/bar2.json');
       expect(results).to.be.true;
@@ -332,11 +512,8 @@ describe('util/fs', () => {
           }`
         );
 
-      $$.SANDBOX.stub(fs, 'stat')
-        .onCall(0)
-        .resolves({})
-        .onCall(1)
-        .resolves({});
+      // @ts-ignore
+      $$.SANDBOX.stub(fs, 'stat').onCall(0).resolves({}).onCall(1).resolves({});
       const results = await fs.areFilesEqual('foo/bar.json', 'foo/bsar2.json');
       expect(results).to.be.false;
     });
@@ -344,12 +521,14 @@ describe('util/fs', () => {
     it('should return error when fs.readFile throws error', async () => {
       $$.SANDBOX.stub(fs, 'stat')
         .onCall(0)
+        // @ts-ignore
         .resolves({
-          size: 1
+          size: 1,
         })
         .onCall(1)
+        // @ts-ignore
         .resolves({
-          size: 2
+          size: 2,
         });
       try {
         await fs.areFilesEqual('foo', 'bar');
@@ -374,14 +553,16 @@ describe('util/fs', () => {
 
     it('should run custom functions against contents of a directory', async () => {
       const actedOnArray = [];
+      // @ts-ignore
       $$.SANDBOX.stub(fs, 'readdir').resolves(['test1.json', 'test2.json']);
+      // @ts-ignore
       $$.SANDBOX.stub(fs, 'stat').resolves({
         isDirectory: () => false,
-        isFile: () => true
+        isFile: () => true,
       });
       const pathToFolder = pathJoin(osTmpdir(), 'foo');
 
-      await fs.actOn(pathToFolder, async file => {
+      await fs.actOn(pathToFolder, async (file) => {
         actedOnArray.push(file), 'file';
       });
       const example = [pathJoin(pathToFolder, 'test1.json'), pathJoin(pathToFolder, 'test2.json')];

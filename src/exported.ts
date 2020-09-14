@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { Messages } from './messages';
@@ -24,7 +24,9 @@ export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config } from './config/co
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
-export { AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl } from './authInfo';
+export { Authorization, AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl } from './authInfo';
+
+export { AuthConfigs, AuthRemover } from './authRemover';
 
 export { Connection, SFDX_HTTP_HEADERS } from './connection';
 
@@ -40,14 +42,14 @@ export {
   LogLine,
   LoggerOptions,
   LoggerStream,
-  Logger
+  Logger,
 } from './logger';
 
 export { Messages } from './messages';
 
 export { Org } from './org';
 
-export { SfdxProject, SfdxProjectJson } from './sfdxProject';
+export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
 
 export { SchemaPrinter } from './schema/printer';
 

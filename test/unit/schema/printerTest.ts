@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { JsonMap } from '@salesforce/ts-types';
-import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
+import { JsonMap } from '@salesforce/ts-types';
+import { expect } from 'chai';
 import { LoggerLevel } from '../../../src/logger';
 import { SchemaPrinter, SchemaPropertyRenderer } from '../../../src/schema/printer';
 import { testSetup } from '../../../src/testSetup';
@@ -32,7 +32,7 @@ describe('SchemaPrinter', () => {
     const expected = 'schema description';
     const schema = {
       description: expected,
-      properties: {}
+      properties: {},
     };
     const actual = getLine(schema);
 
@@ -44,8 +44,8 @@ describe('SchemaPrinter', () => {
       const expected = 'testProperty';
       const schema = {
         properties: {
-          testProperty: {}
-        }
+          testProperty: {},
+        },
       };
       const actual = getLine(schema);
 
@@ -58,9 +58,9 @@ describe('SchemaPrinter', () => {
       const schema = {
         properties: {
           testProperty: {
-            type
-          }
-        }
+            type,
+          },
+        },
       };
       const actual = getLine(schema);
 
@@ -75,9 +75,9 @@ describe('SchemaPrinter', () => {
         properties: {
           testProperty: {
             title,
-            description
-          }
-        }
+            description,
+          },
+        },
       };
       const actual = getLine(schema);
 
@@ -92,9 +92,9 @@ describe('SchemaPrinter', () => {
           properties: {
             testProperty: {
               type: 'object',
-              properties
-            }
-          }
+              properties,
+            },
+          },
         },
         1 + line
       );
@@ -110,8 +110,8 @@ describe('SchemaPrinter', () => {
         testProperty: {
           title,
           description,
-          type: jsType
-        }
+          type: jsType,
+        },
       };
       const actual = getPropertyLine(properties);
       expect(actual).to.equal(expected);
@@ -122,8 +122,8 @@ describe('SchemaPrinter', () => {
       const expected = `${getIndent(1)}Required: ${required.join(', ')}`;
       const properties = {
         testProperty: {
-          required
-        }
+          required,
+        },
       };
       const actual = getPropertyLine(properties, 1);
       expect(actual).to.equal(expected);
@@ -133,7 +133,7 @@ describe('SchemaPrinter', () => {
       const expected = 'testProperty';
       const properties = {
         firstProp: {},
-        testProperty: {}
+        testProperty: {},
       };
       const actual = getPropertyLine(properties, 1);
       expect(actual).to.contain(expected);
@@ -147,14 +147,14 @@ describe('SchemaPrinter', () => {
       const schema = {
         definitions: {
           myDef: {
-            type: jsType
-          }
+            type: jsType,
+          },
         },
         properties: {
           testProperty: {
-            $ref: '#/definitions/myDef'
-          }
-        }
+            $ref: '#/definitions/myDef',
+          },
+        },
       };
       const actual = getLine(schema);
 
@@ -168,11 +168,11 @@ describe('SchemaPrinter', () => {
         properties: {
           testProperty: {
             myDef: {
-              type: jsType
+              type: jsType,
             },
-            $ref: 'myDef'
-          }
-        }
+            $ref: 'myDef',
+          },
+        },
       };
       const actual = getLine(schema);
 
@@ -187,15 +187,15 @@ describe('SchemaPrinter', () => {
         definitions: {
           myDef: {
             title: 'someOtherTitle',
-            type: jsType
-          }
+            type: jsType,
+          },
         },
         properties: {
           testProperty: {
             title,
-            $ref: '#/definitions/myDef'
-          }
-        }
+            $ref: '#/definitions/myDef',
+          },
+        },
       };
       const actual = getLine(schema);
 
@@ -210,19 +210,19 @@ describe('SchemaPrinter', () => {
           myDef: {
             oneOf: [
               {
-                type: jsType
+                type: jsType,
               },
               {
-                type: jsType
-              }
-            ]
-          }
+                type: jsType,
+              },
+            ],
+          },
         },
         properties: {
           testProperty: {
-            $ref: '#/definitions/myDef'
-          }
-        }
+            $ref: '#/definitions/myDef',
+          },
+        },
       };
       const actual = getLine(schema);
 
@@ -235,17 +235,17 @@ describe('SchemaPrinter', () => {
       const schema = {
         definitions: {
           myDef: {
-            type: jsType
-          }
+            type: jsType,
+          },
         },
         properties: {
           testProperty: {
             type: 'array',
             items: {
-              $ref: '#/definitions/myDef'
-            }
-          }
-        }
+              $ref: '#/definitions/myDef',
+            },
+          },
+        },
       };
       const actual = getLine(schema, 1);
 
@@ -264,14 +264,14 @@ describe('SchemaPrinter', () => {
           testProperty: {
             oneOf: [
               {
-                type: jsType1
+                type: jsType1,
               },
               {
-                type: jsType2
-              }
-            ]
-          }
-        }
+                type: jsType2,
+              },
+            ],
+          },
+        },
       };
       const actual = getLine(schema);
 
@@ -286,9 +286,9 @@ describe('SchemaPrinter', () => {
       const schema = {
         properties: {
           testProperty: {
-            oneOf: [jsType1, jsType2]
-          }
-        }
+            oneOf: [jsType1, jsType2],
+          },
+        },
       };
       const actual = getLine(schema);
 
@@ -307,15 +307,15 @@ describe('SchemaPrinter', () => {
             oneOf: [
               {
                 title: title1,
-                type: 'boolean'
+                type: 'boolean',
               },
               {
                 title: title2,
-                type: 'string'
-              }
-            ]
-          }
-        }
+                type: 'string',
+              },
+            ],
+          },
+        },
       };
       const actual = getLine(schema);
 
@@ -336,16 +336,16 @@ describe('SchemaPrinter', () => {
                 properties: {
                   innerProp: {
                     title,
-                    type: 'string'
-                  }
-                }
+                    type: 'string',
+                  },
+                },
               },
               {
-                type: 'boolean'
-              }
-            ]
-          }
-        }
+                type: 'boolean',
+              },
+            ],
+          },
+        },
       };
       const actual = getLine(schema);
 
@@ -385,13 +385,13 @@ describe('SchemaPrinter', () => {
 
   describe('schemas', () => {
     it('should not contain undefined', () => {
-      fs.readdirSync(SCHEMA_DIR).forEach(schemaName => {
+      fs.readdirSync(SCHEMA_DIR).forEach((schemaName) => {
         const schemaPath = path.join(SCHEMA_DIR, schemaName);
         const schema = loadSchema(schemaName, schemaPath);
 
         new SchemaPrinter($$.TEST_LOGGER, schema)
           .getLines()
-          .forEach(line => expect(line).to.not.contain('undefined', `in ${schemaName}`));
+          .forEach((line) => expect(line).to.not.contain('undefined', `in ${schemaName}`));
       });
     });
   });
@@ -399,7 +399,7 @@ describe('SchemaPrinter', () => {
   describe('renderers', () => {
     it('should be called using default', () => {
       class MyRenderer extends SchemaPropertyRenderer {
-        public renderName(name) {
+        public renderName(name: string) {
           return `${name}Test`;
         }
       }
@@ -410,16 +410,16 @@ describe('SchemaPrinter', () => {
     });
     it('should be called using the defined renderer', () => {
       class MyRender implements SchemaPropertyRenderer {
-        public renderName(name) {
+        public renderName(name: string) {
           return `${name}Name`;
         }
-        public renderTitle(name) {
+        public renderTitle(name: string) {
           return `${name}Title`;
         }
-        public renderDescription(name) {
+        public renderDescription(name: string) {
           return `${name}Description`;
         }
-        public renderType(name) {
+        public renderType(name: string) {
           return `${name}Type`;
         }
       }
@@ -429,9 +429,9 @@ describe('SchemaPrinter', () => {
           testProperty: {
             title: 'title',
             description: 'description',
-            type: 'type'
-          }
-        }
+            type: 'type',
+          },
+        },
       };
       const printer = new SchemaPrinter($$.TEST_LOGGER, schema, new MyRender());
       expect(printer.getLine(0)).to.equal('testPropertyName(typeType) - titleTitle: descriptionDescription');

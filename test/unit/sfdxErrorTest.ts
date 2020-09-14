@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
 import { Messages } from '../../src/messages';
@@ -16,7 +16,7 @@ const testMessages = {
   Test3Error: 'This is test error message 3: %s with error: %s',
   Test3ErrorAction1: 'Take this action',
   Test3ErrorAction2: 'Or take this action: %s',
-  Test3ErrorAction3: 'Why not both?: %s and %s'
+  Test3ErrorAction3: 'Why not both?: %s and %s',
 };
 
 Messages.importMessageFile('pname', 'testMessages.json');
@@ -42,11 +42,11 @@ describe('SfdxError', () => {
   });
 
   describe('create', () => {
-    let _readFileStub;
+    let readFileStub;
 
     beforeEach(() => {
-      _readFileStub = $$.SANDBOX.stub(Messages, '_readFile');
-      _readFileStub.returns(testMessages);
+      readFileStub = $$.SANDBOX.stub(Messages, 'readFile');
+      readFileStub.returns(testMessages);
     });
 
     it('should return a new SfdxError when passed a bundle and key', async () => {
@@ -99,9 +99,7 @@ describe('SfdxError', () => {
       expect(mySfdxError).to.be.an.instanceOf(SfdxError);
       expect(mySfdxError.message).to.equal(myErrorMsg);
       expect(mySfdxError.name).to.equal(myErrorName);
-      expect(mySfdxError.stack)
-        .to.contain('Outer stack:\n')
-        .and.contain(myError.stack);
+      expect(mySfdxError.stack).to.contain('Outer stack:\n').and.contain(myError.stack);
     });
 
     it('should return a wrapped error with a code', () => {
@@ -141,7 +139,7 @@ describe('SfdxError', () => {
         exitCode,
         actions,
         commandName,
-        data
+        data,
       });
     });
 
@@ -155,7 +153,7 @@ describe('SfdxError', () => {
         name,
         message,
         exitCode: 1,
-        actions: undefined
+        actions: undefined,
       });
     });
   });
@@ -178,10 +176,7 @@ describe('SfdxErrorConfig', () => {
     const errorTokens2 = ['abcd', 123, false];
     const actionKey = 'Action1';
     const actionTokens = [true, 321, 'dcba'];
-    errConfig
-      .setErrorKey(errorKey2)
-      .setErrorTokens(errorTokens2)
-      .addAction(actionKey, actionTokens);
+    errConfig.setErrorKey(errorKey2).setErrorTokens(errorTokens2).addAction(actionKey, actionTokens);
 
     // verify new properties
     const actions = new Map();
@@ -207,6 +202,7 @@ describe('SfdxErrorConfig', () => {
     const messages = { sampleMsgKey: 'here is a sample message' };
     const packageName = '@salesforce/core';
     const loadMessagesStub = $$.SANDBOX.stub(Messages, 'loadMessages');
+    // @ts-ignore
     loadMessagesStub.returns(messages);
     const errConfig = new SfdxErrorConfig(packageName, 'bundle', 'foo');
     const msgs = errConfig.load();

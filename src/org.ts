@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { join as pathJoin } from 'path';
 import { AsyncCreatable } from '@salesforce/kit';
 import {
   AnyFunction,
@@ -20,10 +21,9 @@ import {
   isString,
   JsonArray,
   JsonMap,
-  Optional
+  Optional,
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import { join as pathJoin } from 'path';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Aliases } from './config/aliases';
 import { AuthInfoConfig } from './config/authInfoConfig';
@@ -66,7 +66,6 @@ import { sfdc } from './util/sfdc';
  * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
 export class Org extends AsyncCreatable<Org.Options> {
-  // tslint:disable-next-line:no-unused-variable
   private status: Org.Status = Org.Status.UNKNOWN;
   private configAggregator!: ConfigAggregator;
 
@@ -86,6 +85,7 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.
+   *
    * @param orgDataPath A relative path other than "orgs/".
    * @param throwWhenRemoveFails Should the remove org operations throw an error on failure?
    */
@@ -120,6 +120,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    * Removes the scratch org config file at $HOME/.sfdx/[name].json, any project level org
    * files, all user auth files for the org, matching default config settings, and any
    * matching aliases.
+   *
    * @param throwWhenRemoveFails Determines if the call should throw an error or fail silently.
    */
   public async remove(throwWhenRemoveFails = false): Promise<void> {
@@ -157,9 +158,9 @@ export class Org extends AsyncCreatable<Org.Options> {
 
     const thisOrgAuthConfig = this.getConnection().getAuthInfoFields();
 
-    const trimmedId = sfdc.trimTo15(thisOrgAuthConfig.orgId);
+    const trimmedId: string = sfdc.trimTo15(thisOrgAuthConfig.orgId) as string;
 
-    const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg=\'${trimmedId}\'`;
+    const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg='${trimmedId}'`;
 
     let results;
     try {
@@ -188,8 +189,8 @@ export class Org extends AsyncCreatable<Org.Options> {
       const devHubUsername = ensureString(this.getField(Org.Fields.DEV_HUB_USERNAME));
       return Org.create({
         connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: devHubUsername })
-        })
+          authInfo: await AuthInfo.create({ username: devHubUsername }),
+        }),
       });
     }
   }
@@ -220,7 +221,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    * which will be required if the org flips on the dev hub after the value is already
    * cached locally.
    */
-  public async determineIfDevHubOrg(forceServerCheck = false) {
+  public async determineIfDevHubOrg(forceServerCheck = false): Promise<boolean> {
     const cachedIsDevHub = this.getField(Org.Fields.IS_DEV_HUB);
     if (!forceServerCheck && isBoolean(cachedIsDevHub)) {
       return cachedIsDevHub;
@@ -244,7 +245,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     AuthInfo.clearCache(username);
     // Reset the connection with the updated auth file
     this.connection = await Connection.create({
-      authInfo: await AuthInfo.create({ username })
+      authInfo: await AuthInfo.create({ username }),
     });
     return isDevHub;
   }
@@ -256,14 +257,14 @@ export class Org extends AsyncCreatable<Org.Options> {
     this.logger.debug('Refreshing auth for org.');
     const requestInfo = {
       url: this.getConnection().baseUrl(),
-      method: 'GET'
+      method: 'GET',
     };
     const conn = this.getConnection();
     await conn.request(requestInfo);
   }
 
   /**
-   *  Reads and returns the content of all user auth files for this org as an array.
+   * Reads and returns the content of all user auth files for this org as an array.
    */
   public async readUserAuthFiles(): Promise<AuthInfo[]> {
     const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
@@ -271,10 +272,10 @@ export class Org extends AsyncCreatable<Org.Options> {
     const thisUsername = ensure(this.getUsername());
     const usernames: JsonArray = ensureJsonArray(contents.usernames || [thisUsername]);
     return Promise.all(
-      usernames.map(username => {
+      usernames.map((username) => {
         if (username === thisUsername) {
           return AuthInfo.create({
-            username: this.getConnection().getUsername()
+            username: this.getConnection().getUsername(),
           });
         } else {
           return AuthInfo.create({ username: ensureString(username) });
@@ -305,8 +306,8 @@ export class Org extends AsyncCreatable<Org.Options> {
       throw new SfdxError('Missing auth info', 'MissingAuthInfo');
     }
 
-    const _auth = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
-    this.logger.debug(`adding username ${_auth.getFields().username}`);
+    const authInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
+    this.logger.debug(`adding username ${authInfo.getFields().username}`);
 
     const orgConfig = await this.retrieveOrgUsersConfig();
 
@@ -327,7 +328,7 @@ export class Org extends AsyncCreatable<Org.Options> {
       shouldUpdate = true;
     }
 
-    const username = _auth.getFields().username;
+    const username = authInfo.getFields().username;
     if (username) {
       usernames.push(username);
       shouldUpdate = true;
@@ -353,17 +354,17 @@ export class Org extends AsyncCreatable<Org.Options> {
       throw new SfdxError('Missing auth info', 'MissingAuthInfo');
     }
 
-    const _auth: AuthInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
+    const authInfo: AuthInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
 
-    this.logger.debug(`removing username ${_auth.getFields().username}`);
+    this.logger.debug(`removing username ${authInfo.getFields().username}`);
 
     const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
 
     const contents: ConfigContents = await orgConfig.read();
 
-    const targetUser = _auth.getFields().username;
+    const targetUser = authInfo.getFields().username;
     const usernames = (contents.usernames || []) as string[];
-    contents.usernames = usernames.filter(username => username !== targetUser);
+    contents.usernames = usernames.filter((username) => username !== targetUser);
 
     await orgConfig.write();
     return this;
@@ -386,7 +387,8 @@ export class Org extends AsyncCreatable<Org.Options> {
   /**
    * Returns an org config field. Returns undefined if the field is not set or invalid.
    */
-  public async getSandboxOrgConfigField(field: SandboxOrgConfig.Fields) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public async getSandboxOrgConfigField(field: SandboxOrgConfig.Fields): Promise<any> {
     const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
     return sandboxOrgConfig.get(field);
   }
@@ -425,6 +427,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    * Returns an org field. Returns undefined if the field is not set or invalid.
    */
   public getField(key: Org.Fields): AnyJson {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore TODO: Need to refactor storage of these values on both Org and AuthFields
     return this[key] || this.getConnection().getAuthInfoFields()[key];
   }
@@ -468,8 +471,8 @@ export class Org extends AsyncCreatable<Org.Options> {
       this.connection = await Connection.create({
         // If no username is provided or resolvable from an alias, AuthInfo will throw an SfdxError.
         authInfo: await AuthInfo.create({
-          username: (username != null && (await Aliases.fetch(username))) || username
-        })
+          username: (username != null && (await Aliases.fetch(username))) || username,
+        }),
       });
     } else {
       this.connection = this.options.connection;
@@ -492,7 +495,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     this.logger.debug(`Removing auth for user: ${username}`);
     const config = await AuthInfoConfig.create({
       ...AuthInfoConfig.getOptions(username),
-      throwOnNotFound: false
+      throwOnNotFound: false,
     });
 
     this.logger.debug(`Clearing auth cache for user: ${username}`);
@@ -505,7 +508,7 @@ export class Org extends AsyncCreatable<Org.Options> {
   /**
    * Deletes the users config file
    */
-  private async removeUsersConfig() {
+  private async removeUsersConfig(): Promise<void> {
     const config = await this.retrieveOrgUsersConfig();
     if (await config.exists()) {
       this.logger.debug(`Removing org users config at: ${config.getPath()}`);
@@ -521,7 +524,7 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   private manageDelete(cb: AnyFunction<Promise<void>>, dirPath: string, throwWhenRemoveFails: boolean): Promise<void> {
-    return cb().catch(e => {
+    return cb().catch((e) => {
       if (throwWhenRemoveFails) {
         throw e;
       } else {
@@ -533,18 +536,20 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Remove the org users auth file.
+   *
    * @param throwWhenRemoveFails true if manageDelete should throw or not if the deleted fails.
    */
-  private async removeUsers(throwWhenRemoveFails: boolean) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private async removeUsers(throwWhenRemoveFails: boolean): Promise<void> {
     this.logger.debug(`Removing users associate with org: ${this.getOrgId()}`);
     const config = await this.retrieveOrgUsersConfig();
     this.logger.debug(`using path for org users: ${config.getPath()}`);
     if (await config.exists()) {
-      const _auths: AuthInfo[] = await this.readUserAuthFiles();
+      const authInfos: AuthInfo[] = await this.readUserAuthFiles();
       const aliases: Aliases = await Aliases.create(Aliases.getDefaultOptions());
       this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
 
-      for (const auth of _auths) {
+      for (const auth of authInfos) {
         const username = auth.getFields().username;
 
         const aliasKeys = (username && aliases.getKeysByValue(username)) || [];
@@ -554,14 +559,14 @@ export class Org extends AsyncCreatable<Org.Options> {
         if (username === this.getUsername()) {
           orgForUser = this;
         } else {
-          const _info = await AuthInfo.create({ username });
-          const connection: Connection = await Connection.create({ authInfo: _info });
+          const info = await AuthInfo.create({ username });
+          const connection: Connection = await Connection.create({ authInfo: info });
           orgForUser = await Org.create({ connection });
         }
 
         const orgType = this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
 
-        const configInfo: ConfigInfo = await orgForUser.configAggregator.getInfo(orgType);
+        const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
 
         if (
           (configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
@@ -578,9 +583,10 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   /**
    * Remove an associate sandbox config.
+   *
    * @param throwWhenRemoveFails true if manageDelete should throw or not if the deleted fails.
    */
-  private async removeSandboxConfig(throwWhenRemoveFails: boolean) {
+  private async removeSandboxConfig(throwWhenRemoveFails: boolean): Promise<void> {
     const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
     if (await sandboxOrgConfig.exists()) {
       await this.manageDelete(
@@ -622,7 +628,7 @@ export namespace Org {
     /**
      * The dev hub configuration is reporting an active Scratch org but the AuthInfo cannot be found.
      */
-    MISSING = 'MISSING'
+    MISSING = 'MISSING',
   }
 
   /**
@@ -658,7 +664,7 @@ export namespace Org {
      */
     LOGIN_URL = 'loginUrl',
     /**
-     *  The org ID.
+     * The org ID.
      */
     ORG_ID = 'orgId',
     /**
@@ -668,7 +674,7 @@ export namespace Org {
     /**
      * The snapshot used to create the scratch org.
      */
-    SNAPSHOT = 'snapshot'
+    SNAPSHOT = 'snapshot',
 
     // Should it be on org? Leave it off for now, as it might
     // be confusing to the consumer what this actually is.

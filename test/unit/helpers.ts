@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { isString } from '@salesforce/ts-types';
 
 /**
@@ -10,9 +16,12 @@ export class ErrnoException extends Error implements NodeJS.ErrnoException {
   public syscall?: string;
   public stack?: string;
 
-  constructor(options?: Partial<NodeJS.ErrnoException>);
-  constructor(message: string, options?: Partial<NodeJS.ErrnoException>);
-  constructor(messageOrOptions?: string | Partial<NodeJS.ErrnoException>, options?: Partial<NodeJS.ErrnoException>) {
+  public constructor(options?: Partial<NodeJS.ErrnoException>);
+  public constructor(message: string, options?: Partial<NodeJS.ErrnoException>);
+  public constructor(
+    messageOrOptions?: string | Partial<NodeJS.ErrnoException>,
+    options?: Partial<NodeJS.ErrnoException>
+  ) {
     if (isString(messageOrOptions)) {
       super(messageOrOptions);
     } else {

@@ -1,21 +1,37 @@
-**/.DS_Store
-**/.idea
+# -- CLEAN
 
-**/node_modules
-**/package-lock.json
+# use yarn by default, so ignore npm
+package-lock.json
 
-**/npm-error.log
-**/yarn-error.log
-**/lerna-debug.log
+# never checkin npm config
+.npmrc
 
-**/lib
+# debug logs
+npm-error.log
+yarn-error.log
+lerna-debug.log
 
-**/*xunit.xml
-**/*checkstyle.xml
-**/*unitcoverage
-**/.nyc_output
-**/coverage
+# compile source
+lib
 
-**/.sfdx
-**/.vscode
-**/docs
+# test artifacts
+*xunit.xml
+*checkstyle.xml
+*unitcoverage
+.nyc_output
+coverage
+
+# generated docs
+docs
+
+# -- CLEAN ALL
+node_modules
+
+# --
+# put files here you don't want cleaned with sf-clean
+
+.sfdx
+
+# os specific files
+.DS_Store
+.idea

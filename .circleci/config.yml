@@ -6,6 +6,10 @@ workflows:
   version: 2
   test-and-release:
     jobs:
+      - release-management/validate-pr:
+          filters:
+            branches:
+              ignore: master
       - release-management/test-package:
           name: node-latest
           node_version: latest
@@ -16,6 +20,7 @@ workflows:
           node_version: '10'
           name: node-10
       - release-management/release-package:
+          github-release: true
           post-job-steps:
             - release-management/merge
             - run: yarn ci-docs
