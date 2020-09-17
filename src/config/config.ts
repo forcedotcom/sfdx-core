@@ -183,6 +183,8 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     }
 
     Config.propertyConfigMap = keyBy(Config.allowedProperties, 'key');
+    // Resolve the config path on creation.
+    this.getPath();
   }
 
   /**
