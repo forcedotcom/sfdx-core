@@ -315,6 +315,10 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
 
   /**
    * Returns the absolute path to the config file.
+   *
+   * The first time getPath is called, the path is resolved and becomes immutable. This allows implementers to
+   * override options properties, like filePath, on the init method for async creation. If that is required for
+   * creation, the config files can not be synchronously created.
    */
   public getPath(): string {
     if (!this.path) {
@@ -353,6 +357,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * options.throwOnNotFound is true.
    */
   protected async init(): Promise<void> {
+    // Read the file, which also sets the path and throws any errors around project paths.
     await this.read(this.options.throwOnNotFound);
   }
 }
