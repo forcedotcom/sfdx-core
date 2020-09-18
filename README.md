@@ -37,7 +37,7 @@ describe('Mocking Auth data', () => {
   it('example', async () => {
     const testData = new MockTestOrgData();
     $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
+      contents: await testData.getConfig(),
     });
     const auth: AuthInfo = await AuthInfo.create({ username: testData.username });
     strictEqual(auth.getUsername(), testData.username);
@@ -62,7 +62,7 @@ describe('Mocking a force server call', () => {
     const records: AnyJson = { records: ['123456', '234567'] };
     const testData = new MockTestOrgData();
     $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
+      contents: await testData.getConfig(),
     });
     $$.fakeConnectionRequest = (request: AnyJson): Promise<AnyJson> => {
       const _request: JsonMap = ensureJsonMap(request);
@@ -73,7 +73,7 @@ describe('Mocking a force server call', () => {
       }
     };
     const connection: Connection = await Connection.create({
-      authInfo: await AuthInfo.create({ username: testData.username })
+      authInfo: await AuthInfo.create({ username: testData.username }),
     });
     const result: QueryResult<{}> = await connection.query('select Id From Account');
     deepStrictEqual(result, records);
