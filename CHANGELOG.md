@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.12.2](https://github.com/forcedotcom/sfdx-core/compare/v2.12.1...v2.12.2) (2020-09-28)
+
+
+### Bug Fixes
+
+* fixed mocking error ([f5cfe52](https://github.com/forcedotcom/sfdx-core/commit/f5cfe52605e54ab8250e155e17077bc03b0cd6ec))
+
 ### [2.12.1](https://github.com/forcedotcom/sfdx-core/compare/v2.12.0...v2.12.1) (2020-09-18)
 
 
