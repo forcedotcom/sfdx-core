@@ -180,6 +180,7 @@ export interface TestContext {
    * @param value The actual stub contents. The Mock data.
    */
   setConfigStubContents(name: string, value: ConfigContents): void;
+  inProject(inProject: boolean): void;
 }
 
 const uniqid = (): string => {
@@ -286,6 +287,24 @@ export const instantiateContext = (sinon?: any) => {
         this.configStubs[name] = value;
       }
     },
+    inProject(inProject = true) {
+      testContext.SANDBOXES.PROJECT.restore();
+      if (inProject) {
+        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').returns(
+          testContext.localPathRetriever(testContext.id)
+        );
+        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPathSync').returns(
+          testContext.localPathRetrieverSync(testContext.id)
+        );
+      } else {
+        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').rejects(
+          new SfdxError('InvalidProjectWorkspace')
+        );
+        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPathSync').throws(
+          new SfdxError('InvalidProjectWorkspace')
+        );
+      }
+    },
   };
   return testContext;
 };
@@ -318,14 +337,7 @@ export const stubContext = (testContext: TestContext) => {
   // Most core files create a child logger so stub this to return our test logger.
   stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
   stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
-
-  testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').callsFake(() =>
-    testContext.localPathRetriever(testContext.id)
-  );
-  testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPathSync').callsFake(() =>
-    testContext.localPathRetrieverSync(testContext.id)
-  );
-
+  testContext.inProject(true);
   testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
     testContext.rootPathRetriever(isGlobal, testContext.id)
   );
