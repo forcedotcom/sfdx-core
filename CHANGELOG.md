@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.12.3](https://github.com/forcedotcom/sfdx-core/compare/v2.12.2...v2.12.3) (2020-10-01)
+
+
+### Bug Fixes
+
+* lifecycle should be a singleton across core versions ([66a450b](https://github.com/forcedotcom/sfdx-core/commit/66a450b0a0030d85c61645eb8c782289e4938e4a))
+* stub should call resolver at runtime ([9002cbf](https://github.com/forcedotcom/sfdx-core/commit/9002cbf8f02da9422dd547a3ea989d174749726b))
+
 ### [2.12.2](https://github.com/forcedotcom/sfdx-core/compare/v2.12.1...v2.12.2) (2020-09-28)
 
 
