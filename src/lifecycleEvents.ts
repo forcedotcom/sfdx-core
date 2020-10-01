@@ -45,13 +45,23 @@ export class Lifecycle {
    * Retrieve the singleton instance of this class so that all listeners and emitters can interact from any library or tool
    */
   public static getInstance(): Lifecycle {
-    // Across a npm dependency tree, there may be a LOT of versions of @salesforce/core. We want to ensure that consumers are notified when
-    // listening on a lifecycle event that is fired by a different version of @salesforce/core. Adding the instance on the global object will
-    // ensure this. Note: There needs to be version checking up update lifecycle to the newer version if ANYTHING is ever added to this class.
-    // One way this can be done by adding a version = require(../package.json).version to the Lifecycle class, then checking that here.
-    // For example, if instance is created with @salesforce/core@2.12.2 and something is added in 2.14.0, someone who depends on version 2.14.0
-    // may get an instance that was created with 2.12.2.
+    // Across a npm dependency tree, there may be a LOT of versions of `@salesforce/core`. We want to ensure that consumers are notified when
+    // listening on a lifecycle event that is fired by a different version of `@salesforce/core`. Adding the instance on the global object will
+    // ensure this.
+    //
+    // For example, a consumer calls `Lifecycle.getInstance().on('myEvent', ...)` on version `@salesforce/core@2.12.2`, and another consumer calls
+    // `Lifecycle.getInstance().emit('myEvent', ...)` on version `@salesforce/core@2.13.0`, the on handler will never be called.
+    //
+    // Note: If ANYTHING is ever added to this class, it needs to check and update `global.salesforceCoreLifecycle` to the newer version.
+    // One way this can be done by adding a `version = require(../package.json).version` to the Lifecycle class, then checking if
+    // `global.salesforceCoreLifecycle` is greater or equal to that version.
+    //
+    // For example, let's say a new method is added in `@salesforce/core@3.0.0`. If `Lifecycle.getInstance()` is called fist by
+    // `@salesforce/core@2.12.2` then by someone who depends on version `@salesforce/core@3.0.0` (who depends on the new method)
+    // they will get a "method does not exist on object" error because the instance on the global object will be of `@salesforce/core@2.12.2`.
+    //
     // Nothing should EVER be removed, even across major versions.
+
     if (!global.salesforceCoreLifecycle) {
       global.salesforceCoreLifecycle = new Lifecycle();
     }
