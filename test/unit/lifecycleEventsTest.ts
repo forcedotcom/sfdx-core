@@ -32,7 +32,19 @@ describe('lifecycleEvents', () => {
     chai.assert(Lifecycle.getInstance() === Lifecycle.getInstance());
   });
 
-  it('succsssful event registration and emitting causes the callback to be called', async () => {
+  it('getInstance is on the global object to protect against npm version dependency mismatch', async () => {
+    // @ts-ignore don't declare the type in the test
+    chai.assert(Lifecycle.getInstance() === global.salesforceCoreLifecycle);
+  });
+
+  it('has not changed', async () => {
+    chai.assert(
+      Object.getOwnPropertyNames(Lifecycle.prototype).length === 5,
+      'Lifecycle can not be changed without adding version support to update the instance to the latest version. See note in Lifecycle.getInstance'
+    );
+  });
+
+  it('successful event registration and emitting causes the callback to be called', async () => {
     Lifecycle.getInstance().on('test1', async (result) => {
       fake.bar('test1', result);
     });
