@@ -12,6 +12,10 @@ import * as Debug from 'debug';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type callback = (data: any) => Promise<void>;
 
+declare const global: {
+  salesforceCoreLifecycle?: Lifecycle;
+};
+
 /**
  * An asynchronous event listener and emitter that follows the singleton pattern. The singleton pattern allows lifecycle
  * events to be emitted from deep within a library and still be consumed by any other library or tool. It allows other
@@ -31,7 +35,6 @@ type callback = (data: any) => Promise<void>;
  * ```
  */
 export class Lifecycle {
-  private static instance: Lifecycle;
   private debug = Debug(`sfdx:${this.constructor.name}`);
   private readonly listeners: Dictionary<callback[]>;
 
@@ -42,10 +45,27 @@ export class Lifecycle {
    * Retrieve the singleton instance of this class so that all listeners and emitters can interact from any library or tool
    */
   public static getInstance(): Lifecycle {
-    if (!this.instance) {
-      this.instance = new Lifecycle();
+    // Across a npm dependency tree, there may be a LOT of versions of `@salesforce/core`. We want to ensure that consumers are notified when
+    // listening on a lifecycle event that is fired by a different version of `@salesforce/core`. Adding the instance on the global object will
+    // ensure this.
+    //
+    // For example, a consumer calls `Lifecycle.getInstance().on('myEvent', ...)` on version `@salesforce/core@2.12.2`, and another consumer calls
+    // `Lifecycle.getInstance().emit('myEvent', ...)` on version `@salesforce/core@2.13.0`, the on handler will never be called.
+    //
+    // Note: If ANYTHING is ever added to this class, it needs to check and update `global.salesforceCoreLifecycle` to the newer version.
+    // One way this can be done by adding a `version = require(../package.json).version` to the Lifecycle class, then checking if
+    // `global.salesforceCoreLifecycle` is greater or equal to that version.
+    //
+    // For example, let's say a new method is added in `@salesforce/core@3.0.0`. If `Lifecycle.getInstance()` is called fist by
+    // `@salesforce/core@2.12.2` then by someone who depends on version `@salesforce/core@3.0.0` (who depends on the new method)
+    // they will get a "method does not exist on object" error because the instance on the global object will be of `@salesforce/core@2.12.2`.
+    //
+    // Nothing should EVER be removed, even across major versions.
+
+    if (!global.salesforceCoreLifecycle) {
+      global.salesforceCoreLifecycle = new Lifecycle();
     }
-    return this.instance;
+    return global.salesforceCoreLifecycle;
   }
 
   /**
