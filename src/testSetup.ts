@@ -290,10 +290,10 @@ export const instantiateContext = (sinon?: any) => {
     inProject(inProject = true) {
       testContext.SANDBOXES.PROJECT.restore();
       if (inProject) {
-        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').returns(
+        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').callsFake(() =>
           testContext.localPathRetriever(testContext.id)
         );
-        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPathSync').returns(
+        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPathSync').callsFake(() =>
           testContext.localPathRetrieverSync(testContext.id)
         );
       } else {
