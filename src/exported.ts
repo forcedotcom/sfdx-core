@@ -8,6 +8,8 @@
 import { Messages } from './messages';
 Messages.importMessagesDirectory(__dirname);
 
+export { OAuth2Options } from 'jsforce';
+
 export { Aliases, AliasGroup } from './config/aliases';
 
 export { AuthInfoConfig } from './config/authInfoConfig';
@@ -33,6 +35,8 @@ export { Connection, SFDX_HTTP_HEADERS } from './connection';
 export { Mode, Global } from './global';
 
 export { Lifecycle } from './lifecycleEvents';
+
+export { WebOAuthServer } from './webOAuthServer';
 
 export {
   Fields,

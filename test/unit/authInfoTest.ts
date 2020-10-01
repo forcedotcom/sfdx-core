@@ -364,6 +364,16 @@ describe('AuthInfo', () => {
       });
     });
 
+    describe('getOrgFrontDoorUrl', () => {
+      it('return front door url', () => {
+        const url = authInfo.getOrgFrontDoorUrl();
+        const fields = authInfo.getFields();
+        expect(url).include(fields.accessToken);
+        expect(url).include(fields.instanceUrl);
+        expect(url).include('/secur/frontdoor');
+      });
+    });
+
     describe('getConnectionOptions', () => {
       it('return value should not have a client secret or decrypted refresh token', () => {
         const fields: AuthFields = authInfo.getConnectionOptions();

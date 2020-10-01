@@ -448,8 +448,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    *
    * @param options The options to generate the URL.
    */
-  public static getAuthorizationUrl(options: OAuth2Options & { scope: string }): string {
-    const oauth2 = new OAuth2WithVerifier(options);
+  public static getAuthorizationUrl(options: OAuth2Options & { scope?: string }, oauth2?: OAuth2WithVerifier): string {
+    const oauth2Verifier = oauth2 || new OAuth2WithVerifier(options);
 
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
@@ -460,7 +460,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       scope: options.scope || env.getString('SFDX_AUTH_SCOPES', 'refresh_token api web'),
     };
 
-    return oauth2.getAuthorizationUrl(params);
+    return oauth2Verifier.getAuthorizationUrl(params);
   }
 
   /**
@@ -635,6 +635,16 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public getFields(): AuthFields {
     return this.fields;
+  }
+
+  /**
+   * Get the org front door (used for web based oauth flows)
+   */
+  public getOrgFrontDoorUrl(): string {
+    const authFields = this.getFields();
+    const base = ensureString(authFields.instanceUrl).replace(/\/+$/, '');
+    const accessToken = ensureString(authFields.accessToken);
+    return `${base}/secur/frontdoor.jsp?sid=${accessToken}`;
   }
 
   /**
