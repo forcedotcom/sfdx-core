@@ -221,7 +221,11 @@ function getJwtAudienceUrl(options: OAuth2Options) {
   } else if (isInternalUrl(loginUrl)) {
     // This is for internal developers when just doing authorize;
     audienceUrl = loginUrl;
-  } else if (createdOrgInstance.startsWith('cs') || urlParse(loginUrl).hostname === 'test.salesforce.com') {
+  } else if (
+    createdOrgInstance.startsWith('cs') ||
+    createdOrgInstance.endsWith('s') ||
+    urlParse(loginUrl).hostname === 'test.salesforce.com'
+  ) {
     audienceUrl = SfdcUrl.SANDBOX;
   } else if (createdOrgInstance.startsWith('gs1')) {
     audienceUrl = 'https://gs1.salesforce.com';
