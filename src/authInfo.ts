@@ -248,14 +248,15 @@ function parseIdUrl(idUrl: string) {
   };
 }
 
-// Legacy. The connected app info is owned by the thing that
-// creates new AuthInfos. Currently that is the auth:* commands which
-// aren't owned by this core library. These values need to be here
-// for any old auth files where the id and secret aren't stored.
-//
-// Ideally, this would be removed at some point in the distant future
-// when all auth files now have the clientId stored in it.
-const DEFAULT_CONNECTED_APP_INFO = {
+export const DEFAULT_CONNECTED_APP_INFO = {
+  clientId: 'PlatformCLI',
+  // Legacy. The connected app info is owned by the thing that
+  // creates new AuthInfos. Currently that is the auth:* commands which
+  // aren't owned by this core library. These values need to be here
+  // for any old auth files where the id and secret aren't stored.
+  //
+  // Ideally, this would be removed at some point in the distant future
+  // when all auth files now have the clientId stored in it.
   legacyClientId: 'SalesforceDevelopmentExperience',
   legacyClientSecret: '1384510088588713504',
 };
@@ -363,6 +364,16 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   public constructor(options: AuthInfo.Options) {
     super(options);
     this.options = options;
+  }
+
+  /**
+   * Returns the default instance url
+   *
+   * @returns {string}
+   */
+  public static getDefaultInstanceUrl(): string {
+    const configuredInstanceUrl = ConfigAggregator.getValue('instanceUrl').value as string;
+    return configuredInstanceUrl || 'https://login.salesforce.com';
   }
 
   /**

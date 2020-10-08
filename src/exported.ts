@@ -20,6 +20,8 @@ export { ConfigGroup } from './config/configGroup';
 
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
+export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
+
 export { OrgUsersConfig } from './config/orgUsersConfig';
 
 export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config } from './config/config';

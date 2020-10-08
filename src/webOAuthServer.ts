@@ -14,7 +14,7 @@ import { AsyncCreatable, set, toNumber, Env } from '@salesforce/kit';
 import { Nullable, get, asString } from '@salesforce/ts-types';
 import { OAuth2Options } from 'jsforce';
 import { Logger } from './logger';
-import { OAuth2WithVerifier, AuthInfo } from './authInfo';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, OAuth2WithVerifier } from './authInfo';
 import { SfdxError } from './sfdxError';
 import { Messages } from './messages';
 import { SfdxProjectJson } from './sfdxProject';
@@ -34,13 +34,11 @@ const messages = Messages.loadMessages('@salesforce/core', 'auth');
  * const oauthServer = await WebOAuthServer.create({ oauthConfig });
  * await oauthServer.start();
  * await open(oauthServer.getAuthorizationUrl(), { wait: false });
- * const authInfo = await oauthServer.loginAndSave();
+ * const authInfo = await oauthServer.authorizeAndSave();
  * ```
  */
 export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   public static DEFAULT_PORT = 1717;
-  private static DEFAULT_CLIENT_ID = 'PlatformCLI';
-  private static DEFAULT_LOGIN_URL = 'https://login.salesforce.com';
   private authUrl!: string;
   private logger!: Logger;
   private webServer!: WebServer;
@@ -80,7 +78,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
    *
    * @returns {Promise<AuthInfo>}
    */
-  public async loginAndSave(): Promise<AuthInfo> {
+  public async authorizeAndSave(): Promise<AuthInfo> {
     if (!this.webServer.server) await this.start();
 
     return new Promise((resolve, reject) => {
@@ -124,8 +122,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     this.logger = await Logger.child(this.constructor.name);
     const port = await WebOAuthServer.determineOauthPort();
 
-    if (!this.oauthConfig.clientId) this.oauthConfig.clientId = WebOAuthServer.DEFAULT_CLIENT_ID;
-    if (!this.oauthConfig.loginUrl) this.oauthConfig.loginUrl = WebOAuthServer.DEFAULT_LOGIN_URL;
+    if (!this.oauthConfig.clientId) this.oauthConfig.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
+    if (!this.oauthConfig.loginUrl) this.oauthConfig.loginUrl = AuthInfo.getDefaultInstanceUrl();
     if (!this.oauthConfig.redirectUri) this.oauthConfig.redirectUri = `http://localhost:${port}/OauthRedirect`;
 
     this.webServer = await WebServer.create({ port });

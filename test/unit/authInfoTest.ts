@@ -1665,6 +1665,20 @@ describe('AuthInfo', () => {
     });
   });
 
+  describe('getDefaultInstanceUrl', () => {
+    it('should return the configured instance url if it exists', async () => {
+      stubMethod($$.SANDBOX, ConfigAggregator, 'getValue').returns({ value: testMetadata.instanceUrl });
+      const result = AuthInfo.getDefaultInstanceUrl();
+      expect(result).to.equal(testMetadata.instanceUrl);
+    });
+
+    it('should return the default instance url if no configured instance url exists', async () => {
+      stubMethod($$.SANDBOX, ConfigAggregator, 'getValue').returns({ value: null });
+      const result = AuthInfo.getDefaultInstanceUrl();
+      expect(result).to.equal('https://login.salesforce.com');
+    });
+  });
+
   describe('hasAuthentications', () => {
     it('should return false', async () => {
       stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(

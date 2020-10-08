@@ -40,7 +40,7 @@ describe('WebOauthServer', () => {
     });
   });
 
-  describe('loginAndSave', () => {
+  describe('authorizeAndSave', () => {
     const testData = new MockTestOrgData();
     const frontDoorUrl = 'https://www.frontdoor.com';
     let authFields: AuthFields;
@@ -64,14 +64,15 @@ describe('WebOauthServer', () => {
     it('should save new AuthInfo', async () => {
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
       await oauthServer.start();
-      await oauthServer.loginAndSave();
+      const authInfo = await oauthServer.authorizeAndSave();
       expect(authInfoStub.save.callCount).to.equal(1);
+      expect(authInfo.getFields()).to.deep.equal(authFields);
     });
 
     it('should redirect to front door url', async () => {
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
       await oauthServer.start();
-      await oauthServer.loginAndSave();
+      await oauthServer.authorizeAndSave();
       expect(redirectStub.callCount).to.equal(1);
       expect(redirectStub.args).to.deep.equal([[303, frontDoorUrl, serverResponseStub]]);
     });
