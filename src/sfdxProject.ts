@@ -355,9 +355,9 @@ export class SfdxProject {
    * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
    */
   public static async resolve(path?: string): Promise<SfdxProject> {
-    path = path || process.cwd();
+    path = await this.resolveProjectPath(path || process.cwd());
     if (!SfdxProject.instances.has(path)) {
-      const project = new SfdxProject(await this.resolveProjectPath(path));
+      const project = new SfdxProject(path);
       SfdxProject.instances.set(path, project);
     }
     return ensure(SfdxProject.instances.get(path));
@@ -371,9 +371,11 @@ export class SfdxProject {
    * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
    */
   public static getInstance(path?: string): SfdxProject {
-    path = path || process.cwd();
+    // Store instance based on the path of the actual project.
+    path = this.resolveProjectPathSync(path || process.cwd());
+
     if (!SfdxProject.instances.has(path)) {
-      const project = new SfdxProject(this.resolveProjectPathSync(path));
+      const project = new SfdxProject(path);
       SfdxProject.instances.set(path, project);
     }
     return ensure(SfdxProject.instances.get(path));

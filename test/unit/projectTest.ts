@@ -230,11 +230,52 @@ describe('SfdxProject', () => {
       const sfdxProject = await project.retrieveSfdxProjectJson();
       expect(sfdxProject.getPath()).to.equal(`/path/${SfdxProjectJson.getFileName()}`);
     });
+    it('with path in project', async () => {
+      $$.SANDBOXES.PROJECT.restore();
+      const resolveStub = $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath');
+      resolveStub.onFirstCall().resolves('/path');
+      resolveStub.onSecondCall().resolves('/path');
+      const project1 = await SfdxProject.resolve('/path');
+      const project2 = await SfdxProject.resolve('/path/in/side/project');
+      expect(project2.getPath()).to.equal('/path');
+      expect(project1).to.equal(project2);
+    });
     it('with path throws with no sfdx-project.json', async () => {
       $$.SANDBOXES.PROJECT.restore();
       $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspace'));
       try {
         await SfdxProject.resolve();
+        assert.fail();
+      } catch (e) {
+        expect(e.message).to.equal('InvalidProjectWorkspace');
+      }
+    });
+  });
+
+  describe('getInstance', () => {
+    it('with path', async () => {
+      $$.SANDBOXES.PROJECT.restore();
+      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPathSync').returns('/path');
+      const project = SfdxProject.getInstance('/path');
+      expect(project.getPath()).to.equal('/path');
+      const sfdxProject = await project.retrieveSfdxProjectJson();
+      expect(sfdxProject.getPath()).to.equal(`/path/${SfdxProjectJson.getFileName()}`);
+    });
+    it('with path in project', async () => {
+      $$.SANDBOXES.PROJECT.restore();
+      const resolveStub = $$.SANDBOX.stub(SfdxProject, 'resolveProjectPathSync');
+      resolveStub.onFirstCall().returns('/path');
+      resolveStub.onSecondCall().returns('/path');
+      const project1 = SfdxProject.getInstance('/path');
+      const project2 = SfdxProject.getInstance('/path/in/side/project');
+      expect(project2.getPath()).to.equal('/path');
+      expect(project1).to.equal(project2);
+    });
+    it('with path throws with no sfdx-project.json', async () => {
+      $$.SANDBOXES.PROJECT.restore();
+      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPathSync').throws(new Error('InvalidProjectWorkspace'));
+      try {
+        SfdxProject.getInstance();
         assert.fail();
       } catch (e) {
         expect(e.message).to.equal('InvalidProjectWorkspace');
