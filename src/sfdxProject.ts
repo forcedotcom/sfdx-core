@@ -236,7 +236,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       // Always end in a path sep for standardization on folder paths
       const fullPath = `${dirname(this.getPath())}${sep}${name}${sep}`;
 
-      if (!fs.existsSync(fullPath)) {
+      if (!this.doesPackageExist(fullPath)) {
         throw new SfdxError(
           'InvalidPackageDirectory',
           this.messages.getMessage('InvalidPackageDirectory', [packageDir.path])
@@ -302,6 +302,10 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
    */
   public hasMultiplePackages(): boolean {
     return this.getContents().packageDirectories && this.getContents().packageDirectories.length > 1;
+  }
+
+  private doesPackageExist(packagePath: string) {
+    return fs.existsSync(packagePath);
   }
 
   private validateKeys(): void {
