@@ -364,6 +364,16 @@ describe('AuthInfo', () => {
       });
     });
 
+    describe('getOrgFrontDoorUrl', () => {
+      it('return front door url', () => {
+        const url = authInfo.getOrgFrontDoorUrl();
+        const fields = authInfo.getFields();
+        expect(url).include(fields.accessToken);
+        expect(url).include(fields.instanceUrl);
+        expect(url).include('/secur/frontdoor');
+      });
+    });
+
     describe('getConnectionOptions', () => {
       it('return value should not have a client secret or decrypted refresh token', () => {
         const fields: AuthFields = authInfo.getConnectionOptions();
@@ -1652,6 +1662,20 @@ describe('AuthInfo', () => {
 
     it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
       await runTest({ createdOrgInstance: 'gs1' }, 'https://gs1.salesforce.com');
+    });
+  });
+
+  describe('getDefaultInstanceUrl', () => {
+    it('should return the configured instance url if it exists', async () => {
+      stubMethod($$.SANDBOX, ConfigAggregator, 'getValue').returns({ value: testMetadata.instanceUrl });
+      const result = AuthInfo.getDefaultInstanceUrl();
+      expect(result).to.equal(testMetadata.instanceUrl);
+    });
+
+    it('should return the default instance url if no configured instance url exists', async () => {
+      stubMethod($$.SANDBOX, ConfigAggregator, 'getValue').returns({ value: null });
+      const result = AuthInfo.getDefaultInstanceUrl();
+      expect(result).to.equal('https://login.salesforce.com');
     });
   });
 

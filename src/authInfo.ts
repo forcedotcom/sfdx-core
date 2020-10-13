@@ -248,14 +248,15 @@ function parseIdUrl(idUrl: string) {
   };
 }
 
-// Legacy. The connected app info is owned by the thing that
-// creates new AuthInfos. Currently that is the auth:* commands which
-// aren't owned by this core library. These values need to be here
-// for any old auth files where the id and secret aren't stored.
-//
-// Ideally, this would be removed at some point in the distant future
-// when all auth files now have the clientId stored in it.
-const DEFAULT_CONNECTED_APP_INFO = {
+export const DEFAULT_CONNECTED_APP_INFO = {
+  clientId: 'PlatformCLI',
+  // Legacy. The connected app info is owned by the thing that
+  // creates new AuthInfos. Currently that is the auth:* commands which
+  // aren't owned by this core library. These values need to be here
+  // for any old auth files where the id and secret aren't stored.
+  //
+  // Ideally, this would be removed at some point in the distant future
+  // when all auth files now have the clientId stored in it.
   legacyClientId: 'SalesforceDevelopmentExperience',
   legacyClientSecret: '1384510088588713504',
 };
@@ -366,6 +367,16 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   }
 
   /**
+   * Returns the default instance url
+   *
+   * @returns {string}
+   */
+  public static getDefaultInstanceUrl(): string {
+    const configuredInstanceUrl = ConfigAggregator.getValue('instanceUrl').value as string;
+    return configuredInstanceUrl || 'https://login.salesforce.com';
+  }
+
+  /**
    * Get a list of all auth files stored in the global directory.
    *
    * @returns {Promise<string[]>}
@@ -448,8 +459,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    *
    * @param options The options to generate the URL.
    */
-  public static getAuthorizationUrl(options: OAuth2Options & { scope: string }): string {
-    const oauth2 = new OAuth2WithVerifier(options);
+  public static getAuthorizationUrl(options: OAuth2Options & { scope?: string }, oauth2?: OAuth2WithVerifier): string {
+    const oauth2Verifier = oauth2 || new OAuth2WithVerifier(options);
 
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
@@ -460,7 +471,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       scope: options.scope || env.getString('SFDX_AUTH_SCOPES', 'refresh_token api web'),
     };
 
-    return oauth2.getAuthorizationUrl(params);
+    return oauth2Verifier.getAuthorizationUrl(params);
   }
 
   /**
@@ -635,6 +646,16 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public getFields(): AuthFields {
     return this.fields;
+  }
+
+  /**
+   * Get the org front door (used for web based oauth flows)
+   */
+  public getOrgFrontDoorUrl(): string {
+    const authFields = this.getFields();
+    const base = ensureString(authFields.instanceUrl).replace(/\/+$/, '');
+    const accessToken = ensureString(authFields.accessToken);
+    return `${base}/secur/frontdoor.jsp?sid=${accessToken}`;
   }
 
   /**
