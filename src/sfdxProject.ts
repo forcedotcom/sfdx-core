@@ -236,7 +236,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       // Always end in a path sep for standardization on folder paths
       const fullPath = `${dirname(this.getPath())}${sep}${name}${sep}`;
 
-      if (!fs.existsSync(fullPath)) {
+      if (!this.doesPackageExist(fullPath)) {
         throw new SfdxError(
           'InvalidPackageDirectory',
           this.messages.getMessage('InvalidPackageDirectory', [packageDir.path])
@@ -304,6 +304,10 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     return this.getContents().packageDirectories && this.getContents().packageDirectories.length > 1;
   }
 
+  private doesPackageExist(packagePath: string) {
+    return fs.existsSync(packagePath);
+  }
+
   private validateKeys(): void {
     // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
     const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfdxProjectJson.BLOCKLIST);
@@ -351,9 +355,9 @@ export class SfdxProject {
    * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
    */
   public static async resolve(path?: string): Promise<SfdxProject> {
-    path = path || process.cwd();
+    path = await this.resolveProjectPath(path || process.cwd());
     if (!SfdxProject.instances.has(path)) {
-      const project = new SfdxProject(await this.resolveProjectPath(path));
+      const project = new SfdxProject(path);
       SfdxProject.instances.set(path, project);
     }
     return ensure(SfdxProject.instances.get(path));
@@ -367,9 +371,11 @@ export class SfdxProject {
    * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
    */
   public static getInstance(path?: string): SfdxProject {
-    path = path || process.cwd();
+    // Store instance based on the path of the actual project.
+    path = this.resolveProjectPathSync(path || process.cwd());
+
     if (!SfdxProject.instances.has(path)) {
-      const project = new SfdxProject(this.resolveProjectPathSync(path));
+      const project = new SfdxProject(path);
       SfdxProject.instances.set(path, project);
     }
     return ensure(SfdxProject.instances.get(path));

@@ -33,9 +33,8 @@ import { Crypto } from './crypto';
 import { Logger } from './logger';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
-import { SfdxProject } from './sfdxProject';
+import { SfdxProject, SfdxProjectJson } from './sfdxProject';
 import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
-import { fs } from './util/fs';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -345,7 +344,7 @@ export const stubContext = (testContext: TestContext) => {
     testContext.rootPathRetrieverSync(isGlobal, testContext.id)
   );
 
-  testContext.SANDBOXES.DEFAULT.stub(fs, 'existsSync').callsFake(() => true);
+  stubMethod(testContext.SANDBOXES.PROJECT, SfdxProjectJson.prototype, 'doesPackageExist').callsFake(() => true);
 
   const initStubForRead = (configFile: ConfigFile<ConfigFile.Options>): ConfigStub => {
     const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] || {};
