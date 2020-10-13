@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.13.0](https://github.com/forcedotcom/sfdx-core/compare/v2.12.3...v2.13.0) (2020-10-13)
+
+
+### Features
+
+* add DeviceOauthService ([3e72962](https://github.com/forcedotcom/sfdx-core/commit/3e72962fd3a192b7dc6ff2ce7123ef7312185694))
+* add WebOauthServer for web based auth flow ([25cea05](https://github.com/forcedotcom/sfdx-core/commit/25cea057200fcb5861d6862f877832a1ad93fd79))
+
+
+### Bug Fixes
+
+* add falcon sandboxes ([558dd72](https://github.com/forcedotcom/sfdx-core/commit/558dd720d1988ad2d80fa9227b277e56c284e09a))
+* mock package json instead of fs ([8cba4d1](https://github.com/forcedotcom/sfdx-core/commit/8cba4d1e04a7c8fbe98e9cc646f663f404330394))
+* resolve sfdx project path before checking cache ([265e523](https://github.com/forcedotcom/sfdx-core/commit/265e52350a69028f6a81aafb2e9779f455a29c31))
+
 ### [2.12.3](https://github.com/forcedotcom/sfdx-core/compare/v2.12.2...v2.12.3) (2020-10-01)
 
 
