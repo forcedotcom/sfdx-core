@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>LoggerOptions | @salesforce/core</title>
+	<title>DeviceCodePollingResponse | @salesforce/core</title>
 	<meta name="description" content="Documentation for @salesforce/core">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,30 +52,32 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="loggeroptions.html">LoggerOptions</a>
+					<a href="devicecodepollingresponse.html">DeviceCodePollingResponse</a>
 				</li>
 			</ul>
-			<h1>Interface LoggerOptions</h1>
+			<h1>Interface DeviceCodePollingResponse</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>The common set of <code>Logger</code> options.</p>
-					</div>
-				</div>
-			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">LoggerOptions</span>
+						<span class="tsd-signature-type">JsonMap</span>
+						<ul class="tsd-hierarchy">
+							<li>
+								<span class="target">DeviceCodePollingResponse</span>
+							</li>
+						</ul>
 					</li>
 				</ul>
+			</section>
+			<section class="tsd-panel tsd-kind-interface">
+				<h3 class="tsd-before-signature">Indexable</h3>
+				<div class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol">&gt;</span></div>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
@@ -84,13 +86,14 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#format" class="tsd-kind-icon">format</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#level" class="tsd-kind-icon">level</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#name" class="tsd-kind-icon">name</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#serializers" class="tsd-kind-icon">serializers</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#src" class="tsd-kind-icon">src</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#stream" class="tsd-kind-icon">stream</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="loggeroptions.html#streams" class="tsd-kind-icon">streams</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecodepollingresponse.html#access_token" class="tsd-kind-icon">access_<wbr>token</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecodepollingresponse.html#id" class="tsd-kind-icon">id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecodepollingresponse.html#instance_url" class="tsd-kind-icon">instance_<wbr>url</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecodepollingresponse.html#issued_at" class="tsd-kind-icon">issued_<wbr>at</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecodepollingresponse.html#refresh_token" class="tsd-kind-icon">refresh_<wbr>token</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecodepollingresponse.html#scope" class="tsd-kind-icon">scope</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecodepollingresponse.html#signature" class="tsd-kind-icon">signature</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecodepollingresponse.html#token_type" class="tsd-kind-icon">token_<wbr>type</a></li>
 							</ul>
 						</section>
 					</div>
@@ -99,109 +102,84 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="format" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> format</h3>
-					<div class="tsd-signature tsd-kind-icon">format<span class="tsd-signature-symbol">:</span> <a href="../enums/loggerformat.html" class="tsd-signature-type">LoggerFormat</a></div>
+					<a name="access_token" class="tsd-anchor"></a>
+					<h3>access_<wbr>token</h3>
+					<div class="tsd-signature tsd-kind-icon">access_<wbr>token<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/logger.ts#L62">src/logger.ts:62</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L27">src/deviceOauthService.ts:27</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The logger format type. Current options include LogFmt or JSON (default).</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="level" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> level</h3>
-					<div class="tsd-signature tsd-kind-icon">level<span class="tsd-signature-symbol">:</span> <a href="../globals.html#loggerlevelvalue" class="tsd-signature-type">LoggerLevelValue</a></div>
+					<a name="id" class="tsd-anchor"></a>
+					<h3>id</h3>
+					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/logger.ts#L75">src/logger.ts:75</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L32">src/deviceOauthService.ts:32</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The desired log level.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="name" class="tsd-anchor"></a>
-					<h3>name</h3>
-					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="instance_url" class="tsd-anchor"></a>
+					<h3>instance_<wbr>url</h3>
+					<div class="tsd-signature tsd-kind-icon">instance_<wbr>url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/logger.ts#L57">src/logger.ts:57</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L31">src/deviceOauthService.ts:31</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The logger name.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="serializers" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> serializers</h3>
-					<div class="tsd-signature tsd-kind-icon">serializers<span class="tsd-signature-symbol">:</span> <a href="serializers.html" class="tsd-signature-type">Serializers</a></div>
+					<a name="issued_at" class="tsd-anchor"></a>
+					<h3>issued_<wbr>at</h3>
+					<div class="tsd-signature tsd-kind-icon">issued_<wbr>at<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/logger.ts#L67">src/logger.ts:67</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L34">src/deviceOauthService.ts:34</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The logger&#39;s serializers.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="src" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> src</h3>
-					<div class="tsd-signature tsd-kind-icon">src<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
+					<a name="refresh_token" class="tsd-anchor"></a>
+					<h3>refresh_<wbr>token</h3>
+					<div class="tsd-signature tsd-kind-icon">refresh_<wbr>token<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/logger.ts#L71">src/logger.ts:71</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L28">src/deviceOauthService.ts:28</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Whether or not to log source file, line, and function information.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="stream" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> stream</h3>
-					<div class="tsd-signature tsd-kind-icon">stream<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Writable</span></div>
+					<a name="scope" class="tsd-anchor"></a>
+					<h3>scope</h3>
+					<div class="tsd-signature tsd-kind-icon">scope<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/logger.ts#L79">src/logger.ts:79</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L30">src/deviceOauthService.ts:30</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A stream to write to.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="streams" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> streams</h3>
-					<div class="tsd-signature tsd-kind-icon">streams<span class="tsd-signature-symbol">:</span> <a href="loggerstream.html" class="tsd-signature-type">LoggerStream</a><span class="tsd-signature-symbol">[]</span></div>
+					<a name="signature" class="tsd-anchor"></a>
+					<h3>signature</h3>
+					<div class="tsd-signature tsd-kind-icon">signature<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/logger.ts#L83">src/logger.ts:83</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L29">src/deviceOauthService.ts:29</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>An array of streams to write to.</p>
-						</div>
-					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="token_type" class="tsd-anchor"></a>
+					<h3>token_<wbr>type</h3>
+					<div class="tsd-signature tsd-kind-icon">token_<wbr>type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L33">src/deviceOauthService.ts:33</a></li>
+						</ul>
+					</aside>
 				</section>
 			</section>
 		</div>
@@ -218,28 +196,31 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface">
-						<a href="loggeroptions.html" class="tsd-kind-icon">Logger<wbr>Options</a>
+						<a href="devicecodepollingresponse.html" class="tsd-kind-icon">Device<wbr>Code<wbr>Polling<wbr>Response</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggeroptions.html#format" class="tsd-kind-icon">format</a>
+								<a href="devicecodepollingresponse.html#access_token" class="tsd-kind-icon">access_<wbr>token</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggeroptions.html#level" class="tsd-kind-icon">level</a>
+								<a href="devicecodepollingresponse.html#id" class="tsd-kind-icon">id</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggeroptions.html#name" class="tsd-kind-icon">name</a>
+								<a href="devicecodepollingresponse.html#instance_url" class="tsd-kind-icon">instance_<wbr>url</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggeroptions.html#serializers" class="tsd-kind-icon">serializers</a>
+								<a href="devicecodepollingresponse.html#issued_at" class="tsd-kind-icon">issued_<wbr>at</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggeroptions.html#src" class="tsd-kind-icon">src</a>
+								<a href="devicecodepollingresponse.html#refresh_token" class="tsd-kind-icon">refresh_<wbr>token</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggeroptions.html#stream" class="tsd-kind-icon">stream</a>
+								<a href="devicecodepollingresponse.html#scope" class="tsd-kind-icon">scope</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="loggeroptions.html#streams" class="tsd-kind-icon">streams</a>
+								<a href="devicecodepollingresponse.html#signature" class="tsd-kind-icon">signature</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="devicecodepollingresponse.html#token_type" class="tsd-kind-icon">token_<wbr>type</a>
 							</li>
 						</ul>
 					</li>

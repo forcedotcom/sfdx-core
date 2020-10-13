@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>CredType | @salesforce/core</title>
+	<title>DeviceCodeResponse | @salesforce/core</title>
 	<meta name="description" content="Documentation for @salesforce/core">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,10 +52,10 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="credtype.html">CredType</a>
+					<a href="devicecoderesponse.html">DeviceCodeResponse</a>
 				</li>
 			</ul>
-			<h1>Interface CredType</h1>
+			<h1>Interface DeviceCodeResponse</h1>
 		</div>
 	</div>
 </header>
@@ -66,9 +66,18 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">CredType</span>
+						<span class="tsd-signature-type">JsonMap</span>
+						<ul class="tsd-hierarchy">
+							<li>
+								<span class="target">DeviceCodeResponse</span>
+							</li>
+						</ul>
 					</li>
 				</ul>
+			</section>
+			<section class="tsd-panel tsd-kind-interface">
+				<h3 class="tsd-before-signature">Indexable</h3>
+				<div class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol">&gt;</span></div>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
@@ -77,8 +86,10 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="credtype.html#password" class="tsd-kind-icon">password</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="credtype.html#username" class="tsd-kind-icon">username</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecoderesponse.html#device_code" class="tsd-kind-icon">device_<wbr>code</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecoderesponse.html#interval" class="tsd-kind-icon">interval</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecoderesponse.html#user_code" class="tsd-kind-icon">user_<wbr>code</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="devicecoderesponse.html#verification_uri" class="tsd-kind-icon">verification_<wbr>uri</a></li>
 							</ul>
 						</section>
 					</div>
@@ -87,22 +98,42 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="password" class="tsd-anchor"></a>
-					<h3>password</h3>
-					<div class="tsd-signature tsd-kind-icon">password<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="device_code" class="tsd-anchor"></a>
+					<h3>device_<wbr>code</h3>
+					<div class="tsd-signature tsd-kind-icon">device_<wbr>code<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/crypto.ts#L31">src/crypto.ts:31</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L20">src/deviceOauthService.ts:20</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="username" class="tsd-anchor"></a>
-					<h3>username</h3>
-					<div class="tsd-signature tsd-kind-icon">username<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="interval" class="tsd-anchor"></a>
+					<h3>interval</h3>
+					<div class="tsd-signature tsd-kind-icon">interval<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/crypto.ts#L30">src/crypto.ts:30</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L21">src/deviceOauthService.ts:21</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="user_code" class="tsd-anchor"></a>
+					<h3>user_<wbr>code</h3>
+					<div class="tsd-signature tsd-kind-icon">user_<wbr>code<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L22">src/deviceOauthService.ts:22</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="verification_uri" class="tsd-anchor"></a>
+					<h3>verification_<wbr>uri</h3>
+					<div class="tsd-signature tsd-kind-icon">verification_<wbr>uri<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/920eded/src/deviceOauthService.ts#L23">src/deviceOauthService.ts:23</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -121,13 +152,19 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface">
-						<a href="credtype.html" class="tsd-kind-icon">Cred<wbr>Type</a>
+						<a href="devicecoderesponse.html" class="tsd-kind-icon">Device<wbr>Code<wbr>Response</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="credtype.html#password" class="tsd-kind-icon">password</a>
+								<a href="devicecoderesponse.html#device_code" class="tsd-kind-icon">device_<wbr>code</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="credtype.html#username" class="tsd-kind-icon">username</a>
+								<a href="devicecoderesponse.html#interval" class="tsd-kind-icon">interval</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="devicecoderesponse.html#user_code" class="tsd-kind-icon">user_<wbr>code</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="devicecoderesponse.html#verification_uri" class="tsd-kind-icon">verification_<wbr>uri</a>
 							</li>
 						</ul>
 					</li>
