@@ -201,4 +201,43 @@ describe('Config', () => {
       expect(writeStub.called).to.be.true;
     });
   });
+
+  describe('allowed properties', () => {
+    let originalAllowedProperties;
+
+    beforeEach(() => {
+      originalAllowedProperties = (Config as any).allowedProperties;
+      (Config as any).allowedProperties = [];
+    });
+
+    afterEach(() => {
+      (Config as any).allowedProperties = originalAllowedProperties;
+    });
+
+    it('has default properties assigned', () => {
+      expect(originalAllowedProperties.length).to.be.greaterThan(0);
+
+      expect(
+        originalAllowedProperties.some((meta) => meta.key === 'instanceUrl'),
+        'it has one of the default allowed properties'
+      ).to.be.true;
+    });
+
+    it('can add allowed properties', () => {
+      const configMetas = [
+        {
+          key: 'hello',
+          hidden: false,
+          encrypted: false,
+        },
+      ];
+
+      Config.addAllowedProperties(configMetas);
+      const addedConfigMeta = Config.getAllowedProperties().find((configMeta) => configMeta.key === 'hello');
+
+      expect(addedConfigMeta.key).to.equal('hello');
+      expect(addedConfigMeta.hidden).to.equal(false);
+      expect(addedConfigMeta.encrypted).to.equal(false);
+    });
+  });
 });
