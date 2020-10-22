@@ -643,9 +643,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
   /**
    * Get the authorization fields.
+   *
+   * @param decrypt Decrypt the fields.
    */
-  public getFields(): AuthFields {
-    return this.fields;
+  public getFields(decrypt?: boolean): AuthFields {
+    return decrypt ? this.authInfoCrypto.decryptFields(this.fields) : this.fields;
   }
 
   /**
