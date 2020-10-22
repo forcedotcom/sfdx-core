@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.14.0](https://github.com/forcedotcom/sfdx-core/compare/v2.13.0...v2.14.0) (2020-10-22)
+
+
+### Features
+
+* add decrypt option to getFields ([ccd32e2](https://github.com/forcedotcom/sfdx-core/commit/ccd32e20aa613554153c75bab59373225cea2382))
+
 ## [2.13.0](https://github.com/forcedotcom/sfdx-core/compare/v2.12.3...v2.13.0) (2020-10-13)
 
 
