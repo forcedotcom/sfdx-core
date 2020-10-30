@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.15.0](https://github.com/forcedotcom/sfdx-core/compare/v2.14.0...v2.15.0) (2020-10-30)
+
+
+### Features
+
+* allow adding property metas to allowedProperties on config ([2a264d3](https://github.com/forcedotcom/sfdx-core/commit/2a264d3ca3002c4c90c771beaa2036a06d331697))
+
 ## [2.14.0](https://github.com/forcedotcom/sfdx-core/compare/v2.13.0...v2.14.0) (2020-10-22)
 
 
