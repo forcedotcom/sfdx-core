@@ -7,6 +7,7 @@
 
 import { keyBy, set } from '@salesforce/kit';
 import { Dictionary, ensure, isNumber, isString } from '@salesforce/ts-types';
+import { Logger } from '../logger';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
@@ -14,6 +15,7 @@ import { sfdc } from '../util/sfdc';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
+const log = Logger.childFromRoot('core:config');
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
 /**
@@ -106,9 +108,88 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * allows users to override the 10,000 result query limit
    */
   public static readonly MAX_QUERY_LIMIT = 'maxQueryLimit';
-  private static allowedProperties: ConfigPropertyMeta[];
+
+  private static get propertyConfigMap(): Dictionary<ConfigPropertyMeta> {
+    return keyBy(Config.allowedProperties, 'key');
+  }
+
+  private static allowedProperties: ConfigPropertyMeta[] = [
+    {
+      key: 'instanceUrl',
+      input: {
+        // If a value is provided validate it otherwise no value is unset.
+        validator: (value) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
+        get failedMessage() {
+          return Config.messages?.getMessage('InvalidInstanceUrl');
+        },
+      },
+    },
+    {
+      key: Config.API_VERSION,
+      hidden: true,
+      input: {
+        // If a value is provided validate it otherwise no value is unset.
+        validator: (value) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
+        get failedMessage() {
+          return Config.messages?.getMessage('InvalidApiVersion');
+        },
+      },
+    },
+    { key: Config.DEFAULT_DEV_HUB_USERNAME },
+    { key: Config.DEFAULT_USERNAME },
+    {
+      key: Config.ISV_DEBUGGER_SID,
+      encrypted: true,
+      input: {
+        // If a value is provided validate it otherwise no value is unset.
+        validator: (value) => value == null || isString(value),
+        get failedMessage() {
+          return Config.messages?.getMessage('InvalidIsvDebuggerSid');
+        },
+      },
+    },
+    {
+      key: Config.ISV_DEBUGGER_URL,
+      input: {
+        // If a value is provided validate it otherwise no value is unset.
+        validator: (value) => value == null || isString(value),
+        get failedMessage() {
+          return Config.messages?.getMessage('InvalidIsvDebuggerUrl');
+        },
+      },
+    },
+    {
+      key: Config.DISABLE_TELEMETRY,
+      input: {
+        validator: (value) => value == null || ['true', 'false'].includes(value.toString()),
+        get failedMessage() {
+          return Config.messages?.getMessage('InvalidBooleanConfigValue');
+        },
+      },
+    },
+    // This should be brought in by a plugin, but there isn't a way to do that right now.
+    {
+      key: 'restDeploy',
+      hidden: true,
+      input: {
+        validator: (value) => value != null && ['true', 'false'].includes(value.toString()),
+        get failedMessage() {
+          return Config.messages?.getMessage('InvalidBooleanConfigValue');
+        },
+      },
+    },
+    {
+      key: Config.MAX_QUERY_LIMIT,
+      input: {
+        validator: (value) => isNumber(value),
+        get failedMessage() {
+          return Config.messages?.getMessage('InvalidNumberConfigValue');
+        },
+      },
+    },
+  ];
+
   private static messages: Messages;
-  private static propertyConfigMap: Dictionary<ConfigPropertyMeta>;
   private crypto?: Crypto;
 
   public constructor(options?: ConfigFile.Options) {
@@ -118,71 +199,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       Config.messages = Messages.loadMessages('@salesforce/core', 'config');
     }
 
-    if (!Config.allowedProperties) {
-      Config.allowedProperties = [
-        {
-          key: 'instanceUrl',
-          input: {
-            // If a value is provided validate it otherwise no value is unset.
-            validator: (value) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
-            failedMessage: Config.messages.getMessage('InvalidInstanceUrl'),
-          },
-        },
-        {
-          key: Config.API_VERSION,
-          hidden: true,
-          input: {
-            // If a value is provided validate it otherwise no value is unset.
-            validator: (value) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
-            failedMessage: Config.messages.getMessage('InvalidApiVersion'),
-          },
-        },
-        { key: Config.DEFAULT_DEV_HUB_USERNAME },
-        { key: Config.DEFAULT_USERNAME },
-        {
-          key: Config.ISV_DEBUGGER_SID,
-          encrypted: true,
-          input: {
-            // If a value is provided validate it otherwise no value is unset.
-            validator: (value) => value == null || isString(value),
-            failedMessage: Config.messages.getMessage('InvalidIsvDebuggerSid'),
-          },
-        },
-        {
-          key: Config.ISV_DEBUGGER_URL,
-          input: {
-            // If a value is provided validate it otherwise no value is unset.
-            validator: (value) => value == null || isString(value),
-            failedMessage: Config.messages.getMessage('InvalidIsvDebuggerUrl'),
-          },
-        },
-        {
-          key: Config.DISABLE_TELEMETRY,
-          input: {
-            validator: (value) => value == null || ['true', 'false'].includes(value.toString()),
-            failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue'),
-          },
-        },
-        // This should be brought in by a plugin, but there isn't a way to do that right now.
-        {
-          key: 'restDeploy',
-          hidden: true,
-          input: {
-            validator: (value) => value != null && ['true', 'false'].includes(value.toString()),
-            failedMessage: Config.messages.getMessage('InvalidBooleanConfigValue'),
-          },
-        },
-        {
-          key: Config.MAX_QUERY_LIMIT,
-          input: {
-            validator: (value) => isNumber(value),
-            failedMessage: Config.messages.getMessage('InvalidNumberConfigValue'),
-          },
-        },
-      ];
-    }
-
-    Config.propertyConfigMap = keyBy(Config.allowedProperties, 'key');
     // Resolve the config path on creation.
     this.getPath();
   }
@@ -197,13 +213,28 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   }
 
   /**
-   * Returns an object representing the supported allowed properties.
+   * Returns an array of objects representing the allowed config properties.
    */
   public static getAllowedProperties(): ConfigPropertyMeta[] {
-    if (!Config.allowedProperties) {
-      throw new SfdxError('Config meta information has not been initialized. Use Config.create()');
-    }
     return Config.allowedProperties;
+  }
+
+  /**
+   * Add an array of allowed config properties.
+   *
+   * @param metas Array of objects to set as the allowed config properties.
+   */
+  public static addAllowedProperties(metas: ConfigPropertyMeta[]): void {
+    const currentMetaKeys = Object.keys(Config.propertyConfigMap);
+
+    metas.forEach((meta) => {
+      if (currentMetaKeys.includes(meta.key)) {
+        log.info(`Key ${meta.key} already exists in allowedProperties, skipping.`);
+        return;
+      }
+
+      Config.allowedProperties.push(meta);
+    });
   }
 
   /**
@@ -316,7 +347,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       if (property.input && property.input.validator(value)) {
         super.set(property.key, value);
       } else {
-        throw SfdxError.create('@salesforce/core', 'config', 'InvalidConfigValue', [property.input.failedMessage]);
+        throw SfdxError.create('@salesforce/core', 'config', 'InvalidConfigValue', [
+          property.input.failedMessage ?? '',
+        ]);
       }
     } else {
       super.set(property.key, value);
