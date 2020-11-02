@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.1](https://github.com/forcedotcom/sfdx-core/compare/v2.15.0...v2.15.1) (2020-11-02)
+
+
+### Bug Fixes
+
+* move @types/mkdirp to dependencies ([e8e5cf7](https://github.com/forcedotcom/sfdx-core/commit/e8e5cf753c9d3ca56ae9f55e90b41d6168b49d0b))
+
 ## [2.15.0](https://github.com/forcedotcom/sfdx-core/compare/v2.14.0...v2.15.0) (2020-10-30)
 
 
