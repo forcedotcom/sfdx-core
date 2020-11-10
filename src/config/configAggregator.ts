@@ -75,9 +75,11 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   private localConfig!: Config;
   private globalConfig!: Config;
   private envVars!: Dictionary<string>;
+
   private get config(): JsonMap {
     return this.resolveProperties(this.globalConfig.getContents(), this.localConfig.getContents());
   }
+
   /**
    * **Do not directly construct instances of this class -- use {@link ConfigAggregator.create} instead.**
    *
