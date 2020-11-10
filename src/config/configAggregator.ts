@@ -75,7 +75,9 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   private localConfig!: Config;
   private globalConfig!: Config;
   private envVars!: Dictionary<string>;
-  private config!: JsonMap;
+  private get config(): JsonMap {
+    return this.resolveProperties(this.globalConfig.getContents(), this.localConfig.getContents());
+  }
   /**
    * **Do not directly construct instances of this class -- use {@link ConfigAggregator.create} instead.**
    *
@@ -297,7 +299,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     this.resolveProperties(this.globalConfig.readSync(), this.localConfig && this.localConfig.readSync());
   }
 
-  private resolveProperties(globalConfig: JsonMap, localConfig?: JsonMap): void {
+  private resolveProperties(globalConfig: JsonMap, localConfig?: JsonMap): JsonMap {
     const accumulator: Dictionary<string> = {};
     this.setEnvVars(
       this.getAllowedProperties().reduce((obj, property) => {
@@ -323,16 +325,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
     const json: JsonMap = {};
     const reduced = configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
-    this.setConfig(reduced);
-  }
-
-  /**
-   * Set the resolved config object.
-   *
-   * @param config The config object to set.
-   */
-  private setConfig(config: JsonMap) {
-    this.config = config;
+    return reduced;
   }
 
   /**
