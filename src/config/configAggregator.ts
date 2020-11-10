@@ -6,7 +6,7 @@
  */
 
 import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
-import { AnyJson, definiteEntriesOf, Dictionary, get, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { AnyJson, definiteEntriesOf, Dictionary, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { Config, ConfigPropertyMeta } from './config';
 
@@ -72,12 +72,12 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
   // Initialized in loadProperties
   private allowedProperties!: ConfigPropertyMeta[];
-  private localConfig!: Config;
-  private globalConfig!: Config;
+  private localConfig?: Config;
+  private globalConfig: Config;
   private envVars!: Dictionary<string>;
 
   private get config(): JsonMap {
-    return this.resolveProperties(this.globalConfig.getContents(), this.localConfig.getContents());
+    return this.resolveProperties(this.globalConfig.getContents(), this.localConfig && this.localConfig.getContents());
   }
 
   /**
@@ -91,14 +91,14 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
     try {
-      this.setLocalConfig(new Config(Config.getDefaultOptions(false)));
+      this.localConfig = new Config(Config.getDefaultOptions(false));
     } catch (err) {
       if (err.name !== 'InvalidProjectWorkspace') {
         throw err;
       }
     }
 
-    this.setGlobalConfig(new Config(Config.getDefaultOptions(true)));
+    this.globalConfig = new Config(Config.getDefaultOptions(true));
 
     this.setAllowedProperties(Config.getAllowedProperties());
   }
@@ -198,10 +198,10 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     if (this.getEnvVars().get(key) != null) {
       return ConfigAggregator.Location.ENVIRONMENT;
     }
-    if (this.getLocalConfig() && this.getLocalConfig().get(key)) {
+    if (this.localConfig && this.localConfig.get(key)) {
       return ConfigAggregator.Location.LOCAL;
     }
-    if (this.getGlobalConfig() && this.getGlobalConfig().get(key)) {
+    if (this.globalConfig && this.globalConfig.get(key)) {
       return ConfigAggregator.Location.GLOBAL;
     }
   }
@@ -224,11 +224,11 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     if (this.envVars[key] != null) {
       return `$${propertyToEnvName(key)}`;
     }
-    if (get(this.getLocalConfig(), `contents[${key}]`) != null) {
-      return this.getLocalConfig().getPath();
+    if (this.localConfig && this.localConfig.getContents()[key] != null) {
+      return this.localConfig.getPath();
     }
-    if (get(this.getGlobalConfig(), `contents[${key}]`) != null) {
-      return this.getGlobalConfig().getPath();
+    if (this.globalConfig.getContents()[key] != null) {
+      return this.globalConfig.getPath();
     }
   }
 
@@ -253,7 +253,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   /**
    * Get the local project config instance.
    */
-  public getLocalConfig(): Config {
+  public getLocalConfig(): Config | undefined {
     return this.localConfig;
   }
 
@@ -328,24 +328,6 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     const json: JsonMap = {};
     const reduced = configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
     return reduced;
-  }
-
-  /**
-   * Set the local config object.
-   *
-   * @param config The config object value to set.
-   */
-  private setLocalConfig(config: Config) {
-    this.localConfig = config;
-  }
-
-  /**
-   * Set the global config object.
-   *
-   * @param config The config object value to set.
-   */
-  private setGlobalConfig(config: Config) {
-    this.globalConfig = config;
   }
 
   /**
