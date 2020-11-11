@@ -101,7 +101,7 @@ export class PermissionSetAssignment {
       .sobject('PermissionSetAssignment')
       .create(mapKeys(assignment, (value: unknown, key: string) => upperFirst(key)));
 
-    if (hasArray(createResponse, 'errors')) {
+    if (hasArray(createResponse, 'errors') && createResponse.errors.length > 0) {
       const messages: Messages = Messages.loadMessages('@salesforce/core', 'permissionSetAssignment');
       let message = messages.getMessage('errorsEncounteredCreatingAssignment');
 

@@ -196,7 +196,7 @@ describe('permission set assignment tests', () => {
       try {
         await shouldThrow(assignment.create('123456', `${NS}__${PERM_SET_NAME}`));
       } catch (e) {
-        expect(e).to.have.property('name', 'notSuccessfulButNoErrorsReported');
+        expect(e).to.have.property('name', 'UnexpectedResult');
       }
     });
   });
