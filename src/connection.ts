@@ -75,7 +75,7 @@ export class Connection extends JSForceConnection {
   // We want to use 1 logger for this class and the jsForce base classes so override
   // the jsForce connection.tooling.logger and connection.logger.
   private logger!: Logger;
-  private transport!: { httpRequest: (info: RequestInfo) => JsonMap };
+  private _transport!: { httpRequest: (info: RequestInfo) => JsonMap };
   private _normalizeUrl!: (url: string) => string;
   private options: Connection.Options;
 
@@ -158,7 +158,7 @@ export class Connection extends JSForceConnection {
 
     merge(headers, SFDX_HTTP_HEADERS, request.headers);
 
-    return this.transport.httpRequest({
+    return this._transport.httpRequest({
       method: request.method,
       url: request.url,
       headers,
