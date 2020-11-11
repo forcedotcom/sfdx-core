@@ -29,7 +29,7 @@ import { SecureBuffer } from './secureBuffer';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
 
-const PASSWORD_LENGTH = 10;
+const PASSWORD_LENGTH = 13;
 const LOWER = 'abcdefghijklmnopqrstuvwxyz';
 const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const NUMBERS = '1234567890';
@@ -404,6 +404,7 @@ export class User extends AsyncCreatable<User.Options> {
     if (!fields) {
       throw SfdxError.create('@salesforce/core', 'user', 'missingFields');
     }
+    const conn: Connection = this.org.getConnection();
 
     const body = JSON.stringify({
       username: fields.username,
@@ -421,7 +422,7 @@ export class User extends AsyncCreatable<User.Options> {
 
     this.logger.debug(`user create request body: ${body}`);
 
-    const scimUrl = this.org.getConnection().normalizeUrl(scimEndpoint);
+    const scimUrl = conn.normalizeUrl(scimEndpoint);
     this.logger.debug(`scimUrl: ${scimUrl}`);
 
     const info: RequestInfo = {
@@ -431,7 +432,7 @@ export class User extends AsyncCreatable<User.Options> {
       body,
     };
 
-    const response = await this.org.getConnection().requestRaw(info);
+    const response = await conn.requestRaw(info);
     const responseBody = parseJsonMap(ensureString(response['body']));
     const statusCode = asNumber(response.statusCode);
 

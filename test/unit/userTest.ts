@@ -112,7 +112,7 @@ describe('User Tests', () => {
     it('Should generate a password', () => {
       const password: SecureBuffer<void> = User.generatePasswordUtf8();
       password.value((buffer: Buffer): void => {
-        expect(buffer.toString('utf8').length).to.be.equal(6);
+        expect(buffer.toString('utf8').length).to.be.equal(9);
       });
     });
   });

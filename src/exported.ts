@@ -73,6 +73,8 @@ export { MyDomainResolver } from './status/myDomainResolver';
 
 export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './user';
 
+export { PermissionSetAssignment, PermissionSetAssignmentFields } from './permissionSetAssignment';
+
 // Utility sub-modules
 export * from './util/fs';
 export * from './util/sfdc';
