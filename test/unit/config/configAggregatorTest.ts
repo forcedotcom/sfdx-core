@@ -73,9 +73,15 @@ describe('ConfigAggregator', () => {
 
   it('reload decrypts config values', async () => {
     // readSync doesn't decrypt values
-    $$.SANDBOX.stub(Config.prototype, 'readSync').returns({ isvDebuggerSid: 'encrypted' });
+    $$.SANDBOX.stub(Config.prototype, 'readSync').callsFake(function () {
+      this.setContents({ isvDebuggerSid: 'encrypted' });
+      return this.getContents();
+    });
     // read decrypts values
-    $$.SANDBOX.stub(Config.prototype, 'read').resolves({ isvDebuggerSid: 'decrypted' });
+    $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function () {
+      this.setContents({ isvDebuggerSid: 'decrypted' });
+      return this.getContents();
+    });
     const aggregator: ConfigAggregator = ConfigAggregator.getInstance();
     expect(aggregator.getInfo('isvDebuggerSid').value).to.equal('encrypted');
     await aggregator.reload();

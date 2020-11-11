@@ -158,7 +158,8 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
         await validator.load();
         await validator.validate(this.getContents());
       } catch (err) {
-        if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false)) {
+        // Don't throw errors if the global isn't valid, but still warn the user.
+        if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
           err.name = 'SfdxSchemaValidationError';
           const sfdxError = SfdxError.wrap(err);
           sfdxError.actions = [this.messages.getMessage('SchemaValidationErrorAction', [this.getPath()])];
@@ -198,7 +199,8 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
         validator.loadSync();
         validator.validateSync(this.getContents());
       } catch (err) {
-        if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false)) {
+        // Don't throw errors if the global isn't valid, but still warn the user.
+        if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
           err.name = 'SfdxSchemaValidationError';
           const sfdxError = SfdxError.wrap(err);
           sfdxError.actions = [this.messages.getMessage('SchemaValidationErrorAction', [this.getPath()])];
@@ -248,7 +250,9 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
 
     const defaultDirs = packageDirs.filter((packageDir) => packageDir.default);
 
-    if (defaultDirs.length === 0) {
+    // Don't throw about a missing default path if we are in the global file.
+    // Package directories are not really meant to be set at the global level.
+    if (defaultDirs.length === 0 && !this.isGlobal()) {
       throw new SfdxError(this.messages.getMessage('MissingDefaultPath'));
     } else if (defaultDirs.length > 1) {
       throw new SfdxError(this.messages.getMessage('MultipleDefaultPaths'));
@@ -602,6 +606,9 @@ export class SfdxProject {
    * The project config is resolved from local and global {@link SfdxProjectJson},
    * {@link ConfigAggregator}, and a set of defaults. It is recommended to use
    * this when reading values from SfdxProjectJson.
+   *
+   * The global {@link SfdxProjectJson} is used to allow the user to provide default values they
+   * may not want checked into their project's source.
    *
    * @returns A resolved config object that contains a bunch of different
    * properties, including some 3rd party custom properties.
