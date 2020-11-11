@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.2](https://github.com/forcedotcom/sfdx-core/compare/v2.15.1...v2.15.2) (2020-11-11)
+
+
+### Bug Fixes
+
+* config aggregator show changes to local and global config ([e3b3a55](https://github.com/forcedotcom/sfdx-core/commit/e3b3a55b7ea5e3a728ea021c8eb6a24555b63dc4))
+* localConfig typings now correctly show it might not exist ([3cb7716](https://github.com/forcedotcom/sfdx-core/commit/3cb7716fff790aac2357cd28dd28e11e81513e4f))
+* updated various logic and QOL on User and PermissionSetAssignment ([1bab28f](https://github.com/forcedotcom/sfdx-core/commit/1bab28fc799cba944aa01aa5d330e5524e267b63))
+
 ### [2.15.1](https://github.com/forcedotcom/sfdx-core/compare/v2.15.0...v2.15.1) (2020-11-02)
 
 
