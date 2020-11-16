@@ -248,8 +248,17 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       return Object.assign({}, packageDir, { name, path, fullPath });
     });
 
-    const defaultDirs = packageDirs.filter((packageDir) => packageDir.default);
+    // If we only have one package entry, it must be the default even if not explicitly labelled
+    if (packageDirs.length === 1) {
+      if (packageDirs[0].default === false) {
+        // we have one package but it is explicitly labelled as default=false
+        throw new SfdxError(this.messages.getMessage('SingleNonDefaultPackage'));
+      }
+      // add default=true to the package
+      packageDirs[0].default = true;
+    }
 
+    const defaultDirs = packageDirs.filter((packageDir) => packageDir.default);
     // Don't throw about a missing default path if we are in the global file.
     // Package directories are not really meant to be set at the global level.
     if (defaultDirs.length === 0 && !this.isGlobal()) {
