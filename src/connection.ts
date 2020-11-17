@@ -6,7 +6,16 @@
  */
 
 import { maxBy, merge } from '@salesforce/kit';
-import { asString, ensure, getNumber, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
+import {
+  asString,
+  ensure,
+  getNumber,
+  isString,
+  JsonCollection,
+  JsonMap,
+  Optional,
+  AnyJson,
+} from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionOptions,
@@ -16,11 +25,69 @@ import {
   RequestInfo,
   Tooling as JSForceTooling,
 } from 'jsforce';
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
+import * as HttpApi from 'jsforce/lib/http-api';
 import { AuthFields, AuthInfo } from './authInfo';
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
+
+// export class PerformanceMetrics {
+//   private metrics: PerformanceMetrics.Metric[] = [];
+
+//   public add(metric: PerformanceMetrics.Metric): void {
+//     this.metrics.push(metric);
+//   }
+
+//   public collect(): PerformanceMetrics.Metric[] {
+//     const copy = this.copy();
+//     this.clear();
+//     return copy;
+//   }
+
+//   private copy(): PerformanceMetrics.Metric[] {
+//     return this.metrics.map((m) => m);
+//   }
+
+//   private clear(): void {
+//     this.metrics = [];
+//   }
+// }
+
+// namespace PerformanceMetrics {
+//   export interface Metric {
+//     requestPath: string;
+//     perfMetrics: AnyJson;
+//   }
+
+//   export interface Response {
+//     headers: AnyJson & { perfmetrics?: string };
+//     req: { path: string };
+//   }
+// }
+
+interface Response {
+  headers: AnyJson & { perfmetrics?: string };
+  req: { path: string };
+}
+
+// Unfortunately, we have to monkey patch HttpApi.prototype.request in order
+// to collect the performance metrics from the response headers
+const originalRequestMethod = HttpApi.prototype.request;
+HttpApi.prototype.request = function (req: unknown, ...args: unknown[]) {
+  this.once('response', (response: Response) => {
+    const metrics = response.headers.perfmetrics;
+    if (metrics) {
+      Connection.addMetric({
+        requestPath: response.req.path,
+        perfMetrics: JSON.parse(metrics),
+      });
+    }
+  });
+  return originalRequestMethod.call(this, req, ...args);
+};
 
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
@@ -67,6 +134,8 @@ export interface Tooling extends JSForceTooling {
  * ```
  */
 export class Connection extends JSForceConnection {
+  private static metrics: Connection.Metric[] = [];
+
   // The following are all initialized in either this constructor or the super constructor, sometimes conditionally...
   /**
    * Tooling api reference.
@@ -94,6 +163,15 @@ export class Connection extends JSForceConnection {
 
     this.options = options;
   }
+
+  public static addMetric(metric: Connection.Metric): void {
+    Connection.metrics.push(metric);
+  }
+
+  public static getMetrics(): Connection.Metric[] {
+    return Connection.metrics;
+  }
+
   /**
    * Creates an instance of a Connection. Performs additional async initializations.
    *
@@ -114,8 +192,12 @@ export class Connection extends JSForceConnection {
       },
     };
 
+    if (options.perfOption) {
+      baseOptions.callOptions = Object.assign({}, baseOptions.callOptions, { perfOption: options.perfOption });
+    }
+
     // Get connection options from auth info and create a new jsForce connection
-    options.connectionOptions = Object.assign(baseOptions, options.authInfo.getConnectionOptions());
+    options.connectionOptions = Object.assign({}, baseOptions, options.authInfo.getConnectionOptions());
 
     const conn = new this(options);
     await conn.init();
@@ -223,6 +305,13 @@ export class Connection extends JSForceConnection {
   /**
    * Getter for the AuthInfo.
    */
+  public getAuthInfo(): AuthInfo {
+    return this.options.authInfo;
+  }
+
+  /**
+   * Getter for the AuthInfo fields.
+   */
   public getAuthInfoFields(): AuthFields {
     return this.options.authInfo.getFields();
   }
@@ -316,5 +405,14 @@ export namespace Connection {
      * Additional connection parameters.
      */
     connectionOptions?: ConnectionOptions;
+    /**
+     * Performance log level.
+     */
+    perfOption?: 'MINIMUM';
+  }
+
+  export interface Metric {
+    requestPath: string;
+    perfMetrics: AnyJson;
   }
 }
