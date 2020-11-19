@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  release-management: salesforce/npm-release-management@4
+  release-management: salesforce/npm-release-management@dev:alpha
 
 workflows:
   version: 2
@@ -20,6 +20,7 @@ workflows:
           node_version: '10'
           name: node-10
       - release-management/release-package:
+          dryrun: true
           github-release: true
           post-job-steps:
             - release-management/merge
@@ -30,4 +31,4 @@ workflows:
             - node-10
           filters:
             branches:
-              only: master
+              only: wr/npmRelease4
