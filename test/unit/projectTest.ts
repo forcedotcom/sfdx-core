@@ -8,6 +8,7 @@ import { join, sep } from 'path';
 import { assert, expect } from 'chai';
 
 import { env } from '@salesforce/kit';
+import { SfdxError } from '../../src/exported';
 import { SfdxProject, SfdxProjectJson } from '../../src/sfdxProject';
 import { shouldThrow, testSetup } from '../../src/testSetup';
 
@@ -404,6 +405,43 @@ describe('SfdxProject', () => {
         default: true,
       };
       expect(actual).to.deep.equal(expected);
+    });
+
+    it('should set the a single package entry as default', async () => {
+      const expectedPackage1 = 'foo';
+
+      $$.setConfigStubContents('SfdxProjectJson', {
+        contents: {
+          packageDirectories: [{ path: expectedPackage1 }],
+        },
+      });
+      const project = await SfdxProject.resolve();
+      const actual = project.getDefaultPackage();
+      const expected = {
+        path: expectedPackage1,
+        fullPath: join(projectPath, expectedPackage1, sep),
+        name: expectedPackage1,
+        default: true,
+      };
+      expect(actual).to.deep.equal(expected);
+    });
+
+    it('should error when one package is defined and set to default=false', async () => {
+      const expectedPackage1 = 'foo';
+
+      $$.setConfigStubContents('SfdxProjectJson', {
+        contents: {
+          packageDirectories: [{ path: expectedPackage1, default: false }],
+        },
+      });
+      const project = await SfdxProject.resolve();
+
+      try {
+        project.getPackageDirectories();
+        assert.fail('the above should throw an error');
+      } catch (e) {
+        expect(e.message).to.equal(SfdxError.create('@salesforce/core', 'config', 'SingleNonDefaultPackage').message);
+      }
     });
 
     it('should expand ./ to full path on package paths', () => {
