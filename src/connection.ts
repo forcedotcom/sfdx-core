@@ -26,47 +26,13 @@ import {
   Tooling as JSForceTooling,
 } from 'jsforce';
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-// @ts-ignore
+// @ts-ignore because jsforce doesn't export http-api
 import * as HttpApi from 'jsforce/lib/http-api';
 import { AuthFields, AuthInfo } from './authInfo';
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
-
-// export class PerformanceMetrics {
-//   private metrics: PerformanceMetrics.Metric[] = [];
-
-//   public add(metric: PerformanceMetrics.Metric): void {
-//     this.metrics.push(metric);
-//   }
-
-//   public collect(): PerformanceMetrics.Metric[] {
-//     const copy = this.copy();
-//     this.clear();
-//     return copy;
-//   }
-
-//   private copy(): PerformanceMetrics.Metric[] {
-//     return this.metrics.map((m) => m);
-//   }
-
-//   private clear(): void {
-//     this.metrics = [];
-//   }
-// }
-
-// namespace PerformanceMetrics {
-//   export interface Metric {
-//     requestPath: string;
-//     perfMetrics: AnyJson;
-//   }
-
-//   export interface Response {
-//     headers: AnyJson & { perfmetrics?: string };
-//     req: { path: string };
-//   }
-// }
 
 interface Response {
   headers: AnyJson & { perfmetrics?: string };
