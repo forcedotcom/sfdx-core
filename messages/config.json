@@ -14,5 +14,6 @@
   "InvalidPackageDirectory": "The path %s, specified in sfdx-project.json, does not exist. Be sure this directory is included in your project root.",
   "InvalidAbsolutePath": "The path %s, specified in sfdx-project.json, must be indicated as a relative path to the project root.",
   "MultipleDefaultPaths": "In sfdx-project.json, indicate only one package directory (path) as the default.",
-  "InvalidWrite": "The writeSync method is not allowed on SfdxConfig. Use the async write method instead."
+  "InvalidWrite": "The writeSync method is not allowed on SfdxConfig. Use the async write method instead.",
+  "SingleNonDefaultPackage": "The sfdx-project.json file must include one, and only one, default package directory (path). Because your sfdx-project.json file contains only one package directory, it must be the default. Remove the '\"default\": false' key and try again."
 }

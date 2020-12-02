@@ -40,6 +40,12 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
 
   private options: MyDomainResolver.Options;
 
+  /**
+   * Constructor
+   * **Do not directly construct instances of this class -- use {@link MyDomainResolver.create} instead.**
+   *
+   * @param options The options for the class instance
+   */
   public constructor(options?: MyDomainResolver.Options) {
     super(options);
     this.options = options || { url: MyDomainResolver.DEFAULT_DOMAIN };
