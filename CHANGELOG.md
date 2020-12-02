@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.3](https://github.com/forcedotcom/sfdx-core/compare/v2.15.2...v2.15.3) (2020-12-02)
+
+
+### Bug Fixes
+
+* added docs around MyDomainResolver constructor method ([68d8e52](https://github.com/forcedotcom/sfdx-core/commit/68d8e520353dae10cda4b04153ec7cc753cbc02a))
+* single package entry is defaulted to default package ([badff89](https://github.com/forcedotcom/sfdx-core/commit/badff89be92c492d990dc91ce79ff94eb88a7117))
+
 ### [2.15.2](https://github.com/forcedotcom/sfdx-core/compare/v2.15.1...v2.15.2) (2020-11-11)
 
 
