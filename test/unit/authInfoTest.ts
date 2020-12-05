@@ -1621,7 +1621,7 @@ describe('AuthInfo', () => {
     });
 
     it('should use the correct audience URL for a sandbox', async () => {
-      await runTest({ loginUrl: 'http://test.salesforce.com/foo/bar' }, 'https://test.salesforce.com');
+      await runTest({ loginUrl: 'http://test.salesforce.com' }, 'https://test.salesforce.com');
     });
 
     it('should use the correct audience URL for an internal URL (.internal)', async () => {
