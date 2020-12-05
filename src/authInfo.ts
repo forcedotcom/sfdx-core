@@ -198,42 +198,6 @@ export enum SfdcUrl {
   PRODUCTION = 'https://login.salesforce.com',
 }
 
-const INTERNAL_URL_PARTS = [
-  '.internal.',
-  '.vpod.',
-  'stm.salesforce.com',
-  '.blitz.salesforce.com',
-  'mobile1.t.salesforce.com',
-];
-
-function isInternalUrl(loginUrl = ''): boolean {
-  return loginUrl.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some((part) => loginUrl.includes(part));
-}
-
-function getJwtAudienceUrl(options: OAuth2Options) {
-  // default audience must be...
-  let audienceUrl: string = SfdcUrl.PRODUCTION;
-  const loginUrl = getString(options, 'loginUrl', '');
-  const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
-
-  if (process.env.SFDX_AUDIENCE_URL) {
-    audienceUrl = process.env.SFDX_AUDIENCE_URL;
-  } else if (isInternalUrl(loginUrl)) {
-    // This is for internal developers when just doing authorize;
-    audienceUrl = loginUrl;
-  } else if (
-    createdOrgInstance.startsWith('cs') ||
-    createdOrgInstance.endsWith('s') ||
-    urlParse(loginUrl).hostname === 'test.salesforce.com'
-  ) {
-    audienceUrl = SfdcUrl.SANDBOX;
-  } else if (createdOrgInstance.startsWith('gs1')) {
-    audienceUrl = 'https://gs1.salesforce.com';
-  }
-
-  return audienceUrl;
-}
-
 // parses the id field returned from jsForce oauth2 methods to get
 // user ID and org ID.
 function parseIdUrl(idUrl: string) {
@@ -921,12 +885,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   // Build OAuth config for a JWT auth flow
   private async buildJwtConfig(options: OAuth2Options): Promise<AuthFields> {
     const privateKeyContents = await fs.readFile(ensure(options.privateKey), 'utf8');
-    const audienceUrl = getJwtAudienceUrl(options);
     const jwtToken = jwt.sign(
       {
         iss: options.clientId,
         sub: this.getUsername(),
-        aud: audienceUrl,
+        aud: options.loginUrl ?? process.env.SFDX_AUDIENCE_URL ?? SfdcUrl.PRODUCTION,
         exp: Date.now() + 300,
       },
       privateKeyContents,

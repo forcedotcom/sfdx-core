@@ -1480,7 +1480,7 @@ describe('AuthInfo', () => {
       );
     });
 
-    it('should hanlde undefined client secret', async () => {
+    it('should handle undefined client secret', async () => {
       const username = 'authInfoTest_username_RefreshToken';
       const refreshTokenConfig = {
         refreshToken: testMetadata.refreshToken,
@@ -1615,13 +1615,13 @@ describe('AuthInfo', () => {
       expect(signStub.firstCall.args[0]).to.have.property('aud', expectedUrl);
     }
 
-    it('should use the correct audience URL for SFDX_AUDIENCE_URL env var', async () => {
+    it('should use the correct audience URL for SFDX_AUDIENCE_URL env var when no loginURL provided', async () => {
       process.env.SFDX_AUDIENCE_URL = 'http://authInfoTest/audienceUrl/test';
-      await runTest({}, process.env.SFDX_AUDIENCE_URL);
+      await runTest({ loginUrl: undefined }, process.env.SFDX_AUDIENCE_URL);
     });
 
     it('should use the correct audience URL for a sandbox', async () => {
-      await runTest({ loginUrl: 'http://test.salesforce.com' }, 'https://test.salesforce.com');
+      await runTest({ loginUrl: 'https://test.salesforce.com' }, 'https://test.salesforce.com');
     });
 
     it('should use the correct audience URL for an internal URL (.internal)', async () => {
@@ -1648,20 +1648,8 @@ describe('AuthInfo', () => {
       await runTest({ loginUrl: mobile1Url }, mobile1Url);
     });
 
-    it('should use the correct audience URL for createdOrgInstance beginning with "cs"', async () => {
-      await runTest({ createdOrgInstance: 'cs17' }, 'https://test.salesforce.com');
-    });
-
-    it('should use the correct audience URL for createdOrgInstance ending with "s"', async () => {
-      await runTest({ createdOrgInstance: 'usa2s' }, 'https://test.salesforce.com');
-    });
-
-    it('should use the correct audience URL for createdOrgInstance capitalized and ending with "s"', async () => {
-      await runTest({ createdOrgInstance: 'IND2S' }, 'https://test.salesforce.com');
-    });
-
     it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
-      await runTest({ createdOrgInstance: 'gs1' }, 'https://gs1.salesforce.com');
+      await runTest({ loginUrl: 'https://gs1.salesforce.com' }, 'https://gs1.salesforce.com');
     });
   });
 
