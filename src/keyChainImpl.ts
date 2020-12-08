@@ -611,7 +611,7 @@ export class GenericWindowsKeychainAccess extends GenericKeychainAccess {
           await fs.access(secretFile, fs.constants.R_OK | fs.constants.W_OK);
           await cb(null);
         } catch (e) {
-          await cb(err);
+          await cb(e);
         }
       }
     });
