@@ -210,28 +210,31 @@ function isInternalUrl(loginUrl = ''): boolean {
   return loginUrl.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some((part) => loginUrl.includes(part));
 }
 
-function getJwtAudienceUrl(options: OAuth2Options) {
-  // default audience must be...
-  let audienceUrl: string = SfdcUrl.PRODUCTION;
-  const loginUrl = getString(options, 'loginUrl', '');
-  const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
-
+function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }) {
+  // environment variable is used as an override
   if (process.env.SFDX_AUDIENCE_URL) {
-    audienceUrl = process.env.SFDX_AUDIENCE_URL;
-  } else if (isInternalUrl(loginUrl)) {
-    // This is for internal developers when just doing authorize;
-    audienceUrl = loginUrl;
-  } else if (
-    createdOrgInstance.startsWith('cs') ||
-    createdOrgInstance.endsWith('s') ||
-    urlParse(loginUrl).hostname === 'test.salesforce.com'
-  ) {
-    audienceUrl = SfdcUrl.SANDBOX;
-  } else if (createdOrgInstance.startsWith('gs1')) {
-    audienceUrl = 'https://gs1.salesforce.com';
+    return process.env.SFDX_AUDIENCE_URL;
   }
 
-  return audienceUrl;
+  if (options.loginUrl && isInternalUrl(options.loginUrl)) {
+    // This is for internal developers when just doing authorize;
+    return options.loginUrl;
+  }
+
+  const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
+  if (
+    createdOrgInstance.startsWith('cs') ||
+    createdOrgInstance.endsWith('s') ||
+    options.loginUrl?.match(/(cs[0-9]+.my.salesforce.com)/g) ||
+    (options.loginUrl && urlParse(options.loginUrl).hostname === 'test.salesforce.com')
+  ) {
+    return SfdcUrl.SANDBOX;
+  }
+  if (createdOrgInstance.startsWith('gs1') || options.loginUrl?.match(/(gs1.my.salesforce.com)/g)) {
+    return 'https://gs1.salesforce.com';
+  }
+
+  return SfdcUrl.PRODUCTION;
 }
 
 // parses the id field returned from jsForce oauth2 methods to get
