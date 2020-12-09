@@ -68,14 +68,14 @@
 						<p>Provides a default set of fields values that can be used to create a user. This is handy for
 						software development purposes.</p>
 					</div>
-					<pre><code>const connection:<span class="hljs-built_in"> Connection </span>= await Connection.create({
-  authInfo: await AuthInfo.create({ username: <span class="hljs-string">&#x27;user@example.com&#x27;</span> })
+					<pre><code>const <span class="hljs-keyword">connection</span>: <span class="hljs-keyword">Connection</span> = await <span class="hljs-keyword">Connection</span>.<span class="hljs-keyword">create</span>({
+  authInfo: await AuthInfo.<span class="hljs-keyword">create</span>({ username: <span class="hljs-string">&#x27;user@example.com&#x27;</span> })
 });
-const org: Org = await Org.create({<span class="hljs-built_in"> connection </span>});
-const options: DefaultUserFields.Options = {
+const org: Org = await Org.<span class="hljs-keyword">create</span>({ <span class="hljs-keyword">connection</span> });
+const <span class="hljs-keyword">options</span>: DefaultUserFields.<span class="hljs-keyword">Options</span> = {
   templateUser: org.getUsername()
 };
-const fields = (await DefaultUserFields.create(options)).getFields();</code></pre>
+const fields = (await DefaultUserFields.<span class="hljs-keyword">create</span>(<span class="hljs-keyword">options</span>)).getFields();</code></pre>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
@@ -124,7 +124,7 @@ const fields = (await DefaultUserFields.create(options)).getFields();</code></pr
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/86f3de1/src/user.ts#L156">src/user.ts:156</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/610ffea/src/user.ts#L156">src/user.ts:156</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -147,7 +147,7 @@ const fields = (await DefaultUserFields.create(options)).getFields();</code></pr
 							<aside class="tsd-sources">
 								<p>Overrides AsyncCreatable.init</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/86f3de1/src/user.ts#L163">src/user.ts:163</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/610ffea/src/user.ts#L163">src/user.ts:163</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
