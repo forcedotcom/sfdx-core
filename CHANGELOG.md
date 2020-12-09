@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.4](https://github.com/forcedotcom/sfdx-core/compare/v2.15.3...v2.15.4) (2020-12-09)
+
+
+### Bug Fixes
+
+* **windows:** throw error when file is not accessible ([3c5e5f8](https://github.com/forcedotcom/sfdx-core/commit/3c5e5f83ead8fe5f8e9cfc9623a3d4296e42458f))
+
 ### [2.15.3](https://github.com/forcedotcom/sfdx-core/compare/v2.15.2...v2.15.3) (2020-12-02)
 
 
