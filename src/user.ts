@@ -75,6 +75,10 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
     authInfo: await AuthInfo.create({ username }),
   });
 
+  if (sfdc.matchesAccessToken(username)) {
+    username = (await connection.identity()).username;
+  }
+
   const fromFields = Object.keys(REQUIRED_FIELDS).map(upperFirst);
   const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
   const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);

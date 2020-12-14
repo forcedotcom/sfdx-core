@@ -111,4 +111,13 @@ export const sfdc = {
     });
     return key;
   },
+
+  /**
+   * Tests whether a given string is an access token
+   *
+   * @param value
+   */
+  matchesAccessToken: (value: string): boolean => {
+    return value.match(/^(00D\w{12,15})![.\w]*$/) !== null;
+  },
 };
