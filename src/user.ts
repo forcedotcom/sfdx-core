@@ -76,7 +76,11 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
   });
 
   if (sfdc.matchesAccessToken(username)) {
+    logger.debug('received an accessToken for the username.  Converting...');
     username = (await connection.identity()).username;
+    logger.debug(`accessToken converted to ${username}`);
+  } else {
+    logger.debug('not a accessToken');
   }
 
   const fromFields = Object.keys(REQUIRED_FIELDS).map(upperFirst);
