@@ -118,6 +118,6 @@ export const sfdc = {
    * @param value
    */
   matchesAccessToken: (value: string): boolean => {
-    return value.match(/^(00D\w{12,15})![.\w]*$/) !== null;
+    return /^(00D\w{12,15})![.\w]*$/.test(value);
   },
 };
