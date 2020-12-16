@@ -1663,6 +1663,17 @@ describe('AuthInfo', () => {
     it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
       await runTest({ createdOrgInstance: 'gs1' }, 'https://gs1.salesforce.com');
     });
+
+    it('should use the correct audience URL for production enhanced domains', async () => {
+      await runTest({ loginUrl: 'https://customdomain.my.salesforce.com' }, 'https://login.salesforce.com');
+    });
+
+    it('should use the correct audience URL for sandbox enhanced domains', async () => {
+      await runTest(
+        { loginUrl: 'https://customdomain--sandboxname.sandbox.my.salesforce.com' },
+        'https://test.salesforce.com'
+      );
+    });
   });
 
   describe('getDefaultInstanceUrl', () => {
