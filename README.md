@@ -12,7 +12,7 @@ See the [API documentation](https://forcedotcom.github.io/sfdx-core/).
 
 ## Contributing
 
-If you are interested in contributing, please take a look at the [CONTRIBUTING](https://github.com/forcedotcom/sfdx-core/blob/develop/CONTRIBUTING.md) guide.
+If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
 
 # Related Docs and Repositories
 
