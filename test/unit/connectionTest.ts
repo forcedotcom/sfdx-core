@@ -9,12 +9,15 @@ import { get, JsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import * as jsforce from 'jsforce';
 import { AuthInfo } from '../../src/authInfo';
+import { MyDomainResolver } from '../../src/status/myDomainResolver';
+
 import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
 import { Connection, SFDX_HTTP_HEADERS } from '../../src/connection';
 import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
+const TEST_IP = '1.1.1.1';
 
 describe('Connection', () => {
   const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
@@ -27,9 +30,19 @@ describe('Connection', () => {
     getConnectionOptions: () => testConnectionOptions,
   };
 
+  const testAuthInfoWithDomain = {
+    ...testAuthInfo,
+    getConnectionOptions: () => ({
+      ...testConnectionOptions,
+      instanceUrl: 'https://connectionTest/instanceUrl',
+    }),
+  };
+
   beforeEach(() => {
     $$.SANDBOXES.CONNECTION.restore();
     $$.SANDBOX.stub(process, 'emitWarning');
+    $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
+
     initializeStub = $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns();
     requestMock = $$.SANDBOX.stub(jsforce.Connection.prototype, 'request')
       .onFirstCall()
@@ -73,8 +86,9 @@ describe('Connection', () => {
       headers: SFDX_HTTP_HEADERS,
     };
 
-    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
-
+    const conn = await Connection.create({
+      authInfo: testAuthInfoWithDomain as AuthInfo,
+    });
     // Test passing a string to conn.request()
     const response1 = await conn.request(testUrl);
     expect(requestMock.called).to.be.true;
@@ -88,7 +102,9 @@ describe('Connection', () => {
     requestMock.onSecondCall().returns(Promise.resolve(testResponse));
     const testUrl = 'connectionTest/request/url/describe';
 
-    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const conn = await Connection.create({
+      authInfo: testAuthInfoWithDomain as AuthInfo,
+    });
 
     // Test passing a RequestInfo object and options to conn.request()
     const requestInfo = { method: 'POST', url: testUrl };
@@ -107,7 +123,9 @@ describe('Connection', () => {
     const testResponse = { success: true };
     requestMock.onSecondCall().returns(Promise.resolve(testResponse));
 
-    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const conn = await Connection.create({
+      authInfo: testAuthInfoWithDomain as AuthInfo,
+    });
 
     const testUrl = '/services/data/v42.0/tooling/sobjects';
     const requestInfo = { method: 'GET', url: testUrl };
@@ -197,7 +215,9 @@ describe('Connection', () => {
   it('autoFetch() should reject the promise upon query error', async () => {
     const errorMsg = 'QueryFailed';
     requestMock.onSecondCall().throws(new Error(errorMsg));
-    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const conn = await Connection.create({
+      authInfo: testAuthInfoWithDomain as AuthInfo,
+    });
 
     try {
       await conn.autoFetchQuery('TEST_SOQL');
