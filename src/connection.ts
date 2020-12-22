@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { URL } from 'url';
 import { maxBy, merge } from '@salesforce/kit';
 import { asString, ensure, getNumber, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
 import {
@@ -16,7 +16,10 @@ import {
   RequestInfo,
   Tooling as JSForceTooling,
 } from 'jsforce';
+import { Duration } from '@salesforce/kit';
 import { AuthFields, AuthInfo } from './authInfo';
+import { MyDomainResolver } from './status/myDomainResolver';
+
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
@@ -119,8 +122,12 @@ export class Connection extends JSForceConnection {
 
     const conn = new this(options);
     await conn.init();
-    if (!versionFromConfig) {
-      await conn.useLatestApiVersion();
+    if (!versionFromConfig && conn.options?.connectionOptions?.instanceUrl) {
+      try {
+        await conn.useLatestApiVersion();
+      } catch (e) {
+        conn.logger.error(`Cannot connect to the org at ${conn.options?.connectionOptions?.instanceUrl}`);
+      }
     }
     return conn;
   }
@@ -178,11 +185,28 @@ export class Connection extends JSForceConnection {
    * Retrieves the highest api version that is supported by the target server instance.
    */
   public async retrieveMaxApiVersion(): Promise<string> {
-    type Versioned = { version: string };
-    const versions = (await this.request(`${this.instanceUrl}/services/data`)) as Versioned[];
-    this.logger.debug(`response for org versions: ${versions}`);
-    const max = ensure(maxBy(versions, (version: Versioned) => version.version));
-    return max.version;
+    // errors go to stdout from within jsforce (maybe even further down the stack) if org's url doesn't exist.  (not a 404 from the domain but a DNS ENOTFOUND)
+    // We need to verify that the org can be connected to BEFORE asking about it's api version.  This will throw on DNS errors
+    if (!this.options.connectionOptions?.instanceUrl) {
+      throw new Error('Connection has no instanceUrl');
+    }
+    const resolver = await MyDomainResolver.create({
+      url: new URL(this.options.connectionOptions.instanceUrl),
+      timeout: Duration.minutes(0),
+    });
+    const ipAddress = await resolver.resolve();
+
+    if (ipAddress) {
+      type Versioned = { version: string };
+      const versions = (await this.request(
+        `${this.options.connectionOptions.instanceUrl}/services/data`
+      )) as Versioned[];
+      this.logger.debug(`response for org versions: ${versions}`);
+      const max = ensure(maxBy(versions, (version: Versioned) => version.version));
+      return max.version;
+    }
+
+    throw new Error();
   }
   /**
    * Use the latest API version available on `this.instanceUrl`.
