@@ -38,6 +38,8 @@ export const SFDX_HTTP_HEADERS = {
   'user-agent': clientId,
 };
 
+const ORG_NOT_FOUND_ERROR_NAME = 'Org Not Found';
+
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
 // unlikely to accept a PR for this method, but that would be another approach.
@@ -196,7 +198,7 @@ export class Connection extends JSForceConnection {
     try {
       this.setApiVersion(await this.retrieveMaxApiVersion());
     } catch (err) {
-      if (err.name === 'Org Not Found') {
+      if (err.name === ORG_NOT_FOUND_ERROR_NAME) {
         throw err; // throws on DNS connection errors
       }
       // Don't fail if we can't use the latest, just use the default
@@ -222,7 +224,7 @@ export class Connection extends JSForceConnection {
       await resolver.resolve();
       return true;
     } catch (e) {
-      throw new SfdxError('The org cannot be found', 'Org Not Found', [
+      throw new SfdxError('The org cannot be found', ORG_NOT_FOUND_ERROR_NAME, [
         'Verify that the org still exists',
         'If your org is newly created, wait a minute and run your command again',
       ]);
