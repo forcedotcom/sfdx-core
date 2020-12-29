@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { URL } from 'url';
-import { maxBy, merge } from '@salesforce/kit';
+import { Duration, maxBy, merge } from '@salesforce/kit';
 import { asString, ensure, getNumber, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
@@ -16,7 +16,6 @@ import {
   RequestInfo,
   Tooling as JSForceTooling,
 } from 'jsforce';
-import { Duration } from '@salesforce/kit';
 import { AuthFields, AuthInfo } from './authInfo';
 import { MyDomainResolver } from './status/myDomainResolver';
 
@@ -122,12 +121,10 @@ export class Connection extends JSForceConnection {
 
     const conn = new this(options);
     await conn.init();
-    if (!versionFromConfig && conn.options?.connectionOptions?.instanceUrl) {
-      try {
-        await conn.useLatestApiVersion();
-      } catch (e) {
-        conn.logger.error(`Cannot connect to the org at ${conn.options?.connectionOptions?.instanceUrl}`);
-      }
+    // verifies that subsequent requests to org will not hit DNS errors
+
+    if (!versionFromConfig) {
+      await conn.useLatestApiVersion();
     }
     return conn;
   }
@@ -185,28 +182,12 @@ export class Connection extends JSForceConnection {
    * Retrieves the highest api version that is supported by the target server instance.
    */
   public async retrieveMaxApiVersion(): Promise<string> {
-    // errors go to stdout from within jsforce (maybe even further down the stack) if org's url doesn't exist.  (not a 404 from the domain but a DNS ENOTFOUND)
-    // We need to verify that the org can be connected to BEFORE asking about it's api version.  This will throw on DNS errors
-    if (!this.options.connectionOptions?.instanceUrl) {
-      throw new Error('Connection has no instanceUrl');
-    }
-    const resolver = await MyDomainResolver.create({
-      url: new URL(this.options.connectionOptions.instanceUrl),
-      timeout: Duration.minutes(0),
-    });
-    const ipAddress = await resolver.resolve();
-
-    if (ipAddress) {
-      type Versioned = { version: string };
-      const versions = (await this.request(
-        `${this.options.connectionOptions.instanceUrl}/services/data`
-      )) as Versioned[];
-      this.logger.debug(`response for org versions: ${versions}`);
-      const max = ensure(maxBy(versions, (version: Versioned) => version.version));
-      return max.version;
-    }
-
-    throw new Error();
+    await this.isResolvable();
+    type Versioned = { version: string };
+    const versions = (await this.request(`${this.instanceUrl}/services/data`)) as Versioned[];
+    this.logger.debug(`response for org versions: ${versions}`);
+    const max = ensure(maxBy(versions, (version: Versioned) => version.version));
+    return max.version;
   }
   /**
    * Use the latest API version available on `this.instanceUrl`.
@@ -215,8 +196,36 @@ export class Connection extends JSForceConnection {
     try {
       this.setApiVersion(await this.retrieveMaxApiVersion());
     } catch (err) {
+      if (err.name === 'Org Not Found') {
+        throw err; // throws on DNS connection errors
+      }
       // Don't fail if we can't use the latest, just use the default
       this.logger.warn('Failed to set the latest API version:', err);
+    }
+  }
+
+  /**
+   * Verify that instance has a reachable DNS entry, otherwise will throw error
+   */
+  public async isResolvable(): Promise<boolean> {
+    if (!this.options.connectionOptions?.instanceUrl) {
+      throw new SfdxError('Connection has no instanceUrl', 'NoInstanceUrl', [
+        'Make sure the instanceUrl is set in your command or config',
+      ]);
+    }
+    const resolver = await MyDomainResolver.create({
+      url: new URL(this.options.connectionOptions.instanceUrl),
+      timeout: Duration.seconds(10),
+      frequency: Duration.seconds(10),
+    });
+    try {
+      await resolver.resolve();
+      return true;
+    } catch (e) {
+      throw new SfdxError('The org cannot be found', 'Org Not Found', [
+        'Verify that the org still exists',
+        'If your org is newly created, wait a minute and run your command again',
+      ]);
     }
   }
 
