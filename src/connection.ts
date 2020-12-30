@@ -227,7 +227,7 @@ export class Connection extends JSForceConnection {
       throw new SfdxError('The org cannot be found', DNS_ERROR_NAME, [
         'Verify that the org still exists',
         'If your org is newly created, wait a minute and run your command again',
-        "If you deployed or updated the org's My Domain, update your instanceUrl",
+        "If you deployed or updated the org's My Domain, logout from the CLI and authenticate again",
       ]);
     }
   }
