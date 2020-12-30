@@ -38,7 +38,7 @@ export const SFDX_HTTP_HEADERS = {
   'user-agent': clientId,
 };
 
-const ORG_NOT_FOUND_ERROR_NAME = 'Org Not Found';
+const ORG_NOT_FOUND_ERROR_NAME = 'Domain Not Found';
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
@@ -227,6 +227,7 @@ export class Connection extends JSForceConnection {
       throw new SfdxError('The org cannot be found', ORG_NOT_FOUND_ERROR_NAME, [
         'Verify that the org still exists',
         'If your org is newly created, wait a minute and run your command again',
+        "If you deployed or updated the org's My Domain, update your instanceUrl",
       ]);
     }
   }
