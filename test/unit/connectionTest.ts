@@ -12,7 +12,7 @@ import { AuthInfo } from '../../src/authInfo';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
 
 import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
-import { Connection, SFDX_HTTP_HEADERS } from '../../src/connection';
+import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME } from '../../src/connection';
 import { testSetup, shouldThrow } from '../../src/testSetup';
 
 // Setup the test environment.
@@ -51,12 +51,12 @@ describe('Connection', () => {
 
   it('create() should throw on DNS errors', async () => {
     $$.SANDBOX.restore();
-    $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').rejects({ name: 'Org Not Found' });
+    $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').rejects({ name: DNS_ERROR_NAME });
 
     try {
       await shouldThrow(Connection.create({ authInfo: testAuthInfoWithDomain as AuthInfo }));
     } catch (e) {
-      expect(e).to.have.property('name', 'Org Not Found');
+      expect(e).to.have.property('name', DNS_ERROR_NAME);
     }
   });
 
