@@ -297,6 +297,46 @@ export class Connection extends JSForceConnection {
         });
     });
   }
+
+  /**
+   * Executes a query using either standard REST or Tooling API, returning a single record.
+   * Will throw if either zero records are found OR multiple records are found.
+   *
+   * @param soql The SOQL string.
+   * @param options The query options.
+   */
+  public async singleRecordQuery<T>(
+    soql: string,
+    options: SingleRecordQueryOptions = {
+      choiceField: 'Name',
+    }
+  ): Promise<T> {
+    const result = options.tooling ? await this.tooling.query<T>(soql) : await this.query<T>(soql);
+    if (result.totalSize === 0) {
+      throw new SfdxError(`No records found for ${soql}`, SingleRecordQueryErrors.NoRecords);
+    }
+    if (result.totalSize > 1) {
+      throw new SfdxError(
+        options.returnChoicesOnMultiple && options.choiceField
+          ? `Multiple records found. ${result.records
+              .map((item) => item[(options.choiceField ?? 'Name') as keyof T])
+              .join(',')}`
+          : 'The query returned more than 1 record',
+        SingleRecordQueryErrors.MultipleRecords
+      );
+    }
+    return result.records[0];
+  }
+}
+
+export const SingleRecordQueryErrors = {
+  NoRecords: 'SingleRecordQuery_NoRecords',
+  MultipleRecords: 'SingleRecordQuery_MultipleRecords',
+};
+export interface SingleRecordQueryOptions {
+  tooling?: boolean;
+  returnChoicesOnMultiple?: boolean;
+  choiceField?: string; // defaults to Name
 }
 
 export namespace Connection {
