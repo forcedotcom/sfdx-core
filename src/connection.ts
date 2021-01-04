@@ -313,14 +313,12 @@ export class Connection extends JSForceConnection {
   ): Promise<T> {
     const result = options.tooling ? await this.tooling.query<T>(soql) : await this.query<T>(soql);
     if (result.totalSize === 0) {
-      throw new SfdxError(`No records found for ${soql}`, SingleRecordQueryErrors.NoRecords);
+      throw new SfdxError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
     }
     if (result.totalSize > 1) {
       throw new SfdxError(
         options.returnChoicesOnMultiple && options.choiceField
-          ? `Multiple records found. ${result.records
-              .map((item) => item[(options.choiceField ?? 'Name') as keyof T])
-              .join(',')}`
+          ? `Multiple records found. ${result.records.map((item) => item[options.choiceField as keyof T]).join(',')}`
           : 'The query returned more than 1 record',
         SingleRecordQueryErrors.MultipleRecords
       );
