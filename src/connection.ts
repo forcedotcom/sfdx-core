@@ -317,7 +317,7 @@ export class Connection extends JSForceConnection {
     }
     if (result.totalSize > 1) {
       throw new SfdxError(
-        options.returnChoicesOnMultiple && options.choiceField
+        options.returnChoicesOnMultiple
           ? `Multiple records found. ${result.records.map((item) => item[options.choiceField as keyof T]).join(',')}`
           : 'The query returned more than 1 record',
         SingleRecordQueryErrors.MultipleRecords
