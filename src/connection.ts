@@ -187,8 +187,9 @@ export class Connection extends JSForceConnection {
     await this.isResolvable();
     type Versioned = { version: string };
     const versions = (await this.request(`${this.instanceUrl}/services/data`)) as Versioned[];
-    this.logger.debug(`response for org versions: ${versions}`);
+    this.logger.debug(`response for org versions: ${versions.map((item) => item.version).join(',')}`);
     const max = ensure(maxBy(versions, (version: Versioned) => version.version));
+
     return max.version;
   }
   /**
