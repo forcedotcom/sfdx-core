@@ -10,7 +10,6 @@ import { assert, expect } from 'chai';
 import * as jsforce from 'jsforce';
 import { AuthInfo } from '../../src/authInfo';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
-
 import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
 import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME } from '../../src/connection';
 import { testSetup, shouldThrow } from '../../src/testSetup';
