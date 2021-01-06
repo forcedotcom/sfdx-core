@@ -265,7 +265,6 @@ describe('Connection', () => {
       name: 'testName',
     };
     requestMock.returns(Promise.resolve({ totalSize: 1, records: [mockSingleRecord] }));
-    // const querySpy = $$.SANDBOX.spy(jsforce.Connection.prototype, 'query');
     const soql = 'TEST_SOQL';
 
     const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
