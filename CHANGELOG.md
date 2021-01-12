@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.5](https://github.com/forcedotcom/sfdx-core/compare/v2.15.4...v2.15.5) (2021-01-07)
+
+
+### Bug Fixes
+
+* accessToken works as username ([6f0ec24](https://github.com/forcedotcom/sfdx-core/commit/6f0ec24d0b220f4ba6f3460392c2ae6fc3b4d998))
+* get username from accessToken ([18dd97d](https://github.com/forcedotcom/sfdx-core/commit/18dd97dad14639d66a19cfde0b33497864fa3594))
+* test > match ([56815e8](https://github.com/forcedotcom/sfdx-core/commit/56815e85cbaf6fd0b7253c83af08d62ba6b1f685))
+
+### [2.15.4](https://github.com/forcedotcom/sfdx-core/compare/v2.15.3...v2.15.4) (2020-12-09)
+
+
+### Bug Fixes
+
+* **windows:** throw error when file is not accessible ([3c5e5f8](https://github.com/forcedotcom/sfdx-core/commit/3c5e5f83ead8fe5f8e9cfc9623a3d4296e42458f))
+
+### [2.15.3](https://github.com/forcedotcom/sfdx-core/compare/v2.15.2...v2.15.3) (2020-12-02)
+
+
+### Bug Fixes
+
+* added docs around MyDomainResolver constructor method ([68d8e52](https://github.com/forcedotcom/sfdx-core/commit/68d8e520353dae10cda4b04153ec7cc753cbc02a))
+* single package entry is defaulted to default package ([badff89](https://github.com/forcedotcom/sfdx-core/commit/badff89be92c492d990dc91ce79ff94eb88a7117))
+
 ### [2.15.2](https://github.com/forcedotcom/sfdx-core/compare/v2.15.1...v2.15.2) (2020-11-11)
 
 

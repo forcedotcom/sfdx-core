@@ -42,6 +42,7 @@ import { Global } from './global';
 import { Logger } from './logger';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { fs } from './util/fs';
+import { sfdc } from './util/sfdc';
 
 /**
  * Fields for authorization, org, and local information.
@@ -758,8 +759,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     this.fields.username = this.options.username || getString(options, 'username') || undefined;
 
     // If the username is an access token, use that for auth and don't persist
-    const accessTokenMatch = isString(this.fields.username) && this.fields.username.match(/^(00D\w{12,15})![.\w]*$/);
-    if (accessTokenMatch) {
+    if (isString(this.fields.username) && sfdc.matchesAccessToken(this.fields.username)) {
       // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
       this.logger = await Logger.child('AuthInfo');
       this.authInfoCrypto = await AuthInfoCrypto.create({
@@ -772,7 +772,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       this.update({
         accessToken: this.options.username,
         instanceUrl,
-        orgId: accessTokenMatch[1],
+        orgId: this.fields.username.split('!')[0],
       });
 
       this.usingAccessToken = true;

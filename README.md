@@ -1,5 +1,6 @@
 [![NPM](https://img.shields.io/npm/v/@salesforce/core.svg)](https://www.npmjs.com/package/@salesforce/core)
 [![CircleCI](https://circleci.com/gh/forcedotcom/sfdx-core.svg?style=svg&circle-token=2377ca31221869e9d13448313620486da80e595f)](https://circleci.com/gh/forcedotcom/sfdx-core)
+[![codecov](https://codecov.io/gh/forcedotcom/sfdx-core/branch/develop/graph/badge.svg)](https://codecov.io/gh/forcedotcom/sfdx-core)
 
 # Description
 
@@ -11,7 +12,7 @@ See the [API documentation](https://forcedotcom.github.io/sfdx-core/).
 
 ## Contributing
 
-If you are interested in contributing, please take a look at the [CONTRIBUTING](https://github.com/forcedotcom/sfdx-core/blob/develop/CONTRIBUTING.md) guide.
+If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
 
 # Related Docs and Repositories
 
