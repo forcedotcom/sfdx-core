@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>PermissionSetAssignmentFields | @salesforce/core</title>
+	<title>SingleRecordQueryOptions | @salesforce/core</title>
 	<meta name="description" content="Documentation for @salesforce/core">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,28 +52,21 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="permissionsetassignmentfields.html">PermissionSetAssignmentFields</a>
+					<a href="singlerecordqueryoptions.html">SingleRecordQueryOptions</a>
 				</li>
 			</ul>
-			<h1>Interface PermissionSetAssignmentFields</h1>
+			<h1>Interface SingleRecordQueryOptions</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Map of fields name for a permission set assignment</p>
-					</div>
-				</div>
-			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">PermissionSetAssignmentFields</span>
+						<span class="target">SingleRecordQueryOptions</span>
 					</li>
 				</ul>
 			</section>
@@ -84,8 +77,9 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="permissionsetassignmentfields.html#assigneeid" class="tsd-kind-icon">assignee<wbr>Id</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="permissionsetassignmentfields.html#permissionsetid" class="tsd-kind-icon">permission<wbr>Set<wbr>Id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="singlerecordqueryoptions.html#choicefield" class="tsd-kind-icon">choice<wbr>Field</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="singlerecordqueryoptions.html#returnchoicesonmultiple" class="tsd-kind-icon">return<wbr>Choices<wbr>OnMultiple</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="singlerecordqueryoptions.html#tooling" class="tsd-kind-icon">tooling</a></li>
 							</ul>
 						</section>
 					</div>
@@ -94,22 +88,32 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="assigneeid" class="tsd-anchor"></a>
-					<h3>assignee<wbr>Id</h3>
-					<div class="tsd-signature tsd-kind-icon">assignee<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="choicefield" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> choice<wbr>Field</h3>
+					<div class="tsd-signature tsd-kind-icon">choice<wbr>Field<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c13fe4f/src/permissionSetAssignment.ts#L21">src/permissionSetAssignment.ts:21</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c13fe4f/src/connection.ts#L337">src/connection.ts:337</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="permissionsetid" class="tsd-anchor"></a>
-					<h3>permission<wbr>Set<wbr>Id</h3>
-					<div class="tsd-signature tsd-kind-icon">permission<wbr>Set<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="returnchoicesonmultiple" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> return<wbr>Choices<wbr>OnMultiple</h3>
+					<div class="tsd-signature tsd-kind-icon">return<wbr>Choices<wbr>OnMultiple<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c13fe4f/src/permissionSetAssignment.ts#L22">src/permissionSetAssignment.ts:22</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c13fe4f/src/connection.ts#L336">src/connection.ts:336</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="tooling" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> tooling</h3>
+					<div class="tsd-signature tsd-kind-icon">tooling<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c13fe4f/src/connection.ts#L335">src/connection.ts:335</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -128,13 +132,16 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface">
-						<a href="permissionsetassignmentfields.html" class="tsd-kind-icon">Permission<wbr>Set<wbr>Assignment<wbr>Fields</a>
+						<a href="singlerecordqueryoptions.html" class="tsd-kind-icon">Single<wbr>Record<wbr>Query<wbr>Options</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="permissionsetassignmentfields.html#assigneeid" class="tsd-kind-icon">assignee<wbr>Id</a>
+								<a href="singlerecordqueryoptions.html#choicefield" class="tsd-kind-icon">choice<wbr>Field</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="permissionsetassignmentfields.html#permissionsetid" class="tsd-kind-icon">permission<wbr>Set<wbr>Id</a>
+								<a href="singlerecordqueryoptions.html#returnchoicesonmultiple" class="tsd-kind-icon">return<wbr>Choices<wbr>OnMultiple</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="singlerecordqueryoptions.html#tooling" class="tsd-kind-icon">tooling</a>
 							</li>
 						</ul>
 					</li>
