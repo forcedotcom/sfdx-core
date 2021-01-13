@@ -12,7 +12,7 @@ import { AuthInfo } from '../../src/authInfo';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
 import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
 import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME, SingleRecordQueryErrors } from '../../src/connection';
-import { testSetup, shouldThrow } from '../../src/testSetup'
+import { testSetup, shouldThrow } from '../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
