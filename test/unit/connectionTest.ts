@@ -45,7 +45,7 @@ describe('Connection', () => {
     initializeStub = $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns();
     requestMock = $$.SANDBOX.stub(jsforce.Connection.prototype, 'request')
       .onFirstCall()
-      .returns(Promise.resolve([{ version: '42.0' }]));
+      .resolves([{ version: '42.0' }]);
   });
 
   it('create() should throw on DNS errors', async () => {
@@ -242,10 +242,11 @@ describe('Connection', () => {
       id: '123',
       name: 'testName',
     };
-    requestMock.returns(Promise.resolve({ totalSize: 1, records: [mockSingleRecord] }));
     const soql = 'TEST_SOQL';
+    requestMock.onSecondCall().resolves({ totalSize: 1, records: [mockSingleRecord] });
 
-    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const conn = await Connection.create({ authInfo: testAuthInfoWithDomain as AuthInfo });
+
     const queryResult = await conn.singleRecordQuery(soql);
     expect(queryResult).to.deep.equal({
       ...mockSingleRecord,
@@ -254,7 +255,7 @@ describe('Connection', () => {
 
   it('singleRecordQuery throws on no-records', async () => {
     requestMock.returns(Promise.resolve({ totalSize: 0, records: [] }));
-    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const conn = await Connection.create({ authInfo: testAuthInfoWithDomain as AuthInfo });
 
     try {
       await conn.singleRecordQuery('TEST_SOQL');
@@ -266,7 +267,7 @@ describe('Connection', () => {
 
   it('singleRecordQuery throws on multiple records', async () => {
     requestMock.returns(Promise.resolve({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] }));
-    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const conn = await Connection.create({ authInfo: testAuthInfoWithDomain as AuthInfo });
 
     try {
       await conn.singleRecordQuery('TEST_SOQL');
@@ -278,7 +279,7 @@ describe('Connection', () => {
 
   it('singleRecordQuery throws on multiple records with options', async () => {
     requestMock.returns(Promise.resolve({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] }));
-    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const conn = await Connection.create({ authInfo: testAuthInfoWithDomain as AuthInfo });
 
     try {
       await conn.singleRecordQuery('TEST_SOQL', { returnChoicesOnMultiple: true, choiceField: 'id' });
@@ -297,7 +298,7 @@ describe('Connection', () => {
     requestMock.returns(Promise.resolve({ totalSize: 1, records: [mockSingleRecord] }));
     const soql = 'TEST_SOQL';
 
-    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const conn = await Connection.create({ authInfo: testAuthInfoWithDomain as AuthInfo });
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
     const queryResults = await conn.singleRecordQuery(soql, { tooling: true });
     expect(queryResults).to.deep.equal({
