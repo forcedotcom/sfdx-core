@@ -11,8 +11,8 @@ import * as jsforce from 'jsforce';
 import { AuthInfo } from '../../src/authInfo';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
 import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
-import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME } from '../../src/connection';
-import { testSetup, shouldThrow } from '../../src/testSetup';
+import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME, SingleRecordQueryErrors } from '../../src/connection';
+import { testSetup, shouldThrow } from '../../src/testSetup'
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -235,5 +235,74 @@ describe('Connection', () => {
     } catch (err) {
       expect(err.message).to.equal(errorMsg);
     }
+  });
+
+  it('singleRecordQuery returns single-record result properly', async () => {
+    const mockSingleRecord = {
+      id: '123',
+      name: 'testName',
+    };
+    requestMock.returns(Promise.resolve({ totalSize: 1, records: [mockSingleRecord] }));
+    const soql = 'TEST_SOQL';
+
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const queryResult = await conn.singleRecordQuery(soql);
+    expect(queryResult).to.deep.equal({
+      ...mockSingleRecord,
+    });
+  });
+
+  it('singleRecordQuery throws on no-records', async () => {
+    requestMock.returns(Promise.resolve({ totalSize: 0, records: [] }));
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+
+    try {
+      await conn.singleRecordQuery('TEST_SOQL');
+      assert.fail('SingleRecordQuery query should have errored.');
+    } catch (err) {
+      expect(err.name).to.equal(SingleRecordQueryErrors.NoRecords);
+    }
+  });
+
+  it('singleRecordQuery throws on multiple records', async () => {
+    requestMock.returns(Promise.resolve({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] }));
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+
+    try {
+      await conn.singleRecordQuery('TEST_SOQL');
+      assert.fail('singleRecordQuery should have errored.');
+    } catch (err) {
+      expect(err.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
+    }
+  });
+
+  it('singleRecordQuery throws on multiple records with options', async () => {
+    requestMock.returns(Promise.resolve({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] }));
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+
+    try {
+      await conn.singleRecordQuery('TEST_SOQL', { returnChoicesOnMultiple: true, choiceField: 'id' });
+      assert.fail('singleRecordQuery should have errored.');
+    } catch (err) {
+      expect(err.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
+      expect(err.message).to.include('1,2');
+    }
+  });
+
+  it('singleRecordQuery handles tooling api flag', async () => {
+    const mockSingleRecord = {
+      id: '123',
+      name: 'testName',
+    };
+    requestMock.returns(Promise.resolve({ totalSize: 1, records: [mockSingleRecord] }));
+    const soql = 'TEST_SOQL';
+
+    const conn = await Connection.create({ authInfo: testAuthInfo as AuthInfo });
+    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+    const queryResults = await conn.singleRecordQuery(soql, { tooling: true });
+    expect(queryResults).to.deep.equal({
+      ...mockSingleRecord,
+    });
+    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
   });
 });

@@ -15,7 +15,7 @@ You would only do this once after you cloned the repository.
 1.  `yarn` to bring in all the top-level dependencies.
 1.  Open the project in your editor of choice.
 
-When you are ready to commit
+###### When you are ready to commit
 
 1.  We enforce commit message format. We recommend using [commitizen](https://github.com/commitizen/cz-cli) by installing it with `yarn global add commitizen` then commit using `git cz` which will prompt you questions to format the commit message.
 1.  Before commit and push, husky will run several hooks to ensure the message and that everything lints and compiles properly.
@@ -33,6 +33,10 @@ This cleans all generated files and directories. Run `yarn clean-all` to also cl
 ### `yarn test`
 
 This tests the typescript using ts-node.
+
+### `yarn docs`
+
+This generates documentation into [docs](docs).
 
 ### `yarn lint`
 
