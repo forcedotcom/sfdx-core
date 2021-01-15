@@ -1652,6 +1652,10 @@ describe('AuthInfo', () => {
       await runTest({ createdOrgInstance: 'cs17' }, 'https://test.salesforce.com');
     });
 
+    it('should use the correct audience URL for createdOrgInstance beginning with "CS"', async () => {
+      await runTest({ createdOrgInstance: 'CS17' }, 'https://test.salesforce.com');
+    });
+
     it('should use the correct audience URL for createdOrgInstance ending with "s"', async () => {
       await runTest({ createdOrgInstance: 'usa2s' }, 'https://test.salesforce.com');
     });
