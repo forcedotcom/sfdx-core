@@ -1672,6 +1672,22 @@ describe('AuthInfo', () => {
       await runTest({ loginUrl: 'https://customdomain.my.salesforce.com' }, 'https://login.salesforce.com');
     });
 
+    it('should use the correct audience URL for scratch orgs with domains', async () => {
+      await runTest({ loginUrl: 'https://cs17.my.salesforce.com' }, 'https://test.salesforce.com');
+    });
+
+    it('should use the correct audience URL for scratch orgs with domains (capitalized)', async () => {
+      await runTest({ loginUrl: 'https://CS17.my.salesforce.com' }, 'https://test.salesforce.com');
+    });
+
+    it('should use the correct audience URL for scratch orgs without domains', async () => {
+      await runTest({ loginUrl: 'https://cs17.salesforce.com' }, 'https://test.salesforce.com');
+    });
+
+    it('should use the correct audience URL for scratch orgs without domains (capitalized)', async () => {
+      await runTest({ loginUrl: 'https://CS17.salesforce.com' }, 'https://test.salesforce.com');
+    });
+
     it('should use the correct audience URL for sandbox enhanced domains', async () => {
       await runTest(
         { loginUrl: 'https://customdomain--sandboxname.sandbox.my.salesforce.com' },
