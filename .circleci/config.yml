@@ -33,7 +33,7 @@ workflows:
           filters:
             branches:
               only: master
-      build-and-test-win:
+      - build-and-test-win:
         description: "Run tests on windows"
         executor: win/default
         steps:
