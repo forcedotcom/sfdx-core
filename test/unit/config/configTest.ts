@@ -146,6 +146,36 @@ describe('Config', () => {
           expect(err).to.have.property('name', 'InvalidConfigValue');
         }
       });
+      describe('maxQueryLimit', () => {
+        it('will throw an error', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', '123abc');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
+        it('will throw an error', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', 'abc');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
+        it('will set config value', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const res = config.set('maxQueryLimit', '123');
+          expect(res.maxQueryLimit).to.equal('123');
+        });
+        it('will set config value', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const res = config.set('maxQueryLimit', 123);
+          expect(res.maxQueryLimit).to.equal(123);
+        });
+      });
     });
 
     it('PropertyInput validation', async () => {

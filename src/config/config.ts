@@ -6,7 +6,7 @@
  */
 
 import { keyBy, set } from '@salesforce/kit';
-import { Dictionary, ensure, isNumber, isString } from '@salesforce/ts-types';
+import { Dictionary, ensure, isString } from '@salesforce/ts-types';
 import { Logger } from '../logger';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
@@ -181,7 +181,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     {
       key: Config.MAX_QUERY_LIMIT,
       input: {
-        validator: (value) => isNumber(value),
+        validator: (value) => !isNaN(Number(value)),
         get failedMessage() {
           return Config.messages?.getMessage('InvalidNumberConfigValue');
         },
