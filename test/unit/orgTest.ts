@@ -27,6 +27,7 @@ import { Global } from '../../src/global';
 import { Org } from '../../src/org';
 import { MockTestOrgData, testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
+import { MyDomainResolver } from '../../src/status/myDomainResolver';
 
 const $$ = testSetup();
 
@@ -38,6 +39,8 @@ describe('Org Tests', () => {
   beforeEach(async () => {
     testData = new MockTestOrgData();
     $$.configStubs.AuthInfoConfig = { contents: await testData.getConfig() };
+    $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves('1.1.1.1');
+
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
   });
 
@@ -122,6 +125,9 @@ describe('Org Tests', () => {
       const org: Org = await Org.create({
         connection: await Connection.create({
           authInfo: await AuthInfo.create({ username: testData.username }),
+          connectionOptions: {
+            instanceUrl: 'https://orgTest.instanceUrl',
+          },
         }),
       });
       const apiVersion = await org.retrieveMaxApiVersion();
