@@ -147,7 +147,7 @@ describe('Config', () => {
         }
       });
       describe('maxQueryLimit', () => {
-        it('will throw an error', async () => {
+        it('will throw an error when value is mixed alphanumeric', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           try {
             config.set('maxQueryLimit', '123abc');
@@ -156,7 +156,7 @@ describe('Config', () => {
             expect(err).to.have.property('name', 'InvalidConfigValue');
           }
         });
-        it('will throw an error', async () => {
+        it('will throw an error when value is not numeric', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           try {
             config.set('maxQueryLimit', 'abc');
@@ -165,12 +165,12 @@ describe('Config', () => {
             expect(err).to.have.property('name', 'InvalidConfigValue');
           }
         });
-        it('will set config value', async () => {
+        it('will set config value with stringified number', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           const res = config.set('maxQueryLimit', '123');
           expect(res.maxQueryLimit).to.equal('123');
         });
-        it('will set config value', async () => {
+        it('will set config value with as number as it should be', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           const res = config.set('maxQueryLimit', 123);
           expect(res.maxQueryLimit).to.equal(123);
