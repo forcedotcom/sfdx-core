@@ -1694,6 +1694,14 @@ describe('AuthInfo', () => {
         'https://test.salesforce.com'
       );
     });
+
+    it('returns sandbox audience for falcon domains', async () => {
+      await runTest({ loginUrl: 'https://usa2s.sfdc-yfeipo.salesforce.com/' }, 'https://test.salesforce.com');
+    });
+
+    it('returns prod audience for falcon domains', async () => {
+      await runTest({ loginUrl: 'https://usa2.sfdc-yfeipo.salesforce.com/' }, 'https://login.salesforce.com');
+    });
   });
 
   describe('getDefaultInstanceUrl', () => {

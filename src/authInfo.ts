@@ -228,6 +228,7 @@ function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: strin
     options.loginUrl?.includes('sandbox.my.salesforce.com') || // enhanced domains >= 230
     options.loginUrl?.match(/([Cc][Ss][0-9]+.my.salesforce.com)/g) || // my domains
     options.loginUrl?.match(/([Cc][Ss][0-9]+.salesforce.com)/g) || // instance without my domain
+    options.loginUrl?.match(/((usa)[0-9]+s\..+\.salesforce\.com)/g) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
     (options.loginUrl && urlParse(options.loginUrl).hostname === 'test.salesforce.com')
   ) {
     return SfdcUrl.SANDBOX;
