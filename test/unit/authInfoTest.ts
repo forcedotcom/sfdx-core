@@ -1681,6 +1681,14 @@ describe('AuthInfo', () => {
         await runTest({ loginUrl: 'https://cs17.salesforce.com' }, 'https://test.salesforce.com');
       });
 
+      it('should use the correct audience URL for a typical scratch org domain', async () => {
+        await runTest(
+          { loginUrl: 'https://computing-nosoftware-9542-dev-ed.cs77.my.salesforce.com' },
+          'https://test.salesforce.com'
+        );
+      });
+      it;
+
       it('should use the correct audience URL for scratch orgs without domains (capitalized)', async () => {
         await runTest({ loginUrl: 'https://CS17.salesforce.com' }, 'https://test.salesforce.com');
       });
