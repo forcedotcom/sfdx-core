@@ -134,4 +134,17 @@ describe('util/sfdc', () => {
       expect(sfdc.findUpperCaseKeys(testObj, ['nested'])).to.equal(undefined);
     });
   });
+
+  describe('matchesAccessToken', () => {
+    it('should return true for a valid access token', () => {
+      expect(
+        sfdc.matchesAccessToken(
+          '00D0t000000HkBf!AQ8AQAuHh7lXOFdOA202PMQuGflRrtUkVIfSNK1BrWLlJTJuvypx3r8dLONoJdniYKap1nsTlbxRbbGDqT6r2Rze_Ii5no2y'
+        )
+      ).to.equal(true);
+    });
+    it('should return false for an invalid access token', () => {
+      expect(sfdc.matchesAccessToken('iamjustaregularusername@example.com')).to.equal(false);
+    });
+  });
 });

@@ -2,6 +2,56 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.16.3](https://github.com/forcedotcom/sfdx-core/compare/v2.16.2...v2.16.3) (2021-01-21)
+
+### [2.16.2](https://github.com/forcedotcom/sfdx-core/compare/v2.16.1...v2.16.2) (2021-01-21)
+
+
+### Bug Fixes
+
+* better error messaging and Steve feedback ([20c8977](https://github.com/forcedotcom/sfdx-core/commit/20c897739d077a15945701843fac9c2c3457dff4))
+* better error name ([43cac98](https://github.com/forcedotcom/sfdx-core/commit/43cac980bba0bf276a28cd7d90b4bc3656cacd3b))
+* error name as a constant ([92ced7e](https://github.com/forcedotcom/sfdx-core/commit/92ced7e7de418c4dc36af6d12be930adcf801706))
+* export name for testing ([fda9ce0](https://github.com/forcedotcom/sfdx-core/commit/fda9ce0a802917cbcf496dc03450182f3ec5f79a))
+* line spacing ([89e4dc7](https://github.com/forcedotcom/sfdx-core/commit/89e4dc7d46e7b3b553329c7eb125caa75015dce1))
+* log versions as string ([d82fe3e](https://github.com/forcedotcom/sfdx-core/commit/d82fe3e8a41c177bd905ee3278332db375dc9761))
+* prevent DNS ENOTFOUND from hitting stdout ([1bc473f](https://github.com/forcedotcom/sfdx-core/commit/1bc473fc36ff70edbb1145b1c2f3ae6e0a4331ee))
+
+### [2.16.1](https://github.com/forcedotcom/sfdx-core/compare/v2.16.0...v2.16.1) (2021-01-20)
+
+## [2.16.0](https://github.com/forcedotcom/sfdx-core/compare/v2.15.5...v2.16.0) (2021-01-12)
+
+
+### Features
+
+* singleRecordQuery ([ea72d9f](https://github.com/forcedotcom/sfdx-core/commit/ea72d9f3e31aff8dbcf1f15fd7539f75cafc4ffc))
+
+
+### Bug Fixes
+
+* bumped npm release to v4 ([1ad0a98](https://github.com/forcedotcom/sfdx-core/commit/1ad0a984fd75e5e0cba20a907f542014b919095f))
+* dry-run fixed orb ([b3eb476](https://github.com/forcedotcom/sfdx-core/commit/b3eb4764b63869907d653d63e47f4e092df75481))
+* per peter feedback ([e0c366a](https://github.com/forcedotcom/sfdx-core/commit/e0c366ad6d7b7affb746aa8ba4869685f8563b5d))
+* remove another redundant condition ([021ff2d](https://github.com/forcedotcom/sfdx-core/commit/021ff2d08292148e50cf1ba8eccc54c92ed12328))
+* revert dry-run fix ([b415aca](https://github.com/forcedotcom/sfdx-core/commit/b415aca58e005093760cd8873e67d69ce70e1935))
+* updated yarn.lock ([7caaed5](https://github.com/forcedotcom/sfdx-core/commit/7caaed58d4f18bb6be675b690b1b9fc17c16d207))
+
+### [2.15.5](https://github.com/forcedotcom/sfdx-core/compare/v2.15.4...v2.15.5) (2021-01-07)
+
+
+### Bug Fixes
+
+* accessToken works as username ([6f0ec24](https://github.com/forcedotcom/sfdx-core/commit/6f0ec24d0b220f4ba6f3460392c2ae6fc3b4d998))
+* get username from accessToken ([18dd97d](https://github.com/forcedotcom/sfdx-core/commit/18dd97dad14639d66a19cfde0b33497864fa3594))
+* test > match ([56815e8](https://github.com/forcedotcom/sfdx-core/commit/56815e85cbaf6fd0b7253c83af08d62ba6b1f685))
+
+### [2.15.4](https://github.com/forcedotcom/sfdx-core/compare/v2.15.3...v2.15.4) (2020-12-09)
+
+
+### Bug Fixes
+
+* **windows:** throw error when file is not accessible ([3c5e5f8](https://github.com/forcedotcom/sfdx-core/commit/3c5e5f83ead8fe5f8e9cfc9623a3d4296e42458f))
+
 ### [2.15.3](https://github.com/forcedotcom/sfdx-core/compare/v2.15.2...v2.15.3) (2020-12-02)
 
 
