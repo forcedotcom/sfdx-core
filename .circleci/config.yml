@@ -19,7 +19,9 @@ workflows:
       - release-management/test-package:
           node_version: '10'
           name: node-10
-      - release-management/test-package-windows
+      - release-management/test-package:
+          os: 'windows'
+          name: windows-test
       - release-management/release-package:
           github-release: true
           post-job-steps:
@@ -29,6 +31,7 @@ workflows:
             - node-latest
             - node-12
             - node-10
+            - windows-test
           filters:
             branches:
               only: master
