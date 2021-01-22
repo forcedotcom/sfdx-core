@@ -154,9 +154,9 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
    *
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
-   * @param [force = true] Optionally force the file to be read from disk even when already read within the process.
+   * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
    */
-  public async read(throwOnNotFound = false, force = true): Promise<ConfigContents> {
+  public async read(throwOnNotFound = false, force = false): Promise<ConfigContents> {
     try {
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
@@ -188,9 +188,9 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
    *
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
-   * @param [force = true] Optionally force the file to be read from disk even when already read within the process.
+   * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
    */
-  public readSync(throwOnNotFound = false, force = true): ConfigContents {
+  public readSync(throwOnNotFound = false, force = false): ConfigContents {
     try {
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
