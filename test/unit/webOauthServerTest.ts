@@ -8,6 +8,7 @@
 import * as http from 'http';
 import { expect } from 'chai';
 
+import { assert } from '@salesforce/ts-types';
 import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { Env } from '@salesforce/kit';
 import { testSetup, MockTestOrgData } from '../../src/testSetup';
@@ -47,6 +48,7 @@ describe('WebOauthServer', () => {
     let authInfoStub: StubbedType<AuthInfo>;
     let serverResponseStub: StubbedType<http.ServerResponse>;
     let redirectStub: sinon.SinonStub;
+    let authStub: sinon.SinonStub;
 
     beforeEach(async () => {
       authFields = await testData.getConfig();
@@ -57,7 +59,7 @@ describe('WebOauthServer', () => {
       serverResponseStub = stubInterface<http.ServerResponse>($$.SANDBOX, {});
 
       stubMethod($$.SANDBOX, WebOAuthServer.prototype, 'executeOauthRequest').callsFake(async () => serverResponseStub);
-      stubMethod($$.SANDBOX, AuthInfo, 'create').callsFake(async () => authInfoStub);
+      authStub = stubMethod($$.SANDBOX, AuthInfo, 'create').callsFake(async () => authInfoStub);
       redirectStub = stubMethod($$.SANDBOX, WebServer.prototype, 'doRedirect').callsFake(async () => {});
     });
 
@@ -75,6 +77,21 @@ describe('WebOauthServer', () => {
       await oauthServer.authorizeAndSave();
       expect(redirectStub.callCount).to.equal(1);
       expect(redirectStub.args).to.deep.equal([[303, frontDoorUrl, serverResponseStub]]);
+    });
+
+    it('should report error', async () => {
+      const reportErrorStub = stubMethod($$.SANDBOX, WebServer.prototype, 'reportError').callsFake(async () => {});
+      authStub.rejects(new Error('BAD ERROR'));
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+      await oauthServer.start();
+      try {
+        await oauthServer.authorizeAndSave();
+        assert(false, 'authorizeAndSave should fail');
+      } catch (e) {
+        expect(e.message, 'BAD ERROR');
+      }
+      expect(authStub.callCount).to.equal(1);
+      expect(reportErrorStub.args[0][0].message).to.equal('BAD ERROR');
     });
   });
 

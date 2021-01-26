@@ -96,6 +96,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
               response.end();
               resolve(authInfo);
             } catch (err) {
+              this.webServer.reportError(err, response);
               reject(err);
             }
           })
@@ -313,6 +314,19 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
     const body = `${status} - Redirecting to ${url}`;
     response.setHeader('Content-Length', Buffer.byteLength(body));
     response.writeHead(status, { Location: url });
+    response.end(body);
+  }
+
+  /**
+   * sends a response to the browser reporting an error.
+   *
+   * @param error the error
+   * @param response the response to write the redirect to.
+   */
+  public reportError(error: Error, response: http.ServerResponse): void {
+    response.setHeader('Content-Type', 'text/html');
+    const body = messages.getMessage('ServerErrorHTMLResponse', [error.message]);
+    response.setHeader('Content-Length', Buffer.byteLength(body));
     response.end(body);
   }
 
