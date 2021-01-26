@@ -120,4 +120,21 @@ export const sfdc = {
   matchesAccessToken: (value: string): boolean => {
     return /^(00D\w{12,15})![.\w]*$/.test(value);
   },
+
+  /**
+   * Tests whether a given url is an internal Salesforce domain
+   *
+   * @param url
+   */
+  isInternalUrl: (url: string): boolean => {
+    const INTERNAL_URL_PARTS = [
+      '.internal.',
+      '.vpod.',
+      'stm.salesforce.com',
+      '.blitz.salesforce.com',
+      'mobile1.t.salesforce.com',
+    ];
+
+    return url.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some((part) => url.includes(part));
+  },
 };
