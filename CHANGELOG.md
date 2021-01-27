@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.16.4](https://github.com/forcedotcom/sfdx-core/compare/v2.16.3...v2.16.4) (2021-01-27)
+
+
+### Bug Fixes
+
+* remove mobile domains ([ae413db](https://github.com/forcedotcom/sfdx-core/commit/ae413db35916ecd480524d1994664729c0685f2f))
+
 ### [2.16.3](https://github.com/forcedotcom/sfdx-core/compare/v2.16.2...v2.16.3) (2021-01-21)
 
 ### [2.16.2](https://github.com/forcedotcom/sfdx-core/compare/v2.16.1...v2.16.2) (2021-01-21)
