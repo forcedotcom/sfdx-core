@@ -199,18 +199,6 @@ export enum SfdcUrl {
   PRODUCTION = 'https://login.salesforce.com',
 }
 
-const INTERNAL_URL_PARTS = [
-  '.internal.',
-  '.vpod.',
-  'stm.salesforce.com',
-  '.blitz.salesforce.com',
-  'mobile1.t.salesforce.com',
-];
-
-function isInternalUrl(loginUrl = ''): boolean {
-  return loginUrl.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some((part) => loginUrl.includes(part));
-}
-
 function getJwtAudienceUrl(options: OAuth2Options) {
   // default audience must be...
   let audienceUrl: string = SfdcUrl.PRODUCTION;
@@ -219,7 +207,7 @@ function getJwtAudienceUrl(options: OAuth2Options) {
 
   if (process.env.SFDX_AUDIENCE_URL) {
     audienceUrl = process.env.SFDX_AUDIENCE_URL;
-  } else if (isInternalUrl(loginUrl)) {
+  } else if (sfdc.isInternalUrl(loginUrl)) {
     // This is for internal developers when just doing authorize;
     audienceUrl = loginUrl;
   } else if (
