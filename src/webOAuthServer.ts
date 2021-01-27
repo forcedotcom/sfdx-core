@@ -147,6 +147,11 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         if (request.method === 'GET') {
           if (url.pathname && url.pathname.startsWith('/OauthRedirect')) {
             request.query = parseQueryString(url.query as string);
+            if (request.query.error) {
+              const err = new SfdxError(request.query.error_description || request.query.error, request.query.error);
+              this.webServer.reportError(err, response);
+              return reject(err);
+            }
             this.logger.debug(`request.query.state: ${request.query.state as string}`);
             try {
               this.oauthConfig.authCode = asString(this.parseAuthCodeFromRequest(response, request));
@@ -190,6 +195,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         this.logger.debug(`Successfully obtained auth code: ...${authCode.substring(authCode.length - 5)}`);
       } else {
         this.logger.debug('Expected an auth code but could not find one.');
+        throw SfdxError.create('@salesforce/core', 'auth', 'missingAuthCode');
       }
       this.logger.debug(`oauthConfig.loginUrl: ${this.oauthConfig.loginUrl}`);
       this.logger.debug(`oauthConfig.clientId: ${this.oauthConfig.clientId}`);
@@ -325,7 +331,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
    */
   public reportError(error: Error, response: http.ServerResponse): void {
     response.setHeader('Content-Type', 'text/html');
-    const body = messages.getMessage('ServerErrorHTMLResponse', [error.message]);
+    const body = messages.getMessage('serverErrorHTMLResponse', [error.message]);
     response.setHeader('Content-Length', Buffer.byteLength(body));
     response.end(body);
   }

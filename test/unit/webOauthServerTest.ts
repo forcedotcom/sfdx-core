@@ -95,6 +95,39 @@ describe('WebOauthServer', () => {
     });
   });
 
+  it('should error if postback has error', async () => {
+    const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+    await oauthServer.start();
+
+    // @ts-ignore because private member
+    const webServer = oauthServer.webServer;
+    const endSpy = $$.SANDBOX.spy();
+
+    const origOn = webServer.server.on;
+    stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
+      if (event !== 'request') return origOn.call(webServer.server, event, callback);
+      callback(
+        {
+          method: 'GET',
+          url:
+            'http://localhost:1717/OauthRedirect?error=access_denied&error_description=end-user+denied+authorization&state=972475373f51',
+        },
+        {
+          setHeader: () => {},
+          end: endSpy,
+        }
+      );
+    });
+
+    try {
+      await oauthServer.authorizeAndSave();
+      assert(false, 'should reject');
+    } catch (err) {
+      expect(err.name).to.equal('access_denied');
+    }
+    expect(endSpy.args[0][0]).contain('end-user denied authorization');
+  });
+
   describe('parseAuthCodeFromRequest', () => {
     const authCode = 'abc123456';
     let serverResponseStub: StubbedType<http.ServerResponse>;
