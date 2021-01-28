@@ -127,7 +127,13 @@ export const sfdc = {
    * @param url
    */
   isInternalUrl: (url: string): boolean => {
-    const INTERNAL_URL_PARTS = ['.vpod.', 'stm.salesforce.com', 'stm.force.com', '.blitz.salesforce.com'];
+    const INTERNAL_URL_PARTS = [
+      '.vpod.',
+      'stm.salesforce.com',
+      'stm.force.com',
+      '.blitz.salesforce.com',
+      '.stm.salesforce.ms',
+    ];
     return (
       url.startsWith('https://gs1.') || sfdc.isLocalUrl(url) || INTERNAL_URL_PARTS.some((part) => url.includes(part))
     );
