@@ -133,6 +133,11 @@ export const sfdc = {
     );
   },
 
+  /**
+   * Tests whether a given internal url runs on a local machine
+   *
+   * @param url
+   */
   isLocalUrl: (url: string): boolean => {
     const LOCAL_PARTS = ['localhost.sfdcdev.', '.internal.'];
     return LOCAL_PARTS.some((part) => url.includes(part));
