@@ -127,14 +127,14 @@ export const sfdc = {
    * @param url
    */
   isInternalUrl: (url: string): boolean => {
-    const INTERNAL_URL_PARTS = [
-      '.internal.',
-      '.vpod.',
-      'stm.salesforce.com',
-      '.blitz.salesforce.com',
-      'localhost.sfdcdev.',
-    ];
+    const INTERNAL_URL_PARTS = ['.vpod.', 'stm.salesforce.com', 'stm.force.com', '.blitz.salesforce.com'];
+    return (
+      url.startsWith('https://gs1.') || sfdc.isLocalUrl(url) || INTERNAL_URL_PARTS.some((part) => url.includes(part))
+    );
+  },
 
-    return url.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some((part) => url.includes(part));
+  isLocalUrl: (url: string): boolean => {
+    const LOCAL_PARTS = ['localhost.sfdcdev.', '.internal.'];
+    return LOCAL_PARTS.some((part) => url.includes(part));
   },
 };
