@@ -65,7 +65,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
 
         try {
           self.logger.debug(`Attempting to resolve url: ${host}`);
-          if (host && host.includes('.internal.salesforce.com')) {
+          if (host?.includes('.internal.salesforce.com') || host?.includes('localhost')) {
             return {
               completed: true,
               payload: '127.0.0.1',
