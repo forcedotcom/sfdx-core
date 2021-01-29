@@ -17,7 +17,7 @@ workflows:
       - release-management/test-package:
           name: node-14
           node_version: '14'
-      // Run windows on the active lts. 
+      # Run windows on the active lts. 
       - release-management/test-package:
           name: node-14-windows
           node_version: '14'
