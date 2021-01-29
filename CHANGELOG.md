@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.16.6](https://github.com/forcedotcom/sfdx-core/compare/v2.16.5...v2.16.6) (2021-01-29)
+
+
+### Bug Fixes
+
+* add internal mil environment ([27e33ae](https://github.com/forcedotcom/sfdx-core/commit/27e33ae0a99ebc2c63364a67348174ab56468290))
+* additional "internal" host ([af15447](https://github.com/forcedotcom/sfdx-core/commit/af15447166e85124326134a4f8d51b9fd05381ea))
+* internal, local, and new stm.force domains ([b93f26d](https://github.com/forcedotcom/sfdx-core/commit/b93f26d2a2e255a0ef3089cde1d20445aa12e802))
+* myDomainResolver shouldn't check localhost ([c07984e](https://github.com/forcedotcom/sfdx-core/commit/c07984e507d98be59ca15da97621b92bd2e73497))
+
 ### [2.16.5](https://github.com/forcedotcom/sfdx-core/compare/v2.16.4...v2.16.5) (2021-01-29)
 
 
