@@ -120,4 +120,32 @@ export const sfdc = {
   matchesAccessToken: (value: string): boolean => {
     return /^(00D\w{12,15})![.\w]*$/.test(value);
   },
+
+  /**
+   * Tests whether a given url is an internal Salesforce domain
+   *
+   * @param url
+   */
+  isInternalUrl: (url: string): boolean => {
+    const INTERNAL_URL_PARTS = [
+      '.vpod.',
+      'stm.salesforce.com',
+      'stm.force.com',
+      '.blitz.salesforce.com',
+      '.stm.salesforce.ms',
+    ];
+    return (
+      url.startsWith('https://gs1.') || sfdc.isLocalUrl(url) || INTERNAL_URL_PARTS.some((part) => url.includes(part))
+    );
+  },
+
+  /**
+   * Tests whether a given internal url runs on a local machine
+   *
+   * @param url
+   */
+  isLocalUrl: (url: string): boolean => {
+    const LOCAL_PARTS = ['localhost.sfdcdev.', '.internal.'];
+    return LOCAL_PARTS.some((part) => url.includes(part));
+  },
 };

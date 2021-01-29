@@ -1634,11 +1634,6 @@ describe('AuthInfo', () => {
         const stmUrl = 'http://mydevhub.stm.salesforce.com';
         await runTest({ loginUrl: stmUrl }, stmUrl);
       });
-
-      it('should use the correct audience URL for an internal URL (.mobile1)', async () => {
-        const mobile1Url = 'http://mobile1.t.salesforce.com';
-        await runTest({ loginUrl: mobile1Url }, mobile1Url);
-      });
     });
 
     describe('sandboxes', () => {

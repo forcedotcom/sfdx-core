@@ -199,25 +199,13 @@ export enum SfdcUrl {
   PRODUCTION = 'https://login.salesforce.com',
 }
 
-const INTERNAL_URL_PARTS = [
-  '.internal.',
-  '.vpod.',
-  'stm.salesforce.com',
-  '.blitz.salesforce.com',
-  'mobile1.t.salesforce.com',
-];
-
-function isInternalUrl(loginUrl = ''): boolean {
-  return loginUrl.startsWith('https://gs1.') || INTERNAL_URL_PARTS.some((part) => loginUrl.includes(part));
-}
-
 function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }) {
   // environment variable is used as an override
   if (process.env.SFDX_AUDIENCE_URL) {
     return process.env.SFDX_AUDIENCE_URL;
   }
 
-  if (options.loginUrl && isInternalUrl(options.loginUrl)) {
+  if (options.loginUrl && sfdc.isInternalUrl(options.loginUrl)) {
     // This is for internal developers when just doing authorize;
     return options.loginUrl;
   }
