@@ -39,7 +39,7 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'Domain Not Found';
-const DNS_TIMEOUT = Math.min(3, new Env().getNumber('SFDX_DNS_TIMEOUT') || 3);
+const DNS_TIMEOUT = Math.max(3, new Env().getNumber('SFDX_DNS_TIMEOUT') || 3);
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
