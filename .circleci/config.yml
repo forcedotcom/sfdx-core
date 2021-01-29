@@ -9,7 +9,7 @@ workflows:
       - release-management/validate-pr:
           filters:
             branches:
-              ignore: master
+              ignore: main
       - release-management/test-package:
           name: node-latest
           node_version: latest
@@ -31,7 +31,6 @@ workflows:
       - release-management/release-package:
           github-release: true
           post-job-steps:
-            - release-management/merge
             - run: yarn ci-docs
           requires:
             - node-latest
@@ -41,4 +40,4 @@ workflows:
             - node-10
           filters:
             branches:
-              only: master
+              only: main

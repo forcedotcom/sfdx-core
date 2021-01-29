@@ -2,6 +2,59 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.17.0](https://github.com/forcedotcom/sfdx-core/compare/v2.16.6...v2.17.0) (2021-01-29)
+
+
+### Features
+
+* adjustable DNS timeout ([9db7b66](https://github.com/forcedotcom/sfdx-core/commit/9db7b66bf8f3fb284ab98c0fbd0906c6195eabc6))
+
+
+### Bug Fixes
+
+* at least 3 ([109da8a](https://github.com/forcedotcom/sfdx-core/commit/109da8a5b335678c4967bd2aef92069e1f1bd955))
+
+### [2.16.6](https://github.com/forcedotcom/sfdx-core/compare/v2.16.5...v2.16.6) (2021-01-29)
+
+
+### Bug Fixes
+
+* add internal mil environment ([27e33ae](https://github.com/forcedotcom/sfdx-core/commit/27e33ae0a99ebc2c63364a67348174ab56468290))
+* additional "internal" host ([af15447](https://github.com/forcedotcom/sfdx-core/commit/af15447166e85124326134a4f8d51b9fd05381ea))
+* internal, local, and new stm.force domains ([b93f26d](https://github.com/forcedotcom/sfdx-core/commit/b93f26d2a2e255a0ef3089cde1d20445aa12e802))
+* myDomainResolver shouldn't check localhost ([c07984e](https://github.com/forcedotcom/sfdx-core/commit/c07984e507d98be59ca15da97621b92bd2e73497))
+
+### [2.16.5](https://github.com/forcedotcom/sfdx-core/compare/v2.16.4...v2.16.5) (2021-01-29)
+
+
+### Bug Fixes
+
+* send oauth error to browser ([5fd027a](https://github.com/forcedotcom/sfdx-core/commit/5fd027a2ee8c12b21621f7478763175f499a1517))
+
+### [2.16.4](https://github.com/forcedotcom/sfdx-core/compare/v2.16.3...v2.16.4) (2021-01-27)
+
+
+### Bug Fixes
+
+* remove mobile domains ([ae413db](https://github.com/forcedotcom/sfdx-core/commit/ae413db35916ecd480524d1994664729c0685f2f))
+
+### [2.16.3](https://github.com/forcedotcom/sfdx-core/compare/v2.16.2...v2.16.3) (2021-01-21)
+
+### [2.16.2](https://github.com/forcedotcom/sfdx-core/compare/v2.16.1...v2.16.2) (2021-01-21)
+
+
+### Bug Fixes
+
+* better error messaging and Steve feedback ([20c8977](https://github.com/forcedotcom/sfdx-core/commit/20c897739d077a15945701843fac9c2c3457dff4))
+* better error name ([43cac98](https://github.com/forcedotcom/sfdx-core/commit/43cac980bba0bf276a28cd7d90b4bc3656cacd3b))
+* error name as a constant ([92ced7e](https://github.com/forcedotcom/sfdx-core/commit/92ced7e7de418c4dc36af6d12be930adcf801706))
+* export name for testing ([fda9ce0](https://github.com/forcedotcom/sfdx-core/commit/fda9ce0a802917cbcf496dc03450182f3ec5f79a))
+* line spacing ([89e4dc7](https://github.com/forcedotcom/sfdx-core/commit/89e4dc7d46e7b3b553329c7eb125caa75015dce1))
+* log versions as string ([d82fe3e](https://github.com/forcedotcom/sfdx-core/commit/d82fe3e8a41c177bd905ee3278332db375dc9761))
+* prevent DNS ENOTFOUND from hitting stdout ([1bc473f](https://github.com/forcedotcom/sfdx-core/commit/1bc473fc36ff70edbb1145b1c2f3ae6e0a4331ee))
+
+### [2.16.1](https://github.com/forcedotcom/sfdx-core/compare/v2.16.0...v2.16.1) (2021-01-20)
+
 ## [2.16.0](https://github.com/forcedotcom/sfdx-core/compare/v2.15.5...v2.16.0) (2021-01-12)
 
 

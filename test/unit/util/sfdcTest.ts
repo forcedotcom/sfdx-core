@@ -147,4 +147,15 @@ describe('util/sfdc', () => {
       expect(sfdc.matchesAccessToken('iamjustaregularusername@example.com')).to.equal(false);
     });
   });
+
+  describe('internal domains', () => {
+    it('stm is internal but not local', () => {
+      expect(sfdc.isInternalUrl('https://inttestdevhub02-dev-ed.lightning.stmfa.stm.force.com/')).to.equal(true);
+      expect(sfdc.isLocalUrl('https://inttestdevhub02-dev-ed.lightning.stmfa.stm.force.com/')).to.equal(false);
+    });
+    it('localhost domain is both internal and local, and tolerates local host ports', () => {
+      expect(sfdc.isInternalUrl('scorpio-ryan-2873-dev-ed.my.localhost.sfdcdev.salesforce.com:6109')).to.equal(true);
+      expect(sfdc.isLocalUrl('scorpio-ryan-2873-dev-ed.my.localhost.sfdcdev.salesforce.com:6109')).to.equal(true);
+    });
+  });
 });

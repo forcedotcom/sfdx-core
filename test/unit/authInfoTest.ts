@@ -1643,11 +1643,6 @@ describe('AuthInfo', () => {
       await runTest({ loginUrl: stmUrl }, stmUrl);
     });
 
-    it('should use the correct audience URL for an internal URL (.mobile1)', async () => {
-      const mobile1Url = 'http://mobile1.t.salesforce.com';
-      await runTest({ loginUrl: mobile1Url }, mobile1Url);
-    });
-
     it('should use the correct audience URL for createdOrgInstance beginning with "cs"', async () => {
       await runTest({ createdOrgInstance: 'cs17' }, 'https://test.salesforce.com');
     });
