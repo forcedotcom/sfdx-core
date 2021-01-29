@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.16.5](https://github.com/forcedotcom/sfdx-core/compare/v2.16.4...v2.16.5) (2021-01-29)
+
+
+### Bug Fixes
+
+* send oauth error to browser ([5fd027a](https://github.com/forcedotcom/sfdx-core/commit/5fd027a2ee8c12b21621f7478763175f499a1517))
+
 ### [2.16.4](https://github.com/forcedotcom/sfdx-core/compare/v2.16.3...v2.16.4) (2021-01-27)
 
 
