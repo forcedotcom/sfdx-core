@@ -35,9 +35,10 @@ workflows:
             - run: yarn ci-docs
           requires:
             - node-latest
+            - node-14
+            - node-14-windows
             - node-12
             - node-10
-            - windows-test
           filters:
             branches:
               only: master
