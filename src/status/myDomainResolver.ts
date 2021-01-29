@@ -13,6 +13,7 @@ import { ensureString } from '@salesforce/ts-types';
 
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import { Logger } from '../logger';
+import { sfdc } from '../util/sfdc';
 import { StatusResult } from './client';
 import { PollingClient } from './pollingClient';
 
@@ -65,7 +66,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
 
         try {
           self.logger.debug(`Attempting to resolve url: ${host}`);
-          if (host && host.includes('.internal.salesforce.com')) {
+          if (sfdc.isLocalUrl(host)) {
             return {
               completed: true,
               payload: '127.0.0.1',
