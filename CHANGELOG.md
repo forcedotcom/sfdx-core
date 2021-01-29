@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.17.0](https://github.com/forcedotcom/sfdx-core/compare/v2.16.6...v2.17.0) (2021-01-29)
+
+
+### Features
+
+* adjustable DNS timeout ([9db7b66](https://github.com/forcedotcom/sfdx-core/commit/9db7b66bf8f3fb284ab98c0fbd0906c6195eabc6))
+
+
+### Bug Fixes
+
+* at least 3 ([109da8a](https://github.com/forcedotcom/sfdx-core/commit/109da8a5b335678c4967bd2aef92069e1f1bd955))
+
 ### [2.16.6](https://github.com/forcedotcom/sfdx-core/compare/v2.16.5...v2.16.6) (2021-01-29)
 
 
