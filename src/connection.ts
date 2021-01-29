@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { URL } from 'url';
-import { Duration, maxBy, merge } from '@salesforce/kit';
+import { Duration, maxBy, merge, Env } from '@salesforce/kit';
 import { asString, ensure, getNumber, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
@@ -39,6 +39,7 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'Domain Not Found';
+const DNS_TIMEOUT = Math.max(3, new Env().getNumber('SFDX_DNS_TIMEOUT') || 3);
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
@@ -218,8 +219,8 @@ export class Connection extends JSForceConnection {
     }
     const resolver = await MyDomainResolver.create({
       url: new URL(this.options.connectionOptions.instanceUrl),
-      timeout: Duration.seconds(10),
-      frequency: Duration.seconds(10),
+      timeout: Duration.seconds(DNS_TIMEOUT),
+      frequency: Duration.seconds(DNS_TIMEOUT),
     });
     try {
       await resolver.resolve();
