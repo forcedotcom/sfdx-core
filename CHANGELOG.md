@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.18.0](https://github.com/forcedotcom/sfdx-core/compare/v2.17.0...v2.18.0) (2021-02-01)
+
+
+### Features
+
+* falcon usa support w/o createdOrgInstance ([ec15d37](https://github.com/forcedotcom/sfdx-core/commit/ec15d37cb2500e41e787c432579e87ec7ed126d4))
+* more falcon domain support, url case insensitivity ([f72b85d](https://github.com/forcedotcom/sfdx-core/commit/f72b85d3e8a875306654bc7eb5b692218f242518))
+* more jwt audience domains ([03751ea](https://github.com/forcedotcom/sfdx-core/commit/03751ea884eacb59eecaadd139a8a09035cd08d0))
+
+
+### Bug Fixes
+
+* audience for loginUrls without my in the domain ([2bca84c](https://github.com/forcedotcom/sfdx-core/commit/2bca84c0b66d59b536ffa61f051e43b43c4c23dd))
+* audiences handle uppercased CS instances ([0d6d3ea](https://github.com/forcedotcom/sfdx-core/commit/0d6d3ea14601c1008f16e7d23af2802ef8e3ff65))
+* audiences use instanceURL ([64590cc](https://github.com/forcedotcom/sfdx-core/commit/64590cc4f9f30a37dbf4d17a6cf8db53ba0bdd09))
+* support enhanced domains ([a89ce21](https://github.com/forcedotcom/sfdx-core/commit/a89ce21c24ddbdd4cfad0772490f16768e5a0e3c))
+
 ## [2.17.0](https://github.com/forcedotcom/sfdx-core/compare/v2.16.6...v2.17.0) (2021-01-29)
 
 
