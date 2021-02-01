@@ -1,5 +1,9 @@
 import typescript from 'rollup-plugin-typescript2';
 import visualizer from 'rollup-plugin-visualizer';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import { terser } from 'rollup-plugin-terser';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -20,13 +24,25 @@ fs.readdirSync('src', { withFileTypes: true }).forEach(file => {
 
 export default {
   input,
-  output: {
-    dir: 'build',
-    // file: "build/bundle.js",
-    format: 'cjs',
-    sourcemap: true
-  },
+  output: [
+    {
+      dir: 'lib',
+      format: 'cjs',
+      sourcemap: true
+    }
+    // {
+    //   dir: "build-es",
+    //   format: "es",
+    //   sourcemap: true,
+    // },
+  ],
+  // treeshake: {
+  //   'moduleSideEffects': false
+  // },
   plugins: [
+    json(),
+    nodeResolve(),
+    commonjs(),
     typescript({
       clean: false,
       tsconfigOverride: {
@@ -34,7 +50,8 @@ export default {
           declaration: false
         }
       }
-    }),
-    isProduction && visualizer()
+    })
+    // terser(), // isProduction && (await import('rollup-plugin-terser')).terser()
+    // !isProduction && visualizer(),
   ]
 };
