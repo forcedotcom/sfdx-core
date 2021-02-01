@@ -199,28 +199,34 @@ export enum SfdcUrl {
   PRODUCTION = 'https://login.salesforce.com',
 }
 
-function getJwtAudienceUrl(options: OAuth2Options) {
-  // default audience must be...
-  let audienceUrl: string = SfdcUrl.PRODUCTION;
-  const loginUrl = getString(options, 'loginUrl', '');
-  const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
-
+function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }) {
+  // environment variable is used as an override
   if (process.env.SFDX_AUDIENCE_URL) {
-    audienceUrl = process.env.SFDX_AUDIENCE_URL;
-  } else if (sfdc.isInternalUrl(loginUrl)) {
-    // This is for internal developers when just doing authorize;
-    audienceUrl = loginUrl;
-  } else if (
-    createdOrgInstance.startsWith('cs') ||
-    createdOrgInstance.endsWith('s') ||
-    urlParse(loginUrl).hostname === 'test.salesforce.com'
-  ) {
-    audienceUrl = SfdcUrl.SANDBOX;
-  } else if (createdOrgInstance.startsWith('gs1')) {
-    audienceUrl = 'https://gs1.salesforce.com';
+    return process.env.SFDX_AUDIENCE_URL;
   }
 
-  return audienceUrl;
+  if (options.loginUrl && sfdc.isInternalUrl(options.loginUrl)) {
+    // This is for internal developers when just doing authorize;
+    return options.loginUrl;
+  }
+
+  const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
+  const loginUrlLowercased = options.loginUrl?.toLowerCase();
+  if (
+    createdOrgInstance.startsWith('cs') ||
+    createdOrgInstance.endsWith('s') ||
+    loginUrlLowercased?.includes('sandbox.my.salesforce.com') || // enhanced domains >= 230
+    loginUrlLowercased?.match(/(cs[0-9]+(\.my|)\.salesforce\.com)/g) || // my domains on CS instance OR CS instance without my domain
+    loginUrlLowercased?.match(/([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/g) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
+    (options.loginUrl && urlParse(options.loginUrl).hostname === 'test.salesforce.com')
+  ) {
+    return SfdcUrl.SANDBOX;
+  }
+  if (createdOrgInstance.startsWith('gs1') || options.loginUrl?.match(/(gs1.my.salesforce.com)/g)) {
+    return 'https://gs1.salesforce.com';
+  }
+
+  return SfdcUrl.PRODUCTION;
 }
 
 // parses the id field returned from jsForce oauth2 methods to get

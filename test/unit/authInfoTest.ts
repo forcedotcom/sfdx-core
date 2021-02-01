@@ -1615,48 +1615,109 @@ describe('AuthInfo', () => {
       expect(signStub.firstCall.args[0]).to.have.property('aud', expectedUrl);
     }
 
+    describe('internal urls', () => {
+      it('should use the correct audience URL for an internal URL (.internal)', async () => {
+        await runTest({ loginUrl: testMetadata.instanceUrl }, testMetadata.instanceUrl);
+      });
+
+      it('should use the correct audience URL for an internal URL (.vpod)', async () => {
+        const vpodUrl = 'http://mydevhub.vpod.salesforce.com';
+        await runTest({ loginUrl: vpodUrl }, vpodUrl);
+      });
+
+      it('should use the correct audience URL for an internal URL (.blitz)', async () => {
+        const blitzUrl = 'http://mydevhub.blitz.salesforce.com';
+        await runTest({ loginUrl: blitzUrl }, blitzUrl);
+      });
+
+      it('should use the correct audience URL for an internal URL (.stm)', async () => {
+        const stmUrl = 'http://mydevhub.stm.salesforce.com';
+        await runTest({ loginUrl: stmUrl }, stmUrl);
+      });
+    });
+
+    describe('sandboxes', () => {
+      it('should use the correct audience URL for a sandbox', async () => {
+        await runTest({ loginUrl: 'http://test.salesforce.com/foo/bar' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for createdOrgInstance beginning with "cs"', async () => {
+        await runTest({ createdOrgInstance: 'cs17' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for createdOrgInstance beginning with "CS"', async () => {
+        await runTest({ createdOrgInstance: 'CS17' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for createdOrgInstance ending with "s"', async () => {
+        await runTest({ createdOrgInstance: 'usa2s' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for createdOrgInstance capitalized and ending with "s"', async () => {
+        await runTest({ createdOrgInstance: 'IND2S' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for sandbox enhanced domains', async () => {
+        await runTest(
+          { loginUrl: 'https://customdomain--sandboxname.sandbox.my.salesforce.com' },
+          'https://test.salesforce.com'
+        );
+      });
+
+      it('should use the correct audience URL for scratch orgs with domains', async () => {
+        await runTest({ loginUrl: 'https://cs17.my.salesforce.com' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for scratch orgs with domains (capitalized)', async () => {
+        await runTest({ loginUrl: 'https://CS17.my.salesforce.com' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for scratch orgs without domains', async () => {
+        await runTest({ loginUrl: 'https://cs17.salesforce.com' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for a typical scratch org domain', async () => {
+        await runTest(
+          { loginUrl: 'https://computing-nosoftware-9542-dev-ed.cs77.my.salesforce.com' },
+          'https://test.salesforce.com'
+        );
+      });
+      it;
+
+      it('should use the correct audience URL for scratch orgs without domains (capitalized)', async () => {
+        await runTest({ loginUrl: 'https://CS17.salesforce.com' }, 'https://test.salesforce.com');
+      });
+    });
+
+    describe('falcon', () => {
+      it('returns sandbox audience for falcon domains', async () => {
+        await runTest({ loginUrl: 'https://usa2s.sfdc-yfeipo.salesforce.com/' }, 'https://test.salesforce.com');
+      });
+
+      it('returns sandbox audience for falcon domains in india', async () => {
+        await runTest({ loginUrl: 'https://ind2s.sfdc-yfeipo.salesforce.com/' }, 'https://test.salesforce.com');
+      });
+
+      it('returns sandbox audience for weirdly uppercased falcon domains', async () => {
+        await runTest({ loginUrl: 'https://USA2S.sfdc-yfeipo.salesforce.com/' }, 'https://test.salesforce.com');
+      });
+
+      it('returns prod audience for falcon domains', async () => {
+        await runTest({ loginUrl: 'https://usa2.sfdc-yfeipo.salesforce.com/' }, 'https://login.salesforce.com');
+      });
+    });
+
     it('should use the correct audience URL for SFDX_AUDIENCE_URL env var', async () => {
       process.env.SFDX_AUDIENCE_URL = 'http://authInfoTest/audienceUrl/test';
       await runTest({}, process.env.SFDX_AUDIENCE_URL);
     });
 
-    it('should use the correct audience URL for a sandbox', async () => {
-      await runTest({ loginUrl: 'http://test.salesforce.com/foo/bar' }, 'https://test.salesforce.com');
-    });
-
-    it('should use the correct audience URL for an internal URL (.internal)', async () => {
-      await runTest({ loginUrl: testMetadata.instanceUrl }, testMetadata.instanceUrl);
-    });
-
-    it('should use the correct audience URL for an internal URL (.vpod)', async () => {
-      const vpodUrl = 'http://mydevhub.vpod.salesforce.com';
-      await runTest({ loginUrl: vpodUrl }, vpodUrl);
-    });
-
-    it('should use the correct audience URL for an internal URL (.blitz)', async () => {
-      const blitzUrl = 'http://mydevhub.blitz.salesforce.com';
-      await runTest({ loginUrl: blitzUrl }, blitzUrl);
-    });
-
-    it('should use the correct audience URL for an internal URL (.stm)', async () => {
-      const stmUrl = 'http://mydevhub.stm.salesforce.com';
-      await runTest({ loginUrl: stmUrl }, stmUrl);
-    });
-
-    it('should use the correct audience URL for createdOrgInstance beginning with "cs"', async () => {
-      await runTest({ createdOrgInstance: 'cs17' }, 'https://test.salesforce.com');
-    });
-
-    it('should use the correct audience URL for createdOrgInstance ending with "s"', async () => {
-      await runTest({ createdOrgInstance: 'usa2s' }, 'https://test.salesforce.com');
-    });
-
-    it('should use the correct audience URL for createdOrgInstance capitalized and ending with "s"', async () => {
-      await runTest({ createdOrgInstance: 'IND2S' }, 'https://test.salesforce.com');
-    });
-
     it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
       await runTest({ createdOrgInstance: 'gs1' }, 'https://gs1.salesforce.com');
+    });
+
+    it('should use the correct audience URL for production enhanced domains', async () => {
+      await runTest({ loginUrl: 'https://customdomain.my.salesforce.com' }, 'https://login.salesforce.com');
     });
   });
 
