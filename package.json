@@ -6,6 +6,7 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "build": "yarn sfdx-build",
+    "build:rollup": "rollup -c",
     "ci-docs": "yarn sfdx-ci-docs",
     "clean": "yarn sfdx-clean",
     "clean-all": "yarn sfdx-clean all",
@@ -50,8 +51,8 @@
     "sfdx-faye": "^1.0.9"
   },
   "devDependencies": {
-    "@salesforce/ts-sinon": "^1.0.0",
     "@salesforce/dev-scripts": "0.3.14",
+    "@salesforce/ts-sinon": "^1.0.0",
     "@types/debug": "0.0.30",
     "@types/jsen": "0.0.19",
     "@types/jsonwebtoken": "8.3.2",
@@ -59,6 +60,9 @@
     "@types/shelljs": "0.7.8",
     "commitizen": "^3.0.5",
     "husky": "^1",
+    "rollup": "^2.38.1",
+    "rollup-plugin-typescript2": "^0.29.0",
+    "rollup-plugin-visualizer": "^4.2.0",
     "semantic-release": "^15.10.5",
     "shelljs": "0.8.1"
   },
