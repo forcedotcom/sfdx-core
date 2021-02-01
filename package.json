@@ -6,6 +6,7 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "build": "yarn sfdx-build",
+    "build:rollup": "rollup -c",
     "ci-docs": "yarn sfdx-ci-docs",
     "clean": "yarn sfdx-clean",
     "clean-all": "yarn sfdx-clean all",
@@ -62,6 +63,9 @@
     "@types/shelljs": "0.7.8",
     "commitizen": "^3.0.5",
     "husky": "^1",
+    "rollup": "^2.38.1",
+    "rollup-plugin-typescript2": "^0.29.0",
+    "rollup-plugin-visualizer": "^4.2.0",
     "semantic-release": "^15.10.5",
     "shelljs": "0.8.1"
   },
