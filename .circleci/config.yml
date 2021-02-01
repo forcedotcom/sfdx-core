@@ -20,7 +20,7 @@ _refs:
     command: yarn
   build: &build
     name: Building
-    command: yarn build
+    command: yarn build:rollup
   test: &test
     name: Testing
     command: yarn test

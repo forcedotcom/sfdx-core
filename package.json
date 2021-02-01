@@ -6,7 +6,7 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "build": "yarn sfdx-build",
-    "build:rollup": "rollup -c",
+    "build:rollup": "rimraf lib/ && rollup -c",
     "ci-docs": "yarn sfdx-ci-docs",
     "clean": "yarn sfdx-clean",
     "clean-all": "yarn sfdx-clean all",
@@ -51,6 +51,9 @@
     "sfdx-faye": "^1.0.9"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^17.1.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^11.1.1",
     "@salesforce/dev-scripts": "0.3.14",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/debug": "0.0.30",
@@ -60,7 +63,9 @@
     "@types/shelljs": "0.7.8",
     "commitizen": "^3.0.5",
     "husky": "^1",
+    "rimraf": "^3.0.2",
     "rollup": "^2.38.1",
+    "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.29.0",
     "rollup-plugin-visualizer": "^4.2.0",
     "semantic-release": "^15.10.5",
