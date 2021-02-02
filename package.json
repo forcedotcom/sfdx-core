@@ -16,7 +16,6 @@
     "lint": "yarn sfdx-lint",
     "lint-fix": "yarn sfdx-lint --fix",
     "postcompile": "tsc -p test; tsc -p typedocExamples",
-    "prepack": "yarn build:rollup",
     "test": "yarn sfdx-test"
   },
   "keywords": [
