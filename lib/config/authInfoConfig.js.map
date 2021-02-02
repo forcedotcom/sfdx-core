@@ -1,0 +1,1 @@
+{"version":3,"file":"authInfoConfig.js","sourceRoot":"","sources":["../../src/config/authInfoConfig.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAEH,OAAO,EAAE,UAAU,EAAE,MAAM,cAAc,CAAC;AAE1C;;;;;;;GAOG;AACH,MAAM,OAAO,cAAe,SAAQ,UAA8B;IAChE;;;OAGG;IACI,MAAM,CAAC,UAAU,CAAC,QAAgB;QACvC,OAAO;YACL,QAAQ,EAAE,IAAI;YACd,OAAO,EAAE,IAAI;YACb,QAAQ,EAAE,GAAG,QAAQ,OAAO;SAC7B,CAAC;IACJ,CAAC;CACF"}
