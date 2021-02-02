@@ -8,7 +8,7 @@
 **/yarn-error.log
 **/lerna-debug.log
 
-**/lib
+# **/lib
 
 **/*xunit.xml
 **/*checkstyle.xml
