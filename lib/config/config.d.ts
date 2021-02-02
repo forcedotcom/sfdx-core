@@ -74,6 +74,10 @@ export declare class Config extends ConfigFile<ConfigFile.Options> {
    */
   static readonly DISABLE_TELEMETRY = 'disableTelemetry';
   /**
+   * allows users to override the 10,000 result query limit
+   */
+  static readonly MAX_QUERY_LIMIT = 'maxQueryLimit';
+  /**
    * Returns the default file name for a config file.
    *
    * **See** {@link SFDX_CONFIG_FILE_NAME}
@@ -122,6 +126,13 @@ export declare class Config extends ConfigFile<ConfigFile.Options> {
    * @param value The value of the property.
    */
   set(key: string, value: ConfigValue): ConfigContents;
+  /**
+   * Unsets a value for a property.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKey' }* If the input validator fails.
+   * @param key The property to unset.
+   */
+  unset(key: string): boolean;
   /**
    * Initializer for supported config types.
    */

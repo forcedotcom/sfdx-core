@@ -1,4 +1,6 @@
 import { Stats as fsStats } from 'fs';
+import { Logger } from '../logger';
+import { Messages } from '../messages';
 import { BaseConfigStore, ConfigContents } from './configStore';
 /**
  * Represents a json config file used to manage settings and state. Global config
@@ -36,6 +38,9 @@ export declare class ConfigFile<T extends ConfigFile.Options> extends BaseConfig
    * @param isGlobal True if the config should be global. False for local.
    */
   static resolveRootFolder(isGlobal: boolean): Promise<string>;
+  protected hasRead: boolean;
+  protected logger: Logger;
+  protected messages: Messages;
   private path;
   /**
    * Constructor
@@ -53,11 +58,14 @@ export declare class ConfigFile<T extends ConfigFile.Options> extends BaseConfig
    */
   access(perm: number): Promise<boolean>;
   /**
-   * Read the config file and set the config contents. Returns the config contents of the config file.
+   * Read the config file and set the config contents. Returns the config contents of the config file. As an
+   * optimization, files are only read once per process and updated in memory and via `write()`. To force
+   * a read from the filesystem pass `force=true`.
    * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
+   * @param [force = true] Optionally force the file to be read from disk even when already read within the process.
    */
-  read(throwOnNotFound?: boolean): Promise<ConfigContents>;
+  read(throwOnNotFound?: boolean, force?: boolean): Promise<ConfigContents>;
   /**
    * Write the config file with new contents. If no new contents are provided it will write the existing config
    * contents that were set from {@link ConfigFile.read}, or an empty file if {@link ConfigFile.read} was not called.

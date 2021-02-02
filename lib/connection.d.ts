@@ -1,10 +1,12 @@
 import { JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
-import { Tooling as JSForceTooling } from 'jsforce';
-import { ExecuteOptions } from 'jsforce';
-import { QueryResult } from 'jsforce';
-import { RequestInfo } from 'jsforce';
-import { ConnectionOptions } from 'jsforce';
-import { Connection as JSForceConnection } from 'jsforce';
+import {
+  Connection as JSForceConnection,
+  ConnectionOptions,
+  ExecuteOptions,
+  QueryResult,
+  RequestInfo,
+  Tooling as JSForceTooling
+} from 'jsforce';
 import { AuthFields, AuthInfo } from './authInfo';
 import { ConfigAggregator } from './config/configAggregator';
 export declare const SFDX_HTTP_HEADERS: {

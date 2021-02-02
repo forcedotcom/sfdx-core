@@ -38,7 +38,7 @@ export declare const sfdc: {
    * Returns the first key within the object that has an upper case first letter.
    *
    * @param data The object in which to check key casing.
-   * @param sectionBlacklist properties in the object to exclude from the search. e.g. a blacklist of `["a"]` and data of `{ "a": { "B" : "b"}}` would ignore `B` because it is in the object value under `a`.
+   * @param sectionBlocklist properties in the object to exclude from the search. e.g. a blocklist of `["a"]` and data of `{ "a": { "B" : "b"}}` would ignore `B` because it is in the object value under `a`.
    */
-  findUpperCaseKeys: (data?: Optional<JsonMap>, sectionBlacklist?: string[]) => string | undefined;
+  findUpperCaseKeys: (data?: Optional<JsonMap>, sectionBlocklist?: string[]) => string | undefined;
 };

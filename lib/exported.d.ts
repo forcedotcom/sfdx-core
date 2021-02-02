@@ -9,6 +9,7 @@ export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 export { AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl } from './authInfo';
 export { Connection, SFDX_HTTP_HEADERS } from './connection';
 export { Mode, Global } from './global';
+export { Lifecycle } from './lifecycleEvents';
 export {
   Fields,
   FieldValue,

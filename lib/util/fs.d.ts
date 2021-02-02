@@ -1,5 +1,6 @@
 import { AnyJson, JsonMap } from '@salesforce/ts-types';
-import * as fsLib from 'fs';
+import * as fsLib from 'graceful-fs';
+declare type PerformFunction = (filePath: string, file?: string, dir?: string) => Promise<void>;
 export declare const fs: {
   /**
    * The default file system mode to use when creating directories.
@@ -46,6 +47,7 @@ export declare const fs: {
    * Promisified version of {@link https://nodejs.org/api/fsLib.html#fs_fs_fstat_fd_callback|fsLib.stat}.
    */
   stat: typeof fsLib.stat.__promisify__;
+  statSync: typeof fsLib.statSync;
   /**
    * Promisified version of {@link https://npmjs.com/package/mkdirp|mkdirp}.
    */
@@ -68,6 +70,15 @@ export declare const fs: {
    */
   traverseForFile: (dir: string, file: string) => Promise<string | undefined>;
   /**
+   * Searches a file path synchronously in an ascending manner (until reaching the filesystem root) for the first occurrence a
+   * specific file name.  Resolves with the directory path containing the located file, or `null` if the file was
+   * not found.
+   *
+   * @param dir The directory path in which to start the upward search.
+   * @param file The file name to look for.
+   */
+  traverseForFileSync: (dir: string, file: string) => string | undefined;
+  /**
    * Read a file and convert it to JSON. Returns the contents of the file as a JSON object
    *
    * @param jsonPath The path of the file.
@@ -88,4 +99,34 @@ export declare const fs: {
    * @param data The JSON object to write.
    */
   writeJson: (jsonPath: string, data: AnyJson) => Promise<void>;
+  /**
+   * Checks if a file path exists
+   *
+   * @param filePath the file path to check the existence of
+   */
+  fileExists: (filePath: string) => Promise<boolean>;
+  /**
+   * Recursively act on all files or directories in a directory
+   *
+   * @param dir path to directory
+   * @param perform function to be run on contents of dir
+   * @param onType optional parameter to specify type to actOn
+   * @returns void
+   */
+  actOn: (dir: string, perform: PerformFunction, onType?: 'dir' | 'file') => Promise<void>;
+  /**
+   * Checks if files are the same
+   *
+   * @param file1Path the first file path to check
+   * @param file2Path the second file path to check
+   * @returns boolean
+   */
+  areFilesEqual: (file1Path: string, file2Path: string) => Promise<boolean>;
+  /**
+   * Creates a hash for the string that's passed in
+   * @param contents The string passed into the function
+   * @returns string
+   */
+  getContentHash(contents: string | Buffer): string;
 };
+export {};

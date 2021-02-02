@@ -22,6 +22,10 @@ export interface LoggerOptions {
    */
   name: string;
   /**
+   * The logger format type. Current options include LogFmt or JSON (default).
+   */
+  format?: LoggerFormat;
+  /**
    * The logger's serializers.
    */
   serializers?: Serializers;
@@ -54,6 +58,13 @@ export declare enum LoggerLevel {
   WARN = 40,
   ERROR = 50,
   FATAL = 60
+}
+/**
+ *  `Logger` format types.
+ */
+export declare enum LoggerFormat {
+  JSON = 0,
+  LOGFMT = 1
 }
 /**
  * A Bunyan stream configuration.
@@ -177,6 +188,7 @@ export declare class Logger {
   private static readonly lifecycle;
   private static rootLogger?;
   private bunyan;
+  private format;
   /**
    * Constructs a new `Logger`.
    *
@@ -327,4 +339,5 @@ export declare class Logger {
   private applyFilters;
   private uncaughtExceptionHandler;
   private exitHandler;
+  private createLogFmtFormatterStream;
 }

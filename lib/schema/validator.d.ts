@@ -12,7 +12,7 @@ export declare class SchemaValidator {
    * Creates a new `SchemaValidator` instance given a logger and path to a schema file.
    *
    * @param logger An {@link Logger} instance on which to base this class's logger.
-   * @param schemaPath The path from which the schema with which to validate should be loaded.
+   * @param schemaPath The path to the schema file to load and use for validation.
    */
   constructor(logger: Logger, schemaPath: string);
   /**
