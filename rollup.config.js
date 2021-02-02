@@ -44,12 +44,12 @@ export default {
     nodeResolve(),
     commonjs(),
     typescript({
-      clean: false,
-      tsconfigOverride: {
-        compilerOptions: {
-          declaration: false
-        }
-      }
+      clean: false
+      // tsconfigOverride: {
+      //   compilerOptions: {
+      //     declaration: false,
+      //   },
+      // },
     })
     // terser(), // isProduction && (await import('rollup-plugin-terser')).terser()
     // !isProduction && visualizer(),
