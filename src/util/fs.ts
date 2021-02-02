@@ -240,8 +240,8 @@ export const fs = Object.assign({}, fsLib, {
    * @param jsonPath The path of the file to write.
    * @param data The JSON object to write.
    */
-  writeJson: async (jsonPath: string, data: AnyJson): Promise<void> => {
-    const fileData: string = JSON.stringify(data, null, 4);
+  writeJson: async (jsonPath: string, data: AnyJson, space: string | number | undefined = 2): Promise<void> => {
+    const fileData: string = JSON.stringify(data, null, space);
     await fs.writeFile(jsonPath, fileData, {
       encoding: 'utf8',
       mode: fs.DEFAULT_USER_FILE_MODE,
@@ -254,8 +254,8 @@ export const fs = Object.assign({}, fsLib, {
    * @param jsonPath The path of the file to write.
    * @param data The JSON object to write.
    */
-  writeJsonSync: (jsonPath: string, data: AnyJson): void => {
-    const fileData: string = JSON.stringify(data, null, 4);
+  writeJsonSync: (jsonPath: string, data: AnyJson, space: string | number | undefined = 2): void => {
+    const fileData: string = JSON.stringify(data, null, space);
     fs.writeFileSync(jsonPath, fileData, {
       encoding: 'utf8',
       mode: fs.DEFAULT_USER_FILE_MODE,
