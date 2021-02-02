@@ -35,7 +35,6 @@ _refs:
       git config credential.helper 'cache --timeout=120'
       git config user.email "$GH_EMAIL"
       git config user.name "Deployment Bot"
-
 _defaults: &defaults
   docker:
     - image: node:latest
@@ -107,25 +106,25 @@ jobs:
 
 workflows:
   version: 2
-  test-and-release:
+  sfdx-core:
     jobs:
-      - release-management/test-package:
-          name: node-latest
-          node_version: latest
-          upload-coverage: true
-      - release-management/test-package:
-          name: node-12
-      - release-management/test-package:
-          node_version: '10'
-          name: node-10
-      - release-management/release-package:
-          post-job-steps:
-            - release-management/merge
-            - run: yarn ci-docs
+      - node-latest
+      - node-12
+      - node-10
+      - release:
+          filters:
+            branches: { only: master }
           requires:
             - node-latest
             - node-12
             - node-10
+      - merge:
           filters:
-            branches:
-              only: master
+            branches: { only: master }
+          requires:
+            - release
+      - ci-docs:
+          filters:
+            branches: { only: master }
+          requires:
+            - release
