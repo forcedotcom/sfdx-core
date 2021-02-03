@@ -407,7 +407,7 @@ describe('util/fs', () => {
       const testFilePath = 'utilTest_testFilePath';
       const testJSON = { username: 'utilTest_username' };
       const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
-      await fs.writeJson(testFilePath, testJSON, 4);
+      await fs.writeJson(testFilePath, testJSON, { space: 4 });
       expect(writeStub.called).to.be.true;
       expect(writeStub.firstCall.args[0]).to.equal(testFilePath);
       expect(writeStub.firstCall.args[1]).to.deep.equal(stringifiedTestJSON);
@@ -439,7 +439,7 @@ describe('util/fs', () => {
       const testFilePath = 'utilTest_testFilePath';
       const testJSON = { username: 'utilTest_username' };
       const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
-      fs.writeJsonSync(testFilePath, testJSON, 4);
+      fs.writeJsonSync(testFilePath, testJSON, { space: 4 });
       expect(writeStub.called).to.be.true;
       expect(writeStub.firstCall.args[0]).to.equal(testFilePath);
       expect(writeStub.firstCall.args[1]).to.deep.equal(stringifiedTestJSON);
