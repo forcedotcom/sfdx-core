@@ -838,7 +838,7 @@ arrify@^2.0.1:
   resolved "https://registry.yarnpkg.com/arrify/-/arrify-2.0.1.tgz#c9655e9331e0abcd588d2a7cad7e9956f66701fa"
   integrity sha512-3duEwti880xqi4eAMN8AyR4a0ByT90zoYdLlevfrvU43vb0YZwZVfxOgxWrLXXXpyugL0hNZc9G6BiB5B3nUug==
 
-asap@*, asap@~2.0.3, asap@~2.0.6:
+asap@*, asap@~2.0.3:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/asap/-/asap-2.0.6.tgz#e50347611d7e690943208bbdafebcbc2fb866d46"
   integrity sha1-5QNHYR1+aQlDIIu9r+vLwvuGbUY=
@@ -1384,7 +1384,7 @@ cross-spawn@^7.0.0:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-csprng@*, csprng@~0.1.2:
+csprng@*:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/csprng/-/csprng-0.1.2.tgz#4bc68f12fa368d252a59841cbaca974b18ab45e2"
   integrity sha1-S8aPEvo2jSUqWYQcusqXSxirReI=
@@ -2016,13 +2016,6 @@ faye-websocket@>=0.9.1:
   version "0.11.3"
   resolved "https://registry.yarnpkg.com/faye-websocket/-/faye-websocket-0.11.3.tgz#5c0e9a8968e8912c286639fde977a8b209f2508e"
   integrity sha512-D2y4bovYpzziGgbHYtGCMjlJM36vAl/y+xUyn1C+FVx8szd1E+86KwVw6XvYSzOP8iMpm1X0I4xJD+QtUb36OA==
-  dependencies:
-    websocket-driver ">=0.5.1"
-
-faye-websocket@~0.9.1:
-  version "0.9.4"
-  resolved "https://registry.yarnpkg.com/faye-websocket/-/faye-websocket-0.9.4.tgz#885934c79effb0409549e0c0a3801ed17a40cdad"
-  integrity sha1-iFk0x57/sECVSeDAo4Ae0XpAza0=
   dependencies:
     websocket-driver ">=0.5.1"
 
@@ -4158,7 +4151,7 @@ promise@^7.1.1:
   dependencies:
     asap "~2.0.3"
 
-psl@^1.1.24, psl@^1.1.28, psl@^1.1.33:
+psl@^1.1.28, psl@^1.1.33:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/psl/-/psl-1.8.0.tgz#9326f8bcfb013adcc005fdff056acce020e51c24"
   integrity sha512-RIdOzyoavK+hA18OGGWDqUTsCLhtA7IcZ/6NCs4fFJaHBDab+pDDmDIByWFRQJq2Cd7r1OoQxBGKOaztq+hjIQ==
@@ -4170,11 +4163,6 @@ pump@^3.0.0:
   dependencies:
     end-of-stream "^1.1.0"
     once "^1.3.1"
-
-punycode@^1.4.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/punycode/-/punycode-1.4.1.tgz#c0d5a63b2718800ad8e1eb0fa5269c84dd41845e"
-  integrity sha1-wNWmOycYgArY4esPpSachN1BhF4=
 
 punycode@^2.1.0, punycode@^2.1.1:
   version "2.1.1"
@@ -4567,17 +4555,6 @@ set-value@^2.0.0, set-value@^2.0.1:
     is-extendable "^0.1.1"
     is-plain-object "^2.0.3"
     split-string "^3.0.1"
-
-sfdx-faye@^1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/sfdx-faye/-/sfdx-faye-1.0.9.tgz#24e678ddb783d7085f3e40a2c155ac367416be26"
-  integrity sha512-/p0Ifvhh9rVYj6YmYOBU+psQsP+9RrNrUU4lr1p+HhZhTgnviMIabcgKZUN12S69zUpl0YagpFdMhmxKGkf+5g==
-  dependencies:
-    asap "~2.0.6"
-    csprng "~0.1.2"
-    faye-websocket "~0.9.1"
-    tough-cookie "~2.4.3"
-    tunnel-agent "~0.6.0"
 
 shebang-command@^1.2.0:
   version "1.2.0"
@@ -5065,14 +5042,6 @@ tough-cookie@*:
     punycode "^2.1.1"
     universalify "^0.1.2"
 
-tough-cookie@~2.4.3:
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.4.3.tgz#53f36da3f47783b0925afa06ff9f3b165280f781"
-  integrity sha512-Q5srk/4vDM54WJsJio3XNn6K2sCG+CQ8G5Wz6bZhRZoAe/+TxjWB/GlFAnYEbkYVlON9FMk/fE3h2RLpPXo4lQ==
-  dependencies:
-    psl "^1.1.24"
-    punycode "^1.4.1"
-
 tough-cookie@~2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.5.0.tgz#cd9fb2a0aa1d5a12b473bd9fb96fa3dcff65ade2"
@@ -5129,7 +5098,7 @@ tsutils@^3.17.1:
   dependencies:
     tslib "^1.8.1"
 
-tunnel-agent@*, tunnel-agent@^0.6.0, tunnel-agent@~0.6.0:
+tunnel-agent@*, tunnel-agent@^0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/tunnel-agent/-/tunnel-agent-0.6.0.tgz#27a5dea06b36b04a0a9966774b290868f0fc40fd"
   integrity sha1-J6XeoGs2sEoKmWZ3SykIaPD8QP0=

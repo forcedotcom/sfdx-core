@@ -11,7 +11,7 @@ import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
-import * as Faye from 'sfdx-faye';
+import * as Faye from 'faye';
 import { Logger } from '../logger';
 import { Org } from '../org';
 import { SfdxError, SfdxErrorConfig } from '../sfdxError';
