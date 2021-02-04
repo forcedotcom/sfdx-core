@@ -181,7 +181,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     {
       key: Config.MAX_QUERY_LIMIT,
       input: {
-        validator: (value) => !isNaN(Number(value)),
+        // the bit shift will remove the negative bit, and any decimal numbers
+        // then the parseFloat will handle converting it to a number from a string
+        validator: (value) => (value as number) >>> 0 === parseFloat(value as string),
         get failedMessage() {
           return Config.messages?.getMessage('InvalidNumberConfigValue');
         },

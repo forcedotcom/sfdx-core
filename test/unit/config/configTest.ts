@@ -165,6 +165,35 @@ describe('Config', () => {
             expect(err).to.have.property('name', 'InvalidConfigValue');
           }
         });
+
+        it('will throw an error when value is negative', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', '-123');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
+
+        it('will throw an error when value is negative decimal', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', '-123.456');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
+        it('will throw an error when value is negative integer', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', '-123');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
         it('will set config value with stringified number', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           const res = config.set('maxQueryLimit', '123');
