@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.2](https://github.com/forcedotcom/sfdx-core/compare/v2.18.1...v2.18.2) (2021-02-04)
+
+
+### Bug Fixes
+
+* fixed maxQueryLimit validation ([6431065](https://github.com/forcedotcom/sfdx-core/commit/6431065a0da6a615ef19594f69c069a19885f3e5))
+* fixed test descriptions ([1455204](https://github.com/forcedotcom/sfdx-core/commit/145520456c48c59003b1397ef7bcdf7a047ac083))
+* improved validation, error message, add test ([63e6c4d](https://github.com/forcedotcom/sfdx-core/commit/63e6c4d5814aa324d41b87a7ec275c16a085ef78))
+* maxQueryLimit must be > 0 ([a3d9156](https://github.com/forcedotcom/sfdx-core/commit/a3d91561f7510901dc02e42e80bb943bf3008a62))
+
 ### [2.18.1](https://github.com/forcedotcom/sfdx-core/compare/v2.18.0...v2.18.1) (2021-02-04)
 
 
