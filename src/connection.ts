@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { maxBy, merge } from '@salesforce/kit';
+import { URL } from 'url';
+import { Duration, maxBy, merge, Env } from '@salesforce/kit';
 import { asString, ensure, getNumber, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
@@ -17,6 +17,8 @@ import {
   Tooling as JSForceTooling,
 } from 'jsforce';
 import { AuthFields, AuthInfo } from './authInfo';
+import { MyDomainResolver } from './status/myDomainResolver';
+
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
@@ -35,6 +37,9 @@ export const SFDX_HTTP_HEADERS = {
   'content-type': 'application/json',
   'user-agent': clientId,
 };
+
+export const DNS_ERROR_NAME = 'Domain Not Found';
+const DNS_TIMEOUT = Math.max(3, new Env().getNumber('SFDX_DNS_TIMEOUT') || 3);
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
@@ -119,6 +124,8 @@ export class Connection extends JSForceConnection {
 
     const conn = new this(options);
     await conn.init();
+    // verifies that subsequent requests to org will not hit DNS errors
+
     if (!versionFromConfig) {
       await conn.useLatestApiVersion();
     }
@@ -178,10 +185,12 @@ export class Connection extends JSForceConnection {
    * Retrieves the highest api version that is supported by the target server instance.
    */
   public async retrieveMaxApiVersion(): Promise<string> {
+    await this.isResolvable();
     type Versioned = { version: string };
     const versions = (await this.request(`${this.instanceUrl}/services/data`)) as Versioned[];
-    this.logger.debug(`response for org versions: ${versions}`);
+    this.logger.debug(`response for org versions: ${versions.map((item) => item.version).join(',')}`);
     const max = ensure(maxBy(versions, (version: Versioned) => version.version));
+
     return max.version;
   }
   /**
@@ -191,8 +200,37 @@ export class Connection extends JSForceConnection {
     try {
       this.setApiVersion(await this.retrieveMaxApiVersion());
     } catch (err) {
+      if (err.name === DNS_ERROR_NAME) {
+        throw err; // throws on DNS connection errors
+      }
       // Don't fail if we can't use the latest, just use the default
       this.logger.warn('Failed to set the latest API version:', err);
+    }
+  }
+
+  /**
+   * Verify that instance has a reachable DNS entry, otherwise will throw error
+   */
+  public async isResolvable(): Promise<boolean> {
+    if (!this.options.connectionOptions?.instanceUrl) {
+      throw new SfdxError('Connection has no instanceUrl', 'NoInstanceUrl', [
+        'Make sure the instanceUrl is set in your command or config',
+      ]);
+    }
+    const resolver = await MyDomainResolver.create({
+      url: new URL(this.options.connectionOptions.instanceUrl),
+      timeout: Duration.seconds(DNS_TIMEOUT),
+      frequency: Duration.seconds(DNS_TIMEOUT),
+    });
+    try {
+      await resolver.resolve();
+      return true;
+    } catch (e) {
+      throw new SfdxError('The org cannot be found', DNS_ERROR_NAME, [
+        'Verify that the org still exists',
+        'If your org is newly created, wait a minute and run your command again',
+        "If you deployed or updated the org's My Domain, logout from the CLI and authenticate again",
+      ]);
     }
   }
 

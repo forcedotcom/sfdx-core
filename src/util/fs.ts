@@ -17,6 +17,13 @@ import { SfdxError } from '../sfdxError';
 type PerformFunction = (filePath: string, file?: string, dir?: string) => Promise<void>;
 type PerformFunctionSync = (filePath: string, file?: string, dir?: string) => void;
 
+export type WriteJsonOptions = {
+  /**
+   * The number of indent spaces
+   */
+  space?: number;
+};
+
 export const fs = Object.assign({}, fsLib, {
   /**
    * The default file system mode to use when creating directories.
@@ -240,8 +247,9 @@ export const fs = Object.assign({}, fsLib, {
    * @param jsonPath The path of the file to write.
    * @param data The JSON object to write.
    */
-  writeJson: async (jsonPath: string, data: AnyJson): Promise<void> => {
-    const fileData: string = JSON.stringify(data, null, 4);
+  writeJson: async (jsonPath: string, data: AnyJson, options: WriteJsonOptions = {}): Promise<void> => {
+    options = Object.assign({ space: 2 }, options);
+    const fileData: string = JSON.stringify(data, null, options.space);
     await fs.writeFile(jsonPath, fileData, {
       encoding: 'utf8',
       mode: fs.DEFAULT_USER_FILE_MODE,
@@ -254,8 +262,9 @@ export const fs = Object.assign({}, fsLib, {
    * @param jsonPath The path of the file to write.
    * @param data The JSON object to write.
    */
-  writeJsonSync: (jsonPath: string, data: AnyJson): void => {
-    const fileData: string = JSON.stringify(data, null, 4);
+  writeJsonSync: (jsonPath: string, data: AnyJson, options: WriteJsonOptions = {}): void => {
+    options = Object.assign({ space: 2 }, options);
+    const fileData: string = JSON.stringify(data, null, options.space);
     fs.writeFileSync(jsonPath, fileData, {
       encoding: 'utf8',
       mode: fs.DEFAULT_USER_FILE_MODE,
