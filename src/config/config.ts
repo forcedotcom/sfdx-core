@@ -6,7 +6,7 @@
  */
 
 import { keyBy, set } from '@salesforce/kit';
-import { Dictionary, ensure, isNumber, isString } from '@salesforce/ts-types';
+import { Dictionary, ensure, isString } from '@salesforce/ts-types';
 import { Logger } from '../logger';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
@@ -181,7 +181,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     {
       key: Config.MAX_QUERY_LIMIT,
       input: {
-        validator: (value) => isNumber(value),
+        // the bit shift will remove the negative bit, and any decimal numbers
+        // then the parseFloat will handle converting it to a number from a string
+        validator: (value) => (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
         get failedMessage() {
           return Config.messages?.getMessage('InvalidNumberConfigValue');
         },
