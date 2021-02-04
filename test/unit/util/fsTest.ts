@@ -391,8 +391,23 @@ describe('util/fs', () => {
       const writeStub = $$.SANDBOX.stub(fs, 'writeFile').returns(Promise.resolve(null));
       const testFilePath = 'utilTest_testFilePath';
       const testJSON = { username: 'utilTest_username' };
-      const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
+      const stringifiedTestJSON = JSON.stringify(testJSON, null, 2);
       await fs.writeJson(testFilePath, testJSON);
+      expect(writeStub.called).to.be.true;
+      expect(writeStub.firstCall.args[0]).to.equal(testFilePath);
+      expect(writeStub.firstCall.args[1]).to.deep.equal(stringifiedTestJSON);
+      expect(writeStub.firstCall.args[2]).to.deep.equal({
+        encoding: 'utf8',
+        mode: '600',
+      });
+    });
+
+    it('should call writeFile with defined spaces', async () => {
+      const writeStub = $$.SANDBOX.stub(fs, 'writeFile').returns(Promise.resolve(null));
+      const testFilePath = 'utilTest_testFilePath';
+      const testJSON = { username: 'utilTest_username' };
+      const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
+      await fs.writeJson(testFilePath, testJSON, { space: 4 });
       expect(writeStub.called).to.be.true;
       expect(writeStub.firstCall.args[0]).to.equal(testFilePath);
       expect(writeStub.firstCall.args[1]).to.deep.equal(stringifiedTestJSON);
@@ -408,8 +423,23 @@ describe('util/fs', () => {
       const writeStub = $$.SANDBOX.stub(fs, 'writeFileSync').returns(null);
       const testFilePath = 'utilTest_testFilePath';
       const testJSON = { username: 'utilTest_username' };
-      const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
+      const stringifiedTestJSON = JSON.stringify(testJSON, null, 2);
       fs.writeJsonSync(testFilePath, testJSON);
+      expect(writeStub.called).to.be.true;
+      expect(writeStub.firstCall.args[0]).to.equal(testFilePath);
+      expect(writeStub.firstCall.args[1]).to.deep.equal(stringifiedTestJSON);
+      expect(writeStub.firstCall.args[2]).to.deep.equal({
+        encoding: 'utf8',
+        mode: '600',
+      });
+    });
+
+    it('should call writeFile with defined spaces', () => {
+      const writeStub = $$.SANDBOX.stub(fs, 'writeFileSync').returns(null);
+      const testFilePath = 'utilTest_testFilePath';
+      const testJSON = { username: 'utilTest_username' };
+      const stringifiedTestJSON = JSON.stringify(testJSON, null, 4);
+      fs.writeJsonSync(testFilePath, testJSON, { space: 4 });
       expect(writeStub.called).to.be.true;
       expect(writeStub.firstCall.args[0]).to.equal(testFilePath);
       expect(writeStub.firstCall.args[1]).to.deep.equal(stringifiedTestJSON);
