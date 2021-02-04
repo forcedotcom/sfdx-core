@@ -183,7 +183,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       input: {
         // the bit shift will remove the negative bit, and any decimal numbers
         // then the parseFloat will handle converting it to a number from a string
-        validator: (value) => (value as number) >>> 0 === parseFloat(value as string),
+        validator: (value) => (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
         get failedMessage() {
           return Config.messages?.getMessage('InvalidNumberConfigValue');
         },
