@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.1](https://github.com/forcedotcom/sfdx-core/compare/v2.18.0...v2.18.1) (2021-02-04)
+
+
+### Bug Fixes
+
+* add space option to write json ([51d01aa](https://github.com/forcedotcom/sfdx-core/commit/51d01aae7f7b2fc7fe0cf10ec9cffd170e0574ca))
+
 ## [2.18.0](https://github.com/forcedotcom/sfdx-core/compare/v2.17.0...v2.18.0) (2021-02-01)
 
 
