@@ -241,12 +241,15 @@ export class User extends AsyncCreatable<User.Options> {
 
   /**
    * Assigns a password to a user. For a user to have the ability to assign their own password, the org needs the
-   * following org preference: SelfSetPasswordInApi.
+   * following org feature: EnableSetPasswordInApi.
    *
    * @param info The AuthInfo object for user to assign the password to.
    * @param password [throwWhenRemoveFails = User.generatePasswordUtf8()] A SecureBuffer containing the new password.
    */
-  public async assignPassword(info: AuthInfo, password: SecureBuffer<void> = User.generatePasswordUtf8()) {
+  public async assignPassword(
+    info: AuthInfo,
+    password: SecureBuffer<void> = User.generatePasswordUtf8()
+  ): Promise<void> {
     this.logger.debug(
       `Attempting to set password for userId: ${info.getFields().userId} username: ${info.getFields().username}`
     );
