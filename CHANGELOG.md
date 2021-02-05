@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.3](https://github.com/forcedotcom/sfdx-core/compare/v2.18.2...v2.18.3) (2021-02-05)
+
+
+### Bug Fixes
+
+* update password jsdoc for v51 + return type ([390ed8d](https://github.com/forcedotcom/sfdx-core/commit/390ed8d0f15ee3915e35ccea5505890b10f16c81))
+
 ### [2.18.2](https://github.com/forcedotcom/sfdx-core/compare/v2.18.1...v2.18.2) (2021-02-04)
 
 
