@@ -72,7 +72,7 @@ export type ProjectJson = ConfigContents & {
  * be in a top level property that represents your project or plugin.
  *
  * ```
- * const project = await SfdxProjectJson.retrieve();
+ * const project = await retrieveSfdxProjectJson();
  * const myPluginProperties = project.get('myplugin') || {};
  * myPluginProperties.myprop = 'someValue';
  * project.set('myplugin', myPluginProperties);
