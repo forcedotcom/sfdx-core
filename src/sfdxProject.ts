@@ -72,11 +72,12 @@ export type ProjectJson = ConfigContents & {
  * be in a top level property that represents your project or plugin.
  *
  * ```
- * const project = await SfdxProjectJson.retrieve();
- * const myPluginProperties = project.get('myplugin') || {};
+ * const project = await SfdxProject.resolve();
+ * const projectJson = await project.resolveProjectConfig();
+ * const myPluginProperties = projectJson.get('myplugin') || {};
  * myPluginProperties.myprop = 'someValue';
- * project.set('myplugin', myPluginProperties);
- * await project.write();
+ * projectJson.set('myplugin', myPluginProperties);
+ * await projectJson.write();
  * ```
  *
  * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
