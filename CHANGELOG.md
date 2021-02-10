@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.4](https://github.com/forcedotcom/sfdx-core/compare/v2.18.3...v2.18.4) (2021-02-10)
+
+
+### Bug Fixes
+
+* isresolvable mock ([6a7e8b1](https://github.com/forcedotcom/sfdx-core/commit/6a7e8b153a42135792a3df58b809981706492e83))
+
 ### [2.18.3](https://github.com/forcedotcom/sfdx-core/compare/v2.18.2...v2.18.3) (2021-02-05)
 
 
