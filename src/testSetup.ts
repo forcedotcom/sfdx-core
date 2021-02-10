@@ -425,6 +425,8 @@ export const stubContext = (testContext: TestContext) => {
     })
   );
 
+  stubMethod(testContext.SANDBOXES.CONNECTION, Connection.prototype, 'isResolvable').resolves(true);
+
   stubMethod(testContext.SANDBOXES.CONNECTION, Connection.prototype, 'request').callsFake(function (
     this: Connection,
     request: string,
