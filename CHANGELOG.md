@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.5](https://github.com/forcedotcom/sfdx-core/compare/v2.18.4...v2.18.5) (2021-02-11)
+
+
+### Bug Fixes
+
+* filter allowedProperties on getConfigInfo ([cbb91e1](https://github.com/forcedotcom/sfdx-core/commit/cbb91e1604f7c7c8b192b8d6ca2c64bdd4fb05b2))
+* no throw on unknown config value ([49618db](https://github.com/forcedotcom/sfdx-core/commit/49618db01cd180fd1267092d36754d83a6514182))
+
 ### [2.18.4](https://github.com/forcedotcom/sfdx-core/compare/v2.18.3...v2.18.4) (2021-02-10)
 
 

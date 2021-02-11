@@ -268,6 +268,15 @@ describe('Config', () => {
 
       expect(writeStub.called).to.be.true;
     });
+
+    it('calls ConfigFile.read with unknown key and does not throw on crypt', async () => {
+      stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
+        this.setContentsFromObject({ unknown: 'unknown config key and value' });
+      });
+
+      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      expect(config).to.exist;
+    });
   });
 
   describe('allowed properties', () => {

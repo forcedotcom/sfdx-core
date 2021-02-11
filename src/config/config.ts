@@ -425,7 +425,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    */
   private async cryptProperties(encrypt: boolean): Promise<void> {
     const hasEncryptedProperties = this.entries().some(([key]) => {
-      return !!ensure(Config.propertyConfigMap[key]).encrypted;
+      return !!Config.propertyConfigMap[key]?.encrypted;
     });
 
     if (hasEncryptedProperties) {
