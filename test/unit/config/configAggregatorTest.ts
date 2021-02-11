@@ -160,7 +160,7 @@ describe('ConfigAggregator', () => {
       expect(aggregator.getLocation(Config.DEFAULT_USERNAME)).to.equal('Environment');
     });
 
-    it('configInfo', async () => {
+    it('configInfo with env', async () => {
       process.env.SFDX_DEFAULTUSERNAME = 'test';
       $$.SANDBOX.stub(fs, 'readJson').returns(Promise.resolve({}));
 
@@ -169,6 +169,16 @@ describe('ConfigAggregator', () => {
       expect(info.key).to.equal('defaultusername');
       expect(info.value).to.equal('test');
       expect(info.location).to.equal('Environment');
+    });
+
+    it('configInfo ignores invalid entries', async () => {
+      $$.SANDBOX.stub(fs, 'readJsonMap').returns(Promise.resolve({ invalid: 'entry', apiVersion: 49.0 }));
+
+      const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      const info = aggregator.getConfigInfo()[0];
+      expect(info.key).to.equal('apiVersion');
+      expect(info.value).to.equal(49.0);
+      expect(info.location).to.equal('Local');
     });
   });
 });
