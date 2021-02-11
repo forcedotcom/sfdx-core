@@ -233,7 +233,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     const conn = this.getConnection();
     let isDevHub = false;
     try {
-      await conn.query('SELECT Id FROM ScratchOrgInfo');
+      await conn.query('SELECT Id FROM ScratchOrgInfo limit 1');
       isDevHub = true;
     } catch (err) {
       /* Not a dev hub */
