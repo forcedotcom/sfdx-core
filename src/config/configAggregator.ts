@@ -245,6 +245,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   public getConfigInfo(): ConfigInfo[] {
     const infos = Object.keys(this.getConfig())
+      .filter((key) => this.getAllowedProperties().some((element) => key === element.key))
       .map((key) => this.getInfo(key))
       .filter((info): info is ConfigInfo => !!info);
     return sortBy(infos, 'key');
