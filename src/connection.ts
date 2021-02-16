@@ -39,7 +39,10 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'Domain Not Found';
-const DNS_TIMEOUT = Math.max(3, new Env().getNumber('SFDX_DNS_TIMEOUT') || 3);
+// Timeout for DNS lookup polling defaults to 30 seconds and should always be at least 3 seconds
+const DNS_TIMEOUT = Math.max(3, new Env().getNumber('SFDX_DNS_TIMEOUT', 30) as number);
+// Retry frequency for DNS lookup polling should be at least 10 seconds
+const DNS_RETRY_FREQ = Math.max(10, new Env().getNumber('SFDX_DNS_RETRY_FREQUENCY', 10) as number);
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
@@ -220,7 +223,7 @@ export class Connection extends JSForceConnection {
     const resolver = await MyDomainResolver.create({
       url: new URL(this.options.connectionOptions.instanceUrl),
       timeout: Duration.seconds(DNS_TIMEOUT),
-      frequency: Duration.seconds(DNS_TIMEOUT),
+      frequency: Duration.seconds(DNS_RETRY_FREQ),
     });
     try {
       await resolver.resolve();
