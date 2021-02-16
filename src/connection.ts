@@ -260,9 +260,11 @@ export class Connection extends JSForceConnection {
 
   /**
    * Getter for the AuthInfo.
+   *
+   * @param decrypt Decrypt the fields
    */
-  public getAuthInfoFields(): AuthFields {
-    return this.options.authInfo.getFields();
+  public getAuthInfoFields(decrypt?: boolean): AuthFields {
+    return this.options.authInfo.getFields(decrypt);
   }
 
   /**

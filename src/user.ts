@@ -337,7 +337,7 @@ export class User extends AsyncCreatable<User.Options> {
     } = await this.createUserInternal(fields);
 
     // Create the initial auth info
-    const adminUserAuthFields: AuthFields = this.org.getConnection().getAuthInfoFields();
+    const adminUserAuthFields: AuthFields = this.org.getConnection().getAuthInfoFields(true);
 
     // Setup oauth options for the new user
     const oauthOptions = {
