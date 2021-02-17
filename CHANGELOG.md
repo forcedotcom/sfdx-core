@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.19.0](https://github.com/forcedotcom/sfdx-core/compare/v2.18.6...v2.19.0) (2021-02-17)
+
+
+### Features
+
+* add SFDX_DISABLE_DNS_CHECK ([2e2cb84](https://github.com/forcedotcom/sfdx-core/commit/2e2cb84f557ecb057358efa107c616d79dbc160b))
+
+
+### Bug Fixes
+
+* move env vars to myDomainResolver ([fcf1a4a](https://github.com/forcedotcom/sfdx-core/commit/fcf1a4a4e333e6ac9e8d6e91204d030031de3d1c))
+* revert dns polling timeout to 30 and frequency to 10 ([4ba7a63](https://github.com/forcedotcom/sfdx-core/commit/4ba7a63ad5019c33123773789af6c7c58e4c6eb3))
+
 ### [2.18.6](https://github.com/forcedotcom/sfdx-core/compare/v2.18.5...v2.18.6) (2021-02-17)
 
 
