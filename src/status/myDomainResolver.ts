@@ -17,6 +17,11 @@ import { sfdc } from '../util/sfdc';
 import { StatusResult } from './client';
 import { PollingClient } from './pollingClient';
 
+// Timeout for DNS lookup polling defaults to 3 seconds and should always be at least 3 seconds
+const DNS_TIMEOUT = Math.max(3, new Env().getNumber('SFDX_DNS_TIMEOUT', 3) as number);
+// Retry frequency for DNS lookup polling defaults to 1 second and should be at least 1 second
+const DNS_RETRY_FREQ = Math.max(1, new Env().getNumber('SFDX_DNS_RETRY_FREQUENCY', 1) as number);
+
 /**
  * A class used to resolve MyDomains. After a ScratchOrg is created it's host name my not be propagated to the
  * Salesforce DNS service. This service is not exclusive to Salesforce My Domain URL and could be used for any hostname.
@@ -95,8 +100,8 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
           };
         }
       },
-      timeout: this.options.timeout || Duration.seconds(30),
-      frequency: this.options.frequency || Duration.seconds(10),
+      timeout: this.options.timeout || Duration.seconds(DNS_TIMEOUT),
+      frequency: this.options.frequency || Duration.seconds(DNS_RETRY_FREQ),
       timeoutErrorName: 'MyDomainResolverTimeoutError',
     };
     const client = await PollingClient.create(pollingOptions);
