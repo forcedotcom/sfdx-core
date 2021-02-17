@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.6](https://github.com/forcedotcom/sfdx-core/compare/v2.18.5...v2.18.6) (2021-02-17)
+
+
+### Bug Fixes
+
+* pass decrypted client secret for oauth ([#374](https://github.com/forcedotcom/sfdx-core/issues/374)) ([63bf84e](https://github.com/forcedotcom/sfdx-core/commit/63bf84eaa962c151dc6a5ffcec3edcdf4bf91b05))
+
 ### [2.18.5](https://github.com/forcedotcom/sfdx-core/compare/v2.18.4...v2.18.5) (2021-02-11)
 
 
