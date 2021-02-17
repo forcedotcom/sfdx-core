@@ -11,11 +11,16 @@ import { promisify } from 'util';
 
 import { ensureString } from '@salesforce/ts-types';
 
-import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
+import { AsyncOptionalCreatable, Duration, Env } from '@salesforce/kit';
 import { Logger } from '../logger';
 import { sfdc } from '../util/sfdc';
 import { StatusResult } from './client';
 import { PollingClient } from './pollingClient';
+
+// Timeout for DNS lookup polling defaults to 3 seconds and should always be at least 3 seconds
+const DNS_TIMEOUT = Math.max(3, new Env().getNumber('SFDX_DNS_TIMEOUT', 3) as number);
+// Retry frequency for DNS lookup polling defaults to 1 second and should be at least 1 second
+const DNS_RETRY_FREQ = Math.max(1, new Env().getNumber('SFDX_DNS_RETRY_FREQUENCY', 1) as number);
 
 /**
  * A class used to resolve MyDomains. After a ScratchOrg is created it's host name my not be propagated to the
@@ -55,8 +60,16 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
   /**
    * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
    * given the optional interval. Returns the resolved ip address.
+   *
+   * If SFDX_DISABLE_DNS_CHECK environment variable is set to true, it will immediately return the host without
+   * executing the dns loookup.
    */
   public async resolve(): Promise<string> {
+    if (new Env().getBoolean('SFDX_DISABLE_DNS_CHECK', false)) {
+      this.logger.debug('SFDX_DISABLE_DNS_CHECK set to true. Skipping DNS check...');
+      return this.options.url.host;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self: MyDomainResolver = this;
     const pollingOptions: PollingClient.Options = {
@@ -87,8 +100,8 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
           };
         }
       },
-      timeout: this.options.timeout || Duration.seconds(30),
-      frequency: this.options.frequency || Duration.seconds(10),
+      timeout: this.options.timeout || Duration.seconds(DNS_TIMEOUT),
+      frequency: this.options.frequency || Duration.seconds(DNS_RETRY_FREQ),
       timeoutErrorName: 'MyDomainResolverTimeoutError',
     };
     const client = await PollingClient.create(pollingOptions);
