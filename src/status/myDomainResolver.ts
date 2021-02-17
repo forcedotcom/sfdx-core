@@ -11,7 +11,7 @@ import { promisify } from 'util';
 
 import { ensureString } from '@salesforce/ts-types';
 
-import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
+import { AsyncOptionalCreatable, Duration, Env } from '@salesforce/kit';
 import { Logger } from '../logger';
 import { sfdc } from '../util/sfdc';
 import { StatusResult } from './client';
@@ -55,8 +55,16 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
   /**
    * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
    * given the optional interval. Returns the resolved ip address.
+   *
+   * If SFDX_DISABLE_DNS_CHECK environment variable is set to true, it will immediately return the host without
+   * executing the dns loookup.
    */
   public async resolve(): Promise<string> {
+    if (new Env().getBoolean('SFDX_DISABLE_DNS_CHECK', false)) {
+      this.logger.debug('SFDX_DISABLE_DNS_CHECK set to true. Skipping DNS check...');
+      return this.options.url.host;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self: MyDomainResolver = this;
     const pollingOptions: PollingClient.Options = {
