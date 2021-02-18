@@ -8,13 +8,13 @@ import { get, JsonMap } from '@salesforce/ts-types';
 
 import { assert, expect } from 'chai';
 import * as jsforce from 'jsforce';
+import { fromStub, stubInterface, StubbedType } from '@salesforce/ts-sinon';
+import { Duration } from '@salesforce/kit';
 import { AuthInfo } from '../../src/authInfo';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
 import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
 import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME, SingleRecordQueryErrors } from '../../src/connection';
 import { testSetup, shouldThrow } from '../../src/testSetup';
-import { fromStub, stubInterface, StubbedType } from '@salesforce/ts-sinon';
-import { Duration } from '@salesforce/kit';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -39,7 +39,7 @@ describe('Connection', () => {
       .onFirstCall()
       .resolves([{ version: '42.0' }]);
 
-      // Create proxied instances of AuthInfo
+    // Create proxied instances of AuthInfo
     testAuthInfo = stubInterface<AuthInfo>($$.SANDBOX, {
       isOauth: () => true,
       getFields: () => ({}),
@@ -84,17 +84,17 @@ describe('Connection', () => {
   });
 
   it('create() should create a connection with the provided API version', async () => {
-    const conn = await Connection.create({ 
+    const conn = await Connection.create({
       authInfo: fromStub(testAuthInfo),
-      connectionOptions: { version: '50.0' }
-     });
+      connectionOptions: { version: '50.0' },
+    });
     expect(conn.getApiVersion()).to.equal('50.0');
   });
 
   it('create() should create a connection with the cached API version', async () => {
     testAuthInfo.getFields.returns({
       instanceApiVersionLastRetrieved: Date.now() - Duration.hours(10).milliseconds,
-      instanceApiVersion: '51.0'
+      instanceApiVersion: '51.0',
     });
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
     expect(conn.getApiVersion()).to.equal('51.0');
@@ -103,7 +103,7 @@ describe('Connection', () => {
   it('create() should create a connection with the cached API version updated with latest', async () => {
     testAuthInfo.getFields.returns({
       instanceApiVersionLastRetrieved: 123,
-      instanceApiVersion: '40.0'
+      instanceApiVersion: '40.0',
     });
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });

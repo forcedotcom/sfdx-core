@@ -6,7 +6,16 @@
  */
 import { URL } from 'url';
 import { Duration, maxBy, merge, env } from '@salesforce/kit';
-import { asString, ensure, getNumber, getString, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
+import {
+  asString,
+  ensure,
+  getNumber,
+  getString,
+  isString,
+  JsonCollection,
+  JsonMap,
+  Optional,
+} from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionOptions,
@@ -117,7 +126,7 @@ export class Connection extends JSForceConnection {
     if (!baseOptions.version) {
       // Set the API version obtained from the config aggregator.
       const configAggregator = options.configAggregator || (await ConfigAggregator.create());
-      baseOptions.version = asString(configAggregator.getInfo('apiVersion').value); 
+      baseOptions.version = asString(configAggregator.getInfo('apiVersion').value);
     }
 
     // Get connection options from auth info and create a new jsForce connection
@@ -134,13 +143,17 @@ export class Connection extends JSForceConnection {
           conn.setApiVersion(cachedVersion);
         }
       } else {
-        conn.logger.debug(`The apiVersion ${baseOptions.version} was found from ${options.connectionOptions?.version ? 'passed in options' : 'config'}`);
+        conn.logger.debug(
+          `The apiVersion ${baseOptions.version} was found from ${
+            options.connectionOptions?.version ? 'passed in options' : 'config'
+          }`
+        );
       }
-    } catch(e) {
-        if (e.name === DNS_ERROR_NAME) {
-          throw e;
-        }
-        conn.logger.debug(`Error trying to load the API version: ${e.name} - ${e.message}`);
+    } catch (e) {
+      if (e.name === DNS_ERROR_NAME) {
+        throw e;
+      }
+      conn.logger.debug(`Error trying to load the API version: ${e.name} - ${e.message}`);
     }
     conn.logger.debug(`Using apiVersion ${conn.getApiVersion()}`);
     return conn;
@@ -398,12 +411,16 @@ export class Connection extends JSForceConnection {
     if (lastChecked && !ignoreCache) {
       const now = Date.now();
       const has24HoursPastSinceLastCheck = now - lastChecked > Duration.hours(24).milliseconds;
-      this.logger.debug(`Last checked on ${lastChecked} (now is ${now}) - ${has24HoursPastSinceLastCheck ? '' : 'not '}getting latest`);
+      this.logger.debug(
+        `Last checked on ${lastChecked} (now is ${now}) - ${has24HoursPastSinceLastCheck ? '' : 'not '}getting latest`
+      );
       if (has24HoursPastSinceLastCheck) {
         await useLatest();
       }
     } else {
-      this.logger.debug(`Using the latest because lastChecked=${lastChecked} and SFDX_IGNORE_API_VERSION_CACHE=${ignoreCache}`);
+      this.logger.debug(
+        `Using the latest because lastChecked=${lastChecked} and SFDX_IGNORE_API_VERSION_CACHE=${ignoreCache}`
+      );
       // No version found in the file (we never checked before)
       // so get the latest.
       await useLatest();
