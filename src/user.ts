@@ -216,13 +216,23 @@ export class User extends AsyncCreatable<User.Options> {
    * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
    */
   public static generatePasswordUtf8(): SecureBuffer<void> {
-    // Fill an array with random characters from random requirement sets
-    const pass = Array(PASSWORD_LENGTH - ALL.length)
-      .fill(9)
-      .map(() => {
+    // Fill an array with the correct length
+    let pass = Array(PASSWORD_LENGTH).fill('x');
+    const meetsAllRequirements = (candidate: string[]): boolean => {
+      return (
+        candidate.some((char) => NUMBERS.includes(char)) &&
+        candidate.some((char) => SYMBOLS.includes(char)) &&
+        candidate.some((char) => UPPER.includes(char)) &&
+        candidate.some((char) => LOWER.includes(char))
+      );
+    };
+
+    while (!meetsAllRequirements(pass)) {
+      pass = pass.map(() => {
         const set = ALL[rand(ALL)];
         return set[rand(set)];
       });
+    }
 
     const secureBuffer: SecureBuffer<void> = new SecureBuffer<void>();
     secureBuffer.consume(Buffer.from(pass.join(''), 'utf8'));
