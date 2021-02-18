@@ -558,6 +558,12 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   public async save(authData?: AuthFields): Promise<AuthInfo> {
     this.update(authData);
     const username = ensure(this.getUsername());
+
+    if (sfdc.matchesAccessToken(username)) {
+      this.logger.debug('Username is an accesstoken. Skip saving authinfo to disk.');
+      return this;
+    }
+
     AuthInfo.cache.set(username, this.fields);
 
     const dataToSave = cloneJson(this.fields);
