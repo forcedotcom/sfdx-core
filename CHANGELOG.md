@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.19.1](https://github.com/forcedotcom/sfdx-core/compare/v2.19.0...v2.19.1) (2021-02-19)
+
+
+### Bug Fixes
+
+* meet more password requirements ([53025f0](https://github.com/forcedotcom/sfdx-core/commit/53025f00a5a52cb32ed8ac20178c409df5014b76))
+
 ## [2.19.0](https://github.com/forcedotcom/sfdx-core/compare/v2.18.6...v2.19.0) (2021-02-17)
 
 
