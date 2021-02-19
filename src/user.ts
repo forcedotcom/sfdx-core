@@ -34,7 +34,6 @@ const LOWER = 'abcdefghijklmnopqrstuvwxyz';
 const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const NUMBERS = '1234567890';
 const SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '[', ']', '|', '-'];
-const ALL = [LOWER, UPPER, NUMBERS, SYMBOLS.join('')];
 
 const rand = (len: Many<string>): number => Math.floor(Math.random() * len.length);
 
@@ -216,26 +215,18 @@ export class User extends AsyncCreatable<User.Options> {
    * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
    */
   public static generatePasswordUtf8(): SecureBuffer<void> {
-    // Fill an array with the correct length
-    let pass = Array(PASSWORD_LENGTH).fill('x');
-    const meetsAllRequirements = (candidate: string[]): boolean => {
-      return (
-        candidate.some((char) => NUMBERS.includes(char)) &&
-        candidate.some((char) => SYMBOLS.includes(char)) &&
-        candidate.some((char) => UPPER.includes(char)) &&
-        candidate.some((char) => LOWER.includes(char))
-      );
-    };
-
-    while (!meetsAllRequirements(pass)) {
-      pass = pass.map(() => {
-        const set = ALL[rand(ALL)];
-        return set[rand(set)];
-      });
-    }
+    // one character of each of the 4 types followed by the remaining random characters, then quasi-randomize
+    const ALLCHARS = UPPER.concat(LOWER, NUMBERS, SYMBOLS.join(''));
+    const password = [UPPER[rand(UPPER)], LOWER[rand(LOWER)], NUMBERS[rand(NUMBERS)], SYMBOLS[rand(SYMBOLS)]]
+      .concat(
+        Array(PASSWORD_LENGTH - 4)
+          .fill('0')
+          .map(() => ALLCHARS[rand(ALLCHARS)])
+      )
+      .sort(() => Math.random() - 0.5);
 
     const secureBuffer: SecureBuffer<void> = new SecureBuffer<void>();
-    secureBuffer.consume(Buffer.from(pass.join(''), 'utf8'));
+    secureBuffer.consume(Buffer.from(password.join(''), 'utf8'));
 
     return secureBuffer;
   }
