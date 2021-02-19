@@ -109,11 +109,23 @@ describe('User Tests', () => {
   });
 
   describe('generatePasswordUtf8', () => {
-    it('Should generate a password', () => {
-      const password: SecureBuffer<void> = User.generatePasswordUtf8();
-      password.value((buffer: Buffer): void => {
-        expect(buffer.toString('utf8').length).to.be.equal(9);
-      });
+    const iterations = 1000;
+
+    it(`Should generate ${iterations} passwords containing at least one number and one upper and lowercase letter `, () => {
+      for (let i = 0; i < iterations; i++) {
+        const password: SecureBuffer<void> = User.generatePasswordUtf8();
+        password.value((buffer: Buffer): void => {
+          const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
+          expect(passwordAsArrayOfCharacters.length).to.be.equal(13);
+          expect(
+            passwordAsArrayOfCharacters.some((char) =>
+              ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(char)
+            )
+          );
+          expect(passwordAsArrayOfCharacters.some((char) => char.toUpperCase() !== char.toLowerCase()));
+          expect(passwordAsArrayOfCharacters.some((char) => char.toLowerCase() !== char.toLowerCase()));
+        });
+      }
     });
   });
 
