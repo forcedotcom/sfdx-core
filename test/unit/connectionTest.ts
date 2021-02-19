@@ -93,7 +93,7 @@ describe('Connection', () => {
 
   it('create() should create a connection with the cached API version', async () => {
     testAuthInfo.getFields.returns({
-      instanceApiVersionLastRetrieved: Date.now() - Duration.hours(10).milliseconds,
+      instanceApiVersionLastRetrieved: new Date(Date.now() - Duration.hours(10).milliseconds).toLocaleString(),
       instanceApiVersion: '51.0',
     });
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });

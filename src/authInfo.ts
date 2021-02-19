@@ -59,7 +59,7 @@ export interface AuthFields {
   devHubUsername?: string;
   instanceUrl?: string;
   instanceApiVersion?: string;
-  instanceApiVersionLastRetrieved?: number;
+  instanceApiVersionLastRetrieved?: string;
   isDevHub?: boolean;
   loginUrl?: string;
   orgId?: string;

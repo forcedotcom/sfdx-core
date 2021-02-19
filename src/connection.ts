@@ -14,6 +14,7 @@ import {
   isString,
   JsonCollection,
   JsonMap,
+  Nullable,
   Optional,
 } from '@salesforce/ts-types';
 import {
@@ -391,10 +392,19 @@ export class Connection extends JSForceConnection {
     return result.records[0];
   }
 
-  private async loadInstanceApiVersion(): Promise<Optional<string | null>> {
+  private async loadInstanceApiVersion(): Promise<Nullable<string>> {
     const authFileFields = this.options.authInfo.getFields();
-    const lastChecked = authFileFields.instanceApiVersionLastRetrieved;
+    const lastCheckedDateString = authFileFields.instanceApiVersionLastRetrieved;
     let version = getString(authFileFields, 'instanceApiVersion');
+    let lastChecked: Optional<number>;
+
+    try {
+      if (lastCheckedDateString && isString(lastCheckedDateString)) {
+        lastChecked = Date.parse(lastCheckedDateString);
+      }
+    } catch (e) {
+      /* Do nothing, it will just request the version again */
+    }
 
     // Grab the latest api version from the server and cache it in the auth file
     const useLatest = async () => {
@@ -403,16 +413,20 @@ export class Connection extends JSForceConnection {
       version = this.getApiVersion();
       this.options.authInfo.save({
         instanceApiVersion: version,
-        instanceApiVersionLastRetrieved: Date.now(),
+        // This will get messed up if the user changes their local time on their machine.
+        // Not a big deal since it will just get updated sooner/later.
+        instanceApiVersionLastRetrieved: new Date().toLocaleString(),
       });
     };
 
     const ignoreCache = env.getBoolean('SFDX_IGNORE_API_VERSION_CACHE', false);
     if (lastChecked && !ignoreCache) {
-      const now = Date.now();
-      const has24HoursPastSinceLastCheck = now - lastChecked > Duration.hours(24).milliseconds;
+      const now = new Date();
+      const has24HoursPastSinceLastCheck = now.getTime() - lastChecked > Duration.hours(24).milliseconds;
       this.logger.debug(
-        `Last checked on ${lastChecked} (now is ${now}) - ${has24HoursPastSinceLastCheck ? '' : 'not '}getting latest`
+        `Last checked on ${lastCheckedDateString} (now is ${now.toLocaleString()}) - ${
+          has24HoursPastSinceLastCheck ? '' : 'not '
+        }getting latest`
       );
       if (has24HoursPastSinceLastCheck) {
         await useLatest();
