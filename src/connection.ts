@@ -411,7 +411,7 @@ export class Connection extends JSForceConnection {
       // verifies DNS
       await this.useLatestApiVersion();
       version = this.getApiVersion();
-      this.options.authInfo.save({
+      await this.options.authInfo.save({
         instanceApiVersion: version,
         // This will get messed up if the user changes their local time on their machine.
         // Not a big deal since it will just get updated sooner/later.
