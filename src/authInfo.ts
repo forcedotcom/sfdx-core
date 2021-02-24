@@ -1105,13 +1105,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   private throwUserGetException(response: never) {
     let messages = '';
-    let body: AnyJson | string = getString(
-      response,
-      'body',
-      JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' })
-    );
+    const bodyAsString = getString(response, 'body', JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' }));
     try {
-      body = parseJson(getString(response, 'body', JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' })));
+      const body = parseJson(bodyAsString);
       if (isArray(body)) {
         messages = body
           .map((line) => getString(line, 'message') ?? getString(line, 'errorCode', 'UNKNOWN'))
@@ -1120,7 +1116,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         messages = getString(body, 'message') ?? getString(body, 'errorCode', 'UNKNOWN');
       }
     } catch (err) {
-      messages = `${body}`;
+      messages = `${bodyAsString}`;
     }
     throw new SfdxError(messages);
   }

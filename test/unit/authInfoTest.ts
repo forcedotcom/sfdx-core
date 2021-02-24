@@ -2038,6 +2038,7 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
       try {
         await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
       } catch (err) {
         expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
       }
@@ -2053,6 +2054,7 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
       try {
         await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
       } catch (err) {
         expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
       }
@@ -2065,6 +2067,7 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
       try {
         await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
       } catch (err) {
         expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
       }
@@ -2076,6 +2079,7 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
       try {
         await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
       } catch (err) {
         expect(err).to.have.property('message').to.include('UNKNOWN');
       }
@@ -2089,6 +2093,7 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
       try {
         await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
       } catch (err) {
         expect(err).to.have.property('message').to.include('Server error occurred');
       }
