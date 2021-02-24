@@ -5,8 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { URL } from 'url';
-import { maxBy, merge } from '@salesforce/kit';
-import { asString, ensure, getNumber, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
+import { Duration, maxBy, merge, env } from '@salesforce/kit';
+import {
+  asString,
+  ensure,
+  getNumber,
+  getString,
+  isString,
+  JsonCollection,
+  JsonMap,
+  Nullable,
+  Optional,
+} from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionOptions,
@@ -107,29 +117,49 @@ export class Connection extends JSForceConnection {
     this: new (options: Connection.Options) => Connection,
     options: Connection.Options
   ): Promise<Connection> {
-    const configAggregator = options.configAggregator || (await ConfigAggregator.create());
-    const versionFromConfig = asString(configAggregator.getInfo('apiVersion').value);
     const baseOptions: ConnectionOptions = {
-      // Set the API version obtained from the config aggregator.
-      // Will use jsforce default if undefined.
-      version: versionFromConfig,
+      version: options.connectionOptions?.version,
       callOptions: {
         client: clientId,
       },
     };
+
+    if (!baseOptions.version) {
+      // Set the API version obtained from the config aggregator.
+      const configAggregator = options.configAggregator || (await ConfigAggregator.create());
+      baseOptions.version = asString(configAggregator.getInfo('apiVersion').value);
+    }
 
     // Get connection options from auth info and create a new jsForce connection
     options.connectionOptions = Object.assign(baseOptions, options.authInfo.getConnectionOptions());
 
     const conn = new this(options);
     await conn.init();
-    // verifies that subsequent requests to org will not hit DNS errors
 
-    if (!versionFromConfig) {
-      await conn.useLatestApiVersion();
+    try {
+      // No version passed in or in the config, so load one.
+      if (!baseOptions.version) {
+        const cachedVersion = await conn.loadInstanceApiVersion();
+        if (cachedVersion) {
+          conn.setApiVersion(cachedVersion);
+        }
+      } else {
+        conn.logger.debug(
+          `The apiVersion ${baseOptions.version} was found from ${
+            options.connectionOptions?.version ? 'passed in options' : 'config'
+          }`
+        );
+      }
+    } catch (e) {
+      if (e.name === DNS_ERROR_NAME) {
+        throw e;
+      }
+      conn.logger.debug(`Error trying to load the API version: ${e.name} - ${e.message}`);
     }
+    conn.logger.debug(`Using apiVersion ${conn.getApiVersion()}`);
     return conn;
   }
+
   /**
    * Async initializer.
    */
@@ -360,6 +390,57 @@ export class Connection extends JSForceConnection {
       );
     }
     return result.records[0];
+  }
+
+  private async loadInstanceApiVersion(): Promise<Nullable<string>> {
+    const authFileFields = this.options.authInfo.getFields();
+    const lastCheckedDateString = authFileFields.instanceApiVersionLastRetrieved;
+    let version = getString(authFileFields, 'instanceApiVersion');
+    let lastChecked: Optional<number>;
+
+    try {
+      if (lastCheckedDateString && isString(lastCheckedDateString)) {
+        lastChecked = Date.parse(lastCheckedDateString);
+      }
+    } catch (e) {
+      /* Do nothing, it will just request the version again */
+    }
+
+    // Grab the latest api version from the server and cache it in the auth file
+    const useLatest = async () => {
+      // verifies DNS
+      await this.useLatestApiVersion();
+      version = this.getApiVersion();
+      this.options.authInfo.save({
+        instanceApiVersion: version,
+        // This will get messed up if the user changes their local time on their machine.
+        // Not a big deal since it will just get updated sooner/later.
+        instanceApiVersionLastRetrieved: new Date().toLocaleString(),
+      });
+    };
+
+    const ignoreCache = env.getBoolean('SFDX_IGNORE_API_VERSION_CACHE', false);
+    if (lastChecked && !ignoreCache) {
+      const now = new Date();
+      const has24HoursPastSinceLastCheck = now.getTime() - lastChecked > Duration.hours(24).milliseconds;
+      this.logger.debug(
+        `Last checked on ${lastCheckedDateString} (now is ${now.toLocaleString()}) - ${
+          has24HoursPastSinceLastCheck ? '' : 'not '
+        }getting latest`
+      );
+      if (has24HoursPastSinceLastCheck) {
+        await useLatest();
+      }
+    } else {
+      this.logger.debug(
+        `Using the latest because lastChecked=${lastChecked} and SFDX_IGNORE_API_VERSION_CACHE=${ignoreCache}`
+      );
+      // No version found in the file (we never checked before)
+      // so get the latest.
+      await useLatest();
+    }
+    this.logger.debug(`Loaded latest apiVersion ${version}`);
+    return version;
   }
 }
 

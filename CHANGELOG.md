@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.20.0](https://github.com/forcedotcom/sfdx-core/compare/v2.19.1...v2.20.0) (2021-02-22)
+
+
+### Features
+
+* cache api version on auth info ([cb21cf0](https://github.com/forcedotcom/sfdx-core/commit/cb21cf099a4ab6911e49b26488b51eb6988b2be7))
+
+
+### Bug Fixes
+
+* do not save access token files ([46d88b9](https://github.com/forcedotcom/sfdx-core/commit/46d88b90c11c7de392412ef64ded201a2145de9d))
+
 ### [2.19.1](https://github.com/forcedotcom/sfdx-core/compare/v2.19.0...v2.19.1) (2021-02-19)
 
 
