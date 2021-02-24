@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 import * as dns from 'dns';
 import * as pathImport from 'path';
 import { cloneJson, env, includes, set } from '@salesforce/kit';
@@ -2005,6 +2006,92 @@ describe('AuthInfo', () => {
         assert.fail();
       } catch (e) {
         expect(e.name).to.equal('INVALID_SFDX_AUTH_URL');
+      }
+    });
+  });
+  describe('Handle User Get Errors', () => {
+    let authCodeConfig;
+    beforeEach(async () => {
+      authCodeConfig = {
+        authCode: testMetadata.authCode,
+        loginUrl: testMetadata.loginUrl,
+      };
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testMetadata.refreshToken,
+      };
+
+      // Stub the http requests (OAuth2.requestToken() and the request for the username)
+      _postParmsStub.returns(Promise.resolve(authResponse));
+    });
+    it('user get returns 403 with body of json array', async () => {
+      const responseBody = {
+        statusCode: 403,
+        body: JSON.stringify([
+          {
+            message: 'The REST API is not enabled for this Organization',
+            errorCode: 'RESTAPINOTENABLED',
+          },
+        ]),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
+      }
+    });
+    it('user get returns 403 with body of json map', async () => {
+      const responseBody = {
+        statusCode: 403,
+        body: JSON.stringify({
+          message: 'The REST API is not enabled for this Organization',
+          errorCode: 'RESTAPINOTENABLED',
+        }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
+      }
+    });
+    it('user get returns 403 with string body', async () => {
+      const responseBody = {
+        statusCode: 403,
+        body: 'The REST API is not enabled for this Organization',
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
+      }
+    });
+    it('user get returns server error with no body', async () => {
+      const responseBody = {
+        statusCode: 500,
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('UNKNOWN');
+      }
+    });
+    it('user get returns server error with html body', async () => {
+      const responseBody = {
+        statusCode: 500,
+        body:
+          '<html lang=""><body>Server error occurred, please contact Salesforce Support if the error persists</body></html>',
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('Server error occurred');
       }
     });
   });

@@ -10,7 +10,8 @@ import * as dns from 'dns';
 import { resolve as pathResolve } from 'path';
 import { basename, extname } from 'path';
 import { parse as urlParse } from 'url';
-import { AsyncCreatable, cloneJson, env, isEmpty, parseJsonMap, set } from '@salesforce/kit';
+import * as os from 'os';
+import { AsyncCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap, set } from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
@@ -19,6 +20,7 @@ import {
   ensureJsonMap,
   ensureString,
   getString,
+  isArray,
   isPlainObject,
   isString,
   JsonMap,
@@ -1085,10 +1087,42 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     try {
       this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
       const response = await new Transport().httpRequest({ url, headers });
-      return asString(parseJsonMap(response.body).Username);
+      if (response.statusCode >= 400) {
+        this.throwUserGetException(response as never);
+      } else {
+        return asString(parseJsonMap(response.body).Username);
+      }
     } catch (err) {
       throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
     }
+  }
+
+  /**
+   * Given an error while getting the User object, handle different possibilities of response.body.
+   *
+   * @param response
+   * @private
+   */
+  private throwUserGetException(response: never) {
+    let messages = '';
+    let body: AnyJson | string = getString(
+      response,
+      'body',
+      JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' })
+    );
+    try {
+      body = parseJson(getString(response, 'body', JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' })));
+      if (isArray(body)) {
+        messages = body
+          .map((line) => getString(line, 'message') ?? getString(line, 'errorCode', 'UNKNOWN'))
+          .join(os.EOL);
+      } else {
+        messages = getString(body, 'message') ?? getString(body, 'errorCode', 'UNKNOWN');
+      }
+    } catch (err) {
+      messages = `${body}`;
+    }
+    throw new SfdxError(messages);
   }
 
   // See https://nodejs.org/api/dns.html#dns_dns_lookup_hostname_options_callback
