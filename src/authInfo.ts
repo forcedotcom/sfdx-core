@@ -1103,7 +1103,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * @param response
    * @private
    */
-  private throwUserGetException(response: never) {
+  private throwUserGetException(response: unknown) {
     let messages = '';
     const bodyAsString = getString(response, 'body', JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' }));
     try {
