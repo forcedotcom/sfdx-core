@@ -1088,7 +1088,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
       const response = await new Transport().httpRequest({ url, headers });
       if (response.statusCode >= 400) {
-        this.throwUserGetException(response as never);
+        this.throwUserGetException(response);
       } else {
         return asString(parseJsonMap(response.body).Username);
       }
