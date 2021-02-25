@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.20.2](https://github.com/forcedotcom/sfdx-core/compare/v2.20.1...v2.20.2) (2021-02-25)
+
 ### [2.20.1](https://github.com/forcedotcom/sfdx-core/compare/v2.20.0...v2.20.1) (2021-02-24)
 
 
