@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.20.3](https://github.com/forcedotcom/sfdx-core/compare/v2.20.2...v2.20.3) (2021-02-25)
+
+
+### Bug Fixes
+
+* await the call to authInfo.save ([299499e](https://github.com/forcedotcom/sfdx-core/commit/299499ee29e9243b7d60fb9bdef22165a34b4611))
+* web:login fails when org cannot access REST ([31b139a](https://github.com/forcedotcom/sfdx-core/commit/31b139a56ce37e0d8a15946163dbf96c872c565b))
+
 ### [2.20.2](https://github.com/forcedotcom/sfdx-core/compare/v2.20.1...v2.20.2) (2021-02-25)
 
 ### [2.20.1](https://github.com/forcedotcom/sfdx-core/compare/v2.20.0...v2.20.1) (2021-02-24)
