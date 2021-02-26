@@ -82,7 +82,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     if (!this.webServer.server) await this.start();
 
     return new Promise((resolve, reject) => {
-      this.webServer.server.once('listening', () => {
+      const handler = () => {
         this.logger.debug(`OAuth web login service listening on port: ${this.webServer.port}`);
         this.executeOauthRequest()
           .then(async (response) => {
@@ -107,7 +107,13 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
             this.logger.debug('closing server connection');
             this.webServer.close();
           });
-      });
+      };
+      // if the server is already listening the listening event won't be fired anymore so execute handler() directly
+      if (this.webServer.server.listening){
+        handler();
+      } else {
+        this.webServer.server.once('listening', handler);
+      }
     });
   }
 
