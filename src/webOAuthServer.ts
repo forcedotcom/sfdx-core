@@ -262,12 +262,11 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
       await this.checkOsPort();
       this.logger.debug(`Nothing listening on host: localhost port: ${this.port} - good!`);
       this.server = http.createServer();
-
+      this.server.listen(this.port, this.host);
       this.server.on('connection', (socket) => {
         this.logger.debug(`socket connection initialized from ${socket.remoteAddress as string}`);
         this.sockets.push(socket);
       });
-      this.server.listen(this.port, this.host);
     } catch (err) {
       if (err.name === 'EADDRINUSE') {
         const error = SfdxError.create('@salesforce/core', 'auth', 'PortInUse', ['PortInUseAction']);
