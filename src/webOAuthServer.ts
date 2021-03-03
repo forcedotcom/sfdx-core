@@ -110,7 +110,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
           });
       };
       // if the server is already listening the listening event won't be fired anymore so execute handler() directly
-      if (this.webServer.server.listening){
+      if (this.webServer.server.listening) {
         handler();
       } else {
         this.webServer.server.once('listening', handler);
