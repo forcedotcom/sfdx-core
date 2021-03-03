@@ -73,7 +73,7 @@ class MetaAuthDataMock {
   private _refreshToken = 'authInfoTest_refresh_token';
   private _encryptedRefreshToken: string = this._refreshToken;
   private _clientId = 'authInfoTest_client_id';
-  private _loginUrl = 'authInfoTest_login_url';
+  private _loginUrl = 'https://foo.bar.baz';
   private _jwtUsername = 'authInfoTest_username_JWT';
   private _redirectUri = 'http://localhost:1717/OauthRedirect';
   private _authCode = 'authInfoTest_authCode';
@@ -1405,9 +1405,9 @@ describe('AuthInfo', () => {
   });
 
   describe('getAuthorizationUrl()', () => {
-    let scope;
+    let scope: string;
     beforeEach(() => {
-      scope = env.getString('SFDX_AUTH_SCOPES');
+      scope = env.getString('SFDX_AUTH_SCOPES', '');
     });
     afterEach(() => {
       env.setString('SFDX_AUTH_SCOPES', scope);
@@ -2009,7 +2009,7 @@ describe('AuthInfo', () => {
     });
   });
   describe('Handle User Get Errors', () => {
-    let authCodeConfig;
+    let authCodeConfig: any;
     beforeEach(async () => {
       authCodeConfig = {
         authCode: testMetadata.authCode,
