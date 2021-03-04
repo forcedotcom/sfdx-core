@@ -213,6 +213,7 @@ function isSandboxUrl(options: OAuth2Options & { createdOrgInstance?: string }):
     /sandbox\.my\.salesforce\.com/gi.test(loginUrl) || // enhanced domains >= 230
     /(cs[0-9]+(\.my|)\.salesforce\.com)/gi.test(loginUrl) || // my domains on CS instance OR CS instance without my domain
     /([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/gi.test(loginUrl) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
+    /([a-z]{3}[0-9]+s\.sfdc-.+\.force\.com)/gi.test(loginUrl) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
     urlParse(loginUrl).hostname === 'test.salesforce.com'
   );
 }
