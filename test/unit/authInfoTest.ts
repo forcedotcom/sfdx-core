@@ -1741,9 +1741,17 @@ describe('AuthInfo', () => {
     it('should use the correct audience URL for production enhanced domains', async () => {
       await runTest({ loginUrl: 'https://customdomain.my.salesforce.com' }, 'https://login.salesforce.com');
     });
-    it('should use correct audience url derived from cname', async () => {
+    it('should use correct audience url derived from cname in salesforce.com', async () => {
       const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
       const usa3sVIP = new URL('https://usa3s.sfdc-ypmv18.salesforce.com');
+      $$.SANDBOX.stub(dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
+        callback(null, [usa3sVIP.host]);
+      });
+      await runTest({ loginUrl: sandboxNondescriptUrl.toString() }, 'https://test.salesforce.com');
+    });
+    it('should use correct audience url derived from cname in force.com', async () => {
+      const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
+      const usa3sVIP = new URL('https://usa3s.sfdc-ypmv18.force.com');
       $$.SANDBOX.stub(dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
         callback(null, [usa3sVIP.host]);
       });
