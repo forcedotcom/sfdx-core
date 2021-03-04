@@ -6,9 +6,10 @@
  */
 import * as dns from 'dns';
 import * as pathImport from 'path';
+import { URL } from 'url';
 import { cloneJson, env, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
-import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
+import { AnyFunction, AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { OAuth2, OAuth2Options } from 'jsforce';
 // @ts-ignore
@@ -763,7 +764,9 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string | Error, done: (v: Error) => {}) =>
         done(new Error('authInfoTest_ERROR_MSG'))
       );
-
+      stubMethod($$.SANDBOX, dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
+        callback(null, []);
+      });
       // Create the JWT AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
@@ -1703,8 +1706,6 @@ describe('AuthInfo', () => {
           'https://test.salesforce.com'
         );
       });
-      it;
-
       it('should use the correct audience URL for scratch orgs without domains (capitalized)', async () => {
         await runTest({ loginUrl: 'https://CS17.salesforce.com' }, 'https://test.salesforce.com');
       });
@@ -1739,6 +1740,14 @@ describe('AuthInfo', () => {
 
     it('should use the correct audience URL for production enhanced domains', async () => {
       await runTest({ loginUrl: 'https://customdomain.my.salesforce.com' }, 'https://login.salesforce.com');
+    });
+    it('should use correct audience url derived from cname', async () => {
+      const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
+      const usa3sVIP = new URL('https://usa3s.sfdc-ypmv18.salesforce.com');
+      $$.SANDBOX.stub(dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
+        callback(null, [usa3sVIP.host]);
+      });
+      await runTest({ loginUrl: sandboxNondescriptUrl.toString() }, 'https://test.salesforce.com');
     });
   });
 
