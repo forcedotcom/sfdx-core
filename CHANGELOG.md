@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.20.5](https://github.com/forcedotcom/sfdx-core/compare/v2.20.4...v2.20.5) (2021-03-08)
+
+
+### Bug Fixes
+
+* qualify a sandbox url via cname lookup ([#385](https://github.com/forcedotcom/sfdx-core/issues/385)) ([3e27623](https://github.com/forcedotcom/sfdx-core/commit/3e276237278fabb609b890e3271c4d8a28c0f573))
+
 ### [2.20.4](https://github.com/forcedotcom/sfdx-core/compare/v2.20.3...v2.20.4) (2021-03-03)
 
 ### [2.20.3](https://github.com/forcedotcom/sfdx-core/compare/v2.20.2...v2.20.3) (2021-02-25)
