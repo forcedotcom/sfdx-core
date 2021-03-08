@@ -6,9 +6,10 @@
  */
 import * as dns from 'dns';
 import * as pathImport from 'path';
+import { URL } from 'url';
 import { cloneJson, env, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
-import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
+import { AnyFunction, AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { OAuth2, OAuth2Options } from 'jsforce';
 // @ts-ignore
@@ -73,7 +74,7 @@ class MetaAuthDataMock {
   private _refreshToken = 'authInfoTest_refresh_token';
   private _encryptedRefreshToken: string = this._refreshToken;
   private _clientId = 'authInfoTest_client_id';
-  private _loginUrl = 'authInfoTest_login_url';
+  private _loginUrl = 'https://foo.bar.baz';
   private _jwtUsername = 'authInfoTest_username_JWT';
   private _redirectUri = 'http://localhost:1717/OauthRedirect';
   private _authCode = 'authInfoTest_authCode';
@@ -763,7 +764,9 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string | Error, done: (v: Error) => {}) =>
         done(new Error('authInfoTest_ERROR_MSG'))
       );
-
+      stubMethod($$.SANDBOX, dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
+        callback(null, []);
+      });
       // Create the JWT AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
@@ -1405,9 +1408,9 @@ describe('AuthInfo', () => {
   });
 
   describe('getAuthorizationUrl()', () => {
-    let scope;
+    let scope: string;
     beforeEach(() => {
-      scope = env.getString('SFDX_AUTH_SCOPES');
+      scope = env.getString('SFDX_AUTH_SCOPES', '');
     });
     afterEach(() => {
       env.setString('SFDX_AUTH_SCOPES', scope);
@@ -1703,8 +1706,6 @@ describe('AuthInfo', () => {
           'https://test.salesforce.com'
         );
       });
-      it;
-
       it('should use the correct audience URL for scratch orgs without domains (capitalized)', async () => {
         await runTest({ loginUrl: 'https://CS17.salesforce.com' }, 'https://test.salesforce.com');
       });
@@ -1739,6 +1740,22 @@ describe('AuthInfo', () => {
 
     it('should use the correct audience URL for production enhanced domains', async () => {
       await runTest({ loginUrl: 'https://customdomain.my.salesforce.com' }, 'https://login.salesforce.com');
+    });
+    it('should use correct audience url derived from cname in salesforce.com', async () => {
+      const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
+      const usa3sVIP = new URL('https://usa3s.sfdc-ypmv18.salesforce.com');
+      $$.SANDBOX.stub(dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
+        callback(null, [usa3sVIP.host]);
+      });
+      await runTest({ loginUrl: sandboxNondescriptUrl.toString() }, 'https://test.salesforce.com');
+    });
+    it('should use correct audience url derived from cname in force.com', async () => {
+      const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
+      const usa3sVIP = new URL('https://usa3s.sfdc-ypmv18.force.com');
+      $$.SANDBOX.stub(dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
+        callback(null, [usa3sVIP.host]);
+      });
+      await runTest({ loginUrl: sandboxNondescriptUrl.toString() }, 'https://test.salesforce.com');
     });
   });
 
@@ -2009,7 +2026,7 @@ describe('AuthInfo', () => {
     });
   });
   describe('Handle User Get Errors', () => {
-    let authCodeConfig;
+    let authCodeConfig: any;
     beforeEach(async () => {
       authCodeConfig = {
         authCode: testMetadata.authCode,

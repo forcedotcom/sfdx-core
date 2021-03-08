@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { lookup } from 'dns';
+import { lookup, resolveCname } from 'dns';
 import { URL } from 'url';
 import { promisify } from 'util';
 
@@ -106,6 +106,17 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
     };
     const client = await PollingClient.create(pollingOptions);
     return ensureString(await client.subscribe());
+  }
+
+  public async getCnames(): Promise<string[]> {
+    try {
+      await this.resolve();
+      return await promisify(resolveCname)(this.options.url.host);
+    } catch (e) {
+      this.logger.debug(`An error occurred trying to resolve: ${this.options.url.host}`);
+      this.logger.debug(`Error: ${e.message}`);
+      return [];
+    }
   }
 
   /**
