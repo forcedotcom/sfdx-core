@@ -515,9 +515,12 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * @param sfdxAuthUrl
    */
   public static parseSfdxAuthUrl(sfdxAuthUrl: string) {
-    const match = sfdxAuthUrl.match(
-      /^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+)@([a-zA-Z0-9._-]+)/
-    );
+    let url;
+    try {
+      url = JSON.parse(sfdxAuthUrl).sfdxAuthUrl;
+    } catch (error) {
+      url = sfdxAuthUrl;
+    }
 
     if (!match) {
       throw new SfdxError(
