@@ -521,7 +521,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     } catch (error) {
       url = sfdxAuthUrl;
     }
-
+    
+    const match = url.match(/^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+)@([a-zA-Z0-9._-]+)/);
+    
     if (!match) {
       throw new SfdxError(
         'Invalid sfdx auth url. Must be in the format `force://<clientId>:<clientSecret>:<refreshToken>@<loginUrl>`. The instanceUrl must not have the protocol set.',
