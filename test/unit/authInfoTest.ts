@@ -2014,6 +2014,19 @@ describe('AuthInfo', () => {
       expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
     });
 
+    it('should parse the correct url when passed in as json', () => {
+      const options = AuthInfo.parseSfdxAuthUrl(
+        '{"sfdxAuthUrl": "force://PlatformCLI::5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com"}'
+      );
+
+      expect(options.refreshToken).to.equal(
+        '5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.'
+      );
+      expect(options.clientId).to.equal('PlatformCLI');
+      expect(options.clientSecret).to.equal('');
+      expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
+    });
+
     it('should throw with incorrect url', () => {
       try {
         AuthInfo.parseSfdxAuthUrl(
