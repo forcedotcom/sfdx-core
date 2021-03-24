@@ -49,6 +49,7 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'Domain Not Found';
+type recentValidationOptions = { id: string; rest?: boolean };
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
@@ -210,6 +211,30 @@ export class Connection extends JSForceConnection {
     return super._baseUrl();
   }
 
+  public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
+    if (options.rest) {
+      const url = `${this.instanceUrl.replace(
+        /\/$/,
+        ''
+      )}/services/data/v${this.getApiVersion()}/metadata/deployRequest`;
+      const messageBody = JSON.stringify({
+        validatedDeployRequestId: options.id,
+      });
+      const requestInfo = {
+        method: 'POST',
+        url,
+        body: messageBody,
+      };
+      const requestOptions = { headers: 'json' };
+      return this.request(requestInfo, requestOptions);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
+      return this.metadata['_invoke']('deployRecentValidation', {
+        validationId: options.id,
+      }) as JsonCollection;
+    }
+  }
   /**
    * Retrieves the highest api version that is supported by the target server instance.
    */
