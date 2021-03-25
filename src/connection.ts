@@ -4,7 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Stream } from 'stream';
 import { URL } from 'url';
+import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
+import { Callback } from 'jsforce/connection';
 import { Duration, maxBy, merge, env } from '@salesforce/kit';
 import {
   asString,
@@ -25,6 +28,7 @@ import {
   QueryResult,
   RequestInfo,
   Tooling as JSForceTooling,
+  // Metadata as JSForceMetadata,
 } from 'jsforce';
 import { AuthFields, AuthInfo } from './authInfo';
 import { MyDomainResolver } from './status/myDomainResolver';
@@ -33,6 +37,8 @@ import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const FormData = require('form-data');
 
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
@@ -49,6 +55,7 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'Domain Not Found';
+type deployOptions = DeployOptions & { rest?: boolean };
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
@@ -64,6 +71,20 @@ export interface Tooling extends JSForceTooling {
    */
   autoFetchQuery<T>(soql: string, options?: ExecuteOptions): Promise<QueryResult<T>>;
 }
+//
+// export interface Metadata extends JSForceMetadata {
+//   /**
+//    *
+//    * @param zipInput
+//    * @param options The query options.  NOTE: the autoFetch option will always be true.
+//    * @param callback
+//    */
+//   deploy(
+//     zipInput: Stream | Buffer | string,
+//     options: deployOptions,
+//     callback?: Callback<AsyncResult>
+//   ): DeployResultLocator<AsyncResult>;
+// }
 
 /**
  * Handles connections and requests to Salesforce Orgs.
@@ -86,6 +107,7 @@ export class Connection extends JSForceConnection {
    * Tooling api reference.
    */
   public tooling!: Tooling;
+  // public metadata!: Metadata;
   // We want to use 1 logger for this class and the jsForce base classes so override
   // the jsForce connection.tooling.logger and connection.logger.
   private logger!: Logger;
@@ -105,6 +127,7 @@ export class Connection extends JSForceConnection {
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
     this.tooling.autoFetchQuery = Connection.prototype.autoFetchQuery;
+    // this.metadata.deploy = Connection.prototype.deploy.bind(this);
 
     this.options = options;
   }
@@ -166,6 +189,76 @@ export class Connection extends JSForceConnection {
   public async init(): Promise<void> {
     // eslint-disable-next-line no-underscore-dangle
     this.logger = this.tooling._logger = await Logger.child('connection');
+  }
+
+  public async deploy(
+    zipInput: Stream | Buffer | string,
+    options: deployOptions,
+    callback?: Callback<AsyncResult>
+  ): Promise<DeployResultLocator<AsyncResult>> {
+    if (options.rest) {
+      const headers: { Authorization: string; clientId: string; 'Sforce-Call-Options': string } = {
+        Authorization: this && `OAuth ${this.accessToken}`,
+        clientId: this.oauth2 && this.oauth2.clientId,
+        'Sforce-Call-Options': 'client=sfdx-core',
+      };
+      const url = `${this.instanceUrl.replace(
+        /\/$/,
+        ''
+      )}/services/data/v${this.getApiVersion()}/metadata/deployRequest`;
+      const form = new FormData();
+      form.append('file', zipInput, { contentType: 'application/zip' });
+      form.append('entity_content', JSON.stringify({ deployOptions: options }), { contentType: 'application/json' });
+
+      return ((await this.request({
+        url,
+        headers,
+        method: 'POST',
+        body: form.toString(),
+      })) as unknown) as DeployResultLocator<AsyncResult>;
+
+      // return new Promise((resolve) => {
+      //   form.submit(
+      //     {
+      //       headers,
+      //       host: this.instanceUrl,
+      //       path: `/services/data/v${this.getApiVersion()}/metadata/deployRequest`,
+      //     },
+      //     (error: Error | null, response: IncomingMessage) => {
+      //       // eslint-disable-next-line no-console
+      //       console.log('done', error, response);
+      //       res = response;
+      //       resolve((res as unknown) as DeployResultLocator<AsyncResult>);
+      //     }
+      //   );
+      // });
+
+      // const r = requestModule.post(url, { headers }, (err, httpResponse, body) => {
+      //   try {
+      //     body = JSON.parse(body);
+      //   } catch (e) {c
+      //     reject(SfdxError.wrap(body));
+      //   }
+      //   if (err || httpResponse.statusCode > 300) {
+      //     reject(new Error(`${body[0].errorCode}: ${body[0].message}`));
+      //   } else {
+      //     resolve(body);
+      //   }
+      // });
+      // const form = r.form();
+      //
+      // // Add the zip file
+      // form.append('file', zipInput, {
+      //   contentType: 'application/zip',
+      // });
+      //
+      // // Add the deploy options
+      // form.append('entity_content', JSON.stringify({ deployOptions: options }), {
+      //   contentType: 'application/json',
+      // });
+    } else {
+      return this.metadata.deploy(zipInput, options, callback);
+    }
   }
 
   /**
