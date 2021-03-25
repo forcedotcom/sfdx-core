@@ -274,14 +274,6 @@ describe('Connection', () => {
   });
 
   describe('deployRecentValidation', () => {
-    it('deployRecentValidation() should call into jsforce for SOAP', async () => {
-      // @ts-ignore
-      const jsforceSpy = $$.SANDBOX.stub(jsforce.Metadata.prototype, 'deployRecentValidation');
-      const res = Connection.prototype.deployRecentValidation({ id: '1234567890', rest: false });
-      expect(jsforceSpy.callCount).to.equal(1);
-      expect(res).to.equal({});
-    });
-
     it('deployRecentValidation() should call request directly for REST', async () => {
       const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
       conn.instanceUrl = 'myNewInstance@salesforce.com';

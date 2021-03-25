@@ -211,6 +211,12 @@ export class Connection extends JSForceConnection {
     return super._baseUrl();
   }
 
+  /**
+   * Will deploy a recently validated deploy request
+   *
+   * @param options.id = the id of the deploy to quickly validate
+   * @param options.rest = a boolean whether or not to use the REST API
+   */
   public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
     if (options.rest) {
       const url = `${this.instanceUrl.replace(
