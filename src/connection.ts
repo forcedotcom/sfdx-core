@@ -214,15 +214,12 @@ export class Connection extends JSForceConnection {
   /**
    * Will deploy a recently validated deploy request
    *
-   * @param options.id = the id of the deploy to quickly validate
+   * @param options.id = the deploy ID that's been validated already from a previous checkOnly deploy request
    * @param options.rest = a boolean whether or not to use the REST API
    */
   public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
     if (options.rest) {
-      const url = `${this.instanceUrl.replace(
-        /\/$/,
-        ''
-      )}/services/data/v${this.getApiVersion()}/metadata/deployRequest`;
+      const url = `${this.baseUrl()}/metadata/deployRequest`;
       const messageBody = JSON.stringify({
         validatedDeployRequestId: options.id,
       });
@@ -234,6 +231,7 @@ export class Connection extends JSForceConnection {
       const requestOptions = { headers: 'json' };
       return this.request(requestInfo, requestOptions);
     } else {
+      // the _invoke is private in jsforce, we can call the SOAP deployRecentValidation like this
       // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       return this.metadata['_invoke']('deployRecentValidation', {
