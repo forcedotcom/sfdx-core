@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as fs from 'fs';
+import * as os from 'os';
 import { Stream } from 'stream';
 import { URL } from 'url';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
@@ -28,8 +30,11 @@ import {
   QueryResult,
   RequestInfo,
   Tooling as JSForceTooling,
-  // Metadata as JSForceMetadata,
 } from 'jsforce';
+// Transport is not _really_ exported and there's no types
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
+import * as Transport from 'jsforce/lib/transport';
 import { AuthFields, AuthInfo } from './authInfo';
 import { MyDomainResolver } from './status/myDomainResolver';
 
@@ -37,8 +42,6 @@ import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const FormData = require('form-data');
 
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
@@ -71,20 +74,6 @@ export interface Tooling extends JSForceTooling {
    */
   autoFetchQuery<T>(soql: string, options?: ExecuteOptions): Promise<QueryResult<T>>;
 }
-//
-// export interface Metadata extends JSForceMetadata {
-//   /**
-//    *
-//    * @param zipInput
-//    * @param options The query options.  NOTE: the autoFetch option will always be true.
-//    * @param callback
-//    */
-//   deploy(
-//     zipInput: Stream | Buffer | string,
-//     options: deployOptions,
-//     callback?: Callback<AsyncResult>
-//   ): DeployResultLocator<AsyncResult>;
-// }
 
 /**
  * Handles connections and requests to Salesforce Orgs.
@@ -107,7 +96,6 @@ export class Connection extends JSForceConnection {
    * Tooling api reference.
    */
   public tooling!: Tooling;
-  // public metadata!: Metadata;
   // We want to use 1 logger for this class and the jsForce base classes so override
   // the jsForce connection.tooling.logger and connection.logger.
   private logger!: Logger;
@@ -127,10 +115,10 @@ export class Connection extends JSForceConnection {
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
     this.tooling.autoFetchQuery = Connection.prototype.autoFetchQuery;
-    // this.metadata.deploy = Connection.prototype.deploy.bind(this);
 
     this.options = options;
   }
+
   /**
    * Creates an instance of a Connection. Performs additional async initializations.
    *
@@ -183,6 +171,16 @@ export class Connection extends JSForceConnection {
     return conn;
   }
 
+  private static createReadStreamFromBuffer(buffer: Buffer) {
+    const t = os.tmpdir() + '/temp';
+    fs.mkdirSync(t);
+    const file = t + '/abc.zip';
+    fs.writeFileSync(file, buffer);
+    const f = fs.createReadStream(file);
+    fs.unlinkSync(file);
+    fs.rmdirSync(t);
+    return f;
+  }
   /**
    * Async initializer.
    */
@@ -197,65 +195,46 @@ export class Connection extends JSForceConnection {
     callback?: Callback<AsyncResult>
   ): Promise<DeployResultLocator<AsyncResult>> {
     if (options.rest) {
-      const headers: { Authorization: string; clientId: string; 'Sforce-Call-Options': string } = {
+      // the API is not expecting this
+      delete options.rest;
+      const headers = {
         Authorization: this && `OAuth ${this.accessToken}`,
         clientId: this.oauth2 && this.oauth2.clientId,
         'Sforce-Call-Options': 'client=sfdx-core',
       };
-      const url = `${this.instanceUrl.replace(
-        /\/$/,
-        ''
-      )}/services/data/v${this.getApiVersion()}/metadata/deployRequest`;
-      const form = new FormData();
-      form.append('file', zipInput, { contentType: 'application/zip' });
-      form.append('entity_content', JSON.stringify({ deployOptions: options }), { contentType: 'application/json' });
+      const url = `${this.baseUrl()}/metadata/deployRequest`;
+      const req = Transport.prototype._getHttpRequestModule();
 
-      return ((await this.request({
-        url,
-        headers,
-        method: 'POST',
-        body: form.toString(),
-      })) as unknown) as DeployResultLocator<AsyncResult>;
+      return await new Promise((resolve, reject) => {
+        const r = req.post(url, { headers }, (err: Error, httpResponse: { statusCode: number }, body: string) => {
+          let res;
+          try {
+            res = JSON.parse(body);
+          } catch (e) {
+            reject(SfdxError.wrap(body));
+          }
+          if (err || httpResponse.statusCode > 300) {
+            if (body) {
+              reject(new Error(`${res[0].errorCode}: ${res[0].message}`));
+            }
+          } else {
+            resolve(res);
+          }
+        });
+        const form = r.form();
 
-      // return new Promise((resolve) => {
-      //   form.submit(
-      //     {
-      //       headers,
-      //       host: this.instanceUrl,
-      //       path: `/services/data/v${this.getApiVersion()}/metadata/deployRequest`,
-      //     },
-      //     (error: Error | null, response: IncomingMessage) => {
-      //       // eslint-disable-next-line no-console
-      //       console.log('done', error, response);
-      //       res = response;
-      //       resolve((res as unknown) as DeployResultLocator<AsyncResult>);
-      //     }
-      //   );
-      // });
+        const s = Connection.createReadStreamFromBuffer(zipInput as Buffer);
 
-      // const r = requestModule.post(url, { headers }, (err, httpResponse, body) => {
-      //   try {
-      //     body = JSON.parse(body);
-      //   } catch (e) {c
-      //     reject(SfdxError.wrap(body));
-      //   }
-      //   if (err || httpResponse.statusCode > 300) {
-      //     reject(new Error(`${body[0].errorCode}: ${body[0].message}`));
-      //   } else {
-      //     resolve(body);
-      //   }
-      // });
-      // const form = r.form();
-      //
-      // // Add the zip file
-      // form.append('file', zipInput, {
-      //   contentType: 'application/zip',
-      // });
-      //
-      // // Add the deploy options
-      // form.append('entity_content', JSON.stringify({ deployOptions: options }), {
-      //   contentType: 'application/json',
-      // });
+        // Add the zip file
+        form.append('file', s, {
+          contentType: 'application/zip',
+        });
+
+        // Add the deploy options
+        form.append('entity_content', JSON.stringify({ deployOptions: options }), {
+          contentType: 'application/json',
+        });
+      });
     } else {
       return this.metadata.deploy(zipInput, options, callback);
     }
