@@ -165,9 +165,9 @@ export class KeychainAccess implements PasswordStore {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    credManager.on('close', async (code) => {
+    credManager.on('close', async (code: number) => {
       try {
-        return await this.osImpl.onGetCommandClose(code as number, stdout, stderr, opts, fn);
+        return await this.osImpl.onGetCommandClose(code, stdout, stderr, opts, fn);
       } catch (e) {
         if (e.retry) {
           if (retryCount >= GET_PASSWORD_RETRY_COUNT) {

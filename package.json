@@ -17,7 +17,7 @@
     "postcompile": "tsc -p test; tsc -p typedocExamples",
     "prepack": "sf-build",
     "pretest": "sf-compile-test",
-    "test": "sf-test --require ts-node/register"
+    "test": "sf-test"
   },
   "keywords": [
     "force",
