@@ -6,7 +6,6 @@
  */
 import * as fs from 'fs';
 import * as os from 'os';
-import { Stream } from 'stream';
 import { URL } from 'url';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
 import { Callback } from 'jsforce/connection';
@@ -31,13 +30,12 @@ import {
   RequestInfo,
   Tooling as JSForceTooling,
 } from 'jsforce';
-// Transport is not _really_ exported and there's no types
+// no types for Transport
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
 import { AuthFields, AuthInfo } from './authInfo';
 import { MyDomainResolver } from './status/myDomainResolver';
-
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
@@ -171,14 +169,11 @@ export class Connection extends JSForceConnection {
     return conn;
   }
 
-  private static createReadStreamFromBuffer(buffer: Buffer) {
-    const t = os.tmpdir() + '/temp';
-    fs.mkdirSync(t);
-    const file = t + '/abc.zip';
-    fs.writeFileSync(file, buffer);
-    const f = fs.createReadStream(file);
-    fs.unlinkSync(file);
-    fs.rmdirSync(t);
+  private static createReadStreamFromBuffer(buffer: Buffer): fs.ReadStream {
+    const zip = 'metadata.zip';
+    fs.writeFileSync(os.tmpdir() + zip, buffer);
+    const f = fs.createReadStream(os.tmpdir() + zip);
+    fs.unlinkSync(os.tmpdir() + zip);
     return f;
   }
   /**
@@ -190,43 +185,39 @@ export class Connection extends JSForceConnection {
   }
 
   public async deploy(
-    zipInput: Stream | Buffer | string,
+    zipInput: Buffer,
     options: deployOptions,
     callback?: Callback<AsyncResult>
   ): Promise<DeployResultLocator<AsyncResult>> {
-    if (options.rest) {
-      // the API is not expecting this
-      delete options.rest;
+    const rest = options.rest;
+    // neither API expects this option
+    delete options.rest;
+    if (rest) {
+      this.logger.debug('deploy with REST');
       const headers = {
         Authorization: this && `OAuth ${this.accessToken}`,
         clientId: this.oauth2 && this.oauth2.clientId,
         'Sforce-Call-Options': 'client=sfdx-core',
       };
       const url = `${this.baseUrl()}/metadata/deployRequest`;
-      const req = Transport.prototype._getHttpRequestModule();
+      const request = Transport.prototype._getHttpRequestModule();
 
       return await new Promise((resolve, reject) => {
-        const r = req.post(url, { headers }, (err: Error, httpResponse: { statusCode: number }, body: string) => {
+        const req = request.post(url, { headers }, (err: Error, httpResponse: { statusCode: number }, body: string) => {
           let res;
           try {
             res = JSON.parse(body);
           } catch (e) {
             reject(SfdxError.wrap(body));
           }
-          if (err || httpResponse.statusCode > 300) {
-            if (body) {
-              reject(new Error(`${res[0].errorCode}: ${res[0].message}`));
-            }
-          } else {
-            resolve(res);
-          }
+          resolve(res);
         });
-        const form = r.form();
+        const form = req.form();
 
-        const s = Connection.createReadStreamFromBuffer(zipInput as Buffer);
+        const stream = Connection.createReadStreamFromBuffer(zipInput);
 
         // Add the zip file
-        form.append('file', s, {
+        form.append('file', stream, {
           contentType: 'application/zip',
         });
 
@@ -236,6 +227,7 @@ export class Connection extends JSForceConnection {
         });
       });
     } else {
+      this.logger.debug('deploy with SOAP');
       return this.metadata.deploy(zipInput, options, callback);
     }
   }
