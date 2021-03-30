@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'fs';
 import { get, getObject, JsonMap } from '@salesforce/ts-types';
 
 import { assert, expect } from 'chai';
@@ -15,6 +14,7 @@ import { Duration } from '@salesforce/kit';
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
+import { fs } from '../../src/util/fs';
 import { AuthInfo } from '../../src/authInfo';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
 import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
