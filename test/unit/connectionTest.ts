@@ -14,7 +14,6 @@ import { Duration } from '@salesforce/kit';
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
-import { fs } from '../../src/util/fs';
 import { AuthInfo } from '../../src/authInfo';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
 import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
@@ -226,19 +225,6 @@ describe('Connection', () => {
 
       await conn.deploy(new Buffer('test data'), { rest: false }, () => {});
       expect(soapDeployStub.callCount).to.equal(1);
-    });
-
-    it('createReadStreamFromBuffer will be called correctly', () => {
-      const writeStub = $$.SANDBOX.stub(fs, 'writeFileSync');
-      const readStreamStub = $$.SANDBOX.stub(fs, 'createReadStream');
-      const unlinkStub = $$.SANDBOX.stub(fs, 'unlinkSync');
-      // private method
-      // @ts-ignore
-      Connection.createReadStreamFromBuffer(new Buffer('test data'));
-
-      expect(writeStub.callCount).to.equal(1);
-      expect(readStreamStub.callCount).to.equal(1);
-      expect(unlinkStub.callCount).to.equal(1);
     });
   });
 

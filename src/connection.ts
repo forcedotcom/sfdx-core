@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as os from 'os';
 import { URL } from 'url';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
 import { Callback } from 'jsforce/connection';
@@ -33,7 +32,6 @@ import {
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
-import { fs } from './util/fs';
 import { AuthFields, AuthInfo } from './authInfo';
 import { MyDomainResolver } from './status/myDomainResolver';
 import { ConfigAggregator } from './config/configAggregator';
@@ -169,13 +167,6 @@ export class Connection extends JSForceConnection {
     return conn;
   }
 
-  private static createReadStreamFromBuffer(buffer: Buffer) {
-    const zip = 'metadata.zip';
-    fs.writeFileSync(os.tmpdir() + zip, buffer);
-    const f = fs.createReadStream(os.tmpdir() + zip);
-    fs.unlinkSync(os.tmpdir() + zip);
-    return f;
-  }
   /**
    * Async initializer.
    */
@@ -214,11 +205,10 @@ export class Connection extends JSForceConnection {
         });
         const form = req.form();
 
-        const stream = Connection.createReadStreamFromBuffer(zipInput);
-
         // Add the zip file
-        form.append('file', stream, {
+        form.append('file', zipInput, {
           contentType: 'application/zip',
+          filename: 'package.xml',
         });
 
         // Add the deploy options
