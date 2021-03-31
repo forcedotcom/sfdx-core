@@ -54,7 +54,7 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'Domain Not Found';
-type deployOptions = DeployOptions & { rest?: boolean };
+export type DeployOptionsWithRest = DeployOptions & { rest?: boolean };
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
@@ -177,7 +177,7 @@ export class Connection extends JSForceConnection {
 
   public async deploy(
     zipInput: Buffer,
-    options: deployOptions,
+    options: DeployOptionsWithRest,
     callback?: Callback<AsyncResult>
   ): Promise<DeployResultLocator<AsyncResult>> {
     const rest = options.rest;
