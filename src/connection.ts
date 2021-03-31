@@ -175,6 +175,16 @@ export class Connection extends JSForceConnection {
     this.logger = this.tooling._logger = await Logger.child('connection');
   }
 
+  /**
+   * TODO: This should be moved into JSForce V2 once ready
+   * this is only a temporary solution to support both REST and SOAP APIs
+   *
+   * deploy a zipped buffer from the SDRL with REST or SOAP
+   *
+   * @param zipInput data to deploy
+   * @param options JSForce deploy options + a boolean for rest
+   * @param callback
+   */
   public async deploy(
     zipInput: Buffer,
     options: DeployOptionsWithRest,
