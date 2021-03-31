@@ -221,7 +221,9 @@ export class Connection extends JSForceConnection {
    * @param options.rest = a boolean whether or not to use the REST API
    */
   public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
-    if (options.rest) {
+    const rest = options.rest;
+    delete options.rest;
+    if (rest) {
       const url = `${this.baseUrl()}/metadata/deployRequest`;
       const messageBody = JSON.stringify({
         validatedDeployRequestId: options.id,
