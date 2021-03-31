@@ -212,6 +212,9 @@ export class Connection extends JSForceConnection {
   }
 
   /**
+   * TODO: This should be moved into JSForce V2 once ready
+   * this is only a temporary solution to support both REST and SOAP APIs
+   *
    * Will deploy a recently validated deploy request
    *
    * @param options.id = the deploy ID that's been validated already from a previous checkOnly deploy request
