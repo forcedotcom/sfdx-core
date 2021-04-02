@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.20.7](https://github.com/forcedotcom/sfdx-core/compare/v2.20.6...v2.20.7) (2021-04-02)
+
+
+### Bug Fixes
+
+* add deployRecentValidation ([62d367b](https://github.com/forcedotcom/sfdx-core/commit/62d367b217e6b552573bd7176b064e28252348c5))
+* add deployRecentValidation ([a39c329](https://github.com/forcedotcom/sfdx-core/commit/a39c329b3fab603b537ae5ed8cce4773bdf24eb6))
+* add test, clarify comments ([8d5679e](https://github.com/forcedotcom/sfdx-core/commit/8d5679ecbd482af84842f5c1c8908a059d97ef3f))
+
 ### [2.20.6](https://github.com/forcedotcom/sfdx-core/compare/v2.20.5...v2.20.6) (2021-04-02)
 
 ### Bug Fixes
