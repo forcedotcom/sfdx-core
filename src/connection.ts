@@ -54,6 +54,7 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'Domain Not Found';
+type recentValidationOptions = { id: string; rest?: boolean };
 export type DeployOptionsWithRest = DeployOptions & { rest?: boolean };
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
@@ -274,6 +275,39 @@ export class Connection extends JSForceConnection {
     return super._baseUrl();
   }
 
+  /**
+   * TODO: This should be moved into JSForce V2 once ready
+   * this is only a temporary solution to support both REST and SOAP APIs
+   *
+   * Will deploy a recently validated deploy request
+   *
+   * @param options.id = the deploy ID that's been validated already from a previous checkOnly deploy request
+   * @param options.rest = a boolean whether or not to use the REST API
+   */
+  public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
+    const rest = options.rest;
+    delete options.rest;
+    if (rest) {
+      const url = `${this.baseUrl()}/metadata/deployRequest`;
+      const messageBody = JSON.stringify({
+        validatedDeployRequestId: options.id,
+      });
+      const requestInfo = {
+        method: 'POST',
+        url,
+        body: messageBody,
+      };
+      const requestOptions = { headers: 'json' };
+      return this.request(requestInfo, requestOptions);
+    } else {
+      // the _invoke is private in jsforce, we can call the SOAP deployRecentValidation like this
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
+      return this.metadata['_invoke']('deployRecentValidation', {
+        validationId: options.id,
+      }) as JsonCollection;
+    }
+  }
   /**
    * Retrieves the highest api version that is supported by the target server instance.
    */

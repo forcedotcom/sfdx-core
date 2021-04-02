@@ -315,6 +315,28 @@ describe('Connection', () => {
     }
   });
 
+  describe('deployRecentValidation', () => {
+    it('deployRecentValidation() should call request directly for REST', async () => {
+      const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+      conn.instanceUrl = 'myNewInstance@salesforce.com';
+      const requestStub = $$.SANDBOX.stub(conn, 'request');
+
+      await conn.deployRecentValidation({ id: '0Afxx00000000lWCAQ', rest: true });
+      expect(requestStub.callCount).to.equal(1);
+    });
+
+    it('deployRecentValidation() should call jsforce for SOAP', async () => {
+      const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+      conn.instanceUrl = 'myNewInstance@salesforce.com';
+      // @ts-ignore private method
+      const requestStub = $$.SANDBOX.stub(conn.metadata, '_invoke');
+
+      await conn.deployRecentValidation({ id: '0Afxx00000000lWCAQ' });
+      expect(requestStub.callCount).to.equal(1);
+      expect(requestStub.args[0][0]).to.equal('deployRecentValidation');
+    });
+  });
+
   it('singleRecordQuery returns single-record result properly', async () => {
     const mockSingleRecord = {
       id: '123',
