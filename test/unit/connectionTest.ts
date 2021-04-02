@@ -4,12 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { get, JsonMap } from '@salesforce/ts-types';
+import { get, getObject, JsonMap } from '@salesforce/ts-types';
 
 import { assert, expect } from 'chai';
 import * as jsforce from 'jsforce';
 import { fromStub, stubInterface, StubbedType } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
+// no types for Transport
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
+import * as Transport from 'jsforce/lib/transport';
 import { AuthInfo } from '../../src/authInfo';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
 import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
@@ -184,6 +188,44 @@ describe('Connection', () => {
     expect(requestMock.called).to.be.true;
     expect(requestMock.secondCall.args[0]).to.deep.equal(expectedRequestInfo);
     expect(response).to.deep.equal(testResponse);
+  });
+
+  describe('deploy', () => {
+    it('deploy() will work with REST', async () => {
+      const conn = await Connection.create({
+        authInfo: fromStub(testAuthInfoWithDomain),
+      });
+
+      const req = Transport.prototype._getHttpRequestModule();
+      const postStub = $$.SANDBOX.stub(req, 'post').yields(null, null, '{"done": true}', {
+        form: () => {
+          return { append: () => {} };
+        },
+      });
+
+      await conn.deploy(new Buffer('test data'), { rest: true }, () => {});
+
+      const headers = getObject<{ Authorization: string; 'Sforce-Call-Options': string }>(
+        postStub.args[0][1],
+        'headers',
+        { Authorization: '', 'Sforce-Call-Options': '' }
+      );
+
+      expect(postStub.callCount).to.equal(1);
+      expect(postStub.args[0][0]).to.equal('/services/data/v42.0/metadata/deployRequest');
+      expect(headers.Authorization).to.include('OAuth');
+      expect(headers['Sforce-Call-Options']).to.equal('client=sfdx-core');
+    });
+
+    it('deploy() will work with SOAP', async () => {
+      const conn = await Connection.create({
+        authInfo: fromStub(testAuthInfoWithDomain),
+      });
+      const soapDeployStub = $$.SANDBOX.stub(conn.metadata, 'deploy').resolves();
+
+      await conn.deploy(new Buffer('test data'), { rest: false }, () => {});
+      expect(soapDeployStub.callCount).to.equal(1);
+    });
   });
 
   it('autoFetchQuery() should call this.query with proper args', async () => {
