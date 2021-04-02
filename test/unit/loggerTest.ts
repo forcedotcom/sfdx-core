@@ -40,7 +40,7 @@ describe('Logger', () => {
       const logger1 = new Logger('testLogger');
       expect(logger1).to.be.instanceof(Logger);
       expect(logger1.getName()).to.equal('testLogger');
-      const logger2 = Logger.root();
+      const logger2 = await Logger.root();
       expect(logger2).to.not.equal(logger1);
     });
   });
@@ -346,6 +346,7 @@ describe('Logger', () => {
         return (output += error);
       });
       const logger = await Logger.root();
+      expect(logger.debugEnabled).to.equal(true);
       logger.warn('warn');
       out.restore();
       err.restore();
