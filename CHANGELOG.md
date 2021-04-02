@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.20.6](https://github.com/forcedotcom/sfdx-core/compare/v2.20.5...v2.20.6) (2021-04-02)
+
+
+### Bug Fixes
+
+* add REST deploy and test ([a1204f8](https://github.com/forcedotcom/sfdx-core/commit/a1204f857654ef979913708a8404d3b1e5328352))
+* deploy with REST working :) ([ec36851](https://github.com/forcedotcom/sfdx-core/commit/ec368515cd2d5d947f947573abbdaa83d3a853a2))
+* remove requrie ts-node/register from package ([5377fe4](https://github.com/forcedotcom/sfdx-core/commit/5377fe46c3ed5707d31e45794f9fd397aabbcf63))
+* rest deploy without fs :D ([9a4202d](https://github.com/forcedotcom/sfdx-core/commit/9a4202d157131fbf6aebb007a0334d3d1ce1d4e8))
+* working on adding REST deploy ([0b3947b](https://github.com/forcedotcom/sfdx-core/commit/0b3947b4e39b1ecd790cd6c03077e4388faf2b04))
+
 ### [2.20.5](https://github.com/forcedotcom/sfdx-core/compare/v2.20.4...v2.20.5) (2021-03-08)
 
 
