@@ -516,7 +516,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public static parseSfdxAuthUrl(sfdxAuthUrl: string) {
     const match = sfdxAuthUrl.match(
-      /^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+)@([a-zA-Z0-9._-]+)/
+      /^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/
     );
 
     if (!match) {
