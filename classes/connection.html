@@ -133,6 +133,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-overwrite tsd-is-inherited"><a href="connection.html#create" class="tsd-kind-icon">create</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited"><a href="connection.html#del" class="tsd-kind-icon">del</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited"><a href="connection.html#delete" class="tsd-kind-icon">delete</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="connection.html#deploy" class="tsd-kind-icon">deploy</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="connection.html#describe" class="tsd-kind-icon">describe</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited"><a href="connection.html#describeglobal" class="tsd-kind-icon">describe<wbr>Global</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited"><a href="connection.html#destroy" class="tsd-kind-icon">destroy</a></li>
@@ -427,7 +428,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 					<aside class="tsd-sources">
 						<p>Overrides Connection.tooling</p>
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L88">src/connection.ts:88</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L94">src/connection.ts:94</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -550,7 +551,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L334">src/connection.ts:334</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L398">src/connection.ts:398</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -595,7 +596,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L208">src/connection.ts:208</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L272">src/connection.ts:272</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -752,6 +753,50 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						</li>
 					</ul>
 				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="deploy" class="tsd-anchor"></a>
+					<h3>deploy</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">deploy<span class="tsd-signature-symbol">(</span>zipInput<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Buffer</span>, options<span class="tsd-signature-symbol">: </span><a href="../globals.html#deployoptionswithrest" class="tsd-signature-type">DeployOptionsWithRest</a>, callback<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Callback</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AsyncResult</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DeployResultLocator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AsyncResult</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L188">src/connection.ts:188</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>TODO: This should be moved into JSForce V2 once ready
+									this is only a temporary solution to support both REST and SOAP APIs</p>
+								</div>
+								<p>deploy a zipped buffer from the SDRL with REST or SOAP</p>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>zipInput: <span class="tsd-signature-type">Buffer</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>data to deploy</p>
+									</div>
+								</li>
+								<li>
+									<h5>options: <a href="../globals.html#deployoptionswithrest" class="tsd-signature-type">DeployOptionsWithRest</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>JSForce deploy options + a boolean for rest</p>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> callback: <span class="tsd-signature-type">Callback</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AsyncResult</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DeployResultLocator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AsyncResult</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="describe" class="tsd-anchor"></a>
 					<h3>describe</h3>
@@ -903,7 +948,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L268">src/connection.ts:268</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L332">src/connection.ts:332</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -925,7 +970,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L292">src/connection.ts:292</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L356">src/connection.ts:356</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -947,7 +992,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L299">src/connection.ts:299</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L363">src/connection.ts:363</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -987,7 +1032,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L306">src/connection.ts:306</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L370">src/connection.ts:370</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1033,7 +1078,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L166">src/connection.ts:166</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L173">src/connection.ts:173</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1118,7 +1163,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L243">src/connection.ts:243</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L307">src/connection.ts:307</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1140,7 +1185,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L313">src/connection.ts:313</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L377">src/connection.ts:377</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1453,7 +1498,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L322">src/connection.ts:322</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L386">src/connection.ts:386</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1976,7 +2021,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 							<aside class="tsd-sources">
 								<p>Overrides <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#request">request</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L178">src/connection.ts:178</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L242">src/connection.ts:242</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2014,7 +2059,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L192">src/connection.ts:192</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L256">src/connection.ts:256</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2085,7 +2130,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L216">src/connection.ts:216</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L280">src/connection.ts:280</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2107,7 +2152,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L279">src/connection.ts:279</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L343">src/connection.ts:343</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2163,7 +2208,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L374">src/connection.ts:374</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L438">src/connection.ts:438</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2377,7 +2422,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L228">src/connection.ts:228</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L292">src/connection.ts:292</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2399,7 +2444,7 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/107070d/src/connection.ts#L116">src/connection.ts:116</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/f94db3f/src/connection.ts#L123">src/connection.ts:123</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2516,6 +2561,9 @@ const <span class="hljs-keyword">connection</span> = await <span class="hljs-key
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited">
 								<a href="connection.html#delete" class="tsd-kind-icon">delete</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="connection.html#deploy" class="tsd-kind-icon">deploy</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 								<a href="connection.html#describe" class="tsd-kind-icon">describe</a>
