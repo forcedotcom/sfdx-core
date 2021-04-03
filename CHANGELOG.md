@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.20.8](https://github.com/forcedotcom/sfdx-core/compare/v2.20.7...v2.20.8) (2021-04-03)
+
+
+### Bug Fixes
+
+* debugEnabled should be public ([dbd0124](https://github.com/forcedotcom/sfdx-core/commit/dbd01243003f555b8b4db45c83e81cc08b8cb9a1))
+
 ### [2.20.7](https://github.com/forcedotcom/sfdx-core/compare/v2.20.6...v2.20.7) (2021-04-02)
 
 
