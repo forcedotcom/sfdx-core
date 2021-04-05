@@ -220,11 +220,15 @@ export class Logger {
   // The sfdx root logger singleton
   private static rootLogger?: Logger;
 
+  /**
+   * Whether debug is enabled for this Logger.
+   */
+  public debugEnabled = false;
+
   // The actual Bunyan logger
   private bunyan: Bunyan;
 
   private readonly format: LoggerFormat;
-  private debugEnabled = false;
 
   /**
    * Constructs a new `Logger`.

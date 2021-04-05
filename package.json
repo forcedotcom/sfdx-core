@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "2.20.5",
+  "version": "2.20.8",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "license": "BSD-3-Clause",
@@ -17,7 +17,7 @@
     "postcompile": "tsc -p test; tsc -p typedocExamples",
     "prepack": "sf-build",
     "pretest": "sf-compile-test",
-    "test": "sf-test --require ts-node/register"
+    "test": "sf-test"
   },
   "keywords": [
     "force",

@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { URL } from 'url';
+import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
+import { Callback } from 'jsforce/connection';
 import { Duration, maxBy, merge, env } from '@salesforce/kit';
 import {
   asString,
@@ -26,9 +28,12 @@ import {
   RequestInfo,
   Tooling as JSForceTooling,
 } from 'jsforce';
+// no types for Transport
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
+import * as Transport from 'jsforce/lib/transport';
 import { AuthFields, AuthInfo } from './authInfo';
 import { MyDomainResolver } from './status/myDomainResolver';
-
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
@@ -49,6 +54,8 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'Domain Not Found';
+type recentValidationOptions = { id: string; rest?: boolean };
+export type DeployOptionsWithRest = DeployOptions & { rest?: boolean };
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
@@ -108,6 +115,7 @@ export class Connection extends JSForceConnection {
 
     this.options = options;
   }
+
   /**
    * Creates an instance of a Connection. Performs additional async initializations.
    *
@@ -169,6 +177,63 @@ export class Connection extends JSForceConnection {
   }
 
   /**
+   * TODO: This should be moved into JSForce V2 once ready
+   * this is only a temporary solution to support both REST and SOAP APIs
+   *
+   * deploy a zipped buffer from the SDRL with REST or SOAP
+   *
+   * @param zipInput data to deploy
+   * @param options JSForce deploy options + a boolean for rest
+   * @param callback
+   */
+  public async deploy(
+    zipInput: Buffer,
+    options: DeployOptionsWithRest,
+    callback?: Callback<AsyncResult>
+  ): Promise<DeployResultLocator<AsyncResult>> {
+    const rest = options.rest;
+    // neither API expects this option
+    delete options.rest;
+    if (rest) {
+      this.logger.debug('deploy with REST');
+      const headers = {
+        Authorization: this && `OAuth ${this.accessToken}`,
+        clientId: this.oauth2 && this.oauth2.clientId,
+        'Sforce-Call-Options': 'client=sfdx-core',
+      };
+      const url = `${this.baseUrl()}/metadata/deployRequest`;
+      const request = Transport.prototype._getHttpRequestModule();
+
+      return new Promise((resolve, reject) => {
+        const req = request.post(url, { headers }, (err: Error, httpResponse: { statusCode: number }, body: string) => {
+          let res;
+          try {
+            res = JSON.parse(body);
+          } catch (e) {
+            reject(SfdxError.wrap(body));
+          }
+          resolve(res);
+        });
+        const form = req.form();
+
+        // Add the zip file
+        form.append('file', zipInput, {
+          contentType: 'application/zip',
+          filename: 'package.xml',
+        });
+
+        // Add the deploy options
+        form.append('entity_content', JSON.stringify({ deployOptions: options }), {
+          contentType: 'application/json',
+        });
+      });
+    } else {
+      this.logger.debug('deploy with SOAP');
+      return this.metadata.deploy(zipInput, options, callback);
+    }
+  }
+
+  /**
    * Send REST API request with given HTTP request info, with connected session information
    * and SFDX headers.
    *
@@ -210,6 +275,39 @@ export class Connection extends JSForceConnection {
     return super._baseUrl();
   }
 
+  /**
+   * TODO: This should be moved into JSForce V2 once ready
+   * this is only a temporary solution to support both REST and SOAP APIs
+   *
+   * Will deploy a recently validated deploy request
+   *
+   * @param options.id = the deploy ID that's been validated already from a previous checkOnly deploy request
+   * @param options.rest = a boolean whether or not to use the REST API
+   */
+  public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
+    const rest = options.rest;
+    delete options.rest;
+    if (rest) {
+      const url = `${this.baseUrl()}/metadata/deployRequest`;
+      const messageBody = JSON.stringify({
+        validatedDeployRequestId: options.id,
+      });
+      const requestInfo = {
+        method: 'POST',
+        url,
+        body: messageBody,
+      };
+      const requestOptions = { headers: 'json' };
+      return this.request(requestInfo, requestOptions);
+    } else {
+      // the _invoke is private in jsforce, we can call the SOAP deployRecentValidation like this
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
+      return this.metadata['_invoke']('deployRecentValidation', {
+        validationId: options.id,
+      }) as JsonCollection;
+    }
+  }
   /**
    * Retrieves the highest api version that is supported by the target server instance.
    */
