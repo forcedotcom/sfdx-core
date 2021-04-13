@@ -133,6 +133,8 @@ export const sfdc = {
       'stm.force.com',
       '.blitz.salesforce.com',
       '.stm.salesforce.ms',
+      '.pc-rnd.force.com',
+      '.pc-rnd.salesforce.com',
     ];
     return (
       url.startsWith('https://gs1.') || sfdc.isLocalUrl(url) || INTERNAL_URL_PARTS.some((part) => url.includes(part))
