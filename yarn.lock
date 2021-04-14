@@ -393,12 +393,12 @@
     typescript "^3.9.3"
     xunit-file "^1.0.0"
 
-"@salesforce/kit@^1.4.3":
-  version "1.4.3"
-  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-1.4.3.tgz#4d066239868fd79069f2e9ac53e28f37be5e9b96"
-  integrity sha512-8OuJlEqxTwLtBzX9ur2fiiR9wGx+2k5vi+IQjAXh+5xUJXm9ooWiRwvCsrXsbpgTusHzaG/RYrqcqynJh3RXCA==
+"@salesforce/kit@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-1.5.0.tgz#81ddd712d224bd9007f8bceb32d1fd13ef7aa57f"
+  integrity sha512-Op7Q6bLfzMccX1fbW3/xiNb94/9a8mTTm+EcxsPPFQOwxRWt12uj2htDYZFUgEvVzBWu8V82Vo+g90NG+pvHXA==
   dependencies:
-    "@salesforce/ts-types" "^1.5.3"
+    "@salesforce/ts-types" "^1.5.5"
     tslib "^1.10.0"
 
 "@salesforce/prettier-config@^0.0.1":
@@ -427,10 +427,10 @@
   dependencies:
     tslib "^1.10.0"
 
-"@salesforce/ts-types@^1.5.3":
-  version "1.5.3"
-  resolved "https://registry.yarnpkg.com/@salesforce/ts-types/-/ts-types-1.5.3.tgz#186876adf57c8ef91d9c6f90180bce7215164d97"
-  integrity sha512-/3bhxY0JSDjA1qaUTLFzDj72OJdtlto+CCsMymo1RUYw6/Bcyc2JcA4KFbPFBMciZxqKMd989TKNGcUbTUBqPQ==
+"@salesforce/ts-types@^1.5.5":
+  version "1.5.5"
+  resolved "https://registry.yarnpkg.com/@salesforce/ts-types/-/ts-types-1.5.5.tgz#cf6d0fe12a8ba48d79b57f63c54b5592c312e0ba"
+  integrity sha512-d4YdsA3MBTJcC6ZdqHe2+yv7MWKsoYmgjTlc56SOy8sROrQ9RjJYaUnj1h1Zi1aWGgkGaNCCAOBomcrhMa4crw==
   dependencies:
     tslib "^1.10.0"
 
