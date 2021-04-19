@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.20.10](https://github.com/forcedotcom/sfdx-core/compare/v2.20.9...v2.20.10) (2021-04-14)
+
+
+### Bug Fixes
+
+* add another internal test env domain ([6ea538f](https://github.com/forcedotcom/sfdx-core/commit/6ea538f2ce62daba7262a247472ce821c6e2616f))
+
+### [2.20.9](https://github.com/forcedotcom/sfdx-core/compare/v2.20.8...v2.20.9) (2021-04-05)
+
+
+### Bug Fixes
+
+* allow = in authUrl tokens ([2337fcd](https://github.com/forcedotcom/sfdx-core/commit/2337fcddfb1907a7092cd52f5b3ad73ae963d59e))
+
 ### [2.20.8](https://github.com/forcedotcom/sfdx-core/compare/v2.20.7...v2.20.8) (2021-04-03)
 
 

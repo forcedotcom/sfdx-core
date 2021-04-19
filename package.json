@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "2.20.8",
+  "version": "2.20.10",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "license": "BSD-3-Clause",
@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@salesforce/bunyan": "^2.0.0",
-    "@salesforce/kit": "^1.4.3",
+    "@salesforce/kit": "^1.5.0",
     "@salesforce/schemas": "^1.0.1",
     "@salesforce/ts-types": "^1.0.0",
     "@types/graceful-fs": "^4.1.3",
