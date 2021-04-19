@@ -35,3 +35,4 @@ workflows:
           filters:
             branches:
               only: main
+          context: CLI_CTC
