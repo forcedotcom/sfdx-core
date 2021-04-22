@@ -699,14 +699,14 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public getSfdxAuthUrl(): string {
     const decryptedFields = this.authInfoCrypto.decryptFields(this.fields);
-    const instanceUrl = ensure(decryptedFields.instanceUrl).replace(/^https?:\/\//, '');
+    const instanceUrl = ensure(decryptedFields.instanceUrl, 'undefined instanceUrl').replace(/^https?:\/\//, '');
     let sfdxAuthUrl = 'force://';
 
     if (decryptedFields.clientId) {
       sfdxAuthUrl += `${decryptedFields.clientId}:${decryptedFields.clientSecret || ''}:`;
     }
 
-    sfdxAuthUrl += `${decryptedFields.refreshToken}@${instanceUrl}`;
+    sfdxAuthUrl += `${ensure(decryptedFields.refreshToken, 'undefined refreshToken')}@${instanceUrl}`;
     return sfdxAuthUrl;
   }
 
