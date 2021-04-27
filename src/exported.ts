@@ -30,7 +30,7 @@ export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
 export { Authorization, AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl } from './authInfo';
 
-export { AuthConfigs, AuthRemover } from './authRemover';
+export { AuthRemover } from './authRemover';
 
 export { Connection, SFDX_HTTP_HEADERS } from './connection';
 

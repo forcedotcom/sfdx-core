@@ -8,6 +8,7 @@
 import { ConfigFile } from './configFile';
 
 /**
+ * @deprecated
  * An auth config file that stores information such as access tokens, usernames, etc.,
  * in the global sfdx directory (~/.sfdx).
  *

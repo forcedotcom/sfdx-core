@@ -1797,42 +1797,6 @@ describe('AuthInfo', () => {
     });
   });
 
-  describe('listAllAuthFiles', () => {
-    let files: string[];
-    beforeEach(() => {
-      stubMethod($$.SANDBOX, fs, 'readdir').callsFake(() => Promise.resolve(files));
-    });
-    it('matches username', async () => {
-      files = ['good@match.org.json'];
-      const orgs = await AuthInfo.listAllAuthFiles();
-      expect(orgs[0]).equals(files[0]);
-    });
-    it('matches username with single char', async () => {
-      files = ['a@match.org.json'];
-      const orgs = await AuthInfo.listAllAuthFiles();
-      expect(orgs[0]).equals(files[0]);
-    });
-    it('matches username with periods', async () => {
-      files = ['super.good@match.org.json'];
-      const orgs = await AuthInfo.listAllAuthFiles();
-      expect(orgs[0]).equals(files[0]);
-    });
-    it('matches username with subdomain', async () => {
-      files = ['good@sub.match.org.json'];
-      const orgs = await AuthInfo.listAllAuthFiles();
-      expect(orgs[0]).equals(files[0]);
-    });
-    it('does not match hidden usernames', async () => {
-      files = ['.no@match.org.json'];
-      try {
-        await AuthInfo.listAllAuthFiles();
-        assert.fail();
-      } catch (e) {
-        expect(e).to.have.property('name', 'NoAuthInfoFound');
-      }
-    });
-  });
-
   describe('listAllAuthorizations', () => {
     describe('with no AuthInfo.create errors', () => {
       beforeEach(async () => {

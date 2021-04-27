@@ -43,7 +43,7 @@ describe('Global', () => {
       const mkdirpSpy = $$.SANDBOX.spy(fs, 'mkdirp');
       await Global.createDir();
       expect(mkdirpSpy.called).to.be.true;
-      expect(mkdirpSpy.firstCall.args[0]).to.equal(Global.DIR);
+      expect(mkdirpSpy.firstCall.args[0]).to.equal(Global.SFDX_DIR);
       expect(mkdirpSpy.firstCall.args[1]).to.equal(fs.DEFAULT_USER_DIR_MODE);
     });
 
@@ -52,7 +52,7 @@ describe('Global', () => {
       const dirPath = path.join('some', 'dir', 'path');
       await Global.createDir(dirPath);
       expect(mkdirpSpy.called).to.be.true;
-      expect(mkdirpSpy.firstCall.args[0]).to.equal(path.join(Global.DIR, dirPath));
+      expect(mkdirpSpy.firstCall.args[0]).to.equal(path.join(Global.SFDX_DIR, dirPath));
       expect(mkdirpSpy.firstCall.args[1]).to.equal(fs.DEFAULT_USER_DIR_MODE);
     });
   });

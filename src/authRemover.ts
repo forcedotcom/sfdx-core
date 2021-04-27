@@ -5,22 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
-import { AuthInfo } from './authInfo';
+import { AuthInfo, Authorization } from './authInfo';
 import { Aliases } from './config/aliases';
-import { AuthInfoConfig } from './config/authInfoConfig';
 import { Config } from './config/config';
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
+import { Authorizations, GlobalInfo } from './config/globalInfoConfig';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
-
-export type AuthConfigs = Map<string, AuthInfoConfig>;
 
 /**
  * Handles the removing of authorizations, which includes deleting the auth file
@@ -39,19 +36,16 @@ export type AuthConfigs = Map<string, AuthInfoConfig>;
  *
  * ```
  * const remover = await AuthRemover.create();
- * const authConfigs = await remover.findAuthConfigs(
+ * const auth = await remover.findAuth(
  *  example@mycompany.com
  * );
- * const usernames = [...authConfigs.keys()];
- * for (const username of usernames) {
- *   await remover.removeAuth(username);
- * }
+ * await remover.removeAuth(auth.username);
  * ```
  */
 export class AuthRemover extends AsyncOptionalCreatable {
-  public authConfigs: AuthConfigs = new Map();
   private globalConfig: Nullable<Config>;
   private localConfig: Nullable<Config>;
+  private globalInfo!: GlobalInfo;
   private logger!: Logger;
   private aliases!: Aliases;
 
@@ -66,15 +60,16 @@ export class AuthRemover extends AsyncOptionalCreatable {
     AuthInfo.clearCache(username);
     await this.unsetConfigValues(username);
     await this.unsetAliases(username);
-    await this.unlinkConfigFile(username);
+    this.globalInfo.unsetAuthorization(username);
+    await this.globalInfo.write();
   }
 
   /**
    * Removes all authentication files and any configs or aliases associated with them
    */
   public async removeAllAuths() {
-    const authConfigs = await this.findAllAuthConfigs();
-    const usernames = [...authConfigs.keys()];
+    const auths = this.findAllAuths();
+    const usernames = Object.keys(auths);
     for (const username of usernames) {
       await this.removeAuth(username);
     }
@@ -85,39 +80,27 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * **Throws** *{@link SfdxError}{ name: 'NoOrgFound' }* if no username, alias, or defaultusername
    *
    * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured defaultusername
-   * @returns {Promise<AuthConfigs>}
+   * @returns {Promise<Authorization>}
    */
-  public async findAuthConfigs(usernameOrAlias?: string): Promise<AuthConfigs> {
-    const authFiles = await AuthInfo.listAllAuthFiles();
-    let filenames: string[] = [];
-    if (usernameOrAlias) {
-      const authFileName = `${await this.resolveUsername(usernameOrAlias)}.json`;
-      filenames = authFiles.filter((f) => f === authFileName);
-      if (filenames.length === 0) {
-        filenames = await this.filterAuthFilesForDefaultUsername(authFiles);
-      }
-    } else {
-      filenames = await this.filterAuthFilesForDefaultUsername(authFiles);
-    }
-    await this.initAuthInfoConfigs(filenames);
-    return this.authConfigs;
+  public async findAuth(usernameOrAlias?: string): Promise<Authorization> {
+    const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getDefaultUsername();
+    return this.globalInfo.getAuthorization(username);
   }
 
   /**
    * Finds all authorization files in the global .sfdx folder
    *
-   * @returns {Promise<AuthConfigs>}
+   * @returns {Promise<Authorizations>}
    */
-  public async findAllAuthConfigs(): Promise<AuthConfigs> {
-    const authFiles = await AuthInfo.listAllAuthFiles();
-    await this.initAuthInfoConfigs(authFiles);
-    return this.authConfigs;
+  public findAllAuths(): Authorizations {
+    return this.globalInfo.authorizations;
   }
 
   protected async init() {
     this.logger = await Logger.child(this.constructor.name);
     this.globalConfig = await this.getConfig(true);
     this.localConfig = await this.getConfig(false);
+    this.globalInfo = await GlobalInfo.getInstance();
     this.aliases = await Aliases.create(Aliases.getDefaultOptions());
   }
 
@@ -149,48 +132,17 @@ export class AuthRemover extends AsyncOptionalCreatable {
   }
 
   /**
-   * Filters the provided authorization file names for ones that belong to the
-   * the configured defaultusername
-   * **Throws** *{@link SfdxError}{ name: 'NoOrgFound' }* if no defaultusername is not configured
-   *
-   * @param authFiles array of authorization file names
-   * @returns {Promise<string[]>}
+   * @returns {Promise<string>}
    */
-  private async filterAuthFilesForDefaultUsername(authFiles: string[]): Promise<string[]> {
-    let filenames: string[] = [];
+  private async getDefaultUsername(): Promise<string> {
     const configAggregator = await ConfigAggregator.create();
     const defaultUsername = configAggregator.getInfo(Config.DEFAULT_USERNAME).value;
     if (!defaultUsername) {
       const message = messages.getMessage('defaultOrgNotFound', ['defaultusername']);
       const action = messages.getMessage('defaultOrgNotFoundActions');
       throw new SfdxError(message, 'NoOrgFound', [action]);
-    } else {
-      const authFileName = `${await this.resolveUsername(defaultUsername as string)}.json`;
-      filenames = authFiles.filter((f) => f === authFileName);
     }
-    return filenames;
-  }
-
-  /**
-   * Instantiates the AuthInfoConfig class for each auth file
-   *
-   * @param filenames array of authorizaiton file names
-   * @returns {Promise<AuthConfigs>}
-   */
-  private async initAuthInfoConfigs(filenames: string[]): Promise<AuthConfigs> {
-    for (const filename of filenames) {
-      try {
-        const username = path.basename(filename, '.json');
-        const config = await AuthInfoConfig.create({
-          ...AuthInfoConfig.getOptions(username),
-          throwOnNotFound: true,
-        });
-        this.authConfigs.set(username, config);
-      } catch {
-        this.logger.debug(`Problem reading file: ${filename} skipping`);
-      }
-    }
-    return this.authConfigs;
+    return defaultUsername as string;
   }
 
   /**
@@ -237,21 +189,5 @@ export class AuthRemover extends AsyncOptionalCreatable {
     this.logger.debug(`Found these aliases to remove: ${existingAliases}`);
     existingAliases.forEach((alias) => this.aliases.unset(alias));
     await this.aliases.write();
-  }
-
-  /**
-   * Deletes the authtorizaton file for provided username
-   *
-   * @param username username that you want to delete
-   */
-  private async unlinkConfigFile(username: string) {
-    const configFile = this.authConfigs.has(username)
-      ? this.authConfigs.get(username)
-      : (await this.findAuthConfigs(username)).get(username);
-
-    if (configFile && (await configFile.exists())) {
-      this.logger.debug(`Deleting auth file for username ${username}`);
-      await configFile.unlink();
-    }
   }
 }

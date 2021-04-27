@@ -9,7 +9,6 @@ import { createHash, randomBytes } from 'crypto';
 import { URL } from 'url';
 import * as dns from 'dns';
 import { resolve as pathResolve } from 'path';
-import { basename, extname } from 'path';
 import { parse as urlParse } from 'url';
 import * as os from 'os';
 import { AsyncCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap, set } from '@salesforce/kit';
@@ -36,23 +35,22 @@ import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Aliases } from './config/aliases';
-import { AuthInfoConfig } from './config/authInfoConfig';
 import { Config } from './config/config';
 import { ConfigAggregator } from './config/configAggregator';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { Crypto } from './crypto';
-import { Global } from './global';
 import { Logger } from './logger';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { fs } from './util/fs';
 import { sfdc } from './util/sfdc';
 import { MyDomainResolver } from './status/myDomainResolver';
+import { GlobalInfo } from './config/globalInfoConfig';
 
 /**
  * Fields for authorization, org, and local information.
  */
 // Fields that are persisted in auth files
-export interface AuthFields {
+export type AuthFields = {
   accessToken?: string;
   alias?: string;
   authCode?: string;
@@ -77,7 +75,7 @@ export interface AuthFields {
   usernames?: string[];
   userProfileName?: string;
   expirationDate?: string;
-}
+};
 
 export type Authorization = {
   alias: Optional<string>;
@@ -87,7 +85,10 @@ export type Authorization = {
   accessToken?: string;
   oauthMethod?: 'jwt' | 'web' | 'token' | 'unknown';
   error?: string;
+  timestamp?: string;
 };
+
+export type SfAuthorization = JsonMap & Authorization;
 
 /**
  * Options for access token flow.
@@ -355,9 +356,6 @@ function base64UrlEscape(base64Encoded: string): string {
  * ```
  */
 export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
-  // The regular expression that filters files stored in $HOME/.sfdx
-  private static authFilenameFilterRegEx = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
-
   // Cache of auth fields by username.
   private static cache: Map<string, AuthFields> = new Map();
 
@@ -396,66 +394,14 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   }
 
   /**
-   * Get a list of all auth files stored in the global directory.
-   *
-   * @returns {Promise<string[]>}
-   */
-  public static async listAllAuthFiles(): Promise<string[]> {
-    const globalFiles = await fs.readdir(Global.DIR);
-    const authFiles = globalFiles.filter((file) => file.match(AuthInfo.authFilenameFilterRegEx));
-
-    // Want to throw a clean error if no files are found.
-    if (isEmpty(authFiles)) {
-      const errConfig: SfdxErrorConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'NoAuthInfoFound');
-      throw SfdxError.create(errConfig);
-    }
-
-    // At least one auth file is in the global dir.
-    return authFiles;
-  }
-
-  /**
    * Get a list of all authorizations based on auth files stored in the global directory.
    *
    * @returns {Promise<Authorization[]>}
    */
   public static async listAllAuthorizations(): Promise<Authorization[]> {
-    const filenames = await AuthInfo.listAllAuthFiles();
-
-    const auths: Authorization[] = [];
-    const aliases = await Aliases.create(Aliases.getDefaultOptions());
-
-    for (const filename of filenames) {
-      const username = basename(filename, extname(filename));
-      try {
-        const config = await AuthInfo.create({ username });
-        const fields = config.getFields();
-        const usernameAliases = aliases.getKeysByValue(username);
-        auths.push({
-          alias: usernameAliases[0],
-          username: fields.username,
-          orgId: fields.orgId,
-          instanceUrl: fields.instanceUrl,
-          accessToken: config.getConnectionOptions().accessToken,
-          oauthMethod: config.isJwt() ? 'jwt' : config.isOauth() ? 'web' : 'token',
-        });
-      } catch (err) {
-        // Most likely, an error decrypting the token
-        const file = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
-        const contents = file.getContents();
-        const usernameAliases = aliases.getKeysByValue(contents.username as string);
-        auths.push({
-          alias: usernameAliases[0],
-          username: contents.username as string,
-          orgId: contents.orgId as string,
-          instanceUrl: contents.instanceUrl as string,
-          accessToken: undefined,
-          oauthMethod: 'unknown',
-          error: err.message,
-        });
-      }
-    }
-    return auths;
+    const config = await GlobalInfo.getInstance();
+    // TODO: add decrypred access token and auth method here
+    return Object.values(config.authorizations);
   }
 
   /**
@@ -463,8 +409,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public static async hasAuthentications(): Promise<boolean> {
     try {
-      const authFiles: string[] = await this.listAllAuthFiles();
-      return !isEmpty(authFiles);
+      const envs = await this.listAllAuthorizations();
+      return !isEmpty(envs);
     } catch (err) {
       if (err.name === 'OrgDataNotAvailableError' || err.code === 'ENOENT') {
         return false;
@@ -591,15 +537,10 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     const dataToSave = cloneJson(this.fields);
 
     this.logger.debug(dataToSave);
-
-    const config = await AuthInfoConfig.create({
-      ...AuthInfoConfig.getOptions(username),
-      throwOnNotFound: false,
-    });
-    config.setContentsFromObject(dataToSave);
+    const config = await GlobalInfo.getInstance();
+    config.setAuthorization(username, dataToSave as Authorization);
     await config.write();
-
-    this.logger.info(`Saved auth info for username: ${this.getUsername()}`);
+    this.logger.info(`Saved auth info for username: ${username}`);
     return this;
   }
 
@@ -763,11 +704,14 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     // If a username AND oauth options were passed, ensure an auth file for the username doesn't
     // already exist.  Throw if it does so we don't overwrite the auth file.
     if (this.options.username && this.options.oauth2Options) {
-      const authInfoConfig = await AuthInfoConfig.create({
-        ...AuthInfoConfig.getOptions(this.options.username),
-        throwOnNotFound: false,
-      });
-      if (await authInfoConfig.exists()) {
+      // TODO: solve infinite loop
+      const auth = (await GlobalInfo.getInstance()).getAuthorization(this.options.username);
+      // const authInfoConfig = await AuthInfoConfig.create({
+      //   ...AuthInfoConfig.getOptions(this.options.username),
+      //   throwOnNotFound: false,
+      // });
+      // if (await authInfoConfig.exists()) {
+      if (auth) {
         throw SfdxError.create(
           new SfdxErrorConfig(
             '@salesforce/core',
@@ -888,11 +832,13 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     } else {
       // Fetch from the persisted auth file
       try {
-        const config: AuthInfoConfig = await AuthInfoConfig.create({
-          ...AuthInfoConfig.getOptions(username),
-          throwOnNotFound: true,
-        });
-        return config.toObject();
+        // return await GlobalInfo.getAuthorization(username);
+        // const config: AuthInfoConfig = await AuthInfoConfig.create({
+        //   ...AuthInfoConfig.getOptions(username),
+        //   throwOnNotFound: true,
+        // });
+        // return config.toObject();
+        return (await GlobalInfo.getInstance()).getAuthorization(username);
       } catch (e) {
         if (e.code === 'ENOENT') {
           throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [username]);

@@ -40,102 +40,102 @@ describe('AuthRemover', () => {
     });
   });
 
-  describe('findAllAuthConfigs', () => {
-    it('should return map of AuthInfoConfigs for all auth files', async () => {
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () =>
-        Promise.resolve([`${username}.json`, 'user@example.com.json'])
-      );
-      const remover = await AuthRemover.create();
-      const authConfigs = await remover.findAllAuthConfigs();
+  // describe('findAllAuthConfigs', () => {
+  //   it('should return map of AuthInfoConfigs for all auth files', async () => {
+  //     stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () =>
+  //       Promise.resolve([`${username}.json`, 'user@example.com.json'])
+  //     );
+  //     const remover = await AuthRemover.create();
+  //     const authConfigs = await remover.findAllAuthConfigs();
 
-      expect(authConfigs.has(username)).to.equal(true);
-      expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
+  //     expect(authConfigs.has(username)).to.equal(true);
+  //     expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
 
-      expect(authConfigs.has('user@example.com')).to.equal(true);
-      expect(authConfigs.get('user@example.com') instanceof AuthInfoConfig).to.be.true;
-    });
-  });
+  //     expect(authConfigs.has('user@example.com')).to.equal(true);
+  //     expect(authConfigs.get('user@example.com') instanceof AuthInfoConfig).to.be.true;
+  //   });
+  // });
 
-  describe('findAuthConfigs', () => {
-    it('should return map of AuthInfoConfigs for provided username', async () => {
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
-      const remover = await AuthRemover.create();
-      const authConfigs = await remover.findAuthConfigs(username);
+  // describe('findAuthConfigs', () => {
+  //   it('should return map of AuthInfoConfigs for provided username', async () => {
+  //     stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
+  //     const remover = await AuthRemover.create();
+  //     const authConfigs = await remover.findAuthConfigs(username);
 
-      expect(authConfigs.has(username)).to.equal(true);
-      expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
-    });
+  //     expect(authConfigs.has(username)).to.equal(true);
+  //     expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
+  //   });
 
-    it('should return map of AuthInfoConfigs for provided alias', async () => {
-      const alias = 'MyAlias';
-      $$.setConfigStubContents('Aliases', {
-        contents: {
-          orgs: { [alias]: username },
-        },
-      });
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
-      const remover = await AuthRemover.create();
-      const authConfigs = await remover.findAuthConfigs(alias);
-      expect(authConfigs.has(username)).to.equal(true);
-      expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
-    });
+  //   it('should return map of AuthInfoConfigs for provided alias', async () => {
+  //     const alias = 'MyAlias';
+  //     $$.setConfigStubContents('Aliases', {
+  //       contents: {
+  //         orgs: { [alias]: username },
+  //       },
+  //     });
+  //     stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
+  //     const remover = await AuthRemover.create();
+  //     const authConfigs = await remover.findAuthConfigs(alias);
+  //     expect(authConfigs.has(username)).to.equal(true);
+  //     expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
+  //   });
 
-    it('should return map of AuthInfoConfigs for defaultusername (set to username) if no username is provided', async () => {
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
-      $$.setConfigStubContents('Config', {
-        contents: {
-          [Config.DEFAULT_USERNAME]: username,
-        },
-      });
-      const remover = await AuthRemover.create();
-      const authConfigs = await remover.findAuthConfigs();
-      expect(authConfigs.has(username)).to.equal(true);
-      expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
-    });
+  //   it('should return map of AuthInfoConfigs for defaultusername (set to username) if no username is provided', async () => {
+  //     stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
+  //     $$.setConfigStubContents('Config', {
+  //       contents: {
+  //         [Config.DEFAULT_USERNAME]: username,
+  //       },
+  //     });
+  //     const remover = await AuthRemover.create();
+  //     const authConfigs = await remover.findAuthConfigs();
+  //     expect(authConfigs.has(username)).to.equal(true);
+  //     expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
+  //   });
 
-    it('should return map of AuthInfoConfigs for defaultusername (set to alias) if no username is provided', async () => {
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
-      const alias = 'MyAlias';
-      $$.setConfigStubContents('Aliases', {
-        contents: {
-          orgs: { [alias]: username },
-        },
-      });
-      $$.setConfigStubContents('Config', {
-        contents: {
-          [Config.DEFAULT_USERNAME]: alias,
-        },
-      });
-      const remover = await AuthRemover.create();
-      const authConfigs = await remover.findAuthConfigs();
-      expect(authConfigs.has(username)).to.equal(true);
-      expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
-    });
+  //   it('should return map of AuthInfoConfigs for defaultusername (set to alias) if no username is provided', async () => {
+  //     stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
+  //     const alias = 'MyAlias';
+  //     $$.setConfigStubContents('Aliases', {
+  //       contents: {
+  //         orgs: { [alias]: username },
+  //       },
+  //     });
+  //     $$.setConfigStubContents('Config', {
+  //       contents: {
+  //         [Config.DEFAULT_USERNAME]: alias,
+  //       },
+  //     });
+  //     const remover = await AuthRemover.create();
+  //     const authConfigs = await remover.findAuthConfigs();
+  //     expect(authConfigs.has(username)).to.equal(true);
+  //     expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
+  //   });
 
-    it('should return map of AuthInfoConfigs for defaultusername if provided username has no auth file ', async () => {
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
-      $$.setConfigStubContents('Config', {
-        contents: {
-          [Config.DEFAULT_USERNAME]: username,
-        },
-      });
-      const remover = await AuthRemover.create();
-      const authConfigs = await remover.findAuthConfigs('user@example.com');
-      expect(authConfigs.has(username)).to.equal(true);
-      expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
-    });
+  //   it('should return map of AuthInfoConfigs for defaultusername if provided username has no auth file ', async () => {
+  //     stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
+  //     $$.setConfigStubContents('Config', {
+  //       contents: {
+  //         [Config.DEFAULT_USERNAME]: username,
+  //       },
+  //     });
+  //     const remover = await AuthRemover.create();
+  //     const authConfigs = await remover.findAuthConfigs('user@example.com');
+  //     expect(authConfigs.has(username)).to.equal(true);
+  //     expect(authConfigs.get(username) instanceof AuthInfoConfig).to.be.true;
+  //   });
 
-    it('should throw an error if no username is provided and defaultusername is not set', async () => {
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
-      const remover = await AuthRemover.create();
-      try {
-        await remover.findAuthConfigs();
-        assert.fail();
-      } catch (err) {
-        expect(err.name).to.equal('NoOrgFound');
-      }
-    });
-  });
+  //   it('should throw an error if no username is provided and defaultusername is not set', async () => {
+  //     stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
+  //     const remover = await AuthRemover.create();
+  //     try {
+  //       await remover.findAuthConfigs();
+  //       assert.fail();
+  //     } catch (err) {
+  //       expect(err.name).to.equal('NoOrgFound');
+  //     }
+  //   });
+  // });
 
   describe('filterAuthFilesForDefaultUsername', () => {
     it('should return auth files that belong to the defaultusername (username)', async () => {
@@ -269,16 +269,16 @@ describe('AuthRemover', () => {
   });
 
   describe('unlinkConfigFile', () => {
-    it('should unlink AuthConfigFile', async () => {
-      stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'exists').returns(Promise.resolve(true));
-      const unlinkSpy = stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'unlink').returns(Promise.resolve());
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
-      const remover = await AuthRemover.create();
-      await remover.findAllAuthConfigs();
-      // @ts-ignore because private member
-      await remover.unlinkConfigFile(username);
-      expect(unlinkSpy.callCount).to.equal(1);
-    });
+    // it('should unlink AuthConfigFile', async () => {
+    //   stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'exists').returns(Promise.resolve(true));
+    //   const unlinkSpy = stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'unlink').returns(Promise.resolve());
+    //   stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async () => Promise.resolve([`${username}.json`]));
+    //   const remover = await AuthRemover.create();
+    //   await remover.findAllAuthConfigs();
+    //   // @ts-ignore because private member
+    //   await remover.unlinkConfigFile(username);
+    //   expect(unlinkSpy.callCount).to.equal(1);
+    // });
 
     it('should unlink AuthConfigFile when username is not yet in this.authConfigs', async () => {
       stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'exists').returns(Promise.resolve(true));

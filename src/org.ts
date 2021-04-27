@@ -94,7 +94,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     let dataPath: string;
     try {
       const rootFolder: string = await Config.resolveRootFolder(false);
-      dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
+      dataPath = pathJoin(rootFolder, Global.SFDX_STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
       this.logger.debug(`cleaning data for path: ${dataPath}`);
     } catch (err) {
       if (err.name === 'InvalidProjectWorkspace') {

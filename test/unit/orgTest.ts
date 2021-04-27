@@ -245,11 +245,11 @@ describe('Org Tests', () => {
       await org.remove();
 
       expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.json`)
+        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.json`)
       );
 
       expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.sandbox.json`)
+        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.sandbox.json`)
       );
     });
 
@@ -355,7 +355,7 @@ describe('Org Tests', () => {
       await org.remove();
 
       expect(deletedPaths).not.includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.sandbox.json`)
+        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.sandbox.json`)
       );
     });
   });
@@ -768,11 +768,11 @@ describe('Org Tests', () => {
       expect(deletedPaths).to.have.length(2);
       // Expect the sandbox config is deleted.
       expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.sandbox.json`)
+        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.sandbox.json`)
       );
       // Expect the auth file is deleted.
       expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${org.getUsername()}.json`)
+        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${org.getUsername()}.json`)
       );
     });
   });
