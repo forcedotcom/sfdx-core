@@ -26,7 +26,6 @@ import {
 import { QueryResult } from 'jsforce';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Aliases } from './config/aliases';
-import { AuthInfoConfig } from './config/authInfoConfig';
 import { Config } from './config/config';
 import { ConfigAggregator, ConfigInfo } from './config/configAggregator';
 import { ConfigContents } from './config/configStore';
@@ -38,6 +37,7 @@ import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { fs } from './util/fs';
 import { sfdc } from './util/sfdc';
+import { GlobalInfo } from './config/globalInfoConfig';
 
 /**
  * Provides a way to manage a locally authenticated Org.
@@ -493,16 +493,11 @@ export class Org extends AsyncCreatable<Org.Options> {
   private async removeAuth(): Promise<void> {
     const username = ensure(this.getUsername());
     this.logger.debug(`Removing auth for user: ${username}`);
-    const config = await AuthInfoConfig.create({
-      ...AuthInfoConfig.getOptions(username),
-      throwOnNotFound: false,
-    });
-
+    const config = await GlobalInfo.getInstance();
     this.logger.debug(`Clearing auth cache for user: ${username}`);
     AuthInfo.clearCache(username);
-    if (await config.exists()) {
-      await config.unlink();
-    }
+    config.unset(username);
+    await config.write();
   }
 
   /**

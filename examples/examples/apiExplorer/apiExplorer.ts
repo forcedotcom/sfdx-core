@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { AuthInfo, Connection, GlobalInfo } from '@salesforce/core';
 import chalk from 'chalk';
 import * as inquirer from 'inquirer';
 
 export async function run() {
-  // List all auth files
-  const authFiles = await AuthInfo.listAllAuthFiles();
-  const orgs = authFiles.map(authfile => authfile.replace('.json', ''));
+  const config = await GlobalInfo.getInstance();
+  const orgs = Object.keys(config.authorizations)
 
   // Have the user select a user
   const connectionOrg = await select('Select an org to connect to:', orgs);

@@ -31,7 +31,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options> {
     [SfDataKeys.AUTHORIZATIONS]: {},
   };
   private static instance: GlobalInfo;
-  private enableInteroperability = true;
+  private static enableInteroperability = true;
   private sfdxHandler = new SfdxDataHandler();
 
   public static async getInstance(): Promise<GlobalInfo> {
@@ -69,6 +69,10 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options> {
     return this.getContents()[SfDataKeys.AUTHORIZATIONS][username];
   }
 
+  public hasAuthorization(username: string): boolean {
+    return !!this.getContents()[SfDataKeys.AUTHORIZATIONS][username];
+  }
+
   public setAuthorization(username: string, authorization: SfAuthorization): void {
     this.set(`${SfDataKeys.AUTHORIZATIONS}["${username}"]`, authorization);
   }
@@ -83,12 +87,12 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options> {
 
   public async write(newContents?: SfData): Promise<SfData> {
     const result = (await super.write(newContents)) as SfData;
-    if (this.enableInteroperability) await this.sfdxHandler.write(result);
+    if (GlobalInfo.enableInteroperability) await this.sfdxHandler.write(result);
     return result;
   }
 
   protected async init(): Promise<void> {
-    const contents = this.enableInteroperability ? await this.mergeWithSfdxData() : await this.loadSfData();
+    const contents = GlobalInfo.enableInteroperability ? await this.mergeWithSfdxData() : await this.loadSfData();
     this.setContents(contents);
   }
 

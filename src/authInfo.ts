@@ -400,7 +400,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public static async listAllAuthorizations(): Promise<Authorization[]> {
     const config = await GlobalInfo.getInstance();
-    // TODO: add decrypted access token and auth method here
+    // TODO: add decrypted access token and oauth method here
     return Object.values(config.authorizations);
   }
 
@@ -701,11 +701,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
     }
 
-    // If a username AND oauth options were passed, ensure an auth file for the username doesn't
-    // already exist.  Throw if it does so we don't overwrite the auth file.
+    // If a username AND oauth options were passed, ensure an authorization for the username doesn't
+    // already exist. Throw if it does so we don't overwrite the authorization.
     if (this.options.username && this.options.oauth2Options) {
-      const auth = (await GlobalInfo.getInstance()).getAuthorization(this.options.username);
-      if (auth) {
+      const authExists = (await GlobalInfo.getInstance()).hasAuthorization(this.options.username);
+      if (authExists) {
         throw SfdxError.create(
           new SfdxErrorConfig(
             '@salesforce/core',
@@ -826,7 +826,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     } else {
       // Fetch from the persisted auth file
       try {
-        return (await GlobalInfo.getInstance()).getAuthorization(username);
+        const config = await GlobalInfo.getInstance();
+        return config.getAuthorization(username);
       } catch (e) {
         if (e.code === 'ENOENT') {
           throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [username]);

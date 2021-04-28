@@ -1,4 +1,4 @@
-import { AuthInfo, Org, StatusResult, StreamingClient } from '@salesforce/core';
+import { GlobalInfo, Org, StatusResult, StreamingClient } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import * as inquirer from 'inquirer';
@@ -30,9 +30,8 @@ export async function run() {
     });
   }
 
-  // List all auth files
-  const authFiles = await AuthInfo.listAllAuthFiles();
-  const orgs = authFiles.map(authfile => authfile.replace('.json', ''));
+  const config = await GlobalInfo.getInstance();
+  const orgs = Object.keys(config.authorizations)
 
   // Have the user select a user
   const connectionOrg = await select('Select an org to connect to:', orgs);

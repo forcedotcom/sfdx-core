@@ -111,12 +111,12 @@ export class AuthHandler implements Handler<SfDataKeys.AUTHORIZATIONS> {
   public sfKey: typeof SfDataKeys.AUTHORIZATIONS = SfDataKeys.AUTHORIZATIONS;
 
   public async migrate(): Promise<Pick<SfData, SfDataKeys.AUTHORIZATIONS>> {
-    const auths = await this.listAllAuthorizations();
-    const environments = auths.reduce(
+    const oldAuths = await this.listAllAuthorizations();
+    const newAuths = oldAuths.reduce(
       (x, y) => Object.assign(x, { [ensureString(y.username)]: y }),
       {} as Authorizations
     );
-    return { [this.sfKey]: environments };
+    return { [this.sfKey]: newAuths };
   }
 
   public async write(latest: SfData, original: SfData): Promise<void> {
@@ -180,7 +180,8 @@ export class AuthHandler implements Handler<SfDataKeys.AUTHORIZATIONS> {
 
   private async listAllAuthorizations(): Promise<Authorization[]> {
     const filenames = await this.listAllAuthFiles();
-
+    // eslint-disable-next-line no-console
+    console.log(filenames);
     const auths: Authorization[] = [];
     for (const filename of filenames) {
       const username = basename(filename, extname(filename));
