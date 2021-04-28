@@ -400,7 +400,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public static async listAllAuthorizations(): Promise<Authorization[]> {
     const config = await GlobalInfo.getInstance();
-    // TODO: add decrypred access token and auth method here
+    // TODO: add decrypted access token and auth method here
     return Object.values(config.authorizations);
   }
 
@@ -409,8 +409,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public static async hasAuthentications(): Promise<boolean> {
     try {
-      const envs = await this.listAllAuthorizations();
-      return !isEmpty(envs);
+      const auths = await this.listAllAuthorizations();
+      return !isEmpty(auths);
     } catch (err) {
       if (err.name === 'OrgDataNotAvailableError' || err.code === 'ENOENT') {
         return false;
@@ -704,13 +704,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     // If a username AND oauth options were passed, ensure an auth file for the username doesn't
     // already exist.  Throw if it does so we don't overwrite the auth file.
     if (this.options.username && this.options.oauth2Options) {
-      // TODO: solve infinite loop
       const auth = (await GlobalInfo.getInstance()).getAuthorization(this.options.username);
-      // const authInfoConfig = await AuthInfoConfig.create({
-      //   ...AuthInfoConfig.getOptions(this.options.username),
-      //   throwOnNotFound: false,
-      // });
-      // if (await authInfoConfig.exists()) {
       if (auth) {
         throw SfdxError.create(
           new SfdxErrorConfig(
@@ -832,12 +826,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     } else {
       // Fetch from the persisted auth file
       try {
-        // return await GlobalInfo.getAuthorization(username);
-        // const config: AuthInfoConfig = await AuthInfoConfig.create({
-        //   ...AuthInfoConfig.getOptions(username),
-        //   throwOnNotFound: true,
-        // });
-        // return config.toObject();
         return (await GlobalInfo.getInstance()).getAuthorization(username);
       } catch (e) {
         if (e.code === 'ENOENT') {

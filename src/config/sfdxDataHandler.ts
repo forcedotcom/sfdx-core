@@ -149,8 +149,6 @@ export class AuthHandler implements Handler<SfDataKeys.AUTHORIZATIONS> {
         deleted.push(username);
       }
     }
-    // eslint-disable-next-line no-console
-    console.log(deleted);
 
     return { changed, deleted };
   }
