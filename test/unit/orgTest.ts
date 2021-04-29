@@ -16,7 +16,6 @@ import { OAuth2 } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import { AuthFields, AuthInfo } from '../../src/authInfo';
 import { Aliases } from '../../src/config/aliases';
-import { AuthInfoConfig } from '../../src/config/authInfoConfig';
 import { Config } from '../../src/config/config';
 import { ConfigAggregator } from '../../src/config/configAggregator';
 import { ConfigFile } from '../../src/config/configFile';
@@ -28,6 +27,7 @@ import { Org } from '../../src/org';
 import { MockTestOrgData, testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
+import { GlobalInfo } from '../../src/config/globalInfoConfig';
 
 const $$ = testSetup();
 
@@ -38,10 +38,25 @@ describe('Org Tests', () => {
 
   beforeEach(async () => {
     testData = new MockTestOrgData();
-    $$.configStubs.AuthInfoConfig = { contents: await testData.getConfig() };
+    // Turn off the interoperability feature so that we don't have to mock
+    // the old .sfdx config files
+    // @ts-ignore
+    GlobalInfo.enableInteroperability = false;
+    $$.configStubs.GlobalInfo = {
+      contents: {
+        authorizations: {
+          [testData.username]: await testData.getConfig(),
+        },
+      },
+    };
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves('1.1.1.1');
 
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
+  });
+
+  afterEach(() => {
+    // @ts-ignore becuase private member
+    GlobalInfo.instance = null;
   });
 
   describe('fields', () => {
@@ -73,7 +88,7 @@ describe('Org Tests', () => {
     it('should create an org from an alias', async () => {
       const config = await testData.getConfig();
       delete config.username;
-      $$.configStubs.AuthInfoConfig = { contents: config };
+      $$.configStubs.GlobalInfo = { contents: { authorizations: { [testData.username]: config } } };
       const alias = 'foo';
       await Aliases.parseAndUpdate([`${alias}=${testData.username}`]);
       const org: Org = await Org.create({ aliasOrUsername: alias });
@@ -208,15 +223,15 @@ describe('Org Tests', () => {
 
   describe('remove', () => {
     const configFileReadJsonMock = async function (this: ConfigFile<ConfigFile.Options>) {
-      if (this.getPath().includes(`${testData.username}.json`)) {
-        return Promise.resolve(await testData.getConfig());
+      if (this.getPath().includes('sf.json')) {
+        return Promise.resolve({ authorizations: { [testData.username]: await testData.getConfig() } });
       }
 
       return Promise.resolve({});
     };
 
     beforeEach(() => {
-      $$.configStubs.AuthInfoConfig = {
+      $$.configStubs.GlobalInfo = {
         retrieveContents: configFileReadJsonMock,
       };
     });
@@ -388,7 +403,7 @@ describe('Org Tests', () => {
         return Promise.resolve(responseBody);
       });
 
-      $$.SANDBOX.stub(AuthInfoConfig.prototype, 'exists').returns(Promise.resolve(false));
+      $$.SANDBOX.stub(GlobalInfo.prototype, 'hasAuthorization').returns(false);
 
       for (const user of users) {
         userAuthResponse = {
@@ -461,12 +476,6 @@ describe('Org Tests', () => {
 
       alias = await Aliases.fetch('foo');
       expect(alias).eq(undefined);
-
-      const configOrg0 = await AuthInfoConfig.create({
-        ...AuthInfoConfig.getOptions(orgs[0].getUsername()),
-        throwOnNotFound: false,
-      });
-      expect(await configOrg0.exists()).to.be.false;
     });
 
     it('should not try to delete auth files when deleting an org via access token', async () => {
@@ -543,11 +552,11 @@ describe('Org Tests', () => {
         if (this.getPath().includes(devHubUser)) {
           const mockDevHubData: MockTestOrgData = new MockTestOrgData();
           mockDevHubData.username = devHubUser;
-          return Promise.resolve(mockDevHubData.getConfig());
+          return Promise.resolve({ authorizations: { [mockDevHubData.username]: await mockDevHubData.getConfig() } });
         }
-        return Promise.resolve(await testData.getConfig());
+        return Promise.resolve({ authorizations: { [testData.username]: await testData.getConfig() } });
       };
-      $$.configStubs.AuthInfoConfig = { retrieveContents: retrieve };
+      $$.configStubs.GlobalInfo = { retrieveContents: retrieve };
     });
 
     it('steel thread', async () => {
@@ -608,26 +617,6 @@ describe('Org Tests', () => {
       mock0 = new MockTestOrgData();
       mock1 = new MockTestOrgData();
       mock2 = new MockTestOrgData();
-
-      const retrieve = async function (this: ConfigFile<OrgUsersConfig.Options>) {
-        const path = this.getPath();
-
-        if (path && path.includes(mock0.username)) {
-          return mock0.getConfig();
-        } else if (path && path.includes(mock1.username)) {
-          return mock1.getConfig();
-        } else if (path && path.includes(mock2.username)) {
-          return mock2.getConfig();
-        } else if (path && path.includes(mock0.orgId)) {
-          return {
-            usernames: [orgs[0].getUsername(), orgs[1].getUsername(), orgs[2].getUsername()],
-          };
-        } else {
-          throw new Error(`Unhandled Path: ${path}`);
-        }
-      };
-
-      $$.configStubs.AuthInfoConfig = { retrieveContents: retrieve };
 
       orgs[0] = await Org.create({
         connection: await Connection.create({
@@ -705,8 +694,10 @@ describe('Org Tests', () => {
       expect(org.isDevHubOrg()).to.be.false;
     });
     it('should not call server is cached', async () => {
-      $$.configStubs.AuthInfoConfig.contents = {
-        isDevHub: false,
+      $$.configStubs.GlobalInfo.contents = {
+        authorizations: {
+          [testData.username]: { isDevHub: false },
+        },
       };
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
       const spy = $$.SANDBOX.spy();
@@ -716,8 +707,10 @@ describe('Org Tests', () => {
       expect(spy.called).to.be.false;
     });
     it('should call server is cached but forced', async () => {
-      $$.configStubs.AuthInfoConfig.contents = {
-        isDevHub: false,
+      $$.configStubs.GlobalInfo.contents = {
+        authorizations: {
+          [testData.username]: { isDevHub: false },
+        },
       };
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
       const spy = $$.SANDBOX.stub().returns(Promise.resolve({ records: [] }));
@@ -748,12 +741,21 @@ describe('Org Tests', () => {
         return Promise.resolve(true);
       });
 
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'hasAuthorization').callsFake(async function () {
+        if (this.path && this.path.includes(testData.orgId)) {
+          return Promise.resolve(false);
+        }
+        return Promise.resolve(true);
+      });
+
       // Stub to track the deleted paths.
       const deletedPaths: string[] = [];
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function (this: ConfigFile<ConfigFile.Options>) {
         deletedPaths.push(this.getPath());
         return Promise.resolve({});
       });
+
+      const unsetSpy = stubMethod($$.SANDBOX, GlobalInfo.prototype, 'unsetAuthorization').returns(null);
 
       // Create an org and add a sandbox config
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
@@ -763,16 +765,11 @@ describe('Org Tests', () => {
 
       // Remove the org
       await org.remove();
-
-      // Expect there are only two files.
-      expect(deletedPaths).to.have.length(2);
+      // Expect the authoization to be removed
+      expect(unsetSpy.firstCall.args).to.deep.equal([testData.username]);
       // Expect the sandbox config is deleted.
       expect(deletedPaths).includes(
         pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.sandbox.json`)
-      );
-      // Expect the auth file is deleted.
-      expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${org.getUsername()}.json`)
       );
     });
   });

@@ -496,7 +496,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     const config = await GlobalInfo.getInstance();
     this.logger.debug(`Clearing auth cache for user: ${username}`);
     AuthInfo.clearCache(username);
-    config.unset(username);
+    config.unsetAuthorization(username);
     await config.write();
   }
 

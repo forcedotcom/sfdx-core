@@ -14,13 +14,13 @@ import { ConfigAggregator } from '../../src/config/configAggregator';
 import { GlobalInfo } from '../../src/config/globalInfoConfig';
 import { testSetup } from '../../src/testSetup';
 
-describe.only('AuthRemover', () => {
+describe('AuthRemover', () => {
   const username = 'espresso@coffee.com';
   const $$ = testSetup();
 
   beforeEach(async () => {
     $$.SANDBOXES.CONFIG.restore();
-    // Turn of the interoperability feature so that we don't have to mock
+    // Turn off the interoperability feature so that we don't have to mock
     // the old .sfdx config files
     // @ts-ignore
     GlobalInfo.enableInteroperability = false;
