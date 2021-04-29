@@ -227,7 +227,7 @@ class MetaAuthDataMock {
   }
 }
 
-describe.only('AuthInfo', () => {
+describe('AuthInfo', () => {
   let authInfoInit: sinon.SinonSpy;
   let authInfoUpdate: sinon.SinonSpy;
   let authInfoBuildJwtConfig: sinon.SinonSpy;
@@ -256,7 +256,7 @@ describe.only('AuthInfo', () => {
       return Promise.resolve();
     });
 
-    // Turn of the interoperability feature so that we don't have to mock
+    // Turn off the interoperability feature so that we don't have to mock
     // the old .sfdx config files
     // @ts-ignore
     GlobalInfo.enableInteroperability = false;

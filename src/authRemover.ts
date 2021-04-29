@@ -162,6 +162,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   private async unsetConfigValues(username: string) {
     const aliases = this.getAliases(username);
+
     this.logger.debug(`Clearing config keys for username ${username} and aliases: ${aliases}`);
     for (const config of [this.globalConfig, this.localConfig]) {
       if (config) {
