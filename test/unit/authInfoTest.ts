@@ -26,7 +26,6 @@ import { SfdxError } from '../../src/sfdxError';
 import { testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
 import { GlobalInfo } from '../../src/exported';
-import { AuthInfoConfig } from '../../src/config/authInfoConfig';
 
 const TEST_KEY = {
   service: 'sfdx',
@@ -193,6 +192,7 @@ class MetaAuthDataMock {
       set(configContents, 'instanceUrl', 'http://mydevhub.localhost.internal.salesforce.com:6109');
       set(configContents, 'accessToken', this.encryptedAccessToken);
       set(configContents, 'privateKey', '123456');
+      set(configContents, 'username', this.username);
       return Promise.resolve(configContents);
     } else {
       return Promise.resolve({});
@@ -1784,23 +1784,12 @@ describe.only('AuthInfo', () => {
 
   describe('hasAuthentications', () => {
     it('should return false', async () => {
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(
-        async (): Promise<string[]> => {
-          return Promise.resolve([]);
-        }
-      );
-
-      const result: boolean = await AuthInfo.hasAuthentications();
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAuthorizations').returns({});
+      const result = await AuthInfo.hasAuthentications();
       expect(result).to.be.false;
     });
 
     it('should return true', async () => {
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(
-        async (): Promise<string[]> => {
-          return Promise.resolve(['file1']);
-        }
-      );
-
       const result: boolean = await AuthInfo.hasAuthentications();
       expect(result).to.be.equal(true);
     });
@@ -1810,10 +1799,9 @@ describe.only('AuthInfo', () => {
     describe('with no AuthInfo.create errors', () => {
       beforeEach(async () => {
         const username = 'espresso@coffee.com';
-        const files = [`${username}.json`];
-        stubMethod($$.SANDBOX, fs, 'readdir').callsFake(() => Promise.resolve(files));
         stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
         stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
+        stubMethod($$.SANDBOX, GlobalInfo.prototype, 'hasAuthorization').returns(false);
         // Stub the http request (OAuth2.refreshToken())
         // This will be called for both, and we want to make sure the clientSecrete is the
         // same for both.
@@ -1826,6 +1814,17 @@ describe.only('AuthInfo', () => {
             id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
           };
         });
+
+        const jwtData = {};
+        set(jwtData, 'accessToken', testMetadata.encryptedAccessToken);
+        set(jwtData, 'clientId', testMetadata.clientId);
+        set(jwtData, 'loginUrl', testMetadata.loginUrl);
+        set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
+        set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
+        set(jwtData, 'username', username);
+        testMetadata.fetchConfigInfo = () => {
+          return Promise.resolve(jwtData);
+        };
 
         const authInfo = await AuthInfo.create({
           username,
@@ -1850,6 +1849,7 @@ describe.only('AuthInfo', () => {
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
+            timestamp: undefined,
           },
         ]);
       });
@@ -1865,6 +1865,7 @@ describe.only('AuthInfo', () => {
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'jwt',
+            timestamp: undefined,
           },
         ]);
       });
@@ -1881,6 +1882,7 @@ describe.only('AuthInfo', () => {
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'token',
+            timestamp: undefined,
           },
         ]);
       });
@@ -1896,6 +1898,7 @@ describe.only('AuthInfo', () => {
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
+            timestamp: undefined,
           },
         ]);
       });
@@ -1904,24 +1907,20 @@ describe.only('AuthInfo', () => {
     describe('with AuthInfo.create errors', () => {
       beforeEach(async () => {
         const username = 'espresso@coffee.com';
-        const files = [`${username}.json`];
-        stubMethod($$.SANDBOX, fs, 'readdir').callsFake(() => Promise.resolve(files));
         stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
         stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
 
-        $$.setConfigStubContents('AuthInfoConfig', {
-          contents: {
-            username,
-            orgId: '00DAuthInfoTest_orgId',
-            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
-          },
-        });
-
-        stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'getContents').returns({
-          username,
-          orgId: '00DAuthInfoTest_orgId',
-          instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
-        });
+        const jwtData = {};
+        set(jwtData, 'accessToken', testMetadata.encryptedAccessToken);
+        set(jwtData, 'clientId', testMetadata.clientId);
+        set(jwtData, 'loginUrl', testMetadata.loginUrl);
+        set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
+        set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
+        set(jwtData, 'orgId', '00DAuthInfoTest_orgId');
+        set(jwtData, 'username', username);
+        testMetadata.fetchConfigInfo = () => {
+          return Promise.resolve(jwtData);
+        };
         stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).throws(new Error('FAIL!'));
       });
 
@@ -1936,6 +1935,7 @@ describe.only('AuthInfo', () => {
             accessToken: undefined,
             oauthMethod: 'unknown',
             error: 'FAIL!',
+            timestamp: undefined,
           },
         ]);
       });
@@ -1952,6 +1952,7 @@ describe.only('AuthInfo', () => {
             accessToken: undefined,
             oauthMethod: 'unknown',
             error: 'FAIL!',
+            timestamp: undefined,
           },
         ]);
       });

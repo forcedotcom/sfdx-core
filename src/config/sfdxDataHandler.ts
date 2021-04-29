@@ -7,15 +7,13 @@
 
 import { basename, extname } from 'path';
 import { isEmpty, set } from '@salesforce/kit';
-import { ensureString } from '@salesforce/ts-types';
+import { AnyJson, ensureString } from '@salesforce/ts-types';
 import { Authorization } from '../authInfo';
 import { Global } from '../global';
 import { SfdxError, SfdxErrorConfig } from '../sfdxError';
 import { fs } from '../util/fs';
 import { ConfigFile } from './configFile';
 import { Authorizations, GlobalInfo, SfData, SfDataKeys } from './globalInfoConfig';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const deepcopy = require('deepcopy');
 
 function isEqual(object1: Record<string, unknown>, object2: Record<string, unknown>): boolean {
   const keys1 = Object.keys(object1).filter((k) => k !== 'timestamp');
@@ -28,6 +26,10 @@ function isEqual(object1: Record<string, unknown>, object2: Record<string, unkno
   }
 
   return true;
+}
+
+function deepCopy<T extends AnyJson>(data: T): T {
+  return JSON.parse(JSON.stringify(data)) as T;
 }
 
 interface Handler<T extends SfDataKeys> {
@@ -54,7 +56,7 @@ export class SfdxDataHandler {
 
   public async merge(sfData: SfData): Promise<SfData> {
     const sfdxData = await this.load();
-    const merged = deepcopy(sfData) as SfData;
+    const merged = deepCopy<SfData>(sfData);
     const keys = Object.keys(sfData) as SfDataKeys[];
     for (const key of keys) {
       const sfKeys = Object.keys(sfData[key] ?? {});
@@ -100,7 +102,7 @@ export class SfdxDataHandler {
   }
 
   private setOriginal(data: SfData): void {
-    this.original = deepcopy(data);
+    this.original = deepCopy<SfData>(data);
   }
 }
 

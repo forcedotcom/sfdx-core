@@ -61,7 +61,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options> {
     return this['contents'] as SfData;
   }
 
-  public get authorizations(): Authorizations {
+  public getAuthorizations(): Authorizations {
     return this.getContents()[SfDataKeys.AUTHORIZATIONS];
   }
 

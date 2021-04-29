@@ -93,7 +93,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<Authorizations>}
    */
   public findAllAuths(): Authorizations {
-    return this.globalInfo.authorizations;
+    return this.globalInfo.getAuthorizations();
   }
 
   protected async init() {

@@ -399,9 +399,39 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * @returns {Promise<Authorization[]>}
    */
   public static async listAllAuthorizations(): Promise<Authorization[]> {
-    const config = await GlobalInfo.getInstance();
-    // TODO: add decrypted access token and oauth method here
-    return Object.values(config.authorizations);
+    const globalInfo = await GlobalInfo.getInstance();
+    const auths = Object.values(globalInfo.getAuthorizations());
+    const aliases = await Aliases.create(Aliases.getDefaultOptions());
+    const final: Authorization[] = [];
+    for (const auth of auths) {
+      const username = ensureString(auth.username);
+      const [alias] = aliases.getKeysByValue(username);
+      try {
+        const authInfo = await AuthInfo.create({ username });
+        const { orgId, instanceUrl } = authInfo.getFields();
+        final.push({
+          alias,
+          username,
+          orgId,
+          instanceUrl,
+          accessToken: authInfo.getConnectionOptions().accessToken,
+          oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
+          timestamp: auth.timestamp,
+        });
+      } catch (err) {
+        final.push({
+          alias,
+          username,
+          orgId: auth.orgId as string,
+          instanceUrl: auth.instanceUrl as string,
+          accessToken: undefined,
+          oauthMethod: 'unknown',
+          error: err.message,
+          timestamp: auth.timestamp,
+        });
+      }
+    }
+    return final;
   }
 
   /**
@@ -409,7 +439,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public static async hasAuthentications(): Promise<boolean> {
     try {
-      const auths = await this.listAllAuthorizations();
+      const auths = (await GlobalInfo.getInstance()).getAuthorizations();
       return !isEmpty(auths);
     } catch (err) {
       if (err.name === 'OrgDataNotAvailableError' || err.code === 'ENOENT') {
