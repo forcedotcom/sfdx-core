@@ -226,9 +226,9 @@ export const fs = Object.assign({}, fsLib, {
    * @param jsonPath The path of the file.
    * @param throwOnEmpty Whether to throw an error if the JSON file is empty.
    */
-  readJsonMap: async (jsonPath: string, throwOnEmpty?: boolean): Promise<JsonMap> => {
+  readJsonMap: async <T extends JsonMap = JsonMap>(jsonPath: string, throwOnEmpty?: boolean): Promise<T> => {
     const fileData = await fs.readFile(jsonPath, 'utf8');
-    return parseJsonMap(fileData, jsonPath, throwOnEmpty);
+    return parseJsonMap<T>(fileData, jsonPath, throwOnEmpty);
   },
 
   /**
@@ -237,9 +237,9 @@ export const fs = Object.assign({}, fsLib, {
    * @param jsonPath The path of the file.
    * @param throwOnEmpty Whether to throw an error if the JSON file is empty.
    */
-  readJsonMapSync: (jsonPath: string, throwOnEmpty?: boolean): JsonMap => {
+  readJsonMapSync: <T extends JsonMap = JsonMap>(jsonPath: string, throwOnEmpty?: boolean): T => {
     const fileData = fs.readFileSync(jsonPath, 'utf8');
-    return parseJsonMap(fileData, jsonPath, throwOnEmpty);
+    return parseJsonMap<T>(fileData, jsonPath, throwOnEmpty);
   },
 
   /**

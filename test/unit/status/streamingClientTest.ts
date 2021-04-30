@@ -23,6 +23,7 @@ import {
   StreamingMockSubscriptionCall,
   testSetup,
 } from '../../../src/testSetup';
+import { GlobalInfo } from '../../../src/config/globalInfoConfig';
 
 const MOCK_API_VERSION = '43.0';
 const MOCK_TOPIC = 'topic';
@@ -37,17 +38,29 @@ describe('streaming client tests', () => {
     username = `${id}@test.com`;
 
     const crypto = await Crypto.create();
-
-    $$.configStubs.AuthInfoConfig = {
+    // Turn off the interoperability feature so that we don't have to mock
+    // the old .sfdx config files
+    // @ts-ignore
+    GlobalInfo.enableInteroperability = false;
+    $$.configStubs.GlobalInfo = {
       contents: {
-        orgId: id,
-        username,
-        instanceUrl: 'http://www.example.com',
-        accessToken: crypto.encrypt(id),
+        authorizations: {
+          [username]: {
+            orgId: id,
+            username,
+            instanceUrl: 'http://www.example.com',
+            accessToken: crypto.encrypt(id),
+          },
+        },
       },
     };
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     stubMethod($$.SANDBOX, Connection.prototype, 'getApiVersion').returns(MOCK_API_VERSION);
+  });
+
+  afterEach(() => {
+    // @ts-ignore becuase private member
+    GlobalInfo.instance = null;
   });
 
   it('should set options apiVersion on system topics', async () => {

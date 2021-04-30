@@ -1,14 +1,12 @@
-import { Aliases, AuthInfo } from '@salesforce/core';
+import { Aliases, GlobalInfo } from '@salesforce/core';
 import chalk from 'chalk';
 import * as inquirer from 'inquirer';
 import * as _ from 'lodash';
 import * as strip from 'strip-ansi';
 
 export async function run() {
-  // List all auth files
-  const authFiles = await AuthInfo.listAllAuthFiles();
-
-  const orgs = authFiles.map(authfile => authfile.replace('.json', ''));
+  const config = await GlobalInfo.getInstance();
+  const orgs = Object.keys(config.authorizations)
   const orgsWithAliases = {};
   const aliases = await Aliases.create({});
 

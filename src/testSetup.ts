@@ -113,7 +113,7 @@ export interface TestContext {
    */
   configStubs: {
     [configName: string]: Optional<ConfigStub>;
-    AuthInfoConfig?: ConfigStub;
+    GlobalInfo?: ConfigStub;
     Aliases?: ConfigStub;
     SfdxProjectJson?: ConfigStub;
     SfdxConfig?: ConfigStub;

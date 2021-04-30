@@ -547,7 +547,10 @@ export class GenericKeychainAccess implements PasswordStore {
   protected async isValidFileAccess(cb: (error: Nullable<NodeJS.ErrnoException>) => Promise<void>): Promise<void> {
     try {
       const root = await ConfigFile.resolveRootFolder(true);
-      await fs.access(path.join(root, Global.STATE_FOLDER), fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
+      await fs.access(
+        path.join(root, Global.SFDX_STATE_FOLDER),
+        fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK
+      );
       await cb(null);
     } catch (err) {
       await cb(err);
@@ -563,7 +566,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
   protected async isValidFileAccess(cb: (error: Nullable<Error>) => Promise<void>): Promise<void> {
     const secretFile: string = path.join(
       await ConfigFile.resolveRootFolder(true),
-      Global.STATE_FOLDER,
+      Global.SFDX_STATE_FOLDER,
       ensure(KeychainConfig.getDefaultOptions().filename)
     );
     await super.isValidFileAccess(async (err) => {
@@ -604,7 +607,7 @@ export class GenericWindowsKeychainAccess extends GenericKeychainAccess {
         try {
           const secretFile: string = path.join(
             await ConfigFile.resolveRootFolder(true),
-            Global.STATE_FOLDER,
+            Global.SFDX_STATE_FOLDER,
             ensure(KeychainConfig.getDefaultOptions().filename)
           );
           await fs.access(secretFile, fs.constants.R_OK | fs.constants.W_OK);

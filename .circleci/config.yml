@@ -9,7 +9,7 @@ workflows:
       - release-management/validate-pr:
           filters:
             branches:
-              ignore: main
+              ignore: v3
       - release-management/test-package:
           matrix:
             parameters:
@@ -20,12 +20,15 @@ workflows:
                 - lts
                 - maintenance
       - release-management/release-package:
-          github-release: true
-          post-job-steps:
-            - run: yarn ci-docs
+          # TODO: add these back when we're ready to GA v3
+          # github-release: true
+          # post-job-steps:
+          #   - run: yarn ci-docs
+          tag: 'v3-beta'
+          prerelease: true
           requires:
             - release-management/test-package
           filters:
             branches:
-              only: main
+              only: v3
           context: CLI_CTC
