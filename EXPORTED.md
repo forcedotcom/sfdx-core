@@ -25,7 +25,6 @@ Create an instance of a streaming API connection to a Salesforce org for a parti
 Represents a config file at either a local or global path. The config file extends the {@link ConfigStore} which provides map-like functions to interact with config values. The following classes are config files.
 
 - {@link Aliases}
-- {@link AuthInfoConfig}
 - {@link OrgUsersConfig}
 - {@link Config}
 - {@link SfdxProjectJson}

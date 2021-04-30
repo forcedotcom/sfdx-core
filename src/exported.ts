@@ -12,13 +12,13 @@ export { OAuth2Options } from 'jsforce';
 
 export { Aliases, AliasGroup } from './config/aliases';
 
-export { AuthInfoConfig } from './config/authInfoConfig';
-
 export { ConfigFile } from './config/configFile';
 
 export { ConfigGroup } from './config/configGroup';
 
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
+
+export { GlobalInfo } from './config/globalInfoConfig';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
 
@@ -30,7 +30,7 @@ export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
 export { Authorization, AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl, getJwtAudienceUrl } from './authInfo';
 
-export { AuthConfigs, AuthRemover } from './authRemover';
+export { AuthRemover } from './authRemover';
 
 export { Connection, SFDX_HTTP_HEADERS } from './connection';
 

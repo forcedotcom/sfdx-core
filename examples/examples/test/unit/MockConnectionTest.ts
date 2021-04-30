@@ -7,8 +7,12 @@ const $$ = testSetup();
 describe('Mocking an SFDX connection', () => {
   it('example', async () => {
     const testData = new MockTestOrgData();
-    $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
+    $$.setConfigStubContents('GlobalInfo', {
+      contents: {
+        authorizations: {
+          [testData.username]: await testData.getConfig()
+        }
+      }
     });
     const connection: Connection = await Connection.create({
       authInfo: await AuthInfo.create({
