@@ -45,8 +45,10 @@ type FileParser = (filePath: string, fileContents: string) => Map<string, AnyJso
 
 const markdownLoader: FileParser = (filePath: string, fileContents: string): Map<string, AnyJson> => {
   const map = new Map<string, AnyJson>();
+  const hasContent = (lineItem) => !/^\s*$/g.exec(lineItem);
 
-  const sections = fileContents.split(/^#\s*/gm).filter((section) => !!section);
+  // Filter out sections that don't have content
+  const sections = fileContents.split(/^#\s*/gm).filter(hasContent);
 
   for (const section of sections) {
     const lines = section.split('\n');
@@ -55,10 +57,20 @@ const markdownLoader: FileParser = (filePath: string, fileContents: string): Map
 
     if (firstLine && rest.length > 0) {
       const key = firstLine.trim();
-
-      // If every entry in the value is a list item, then treat this as a list.
-      if (lines.filter((line) => !!line).every((line) => /^\*\s+/.exec(line))) {
-        const values = lines.map((line) => line.replace(/^\*\s+/, ''));
+      const nonEmptyLines = lines.filter((line) => !!line.trim());
+      // If every entry in the value is a list item, then treat this as a list. Indented lines are part of the list.
+      if (nonEmptyLines.every((line) => /^[*-]\s+|^ {2}/.exec(line))) {
+        const listItems = rest.split(/^[*-]\s+/gm).filter(hasContent);
+        const values = listItems.map((item) =>
+          item
+            .split('\n')
+            // new lines are ignored in markdown lists
+            .filter((line) => !!line.trim())
+            // trim off the indentation
+            .map((line) => line.trim())
+            // put it back together
+            .join('\n')
+        );
         map.set(key, values);
       } else {
         map.set(key, rest);

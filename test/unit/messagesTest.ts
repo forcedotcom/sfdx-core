@@ -259,6 +259,23 @@ describe('Messages', () => {
       expect(messages.getMessages('myKey')).to.deep.equal(['my value 1', 'my value 2']);
     });
 
+    it('should get messages from markdown list with multi lines', () => {
+      const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.md');
+      $$.SANDBOX.stub(fs, 'readFileSync').returns(`
+# myKey
+* my value 1
+  
+  more value 1
+- my value 2
+  more value 2
+`);
+
+      const messages = loaderFn(Messages.getLocale());
+      expect(messages.getMessage('myKey')).to.equal('my value 1\nmore value 1\nmy value 2\nmore value 2');
+      // markdown will ignore the extra line in the same list item, so we should too.
+      expect(messages.getMessages('myKey')).to.deep.equal(['my value 1\nmore value 1', 'my value 2\nmore value 2']);
+    });
+
     it('should throw if no value', () => {
       const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.md');
       $$.SANDBOX.stub(fs, 'readFileSync').returns('# myKey\n# secondKey\nmyValue');
