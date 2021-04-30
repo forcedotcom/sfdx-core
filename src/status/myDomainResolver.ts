@@ -57,6 +57,14 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
     this.options = options || { url: MyDomainResolver.DEFAULT_DOMAIN };
   }
 
+  public getTimeout(): Duration {
+    return this.options.timeout || Duration.seconds(DNS_TIMEOUT);
+  }
+
+  public getFrequency(): Duration {
+    return this.options.frequency || Duration.seconds(DNS_RETRY_FREQ);
+  }
+
   /**
    * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
    * given the optional interval. Returns the resolved ip address.
@@ -100,8 +108,8 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
           };
         }
       },
-      timeout: this.options.timeout || Duration.seconds(DNS_TIMEOUT),
-      frequency: this.options.frequency || Duration.seconds(DNS_RETRY_FREQ),
+      timeout: this.getTimeout(),
+      frequency: this.getFrequency(),
       timeoutErrorName: 'MyDomainResolverTimeoutError',
     };
     const client = await PollingClient.create(pollingOptions);
