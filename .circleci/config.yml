@@ -9,7 +9,7 @@ workflows:
       - release-management/validate-pr:
           filters:
             branches:
-              ignore: main
+              ignore: v3
       - release-management/test-package:
           name: node-latest
           node_version: latest
@@ -24,9 +24,12 @@ workflows:
           node_version: '10'
           name: node-10
       - release-management/release-package:
-          github-release: true
-          post-job-steps:
-            - run: yarn ci-docs
+          # TODO: add these back when we're ready to GA v3
+          # github-release: true
+          # post-job-steps:
+          #   - run: yarn ci-docs
+          tag: 'v3-beta'
+          prerelease: true
           requires:
             - node-latest
             - node-14
@@ -34,5 +37,5 @@ workflows:
             - node-10
           filters:
             branches:
-              only: main
+              only: v3
           context: CLI_CTC

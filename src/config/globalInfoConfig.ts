@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { isEmpty } from '@salesforce/kit';
-import { JsonMap } from '@salesforce/ts-types';
+import { AnyJson, JsonMap } from '@salesforce/ts-types';
 import { SfAuthorization } from '../authInfo';
 import { Global } from '../global';
 import { ConfigFile } from './configFile';
@@ -16,7 +16,7 @@ export enum SfDataKeys {
   AUTHORIZATIONS = 'authorizations',
 }
 
-type Timestamp = { timestamp: Date };
+type Timestamp = { timestamp: string };
 
 export interface Authorizations {
   [key: string]: SfAuthorization & Timestamp;
@@ -26,13 +26,21 @@ export type SfData = {
   [SfDataKeys.AUTHORIZATIONS]: Authorizations;
 };
 
+export function deepCopy<T extends AnyJson>(data: T): T {
+  return JSON.parse(JSON.stringify(data)) as T;
+}
+
 export class GlobalInfo extends ConfigFile<ConfigFile.Options> {
-  public static EMPTY_DATA_MODEL: SfData = {
+  private static EMPTY_DATA_MODEL: SfData = {
     [SfDataKeys.AUTHORIZATIONS]: {},
   };
   private static instance: GlobalInfo;
   private static enableInteroperability = true;
   private sfdxHandler = new SfdxDataHandler();
+
+  public static get emptyDataModel(): SfData {
+    return deepCopy<SfData>(GlobalInfo.EMPTY_DATA_MODEL);
+  }
 
   public static async getInstance(): Promise<GlobalInfo> {
     if (!GlobalInfo.instance) {
@@ -102,7 +110,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options> {
 
   private async loadSfData(): Promise<SfData> {
     const data = (await this.read()) as SfData;
-    return isEmpty(data) ? GlobalInfo.EMPTY_DATA_MODEL : data;
+    return isEmpty(data) ? GlobalInfo.emptyDataModel : data;
   }
 
   private async mergeWithSfdxData(): Promise<SfData> {
