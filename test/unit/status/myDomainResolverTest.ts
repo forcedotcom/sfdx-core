@@ -138,6 +138,7 @@ describe('cname resolver', () => {
   it('should not resolve cname', async () => {
     const options: MyDomainResolver.Options = {
       url: new URL('https://foo.bar.baz.com'),
+      timeout: Duration.milliseconds(10),
     };
     const resolver: MyDomainResolver = await MyDomainResolver.create(options);
     const cnames = await resolver.getCnames();

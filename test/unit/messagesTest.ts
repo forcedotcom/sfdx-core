@@ -67,6 +67,14 @@ describe('Messages', () => {
         'hello blah 864\nworld blah 864\ntest message 2 blah and 864'
       );
     });
+
+    it('should return multiple string from array of messages', () => {
+      expect(messages.getMessages('manyMsgs', ['blah', 864])).to.deep.equal([
+        'hello blah 864',
+        'world blah 864',
+        'test message 2 blah and 864',
+      ]);
+    });
   });
 
   describe('importMessageFile', () => {
@@ -75,7 +83,7 @@ describe('Messages', () => {
         Messages.importMessageFile('package name', 'myPluginMessages.txt');
         assert.fail('should have thrown an error that only json files are allowed.');
       } catch (err) {
-        expect(err.message).to.contain('Only json and js message files are allowed, not .txt');
+        expect(err.message).to.contain('Only json, js and md message files are allowed, not .txt');
       }
     });
 
@@ -230,6 +238,40 @@ describe('Messages', () => {
       expect(messages).to.have.property('locale', Messages.getLocale());
       expect(messages.getMessage('msg1')).to.equal(testMessages.msg1);
       expect(messages.getMessage('msg2', ['token1', 222])).to.equal('test message 2 token1 and 222');
+    });
+  });
+
+  describe('markdown parsing', () => {
+    it('should parse keys from main headers', () => {
+      const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.md');
+      $$.SANDBOX.stub(fs, 'readFileSync').returns('# myKey\nmyValue');
+
+      const messages = loaderFn(Messages.getLocale());
+      expect(messages.getMessage('myKey')).to.equal('myValue');
+    });
+
+    it('should get messages from markdown list', () => {
+      const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.md');
+      $$.SANDBOX.stub(fs, 'readFileSync').returns('# myKey\n* my value 1\n* my value 2');
+
+      const messages = loaderFn(Messages.getLocale());
+      expect(messages.getMessage('myKey')).to.equal('my value 1\nmy value 2');
+      expect(messages.getMessages('myKey')).to.deep.equal(['my value 1', 'my value 2']);
+    });
+
+    it('should throw if no value', () => {
+      const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.md');
+      $$.SANDBOX.stub(fs, 'readFileSync').returns('# myKey\n# secondKey\nmyValue');
+
+      try {
+        loaderFn(Messages.getLocale());
+        assert.fail('should have thrown an error that the file not valid JSON.');
+      } catch (err) {
+        expect(err.name).to.equal('Error');
+        expect(err.message).to.equal(
+          'Invalid markdown message file: myPluginMessages.md\nThe line "# <key>" must be immediately followed by the message on a new line.'
+        );
+      }
     });
   });
 
