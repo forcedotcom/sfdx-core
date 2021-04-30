@@ -39,6 +39,65 @@ class Key {
 export type LoaderFunction = (locale: string) => Messages;
 
 /**
+ * Different message file content parsers. This allows us to have js, json, and md. Maybe we will eventually support yaml, etc.
+ */
+type FileParser = (filePath: string, fileContents: string) => Map<string, AnyJson>;
+
+const markdownLoader: FileParser = (filePath: string, fileContents: string): Map<string, AnyJson> => {
+  const map = new Map<string, AnyJson>();
+
+  const sections = fileContents.split(/^#\s*/gm).filter((section) => !!section);
+
+  for (const section of sections) {
+    const lines = section.split('\n');
+    const firstLine = lines.shift();
+    const rest = lines.join('\n').trim();
+
+    if (firstLine && rest.length > 0) {
+      const key = firstLine.trim();
+
+      // If every entry in the value is a list item, then treat this as a list.
+      if (lines.filter((line) => !!line).every((line) => /^\*\s+/.exec(line))) {
+        const values = lines.map((line) => line.replace(/^\*\s+/, ''));
+        map.set(key, values);
+      } else {
+        map.set(key, rest);
+      }
+    } else {
+      // messages.js should have no internal dependencies.
+      throw new Error(
+        `Invalid markdown message file: ${filePath}\nThe line "# <key>" must be immediately followed by the message on a new line.`
+      );
+    }
+  }
+
+  return map;
+};
+
+const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): Map<string, AnyJson> => {
+  let json;
+
+  try {
+    json = JSON.parse(fileContents);
+
+    if (!isObject(json)) {
+      // Bubble up
+      throw new Error(`Unexpected token. Found returned content type '${typeof json}'.`);
+    }
+  } catch (err) {
+    // Provide a nicer error message for a common JSON parse error; Unexpected token
+    if (err.message.startsWith('Unexpected token')) {
+      const parseError = new Error(`Invalid JSON content in message file: ${filePath}\n${err.message}`);
+      parseError.name = err.name;
+      throw parseError;
+    }
+    throw err;
+  }
+
+  return new Map<string, AnyJson>(Object.entries(json));
+};
+
+/**
  * The core message framework manages messages and allows them to be accessible by
  * all plugins and consumers of sfdx-core. It is set up to handle localization down
  * the road at no additional effort to the consumer. Messages can be used for
@@ -151,37 +210,33 @@ export class Messages {
    * @param filePath The messages file path.
    */
   public static generateFileLoaderFunction(bundleName: string, filePath: string): LoaderFunction {
-    return (locale: string): Messages => {
-      // Anything can be returned by a js file, so stringify the results to ensure valid json is returned.
-      const fileContents: string = JSON.stringify(Messages.readFile(filePath));
+    const ext = path.extname(filePath);
+    if (!['.json', '.js', '.md'].includes(ext)) {
+      throw new Error(`Only json, js and md message files are allowed, not ${ext}: ${filePath}`);
+    }
 
-      // If the file is empty, JSON.stringify will turn it into "" which will validate on parse, so throw.
-      if (!fileContents || fileContents === 'null' || fileContents === '""') {
+    return (locale: string): Messages => {
+      let fileContents: string;
+      let parser: FileParser;
+      if (ext === '.md') {
+        fileContents = fs.readFileSync(filePath, 'utf-8');
+        parser = markdownLoader;
+      } else {
+        // Anything can be returned by a js file, so stringify the results to ensure valid json is returned.
+        fileContents = JSON.stringify(Messages.readFile(filePath));
+        // If the file is empty, JSON.stringify will turn it into "" which will validate on parse.
+        if (fileContents === 'null' || fileContents === '""') fileContents = '';
+        parser = jsAndJsonLoader;
+      }
+
+      if (!fileContents || fileContents.trim().length === 0) {
+        // messages.js should have no internal dependencies.
         const error = new Error(`Invalid message file: ${filePath}. No content.`);
         error.name = 'SfdxError';
         throw error;
       }
 
-      let json;
-
-      try {
-        json = JSON.parse(fileContents);
-
-        if (!isObject(json)) {
-          // Bubble up
-          throw new Error(`Unexpected token. Found returned content type '${typeof json}'.`);
-        }
-      } catch (err) {
-        // Provide a nicer error message for a common JSON parse error; Unexpected token
-        if (err.message.startsWith('Unexpected token')) {
-          const parseError = new Error(`Invalid JSON content in message file: ${filePath}\n${err.message}`);
-          parseError.name = err.name;
-          throw parseError;
-        }
-        throw err;
-      }
-
-      const map = new Map<string, AnyJson>(Object.entries(json));
+      const map = parser(filePath, fileContents);
 
       return new Messages(bundleName, locale, map);
     };
@@ -195,9 +250,6 @@ export class Messages {
    * @param filePath The path of the file.
    */
   public static importMessageFile(packageName: string, filePath: string): void {
-    if (path.extname(filePath) !== '.json' && path.extname(filePath) !== '.js') {
-      throw new Error(`Only json and js message files are allowed, not ${path.extname(filePath)}`);
-    }
     const bundleName = path.basename(filePath, path.extname(filePath));
 
     if (!Messages.isCached(packageName, bundleName)) {
@@ -318,16 +370,44 @@ export class Messages {
   /**
    * Get a message using a message key and use the tokens as values for tokenization.
    *
+   * If the key happens to be an array of messages, it will combine with OS.EOL.
+   *
    * @param key The key of the message.
    * @param tokens The values to substitute in the message.
    *
    * **See** https://nodejs.org/api/util.html#util_util_format_format_args
    */
   public getMessage(key: string, tokens: Tokens = []): string {
+    return this.getMessageWithMap(key, tokens, this.messages).join(os.EOL);
+  }
+
+  /**
+   * Get messages using a message key and use the tokens as values for tokenization.
+   *
+   * This will return all messages if the key is an array in the messages file.
+   *
+   * ```json
+   * {
+   *   "myKey": [ "message1", "message2" ]
+   * }
+   * ```
+   *
+   * ```markdown
+   * # myKey
+   * * message1
+   * * message2
+   * ```
+   *
+   * @param key The key of the messages.
+   * @param tokens The values to substitute in the message.
+   *
+   * **See** https://nodejs.org/api/util.html#util_util_format_format_args
+   */
+  public getMessages(key: string, tokens: Tokens = []): string[] {
     return this.getMessageWithMap(key, tokens, this.messages);
   }
 
-  private getMessageWithMap(key: string, tokens: Tokens = [], map: Map<string, AnyJson>): string {
+  private getMessageWithMap(key: string, tokens: Tokens = [], map: Map<string, AnyJson>): string[] {
     // Allow nested keys for better grouping
     const group = RegExp(/([a-zA-Z0-9_-]+)\.(.*)/).exec(key);
     if (group) {
@@ -349,11 +429,9 @@ export class Messages {
     }
     const msg = map.get(key);
     const messages = (isArray(msg) ? msg : [msg]) as string[];
-    return messages
-      .map((message) => {
-        ensureString(message);
-        return util.format(message, ...tokens);
-      })
-      .join(os.EOL);
+    return messages.map((message) => {
+      ensureString(message);
+      return util.format(message, ...tokens);
+    });
   }
 }
