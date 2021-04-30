@@ -28,21 +28,33 @@ export enum Mode {
  */
 export class Global {
   /**
-   * The global folder in which state is stored.
+   * The global folder in which sfdx state is stored.
    */
-  public static readonly STATE_FOLDER = '.sfdx';
+  public static readonly SFDX_STATE_FOLDER = '.sfdx';
 
   /**
-   * The full system path to the global state folder.
-   *
-   * **See** {@link Global.STATE_FOLDER}
+   * The global folder in which sf state is stored.
    */
-  public static readonly DIR: string = path.join(os.homedir(), Global.STATE_FOLDER);
+  public static readonly SF_STATE_FOLDER = '.sf';
+
+  /**
+   * The full system path to the global sfdx state folder.
+   *
+   * **See** {@link Global.SFDX_STATE_FOLDER}
+   */
+  public static readonly SFDX_DIR: string = path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
+
+  /**
+   * The full system path to the global sf state folder.
+   *
+   * **See** {@link Global.SF_STATE_FOLDER}
+   */
+  public static readonly SF_DIR: string = path.join(os.homedir(), Global.SF_STATE_FOLDER);
 
   /**
    * The full system path to the global log file.
    */
-  public static readonly LOG_FILE_PATH: string = path.join(Global.DIR, 'sfdx.log');
+  public static readonly LOG_FILE_PATH: string = path.join(Global.SFDX_DIR, 'sfdx.log');
 
   /**
    * Gets the current mode environment variable as a {@link Mode} instance.
@@ -56,13 +68,13 @@ export class Global {
   }
 
   /**
-   * Creates a directory within {@link Global.DIR}, or {@link Global.DIR} itself if the `dirPath` param
+   * Creates a directory within {@link Global.SFDX_DIR}, or {@link Global.SFDX_DIR} itself if the `dirPath` param
    * is not provided. This is resolved or rejected when the directory creation operation has completed.
    *
-   * @param dirPath The directory path to be created within {@link Global.DIR}.
+   * @param dirPath The directory path to be created within {@link Global.SFDX_DIR}.
    */
   public static async createDir(dirPath?: string): Promise<void> {
-    dirPath = dirPath ? path.join(Global.DIR, dirPath) : Global.DIR;
+    dirPath = dirPath ? path.join(Global.SFDX_DIR, dirPath) : Global.SFDX_DIR;
     await fs.mkdirp(dirPath, fs.DEFAULT_USER_DIR_MODE);
   }
 }

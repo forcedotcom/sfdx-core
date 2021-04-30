@@ -8,6 +8,7 @@ import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { AuthInfo } from '../../src/authInfo';
+import { GlobalInfo } from '../../src/config/globalInfoConfig';
 import { Connection } from '../../src/connection';
 import { Org } from '../../src/org';
 import { PermissionSetAssignment } from '../../src/permissionSetAssignment';
@@ -59,6 +60,11 @@ describe('User Tests', () => {
     stubMethod($$.SANDBOX, Connection.prototype, 'describe').resolves({ fields: {} });
 
     refreshSpy = stubMethod($$.SANDBOX, Org.prototype, 'refreshAuth').resolves({});
+  });
+
+  afterEach(() => {
+    // @ts-ignore becuase private member
+    GlobalInfo.instance = null;
   });
 
   describe('init tests', () => {
@@ -161,6 +167,10 @@ describe('User Tests', () => {
     let userId: string;
     let password: string;
     beforeEach(async () => {
+      // Turn off the interoperability feature so that we don't have to mock
+      // the old .sfdx config files
+      // @ts-ignore
+      GlobalInfo.enableInteroperability = false;
       stubMethod($$.SANDBOX, Connection, 'create').callsFake(() => {
         return {
           getUsername() {
@@ -182,11 +192,20 @@ describe('User Tests', () => {
           },
         };
       });
-      $$.configStubs.AuthInfoConfig = { contents: await user1.getConfig() };
+      $$.configStubs.GlobalInfo = {
+        contents: {
+          authorizations: { [user1.username]: await user1.getConfig() },
+        },
+      };
       const connection: Connection = await Connection.create({
         authInfo: await AuthInfo.create({ username: user1.username }),
       });
       org = await Org.create({ connection });
+    });
+
+    afterEach(() => {
+      // @ts-ignore becuase private member
+      GlobalInfo.instance = null;
     });
 
     it('should set password', async () => {

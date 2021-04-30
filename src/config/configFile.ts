@@ -92,6 +92,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
       isGlobal,
       isState: true,
       filename: filename || this.getFileName(),
+      stateFolder: Global.SFDX_STATE_FOLDER,
     };
   }
 
@@ -335,7 +336,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
         : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
 
       if (_isGlobal || _isState) {
-        configRootFolder = pathJoin(configRootFolder, Global.STATE_FOLDER);
+        configRootFolder = pathJoin(configRootFolder, this.options.stateFolder || Global.SFDX_STATE_FOLDER);
       }
 
       this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);
@@ -371,6 +372,12 @@ export namespace ConfigFile {
      * The root folder where the config file is stored.
      */
     rootFolder?: string;
+
+    /**
+     * The state folder where the config file is stored.
+     */
+    stateFolder?: string;
+
     /**
      * The file name.
      */
