@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/forcedotcom/sfdx-core/compare/v2.20.10...v3.0.0) (2021-04-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* default to reading files from cache
+
+### Features
+
+* add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([579998b](https://github.com/forcedotcom/sfdx-core/commit/579998b6ee70dbb9772e65896bbabf6d812aae23))
+* default to reading files from cache ([12b5930](https://github.com/forcedotcom/sfdx-core/commit/12b59301df96395c4edcbfb0816dbddd45af95db))
+
 ### [2.23.3](https://github.com/forcedotcom/sfdx-core/compare/v2.23.2...v2.23.3) (2021-06-03)
 
 ### [2.23.2](https://github.com/forcedotcom/sfdx-core/compare/v2.23.1...v2.23.2) (2021-06-02)
