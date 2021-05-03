@@ -38,17 +38,25 @@ class Key {
  */
 export type LoaderFunction = (locale: string) => Messages;
 
+export type StoredMessage = string | string[] | Map<string, StoredMessage>;
+export type StoredMessageMap = Map<string, StoredMessage>;
+
 /**
  * Different message file content parsers. This allows us to have js, json, and md. Maybe we will eventually support yaml, etc.
  */
-type FileParser = (filePath: string, fileContents: string) => Map<string, AnyJson>;
+type FileParser = (filePath: string, fileContents: string) => StoredMessageMap;
 
-const markdownLoader: FileParser = (filePath: string, fileContents: string): Map<string, AnyJson> => {
-  const map = new Map<string, AnyJson>();
-  const hasContent = (lineItem: string) => !/^\s*$/g.exec(lineItem);
+const REGEXP_NO_CONTENT = /^\s*$/g;
+const REGEXP_NO_CONTENT_SECTION = /^#\s*/gm;
+const REGEXP_MD_IS_LIST_ROW = /^[*-]\s+|^ {2}/;
+const REGEXP_MD_LIST_ITEM = /^[*-]\s+/gm;
+
+const markdownLoader: FileParser = (filePath: string, fileContents: string): StoredMessageMap => {
+  const map = new Map<string, StoredMessage>();
+  const hasContent = (lineItem: string) => !REGEXP_NO_CONTENT.exec(lineItem);
 
   // Filter out sections that don't have content
-  const sections = fileContents.split(/^#\s*/gm).filter(hasContent);
+  const sections = fileContents.split(REGEXP_NO_CONTENT_SECTION).filter(hasContent);
 
   for (const section of sections) {
     const lines = section.split('\n');
@@ -59,8 +67,8 @@ const markdownLoader: FileParser = (filePath: string, fileContents: string): Map
       const key = firstLine.trim();
       const nonEmptyLines = lines.filter((line) => !!line.trim());
       // If every entry in the value is a list item, then treat this as a list. Indented lines are part of the list.
-      if (nonEmptyLines.every((line) => /^[*-]\s+|^ {2}/.exec(line))) {
-        const listItems = rest.split(/^[*-]\s+/gm).filter(hasContent);
+      if (nonEmptyLines.every((line) => REGEXP_MD_IS_LIST_ROW.exec(line))) {
+        const listItems = rest.split(REGEXP_MD_LIST_ITEM).filter(hasContent);
         const values = listItems.map((item) =>
           item
             .split('\n')
@@ -76,7 +84,7 @@ const markdownLoader: FileParser = (filePath: string, fileContents: string): Map
         map.set(key, rest);
       }
     } else {
-      // messages.js should have no internal dependencies.
+      // use error instead of SfdxError because messages.js should have no internal dependencies.
       throw new Error(
         `Invalid markdown message file: ${filePath}\nThe line "# <key>" must be immediately followed by the message on a new line.`
       );
@@ -86,7 +94,7 @@ const markdownLoader: FileParser = (filePath: string, fileContents: string): Map
   return map;
 };
 
-const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): Map<string, AnyJson> => {
+const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): StoredMessageMap => {
   let json;
 
   try {
@@ -106,7 +114,7 @@ const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): Ma
     throw err;
   }
 
-  return new Map<string, AnyJson>(Object.entries(json));
+  return new Map<string, StoredMessage>(Object.entries(json));
 };
 
 /**
@@ -178,7 +186,7 @@ export class Messages {
    * @param locale The locale.
    * @param messages The messages. Can not be modified once created.
    */
-  public constructor(bundleName: string, locale: string, private messages: Map<string, AnyJson>) {
+  public constructor(bundleName: string, locale: string, private messages: StoredMessageMap) {
     this.bundleName = bundleName;
     this.locale = locale;
   }
@@ -419,7 +427,7 @@ export class Messages {
     return this.getMessageWithMap(key, tokens, this.messages);
   }
 
-  private getMessageWithMap(key: string, tokens: Tokens = [], map: Map<string, AnyJson>): string[] {
+  private getMessageWithMap(key: string, tokens: Tokens = [], map: StoredMessageMap): string[] {
     // Allow nested keys for better grouping
     const group = RegExp(/([a-zA-Z0-9_-]+)\.(.*)/).exec(key);
     if (group) {
@@ -427,7 +435,7 @@ export class Messages {
       const childKey = group[2];
       const childObject = map.get(parentKey);
       if (childObject && isAnyJson(childObject)) {
-        const childMap = new Map<string, AnyJson>(Object.entries(childObject));
+        const childMap = new Map<string, StoredMessage>(Object.entries(childObject));
         return this.getMessageWithMap(childKey, tokens, childMap);
       }
     }
