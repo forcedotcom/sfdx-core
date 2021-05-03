@@ -86,7 +86,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options> {
   }
 
   public unsetAuthorization(username: string): void {
-    this.unset(`${SfDataKeys.AUTHORIZATIONS}["${username}"]`);
+    delete this.getAuthorizations()[username];
   }
 
   public set<U extends JsonMap>(key: string, value: U): ConfigContents {
