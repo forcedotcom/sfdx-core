@@ -45,7 +45,7 @@ type FileParser = (filePath: string, fileContents: string) => Map<string, AnyJso
 
 const markdownLoader: FileParser = (filePath: string, fileContents: string): Map<string, AnyJson> => {
   const map = new Map<string, AnyJson>();
-  const hasContent = (lineItem) => !/^\s*$/g.exec(lineItem);
+  const hasContent = (lineItem: string) => !/^\s*$/g.exec(lineItem);
 
   // Filter out sections that don't have content
   const sections = fileContents.split(/^#\s*/gm).filter(hasContent);
