@@ -15,6 +15,10 @@ import { Logger } from './logger';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './authInfo';
 import { SfdxError } from './sfdxError';
 import { SFDX_HTTP_HEADERS } from './connection';
+import { Messages } from './messages';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'auth', ['pollingTimeout']);
 
 export interface DeviceCodeResponse extends JsonMap {
   device_code: string;
@@ -232,7 +236,9 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Options> {
     if (this.pollingCount >= DeviceOauthService.POLLING_COUNT_MAX) {
       // stop polling, the user has likely abandoned the command...
       this.logger.error(`Polling timed out because max polling was hit: ${this.pollingCount}`);
-      throw SfdxError.create('@salesforce/core', 'auth', 'pollingTimeout');
+      const errName = 'pollingTimeout';
+      const errMessage = messages.getMessage(errName);
+      throw new SfdxError(errMessage, errName);
     }
 
     return result;

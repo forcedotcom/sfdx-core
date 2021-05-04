@@ -17,7 +17,7 @@ import { SfdxError } from './sfdxError';
 import { Authorizations, GlobalInfo } from './config/globalInfoConfig';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'auth');
+const messages = Messages.load('@salesforce/core', 'auth', ['defaultOrgNotFound', 'defaultOrgNotFoundActions']);
 
 /**
  * Handles the removing of authorizations, which includes deleting the auth file

@@ -292,15 +292,15 @@ describe('Messages', () => {
     });
   });
 
-  describe('loadMessages', () => {
+  describe('load', () => {
     it('should return a cached bundle', async () => {
       const spy = $$.SANDBOX.spy(() => new Messages('myBundle', Messages.getLocale(), msgMap));
       Messages.setLoaderFunction('pname', 'myBundle', spy);
       // Load messages
-      Messages.loadMessages('pname', 'myBundle');
+      Messages.load('pname', 'myBundle', ['msg1', 'msg2']);
 
       // Call cache
-      const messages = Messages.loadMessages('pname', 'myBundle');
+      const messages = Messages.load('pname', 'myBundle', ['msg1', 'msg2']);
       expect(messages.getMessage('msg1')).to.equal(testMessages.msg1);
       expect(messages.getMessage('msg2', ['token1', 222])).to.equal('test message 2 token1 and 222');
       expect(spy.calledOnce).to.be.true;
@@ -316,13 +316,13 @@ describe('Messages', () => {
       Messages.setLoaderFunction('pname', 'myOtherBundle', () => msgs);
 
       // now load the bundle
-      const messages = Messages.loadMessages('pname', 'myOtherBundle');
+      const messages = Messages.load('pname', 'myOtherBundle', ['otherMsg1']);
       expect(messages.getMessage('otherMsg1')).to.equal(otherMsgMap.get('otherMsg1'));
     });
 
     it('should throw an error if the bundle is not found', async () => {
       try {
-        Messages.loadMessages('pname', 'notfound');
+        Messages.load('pname', 'notfound', ['']);
         assert.fail('should have thrown an error that the bundle was not found.');
       } catch (err) {
         expect(err.message).to.equal('Missing bundle pname:notfound for locale en_US.');

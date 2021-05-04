@@ -8,7 +8,11 @@
 import { env } from '@salesforce/kit';
 import { KeyChain, keyChainImpl } from './keyChainImpl';
 import { Logger } from './logger';
+import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'encryption', ['UnsupportedOperatingSystemError']);
 
 /**
  * Gets the os level keychain impl.
@@ -48,6 +52,8 @@ export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
       }
     }
   } else {
-    throw SfdxError.create('@salesforce/core', 'encryption', 'UnsupportedOperatingSystemError', [platform]);
+    const errName = 'UnsupportedOperatingSystemError';
+    const errMessage = messages.getMessage(errName, [platform]);
+    throw new SfdxError(errMessage, errName);
   }
 };
