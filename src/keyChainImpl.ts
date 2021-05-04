@@ -14,8 +14,28 @@ import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 import { KeychainConfig } from './config/keychainConfig';
 import { Global } from './global';
-import { SfdxError, SfdxErrorConfig } from './sfdxError';
+import { SfdxError } from './sfdxError';
 import { fs } from './util/fs';
+import { Messages } from './messages';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'encryption', [
+  'MissingCredentialProgramError',
+  'CredentialProgramAccessError',
+  'KeyChainServiceRequiredError',
+  'KeyChainAccountRequiredError',
+  'PasswordRetryError',
+  'PasswordRequiredError',
+  'PasswordNotFoundError',
+  'PasswordNotFoundErrorAction',
+  'SetCredentialError',
+  'SetCredentialErrorAction',
+  'KeyChainUserCanceledError',
+  'GenericKeychainServiceError',
+  'GenericKeychainServiceErrorAction',
+  'GenericKeychainInvalidPermsError',
+  'GenericKeychainInvalidPermsErrorAction',
+]);
 
 export type FsIfc = Pick<typeof nodeFs, 'statSync'>;
 
@@ -71,11 +91,15 @@ const _validateProgram = async (
     const stats = fsIfc.statSync(programPath);
     noPermission = !isExeIfc(stats.mode, stats.gid, stats.uid);
   } catch (e) {
-    throw SfdxError.create('@salesforce/core', 'encryption', 'MissingCredentialProgramError', [programPath]);
+    const errName = 'MissingCredentialProgramError';
+    const errMessage = messages.getMessage(errName, [programPath]);
+    throw new SfdxError(errMessage, errName);
   }
 
   if (noPermission) {
-    throw SfdxError.create('@salesforce/core', 'encryption', 'CredentialProgramAccessError', [programPath]);
+    const errName = 'CredentialProgramAccessError';
+    const errMessage = messages.getMessage(errName, [programPath]);
+    throw new SfdxError(errMessage, errName);
   }
 };
 
@@ -137,12 +161,16 @@ export class KeychainAccess implements PasswordStore {
     retryCount = 0
   ): Promise<void> {
     if (opts.service == null) {
-      fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
+      const errName = 'KeyChainServiceRequiredError';
+      const errMessage = messages.getMessage(errName);
+      fn(new SfdxError(errMessage, errName));
       return;
     }
 
     if (opts.account == null) {
-      fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainAccountRequiredError'));
+      const errName = 'KeyChainAccountRequiredError';
+      const errMessage = messages.getMessage(errName);
+      fn(new SfdxError(errMessage, errName));
       return;
     }
 
@@ -171,7 +199,9 @@ export class KeychainAccess implements PasswordStore {
       } catch (e) {
         if (e.retry) {
           if (retryCount >= GET_PASSWORD_RETRY_COUNT) {
-            throw SfdxError.create('@salesforce/core', 'encryption', 'PasswordRetryError', [GET_PASSWORD_RETRY_COUNT]);
+            const errName = 'PasswordRetryError';
+            const errMessage = messages.getMessage(errName, [GET_PASSWORD_RETRY_COUNT]);
+            throw new SfdxError(errMessage, errName);
           }
           return this.getPassword(opts, fn, retryCount + 1);
         } else {
@@ -197,17 +227,23 @@ export class KeychainAccess implements PasswordStore {
     fn: (error: Nullable<Error>, contents?: ConfigContents) => void
   ): Promise<void> {
     if (opts.service == null) {
-      fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainServiceRequiredError'));
+      const errName = 'KeyChainServiceRequiredError';
+      const errMessage = messages.getMessage(errName);
+      fn(new SfdxError(errMessage, errName));
       return;
     }
 
     if (opts.account == null) {
-      fn(SfdxError.create('@salesforce/core', 'encryption', 'KeyChainAccountRequiredError'));
+      const errName = 'KeyChainAccountRequiredError';
+      const errMessage = messages.getMessage(errName);
+      fn(new SfdxError(errMessage, errName));
       return;
     }
 
     if (opts.password == null) {
-      fn(SfdxError.create('@salesforce/core', 'encryption', 'PasswordRequiredError'));
+      const errName = 'PasswordRequiredError';
+      const errMessage = messages.getMessage(errName);
+      fn(new SfdxError(errMessage, errName));
       return;
     }
 
@@ -297,16 +333,8 @@ const _linuxImpl: OsImpl = {
   async onGetCommandClose(code, stdout, stderr, opts, fn) {
     if (code === 1) {
       const command = `${_linuxImpl.getProgram()} ${_optionsToString(_linuxImpl.getProgramOptions(opts))}`;
-      const errorConfig = new SfdxErrorConfig(
-        '@salesforce/core',
-        'encryption',
-        'PasswordNotFoundError',
-        [`\n${stdout} - ${stderr}`],
-        'PasswordNotFoundErrorAction',
-        [command]
-      );
-      const error = SfdxError.create(errorConfig);
-
+      const error = new SfdxError(messages.getMessage('PasswordNotFoundError'), 'PasswordNotFoundError');
+      error.actions = [messages.getMessage('PasswordNotFoundErrorAction', [command])];
       // This is a workaround for linux.
       // Calling secret-tool too fast can cause it to return an unexpected error. (below)
       if (stderr != null && stderr.includes('invalid or unencryptable secret')) {
@@ -339,15 +367,10 @@ const _linuxImpl: OsImpl = {
   async onSetCommandClose(code, stdout, stderr, opts, fn) {
     if (code !== 0) {
       const command = `${_linuxImpl.getProgram()} ${_optionsToString(_linuxImpl.setProgramOptions(opts))}`;
-      const errorConfig = new SfdxErrorConfig(
-        '@salesforce/core',
-        'encryption',
-        'SetCredentialError',
-        [`\n${stdout} - ${stderr}`],
-        'SetCredentialErrorAction',
-        [os.userInfo().username, command]
-      );
-      fn(SfdxError.create(errorConfig));
+      const errName = 'SetCredentialError';
+      const errMessage = messages.getMessage(errName, [`\n${stdout} - ${stderr}`]);
+      const errActions = [messages.getMessage('SetCredentialErrorAction', [os.userInfo().username, command])];
+      fn(new SfdxError(errMessage, errName, errActions));
     } else {
       fn(null);
     }
@@ -378,20 +401,17 @@ const _darwinImpl: OsImpl = {
     if (code !== 0) {
       switch (code) {
         case 128: {
-          err = SfdxError.create('@salesforce/core', 'encryption', 'KeyChainUserCanceledError');
+          const errName = 'KeyChainUserCanceledError';
+          const errMessage = messages.getMessage(errName);
+          err = new SfdxError(errMessage, errName);
           break;
         }
         default: {
           const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
-          const errorConfig = new SfdxErrorConfig(
-            '@salesforce/core',
-            'encryption',
-            'PasswordNotFoundError',
-            [`\n${stdout} - ${stderr}`],
-            'PasswordNotFoundErrorAction',
-            [command]
-          );
-          err = SfdxError.create(errorConfig);
+          const errName = 'PasswordNotFoundError';
+          const errMessage = messages.getMessage(errName, [`\n${stdout} - ${stderr}`]);
+          const errActions = [messages.getMessage('PasswordNotFoundErrorAction', [command])];
+          err = new SfdxError(errMessage, errName, errActions);
         }
       }
       fn(err);
@@ -403,28 +423,19 @@ const _darwinImpl: OsImpl = {
     if (stderr.includes('password')) {
       const match = RegExp(/"(.*)"/).exec(stderr);
       if (!match || !match[1]) {
-        const errorConfig = new SfdxErrorConfig(
-          '@salesforce/core',
-          'encryption',
-          'PasswordNotFoundError',
-          [`\n${stdout} - ${stderr}`],
-          'PasswordNotFoundErrorAction'
-        );
-        fn(SfdxError.create(errorConfig));
+        const errName = 'PasswordNotFoundError';
+        const errMessage = messages.getMessage(errName, [`\n${stdout} - ${stderr}`]);
+        const errAction = [messages.getMessage('PasswordNotFoundErrorAction')];
+        fn(new SfdxError(errMessage, errName, errAction));
       } else {
         fn(null, match[1]);
       }
     } else {
       const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
-      const errorConfig = new SfdxErrorConfig(
-        '@salesforce/core',
-        'encryption',
-        'PasswordNotFoundError',
-        [`\n${stdout} - ${stderr}`],
-        'PasswordNotFoundErrorAction',
-        [command]
-      );
-      fn(SfdxError.create(errorConfig));
+      const errName = 'PasswordNotFoundError';
+      const errMessage = messages.getMessage(errName, [`\n${stdout} - ${stderr}`]);
+      const errAction = [messages.getMessage('PasswordNotFoundErrorAction', [command])];
+      fn(new SfdxError(errMessage, errName, errAction));
     }
   },
 
@@ -443,15 +454,10 @@ const _darwinImpl: OsImpl = {
   async onSetCommandClose(code, stdout, stderr, opts, fn) {
     if (code !== 0) {
       const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.setProgramOptions(opts))}`;
-      const errorConfig = new SfdxErrorConfig(
-        '@salesforce/core',
-        'encryption',
-        'SetCredentialError',
-        [`\n${stdout} - ${stderr}`],
-        'SetCredentialErrorAction',
-        [os.userInfo().username, command]
-      );
-      fn(SfdxError.create(errorConfig));
+      const errName = 'SetCredentialError';
+      const errMessage = messages.getMessage(errName, [`\n${stdout} - ${stderr}`]);
+      const errAction = [messages.getMessage('SetCredentialErrorAction', [os.userInfo().username, command])];
+      fn(new SfdxError(errMessage, errName, errAction));
     } else {
       fn(null);
     }
@@ -498,15 +504,10 @@ export class GenericKeychainAccess implements PasswordStore {
             } else {
               // if the service and account names don't match then maybe someone or something is editing
               // that file. #donotallow
-              const errorConfig = new SfdxErrorConfig(
-                '@salesforce/core',
-                'encryption',
-                'GenericKeychainServiceError',
-                [KeychainConfig.getFileName()],
-                'GenericKeychainServiceErrorAction'
-              );
-              const err = SfdxError.create(errorConfig);
-              fn(err);
+              const errName = 'GenericKeychainServiceError';
+              const errMessage = messages.getMessage(errName, [KeychainConfig.getFileName()]);
+              const errAction = [messages.getMessage('GenericKeychainServiceErrorAction')];
+              fn(new SfdxError(errMessage, errName, errAction));
             }
           })
           .catch((readJsonErr) => {
@@ -514,7 +515,7 @@ export class GenericKeychainAccess implements PasswordStore {
           });
       } else {
         if (fileAccessError.code === 'ENOENT') {
-          fn(SfdxError.create('@salesforce/core', 'encryption', 'PasswordNotFoundError', []));
+          fn(new SfdxError(messages.getMessage('PasswordNotFoundError', []), 'PasswordNotFoundError'));
         } else {
           fn(fileAccessError);
         }
@@ -580,15 +581,12 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
         if (octalModeStr === EXPECTED_OCTAL_PERM_VALUE) {
           await cb(null);
         } else {
-          const errorConfig = new SfdxErrorConfig(
-            '@salesforce/core',
-            'encryption',
-            'GenericKeychainInvalidPermsError',
-            undefined,
-            'GenericKeychainInvalidPermsErrorAction',
-            [secretFile, EXPECTED_OCTAL_PERM_VALUE]
-          );
-          await cb(SfdxError.create(errorConfig));
+          const errName = 'GenericKeychainInvalidPermsError';
+          const errMessage = messages.getMessage(errName, [KeychainConfig.getFileName()]);
+          const errAction = [
+            messages.getMessage('GenericKeychainInvalidPermsErrorAction', [secretFile, EXPECTED_OCTAL_PERM_VALUE]),
+          ];
+          cb(new SfdxError(errMessage, errName, errAction));
         }
       }
     });

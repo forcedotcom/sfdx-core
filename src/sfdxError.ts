@@ -6,142 +6,7 @@
  */
 
 import { NamedError } from '@salesforce/kit';
-import { ensure, hasString, isString, JsonMap, Optional } from '@salesforce/ts-types';
-import { Messages, Tokens } from './messages';
-
-/**
- * A class to manage all the keys and tokens for a message bundle to use with SfdxError.
- *
- * ```
- * SfdxError.create(new SfdxErrorConfig('MyPackage', 'apex', 'runTest').addAction('apexErrorAction1', [className]));
- * ```
- */
-export class SfdxErrorConfig {
-  /**
-   * The name of the package
-   */
-  public readonly packageName: string;
-
-  /**
-   * The name of the bundle
-   */
-  public readonly bundleName: string;
-
-  /**
-   * The error key
-   */
-  public errorKey: string;
-
-  private errorTokens: Tokens;
-  private messages?: Messages;
-  private actions = new Map<string, Tokens>();
-
-  /**
-   * Create a new SfdxErrorConfig.
-   *
-   * @param packageName The name of the package.
-   * @param bundleName The message bundle.
-   * @param errorKey The error message key.
-   * @param errorTokens The tokens to use when getting the error message.
-   * @param actionKey The action message key.
-   * @param actionTokens The tokens to use when getting the action message(s).
-   */
-  public constructor(
-    packageName: string,
-    bundleName: string,
-    errorKey: string,
-    errorTokens: Tokens = [],
-    actionKey?: string,
-    actionTokens?: Tokens
-  ) {
-    this.packageName = packageName;
-    this.bundleName = bundleName;
-    this.errorKey = errorKey;
-    this.errorTokens = errorTokens;
-    if (actionKey) this.addAction(actionKey, actionTokens);
-  }
-
-  /**
-   * Set the error key.
-   *
-   * @param key The key to set.
-   * @returns {SfdxErrorConfig} For convenience `this` object is returned.
-   */
-  public setErrorKey(key: string): SfdxErrorConfig {
-    this.errorKey = key;
-    return this;
-  }
-
-  /**
-   * Set the error tokens.
-   *
-   * @param tokens The tokens to set. For convenience `this` object is returned.
-   */
-  public setErrorTokens(tokens: Tokens): SfdxErrorConfig {
-    this.errorTokens = tokens;
-    return this;
-  }
-
-  /**
-   * Add an error action to assist the user with a resolution. For convenience `this` object is returned.
-   *
-   * @param actionKey The action key in the message bundle.
-   * @param actionTokens The action tokens for the string.
-   */
-  public addAction(actionKey: string, actionTokens: Tokens = []): SfdxErrorConfig {
-    this.actions.set(actionKey, actionTokens);
-    return this;
-  }
-
-  /**
-   * Load the messages using `Messages.loadMessages`. Returns the loaded messages.
-   */
-  public load(): Messages {
-    this.messages = Messages.loadMessages(this.packageName, this.bundleName);
-    return this.messages;
-  }
-
-  /**
-   * Get the error message using messages.getMessage.
-   * **Throws** If `errorMessages.load` was not called first.
-   */
-  public getError(): string {
-    if (!this.messages) {
-      throw new SfdxError('SfdxErrorConfig not loaded.');
-    }
-    return this.messages.getMessage(this.errorKey, this.errorTokens);
-  }
-
-  /**
-   * Get the action messages using messages.getMessage.
-   * **@throws** If `errorMessages.load` was not called first.
-   */
-  public getActions(): Optional<string[]> {
-    if (!this.messages) {
-      throw new SfdxError('SfdxErrorConfig not loaded.');
-    }
-
-    if (this.actions.size === 0) return;
-
-    const actions: string[] = [];
-    this.actions.forEach((tokens, key) => {
-      const messages = this.messages;
-      if (messages) {
-        actions.push(messages.getMessage(key, tokens));
-      }
-    });
-    return actions;
-  }
-
-  /**
-   * Remove all actions from this error config. Useful when reusing SfdxErrorConfig for other error messages within
-   * the same bundle. For convenience `this` object is returned.
-   */
-  public removeActions(): SfdxErrorConfig {
-    this.actions = new Map();
-    return this;
-  }
-}
+import { hasString, isString, JsonMap } from '@salesforce/ts-types';
 
 /**
  * A generalized sfdx error which also contains an action. The action is used in the
@@ -151,16 +16,12 @@ export class SfdxErrorConfig {
  * directly to the constructor, e.g.
  *
  * ```
- * // To load a message bundle:
+ * // To load a message bundle (Note that __dirname should contain a messages folder)
  * Messages.importMessagesDirectory(__dirname);
- * this.messages = Messages.loadMessages('myPackageName', 'myBundleName');
- * // Note that __dirname should contain a messages folder.
- *
- * // To throw an error associated with the message from the bundle:
- * throw SfdxError.create('myPackageName', 'myBundleName', 'MyErrorMessageKey', [messageToken1]);
+ * const messages = Messages.load('myPackageName', 'myBundleName');
  *
  * // To throw a non-bundle based error:
- * throw new SfdxError(myErrMsg, 'MyErrorName');
+ * throw new SfdxError(message.getMessage('myError'), 'MyErrorName');
  * ```
  */
 export class SfdxError extends NamedError {
@@ -211,43 +72,6 @@ export class SfdxError extends NamedError {
   }
 
   /**
-   * Create a new `SfdxError`.
-   *
-   * @param packageName The message package name used to create the `SfdxError`.
-   * @param bundleName The message bundle name used to create the `SfdxError`.
-   * @param key The key within the bundle for the message.
-   * @param tokens The values to use for message tokenization.
-   */
-  public static create(packageName: string, bundleName: string, key: string, tokens?: Tokens): SfdxError;
-
-  /**
-   * Create a new SfdxError.
-   *
-   * @param errorConfig The `SfdxErrorConfig` object used to create the SfdxError.
-   */
-  public static create(errorConfig: SfdxErrorConfig): SfdxError;
-
-  // The create implementation function.
-  public static create(
-    nameOrConfig: string | SfdxErrorConfig,
-    bundleName?: string,
-    key?: string,
-    tokens?: Tokens
-  ): SfdxError {
-    let errorConfig: SfdxErrorConfig;
-
-    if (isString(nameOrConfig)) {
-      errorConfig = new SfdxErrorConfig(nameOrConfig, ensure(bundleName), ensure(key), tokens);
-    } else {
-      errorConfig = nameOrConfig;
-    }
-
-    errorConfig.load();
-
-    return new SfdxError(errorConfig.getError(), errorConfig.errorKey, errorConfig.getActions());
-  }
-
-  /**
    * Convert an Error to an SfdxError.
    *
    * @param err The error to convert.
@@ -256,10 +80,18 @@ export class SfdxError extends NamedError {
     if (isString(err)) {
       return new SfdxError(err);
     }
+
+    if (err instanceof SfdxError) {
+      return err;
+    }
+
     const sfdxError = new SfdxError(err.message, err.name);
+
     if (sfdxError.stack) {
       sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
       sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
+    } else {
+      sfdxError.stack = err.stack;
     }
 
     // If the original error has a code, use that instead of name.

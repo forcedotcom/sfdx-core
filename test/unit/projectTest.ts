@@ -8,7 +8,7 @@ import { join, sep } from 'path';
 import { assert, expect } from 'chai';
 
 import { env } from '@salesforce/kit';
-import { SfdxError } from '../../src/exported';
+import { Messages } from '../../src/exported';
 import { SfdxProject, SfdxProjectJson } from '../../src/sfdxProject';
 import { shouldThrow, testSetup } from '../../src/testSetup';
 
@@ -487,7 +487,9 @@ describe('SfdxProject', () => {
         project.getPackageDirectories();
         assert.fail('the above should throw an error');
       } catch (e) {
-        expect(e.message).to.equal(SfdxError.create('@salesforce/core', 'config', 'SingleNonDefaultPackage').message);
+        expect(e.message).to.equal(
+          Messages.load('@salesforce/core', 'config', ['SingleNonDefaultPackage']).getMessage('SingleNonDefaultPackage')
+        );
       }
     });
 

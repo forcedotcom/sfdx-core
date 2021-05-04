@@ -14,6 +14,17 @@ import { Messages } from './messages';
 import { Org } from './org';
 import { SfdxError } from './sfdxError';
 
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'permissionSetAssignment', [
+  'errorsEncounteredCreatingAssignment',
+  'orgRequired',
+  'userIdRequired',
+  'permSetRequired',
+  'assignCommandPermissionSetNotFoundForNSError',
+  'assignCommandPermissionSetNotFoundError',
+  'notSuccessfulButNoErrorsReported',
+]);
+
 /**
  * Map of fields name for a permission set assignment
  */
@@ -40,7 +51,9 @@ export class PermissionSetAssignment {
    */
   public static async init(org: Org): Promise<PermissionSetAssignment> {
     if (!org) {
-      throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'orgRequired');
+      const errName = 'orgRequired';
+      const errMessage = messages.getMessage(errName);
+      throw new SfdxError(errMessage, errName);
     }
 
     return new PermissionSetAssignment(org, await Logger.child('PermissionSetAssignment'));
@@ -54,11 +67,15 @@ export class PermissionSetAssignment {
    */
   public async create(id: string, permSetString: string): Promise<PermissionSetAssignmentFields> {
     if (!id) {
-      throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'userIdRequired');
+      const errName = 'userIdRequired';
+      const errMessage = messages.getMessage(errName);
+      throw new SfdxError(errMessage, errName);
     }
 
     if (!permSetString) {
-      throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'permSetRequired');
+      const errName = 'permSetRequired';
+      const errMessage = messages.getMessage(errName);
+      throw new SfdxError(errMessage, errName);
     }
 
     const { nsPrefix, permSetName } = this.parsePermissionSetString(permSetString);
@@ -75,19 +92,13 @@ export class PermissionSetAssignment {
 
     if (!permissionSetId) {
       if (nsPrefix) {
-        throw SfdxError.create(
-          '@salesforce/core',
-          'permissionSetAssignment',
-          'assignCommandPermissionSetNotFoundForNSError',
-          [permSetName, nsPrefix]
-        );
+        const errName = 'assignCommandPermissionSetNotFoundForNSError';
+        const errMessage = messages.getMessage(errName, [permSetName, nsPrefix]);
+        throw new SfdxError(errMessage, errName);
       } else {
-        throw SfdxError.create(
-          '@salesforce/core',
-          'permissionSetAssignment',
-          'assignCommandPermissionSetNotFoundError',
-          [permSetName]
-        );
+        const errName = 'assignCommandPermissionSetNotFoundError';
+        const errMessage = messages.getMessage(errName, [permSetName]);
+        throw new SfdxError(errMessage, errName);
       }
     }
 
@@ -102,7 +113,6 @@ export class PermissionSetAssignment {
       .create(mapKeys(assignment, (value: unknown, key: string) => upperFirst(key)));
 
     if (hasArray(createResponse, 'errors') && createResponse.errors.length > 0) {
-      const messages: Messages = Messages.loadMessages('@salesforce/core', 'permissionSetAssignment');
       let message = messages.getMessage('errorsEncounteredCreatingAssignment');
 
       const errors = createResponse.errors;
@@ -113,7 +123,9 @@ export class PermissionSetAssignment {
         });
         throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');
       } else {
-        throw SfdxError.create('@salesforce/core', 'permissionSetAssignment', 'notSuccessfulButNoErrorsReported');
+        const errName = 'notSuccessfulButNoErrorsReported';
+        const errMessage = messages.getMessage(errName);
+        throw new SfdxError(errMessage, errName);
       }
     } else {
       return assignment;

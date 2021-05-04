@@ -11,13 +11,10 @@ import { dirname as pathDirname, join as pathJoin } from 'path';
 import { isBoolean } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { Logger } from '../logger';
-import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
 import { BaseConfigStore, ConfigContents } from './configStore';
-
-Messages.importMessagesDirectory(pathJoin(__dirname));
 
 /**
  * Represents a json config file used to manage settings and state. Global config
@@ -44,7 +41,6 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
 
   // Initialized in init
   protected logger!: Logger;
-  protected messages!: Messages;
 
   // Initialized in create
   private path!: string;
@@ -70,8 +66,6 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
 
     // Merge default and passed in options
     this.options = Object.assign(defaultOptions, this.options);
-
-    this.messages = Messages.loadMessages('@salesforce/core', 'config');
   }
   /**
    * Returns the config's filename.

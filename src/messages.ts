@@ -36,7 +36,7 @@ class Key {
  *
  * @param locale The local set by the framework.
  */
-export type LoaderFunction = (locale: string) => Messages;
+export type LoaderFunction<T extends string> = (locale: string) => Messages<T>;
 
 export type StoredMessage = string | string[] | Map<string, StoredMessage>;
 export type StoredMessageMap = Map<string, StoredMessage>;
@@ -130,44 +130,75 @@ const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): St
  *
  * In the beginning of your app or file, add the loader functions to be used later. If using
  * json or js files in a root messages directory (`<moduleRoot>/messages`), load the entire directory
- * automatically with {@link Messages.importMessagesDirectory}. Message files must be in `.json` or `.js`
- * that exports a json object with **only** top level key-value pairs. The values support
- * [util.format](https://nodejs.org/api/util.html#util_util_format_format_args) style strings
- * that apply the tokens passed into {@link Message.getMessage}
+ * automatically with {@link Messages.importMessagesDirectory}. Message files must be the following formates.
  *
- * A sample message file.
- * ```
+ * A `.json` file:
+ * ```json
  * {
- *    'msgKey': 'A message displayed in the terminal'
+ *    "msgKey": "A message displayed in the user",
+ *    "msgGroup": {
+ *       "anotherMsgKey": "Another message displayed to the user"
+ *    },
+ *    "listOfMessage": ["message1", "message2"]
  * }
  * ```
+ *
+ * A `.js` file:
+ * ```javascript
+ * module.exports = {
+ *    msgKey: 'A message displayed in the user',
+ *    msgGroup: {
+ *       anotherMsgKey: 'Another message displayed to the user'
+ *    },
+ *    listOfMessage: ['message1', 'message2']
+ * }
+ * ```
+ *
+ * A `.md` file:
+ * ```markdown
+ * # msgKey
+ * A message displayed in the user
+ *
+ * # msgGroup.anotherMsgKey
+ * Another message displayed to the user
+ *
+ * # listOfMessage
+ * - message1
+ * - message2
+ * ```
+ *
+ * The values support [util.format](https://nodejs.org/api/util.html#util_util_format_format_args) style strings
+ * that apply the tokens passed into {@link Message.getMessage}
  *
  * **Note:** When running unit tests individually, you may see errors that the messages aren't found.
  * This is because `index.js` isn't loaded when tests run like they are when the package is required.
  * To allow tests to run, import the message directory in each test (it will only
  * do it once) or load the message file the test depends on individually.
  *
- * ```
+ * ```typescript
  * // Create loader functions for all files in the messages directory
  * Messages.importMessagesDirectory(__dirname);
  *
  * // Now you can use the messages from anywhere in your code or file.
  * // If using importMessageDirectory, the bundle name is the file name.
- * const messages : Messages = Messages.loadMessages(packageName, bundleName);
+ * const messages: Messages = Messages.load(packageName, bundleName);
  *
  * // Messages now contains all the message in the bundleName file.
  * messages.getMessage('JsonParseError');
  * ```
  */
-export class Messages {
+export class Messages<T extends string> {
   // It would be AWESOME to use Map<Key, Message> but js does an object instance comparison and doesn't let you
   // override valueOf or equals for the === operator, which map uses. So, Use Map<String, Message>
 
   // A map of loading functions to dynamically load messages when they need to be used
-  private static loaders: Map<string, (locale: string) => Messages> = new Map<string, (locale: string) => Messages>();
+  private static loaders: Map<string, (locale: string) => Messages<string>> = new Map<
+    string,
+    (locale: string) => Messages<string>
+  >();
 
   // A map cache of messages bundles that have already been loaded
-  private static bundles: Map<string, Messages> = new Map<string, Messages>();
+  private static bundles: Map<string, Messages<string>> = new Map<string, Messages<string>>();
 
   /**
    * The locale of the messages in this bundle.
@@ -180,7 +211,7 @@ export class Messages {
   /**
    * Create a new messages bundle.
    *
-   * **Note:** Use {Messages.loadMessages} unless you are writing your own loader function.
+   * **Note:** Use {Messages.load} unless you are writing your own loader function.
    *
    * @param bundleName The bundle name.
    * @param locale The locale.
@@ -211,13 +242,13 @@ export class Messages {
   }
 
   /**
-   * Set a custom loader function for a package and bundle that will be called on {@link Messages.loadMessages}.
+   * Set a custom loader function for a package and bundle that will be called on {@link Messages.load}.
    *
    * @param packageName The npm package name.
    * @param bundle The name of the bundle.
    * @param loader The loader function.
    */
-  public static setLoaderFunction(packageName: string, bundle: string, loader: LoaderFunction): void {
+  public static setLoaderFunction(packageName: string, bundle: string, loader: LoaderFunction<string>): void {
     this.loaders.set(new Key(packageName, bundle).toString(), loader);
   }
 
@@ -229,13 +260,13 @@ export class Messages {
    * @param bundleName The name of the bundle.
    * @param filePath The messages file path.
    */
-  public static generateFileLoaderFunction(bundleName: string, filePath: string): LoaderFunction {
+  public static generateFileLoaderFunction(bundleName: string, filePath: string): LoaderFunction<string> {
     const ext = path.extname(filePath);
     if (!['.json', '.js', '.md'].includes(ext)) {
       throw new Error(`Only json, js and md message files are allowed, not ${ext}: ${filePath}`);
     }
 
-    return (locale: string): Messages => {
+    return (locale: string): Messages<string> => {
       let fileContents: string;
       let parser: FileParser;
       if (ext === '.md') {
@@ -279,7 +310,7 @@ export class Messages {
 
   /**
    * Import all json and js files in a messages directory. Use the file name as the bundle key when
-   * {@link Messages.loadMessages} is called. By default, we're assuming the moduleDirectoryPart is a
+   * {@link Messages.load} is called. By default, we're assuming the moduleDirectoryPart is a
    * typescript project and will truncate to root path (where the package.json file is). If your messages
    * directory is in another spot or you are not using typescript, pass in false for truncateToProjectPath.
    *
@@ -352,12 +383,25 @@ export class Messages {
    * Load messages for a given package and bundle. If the bundle is not already cached, use the loader function
    * created from {@link Messages.setLoaderFunction} or {@link Messages.importMessagesDirectory}.
    *
+   * The message keys that will be used must be passed in for validation. This prevents runtime errors if messages are used but not defined.
+   *
+   * **NOTE: This should be defined at the top of the file so validation is done at load time rather than runtime.**
+   *
+   * ```typescript
+   * Messages.importMessagesDirectory(__dirname);
+   * const messages = Messages.load('packageName', 'bundleName', [
+   *   'messageKey1',
+   *   'messageKey2',
+   * ]);
+   * ```
+   *
    * @param packageName The name of the npm package.
    * @param bundleName The name of the bundle to load.
+   * @param keys The message keys that will be used.
    */
-  public static loadMessages(packageName: string, bundleName: string): Messages {
+  public static load<T extends string>(packageName: string, bundleName: string, keys: [T, ...T[]]): Messages<T> {
     const key = new Key(packageName, bundleName);
-    let messages: Optional<Messages>;
+    let messages: Optional<Messages<T>>;
 
     if (this.isCached(packageName, bundleName)) {
       messages = this.bundles.get(key.toString());
@@ -369,7 +413,21 @@ export class Messages {
         messages = this.bundles.get(key.toString());
       }
     }
+
     if (messages) {
+      // Type gaurd on key length, but do a runtime check.
+      if (!keys || keys.length === 0) {
+        throw new NamedError(
+          'MissingKeysError',
+          'Can not load messages without providing the message keys that will be used.'
+        );
+      }
+
+      // Get all messages to validate they are actually present
+      for (const messageKey of keys) {
+        messages.getMessage(messageKey);
+      }
+
       return messages;
     }
 
@@ -397,7 +455,7 @@ export class Messages {
    *
    * **See** https://nodejs.org/api/util.html#util_util_format_format_args
    */
-  public getMessage(key: string, tokens: Tokens = []): string {
+  public getMessage(key: T, tokens: Tokens = []): string {
     return this.getMessageWithMap(key, tokens, this.messages).join(os.EOL);
   }
 
@@ -423,7 +481,7 @@ export class Messages {
    *
    * **See** https://nodejs.org/api/util.html#util_util_format_format_args
    */
-  public getMessages(key: string, tokens: Tokens = []): string[] {
+  public getMessages(key: T, tokens: Tokens = []): string[] {
     return this.getMessageWithMap(key, tokens, this.messages);
   }
 

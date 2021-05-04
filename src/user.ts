@@ -40,6 +40,15 @@ const rand = (len: Many<string>): number => Math.floor(Math.random() * len.lengt
 const scimEndpoint = '/services/scim/v1/Users';
 const scimHeaders = { 'auto-approve-user': 'true' };
 
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'user', [
+  'invalidHttpResponseCreatingUser',
+  'userQueryFailed',
+  'missingId',
+  'permsetNamesAreRequired',
+  'missingFields',
+]);
+
 /**
  * A Map of Required Salesforce User fields.
  */
@@ -106,7 +115,9 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
 
     return fields;
   } else {
-    throw SfdxError.create('@salesforce/core', 'user', 'userQueryFailed', [username]);
+    const errName = 'userQueryFailed';
+    const errMessage = messages.getMessage(errName, [username]);
+    throw new SfdxError(errMessage, errName);
   }
 }
 
@@ -292,11 +303,15 @@ export class User extends AsyncCreatable<User.Options> {
    */
   public async assignPermissionSets(id: string, permsetNames: string[]): Promise<void> {
     if (!id) {
-      throw SfdxError.create('@salesforce/core', 'user', 'missingId');
+      const errName = 'missingId';
+      const errMessage = messages.getMessage(errName);
+      throw new SfdxError(errMessage, errName);
     }
 
     if (!permsetNames) {
-      throw SfdxError.create('@salesforce/core', 'user', 'permsetNamesAreRequired');
+      const errName = 'permsetNamesAreRequired';
+      const errMessage = messages.getMessage(errName);
+      throw new SfdxError(errMessage, errName);
     }
 
     const assignments: PermissionSetAssignment = await PermissionSetAssignment.init(this.org);
@@ -403,7 +418,9 @@ export class User extends AsyncCreatable<User.Options> {
       await newUserAuthInfo.save();
       return newUserAuthInfo;
     } else {
-      throw SfdxError.create('@salesforce/core', 'user', 'problemsDescribingTheUserObject');
+      const errName = 'permsetNamesAreRequired';
+      const errMessage = messages.getMessage(errName);
+      throw new SfdxError(errMessage, errName);
     }
   }
 
@@ -414,7 +431,9 @@ export class User extends AsyncCreatable<User.Options> {
    */
   private async createUserInternal(fields: UserFields): Promise<{ buffer: SecureBuffer<string>; userId: string }> {
     if (!fields) {
-      throw SfdxError.create('@salesforce/core', 'user', 'missingFields');
+      const errName = 'missingFields';
+      const errMessage = messages.getMessage(errName);
+      throw new SfdxError(errMessage, errName);
     }
     const conn: Connection = this.org.getConnection();
 
@@ -450,7 +469,6 @@ export class User extends AsyncCreatable<User.Options> {
 
     this.logger.debug(`user create response.statusCode: ${response.statusCode}`);
     if (!(statusCode === 201 || statusCode === 200)) {
-      const messages = Messages.loadMessages('@salesforce/core', 'user');
       let message = messages.getMessage('invalidHttpResponseCreatingUser', [statusCode]);
 
       if (responseBody) {
