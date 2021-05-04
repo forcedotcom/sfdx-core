@@ -15,6 +15,19 @@ import { sfdc } from '../util/sfdc';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'config', [
+  'InvalidInstanceUrl',
+  'InvalidApiVersion',
+  'InvalidIsvDebuggerSid',
+  'InvalidIsvDebuggerUrl',
+  'InvalidBooleanConfigValue',
+  'InvalidNumberConfigValue',
+  'InvalidWrite',
+  'UnknownConfigKey',
+  'InvalidConfigValue',
+]);
+
 const log = Logger.childFromRoot('core:config');
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
@@ -119,9 +132,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       input: {
         // If a value is provided validate it otherwise no value is unset.
         validator: (value) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
-        get failedMessage() {
-          return Config.messages?.getMessage('InvalidInstanceUrl');
-        },
+        failedMessage: messages.getMessage('InvalidInstanceUrl'),
       },
     },
     {
@@ -130,9 +141,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       input: {
         // If a value is provided validate it otherwise no value is unset.
         validator: (value) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
-        get failedMessage() {
-          return Config.messages?.getMessage('InvalidApiVersion');
-        },
+        failedMessage: messages.getMessage('InvalidApiVersion'),
       },
     },
     { key: Config.DEFAULT_DEV_HUB_USERNAME },
@@ -143,9 +152,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       input: {
         // If a value is provided validate it otherwise no value is unset.
         validator: (value) => value == null || isString(value),
-        get failedMessage() {
-          return Config.messages?.getMessage('InvalidIsvDebuggerSid');
-        },
+        failedMessage: messages.getMessage('InvalidIsvDebuggerSid'),
       },
     },
     {
@@ -153,18 +160,14 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       input: {
         // If a value is provided validate it otherwise no value is unset.
         validator: (value) => value == null || isString(value),
-        get failedMessage() {
-          return Config.messages?.getMessage('InvalidIsvDebuggerUrl');
-        },
+        failedMessage: messages.getMessage('InvalidIsvDebuggerUrl'),
       },
     },
     {
       key: Config.DISABLE_TELEMETRY,
       input: {
         validator: (value) => value == null || ['true', 'false'].includes(value.toString()),
-        get failedMessage() {
-          return Config.messages?.getMessage('InvalidBooleanConfigValue');
-        },
+        failedMessage: messages.getMessage('InvalidBooleanConfigValue'),
       },
     },
     // This should be brought in by a plugin, but there isn't a way to do that right now.
@@ -173,9 +176,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       hidden: true,
       input: {
         validator: (value) => value != null && ['true', 'false'].includes(value.toString()),
-        get failedMessage() {
-          return Config.messages?.getMessage('InvalidBooleanConfigValue');
-        },
+        failedMessage: messages.getMessage('InvalidBooleanConfigValue'),
       },
     },
     {
@@ -184,22 +185,15 @@ export class Config extends ConfigFile<ConfigFile.Options> {
         // the bit shift will remove the negative bit, and any decimal numbers
         // then the parseFloat will handle converting it to a number from a string
         validator: (value) => (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
-        get failedMessage() {
-          return Config.messages?.getMessage('InvalidNumberConfigValue');
-        },
+        failedMessage: messages.getMessage('InvalidNumberConfigValue'),
       },
     },
   ];
 
-  private static messages: Messages;
   private crypto?: Crypto;
 
   public constructor(options?: ConfigFile.Options) {
     super(options || Config.getDefaultOptions(false));
-
-    if (!Config.messages) {
-      Config.messages = Messages.loadMessages('@salesforce/core', 'config');
-    }
 
     // Resolve the config path on creation.
     this.getPath();
@@ -328,7 +322,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public writeSync(newContents?: ConfigContents): ConfigContents {
-    throw SfdxError.create('@salesforce/core', 'config', 'InvalidWrite');
+    const errName = 'InvalidWrite';
+    const errMessage = messages.getMessage(errName);
+    throw new SfdxError(errMessage, errName);
   }
 
   /**
@@ -343,15 +339,17 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
     if (!property) {
-      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
+      const errName = 'UnknownConfigKey';
+      const errMessage = messages.getMessage(errName, [key]);
+      throw new SfdxError(errMessage, errName);
     }
     if (property.input) {
       if (property.input && property.input.validator(value)) {
         super.set(property.key, value);
       } else {
-        throw SfdxError.create('@salesforce/core', 'config', 'InvalidConfigValue', [
-          property.input.failedMessage ?? '',
-        ]);
+        const errName = 'InvalidConfigValue';
+        const errMessage = messages.getMessage(errName, [property.input.failedMessage ?? '']);
+        throw new SfdxError(errMessage, errName);
       }
     } else {
       super.set(property.key, value);
@@ -370,7 +368,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
     if (!property) {
-      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [key]);
+      const errName = 'UnknownConfigKey';
+      const errMessage = messages.getMessage(errName, [key]);
+      throw new SfdxError(errMessage, errName);
     }
     return super.unset(property.key);
   }
@@ -413,7 +413,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     const prop = Config.propertyConfigMap[propertyName];
 
     if (!prop) {
-      throw SfdxError.create('@salesforce/core', 'config', 'UnknownConfigKey', [propertyName]);
+      const errName = 'UnknownConfigKey';
+      const errMessage = messages.getMessage(errName, [propertyName]);
+      throw new SfdxError(errMessage, errName);
     }
     return prop;
   }

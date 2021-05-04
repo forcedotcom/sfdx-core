@@ -61,7 +61,7 @@ export { SchemaPrinter } from './schema/printer';
 
 export { SchemaValidator } from './schema/validator';
 
-export { SfdxError, SfdxErrorConfig } from './sfdxError';
+export { SfdxError } from './sfdxError';
 
 export { StatusResult } from './status/client';
 

@@ -5,8 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
 import { fs } from './fs';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'config', ['InvalidProjectWorkspace']);
+
 /**
  * The name of the project config file.
  *
@@ -30,7 +35,9 @@ export const SFDX_PROJECT_JSON = 'sfdx-project.json';
 export async function resolveProjectPath(dir: string = process.cwd()): Promise<string> {
   const projectPath = await fs.traverseForFile(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
-    throw SfdxError.create('@salesforce/core', 'config', 'InvalidProjectWorkspace');
+    const errName = 'InvalidProjectWorkspace';
+    const errMessage = messages.getMessage(errName);
+    throw new SfdxError(errMessage, errName);
   }
   return projectPath;
 }
@@ -50,7 +57,9 @@ export async function resolveProjectPath(dir: string = process.cwd()): Promise<s
 export function resolveProjectPathSync(dir: string = process.cwd()): string {
   const projectPath = fs.traverseForFileSync(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
-    throw SfdxError.create('@salesforce/core', 'config', 'InvalidProjectWorkspace');
+    const errName = 'InvalidProjectWorkspace';
+    const errMessage = messages.getMessage(errName);
+    throw new SfdxError(errMessage, errName);
   }
   return projectPath;
 }

@@ -38,6 +38,10 @@ import { SfdxError } from './sfdxError';
 import { fs } from './util/fs';
 import { sfdc } from './util/sfdc';
 import { GlobalInfo } from './config/globalInfoConfig';
+import { Messages } from './messages';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'org', ['NotADevHub']);
 
 /**
  * Provides a way to manage a locally authenticated Org.
@@ -167,7 +171,9 @@ export class Org extends AsyncCreatable<Org.Options> {
       results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<object>>);
     } catch (err) {
       if (err.name === 'INVALID_TYPE') {
-        throw SfdxError.create('@salesforce/core', 'org', 'NotADevHub', [devHubConnection.getUsername()]);
+        const errName = 'NotADevHub';
+        const errMessage = messages.getMessage(errName, [devHubConnection.getUsername()]);
+        throw new SfdxError(errMessage, errName);
       }
       throw err;
     }
