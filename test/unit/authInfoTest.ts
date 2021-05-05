@@ -1504,7 +1504,7 @@ describe('AuthInfo', () => {
       );
     });
 
-    it('should hanlde undefined client secret', async () => {
+    it('should handle undefined client secret', async () => {
       const username = 'authInfoTest_username_RefreshToken';
       const refreshTokenConfig = {
         refreshToken: testMetadata.refreshToken,
@@ -1532,6 +1532,62 @@ describe('AuthInfo', () => {
       expect(authInfo.getSfdxAuthUrl()).to.contain(
         `force://SalesforceDevelopmentExperience::${testMetadata.refreshToken}@mydevhub.localhost.internal.salesforce.com:6109`
       );
+    });
+
+    it('should handle undefined refresh token', async () => {
+      const username = 'authInfoTest_username_RefreshToken';
+      const refreshTokenConfig = {
+        refreshToken: testMetadata.refreshToken,
+        loginUrl: testMetadata.loginUrl,
+      };
+
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      };
+
+      // Stub the http request (OAuth2.refreshToken())
+      _postParmsStub.returns(Promise.resolve(authResponse));
+
+      // Create the refresh token AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username,
+        oauth2Options: refreshTokenConfig,
+      });
+
+      // delete the refresh token
+      delete authInfo.getFields().refreshToken;
+
+      expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined refreshToken');
+    });
+
+    it('should handle undefined instance url', async () => {
+      const username = 'authInfoTest_username_RefreshToken';
+      const refreshTokenConfig = {
+        refreshToken: testMetadata.refreshToken,
+        loginUrl: testMetadata.loginUrl,
+      };
+
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      };
+
+      // Stub the http request (OAuth2.refreshToken())
+      _postParmsStub.returns(Promise.resolve(authResponse));
+
+      // Create the refresh token AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username,
+        oauth2Options: refreshTokenConfig,
+      });
+
+      // delete the instance url
+      delete authInfo.getFields().instanceUrl;
+
+      expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined instanceUrl');
     });
   });
 
