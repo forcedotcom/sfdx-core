@@ -49,7 +49,7 @@ describe('ConfigGroup', () => {
       store.setDefaultGroup(undefined);
       assert.fail("This call shouldn't succeed");
     } catch (e) {
-      expect(e.name).equals('MissingGroupName');
+      expect(e.name).equals('MissingGroupNameError');
     }
   });
 

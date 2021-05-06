@@ -51,9 +51,7 @@ export class PermissionSetAssignment {
    */
   public static async init(org: Org): Promise<PermissionSetAssignment> {
     if (!org) {
-      const errName = 'orgRequired';
-      const errMessage = messages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('orgRequired');
     }
 
     return new PermissionSetAssignment(org, await Logger.child('PermissionSetAssignment'));
@@ -67,15 +65,11 @@ export class PermissionSetAssignment {
    */
   public async create(id: string, permSetString: string): Promise<PermissionSetAssignmentFields> {
     if (!id) {
-      const errName = 'userIdRequired';
-      const errMessage = messages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('userIdRequired');
     }
 
     if (!permSetString) {
-      const errName = 'permSetRequired';
-      const errMessage = messages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('permSetRequired');
     }
 
     const { nsPrefix, permSetName } = this.parsePermissionSetString(permSetString);
@@ -92,13 +86,9 @@ export class PermissionSetAssignment {
 
     if (!permissionSetId) {
       if (nsPrefix) {
-        const errName = 'assignCommandPermissionSetNotFoundForNSError';
-        const errMessage = messages.getMessage(errName, [permSetName, nsPrefix]);
-        throw new SfdxError(errMessage, errName);
+        throw messages.createError('assignCommandPermissionSetNotFoundForNSError', [permSetName, nsPrefix]);
       } else {
-        const errName = 'assignCommandPermissionSetNotFoundError';
-        const errMessage = messages.getMessage(errName, [permSetName]);
-        throw new SfdxError(errMessage, errName);
+        throw messages.createError('assignCommandPermissionSetNotFoundError', [permSetName]);
       }
     }
 
@@ -123,9 +113,7 @@ export class PermissionSetAssignment {
         });
         throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');
       } else {
-        const errName = 'notSuccessfulButNoErrorsReported';
-        const errMessage = messages.getMessage(errName);
-        throw new SfdxError(errMessage, errName);
+        throw messages.createError('notSuccessfulButNoErrorsReported');
       }
     } else {
       return assignment;

@@ -237,9 +237,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Options> {
     if (this.pollingCount >= DeviceOauthService.POLLING_COUNT_MAX) {
       // stop polling, the user has likely abandoned the command...
       this.logger.error(`Polling timed out because max polling was hit: ${this.pollingCount}`);
-      const errName = 'pollingTimeout';
-      const errMessage = messages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('pollingTimeout');
     }
 
     return result;

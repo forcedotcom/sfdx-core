@@ -95,7 +95,7 @@ describe('permission set assignment tests', () => {
       try {
         await shouldThrow(assignment.create('123456', `${NS}__${PERM_SET_NAME}`));
       } catch (e) {
-        expect(e).to.have.property('name', 'assignCommandPermissionSetNotFoundForNSError');
+        expect(e).to.have.property('name', 'AssignCommandPermissionSetNotFoundForNSError');
       }
     });
 
@@ -128,7 +128,7 @@ describe('permission set assignment tests', () => {
       try {
         await shouldThrow(assignment.create('123456', `${PERM_SET_NAME}`));
       } catch (e) {
-        expect(e).to.have.property('name', 'assignCommandPermissionSetNotFoundError');
+        expect(e).to.have.property('name', 'AssignCommandPermissionSetNotFoundError');
       }
     });
 

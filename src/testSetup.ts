@@ -297,10 +297,10 @@ export const instantiateContext = (sinon?: any) => {
         );
       } else {
         testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').rejects(
-          new SfdxError('InvalidProjectWorkspace')
+          new SfdxError('', 'InvalidProjectWorkspaceError')
         );
         testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPathSync').throws(
-          new SfdxError('InvalidProjectWorkspace')
+          new SfdxError('', 'InvalidProjectWorkspaceError')
         );
       }
     },
@@ -519,7 +519,7 @@ export const testSetup = once(_testSetup);
  *
  * **See** {@link shouldThrow}
  */
-export const unexpectedResult: SfdxError = new SfdxError('This code was expected to fail', 'UnexpectedResult');
+export const unexpectedResult = new SfdxError('This code was expected to fail', 'UnexpectedResult');
 
 /**
  * Use for this testing pattern:

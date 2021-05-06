@@ -16,7 +16,6 @@ import { KeyChain } from './keyChainImpl';
 import { Logger } from './logger';
 import { Messages } from './messages';
 import { SecureBuffer } from './secureBuffer';
-import { SfdxError } from './sfdxError';
 
 const TAG_DELIMITER = ':';
 const BYTE_COUNT_FOR_IV = 6;
@@ -26,13 +25,12 @@ const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
-const encryptionMessages = Messages.load('@salesforce/core', 'encryption', [
-  'KeychainPasswordCreationError',
-  'InvalidEncryptedFormatError',
-  'AuthDecryptError',
-  'InvalidEncryptedFormatErrorAction',
+const messages = Messages.load('@salesforce/core', 'encryption', [
+  'keychainPasswordCreationError',
+  'invalidEncryptedFormatError',
+  'authDecryptError',
+  'macKeychainOutOfSync',
 ]);
-const cryptoMessages = Messages.load('@salesforce/core', 'crypto', ['MacKeychainOutOfSync']);
 
 interface CredType {
   username: string;
@@ -117,9 +115,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     }
 
     if (this.key == null) {
-      const errName = 'KeychainPasswordCreationError';
-      const errMessage = encryptionMessages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('keychainPasswordCreationError');
     }
 
     const iv = crypto.randomBytes(BYTE_COUNT_FOR_IV).toString('hex');
@@ -148,10 +144,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     const tokens = text.split(TAG_DELIMITER);
 
     if (tokens.length !== 2) {
-      const errName = 'InvalidEncryptedFormatError';
-      const errMessage = encryptionMessages.getMessage(errName);
-      const errorActions = [encryptionMessages.getMessage('InvalidEncryptedFormatErrorAction')];
-      throw new SfdxError(errMessage, errName, errorActions);
+      throw messages.createError('invalidEncryptedFormatError');
     }
 
     const tag = tokens[1];
@@ -166,15 +159,14 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
         decipher.setAuthTag(Buffer.from(tag, 'hex'));
         dec = decipher.update(secret, 'hex', 'utf8');
         dec += decipher.final('utf8');
-      } catch (e) {
-        const sfdxError = SfdxError.wrap(e);
+      } catch (err) {
+        const error = messages.createError('authDecryptError', [err.message], [], err);
         const useGenericUnixKeychain =
           env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
         if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
-          sfdxError.actions = [cryptoMessages.getMessage('MacKeychainOutOfSync')];
+          error.actions = [messages.getMessage('macKeychainOutOfSync')];
         }
-        sfdxError.message = encryptionMessages.getMessage('AuthDecryptError', [e.message]);
-        throw sfdxError;
+        throw error;
       }
       return dec;
     });

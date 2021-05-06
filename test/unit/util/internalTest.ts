@@ -29,7 +29,7 @@ describe('util/internal', () => {
         await resolveProjectPath();
         assert(false, 'should throw');
       } catch (e) {
-        expect(e.name).to.equal('InvalidProjectWorkspace');
+        expect(e.name).to.equal('InvalidProjectWorkspaceError');
       }
     });
   });
@@ -45,7 +45,7 @@ describe('util/internal', () => {
         resolveProjectPathSync();
         assert(false, 'should throw');
       } catch (e) {
-        expect(e.name).to.equal('InvalidProjectWorkspace');
+        expect(e.name).to.equal('InvalidProjectWorkspaceError');
       }
     });
   });

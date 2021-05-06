@@ -59,7 +59,7 @@ describe('AuthInfo No fs mock', () => {
   });
 
   it('missing config', async () => {
-    const expectedErrorName = 'NamedOrgNotFound';
+    const expectedErrorName = 'NamedOrgNotFoundError';
     try {
       await AuthInfo.create({ username: 'does_not_exist@gb.com' });
       assert.fail(`should have thrown error with name: ${expectedErrorName}`);
@@ -784,7 +784,7 @@ describe('AuthInfo', () => {
         await AuthInfo.create({ username, oauth2Options: jwtConfig });
         assert.fail('should have thrown an error within AuthInfo.buildJwtConfig()');
       } catch (err) {
-        expect(err.name).to.equal('JWTAuthError');
+        expect(err.name).to.equal('JwtAuthError');
       }
     });
 

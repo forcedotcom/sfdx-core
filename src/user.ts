@@ -115,9 +115,7 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
 
     return fields;
   } else {
-    const errName = 'userQueryFailed';
-    const errMessage = messages.getMessage(errName, [username]);
-    throw new SfdxError(errMessage, errName);
+    throw messages.createError('userQueryFailed', [username]);
   }
 }
 
@@ -303,15 +301,11 @@ export class User extends AsyncCreatable<User.Options> {
    */
   public async assignPermissionSets(id: string, permsetNames: string[]): Promise<void> {
     if (!id) {
-      const errName = 'missingId';
-      const errMessage = messages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('missingId');
     }
 
     if (!permsetNames) {
-      const errName = 'permsetNamesAreRequired';
-      const errMessage = messages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('permsetNamesAreRequired');
     }
 
     const assignments: PermissionSetAssignment = await PermissionSetAssignment.init(this.org);
@@ -418,9 +412,7 @@ export class User extends AsyncCreatable<User.Options> {
       await newUserAuthInfo.save();
       return newUserAuthInfo;
     } else {
-      const errName = 'permsetNamesAreRequired';
-      const errMessage = messages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('permsetNamesAreRequired');
     }
   }
 
@@ -431,9 +423,7 @@ export class User extends AsyncCreatable<User.Options> {
    */
   private async createUserInternal(fields: UserFields): Promise<{ buffer: SecureBuffer<string>; userId: string }> {
     if (!fields) {
-      const errName = 'missingFields';
-      const errMessage = messages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('missingFields');
     }
     const conn: Connection = this.org.getConnection();
 

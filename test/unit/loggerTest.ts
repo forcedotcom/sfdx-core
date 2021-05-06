@@ -67,7 +67,7 @@ describe('Logger', () => {
         Logger.getLevelByName('invalid');
         assert.fail('should have thrown an error trying to get an invalid level name');
       } catch (err) {
-        expect(err.message).to.equal('UnrecognizedLoggerLevelName');
+        expect(err.name).to.equal('UnrecognizedLoggerLevelNameError');
       }
     });
 

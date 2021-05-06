@@ -71,8 +71,8 @@ export class SchemaValidator {
    * Performs validation of JSON data against the schema located at the `schemaPath` value provided
    * at instantiation.
    *
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldErrors' }* If there are known validations errors.
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknown' }* If there are unknown validations errors.
+   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldError' }* If there are known validations errors.
+   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknownError' }* If there are unknown validations errors.
    *
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
@@ -86,8 +86,8 @@ export class SchemaValidator {
    * Performs validation of JSON data against the schema located at the `schemaPath` value provided
    * at instantiation.
    *
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldErrors' }* If there are known validations errors.
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknown' }* If there are unknown validations errors.
+   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldError' }* If there are known validations errors.
+   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknownError' }* If there are unknown validations errors.
    *
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
@@ -107,9 +107,9 @@ export class SchemaValidator {
     if (!validate(json)) {
       if (validate.errors) {
         const errors = this.getErrorsText(validate.errors, schema);
-        throw new SfdxError(`Validation errors:\n${errors}`, 'ValidationSchemaFieldErrors');
+        throw new SfdxError(`Validation errors:\n${errors}`, 'ValidationSchemaFieldError');
       } else {
-        throw new SfdxError('Unknown schema validation error', 'ValidationSchemaUnknown');
+        throw new SfdxError('Unknown schema validation error', 'ValidationSchemaUnknownError');
       }
     }
 

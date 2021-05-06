@@ -41,7 +41,7 @@ import { GlobalInfo } from './config/globalInfoConfig';
 import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'org', ['NotADevHub']);
+const messages = Messages.load('@salesforce/core', 'org', ['notADevHub']);
 
 /**
  * Provides a way to manage a locally authenticated Org.
@@ -101,7 +101,7 @@ export class Org extends AsyncCreatable<Org.Options> {
       dataPath = pathJoin(rootFolder, Global.SFDX_STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
       this.logger.debug(`cleaning data for path: ${dataPath}`);
     } catch (err) {
-      if (err.name === 'InvalidProjectWorkspace') {
+      if (err.name === 'InvalidProjectWorkspaceError') {
         // If we aren't in a project dir, we can't clean up data files.
         // If the user unlink this org outside of the workspace they used it in,
         // data files will be left over.
@@ -146,9 +146,9 @@ export class Org extends AsyncCreatable<Org.Options> {
   /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
    *
-   * **Throws** *{@link SfdxError}{ name: 'NotADevHub' }* Not a Dev Hub.
+   * **Throws** *{@link SfdxError}{ name: 'NotADevHubError' }* Not a Dev Hub.
    *
-   * **Throws** *{@link SfdxError}{ name: 'NoResults' }* No results.
+   * **Throws** *{@link SfdxError}{ name: 'NoResultsError' }* No results.
    *
    * @param devHubUsernameOrAlias The username or alias of the dev hub org.
    */
@@ -171,15 +171,13 @@ export class Org extends AsyncCreatable<Org.Options> {
       results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<Record<string, unknown>>>);
     } catch (err) {
       if (err.name === 'INVALID_TYPE') {
-        const errName = 'NotADevHub';
-        const errMessage = messages.getMessage(errName, [devHubConnection.getUsername()]);
-        throw new SfdxError(errMessage, errName);
+        throw messages.createError('notADevHub', [devHubConnection.getUsername()]);
       }
       throw err;
     }
 
     if (getNumber(results, 'records.length') !== 1) {
-      throw new SfdxError('No results', 'NoResults');
+      throw new SfdxError('No results', 'NoResultsError');
     }
 
     return thisOrgAuthConfig;
@@ -351,13 +349,13 @@ export class Org extends AsyncCreatable<Org.Options> {
   /**
    * Removes a username from the user config for this object. For convenience `this` object is returned.
    *
-   * **Throws** *{@link SfdxError}{ name: 'MissingAuthInfo' }* Auth info is missing.
+   * **Throws** *{@link SfdxError}{ name: 'MissingAuthInfoError' }* Auth info is missing.
    *
    * @param {AuthInfo | string} auth The AuthInfo containing the username to remove.
    */
   public async removeUsername(auth: AuthInfo | string): Promise<Org> {
     if (!auth) {
-      throw new SfdxError('Missing auth info', 'MissingAuthInfo');
+      throw new SfdxError('Missing auth info', 'MissingAuthInfoError');
     }
 
     const authInfo: AuthInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
@@ -485,10 +483,10 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
-   * **Throws** *{@link SfdxError} Throws and unsupported error.
+   * **Throws** *{@link SfdxError}{ name: 'NotSupportedError' }* Throws an unsupported error.
    */
   protected getDefaultOptions(): Org.Options {
-    throw new SfdxError('Not Supported');
+    throw new SfdxError('Not Supported', 'NotSupportedError');
   }
 
   /**
