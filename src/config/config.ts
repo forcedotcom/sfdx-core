@@ -10,22 +10,21 @@ import { Dictionary, ensure, isString } from '@salesforce/ts-types';
 import { Logger } from '../logger';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
-import { SfdxError } from '../sfdxError';
 import { sfdc } from '../util/sfdc';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'config', [
-  'InvalidInstanceUrl',
-  'InvalidApiVersion',
-  'InvalidIsvDebuggerSid',
-  'InvalidIsvDebuggerUrl',
-  'InvalidBooleanConfigValue',
-  'InvalidNumberConfigValue',
-  'InvalidWrite',
-  'UnknownConfigKey',
-  'InvalidConfigValue',
+  'invalidInstanceUrl',
+  'invalidApiVersion',
+  'invalidIsvDebuggerSid',
+  'invalidIsvDebuggerUrl',
+  'invalidBooleanConfigValue',
+  'invalidNumberConfigValue',
+  'invalidWrite',
+  'unknownConfigKey',
+  'invalidConfigValue',
 ]);
 
 const log = Logger.childFromRoot('core:config');
@@ -132,7 +131,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       input: {
         // If a value is provided validate it otherwise no value is unset.
         validator: (value) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
-        failedMessage: messages.getMessage('InvalidInstanceUrl'),
+        failedMessage: messages.getMessage('invalidInstanceUrl'),
       },
     },
     {
@@ -141,7 +140,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       input: {
         // If a value is provided validate it otherwise no value is unset.
         validator: (value) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
-        failedMessage: messages.getMessage('InvalidApiVersion'),
+        failedMessage: messages.getMessage('invalidApiVersion'),
       },
     },
     { key: Config.DEFAULT_DEV_HUB_USERNAME },
@@ -152,7 +151,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       input: {
         // If a value is provided validate it otherwise no value is unset.
         validator: (value) => value == null || isString(value),
-        failedMessage: messages.getMessage('InvalidIsvDebuggerSid'),
+        failedMessage: messages.getMessage('invalidIsvDebuggerSid'),
       },
     },
     {
@@ -160,14 +159,14 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       input: {
         // If a value is provided validate it otherwise no value is unset.
         validator: (value) => value == null || isString(value),
-        failedMessage: messages.getMessage('InvalidIsvDebuggerUrl'),
+        failedMessage: messages.getMessage('invalidIsvDebuggerUrl'),
       },
     },
     {
       key: Config.DISABLE_TELEMETRY,
       input: {
         validator: (value) => value == null || ['true', 'false'].includes(value.toString()),
-        failedMessage: messages.getMessage('InvalidBooleanConfigValue'),
+        failedMessage: messages.getMessage('invalidBooleanConfigValue'),
       },
     },
     // This should be brought in by a plugin, but there isn't a way to do that right now.
@@ -176,7 +175,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       hidden: true,
       input: {
         validator: (value) => value != null && ['true', 'false'].includes(value.toString()),
-        failedMessage: messages.getMessage('InvalidBooleanConfigValue'),
+        failedMessage: messages.getMessage('invalidBooleanConfigValue'),
       },
     },
     {
@@ -185,7 +184,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
         // the bit shift will remove the negative bit, and any decimal numbers
         // then the parseFloat will handle converting it to a number from a string
         validator: (value) => (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
-        failedMessage: messages.getMessage('InvalidNumberConfigValue'),
+        failedMessage: messages.getMessage('invalidNumberConfigValue'),
       },
     },
   ];
@@ -316,21 +315,20 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * DO NOT CALL - The config file needs to encrypt values which can only be done asynchronously.
    * Call {@link SfdxConfig.write} instead.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidWrite' }* Always.
+   * **Throws** *{@link SfdxError}{ name: 'InvalidWriteError' }* Always.
    *
    * @param newContents Contents to write
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public writeSync(newContents?: ConfigContents): ConfigContents {
-    const errName = 'InvalidWrite';
-    const errMessage = messages.getMessage(errName);
-    throw new SfdxError(errMessage, errName);
+    throw messages.createError('invalidWrite');
   }
 
   /**
    * Sets a value for a property.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidConfigValue' }* If the input validator fails.
+   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
+   * **Throws** *{@link SfdxError}{ name: 'InvalidConfigValueError' }* If the input validator fails.
    *
    * @param key The property to set.
    * @param value The value of the property.
@@ -339,17 +337,13 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
     if (!property) {
-      const errName = 'UnknownConfigKey';
-      const errMessage = messages.getMessage(errName, [key]);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('unknownConfigKey', [key]);
     }
     if (property.input) {
       if (property.input && property.input.validator(value)) {
         super.set(property.key, value);
       } else {
-        const errName = 'InvalidConfigValue';
-        const errMessage = messages.getMessage(errName, [property.input.failedMessage ?? '']);
-        throw new SfdxError(errMessage, errName);
+        throw messages.createError('invalidConfigValue', [property.input.failedMessage ?? '']);
       }
     } else {
       super.set(property.key, value);
@@ -360,7 +354,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Unsets a value for a property.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKey' }* If the input validator fails.
+   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* If the input validator fails.
    *
    * @param key The property to unset.
    */
@@ -368,9 +362,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
     if (!property) {
-      const errName = 'UnknownConfigKey';
-      const errMessage = messages.getMessage(errName, [key]);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('unknownConfigKey', [key]);
     }
     return super.unset(property.key);
   }
@@ -407,15 +399,15 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Get an individual property config.
    *
+   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
+   *
    * @param propertyName The name of the property.
    */
   private getPropertyConfig(propertyName: string): ConfigPropertyMeta {
     const prop = Config.propertyConfigMap[propertyName];
 
     if (!prop) {
-      const errName = 'UnknownConfigKey';
-      const errMessage = messages.getMessage(errName, [propertyName]);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('unknownConfigKey', [propertyName]);
     }
     return prop;
   }

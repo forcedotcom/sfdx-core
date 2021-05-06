@@ -272,10 +272,10 @@ describe('Config', () => {
     });
 
     it('throws when file does not exist and throwOnNotFound=true', async () => {
-      const err = SfdxError.wrap(new Error('not here'));
+      const err = new Error('not here');
       err.name = 'FileNotFound';
-      err.code = 'ENOENT';
-      readJsonMapStub.throws(err);
+      (err as any).code = 'ENOENT';
+      readJsonMapStub.throws(SfdxError.wrap(err));
 
       const configOptions = {
         filename: 'test',
@@ -368,10 +368,10 @@ describe('Config', () => {
     });
 
     it('throws when file does not exist and throwOnNotFound=true on method call', () => {
-      const err = SfdxError.wrap(new Error('not here'));
+      const err = new Error('not here');
       err.name = 'FileNotFound';
-      err.code = 'ENOENT';
-      readJsonMapStub.throws(err);
+      (err as any).code = 'ENOENT';
+      readJsonMapStub.throws(SfdxError.wrap(err));
 
       const configOptions = {
         filename: 'test',

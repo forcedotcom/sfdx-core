@@ -49,7 +49,7 @@ describe('schemaValidator', () => {
         properties: {},
       };
       const data = { notValid: true };
-      await checkError(schema, data, 'ValidationSchemaFieldErrors', 'notValid');
+      await checkError(schema, data, 'ValidationSchemaFieldError', 'notValid');
     });
 
     it('should show enum values', async () => {
@@ -62,7 +62,7 @@ describe('schemaValidator', () => {
         },
       };
       const data = { myEnum: 'invalid' };
-      await checkError(schema, data, 'ValidationSchemaFieldErrors', 'a, b, c');
+      await checkError(schema, data, 'ValidationSchemaFieldError', 'a, b, c');
     });
 
     it('should show type value', async () => {
@@ -77,7 +77,7 @@ describe('schemaValidator', () => {
       await checkError(
         schema,
         data,
-        'ValidationSchemaFieldErrors',
+        'ValidationSchemaFieldError',
         'Root of JSON object is an invalid type.  Expected type [array]'
       );
     });
@@ -148,7 +148,7 @@ describe('schemaValidator', () => {
         // If the schemas reference an invalid external error, then validation will fail.
         return validator.validate({}).catch((err) => {
           // We are passing in empty data, so it is OK if we get an actual data field validation error.
-          if (err.name !== 'ValidationSchemaFieldErrors') {
+          if (err.name !== 'ValidationSchemaFieldError') {
             throw err;
           }
         });

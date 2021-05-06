@@ -26,13 +26,6 @@ import { hasString, isString, JsonMap } from '@salesforce/ts-types';
  */
 export class SfdxError extends NamedError {
   /**
-   * The message string. Error.message
-   */
-  public message!: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public name: any;
-
-  /**
    * Action messages. Hints to the users regarding what can be done to fix related issues.
    */
   public actions?: string[];
@@ -43,13 +36,12 @@ export class SfdxError extends NamedError {
   public exitCode: number;
 
   /**
-   * The related command name for this error.
+   * The related context for this error.
    */
-  public commandName?: string;
+  public context?: string;
 
   // Additional data helpful for consumers of this error.  E.g., API call result
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public data: any;
+  public data?: unknown;
 
   /**
    * Some errors support `error.code` instead of `error.name`. This keeps backwards compatability.
@@ -62,13 +54,24 @@ export class SfdxError extends NamedError {
    * @param message The error message.
    * @param name The error name. Defaults to 'SfdxError'.
    * @param actions The action message(s).
-   * @param exitCode The exit code which will be used by SfdxCommand.
+   * @param exitCodeOrCause The exit code which will be used by SfdxCommand or he underlying error that caused this error to be raised.
    * @param cause The underlying error that caused this error to be raised.
    */
-  public constructor(message: string, name?: string, actions?: string[], exitCode?: number, cause?: Error) {
-    super(name || 'SfdxError', message, cause);
+  public constructor(
+    message: string,
+    name?: string,
+    actions?: string[],
+    exitCodeOrCause?: number | Error,
+    cause?: Error
+  ) {
+    cause = exitCodeOrCause instanceof Error ? exitCodeOrCause : cause;
+    super(name || 'SfdxError', message || name, cause);
     this.actions = actions;
-    this.exitCode = exitCode || 1;
+    if (typeof exitCodeOrCause === 'number') {
+      this.exitCode = exitCodeOrCause;
+    } else {
+      this.exitCode = 1;
+    }
   }
 
   /**
@@ -85,14 +88,7 @@ export class SfdxError extends NamedError {
       return err;
     }
 
-    const sfdxError = new SfdxError(err.message, err.name);
-
-    if (sfdxError.stack) {
-      sfdxError.stack = sfdxError.stack.replace(`${err.name}: ${err.message}`, 'Outer stack:');
-      sfdxError.stack = `${err.stack}\n${sfdxError.stack}`;
-    } else {
-      sfdxError.stack = err.stack;
-    }
+    const sfdxError = new SfdxError(err.message, err.name, undefined, err);
 
     // If the original error has a code, use that instead of name.
     if (hasString(err, 'code')) {
@@ -110,12 +106,12 @@ export class SfdxError extends NamedError {
   }
 
   /**
-   * Sets the name of the command. For convenience `this` object is returned.
+   * Sets the context of the error. For convenience `this` object is returned.
    *
-   * @param commandName The command name.
+   * @param context The command name.
    */
-  public setCommandName(commandName: string): SfdxError {
-    this.commandName = commandName;
+  public setContext(context: string): SfdxError {
+    this.context = context;
     return this;
   }
 
@@ -140,12 +136,13 @@ export class SfdxError extends NamedError {
       actions: this.actions,
     };
 
-    if (this.commandName) {
-      obj.commandName = this.commandName;
+    if (this.context) {
+      obj.context = this.context;
     }
 
     if (this.data) {
-      obj.data = this.data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      obj.data = this.data as any;
     }
 
     return obj;

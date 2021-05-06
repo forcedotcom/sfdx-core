@@ -24,9 +24,9 @@ const messages = Messages.load('@salesforce/core', 'auth', [
   'invalidRequestUri',
   'invalidRequestMethod',
   'missingAuthCode',
-  'PortInUse',
   'serverErrorHTMLResponse',
-  'PortInUseAction',
+  'portInUse',
+  'portInUse.actions',
 ]);
 
 /**
@@ -213,9 +213,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         this.logger.debug(`Successfully obtained auth code: ...${authCode.substring(authCode.length - 5)}`);
       } else {
         this.logger.debug('Expected an auth code but could not find one.');
-        const errName = 'missingAuthCode';
-        const errMessage = messages.getMessage(errName);
-        throw new SfdxError(errMessage, errName);
+        throw messages.createError('missingAuthCode');
       }
       this.logger.debug(`oauthConfig.loginUrl: ${this.oauthConfig.loginUrl}`);
       this.logger.debug(`oauthConfig.clientId: ${this.oauthConfig.clientId}`);
@@ -290,10 +288,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
       this.server.listen(this.port, this.host);
     } catch (err) {
       if (err.name === 'EADDRINUSE') {
-        const errName = 'PortInUse';
-        const errMessage = messages.getMessage(errName, [this.port]);
-        const errActions = [messages.getMessage('PortInUseAction', [this.port])];
-        throw new SfdxError(errMessage, errName, errActions);
+        throw messages.createError('portInUse', [this.port], [this.port]);
       } else {
         throw err;
       }

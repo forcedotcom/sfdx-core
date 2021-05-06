@@ -46,13 +46,13 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
 
   /**
    * Sets the default group for all {@link BaseConfigStore} methods to use.
-   * **Throws** *{@link SfdxError}{ name: 'MissingGroupName' }* The group parameter is null or undefined.
+   * **Throws** *{@link SfdxError}{ name: 'MissingGroupNameError' }* The group parameter is null or undefined.
    *
    * @param group The group.
    */
   public setDefaultGroup(group: string): void {
     if (!group) {
-      throw new SfdxError('null or undefined group', 'MissingGroupName');
+      throw new SfdxError('null or undefined group', 'MissingGroupNameError');
     }
 
     this.defaultGroup = group;

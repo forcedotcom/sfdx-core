@@ -183,7 +183,7 @@ describe('streaming client tests', () => {
       try {
         await shouldThrow(Promise.resolve(new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor)));
       } catch (e) {
-        expect(e).to.have.property('name', 'invalidApiVersion');
+        expect(e).to.have.property('name', 'InvalidApiVersionError');
       }
     });
   });
@@ -442,7 +442,7 @@ describe('streaming client tests', () => {
     try {
       await shouldThrow(StreamingClient.prototype['incoming'].call(context, apiVersionErrorMsg, () => {}));
     } catch (e) {
-      expect(e).to.have.property('name', 'handshakeApiVersionError');
+      expect(e).to.have.property('name', 'HandshakeApiVersionError');
     }
   });
 
@@ -491,13 +491,13 @@ describe('streaming client tests', () => {
       try {
         await shouldThrow(Promise.resolve(options.setSubscribeTimeout(newSubscribeTime)));
       } catch (e) {
-        expect(e).to.have.property('name', 'waitParamValidValueError');
+        expect(e).to.have.property('name', 'WaitParamValidValueError');
       }
 
       try {
         await shouldThrow(Promise.resolve(options.setHandshakeTimeout(newHandshakeTime)));
       } catch (e) {
-        expect(e).to.have.property('name', 'waitParamValidValueError');
+        expect(e).to.have.property('name', 'WaitParamValidValueError');
       }
     });
   });

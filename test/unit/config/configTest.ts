@@ -108,24 +108,24 @@ describe('Config', () => {
   });
 
   describe('set throws', () => {
-    it('UnknownConfigKey', async () => {
+    it('UnknownConfigKeyError', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
       try {
         config.set('foo', 'bar');
         assert.fail('Expected an error to be thrown.');
       } catch (err) {
-        expect(err).to.have.property('name', 'UnknownConfigKey');
+        expect(err).to.have.property('name', 'UnknownConfigKeyError');
       }
     });
 
-    describe('InvalidConfigValue', () => {
+    describe('InvalidConfigValueError', () => {
       it('apiVersoin', async () => {
         const config: Config = await Config.create(Config.getDefaultOptions(true));
         try {
           config.set('apiVersion', '1');
           assert.fail('Expected an error to be thrown.');
         } catch (err) {
-          expect(err).to.have.property('name', 'InvalidConfigValue');
+          expect(err).to.have.property('name', 'InvalidConfigValueError');
         }
       });
       it('isvDebuggerUrl', async () => {
@@ -134,7 +134,7 @@ describe('Config', () => {
           config.set('isvDebuggerUrl', 23);
           assert.fail('Expected an error to be thrown.');
         } catch (err) {
-          expect(err).to.have.property('name', 'InvalidConfigValue');
+          expect(err).to.have.property('name', 'InvalidConfigValueError');
         }
       });
       it('isvDebuggerSid', async () => {
@@ -143,7 +143,7 @@ describe('Config', () => {
           config.set('isvDebuggerSid', 23);
           assert.fail('Expected an error to be thrown.');
         } catch (err) {
-          expect(err).to.have.property('name', 'InvalidConfigValue');
+          expect(err).to.have.property('name', 'InvalidConfigValueError');
         }
       });
       describe('maxQueryLimit', () => {
@@ -153,7 +153,7 @@ describe('Config', () => {
             config.set('maxQueryLimit', '123abc');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
-            expect(err).to.have.property('name', 'InvalidConfigValue');
+            expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
         it('will throw an error when value is not numeric', async () => {
@@ -162,7 +162,7 @@ describe('Config', () => {
             config.set('maxQueryLimit', 'abc');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
-            expect(err).to.have.property('name', 'InvalidConfigValue');
+            expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
 
@@ -172,7 +172,7 @@ describe('Config', () => {
             config.set('maxQueryLimit', '-123');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
-            expect(err).to.have.property('name', 'InvalidConfigValue');
+            expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
 
@@ -182,7 +182,7 @@ describe('Config', () => {
             config.set('maxQueryLimit', '-123.456');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
-            expect(err).to.have.property('name', 'InvalidConfigValue');
+            expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
         it('will throw an error when value is negative integer', async () => {
@@ -191,7 +191,7 @@ describe('Config', () => {
             config.set('maxQueryLimit', '-123');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
-            expect(err).to.have.property('name', 'InvalidConfigValue');
+            expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
         it('will throw an error when value is 0', async () => {
@@ -200,7 +200,7 @@ describe('Config', () => {
             config.set('maxQueryLimit', '0');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
-            expect(err).to.have.property('name', 'InvalidConfigValue');
+            expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
         it('will set config value with stringified number', async () => {
@@ -240,13 +240,13 @@ describe('Config', () => {
   });
 
   describe('unset throws', () => {
-    it('UnknownConfigKey', async () => {
+    it('UnknownConfigKeyError', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
       try {
         config.unset('foo');
         assert.fail('Expected an error to be thrown.');
       } catch (err) {
-        expect(err).to.have.property('name', 'UnknownConfigKey');
+        expect(err).to.have.property('name', 'UnknownConfigKeyError');
       }
     });
   });

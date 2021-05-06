@@ -20,21 +20,17 @@ import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'encryption', [
-  'MissingCredentialProgramError',
-  'CredentialProgramAccessError',
-  'KeyChainServiceRequiredError',
-  'KeyChainAccountRequiredError',
-  'PasswordRetryError',
-  'PasswordRequiredError',
-  'PasswordNotFoundError',
-  'PasswordNotFoundErrorAction',
-  'SetCredentialError',
-  'SetCredentialErrorAction',
-  'KeyChainUserCanceledError',
-  'GenericKeychainServiceError',
-  'GenericKeychainServiceErrorAction',
-  'GenericKeychainInvalidPermsError',
-  'GenericKeychainInvalidPermsErrorAction',
+  'missingCredentialProgramError',
+  'credentialProgramAccessError',
+  'keyChainServiceRequiredError',
+  'keyChainAccountRequiredError',
+  'passwordRetryError',
+  'passwordRequiredError',
+  'passwordNotFoundError',
+  'setCredentialError',
+  'keyChainUserCanceledError',
+  'genericKeychainServiceError',
+  'genericKeychainInvalidPermsError',
 ]);
 
 export type FsIfc = Pick<typeof nodeFs, 'statSync'>;
@@ -91,15 +87,11 @@ const _validateProgram = async (
     const stats = fsIfc.statSync(programPath);
     noPermission = !isExeIfc(stats.mode, stats.gid, stats.uid);
   } catch (e) {
-    const errName = 'MissingCredentialProgramError';
-    const errMessage = messages.getMessage(errName, [programPath]);
-    throw new SfdxError(errMessage, errName);
+    throw messages.createError('missingCredentialProgramError', [programPath]);
   }
 
   if (noPermission) {
-    const errName = 'CredentialProgramAccessError';
-    const errMessage = messages.getMessage(errName, [programPath]);
-    throw new SfdxError(errMessage, errName);
+    throw messages.createError('credentialProgramAccessError', [programPath]);
   }
 };
 
@@ -161,16 +153,12 @@ export class KeychainAccess implements PasswordStore {
     retryCount = 0
   ): Promise<void> {
     if (opts.service == null) {
-      const errName = 'KeyChainServiceRequiredError';
-      const errMessage = messages.getMessage(errName);
-      fn(new SfdxError(errMessage, errName));
+      fn(messages.createError('keyChainServiceRequiredError'));
       return;
     }
 
     if (opts.account == null) {
-      const errName = 'KeyChainAccountRequiredError';
-      const errMessage = messages.getMessage(errName);
-      fn(new SfdxError(errMessage, errName));
+      fn(messages.createError('keyChainAccountRequiredError'));
       return;
     }
 
@@ -199,9 +187,7 @@ export class KeychainAccess implements PasswordStore {
       } catch (e) {
         if (e.retry) {
           if (retryCount >= GET_PASSWORD_RETRY_COUNT) {
-            const errName = 'PasswordRetryError';
-            const errMessage = messages.getMessage(errName, [GET_PASSWORD_RETRY_COUNT]);
-            throw new SfdxError(errMessage, errName);
+            throw messages.createError('passwordRetryError', [GET_PASSWORD_RETRY_COUNT]);
           }
           return this.getPassword(opts, fn, retryCount + 1);
         } else {
@@ -227,23 +213,17 @@ export class KeychainAccess implements PasswordStore {
     fn: (error: Nullable<Error>, contents?: ConfigContents) => void
   ): Promise<void> {
     if (opts.service == null) {
-      const errName = 'KeyChainServiceRequiredError';
-      const errMessage = messages.getMessage(errName);
-      fn(new SfdxError(errMessage, errName));
+      fn(messages.createError('keyChainServiceRequiredError'));
       return;
     }
 
     if (opts.account == null) {
-      const errName = 'KeyChainAccountRequiredError';
-      const errMessage = messages.getMessage(errName);
-      fn(new SfdxError(errMessage, errName));
+      fn(messages.createError('keyChainAccountRequiredError'));
       return;
     }
 
     if (opts.password == null) {
-      const errName = 'PasswordRequiredError';
-      const errMessage = messages.getMessage(errName);
-      fn(new SfdxError(errMessage, errName));
+      fn(messages.createError('passwordRequiredError'));
       return;
     }
 
@@ -333,8 +313,7 @@ const _linuxImpl: OsImpl = {
   async onGetCommandClose(code, stdout, stderr, opts, fn) {
     if (code === 1) {
       const command = `${_linuxImpl.getProgram()} ${_optionsToString(_linuxImpl.getProgramOptions(opts))}`;
-      const error = new SfdxError(messages.getMessage('PasswordNotFoundError'), 'PasswordNotFoundError');
-      error.actions = [messages.getMessage('PasswordNotFoundErrorAction', [command])];
+      const error = messages.createError('passwordNotFoundError', [], [command]);
       // This is a workaround for linux.
       // Calling secret-tool too fast can cause it to return an unexpected error. (below)
       if (stderr != null && stderr.includes('invalid or unencryptable secret')) {
@@ -368,10 +347,7 @@ const _linuxImpl: OsImpl = {
   async onSetCommandClose(code, stdout, stderr, opts, fn) {
     if (code !== 0) {
       const command = `${_linuxImpl.getProgram()} ${_optionsToString(_linuxImpl.setProgramOptions(opts))}`;
-      const errName = 'SetCredentialError';
-      const errMessage = messages.getMessage(errName, [`\n${stdout} - ${stderr}`]);
-      const errActions = [messages.getMessage('SetCredentialErrorAction', [os.userInfo().username, command])];
-      fn(new SfdxError(errMessage, errName, errActions));
+      fn(messages.createError('setCredentialError', [`${stdout} - ${stderr}`], [os.userInfo().username, command]));
     } else {
       fn(null);
     }
@@ -402,17 +378,12 @@ const _darwinImpl: OsImpl = {
     if (code !== 0) {
       switch (code) {
         case 128: {
-          const errName = 'KeyChainUserCanceledError';
-          const errMessage = messages.getMessage(errName);
-          err = new SfdxError(errMessage, errName);
+          err = messages.createError('keyChainUserCanceledError');
           break;
         }
         default: {
           const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
-          const errName = 'PasswordNotFoundError';
-          const errMessage = messages.getMessage(errName, [`\n${stdout} - ${stderr}`]);
-          const errActions = [messages.getMessage('PasswordNotFoundErrorAction', [command])];
-          err = new SfdxError(errMessage, errName, errActions);
+          err = messages.createError('passwordNotFoundError', [`${stdout} - ${stderr}`], [command]);
         }
       }
       fn(err);
@@ -424,19 +395,13 @@ const _darwinImpl: OsImpl = {
     if (stderr.includes('password')) {
       const match = RegExp(/"(.*)"/).exec(stderr);
       if (!match || !match[1]) {
-        const errName = 'PasswordNotFoundError';
-        const errMessage = messages.getMessage(errName, [`\n${stdout} - ${stderr}`]);
-        const errAction = [messages.getMessage('PasswordNotFoundErrorAction')];
-        fn(new SfdxError(errMessage, errName, errAction));
+        fn(messages.createError('passwordNotFoundError', [`${stdout} - ${stderr}`]));
       } else {
         fn(null, match[1]);
       }
     } else {
       const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
-      const errName = 'PasswordNotFoundError';
-      const errMessage = messages.getMessage(errName, [`\n${stdout} - ${stderr}`]);
-      const errAction = [messages.getMessage('PasswordNotFoundErrorAction', [command])];
-      fn(new SfdxError(errMessage, errName, errAction));
+      fn(messages.createError('passwordNotFoundError', [`${stdout} - ${stderr}`], [command]));
     }
   },
 
@@ -455,10 +420,7 @@ const _darwinImpl: OsImpl = {
   async onSetCommandClose(code, stdout, stderr, opts, fn) {
     if (code !== 0) {
       const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.setProgramOptions(opts))}`;
-      const errName = 'SetCredentialError';
-      const errMessage = messages.getMessage(errName, [`\n${stdout} - ${stderr}`]);
-      const errAction = [messages.getMessage('SetCredentialErrorAction', [os.userInfo().username, command])];
-      fn(new SfdxError(errMessage, errName, errAction));
+      fn(messages.createError('setCredentialError', [`${stdout} - ${stderr}`], [os.userInfo().username, command]));
     } else {
       fn(null);
     }
@@ -505,10 +467,7 @@ export class GenericKeychainAccess implements PasswordStore {
             } else {
               // if the service and account names don't match then maybe someone or something is editing
               // that file. #donotallow
-              const errName = 'GenericKeychainServiceError';
-              const errMessage = messages.getMessage(errName, [KeychainConfig.getFileName()]);
-              const errAction = [messages.getMessage('GenericKeychainServiceErrorAction')];
-              fn(new SfdxError(errMessage, errName, errAction));
+              fn(messages.createError('genericKeychainServiceError', [KeychainConfig.getFileName()]));
             }
           })
           .catch((readJsonErr) => {
@@ -516,7 +475,7 @@ export class GenericKeychainAccess implements PasswordStore {
           });
       } else {
         if (fileAccessError.code === 'ENOENT') {
-          fn(new SfdxError(messages.getMessage('PasswordNotFoundError', []), 'PasswordNotFoundError'));
+          fn(messages.createError('passwordNotFoundError'));
         } else {
           fn(fileAccessError);
         }
@@ -582,12 +541,13 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
         if (octalModeStr === EXPECTED_OCTAL_PERM_VALUE) {
           await cb(null);
         } else {
-          const errName = 'GenericKeychainInvalidPermsError';
-          const errMessage = messages.getMessage(errName, [KeychainConfig.getFileName()]);
-          const errAction = [
-            messages.getMessage('GenericKeychainInvalidPermsErrorAction', [secretFile, EXPECTED_OCTAL_PERM_VALUE]),
-          ];
-          cb(new SfdxError(errMessage, errName, errAction));
+          cb(
+            messages.createError(
+              'genericKeychainInvalidPermsError',
+              [KeychainConfig.getFileName()],
+              [secretFile, EXPECTED_OCTAL_PERM_VALUE]
+            )
+          );
         }
       }
     });

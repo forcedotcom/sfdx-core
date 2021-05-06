@@ -101,7 +101,7 @@ if (os.platform() === 'darwin') {
         expect(err.name).to.equal('PasswordNotFoundError');
         expect(err.message).to.equal('Could not find password.\nstdout test data - stdout test data');
         expect(err.actions[0]).to.equal(
-          `Ensure a valid password is returned with the following command: [${programArg} ${optionsArg.join(' ')}].`
+          `Ensure a valid password is returned with the following command: [${programArg} ${optionsArg.join(' ')}]`
         );
       }
     });

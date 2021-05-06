@@ -22,17 +22,15 @@ import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'config', [
-  'SchemaValidationErrorAction',
-  'SchemaValidationWarning',
-  'SchemaValidationErrorAction',
-  'SingleNonDefaultPackage',
-  'InvalidAbsolutePath',
-  'MissingDefaultPath',
-  'MultipleDefaultPaths',
-  'InvalidPackageDirectory',
+  'schemaValidationError',
+  'singleNonDefaultPackage',
+  'missingDefaultPath',
+  'multipleDefaultPaths',
+  'invalidPackageDirectory',
+  'missingPackageDirectory',
 ]);
 
-const coreMessages = Messages.load('@salesforce/core', 'core', ['InvalidJsonCasing']);
+const coreMessages = Messages.load('@salesforce/core', 'core', ['invalidJsonCasing']);
 
 export type PackageDirDependency = {
   [k: string]: unknown;
@@ -176,12 +174,9 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       } catch (err) {
         // Don't throw errors if the global isn't valid, but still warn the user.
         if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
-          const sfdxError = SfdxError.wrap(err);
-          sfdxError.name = 'SfdxSchemaValidationError';
-          sfdxError.actions = [messages.getMessage('SchemaValidationErrorAction', [this.getPath()])];
-          throw sfdxError;
+          throw messages.createError('schemaValidationError', [this.getPath(), err.message], [this.getPath()], err);
         } else {
-          this.logger.warn(messages.getMessage('SchemaValidationWarning', [this.getPath(), err.message]));
+          this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), err.message]));
         }
       }
     }
@@ -217,12 +212,9 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       } catch (err) {
         // Don't throw errors if the global isn't valid, but still warn the user.
         if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
-          const sfdxError = SfdxError.wrap(err);
-          sfdxError.name = 'SfdxSchemaValidationError';
-          sfdxError.actions = [messages.getMessage('SchemaValidationErrorAction', [this.getPath()])];
-          throw sfdxError;
+          throw messages.createError('schemaValidationError', [this.getPath(), err.message], [this.getPath()], err);
         } else {
-          this.logger.warn(messages.getMessage('SchemaValidationWarning', [this.getPath(), err.message]));
+          this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), err.message]));
         }
       }
     }
@@ -240,9 +232,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     // This is a fast operation so no need to cache it so it stays immutable.
     const packageDirs = (contents.packageDirectories || []).map((packageDir) => {
       if (isAbsolute(packageDir.path)) {
-        const errName = 'InvalidProjectWorkspace';
-        const errMessage = messages.getMessage('InvalidAbsolutePath', [packageDir.path]);
-        throw new SfdxError(errMessage, errName);
+        throw messages.createError('invalidPackageDirectory', [packageDir.path]);
       }
 
       const regex = sep === '/' ? /\\/g : /\//g;
@@ -254,9 +244,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       const fullPath = `${dirname(this.getPath())}${sep}${name}${sep}`;
 
       if (!this.doesPackageExist(fullPath)) {
-        const errName = 'InvalidPackageDirectory';
-        const errMessage = messages.getMessage(errName, [packageDir.path]);
-        throw new SfdxError(errMessage, errName);
+        throw messages.createError('missingPackageDirectory', [packageDir.path]);
       }
 
       return Object.assign({}, packageDir, { name, path, fullPath });
@@ -266,9 +254,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     if (packageDirs.length === 1) {
       if (packageDirs[0].default === false) {
         // we have one package but it is explicitly labelled as default=false
-        const errName = 'SingleNonDefaultPackage';
-        const errMessage = messages.getMessage(errName);
-        throw new SfdxError(errMessage, errName);
+        throw messages.createError('singleNonDefaultPackage');
       }
       // add default=true to the package
       packageDirs[0].default = true;
@@ -278,13 +264,9 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     // Don't throw about a missing default path if we are in the global file.
     // Package directories are not really meant to be set at the global level.
     if (defaultDirs.length === 0 && !this.isGlobal()) {
-      const errName = 'MissingDefaultPath';
-      const errMessage = messages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('missingDefaultPath');
     } else if (defaultDirs.length > 1) {
-      const errName = 'MultipleDefaultPaths';
-      const errMessage = messages.getMessage(errName);
-      throw new SfdxError(errMessage, errName);
+      throw messages.createError('multipleDefaultPaths');
     }
 
     return packageDirs;
@@ -345,9 +327,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
     const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfdxProjectJson.BLOCKLIST);
     if (upperCaseKey) {
-      const errName = 'InvalidJsonCasing';
-      const errMessage = coreMessages.getMessage(errName, [upperCaseKey, this.getPath()]);
-      throw new SfdxError(errMessage, errName);
+      throw coreMessages.createError('invalidJsonCasing', [upperCaseKey, this.getPath()]);
     }
   }
 }
@@ -387,7 +367,7 @@ export class SfdxProject {
    *
    * @param path The path of the project.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    */
   public static async resolve(path?: string): Promise<SfdxProject> {
     path = await this.resolveProjectPath(path || process.cwd());
@@ -403,7 +383,7 @@ export class SfdxProject {
    *
    * @param path The path of the project.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    */
   public static getInstance(path?: string): SfdxProject {
     // Store instance based on the path of the actual project.
@@ -421,7 +401,7 @@ export class SfdxProject {
    *
    * @param dir The directory path to start traversing from.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    *
    * **See** {@link traverseForFile}
    *
@@ -436,7 +416,7 @@ export class SfdxProject {
    *
    * @param dir The directory path to start traversing from.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    *
    * **See** {@link traverseForFileSync}
    *

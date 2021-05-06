@@ -143,8 +143,8 @@ describe('CryptoTest', function () {
     });
 
     it('Decrypt should fail without env var, and add extra message', async () => {
-      const message = Messages.load('@salesforce/core', 'crypto', ['MacKeychainOutOfSync']).getMessage(
-        'MacKeychainOutOfSync'
+      const message = Messages.load('@salesforce/core', 'encryption', ['macKeychainOutOfSync']).getMessage(
+        'macKeychainOutOfSync'
       );
       const err = Error('Failed to decipher auth data. reason: Unsupported state or unable to authenticate data.');
       const sfdxErr = SfdxError.wrap(err);
@@ -169,8 +169,8 @@ describe('CryptoTest', function () {
 
     it('Decrypt should fail but not add extra message with env var', async () => {
       process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = 'false';
-      const message: string = Messages.load('@salesforce/core', 'encryption', ['AuthDecryptError']).getMessage(
-        'AuthDecryptError'
+      const message: string = Messages.load('@salesforce/core', 'encryption', ['authDecryptError']).getMessage(
+        'authDecryptError'
       );
       const errorMessage: object = SfdxError.wrap(new Error(message));
       stubMethod($$.SANDBOX, os, 'platform').returns('darwin');
