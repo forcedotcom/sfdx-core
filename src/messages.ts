@@ -12,14 +12,16 @@ import * as util from 'util';
 import {
   AnyJson,
   asString,
+  Dictionary,
   ensureJsonMap,
   ensureString,
-  isAnyJson,
   isArray,
+  isJsonMap,
   isObject,
   Optional,
 } from '@salesforce/ts-types';
-import { NamedError } from '@salesforce/kit';
+import { NamedError, upperFirst } from '@salesforce/kit';
+import { SfdxError } from './sfdxError';
 
 export type Tokens = Array<string | boolean | number | null | undefined>;
 
@@ -38,7 +40,7 @@ class Key {
  */
 export type LoaderFunction<T extends string> = (locale: string) => Messages<T>;
 
-export type StoredMessage = string | string[] | Map<string, StoredMessage>;
+export type StoredMessage = string | string[] | Dictionary<StoredMessage>;
 export type StoredMessageMap = Map<string, StoredMessage>;
 
 /**
@@ -184,7 +186,7 @@ const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): St
  * const messages: Messages = Messages.load(packageName, bundleName);
  *
  * // Messages now contains all the message in the bundleName file.
- * messages.getMessage('JsonParseError');
+ * messages.getMessage('authInfoCreationError');
  * ```
  */
 export class Messages<T extends string> {
@@ -485,6 +487,37 @@ export class Messages<T extends string> {
     return this.getMessageWithMap(key, tokens, this.messages);
   }
 
+  /**
+   * Convience method to create errors using message labels.
+   *
+   * `error.name` will be the uppercased key and will always end in Error.
+   * `error.actions` will be loaded using `${key}.actions` if available.
+   *
+   * @param key The key of the error message.
+   * @param tokens The error message tokens.
+   * @param actionTokens The action messages tokens.
+   * @param exitCodeOrCause The exit code which will be used by SfdxCommand or he underlying error that caused this error to be raised.
+   * @param cause The underlying error that caused this error to be raised.
+   */
+  public createError(
+    key: T,
+    tokens: Tokens = [],
+    actionTokens: Tokens = [],
+    exitCodeOrCause?: number | Error,
+    cause?: Error
+  ): SfdxError {
+    // Turn key 'myMessage' to `MyMessageError`.
+    const errName = `${upperFirst(key)}${/Error$/.exec(key) ? '' : 'Error'}`;
+    const errMessage = this.getMessage(key, tokens);
+    let errActions;
+    try {
+      errActions = this.getMessageWithMap(`${key}.actions`, actionTokens, this.messages);
+    } catch (e) {
+      /* just ignore if actions aren't found */
+    }
+    return new SfdxError(errMessage, errName, errActions, exitCodeOrCause, cause);
+  }
+
   private getMessageWithMap(key: string, tokens: Tokens = [], map: StoredMessageMap): string[] {
     // Allow nested keys for better grouping
     const group = RegExp(/([a-zA-Z0-9_-]+)\.(.*)/).exec(key);
@@ -492,7 +525,7 @@ export class Messages<T extends string> {
       const parentKey = group[1];
       const childKey = group[2];
       const childObject = map.get(parentKey);
-      if (childObject && isAnyJson(childObject)) {
+      if (childObject && isJsonMap(childObject)) {
         const childMap = new Map<string, StoredMessage>(Object.entries(childObject));
         return this.getMessageWithMap(childKey, tokens, childMap);
       }

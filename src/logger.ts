@@ -235,7 +235,7 @@ export class Logger {
    *
    * @param optionsOrName A set of `LoggerOptions` or name to use with the default options.
    *
-   * **Throws** *{@link SfdxError}{ name: 'RedundantRootLogger' }* More than one attempt is made to construct the root
+   * **Throws** *{@link SfdxError}{ name: 'RedundantRootLoggerError' }* More than one attempt is made to construct the root
    * `Logger`.
    */
   public constructor(optionsOrName: LoggerOptions | string) {
@@ -251,7 +251,7 @@ export class Logger {
     }
 
     if (Logger.rootLogger && options.name === Logger.ROOT_NAME) {
-      throw new SfdxError('RedundantRootLogger');
+      throw new SfdxError('Can not create another root logger.', 'RedundantRootLoggerError');
     }
 
     // Inspect format to know what logging format to use then delete from options to
@@ -364,13 +364,13 @@ export class Logger {
    *
    * @param {string} levelName The level name to convert to a `LoggerLevel` enum value.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnrecognizedLoggerLevelName' }* The level name was not case-insensitively recognized as a valid `LoggerLevel` value.
+   * **Throws** *{@link SfdxError}{ name: 'UnrecognizedLoggerLevelNameError' }* The level name was not case-insensitively recognized as a valid `LoggerLevel` value.
    * @see {@Link LoggerLevel}
    */
   public static getLevelByName(levelName: string): LoggerLevelValue {
     levelName = levelName.toUpperCase();
     if (!isKeyOf(LoggerLevel, levelName)) {
-      throw new SfdxError('UnrecognizedLoggerLevelName');
+      throw new SfdxError(`Invalid log level "${levelName}".`, 'UnrecognizedLoggerLevelNameError');
     }
     return LoggerLevel[levelName];
   }
@@ -493,7 +493,7 @@ export class Logger {
    *
    * @param {LoggerLevelValue} [level] The logger level.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnrecognizedLoggerLevelName' }* A value of `level` read from `SFDX_LOG_LEVEL`
+   * **Throws** *{@link SfdxError}{ name: 'UnrecognizedLoggerLevelNameError' }* A value of `level` read from `SFDX_LOG_LEVEL`
    * was invalid.
    *
    * ```

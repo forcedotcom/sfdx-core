@@ -1,20 +1,20 @@
-# defaultOrgNotFound
+# defaultUsernameNotSet
 
-No %s org found
+A default user is not set.
 
-# defaultOrgNotFoundActions
+# defaultUsernameNotSet.actions
 
 - Run the "sfdx auth" commands with --setdefaultusername to connect to an org and set it as your default org.
 - Run "force:org:create" with --setdefaultusername to create a scratch org and set it as your default org.
 - Run "sfdx config:set defaultusername=<username>" to set your default username.
 
-# PortInUse
+# portInUse
 
 Cannot start the OAuth redirect server on port %s.
 
-# PortInUseAction
+# portInUse.actions
 
-Kill the process running on port %s or use a custom connected app and update OauthLocalPort in the sfdx-project.json file.
+- Kill the process running on port %s or use a custom connected app and update OauthLocalPort in the sfdx-project.json file.
 
 # invalidRequestMethod
 

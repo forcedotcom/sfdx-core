@@ -114,7 +114,7 @@ describe('DeviceOauthService', () => {
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);
       } catch (err) {
-        expect(err.name).to.equal('pollingTimeout');
+        expect(err.name).to.equal('PollingTimeoutError');
       }
     });
 

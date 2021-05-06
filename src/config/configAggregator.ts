@@ -7,8 +7,11 @@
 
 import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
 import { AnyJson, definiteEntriesOf, Dictionary, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
-import { SfdxError } from '../sfdxError';
+import { Messages } from '../messages';
 import { Config, ConfigPropertyMeta } from './config';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'config', ['unknownConfigKey']);
 
 const propertyToEnvName = (property: string): string => `SFDX_${snakeCase(property).toUpperCase()}`;
 
@@ -93,7 +96,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     try {
       this.localConfig = new Config(Config.getDefaultOptions(false));
     } catch (err) {
-      if (err.name !== 'InvalidProjectWorkspace') {
+      if (err.name !== 'InvalidProjectWorkspaceError') {
         throw err;
       }
     }
@@ -154,7 +157,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   /**
    * Get a resolved config property.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKey' }* An attempt to get a property that's not supported.
+   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
    *
    * @param key The key of the property.
    */
@@ -162,7 +165,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     if (this.getAllowedProperties().some((element) => key === element.key)) {
       return this.getConfig()[key];
     } else {
-      throw new SfdxError(`Unknown config key: ${key}`, 'UnknownConfigKey');
+      throw messages.createError('unknownConfigKey', [key]);
     }
   }
 

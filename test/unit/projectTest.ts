@@ -127,8 +127,8 @@ describe('SfdxProject', () => {
         // create() calls read() which calls schemaValidate()
         await shouldThrow(SfdxProjectJson.create({}));
       } catch (e) {
-        expect(e.name).to.equal('SfdxSchemaValidationError');
-        expect(e.message).to.equal(expectedError);
+        expect(e.name).to.equal('SchemaValidationError');
+        expect(e.message).to.contain(expectedError);
       }
     });
     it('schemaValidate warns when SFDX_PROJECT_JSON_VALIDATION=false and invalid file', async () => {
@@ -142,7 +142,7 @@ describe('SfdxProject', () => {
       // create() calls read() which calls schemaValidate()
       await SfdxProjectJson.create({});
       expect(loggerSpy.calledOnce).to.be.true;
-      expect(loggerSpy.calledWithMatch('sfdx-project.json is not schema valid')).to.be.true;
+      expect(loggerSpy.args[0][0]).to.contains('is not schema valid');
     });
   });
 
@@ -177,8 +177,8 @@ describe('SfdxProject', () => {
         await project.schemaValidate();
         assert(false, 'should throw');
       } catch (e) {
-        expect(e.name).to.equal('SfdxSchemaValidationError');
-        expect(e.message).to.equal(expectedError);
+        expect(e.name).to.equal('SchemaValidationError');
+        expect(e.message).to.contain(expectedError);
       }
     });
     it('warns when SFDX_PROJECT_JSON_VALIDATION=false and invalid file', async () => {
@@ -192,7 +192,7 @@ describe('SfdxProject', () => {
       const project = new SfdxProjectJson({});
       await project.schemaValidate();
       expect(loggerSpy.calledOnce).to.be.true;
-      expect(loggerSpy.calledWithMatch('sfdx-project.json is not schema valid')).to.be.true;
+      expect(loggerSpy.args[0][0]).to.contain('is not schema valid');
     });
   });
 
@@ -215,12 +215,12 @@ describe('SfdxProject', () => {
     });
     it('with working directory throws with no sfdx-project.json', async () => {
       $$.SANDBOXES.PROJECT.restore();
-      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspace'));
+      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspaceError'));
       try {
         await SfdxProject.resolve();
         assert.fail();
       } catch (e) {
-        expect(e.message).to.equal('InvalidProjectWorkspace');
+        expect(e.message).to.equal('InvalidProjectWorkspaceError');
       }
     });
     it('with path', async () => {
@@ -243,12 +243,12 @@ describe('SfdxProject', () => {
     });
     it('with path throws with no sfdx-project.json', async () => {
       $$.SANDBOXES.PROJECT.restore();
-      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspace'));
+      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspaceError'));
       try {
         await SfdxProject.resolve();
         assert.fail();
       } catch (e) {
-        expect(e.message).to.equal('InvalidProjectWorkspace');
+        expect(e.message).to.equal('InvalidProjectWorkspaceError');
       }
     });
   });
@@ -274,12 +274,12 @@ describe('SfdxProject', () => {
     });
     it('with path throws with no sfdx-project.json', async () => {
       $$.SANDBOXES.PROJECT.restore();
-      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPathSync').throws(new Error('InvalidProjectWorkspace'));
+      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPathSync').throws(new Error('InvalidProjectWorkspaceError'));
       try {
         SfdxProject.getInstance();
         assert.fail();
       } catch (e) {
-        expect(e.message).to.equal('InvalidProjectWorkspace');
+        expect(e.message).to.equal('InvalidProjectWorkspaceError');
       }
     });
   });
@@ -441,7 +441,7 @@ describe('SfdxProject', () => {
         assert.fail('the above should throw an error');
       } catch (e) {
         expect(e.message).to.equal(
-          Messages.load('@salesforce/core', 'config', ['SingleNonDefaultPackage']).getMessage('SingleNonDefaultPackage')
+          Messages.load('@salesforce/core', 'config', ['singleNonDefaultPackage']).getMessage('singleNonDefaultPackage')
         );
       }
     });

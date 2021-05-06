@@ -21,11 +21,10 @@ import { StatusResult } from './client';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'streaming', [
   'waitParamValidValueError',
-  'genericHandshakeTimeoutMessage',
+  'genericHandshakeTimeout',
   'invalidApiVersion',
-  'genericTimeoutMessage',
+  'genericTimeout',
   'handshakeApiVersionError',
-  'handshakeApiVersionErrorAction',
 ]);
 
 /**
@@ -140,9 +139,7 @@ function validateTimeout(newTime: Duration, existingTime: Duration): Duration {
   if (newTime.milliseconds >= existingTime.milliseconds) {
     return newTime;
   }
-  const errName = 'waitParamValidValueError';
-  const errMessage = messages.getMessage(errName, [existingTime.minutes]);
-  throw new SfdxError(errMessage, errName);
+  throw messages.createError('waitParamValidValueError', [existingTime.minutes]);
 }
 
 /**
@@ -310,9 +307,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
 
     return new Promise((resolve, reject) => {
       timeout = setTimeout(() => {
-        const errName = StreamingClient.TimeoutErrorType.HANDSHAKE;
-        const errMessage = messages.getMessage(errName, [this.targetUrl]);
-        const timeoutError = new SfdxError(errMessage, errName);
+        const timeoutError = messages.createError('genericHandshakeTimeout', [this.targetUrl]);
         this.doTimeout(timeout, timeoutError);
         reject(timeoutError);
       }, this.options.handshakeTimeout.milliseconds);
@@ -345,9 +340,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
       // This is the inner promise chain that's satisfied when the client impl (Faye/Mock) says it's subscribed.
       return new Promise((subscriptionResolve, subscriptionReject) => {
         timeout = setTimeout(() => {
-          const errName = StreamingClient.TimeoutErrorType.SUBSCRIBE;
-          const errMessage = messages.getMessage(errName);
-          const timeoutError: SfdxError = new SfdxError(errMessage, errName);
+          const timeoutError = messages.createError('genericTimeout');
           this.doTimeout(timeout, timeoutError);
           subscribeReject(timeoutError);
         }, this.options.subscribeTimeout.milliseconds);
@@ -413,10 +406,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
       message.error &&
       ensureString(message.error).includes('400::API version in the URI is mandatory')
     ) {
-      const errName = 'handshakeApiVersionError';
-      const errMessage = messages.getMessage(errName, [this.options.apiVersion]);
-      const errActions = [messages.getMessage('handshakeApiVersionErrorAction')];
-      throw new SfdxError(errMessage, errName, errActions);
+      throw messages.createError('handshakeApiVersionError', [this.options.apiVersion]);
     }
     cb(message);
   }
@@ -557,9 +547,7 @@ export namespace StreamingClient {
       }
 
       if (!(parseFloat(this.apiVersion) > 0)) {
-        const errName = 'invalidApiVersion';
-        const errMessage = messages.getMessage(errName, [this.apiVersion]);
-        throw new SfdxError(errMessage, errName);
+        throw messages.createError('invalidApiVersion', [this.apiVersion]);
       }
 
       this.streamProcessor = streamProcessor;
@@ -637,10 +625,10 @@ export namespace StreamingClient {
     /**
      * To indicate the error occurred on handshake
      */
-    HANDSHAKE = 'genericHandshakeTimeoutMessage',
+    HANDSHAKE = 'GenericHandshakeTimeoutError',
     /**
      * To indicate the error occurred on subscribe
      */
-    SUBSCRIBE = 'genericTimeoutMessage',
+    SUBSCRIBE = 'GenericTimeoutError',
   }
 }

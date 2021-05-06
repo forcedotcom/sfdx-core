@@ -24,6 +24,7 @@ describe('Messages', () => {
 
   const msgMap = new Map();
   msgMap.set('msg1', testMessages.msg1);
+  msgMap.set('msg1.actions', testMessages.msg2);
   msgMap.set('msg2', testMessages.msg2);
   msgMap.set('msg3', cloneJson(testMessages));
   msgMap.get('msg3').msg3 = cloneJson(testMessages);
@@ -327,6 +328,18 @@ describe('Messages', () => {
       } catch (err) {
         expect(err.message).to.equal('Missing bundle pname:notfound for locale en_US.');
       }
+    });
+  });
+
+  describe('createError', () => {
+    it('creates error with actions', () => {
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const error = messages.createError('msg1');
+
+      expect(error.name).to.equal('Msg1Error');
+      expect(error.message).to.equal(testMessages.msg1);
+      expect(error.actions.length).to.equal(1);
+      expect(error.actions[0]).to.equal(testMessages.msg2);
     });
   });
 });

@@ -118,7 +118,7 @@ describe('Alias', () => {
           if (err.name === 'AssertionError') {
             throw err;
           }
-          expect(err.name).to.equal('InvalidFormat');
+          expect(err.name).to.equal('InvalidFormatError');
         }
       }
     });

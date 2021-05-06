@@ -119,7 +119,8 @@ describe('AuthRemover', () => {
         await remover.findAuth();
         assert.fail();
       } catch (err) {
-        expect(err.name).to.equal('NoOrgFound');
+        expect(err.name).to.equal('DefaultUsernameNotSetError');
+        expect(err.actions).has.length(3);
       }
     });
   });

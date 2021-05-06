@@ -37,7 +37,7 @@ describe('SfdxError', () => {
       expect(mySfdxError).to.be.an.instanceOf(SfdxError);
       expect(mySfdxError.message).to.equal(myErrorMsg);
       expect(mySfdxError.name).to.equal(myErrorName);
-      expect(mySfdxError.stack).to.contain('Outer stack:\n').and.contain(myError.stack);
+      expect(mySfdxError.fullStack).to.contain('Caused by:').and.contain(myError.stack);
     });
 
     it('should return a wrapped error with a code', () => {
@@ -67,28 +67,28 @@ describe('SfdxError', () => {
   });
 
   describe('toObject', () => {
-    it('should return the proper JSON object WITH commandName and data', () => {
+    it('should return the proper JSON object WITH context and data', () => {
       const message = 'its a trap!';
       const name = 'BadError';
       const actions = ['do the opposite'];
       const exitCode = 100;
-      const commandName = 'TestCommand1';
+      const context = 'TestContext1';
       const data = { foo: 'pity the foo' };
 
       const sfdxError = new SfdxError(message, name, actions, exitCode);
-      sfdxError.setCommandName(commandName).setData(data);
+      sfdxError.setContext(context).setData(data);
 
       expect(sfdxError.toObject()).to.deep.equal({
         name,
         message,
         exitCode,
         actions,
-        commandName,
+        context,
         data,
       });
     });
 
-    it('should return the proper JSON object WITHOUT commandName and data', () => {
+    it('should return the proper JSON object WITHOUT context and data', () => {
       const message = "it's a trap!";
       const name = 'BadError';
 

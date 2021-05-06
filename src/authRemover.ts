@@ -13,11 +13,10 @@ import { Config } from './config/config';
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { Messages } from './messages';
-import { SfdxError } from './sfdxError';
 import { Authorizations, GlobalInfo } from './config/globalInfoConfig';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'auth', ['defaultOrgNotFound', 'defaultOrgNotFoundActions']);
+const messages = Messages.load('@salesforce/core', 'auth', ['defaultUsernameNotSet']);
 
 /**
  * Handles the removing of authorizations, which includes deleting the auth file
@@ -77,7 +76,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Finds authorization files for username/alias in the global .sfdx folder
-   * **Throws** *{@link SfdxError}{ name: 'NoOrgFound' }* if no username, alias, or defaultusername
+   * **Throws** *{@link SfdxError}{ name: 'DefaultUsernameNotSetError' }* if no username, alias, or defaultusername
    *
    * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured defaultusername
    * @returns {Promise<Authorization>}
@@ -138,9 +137,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
     const configAggregator = await ConfigAggregator.create();
     const defaultUsername = configAggregator.getInfo(Config.DEFAULT_USERNAME).value;
     if (!defaultUsername) {
-      const message = messages.getMessage('defaultOrgNotFound', ['defaultusername']);
-      const action = messages.getMessage('defaultOrgNotFoundActions');
-      throw new SfdxError(message, 'NoOrgFound', [action]);
+      throw messages.createError('defaultUsernameNotSet');
     }
     return defaultUsername as string;
   }
