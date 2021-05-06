@@ -12,7 +12,6 @@ import * as util from 'util';
 import {
   AnyJson,
   asString,
-  Dictionary,
   ensureJsonMap,
   ensureString,
   isArray,
@@ -40,7 +39,7 @@ class Key {
  */
 export type LoaderFunction<T extends string> = (locale: string) => Messages<T>;
 
-export type StoredMessage = string | string[] | Dictionary<StoredMessage>;
+export type StoredMessage = string | string[] | { [s: string]: StoredMessage };
 export type StoredMessageMap = Map<string, StoredMessage>;
 
 /**
@@ -526,7 +525,7 @@ export class Messages<T extends string> {
       const childKey = group[2];
       const childObject = map.get(parentKey);
       if (childObject && isJsonMap(childObject)) {
-        const childMap = new Map<string, StoredMessage>(Object.entries(childObject));
+        const childMap = new Map<string, StoredMessage>(Object.entries<StoredMessage>(childObject));
         return this.getMessageWithMap(childKey, tokens, childMap);
       }
     }
