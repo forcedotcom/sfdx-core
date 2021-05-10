@@ -6,7 +6,7 @@ There are several breaking changes from v2 to v3. This doc outlines what those t
 
 ### What?
 
-- Rename: `Messages.loadMessages` -> `Messages.load`
+- New: `Messages.load` (use instead of `Messages.loadMessages`)
 - Require keys names when loading messages
 - Added markdown as supported message format
 
@@ -33,9 +33,9 @@ messages.getMessage('baKey'); // type error because baKey is not loaded above
 
 ### Why?
 
-Quite often, customers would get the error `Missing message <bundle>:<key> for locale en_US.` at runtime in production code. This should really be a development time error. In v3, we have added typescript typings to help catch these at development time. We also updates all examples to load messages at the top of the file which most libraries and plugins already do. Reading the messages at loadtime is very fast (under 0.5ms per message file).
+Quite often, customers would get the error `Missing message <bundle>:<key> for locale en_US.` at runtime in production code. This should really be a development time error. In v3, we have added typescript typings to help catch these at development time. We also updates all examples to load messages at the top of the file which most libraries and plugins already do. Reading the messages at load time is very fast (under 0.5ms per message file).
 
-We renamed the method from `loadMessages` to `load` to really highlight the breaking change, and because using messages there is redundant. We did not rename `getMessages` to reduce the amount of code changes.
+We created the method `load` to really highlight the change and require the type key param. Making it optional on `loadMessages` could lead to mistakes as well. Plus, the word messages there is redundant. We did not rename `getMessages` to reduce the amount of code changes.
 
 ## SfdxError
 
@@ -64,7 +64,7 @@ throw new SfdxError(errMessage, errName, errActions);
 
 ### Why?
 
-With the changes to messages, we want developers to be explict about the keys they are using. We also want to encourage messages are loaded at the top of the file. The `SfdxError.create` method bypasses both of those objectives. Because of this, we just completly removed it. Although it adds a little bit of convience, it also simplifies the usage.
+With the changes to messages, we want developers to be explicit about the keys they are using. We also want to encourage messages are loaded at the top of the file. The `SfdxError.create` method bypasses both of those objectives. Because of this, we just completely removed it. Although it adds a little bit of convenience, it also simplifies the usage. For a similar convenience, see `Messages.createError`.
 
 # Error Names
 
