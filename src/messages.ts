@@ -384,6 +384,43 @@ export class Messages<T extends string> {
    * Load messages for a given package and bundle. If the bundle is not already cached, use the loader function
    * created from {@link Messages.setLoaderFunction} or {@link Messages.importMessagesDirectory}.
    *
+   * **NOTE: Use {@link Messages.load} instead for safe message validation and usage.**
+   *
+   * ```typescript
+   * Messages.importMessagesDirectory(__dirname);
+   * const messages = Messages.load('packageName', 'bundleName');
+   * ```
+   *
+   * @param packageName The name of the npm package.
+   * @param bundleName The name of the bundle to load.
+   */
+  public static loadMessages(packageName: string, bundleName: string): Messages<string> {
+    const key = new Key(packageName, bundleName);
+    let messages: Optional<Messages<string>>;
+
+    if (this.isCached(packageName, bundleName)) {
+      messages = this.bundles.get(key.toString());
+    } else if (this.loaders.has(key.toString())) {
+      const loader = this.loaders.get(key.toString());
+      if (loader) {
+        messages = loader(Messages.getLocale());
+        this.bundles.set(key.toString(), messages);
+        messages = this.bundles.get(key.toString());
+      }
+    }
+
+    if (messages) {
+      return messages;
+    }
+
+    // Don't use messages inside messages
+    throw new NamedError('MissingBundleError', `Missing bundle ${key.toString()} for locale ${Messages.getLocale()}.`);
+  }
+
+  /**
+   * Load messages for a given package and bundle. If the bundle is not already cached, use the loader function
+   * created from {@link Messages.setLoaderFunction} or {@link Messages.importMessagesDirectory}.
+   *
    * The message keys that will be used must be passed in for validation. This prevents runtime errors if messages are used but not defined.
    *
    * **NOTE: This should be defined at the top of the file so validation is done at load time rather than runtime.**
