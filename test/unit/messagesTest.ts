@@ -341,5 +341,17 @@ describe('Messages', () => {
       expect(error.actions.length).to.equal(1);
       expect(error.actions[0]).to.equal(testMessages.msg2);
     });
+
+    it('creates error with removed error prefix', () => {
+      msgMap.set('error.msg1', msgMap.get('msg1'));
+      msgMap.set('error.msg1.actions', ['from prefix'])
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const error = messages.createError('error.msg1');
+
+      expect(error.name).to.equal('Msg1Error');
+      expect(error.message).to.equal(testMessages.msg1);
+      expect(error.actions.length).to.equal(1);
+      expect(error.actions[0]).to.equal('from prefix');
+    });
   });
 });

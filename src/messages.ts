@@ -524,9 +524,9 @@ export class Messages<T extends string> {
   }
 
   /**
-   * Convience method to create errors using message labels.
+   * Convenience method to create errors using message labels.
    *
-   * `error.name` will be the uppercased key and will always end in Error.
+   * `error.name` will be the upper-cased key, remove prefixed `error.` and will always end in Error.
    * `error.actions` will be loaded using `${key}.actions` if available.
    *
    * @param key The key of the error message.
@@ -542,8 +542,11 @@ export class Messages<T extends string> {
     exitCodeOrCause?: number | Error,
     cause?: Error
   ): SfdxError {
-    // Turn key 'myMessage' to `MyMessageError`.
-    const errName = `${upperFirst(key)}${/Error$/.exec(key) ? '' : 'Error'}`;
+    // Convert key to name:
+    //     'myMessage' -> `MyMessageError`
+    //     'myMessageError' -> `MyMessageError`
+    //     'error.myMessage' -> `MyMessageError`
+    const errName = `${upperFirst(key.replace(/^error\./, ''))}${/Error$/.exec(key) ? '' : 'Error'}`;
     const errMessage = this.getMessage(key, tokens);
     let errActions;
     try {
