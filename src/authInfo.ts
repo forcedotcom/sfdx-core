@@ -628,13 +628,13 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   public getConnectionOptions(): ConnectionOptions {
     let opts: ConnectionOptions;
 
-    const { accessToken, instanceUrl } = this.fields;
+    const { accessToken, instanceUrl, loginUrl } = this.fields;
 
     if (this.isAccessTokenFlow()) {
       this.logger.info('Returning fields for a connection using access token.');
 
       // Just auth with the accessToken
-      opts = { accessToken, instanceUrl };
+      opts = { accessToken, instanceUrl, loginUrl };
     } else if (this.isJwt()) {
       this.logger.info('Returning fields for a connection using JWT config.');
       opts = {
@@ -791,11 +791,12 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       });
 
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      const instanceUrl: string = (aggregator.getPropertyValue('instanceUrl') as string) || SfdcUrl.PRODUCTION;
+      const instanceUrl: string = this.getInstanceUrl(options, aggregator);
 
       this.update({
         accessToken: this.options.username,
         instanceUrl,
+        loginUrl: instanceUrl,
         orgId: this.fields.username.split('!')[0],
       });
 
@@ -803,6 +804,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     } else {
       await this.initAuthOptions(options);
     }
+  }
+
+  private getInstanceUrl(options: unknown, aggregator: ConfigAggregator) {
+    const instanceUrl = getString(options, 'instanceUrl') || (aggregator.getPropertyValue('instanceUrl') as string);
+    return instanceUrl || SfdcUrl.PRODUCTION;
   }
 
   /**

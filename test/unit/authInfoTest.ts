@@ -415,6 +415,7 @@ describe('AuthInfo', () => {
       const expectedFields = {
         accessToken: username,
         instanceUrl: testMetadata.instanceUrl,
+        loginUrl: testMetadata.instanceUrl,
       };
       expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
@@ -496,6 +497,7 @@ describe('AuthInfo', () => {
       const expectedFields = {
         accessToken,
         instanceUrl: testMetadata.instanceUrl,
+        loginUrl: testMetadata.instanceUrl,
       };
       expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
