@@ -344,7 +344,7 @@ describe('Messages', () => {
 
     it('creates error with removed error prefix', () => {
       msgMap.set('error.msg1', msgMap.get('msg1'));
-      msgMap.set('error.msg1.actions', ['from prefix'])
+      msgMap.set('error.msg1.actions', ['from prefix']);
       const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
       const error = messages.createError('error.msg1');
 
