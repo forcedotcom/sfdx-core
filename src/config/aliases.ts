@@ -6,9 +6,12 @@
  */
 
 import { asString, Dictionary, JsonMap, Optional } from '@salesforce/ts-types/lib';
-import { SfdxError } from '../sfdxError';
+import { Messages } from '../messages';
 import { ConfigGroup } from './configGroup';
 import { ConfigContents, ConfigValue } from './configStore';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'core', ['noAliasesFound', 'invalidFormat']);
 
 const ALIAS_FILE_NAME = 'alias.json';
 
@@ -77,14 +80,14 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
   ): Promise<JsonMap> {
     const newAliases: Dictionary<string> = {};
     if (aliasKeyAndValues.length === 0) {
-      throw SfdxError.create('@salesforce/core', 'core', 'NoAliasesFound', []);
+      throw messages.createError('noAliasesFound');
     }
 
     for (const arg of aliasKeyAndValues) {
       const split = arg.split('=');
 
       if (split.length !== 2) {
-        throw SfdxError.create('@salesforce/core', 'core', 'InvalidFormat', [arg]);
+        throw messages.createError('invalidFormat', [arg]);
       }
       const [name, value] = split;
       newAliases[name] = value || undefined;

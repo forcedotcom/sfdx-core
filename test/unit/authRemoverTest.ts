@@ -111,12 +111,16 @@ describe('AuthRemover', () => {
     });
 
     it('should throw an error if no username is provided and defaultusername is not set', async () => {
+      stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
+        .withArgs(Config.DEFAULT_USERNAME)
+        .returns({ value: undefined });
       const remover = await AuthRemover.create();
       try {
         await remover.findAuth();
         assert.fail();
       } catch (err) {
-        expect(err.name).to.equal('NoOrgFound');
+        expect(err.name).to.equal('DefaultUsernameNotSetError');
+        expect(err.actions).has.length(3);
       }
     });
   });

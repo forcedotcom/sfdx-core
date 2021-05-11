@@ -7,7 +7,7 @@
 import * as dns from 'dns';
 import * as pathImport from 'path';
 import { URL } from 'url';
-import { cloneJson, env, includes, set } from '@salesforce/kit';
+import { cloneJson, Duration, env, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyFunction, AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
@@ -25,7 +25,7 @@ import { Crypto } from '../../src/crypto';
 import { SfdxError } from '../../src/sfdxError';
 import { testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
-import { GlobalInfo } from '../../src/exported';
+import { GlobalInfo, MyDomainResolver } from '../../src/exported';
 
 const TEST_KEY = {
   service: 'sfdx',
@@ -56,7 +56,7 @@ describe('AuthInfo No fs mock', () => {
   });
 
   it('missing config', async () => {
-    const expectedErrorName = 'NamedOrgNotFound';
+    const expectedErrorName = 'NamedOrgNotFoundError';
     try {
       await AuthInfo.create({ username: 'does_not_exist@gb.com' });
       assert.fail(`should have thrown error with name: ${expectedErrorName}`);
@@ -752,7 +752,7 @@ describe('AuthInfo', () => {
         await AuthInfo.create({ username, oauth2Options: jwtConfig });
         assert.fail('should have thrown an error within AuthInfo.buildJwtConfig()');
       } catch (err) {
-        expect(err.name).to.equal('JWTAuthError');
+        expect(err.name).to.equal('JwtAuthError');
       }
     });
 
@@ -776,6 +776,7 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string | Error, done: (v: Error) => {}) =>
         done(new Error('authInfoTest_ERROR_MSG'))
       );
+      stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'getTimeout').returns(Duration.milliseconds(10));
       stubMethod($$.SANDBOX, dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
         callback(null, []);
       });

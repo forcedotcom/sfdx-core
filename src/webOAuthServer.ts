@@ -19,7 +19,15 @@ import { SfdxError } from './sfdxError';
 import { Messages } from './messages';
 import { SfdxProjectJson } from './sfdxProject';
 
-const messages = Messages.loadMessages('@salesforce/core', 'auth');
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'auth', [
+  'invalidRequestUri',
+  'invalidRequestMethod',
+  'missingAuthCode',
+  'serverErrorHTMLResponse',
+  'portInUse',
+  'portInUse.actions',
+]);
 
 /**
  * Handles the creation of a web server for web based login flows.
@@ -167,11 +175,15 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
             }
           } else {
             this.webServer.sendError(404, 'Resource not found', response);
-            reject(SfdxError.create('@salesforce/core', 'auth', 'invalidRequestUri', [url.pathname]));
+            const errName = 'invalidRequestUri';
+            const errMessage = messages.getMessage(errName, [url.pathname]);
+            reject(new SfdxError(errMessage, errName));
           }
         } else {
           this.webServer.sendError(405, 'Unsupported http methods', response);
-          reject(SfdxError.create('@salesforce/core', 'auth', 'invalidRequestMethod', [request.method]));
+          const errName = 'invalidRequestMethod';
+          const errMessage = messages.getMessage(errName, [request.method]);
+          reject(new SfdxError(errMessage, errName));
         }
       });
     });
@@ -201,7 +213,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         this.logger.debug(`Successfully obtained auth code: ...${authCode.substring(authCode.length - 5)}`);
       } else {
         this.logger.debug('Expected an auth code but could not find one.');
-        throw SfdxError.create('@salesforce/core', 'auth', 'missingAuthCode');
+        throw messages.createError('missingAuthCode');
       }
       this.logger.debug(`oauthConfig.loginUrl: ${this.oauthConfig.loginUrl}`);
       this.logger.debug(`oauthConfig.clientId: ${this.oauthConfig.clientId}`);
@@ -276,9 +288,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
       this.server.listen(this.port, this.host);
     } catch (err) {
       if (err.name === 'EADDRINUSE') {
-        const error = SfdxError.create('@salesforce/core', 'auth', 'PortInUse', ['PortInUseAction']);
-        error.actions = [messages.getMessage('PortInUseAction', [this.port])];
-        throw error;
+        throw messages.createError('portInUse', [this.port], [this.port]);
       } else {
         throw err;
       }

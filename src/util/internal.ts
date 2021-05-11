@@ -5,8 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxError } from '../sfdxError';
+import { Messages } from '../messages';
 import { fs } from './fs';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'config', ['invalidProjectWorkspace']);
+
 /**
  * The name of the project config file.
  *
@@ -22,7 +26,7 @@ export const SFDX_PROJECT_JSON = 'sfdx-project.json';
  *
  * **See** {@link traverseForFile}
  *
- * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
+ * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
  *
  * @param dir The directory path to start traversing from.
  * @ignore
@@ -30,7 +34,7 @@ export const SFDX_PROJECT_JSON = 'sfdx-project.json';
 export async function resolveProjectPath(dir: string = process.cwd()): Promise<string> {
   const projectPath = await fs.traverseForFile(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
-    throw SfdxError.create('@salesforce/core', 'config', 'InvalidProjectWorkspace');
+    throw messages.createError('invalidProjectWorkspace');
   }
   return projectPath;
 }
@@ -42,7 +46,7 @@ export async function resolveProjectPath(dir: string = process.cwd()): Promise<s
  *
  * **See** {@link traverseForFile}
  *
- * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspace' }* If the current folder is not located in a workspace.
+ * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
  *
  * @param dir The directory path to start traversing from.
  * @ignore
@@ -50,7 +54,7 @@ export async function resolveProjectPath(dir: string = process.cwd()): Promise<s
 export function resolveProjectPathSync(dir: string = process.cwd()): string {
   const projectPath = fs.traverseForFileSync(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
-    throw SfdxError.create('@salesforce/core', 'config', 'InvalidProjectWorkspace');
+    throw messages.createError('invalidProjectWorkspace');
   }
   return projectPath;
 }

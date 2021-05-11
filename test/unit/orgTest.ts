@@ -172,13 +172,13 @@ describe('Org Tests', () => {
       });
     });
 
-    it('InvalidProjectWorkspace', async () => {
+    it('InvalidProjectWorkspaceError', async () => {
       $$.SANDBOXES.CONFIG.restore();
       let invalidProjectWorkspace = false;
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
         invalidProjectWorkspace = true;
         const error = new Error();
-        error.name = 'InvalidProjectWorkspace';
+        error.name = 'InvalidProjectWorkspaceError';
         throw error;
       });
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolderSync').callsFake(() => {
@@ -530,7 +530,7 @@ describe('Org Tests', () => {
         await org.checkScratchOrg();
         assert.fail('This test is expected to fail.');
       } catch (err) {
-        expect(err).to.have.property('name', 'NoResults');
+        expect(err).to.have.property('name', 'NoResultsError');
       }
     });
 
@@ -540,7 +540,7 @@ describe('Org Tests', () => {
         await org.checkScratchOrg();
         assert.fail('This test is expected to fail.');
       } catch (err) {
-        expect(err).to.have.property('name', 'NotADevHub');
+        expect(err).to.have.property('name', 'NotADevHubError');
       }
     });
   });

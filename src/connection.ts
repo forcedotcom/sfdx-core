@@ -38,7 +38,14 @@ import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
+import { Messages } from './messages';
 
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'connection', [
+  'incorrectAPIVersionError',
+  'domainNotFoundError',
+  'noInstanceUrlError',
+]);
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
  * jsforce which expects .thenCall. Add .thenCall to the node promise to prevent breakage.
@@ -53,7 +60,7 @@ export const SFDX_HTTP_HEADERS = {
   'user-agent': clientId,
 };
 
-export const DNS_ERROR_NAME = 'Domain Not Found';
+export const DNS_ERROR_NAME = 'DomainNotFoundError';
 type recentValidationOptions = { id: string; rest?: boolean };
 export type DeployOptionsWithRest = DeployOptions & { rest?: boolean };
 
@@ -340,9 +347,7 @@ export class Connection extends JSForceConnection {
    */
   public async isResolvable(): Promise<boolean> {
     if (!this.options.connectionOptions?.instanceUrl) {
-      throw new SfdxError('Connection has no instanceUrl', 'NoInstanceUrl', [
-        'Make sure the instanceUrl is set in your command or config',
-      ]);
+      throw messages.createError('noInstanceUrlError');
     }
     const resolver = await MyDomainResolver.create({
       url: new URL(this.options.connectionOptions.instanceUrl),
@@ -351,12 +356,7 @@ export class Connection extends JSForceConnection {
       await resolver.resolve();
       return true;
     } catch (e) {
-      throw new SfdxError('The org cannot be found', DNS_ERROR_NAME, [
-        'Verify that the org still exists',
-        'If your org is newly created, wait a minute and run your command again',
-        "If you deployed or updated the org's My Domain, logout from the CLI and authenticate again",
-        'If you are running in a CI environment with a DNS that blocks external IPs, try setting SFDX_DISABLE_DNS_CHECK=true',
-      ]);
+      throw messages.createError('domainNotFoundError', [], [], e);
     }
   }
 
@@ -370,16 +370,13 @@ export class Connection extends JSForceConnection {
   /**
    * Set the API version for all connection requests.
    *
-   * **Throws** *{@link SfdxError}{ name: 'IncorrectAPIVersion' }* Incorrect API version.
+   * **Throws** *{@link SfdxError}{ name: 'IncorrectAPIVersionError' }* Incorrect API version.
    *
    * @param version The API version.
    */
   public setApiVersion(version: string): void {
     if (!sfdc.validateApiVersion(version)) {
-      throw new SfdxError(
-        `Invalid API version ${version}. Expecting format "[1-9][0-9].0", i.e. 42.0`,
-        'IncorrectAPIVersion'
-      );
+      throw messages.createError('incorrectAPIVersionError', [version]);
     }
     this.version = version;
   }

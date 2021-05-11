@@ -40,11 +40,25 @@ import { ConfigAggregator } from './config/configAggregator';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { Crypto } from './crypto';
 import { Logger } from './logger';
-import { SfdxError, SfdxErrorConfig } from './sfdxError';
+import { SfdxError } from './sfdxError';
 import { fs } from './util/fs';
 import { sfdc } from './util/sfdc';
 import { MyDomainResolver } from './status/myDomainResolver';
 import { GlobalInfo } from './config/globalInfoConfig';
+import { Messages } from './messages';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'core', [
+  'authInfoCreationError',
+  'authInfoOverwriteError',
+  'namedOrgNotFound',
+  'orgDataNotAvailableError',
+  'orgDataNotAvailableError.actions',
+  'refreshTokenAuthError',
+  'jwtAuthError',
+  'authCodeUsernameRetrievalError',
+  'authCodeExchangeError',
+]);
 
 /**
  * Fields for authorization, org, and local information.
@@ -728,7 +742,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     // Must specify either username and/or options
     const options = this.options.oauth2Options || this.options.accessTokenOptions;
     if (!this.options.username && !(this.options.oauth2Options || this.options.accessTokenOptions)) {
-      throw SfdxError.create('@salesforce/core', 'core', 'AuthInfoCreationError');
+      throw messages.createError('authInfoCreationError');
     }
 
     // If a username AND oauth options were passed, ensure an authorization for the username doesn't
@@ -736,15 +750,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     if (this.options.username && this.options.oauth2Options) {
       const authExists = (await GlobalInfo.getInstance()).hasAuthorization(this.options.username);
       if (authExists) {
-        throw SfdxError.create(
-          new SfdxErrorConfig(
-            '@salesforce/core',
-            'core',
-            'AuthInfoOverwriteError',
-            undefined,
-            'AuthInfoOverwriteErrorAction'
-          )
-        );
+        throw messages.createError('authInfoOverwriteError');
       }
     }
 
@@ -779,7 +785,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    *
    * @param options Options to be used for creating an OAuth2 instance.
    *
-   * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFound' }* Org information does not exist.
+   * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFoundError' }* Org information does not exist.
    * @returns {Promise<AuthInfo>}
    */
   private async initAuthOptions(options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
@@ -860,7 +866,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         return config.getAuthorization(username);
       } catch (e) {
         if (e.code === 'ENOENT') {
-          throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [username]);
+          throw messages.createError('namedOrgNotFound', [username]);
         } else {
           throw e;
         }
@@ -895,13 +901,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       return await callback(null, fields.accessToken);
     } catch (err) {
       if (err.message && err.message.includes('Data Not Available')) {
-        const errConfig = new SfdxErrorConfig('@salesforce/core', 'core', 'OrgDataNotAvailableError', [
-          this.getUsername(),
-        ]);
-        for (let i = 1; i < 5; i++) {
-          errConfig.addAction(`OrgDataNotAvailableErrorAction${i}`);
-        }
-        return await callback(SfdxError.create(errConfig));
+        // Set cause to keep original stacktrace
+        return await callback(messages.createError('orgDataNotAvailableError', [this.getUsername()], [], err));
       }
       return await callback(err);
     }
@@ -929,7 +930,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     try {
       authFieldsBuilder = ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
     } catch (err) {
-      throw SfdxError.create('@salesforce/core', 'core', 'JWTAuthError', [err.message]);
+      throw messages.createError('jwtAuthError', [err.message]);
     }
 
     const authFields: AuthFields = {
@@ -970,7 +971,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     try {
       authFieldsBuilder = await oauth2.refreshToken(ensure(options.refreshToken));
     } catch (err) {
-      throw SfdxError.create('@salesforce/core', 'core', 'RefreshTokenAuthError', [err.message]);
+      throw messages.createError('refreshTokenAuthError', [err.message]);
     }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
@@ -1017,7 +1018,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
-      throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeExchangeError', [err.message]);
+      throw messages.createError('authCodeExchangeError', [err.message]);
     }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
@@ -1078,7 +1079,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         return asString(parseJsonMap(response.body).Username);
       }
     } catch (err) {
-      throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
+      throw messages.createError('authCodeUsernameRetrievalError', [orgId, err.message]);
     }
   }
 
@@ -1089,21 +1090,21 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * @private
    */
   private throwUserGetException(response: unknown) {
-    let messages = '';
+    let errorMsg = '';
     const bodyAsString = getString(response, 'body', JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' }));
     try {
       const body = parseJson(bodyAsString);
       if (isArray(body)) {
-        messages = body
+        errorMsg = body
           .map((line) => getString(line, 'message') ?? getString(line, 'errorCode', 'UNKNOWN'))
           .join(os.EOL);
       } else {
-        messages = getString(body, 'message') ?? getString(body, 'errorCode', 'UNKNOWN');
+        errorMsg = getString(body, 'message') ?? getString(body, 'errorCode', 'UNKNOWN');
       }
     } catch (err) {
-      messages = `${bodyAsString}`;
+      errorMsg = `${bodyAsString}`;
     }
-    throw new SfdxError(messages);
+    throw new SfdxError(errorMsg);
   }
 
   // See https://nodejs.org/api/dns.html#dns_dns_lookup_hostname_options_callback

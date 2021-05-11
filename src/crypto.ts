@@ -15,7 +15,6 @@ import { KeyChain } from './keyChainImpl';
 import { Logger } from './logger';
 import { Messages } from './messages';
 import { SecureBuffer } from './secureBuffer';
-import { SfdxError } from './sfdxError';
 
 const TAG_DELIMITER = ':';
 const BYTE_COUNT_FOR_IV = 6;
@@ -25,6 +24,12 @@ const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
+const messages = Messages.load('@salesforce/core', 'encryption', [
+  'keychainPasswordCreationError',
+  'invalidEncryptedFormatError',
+  'authDecryptError',
+  'macKeychainOutOfSync',
+]);
 
 interface CredType {
   username: string;
@@ -84,8 +89,6 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
 
   private options: CryptoOptions;
 
-  // Initialized in init
-  private messages!: Messages;
   private noResetOnClose!: boolean;
 
   /**
@@ -111,8 +114,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     }
 
     if (this.key == null) {
-      const errMsg = this.messages.getMessage('KeychainPasswordCreationError');
-      throw new SfdxError(errMsg, 'KeychainPasswordCreationError');
+      throw messages.createError('keychainPasswordCreationError');
     }
 
     const iv = crypto.randomBytes(BYTE_COUNT_FOR_IV).toString('hex');
@@ -141,9 +143,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     const tokens = text.split(TAG_DELIMITER);
 
     if (tokens.length !== 2) {
-      const errMsg = this.messages.getMessage('InvalidEncryptedFormatError');
-      const actionMsg = this.messages.getMessage('InvalidEncryptedFormatErrorAction');
-      throw new SfdxError(errMsg, 'InvalidEncryptedFormatError', [actionMsg]);
+      throw messages.createError('invalidEncryptedFormatError');
     }
 
     const tag = tokens[1];
@@ -158,14 +158,14 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
         decipher.setAuthTag(Buffer.from(tag, 'hex'));
         dec = decipher.update(secret, 'hex', 'utf8');
         dec += decipher.final('utf8');
-      } catch (e) {
+      } catch (err) {
+        const error = messages.createError('authDecryptError', [err.message], [], err);
         const useGenericUnixKeychain =
           env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
         if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
-          e.actions = Messages.loadMessages('@salesforce/core', 'crypto').getMessage('MacKeychainOutOfSync');
+          error.actions = [messages.getMessage('macKeychainOutOfSync')];
         }
-        e.message = this.messages.getMessage('AuthDecryptError', [e.message]);
-        throw SfdxError.wrap(e);
+        throw error;
       }
       return dec;
     });
@@ -191,8 +191,6 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     }
 
     logger.debug(`retryStatus: ${this.options.retryStatus}`);
-
-    this.messages = Messages.loadMessages('@salesforce/core', 'encryption');
 
     this.noResetOnClose = !!this.options.noResetOnClose;
 

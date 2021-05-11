@@ -24,6 +24,7 @@ describe('Messages', () => {
 
   const msgMap = new Map();
   msgMap.set('msg1', testMessages.msg1);
+  msgMap.set('msg1.actions', testMessages.msg2);
   msgMap.set('msg2', testMessages.msg2);
   msgMap.set('msg3', cloneJson(testMessages));
   msgMap.get('msg3').msg3 = cloneJson(testMessages);
@@ -67,6 +68,14 @@ describe('Messages', () => {
         'hello blah 864\nworld blah 864\ntest message 2 blah and 864'
       );
     });
+
+    it('should return multiple string from array of messages', () => {
+      expect(messages.getMessages('manyMsgs', ['blah', 864])).to.deep.equal([
+        'hello blah 864',
+        'world blah 864',
+        'test message 2 blah and 864',
+      ]);
+    });
   });
 
   describe('importMessageFile', () => {
@@ -75,7 +84,7 @@ describe('Messages', () => {
         Messages.importMessageFile('package name', 'myPluginMessages.txt');
         assert.fail('should have thrown an error that only json files are allowed.');
       } catch (err) {
-        expect(err.message).to.contain('Only json and js message files are allowed, not .txt');
+        expect(err.message).to.contain('Only json, js and md message files are allowed, not .txt');
       }
     });
 
@@ -233,15 +242,66 @@ describe('Messages', () => {
     });
   });
 
-  describe('loadMessages', () => {
+  describe('markdown parsing', () => {
+    it('should parse keys from main headers', () => {
+      const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.md');
+      $$.SANDBOX.stub(fs, 'readFileSync').returns('# myKey\nmyValue');
+
+      const messages = loaderFn(Messages.getLocale());
+      expect(messages.getMessage('myKey')).to.equal('myValue');
+    });
+
+    it('should get messages from markdown list', () => {
+      const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.md');
+      $$.SANDBOX.stub(fs, 'readFileSync').returns('# myKey\n* my value 1\n* my value 2');
+
+      const messages = loaderFn(Messages.getLocale());
+      expect(messages.getMessage('myKey')).to.equal('my value 1\nmy value 2');
+      expect(messages.getMessages('myKey')).to.deep.equal(['my value 1', 'my value 2']);
+    });
+
+    it('should get messages from markdown list with multi lines', () => {
+      const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.md');
+      $$.SANDBOX.stub(fs, 'readFileSync').returns(`
+# myKey
+* my value 1
+  
+  more value 1
+- my value 2
+  more value 2
+`);
+
+      const messages = loaderFn(Messages.getLocale());
+      expect(messages.getMessage('myKey')).to.equal('my value 1\nmore value 1\nmy value 2\nmore value 2');
+      // markdown will ignore the extra line in the same list item, so we should too.
+      expect(messages.getMessages('myKey')).to.deep.equal(['my value 1\nmore value 1', 'my value 2\nmore value 2']);
+    });
+
+    it('should throw if no value', () => {
+      const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.md');
+      $$.SANDBOX.stub(fs, 'readFileSync').returns('# myKey\n# secondKey\nmyValue');
+
+      try {
+        loaderFn(Messages.getLocale());
+        assert.fail('should have thrown an error that the file not valid JSON.');
+      } catch (err) {
+        expect(err.name).to.equal('Error');
+        expect(err.message).to.equal(
+          'Invalid markdown message file: myPluginMessages.md\nThe line "# <key>" must be immediately followed by the message on a new line.'
+        );
+      }
+    });
+  });
+
+  describe('load', () => {
     it('should return a cached bundle', async () => {
       const spy = $$.SANDBOX.spy(() => new Messages('myBundle', Messages.getLocale(), msgMap));
       Messages.setLoaderFunction('pname', 'myBundle', spy);
       // Load messages
-      Messages.loadMessages('pname', 'myBundle');
+      Messages.load('pname', 'myBundle', ['msg1', 'msg2']);
 
       // Call cache
-      const messages = Messages.loadMessages('pname', 'myBundle');
+      const messages = Messages.load('pname', 'myBundle', ['msg1', 'msg2']);
       expect(messages.getMessage('msg1')).to.equal(testMessages.msg1);
       expect(messages.getMessage('msg2', ['token1', 222])).to.equal('test message 2 token1 and 222');
       expect(spy.calledOnce).to.be.true;
@@ -257,17 +317,41 @@ describe('Messages', () => {
       Messages.setLoaderFunction('pname', 'myOtherBundle', () => msgs);
 
       // now load the bundle
-      const messages = Messages.loadMessages('pname', 'myOtherBundle');
+      const messages = Messages.load('pname', 'myOtherBundle', ['otherMsg1']);
       expect(messages.getMessage('otherMsg1')).to.equal(otherMsgMap.get('otherMsg1'));
     });
 
     it('should throw an error if the bundle is not found', async () => {
       try {
-        Messages.loadMessages('pname', 'notfound');
+        Messages.load('pname', 'notfound', ['']);
         assert.fail('should have thrown an error that the bundle was not found.');
       } catch (err) {
         expect(err.message).to.equal('Missing bundle pname:notfound for locale en_US.');
       }
+    });
+  });
+
+  describe('createError', () => {
+    it('creates error with actions', () => {
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const error = messages.createError('msg1');
+
+      expect(error.name).to.equal('Msg1Error');
+      expect(error.message).to.equal(testMessages.msg1);
+      expect(error.actions.length).to.equal(1);
+      expect(error.actions[0]).to.equal(testMessages.msg2);
+    });
+
+    it('creates error with removed error prefix', () => {
+      msgMap.set('error.msg1', msgMap.get('msg1'));
+      msgMap.set('error.msg1.actions', ['from prefix']);
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const error = messages.createError('error.msg1');
+
+      expect(error.name).to.equal('Msg1Error');
+      expect(error.message).to.equal(testMessages.msg1);
+      expect(error.actions.length).to.equal(1);
+      expect(error.actions[0]).to.equal('from prefix');
     });
   });
 });
