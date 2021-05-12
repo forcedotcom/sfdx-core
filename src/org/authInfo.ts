@@ -34,18 +34,18 @@ import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-import { Aliases } from './config/aliases';
-import { Config } from './config/config';
-import { ConfigAggregator } from './config/configAggregator';
+import { Aliases } from '../config/aliases';
+import { Config } from '../config/config';
+import { ConfigAggregator } from '../config/configAggregator';
+import { Crypto } from '../crypto/crypto';
+import { Logger } from '../logger';
+import { SfdxError } from '../sfdxError';
+import { fs } from '../util/fs';
+import { sfdc } from '../util/sfdc';
+import { MyDomainResolver } from '../status/myDomainResolver';
+import { GlobalInfo } from '../config/globalInfoConfig';
+import { Messages } from '../messages';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
-import { Crypto } from './crypto';
-import { Logger } from './logger';
-import { SfdxError } from './sfdxError';
-import { fs } from './util/fs';
-import { sfdc } from './util/sfdc';
-import { MyDomainResolver } from './status/myDomainResolver';
-import { GlobalInfo } from './config/globalInfoConfig';
-import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'core', [

@@ -10,10 +10,10 @@ import * as os from 'os';
 import { join as pathJoin } from 'path';
 import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, env } from '@salesforce/kit';
+import { Logger } from '../logger';
+import { Messages } from '../messages';
 import { retrieveKeychain } from './keyChain';
 import { KeyChain } from './keyChainImpl';
-import { Logger } from './logger';
-import { Messages } from './messages';
 import { SecureBuffer } from './secureBuffer';
 
 const TAG_DELIMITER = ':';

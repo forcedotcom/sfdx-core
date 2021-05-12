@@ -14,20 +14,20 @@ import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optiona
 import { assert, expect } from 'chai';
 import { OAuth2 } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
-import { AuthFields, AuthInfo } from '../../src/authInfo';
-import { Aliases } from '../../src/config/aliases';
-import { Config } from '../../src/config/config';
-import { ConfigAggregator } from '../../src/config/configAggregator';
-import { ConfigFile } from '../../src/config/configFile';
-import { OrgUsersConfig } from '../../src/config/orgUsersConfig';
-import { SandboxOrgConfig } from '../../src/config/sandboxOrgConfig';
-import { Connection } from '../../src/connection';
-import { Global } from '../../src/global';
-import { Org } from '../../src/org';
-import { MockTestOrgData, testSetup } from '../../src/testSetup';
-import { fs } from '../../src/util/fs';
-import { MyDomainResolver } from '../../src/status/myDomainResolver';
-import { GlobalInfo } from '../../src/config/globalInfoConfig';
+import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
+import { Aliases } from '../../../src/config/aliases';
+import { Config } from '../../../src/config/config';
+import { ConfigAggregator } from '../../../src/config/configAggregator';
+import { ConfigFile } from '../../../src/config/configFile';
+import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
+import { SandboxOrgConfig } from '../../../src/config/sandboxOrgConfig';
+import { Connection } from '../../../src/org/connection';
+import { Global } from '../../../src/global';
+import { Org } from '../../../src/org/org';
+import { MockTestOrgData, testSetup } from '../../../src/testSetup';
+import { fs } from '../../../src/util/fs';
+import { MyDomainResolver } from '../../../src/status/myDomainResolver';
+import { GlobalInfo } from '../../../src/config/globalInfoConfig';
 
 const $$ = testSetup();
 

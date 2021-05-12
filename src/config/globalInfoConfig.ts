@@ -6,7 +6,7 @@
  */
 import { isEmpty } from '@salesforce/kit';
 import { AnyJson, JsonMap } from '@salesforce/ts-types';
-import { SfAuthorization } from '../authInfo';
+import { SfAuthorization } from '../org/authInfo';
 import { Global } from '../global';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
@@ -35,6 +35,8 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options> {
     [SfDataKeys.AUTHORIZATIONS]: {},
   };
   private static instance: GlobalInfo;
+
+  // When @salesforce/core@v2 is deprecated and no longer used, this can be removed
   private static enableInteroperability = true;
   private sfdxHandler = new SfdxDataHandler();
 

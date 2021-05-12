@@ -32,13 +32,13 @@ import {
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
-import { AuthFields, AuthInfo } from './authInfo';
-import { MyDomainResolver } from './status/myDomainResolver';
-import { ConfigAggregator } from './config/configAggregator';
-import { Logger } from './logger';
-import { SfdxError } from './sfdxError';
-import { sfdc } from './util/sfdc';
-import { Messages } from './messages';
+import { AuthFields, AuthInfo } from '../org/authInfo';
+import { MyDomainResolver } from '../status/myDomainResolver';
+import { ConfigAggregator } from '../config/configAggregator';
+import { Logger } from '../logger';
+import { SfdxError } from '../sfdxError';
+import { sfdc } from '../util/sfdc';
+import { Messages } from '../messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'connection', [

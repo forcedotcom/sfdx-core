@@ -8,7 +8,7 @@
 import { keyBy, set } from '@salesforce/kit';
 import { Dictionary, ensure, isString } from '@salesforce/ts-types';
 import { Logger } from '../logger';
-import { Crypto } from '../crypto';
+import { Crypto } from '../crypto/crypto';
 import { Messages } from '../messages';
 import { sfdc } from '../util/sfdc';
 import { ConfigFile } from './configFile';

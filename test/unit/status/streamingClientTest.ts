@@ -13,9 +13,9 @@ import * as Faye from 'sfdx-faye';
 import { StatusResult } from '../../../src/status/client';
 import { CometClient, StreamingClient } from '../../../src/status/streamingClient';
 
-import { Connection } from '../../../src/connection';
-import { Crypto } from '../../../src/crypto';
-import { Org } from '../../../src/org';
+import { Connection } from '../../../src/org/connection';
+import { Crypto } from '../../../src/crypto/crypto';
+import { Org } from '../../../src/org/org';
 import { SfdxError } from '../../../src/sfdxError';
 import {
   shouldThrow,

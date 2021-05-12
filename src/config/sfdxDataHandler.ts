@@ -8,7 +8,7 @@
 import { basename, extname } from 'path';
 import { set } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
-import { Authorization } from '../authInfo';
+import { Authorization } from '../org/authInfo';
 import { Global } from '../global';
 import { fs } from '../util/fs';
 import { ConfigFile } from './configFile';

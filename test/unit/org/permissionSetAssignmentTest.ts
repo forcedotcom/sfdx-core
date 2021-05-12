@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { AuthInfo } from '../../src/authInfo';
-import { Connection } from '../../src/connection';
-import { Org } from '../../src/org';
-import { PermissionSetAssignment } from '../../src/permissionSetAssignment';
-import { MockTestOrgData, shouldThrow, testSetup } from '../../src/testSetup';
+import { AuthInfo } from '../../../src/org/authInfo';
+import { Connection } from '../../../src/org/connection';
+import { Org } from '../../../src/org/org';
+import { PermissionSetAssignment } from '../../../src/org/permissionSetAssignment';
+import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
 
 const $$ = testSetup();
 

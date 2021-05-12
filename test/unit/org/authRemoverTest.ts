@@ -7,12 +7,12 @@
 
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { assert, expect } from 'chai';
-import { AuthRemover } from '../../src/authRemover';
-import { Aliases } from '../../src/config/aliases';
-import { Config } from '../../src/config/config';
-import { ConfigAggregator } from '../../src/config/configAggregator';
-import { GlobalInfo } from '../../src/config/globalInfoConfig';
-import { testSetup } from '../../src/testSetup';
+import { AuthRemover } from '../../../src/org/authRemover';
+import { Aliases } from '../../../src/config/aliases';
+import { Config } from '../../../src/config/config';
+import { ConfigAggregator } from '../../../src/config/configAggregator';
+import { GlobalInfo } from '../../../src/config/globalInfoConfig';
+import { testSetup } from '../../../src/testSetup';
 
 describe('AuthRemover', () => {
   const username = 'espresso@coffee.com';

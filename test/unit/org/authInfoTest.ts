@@ -15,17 +15,17 @@ import { OAuth2, OAuth2Options } from 'jsforce';
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-import { AuthFields, AuthInfo, OAuth2WithVerifier } from '../../src/authInfo';
-import { Aliases } from '../../src/config/aliases';
-import { Config } from '../../src/config/config';
-import { ConfigAggregator } from '../../src/config/configAggregator';
-import { ConfigFile } from '../../src/config/configFile';
-import { ConfigContents } from '../../src/config/configStore';
-import { Crypto } from '../../src/crypto';
-import { SfdxError } from '../../src/sfdxError';
-import { testSetup } from '../../src/testSetup';
-import { fs } from '../../src/util/fs';
-import { GlobalInfo, MyDomainResolver } from '../../src/exported';
+import { AuthFields, AuthInfo, OAuth2WithVerifier } from '../../../src/org/authInfo';
+import { Aliases } from '../../../src/config/aliases';
+import { Config } from '../../../src/config/config';
+import { ConfigAggregator } from '../../../src/config/configAggregator';
+import { ConfigFile } from '../../../src/config/configFile';
+import { ConfigContents } from '../../../src/config/configStore';
+import { Crypto } from '../../../src/crypto/crypto';
+import { SfdxError } from '../../../src/sfdxError';
+import { testSetup } from '../../../src/testSetup';
+import { fs } from '../../../src/util/fs';
+import { GlobalInfo, MyDomainResolver } from '../../../src/exported';
 
 const TEST_KEY = {
   service: 'sfdx',

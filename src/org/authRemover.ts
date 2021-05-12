@@ -7,13 +7,13 @@
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
+import { Aliases } from '../config/aliases';
+import { Config } from '../config/config';
+import { ConfigAggregator } from '../config/configAggregator';
+import { Logger } from '../logger';
+import { Messages } from '../messages';
+import { Authorizations, GlobalInfo } from '../config/globalInfoConfig';
 import { AuthInfo, Authorization } from './authInfo';
-import { Aliases } from './config/aliases';
-import { Config } from './config/config';
-import { ConfigAggregator } from './config/configAggregator';
-import { Logger } from './logger';
-import { Messages } from './messages';
-import { Authorizations, GlobalInfo } from './config/globalInfoConfig';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'auth', ['defaultUsernameNotSet']);

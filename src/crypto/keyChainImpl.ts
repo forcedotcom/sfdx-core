@@ -10,13 +10,13 @@ import * as nodeFs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { asString, ensure, Nullable } from '@salesforce/ts-types';
-import { ConfigFile } from './config/configFile';
-import { ConfigContents } from './config/configStore';
-import { KeychainConfig } from './config/keychainConfig';
-import { Global } from './global';
-import { SfdxError } from './sfdxError';
-import { fs } from './util/fs';
-import { Messages } from './messages';
+import { ConfigFile } from '../config/configFile';
+import { ConfigContents } from '../config/configStore';
+import { KeychainConfig } from '../config/keychainConfig';
+import { Global } from '../global';
+import { SfdxError } from '../sfdxError';
+import { fs } from '../util/fs';
+import { Messages } from '../messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'encryption', [

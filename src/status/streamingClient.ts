@@ -13,7 +13,7 @@ import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce
 // @ts-ignore
 import * as Faye from 'sfdx-faye';
 import { Logger } from '../logger';
-import { Org } from '../org';
+import { Org } from '../org/org';
 import { SfdxError } from '../sfdxError';
 import { Messages } from '../messages';
 import { StatusResult } from './client';

@@ -14,7 +14,7 @@ import { AsyncCreatable, set, toNumber, Env } from '@salesforce/kit';
 import { Nullable, get, asString } from '@salesforce/ts-types';
 import { OAuth2Options } from 'jsforce';
 import { Logger } from './logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, OAuth2WithVerifier } from './authInfo';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, OAuth2WithVerifier } from './org/authInfo';
 import { SfdxError } from './sfdxError';
 import { Messages } from './messages';
 import { SfdxProjectJson } from './sfdxProject';
