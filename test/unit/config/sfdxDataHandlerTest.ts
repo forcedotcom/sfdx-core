@@ -41,15 +41,14 @@ describe('SfdxDataHandler', () => {
     const timestamp = new Date().toISOString();
 
     const createData = (partial: PartialDeep<SfData> = {}): SfData => {
-      const base: SfData = {
-        authorizations: {
-          [username]: {
-            orgId: '12345_SF',
-            username,
-            timestamp,
-            instanceUrl: 'https://login.salesforce.com',
-            alias: 'myOrg',
-          },
+      const base = GlobalInfo.emptyDataModel;
+      base.authorizations = {
+        [username]: {
+          orgId: '12345_SF',
+          username,
+          timestamp,
+          instanceUrl: 'https://login.salesforce.com',
+          alias: 'myOrg',
         },
       };
       const merged: SfData = GlobalInfo.emptyDataModel;
@@ -123,11 +122,10 @@ describe('SfdxDataHandler', () => {
 
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
-      const expected = {
-        authorizations: {
-          [username]: sfData.authorizations[username],
-          [newSfdxAuthUsername]: sfdxData.authorizations[newSfdxAuthUsername],
-        },
+      const expected = GlobalInfo.emptyDataModel;
+      expected.authorizations = {
+        [username]: sfData.authorizations[username],
+        [newSfdxAuthUsername]: sfdxData.authorizations[newSfdxAuthUsername],
       };
       expect(merged).to.deep.equal(expected);
     });
@@ -150,10 +148,9 @@ describe('SfdxDataHandler', () => {
 
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
-      const expected = {
-        authorizations: {
-          [username]: sfData.authorizations[username],
-        },
+      const expected = GlobalInfo.emptyDataModel;
+      expected.authorizations = {
+        [username]: sfData.authorizations[username],
       };
       expect(merged).to.deep.equal(expected);
     });
@@ -211,15 +208,13 @@ describe('AuthHandler', () => {
       sandbox.replace(ConfigFile.prototype, 'write', writeStub);
       sandbox.replace(ConfigFile.prototype, 'unlink', unlinkStub);
 
-      const latest = {
-        authorizations: {
-          [username]: Object.assign({}, auth, { timestamp, accessToken: 'token_XXXXX' }),
-        },
+      const latest = GlobalInfo.emptyDataModel;
+      latest.authorizations = {
+        [username]: Object.assign({}, auth, { timestamp, accessToken: 'token_XXXXX' }),
       };
-      const original = {
-        authorizations: {
-          [username]: Object.assign({}, auth, { timestamp }),
-        },
+      const original = GlobalInfo.emptyDataModel;
+      original.authorizations = {
+        [username]: Object.assign({}, auth, { timestamp }),
       };
       const handler = new AuthHandler();
       await handler.write(latest, original);
@@ -233,11 +228,10 @@ describe('AuthHandler', () => {
       sandbox.replace(ConfigFile.prototype, 'write', writeStub);
       sandbox.replace(ConfigFile.prototype, 'unlink', unlinkStub);
 
-      const latest = { authorizations: {} };
-      const original = {
-        authorizations: {
-          [username]: Object.assign({}, auth, { timestamp }),
-        },
+      const latest = GlobalInfo.emptyDataModel;
+      const original = GlobalInfo.emptyDataModel;
+      original.authorizations = {
+        [username]: Object.assign({}, auth, { timestamp }),
       };
       const handler = new AuthHandler();
       await handler.write(latest, original);

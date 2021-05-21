@@ -13,7 +13,10 @@ import { SfdxDataHandler } from './sfdxDataHandler';
 
 export enum SfDataKeys {
   AUTHORIZATIONS = 'authorizations',
+  TOKENS = 'tokens',
 }
+
+type Timestamp = { timestamp: string };
 
 export type OrgAuthorization = {
   alias: Optional<string>;
@@ -23,14 +26,26 @@ export type OrgAuthorization = {
   accessToken?: string;
   oauthMethod?: 'jwt' | 'web' | 'token' | 'unknown';
   error?: string;
-  timestamp: string;
-} & JsonMap;
+} & Timestamp &
+  JsonMap;
 export interface OrgAuthorizations {
   [key: string]: OrgAuthorization;
 }
 
+export type Token = {
+  token: string;
+  url: string;
+  user: string;
+} & Timestamp &
+  JsonMap;
+
+export interface Tokens {
+  [key: string]: Token;
+}
+
 export type SfData = {
   [SfDataKeys.AUTHORIZATIONS]: OrgAuthorizations;
+  [SfDataKeys.TOKENS]: Tokens;
 };
 
 export function deepCopy<T extends AnyJson>(data: T): T {
@@ -41,6 +56,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
   protected static encryptedKeys = ['accessToken', 'refreshToken', 'password', 'clientSecret'];
   private static EMPTY_DATA_MODEL: SfData = {
     [SfDataKeys.AUTHORIZATIONS]: {},
+    [SfDataKeys.TOKENS]: {},
   };
   private static instance: Optional<GlobalInfo>;
 
@@ -114,6 +130,30 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
 
   public unsetAuthorization(username: string): void {
     this.unset(`${SfDataKeys.AUTHORIZATIONS}["${username}"]`);
+  }
+
+  public getTokens(decrypt = false): Tokens {
+    return this.get(SfDataKeys.TOKENS, decrypt) || {};
+  }
+
+  public getToken(name: string, decrypt = false): Optional<Token> {
+    return this.get(`${SfDataKeys.TOKENS}["${name}"]`, decrypt);
+  }
+
+  public hasToken(name: string): boolean {
+    return !!this.getTokens()[name];
+  }
+
+  public setToken(name: string, token: Token): void {
+    this.set(`${SfDataKeys.TOKENS}["${name}"]`, token);
+  }
+
+  public updateToken(name: string, token: Partial<Token>): void {
+    this.update(`${SfDataKeys.TOKENS}["${name}"]`, token);
+  }
+
+  public unsetToken(name: string): void {
+    this.unset(`${SfDataKeys.TOKENS}["${name}"]`);
   }
 
   public set(key: string, value: ConfigValue): void {
