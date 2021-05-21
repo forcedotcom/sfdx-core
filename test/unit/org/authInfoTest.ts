@@ -1068,7 +1068,7 @@ describe('AuthInfo', () => {
 
     it('should throw an error when neither username nor options have been passed', async () => {
       try {
-        await AuthInfo.create({});
+        await AuthInfo.create();
         assert.fail('Expected AuthInfo.create() to throw an error when no params are passed');
       } catch (err) {
         expect(err.name).to.equal('AuthInfoCreationError');

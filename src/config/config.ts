@@ -80,7 +80,7 @@ export type ConfigProperties = { [index: string]: JsonPrimitive };
  * config values. Instead use {@link ConfigAggregator}
  *
  * ```
- * const localConfig = await Config.create({});
+ * const localConfig = await Config.create();
  * localConfig.set('defaultusername', 'username@company.org');
  * await localConfig.write();
  * ```

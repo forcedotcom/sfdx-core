@@ -6,7 +6,7 @@
  */
 
 import { join as pathJoin } from 'path';
-import { AsyncCreatable } from '@salesforce/kit';
+import { AsyncOptionalCreatable } from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
@@ -66,7 +66,7 @@ export type OrganizationInformation = {
  * // Email username
  * const org1: Org = await Org.create({ aliasOrUsername: 'foo@example.com' });
  * // The defaultusername config property
- * const org2: Org = await Org.create({});
+ * const org2: Org = await Org.create();
  * // Full Connection
  * const org3: Org = await Org.create({
  *   connection: await Connection.create({
@@ -77,7 +77,7 @@ export type OrganizationInformation = {
  *
  * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
-export class Org extends AsyncCreatable<Org.Options> {
+export class Org extends AsyncOptionalCreatable<Org.Options> {
   private status: Org.Status = Org.Status.UNKNOWN;
   private configAggregator!: ConfigAggregator;
 
@@ -92,9 +92,9 @@ export class Org extends AsyncCreatable<Org.Options> {
   /**
    * @ignore
    */
-  public constructor(options: Org.Options) {
+  public constructor(options?: Org.Options) {
     super(options);
-    this.options = options;
+    this.options = options || {};
   }
 
   /**

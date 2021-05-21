@@ -30,7 +30,7 @@ export enum AliasGroup {
  * **Note:** All aliases are stored at the global level.
  *
  * ```
- * const aliases = await Aliases.create({});
+ * const aliases = await Aliases.create();
  * aliases.set('myAlias', 'username@company.org');
  * await aliases.write();
  * // Shorthand to get an alias.
@@ -89,7 +89,7 @@ export class Aliases extends ConfigGroup {
   }
 
   /**
-   * Get an alias from a key and group. Shorthand for `Alias.create({}).get(key)`. Returns the promise resolved when the
+   * Get an alias from a key and group. Shorthand for `Alias.create().get(key)`. Returns the promise resolved when the
    * alias is created.
    *
    * @param key The value of the alias to match.

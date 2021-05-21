@@ -11,7 +11,7 @@ import * as dns from 'dns';
 import { resolve as pathResolve } from 'path';
 import { parse as urlParse } from 'url';
 import * as os from 'os';
-import { AsyncCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap, set } from '@salesforce/kit';
+import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap, set } from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
@@ -322,7 +322,7 @@ function base64UrlEscape(base64Encoded: string): string {
  * const connection = await Connection.create({ authInfo });
  * ```
  */
-export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
+export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   // Possibly overridden in create
   private usingAccessToken = false;
 
@@ -339,9 +339,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    *
    * @param options The options for the class instance
    */
-  public constructor(options: AuthInfo.Options) {
+  public constructor(options?: AuthInfo.Options) {
     super(options);
-    this.options = options;
+    this.options = options || {};
   }
 
   /**

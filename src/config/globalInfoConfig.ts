@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { isEmpty } from '@salesforce/kit';
-import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
+import { AnyJson, isPlainObject, JsonMap, Optional } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { ConfigFile } from './configFile';
 import { ConfigValue } from './configStore';
@@ -55,7 +55,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
 
   public static async getInstance(): Promise<GlobalInfo> {
     if (!GlobalInfo.instance) {
-      GlobalInfo.instance = await GlobalInfo.create({});
+      GlobalInfo.instance = await GlobalInfo.create();
     }
     return GlobalInfo.instance;
   }
@@ -116,8 +116,11 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
     this.unset(`${SfDataKeys.AUTHORIZATIONS}["${username}"]`);
   }
 
-  public set(key: string, value: ConfigValue): SfData {
-    return super.set(key, this.timestamp(value as JsonMap));
+  public set(key: string, value: ConfigValue): void {
+    if (isPlainObject(value)) {
+      value = this.timestamp(value as JsonMap);
+    }
+    super.set(key, value);
   }
 
   public async write(newContents?: SfData): Promise<SfData> {

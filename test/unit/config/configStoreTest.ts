@@ -32,7 +32,7 @@ class TestConfig<P extends ConfigContents> extends BaseConfigStore<BaseConfigSto
 
 describe('ConfigStore', () => {
   it('for each value', async () => {
-    const config = await TestConfig.create({});
+    const config = await TestConfig.create();
     config.set('1', 'a');
     config.set('2', 'b');
 
@@ -43,7 +43,7 @@ describe('ConfigStore', () => {
     expect(st).to.equal('1a2b');
   });
   it('await each value', async () => {
-    const config = await TestConfig.create({});
+    const config = await TestConfig.create();
     config.set('1', 'a');
     config.set('2', 'b');
 
@@ -55,7 +55,7 @@ describe('ConfigStore', () => {
   });
 
   it('returns the object reference', async () => {
-    const config = new TestConfig<{ '1': { a: string } }>({});
+    const config = new TestConfig<{ '1': { a: string } }>();
     config.set('1', { a: 'a' });
 
     config.get('1').a = 'b';
@@ -65,7 +65,7 @@ describe('ConfigStore', () => {
   });
 
   it('updates the object reference', async () => {
-    const config = new TestConfig<{ '1': { a: string; b: string } }>({});
+    const config = new TestConfig<{ '1': { a: string; b: string } }>();
     config.set('1', { a: 'a', b: 'b' });
 
     config.update('1', { b: 'c' });
@@ -83,7 +83,7 @@ describe('ConfigStore', () => {
     });
 
     it('throws if value is not strings', async () => {
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       expect(() => config.set('owner.creditCardNumber', 12))
         .to.throw()
         .property('name', 'InvalidCryptoValueError');
@@ -91,7 +91,7 @@ describe('ConfigStore', () => {
 
     it('encrypts top level key', async () => {
       const expected = 'a29djf0kq3dj90d3q';
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       config.set('serialNumber', expected);
       // encrypted
       expect(config.get('serialNumber')).to.not.equal(expected);
@@ -101,7 +101,7 @@ describe('ConfigStore', () => {
 
     it('encrypts nested key', async () => {
       const expected = 'a29djf0kq3dj90d3q';
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       config.set('owner', {
         name: 'Bob',
         creditCardNumber: expected,
@@ -118,7 +118,7 @@ describe('ConfigStore', () => {
 
     it('encrypts nested query key using dot notation', async () => {
       const expected = 'a29djf0kq3dj90d3q';
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       config.set('owner.creditCardNumber', expected);
       // encrypted
       expect(config.get('owner.creditCardNumber')).to.not.equal(expected);
@@ -128,7 +128,7 @@ describe('ConfigStore', () => {
 
     it('encrypts nested query key using accessor with single quotes', async () => {
       const expected = 'a29djf0kq3dj90d3q';
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       config.set('owner["creditCardNumber"]', expected);
       // encrypted
       expect(config.get("owner['creditCardNumber']")).to.not.equal(expected);
@@ -138,7 +138,7 @@ describe('ConfigStore', () => {
 
     it('encrypts nested query key using accessor with double quotes', async () => {
       const expected = 'a29djf0kq3dj90d3q';
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       config.set('owner["creditCardNumber"]', expected);
       // encrypted
       expect(config.get('owner["creditCardNumber"]')).to.not.equal(expected);
@@ -148,7 +148,7 @@ describe('ConfigStore', () => {
 
     it('encrypts nested query special key using accessor with single quotes', async () => {
       const expected = 'a29djf0kq3dj90d3q';
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       const query = `owner['${specialKey}']`;
       config.set(query, expected);
       // encrypted
@@ -159,7 +159,7 @@ describe('ConfigStore', () => {
 
     it('encrypts nested query special key using accessor with double quotes', async () => {
       const expected = 'a29djf0kq3dj90d3q';
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       const query = `owner["${specialKey}"]`;
       config.set(query, expected);
       // encrypted
@@ -170,7 +170,7 @@ describe('ConfigStore', () => {
 
     it('decrypt returns copies', async () => {
       const expected = 'a29djf0kq3dj90d3q';
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       const owner = { name: 'Bob', creditCardNumber: expected };
       // I would love for this to throw an error, but the current typing doesn't quite work like get does.
       config.set('owner', owner);
@@ -186,7 +186,7 @@ describe('ConfigStore', () => {
 
     it('does not fail when saving an already encrypted object', async () => {
       const expected = 'a29djf0kq3dj90d3q';
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       const owner = { name: 'Bob', creditCardNumber: expected };
       config.set('owner', owner);
       const encryptedCreditCardNumber = config.get('owner.creditCardNumber');
@@ -199,7 +199,7 @@ describe('ConfigStore', () => {
 
     it('updates encrypted object', async () => {
       const expected = 'a29djf0kq3dj90d3q';
-      const config = await CarConfig.create({});
+      const config = await CarConfig.create();
       const owner = { name: 'Bob', creditCardNumber: 'old credit card number' };
       config.set('owner', owner);
 

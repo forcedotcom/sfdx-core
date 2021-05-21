@@ -65,7 +65,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
    */
   public static async determineOauthPort(): Promise<number> {
     try {
-      const sfdxProject = await SfdxProjectJson.create({});
+      const sfdxProject = await SfdxProjectJson.create();
       return (sfdxProject.get('oauthLocalPort') as number) || WebOAuthServer.DEFAULT_PORT;
     } catch {
       return WebOAuthServer.DEFAULT_PORT;

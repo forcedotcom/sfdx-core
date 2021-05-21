@@ -55,7 +55,7 @@ export class ConfigFile<
    * @param options The options for the class instance
    * @ignore
    */
-  public constructor(options: T) {
+  public constructor(options?: T) {
     super(options);
 
     this.logger = Logger.childFromRoot(this.constructor.name);

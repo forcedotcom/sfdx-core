@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncCreatable, cloneJson, set } from '@salesforce/kit';
+import { AsyncOptionalCreatable, cloneJson, set } from '@salesforce/kit';
 import { isPlainObject } from '@salesforce/ts-types';
 import {
   AnyJson,
@@ -49,8 +49,8 @@ export interface ConfigStore<P extends ConfigContents = ConfigContents> {
   getKeysByValue(value: ConfigValue): Array<Key<P>>;
   has(key: string): boolean;
   keys(): Array<Key<P>>;
-  set<K extends Key<P>>(key: K, value: P[K]): P;
-  set<T extends ConfigValue>(key: string, value: T): P;
+  set<K extends Key<P>>(key: K, value: P[K]): void;
+  set<T extends ConfigValue>(key: string, value: T): void;
   update<K extends Key<P>>(key: K, value: Partial<P[K]>): void;
   update<T extends ConfigValue>(key: string, value: Partial<T>): void;
   unset(key: string): boolean;
@@ -76,7 +76,7 @@ export abstract class BaseConfigStore<
     T extends BaseConfigStore.Options = BaseConfigStore.Options,
     P extends ConfigContents = ConfigContents
   >
-  extends AsyncCreatable<T>
+  extends AsyncOptionalCreatable<T>
   implements ConfigStore<P> {
   protected static encryptedKeys: string[] = [];
 
@@ -93,9 +93,9 @@ export abstract class BaseConfigStore<
    * @param options The options for the class instance.
    * @ignore
    */
-  public constructor(options: T) {
+  public constructor(options?: T) {
     super(options);
-    this.options = options;
+    this.options = options || ({} as T);
     this.setContents(this.initialContents());
   }
 
@@ -163,9 +163,9 @@ export abstract class BaseConfigStore<
    * @param key The key. Supports query key like `a.b[0]`.
    * @param value The value.
    */
-  public set<K extends Key<P>>(key: K, value: P[K]): P;
-  public set<T = ConfigValue>(key: string, value: T): P;
-  public set<K extends Key<P>>(key: K | string, value: P[K] | ConfigValue): P {
+  public set<K extends Key<P>>(key: K, value: P[K]): void;
+  public set<T = ConfigValue>(key: string, value: T): void;
+  public set<K extends Key<P>>(key: K | string, value: P[K] | ConfigValue): void {
     if (this.hasEncryption()) {
       if (isJsonMap(value)) {
         value = this.recursiveEncrypt(value, key as string) as P[K];
@@ -174,7 +174,6 @@ export abstract class BaseConfigStore<
       }
     }
     this.setMethod(this.contents, key as string, value);
-    return this.contents;
   }
 
   /**

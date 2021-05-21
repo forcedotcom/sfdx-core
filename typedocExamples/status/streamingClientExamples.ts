@@ -17,11 +17,11 @@ export const streamingClientExamples = {
 
       return {
         completed: true,
-        payload: id
+        payload: id,
       };
     };
 
-    const org = await Org.create({});
+    const org = await Org.create();
     const options = new StreamingClient.DefaultOptions(org, 'MyPushTopics', streamProcessor);
 
     const asyncStatusClient = await StreamingClient.create(options);
@@ -32,7 +32,7 @@ export const streamingClientExamples = {
       method: 'POST',
       url: `${org.getField(Org.Fields.INSTANCE_URL)}/SomeService`,
       headers: { HEADER: 'HEADER_VALUE' },
-      body: 'My content'
+      body: 'My content',
     };
 
     await asyncStatusClient.subscribe(async () => {
@@ -42,5 +42,5 @@ export const streamingClientExamples = {
       const id = ensureJsonMap(requestResponse).id;
       console.log(`id: ${JSON.stringify(ensureString(id), null, 4)}`);
     });
-  }
+  },
 };
