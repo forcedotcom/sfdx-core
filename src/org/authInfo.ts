@@ -24,7 +24,6 @@ import {
   isPlainObject,
   isString,
   JsonMap,
-  keysOf,
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
@@ -37,13 +36,12 @@ import * as jwt from 'jsonwebtoken';
 import { Aliases } from '../config/aliases';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Crypto } from '../crypto/crypto';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
 import { MyDomainResolver } from '../status/myDomainResolver';
-import { GlobalInfo } from '../config/globalInfoConfig';
+import { OrgAuthorization, GlobalInfo } from '../config/globalInfoConfig';
 import { Messages } from '../messages';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 
@@ -90,19 +88,6 @@ export type AuthFields = {
   userProfileName?: string;
   expirationDate?: string;
 };
-
-export type Authorization = {
-  alias: Optional<string>;
-  username: Optional<string>;
-  orgId: Optional<string>;
-  instanceUrl: Optional<string>;
-  accessToken?: string;
-  oauthMethod?: 'jwt' | 'web' | 'token' | 'unknown';
-  error?: string;
-  timestamp?: string;
-};
-
-export type SfAuthorization = JsonMap & Authorization;
 
 /**
  * Options for access token flow.
@@ -295,38 +280,6 @@ export const DEFAULT_CONNECTED_APP_INFO = {
   legacyClientSecret: '1384510088588713504',
 };
 
-class AuthInfoCrypto extends Crypto {
-  private static readonly encryptedFields: Array<keyof AuthFields> = [
-    'accessToken',
-    'refreshToken',
-    'password',
-    'clientSecret',
-  ];
-
-  public decryptFields(fields: AuthFields): AuthFields {
-    return this.crypt(fields, 'decrypt');
-  }
-
-  public encryptFields(fields: AuthFields): AuthFields {
-    return this.crypt(fields, 'encrypt');
-  }
-
-  private crypt(fields: AuthFields, method: 'encrypt' | 'decrypt'): AuthFields {
-    const copy: AuthFields = {};
-    for (const key of keysOf(fields)) {
-      const rawValue = fields[key];
-      if (rawValue !== undefined) {
-        if (isString(rawValue) && AuthInfoCrypto.encryptedFields.includes(key)) {
-          copy[key] = this[method](asString(rawValue)) as never;
-        } else {
-          copy[key] = rawValue as never;
-        }
-      }
-    }
-    return copy;
-  }
-}
-
 // Makes a nodejs base64 encoded string compatible with rfc4648 alternative encoding for urls.
 // @param base64Encoded a nodejs base64 encoded string
 function base64UrlEscape(base64Encoded: string): string {
@@ -370,19 +323,13 @@ function base64UrlEscape(base64Encoded: string): string {
  * ```
  */
 export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
-  // Cache of auth fields by username.
-  private static cache: Map<string, AuthFields> = new Map();
-
-  // All sensitive fields are encrypted
-  private fields: AuthFields = {};
-
   // Possibly overridden in create
   private usingAccessToken = false;
 
   // Initialized in init
   private logger!: Logger;
-
-  private authInfoCrypto!: AuthInfoCrypto;
+  private globalInfo!: GlobalInfo;
+  private username!: string;
 
   private options: AuthInfo.Options;
 
@@ -410,13 +357,13 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   /**
    * Get a list of all authorizations based on auth files stored in the global directory.
    *
-   * @returns {Promise<Authorization[]>}
+   * @returns {Promise<OrgAuthorization[]>}
    */
-  public static async listAllAuthorizations(): Promise<Authorization[]> {
+  public static async listAllAuthorizations(): Promise<OrgAuthorization[]> {
     const globalInfo = await GlobalInfo.getInstance();
     const auths = Object.values(globalInfo.getAuthorizations());
     const aliases = await Aliases.create(Aliases.getDefaultOptions());
-    const final: Authorization[] = [];
+    const final: OrgAuthorization[] = [];
     for (const auth of auths) {
       const username = ensureString(auth.username);
       const [alias] = aliases.getKeysByValue(username);
@@ -484,18 +431,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   }
 
   /**
-   * Forces the auth file to be re-read from disk for a given user. Returns `true` if a value was removed.
-   *
-   * @param username The username for the auth info to re-read.
-   */
-  public static clearCache(username: string): boolean {
-    if (username) {
-      return AuthInfo.cache.delete(username);
-    }
-    return false;
-  }
-
-  /**
    * Parse a sfdx auth url, usually obtained by `authInfo.getSfdxAuthUrl`.
    *
    * @example
@@ -527,15 +462,15 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   /**
    * Get the username.
    */
-  public getUsername(): Optional<string> {
-    return this.fields.username;
+  public getUsername(): string {
+    return this.username;
   }
 
   /**
    * Returns true if `this` is using the JWT flow.
    */
   public isJwt(): boolean {
-    const { refreshToken, privateKey } = this.fields;
+    const { refreshToken, privateKey } = this.getFields();
     return !refreshToken && !!privateKey;
   }
 
@@ -543,7 +478,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * Returns true if `this` is using an access token flow.
    */
   public isAccessTokenFlow(): boolean {
-    const { refreshToken, privateKey } = this.fields;
+    const { refreshToken, privateKey } = this.getFields();
     return !refreshToken && !privateKey;
   }
 
@@ -558,7 +493,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * Returns true if `this` is using the refresh token flow.
    */
   public isRefreshTokenFlow(): boolean {
-    const { refreshToken, authCode } = this.fields;
+    const { refreshToken, authCode } = this.getFields();
     return !authCode && !!refreshToken;
   }
 
@@ -576,14 +511,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       return this;
     }
 
-    AuthInfo.cache.set(username, this.fields);
-
-    const dataToSave = cloneJson(this.fields);
-
-    this.logger.debug(dataToSave);
-    const config = await GlobalInfo.getInstance();
-    config.setAuthorization(username, dataToSave as Authorization);
-    await config.write();
+    await this.globalInfo.write();
     this.logger.info(`Saved auth info for username: ${username}`);
     return this;
   }
@@ -593,15 +521,14 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * For convenience `this` object is returned.
    *
    * @param authData Authorization fields to update.
-   * @param encrypt Encrypt the fields.
    */
-  public update(authData?: AuthFields, encrypt = true): AuthInfo {
+  public update(authData?: AuthFields): AuthInfo {
+    // todo move into configstore
     if (authData && isPlainObject(authData)) {
-      let copy = cloneJson(authData);
-      if (encrypt) {
-        copy = this.authInfoCrypto.encryptFields(copy);
-      }
-      Object.assign(this.fields, copy);
+      this.username = authData.username || this.username;
+      const existingFields = this.globalInfo.getAuthorization(this.getUsername());
+      const mergedFields = Object.assign({}, existingFields || {}, authData) as OrgAuthorization;
+      this.globalInfo.setAuthorization(this.getUsername(), mergedFields);
       this.logger.info(`Updated auth info for username: ${this.getUsername()}`);
     }
     return this;
@@ -613,7 +540,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   public getConnectionOptions(): ConnectionOptions {
     let opts: ConnectionOptions;
 
-    const { accessToken, instanceUrl } = this.fields;
+    const decryptedCopy = this.getFields(true);
+    const { accessToken, instanceUrl } = decryptedCopy;
 
     if (this.isAccessTokenFlow()) {
       this.logger.info('Returning fields for a connection using access token.');
@@ -638,7 +566,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       opts = {
         oauth2: {
           loginUrl: instanceUrl || 'https://login.salesforce.com',
-          clientId: this.fields.clientId || DEFAULT_CONNECTED_APP_INFO.legacyClientId,
+          clientId: decryptedCopy.clientId || DEFAULT_CONNECTED_APP_INFO.legacyClientId,
           redirectUri: 'http://localhost:1717/OauthRedirect',
         },
         accessToken,
@@ -648,7 +576,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     }
 
     // decrypt the fields
-    return this.authInfoCrypto.decryptFields(opts);
+    return opts;
   }
 
   /**
@@ -657,7 +585,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * @param decrypt Decrypt the fields.
    */
   public getFields(decrypt?: boolean): AuthFields {
-    return decrypt ? this.authInfoCrypto.decryptFields(this.fields) : this.fields;
+    return this.globalInfo.getAuthorization(this.username, decrypt) as AuthFields;
   }
 
   /**
@@ -683,7 +611,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * **See** [SFDX Authorization](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_auth.htm#cli_reference_force_auth)
    */
   public getSfdxAuthUrl(): string {
-    const decryptedFields = this.authInfoCrypto.decryptFields(this.fields);
+    const decryptedFields = this.getFields(true);
     const instanceUrl = ensure(decryptedFields.instanceUrl).replace(/^https?:\/\//, '');
     let sfdxAuthUrl = 'force://';
 
@@ -739,43 +667,53 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * Initializes an instance of the AuthInfo class.
    */
   public async init(): Promise<void> {
+    // We have to set the global instance here because we need synchronous access to it later
+    this.globalInfo = await GlobalInfo.getInstance();
+
+    const username = this.options.username;
+    const authOptions = this.options.oauth2Options || this.options.accessTokenOptions;
+
     // Must specify either username and/or options
-    const options = this.options.oauth2Options || this.options.accessTokenOptions;
-    if (!this.options.username && !(this.options.oauth2Options || this.options.accessTokenOptions)) {
+    if (!username && !authOptions) {
       throw messages.createError('authInfoCreationError');
     }
 
-    // If a username AND oauth options were passed, ensure an authorization for the username doesn't
+    // If a username AND oauth options, ensure an authorization for the username doesn't
     // already exist. Throw if it does so we don't overwrite the authorization.
-    if (this.options.username && this.options.oauth2Options) {
-      const authExists = (await GlobalInfo.getInstance()).hasAuthorization(this.options.username);
+    if (username && authOptions) {
+      const authExists = this.globalInfo.hasAuthorization(username);
       if (authExists) {
         throw messages.createError('authInfoOverwriteError');
       }
     }
 
-    this.fields.username = this.options.username || getString(options, 'username') || undefined;
+    const oauthUsername = username || getString(authOptions, 'username');
+
+    if (oauthUsername) {
+      this.username = oauthUsername;
+    } // Else it will be set in initAuthOptions below.
 
     // If the username is an access token, use that for auth and don't persist
-    if (isString(this.fields.username) && sfdc.matchesAccessToken(this.fields.username)) {
+    if (isString(oauthUsername) && sfdc.matchesAccessToken(oauthUsername)) {
       // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
       this.logger = await Logger.child('AuthInfo');
-      this.authInfoCrypto = await AuthInfoCrypto.create({
-        noResetOnClose: true,
-      });
 
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
       const instanceUrl: string = (aggregator.getPropertyValue('instanceUrl') as string) || SfdcUrl.PRODUCTION;
 
       this.update({
-        accessToken: this.options.username,
+        accessToken: oauthUsername,
         instanceUrl,
-        orgId: this.fields.username.split('!')[0],
+        orgId: oauthUsername.split('!')[0],
       });
 
       this.usingAccessToken = true;
+    }
+    // If a username with NO oauth options, ensure authorization already exist.
+    else if (username && !authOptions && !this.globalInfo.hasAuthorization(username)) {
+      throw messages.createError('namedOrgNotFound', [username]);
     } else {
-      await this.initAuthOptions(options);
+      await this.initAuthOptions(authOptions);
     }
   }
 
@@ -790,7 +728,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   private async initAuthOptions(options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
     this.logger = await Logger.child('AuthInfo');
-    this.authInfoCrypto = await AuthInfoCrypto.create();
 
     // If options were passed, use those before checking cache and reading an auth file.
     let authConfig: AuthFields;
@@ -802,8 +739,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         authConfig = options;
       } else {
         if (this.options.parentUsername) {
-          const parentUserFields = await this.loadAuthFromConfig(this.options.parentUsername);
-          const parentFields = this.authInfoCrypto.decryptFields(parentUserFields);
+          const parentFields = await this.loadDecryptedAuthFromConfig(this.options.parentUsername);
 
           options.clientId = parentFields.clientId;
 
@@ -841,37 +777,18 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
       // Update the auth fields WITH encryption
       this.update(authConfig);
-    } else {
-      authConfig = await this.loadAuthFromConfig(ensure(this.getUsername()));
-      // Update the auth fields WITHOUT encryption (already encrypted)
-      this.update(authConfig, false);
-    }
-
-    const username = this.getUsername();
-    if (username) {
-      // Cache the fields by username (fields are encrypted)
-      AuthInfo.cache.set(username, this.fields);
     }
 
     return this;
   }
 
-  private async loadAuthFromConfig(username: string): Promise<AuthFields> {
-    if (AuthInfo.cache.has(username)) {
-      return ensure(AuthInfo.cache.get(username));
-    } else {
-      // Fetch from the persisted auth file
-      try {
-        const config = await GlobalInfo.getInstance();
-        return config.getAuthorization(username);
-      } catch (e) {
-        if (e.code === 'ENOENT') {
-          throw messages.createError('namedOrgNotFound', [username]);
-        } else {
-          throw e;
-        }
-      }
+  private async loadDecryptedAuthFromConfig(username: string): Promise<AuthFields> {
+    // Fetch from the persisted auth file
+    const authInfo = this.globalInfo.getAuthorization(username, true);
+    if (!authInfo) {
+      throw messages.createError('namedOrgNotFound', [username]);
     }
+    return authInfo;
   }
 
   private isTokenOptions(options: OAuth2Options | AccessTokenOptions): options is AccessTokenOptions {
@@ -895,7 +812,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     this.logger.info('Access token has expired. Updating...');
 
     try {
-      const fields = this.authInfoCrypto.decryptFields(this.fields);
+      const fields = this.getFields(true);
       await this.initAuthOptions(fields);
       await this.save();
       return await callback(null, fields.accessToken);
@@ -1061,7 +978,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     accessToken: string,
     orgId: string,
     userId: string
-  ): Promise<Optional<string>> {
+  ): Promise<string> {
     // Make a REST call for the username directly.  Normally this is done via a connection
     // but we don't want to create circular dependencies or lots of snowflakes
     // within this file to support it.
@@ -1075,9 +992,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       const response = await new Transport().httpRequest({ url, headers });
       if (response.statusCode >= 400) {
         this.throwUserGetException(response);
-      } else {
-        return asString(parseJsonMap(response.body).Username);
       }
+
+      return ensureString(parseJsonMap(response.body).Username, 'Username not returned by the API');
     } catch (err) {
       throw messages.createError('authCodeUsernameRetrievalError', [orgId, err.message]);
     }

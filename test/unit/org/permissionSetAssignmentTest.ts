@@ -23,6 +23,11 @@ describe('permission set assignment tests', () => {
   describe('create tests', () => {
     let org: Org;
     beforeEach(async () => {
+      $$.configStubs.GlobalInfo = {
+        contents: {
+          authorizations: { [userTestdata.username]: await userTestdata.getConfig() },
+        },
+      };
       org = await Org.create({
         connection: await Connection.create({
           authInfo: await AuthInfo.create({ username: userTestdata.username }),

@@ -2,6 +2,11 @@
 
 There are several breaking changes from v2 to v3. This doc outlines what those the differences are between v2 and v3, why we did them, and how to transition to v3.
 
+# ConfigFile, AuthInfo, and Encrypting Values
+
+AuthInfo.clearCache no longer exist.
+AuthInfo.update removed encrypt param
+
 ## Messages
 
 ### What?

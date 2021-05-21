@@ -12,10 +12,10 @@ import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
-import { Authorizations, GlobalInfo } from '../config/globalInfoConfig';
-import { AuthInfo, Authorization } from './authInfo';
+import { OrgAuthorization, GlobalInfo, OrgAuthorizations } from '../config/globalInfoConfig';
 
 Messages.importMessagesDirectory(__dirname);
+const coreMessages = Messages.load('@salesforce/core', 'core', ['namedOrgNotFound']);
 const messages = Messages.load('@salesforce/core', 'auth', ['defaultUsernameNotSet']);
 
 /**
@@ -56,7 +56,6 @@ export class AuthRemover extends AsyncOptionalCreatable {
   public async removeAuth(usernameOrAlias: string) {
     const username = await this.resolveUsername(usernameOrAlias);
     this.logger.debug(`Removing authorization for user ${username}`);
-    AuthInfo.clearCache(username);
     await this.unsetConfigValues(username);
     await this.unsetAliases(username);
     this.globalInfo.unsetAuthorization(username);
@@ -76,22 +75,27 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Finds authorization files for username/alias in the global .sfdx folder
-   * **Throws** *{@link SfdxError}{ name: 'DefaultUsernameNotSetError' }* if no username, alias, or defaultusername
+   * **Throws** *{@link SfdxError}{ name: 'DefaultUsernameNotSetError' }* if no defaultusername
+   * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFoundError' }* if specified user is not found
    *
    * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured defaultusername
    * @returns {Promise<Authorization>}
    */
-  public async findAuth(usernameOrAlias?: string): Promise<Authorization> {
+  public async findAuth(usernameOrAlias?: string): Promise<OrgAuthorization> {
     const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getDefaultUsername();
-    return this.globalInfo.getAuthorization(username);
+    const auth = this.globalInfo.getAuthorization(username);
+    if (!auth) {
+      throw coreMessages.createError('namedOrgNotFound');
+    }
+    return auth;
   }
 
   /**
    * Finds all authorization files in the global .sfdx folder
    *
-   * @returns {Promise<Authorizations>}
+   * @returns {Promise<OrgAuthorizations>}
    */
-  public findAllAuths(): Authorizations {
+  public findAllAuths(): OrgAuthorizations {
     return this.globalInfo.getAuthorizations();
   }
 

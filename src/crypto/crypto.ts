@@ -20,6 +20,9 @@ const TAG_DELIMITER = ':';
 const BYTE_COUNT_FOR_IV = 6;
 const ALGO = 'aes-256-gcm';
 
+const AUTH_TAG_LENGTH = 32;
+const ENCRYPTED_CHARS = /[a-f0-9]/;
+
 const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
 
@@ -108,6 +111,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
    *
    * @param text The text to encrypt.
    */
+  public encrypt(text: string): string;
   public encrypt(text?: string): Optional<string> {
     if (text == null) {
       return;
@@ -135,6 +139,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
    *
    * @param text The text to decrypt.
    */
+  public decrypt(text: string): string;
   public decrypt(text?: string): Optional<string> {
     if (text == null) {
       return;
@@ -169,6 +174,34 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
       }
       return dec;
     });
+  }
+
+  /**
+   * Takes a best guess if the value provided was encrypted by {@link Crypto.encrypt} by
+   * checking the delimiter, tag length, and valid characters.
+   *
+   * @param text The text
+   * @returns true if the text is encrypted, false otherwise.
+   */
+  public isEncrypted(text?: string): boolean {
+    if (text == null) {
+      return false;
+    }
+
+    const tokens = text.split(TAG_DELIMITER);
+
+    if (tokens.length !== 2) {
+      return false;
+    }
+
+    const tag = tokens[1];
+    const value = tokens[0];
+    return (
+      tag.length === AUTH_TAG_LENGTH &&
+      value.length >= BYTE_COUNT_FOR_IV &&
+      ENCRYPTED_CHARS.test(tag) &&
+      ENCRYPTED_CHARS.test(tokens[0])
+    );
   }
 
   /**

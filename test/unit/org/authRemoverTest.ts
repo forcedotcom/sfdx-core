@@ -20,10 +20,6 @@ describe('AuthRemover', () => {
 
   beforeEach(async () => {
     $$.SANDBOXES.CONFIG.restore();
-    // Turn off the interoperability feature so that we don't have to mock
-    // the old .sfdx config files
-    // @ts-ignore
-    GlobalInfo.enableInteroperability = false;
 
     stubMethod($$.SANDBOX, GlobalInfo.prototype, 'read').callsFake(async function (this: GlobalInfo) {
       const authData = {
@@ -36,10 +32,6 @@ describe('AuthRemover', () => {
       this.setContentsFromObject(contents);
       return this.getContents();
     });
-  });
-  afterEach(() => {
-    // @ts-ignore becuase private member
-    GlobalInfo.instance = null;
   });
 
   describe('resolveUsername', () => {

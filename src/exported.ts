@@ -18,7 +18,7 @@ export { ConfigGroup } from './config/configGroup';
 
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
-export { GlobalInfo } from './config/globalInfoConfig';
+export { GlobalInfo, OrgAuthorizations, OrgAuthorization } from './config/globalInfoConfig';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
 
@@ -28,7 +28,7 @@ export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config } from './config/co
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
-export { Authorization, AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl } from './org/authInfo';
+export { AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl } from './org/authInfo';
 
 export { AuthRemover } from './org/authRemover';
 

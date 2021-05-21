@@ -38,10 +38,7 @@ describe('Org Tests', () => {
 
   beforeEach(async () => {
     testData = new MockTestOrgData();
-    // Turn off the interoperability feature so that we don't have to mock
-    // the old .sfdx config files
-    // @ts-ignore
-    GlobalInfo.enableInteroperability = false;
+
     $$.configStubs.GlobalInfo = {
       contents: {
         authorizations: {
@@ -52,11 +49,6 @@ describe('Org Tests', () => {
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves('1.1.1.1');
 
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
-  });
-
-  afterEach(() => {
-    // @ts-ignore becuase private member
-    GlobalInfo.instance = null;
   });
 
   describe('fields', () => {
@@ -174,6 +166,8 @@ describe('Org Tests', () => {
 
     it('InvalidProjectWorkspaceError', async () => {
       $$.SANDBOXES.CONFIG.restore();
+      // Cleared the config, so manually set the authorization.
+      (await GlobalInfo.getInstance()).setAuthorization(testData.username, await testData.getConfig());
       let invalidProjectWorkspace = false;
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
         invalidProjectWorkspace = true;
@@ -197,6 +191,8 @@ describe('Org Tests', () => {
 
     it('Random Error', async () => {
       $$.SANDBOXES.CONFIG.restore();
+      // Cleared the config, so manually set the authorization.
+      (await GlobalInfo.getInstance()).setAuthorization(testData.username, await testData.getConfig());
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
         const err = new Error();
         err.name = 'gozer';
@@ -391,8 +387,9 @@ describe('Org Tests', () => {
       ];
 
       $$.SANDBOXES.CONFIG.restore();
+      const uniqDirForTestRun = $$.uniqid();
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolderSync').callsFake((isGlobal: boolean) =>
-        $$.rootPathRetrieverSync(isGlobal, $$.id)
+        $$.rootPathRetrieverSync(isGlobal, uniqDirForTestRun)
       );
 
       let userAuthResponse: AnyJson = null;
@@ -402,8 +399,6 @@ describe('Org Tests', () => {
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(() => {
         return Promise.resolve(responseBody);
       });
-
-      $$.SANDBOX.stub(GlobalInfo.prototype, 'hasAuthorization').returns(false);
 
       for (const user of users) {
         userAuthResponse = {
@@ -422,17 +417,17 @@ describe('Org Tests', () => {
           loginUrl: user.loginUrl,
           redirectUri: user.redirectUri,
         };
-        const userAuth = await AuthInfo.create({
+        const authInfo = await AuthInfo.create({
           username: user.username,
           oauth2Options,
         });
-        await userAuth.save({ orgId: user.orgId });
+        await authInfo.save({ orgId: user.orgId });
 
         const configAggregator: ConfigAggregator = await ConfigAggregator.create();
 
         const org: Org = await Org.create({
           connection: await Connection.create({
-            authInfo: await AuthInfo.create({ username: user.username }),
+            authInfo,
           }),
           aggregator: configAggregator,
         });
@@ -503,7 +498,18 @@ describe('Org Tests', () => {
         return returnResult;
       });
 
-      const fakeDevHub = 'foo@devhub.com';
+      const devHub = 'foo@devhub.com';
+      const devHubConfig = new MockTestOrgData();
+      devHubConfig.username = devHub;
+
+      $$.configStubs.GlobalInfo = {
+        contents: {
+          authorizations: {
+            [testData.username]: await testData.getConfig(),
+            [devHub]: await devHubConfig.getConfig(),
+          },
+        },
+      };
 
       const configAggregator: ConfigAggregator = await ConfigAggregator.create();
       connection = await Connection.create({
@@ -512,7 +518,7 @@ describe('Org Tests', () => {
       org = await Org.create({ connection, aggregator: configAggregator });
 
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(Config.DEFAULT_DEV_HUB_USERNAME, fakeDevHub);
+      config.set(Config.DEFAULT_DEV_HUB_USERNAME, devHub);
       await config.write();
 
       await org.getConfigAggregator().reload();
@@ -547,14 +553,16 @@ describe('Org Tests', () => {
 
   describe('getDevHubOrg', () => {
     const devHubUser = 'ray@gb.org';
-    beforeEach(() => {
+    beforeEach(async () => {
+      const mockDevHubData: MockTestOrgData = new MockTestOrgData();
+      mockDevHubData.username = devHubUser;
       const retrieve = async function (this: ConfigFile<ConfigFile.Options>) {
-        if (this.getPath().includes(devHubUser)) {
-          const mockDevHubData: MockTestOrgData = new MockTestOrgData();
-          mockDevHubData.username = devHubUser;
-          return Promise.resolve({ authorizations: { [mockDevHubData.username]: await mockDevHubData.getConfig() } });
-        }
-        return Promise.resolve({ authorizations: { [testData.username]: await testData.getConfig() } });
+        return {
+          authorizations: {
+            [testData.username]: await testData.getConfig(),
+            [mockDevHubData.username]: await mockDevHubData.getConfig(),
+          },
+        };
       };
       $$.configStubs.GlobalInfo = { retrieveContents: retrieve };
     });
@@ -617,6 +625,16 @@ describe('Org Tests', () => {
       mock0 = new MockTestOrgData();
       mock1 = new MockTestOrgData();
       mock2 = new MockTestOrgData();
+
+      $$.configStubs.GlobalInfo = {
+        contents: {
+          authorizations: {
+            [mock0.username]: await mock0.getConfig(),
+            [mock1.username]: await mock1.getConfig(),
+            [mock2.username]: await mock2.getConfig(),
+          },
+        },
+      };
 
       orgs[0] = await Org.create({
         connection: await Connection.create({
