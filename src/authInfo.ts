@@ -1101,14 +1101,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     };
   }
 
-  private async retrieveUsername(
-    instanceUrl: string,
-    accessToken: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    orgIdToRemove?: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    userId?: string
-  ): Promise<Optional<UserInfo>> {
+  private async retrieveUsername(instanceUrl: string, accessToken: string): Promise<Optional<UserInfo>> {
     // Make a REST call for the username directly.  Normally this is done via a connection
     // but we don't want to create circular dependencies or lots of snowflakes
     // within this file to support it.
