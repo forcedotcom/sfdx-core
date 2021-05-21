@@ -841,7 +841,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         authConfig = options;
         const userInfo = await this.retrieveUsername(
           ensureString(options.instanceUrl),
-          ensureString(options.instanceUrl)
+          ensureString(options.accessToken)
         );
         this.fields.username = userInfo?.preferred_username;
         this.fields.orgId = userInfo?.organization_id;
