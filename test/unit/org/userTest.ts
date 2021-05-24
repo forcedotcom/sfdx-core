@@ -29,7 +29,7 @@ describe('User Tests', () => {
 
     $$.configStubs.GlobalInfo = {
       contents: {
-        authorizations: {
+        orgs: {
           [adminTestData.username]: await adminTestData.getConfig(),
           [user1.username]: await user1.getConfig(),
         },
@@ -197,7 +197,7 @@ describe('User Tests', () => {
       });
       $$.configStubs.GlobalInfo = {
         contents: {
-          authorizations: { [user1.username]: await user1.getConfig() },
+          orgs: { [user1.username]: await user1.getConfig() },
         },
       };
       const connection: Connection = await Connection.create({
@@ -235,7 +235,7 @@ describe('User Tests', () => {
         },
       });
 
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'hasAuthorization').returns(true);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'hasOrg').returns(true);
 
       org = await Org.create({
         connection: await Connection.create({

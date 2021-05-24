@@ -6,7 +6,7 @@ import * as strip from 'strip-ansi';
 
 export async function run() {
   const config = await GlobalInfo.getInstance();
-  const orgs = Object.keys(config.authorizations);
+  const orgs = Object.keys(config.getOrgs());
   const orgsWithAliases = {};
   const aliases = await Aliases.create();
 

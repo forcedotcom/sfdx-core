@@ -41,7 +41,7 @@ import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
 import { MyDomainResolver } from '../status/myDomainResolver';
-import { OrgAuthorization, GlobalInfo } from '../config/globalInfoConfig';
+import { Org, GlobalInfo } from '../config/globalInfoConfig';
 import { Messages } from '../messages';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 
@@ -357,13 +357,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   /**
    * Get a list of all authorizations based on auth files stored in the global directory.
    *
-   * @returns {Promise<OrgAuthorization[]>}
+   * @returns {Promise<Org[]>}
    */
-  public static async listAllAuthorizations(): Promise<OrgAuthorization[]> {
+  public static async listAllAuthorizations(): Promise<Org[]> {
     const globalInfo = await GlobalInfo.getInstance();
-    const auths = Object.values(globalInfo.getAuthorizations());
+    const auths = Object.values(globalInfo.getOrgs());
     const aliases = await Aliases.create(Aliases.getDefaultOptions());
-    const final: OrgAuthorization[] = [];
+    const final: Org[] = [];
     for (const auth of auths) {
       const username = ensureString(auth.username);
       const [alias] = aliases.getKeysByValue(username);
@@ -400,7 +400,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public static async hasAuthentications(): Promise<boolean> {
     try {
-      const auths = (await GlobalInfo.getInstance()).getAuthorizations();
+      const auths = (await GlobalInfo.getInstance()).getOrgs();
       return !isEmpty(auths);
     } catch (err) {
       if (err.name === 'OrgDataNotAvailableError' || err.code === 'ENOENT') {
@@ -526,9 +526,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // todo move into configstore
     if (authData && isPlainObject(authData)) {
       this.username = authData.username || this.username;
-      const existingFields = this.globalInfo.getAuthorization(this.getUsername());
-      const mergedFields = Object.assign({}, existingFields || {}, authData) as OrgAuthorization;
-      this.globalInfo.setAuthorization(this.getUsername(), mergedFields);
+      const existingFields = this.globalInfo.getOrg(this.getUsername());
+      const mergedFields = Object.assign({}, existingFields || {}, authData) as Org;
+      this.globalInfo.setOrg(this.getUsername(), mergedFields);
       this.logger.info(`Updated auth info for username: ${this.getUsername()}`);
     }
     return this;
@@ -585,7 +585,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param decrypt Decrypt the fields.
    */
   public getFields(decrypt?: boolean): AuthFields {
-    return this.globalInfo.getAuthorization(this.username, decrypt) as AuthFields;
+    return this.globalInfo.getOrg(this.username, decrypt) as AuthFields;
   }
 
   /**
@@ -681,7 +681,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // If a username AND oauth options, ensure an authorization for the username doesn't
     // already exist. Throw if it does so we don't overwrite the authorization.
     if (username && authOptions) {
-      const authExists = this.globalInfo.hasAuthorization(username);
+      const authExists = this.globalInfo.hasOrg(username);
       if (authExists) {
         throw messages.createError('authInfoOverwriteError');
       }
@@ -710,7 +710,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.usingAccessToken = true;
     }
     // If a username with NO oauth options, ensure authorization already exist.
-    else if (username && !authOptions && !this.globalInfo.hasAuthorization(username)) {
+    else if (username && !authOptions && !this.globalInfo.hasOrg(username)) {
       throw messages.createError('namedOrgNotFound', [username]);
     } else {
       await this.initAuthOptions(authOptions);
@@ -784,7 +784,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   private async loadDecryptedAuthFromConfig(username: string): Promise<AuthFields> {
     // Fetch from the persisted auth file
-    const authInfo = this.globalInfo.getAuthorization(username, true);
+    const authInfo = this.globalInfo.getOrg(username, true);
     if (!authInfo) {
       throw messages.createError('namedOrgNotFound', [username]);
     }

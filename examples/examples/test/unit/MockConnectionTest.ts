@@ -9,15 +9,15 @@ describe('Mocking an SFDX connection', () => {
     const testData = new MockTestOrgData();
     $$.setConfigStubContents('GlobalInfo', {
       contents: {
-        authorizations: {
-          [testData.username]: await testData.getConfig()
-        }
-      }
+        orgs: {
+          [testData.username]: await testData.getConfig(),
+        },
+      },
     });
     const connection: Connection = await Connection.create({
       authInfo: await AuthInfo.create({
-        username: testData.username
-      })
+        username: testData.username,
+      }),
     });
     strictEqual(connection.accessToken, testData.accessToken);
   });

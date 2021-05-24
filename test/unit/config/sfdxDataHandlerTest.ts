@@ -42,7 +42,7 @@ describe('SfdxDataHandler', () => {
 
     const createData = (partial: PartialDeep<SfData> = {}): SfData => {
       const base = GlobalInfo.emptyDataModel;
-      base.authorizations = {
+      base.orgs = {
         [username]: {
           orgId: '12345_SF',
           username,
@@ -63,7 +63,7 @@ describe('SfdxDataHandler', () => {
 
     it('should merge newer sfdx data into sf data', async () => {
       const sfData = createData({
-        authorizations: {
+        orgs: {
           [username]: {
             timestamp: new Date('2000-01-01').toISOString(),
             orgId: '12345_SF',
@@ -71,7 +71,7 @@ describe('SfdxDataHandler', () => {
         },
       });
       const sfdxData = createData({
-        authorizations: {
+        orgs: {
           [username]: { orgId: '12345_SFDX' },
         },
       });
@@ -83,14 +83,14 @@ describe('SfdxDataHandler', () => {
 
     it('should not merge older sfdx data into sf data', async () => {
       const sfData = createData({
-        authorizations: {
+        orgs: {
           [username]: {
             orgId: '12345_SF',
           },
         },
       });
       const sfdxData = createData({
-        authorizations: {
+        orgs: {
           [username]: {
             timestamp: new Date('2000-01-01').toISOString(),
             orgId: '12345_SFDX',
@@ -108,7 +108,7 @@ describe('SfdxDataHandler', () => {
       const newSfdxAuthUsername = 'newAccount@salesforce.com';
       const sfData = createData();
       const sfdxData = createData({
-        authorizations: {
+        orgs: {
           [newSfdxAuthUsername]: {
             orgId: '12345_NEW_SFDX',
             username: newSfdxAuthUsername,
@@ -123,9 +123,9 @@ describe('SfdxDataHandler', () => {
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
       const expected = GlobalInfo.emptyDataModel;
-      expected.authorizations = {
-        [username]: sfData.authorizations[username],
-        [newSfdxAuthUsername]: sfdxData.authorizations[newSfdxAuthUsername],
+      expected.orgs = {
+        [username]: sfData.orgs[username],
+        [newSfdxAuthUsername]: sfdxData.orgs[newSfdxAuthUsername],
       };
       expect(merged).to.deep.equal(expected);
     });
@@ -133,7 +133,7 @@ describe('SfdxDataHandler', () => {
     it('should delete data that exists in sf but not in sfdx', async () => {
       const newSfdxAuthUsername = 'newAccount@salesforce.com';
       const sfData = createData({
-        authorizations: {
+        orgs: {
           [newSfdxAuthUsername]: {
             orgId: '12345_NEW_SFDX',
             username: newSfdxAuthUsername,
@@ -149,8 +149,8 @@ describe('SfdxDataHandler', () => {
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
       const expected = GlobalInfo.emptyDataModel;
-      expected.authorizations = {
-        [username]: sfData.authorizations[username],
+      expected.orgs = {
+        [username]: sfData.orgs[username],
       };
       expect(merged).to.deep.equal(expected);
     });
@@ -197,7 +197,7 @@ describe('AuthHandler', () => {
       sandbox.stub(AuthHandler.prototype, 'listAllAuthorizations').resolves([migratedAuth]);
       const handler = new AuthHandler();
       const migrated = await handler.migrate();
-      expect(migrated).to.deep.equal({ authorizations: { [username]: migratedAuth } });
+      expect(migrated).to.deep.equal({ orgs: { [username]: migratedAuth } });
     });
   });
 
@@ -209,11 +209,11 @@ describe('AuthHandler', () => {
       sandbox.replace(ConfigFile.prototype, 'unlink', unlinkStub);
 
       const latest = GlobalInfo.emptyDataModel;
-      latest.authorizations = {
+      latest.orgs = {
         [username]: Object.assign({}, auth, { timestamp, accessToken: 'token_XXXXX' }),
       };
       const original = GlobalInfo.emptyDataModel;
-      original.authorizations = {
+      original.orgs = {
         [username]: Object.assign({}, auth, { timestamp }),
       };
       const handler = new AuthHandler();
@@ -230,7 +230,7 @@ describe('AuthHandler', () => {
 
       const latest = GlobalInfo.emptyDataModel;
       const original = GlobalInfo.emptyDataModel;
-      original.authorizations = {
+      original.orgs = {
         [username]: Object.assign({}, auth, { timestamp }),
       };
       const handler = new AuthHandler();

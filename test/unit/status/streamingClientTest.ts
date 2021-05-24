@@ -40,7 +40,7 @@ describe('streaming client tests', () => {
 
     $$.configStubs.GlobalInfo = {
       contents: {
-        authorizations: {
+        orgs: {
           [username]: {
             orgId: id,
             username,

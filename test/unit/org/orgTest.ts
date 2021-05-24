@@ -41,7 +41,7 @@ describe('Org Tests', () => {
 
     $$.configStubs.GlobalInfo = {
       contents: {
-        authorizations: {
+        orgs: {
           [testData.username]: await testData.getConfig(),
         },
       },
@@ -80,7 +80,7 @@ describe('Org Tests', () => {
     it('should create an org from an alias', async () => {
       const config = await testData.getConfig();
       delete config.username;
-      $$.configStubs.GlobalInfo = { contents: { authorizations: { [testData.username]: config } } };
+      $$.configStubs.GlobalInfo = { contents: { orgs: { [testData.username]: config } } };
       const alias = 'foo';
       await Aliases.parseAndUpdate([`${alias}=${testData.username}`]);
       const org: Org = await Org.create({ aliasOrUsername: alias });
@@ -167,7 +167,7 @@ describe('Org Tests', () => {
     it('InvalidProjectWorkspaceError', async () => {
       $$.SANDBOXES.CONFIG.restore();
       // Cleared the config, so manually set the authorization.
-      (await GlobalInfo.getInstance()).setAuthorization(testData.username, await testData.getConfig());
+      (await GlobalInfo.getInstance()).setOrg(testData.username, await testData.getConfig());
       let invalidProjectWorkspace = false;
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
         invalidProjectWorkspace = true;
@@ -192,7 +192,7 @@ describe('Org Tests', () => {
     it('Random Error', async () => {
       $$.SANDBOXES.CONFIG.restore();
       // Cleared the config, so manually set the authorization.
-      (await GlobalInfo.getInstance()).setAuthorization(testData.username, await testData.getConfig());
+      (await GlobalInfo.getInstance()).setOrg(testData.username, await testData.getConfig());
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
         const err = new Error();
         err.name = 'gozer';
@@ -220,7 +220,7 @@ describe('Org Tests', () => {
   describe('remove', () => {
     const configFileReadJsonMock = async function (this: ConfigFile<ConfigFile.Options>) {
       if (this.getPath().includes('sf.json')) {
-        return Promise.resolve({ authorizations: { [testData.username]: await testData.getConfig() } });
+        return Promise.resolve({ orgs: { [testData.username]: await testData.getConfig() } });
       }
 
       return Promise.resolve({});
@@ -504,7 +504,7 @@ describe('Org Tests', () => {
 
       $$.configStubs.GlobalInfo = {
         contents: {
-          authorizations: {
+          orgs: {
             [testData.username]: await testData.getConfig(),
             [devHub]: await devHubConfig.getConfig(),
           },
@@ -558,7 +558,7 @@ describe('Org Tests', () => {
       mockDevHubData.username = devHubUser;
       const retrieve = async function (this: ConfigFile<ConfigFile.Options>) {
         return {
-          authorizations: {
+          orgs: {
             [testData.username]: await testData.getConfig(),
             [mockDevHubData.username]: await mockDevHubData.getConfig(),
           },
@@ -628,7 +628,7 @@ describe('Org Tests', () => {
 
       $$.configStubs.GlobalInfo = {
         contents: {
-          authorizations: {
+          orgs: {
             [mock0.username]: await mock0.getConfig(),
             [mock1.username]: await mock1.getConfig(),
             [mock2.username]: await mock2.getConfig(),
@@ -713,7 +713,7 @@ describe('Org Tests', () => {
     });
     it('should not call server is cached', async () => {
       $$.configStubs.GlobalInfo.contents = {
-        authorizations: {
+        orgs: {
           [testData.username]: { isDevHub: false },
         },
       };
@@ -726,7 +726,7 @@ describe('Org Tests', () => {
     });
     it('should call server is cached but forced', async () => {
       $$.configStubs.GlobalInfo.contents = {
-        authorizations: {
+        orgs: {
           [testData.username]: { isDevHub: false },
         },
       };
@@ -759,7 +759,7 @@ describe('Org Tests', () => {
         return Promise.resolve(true);
       });
 
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'hasAuthorization').callsFake(async function () {
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'hasOrg').callsFake(async function () {
         if (this.path && this.path.includes(testData.orgId)) {
           return Promise.resolve(false);
         }
@@ -773,7 +773,7 @@ describe('Org Tests', () => {
         return Promise.resolve({});
       });
 
-      const unsetSpy = stubMethod($$.SANDBOX, GlobalInfo.prototype, 'unsetAuthorization').returns(null);
+      const unsetSpy = stubMethod($$.SANDBOX, GlobalInfo.prototype, 'unsetOrg').returns(null);
 
       // Create an org and add a sandbox config
       const org: Org = await Org.create({ aliasOrUsername: testData.username });

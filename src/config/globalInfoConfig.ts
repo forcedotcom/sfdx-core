@@ -12,13 +12,13 @@ import { ConfigValue } from './configStore';
 import { SfdxDataHandler } from './sfdxDataHandler';
 
 export enum SfDataKeys {
-  AUTHORIZATIONS = 'authorizations',
+  ORGS = 'orgs',
   TOKENS = 'tokens',
 }
 
-type Timestamp = { timestamp: string };
+export type Entry = { timestamp: string } & JsonMap;
 
-export type OrgAuthorization = {
+export type Org = {
   alias: Optional<string>;
   username: Optional<string>;
   orgId: Optional<string>;
@@ -26,25 +26,23 @@ export type OrgAuthorization = {
   accessToken?: string;
   oauthMethod?: 'jwt' | 'web' | 'token' | 'unknown';
   error?: string;
-} & Timestamp &
-  JsonMap;
-export interface OrgAuthorizations {
-  [key: string]: OrgAuthorization;
+} & Entry;
+export interface Orgs {
+  [key: string]: Org;
 }
 
 export type Token = {
   token: string;
   url: string;
   user: string;
-} & Timestamp &
-  JsonMap;
+} & Entry;
 
 export interface Tokens {
   [key: string]: Token;
 }
 
 export type SfData = {
-  [SfDataKeys.AUTHORIZATIONS]: OrgAuthorizations;
+  [SfDataKeys.ORGS]: Orgs;
   [SfDataKeys.TOKENS]: Tokens;
 };
 
@@ -55,7 +53,7 @@ export function deepCopy<T extends AnyJson>(data: T): T {
 export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
   protected static encryptedKeys = ['accessToken', 'refreshToken', 'password', 'clientSecret'];
   private static EMPTY_DATA_MODEL: SfData = {
-    [SfDataKeys.AUTHORIZATIONS]: {},
+    [SfDataKeys.ORGS]: {},
     [SfDataKeys.TOKENS]: {},
   };
   private static instance: Optional<GlobalInfo>;
@@ -101,35 +99,35 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
     };
   }
 
-  public getAuthorizations(decrypt = false): OrgAuthorizations {
-    return this.get(SfDataKeys.AUTHORIZATIONS, decrypt);
+  public getOrgs(decrypt = false): Orgs {
+    return this.get(SfDataKeys.ORGS, decrypt);
   }
 
-  public getAuthorization(username: string, decrypt = false): Optional<OrgAuthorization> {
-    const auth: OrgAuthorization = this.get(`${SfDataKeys.AUTHORIZATIONS}["${username}"]`, decrypt);
+  public getOrg(username: string, decrypt = false): Optional<Org> {
+    const auth: Org = this.get(`${SfDataKeys.ORGS}["${username}"]`, decrypt);
     // For legacy, some things wants the username in the returned auth info.
     if (auth && !auth.username) auth.username = username;
     return auth;
   }
 
-  public hasAuthorization(username: string): boolean {
-    return !!this.getAuthorizations()[username];
+  public hasOrg(username: string): boolean {
+    return !!this.getOrgs()[username];
   }
 
-  public setAuthorization(username: string, authorization: OrgAuthorization): void {
+  public setOrg(username: string, org: Org): void {
+    // For legacy, and to keep things standard, some things wants the username in auth info.
+    if (!org.username) org.username = username;
+    this.set(`${SfDataKeys.ORGS}["${username}"]`, org);
+  }
+
+  public updateOrg(username: string, authorization: Partial<Org>): void {
     // For legacy, and to keep things standard, some things wants the username in auth info.
     if (!authorization.username) authorization.username = username;
-    this.set(`${SfDataKeys.AUTHORIZATIONS}["${username}"]`, authorization);
+    this.update(`${SfDataKeys.ORGS}["${username}"]`, authorization);
   }
 
-  public updateAuthorization(username: string, authorization: Partial<OrgAuthorization>): void {
-    // For legacy, and to keep things standard, some things wants the username in auth info.
-    if (!authorization.username) authorization.username = username;
-    this.update(`${SfDataKeys.AUTHORIZATIONS}["${username}"]`, authorization);
-  }
-
-  public unsetAuthorization(username: string): void {
-    this.unset(`${SfDataKeys.AUTHORIZATIONS}["${username}"]`);
+  public unsetOrg(username: string): void {
+    this.unset(`${SfDataKeys.ORGS}["${username}"]`);
   }
 
   public getTokens(decrypt = false): Tokens {

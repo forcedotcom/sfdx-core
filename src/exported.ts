@@ -18,7 +18,7 @@ export { ConfigGroup } from './config/configGroup';
 
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
-export { GlobalInfo, OrgAuthorizations, OrgAuthorization } from './config/globalInfoConfig';
+export { GlobalInfo, Orgs as OrgAuthorizations, Org as OrgAuthorization } from './config/globalInfoConfig';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
 

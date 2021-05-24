@@ -360,7 +360,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       const isSandbox = organization.IsSandbox && !organization.TrialExpirationDate;
       const info = await GlobalInfo.getInstance();
 
-      info.updateAuthorization(username, {
+      info.updateOrg(username, {
         [Org.Fields.NAME]: organization.Name,
         [Org.Fields.INSTANCE_NAME]: organization.InstanceName,
         [Org.Fields.NAMESPACE_PREFIX]: organization.NamespacePrefix,
@@ -621,7 +621,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (username) {
       this.logger.debug(`Removing auth for user: ${username}`);
       this.logger.debug(`Clearing auth cache for user: ${username}`);
-      config.unsetAuthorization(username);
+      config.unsetOrg(username);
     }
     await config.write();
   }

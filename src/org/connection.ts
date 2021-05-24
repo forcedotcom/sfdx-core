@@ -397,7 +397,7 @@ export class Connection extends JSForceConnection {
    * Getter for the AuthInfo fields.
    */
   public getAuthInfoFields(): AuthFields {
-    // If the GlobalInfo.unsetAuthorization is called, the AuthFields are no longer accessible.
+    // If the GlobalInfo.unsetOrg is called, the AuthFields are no longer accessible.
     return this.options.authInfo.getFields() || {};
   }
 

@@ -11,7 +11,7 @@ import { ensureString } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { fs } from '../util/fs';
 import { ConfigFile } from './configFile';
-import { OrgAuthorizations, OrgAuthorization, deepCopy, GlobalInfo, SfData, SfDataKeys } from './globalInfoConfig';
+import { Orgs, Org, deepCopy, GlobalInfo, SfData, SfDataKeys } from './globalInfoConfig';
 
 function isEqual(object1: Record<string, unknown>, object2: Record<string, unknown>): boolean {
   const keys1 = Object.keys(object1).filter((k) => k !== 'timestamp');
@@ -101,18 +101,15 @@ export class SfdxDataHandler {
   }
 }
 
-export class AuthHandler implements Handler<SfDataKeys.AUTHORIZATIONS> {
+export class AuthHandler implements Handler<SfDataKeys.ORGS> {
   // The regular expression that filters files stored in $HOME/.sfdx
   private static authFilenameFilterRegEx = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
 
-  public sfKey: typeof SfDataKeys.AUTHORIZATIONS = SfDataKeys.AUTHORIZATIONS;
+  public sfKey: typeof SfDataKeys.ORGS = SfDataKeys.ORGS;
 
-  public async migrate(): Promise<Pick<SfData, SfDataKeys.AUTHORIZATIONS>> {
+  public async migrate(): Promise<Pick<SfData, SfDataKeys.ORGS>> {
     const oldAuths = await this.listAllAuthorizations();
-    const newAuths = oldAuths.reduce(
-      (x, y) => Object.assign(x, { [ensureString(y.username)]: y }),
-      {} as OrgAuthorizations
-    );
+    const newAuths = oldAuths.reduce((x, y) => Object.assign(x, { [ensureString(y.username)]: y }), {} as Orgs);
     return { [this.sfKey]: newAuths };
   }
 
@@ -130,10 +127,10 @@ export class AuthHandler implements Handler<SfDataKeys.AUTHORIZATIONS> {
     }
   }
 
-  public async findChanges(latest: SfData, original: SfData): Promise<Changes<OrgAuthorizations>> {
-    const latestAuths = latest.authorizations;
-    const originalAuths = original.authorizations;
-    const changed: OrgAuthorizations = {};
+  public async findChanges(latest: SfData, original: SfData): Promise<Changes<Orgs>> {
+    const latestAuths = latest.orgs;
+    const originalAuths = original.orgs;
+    const changed: Orgs = {};
     for (const [username, auth] of Object.entries(latestAuths)) {
       const originalAuth = originalAuths[username] ?? {};
       if (!isEqual(auth, originalAuth)) {
@@ -167,13 +164,13 @@ export class AuthHandler implements Handler<SfDataKeys.AUTHORIZATIONS> {
     return globalFiles.filter((file) => file.match(AuthHandler.authFilenameFilterRegEx));
   }
 
-  public async listAllAuthorizations(): Promise<OrgAuthorization[]> {
+  public async listAllAuthorizations(): Promise<Org[]> {
     const filenames = await this.listAllAuthFiles();
-    const auths: OrgAuthorization[] = [];
+    const auths: Org[] = [];
     for (const filename of filenames) {
       const username = basename(filename, extname(filename));
       const configFile = await this.createAuthFileConfig(username);
-      const contents = configFile.getContents() as OrgAuthorization;
+      const contents = configFile.getContents() as Org;
       const stat = await configFile.stat();
       const auth = Object.assign(contents, { timestamp: stat.mtime.toISOString() });
       auths.push(auth);

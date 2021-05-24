@@ -261,8 +261,7 @@ export abstract class BaseConfigStore<
    *
    * @param contents The contents.
    */
-  public setContents(contents?: P): void {
-    contents = contents || ({} as P);
+  public setContents(contents: P = {} as P): void {
     if (this.hasEncryption()) {
       contents = this.recursiveEncrypt(contents);
     }
@@ -465,7 +464,6 @@ export namespace BaseConfigStore {
   /**
    * Options for the config store.
    */
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   export interface Options {
     /**
      * Keys to encrypt.
