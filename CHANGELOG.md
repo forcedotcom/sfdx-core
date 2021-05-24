@@ -2,47 +2,54 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [3.0.0](https://github.com/forcedotcom/sfdx-core/compare/v2.20.10...v3.0.0) (2021-04-30)
-
-
-### ⚠ BREAKING CHANGES
-
-* default to reading files from cache
+## [3.1.0-v3.0](https://github.com/forcedotcom/sfdx-core/compare/v3.0.1-v3.0...v3.1.0-v3.0) (2021-05-11)
 
 ### Features
 
-* add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([579998b](https://github.com/forcedotcom/sfdx-core/commit/579998b6ee70dbb9772e65896bbabf6d812aae23))
-* default to reading files from cache ([12b5930](https://github.com/forcedotcom/sfdx-core/commit/12b59301df96395c4edcbfb0816dbddd45af95db))
+- add message support for markdown files ([be931c3](https://github.com/forcedotcom/sfdx-core/commit/be931c3eb3ce78d6a5d5e5bac7c45d022f54fb4c))
+
+### [3.0.1-v3.0](https://github.com/forcedotcom/sfdx-core/compare/v3.0.0...v3.0.1-v3.0) (2021-05-03)
+
+### Bug Fixes
+
+- unsetAuthorization ([#399](https://github.com/forcedotcom/sfdx-core/issues/399)) ([60594ad](https://github.com/forcedotcom/sfdx-core/commit/60594add6c7bf2497692fa6e9e1da430ec0cb9bc))
+
+## [3.0.0](https://github.com/forcedotcom/sfdx-core/compare/v2.20.10...v3.0.0) (2021-04-30)
+
+### ⚠ BREAKING CHANGES
+
+- default to reading files from cache
+
+### Features
+
+- add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([579998b](https://github.com/forcedotcom/sfdx-core/commit/579998b6ee70dbb9772e65896bbabf6d812aae23))
+- default to reading files from cache ([12b5930](https://github.com/forcedotcom/sfdx-core/commit/12b59301df96395c4edcbfb0816dbddd45af95db))
 
 ### [2.20.10](https://github.com/forcedotcom/sfdx-core/compare/v2.20.9...v2.20.10) (2021-04-14)
 
-
 ### Bug Fixes
 
-* add another internal test env domain ([6ea538f](https://github.com/forcedotcom/sfdx-core/commit/6ea538f2ce62daba7262a247472ce821c6e2616f))
+- add another internal test env domain ([6ea538f](https://github.com/forcedotcom/sfdx-core/commit/6ea538f2ce62daba7262a247472ce821c6e2616f))
 
 ### [2.20.9](https://github.com/forcedotcom/sfdx-core/compare/v2.20.8...v2.20.9) (2021-04-05)
 
-
 ### Bug Fixes
 
-* allow = in authUrl tokens ([2337fcd](https://github.com/forcedotcom/sfdx-core/commit/2337fcddfb1907a7092cd52f5b3ad73ae963d59e))
+- allow = in authUrl tokens ([2337fcd](https://github.com/forcedotcom/sfdx-core/commit/2337fcddfb1907a7092cd52f5b3ad73ae963d59e))
 
 ### [2.20.8](https://github.com/forcedotcom/sfdx-core/compare/v2.20.7...v2.20.8) (2021-04-03)
 
-
 ### Bug Fixes
 
-* debugEnabled should be public ([dbd0124](https://github.com/forcedotcom/sfdx-core/commit/dbd01243003f555b8b4db45c83e81cc08b8cb9a1))
+- debugEnabled should be public ([dbd0124](https://github.com/forcedotcom/sfdx-core/commit/dbd01243003f555b8b4db45c83e81cc08b8cb9a1))
 
 ### [2.20.7](https://github.com/forcedotcom/sfdx-core/compare/v2.20.6...v2.20.7) (2021-04-02)
 
-
 ### Bug Fixes
 
-* add deployRecentValidation ([62d367b](https://github.com/forcedotcom/sfdx-core/commit/62d367b217e6b552573bd7176b064e28252348c5))
-* add deployRecentValidation ([a39c329](https://github.com/forcedotcom/sfdx-core/commit/a39c329b3fab603b537ae5ed8cce4773bdf24eb6))
-* add test, clarify comments ([8d5679e](https://github.com/forcedotcom/sfdx-core/commit/8d5679ecbd482af84842f5c1c8908a059d97ef3f))
+- add deployRecentValidation ([62d367b](https://github.com/forcedotcom/sfdx-core/commit/62d367b217e6b552573bd7176b064e28252348c5))
+- add deployRecentValidation ([a39c329](https://github.com/forcedotcom/sfdx-core/commit/a39c329b3fab603b537ae5ed8cce4773bdf24eb6))
+- add test, clarify comments ([8d5679e](https://github.com/forcedotcom/sfdx-core/commit/8d5679ecbd482af84842f5c1c8908a059d97ef3f))
 
 ### [2.20.6](https://github.com/forcedotcom/sfdx-core/compare/v2.20.5...v2.20.6) (2021-04-02)
 
