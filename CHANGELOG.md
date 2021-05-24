@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.22.0](https://github.com/forcedotcom/sfdx-core/compare/v2.21.0...v2.22.0) (2021-05-24)
+
+
+### Features
+
+* export getJwtAudienceUrl ([#407](https://github.com/forcedotcom/sfdx-core/issues/407)) ([585bb07](https://github.com/forcedotcom/sfdx-core/commit/585bb073434d73473a855ee52b7ddc6f0228aae1))
+
 ## [2.21.0](https://github.com/forcedotcom/sfdx-core/compare/v2.20.11...v2.21.0) (2021-05-24)
 
 
