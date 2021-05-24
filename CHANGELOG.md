@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.21.0](https://github.com/forcedotcom/sfdx-core/compare/v2.20.11...v2.21.0) (2021-05-24)
+
+
+### Features
+
+* modify authInfo to return username for access token auth ([160b7d2](https://github.com/forcedotcom/sfdx-core/commit/160b7d20e32b80d7a54c8cf679154fcbaa9e8cda))
+
 ### [2.20.11](https://github.com/forcedotcom/sfdx-core/compare/v3.1.0-3.0...v2.20.11) (2021-05-12)
 
 
