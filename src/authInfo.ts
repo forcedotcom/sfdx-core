@@ -237,7 +237,7 @@ async function resolvesToSandbox(options: OAuth2Options & { createdOrgInstance?:
   return cnames.some((cname) => isSandboxUrl({ ...options, loginUrl: cname }));
 }
 
-async function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }) {
+export async function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }) {
   // environment variable is used as an override
   if (process.env.SFDX_AUDIENCE_URL) {
     return process.env.SFDX_AUDIENCE_URL;
