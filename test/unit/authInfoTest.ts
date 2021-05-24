@@ -26,7 +26,6 @@ import { Crypto } from '../../src/crypto';
 import { SfdxError } from '../../src/sfdxError';
 import { testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
-
 const TEST_KEY = {
   service: 'sfdx',
   account: 'local',
@@ -294,7 +293,7 @@ describe('AuthInfo', () => {
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
       const responseBody = {
-        body: JSON.stringify({ Username: testMetadata.username }),
+        body: JSON.stringify({ preferred_username: testMetadata.username, organization_id: testMetadata.orgId }),
       };
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
       authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
@@ -415,6 +414,7 @@ describe('AuthInfo', () => {
       const expectedFields = {
         accessToken: username,
         instanceUrl: testMetadata.instanceUrl,
+        loginUrl: testMetadata.instanceUrl,
       };
       expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
@@ -479,6 +479,10 @@ describe('AuthInfo', () => {
     });
 
     it('should return an AuthInfo instance when passed an access token and instanceUrl for the access token flow', async () => {
+      const responseBody = {
+        body: JSON.stringify({ preferred_username: testMetadata.username, organization_id: testMetadata.orgId }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
 
@@ -496,6 +500,7 @@ describe('AuthInfo', () => {
       const expectedFields = {
         accessToken,
         instanceUrl: testMetadata.instanceUrl,
+        loginUrl: testMetadata.instanceUrl,
       };
       expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
@@ -1014,7 +1019,9 @@ describe('AuthInfo', () => {
 
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
-      const responseBody = { body: JSON.stringify({ Username: username }) };
+      const responseBody = {
+        body: JSON.stringify({ preferred_username: username, organization_id: testMetadata.orgId }),
+      };
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
 
       // Create the refresh token AuthInfo instance
