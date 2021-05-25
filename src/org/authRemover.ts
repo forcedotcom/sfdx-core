@@ -12,7 +12,7 @@ import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
-import { Org, GlobalInfo, Orgs } from '../config/globalInfoConfig';
+import { SfOrg, GlobalInfo, SfOrgs } from '../config/globalInfoConfig';
 
 Messages.importMessagesDirectory(__dirname);
 const coreMessages = Messages.load('@salesforce/core', 'core', ['namedOrgNotFound']);
@@ -81,7 +81,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured defaultusername
    * @returns {Promise<Authorization>}
    */
-  public async findAuth(usernameOrAlias?: string): Promise<Org> {
+  public async findAuth(usernameOrAlias?: string): Promise<SfOrg> {
     const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getDefaultUsername();
     const auth = this.globalInfo.getOrg(username);
     if (!auth) {
@@ -93,9 +93,9 @@ export class AuthRemover extends AsyncOptionalCreatable {
   /**
    * Finds all authorization files in the global .sfdx folder
    *
-   * @returns {Promise<Orgs>}
+   * @returns {Promise<SfOrgs>}
    */
-  public findAllAuths(): Orgs {
+  public findAllAuths(): SfOrgs {
     return this.globalInfo.getOrgs();
   }
 

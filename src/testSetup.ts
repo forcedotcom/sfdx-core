@@ -35,7 +35,7 @@ import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { SfdxProject, SfdxProjectJson } from './sfdxProject';
 import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
-import { GlobalInfo, Org } from './config/globalInfoConfig';
+import { GlobalInfo, SfOrg } from './config/globalInfoConfig';
 // import { fs } from '../src/util/fs';
 
 /**
@@ -793,7 +793,7 @@ export class MockTestOrgData {
     };
   }
 
-  public async getConfig(): Promise<Org> {
+  public async getConfig(): Promise<SfOrg> {
     const crypto = await Crypto.create();
     const config: JsonMap = {};
     config.orgId = this.orgId;
@@ -825,6 +825,6 @@ export class MockTestOrgData {
       config.isDevHub = isDevHub;
     }
 
-    return config as Org;
+    return config as SfOrg;
   }
 }

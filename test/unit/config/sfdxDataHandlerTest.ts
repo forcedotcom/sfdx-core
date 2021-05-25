@@ -8,7 +8,7 @@ import { set } from '@salesforce/kit';
 import { PartialDeep } from '@salesforce/kit/lib/nodash/support';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { GlobalInfo, SfData } from '../../../src/config/globalInfoConfig';
+import { GlobalInfo, SfInfo } from '../../../src/config/globalInfoConfig';
 import { ConfigFile } from '../../../src/config/configFile';
 import { AuthHandler, SfdxDataHandler } from '../../../src/config/sfdxDataHandler';
 import { fs } from '../../../src/exported';
@@ -40,7 +40,7 @@ describe('SfdxDataHandler', () => {
     const username = 'myAccount@salesforce.com';
     const timestamp = new Date().toISOString();
 
-    const createData = (partial: PartialDeep<SfData> = {}): SfData => {
+    const createData = (partial: PartialDeep<SfInfo> = {}): SfInfo => {
       const base = GlobalInfo.emptyDataModel;
       base.orgs = {
         [username]: {
@@ -51,7 +51,7 @@ describe('SfdxDataHandler', () => {
           alias: 'myOrg',
         },
       };
-      const merged: SfData = GlobalInfo.emptyDataModel;
+      const merged: SfInfo = GlobalInfo.emptyDataModel;
       for (const [key, value] of Object.entries(partial).concat(Object.entries(base))) {
         for (const [k, v] of Object.entries(value)) {
           const target = partial[key] && partial[key][k] ? partial[key][k] : base[key][k];

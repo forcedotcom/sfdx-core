@@ -11,15 +11,15 @@ import { ConfigFile } from './configFile';
 import { ConfigValue } from './configStore';
 import { SfdxDataHandler } from './sfdxDataHandler';
 
-export enum SfDataKeys {
+export enum SfInfoKeys {
   ORGS = 'orgs',
   TOKENS = 'tokens',
 }
 
 export type Timestamp = { timestamp: string };
-export type Entry = JsonMap;
+export type SfEntry = JsonMap;
 
-export type Org = {
+export type SfOrg = {
   alias: Optional<string>;
   username: Optional<string>;
   orgId: Optional<string>;
@@ -27,35 +27,35 @@ export type Org = {
   accessToken?: string;
   oauthMethod?: 'jwt' | 'web' | 'token' | 'unknown';
   error?: string;
-} & Entry;
-export interface Orgs {
-  [key: string]: Org & Timestamp;
+} & SfEntry;
+export interface SfOrgs {
+  [key: string]: SfOrg & Timestamp;
 }
 
-export type Token = {
+export type SfToken = {
   token: string;
   url: string;
   user?: string;
-} & Entry;
+} & SfEntry;
 
-export interface Tokens {
-  [key: string]: Token & Timestamp;
+export interface SfTokens {
+  [key: string]: SfToken & Timestamp;
 }
 
-export type SfData = {
-  [SfDataKeys.ORGS]: Orgs;
-  [SfDataKeys.TOKENS]: Tokens;
+export type SfInfo = {
+  [SfInfoKeys.ORGS]: SfOrgs;
+  [SfInfoKeys.TOKENS]: SfTokens;
 };
 
 export function deepCopy<T extends AnyJson>(data: T): T {
   return JSON.parse(JSON.stringify(data)) as T;
 }
 
-export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
+export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   protected static encryptedKeys = [/token/gi, /password/gi, /secret/gi];
-  private static EMPTY_DATA_MODEL: SfData = {
-    [SfDataKeys.ORGS]: {},
-    [SfDataKeys.TOKENS]: {},
+  private static EMPTY_DATA_MODEL: SfInfo = {
+    [SfInfoKeys.ORGS]: {},
+    [SfInfoKeys.TOKENS]: {},
   };
   private static instance: Optional<GlobalInfo>;
 
@@ -64,8 +64,8 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
 
   private sfdxHandler = new SfdxDataHandler();
 
-  public static get emptyDataModel(): SfData {
-    return deepCopy<SfData>(GlobalInfo.EMPTY_DATA_MODEL);
+  public static get emptyDataModel(): SfInfo {
+    return deepCopy<SfInfo>(GlobalInfo.EMPTY_DATA_MODEL);
   }
 
   public static async getInstance(): Promise<GlobalInfo> {
@@ -100,12 +100,12 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
     };
   }
 
-  public getOrgs(decrypt = false): Orgs {
-    return this.get(SfDataKeys.ORGS, decrypt);
+  public getOrgs(decrypt = false): SfOrgs {
+    return this.get(SfInfoKeys.ORGS, decrypt);
   }
 
-  public getOrg(username: string, decrypt = false): Optional<Org & Timestamp> {
-    const auth: Org & Timestamp = this.get(`${SfDataKeys.ORGS}["${username}"]`, decrypt);
+  public getOrg(username: string, decrypt = false): Optional<SfOrg & Timestamp> {
+    const auth: SfOrg & Timestamp = this.get(`${SfInfoKeys.ORGS}["${username}"]`, decrypt);
     // For legacy, some things wants the username in the returned auth info.
     if (auth && !auth.username) auth.username = username;
     return auth;
@@ -115,44 +115,44 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
     return !!this.getOrgs()[username];
   }
 
-  public setOrg(username: string, org: Org): void {
+  public setOrg(username: string, org: SfOrg): void {
     // For legacy, and to keep things standard, some things wants the username in auth info.
     if (!org.username) org.username = username;
-    this.set(`${SfDataKeys.ORGS}["${username}"]`, org);
+    this.set(`${SfInfoKeys.ORGS}["${username}"]`, org);
   }
 
-  public updateOrg(username: string, authorization: Partial<Org>): void {
+  public updateOrg(username: string, authorization: Partial<SfOrg>): void {
     // For legacy, and to keep things standard, some things wants the username in auth info.
     if (!authorization.username) authorization.username = username;
-    this.update(`${SfDataKeys.ORGS}["${username}"]`, authorization);
+    this.update(`${SfInfoKeys.ORGS}["${username}"]`, authorization);
   }
 
   public unsetOrg(username: string): void {
-    this.unset(`${SfDataKeys.ORGS}["${username}"]`);
+    this.unset(`${SfInfoKeys.ORGS}["${username}"]`);
   }
 
-  public getTokens(decrypt = false): Tokens {
-    return this.get(SfDataKeys.TOKENS, decrypt) || {};
+  public getTokens(decrypt = false): SfTokens {
+    return this.get(SfInfoKeys.TOKENS, decrypt) || {};
   }
 
-  public getToken(name: string, decrypt = false): Optional<Token & Timestamp> {
-    return this.get(`${SfDataKeys.TOKENS}["${name}"]`, decrypt);
+  public getToken(name: string, decrypt = false): Optional<SfToken & Timestamp> {
+    return this.get(`${SfInfoKeys.TOKENS}["${name}"]`, decrypt);
   }
 
   public hasToken(name: string): boolean {
     return !!this.getTokens()[name];
   }
 
-  public setToken(name: string, token: Token): void {
-    this.set(`${SfDataKeys.TOKENS}["${name}"]`, token);
+  public setToken(name: string, token: SfToken): void {
+    this.set(`${SfInfoKeys.TOKENS}["${name}"]`, token);
   }
 
-  public updateToken(name: string, token: Partial<Token>): void {
-    this.update(`${SfDataKeys.TOKENS}["${name}"]`, token);
+  public updateToken(name: string, token: Partial<SfToken>): void {
+    this.update(`${SfInfoKeys.TOKENS}["${name}"]`, token);
   }
 
   public unsetToken(name: string): void {
-    this.unset(`${SfDataKeys.TOKENS}["${name}"]`);
+    this.unset(`${SfInfoKeys.TOKENS}["${name}"]`);
   }
 
   public set(key: string, value: ConfigValue): void {
@@ -162,7 +162,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
     super.set(key, value);
   }
 
-  public async write(newContents?: SfData): Promise<SfData> {
+  public async write(newContents?: SfInfo): Promise<SfInfo> {
     const result = await super.write(newContents);
     if (GlobalInfo.enableInteroperability) await this.sfdxHandler.write(result);
     return result;
@@ -178,12 +178,12 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
     return Object.assign(data, { timestamp: new Date() });
   }
 
-  private async loadSfData(): Promise<SfData> {
+  private async loadSfData(): Promise<SfInfo> {
     const data = await this.read();
     return isEmpty(data) ? GlobalInfo.emptyDataModel : data;
   }
 
-  private async mergeWithSfdxData(): Promise<SfData> {
+  private async mergeWithSfdxData(): Promise<SfInfo> {
     const sfData = await this.loadSfData();
     const merged = await this.sfdxHandler.merge(sfData);
     return merged;

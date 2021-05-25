@@ -11,7 +11,7 @@ import { ensureString } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { fs } from '../util/fs';
 import { ConfigFile } from './configFile';
-import { Orgs, Org, deepCopy, GlobalInfo, SfData, SfDataKeys } from './globalInfoConfig';
+import { SfOrgs, SfOrg, deepCopy, GlobalInfo, SfInfo, SfInfoKeys } from './globalInfoConfig';
 
 function isEqual(object1: Record<string, unknown>, object2: Record<string, unknown>): boolean {
   const keys1 = Object.keys(object1).filter((k) => k !== 'timestamp');
@@ -26,11 +26,11 @@ function isEqual(object1: Record<string, unknown>, object2: Record<string, unkno
   return true;
 }
 
-interface Handler<T extends SfDataKeys> {
+interface Handler<T extends SfInfoKeys> {
   sfKey: T;
-  merge: (sfData: SfData) => Promise<Partial<SfData>>;
-  migrate: () => Promise<Pick<SfData, T>>;
-  write: (latest: SfData, original: SfData) => Promise<void>;
+  merge: (sfData: SfInfo) => Promise<Partial<SfInfo>>;
+  migrate: () => Promise<Pick<SfInfo, T>>;
+  write: (latest: SfInfo, original: SfInfo) => Promise<void>;
 }
 
 interface Changes<T> {
@@ -40,16 +40,16 @@ interface Changes<T> {
 
 export class SfdxDataHandler {
   public handlers = [new AuthHandler()];
-  private original!: SfData;
+  private original!: SfInfo;
 
-  public async write(latest: SfData = GlobalInfo.emptyDataModel): Promise<void> {
+  public async write(latest: SfInfo = GlobalInfo.emptyDataModel): Promise<void> {
     for (const handler of this.handlers) {
       await handler.write(latest, this.original);
     }
   }
 
-  public async merge(sfData: SfData = GlobalInfo.emptyDataModel): Promise<SfData> {
-    const merged = deepCopy<SfData>(sfData);
+  public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<SfInfo> {
+    const merged = deepCopy<SfInfo>(sfData);
     for (const handler of this.handlers) {
       Object.assign(merged, await handler.merge(merged));
     }
@@ -57,17 +57,17 @@ export class SfdxDataHandler {
     return merged;
   }
 
-  private setOriginal(data: SfData): void {
-    this.original = deepCopy<SfData>(data);
+  private setOriginal(data: SfInfo): void {
+    this.original = deepCopy<SfInfo>(data);
   }
 }
 
-abstract class BaseHandler<T extends SfDataKeys> implements Handler<T> {
+abstract class BaseHandler<T extends SfInfoKeys> implements Handler<T> {
   public abstract sfKey: T;
 
-  public async merge(sfData: SfData = GlobalInfo.emptyDataModel): Promise<Partial<SfData>> {
+  public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<Partial<SfInfo>> {
     const sfdxData = await this.migrate();
-    const merged = deepCopy<SfData>(sfData);
+    const merged = deepCopy<SfInfo>(sfData);
 
     // Only merge the key this handler is responsible for.
     const key = this.sfKey;
@@ -108,23 +108,23 @@ abstract class BaseHandler<T extends SfDataKeys> implements Handler<T> {
     return merged;
   }
 
-  public abstract migrate(): Promise<Pick<SfData, T>>;
-  public abstract write(latest: SfData, original: SfData): Promise<void>;
+  public abstract migrate(): Promise<Pick<SfInfo, T>>;
+  public abstract write(latest: SfInfo, original: SfInfo): Promise<void>;
 }
 
-export class AuthHandler extends BaseHandler<SfDataKeys.ORGS> {
+export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
   // The regular expression that filters files stored in $HOME/.sfdx
   private static authFilenameFilterRegEx = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
 
-  public sfKey: typeof SfDataKeys.ORGS = SfDataKeys.ORGS;
+  public sfKey: typeof SfInfoKeys.ORGS = SfInfoKeys.ORGS;
 
-  public async migrate(): Promise<Pick<SfData, SfDataKeys.ORGS>> {
+  public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.ORGS>> {
     const oldAuths = await this.listAllAuthorizations();
-    const newAuths = oldAuths.reduce((x, y) => Object.assign(x, { [ensureString(y.username)]: y }), {} as Orgs);
+    const newAuths = oldAuths.reduce((x, y) => Object.assign(x, { [ensureString(y.username)]: y }), {} as SfOrgs);
     return { [this.sfKey]: newAuths };
   }
 
-  public async write(latest: SfData, original: SfData): Promise<void> {
+  public async write(latest: SfInfo, original: SfInfo): Promise<void> {
     const { changed, deleted } = await this.findChanges(latest, original);
     for (const [username, authData] of Object.entries(changed)) {
       const config = await this.createAuthFileConfig(username);
@@ -138,10 +138,10 @@ export class AuthHandler extends BaseHandler<SfDataKeys.ORGS> {
     }
   }
 
-  public async findChanges(latest: SfData, original: SfData): Promise<Changes<Orgs>> {
+  public async findChanges(latest: SfInfo, original: SfInfo): Promise<Changes<SfOrgs>> {
     const latestAuths = latest.orgs;
     const originalAuths = original.orgs;
-    const changed: Orgs = {};
+    const changed: SfOrgs = {};
     for (const [username, auth] of Object.entries(latestAuths)) {
       const originalAuth = originalAuths[username] ?? {};
       if (!isEqual(auth, originalAuth)) {
@@ -175,13 +175,13 @@ export class AuthHandler extends BaseHandler<SfDataKeys.ORGS> {
     return globalFiles.filter((file) => file.match(AuthHandler.authFilenameFilterRegEx));
   }
 
-  public async listAllAuthorizations(): Promise<Org[]> {
+  public async listAllAuthorizations(): Promise<SfOrg[]> {
     const filenames = await this.listAllAuthFiles();
-    const auths: Org[] = [];
+    const auths: SfOrg[] = [];
     for (const filename of filenames) {
       const username = basename(filename, extname(filename));
       const configFile = await this.createAuthFileConfig(username);
-      const contents = configFile.getContents() as Org;
+      const contents = configFile.getContents() as SfOrg;
       const stat = await configFile.stat();
       const auth = Object.assign(contents, { timestamp: stat.mtime.toISOString() });
       auths.push(auth);

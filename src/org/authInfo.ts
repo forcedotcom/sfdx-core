@@ -41,7 +41,7 @@ import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
 import { MyDomainResolver } from '../status/myDomainResolver';
-import { Org, GlobalInfo } from '../config/globalInfoConfig';
+import { SfOrg, GlobalInfo } from '../config/globalInfoConfig';
 import { Messages } from '../messages';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 
@@ -357,13 +357,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   /**
    * Get a list of all authorizations based on auth files stored in the global directory.
    *
-   * @returns {Promise<Org[]>}
+   * @returns {Promise<SfOrg[]>}
    */
-  public static async listAllAuthorizations(): Promise<Org[]> {
+  public static async listAllAuthorizations(): Promise<SfOrg[]> {
     const globalInfo = await GlobalInfo.getInstance();
     const auths = Object.values(globalInfo.getOrgs());
     const aliases = await Aliases.create(Aliases.getDefaultOptions());
-    const final: Org[] = [];
+    const final: SfOrg[] = [];
     for (const auth of auths) {
       const username = ensureString(auth.username);
       const [alias] = aliases.getKeysByValue(username);
@@ -527,7 +527,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     if (authData && isPlainObject(authData)) {
       this.username = authData.username || this.username;
       const existingFields = this.globalInfo.getOrg(this.getUsername());
-      const mergedFields = Object.assign({}, existingFields || {}, authData) as Org;
+      const mergedFields = Object.assign({}, existingFields || {}, authData) as SfOrg;
       this.globalInfo.setOrg(this.getUsername(), mergedFields);
       this.logger.info(`Updated auth info for username: ${this.getUsername()}`);
     }
