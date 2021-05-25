@@ -28,6 +28,7 @@ function isEqual(object1: Record<string, unknown>, object2: Record<string, unkno
 
 interface Handler<T extends SfDataKeys> {
   sfKey: T;
+  merge: (sfData: SfData) => Promise<Partial<SfData>>;
   migrate: () => Promise<Pick<SfData, T>>;
   write: (latest: SfData, original: SfData) => Promise<void>;
 }
@@ -48,52 +49,12 @@ export class SfdxDataHandler {
   }
 
   public async merge(sfData: SfData = GlobalInfo.emptyDataModel): Promise<SfData> {
-    const sfdxData = await this.load();
     const merged = deepCopy<SfData>(sfData);
-    const keys = Object.keys(sfData) as SfDataKeys[];
-    for (const key of keys) {
-      const sfKeys = Object.keys(sfData[key] ?? {});
-      const sfdxKeys = Object.keys(sfdxData[key] ?? {});
-      const commonKeys = sfKeys.filter((k) => sfdxKeys.includes(k));
-      for (const k of commonKeys) {
-        const [newer, older] = [sfData[key][k], sfdxData[key][k]].sort((a, b) => {
-          return new Date(a.timestamp) < new Date(b.timestamp) ? 1 : -1;
-        });
-        set(merged, `${key}["${k}"]`, Object.assign({}, older, newer));
-      }
-
-      // Keys that exist in .sfdx but not .sf are added becase we assume
-      // that this means the key was created using sfdx.
-      // However, this is not always a valid assumption because it could
-      // also mean that the key was deleted using sf, in which case we
-      // do not want to migrate the sfdx key to sf.
-      // Programmatically differentiating between a new key and a deleted key
-      // would be nearly impossible. Instead we should ensure that whenever
-      // sf deletes a key it also deletes it in sfdx. This way, we can safely
-      // assume that we should migrate any keys that exist in in .sfdx
-      const unhandledSfdxKeys = sfdxKeys.filter((k) => !sfKeys.includes(k));
-      for (const k of unhandledSfdxKeys) {
-        set(merged, `${key}["${k}"]`, sfdxData[key][k]);
-      }
-
-      // Keys that exist in .sf but not .sfdx are deleted because we assume
-      // that this means the key was deleted while using sfdx.
-      // We can make this assumption because keys that are created by sf will
-      // always be migrated back to sfdx
-      const unhandledSfKeys = sfKeys.filter((k) => !sfdxKeys.includes(k));
-      for (const k of unhandledSfKeys) {
-        delete merged[key][k];
-      }
+    for (const handler of this.handlers) {
+      Object.assign(merged, await handler.merge(merged));
     }
     this.setOriginal(merged);
     return merged;
-  }
-
-  public async load(): Promise<SfData> {
-    return this.handlers.reduce(
-      async (data, handler) => Object.assign({}, data, await handler.migrate()),
-      Promise.resolve(GlobalInfo.emptyDataModel)
-    );
   }
 
   private setOriginal(data: SfData): void {
@@ -101,7 +62,57 @@ export class SfdxDataHandler {
   }
 }
 
-export class AuthHandler implements Handler<SfDataKeys.ORGS> {
+abstract class BaseHandler<T extends SfDataKeys> implements Handler<T> {
+  public abstract sfKey: T;
+
+  public async merge(sfData: SfData = GlobalInfo.emptyDataModel): Promise<Partial<SfData>> {
+    const sfdxData = await this.migrate();
+    const merged = deepCopy<SfData>(sfData);
+
+    // Only merge the key this handler is responsible for.
+    const key = this.sfKey;
+
+    const sfKeys = Object.keys(sfData[key] ?? {});
+    const sfdxKeys = Object.keys(sfdxData[key] ?? {});
+    const commonKeys = sfKeys.filter((k) => sfdxKeys.includes(k));
+    for (const k of commonKeys) {
+      const [newer, older] = [sfData[key][k], sfdxData[key][k]].sort((a, b) => {
+        return new Date(a.timestamp) < new Date(b.timestamp) ? 1 : -1;
+      });
+      set(merged, `${key}["${k}"]`, Object.assign({}, older, newer));
+    }
+
+    // Keys that exist in .sfdx but not .sf are added becase we assume
+    // that this means the key was created using sfdx.
+    // However, this is not always a valid assumption because it could
+    // also mean that the key was deleted using sf, in which case we
+    // do not want to migrate the sfdx key to sf.
+    // Programmatically differentiating between a new key and a deleted key
+    // would be nearly impossible. Instead we should ensure that whenever
+    // sf deletes a key it also deletes it in sfdx. This way, we can safely
+    // assume that we should migrate any keys that exist in in .sfdx
+    const unhandledSfdxKeys = sfdxKeys.filter((k) => !sfKeys.includes(k));
+    for (const k of unhandledSfdxKeys) {
+      set(merged, `${key}["${k}"]`, sfdxData[key][k]);
+    }
+
+    // Keys that exist in .sf but not .sfdx are deleted because we assume
+    // that this means the key was deleted while using sfdx.
+    // We can make this assumption because keys that are created by sf will
+    // always be migrated back to sfdx
+    const unhandledSfKeys = sfKeys.filter((k) => !sfdxKeys.includes(k));
+    for (const k of unhandledSfKeys) {
+      delete merged[key][k];
+    }
+
+    return merged;
+  }
+
+  public abstract migrate(): Promise<Pick<SfData, T>>;
+  public abstract write(latest: SfData, original: SfData): Promise<void>;
+}
+
+export class AuthHandler extends BaseHandler<SfDataKeys.ORGS> {
   // The regular expression that filters files stored in $HOME/.sfdx
   private static authFilenameFilterRegEx = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
 

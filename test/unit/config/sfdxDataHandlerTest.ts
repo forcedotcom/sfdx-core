@@ -75,7 +75,7 @@ describe('SfdxDataHandler', () => {
           [username]: { orgId: '12345_SFDX' },
         },
       });
-      sandbox.stub(SfdxDataHandler.prototype, 'load').resolves(sfdxData);
+      sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
       expect(merged).to.deep.equal(sfdxData);
@@ -97,7 +97,7 @@ describe('SfdxDataHandler', () => {
           },
         },
       });
-      sandbox.stub(SfdxDataHandler.prototype, 'load').resolves(sfdxData);
+      sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
 
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
@@ -118,7 +118,7 @@ describe('SfdxDataHandler', () => {
         },
       });
 
-      sandbox.stub(SfdxDataHandler.prototype, 'load').resolves(sfdxData);
+      sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
 
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
@@ -144,7 +144,7 @@ describe('SfdxDataHandler', () => {
       });
       const sfdxData = createData();
 
-      sandbox.stub(SfdxDataHandler.prototype, 'load').resolves(sfdxData);
+      sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
 
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
@@ -153,6 +153,39 @@ describe('SfdxDataHandler', () => {
         [username]: sfData.orgs[username],
       };
       expect(merged).to.deep.equal(expected);
+    });
+
+    it('should not touch new keys that are not handled', async () => {
+      const newSfdxAuthUsername = 'newAccount@salesforce.com';
+      const sfData = createData({
+        orgs: {
+          [newSfdxAuthUsername]: {
+            orgId: '12345_NEW_SFDX',
+            username: newSfdxAuthUsername,
+            instanceUrl: 'https://login.salesforce.com',
+            alias: 'newUser',
+          },
+        },
+        tokens: {
+          myToken: { token: 'XXX', user: 'functions@salesforce.com', url: 'auth.functions.heroku.com' },
+        },
+      });
+      const sfdxData = createData({
+        orgs: {
+          [newSfdxAuthUsername]: {
+            orgId: '12345_NEW_SFDX',
+            username: newSfdxAuthUsername,
+            instanceUrl: 'https://login.salesforce.com',
+            alias: 'newUser',
+          },
+        },
+      });
+
+      sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
+
+      const sfdxDataHandler = new SfdxDataHandler();
+      const merged = await sfdxDataHandler.merge(sfData);
+      expect(merged).to.deep.equal(sfData);
     });
   });
 
