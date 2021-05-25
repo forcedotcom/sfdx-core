@@ -8,7 +8,7 @@
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
-import { isBoolean } from '@salesforce/ts-types';
+import { isBoolean, isPlainObject } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
@@ -220,7 +220,7 @@ export class ConfigFile<
    * @param newContents The new contents of the file.
    */
   public async write(newContents?: P): Promise<P> {
-    if (newContents != null) {
+    if (newContents) {
       this.setContents(newContents);
     }
 
@@ -239,7 +239,7 @@ export class ConfigFile<
    * @param newContents The new contents of the file.
    */
   public writeSync(newContents?: P): P {
-    if (newContents != null) {
+    if (isPlainObject(newContents)) {
       this.setContents(newContents);
     }
 

@@ -127,9 +127,11 @@ export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
   public async write(latest: SfInfo, original: SfInfo): Promise<void> {
     const { changed, deleted } = await this.findChanges(latest, original);
     for (const [username, authData] of Object.entries(changed)) {
-      const config = await this.createAuthFileConfig(username);
-      config.setContentsFromObject(authData);
-      await config.write();
+      if (authData) {
+        const config = await this.createAuthFileConfig(username);
+        config.setContentsFromObject(authData);
+        await config.write();
+      }
     }
 
     for (const username of deleted) {

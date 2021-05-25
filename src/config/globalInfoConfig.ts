@@ -128,7 +128,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   }
 
   public unsetOrg(username: string): void {
-    this.unset(`${SfInfoKeys.ORGS}["${username}"]`);
+    delete this.get(SfInfoKeys.ORGS)[username];
   }
 
   public getTokens(decrypt = false): SfTokens {
@@ -152,7 +152,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   }
 
   public unsetToken(name: string): void {
-    this.unset(`${SfInfoKeys.TOKENS}["${name}"]`);
+    delete this.get(SfInfoKeys.TOKENS)[name];
   }
 
   public set(key: string, value: ConfigValue): void {
