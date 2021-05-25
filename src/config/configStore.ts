@@ -78,7 +78,7 @@ export abstract class BaseConfigStore<
   >
   extends AsyncOptionalCreatable<T>
   implements ConfigStore<P> {
-  protected static encryptedKeys: string[] = [];
+  protected static encryptedKeys: Array<string | RegExp> = [];
 
   protected options: T;
   protected crypto?: Crypto;
@@ -314,7 +314,7 @@ export abstract class BaseConfigStore<
     });
   }
 
-  protected getEncryptedKeys(): string[] {
+  protected getEncryptedKeys(): Array<string | RegExp> {
     return [...(this.options.encryptedKeys || []), ...(this.statics.encryptedKeys || [])];
   }
 
@@ -391,7 +391,14 @@ export abstract class BaseConfigStore<
     }
 
     // Any keys named the following should be encrypted/decrypted
-    return (this.statics.encryptedKeys || []).includes(resolveProperty());
+    return (this.statics.encryptedKeys || []).find((keyOrExp) => {
+      const property = resolveProperty();
+      if (keyOrExp instanceof RegExp) {
+        return keyOrExp.test(property);
+      } else {
+        return keyOrExp === property;
+      }
+    });
   }
 
   protected encrypt(value: unknown): Optional<string> {
@@ -473,6 +480,6 @@ export namespace BaseConfigStore {
      * instantiating subclasses of ConfigStore on the fly (like {@link ConfigFile}) without
      * defining a new class.
      */
-    encryptedKeys?: string[];
+    encryptedKeys?: Array<string | RegExp>;
   }
 }

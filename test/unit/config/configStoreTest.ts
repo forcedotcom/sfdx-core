@@ -21,12 +21,13 @@ type CarInfo = {
     creditCardNumber: string;
     originalOwner: boolean;
     [specialKey]: string;
+    superPassword: string;
   };
   serialNumber: string;
 };
 
 class CarConfig extends BaseConfigStore<{}, CarInfo> {
-  protected static encryptedKeys = ['serialNumber', 'creditCardNumber', specialKey];
+  protected static encryptedKeys = ['serialNumber', 'creditCardNumber', specialKey, /password/i];
 }
 class TestConfig<P extends ConfigContents> extends BaseConfigStore<BaseConfigStore.Options, P> {}
 
@@ -114,6 +115,24 @@ describe('ConfigStore', () => {
       expect(owner.creditCardNumber).to.not.equal(expected);
       // decrypted
       expect(config.get('owner', true).creditCardNumber).to.equal(expected);
+    });
+
+    it('encrypts nested key using regexp', async () => {
+      const expected = 'a29djf0kq3dj90d3q';
+      const config = await CarConfig.create();
+      config.set('owner', {
+        name: 'Bob',
+        creditCardNumber: 'test',
+        phone: '707-bob-cell',
+        originalOwner: true,
+        [specialKey]: 'test',
+        superPassword: expected,
+      });
+      const owner = config.get('owner');
+      // encrypted
+      expect(owner.superPassword).to.not.equal(expected);
+      // decrypted
+      expect(config.get('owner', true).superPassword).to.equal(expected);
     });
 
     it('encrypts nested query key using dot notation', async () => {

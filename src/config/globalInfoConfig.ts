@@ -16,7 +16,8 @@ export enum SfDataKeys {
   TOKENS = 'tokens',
 }
 
-export type Entry = { timestamp: string } & JsonMap;
+export type Timestamp = { timestamp: string };
+export type Entry = JsonMap;
 
 export type Org = {
   alias: Optional<string>;
@@ -28,17 +29,17 @@ export type Org = {
   error?: string;
 } & Entry;
 export interface Orgs {
-  [key: string]: Org;
+  [key: string]: Org & Timestamp;
 }
 
 export type Token = {
   token: string;
   url: string;
-  user: string;
+  user?: string;
 } & Entry;
 
 export interface Tokens {
-  [key: string]: Token;
+  [key: string]: Token & Timestamp;
 }
 
 export type SfData = {
@@ -51,7 +52,7 @@ export function deepCopy<T extends AnyJson>(data: T): T {
 }
 
 export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
-  protected static encryptedKeys = ['accessToken', 'refreshToken', 'password', 'clientSecret'];
+  protected static encryptedKeys = [/token/gi, /password/gi, /secret/gi];
   private static EMPTY_DATA_MODEL: SfData = {
     [SfDataKeys.ORGS]: {},
     [SfDataKeys.TOKENS]: {},
@@ -103,8 +104,8 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
     return this.get(SfDataKeys.ORGS, decrypt);
   }
 
-  public getOrg(username: string, decrypt = false): Optional<Org> {
-    const auth: Org = this.get(`${SfDataKeys.ORGS}["${username}"]`, decrypt);
+  public getOrg(username: string, decrypt = false): Optional<Org & Timestamp> {
+    const auth: Org & Timestamp = this.get(`${SfDataKeys.ORGS}["${username}"]`, decrypt);
     // For legacy, some things wants the username in the returned auth info.
     if (auth && !auth.username) auth.username = username;
     return auth;
@@ -134,7 +135,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfData> {
     return this.get(SfDataKeys.TOKENS, decrypt) || {};
   }
 
-  public getToken(name: string, decrypt = false): Optional<Token> {
+  public getToken(name: string, decrypt = false): Optional<Token & Timestamp> {
     return this.get(`${SfDataKeys.TOKENS}["${name}"]`, decrypt);
   }
 
