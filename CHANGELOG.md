@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0](https://github.com/forcedotcom/sfdx-core/compare/v3.1.0-v3.0...v3.1.0) (2021-05-26)
+
+
+### Features
+
+* move crypto to config file @W-9225317@ ([#406](https://github.com/forcedotcom/sfdx-core/issues/406)) ([099ee82](https://github.com/forcedotcom/sfdx-core/commit/099ee82a577e313de02df755b00d1f5936054901))
+
 ## [3.1.0-v3.0](https://github.com/forcedotcom/sfdx-core/compare/v3.0.1-v3.0...v3.1.0-v3.0) (2021-05-11)
 
 ### Features
