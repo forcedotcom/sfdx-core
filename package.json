@@ -14,7 +14,7 @@
     "format": "sf-format",
     "lint": "sf-lint",
     "lint-fix": "yarn sf-lint --fix",
-    "postcompile": "tsc -p test; tsc -p typedocExamples",
+    "postcompile": "tsc -p test && tsc -p typedocExamples",
     "prepack": "sf-build",
     "pretest": "sf-compile-test",
     "test": "sf-test"
@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@salesforce/bunyan": "^2.0.0",
-    "@salesforce/kit": "^1.5.0",
+    "@salesforce/kit": "^1.5.8",
     "@salesforce/schemas": "^1.0.1",
     "@salesforce/ts-types": "^1.5.13",
     "@types/graceful-fs": "^4.1.5",

@@ -2,6 +2,82 @@
 
 There are several breaking changes from v2 to v3. This doc outlines what those the differences are between v2 and v3, why we did them, and how to transition to v3.
 
+## GlobalInfo
+
+TODO...
+
+## ConfigStore, ConfigFile, AuthInfo, and Encrypting Values
+
+### What
+
+- New: Encrypting capabilities on ConfigStore and ConfigFile.
+- New: Improved typings on ConfigStore to understand the config data.
+- Removed `AuthInfo.clearCache`.
+- Removed encrypt param on `AuthInfo.update`.
+- Changed: ConfigStore now extends `AsyncOptionalCreatable`.
+
+### Why
+
+Originally encryption happened within AuthInfo. Ideally the mechanism that reads and writes secure values also encrypt them. Then helps ensure that decrypted values don't get saved to disk. If you use ConfigFile, you can know set encryption keys rather than dealing with Crypto directly.
+
+Because of that change, it no longer made sense to have a cache on AuthInfo. Instead, getting auth info fields should always be getting it from the true source, which is the config file. In this case, GlobalInfo.
+
+Most people won't have to worry about these changes unless doing some special test mocking or using the removed `AuthInfo.clearCache` or the encrypt param on `AuthInfo.update`. Everything updated will always be encrypted to prevent any accidents with storying decrypted data.
+
+**v2:**
+
+```typescript
+type MyConfig = {
+  option1: string;
+  option2: boolean;
+};
+
+class MyConfigFile extends ConfigFile<ConfigFile.Options> {
+  constructor(options: ConfigFile.Options) {
+    super(options);
+    // Some logic
+  }
+
+  public get(key: string): ConfigValue {
+    let value = super.get(key);
+    // Do custom crypto
+    return value;
+  }
+  public set(key: string, value: ConfigValue) {
+    // Do custom crypto
+    super.set(key, value);
+  }
+}
+
+const myConfig = await MyConfigFile.create({});
+myConfig.getContents(); // ConfigContents
+myConfig.get('option1'); // ConfigValue - forcing type narrowing.
+myConfig.get('option2'); // ConfigValue - forcing type narrowing.
+```
+
+**v3:**
+
+```typescript
+type MyConfig = {
+  option1: string;
+  option2: boolean;
+};
+
+class MyConfigFile extends ConfigFile<ConfigFile.Options, MyConfig> {
+  protected static encryptedKeys = ['option1'];
+
+  constructor(options?: ConfigFile.Options) {
+    super(options);
+    // Some logic
+  }
+}
+
+const myConfig = await MyConfigFile.create({});
+myConfig.getContents(); // MyConfig
+myConfig.get('option1'); // string - automatically decrypted
+myConfig.get('option2'); // boolean
+```
+
 ## Messages
 
 ### What?

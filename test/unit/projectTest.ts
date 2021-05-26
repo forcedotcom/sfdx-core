@@ -26,13 +26,13 @@ describe('SfdxProject', () => {
 
   describe('json', () => {
     it('allows uppercase packaging aliases on write', async () => {
-      const json = await SfdxProjectJson.create({});
+      const json = await SfdxProjectJson.create();
       await json.write({ packageAliases: { MyName: 'somePackage' } });
       expect($$.getConfigStubContents('SfdxProjectJson').packageAliases['MyName']).to.equal('somePackage');
     });
     it('allows uppercase packaging aliases on read', async () => {
       $$.setConfigStubContents('SfdxProjectJson', { contents: { packageAliases: { MyName: 'somePackage' } } });
-      const json = await SfdxProjectJson.create({});
+      const json = await SfdxProjectJson.create();
       expect(json.get('packageAliases')['MyName']).to.equal('somePackage');
     });
     it('read calls schemaValidate', async () => {
@@ -79,7 +79,7 @@ describe('SfdxProject', () => {
           ],
         },
       });
-      const sfdxProjectJson = await SfdxProjectJson.create({});
+      const sfdxProjectJson = await SfdxProjectJson.create();
       const packageDirs = await sfdxProjectJson.getPackageDirectories();
 
       expect(packageDirs).to.deep.equal([
@@ -110,7 +110,7 @@ describe('SfdxProject', () => {
       });
       const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
       // create() calls read() which calls schemaValidate()
-      await SfdxProjectJson.create({});
+      await SfdxProjectJson.create();
       expect(loggerSpy.called).to.be.false;
     });
     it('schemaValidate throws when SFDX_PROJECT_JSON_VALIDATION=true and invalid file', async () => {
@@ -124,7 +124,7 @@ describe('SfdxProject', () => {
       const expectedError = "Validation errors:\n should NOT have additional properties 'foo'";
       try {
         // create() calls read() which calls schemaValidate()
-        await shouldThrow(SfdxProjectJson.create({}));
+        await shouldThrow(SfdxProjectJson.create());
       } catch (e) {
         expect(e.name).to.equal('SchemaValidationError');
         expect(e.message).to.contain(expectedError);
@@ -139,7 +139,7 @@ describe('SfdxProject', () => {
       });
       const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
       // create() calls read() which calls schemaValidate()
-      await SfdxProjectJson.create({});
+      await SfdxProjectJson.create();
       expect(loggerSpy.calledOnce).to.be.true;
       expect(loggerSpy.args[0][0]).to.contains('is not schema valid');
     });

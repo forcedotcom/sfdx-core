@@ -13,11 +13,11 @@ import { Duration } from '@salesforce/kit';
 // no types for Transport
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
-import { AuthInfo } from '../../src/authInfo';
-import { MyDomainResolver } from '../../src/status/myDomainResolver';
-import { ConfigAggregator, ConfigInfo } from '../../src/config/configAggregator';
-import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME, SingleRecordQueryErrors } from '../../src/connection';
-import { testSetup, shouldThrow } from '../../src/testSetup';
+import { AuthInfo } from '../../../src/org/authInfo';
+import { MyDomainResolver } from '../../../src/status/myDomainResolver';
+import { ConfigAggregator, ConfigInfo } from '../../../src/config/configAggregator';
+import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME, SingleRecordQueryErrors } from '../../../src/org/connection';
+import { testSetup, shouldThrow } from '../../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();

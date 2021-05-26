@@ -6,7 +6,7 @@
  */
 
 import { join as pathJoin } from 'path';
-import { AsyncCreatable } from '@salesforce/kit';
+import { AsyncOptionalCreatable } from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
@@ -24,24 +24,32 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import { AuthFields, AuthInfo } from './authInfo';
-import { Aliases } from './config/aliases';
-import { Config } from './config/config';
-import { ConfigAggregator, ConfigInfo } from './config/configAggregator';
-import { ConfigContents } from './config/configStore';
-import { OrgUsersConfig } from './config/orgUsersConfig';
-import { SandboxOrgConfig } from './config/sandboxOrgConfig';
+import { Aliases, AliasGroup } from '../config/aliases';
+import { Config } from '../config/config';
+import { ConfigAggregator, ConfigInfo } from '../config/configAggregator';
+import { ConfigContents } from '../config/configStore';
+import { OrgUsersConfig } from '../config/orgUsersConfig';
+import { SandboxOrgConfig } from '../config/sandboxOrgConfig';
+import { Global } from '../global';
+import { Logger } from '../logger';
+import { SfdxError } from '../sfdxError';
+import { fs } from '../util/fs';
+import { sfdc } from '../util/sfdc';
+import { GlobalInfo } from '../config/globalInfoConfig';
+import { Messages } from '../messages';
 import { Connection } from './connection';
-import { Global } from './global';
-import { Logger } from './logger';
-import { SfdxError } from './sfdxError';
-import { fs } from './util/fs';
-import { sfdc } from './util/sfdc';
-import { GlobalInfo } from './config/globalInfoConfig';
-import { Messages } from './messages';
+import { AuthFields, AuthInfo } from './authInfo';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'org', ['notADevHub']);
+
+export type OrganizationInformation = {
+  Name: string;
+  InstanceName: string;
+  IsSandbox: boolean;
+  TrialExpirationDate: string | null;
+  NamespacePrefix: string | null;
+};
 
 /**
  * Provides a way to manage a locally authenticated Org.
@@ -58,7 +66,7 @@ const messages = Messages.load('@salesforce/core', 'org', ['notADevHub']);
  * // Email username
  * const org1: Org = await Org.create({ aliasOrUsername: 'foo@example.com' });
  * // The defaultusername config property
- * const org2: Org = await Org.create({});
+ * const org2: Org = await Org.create();
  * // Full Connection
  * const org3: Org = await Org.create({
  *   connection: await Connection.create({
@@ -69,7 +77,7 @@ const messages = Messages.load('@salesforce/core', 'org', ['notADevHub']);
  *
  * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
-export class Org extends AsyncCreatable<Org.Options> {
+export class Org extends AsyncOptionalCreatable<Org.Options> {
   private status: Org.Status = Org.Status.UNKNOWN;
   private configAggregator!: ConfigAggregator;
 
@@ -79,12 +87,14 @@ export class Org extends AsyncCreatable<Org.Options> {
 
   private options: Org.Options;
 
+  private orgId?: string;
+
   /**
    * @ignore
    */
-  public constructor(options: Org.Options) {
+  public constructor(options?: Org.Options) {
     super(options);
-    this.options = options;
+    this.options = options || {};
   }
 
   /**
@@ -244,14 +254,122 @@ export class Org extends AsyncCreatable<Org.Options> {
     }
 
     const username = ensure(this.getUsername());
-    const auth = await AuthInfo.create({ username });
-    await auth.save({ isDevHub });
-    AuthInfo.clearCache(username);
+    const authInfo = await AuthInfo.create({ username });
+    await authInfo.save({ isDevHub });
     // Reset the connection with the updated auth file
-    this.connection = await Connection.create({
-      authInfo: await AuthInfo.create({ username }),
-    });
+    this.connection = await Connection.create({ authInfo });
     return isDevHub;
+  }
+
+  /**
+   * Returns `true` if the org is a scratch org.
+   *
+   * **Note** This relies on a cached value in the auth file. If that property
+   * is not cached, this method will **always return false even if the org is a
+   * scratch org**. If you need accuracy, use the {@link Org.determineIfScratch} method.
+   */
+  public isScratch(): boolean {
+    const isScratch = this.getField(Org.Fields.IS_SCRATCH);
+    if (isBoolean(isScratch)) {
+      return isScratch;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Returns `true` if the org is a scratch org.
+   *
+   * Use a cached value. If the cached value is not set, then check
+   * `Organization.IsSandbox == true && Organization.TrialExpirationDate != null`
+   * using {@link Org.retrieveOrganizationInformation}.
+   */
+  public async determineIfScratch(): Promise<boolean> {
+    let cache = this.getField(Org.Fields.IS_SCRATCH);
+
+    if (!cache) {
+      const organization = await this.retrieveOrganizationInformation();
+      const isScratch = organization.IsSandbox && organization.TrialExpirationDate;
+      // const isSandbox = organization.IsSandbox && organization.TrialExpirationDate;
+      // this.getConnection().getAuthInfo().update({
+      //   [Org.Fields.NAME]: organization.Name,
+      //   [Org.Fields.NAME]: organization.InstanceName,
+      //   [Org.Fields.NAME]: organization.NamespacePrefix,
+      //   [Org.Fields.NAME]: organization.IsSandbox,
+      //   [Org.Fields.NAME]: organization.TrialExpirationDate,
+      // });
+      cache = isScratch;
+    }
+    return cache as boolean;
+  }
+
+  /**
+   * Returns `true` if the org is a sandbox.
+   *
+   * **Note** This relies on a cached value in the auth file. If that property
+   * is not cached, this method will **always return false even if the org is a
+   * sandbox**. If you need accuracy, use the {@link Org.determineIfDevHubOrg} method.
+   */
+  public isSandbox(): boolean {
+    const isSandbox = this.getField(Org.Fields.IS_SANDBOX);
+    if (isBoolean(isSandbox)) {
+      return isSandbox;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Returns `true` if the org is a sandbox.
+   *
+   * Use a cached value. If the cached value is not set, then check
+   * `Organization.IsSandbox == true && Organization.TrialExpirationDate == null`
+   * using {@link Org.retrieveOrganizationInformation}.
+   */
+  public async determineIfSandbox(): Promise<boolean> {
+    let cache = this.getField(Org.Fields.IS_SANDBOX);
+
+    if (!cache) {
+      await this.updateLocalInformation();
+      cache = this.getField(Org.Fields.IS_SANDBOX);
+    }
+    return cache as boolean;
+  }
+
+  /**
+   * Retrieve a handful of fields from the Organization table in Salesforce. If this does not have the
+   * data you need, just use {@link Connection.singleRecordQuery} with `SELECT <needed fields> FROM Organization`.
+   *
+   * @returns org information
+   */
+  public async retrieveOrganizationInformation(): Promise<OrganizationInformation> {
+    return this.getConnection().singleRecordQuery<OrganizationInformation>(
+      'SELECT Name, InstanceName, IsSandbox, TrialExpirationDate, NamespacePrefix FROM Organization'
+    );
+  }
+
+  /**
+   * Some organization information is locally cached, such as if the org name or if it is a scratch org.
+   * This method populates/updates the filesystem from information retrieved from the org.
+   */
+  public async updateLocalInformation(): Promise<void> {
+    const username = this.getUsername();
+    if (username) {
+      const organization = await this.retrieveOrganizationInformation();
+      const isScratch = organization.IsSandbox && organization.TrialExpirationDate;
+      const isSandbox = organization.IsSandbox && !organization.TrialExpirationDate;
+      const info = await GlobalInfo.getInstance();
+
+      info.updateOrg(username, {
+        [Org.Fields.NAME]: organization.Name,
+        [Org.Fields.INSTANCE_NAME]: organization.InstanceName,
+        [Org.Fields.NAMESPACE_PREFIX]: organization.NamespacePrefix,
+        [Org.Fields.IS_SANDBOX]: isSandbox,
+        [Org.Fields.IS_SCRATCH]: isScratch,
+        [Org.Fields.TRIAL_EXPIRATION_DATE]: organization.TrialExpirationDate,
+      });
+      await info.write();
+    }
   }
 
   /**
@@ -417,7 +535,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    * Returns the orgId for this org.
    */
   public getOrgId(): string {
-    return this.getField(Org.Fields.ORG_ID) as string;
+    return this.orgId || this.getField(Org.Fields.ORG_ID);
   }
 
   /**
@@ -430,7 +548,8 @@ export class Org extends AsyncCreatable<Org.Options> {
   /**
    * Returns an org field. Returns undefined if the field is not set or invalid.
    */
-  public getField(key: Org.Fields): AnyJson {
+  public getField<T = AnyJson>(key: Org.Fields): T {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore TODO: Need to refactor storage of these values on both Org and AuthFields
     return this[key] || this.getConnection().getAuthInfoFields()[key];
   }
@@ -480,6 +599,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     } else {
       this.connection = this.options.connection;
     }
+    this.orgId = this.getField(Org.Fields.ORG_ID);
   }
 
   /**
@@ -494,12 +614,15 @@ export class Org extends AsyncCreatable<Org.Options> {
    * this Org.. You don't want to call this method directly. Instead consider calling Org.remove()
    */
   private async removeAuth(): Promise<void> {
-    const username = ensure(this.getUsername());
-    this.logger.debug(`Removing auth for user: ${username}`);
     const config = await GlobalInfo.getInstance();
-    this.logger.debug(`Clearing auth cache for user: ${username}`);
-    AuthInfo.clearCache(username);
-    config.unsetAuthorization(username);
+    const username = this.getUsername();
+    // If there is no username, it has already been removed from the globalInfo.
+    // We can skip the unset and just ensure that globalInfo is updated.
+    if (username) {
+      this.logger.debug(`Removing auth for user: ${username}`);
+      this.logger.debug(`Clearing auth cache for user: ${username}`);
+      config.unsetOrg(username);
+    }
     await config.write();
   }
 
@@ -567,7 +690,7 @@ export class Org extends AsyncCreatable<Org.Options> {
         const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
 
         if (
-          (configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
+          (configInfo.value === username || aliasKeys.includes(configInfo.value as AliasGroup)) &&
           (configInfo.isGlobal() || configInfo.isLocal())
         ) {
           await Config.update(configInfo.isGlobal(), orgType, undefined);
@@ -641,6 +764,13 @@ export namespace Org {
     // From AuthInfo
     ALIAS = 'alias',
     CREATED = 'created',
+
+    // From Organization
+    NAME = 'name',
+    NAMESPACE_PREFIX = 'namespacePrefix',
+    INSTANCE_NAME = 'instanceName',
+    TRIAL_EXPIRATION_DATE = 'trailExpirationDate',
+
     /**
      * The Salesforce instance the org was created on. e.g. `cs42`.
      */
@@ -657,6 +787,14 @@ export namespace Org {
      * Is the current org a dev hub org. e.g. They have access to the `ScratchOrgInfo` object.
      */
     IS_DEV_HUB = 'isDevHub',
+    /**
+     * Is the current org a scratch org. e.g. Organization has IsSandbox == true and TrialExpirationDate != null.
+     */
+    IS_SCRATCH = 'isScratch',
+    /**
+     * Is the current org a dev hub org. e.g. Organization has IsSandbox == true and TrialExpirationDate == null.
+     */
+    IS_SANDBOX = 'isSandbox',
     /**
      * The login url of the org. e.g. `https://login.salesforce.com` or `https://test.salesforce.com`.
      */

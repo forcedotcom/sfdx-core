@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { assert, expect } from 'chai';
-import { Config } from '../../../src/config/config';
+import { Config, ConfigProperties } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
-import { ConfigContents } from '../../../src/config/configStore';
 import { testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 
@@ -91,7 +90,7 @@ describe('ConfigAggregator', () => {
   describe('initialization', () => {
     beforeEach(() => {
       $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function (this: Config) {
-        const config: ConfigContents = this.isGlobal() ? { defaultusername: 2 } : { defaultusername: 1 };
+        const config: ConfigProperties = this.isGlobal() ? { defaultusername: 2 } : { defaultusername: 1 };
         this.setContents(config);
         return config;
       });

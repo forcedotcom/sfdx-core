@@ -7,7 +7,7 @@
 import { basename, dirname, isAbsolute, normalize, sep } from 'path';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
-import { SfdcUrl } from './authInfo';
+import { SfdcUrl } from './org/authInfo';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
@@ -95,12 +95,8 @@ export type ProjectJson = ConfigContents & {
  *
  * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
  */
-export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
+export class SfdxProjectJson extends ConfigFile {
   public static BLOCKLIST = ['packageAliases'];
-
-  public constructor(options: ConfigFile.Options) {
-    super(options);
-  }
 
   public static getFileName() {
     return SFDX_PROJECT_JSON;

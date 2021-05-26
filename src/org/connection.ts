@@ -31,13 +31,13 @@ import {
 // no types for Transport
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
-import { AuthFields, AuthInfo } from './authInfo';
-import { MyDomainResolver } from './status/myDomainResolver';
-import { ConfigAggregator } from './config/configAggregator';
-import { Logger } from './logger';
-import { SfdxError } from './sfdxError';
-import { sfdc } from './util/sfdc';
-import { Messages } from './messages';
+import { AuthFields, AuthInfo } from '../org/authInfo';
+import { MyDomainResolver } from '../status/myDomainResolver';
+import { ConfigAggregator } from '../config/configAggregator';
+import { Logger } from '../logger';
+import { SfdxError } from '../sfdxError';
+import { sfdc } from '../util/sfdc';
+import { Messages } from '../messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'connection', [
@@ -105,6 +105,9 @@ export class Connection extends JSForceConnection {
   private _normalizeUrl!: (url: string) => string;
   private options: Connection.Options;
 
+  // All connections are tied to a username
+  private username!: string;
+
   /**
    * Constructor
    * **Do not directly construct instances of this class -- use {@link Connection.create} instead.**
@@ -119,6 +122,8 @@ export class Connection extends JSForceConnection {
     this.tooling.autoFetchQuery = Connection.prototype.autoFetchQuery;
 
     this.options = options;
+
+    this.username = options.authInfo.getUsername();
   }
 
   /**
@@ -378,10 +383,18 @@ export class Connection extends JSForceConnection {
   }
 
   /**
-   * Getter for the AuthInfo.
+   * Getter for AuthInfo.
+   */
+  public getAuthInfo(): AuthInfo {
+    return this.options.authInfo;
+  }
+
+  /**
+   * Getter for the AuthInfo fields.
    */
   public getAuthInfoFields(): AuthFields {
-    return this.options.authInfo.getFields();
+    // If the GlobalInfo.unsetOrg is called, the AuthFields are no longer accessible.
+    return this.options.authInfo.getFields() || {};
   }
 
   /**
@@ -395,7 +408,7 @@ export class Connection extends JSForceConnection {
    * Getter for the username of the Salesforce Org.
    */
   public getUsername(): Optional<string> {
-    return this.getAuthInfoFields().username;
+    return this.username;
   }
 
   /**

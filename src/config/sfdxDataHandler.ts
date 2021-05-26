@@ -8,11 +8,10 @@
 import { basename, extname } from 'path';
 import { set } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
-import { Authorization } from '../authInfo';
 import { Global } from '../global';
 import { fs } from '../util/fs';
 import { ConfigFile } from './configFile';
-import { Authorizations, deepCopy, GlobalInfo, SfData, SfDataKeys } from './globalInfoConfig';
+import { SfOrgs, SfOrg, deepCopy, GlobalInfo, SfInfo, SfInfoKeys } from './globalInfoConfig';
 
 function isEqual(object1: Record<string, unknown>, object2: Record<string, unknown>): boolean {
   const keys1 = Object.keys(object1).filter((k) => k !== 'timestamp');
@@ -27,10 +26,11 @@ function isEqual(object1: Record<string, unknown>, object2: Record<string, unkno
   return true;
 }
 
-interface Handler<T extends SfDataKeys> {
+interface Handler<T extends SfInfoKeys> {
   sfKey: T;
-  migrate: () => Promise<Pick<SfData, T>>;
-  write: (latest: SfData, original: SfData) => Promise<void>;
+  merge: (sfData: SfInfo) => Promise<Partial<SfInfo>>;
+  migrate: () => Promise<Pick<SfInfo, T>>;
+  write: (latest: SfInfo, original: SfInfo) => Promise<void>;
 }
 
 interface Changes<T> {
@@ -40,89 +40,98 @@ interface Changes<T> {
 
 export class SfdxDataHandler {
   public handlers = [new AuthHandler()];
-  private original!: SfData;
+  private original!: SfInfo;
 
-  public async write(latest: SfData = GlobalInfo.emptyDataModel): Promise<void> {
+  public async write(latest: SfInfo = GlobalInfo.emptyDataModel): Promise<void> {
     for (const handler of this.handlers) {
       await handler.write(latest, this.original);
     }
   }
 
-  public async merge(sfData: SfData = GlobalInfo.emptyDataModel): Promise<SfData> {
-    const sfdxData = await this.load();
-    const merged = deepCopy<SfData>(sfData);
-    const keys = Object.keys(sfData) as SfDataKeys[];
-    for (const key of keys) {
-      const sfKeys = Object.keys(sfData[key] ?? {});
-      const sfdxKeys = Object.keys(sfdxData[key] ?? {});
-      const commonKeys = sfKeys.filter((k) => sfdxKeys.includes(k));
-      for (const k of commonKeys) {
-        const [newer, older] = [sfData[key][k], sfdxData[key][k]].sort((a, b) => {
-          return new Date(a.timestamp) < new Date(b.timestamp) ? 1 : -1;
-        });
-        set(merged, `${key}["${k}"]`, Object.assign({}, older, newer));
-      }
-
-      // Keys that exist in .sfdx but not .sf are added becase we assume
-      // that this means the key was created using sfdx.
-      // However, this is not always a valid assumption because it could
-      // also mean that the key was deleted using sf, in which case we
-      // do not want to migrate the sfdx key to sf.
-      // Programmatically differentiating between a new key and a deleted key
-      // would be nearly impossible. Instead we should ensure that whenever
-      // sf deletes a key it also deletes it in sfdx. This way, we can safely
-      // assume that we should migrate any keys that exist in in .sfdx
-      const unhandledSfdxKeys = sfdxKeys.filter((k) => !sfKeys.includes(k));
-      for (const k of unhandledSfdxKeys) {
-        set(merged, `${key}["${k}"]`, sfdxData[key][k]);
-      }
-
-      // Keys that exist in .sf but not .sfdx are deleted because we assume
-      // that this means the key was deleted while using sfdx.
-      // We can make this assumption because keys that are created by sf will
-      // always be migrated back to sfdx
-      const unhandledSfKeys = sfKeys.filter((k) => !sfdxKeys.includes(k));
-      for (const k of unhandledSfKeys) {
-        delete merged[key][k];
-      }
+  public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<SfInfo> {
+    const merged = deepCopy<SfInfo>(sfData);
+    for (const handler of this.handlers) {
+      Object.assign(merged, await handler.merge(merged));
     }
     this.setOriginal(merged);
     return merged;
   }
 
-  public async load(): Promise<SfData> {
-    return this.handlers.reduce(
-      async (data, handler) => Object.assign({}, data, await handler.migrate()),
-      Promise.resolve(GlobalInfo.emptyDataModel)
-    );
-  }
-
-  private setOriginal(data: SfData): void {
-    this.original = deepCopy<SfData>(data);
+  private setOriginal(data: SfInfo): void {
+    this.original = deepCopy<SfInfo>(data);
   }
 }
 
-export class AuthHandler implements Handler<SfDataKeys.AUTHORIZATIONS> {
+abstract class BaseHandler<T extends SfInfoKeys> implements Handler<T> {
+  public abstract sfKey: T;
+
+  public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<Partial<SfInfo>> {
+    const sfdxData = await this.migrate();
+    const merged = deepCopy<SfInfo>(sfData);
+
+    // Only merge the key this handler is responsible for.
+    const key = this.sfKey;
+
+    const sfKeys = Object.keys(sfData[key] ?? {});
+    const sfdxKeys = Object.keys(sfdxData[key] ?? {});
+    const commonKeys = sfKeys.filter((k) => sfdxKeys.includes(k));
+    for (const k of commonKeys) {
+      const [newer, older] = [sfData[key][k], sfdxData[key][k]].sort((a, b) => {
+        return new Date(a.timestamp) < new Date(b.timestamp) ? 1 : -1;
+      });
+      set(merged, `${key}["${k}"]`, Object.assign({}, older, newer));
+    }
+
+    // Keys that exist in .sfdx but not .sf are added becase we assume
+    // that this means the key was created using sfdx.
+    // However, this is not always a valid assumption because it could
+    // also mean that the key was deleted using sf, in which case we
+    // do not want to migrate the sfdx key to sf.
+    // Programmatically differentiating between a new key and a deleted key
+    // would be nearly impossible. Instead we should ensure that whenever
+    // sf deletes a key it also deletes it in sfdx. This way, we can safely
+    // assume that we should migrate any keys that exist in in .sfdx
+    const unhandledSfdxKeys = sfdxKeys.filter((k) => !sfKeys.includes(k));
+    for (const k of unhandledSfdxKeys) {
+      set(merged, `${key}["${k}"]`, sfdxData[key][k]);
+    }
+
+    // Keys that exist in .sf but not .sfdx are deleted because we assume
+    // that this means the key was deleted while using sfdx.
+    // We can make this assumption because keys that are created by sf will
+    // always be migrated back to sfdx
+    const unhandledSfKeys = sfKeys.filter((k) => !sfdxKeys.includes(k));
+    for (const k of unhandledSfKeys) {
+      delete merged[key][k];
+    }
+
+    return merged;
+  }
+
+  public abstract migrate(): Promise<Pick<SfInfo, T>>;
+  public abstract write(latest: SfInfo, original: SfInfo): Promise<void>;
+}
+
+export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
   // The regular expression that filters files stored in $HOME/.sfdx
   private static authFilenameFilterRegEx = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
 
-  public sfKey: typeof SfDataKeys.AUTHORIZATIONS = SfDataKeys.AUTHORIZATIONS;
+  public sfKey: typeof SfInfoKeys.ORGS = SfInfoKeys.ORGS;
 
-  public async migrate(): Promise<Pick<SfData, SfDataKeys.AUTHORIZATIONS>> {
+  public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.ORGS>> {
     const oldAuths = await this.listAllAuthorizations();
-    const newAuths = oldAuths.reduce(
-      (x, y) => Object.assign(x, { [ensureString(y.username)]: y }),
-      {} as Authorizations
-    );
+    const newAuths = oldAuths.reduce((x, y) => Object.assign(x, { [ensureString(y.username)]: y }), {} as SfOrgs);
     return { [this.sfKey]: newAuths };
   }
 
-  public async write(latest: SfData, original: SfData): Promise<void> {
+  public async write(latest: SfInfo, original: SfInfo): Promise<void> {
     const { changed, deleted } = await this.findChanges(latest, original);
     for (const [username, authData] of Object.entries(changed)) {
-      const config = await this.createAuthFileConfig(username);
-      config.setContentsFromObject(authData);
-      await config.write();
+      if (authData) {
+        const config = await this.createAuthFileConfig(username);
+        config.setContentsFromObject(authData);
+        await config.write();
+      }
     }
 
     for (const username of deleted) {
@@ -131,10 +140,10 @@ export class AuthHandler implements Handler<SfDataKeys.AUTHORIZATIONS> {
     }
   }
 
-  public async findChanges(latest: SfData, original: SfData): Promise<Changes<Authorizations>> {
-    const latestAuths = latest.authorizations;
-    const originalAuths = original.authorizations;
-    const changed: Authorizations = {};
+  public async findChanges(latest: SfInfo, original: SfInfo): Promise<Changes<SfOrgs>> {
+    const latestAuths = latest.orgs;
+    const originalAuths = original.orgs;
+    const changed: SfOrgs = {};
     for (const [username, auth] of Object.entries(latestAuths)) {
       const originalAuth = originalAuths[username] ?? {};
       if (!isEqual(auth, originalAuth)) {
@@ -158,6 +167,7 @@ export class AuthHandler implements Handler<SfDataKeys.AUTHORIZATIONS> {
       isState: true,
       stateFolder: Global.SFDX_STATE_FOLDER,
       throwOnNotFound: false,
+      encryptedKeys: ['accessToken', 'refreshToken', 'password', 'clientSecret'],
     });
     return config;
   }
@@ -167,13 +177,13 @@ export class AuthHandler implements Handler<SfDataKeys.AUTHORIZATIONS> {
     return globalFiles.filter((file) => file.match(AuthHandler.authFilenameFilterRegEx));
   }
 
-  public async listAllAuthorizations(): Promise<Authorization[]> {
+  public async listAllAuthorizations(): Promise<SfOrg[]> {
     const filenames = await this.listAllAuthFiles();
-    const auths: Authorization[] = [];
+    const auths: SfOrg[] = [];
     for (const filename of filenames) {
       const username = basename(filename, extname(filename));
       const configFile = await this.createAuthFileConfig(username);
-      const contents = configFile.getContents() as Authorization;
+      const contents = configFile.getContents() as SfOrg;
       const stat = await configFile.stat();
       const auth = Object.assign(contents, { timestamp: stat.mtime.toISOString() });
       auths.push(auth);

@@ -12,16 +12,6 @@ import { ConfigFile } from './configFile';
  */
 export class SandboxOrgConfig extends ConfigFile<SandboxOrgConfig.Options> {
   /**
-   * Constructor.
-   * **Do not directly construct instances of this class -- use {@link SandboxConfig.create} instead.**
-   *
-   * @param options The options for the class instance
-   * @ignore
-   */
-  public constructor(options: SandboxOrgConfig.Options) {
-    super(options);
-  }
-  /**
    * Gets the config options for a given org ID.
    *
    * @param orgId The orgId. Generally this org would have multiple users configured.

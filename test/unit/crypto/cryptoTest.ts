@@ -9,10 +9,10 @@
 import * as os from 'os';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
-import { Crypto } from '../../src/crypto';
-import { SfdxError } from '../../src/exported';
-import { Messages } from '../../src/messages';
-import { testSetup } from '../../src/testSetup';
+import { Crypto } from '../../../src/crypto/crypto';
+import { SfdxError } from '../../../src/sfdxError';
+import { Messages } from '../../../src/messages';
+import { testSetup } from '../../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();

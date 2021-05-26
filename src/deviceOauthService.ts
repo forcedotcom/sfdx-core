@@ -13,9 +13,9 @@ import { AsyncCreatable, Duration, parseJsonMap } from '@salesforce/kit';
 import { OAuth2Options } from 'jsforce';
 import { Nullable, ensureString, JsonMap } from '@salesforce/ts-types';
 import { Logger } from './logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './authInfo';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
 import { SfdxError } from './sfdxError';
-import { SFDX_HTTP_HEADERS } from './connection';
+import { SFDX_HTTP_HEADERS } from './org/connection';
 import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);

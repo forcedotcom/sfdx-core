@@ -13,7 +13,7 @@ import { stubMethod, StubbedType, stubInterface } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { testSetup, MockTestOrgData } from '../../src/testSetup';
 import { DeviceOauthService } from '../../src/deviceOauthService';
-import { AuthFields, AuthInfo, DEFAULT_CONNECTED_APP_INFO } from '../../src/authInfo';
+import { AuthFields, AuthInfo, DEFAULT_CONNECTED_APP_INFO } from '../../src/org/authInfo';
 import { SFDX_HTTP_HEADERS } from '../../src/exported';
 
 const $$ = testSetup();

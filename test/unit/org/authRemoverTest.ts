@@ -7,12 +7,12 @@
 
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { assert, expect } from 'chai';
-import { AuthRemover } from '../../src/authRemover';
-import { Aliases } from '../../src/config/aliases';
-import { Config } from '../../src/config/config';
-import { ConfigAggregator } from '../../src/config/configAggregator';
-import { GlobalInfo } from '../../src/config/globalInfoConfig';
-import { testSetup } from '../../src/testSetup';
+import { AuthRemover } from '../../../src/org/authRemover';
+import { Aliases } from '../../../src/config/aliases';
+import { Config } from '../../../src/config/config';
+import { ConfigAggregator } from '../../../src/config/configAggregator';
+import { GlobalInfo } from '../../../src/config/globalInfoConfig';
+import { testSetup } from '../../../src/testSetup';
 
 describe('AuthRemover', () => {
   const username = 'espresso@coffee.com';
@@ -20,10 +20,6 @@ describe('AuthRemover', () => {
 
   beforeEach(async () => {
     $$.SANDBOXES.CONFIG.restore();
-    // Turn off the interoperability feature so that we don't have to mock
-    // the old .sfdx config files
-    // @ts-ignore
-    GlobalInfo.enableInteroperability = false;
 
     stubMethod($$.SANDBOX, GlobalInfo.prototype, 'read').callsFake(async function (this: GlobalInfo) {
       const authData = {
@@ -31,15 +27,11 @@ describe('AuthRemover', () => {
         orgId: '12345',
       };
       const contents = {
-        authorizations: { [username]: authData },
+        orgs: { [username]: authData },
       };
       this.setContentsFromObject(contents);
       return this.getContents();
     });
-  });
-  afterEach(() => {
-    // @ts-ignore becuase private member
-    GlobalInfo.instance = null;
   });
 
   describe('resolveUsername', () => {
@@ -62,7 +54,7 @@ describe('AuthRemover', () => {
 
   describe('findAllAuths', () => {
     it('should return all authorization', async () => {
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAuthorizations').returns({ [username]: {} });
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrgs').returns({ [username]: {} });
       const remover = await AuthRemover.create();
       const auths = remover.findAllAuths();
 
@@ -72,7 +64,7 @@ describe('AuthRemover', () => {
 
   describe('findAuth', () => {
     it('should return authorization for provided username', async () => {
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAuthorization').returns({ username, orgId: '12345' });
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
       const remover = await AuthRemover.create();
       const auth = await remover.findAuth(username);
 
@@ -82,14 +74,14 @@ describe('AuthRemover', () => {
     it('should return authorization for provided alias', async () => {
       const alias = 'MyAlias';
       stubMethod($$.SANDBOX, Aliases.prototype, 'get').withArgs(alias).returns(username);
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAuthorization').returns({ username, orgId: '12345' });
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
       const remover = await AuthRemover.create();
       const auth = await remover.findAuth(alias);
       expect(auth).to.deep.equal({ username, orgId: '12345' });
     });
 
     it('should return authorization for defaultusername (set to username) if no username is provided', async () => {
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAuthorization').returns({ username, orgId: '12345' });
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
         .withArgs(Config.DEFAULT_USERNAME)
         .returns({ value: username });
@@ -100,7 +92,7 @@ describe('AuthRemover', () => {
 
     it('should return authorization for defaultusername (set to alias) if no username is provided', async () => {
       const alias = 'MyAlias';
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAuthorization').returns({ username, orgId: '12345' });
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
         .withArgs(Config.DEFAULT_USERNAME)
         .returns({ value: alias });

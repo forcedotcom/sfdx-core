@@ -1,5 +1,5 @@
-import { AuthInfo } from '../src/authInfo';
-import { Connection } from '../src/connection';
+import { AuthInfo } from '../src/org/authInfo';
+import { Connection } from '../src/org/connection';
 
 export const connectionExamples = {
   classDoc: async () => {

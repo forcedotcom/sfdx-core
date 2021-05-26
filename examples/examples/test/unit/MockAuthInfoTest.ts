@@ -9,13 +9,13 @@ describe('Mocking Auth data', () => {
     const testData = new MockTestOrgData();
     $$.setConfigStubContents('GlobalInfo', {
       contents: {
-        authorizations: {
-          [testData.username]: await testData.getConfig()
-        }
-      }
+        orgs: {
+          [testData.username]: await testData.getConfig(),
+        },
+      },
     });
     const auth: AuthInfo = await AuthInfo.create({
-      username: testData.username
+      username: testData.username,
     });
     strictEqual(auth.getUsername(), testData.username);
   });

@@ -30,7 +30,7 @@ export enum AliasGroup {
  * **Note:** All aliases are stored at the global level.
  *
  * ```
- * const aliases = await Aliases.create({});
+ * const aliases = await Aliases.create();
  * aliases.set('myAlias', 'username@company.org');
  * await aliases.write();
  * // Shorthand to get an alias.
@@ -38,17 +38,7 @@ export enum AliasGroup {
  * ```
  * https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
-export class Aliases extends ConfigGroup<ConfigGroup.Options> {
-  /**
-   * Constructor
-   * **Do not directly construct instances of this class -- use {@link Aliases.create} instead.**
-   *
-   * @param options The options for the class instance
-   */
-  public constructor(options: ConfigGroup.Options) {
-    super(options);
-  }
-
+export class Aliases extends ConfigGroup {
   /**
    * The aliases state file filename.
    */
@@ -99,7 +89,7 @@ export class Aliases extends ConfigGroup<ConfigGroup.Options> {
   }
 
   /**
-   * Get an alias from a key and group. Shorthand for `Alias.create({}).get(key)`. Returns the promise resolved when the
+   * Get an alias from a key and group. Shorthand for `Alias.create().get(key)`. Returns the promise resolved when the
    * alias is created.
    *
    * @param key The value of the alias to match.

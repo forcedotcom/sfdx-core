@@ -31,7 +31,7 @@ export async function run() {
   }
 
   const config = await GlobalInfo.getInstance();
-  const orgs = Object.keys(config.authorizations)
+  const orgs = Object.keys(config.getOrgs());
 
   // Have the user select a user
   const connectionOrg = await select('Select an org to connect to:', orgs);
@@ -51,8 +51,8 @@ async function select(question, options) {
       message: question,
       type: 'list',
       pageSize: '20',
-      choices: options
-    }
+      choices: options,
+    },
   ]);
   const { answer } = await prompt;
   return answer;

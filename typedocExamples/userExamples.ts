@@ -1,7 +1,7 @@
-import { DefaultUserFields, User, UserFields } from '../src/user';
+import { DefaultUserFields, User, UserFields } from '../src/org/user';
 import { Org } from '../src/org';
-import { Connection } from '../src/connection';
-import { AuthInfo } from '../src/authInfo';
+import { Connection } from '../src/org/connection';
+import { AuthInfo } from '../src/org/authInfo';
 
 export const userExamples = {
   defaultUserFieldsClassDoc: async () => {

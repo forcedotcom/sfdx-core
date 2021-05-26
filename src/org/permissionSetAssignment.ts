@@ -9,10 +9,10 @@ import { EOL } from 'os';
 import { mapKeys, upperFirst } from '@salesforce/kit';
 import { getString, hasArray, Optional } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import { Logger } from './logger';
-import { Messages } from './messages';
+import { Logger } from '../logger';
+import { Messages } from '../messages';
+import { SfdxError } from '../sfdxError';
 import { Org } from './org';
-import { SfdxError } from './sfdxError';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'permissionSetAssignment', [
