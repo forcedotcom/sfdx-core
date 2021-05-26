@@ -151,7 +151,7 @@ class JwtOAuth2 extends OAuth2 {
  * console.log(authUrl);
  * const authCode = await retrieveCode();
  * const authInfo = await AuthInfo.create({ oauth2Options: { clientId, clientSecret, loginUrl, authCode }, oauth2});
- * console.log(`access token: ${authInfo.getFields().accessToken}`);
+ * console.log(`access token: ${authInfo.getFields(true).accessToken}`);
  */
 export class OAuth2WithVerifier extends OAuth2 {
   public readonly codeVerifier: string;
@@ -592,7 +592,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * Get the org front door (used for web based oauth flows)
    */
   public getOrgFrontDoorUrl(): string {
-    const authFields = this.getFields();
+    const authFields = this.getFields(true);
     const base = ensureString(authFields.instanceUrl).replace(/\/+$/, '');
     const accessToken = ensureString(authFields.accessToken);
     return `${base}/secur/frontdoor.jsp?sid=${accessToken}`;

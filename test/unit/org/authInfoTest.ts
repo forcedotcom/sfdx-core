@@ -357,7 +357,7 @@ describe('AuthInfo', () => {
     describe('getOrgFrontDoorUrl', () => {
       it('return front door url', () => {
         const url = authInfo.getOrgFrontDoorUrl();
-        const fields = authInfo.getFields();
+        const fields = authInfo.getFields(true);
         expect(url).include(fields.accessToken);
         expect(url).include(fields.instanceUrl);
         expect(url).include('/secur/frontdoor');
