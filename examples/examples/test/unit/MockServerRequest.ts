@@ -13,10 +13,10 @@ describe('Mocking a force server call', () => {
     const testData = new MockTestOrgData();
     $$.setConfigStubContents('GlobalInfo', {
       contents: {
-        authorizations: {
-          [testData.username]: await testData.getConfig()
-        }
-      }
+        orgs: {
+          [testData.username]: await testData.getConfig(),
+        },
+      },
     });
     $$.fakeConnectionRequest = (request: AnyJson): Promise<AnyJson> => {
       const _request: JsonMap = ensureJsonMap(request);
@@ -27,7 +27,7 @@ describe('Mocking a force server call', () => {
       }
     };
     const connection: Connection = await Connection.create({
-      authInfo: await AuthInfo.create({ username: testData.username })
+      authInfo: await AuthInfo.create({ username: testData.username }),
     });
     const result: QueryResult<{}> = await connection.query('select Id From Account');
     deepStrictEqual(result, records);

@@ -7,15 +7,15 @@
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
-import { AuthInfo, Authorization } from './authInfo';
-import { Aliases } from './config/aliases';
-import { Config } from './config/config';
-import { ConfigAggregator } from './config/configAggregator';
-import { Logger } from './logger';
-import { Messages } from './messages';
-import { Authorizations, GlobalInfo } from './config/globalInfoConfig';
+import { Aliases } from '../config/aliases';
+import { Config } from '../config/config';
+import { ConfigAggregator } from '../config/configAggregator';
+import { Logger } from '../logger';
+import { Messages } from '../messages';
+import { SfOrg, GlobalInfo, SfOrgs } from '../config/globalInfoConfig';
 
 Messages.importMessagesDirectory(__dirname);
+const coreMessages = Messages.load('@salesforce/core', 'core', ['namedOrgNotFound']);
 const messages = Messages.load('@salesforce/core', 'auth', ['defaultUsernameNotSet']);
 
 /**
@@ -56,10 +56,9 @@ export class AuthRemover extends AsyncOptionalCreatable {
   public async removeAuth(usernameOrAlias: string) {
     const username = await this.resolveUsername(usernameOrAlias);
     this.logger.debug(`Removing authorization for user ${username}`);
-    AuthInfo.clearCache(username);
     await this.unsetConfigValues(username);
     await this.unsetAliases(username);
-    this.globalInfo.unsetAuthorization(username);
+    this.globalInfo.unsetOrg(username);
     await this.globalInfo.write();
   }
 
@@ -76,23 +75,28 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Finds authorization files for username/alias in the global .sfdx folder
-   * **Throws** *{@link SfdxError}{ name: 'DefaultUsernameNotSetError' }* if no username, alias, or defaultusername
+   * **Throws** *{@link SfdxError}{ name: 'DefaultUsernameNotSetError' }* if no defaultusername
+   * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFoundError' }* if specified user is not found
    *
    * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured defaultusername
    * @returns {Promise<Authorization>}
    */
-  public async findAuth(usernameOrAlias?: string): Promise<Authorization> {
+  public async findAuth(usernameOrAlias?: string): Promise<SfOrg> {
     const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getDefaultUsername();
-    return this.globalInfo.getAuthorization(username);
+    const auth = this.globalInfo.getOrg(username);
+    if (!auth) {
+      throw coreMessages.createError('namedOrgNotFound');
+    }
+    return auth;
   }
 
   /**
    * Finds all authorization files in the global .sfdx folder
    *
-   * @returns {Promise<Authorizations>}
+   * @returns {Promise<SfOrgs>}
    */
-  public findAllAuths(): Authorizations {
-    return this.globalInfo.getAuthorizations();
+  public findAllAuths(): SfOrgs {
+    return this.globalInfo.getOrgs();
   }
 
   protected async init() {

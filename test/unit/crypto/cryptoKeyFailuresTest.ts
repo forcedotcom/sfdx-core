@@ -9,8 +9,8 @@ import * as _crypto from 'crypto';
 import * as os from 'os';
 import { AnyJson } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
-import { Crypto } from '../../src/crypto';
-import { testSetup } from '../../src/testSetup';
+import { Crypto } from '../../../src/crypto/crypto';
+import { testSetup } from '../../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();

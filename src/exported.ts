@@ -18,7 +18,7 @@ export { ConfigGroup } from './config/configGroup';
 
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
-export { GlobalInfo } from './config/globalInfoConfig';
+export { GlobalInfo, SfEntry, SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfToken, SfTokens } from './config/globalInfoConfig';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
 
@@ -28,11 +28,11 @@ export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config } from './config/co
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
-export { Authorization, AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl } from './authInfo';
+export { AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl } from './org/authInfo';
 
-export { AuthRemover } from './authRemover';
+export { AuthRemover } from './org/authRemover';
 
-export { Connection, SFDX_HTTP_HEADERS } from './connection';
+export { Connection, SFDX_HTTP_HEADERS } from './org/connection';
 
 export { Mode, Global } from './global';
 
@@ -53,7 +53,7 @@ export {
 
 export { Messages } from './messages';
 
-export { Org } from './org';
+export { Org } from './org/org';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
 
@@ -71,9 +71,9 @@ export { CometClient, CometSubscription, StreamingClient } from './status/stream
 
 export { MyDomainResolver } from './status/myDomainResolver';
 
-export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './user';
+export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './org/user';
 
-export { PermissionSetAssignment, PermissionSetAssignmentFields } from './permissionSetAssignment';
+export { PermissionSetAssignment, PermissionSetAssignmentFields } from './org/permissionSetAssignment';
 
 // Utility sub-modules
 export * from './util/fs';

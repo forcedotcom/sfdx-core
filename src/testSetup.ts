@@ -28,13 +28,15 @@ import {
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
-import { Connection } from './connection';
-import { Crypto } from './crypto';
+import { Connection } from './org/connection';
+import { Crypto } from './crypto/crypto';
 import { Logger } from './logger';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { SfdxProject, SfdxProjectJson } from './sfdxProject';
 import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
+import { GlobalInfo, SfOrg } from './config/globalInfoConfig';
+// import { fs } from '../src/util/fs';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -47,6 +49,7 @@ export interface SandboxTypes {
   CONFIG: sinon.SinonSandbox;
   PROJECT: sinon.SinonSandbox;
   CONNECTION: sinon.SinonSandbox;
+  FS: sinonType.SinonSandbox;
 }
 
 /**
@@ -253,6 +256,7 @@ export const instantiateContext = (sinon?: any) => {
       PROJECT: sinon.createSandbox(),
       CRYPTO: sinon.createSandbox(),
       CONNECTION: sinon.createSandbox(),
+      FS: sinon.createSandbox(),
     },
     TEST_LOGGER: new Logger({
       name: 'SFDX_Core_Test_Logger',
@@ -333,6 +337,12 @@ export const instantiateContext = (sinon?: any) => {
  * @param testContext
  */
 export const stubContext = (testContext: TestContext) => {
+  // Turn off the interoperability feature so that we don't have to mock
+  // the old .sfdx config files
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // @ts-ignore
+  GlobalInfo.enableInteroperability = false;
+
   // Most core files create a child logger so stub this to return our test logger.
   stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
   stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
@@ -440,6 +450,10 @@ export const stubContext = (testContext: TestContext) => {
 
   // Always start with the default and tests beforeEach or it methods can override it.
   testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
+
+  // stubMethod(testContext.SANDBOXES.FS, fs, 'mkdirp').resolves();
+  // stubMethod(testContext.SANDBOXES.FS, fs, 'writeFile').resolves();
+  // stubMethod(testContext.SANDBOXES.FS, fs, 'readJsonMap').resolves({});
 };
 
 /**
@@ -465,6 +479,8 @@ export const restoreContext = (testContext: TestContext) => {
   testContext.SANDBOX.restore();
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
+  // Give each test run a clean GlobalInstance
+  GlobalInfo.clearInstance();
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -777,7 +793,7 @@ export class MockTestOrgData {
     };
   }
 
-  public async getConfig(): Promise<ConfigContents> {
+  public async getConfig(): Promise<SfOrg> {
     const crypto = await Crypto.create();
     const config: JsonMap = {};
     config.orgId = this.orgId;
@@ -809,6 +825,6 @@ export class MockTestOrgData {
       config.isDevHub = isDevHub;
     }
 
-    return config;
+    return config as SfOrg;
   }
 }

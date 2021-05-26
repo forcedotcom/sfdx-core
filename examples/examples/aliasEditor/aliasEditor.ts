@@ -6,9 +6,9 @@ import * as strip from 'strip-ansi';
 
 export async function run() {
   const config = await GlobalInfo.getInstance();
-  const orgs = Object.keys(config.authorizations)
+  const orgs = Object.keys(config.getOrgs());
   const orgsWithAliases = {};
-  const aliases = await Aliases.create({});
+  const aliases = await Aliases.create();
 
   // Map the aliases onto the orgs
   for (const org of orgs) {
@@ -17,12 +17,12 @@ export async function run() {
   }
 
   // Buffer length for displaying to the user
-  const len = (_.max(_.map(_.values(orgsWithAliases), element => element || 0)) as string).length + 4;
+  const len = (_.max(_.map(_.values(orgsWithAliases), (element) => element || 0)) as string).length + 4;
 
   // Have the user select a user to add or remove alias
   const answer = await select(
     "Select a user's alias to edit:",
-    Object.keys(orgsWithAliases).map(org => {
+    Object.keys(orgsWithAliases).map((org) => {
       const _alias = orgsWithAliases[org];
       let aliasText = '';
 
@@ -64,8 +64,8 @@ async function select(question, options) {
       message: question,
       type: 'list',
       pageSize: '20',
-      choices: options
-    }
+      choices: options,
+    },
   ]);
   const { answer } = await prompt;
   return answer;

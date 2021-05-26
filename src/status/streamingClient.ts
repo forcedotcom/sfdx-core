@@ -13,7 +13,7 @@ import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce
 // @ts-ignore
 import * as Faye from 'sfdx-faye';
 import { Logger } from '../logger';
-import { Org } from '../org';
+import { Org } from '../org/org';
 import { SfdxError } from '../sfdxError';
 import { Messages } from '../messages';
 import { StatusResult } from './client';
@@ -181,7 +181,7 @@ function validateTimeout(newTime: Duration, existingTime: Duration): Duration {
  *     };
  *   };
  *
- * const org = await Org.create({});
+ * const org = await Org.create();
  * const options = new StreamingClient.DefaultOptions(org, 'MyPushTopics', streamProcessor);
  *
  * const asyncStatusClient = await StreamingClient.create(options);

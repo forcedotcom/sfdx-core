@@ -39,10 +39,10 @@ describe('Mocking Auth data', () => {
     const testData = new MockTestOrgData();
     $$.setConfigStubContents('GlobalInfo', {
       contents: {
-        authorizations: {
-          [testData.username]: await testData.getConfig()
-        }
-      }
+        orgs: {
+          [testData.username]: await testData.getConfig(),
+        },
+      },
     });
     const auth: AuthInfo = await AuthInfo.create({ username: testData.username });
     strictEqual(auth.getUsername(), testData.username);
@@ -68,10 +68,10 @@ describe('Mocking a force server call', () => {
     const testData = new MockTestOrgData();
     $$.setConfigStubContents('GlobalInfo', {
       contents: {
-        authorizations: {
-          [testData.username]: await testData.getConfig()
-        }
-      }
+        orgs: {
+          [testData.username]: await testData.getConfig(),
+        },
+      },
     });
     $$.fakeConnectionRequest = (request: AnyJson): Promise<AnyJson> => {
       const _request: JsonMap = ensureJsonMap(request);

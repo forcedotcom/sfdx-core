@@ -6,9 +6,8 @@
  */
 
 import { keyBy, set } from '@salesforce/kit';
-import { Dictionary, ensure, isString } from '@salesforce/ts-types';
+import { Dictionary, ensure, isString, JsonPrimitive } from '@salesforce/ts-types';
 import { Logger } from '../logger';
-import { Crypto } from '../crypto';
 import { Messages } from '../messages';
 import { sfdc } from '../util/sfdc';
 import { ConfigFile } from './configFile';
@@ -72,6 +71,8 @@ export interface ConfigPropertyMetaInput {
   failedMessage: string;
 }
 
+export type ConfigProperties = { [index: string]: JsonPrimitive };
+
 /**
  * The files where sfdx config values are stored for projects and the global space.
  *
@@ -79,13 +80,13 @@ export interface ConfigPropertyMetaInput {
  * config values. Instead use {@link ConfigAggregator}
  *
  * ```
- * const localConfig = await Config.create({});
+ * const localConfig = await Config.create();
  * localConfig.set('defaultusername', 'username@company.org');
  * await localConfig.write();
  * ```
  * https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_config_values.htm
  */
-export class Config extends ConfigFile<ConfigFile.Options> {
+export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   /**
    * Username associated with the default dev hub org.
    */
@@ -189,8 +190,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     },
   ];
 
-  private crypto?: Crypto;
-
   public constructor(options?: ConfigFile.Options) {
     super(options || Config.getDefaultOptions(false));
 
@@ -282,7 +281,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Read, assign, and return the config contents.
    */
-  public async read(force = true): Promise<ConfigContents> {
+  public async read(force = true): Promise<ConfigProperties> {
     try {
       await super.read(false, force);
       await this.cryptProperties(false);
@@ -297,7 +296,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    *
    * @param newContents The new Config value to persist.
    */
-  public async write(newContents?: ConfigContents): Promise<ConfigContents> {
+  public async write(newContents?: ConfigProperties): Promise<ConfigProperties> {
     if (newContents != null) {
       this.setContents(newContents);
     }
@@ -320,7 +319,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * @param newContents Contents to write
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public writeSync(newContents?: ConfigContents): ConfigContents {
+  public writeSync(newContents?: ConfigProperties): ConfigProperties {
     throw messages.createError('invalidWrite');
   }
 
@@ -333,7 +332,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    * @param key The property to set.
    * @param value The value of the property.
    */
-  public set(key: string, value: ConfigValue): ConfigContents {
+  public set(key: string, value: JsonPrimitive): ConfigProperties {
     const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
     if (!property) {
@@ -374,26 +373,6 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     // Super ConfigFile calls read, which has a dependency on crypto, which finally has a dependency on
     // Config.propertyConfigMap being set. This is why init is called after the setup.
     await super.init();
-  }
-
-  /**
-   * Initialize the crypto dependency.
-   */
-  private async initCrypto(): Promise<void> {
-    if (!this.crypto) {
-      this.crypto = await Crypto.create();
-    }
-  }
-
-  /**
-   * Closes the crypto dependency. Crypto should be close after it's used and no longer needed.
-   */
-  // eslint-disable-next-line @typescript-eslint/require-await
-  private async clearCrypto(): Promise<void> {
-    if (this.crypto) {
-      this.crypto.close();
-      delete this.crypto;
-    }
   }
 
   /**
