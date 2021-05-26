@@ -13,9 +13,9 @@ import * as Faye from 'sfdx-faye';
 import { StatusResult } from '../../../src/status/client';
 import { CometClient, StreamingClient } from '../../../src/status/streamingClient';
 
-import { Connection } from '../../../src/connection';
-import { Crypto } from '../../../src/crypto';
-import { Org } from '../../../src/org';
+import { Connection } from '../../../src/org/connection';
+import { Crypto } from '../../../src/crypto/crypto';
+import { Org } from '../../../src/org/org';
 import { SfdxError } from '../../../src/sfdxError';
 import {
   shouldThrow,
@@ -23,7 +23,6 @@ import {
   StreamingMockSubscriptionCall,
   testSetup,
 } from '../../../src/testSetup';
-import { GlobalInfo } from '../../../src/config/globalInfoConfig';
 
 const MOCK_API_VERSION = '43.0';
 const MOCK_TOPIC = 'topic';
@@ -38,13 +37,10 @@ describe('streaming client tests', () => {
     username = `${id}@test.com`;
 
     const crypto = await Crypto.create();
-    // Turn off the interoperability feature so that we don't have to mock
-    // the old .sfdx config files
-    // @ts-ignore
-    GlobalInfo.enableInteroperability = false;
+
     $$.configStubs.GlobalInfo = {
       contents: {
-        authorizations: {
+        orgs: {
           [username]: {
             orgId: id,
             username,
@@ -56,11 +52,6 @@ describe('streaming client tests', () => {
     };
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     stubMethod($$.SANDBOX, Connection.prototype, 'getApiVersion').returns(MOCK_API_VERSION);
-  });
-
-  afterEach(() => {
-    // @ts-ignore becuase private member
-    GlobalInfo.instance = null;
   });
 
   it('should set options apiVersion on system topics', async () => {

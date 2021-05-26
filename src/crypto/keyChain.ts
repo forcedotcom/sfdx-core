@@ -6,9 +6,9 @@
  */
 
 import { env } from '@salesforce/kit';
+import { Logger } from '../logger';
+import { Messages } from '../messages';
 import { KeyChain, keyChainImpl } from './keyChainImpl';
-import { Logger } from './logger';
-import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'encryption', ['unsupportedOperatingSystemError']);

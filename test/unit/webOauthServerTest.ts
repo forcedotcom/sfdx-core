@@ -14,7 +14,7 @@ import { Env } from '@salesforce/kit';
 import { testSetup, MockTestOrgData } from '../../src/testSetup';
 import { SfdxProjectJson } from '../../src/sfdxProject';
 import { WebOAuthServer, WebServer } from '../../src/webOAuthServer';
-import { AuthFields, AuthInfo } from '../../src/authInfo';
+import { AuthFields, AuthInfo } from '../../src/org/authInfo';
 
 const $$ = testSetup();
 

@@ -8,7 +8,7 @@
 import { definiteEntriesOf, definiteValuesOf, Dictionary, getJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile } from './configFile';
-import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
+import { ConfigContents, ConfigEntry, ConfigValue, Key } from './configStore';
 
 /**
  * A config file that stores config values in groups. e.g. to store different config
@@ -29,8 +29,11 @@ import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
  * await myConfig.write();
  * ```
  */
-export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
-  protected defaultGroup = 'default';
+export class ConfigGroup<
+  T extends ConfigGroup.Options = ConfigGroup.Options,
+  P extends ConfigContents = ConfigContents
+> extends ConfigFile<T, P> {
+  protected defaultGroup = 'default' as Key<P>;
   /**
    * Get ConfigGroup specific options, such as the default group.
    *
@@ -50,7 +53,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    *
    * @param group The group.
    */
-  public setDefaultGroup(group: string): void {
+  public setDefaultGroup(group: Key<P>): void {
     if (!group) {
       throw new SfdxError('null or undefined group', 'MissingGroupNameError');
     }
@@ -103,8 +106,8 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    *
    * @param key The key.
    */
-  public get(key: string): Optional<ConfigValue> {
-    return this.getInGroup(key);
+  public get<K extends Extract<keyof P, string>>(key: string): P[K] {
+    return this.getInGroup(key) as P[K];
   }
 
   /**
@@ -120,8 +123,8 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   /**
    * Returns an array of the keys from the default group.
    */
-  public keys(): string[] {
-    return Object.keys(this.getGroup(this.defaultGroup) || {});
+  public keys(): Array<Key<P>> {
+    return Object.keys(this.getGroup(this.defaultGroup) || {}) as Array<Key<P>>;
   }
 
   /**
@@ -137,8 +140,8 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * @param key The key.
    * @param value The value.
    */
-  public set(key: string, value: ConfigValue): ConfigContents {
-    return this.setInGroup(key, value, this.defaultGroup);
+  public set<K extends Extract<keyof P, string>>(key: K, value: P[K]): P {
+    return this.setInGroup(key, value, this.defaultGroup) as P;
   }
 
   /**
@@ -178,7 +181,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * @param group The group. Defaults to the default group.
    */
   public getInGroup(key: string, group?: string): Optional<ConfigValue> {
-    const groupContents = this.getGroup(group);
+    const groupContents = this.getGroup(group as Key<P>);
     if (groupContents) {
       return groupContents[key];
     }
@@ -217,11 +220,11 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   public setInGroup(key: string, value?: ConfigValue, group?: string): ConfigContents {
     group = group || this.defaultGroup;
 
-    if (!super.has(group)) {
-      super.set(group, {});
+    if (!super.has(group as Key<P>)) {
+      super.set(group as Extract<keyof P, string>, {} as P[Extract<keyof P, string>]);
     }
-    const content = this.getGroup(group) || {};
-    this.setMethod(content, key, value);
+    const content = this.getGroup(group as Key<P>) || {};
+    this.setMethod(content as P, key, value);
 
     return content;
   }
@@ -232,7 +235,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   public async init(): Promise<void> {
     await super.init();
     if (this.options.defaultGroup) {
-      this.setDefaultGroup(this.options.defaultGroup);
+      this.setDefaultGroup(this.options.defaultGroup as Key<P>);
     }
   }
 }

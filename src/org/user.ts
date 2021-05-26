@@ -19,15 +19,15 @@ import {
 } from '@salesforce/ts-types';
 import { QueryResult, RequestInfo } from 'jsforce';
 import { DescribeSObjectResult } from 'jsforce/describe-result';
-import { AuthFields, AuthInfo } from './authInfo';
-import { Connection } from './connection';
-import { Logger } from './logger';
-import { Messages } from './messages';
-import { Org } from './org';
+import { Connection } from '../org/connection';
+import { Logger } from '../logger';
+import { Messages } from '../messages';
+import { SecureBuffer } from '../crypto/secureBuffer';
+import { SfdxError } from '../sfdxError';
+import { sfdc } from '../util/sfdc';
 import { PermissionSetAssignment } from './permissionSetAssignment';
-import { SecureBuffer } from './secureBuffer';
-import { SfdxError } from './sfdxError';
-import { sfdc } from './util/sfdc';
+import { Org } from './org';
+import { AuthFields, AuthInfo } from './authInfo';
 
 const PASSWORD_LENGTH = 13;
 const LOWER = 'abcdefghijklmnopqrstuvwxyz';

@@ -8,7 +8,7 @@
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
-import { isBoolean } from '@salesforce/ts-types';
+import { isBoolean, isPlainObject } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
@@ -35,7 +35,10 @@ import { BaseConfigStore, ConfigContents } from './configStore';
  * await myConfig.write();
  * ```
  */
-export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T> {
+export class ConfigFile<
+  T extends ConfigFile.Options = ConfigFile.Options,
+  P extends ConfigContents = ConfigContents
+> extends BaseConfigStore<T, P> {
   // whether file contents have been read
   protected hasRead = false;
 
@@ -52,7 +55,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @param options The options for the class instance
    * @ignore
    */
-  public constructor(options: T) {
+  public constructor(options?: T) {
     super(options);
 
     this.logger = Logger.childFromRoot(this.constructor.name);
@@ -151,7 +154,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
    */
-  public async read(throwOnNotFound = false, force = false): Promise<ConfigContents> {
+  public async read(throwOnNotFound = false, force = false): Promise<P> {
     try {
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
@@ -185,7 +188,7 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
    */
-  public readSync(throwOnNotFound = false, force = false): ConfigContents {
+  public readSync(throwOnNotFound = false, force = false): P {
     try {
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
@@ -216,8 +219,8 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    *
    * @param newContents The new contents of the file.
    */
-  public async write(newContents?: ConfigContents): Promise<ConfigContents> {
-    if (newContents != null) {
+  public async write(newContents?: P): Promise<P> {
+    if (newContents) {
       this.setContents(newContents);
     }
 
@@ -235,8 +238,8 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    *
    * @param newContents The new contents of the file.
    */
-  public writeSync(newContents?: ConfigContents): ConfigContents {
-    if (newContents != null) {
+  public writeSync(newContents?: P): P {
+    if (isPlainObject(newContents)) {
       this.setContents(newContents);
     }
 
@@ -352,6 +355,8 @@ export class ConfigFile<T extends ConfigFile.Options> extends BaseConfigStore<T>
    * options.throwOnNotFound is true.
    */
   protected async init(): Promise<void> {
+    await super.init();
+
     // Read the file, which also sets the path and throws any errors around project paths.
     await this.read(this.options.throwOnNotFound);
   }

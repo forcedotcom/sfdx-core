@@ -7,7 +7,7 @@
 import * as crypto from 'crypto';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { SecureBuffer } from '../../src/secureBuffer';
+import { SecureBuffer } from '../../../src/crypto/secureBuffer';
 
 describe('secureBuffer', () => {
   const secretText = 'FOO';

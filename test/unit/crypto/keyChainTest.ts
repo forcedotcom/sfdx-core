@@ -8,10 +8,14 @@ import * as path from 'path';
 import { Nullable } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as _ from 'lodash';
-import { retrieveKeychain } from '../../src/keyChain';
-import { GenericUnixKeychainAccess, GenericWindowsKeychainAccess, keyChainImpl } from '../../src/keyChainImpl';
-import { testSetup } from '../../src/testSetup';
-import { fs } from '../../src/util/fs';
+import { retrieveKeychain } from '../../../src/crypto/keyChain';
+import {
+  GenericUnixKeychainAccess,
+  GenericWindowsKeychainAccess,
+  keyChainImpl,
+} from '../../../src/crypto/keyChainImpl';
+import { testSetup } from '../../../src/testSetup';
+import { fs } from '../../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();

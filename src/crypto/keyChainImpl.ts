@@ -9,14 +9,12 @@ import * as childProcess from 'child_process';
 import * as nodeFs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { asString, ensure, Nullable } from '@salesforce/ts-types';
-import { ConfigFile } from './config/configFile';
-import { ConfigContents } from './config/configStore';
-import { KeychainConfig } from './config/keychainConfig';
-import { Global } from './global';
-import { SfdxError } from './sfdxError';
-import { fs } from './util/fs';
-import { Messages } from './messages';
+import { homedir } from 'os';
+import { asString, ensureString, Nullable } from '@salesforce/ts-types';
+import { Global } from '../global';
+import { SfdxError } from '../sfdxError';
+import { fs } from '../util/fs';
+import { Messages } from '../messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'encryption', [
@@ -118,7 +116,7 @@ export interface PasswordStore {
    * @param opts cli level password options.
    * @param fn function callback for password.
    */
-  setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: ConfigContents) => void): Promise<void>;
+  setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: SecretContents) => void): Promise<void>;
 }
 
 /**
@@ -210,7 +208,7 @@ export class KeychainAccess implements PasswordStore {
    */
   public async setPassword(
     opts: ProgramOpts,
-    fn: (error: Nullable<Error>, contents?: ConfigContents) => void
+    fn: (error: Nullable<Error>, contents?: SecretContents) => void
   ): Promise<void> {
     if (opts.service == null) {
       fn(messages.createError('keyChainServiceRequiredError'));
@@ -427,24 +425,44 @@ const _darwinImpl: OsImpl = {
   },
 };
 
-async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: ConfigContents) => void) {
-  try {
-    const config = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
-    config.set(SecretField.ACCOUNT, opts.account);
-    config.set(SecretField.KEY, opts.password || '');
-    config.set(SecretField.SERVICE, opts.service);
-    await config.write();
-
-    fn(null, config.getContents());
-  } catch (err) {
-    fn(err);
-  }
-}
+const secretFile: string = path.join(homedir(), Global.SFDX_STATE_FOLDER, 'key.json');
 
 enum SecretField {
   SERVICE = 'service',
   ACCOUNT = 'account',
   KEY = 'key',
+}
+
+type SecretContents = {
+  [SecretField.ACCOUNT]: string;
+  [SecretField.KEY]?: string;
+  [SecretField.SERVICE]: string;
+};
+
+async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: SecretContents) => void) {
+  try {
+    const contents = {
+      [SecretField.ACCOUNT]: opts.account,
+      [SecretField.KEY]: opts.password,
+      [SecretField.SERVICE]: opts.service,
+    };
+    await fs.mkdirp(path.dirname(secretFile));
+    await fs.writeFile(secretFile, JSON.stringify(contents, null, 4), { mode: '600' });
+
+    fn(null, contents);
+  } catch (err) {
+    fn(err);
+  }
+}
+
+async function _readFile(): Promise<ProgramOpts> {
+  // The file and access is validated before this method is called
+  const fileContents = await fs.readJsonMap(secretFile);
+  return {
+    account: ensureString(fileContents[SecretField.ACCOUNT]),
+    password: asString(fileContents[SecretField.KEY]),
+    service: ensureString(fileContents[SecretField.SERVICE]),
+  };
 }
 
 // istanbul ignore next - getPassword/setPassword is always mocked out
@@ -458,21 +476,19 @@ export class GenericKeychainAccess implements PasswordStore {
       // the file checks out.
       if (fileAccessError == null) {
         // read it's contents
-        return KeychainConfig.create(KeychainConfig.getDefaultOptions())
-          .then((config: KeychainConfig) => {
-            // validate service name and account just because
-            if (opts.service === config.get(SecretField.SERVICE) && opts.account === config.get(SecretField.ACCOUNT)) {
-              const key = config.get(SecretField.KEY);
-              fn(null, asString(key));
-            } else {
-              // if the service and account names don't match then maybe someone or something is editing
-              // that file. #donotallow
-              fn(messages.createError('genericKeychainServiceError', [KeychainConfig.getFileName()]));
-            }
-          })
-          .catch((readJsonErr) => {
-            fn(readJsonErr);
-          });
+        try {
+          const { service, account, password } = await _readFile();
+          // validate service name and account just because
+          if (opts.service === service && opts.account === account) {
+            fn(null, password);
+          } else {
+            // if the service and account names don't match then maybe someone or something is editing
+            // that file. #donotallow
+            fn(messages.createError('genericKeychainServiceError', [secretFile]));
+          }
+        } catch (readJsonErr) {
+          fn(readJsonErr);
+        }
       } else {
         if (fileAccessError.code === 'ENOENT') {
           fn(messages.createError('passwordNotFoundError'));
@@ -485,7 +501,7 @@ export class GenericKeychainAccess implements PasswordStore {
 
   public async setPassword(
     opts: ProgramOpts,
-    fn: (error: Nullable<Error>, contents?: ConfigContents) => void
+    fn: (error: Nullable<Error>, contents?: SecretContents) => void
   ): Promise<void> {
     // validate the file in .sfdx
     await this.isValidFileAccess(async (fileAccessError) => {
@@ -507,7 +523,7 @@ export class GenericKeychainAccess implements PasswordStore {
 
   protected async isValidFileAccess(cb: (error: Nullable<NodeJS.ErrnoException>) => Promise<void>): Promise<void> {
     try {
-      const root = await ConfigFile.resolveRootFolder(true);
+      const root = homedir();
       await fs.access(
         path.join(root, Global.SFDX_STATE_FOLDER),
         fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK
@@ -525,17 +541,11 @@ export class GenericKeychainAccess implements PasswordStore {
 // istanbul ignore next - getPassword/setPassword is always mocked out
 export class GenericUnixKeychainAccess extends GenericKeychainAccess {
   protected async isValidFileAccess(cb: (error: Nullable<Error>) => Promise<void>): Promise<void> {
-    const secretFile: string = path.join(
-      await ConfigFile.resolveRootFolder(true),
-      Global.SFDX_STATE_FOLDER,
-      ensure(KeychainConfig.getDefaultOptions().filename)
-    );
     await super.isValidFileAccess(async (err) => {
       if (err != null) {
         await cb(err);
       } else {
-        const keyFile = await KeychainConfig.create(KeychainConfig.getDefaultOptions());
-        const stats = await keyFile.stat();
+        const stats = await fs.stat(secretFile);
         const octalModeStr = (stats.mode & 0o777).toString(8);
         const EXPECTED_OCTAL_PERM_VALUE = '600';
         if (octalModeStr === EXPECTED_OCTAL_PERM_VALUE) {
@@ -544,7 +554,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
           cb(
             messages.createError(
               'genericKeychainInvalidPermsError',
-              [KeychainConfig.getFileName()],
+              [secretFile],
               [secretFile, EXPECTED_OCTAL_PERM_VALUE]
             )
           );
@@ -564,11 +574,6 @@ export class GenericWindowsKeychainAccess extends GenericKeychainAccess {
         await cb(err);
       } else {
         try {
-          const secretFile: string = path.join(
-            await ConfigFile.resolveRootFolder(true),
-            Global.SFDX_STATE_FOLDER,
-            ensure(KeychainConfig.getDefaultOptions().filename)
-          );
           await fs.access(secretFile, fs.constants.R_OK | fs.constants.W_OK);
           await cb(null);
         } catch (e) {

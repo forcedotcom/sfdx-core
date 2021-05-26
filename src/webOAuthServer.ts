@@ -14,7 +14,7 @@ import { AsyncCreatable, set, toNumber, Env } from '@salesforce/kit';
 import { Nullable, get, asString } from '@salesforce/ts-types';
 import { OAuth2Options } from 'jsforce';
 import { Logger } from './logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, OAuth2WithVerifier } from './authInfo';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, OAuth2WithVerifier } from './org/authInfo';
 import { SfdxError } from './sfdxError';
 import { Messages } from './messages';
 import { SfdxProjectJson } from './sfdxProject';
@@ -65,7 +65,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
    */
   public static async determineOauthPort(): Promise<number> {
     try {
-      const sfdxProject = await SfdxProjectJson.create({});
+      const sfdxProject = await SfdxProjectJson.create();
       return (sfdxProject.get('oauthLocalPort') as number) || WebOAuthServer.DEFAULT_PORT;
     } catch {
       return WebOAuthServer.DEFAULT_PORT;
