@@ -98,13 +98,6 @@ export interface AccessTokenOptions {
   instanceUrl?: string;
 }
 
-/* eslint-disable camelcase */
-type UserInfo = AnyJson & {
-  preferred_username: string;
-  organization_id: string;
-};
-/* eslint-enable camelcase */
-
 /**
  * A function to update a refresh token when the access token is expired.
  */
@@ -839,12 +832,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
       if (this.isTokenOptions(options)) {
         authConfig = options;
-        const userInfo = await this.retrieveUserInfo(
-          ensureString(options.instanceUrl),
-          ensureString(options.accessToken)
-        );
-        this.fields.username = userInfo?.preferred_username;
-        this.fields.orgId = userInfo?.organization_id;
       } else {
         if (this.options.parentUsername) {
           const parentUserFields = await this.loadAuthFromConfig(this.options.parentUsername);
@@ -1028,15 +1015,19 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-    // @ts-ignore
-    const { orgId } = parseIdUrl(authFieldsBuilder.id);
+    // @ts-ignore TODO: need better typings for jsforce
+    const { orgId, userId } = parseIdUrl(authFieldsBuilder.id);
 
     let username = this.getUsername();
     if (!username) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore
-      const userInfo = await this.retrieveUserInfo(authFieldsBuilder.instance_url, authFieldsBuilder.access_token);
-      username = userInfo?.preferred_username;
+      username = await this.retrieveUsername(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore TODO: need better typings for jsforce
+        authFieldsBuilder.instance_url,
+        authFieldsBuilder.access_token,
+        ensureString(orgId),
+        ensureString(userId)
+      );
     }
     return {
       orgId,
@@ -1072,17 +1063,21 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore TODO: need better typings for jsforce
-    const { orgId } = parseIdUrl(authFields.id);
+    const { userId, orgId } = parseIdUrl(authFields.id);
 
     let username: Optional<string> = this.getUsername();
 
     // Only need to query for the username if it isn't known. For example, a new auth code exchange
     // rather than refreshing a token on an existing connection.
     if (!username) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore
-      const userInfo = await this.retrieveUserInfo(authFields.instance_url, authFields.access_token);
-      username = userInfo?.preferred_username;
+      username = await this.retrieveUsername(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore TODO: need better typings for jsforce
+        authFields.instance_url,
+        authFields.access_token,
+        ensureString(orgId),
+        ensureString(userId)
+      );
     }
 
     return {
@@ -1101,24 +1096,30 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     };
   }
 
-  private async retrieveUserInfo(instanceUrl: string, accessToken: string): Promise<Optional<UserInfo>> {
+  private async retrieveUsername(
+    instanceUrl: string,
+    accessToken: string,
+    orgId: string,
+    userId: string
+  ): Promise<Optional<string>> {
     // Make a REST call for the username directly.  Normally this is done via a connection
     // but we don't want to create circular dependencies or lots of snowflakes
     // within this file to support it.
+    const apiVersion = 'v42.0'; // hardcoding to v42.0 just for this call is okay.
     const instance = ensure(instanceUrl);
-    const url = `${instance}/services/oauth2/userinfo`;
+    const url = `${instance}/services/data/${apiVersion}/sobjects/User/${userId}`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
+
     try {
       this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
       const response = await new Transport().httpRequest({ url, headers });
       if (response.statusCode >= 400) {
         this.throwUserGetException(response);
       } else {
-        const json = parseJsonMap(response.body) as UserInfo;
-        return json;
+        return asString(parseJsonMap(response.body).Username);
       }
     } catch (err) {
-      throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [err.message]);
+      throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeUsernameRetrievalError', [orgId, err.message]);
     }
   }
 
