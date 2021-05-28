@@ -107,7 +107,10 @@ type UserInfo = AnyJson & {
 type UserInfoResult = AnyJson & {
   preferred_username: string;
   organization_id: string;
-  user_id?: string;
+  user_id: string;
+  urls: AnyJson & {
+    sobjects: string;
+  };
 };
 /* eslint-enable camelcase */
 
@@ -1117,16 +1120,17 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     // within this file to support it.
     const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
     const instance = ensure(instanceUrl);
-    const userInfoUrl = `${instance}/services/oauth2/userinfo`;
+    const baseUrl = new URL(instance);
+    const userInfoUrl = `${baseUrl}services/oauth2/userinfo`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
     try {
       this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${userInfoUrl}`);
-      let response = await new Transport().httpRequest({ userInfoUrl, headers });
+      let response = await new Transport().httpRequest({ url: userInfoUrl, headers });
       if (response.statusCode >= 400) {
         this.throwUserGetException(response);
       } else {
         const userInfoJson = parseJsonMap(response.body) as UserInfoResult;
-        const url = `${instance}/services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
+        const url = `${baseUrl}/services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
         this.logger.info(`Sending request for User SObject after successful auth code exchange to URL: ${url}`);
         response = await new Transport().httpRequest({ url, headers });
         if (response.statusCode >= 400) {
