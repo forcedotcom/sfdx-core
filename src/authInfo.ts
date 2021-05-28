@@ -108,9 +108,6 @@ type UserInfoResult = AnyJson & {
   preferred_username: string;
   organization_id: string;
   user_id: string;
-  urls: AnyJson & {
-    sobjects: string;
-  };
 };
 /* eslint-enable camelcase */
 
