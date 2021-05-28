@@ -10,7 +10,8 @@ workflows:
           filters:
             branches:
               ignore: main
-          matrix:
+      - release-management/test-package:
+         matrix:
             parameters:
               os:
                 - linux
