@@ -3021,10 +3021,10 @@ jsesc@^2.5.1:
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-2.5.2.tgz#80564d2e483dacf6e8ef209650a67df3f0c283a4"
   integrity sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==
 
-jsforce@^1.10.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/jsforce/-/jsforce-1.10.0.tgz#0f0eb3b9e3fa1bc10da6b290828a44cd37778bb5"
-  integrity sha512-d6CPBo76G0Ts7qJySktZMviHvfj2f2kJV+zaGuP1bioRhkvMcfvvpYL9G0xvgd8DX7zw5aMN4xsVeLD8skxFcA==
+jsforce@^1.10.1:
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/jsforce/-/jsforce-1.10.1.tgz#ca1cf58d4439d94e1f84482d83081acd12c93269"
+  integrity sha512-rv+UpBR9n/sWdgLhyPOJuKgT9ZKngypYf9XOHoXVRpSllvTFCjn+M3H81Nu1oYjPH9JKXVS8hL1dmmq8+kOAJg==
   dependencies:
     base64-url "^2.2.0"
     co-prompt "^1.0.0"
