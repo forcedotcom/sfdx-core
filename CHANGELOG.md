@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.23.2](https://github.com/forcedotcom/sfdx-core/compare/v2.23.1...v2.23.2) (2021-06-02)
+
+
+### Bug Fixes
+
+* authinfo returning only lowercase usernames. ([#411](https://github.com/forcedotcom/sfdx-core/issues/411)) ([243668e](https://github.com/forcedotcom/sfdx-core/commit/243668e61cd8418b6acb2f0d4806da50ccf37b29)), closes [#405](https://github.com/forcedotcom/sfdx-core/issues/405)
+
+### [2.23.1](https://github.com/forcedotcom/sfdx-core/compare/v2.23.0...v2.23.1) (2021-05-27)
+
+## [2.23.0](https://github.com/forcedotcom/sfdx-core/compare/v2.22.0...v2.23.0) (2021-05-26)
+
+
+### Features
+
+* export getJwtAudienceUrl ([e7d26d2](https://github.com/forcedotcom/sfdx-core/commit/e7d26d20106d6abb6b424936bdf26c0a9f8cd175))
+
+
+### Bug Fixes
+
+* export library method ([d0016f9](https://github.com/forcedotcom/sfdx-core/commit/d0016f96da1246535049884c1043399239a33c00))
+
+## [2.22.0](https://github.com/forcedotcom/sfdx-core/compare/v2.21.0...v2.22.0) (2021-05-24)
+
+
+### Features
+
+* export getJwtAudienceUrl ([#407](https://github.com/forcedotcom/sfdx-core/issues/407)) ([585bb07](https://github.com/forcedotcom/sfdx-core/commit/585bb073434d73473a855ee52b7ddc6f0228aae1))
+
 ## [2.21.0](https://github.com/forcedotcom/sfdx-core/compare/v2.20.11...v2.21.0) (2021-05-24)
 
 
