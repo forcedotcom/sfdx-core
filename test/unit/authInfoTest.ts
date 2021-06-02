@@ -26,7 +26,6 @@ import { Crypto } from '../../src/crypto';
 import { SfdxError } from '../../src/sfdxError';
 import { testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
-
 const TEST_KEY = {
   service: 'sfdx',
   account: 'local',
@@ -293,10 +292,17 @@ describe('AuthInfo', () => {
 
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
-      const responseBody = {
-        body: JSON.stringify({ Username: testMetadata.username }),
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: testMetadata.username, organization_id: testMetadata.orgId }),
       };
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      const userResponseBody = {
+        body: JSON.stringify({ Username: testMetadata.username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
       authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
 
       const crypto = await Crypto.create();
@@ -480,6 +486,17 @@ describe('AuthInfo', () => {
     });
 
     it('should return an AuthInfo instance when passed an access token and instanceUrl for the access token flow', async () => {
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: testMetadata.username, organization_id: testMetadata.orgId }),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: testMetadata.username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
 
@@ -620,8 +637,17 @@ describe('AuthInfo', () => {
     });
 
     it('should not cache when no username is supplied', async () => {
-      const responseBody = { body: JSON.stringify({ Username: undefined }) };
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: undefined, organization_id: undefined }),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: undefined }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
 
       const cacheSize = AuthInfo['cache'].size;
 
@@ -1016,8 +1042,17 @@ describe('AuthInfo', () => {
 
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
-      const responseBody = { body: JSON.stringify({ Username: username }) };
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: username, organization_id: testMetadata.orgId }),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
 
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
@@ -1033,7 +1068,7 @@ describe('AuthInfo', () => {
       expect(authInfoConnOpts['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl); // why is this instanceUrl?
       expect(authInfoConnOpts['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
       expect(authInfoConnOpts['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
-      expect(authInfo.getUsername()).to.equal(username);
+      expect(authInfo.getUsername()).to.equal(username.toUpperCase());
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
       expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
       expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
@@ -1058,7 +1093,7 @@ describe('AuthInfo', () => {
       const expectedAuthConfig = {
         accessToken: authResponse.access_token,
         instanceUrl: testMetadata.instanceUrl,
-        username,
+        username: username.toUpperCase(),
         orgId: authResponse.id.split('/')[0],
         loginUrl: authCodeConfig.loginUrl,
         refreshToken: authResponse.refresh_token,
@@ -1103,8 +1138,17 @@ describe('AuthInfo', () => {
       };
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
-      const responseBody = { body: JSON.stringify({ Username: username }) };
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: username, organization_id: testMetadata.orgId }),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
       await AuthInfo.create({ oauth2Options: options, oauth2 });
       expect(authInfoExchangeToken.args.length).to.equal(1);
       expect(authInfoExchangeToken.args[0].length).to.equal(2);
@@ -1129,7 +1173,7 @@ describe('AuthInfo', () => {
       }
     });
 
-    it('should throw a AuthCodeUsernameRetrievalError when username retrieval fails after auth code exchange', async () => {
+    it('should throw a AuthCodeUsernameRetrievalError when userInfo retrieval fails after auth code exchange', async () => {
       const authCodeConfig = {
         authCode: testMetadata.authCode,
         loginUrl: testMetadata.loginUrl,
@@ -1143,7 +1187,104 @@ describe('AuthInfo', () => {
 
       // Stub the http request (OAuth2.requestToken())
       _postParmsStub.returns(Promise.resolve(authResponse));
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').throws(new Error('authInfoTest_ERROR_MSG'));
+      const userInfoResponseBody = {
+        statusCode: 404,
+        body: JSON.stringify([
+          {
+            message: 'Could not retrieve the username after successful auth code exchange.\nDue to: %s',
+            errorCode: 'AuthCodeUsernameRetrievalError',
+          },
+        ]),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: testMetadata.username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
+
+      // Create the auth code AuthInfo instance
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert.fail('should have thrown an error within AuthInfo.buildWebAuthConfig()');
+      } catch (err) {
+        expect(err.name).to.equal('AuthCodeUsernameRetrievalError');
+      }
+    });
+    it('should throw a AuthCodeUsernameRetrievalError when userInfo retrieval fails after auth code exchange', async () => {
+      const authCodeConfig = {
+        authCode: testMetadata.authCode,
+        loginUrl: testMetadata.loginUrl,
+      };
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testMetadata.refreshToken,
+      };
+
+      // Stub the http request (OAuth2.requestToken())
+      _postParmsStub.returns(Promise.resolve(authResponse));
+      const userInfoResponseBody = {
+        statusCode: 404,
+        body: JSON.stringify([
+          {
+            message: 'Could not retrieve the username after successful auth code exchange.\nDue to: %s',
+            errorCode: 'AuthCodeUsernameRetrievalError',
+          },
+        ]),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: testMetadata.username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
+
+      // Create the auth code AuthInfo instance
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert.fail('should have thrown an error within AuthInfo.buildWebAuthConfig()');
+      } catch (err) {
+        expect(err.name).to.equal('AuthCodeUsernameRetrievalError');
+      }
+    });
+
+    it('should throw a AuthCodeUsernameRetrievalError when user sobject retrieval fails after auth code exchange', async () => {
+      const authCodeConfig = {
+        authCode: testMetadata.authCode,
+        loginUrl: testMetadata.loginUrl,
+      };
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testMetadata.refreshToken,
+      };
+
+      // Stub the http request (OAuth2.requestToken())
+      _postParmsStub.returns(Promise.resolve(authResponse));
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: testMetadata.username, organization_id: testMetadata.orgId }),
+      };
+      const userResponseBody = {
+        statusCode: 404,
+        body: JSON.stringify([
+          {
+            message: 'Could not retrieve the username after successful auth code exchange.\nDue to: %s',
+            errorCode: 'AuthCodeUsernameRetrievalError',
+          },
+        ]),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
 
       // Create the auth code AuthInfo instance
       try {
