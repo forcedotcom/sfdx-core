@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.23.2](https://github.com/forcedotcom/sfdx-core/compare/v2.23.1...v2.23.2) (2021-06-02)
+
+
+### Bug Fixes
+
+* authinfo returning only lowercase usernames. ([#411](https://github.com/forcedotcom/sfdx-core/issues/411)) ([243668e](https://github.com/forcedotcom/sfdx-core/commit/243668e61cd8418b6acb2f0d4806da50ccf37b29)), closes [#405](https://github.com/forcedotcom/sfdx-core/issues/405)
+
 ### [2.23.1](https://github.com/forcedotcom/sfdx-core/compare/v2.23.0...v2.23.1) (2021-05-27)
 
 ## [2.23.0](https://github.com/forcedotcom/sfdx-core/compare/v2.22.0...v2.23.0) (2021-05-26)
