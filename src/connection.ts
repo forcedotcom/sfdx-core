@@ -242,7 +242,6 @@ export class Connection extends JSForceConnection {
     const requestInfo: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
     requestInfo.headers = Object.assign({}, SFDX_HTTP_HEADERS, requestInfo.headers);
     this.logger.debug(`request: ${JSON.stringify(requestInfo)}`);
-    //  The "as" is a workaround for the jsforce typings.
     return super.request<T>(requestInfo, options);
   }
 
