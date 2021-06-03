@@ -19,5 +19,11 @@ module.exports = {
     '@typescript-eslint/camelcase': 'off',
     'no-underscore-dangle': 'off',
     '@typescript-eslint/require-await': 'off',
+
+    '@typescript-eslint/no-unsafe-member-access': 'off',
+    '@typescript-eslint/ban-ts-comment': 'off',
+    '@typescript-eslint/no-unsafe-return': 'off',
+    '@typescript-eslint/no-unsafe-call': 'off',
+    '@typescript-eslint/no-unsafe-assignment': 'off',
   },
 };

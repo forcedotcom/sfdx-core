@@ -352,8 +352,6 @@ export const stubContext = (testContext: TestContext) => {
     // Since read is now stubbed, make sure to call getPath to initialize it.
     configFile.getPath();
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore set this to true to avoid an infinite loop in tests when reading config files.
     configFile.hasRead = true;
     return stub;
@@ -380,7 +378,6 @@ export const stubContext = (testContext: TestContext) => {
   };
 
   // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
   testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(read);
@@ -421,7 +418,8 @@ export const stubContext = (testContext: TestContext) => {
   stubMethod(testContext.SANDBOXES.CRYPTO, Crypto.prototype, 'getKeyChain').callsFake(() =>
     Promise.resolve({
       setPassword: () => Promise.resolve(),
-      getPassword: (data: object, cb: AnyFunction) => cb(undefined, '12345678901234567890123456789012'),
+      getPassword: (data: Record<string, unknown>, cb: AnyFunction) =>
+        cb(undefined, '12345678901234567890123456789012'),
     })
   );
 
@@ -473,7 +471,6 @@ const _testSetup = (sinon?: any) => {
 
   beforeEach(() => {
     // Allow each test to have their own config aggregator
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore clear for testing.
     delete ConfigAggregator.instance;
 

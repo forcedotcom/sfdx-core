@@ -125,7 +125,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   ): Promise<T> {
     let config: ConfigAggregator = ConfigAggregator.instance as ConfigAggregator;
     if (!config) {
-      config = ConfigAggregator.instance = (new this(options) as unknown) as ConfigAggregator;
+      config = ConfigAggregator.instance = new this(options) as unknown as ConfigAggregator;
       await config.init();
     }
     if (ConfigAggregator.encrypted) {

@@ -164,7 +164,7 @@ export class Org extends AsyncCreatable<Org.Options> {
 
     let results;
     try {
-      results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<object>>);
+      results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<Record<string, unknown>>>);
     } catch (err) {
       if (err.name === 'INVALID_TYPE') {
         throw SfdxError.create('@salesforce/core', 'org', 'NotADevHub', [devHubConnection.getUsername()]);
@@ -427,7 +427,6 @@ export class Org extends AsyncCreatable<Org.Options> {
    * Returns an org field. Returns undefined if the field is not set or invalid.
    */
   public getField(key: Org.Fields): AnyJson {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore TODO: Need to refactor storage of these values on both Org and AuthFields
     return this[key] || this.getConnection().getAuthInfoFields()[key];
   }

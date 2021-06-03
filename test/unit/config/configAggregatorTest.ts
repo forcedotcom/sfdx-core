@@ -126,8 +126,6 @@ describe('ConfigAggregator', () => {
     });
 
     it('global', async () => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path: string) => {
         if (path) {
