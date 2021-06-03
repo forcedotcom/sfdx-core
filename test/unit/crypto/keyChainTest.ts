@@ -80,7 +80,7 @@ describe('keyChain', () => {
     const TEST_PASSWORD = 'foo';
     const windowsKeychain = await retrieveKeychain('windows');
 
-    const accessSpy = $$.SANDBOX.spy(fs, 'access');
+    const accessSpy = $$.SANDBOX.stub(fs, 'access').throws({ code: 'ENOENT' });
     const writeFileStub = $$.SANDBOX.stub(fs, 'writeFile').resolves(undefined);
     const mkdirpStub = $$.SANDBOX.stub(fs, 'mkdirp').resolves();
 
