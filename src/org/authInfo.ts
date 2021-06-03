@@ -629,7 +629,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public getSfdxAuthUrl(): string {
     const decryptedFields = this.getFields(true);
-    const instanceUrl = ensure(decryptedFields.instanceUrl).replace(/^https?:\/\//, '');
+    const instanceUrl = ensure(decryptedFields.instanceUrl, 'undefined instanceUrl').replace(/^https?:\/\//, '');
     let sfdxAuthUrl = 'force://';
 
     if (decryptedFields.clientId) {
