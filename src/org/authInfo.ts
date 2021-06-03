@@ -716,7 +716,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger = await Logger.child('AuthInfo');
 
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      const instanceUrl: string = this.getInstanceUrl(options, aggregator);
+      const instanceUrl: string = this.getInstanceUrl(authOptions, aggregator);
 
       this.update({
         accessToken: oauthUsername,
@@ -764,8 +764,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           ensureString(options.instanceUrl),
           ensureString(options.accessToken)
         );
-        this.fields.username = userInfo?.username;
-        this.fields.orgId = userInfo?.organizationId;
+        this.update({ username: userInfo?.username, orgId: userInfo?.organizationId });
       } else {
         if (this.options.parentUsername) {
           const parentFields = await this.loadDecryptedAuthFromConfig(this.options.parentUsername);
@@ -929,7 +928,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFieldsBuilder.instance_url, authFieldsBuilder.access_token);
-      username = userInfo?.username;
+      username = ensureString(userInfo?.username);
     }
     return {
       orgId,
