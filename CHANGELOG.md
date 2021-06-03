@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0-v3.0](https://github.com/forcedotcom/sfdx-core/compare/v2.23.3...v4.0.0-v3.0) (2021-06-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* default to reading files from cache
+
+### Features
+
+* add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([889425c](https://github.com/forcedotcom/sfdx-core/commit/889425c06e8ed6a364d9a2bc3dd5ef0a38a66046))
+* add message support for markdown files ([0f235a2](https://github.com/forcedotcom/sfdx-core/commit/0f235a23d5dddbd7b3f07544d8c7e380875c6c55))
+* default to reading files from cache ([558319d](https://github.com/forcedotcom/sfdx-core/commit/558319dfdc81e2bae549d58be75a701162801994))
+* move crypto to config file @W-9225317@ ([#406](https://github.com/forcedotcom/sfdx-core/issues/406)) ([bac83c3](https://github.com/forcedotcom/sfdx-core/commit/bac83c3a52b15c9b462dfb68be9d080e710493cd))
+
+
+### Bug Fixes
+
+* compilation errors ([33a9876](https://github.com/forcedotcom/sfdx-core/commit/33a9876575eff7944bb287d428f52413831725d9))
+* unit test failures ([4507575](https://github.com/forcedotcom/sfdx-core/commit/45075754175d411b6cb71eb809096e6eb3e23d95))
+* unsetAuthorization ([#399](https://github.com/forcedotcom/sfdx-core/issues/399)) ([dd57438](https://github.com/forcedotcom/sfdx-core/commit/dd57438a95b49515f560d3b915cdf916a4b8643b))
+
 ## [3.1.0](https://github.com/forcedotcom/sfdx-core/compare/v3.1.0-v3.0...v3.1.0) (2021-05-26)
 
 
