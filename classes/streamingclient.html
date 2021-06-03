@@ -117,7 +117,8 @@
    <span class="hljs-keyword">const</span> requestResponse: JsonCollection = <span class="hljs-keyword">await</span> connection.request(info);
    <span class="hljs-keyword">const</span> id = ensureJsonMap(requestResponse).id;
    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`this.id: <span class="hljs-subst">${<span class="hljs-built_in">JSON</span>.stringify(ensureString(id), <span class="hljs-literal">null</span>, <span class="hljs-number">4</span>)}</span>`</span>);
-});</code></pre>
+});
+</code></pre>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
@@ -188,7 +189,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="authremover.html">AuthRemover</a>.<a href="authremover.html#constructor">constructor</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/status/streamingClient.ts#L201">src/status/streamingClient.ts:201</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/status/streamingClient.ts#L200">src/status/streamingClient.ts:200</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -225,7 +226,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/status/streamingClient.ts#L295">src/status/streamingClient.ts:295</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/status/streamingClient.ts#L294">src/status/streamingClient.ts:294</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -248,7 +249,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides AsyncOptionalCreatable.init</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/status/streamingClient.ts#L247">src/status/streamingClient.ts:247</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/status/streamingClient.ts#L246">src/status/streamingClient.ts:246</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -270,7 +271,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/status/streamingClient.ts#L275">src/status/streamingClient.ts:275</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/status/streamingClient.ts#L274">src/status/streamingClient.ts:274</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -295,13 +296,13 @@
 					<a name="subscribe" class="tsd-anchor"></a>
 					<h3>subscribe</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">subscribe<span class="tsd-signature-symbol">(</span>streamInit<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">subscribe<span class="tsd-signature-symbol">(</span>streamInit<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/status/streamingClient.ts#L328">src/status/streamingClient.ts:328</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/status/streamingClient.ts#L327">src/status/streamingClient.ts:327</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -309,7 +310,7 @@
 									<p>Subscribe to streaming events. When the streaming processor that&#39;s set in the options completes execution it
 									returns a payload in the StatusResult object. The payload is just echoed here for convenience.</p>
 								</div>
-								<p><strong>Throws</strong> *<a href="sfdxerror.html">SfdxError</a>{ name: &#39;<a href="../enums/streamingclient.timeouterrortype.html#subscribe">StreamingClient.TimeoutErrorType.SUBSCRIBE</a>&#39;}* When the subscribe timeout occurs.</p>
+								<p><strong>Throws</strong> <em><a href="sfdxerror.html">SfdxError</a>{ name: &#39;<a href="../enums/streamingclient.timeouterrortype.html#subscribe">StreamingClient.TimeoutErrorType.SUBSCRIBE</a>&#39;}</em> When the subscribe timeout occurs.</p>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
@@ -321,7 +322,7 @@
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>

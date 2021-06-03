@@ -70,15 +70,20 @@
 						and deleting any aliases associated with the username</p>
 					</div>
 					<pre><code>const remover = await <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">AuthRemover</span>.</span></span>create<span class="hljs-literal">()</span>;
-await remover.remove<span class="hljs-constructor">Auth(&#x27;<span class="hljs-params">example</span>@<span class="hljs-params">mycompany</span>.<span class="hljs-params">com</span>&#x27;)</span>;</code></pre><pre><code><span class="hljs-keyword">const</span> remover = <span class="hljs-function">await AuthRemover.<span class="hljs-title">create</span><span class="hljs-params">()</span></span>;
-<span class="hljs-function">await remover.<span class="hljs-title">removeAllAuths</span><span class="hljs-params">()</span></span>;</code></pre><pre><code><span class="hljs-keyword">const</span> remover = <span class="hljs-keyword">await</span> AuthRemover.create();
+await remover.remove<span class="hljs-constructor">Auth(&#x27;<span class="hljs-params">example</span>@<span class="hljs-params">mycompany</span>.<span class="hljs-params">com</span>&#x27;)</span>;
+</code></pre>
+					<pre><code><span class="hljs-keyword">const</span> remover = <span class="hljs-function">await AuthRemover.<span class="hljs-title">create</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">await remover.<span class="hljs-title">removeAllAuths</span><span class="hljs-params">()</span></span>;
+</code></pre>
+					<pre><code><span class="hljs-keyword">const</span> remover = <span class="hljs-keyword">await</span> AuthRemover.create();
 <span class="hljs-keyword">const</span> authConfigs = <span class="hljs-keyword">await</span> remover.findAuthConfigs(
  example<span class="hljs-meta">@mycompany</span>.com
 );
 <span class="hljs-keyword">const</span> usernames = [...authConfigs.keys()];
-<span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> username <span class="hljs-keyword">of</span> usernames) {
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> username of usernames) {
   <span class="hljs-keyword">await</span> remover.removeAuth(username);
-}</code></pre>
+}
+</code></pre>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-type-parameters">
@@ -178,7 +183,7 @@ await remover.remove<span class="hljs-constructor">Auth(&#x27;<span class="hljs-
 					<div class="tsd-signature tsd-kind-icon">auth<wbr>Configs<span class="tsd-signature-symbol">:</span> <a href="../globals.html#authconfigs" class="tsd-signature-type">AuthConfigs</a><span class="tsd-signature-symbol"> = new Map()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/authRemover.ts#L52">src/authRemover.ts:52</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/authRemover.ts#L52">src/authRemover.ts:52</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -195,7 +200,7 @@ await remover.remove<span class="hljs-constructor">Auth(&#x27;<span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/authRemover.ts#L111">src/authRemover.ts:111</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/authRemover.ts#L111">src/authRemover.ts:111</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -217,13 +222,13 @@ await remover.remove<span class="hljs-constructor">Auth(&#x27;<span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/authRemover.ts#L90">src/authRemover.ts:90</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/authRemover.ts#L90">src/authRemover.ts:90</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Finds authorization files for username/alias in the global .sfdx folder
-									<strong>Throws</strong> *<a href="sfdxerror.html">SfdxError</a>{ name: &#39;NoOrgFound&#39; }* if no username, alias, or defaultusername</p>
+									<strong>Throws</strong> <em><a href="sfdxerror.html">SfdxError</a>{ name: &#39;NoOrgFound&#39; }</em> if no username, alias, or defaultusername</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -250,7 +255,7 @@ await remover.remove<span class="hljs-constructor">Auth(&#x27;<span class="hljs-
 							<aside class="tsd-sources">
 								<p>Overrides AsyncOptionalCreatable.init</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/authRemover.ts#L117">src/authRemover.ts:117</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/authRemover.ts#L117">src/authRemover.ts:117</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -267,7 +272,7 @@ await remover.remove<span class="hljs-constructor">Auth(&#x27;<span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/authRemover.ts#L75">src/authRemover.ts:75</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/authRemover.ts#L75">src/authRemover.ts:75</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -289,7 +294,7 @@ await remover.remove<span class="hljs-constructor">Auth(&#x27;<span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/authRemover.ts#L63">src/authRemover.ts:63</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/authRemover.ts#L63">src/authRemover.ts:63</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">

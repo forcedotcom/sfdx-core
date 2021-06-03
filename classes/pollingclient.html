@@ -78,7 +78,8 @@
   };
 <span class="hljs-keyword">const</span> client = <span class="hljs-keyword">await</span> PollingClient.create(options);
 <span class="hljs-keyword">const</span> pollResult = <span class="hljs-keyword">await</span> client.subscribe();
-<span class="hljs-built_in">console</span>.log(<span class="hljs-string">`pollResult: <span class="hljs-subst">${pollResult}</span>`</span>);</code></pre>
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">`pollResult: <span class="hljs-subst">${pollResult}</span>`</span>);
+</code></pre>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
@@ -135,7 +136,7 @@
 					<div class="tsd-signature tsd-kind-icon">logger<span class="tsd-signature-symbol">:</span> <a href="logger.html" class="tsd-signature-type">Logger</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/status/pollingClient.ts#L35">src/status/pollingClient.ts:35</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/status/pollingClient.ts#L35">src/status/pollingClient.ts:35</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -153,7 +154,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides AsyncOptionalCreatable.init</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/status/pollingClient.ts#L55">src/status/pollingClient.ts:55</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/status/pollingClient.ts#L55">src/status/pollingClient.ts:55</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -169,13 +170,13 @@
 					<a name="subscribe" class="tsd-anchor"></a>
 					<h3>subscribe</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">subscribe<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">subscribe<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/status/pollingClient.ts#L63">src/status/pollingClient.ts:63</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/status/pollingClient.ts#L63">src/status/pollingClient.ts:63</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -184,7 +185,7 @@
 									in the polling options.</p>
 								</div>
 							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>

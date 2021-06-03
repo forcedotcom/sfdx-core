@@ -93,6 +93,12 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
+							<h3>Interfaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-interface tsd-parent-kind-class"><a href="../interfaces/streamingmockcometsubscription.abortable.html" class="tsd-kind-icon">Abortable</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="streamingmockcometsubscription.html#constructor" class="tsd-kind-icon">constructor</a></li>
@@ -103,6 +109,8 @@
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="streamingmockcometsubscription.html#subscription_complete" class="tsd-kind-icon">SUBSCRIPTION_<wbr>COMPLETE</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="streamingmockcometsubscription.html#subscription_failed" class="tsd-kind-icon">SUBSCRIPTION_<wbr>FAILED</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="streamingmockcometsubscription.html#capturerejectionsymbol" class="tsd-kind-icon">capture<wbr>Rejection<wbr>Symbol</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="streamingmockcometsubscription.html#capturerejections" class="tsd-kind-icon">capture<wbr>Rejections</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="streamingmockcometsubscription.html#defaultmaxlisteners" class="tsd-kind-icon">default<wbr>Max<wbr>Listeners</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="streamingmockcometsubscription.html#errormonitor" class="tsd-kind-icon">error<wbr>Monitor</a></li>
 							</ul>
@@ -127,7 +135,10 @@
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="streamingmockcometsubscription.html#removealllisteners" class="tsd-kind-icon">remove<wbr>All<wbr>Listeners</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="streamingmockcometsubscription.html#removelistener" class="tsd-kind-icon">remove<wbr>Listener</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="streamingmockcometsubscription.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="streamingmockcometsubscription.html#geteventlistener" class="tsd-kind-icon">get<wbr>Event<wbr>Listener</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="streamingmockcometsubscription.html#listenercount-1" class="tsd-kind-icon">listener<wbr>Count</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="streamingmockcometsubscription.html#on-1" class="tsd-kind-icon">on</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-static"><a href="streamingmockcometsubscription.html#once-1" class="tsd-kind-icon">once</a></li>
 							</ul>
 						</section>
 					</div>
@@ -146,7 +157,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="cometclient.html">CometClient</a>.<a href="cometclient.html#constructor">constructor</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/testSetup.ts#L594">src/testSetup.ts:594</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/testSetup.ts#L591">src/testSetup.ts:591</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -168,7 +179,7 @@
 					<div class="tsd-signature tsd-kind-icon">SUBSCRIPTION_<wbr>COMPLETE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;subscriptionComplete&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/testSetup.ts#L592">src/testSetup.ts:592</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/testSetup.ts#L589">src/testSetup.ts:589</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -178,9 +189,36 @@
 					<div class="tsd-signature tsd-kind-icon">SUBSCRIPTION_<wbr>FAILED<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &quot;subscriptionFailed&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/testSetup.ts#L593">src/testSetup.ts:593</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/testSetup.ts#L590">src/testSetup.ts:590</a></li>
 						</ul>
 					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+					<a name="capturerejectionsymbol" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> capture<wbr>Rejection<wbr>Symbol</h3>
+					<div class="tsd-signature tsd-kind-icon">capture<wbr>Rejection<wbr>Symbol<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-type">symbol</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="cometclient.html">CometClient</a>.<a href="cometclient.html#capturerejectionsymbol">captureRejectionSymbol</a></p>
+						<ul>
+							<li>Defined in node_modules/@types/node/events.d.ts:46</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+					<a name="capturerejections" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> capture<wbr>Rejections</h3>
+					<div class="tsd-signature tsd-kind-icon">capture<wbr>Rejections<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="cometclient.html">CometClient</a>.<a href="cometclient.html#capturerejections">captureRejections</a></p>
+						<ul>
+							<li>Defined in node_modules/@types/node/events.d.ts:52</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Sets or gets the default captureRejection value for all emitters.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
 					<a name="defaultmaxlisteners" class="tsd-anchor"></a>
@@ -189,7 +227,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="cometclient.html">CometClient</a>.<a href="cometclient.html#defaultmaxlisteners">defaultMaxListeners</a></p>
 						<ul>
-							<li>Defined in node_modules/@types/node/events.d.ts:45</li>
+							<li>Defined in node_modules/@types/node/events.d.ts:53</li>
 						</ul>
 					</aside>
 				</section>
@@ -200,7 +238,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="cometclient.html">CometClient</a>.<a href="cometclient.html#errormonitor">errorMonitor</a></p>
 						<ul>
-							<li>Defined in node_modules/@types/node/events.d.ts:55</li>
+							<li>Defined in node_modules/@types/node/events.d.ts:45</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -228,7 +266,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#addlistener">addListener</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:62</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:72</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -272,7 +310,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/testSetup.ts#L606">src/testSetup.ts:606</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/testSetup.ts#L603">src/testSetup.ts:603</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -316,7 +354,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#emit">emit</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:72</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:82</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -342,7 +380,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/testSetup.ts#L620">src/testSetup.ts:620</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/testSetup.ts#L617">src/testSetup.ts:617</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -392,7 +430,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#eventnames">eventNames</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:77</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:87</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -410,7 +448,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#getmaxlisteners">getMaxListeners</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:69</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:79</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -428,7 +466,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#listenercount">listenerCount</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:73</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:83</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -452,7 +490,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#listeners">listeners</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:70</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:80</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -476,7 +514,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#off">off</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:66</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:76</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -521,7 +559,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#on">on</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:63</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:73</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -566,7 +604,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#once">once</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:64</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:74</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -611,7 +649,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#prependlistener">prependListener</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:75</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:85</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -656,7 +694,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#prependoncelistener">prependOnceListener</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:76</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:86</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -701,7 +739,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#rawlisteners">rawListeners</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:71</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:81</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -725,7 +763,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#removealllisteners">removeAllListeners</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:67</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:77</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -749,7 +787,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#removelistener">removeListener</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:65</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:75</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -794,7 +832,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="../interfaces/tooling.html">Tooling</a>.<a href="../interfaces/tooling.html#setmaxlisteners">setMaxListeners</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:68</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:78</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -804,6 +842,38 @@
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+					<a name="geteventlistener" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Event<wbr>Listener</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Event<wbr>Listener<span class="tsd-signature-symbol">(</span>emitter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DOMEventTarget</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">EventEmitter</span>, name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Function</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="cometclient.html">CometClient</a>.<a href="cometclient.html#geteventlistener">getEventListener</a></p>
+								<ul>
+									<li>Defined in node_modules/@types/node/events.d.ts:34</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns a list listener for a specific emitter event name.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>emitter: <span class="tsd-signature-type">DOMEventTarget</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">EventEmitter</span></h5>
+								</li>
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Function</span><span class="tsd-signature-symbol">[]</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -818,7 +888,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="cometclient.html">CometClient</a>.<a href="cometclient.html#listenercount-1">listenerCount</a></p>
 								<ul>
-									<li>Defined in node_modules/@types/node/events.d.ts:44</li>
+									<li>Defined in node_modules/@types/node/events.d.ts:30</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -841,6 +911,67 @@
 						</li>
 					</ul>
 				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+					<a name="on-1" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> on</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">on<span class="tsd-signature-symbol">(</span>emitter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">EventEmitter</span>, event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">StaticEventEmitterOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">AsyncIterableIterator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="cometclient.html">CometClient</a>.<a href="cometclient.html#on-1">on</a></p>
+								<ul>
+									<li>Defined in node_modules/@types/node/events.d.ts:27</li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>emitter: <span class="tsd-signature-type">EventEmitter</span></h5>
+								</li>
+								<li>
+									<h5>event: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <span class="tsd-signature-type">StaticEventEmitterOptions</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">AsyncIterableIterator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-static">
+					<a name="once-1" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> once</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">once<span class="tsd-signature-symbol">(</span>emitter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">NodeEventTarget</span>, event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">StaticEventEmitterOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="cometclient.html">CometClient</a>.<a href="cometclient.html#once-1">once</a></p>
+								<p>Overrides <a href="cometclient.html">CometClient</a>.<a href="cometclient.html#once-1">once</a></p>
+								<ul>
+									<li>Defined in node_modules/@types/node/events.d.ts:25</li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>emitter: <span class="tsd-signature-type">NodeEventTarget</span></h5>
+								</li>
+								<li>
+									<h5>event: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <span class="tsd-signature-type">StaticEventEmitterOptions</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
 			</section>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -858,6 +989,9 @@
 					<li class="current tsd-kind-class">
 						<a href="streamingmockcometsubscription.html" class="tsd-kind-icon">Streaming<wbr>Mock<wbr>Comet<wbr>Subscription</a>
 						<ul>
+							<li class=" tsd-kind-interface tsd-parent-kind-class">
+								<a href="../interfaces/streamingmockcometsubscription.abortable.html" class="tsd-kind-icon">Abortable</a>
+							</li>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 								<a href="streamingmockcometsubscription.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
@@ -866,6 +1000,12 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
 								<a href="streamingmockcometsubscription.html#subscription_failed" class="tsd-kind-icon">SUBSCRIPTION_<wbr>FAILED</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+								<a href="streamingmockcometsubscription.html#capturerejectionsymbol" class="tsd-kind-icon">capture<wbr>Rejection<wbr>Symbol</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+								<a href="streamingmockcometsubscription.html#capturerejections" class="tsd-kind-icon">capture<wbr>Rejections</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
 								<a href="streamingmockcometsubscription.html#defaultmaxlisteners" class="tsd-kind-icon">default<wbr>Max<wbr>Listeners</a>
@@ -925,7 +1065,16 @@
 								<a href="streamingmockcometsubscription.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+								<a href="streamingmockcometsubscription.html#geteventlistener" class="tsd-kind-icon">get<wbr>Event<wbr>Listener</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
 								<a href="streamingmockcometsubscription.html#listenercount-1" class="tsd-kind-icon">listener<wbr>Count</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+								<a href="streamingmockcometsubscription.html#on-1" class="tsd-kind-icon">on</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-static">
+								<a href="streamingmockcometsubscription.html#once-1" class="tsd-kind-icon">once</a>
 							</li>
 						</ul>
 					</li>

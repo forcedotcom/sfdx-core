@@ -83,7 +83,9 @@
 					<p>A sample message file.</p>
 					<pre><code>{
    <span class="hljs-symbol">&#x27;msgKey&#x27;</span>: <span class="hljs-symbol">&#x27;A</span> message displayed <span class="hljs-keyword">in</span> the terminal&#x27;
-}</code></pre><p><strong>Note:</strong> When running unit tests individually, you may see errors that the messages aren&#39;t found.
+}
+</code></pre>
+					<p><strong>Note:</strong> When running unit tests individually, you may see errors that the messages aren&#39;t found.
 						This is because <code>index.js</code> isn&#39;t loaded when tests run like they are when the package is required.
 						To allow tests to run, import the message directory in each test (it will only
 					do it once) or load the message file the test depends on individually.</p>
@@ -95,7 +97,8 @@
 const messages : Messages = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Messages</span>.</span></span>load<span class="hljs-constructor">Messages(<span class="hljs-params">packageName</span>, <span class="hljs-params">bundleName</span>)</span>;
 
 <span class="hljs-comment">// Messages now contains all the message in the bundleName file.</span>
-messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</span>;</code></pre>
+messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</span>;
+</code></pre>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
@@ -151,7 +154,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L100">src/messages.ts:100</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L100">src/messages.ts:100</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -200,7 +203,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 					<div class="tsd-signature tsd-kind-icon">bundle<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L100">src/messages.ts:100</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L100">src/messages.ts:100</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -215,7 +218,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 					<div class="tsd-signature tsd-kind-icon">locale<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L96">src/messages.ts:96</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L96">src/messages.ts:96</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -237,7 +240,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L326">src/messages.ts:326</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L326">src/messages.ts:326</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -275,7 +278,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L153">src/messages.ts:153</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L153">src/messages.ts:153</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -314,7 +317,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L130">src/messages.ts:130</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L130">src/messages.ts:130</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -337,7 +340,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L197">src/messages.ts:197</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L197">src/messages.ts:197</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -375,7 +378,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L224">src/messages.ts:224</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L224">src/messages.ts:224</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -386,7 +389,8 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 									directory is in another spot or you are not using typescript, pass in false for truncateToProjectPath.</p>
 								</div>
 								<pre><code><span class="hljs-comment">// e.g. If your message directory is in the project root, you would do:</span>
-<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Messages</span>.</span></span>import<span class="hljs-constructor">MessagesDirectory(<span class="hljs-params">__dirname</span>)</span>;</code></pre>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Messages</span>.</span></span>import<span class="hljs-constructor">MessagesDirectory(<span class="hljs-params">__dirname</span>)</span>;
+</code></pre>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
@@ -424,7 +428,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L314">src/messages.ts:314</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L314">src/messages.ts:314</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -461,7 +465,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L286">src/messages.ts:286</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L286">src/messages.ts:286</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -499,7 +503,7 @@ messages.get<span class="hljs-constructor">Message(&#x27;JsonParseError&#x27;)</
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5c29ea0d/src/messages.ts#L141">src/messages.ts:141</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ad253f3a/src/messages.ts#L141">src/messages.ts:141</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
