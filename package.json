@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "4.0.0-v3.0",
+  "version": "3.1.1-v3.0",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "license": "BSD-3-Clause",
