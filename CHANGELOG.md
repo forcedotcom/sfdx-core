@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.23.4](https://github.com/forcedotcom/sfdx-core/compare/v2.23.3...v2.23.4) (2021-06-03)
+
+
+### Bug Fixes
+
+* works with TS4+ and jsforce types ([#413](https://github.com/forcedotcom/sfdx-core/issues/413)) ([b77cdad](https://github.com/forcedotcom/sfdx-core/commit/b77cdad56b114290b8e5fd23d968e23e7d4eedf4))
+
 ### [2.23.3](https://github.com/forcedotcom/sfdx-core/compare/v2.23.2...v2.23.3) (2021-06-03)
 
 ### [2.23.2](https://github.com/forcedotcom/sfdx-core/compare/v2.23.1...v2.23.2) (2021-06-02)
