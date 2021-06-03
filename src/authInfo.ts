@@ -31,7 +31,6 @@ import {
 } from '@salesforce/ts-types';
 import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 // No typings directly available for jsforce/lib/transport
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
@@ -120,7 +119,7 @@ type User = AnyJson & {
  */
 export type RefreshFn = (
   conn: Connection,
-  callback: (err: Nullable<Error>, accessToken?: string, res?: object) => Promise<void>
+  callback: (err: Nullable<Error>, accessToken?: string, res?: Record<string, unknown>) => Promise<void>
 ) => Promise<void>;
 
 /**
@@ -144,10 +143,10 @@ class JwtOAuth2 extends OAuth2 {
   }
 
   public jwtAuthorize(innerToken: string, callback?: AnyFunction): Promise<AnyJson> {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     return super._postParams(
       {
+        // eslint-disable-next-line camelcase
         grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
         assertion: innerToken,
       },
@@ -186,7 +185,7 @@ export class OAuth2WithVerifier extends OAuth2 {
    *
    * @param params
    */
-  public getAuthorizationUrl(params: object) {
+  public getAuthorizationUrl(params: Record<string, unknown>) {
     // code verifier must be a base 64 url encoded hash of 128 bytes of random data. Our random data is also
     // base 64 url encoded. See Connection.create();
     const codeChallenge = base64UrlEscape(createHash('sha256').update(this.codeVerifier).digest('base64'));
@@ -206,9 +205,8 @@ export class OAuth2WithVerifier extends OAuth2 {
    *
    * See https://github.com/jsforce/jsforce/issues/665
    */
-  protected async _postParams(params: object, callback: AnyFunction) {
+  protected async _postParams(params: Record<string, unknown>, callback: AnyFunction) {
     set(params, 'code_verifier', this.codeVerifier);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore TODO: need better typings for jsforce
     return super._postParams(params, callback);
   }
@@ -948,7 +946,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   // both for a JWT connection and an OAuth connection.
   private async refreshFn(
     conn: Connection,
-    callback: (err: Nullable<Error | SfdxError>, accessToken?: string, res?: object) => Promise<void>
+    callback: (err: Nullable<Error | SfdxError>, accessToken?: string, res?: Record<string, unknown>) => Promise<void>
   ): Promise<void> {
     this.logger.info('Access token has expired. Updating...');
 
@@ -1037,13 +1035,11 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       throw SfdxError.create('@salesforce/core', 'core', 'RefreshTokenAuthError', [err.message]);
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     const { orgId } = parseIdUrl(authFieldsBuilder.id);
 
     let username = this.getUsername();
     if (!username) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFieldsBuilder.instance_url, authFieldsBuilder.access_token);
       username = userInfo?.username;
@@ -1052,10 +1048,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       orgId,
       username,
       accessToken: authFieldsBuilder.access_token,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore TODO: need better typings for jsforce
       instanceUrl: authFieldsBuilder.instance_url,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore TODO: need better typings for jsforce
       loginUrl: options.loginUrl || authFieldsBuilder.instance_url,
       refreshToken: options.refreshToken,
@@ -1080,7 +1074,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       throw SfdxError.create('@salesforce/core', 'core', 'AuthCodeExchangeError', [err.message]);
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore TODO: need better typings for jsforce
     const { orgId } = parseIdUrl(authFields.id);
 
@@ -1089,7 +1082,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     // Only need to query for the username if it isn't known. For example, a new auth code exchange
     // rather than refreshing a token on an existing connection.
     if (!username) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFields.instance_url, authFields.access_token);
       username = userInfo?.username;
@@ -1097,12 +1089,10 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
     return {
       accessToken: authFields.access_token,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore TODO: need better typings for jsforce
       instanceUrl: authFields.instance_url,
       orgId,
       username,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore TODO: need better typings for jsforce
       loginUrl: options.loginUrl || authFields.instance_url,
       refreshToken: authFields.refresh_token,
@@ -1133,6 +1123,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         if (response.statusCode >= 400) {
           this.throwUserGetException(response);
         } else {
+          // eslint-disable-next-line camelcase
           userInfoJson.preferred_username = (parseJsonMap(response.body) as User).Username;
         }
         return { username: userInfoJson.preferred_username, organizationId: userInfoJson.organization_id };

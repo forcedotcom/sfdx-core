@@ -11,7 +11,6 @@ import * as jsforce from 'jsforce';
 import { fromStub, stubInterface, StubbedType } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
 // no types for Transport
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
 import { AuthInfo } from '../../src/authInfo';

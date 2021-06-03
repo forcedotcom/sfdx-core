@@ -109,8 +109,7 @@ describe('WebOauthServer', () => {
       callback(
         {
           method: 'GET',
-          url:
-            'http://localhost:1717/OauthRedirect?error=access_denied&error_description=end-user+denied+authorization&state=972475373f51',
+          url: 'http://localhost:1717/OauthRedirect?error=access_denied&error_description=end-user+denied+authorization&state=972475373f51',
         },
         {
           setHeader: () => {},

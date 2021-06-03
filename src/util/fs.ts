@@ -84,6 +84,7 @@ export const fs = Object.assign({}, fsLib, {
   /**
    * Promisified version of {@link https://npmjs.com/package/mkdirp|mkdirp}.
    */
+  // eslint-disable-next-line @typescript-eslint/ban-types
   mkdirp: (folderPath: string, mode?: string | object): Promise<string | undefined> => mkdirpLib(folderPath, mode),
 
   mkdirpSync: mkdirpLib.sync,

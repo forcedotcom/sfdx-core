@@ -167,7 +167,6 @@ describe('Logger', () => {
       const rootLogger = await Logger.root();
       $$.SANDBOX.stub(rootLogger, 'fatal');
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
       expect(rootLogger.fatal['called']).to.be.true;
@@ -189,7 +188,6 @@ describe('Logger', () => {
       const childLogger = await Logger.child(childLoggerName);
       $$.SANDBOX.stub(childLogger, 'fatal');
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
       expect(childLogger.fatal['called']).to.be.false;
@@ -222,6 +220,7 @@ describe('Logger', () => {
     const sid = 'SIDHERE!';
     const simpleString = `sid=${sid}`;
     const stringWithObject = ` The rain in Spain: ${JSON.stringify({
+      // eslint-disable-next-line camelcase
       access_token: sid,
     })}`;
     const jsforceStringWithToken = `Connection refresh completed. Refreshed access token = ${sid}`;
@@ -328,7 +327,6 @@ describe('Logger', () => {
     let output;
     beforeEach(() => {
       Logger.destroyRoot();
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore enable debug logging
       debug.useColors = () => false;
       debug.enable('*');

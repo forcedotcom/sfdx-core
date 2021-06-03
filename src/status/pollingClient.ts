@@ -60,7 +60,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
    * Returns a promise to call the specified polling function using the interval and timeout specified
    * in the polling options.
    */
-  public subscribe(): Promise<AnyJson> {
+  public subscribe(): Promise<AnyJson | undefined> {
     // This promise is held open while setInterval tries to resolve or reject.
     // If set interval can't do it then the timeout will reject.
     return new Promise((resolve, reject) => {

@@ -20,7 +20,6 @@ describe('SfdxProject', () => {
 
   beforeEach(async () => {
     projectPath = await $$.localPathRetriever($$.id);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     SfdxProject.instances.clear();
   });
@@ -198,7 +197,6 @@ describe('SfdxProject', () => {
 
   describe('resolve', () => {
     it('caches the sfdx-project.json per path', async () => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore  SfdxProject.instances is private so override for testing.
       const instanceSetSpy = $$.SANDBOX.spy(SfdxProject.instances, 'set');
       const project1 = await SfdxProject.resolve('foo');
