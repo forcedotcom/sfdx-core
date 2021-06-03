@@ -714,7 +714,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger = await Logger.child('AuthInfo');
 
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      const instanceUrl: string = this.getInstanceUrl(this.options, aggregator);
+      const instanceUrl: string = this.getInstanceUrl(authOptions, aggregator);
 
       this.update({
         accessToken: oauthUsername,
@@ -925,7 +925,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     if (!username) {
       // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFieldsBuilder.instance_url, authFieldsBuilder.access_token);
-      username = userInfo?.username;
+      username = ensureString(userInfo?.username);
     }
     return {
       orgId,
