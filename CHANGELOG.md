@@ -2,33 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [4.0.0-v3.0](https://github.com/forcedotcom/sfdx-core/compare/v2.23.3...v4.0.0-v3.0) (2021-06-03)
-
-
-### ⚠ BREAKING CHANGES
-
-* default to reading files from cache
-
-### Features
-
-* add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([889425c](https://github.com/forcedotcom/sfdx-core/commit/889425c06e8ed6a364d9a2bc3dd5ef0a38a66046))
-* add message support for markdown files ([0f235a2](https://github.com/forcedotcom/sfdx-core/commit/0f235a23d5dddbd7b3f07544d8c7e380875c6c55))
-* default to reading files from cache ([558319d](https://github.com/forcedotcom/sfdx-core/commit/558319dfdc81e2bae549d58be75a701162801994))
-* move crypto to config file @W-9225317@ ([#406](https://github.com/forcedotcom/sfdx-core/issues/406)) ([bac83c3](https://github.com/forcedotcom/sfdx-core/commit/bac83c3a52b15c9b462dfb68be9d080e710493cd))
-
-
-### Bug Fixes
-
-* compilation errors ([33a9876](https://github.com/forcedotcom/sfdx-core/commit/33a9876575eff7944bb287d428f52413831725d9))
-* unit test failures ([4507575](https://github.com/forcedotcom/sfdx-core/commit/45075754175d411b6cb71eb809096e6eb3e23d95))
-* unsetAuthorization ([#399](https://github.com/forcedotcom/sfdx-core/issues/399)) ([dd57438](https://github.com/forcedotcom/sfdx-core/commit/dd57438a95b49515f560d3b915cdf916a4b8643b))
-
 ## [3.1.0](https://github.com/forcedotcom/sfdx-core/compare/v3.1.0-v3.0...v3.1.0) (2021-05-26)
 
-
 ### Features
 
-* move crypto to config file @W-9225317@ ([#406](https://github.com/forcedotcom/sfdx-core/issues/406)) ([099ee82](https://github.com/forcedotcom/sfdx-core/commit/099ee82a577e313de02df755b00d1f5936054901))
+- move crypto to config file @W-9225317@ ([#406](https://github.com/forcedotcom/sfdx-core/issues/406)) ([099ee82](https://github.com/forcedotcom/sfdx-core/commit/099ee82a577e313de02df755b00d1f5936054901))
 
 ## [3.1.0-v3.0](https://github.com/forcedotcom/sfdx-core/compare/v3.0.1-v3.0...v3.1.0-v3.0) (2021-05-11)
 
@@ -57,45 +35,39 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [2.23.2](https://github.com/forcedotcom/sfdx-core/compare/v2.23.1...v2.23.2) (2021-06-02)
 
-
 ### Bug Fixes
 
-* authinfo returning only lowercase usernames. ([#411](https://github.com/forcedotcom/sfdx-core/issues/411)) ([243668e](https://github.com/forcedotcom/sfdx-core/commit/243668e61cd8418b6acb2f0d4806da50ccf37b29)), closes [#405](https://github.com/forcedotcom/sfdx-core/issues/405)
+- authinfo returning only lowercase usernames. ([#411](https://github.com/forcedotcom/sfdx-core/issues/411)) ([243668e](https://github.com/forcedotcom/sfdx-core/commit/243668e61cd8418b6acb2f0d4806da50ccf37b29)), closes [#405](https://github.com/forcedotcom/sfdx-core/issues/405)
 
 ### [2.23.1](https://github.com/forcedotcom/sfdx-core/compare/v2.23.0...v2.23.1) (2021-05-27)
 
 ## [2.23.0](https://github.com/forcedotcom/sfdx-core/compare/v2.22.0...v2.23.0) (2021-05-26)
 
-
 ### Features
 
-* export getJwtAudienceUrl ([e7d26d2](https://github.com/forcedotcom/sfdx-core/commit/e7d26d20106d6abb6b424936bdf26c0a9f8cd175))
-
+- export getJwtAudienceUrl ([e7d26d2](https://github.com/forcedotcom/sfdx-core/commit/e7d26d20106d6abb6b424936bdf26c0a9f8cd175))
 
 ### Bug Fixes
 
-* export library method ([d0016f9](https://github.com/forcedotcom/sfdx-core/commit/d0016f96da1246535049884c1043399239a33c00))
+- export library method ([d0016f9](https://github.com/forcedotcom/sfdx-core/commit/d0016f96da1246535049884c1043399239a33c00))
 
 ## [2.22.0](https://github.com/forcedotcom/sfdx-core/compare/v2.21.0...v2.22.0) (2021-05-24)
 
-
 ### Features
 
-* export getJwtAudienceUrl ([#407](https://github.com/forcedotcom/sfdx-core/issues/407)) ([585bb07](https://github.com/forcedotcom/sfdx-core/commit/585bb073434d73473a855ee52b7ddc6f0228aae1))
+- export getJwtAudienceUrl ([#407](https://github.com/forcedotcom/sfdx-core/issues/407)) ([585bb07](https://github.com/forcedotcom/sfdx-core/commit/585bb073434d73473a855ee52b7ddc6f0228aae1))
 
 ## [2.21.0](https://github.com/forcedotcom/sfdx-core/compare/v2.20.11...v2.21.0) (2021-05-24)
 
-
 ### Features
 
-* modify authInfo to return username for access token auth ([160b7d2](https://github.com/forcedotcom/sfdx-core/commit/160b7d20e32b80d7a54c8cf679154fcbaa9e8cda))
+- modify authInfo to return username for access token auth ([160b7d2](https://github.com/forcedotcom/sfdx-core/commit/160b7d20e32b80d7a54c8cf679154fcbaa9e8cda))
 
 ### [2.20.11](https://github.com/forcedotcom/sfdx-core/compare/v3.1.0-3.0...v2.20.11) (2021-05-12)
 
-
 ### Bug Fixes
 
-* force release ([f0b837a](https://github.com/forcedotcom/sfdx-core/commit/f0b837ab7b4d0361c2fa3ba15fe56cd2f7cc1fd0))
+- force release ([f0b837a](https://github.com/forcedotcom/sfdx-core/commit/f0b837ab7b4d0361c2fa3ba15fe56cd2f7cc1fd0))
 
 ### [2.20.10](https://github.com/forcedotcom/sfdx-core/compare/v2.20.9...v2.20.10) (2021-04-14)
 
