@@ -407,7 +407,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    */
   public static getDefaultInstanceUrl(): string {
     const configuredInstanceUrl = ConfigAggregator.getValue('instanceUrl').value as string;
-    return configuredInstanceUrl || 'https://login.salesforce.com';
+    return configuredInstanceUrl || SfdcUrl.PRODUCTION;
   }
 
   /**
@@ -667,7 +667,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       // Decrypt a user provided client secret or use the default.
       opts = {
         oauth2: {
-          loginUrl: instanceUrl || 'https://login.salesforce.com',
+          loginUrl: instanceUrl || SfdcUrl.PRODUCTION,
           clientId: this.fields.clientId || DEFAULT_CONNECTED_APP_INFO.legacyClientId,
           redirectUri: 'http://localhost:1717/OauthRedirect',
         },
