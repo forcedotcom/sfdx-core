@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.23.5](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.0...v2.23.5) (2021-06-07)
+
+
+### Bug Fixes
+
+* w-9299422 (login url from config) and fs-parallelization ([043bb17](https://github.com/forcedotcom/sfdx-core/commit/043bb179dbf64f9c4522a4c0f0720ae09794227c))
+
 ### [2.23.4](https://github.com/forcedotcom/sfdx-core/compare/v2.23.3...v2.23.4) (2021-06-03)
 
 
