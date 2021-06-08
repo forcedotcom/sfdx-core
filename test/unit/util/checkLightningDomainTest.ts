@@ -12,11 +12,13 @@ import checkLightningDomain from '../../../src/util/checkLightningDomain';
 const $$ = testSetup();
 const TEST_IP = '1.1.1.1';
 
-describe('Connection', () => {
+describe('checkLightningDomain', () => {
   beforeEach(() => {
-    $$.SANDBOXES.CONNECTION.restore();
-    $$.SANDBOX.stub(process, 'emitWarning');
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
+  });
+
+  afterEach(() => {
+    $$.SANDBOX.restore();
   });
 
   it('return true for internal urls', async () => {
