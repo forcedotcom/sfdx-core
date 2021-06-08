@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.24.0](https://github.com/forcedotcom/sfdx-core/compare/v2.23.5...v2.24.0) (2021-06-08)
+
+
+### Features
+
+* exported function checkLightningDomain() ([#415](https://github.com/forcedotcom/sfdx-core/issues/415)) ([8e75231](https://github.com/forcedotcom/sfdx-core/commit/8e752313abf4a383a6ef18250ffac78b398987dd))
+
 ### [2.23.5](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.0...v2.23.5) (2021-06-07)
 
 
