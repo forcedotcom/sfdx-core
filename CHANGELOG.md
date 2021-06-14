@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.1-v3.1](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-v3.0...v3.1.1-v3.1) (2021-06-14)
+
+
+### Bug Fixes
+
+* keep track of auth changes ([210be6c](https://github.com/forcedotcom/sfdx-core/commit/210be6cb408bd9ecc861989570df0e14f6a3a566))
+
 ### [3.1.1-v3.0](https://github.com/forcedotcom/sfdx-core/compare/v2.23.3...v3.1.1-v3.0) (2021-06-03)
 
 
