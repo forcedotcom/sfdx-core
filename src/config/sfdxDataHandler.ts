@@ -45,6 +45,7 @@ export class SfdxDataHandler {
   public async write(latest: SfInfo = GlobalInfo.emptyDataModel): Promise<void> {
     for (const handler of this.handlers) {
       await handler.write(latest, this.original);
+      this.setOriginal(latest);
     }
   }
 
