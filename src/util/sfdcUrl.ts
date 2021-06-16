@@ -16,6 +16,13 @@ export class SfdcUrl extends URL {
   public static SANDBOX = 'https://test.salesforce.com';
   public static PRODUCTION = 'https://login.salesforce.com';
 
+  public constructor(input: string, base?: string | URL) {
+    super(input, base);
+    if (this.protocol !== 'https:') {
+      this.emitWarning('Using insecure protocol: ' + this.protocol + ' on url: ' + this.origin);
+    }
+  }
+
   /**
    * Returns the appropiate jwt audience url for this url.
    */
@@ -140,5 +147,9 @@ export class SfdcUrl extends URL {
     const myDomainResolver = await MyDomainResolver.create({ url: this });
     const cnames: string[] = (await myDomainResolver.getCnames()) ?? [];
     return cnames.some((cname) => new SfdcUrl(cname).isSandboxUrl());
+  }
+
+  private emitWarning(warning: string): void {
+    process.emitWarning(warning);
   }
 }

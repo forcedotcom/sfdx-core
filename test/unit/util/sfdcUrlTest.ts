@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { assert, expect } from 'chai';
+import { SinonSpy } from 'sinon';
+import { spyMethod } from '@salesforce/ts-sinon';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
 import { SfdcUrl } from '../../../src/util/sfdcUrl';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
@@ -16,17 +18,17 @@ const TEST_CNAMES = ['https://login.salesforce.com', 'https://test.salesforce.co
 describe('util/sfdcUrl', () => {
   describe('isSalesforceDomain', () => {
     it('is allowlist domain', () => {
-      const url = new SfdcUrl('http://www.salesforce.com');
+      const url = new SfdcUrl('https://www.salesforce.com');
       expect(url.isSalesforceDomain()).to.be.true;
     });
 
     it('is not allowlist or host', () => {
-      const url = new SfdcUrl('http://www.ghostbusters.com');
+      const url = new SfdcUrl('https://www.ghostbusters.com');
       expect(url.isSalesforceDomain()).to.be.false;
     });
 
     it('is allowlist host', () => {
-      const url = new SfdcUrl('http://developer.salesforce.com');
+      const url = new SfdcUrl('https://developer.salesforce.com');
       expect(url.isSalesforceDomain()).to.be.true;
     });
 
@@ -71,13 +73,13 @@ describe('util/sfdcUrl', () => {
     });
 
     it('return true for internal urls', async () => {
-      const url = new SfdcUrl('http://my-domain.stm.salesforce.com');
+      const url = new SfdcUrl('https://my-domain.stm.salesforce.com');
       const response = await url.checkLightningDomain();
       expect(response).to.be.true;
     });
 
     it('return true for urls that dns can resolve', async () => {
-      const url = new SfdcUrl('http://login.salesforce.com');
+      const url = new SfdcUrl('https://login.salesforce.com');
       const respose = await url.checkLightningDomain();
       expect(respose).to.be.true;
     });
@@ -85,12 +87,34 @@ describe('util/sfdcUrl', () => {
     it('throws on domain resolution failure', async () => {
       $$.SANDBOX.restore();
       $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').rejects();
-      const url = new SfdcUrl('http://login.salesforce.com');
+      const url = new SfdcUrl('https://login.salesforce.com');
       try {
         await shouldThrow(url.checkLightningDomain());
       } catch (e) {
         expect(e.name).to.equal('Error');
       }
+    });
+  });
+
+  describe('Insecure HTTP warning', () => {
+    let emitWarningSpy: SinonSpy;
+    beforeEach(() => {
+      $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
+      emitWarningSpy = spyMethod($$.SANDBOX, SfdcUrl.prototype, 'emitWarning');
+    });
+
+    afterEach(() => {
+      $$.SANDBOX.restore();
+      emitWarningSpy.restore();
+    });
+
+    it('listens for the insecure http signal', () => {
+      const site = 'http://insecure.website.com';
+      const url = new SfdcUrl(site);
+      const { protocol } = url;
+      expect(protocol).to.equal('http:');
+      expect(emitWarningSpy.callCount).to.equal(1);
+      expect(emitWarningSpy.args).to.deep.equal([[`Using insecure protocol: ${protocol} on url: ${site}`]]);
     });
   });
 
@@ -114,6 +138,12 @@ describe('util/sfdcUrl', () => {
       const response = await url.getJwtAudienceUrl();
       expect(response).to.be.equal('https://organization.stm.salesforce.com');
     });
+
+    it('return the jwt audicence url for sandbox domains', async () => {
+      const url = new SfdcUrl('https://organization.sandbox.my.salesforce.com');
+      const response = await url.getJwtAudienceUrl();
+      expect(response).to.be.equal('https://test.salesforce.com');
+    });
   });
 
   describe('isSalesforceDomain', () => {
@@ -124,9 +154,19 @@ describe('util/sfdcUrl', () => {
     });
 
     it('returns false if url is not a salesforce domain', () => {
-      const url = new SfdcUrl('http://www.ghostbusters.com');
+      const url = new SfdcUrl('https://www.ghostbusters.com');
       const isSalesforceDomain = url.isSalesforceDomain();
       expect(isSalesforceDomain).to.be.false;
+    });
+  });
+
+  describe('Salesforce standard urls', () => {
+    it('sandbox url', () => {
+      expect(SfdcUrl.SANDBOX).to.equal('https://test.salesforce.com');
+    });
+
+    it('production url', () => {
+      expect(SfdcUrl.PRODUCTION).to.equal('https://login.salesforce.com');
     });
   });
 });
