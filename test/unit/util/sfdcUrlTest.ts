@@ -108,7 +108,7 @@ describe('util/sfdcUrl', () => {
       emitWarningSpy.restore();
     });
 
-    it('listens for the insecure http signal', () => {
+    it('emits the insecure http signal', () => {
       const site = 'http://insecure.website.com';
       const url = new SfdcUrl(site);
       const { protocol } = url;

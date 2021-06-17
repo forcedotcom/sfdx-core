@@ -8,8 +8,7 @@
 import { URL } from 'url';
 import { Env, Duration } from '@salesforce/kit';
 import { MyDomainResolver } from '../status/myDomainResolver';
-
-const cache = new Set();
+import cache from './cache';
 
 export class SfdcUrl extends URL {
   /**
@@ -21,7 +20,9 @@ export class SfdcUrl extends URL {
   public constructor(input: string | URL, base?: string | URL) {
     super(input.toString(), base);
     if (this.protocol !== 'https:' && !cache.has(this.origin)) {
-      cache.add(this.origin);
+      cache.set(this.origin, {
+        timestamp: new Date().getTime(),
+      });
       this.emitWarning('Using insecure protocol: ' + this.protocol + ' on url: ' + this.origin);
     }
   }
