@@ -144,6 +144,45 @@ describe('util/sfdcUrl', () => {
       const response = await url.getJwtAudienceUrl();
       expect(response).to.be.equal('https://test.salesforce.com');
     });
+
+    it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
+      $$.SANDBOX.restore();
+      $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves([]);
+      const url = new SfdcUrl('https://foo.bar.baz');
+      const respose = await url.getJwtAudienceUrl('gs1');
+      expect(respose).to.be.equal('https://gs1.salesforce.com');
+    });
+
+    it('should return production URL if domain cannot be resolved', async () => {
+      $$.SANDBOX.restore();
+      $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves([]);
+      const url = new SfdcUrl('https://foo.bar.baz');
+      const respose = await url.getJwtAudienceUrl();
+      expect(respose).to.be.equal('https://login.salesforce.com');
+    });
+
+    it('should use the correct audience URL for SFDX_AUDIENCE_URL env var', async () => {
+      process.env.SFDX_AUDIENCE_URL = 'http://authInfoTest/audienceUrl/test';
+      const url = new SfdcUrl('https://login.salesforce.com');
+      const respose = await url.getJwtAudienceUrl();
+      expect(respose).to.be.equal(process.env.SFDX_AUDIENCE_URL);
+    });
+  });
+
+  describe('lookup', () => {
+    beforeEach(() => {
+      $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
+    });
+
+    afterEach(() => {
+      $$.SANDBOX.restore();
+    });
+
+    it('should be able to do dns lookup', async () => {
+      const url = new SfdcUrl('https://foo.bar.baz');
+      const ip = await url.lookup();
+      expect(ip).to.be.equal(TEST_IP);
+    });
   });
 
   describe('isSalesforceDomain', () => {
