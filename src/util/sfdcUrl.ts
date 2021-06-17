@@ -8,6 +8,7 @@
 import { URL } from 'url';
 import { Env, Duration } from '@salesforce/kit';
 import { MyDomainResolver } from '../status/myDomainResolver';
+import cache from './cache';
 
 export class SfdcUrl extends URL {
   /**
@@ -18,7 +19,10 @@ export class SfdcUrl extends URL {
 
   public constructor(input: string | URL, base?: string | URL) {
     super(input.toString(), base);
-    if (this.protocol !== 'https:') {
+    if (this.protocol !== 'https:' && !cache.has(this.origin)) {
+      cache.set(this.origin, {
+        timestamp: new Date().getTime(),
+      });
       this.emitWarning('Using insecure protocol: ' + this.protocol + ' on url: ' + this.origin);
     }
   }
@@ -126,6 +130,12 @@ export class SfdcUrl extends URL {
     return true;
   }
 
+  /**
+   * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
+   * given the optional interval. Returns the resolved ip address.
+   *
+   * If SFDX_DOMAIN_RETRY environment variable is set (number) overrides the timeout duration.
+   */
   public async lookup(): Promise<string> {
     const quantity = new Env().getNumber('SFDX_DOMAIN_RETRY', 240) ?? 0;
     const timeout = new Duration(quantity, Duration.Unit.SECONDS);
