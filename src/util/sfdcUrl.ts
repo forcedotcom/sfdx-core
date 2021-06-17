@@ -16,8 +16,8 @@ export class SfdcUrl extends URL {
   public static SANDBOX = 'https://test.salesforce.com';
   public static PRODUCTION = 'https://login.salesforce.com';
 
-  public constructor(input: string, base?: string | URL) {
-    super(input, base);
+  public constructor(input: string | URL, base?: string | URL) {
+    super(input.toString(), base);
     if (this.protocol !== 'https:') {
       this.emitWarning('Using insecure protocol: ' + this.protocol + ' on url: ' + this.origin);
     }
