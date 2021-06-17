@@ -26,7 +26,7 @@ export class SfdcUrl extends URL {
   /**
    * Returns the appropiate jwt audience url for this url.
    */
-  public async getJwtAudienceUrl(): Promise<string> {
+  public async getJwtAudienceUrl(createdOrgInstance?: string): Promise<string> {
     // environment variable is used as an override
     if (process.env.SFDX_AUDIENCE_URL) {
       return process.env.SFDX_AUDIENCE_URL;
@@ -37,29 +37,18 @@ export class SfdcUrl extends URL {
       return this.origin;
     }
 
-    if (await this.resolvesToSandbox()) {
+    if (await this.resolvesToSandbox(createdOrgInstance)) {
       return SfdcUrl.SANDBOX;
     }
 
-    if (/^gs1/gi.test(this.origin) || /(gs1.my.salesforce.com)/gi.test(this.origin ?? '')) {
+    if (
+      (createdOrgInstance && /^gs1/gi.test(createdOrgInstance)) ||
+      /(gs1.my.salesforce.com)/gi.test(this.origin ?? '')
+    ) {
       return 'https://gs1.salesforce.com';
     }
 
     return SfdcUrl.PRODUCTION;
-  }
-
-  /**
-   * Returns `true` if this url is a sandbox url
-   */
-  public isSandboxUrl(): boolean {
-    return (
-      /^cs|s$/gi.test(this.origin) ||
-      /sandbox\.my\.salesforce\.com/gi.test(this.origin) || // enhanced domains >= 230
-      /(cs[0-9]+(\.my|)\.salesforce\.com)/gi.test(this.origin) || // my domains on CS instance OR CS instance without my domain
-      /([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
-      /([a-z]{3}[0-9]+s\.sfdc-.+\.force\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
-      this.hostname === 'test.salesforce.com'
-    );
   }
 
   /**
@@ -137,11 +126,36 @@ export class SfdcUrl extends URL {
     return true;
   }
 
+  public async lookup(): Promise<string> {
+    const quantity = new Env().getNumber('SFDX_DOMAIN_RETRY', 240) ?? 0;
+    const timeout = new Duration(quantity, Duration.Unit.SECONDS);
+    const resolver = await MyDomainResolver.create({
+      url: new URL(this.origin),
+      timeout,
+      frequency: new Duration(1, Duration.Unit.SECONDS),
+    });
+    return await resolver.resolve();
+  }
+
+  /**
+   * Returns `true` if this url is a sandbox url
+   */
+  public isSandboxUrl(createdOrgInstance?: string): boolean {
+    return (
+      (createdOrgInstance && /^cs|s$/gi.test(createdOrgInstance)) ||
+      /sandbox\.my\.salesforce\.com/gi.test(this.origin) || // enhanced domains >= 230
+      /(cs[0-9]+(\.my|)\.salesforce\.com)/gi.test(this.origin) || // my domains on CS instance OR CS instance without my domain
+      /([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
+      /([a-z]{3}[0-9]+s\.sfdc-.+\.force\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
+      this.hostname === 'test.salesforce.com'
+    );
+  }
+
   /**
    * Returns `true` if this url domain is or resolves to a sandbox url.
    */
-  private async resolvesToSandbox(): Promise<boolean> {
-    if (this.isSandboxUrl()) {
+  private async resolvesToSandbox(createdOrgInstance?: string): Promise<boolean> {
+    if (this.isSandboxUrl(createdOrgInstance)) {
       return true;
     }
     const myDomainResolver = await MyDomainResolver.create({ url: this });
