@@ -12,6 +12,7 @@ import { Crypto } from '../crypto';
 import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
 import { sfdc } from '../util/sfdc';
+import { SfdcUrl } from '../util/sfdcUrl';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -118,7 +119,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       key: 'instanceUrl',
       input: {
         // If a value is provided validate it otherwise no value is unset.
-        validator: (value) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
+        validator: (value) => value == null || (isString(value) && new SfdcUrl(value).isSalesforceDomain()),
         get failedMessage() {
           return Config.messages?.getMessage('InvalidInstanceUrl');
         },
