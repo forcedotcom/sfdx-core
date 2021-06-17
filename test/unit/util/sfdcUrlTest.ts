@@ -9,6 +9,7 @@ import { SinonSpy } from 'sinon';
 import { spyMethod } from '@salesforce/ts-sinon';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
 import { SfdcUrl } from '../../../src/util/sfdcUrl';
+import cache from '../../../src/util/cache';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 
 const $$ = testSetup();
@@ -106,6 +107,7 @@ describe('util/sfdcUrl', () => {
     afterEach(() => {
       $$.SANDBOX.restore();
       emitWarningSpy.restore();
+      cache.clear();
     });
 
     it('emits the insecure http signal', () => {
@@ -115,6 +117,17 @@ describe('util/sfdcUrl', () => {
       expect(protocol).to.equal('http:');
       expect(emitWarningSpy.callCount).to.equal(1);
       expect(emitWarningSpy.args).to.deep.equal([[`Using insecure protocol: ${protocol} on url: ${site}`]]);
+    });
+
+    it('emits the insecure http signal only once per domain', () => {
+      const site = 'http://insecure.website.com';
+      const url1 = new SfdcUrl(site);
+      const url2 = new SfdcUrl(site);
+      const { protocol: protocol1 } = url1;
+      const { protocol: protocol2 } = url2;
+      expect(protocol1).to.equal('http:');
+      expect(protocol2).to.equal('http:');
+      expect(emitWarningSpy.callCount).to.equal(1);
     });
   });
 
