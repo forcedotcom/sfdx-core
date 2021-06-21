@@ -186,7 +186,7 @@ export interface LogLine {
  * ```
  * **See** https://github.com/forcedotcom/node-bunyan
  *
- * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_log_messages.htm
+ * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_log_messages.htm
  */
 export class Logger {
   /**
