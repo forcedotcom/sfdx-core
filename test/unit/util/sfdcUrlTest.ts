@@ -7,6 +7,7 @@
 import { assert, expect } from 'chai';
 import { SinonSpy } from 'sinon';
 import { spyMethod } from '@salesforce/ts-sinon';
+import { Env } from '@salesforce/kit';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
 import { SfdcUrl } from '../../../src/util/sfdcUrl';
 import cache from '../../../src/util/cache';
@@ -132,6 +133,7 @@ describe('util/sfdcUrl', () => {
   });
 
   describe('getJwtAudienceUrl', () => {
+    const env = new Env();
     beforeEach(() => {
       $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
     });
@@ -175,7 +177,7 @@ describe('util/sfdcUrl', () => {
     });
 
     it('should use the correct audience URL for SFDX_AUDIENCE_URL env var', async () => {
-      process.env.SFDX_AUDIENCE_URL = 'http://authInfoTest/audienceUrl/test';
+      env.setString('SFDX_AUDIENCE_URL', 'http://authInfoTest/audienceUrl/test');
       const url = new SfdcUrl('https://login.salesforce.com');
       const respose = await url.getJwtAudienceUrl();
       expect(respose).to.be.equal(process.env.SFDX_AUDIENCE_URL);

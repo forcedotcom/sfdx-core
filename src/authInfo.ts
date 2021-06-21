@@ -916,7 +916,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   // Build OAuth config for a JWT auth flow
   private async buildJwtConfig(options: OAuth2Options): Promise<AuthFields> {
     const privateKeyContents = await fs.readFile(ensure(options.privateKey), 'utf8');
-    const { loginUrl = '' } = options;
+    const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
     const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
     const audienceUrl = await url.getJwtAudienceUrl(createdOrgInstance);
