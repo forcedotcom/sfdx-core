@@ -11,12 +11,11 @@ import { cloneJson, Duration, env, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyFunction, AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
-import { OAuth2, OAuth2Options } from 'jsforce';
+import { OAuth2, OAuth2Config } from 'jsforce';
 import { match } from 'sinon';
-// @ts-ignore
-import * as Transport from 'jsforce/lib/transport';
+import { Transport } from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-import { AuthFields, AuthInfo, OAuth2WithVerifier } from '../../../src/org/authInfo';
+import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
 import { Aliases } from '../../../src/config/aliases';
 import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
@@ -930,13 +929,13 @@ describe('AuthInfo', () => {
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
       const responseBody = { body: JSON.stringify({ Username: username }) };
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      const stub = stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
 
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
 
       // Ensure we query for the username
-      expect(Transport.prototype.httpRequest.called).to.be.true;
+      expect(stub.called).to.be.true;
 
       // Verify the returned AuthInfo instance
       const authInfoConnOpts = authInfo.getConnectionOptions();
@@ -1003,8 +1002,8 @@ describe('AuthInfo', () => {
       const redirectUri = 'redirectUri';
       const username = 'authInfoTest_username_AuthCode';
 
-      const options: OAuth2Options = { clientId, clientSecret, loginUrl, redirectUri };
-      const oauth2 = new OAuth2WithVerifier(options);
+      const options: OAuth2Config & { authCode?: string } = { clientId, clientSecret, loginUrl, redirectUri };
+      const oauth2 = new OAuth2(options);
       options.authCode = '123456';
 
       const authResponse = {
