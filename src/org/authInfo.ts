@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createHash, randomBytes } from 'crypto';
+import { randomBytes } from 'crypto';
 import { URL } from 'url';
 import * as dns from 'dns';
 import { resolve as pathResolve } from 'path';
 import { parse as urlParse } from 'url';
 import * as os from 'os';
-import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap, set } from '@salesforce/kit';
+import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
-  AnyFunction,
   AnyJson,
   asString,
   ensure,
@@ -27,12 +26,9 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
-// No typings directly available for jsforce/lib/transport
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-// @ts-ignore
-import * as Transport from 'jsforce/lib/transport';
+import { HttpResponse, OAuth2, OAuth2Config as JsforceOAuth2Config, TokenResponse } from 'jsforce';
 import * as jwt from 'jsonwebtoken';
+import Transport from 'jsforce/lib/transport';
 import { Aliases } from '../config/aliases';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
@@ -58,6 +54,15 @@ const messages = Messages.load('@salesforce/core', 'core', [
   'authCodeUsernameRetrievalError',
   'authCodeExchangeError',
 ]);
+
+// Can or should these be brought into jsforce?
+export type OAuth2Config = JsforceOAuth2Config & {
+  privateKey?: string;
+  privateKeyFile?: string;
+  authCode?: string;
+  refreshToken?: string;
+  loginUrl?: string;
+};
 
 /**
  * Fields for authorization, org, and local information.
@@ -130,7 +135,7 @@ export type ConnectionOptions = AuthFields & {
   /**
    * OAuth options.
    */
-  oauth2?: Partial<OAuth2Options>;
+  oauth2?: Partial<OAuth2Config>;
   /**
    * Refresh token callback.
    */
@@ -139,78 +144,17 @@ export type ConnectionOptions = AuthFields & {
 
 // Extend OAuth2 to add JWT Bearer Token Flow support.
 class JwtOAuth2 extends OAuth2 {
-  public constructor(options: OAuth2Options) {
+  public constructor(options: OAuth2Config) {
     super(options);
   }
 
-  public jwtAuthorize(innerToken: string, callback?: AnyFunction): Promise<AnyJson> {
+  public jwtAuthorize(innerToken: string): Promise<AnyJson> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
-    return super._postParams(
-      {
-        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        assertion: innerToken,
-      },
-      callback
-    );
-  }
-}
-
-/**
- * Extend OAuth2 to add code verifier support for the auth code (web auth) flow
- * const oauth2 = new OAuth2WithVerifier({ loginUrl, clientSecret, clientId, redirectUri });
- *
- * const authUrl = oauth2.getAuthorizationUrl({
- *    state: 'foo',
- *    prompt: 'login',
- *    scope: 'api web'
- * });
- * console.log(authUrl);
- * const authCode = await retrieveCode();
- * const authInfo = await AuthInfo.create({ oauth2Options: { clientId, clientSecret, loginUrl, authCode }, oauth2});
- * console.log(`access token: ${authInfo.getFields(true).accessToken}`);
- */
-export class OAuth2WithVerifier extends OAuth2 {
-  public readonly codeVerifier: string;
-
-  public constructor(options: OAuth2Options) {
-    super(options);
-
-    // Set a code verifier string for OAuth authorization
-    this.codeVerifier = base64UrlEscape(randomBytes(Math.ceil(128)).toString('base64'));
-  }
-
-  /**
-   * Overrides jsforce.OAuth2.getAuthorizationUrl.  Get Salesforce OAuth2 authorization page
-   * URL to redirect user agent, adding a verification code for added security.
-   *
-   * @param params
-   */
-  public getAuthorizationUrl(params: object) {
-    // code verifier must be a base 64 url encoded hash of 128 bytes of random data. Our random data is also
-    // base 64 url encoded. See Connection.create();
-    const codeChallenge = base64UrlEscape(createHash('sha256').update(this.codeVerifier).digest('base64'));
-    set(params, 'code_challenge', codeChallenge);
-
-    return super.getAuthorizationUrl(params);
-  }
-
-  public async requestToken(code: string, callback?: (err: Error, tokenResponse: TokenResponse) => void) {
-    return super.requestToken(code, callback);
-  }
-
-  /**
-   * Overrides jsforce.OAuth2._postParams because jsforce's oauth impl doesn't support
-   * coder_verifier and code_challenge. This enables the server to disallow trading a one-time auth code
-   * for an access/refresh token when the verifier and challenge are out of alignment.
-   *
-   * See https://github.com/jsforce/jsforce/issues/665
-   */
-  protected async _postParams(params: object, callback: AnyFunction) {
-    set(params, 'code_verifier', this.codeVerifier);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-    // @ts-ignore TODO: need better typings for jsforce
-    return super._postParams(params, callback);
+    return super._postParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: innerToken,
+    });
   }
 }
 
@@ -222,7 +166,7 @@ export enum SfdcUrl {
   PRODUCTION = 'https://login.salesforce.com',
 }
 
-function isSandboxUrl(options: OAuth2Options & { createdOrgInstance?: string }): boolean {
+function isSandboxUrl(options: OAuth2Config & { createdOrgInstance?: string }): boolean {
   const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
   const loginUrl = options.loginUrl ?? '';
   return (
@@ -235,7 +179,7 @@ function isSandboxUrl(options: OAuth2Options & { createdOrgInstance?: string }):
   );
 }
 
-async function resolvesToSandbox(options: OAuth2Options & { createdOrgInstance?: string }): Promise<boolean> {
+async function resolvesToSandbox(options: OAuth2Config & { createdOrgInstance?: string }): Promise<boolean> {
   if (isSandboxUrl(options)) {
     return true;
   }
@@ -247,7 +191,7 @@ async function resolvesToSandbox(options: OAuth2Options & { createdOrgInstance?:
   return cnames.some((cname) => isSandboxUrl({ ...options, loginUrl: cname }));
 }
 
-export async function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }) {
+export async function getJwtAudienceUrl(options: OAuth2Config & { createdOrgInstance?: string }) {
   // environment variable is used as an override
   if (process.env.SFDX_AUDIENCE_URL) {
     return process.env.SFDX_AUDIENCE_URL;
@@ -296,14 +240,6 @@ export const DEFAULT_CONNECTED_APP_INFO = {
   legacyClientId: 'SalesforceDevelopmentExperience',
   legacyClientSecret: '1384510088588713504',
 };
-
-// Makes a nodejs base64 encoded string compatible with rfc4648 alternative encoding for urls.
-// @param base64Encoded a nodejs base64 encoded string
-function base64UrlEscape(base64Encoded: string): string {
-  // builtin node js base 64 encoding is not 64 url compatible.
-  // See https://toolsn.ietf.org/html/rfc4648#section-5
-  return base64Encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-}
 
 /**
  * Handles persistence and fetching of user authentication information using
@@ -432,8 +368,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    *
    * @param options The options to generate the URL.
    */
-  public static getAuthorizationUrl(options: OAuth2Options & { scope?: string }, oauth2?: OAuth2WithVerifier): string {
-    const oauth2Verifier = oauth2 || new OAuth2WithVerifier(options);
+  public static getAuthorizationUrl(options: OAuth2Config & { scope?: string }, oauth2?: OAuth2): string {
+    // Always use a verifier for enhanced security
+    options.useVerifier = true;
+    const oauth2Verifier = oauth2 || new OAuth2(options);
 
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
@@ -749,7 +687,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFoundError' }* Org information does not exist.
    * @returns {Promise<AuthInfo>}
    */
-  private async initAuthOptions(options?: OAuth2Options | AccessTokenOptions): Promise<AuthInfo> {
+  private async initAuthOptions(options?: OAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
     this.logger = await Logger.child('AuthInfo');
 
     // If options were passed, use those before checking cache and reading an auth file.
@@ -794,7 +732,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
           authConfig = await this.buildRefreshTokenConfig(options);
         } else {
-          if (this.options.oauth2 instanceof OAuth2WithVerifier) {
+          if (this.options.oauth2 instanceof OAuth2) {
             // authcode exchange / web auth flow
             authConfig = await this.exchangeToken(options, this.options.oauth2);
           } else {
@@ -819,9 +757,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     return authInfo;
   }
 
-  private isTokenOptions(options: OAuth2Options | AccessTokenOptions): options is AccessTokenOptions {
-    // Although OAuth2Options does not contain refreshToken, privateKey, or privateKeyFile, a JS consumer could still pass those in
-    // which WILL have an access token as well, but it should be considered an OAuth2Options at that point.
+  private isTokenOptions(options: OAuth2Config | AccessTokenOptions): options is AccessTokenOptions {
+    // Although OAuth2Config does not contain refreshToken, privateKey, or privateKeyFile, a JS consumer could still pass those in
+    // which WILL have an access token as well, but it should be considered an OAuth2Config at that point.
     return (
       'accessToken' in options &&
       !('refreshToken' in options) &&
@@ -854,7 +792,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a JWT auth flow
-  private async buildJwtConfig(options: OAuth2Options): Promise<AuthFields> {
+  private async buildJwtConfig(options: OAuth2Config): Promise<AuthFields> {
     const privateKeyContents = await fs.readFile(ensure(options.privateKey), 'utf8');
     const audienceUrl = await getJwtAudienceUrl(options);
     const jwtToken = jwt.sign(
@@ -903,7 +841,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a refresh token auth flow
-  private async buildRefreshTokenConfig(options: OAuth2Options): Promise<AuthFields> {
+  private async buildRefreshTokenConfig(options: OAuth2Config): Promise<AuthFields> {
     // Ideally, this would be removed at some point in the distant future when all auth files
     // now have the clientId stored in it.
     if (!options.clientId) {
@@ -952,7 +890,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param options The oauth options
    * @param oauth2 The oauth2 extension that includes a code_challenge
    */
-  private async exchangeToken(options: OAuth2Options, oauth2: OAuth2 = new OAuth2(options)): Promise<AuthFields> {
+  private async exchangeToken(options: OAuth2Config, oauth2: OAuth2 = new OAuth2(options)): Promise<AuthFields> {
     // Exchange the auth code for an access token and refresh token.
     let authFields: TokenResponse;
     try {
@@ -1003,15 +941,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const userInfoUrl = `${baseUrl}services/oauth2/userinfo`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
     try {
-      this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${userInfoUrl}`);
-      let response = await new Transport().httpRequest({ url: userInfoUrl, headers });
+      this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
+      let response = await new Transport().httpRequest({ url: userInfoUrl, method: 'GET', headers });
       if (response.statusCode >= 400) {
         this.throwUserGetException(response);
       } else {
         const userInfoJson = parseJsonMap(response.body) as UserInfoResult;
         const url = `${baseUrl}/services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
         this.logger.info(`Sending request for User SObject after successful auth code exchange to URL: ${url}`);
-        response = await new Transport().httpRequest({ url, headers });
+        response = await new Transport().httpRequest({ url, method: 'GET', headers });
         if (response.statusCode >= 400) {
           this.throwUserGetException(response);
         } else {
@@ -1074,7 +1012,7 @@ export namespace AuthInfo {
     /**
      * OAuth options.
      */
-    oauth2Options?: OAuth2Options;
+    oauth2Options?: OAuth2Config;
     /**
      * Options for the access token auth.
      */

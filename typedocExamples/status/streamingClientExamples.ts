@@ -1,9 +1,9 @@
 import { ensureJsonMap, ensureString, JsonCollection, JsonMap } from '@salesforce/ts-types';
 import { Org } from '../../src/org';
-import { StatusResult } from '../../src/status/client';
+import { StatusResult } from '../../src/status/streamingClient';
 import { StreamingClient } from '../../src/status/streamingClient';
 
-import { RequestInfo } from 'jsforce';
+import { HttpRequest } from 'jsforce';
 
 export const streamingClientExamples = {
   classDoc: async () => {
@@ -28,7 +28,7 @@ export const streamingClientExamples = {
 
     await asyncStatusClient.handshake();
 
-    const info: RequestInfo = {
+    const info: HttpRequest = {
       method: 'POST',
       url: `${org.getField(Org.Fields.INSTANCE_URL)}/SomeService`,
       headers: { HEADER: 'HEADER_VALUE' },

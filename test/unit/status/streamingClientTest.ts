@@ -10,7 +10,7 @@ import { SinonSpyCall } from 'sinon';
 import { Duration, Env } from '@salesforce/kit';
 import { get, JsonMap } from '@salesforce/ts-types';
 import * as Faye from 'sfdx-faye';
-import { StatusResult } from '../../../src/status/client';
+import { StatusResult } from '../../../src/status/streamingClient';
 import { CometClient, StreamingClient } from '../../../src/status/streamingClient';
 
 import { Connection } from '../../../src/org/connection';

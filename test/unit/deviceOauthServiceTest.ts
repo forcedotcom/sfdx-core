@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// @ts-ignore
-import * as Transport from 'jsforce/lib/transport';
-
+import { Transport } from 'jsforce/lib/transport';
 import { stubMethod, StubbedType, stubInterface } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { testSetup, MockTestOrgData } from '../../src/testSetup';

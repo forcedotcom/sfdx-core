@@ -1,7 +1,8 @@
 {
   "extends": "./node_modules/@salesforce/dev-config/tsconfig-strict",
   "compilerOptions": {
-    "outDir": "./lib"
+    "outDir": "./lib",
+    "typeRoots": ["./node_modules/@types", "./typings"]
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "typings/**/*.d.ts"]
 }

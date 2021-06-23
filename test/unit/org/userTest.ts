@@ -73,7 +73,7 @@ describe('User Tests', () => {
 
   describe('init tests', () => {
     it('refresh auth called', async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').resolves({
+      stubMethod($$.SANDBOX, Connection.prototype, 'request').resolves({
         statusCode: 201,
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         body: `{"id": "${user1.getMockUserInfo()['Id']}"}`,
@@ -92,7 +92,7 @@ describe('User Tests', () => {
     });
 
     it('refresh auth called error code 400', async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').resolves({
+      stubMethod($$.SANDBOX, Connection.prototype, 'request').resolves({
         body: `{
                     "statusCode": "400"
                 }`,
@@ -141,7 +141,7 @@ describe('User Tests', () => {
 
   describe('createUser', () => {
     it('should create a user', async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').resolves({
+      stubMethod($$.SANDBOX, Connection.prototype, 'request').resolves({
         statusCode: 201,
         body: '{"id": "123456"}',
         headers: {
@@ -227,7 +227,7 @@ describe('User Tests', () => {
     let org: Org;
 
     beforeEach(async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'requestRaw').resolves({
+      stubMethod($$.SANDBOX, Connection.prototype, 'request').resolves({
         statusCode: 201,
         body: '{"id": "56789"}',
         headers: {
