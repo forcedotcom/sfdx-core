@@ -9,7 +9,7 @@ import * as sinon from 'sinon';
 
 import { ensureJsonMap } from '@salesforce/ts-types';
 
-import { Duration } from '@salesforce/kit';
+import { Duration, sleep } from '@salesforce/kit';
 import { StatusResult } from '../../../src/status/client';
 import { PollingClient } from '../../../src/status/pollingClient';
 import { shouldThrow } from '../../../src/testSetup';
@@ -94,6 +94,25 @@ describe('clientTest', () => {
     } catch (e) {
       expect(callCount).to.be.equal(2);
       expect(e).to.have.property('name', TEST_VALUE);
+    }
+  });
+
+  it('does not make calls before previous request completes', async () => {
+    let callCount = 0;
+    const options: PollingClient.Options = {
+      async poll() {
+        callCount++;
+        await sleep(Duration.seconds(3)); // frequency is super-low, but polling function is slow to return.
+        return Promise.resolve({ completed: false });
+      },
+      frequency: Duration.milliseconds(5),
+      timeout: Duration.seconds(2),
+    };
+    const client = await PollingClient.create(options);
+    try {
+      await shouldThrow(client.subscribe());
+    } catch (e) {
+      expect(callCount).to.be.equal(1);
     }
   });
 });
