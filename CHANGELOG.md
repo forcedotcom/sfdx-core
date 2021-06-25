@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.24.2](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.1...v2.24.2) (2021-06-23)
+
+
+### Bug Fixes
+
+* puts some types back in dependencies ([94bea31](https://github.com/forcedotcom/sfdx-core/commit/94bea31037a41d4377faecb22bce8a2d12e95f4f))
+
+### [2.24.1](https://github.com/forcedotcom/sfdx-core/compare/v2.24.0...v2.24.1) (2021-06-23)
+
+
+### Bug Fixes
+
+* rewrite polling client ([8d363d1](https://github.com/forcedotcom/sfdx-core/commit/8d363d13616f5efa944d4bb717a010add3c996b5))
+
 ## [2.24.0](https://github.com/forcedotcom/sfdx-core/compare/v2.23.5...v2.24.0) (2021-06-08)
 
 
