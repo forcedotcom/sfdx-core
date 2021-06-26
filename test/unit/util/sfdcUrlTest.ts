@@ -53,13 +53,13 @@ describe('util/sfdcUrl', () => {
   });
 
   describe('checkLightningDomain', () => {
-    let resolve: SinonStub;
+    let resolveStub: SinonStub;
     beforeEach(() => {
-      resolve = stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
+      resolveStub = stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
     });
 
     afterEach(() => {
-      resolve.restore();
+      resolveStub.restore();
     });
 
     it('return true for internal urls', async () => {
@@ -75,8 +75,8 @@ describe('util/sfdcUrl', () => {
     });
 
     it('throws on domain resolution failure', async () => {
-      resolve.restore();
-      $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').rejects();
+      resolveStub.restore();
+      resolveStub = stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'resolve').rejects();
       const url = new SfdcUrl('https://login.salesforce.com');
       try {
         await shouldThrow(url.checkLightningDomain());
@@ -168,14 +168,30 @@ describe('util/sfdcUrl', () => {
   });
 
   describe('lookup', () => {
+    let resolveStub: SinonStub;
     beforeEach(() => {
-      $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
+      resolveStub = stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
+    });
+
+    afterEach(() => {
+      resolveStub.restore();
     });
 
     it('should be able to do dns lookup', async () => {
       const url = new SfdcUrl('https://foo.bar.baz');
       const ip = await url.lookup();
       expect(ip).to.be.equal(TEST_IP);
+    });
+
+    it('shoult throw on dns resulution failure', async () => {
+      resolveStub.restore();
+      resolveStub = stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'resolve').rejects();
+      const url = new SfdcUrl('https://bad.url.salesforce.com');
+      try {
+        await shouldThrow(url.lookup());
+      } catch (e) {
+        expect(e.name).to.equal('Error');
+      }
     });
   });
 

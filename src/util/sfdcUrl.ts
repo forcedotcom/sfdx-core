@@ -7,6 +7,7 @@
 
 import { URL } from 'url';
 import { Env, Duration } from '@salesforce/kit';
+import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { Logger } from '../logger';
 
@@ -29,6 +30,9 @@ export class SfdcUrl extends URL {
 
   /**
    * Returns the appropiate jwt audience url for this url.
+   *
+   * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`.
+   *
    */
   public async getJwtAudienceUrl(createdOrgInstance?: string): Promise<string> {
     this.logger = await Logger.child('SfdcUrl');
@@ -49,10 +53,7 @@ export class SfdcUrl extends URL {
       return SfdcUrl.SANDBOX;
     }
 
-    if (
-      (createdOrgInstance && /^gs1/gi.test(createdOrgInstance)) ||
-      /(gs1.my.salesforce.com)/gi.test(this.origin ?? '')
-    ) {
+    if ((createdOrgInstance && /^gs1/gi.test(createdOrgInstance)) || /(gs1.my.salesforce.com)/gi.test(this.origin)) {
       return 'https://gs1.salesforce.com';
     }
 
@@ -112,11 +113,14 @@ export class SfdcUrl extends URL {
   /**
    * Tests whether this url has the lightning domain extension
    *
-   * @param url
+   * @returns {Promise<true | never>} the resolved ip address or never
+   * @throws {@link SfdxError} If can't resolve DNS.
    */
   public async checkLightningDomain(): Promise<true | never> {
-    const domain = `https://${/https?:\/\/([^.]*)/.exec(this.origin)?.slice(1, 2).pop()}.lightning.force.com`;
-    const quantity = new Env().getNumber('SFDX_DOMAIN_RETRY', 240) ?? 0;
+    const domain = `https://${ensureArray(/https?:\/\/([^.]*)/.exec(this.origin))
+      .slice(1, 2)
+      .pop()}.lightning.force.com`;
+    const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));
     const timeout = new Duration(quantity, Duration.Unit.SECONDS);
 
     if (this.isInternalUrl() || timeout.seconds === 0) {
@@ -134,14 +138,14 @@ export class SfdcUrl extends URL {
   }
 
   /**
-   * Method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second) client will try again
+   * Method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again untill timeout
    *
-   * Returns the resolved ip address.
+   * @returns the resolved ip address.
    *
    * If SFDX_DOMAIN_RETRY environment variable is set (number) overrides the timeout duration.
    */
   public async lookup(): Promise<string> {
-    const quantity = new Env().getNumber('SFDX_DOMAIN_RETRY', 240) ?? 0;
+    const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));
     const timeout = new Duration(quantity, Duration.Unit.SECONDS);
     const resolver = await MyDomainResolver.create({
       url: new URL(this.origin),
@@ -174,7 +178,7 @@ export class SfdcUrl extends URL {
       return true;
     }
     const myDomainResolver = await MyDomainResolver.create({ url: this });
-    const cnames: string[] = (await myDomainResolver.getCnames()) ?? [];
+    const cnames: string[] = await myDomainResolver.getCnames();
     return cnames.some((cname) => new SfdcUrl(cname).isSandboxUrl());
   }
 
