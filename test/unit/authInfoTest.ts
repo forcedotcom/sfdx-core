@@ -796,9 +796,7 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string | Error, done: (v: Error) => {}) =>
         done(new Error('authInfoTest_ERROR_MSG'))
       );
-      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'lookup').callsFake((url: string | Error, done: (v: Error) => {}) =>
-        done(new Error('authInfoTest_ERROR_MSG'))
-      );
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'lookup').throws(new Error('authInfoTest_ERROR_MSG'));
       stubMethod($$.SANDBOX, SfdcUrl.prototype, 'resolvesToSandbox').resolves(true);
       // Create the JWT AuthInfo instance
       const authInfo = await AuthInfo.create({
