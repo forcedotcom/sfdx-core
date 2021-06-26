@@ -88,16 +88,13 @@ describe('util/sfdcUrl', () => {
 
   describe('Insecure HTTP warning', () => {
     let emitWarningSpy: SinonSpy;
-    let getCnames: SinonStub;
     beforeEach(() => {
-      getCnames = stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
       emitWarningSpy = spyMethod($$.SANDBOX, SfdcUrl.prototype, 'emitWarning');
     });
 
     afterEach(() => {
       SfdcUrl.cache.clear();
       emitWarningSpy.restore();
-      getCnames.restore();
     });
 
     it('emits the insecure http signal', () => {
