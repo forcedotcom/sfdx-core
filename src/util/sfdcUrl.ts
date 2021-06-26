@@ -8,21 +8,21 @@
 import { URL } from 'url';
 import { Env, Duration } from '@salesforce/kit';
 import { MyDomainResolver } from '../status/myDomainResolver';
-import cache from './cache';
+import { Logger } from '../logger';
 
 export class SfdcUrl extends URL {
   /**
    * Salesforce URLs.
    */
-  public static SANDBOX = 'https://test.salesforce.com';
-  public static PRODUCTION = 'https://login.salesforce.com';
+  public static readonly SANDBOX = 'https://test.salesforce.com';
+  public static readonly PRODUCTION = 'https://login.salesforce.com';
+  public static readonly cache: Set<string> = new Set();
+  private logger!: Logger;
 
   public constructor(input: string | URL, base?: string | URL) {
     super(input.toString(), base);
-    if (this.protocol !== 'https:' && !cache.has(this.origin)) {
-      cache.set(this.origin, {
-        timestamp: new Date().getTime(),
-      });
+    if (this.protocol !== 'https:' && !SfdcUrl.cache.has(this.origin)) {
+      SfdcUrl.cache.add(this.origin);
       this.emitWarning('Using insecure protocol: ' + this.protocol + ' on url: ' + this.origin);
     }
   }
@@ -31,9 +31,13 @@ export class SfdcUrl extends URL {
    * Returns the appropiate jwt audience url for this url.
    */
   public async getJwtAudienceUrl(createdOrgInstance?: string): Promise<string> {
+    this.logger = await Logger.child('SfdcUrl');
     // environment variable is used as an override
-    if (process.env.SFDX_AUDIENCE_URL) {
-      return process.env.SFDX_AUDIENCE_URL;
+    if (new Env().getString('SFDX_AUDIENCE_URL', '')) {
+      this.logger.debug(
+        `Audience URL overriden by env var SFDX_AUDIENCE_URL=${new Env().getString('SFDX_AUDIENCE_URL', '')}`
+      );
+      return new Env().getString('SFDX_AUDIENCE_URL', '');
     }
 
     if (this.isInternalUrl()) {
@@ -99,7 +103,6 @@ export class SfdcUrl extends URL {
   /**
    * Tests whether this url runs on a local machine
    *
-   * @param url
    */
   public isLocalUrl(): boolean {
     const LOCAL_PARTS = ['localhost.sfdcdev.', '.internal.'];
@@ -111,7 +114,7 @@ export class SfdcUrl extends URL {
    *
    * @param url
    */
-  public async checkLightningDomain(): Promise<boolean> {
+  public async checkLightningDomain(): Promise<true | never> {
     const domain = `https://${/https?:\/\/([^.]*)/.exec(this.origin)?.slice(1, 2).pop()}.lightning.force.com`;
     const quantity = new Env().getNumber('SFDX_DOMAIN_RETRY', 240) ?? 0;
     const timeout = new Duration(quantity, Duration.Unit.SECONDS);
@@ -131,8 +134,9 @@ export class SfdcUrl extends URL {
   }
 
   /**
-   * Method that performs the dns lookup of the host. If the lookup fails the internal polling client will try again
-   * given the optional interval. Returns the resolved ip address.
+   * Method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second) client will try again
+   *
+   * Returns the resolved ip address.
    *
    * If SFDX_DOMAIN_RETRY environment variable is set (number) overrides the timeout duration.
    */
@@ -144,7 +148,7 @@ export class SfdcUrl extends URL {
       timeout,
       frequency: new Duration(1, Duration.Unit.SECONDS),
     });
-    return await resolver.resolve();
+    return resolver.resolve();
   }
 
   /**
@@ -162,7 +166,8 @@ export class SfdcUrl extends URL {
   }
 
   /**
-   * Returns `true` if this url domain is or resolves to a sandbox url.
+   * Returns `true` if url is sandbox
+   * otherwise tryies to resolve dns cnames and then look if any is sandbox url
    */
   private async resolvesToSandbox(createdOrgInstance?: string): Promise<boolean> {
     if (this.isSandboxUrl(createdOrgInstance)) {

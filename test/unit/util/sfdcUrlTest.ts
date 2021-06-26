@@ -4,13 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { assert, expect } from 'chai';
-import { SinonSpy } from 'sinon';
-import { spyMethod } from '@salesforce/ts-sinon';
+import { expect } from 'chai';
+import { SinonSpy, SinonStub } from 'sinon';
+import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { Env } from '@salesforce/kit';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
 import { SfdcUrl } from '../../../src/util/sfdcUrl';
-import cache from '../../../src/util/cache';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 
 const $$ = testSetup();
@@ -33,16 +32,6 @@ describe('util/sfdcUrl', () => {
       const url = new SfdcUrl('https://developer.salesforce.com');
       expect(url.isSalesforceDomain()).to.be.true;
     });
-
-    it('falsy', () => {
-      try {
-        const url = new SfdcUrl(undefined);
-        assert(url, 'should throw');
-        expect(url.isSalesforceDomain()).to.be.false;
-      } catch (e) {
-        expect(e.name).to.equal('TypeError');
-      }
-    });
   });
 
   describe('internal domains', () => {
@@ -55,8 +44,6 @@ describe('util/sfdcUrl', () => {
       const url = new SfdcUrl('https://alm-cidevhubora3test1core4.test1.lightning.pc-rnd.force.com/');
       expect(url.isInternalUrl()).to.equal(true);
       expect(url.isLocalUrl()).to.equal(false);
-      expect(url.isInternalUrl()).to.equal(true);
-      expect(url.isLocalUrl()).to.equal(false);
     });
     it('localhost domain is both internal and local, and tolerates local host ports', () => {
       const url = new SfdcUrl('https://scorpio-ryan-2873-dev-ed.my.localhost.sfdcdev.salesforce.com:6109');
@@ -66,12 +53,13 @@ describe('util/sfdcUrl', () => {
   });
 
   describe('checkLightningDomain', () => {
+    let resolve: SinonStub;
     beforeEach(() => {
-      $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
+      resolve = stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
     });
 
     afterEach(() => {
-      $$.SANDBOX.restore();
+      resolve.restore();
     });
 
     it('return true for internal urls', async () => {
@@ -82,12 +70,12 @@ describe('util/sfdcUrl', () => {
 
     it('return true for urls that dns can resolve', async () => {
       const url = new SfdcUrl('https://login.salesforce.com');
-      const respose = await url.checkLightningDomain();
-      expect(respose).to.be.true;
+      const response = await url.checkLightningDomain();
+      expect(response).to.be.true;
     });
 
     it('throws on domain resolution failure', async () => {
-      $$.SANDBOX.restore();
+      resolve.restore();
       $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').rejects();
       const url = new SfdcUrl('https://login.salesforce.com');
       try {
@@ -100,15 +88,16 @@ describe('util/sfdcUrl', () => {
 
   describe('Insecure HTTP warning', () => {
     let emitWarningSpy: SinonSpy;
+    let getCnames: SinonStub;
     beforeEach(() => {
-      $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
+      getCnames = stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
       emitWarningSpy = spyMethod($$.SANDBOX, SfdcUrl.prototype, 'emitWarning');
     });
 
     afterEach(() => {
-      $$.SANDBOX.restore();
+      SfdcUrl.cache.clear();
       emitWarningSpy.restore();
-      cache.clear();
+      getCnames.restore();
     });
 
     it('emits the insecure http signal', () => {
@@ -134,12 +123,8 @@ describe('util/sfdcUrl', () => {
 
   describe('getJwtAudienceUrl', () => {
     const env = new Env();
-    beforeEach(() => {
+    before(() => {
       $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
-    });
-
-    afterEach(() => {
-      $$.SANDBOX.restore();
     });
 
     it('return the jwt audicence url for sandbox domains', async () => {
@@ -161,36 +146,30 @@ describe('util/sfdcUrl', () => {
     });
 
     it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
-      $$.SANDBOX.restore();
       $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves([]);
       const url = new SfdcUrl('https://foo.bar.baz');
-      const respose = await url.getJwtAudienceUrl('gs1');
-      expect(respose).to.be.equal('https://gs1.salesforce.com');
+      const response = await url.getJwtAudienceUrl('gs1');
+      expect(response).to.be.equal('https://gs1.salesforce.com');
     });
 
     it('should return production URL if domain cannot be resolved', async () => {
-      $$.SANDBOX.restore();
       $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves([]);
       const url = new SfdcUrl('https://foo.bar.baz');
-      const respose = await url.getJwtAudienceUrl();
-      expect(respose).to.be.equal('https://login.salesforce.com');
+      const response = await url.getJwtAudienceUrl();
+      expect(response).to.be.equal('https://login.salesforce.com');
     });
 
     it('should use the correct audience URL for SFDX_AUDIENCE_URL env var', async () => {
       env.setString('SFDX_AUDIENCE_URL', 'http://authInfoTest/audienceUrl/test');
       const url = new SfdcUrl('https://login.salesforce.com');
-      const respose = await url.getJwtAudienceUrl();
-      expect(respose).to.be.equal(process.env.SFDX_AUDIENCE_URL);
+      const response = await url.getJwtAudienceUrl();
+      expect(response).to.be.equal(process.env.SFDX_AUDIENCE_URL);
     });
   });
 
   describe('lookup', () => {
     beforeEach(() => {
       $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
-    });
-
-    afterEach(() => {
-      $$.SANDBOX.restore();
     });
 
     it('should be able to do dns lookup', async () => {
