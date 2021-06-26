@@ -24,7 +24,7 @@ export class SfdcUrl extends URL {
     super(input.toString(), base);
     if (this.protocol !== 'https:' && !SfdcUrl.cache.has(this.origin)) {
       SfdcUrl.cache.add(this.origin);
-      this.emitWarning('Using insecure protocol: ' + this.protocol + ' on url: ' + this.origin);
+      process.emitWarning('Using insecure protocol: ' + this.protocol + ' on url: ' + this.origin);
     }
   }
 
@@ -38,11 +38,10 @@ export class SfdcUrl extends URL {
   public async getJwtAudienceUrl(createdOrgInstance?: string): Promise<string> {
     this.logger = await Logger.child('SfdcUrl');
     // environment variable is used as an override
-    if (new Env().getString('SFDX_AUDIENCE_URL', '')) {
-      this.logger.debug(
-        `Audience URL overriden by env var SFDX_AUDIENCE_URL=${new Env().getString('SFDX_AUDIENCE_URL', '')}`
-      );
-      return new Env().getString('SFDX_AUDIENCE_URL', '');
+    const envVarVal = new Env().getString('SFDX_AUDIENCE_URL', '');
+    if (envVarVal) {
+      this.logger.debug(`Audience URL overriden by env var SFDX_AUDIENCE_URL=${envVarVal}`);
+      return envVarVal;
     }
 
     if (this.isInternalUrl()) {
@@ -194,14 +193,5 @@ export class SfdcUrl extends URL {
     const myDomainResolver = await MyDomainResolver.create({ url: this });
     const cnames: string[] = await myDomainResolver.getCnames();
     return cnames.some((cname) => new SfdcUrl(cname).isSandboxUrl());
-  }
-
-  /**
-   * Emits a warning signal
-   *
-   * @param warning The warning message you want to emit
-   */
-  private emitWarning(warning: string): void {
-    process.emitWarning(warning);
   }
 }
