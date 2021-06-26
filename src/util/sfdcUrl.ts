@@ -160,7 +160,7 @@ export class SfdcUrl extends URL {
       /sandbox\.my\.salesforce\.com/gi.test(this.origin) || // enhanced domains >= 230
       /(cs[0-9]+(\.my|)\.salesforce\.com)/gi.test(this.origin) || // my domains on CS instance OR CS instance without my domain
       /([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
-      /([a-z]{3}[0-9]+s\.sfdc-.+\.force\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
+      /([a-z]{3}[0-9]+s\.sfdc-.+\.force\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.force.com
       this.hostname === 'test.salesforce.com'
     );
   }
