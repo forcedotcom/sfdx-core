@@ -13,7 +13,7 @@ import { Logger } from '../logger';
 
 export class SfdcUrl extends URL {
   /**
-   * Salesforce URLs.
+   * Salesforce URLs
    */
   public static readonly SANDBOX = 'https://test.salesforce.com';
   public static readonly PRODUCTION = 'https://login.salesforce.com';
@@ -29,10 +29,11 @@ export class SfdcUrl extends URL {
   }
 
   /**
-   * Returns the appropiate jwt audience url for this url.
+   * Returns the appropiate jwt audience url for this url
+   * Use SFDX_AUDIENCE_URL env var to override the audience url
    *
-   * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`.
-   *
+   * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
+   * @return {Promise<string>} The audience url
    */
   public async getJwtAudienceUrl(createdOrgInstance?: string): Promise<string> {
     this.logger = await Logger.child('SfdcUrl');
@@ -45,7 +46,7 @@ export class SfdcUrl extends URL {
     }
 
     if (this.isInternalUrl()) {
-      // This is for internal developers when just doing authorize;
+      // This is for internal developers when just doing authorize
       return this.origin;
     }
 
@@ -61,7 +62,9 @@ export class SfdcUrl extends URL {
   }
 
   /**
-   * Returns `true` if this url contains a Salesforce owned domain.
+   * Tests whether this url contains a Salesforce owned domain
+   *
+   * @return {boolean} true if this is a salesforce domain
    */
   public isSalesforceDomain(): boolean {
     // Source https://help.salesforce.com/articleView?id=000003652&type=1
@@ -83,6 +86,8 @@ export class SfdcUrl extends URL {
 
   /**
    * Tests whether this url is an internal Salesforce domain
+   *
+   * @returns {boolean} true if this is a internal domain
    */
   public isInternalUrl(): boolean {
     const INTERNAL_URL_PARTS = [
@@ -104,6 +109,7 @@ export class SfdcUrl extends URL {
   /**
    * Tests whether this url runs on a local machine
    *
+   * @returns {boolean} true if this is a local machine
    */
   public isLocalUrl(): boolean {
     const LOCAL_PARTS = ['localhost.sfdcdev.', '.internal.'];
@@ -112,8 +118,10 @@ export class SfdcUrl extends URL {
 
   /**
    * Tests whether this url has the lightning domain extension
+   * This method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again untill timeout
+   * If SFDX_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
    *
-   * @returns {Promise<true | never>} the resolved ip address or never
+   * @returns {Promise<true | never>} The resolved ip address or never
    * @throws {@link SfdxError} If can't resolve DNS.
    */
   public async checkLightningDomain(): Promise<true | never> {
@@ -139,10 +147,10 @@ export class SfdcUrl extends URL {
 
   /**
    * Method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again untill timeout
+   * If SFDX_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
    *
    * @returns the resolved ip address.
-   *
-   * If SFDX_DOMAIN_RETRY environment variable is set (number) overrides the timeout duration.
+   * @throws {@link SfdxError} If can't resolve DNS.
    */
   public async lookup(): Promise<string> {
     const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));
@@ -156,7 +164,10 @@ export class SfdcUrl extends URL {
   }
 
   /**
-   * Returns `true` if this url is a sandbox url
+   * Tests whether this url is a sandbox url
+   *
+   * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
+   * @returns {boolean}
    */
   public isSandboxUrl(createdOrgInstance?: string): boolean {
     return (
@@ -170,8 +181,11 @@ export class SfdcUrl extends URL {
   }
 
   /**
-   * Returns `true` if url is sandbox
+   * Tests whether this url is a sandbox url
    * otherwise tryies to resolve dns cnames and then look if any is sandbox url
+   *
+   * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
+   * @returns {Promise<boolean>} true if this domain resolves to sanbox url
    */
   private async resolvesToSandbox(createdOrgInstance?: string): Promise<boolean> {
     if (this.isSandboxUrl(createdOrgInstance)) {
@@ -182,6 +196,11 @@ export class SfdcUrl extends URL {
     return cnames.some((cname) => new SfdcUrl(cname).isSandboxUrl());
   }
 
+  /**
+   * Emits a warning signal
+   *
+   * @param warning The warning message you want to emit
+   */
   private emitWarning(warning: string): void {
     process.emitWarning(warning);
   }
