@@ -17,7 +17,7 @@ export class SfdcUrl extends URL {
    */
   public static readonly SANDBOX = 'https://test.salesforce.com';
   public static readonly PRODUCTION = 'https://login.salesforce.com';
-  public static readonly cache: Set<string> = new Set();
+  private static readonly cache: Set<string> = new Set();
   private logger!: Logger;
 
   public constructor(input: string | URL, base?: string | URL) {

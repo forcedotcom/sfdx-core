@@ -93,7 +93,6 @@ describe('util/sfdcUrl', () => {
     });
 
     afterEach(() => {
-      SfdcUrl.cache.clear();
       emitWarningSpy.restore();
     });
 
@@ -107,7 +106,7 @@ describe('util/sfdcUrl', () => {
     });
 
     it('emits the insecure http signal only once per domain', () => {
-      const site = 'http://insecure.website.com';
+      const site = 'http://another.insecure.website.com';
       const url1 = new SfdcUrl(site);
       const url2 = new SfdcUrl(site);
       const { protocol: protocol1 } = url1;
@@ -165,24 +164,15 @@ describe('util/sfdcUrl', () => {
   });
 
   describe('lookup', () => {
-    let resolveStub: SinonStub;
-    beforeEach(() => {
-      resolveStub = stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
-    });
-
-    afterEach(() => {
-      resolveStub.restore();
-    });
-
     it('should be able to do dns lookup', async () => {
+      stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
       const url = new SfdcUrl('https://foo.bar.baz');
       const ip = await url.lookup();
       expect(ip).to.be.equal(TEST_IP);
     });
 
     it('shoult throw on dns resulution failure', async () => {
-      resolveStub.restore();
-      resolveStub = stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'resolve').rejects();
+      stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'resolve').rejects();
       const url = new SfdcUrl('https://bad.url.salesforce.com');
       try {
         await shouldThrow(url.lookup());
