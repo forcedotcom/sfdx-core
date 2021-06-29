@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.1-v3.2](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-v3.1...v3.1.1-v3.2) (2021-06-29)
+
+
+### Bug Fixes
+
+* do not use function prop ([#426](https://github.com/forcedotcom/sfdx-core/issues/426)) ([39efe0c](https://github.com/forcedotcom/sfdx-core/commit/39efe0ccc84b05bc891e54b24bfcddc62790ae0e))
+
 ### [3.1.1-v3.1](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-v3.0...v3.1.1-v3.1) (2021-06-14)
 
 
