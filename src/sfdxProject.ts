@@ -646,6 +646,11 @@ export class SfdxProject {
       if (process.env.FORCE_SFDC_LOGIN_URL) {
         this.projectConfig.sfdcLoginUrl = process.env.FORCE_SFDC_LOGIN_URL;
       }
+
+      // Allow override of signupTargetLoginUrl via env var SFDX_SCRATCH_ORG_CREATION_LOGIN_URL
+      if (process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL) {
+        this.projectConfig.signupTargetLoginUrl = process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
+      }
     }
 
     return this.projectConfig;
