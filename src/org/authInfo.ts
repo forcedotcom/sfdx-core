@@ -61,7 +61,6 @@ const messages = Messages.load('@salesforce/core', 'core', [
 /**
  * Fields for authorization, org, and local information.
  */
-// Fields that are persisted in auth files
 export type AuthFields = {
   accessToken?: string;
   alias?: string;

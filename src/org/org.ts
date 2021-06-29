@@ -288,17 +288,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     let cache = this.getField(Org.Fields.IS_SCRATCH);
 
     if (!cache) {
-      const organization = await this.retrieveOrganizationInformation();
-      const isScratch = organization.IsSandbox && organization.TrialExpirationDate;
-      // const isSandbox = organization.IsSandbox && organization.TrialExpirationDate;
-      // this.getConnection().getAuthInfo().update({
-      //   [Org.Fields.NAME]: organization.Name,
-      //   [Org.Fields.NAME]: organization.InstanceName,
-      //   [Org.Fields.NAME]: organization.NamespacePrefix,
-      //   [Org.Fields.NAME]: organization.IsSandbox,
-      //   [Org.Fields.NAME]: organization.TrialExpirationDate,
-      // });
-      cache = isScratch;
+      await this.updateLocalInformation();
+      cache = this.getField(Org.Fields.IS_SCRATCH);
     }
     return cache as boolean;
   }
@@ -550,8 +541,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public getField<T = AnyJson>(key: Org.Fields): T {
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-    // @ts-ignore TODO: Need to refactor storage of these values on both Org and AuthFields
-    return this[key] || this.getConnection().getAuthInfoFields()[key];
+    // @ts-ignore Legacy. We really shouldn't be doing this.
+    const ownProp = this[key];
+    if (ownProp && typeof ownProp !== 'function') return ownProp;
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
+    return this.getConnection().getAuthInfoFields()[key];
   }
 
   /**
