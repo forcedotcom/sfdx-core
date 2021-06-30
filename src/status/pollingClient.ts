@@ -73,6 +73,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
     const finalResult = retryDecorator(doPoll, {
       timeout: this.options.timeout.milliseconds,
       delay: this.options.frequency.milliseconds,
+      retries: 'INFINITELY',
     });
     try {
       return await finalResult();
