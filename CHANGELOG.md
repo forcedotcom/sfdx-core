@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.25.1](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.2...v2.25.1) (2021-06-30)
+
+
+### Bug Fixes
+
+* set retries to INFINITELY for polling client ([31539b4](https://github.com/forcedotcom/sfdx-core/commit/31539b4f0edd0cc1c049f70331ed5e40b8af55ea))
+
 ## [2.25.0](https://github.com/forcedotcom/sfdx-core/compare/v2.24.2...v2.25.0) (2021-06-30)
 
 
