@@ -116,7 +116,7 @@ describe('User Tests', () => {
         const password: SecureBuffer<void> = User.generatePasswordUtf8();
         password.value((buffer: Buffer): void => {
           const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
-          expect(passwordAsArrayOfCharacters.length).to.be.equal(13);
+          expect(passwordAsArrayOfCharacters.length).to.be.equal(10);
           expect(
             passwordAsArrayOfCharacters.some((char) =>
               ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(char)
@@ -126,6 +126,32 @@ describe('User Tests', () => {
           expect(passwordAsArrayOfCharacters.some((char) => char.toLowerCase() !== char.toLowerCase()));
         });
       }
+    });
+
+    it('Should generate length 12 and complexity 1 password containing at least one number and one  lowercase letter ', () => {
+      const passwordCondition = { length: 12, complexity: 1 };
+      const password: SecureBuffer<void> = User.generatePasswordUtf8(passwordCondition);
+      password.value((buffer: Buffer): void => {
+        const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
+        expect(passwordAsArrayOfCharacters.length).to.be.equal(12);
+        expect(
+          passwordAsArrayOfCharacters.some((char) => ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(char))
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => char.toLowerCase() !== char.toLowerCase()));
+      });
+    });
+    it('Should generate length 14 and complexity 3 password containing at least one number and one  lowercase letter ', () => {
+      const passwordCondition = { length: 12, complexity: 1 };
+      const password: SecureBuffer<void> = User.generatePasswordUtf8(passwordCondition);
+      password.value((buffer: Buffer): void => {
+        const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
+        expect(passwordAsArrayOfCharacters.length).to.be.equal(12);
+        expect(
+          passwordAsArrayOfCharacters.some((char) => ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(char))
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => char.toLowerCase() !== char.toLowerCase()));
+        expect(passwordAsArrayOfCharacters.some((char) => char.toLowerCase() !== char.toLowerCase()));
+      });
     });
   });
 

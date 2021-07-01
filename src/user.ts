@@ -29,13 +29,28 @@ import { SecureBuffer } from './secureBuffer';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
 
-const PASSWORD_LENGTH = 13;
 const LOWER = 'abcdefghijklmnopqrstuvwxyz';
 const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const NUMBERS = '1234567890';
 const SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '[', ']', '|', '-'];
 
 const rand = (len: Many<string>): number => Math.floor(Math.random() * len.length);
+
+interface Complexity {
+  LOWER: number;
+  UPPER: number;
+  NUMBERS: number;
+  SYMBOLS: number;
+}
+
+const PASSWORD_COMPLEXITY: { [index: string]: Complexity } = {
+  '0': { LOWER: 0, UPPER: 0, NUMBERS: 0, SYMBOLS: 0 },
+  '1': { LOWER: 1, UPPER: 0, NUMBERS: 1, SYMBOLS: 0 },
+  '2': { LOWER: 1, UPPER: 0, NUMBERS: 0, SYMBOLS: 1 },
+  '3': { LOWER: 1, UPPER: 1, NUMBERS: 1, SYMBOLS: 0 },
+  '4': { LOWER: 1, UPPER: 1, NUMBERS: 1, SYMBOLS: 1 },
+  '5': { LOWER: 1, UPPER: 0, NUMBERS: 1, SYMBOLS: 1 },
+};
 
 const scimEndpoint = '/services/scim/v1/Users';
 const scimHeaders = { 'auto-approve-user': 'true' };
@@ -196,6 +211,11 @@ export namespace DefaultUserFields {
   }
 }
 
+interface PasswordConditions {
+  length: number;
+  complexity: number;
+}
+
 /**
  * A class for creating a User, generating a password for a user, and assigning a user to one or more permission sets.
  * See methods for examples.
@@ -211,20 +231,48 @@ export class User extends AsyncCreatable<User.Options> {
     super(options);
     this.org = options.org;
   }
+
   /**
    * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
    */
-  public static generatePasswordUtf8(): SecureBuffer<void> {
-    // one character of each of the 4 types followed by the remaining random characters, then quasi-randomize
+  public static generatePasswordUtf8(
+    passwordCondition: PasswordConditions = { length: 10, complexity: 1 }
+  ): SecureBuffer<void> {
     const ALLCHARS = UPPER.concat(LOWER, NUMBERS, SYMBOLS.join(''));
-    const password = [UPPER[rand(UPPER)], LOWER[rand(LOWER)], NUMBERS[rand(NUMBERS)], SYMBOLS[rand(SYMBOLS)]]
-      .concat(
-        Array(PASSWORD_LENGTH - 4)
+    let password: string[] = [];
+
+    // Required number of Lower letter characters. one character of each of the 4 types followed by the remaining random characters, then quasi-randomize
+    password = password.concat(
+      Array(PASSWORD_COMPLEXITY[passwordCondition.complexity].LOWER)
+        .fill('0')
+        .map(() => LOWER[rand(LOWER)])
+    );
+    // Required number of Upper letter characters.
+    password = password.concat(
+      Array(PASSWORD_COMPLEXITY[passwordCondition.complexity].UPPER)
+        .fill('0')
+        .map(() => UPPER[rand(UPPER)])
+    );
+    // Required number of Numerics.
+    password = password.concat(
+      Array(PASSWORD_COMPLEXITY[passwordCondition.complexity].NUMBERS)
+        .fill('0')
+        .map(() => NUMBERS[rand(NUMBERS)])
+    );
+    // Required number of Special characters.
+    password = password.concat(
+      Array(PASSWORD_COMPLEXITY[passwordCondition.complexity].SYMBOLS)
+        .fill('0')
+        .map(() => SYMBOLS[rand(SYMBOLS)])
+    );
+    if (passwordCondition.length - password.length > 0)
+      // Concatinating remaining length randomly with all available characters
+      password = password.concat(
+        Array(passwordCondition.length - password.length)
           .fill('0')
           .map(() => ALLCHARS[rand(ALLCHARS)])
-      )
-      .sort(() => Math.random() - 0.5);
-
+      );
+    password = password.sort(() => Math.random() - 0.5);
     const secureBuffer: SecureBuffer<void> = new SecureBuffer<void>();
     secureBuffer.consume(Buffer.from(password.join(''), 'utf8'));
 
