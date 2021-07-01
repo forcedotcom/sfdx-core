@@ -43,6 +43,7 @@ import { MyDomainResolver } from '../status/myDomainResolver';
 import { SfOrg, GlobalInfo } from '../config/globalInfoConfig';
 import { Messages } from '../messages';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
+import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'core', [
@@ -638,13 +639,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   /**
-   * Set the defaultusername or the defaultdevhubusername to the alias if
+   * Set the target-env (default) or the target-hub to the alias if
    * it exists otherwise to the username. Method will try to set the local
    * config first but will default to global config if that fails.
    *
    * @param options
    */
-  public async setAsDefault(options: { defaultUsername?: boolean; defaultDevhubUsername?: boolean }) {
+  public async setAsDefault(options: { org?: boolean; hub?: boolean } = { org: true }) {
     let config: Config;
     // if we fail to create the local config, default to the global config
     try {
@@ -657,12 +658,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const aliases = await Aliases.create(Aliases.getDefaultOptions());
     const value = aliases.getKeysByValue(username)[0] || username;
 
-    if (options.defaultUsername) {
-      config.set(Config.DEFAULT_USERNAME, value);
+    if (options.org) {
+      config.set(OrgConfigProperties.TARGET_ORG, value);
     }
 
-    if (options.defaultDevhubUsername) {
-      config.set(Config.DEFAULT_DEV_HUB_USERNAME, value);
+    if (options.hub) {
+      config.set(OrgConfigProperties.TARGET_HUB, value);
     }
     await config.write();
   }

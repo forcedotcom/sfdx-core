@@ -30,6 +30,7 @@ import { SfdxError } from '../../../src/sfdxError';
 import { testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 import { GlobalInfo, MyDomainResolver } from '../../../src/exported';
+import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 
 const TEST_KEY = {
   service: 'sfdx',
@@ -182,7 +183,7 @@ class MetaAuthDataMock {
     return this._orgId;
   }
 
-  public async fetchConfigInfo(path: string): Promise<ConfigContents> {
+  public fetchConfigInfo(path: string): ConfigContents {
     if (path.includes('sf.json')) {
       this._authInfoLookupCount = this._authInfoLookupCount + 1;
       // const configContents = new Map<string, ConfigValue>();
@@ -192,9 +193,9 @@ class MetaAuthDataMock {
       set(configContents, 'accessToken', this.encryptedAccessToken);
       set(configContents, 'privateKey', '123456');
       set(configContents, 'username', this.username);
-      return Promise.resolve(configContents);
+      return configContents;
     } else {
-      return Promise.resolve({});
+      return {};
     }
   }
 
@@ -265,15 +266,17 @@ describe('AuthInfo', () => {
       .resolves({})
       .rejects();
 
-    stubMethod($$.SANDBOX, ConfigFile.prototype, 'read').callsFake(async function (this: GlobalInfo) {
-      const authData = await testMetadata.fetchConfigInfo(this.getPath());
+    function read(this: GlobalInfo) {
+      const authData = testMetadata.fetchConfigInfo(this.getPath());
       const username = (authData.username || testMetadata.username) as string;
       const contents = {
         orgs: { [username]: authData },
       };
       this.setContentsFromObject(contents);
       return this.getContents();
-    });
+    }
+    stubMethod($$.SANDBOX, ConfigFile.prototype, 'read').callsFake(read);
+    stubMethod($$.SANDBOX, ConfigFile.prototype, 'readSync').callsFake(read);
 
     const crypto = await Crypto.create();
     testMetadata.encryptedAccessToken = crypto.encrypt(testMetadata.accessToken) || '';
@@ -606,9 +609,7 @@ describe('AuthInfo', () => {
       set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
       set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
       set(jwtData, 'username', username);
-      testMetadata.fetchConfigInfo = () => {
-        return Promise.resolve(jwtData);
-      };
+      testMetadata.fetchConfigInfo = () => jwtData;
 
       // Create the JWT AuthInfo instance
       const authInfo = await AuthInfo.create({ username });
@@ -643,9 +644,7 @@ describe('AuthInfo', () => {
       set(jwtData, 'loginUrl', testMetadata.loginUrl);
       set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
       set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
-      testMetadata.fetchConfigInfo = () => {
-        return Promise.resolve(jwtData);
-      };
+      testMetadata.fetchConfigInfo = () => jwtData;
 
       $$.SANDBOX.stub(GlobalInfo.prototype, 'hasOrg').returns(true);
 
@@ -1583,34 +1582,34 @@ describe('AuthInfo', () => {
       $$.SANDBOX.stub(GlobalInfo.prototype, 'hasOrg').returns(true);
     });
 
-    it('should set username to defaultusername', async () => {
+    it('should set username to target-org', async () => {
       const authInfo = await AuthInfo.create({ username });
-      await authInfo.setAsDefault({ defaultUsername: true });
+      await authInfo.setAsDefault({ org: true });
       expect(configSpy.called).to.be.true;
-      expect(configSpy.firstCall.args).to.deep.equal([Config.DEFAULT_USERNAME, username]);
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_ORG, username]);
     });
 
-    it('should set username to defaultdevhubusername', async () => {
+    it('should set username to target-hub', async () => {
       const authInfo = await AuthInfo.create({ username });
-      await authInfo.setAsDefault({ defaultDevhubUsername: true });
+      await authInfo.setAsDefault({ hub: true });
       expect(configSpy.called).to.be.true;
-      expect(configSpy.firstCall.args).to.deep.equal([Config.DEFAULT_DEV_HUB_USERNAME, username]);
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_HUB, username]);
     });
 
-    it('should set alias to defaultusername', async () => {
+    it('should set alias to target-org', async () => {
       stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns([alias]);
       const authInfo = await AuthInfo.create({ username });
-      await authInfo.setAsDefault({ defaultUsername: true });
+      await authInfo.setAsDefault({ org: true });
       expect(configSpy.called).to.be.true;
-      expect(configSpy.firstCall.args).to.deep.equal([Config.DEFAULT_USERNAME, alias]);
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_ORG, alias]);
     });
 
-    it('should set alias to defaultdevhubusername', async () => {
+    it('should set alias to target-hub', async () => {
       stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns([alias]);
       const authInfo = await AuthInfo.create({ username });
-      await authInfo.setAsDefault({ defaultDevhubUsername: true });
+      await authInfo.setAsDefault({ hub: true });
       expect(configSpy.called).to.be.true;
-      expect(configSpy.firstCall.args).to.deep.equal([Config.DEFAULT_DEV_HUB_USERNAME, alias]);
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_HUB, alias]);
     });
   });
 
@@ -1833,9 +1832,7 @@ describe('AuthInfo', () => {
         set(jwtData, 'instanceUrl', testMetadata.instanceUrl);
         set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
         set(jwtData, 'username', username);
-        testMetadata.fetchConfigInfo = () => {
-          return Promise.resolve(jwtData);
-        };
+        testMetadata.fetchConfigInfo = () => jwtData;
 
         const authInfo = await AuthInfo.create({
           username,
@@ -1929,9 +1926,7 @@ describe('AuthInfo', () => {
         set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
         set(jwtData, 'orgId', '00DAuthInfoTest_orgId');
         set(jwtData, 'username', username);
-        testMetadata.fetchConfigInfo = () => {
-          return Promise.resolve(jwtData);
-        };
+        testMetadata.fetchConfigInfo = () => jwtData;
         stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).throws(new Error('FAIL!'));
       });
 

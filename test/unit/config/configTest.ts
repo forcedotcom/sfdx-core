@@ -7,7 +7,7 @@
 import { stubMethod } from '@salesforce/ts-sinon';
 import { ensureString, JsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
-import { Config } from '../../../src/config/config';
+import { Config, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
 import { testSetup } from '../../../src/testSetup';
@@ -40,17 +40,29 @@ describe('Config', () => {
   });
 
   describe('instantiation', () => {
+    it('using partial global', async () => {
+      const config: Config = await Config.create({ isGlobal: true });
+      expect(config.getPath()).to.not.contain(await $$.localPathRetriever(id));
+      expect(config.getPath()).to.contain('.sf');
+      expect(config.getPath()).to.contain('config.json');
+    });
     it('using global', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
       expect(config.getPath()).to.not.contain(await $$.localPathRetriever(id));
-      expect(config.getPath()).to.contain('.sfdx');
-      expect(config.getPath()).to.contain('sfdx-config.json');
+      expect(config.getPath()).to.contain('.sf');
+      expect(config.getPath()).to.contain('config.json');
+    });
+    it('using defaults', async () => {
+      const config: Config = await Config.create();
+      expect(config.getPath()).to.contain(await $$.localPathRetriever(id));
+      expect(config.getPath()).to.contain('.sf');
+      expect(config.getPath()).to.contain('config.json');
     });
     it('not using global', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(false));
       expect(config.getPath()).to.contain(await $$.localPathRetriever(id));
-      expect(config.getPath()).to.contain('.sfdx');
-      expect(config.getPath()).to.contain('sfdx-config.json');
+      expect(config.getPath()).to.contain('.sf');
+      expect(config.getPath()).to.contain('config.json');
     });
   });
 
@@ -217,8 +229,8 @@ describe('Config', () => {
 
     it('PropertyInput validation', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(Config.DEFAULT_USERNAME, 'foo@example.com');
-      expect(config.get(Config.DEFAULT_USERNAME)).to.be.equal('foo@example.com');
+      config.set(SfdxPropertyKeys.DEFAULT_USERNAME, 'foo@example.com');
+      expect(config.get(SfdxPropertyKeys.DEFAULT_USERNAME)).to.be.equal('foo@example.com');
     });
   });
 
@@ -262,18 +274,19 @@ describe('Config', () => {
       );
 
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(Config.ISV_DEBUGGER_SID, TEST_VAL);
+      config.set(SfdxPropertyKeys.ISV_DEBUGGER_SID, TEST_VAL);
       await config.write();
 
       expect(writeStub.called).to.be.true;
     });
 
     it('calls ConfigFile.read with unknown key and does not throw on crypt', async () => {
+      stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.readSync.name).callsFake(async function () {});
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
         this.setContentsFromObject({ unknown: 'unknown config key and value' });
       });
 
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      const config: Config = await Config.create({ isGlobal: true });
       expect(config).to.exist;
     });
   });
@@ -303,6 +316,7 @@ describe('Config', () => {
       const configMetas = [
         {
           key: 'hello',
+          description: 'hello',
           hidden: false,
           encrypted: false,
         },
