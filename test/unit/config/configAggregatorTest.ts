@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { assert, expect } from 'chai';
-import { Config, ConfigProperties } from '../../../src/config/config';
+import { Config, ConfigProperties, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { testSetup } from '../../../src/testSetup';
@@ -43,7 +43,7 @@ describe('ConfigAggregator', () => {
     it('converts env vars', async () => {
       process.env.SFDX_DEFAULTUSERNAME = 'test';
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal('test');
+      expect(aggregator.getPropertyValue(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal('test');
     });
 
     it('constructor creates local and global config', async () => {
@@ -67,7 +67,7 @@ describe('ConfigAggregator', () => {
   it('static getter', async () => {
     const expected = '49.0';
     $$.SANDBOX.stub(Config.prototype, 'readSync').returns({ apiVersion: expected });
-    expect(ConfigAggregator.getValue(Config.API_VERSION).value, expected);
+    expect(ConfigAggregator.getValue(SfdxPropertyKeys.API_VERSION).value, expected);
   });
 
   it('reload decrypts config values', async () => {
@@ -97,13 +97,13 @@ describe('ConfigAggregator', () => {
     });
     it('local overrides global', async () => {
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal(1);
+      expect(aggregator.getPropertyValue(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal(1);
     });
 
     it('env overrides local and global', async () => {
       process.env.SFDX_DEFAULTUSERNAME = 'test';
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getPropertyValue(Config.DEFAULT_USERNAME)).to.equal('test');
+      expect(aggregator.getPropertyValue(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal('test');
     });
   });
 
@@ -121,7 +121,7 @@ describe('ConfigAggregator', () => {
         return Promise.resolve();
       });
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getLocation(Config.DEFAULT_USERNAME)).to.equal('Local');
+      expect(aggregator.getLocation(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal('Local');
     });
 
     it('global', async () => {
@@ -139,7 +139,7 @@ describe('ConfigAggregator', () => {
         return Promise.resolve();
       });
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getLocation(Config.DEFAULT_USERNAME)).to.equal('Global');
+      expect(aggregator.getLocation(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal('Global');
     });
 
     it('env', async () => {
@@ -156,7 +156,7 @@ describe('ConfigAggregator', () => {
         }
         return Promise.resolve();
       });
-      expect(aggregator.getLocation(Config.DEFAULT_USERNAME)).to.equal('Environment');
+      expect(aggregator.getLocation(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal('Environment');
     });
 
     it('configInfo with env', async () => {
