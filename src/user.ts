@@ -29,27 +29,30 @@ import { SecureBuffer } from './secureBuffer';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
 
-const LOWER = 'abcdefghijklmnopqrstuvwxyz';
-const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const NUMBERS = '1234567890';
-const SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '[', ']', '|', '-'];
-
 const rand = (len: Many<string>): number => Math.floor(Math.random() * len.length);
 
 interface Complexity {
-  LOWER: number;
-  UPPER: number;
-  NUMBERS: number;
-  SYMBOLS: number;
+  [key: string]: boolean | undefined;
+  LOWER?: boolean;
+  UPPER?: boolean;
+  NUMBERS?: boolean;
+  SYMBOLS?: boolean;
 }
 
-const PASSWORD_COMPLEXITY: { [index: string]: Complexity } = {
-  '0': { LOWER: 0, UPPER: 0, NUMBERS: 0, SYMBOLS: 0 },
-  '1': { LOWER: 1, UPPER: 0, NUMBERS: 1, SYMBOLS: 0 },
-  '2': { LOWER: 1, UPPER: 0, NUMBERS: 0, SYMBOLS: 1 },
-  '3': { LOWER: 1, UPPER: 1, NUMBERS: 1, SYMBOLS: 0 },
-  '4': { LOWER: 1, UPPER: 1, NUMBERS: 1, SYMBOLS: 1 },
-  '5': { LOWER: 1, UPPER: 0, NUMBERS: 1, SYMBOLS: 1 },
+const CHARACTERS: { [index: string]: string | string[] } = {
+  LOWER: 'abcdefghijklmnopqrstuvwxyz',
+  UPPER: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  NUMBERS: '1234567890',
+  SYMBOLS: ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '[', ']', '|', '-'],
+};
+
+const PASSWORD_COMPLEXITY: { [index: number]: Complexity } = {
+  '0': { LOWER: true },
+  '1': { LOWER: true, NUMBERS: true },
+  '2': { LOWER: true, SYMBOLS: true },
+  '3': { LOWER: true, UPPER: true, NUMBERS: true },
+  '4': { LOWER: true, UPPER: true, NUMBERS: true, SYMBOLS: true },
+  '5': { LOWER: true, NUMBERS: true, SYMBOLS: true },
 };
 
 const scimEndpoint = '/services/scim/v1/Users';
@@ -236,42 +239,21 @@ export class User extends AsyncCreatable<User.Options> {
    * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
    */
   public static generatePasswordUtf8(
-    passwordCondition: PasswordConditions = { length: 10, complexity: 1 }
+    passwordCondition: PasswordConditions = { length: 13, complexity: 1 }
   ): SecureBuffer<void> {
-    const ALLCHARS = UPPER.concat(LOWER, NUMBERS, SYMBOLS.join(''));
     let password: string[] = [];
+    ['SYMBOLS', 'NUMBERS', 'UPPER', 'LOWER'].forEach((charSet) => {
+      if (PASSWORD_COMPLEXITY[passwordCondition.complexity][charSet]) {
+        password.push(CHARACTERS[charSet][rand(CHARACTERS[charSet])]);
+      }
+    });
 
-    // Required number of Lower letter characters. one character of each of the 4 types followed by the remaining random characters, then quasi-randomize
+    // Concatinating remaining length randomly with all available characters
     password = password.concat(
-      Array(PASSWORD_COMPLEXITY[passwordCondition.complexity].LOWER)
+      Array(Math.max(passwordCondition.length - password.length, 0))
         .fill('0')
-        .map(() => LOWER[rand(LOWER)])
+        .map(() => CHARACTERS['LOWER'][rand(CHARACTERS['LOWER'])])
     );
-    // Required number of Upper letter characters.
-    password = password.concat(
-      Array(PASSWORD_COMPLEXITY[passwordCondition.complexity].UPPER)
-        .fill('0')
-        .map(() => UPPER[rand(UPPER)])
-    );
-    // Required number of Numerics.
-    password = password.concat(
-      Array(PASSWORD_COMPLEXITY[passwordCondition.complexity].NUMBERS)
-        .fill('0')
-        .map(() => NUMBERS[rand(NUMBERS)])
-    );
-    // Required number of Special characters.
-    password = password.concat(
-      Array(PASSWORD_COMPLEXITY[passwordCondition.complexity].SYMBOLS)
-        .fill('0')
-        .map(() => SYMBOLS[rand(SYMBOLS)])
-    );
-    if (passwordCondition.length - password.length > 0)
-      // Concatinating remaining length randomly with all available characters
-      password = password.concat(
-        Array(passwordCondition.length - password.length)
-          .fill('0')
-          .map(() => ALLCHARS[rand(ALLCHARS)])
-      );
     password = password.sort(() => Math.random() - 0.5);
     const secureBuffer: SecureBuffer<void> = new SecureBuffer<void>();
     secureBuffer.consume(Buffer.from(password.join(''), 'utf8'));
