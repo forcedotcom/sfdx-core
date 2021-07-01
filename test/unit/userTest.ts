@@ -116,7 +116,7 @@ describe('User Tests', () => {
         const password: SecureBuffer<void> = User.generatePasswordUtf8();
         password.value((buffer: Buffer): void => {
           const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
-          expect(passwordAsArrayOfCharacters.length).to.be.equal(10);
+          expect(passwordAsArrayOfCharacters.length).to.be.equal(13);
           expect(
             passwordAsArrayOfCharacters.some((char) =>
               ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(char)
