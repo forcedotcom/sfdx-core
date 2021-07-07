@@ -639,13 +639,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   /**
-   * Set the target-env (default) or the target-hub to the alias if
+   * Set the target-env (default) or the target-dev-hub to the alias if
    * it exists otherwise to the username. Method will try to set the local
    * config first but will default to global config if that fails.
    *
    * @param options
    */
-  public async setAsDefault(options: { org?: boolean; hub?: boolean } = { org: true }) {
+  public async setAsDefault(options: { org?: boolean; devHub?: boolean } = { org: true }) {
     let config: Config;
     // if we fail to create the local config, default to the global config
     try {
@@ -662,8 +662,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       config.set(OrgConfigProperties.TARGET_ORG, value);
     }
 
-    if (options.hub) {
-      config.set(OrgConfigProperties.TARGET_HUB, value);
+    if (options.devHub) {
+      config.set(OrgConfigProperties.TARGET_DEV_HUB, value);
     }
     await config.write();
   }
