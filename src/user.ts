@@ -51,8 +51,8 @@ const PASSWORD_COMPLEXITY: { [index: number]: Complexity } = {
   '1': { LOWER: true, NUMBERS: true },
   '2': { LOWER: true, SYMBOLS: true },
   '3': { LOWER: true, UPPER: true, NUMBERS: true },
-  '4': { LOWER: true, UPPER: true, NUMBERS: true, SYMBOLS: true },
-  '5': { LOWER: true, NUMBERS: true, SYMBOLS: true },
+  '4': { LOWER: true, NUMBERS: true, SYMBOLS: true },
+  '5': { LOWER: true, UPPER: true, NUMBERS: true, SYMBOLS: true },
 };
 
 const scimEndpoint = '/services/scim/v1/Users';
@@ -214,7 +214,7 @@ export namespace DefaultUserFields {
   }
 }
 
-interface PasswordConditions {
+export interface PasswordConditions {
   length: number;
   complexity: number;
 }
@@ -239,8 +239,11 @@ export class User extends AsyncCreatable<User.Options> {
    * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
    */
   public static generatePasswordUtf8(
-    passwordCondition: PasswordConditions = { length: 13, complexity: 1 }
+    passwordCondition: PasswordConditions = { length: 13, complexity: 5 }
   ): SecureBuffer<void> {
+    if (!PASSWORD_COMPLEXITY[passwordCondition.complexity]) {
+      throw SfdxError.create('@salesforce/core', 'user', 'complexityOutOffBound');
+    }
     let password: string[] = [];
     ['SYMBOLS', 'NUMBERS', 'UPPER', 'LOWER'].forEach((charSet) => {
       if (PASSWORD_COMPLEXITY[passwordCondition.complexity][charSet]) {
