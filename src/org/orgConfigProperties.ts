@@ -12,7 +12,7 @@ import { GlobalInfo } from '../config/globalInfoConfig';
 
 export enum OrgConfigProperties {
   TARGET_ORG = 'target-org',
-  TARGET_HUB = 'target-hub',
+  TARGET_DEV_HUB = 'target-dev-hub',
 }
 
 function exist(aliasOrUsername: string) {
@@ -39,7 +39,7 @@ ConfigAggregator.getInstance().addAllowedProperties([
     },
   },
   {
-    key: OrgConfigProperties.TARGET_HUB,
+    key: OrgConfigProperties.TARGET_DEV_HUB,
     description: 'The target to be used for any command communicating with a dev hub org.',
     input: {
       // If a value is provided validate it otherwise no value is unset.

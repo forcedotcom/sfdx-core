@@ -165,7 +165,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     let aliasOrUsername = devHubUsernameOrAlias;
     if (!aliasOrUsername) {
       aliasOrUsername =
-        this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_HUB) ||
+        this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB) ||
         this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME);
     }
 
@@ -581,7 +581,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       if (this.options.aliasOrUsername == null) {
         this.configAggregator = this.getConfigAggregator();
         const aliasOrUsername = this.options.isDevHub
-          ? this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_HUB) ||
+          ? this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB) ||
             // Fall back to old sfdx key
             this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME)
           : this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG) ||
@@ -697,7 +697,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
         await removeConfig(this.configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME));
         await removeConfig(this.configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME));
-        await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_HUB));
+        await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_DEV_HUB));
         await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_ORG));
 
         await orgForUser.removeAuth();

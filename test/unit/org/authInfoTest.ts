@@ -1585,11 +1585,11 @@ describe('AuthInfo', () => {
       expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_ORG, username]);
     });
 
-    it('should set username to target-hub', async () => {
+    it('should set username to target-dev-hub', async () => {
       const authInfo = await AuthInfo.create({ username });
-      await authInfo.setAsDefault({ hub: true });
+      await authInfo.setAsDefault({ devHub: true });
       expect(configSpy.called).to.be.true;
-      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_HUB, username]);
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_DEV_HUB, username]);
     });
 
     it('should set alias to target-org', async () => {
@@ -1600,12 +1600,12 @@ describe('AuthInfo', () => {
       expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_ORG, alias]);
     });
 
-    it('should set alias to target-hub', async () => {
+    it('should set alias to target-dev-hub', async () => {
       stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns([alias]);
       const authInfo = await AuthInfo.create({ username });
-      await authInfo.setAsDefault({ hub: true });
+      await authInfo.setAsDefault({ devHub: true });
       expect(configSpy.called).to.be.true;
-      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_HUB, alias]);
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_DEV_HUB, alias]);
     });
   });
 
