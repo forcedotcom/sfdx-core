@@ -59,9 +59,6 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   };
   private static instance: Optional<GlobalInfo>;
 
-  // When @salesforce/core@v2 is deprecated and no longer used, this can be removed
-  private static enableInteroperability = true;
-
   private sfdxHandler = new SfdxDataHandler();
 
   public static get emptyDataModel(): SfInfo {
@@ -164,13 +161,13 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
 
   public async write(newContents?: SfInfo): Promise<SfInfo> {
     const result = await super.write(newContents);
-    if (GlobalInfo.enableInteroperability) await this.sfdxHandler.write(result);
+    if (Global.SFDX_INTEROPERABILITY) await this.sfdxHandler.write(result);
     return result;
   }
 
   protected async init(): Promise<void> {
     await this.initCrypto();
-    const contents = GlobalInfo.enableInteroperability ? await this.mergeWithSfdxData() : await this.loadSfData();
+    const contents = Global.SFDX_INTEROPERABILITY ? await this.mergeWithSfdxData() : await this.loadSfData();
     this.setContents(contents);
   }
 

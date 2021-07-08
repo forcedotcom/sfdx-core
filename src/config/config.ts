@@ -324,7 +324,8 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     try {
       const config = await super.read(false, force);
       // Merge .sfdx/sfdx-config.json and .sf/config.json
-      this.setContents(Object.assign(this.readSfdxConfigSync(), config));
+      const sfdxConfig = Global.SFDX_INTEROPERABILITY ? this.readSfdxConfigSync() : {};
+      this.setContents(Object.assign(sfdxConfig, config));
       await this.cryptProperties(false);
       return this.getContents();
     } finally {
@@ -335,7 +336,8 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   public readSync(force = true): ConfigProperties {
     const config = super.readSync(false, force);
     // Merge .sfdx/sfdx-config.json and .sf/config.json
-    this.setContents(Object.assign(this.readSfdxConfigSync(), config));
+    const sfdxConfig = Global.SFDX_INTEROPERABILITY ? this.readSfdxConfigSync() : {};
+    this.setContents(Object.assign(sfdxConfig, config));
     return this.getContents();
   }
 
