@@ -6,7 +6,7 @@
  */
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson } from '@salesforce/ts-types';
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import { AuthInfo } from '../../src/authInfo';
 import { Connection } from '../../src/connection';
 import { Org } from '../../src/org';
@@ -153,7 +153,7 @@ describe('User Tests', () => {
       try {
         const passwordCondition = { length: 14, complexity: 9 };
         User.generatePasswordUtf8(passwordCondition);
-        expect(1).to.equal("It shouldn't reach here");
+        assert.fail('The above code need to throw an error');
       } catch (err) {
         expect(err.message).to.equal('Invalid complexity value. Specify a value between 0 and 5, inclusive.');
       }
@@ -163,7 +163,7 @@ describe('User Tests', () => {
       try {
         const passwordCondition = { length: 7, complexity: 2 };
         User.generatePasswordUtf8(passwordCondition);
-        expect(1).to.equal("It shouldn't reach here");
+        assert.fail('The above code need to throw an error');
       } catch (err) {
         expect(err.message).to.equal('Invalid length value. Specify a value between 8 and 1000, inclusive.');
       }
