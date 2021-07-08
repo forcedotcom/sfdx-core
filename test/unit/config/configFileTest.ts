@@ -55,22 +55,22 @@ describe('Config', () => {
     it('using state folder for global even when state is set to false', () => {
       const config = new TestConfig(TestConfig.getOptions('test', true, false));
       expect(config.getPath()).to.not.contain(TestConfig.getTestLocalPath());
-      expect(config.getPath()).to.contain('.sfdx');
+      expect(config.getPath()).to.contain('.sf');
     });
     it('using local state folder', () => {
       const config = new TestConfig(TestConfig.getOptions('test', false, true));
       expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
-      expect(config.getPath()).to.contain('.sfdx');
+      expect(config.getPath()).to.contain('.sf');
     });
     it('using local file', () => {
       const config = new TestConfig(TestConfig.getOptions('test', false, false));
       expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
-      expect(config.getPath()).to.not.contain('.sfdx');
+      expect(config.getPath()).to.not.contain('.sf');
     });
     it('using local custom folder', () => {
       const config = new TestConfig(TestConfig.getOptions('test', false, false, Path.join('my', 'path')));
       expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
-      expect(config.getPath()).to.not.contain('.sfdx');
+      expect(config.getPath()).to.not.contain('.sf');
       expect(config.getPath()).to.contain(Path.join('my', 'path', 'test'));
     });
   });
@@ -86,22 +86,22 @@ describe('Config', () => {
     it('using state folder for global even when state is set to false', async () => {
       const config = await TestConfig.create(TestConfig.getOptions('test', true, false));
       expect(config.getPath()).to.not.contain(TestConfig.getTestLocalPath());
-      expect(config.getPath()).to.contain('.sfdx');
+      expect(config.getPath()).to.contain('.sf');
     });
     it('using local state folder', async () => {
       const config = await TestConfig.create(TestConfig.getOptions('test', false, true));
       expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
-      expect(config.getPath()).to.contain('.sfdx');
+      expect(config.getPath()).to.contain('.sf');
     });
     it('using local file', async () => {
       const config = await TestConfig.create(TestConfig.getOptions('test', false, false));
       expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
-      expect(config.getPath()).to.not.contain('.sfdx');
+      expect(config.getPath()).to.not.contain('.sf');
     });
     it('using local custom folder', async () => {
       const config = await TestConfig.create(TestConfig.getOptions('test', false, false, Path.join('my', 'path')));
       expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
-      expect(config.getPath()).to.not.contain('.sfdx');
+      expect(config.getPath()).to.not.contain('.sf');
       expect(config.getPath()).to.contain(Path.join('my', 'path', 'test'));
     });
   });

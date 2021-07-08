@@ -611,8 +611,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * Returns a promise to delete an auth info file from the local file system and any related cache information for
-   * this Org.. You don't want to call this method directly. Instead consider calling Org.remove()
+   * Delete an auth info file from the local file system and any related cache information for
+   * this Org. You don't want to call this method directly. Instead consider calling Org.remove()
    */
   private async removeAuth(): Promise<void> {
     const config = await GlobalInfo.getInstance();

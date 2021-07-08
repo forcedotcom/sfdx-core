@@ -36,6 +36,7 @@ import { SfdxError } from './sfdxError';
 import { SfdxProject, SfdxProjectJson } from './sfdxProject';
 import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
 import { GlobalInfo, SfOrg } from './config/globalInfoConfig';
+import { Config } from './config/config';
 // import { fs } from '../src/util/fs';
 
 /**
@@ -423,6 +424,9 @@ export const stubContext = (testContext: TestContext) => {
       writeSync.call(this);
     }
   };
+
+  stubMethod(testContext.SANDBOXES.CONFIG, Config.prototype, 'readSfdxConfigSync').returns({});
+  stubMethod(testContext.SANDBOXES.CONFIG, Config.prototype, 'writeSfdxConfig').resolves();
 
   stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'writeSync').callsFake(writeSync);
 
