@@ -148,6 +148,15 @@ describe('User Tests', () => {
         expect(complexity3Regex.test(passwordAsArrayOfCharacters));
       });
     });
+
+    it('Should throw an error beacuse of complexity', () => {
+      try {
+        const passwordCondition = { length: 14, complexity: 9 };
+        User.generatePasswordUtf8(passwordCondition);
+      } catch (err) {
+        expect(err.message).to.equal('Invalid complexity value. Specify a value between 0 and 5, inclusive.');
+      }
+    });
   });
 
   describe('createUser', () => {

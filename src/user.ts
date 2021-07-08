@@ -242,7 +242,7 @@ export class User extends AsyncCreatable<User.Options> {
     passwordCondition: PasswordConditions = { length: 13, complexity: 5 }
   ): SecureBuffer<void> {
     if (!PASSWORD_COMPLEXITY[passwordCondition.complexity]) {
-      throw SfdxError.create('@salesforce/core', 'user', 'complexityOutOffBound');
+      throw SfdxError.create('@salesforce/core', 'user', 'complexityOutOfBound');
     }
     let password: string[] = [];
     ['SYMBOLS', 'NUMBERS', 'UPPER', 'LOWER'].forEach((charSet) => {

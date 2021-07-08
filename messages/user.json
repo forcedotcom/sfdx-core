@@ -6,5 +6,5 @@
   "missingId": "The Salesforce id for the user is required.",
   "problemsDescribingTheUserObject": "Problems occurred while attempting to describe the user object",
   "permsetNamesAreRequired": "The permission set names are missing but required.",
-  "complexityOutOffBound": "Invalid complexity value. Specify a value between 0 and 5, inclusive."
+  "complexityOutOfBound": "Invalid complexity value. Specify a value between 0 and 5, inclusive."
 }
