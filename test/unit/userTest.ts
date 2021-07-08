@@ -153,6 +153,7 @@ describe('User Tests', () => {
       try {
         const passwordCondition = { length: 14, complexity: 9 };
         User.generatePasswordUtf8(passwordCondition);
+        expect(1).to.equal("It shouldn't reach here");
       } catch (err) {
         expect(err.message).to.equal('Invalid complexity value. Specify a value between 0 and 5, inclusive.');
       }
