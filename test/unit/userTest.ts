@@ -149,13 +149,23 @@ describe('User Tests', () => {
       });
     });
 
-    it('Should throw an error beacuse of complexity', () => {
+    it('Should throw an error beacuse of complexity not a valid value', () => {
       try {
         const passwordCondition = { length: 14, complexity: 9 };
         User.generatePasswordUtf8(passwordCondition);
         expect(1).to.equal("It shouldn't reach here");
       } catch (err) {
         expect(err.message).to.equal('Invalid complexity value. Specify a value between 0 and 5, inclusive.');
+      }
+    });
+
+    it('Should throw an error beacuse of length not a valid value', () => {
+      try {
+        const passwordCondition = { length: 7, complexity: 2 };
+        User.generatePasswordUtf8(passwordCondition);
+        expect(1).to.equal("It shouldn't reach here");
+      } catch (err) {
+        expect(err.message).to.equal('Invalid length value. Specify a value between 8 and 1000, inclusive.');
       }
     });
   });

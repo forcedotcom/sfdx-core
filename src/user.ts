@@ -244,6 +244,8 @@ export class User extends AsyncCreatable<User.Options> {
     if (!PASSWORD_COMPLEXITY[passwordCondition.complexity]) {
       throw SfdxError.create('@salesforce/core', 'user', 'complexityOutOfBound');
     }
+    if (passwordCondition.length < 8 || passwordCondition.length > 1000)
+      throw SfdxError.create('@salesforce/core', 'user', 'lengthOutOfBound');
     let password: string[] = [];
     ['SYMBOLS', 'NUMBERS', 'UPPER', 'LOWER'].forEach((charSet) => {
       if (PASSWORD_COMPLEXITY[passwordCondition.complexity][charSet]) {
