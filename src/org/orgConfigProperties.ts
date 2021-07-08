@@ -35,7 +35,7 @@ ConfigAggregator.getInstance().addAllowedProperties([
     input: {
       // If a value is provided validate it otherwise no value is unset.
       validator: (value) => value == null || (isString(value) && exist(value)),
-      failedMessage: 'org not authenticated',
+      failedMessage: (value) => `org "${value}" is not authenticated`,
     },
   },
   {
@@ -44,7 +44,7 @@ ConfigAggregator.getInstance().addAllowedProperties([
     input: {
       // If a value is provided validate it otherwise no value is unset.
       validator: (value) => value == null || (isString(value) && exist(value)),
-      failedMessage: 'org not authenticated',
+      failedMessage: (value) => `org "${value}" is not authenticated`,
     },
   },
 ]);

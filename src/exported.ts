@@ -24,7 +24,7 @@ export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } fro
 
 export { OrgUsersConfig } from './config/orgUsersConfig';
 
-export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config } from './config/config';
+export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config, SfdxPropertyKeys } from './config/config';
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
@@ -54,6 +54,8 @@ export {
 export { Messages } from './messages';
 
 export { Org } from './org/org';
+
+export { OrgConfigProperties } from './org/orgConfigProperties';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
 

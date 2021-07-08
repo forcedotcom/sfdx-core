@@ -147,4 +147,12 @@ export class SfdxError extends NamedError {
 
     return obj;
   }
+
+  /**
+   * @deprecated Does nothing. Do not use. This is kept around to support older versions of SfdxCommand.
+   * @param commandName
+   */
+  public setCommandName(): void {
+    /** Do nothing. */
+  }
 }

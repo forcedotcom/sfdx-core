@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { dirname as pathDirname, join as pathJoin } from 'path';
 import { keyBy, set } from '@salesforce/kit';
-import { Dictionary, ensure, isString, JsonPrimitive } from '@salesforce/ts-types';
+import { Dictionary, ensure, isBoolean, isString, JsonPrimitive } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { sfdc } from '../util/sfdc';
+import { fs } from '../util/fs';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -75,7 +77,7 @@ export interface ConfigPropertyMetaInput {
   /**
    * The message to return in the error if the validation fails.
    */
-  failedMessage: string;
+  failedMessage: string | ((value: ConfigValue) => string);
 }
 
 export enum SfdxPropertyKeys {
@@ -199,17 +201,8 @@ export const SFDX_ALLOWED_PROPERTIES = [
   },
 ];
 
-export const SfProperty: { [index: string]: ConfigPropertyMeta } = {
-  // TARGET_ORG: {
-  //   key: 'target-org',
-  //   description: "",
-  //   input: {
-  //     // If a value is provided validate it otherwise no value is unset.
-  //     validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
-  //     failedMessage: '',
-  //   },
-  // },
-};
+// Generic global config properties. Specific properties can be loaded like orgConfigProperties.ts.
+export const SfProperty: { [index: string]: ConfigPropertyMeta } = {};
 
 export type ConfigProperties = { [index: string]: JsonPrimitive };
 
@@ -228,6 +221,8 @@ export type ConfigProperties = { [index: string]: JsonPrimitive };
  */
 export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   private static allowedProperties: ConfigPropertyMeta[] = [...SFDX_ALLOWED_PROPERTIES];
+
+  private sfdxPath?: string;
 
   public constructor(options?: ConfigFile.Options) {
     super(
@@ -329,7 +324,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     try {
       const config = await super.read(false, force);
       // Merge .sfdx/sfdx-config.json and .sf/config.json
-      this.setContents(Object.assign(this.readSfdxConfig(), config));
+      this.setContents(Object.assign(this.readSfdxConfigSync(), config));
       await this.cryptProperties(false);
       return this.getContents();
     } finally {
@@ -340,7 +335,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   public readSync(force = true): ConfigProperties {
     const config = super.readSync(false, force);
     // Merge .sfdx/sfdx-config.json and .sf/config.json
-    this.setContents(Object.assign(this.readSfdxConfig(), config));
+    this.setContents(Object.assign(this.readSfdxConfigSync(), config));
     return this.getContents();
   }
 
@@ -396,7 +391,13 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
       if (property.input && property.input.validator(value)) {
         super.set(property.key, value);
       } else {
-        throw messages.createError('invalidConfigValue', [property.input.failedMessage ?? '']);
+        let valueError: string = value?.toString() || '';
+        if (property.input.failedMessage) {
+          valueError = isString(property.input.failedMessage)
+            ? property.input.failedMessage
+            : property.input.failedMessage(value);
+        }
+        throw messages.createError('invalidConfigValue', [valueError]);
       }
     } else {
       super.set(property.key, value);
@@ -429,34 +430,45 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     await super.init();
   }
 
-  private readSfdxConfig() {
-    if (this.hasRead) return {};
-
-    const stateFolder = this.options.stateFolder;
-    const fileName = this.options.filename;
-    this.options.stateFolder = Global.SFDX_STATE_FOLDER;
-    this.options.filename = SFDX_CONFIG_FILE_NAME;
+  private readSfdxConfigSync() {
     try {
-      return super.readSync(true);
-    } finally {
-      this.options.stateFolder = stateFolder;
-      this.options.filename = fileName;
+      return fs.readJsonMapSync(this.getSfdxPath());
+    } catch (error) {
+      /* Do nothing */
+      return {};
     }
   }
 
   private async writeSfdxConfig() {
-    if (this.hasRead) return {};
-
-    const stateFolder = this.options.stateFolder;
-    const fileName = this.options.filename;
-    this.options.stateFolder = Global.SFDX_STATE_FOLDER;
-    this.options.filename = SFDX_CONFIG_FILE_NAME;
     try {
-      return super.write();
-    } finally {
-      this.options.stateFolder = stateFolder;
-      this.options.filename = fileName;
+      await fs.mkdirp(pathDirname(this.getSfdxPath()));
+      this.logger.info(`Writing to config file: ${this.getPath()}`);
+      await fs.writeJson(this.getSfdxPath(), this.toObject());
+    } catch (error) {
+      /* Do nothing */
     }
+  }
+
+  private getSfdxPath(): string {
+    if (!this.sfdxPath) {
+      const stateFolder = Global.SFDX_STATE_FOLDER;
+      const fileName = SFDX_CONFIG_FILE_NAME;
+
+      const _isGlobal: boolean = isBoolean(this.options.isGlobal) && this.options.isGlobal;
+      const _isState: boolean = isBoolean(this.options.isState) && this.options.isState;
+
+      // Don't let users store config files in homedir without being in the state folder.
+      let configRootFolder = this.options.rootFolder
+        ? this.options.rootFolder
+        : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
+
+      if (_isGlobal || _isState) {
+        configRootFolder = pathJoin(configRootFolder, stateFolder);
+      }
+
+      this.sfdxPath = pathJoin(configRootFolder, fileName);
+    }
+    return this.sfdxPath;
   }
 
   /**

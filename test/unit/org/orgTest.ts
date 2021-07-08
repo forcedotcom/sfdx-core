@@ -317,9 +317,7 @@ describe('Org Tests', () => {
       await configAggregator.reload();
 
       const defaultusername = configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME);
-      const info = configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME);
       expect(defaultusername.value).eq(undefined);
-      expect(info.value).eq(undefined);
     });
 
     it('should remove the alias', async () => {

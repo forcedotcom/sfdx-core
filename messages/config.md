@@ -1,10 +1,10 @@
 # unknownConfigKey
 
-Unknown config name: %s
+Unknown config name: %s.
 
 # invalidConfigValue
 
-Invalid config value: %s
+Invalid config value: %s.
 
 # invalidInstanceUrl
 
