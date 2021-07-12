@@ -1,10 +1,81 @@
 # Migrating `@salesforce/core` from v2 to v3
 
+The goal of v3 is to support the [multiple Salesforce clouds and the unification strategy](https://github.com/salesforcecli/CLI-Unification-demo/blob/main/STRATEGY.md).
+
 There are several breaking changes from v2 to v3. This doc outlines what those the differences are between v2 and v3, why we did them, and how to transition to v3.
+
+## New `.sf` State Folder
+
+### What
+
+All files were stored in the directory `.sfdx` at both the user’s home directory and in the project directory. The folder was named `.sfdx` because of the Salesforce CLI executable. The executable is changing to `sf` for several [reasons](https://github.com/salesforcecli/CLI-Unification-demo/blob/main/STRATEGY.md) so we are updating the directory to be called `.sf`.
+
+_We have to manage interoperability between old and new files regardless of the folder name._
+
+### Why
+
+We don’t want to change the name of the folder just for the sake of changing it. However, there are several benefits.
+
+- A clear distinction of ownership between the two CLIs, or any consumer using v3 of the library.
+- The name “Salesforce DX” and “sfdx“ carries baggage. There has been an attempt to remove references to it, especially for unification.
+- No conflicts with existing files.
+
+Of course, there are some negatives to creating a new folder as well. The main one being this will cause more work for other plugins and tools that also store files in this directory. When they start consuming v3, they will have to explicitly point to `.sfdx` or work on migrating their existing files to the new directory.
 
 ## GlobalInfo
 
-TODO...
+### What
+
+In v2, an auth file would be created for each org that was authenticated. Over time, non-auth data was stored in those file and other files were created to provide additional information, like user mappings. In v3, all this information is stored in a single file, `sf.json`.
+
+- Removed `AuthInfoConfig`
+- Removed `AuthInfo.listAllAuthFiles`
+
+### Why
+
+This simplifies the codebase by preventing a new class for every single new kind of configuration. Instead, it can just be added to GlobalInfo.
+
+**v2:**
+
+```typescript
+await AuthInfo.listAllAuthFiles();
+```
+
+**v3:**
+
+```typescript
+await AuthInfo.listAllAuthorizations();
+```
+
+OR
+
+```typescript
+const info = await GlobalInfo.create();
+info.getOrgs();
+```
+
+## Config
+
+### What
+
+- Moved `.sfdx/sfdx-config.json` to `.sf/config.json`
+- Removed `Config.<config key name>`
+
+### Why
+
+Config keys need to be a lot more specific to support multiple clouds. For example, what api is `apiVersion` referring to? It should really be called something like `orgApiVersion`. We still have to support these keys moving forward so we don't break existing workflows. All old keys were moved to a `SfdxPropertyKeys` to make it very clear that they are legacy key names.
+
+**v2**
+
+```typescript
+Config.update(true, Config.API_VERSION, '49.0');
+```
+
+**v3**
+
+```typescript
+Config.update(true, SfdxPropertyKeys.API_VERSION, '49.0');
+```
 
 ## ConfigStore, ConfigFile, AuthInfo, and Encrypting Values
 
