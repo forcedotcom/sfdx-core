@@ -100,7 +100,7 @@ export class Aliases extends ConfigGroup {
     return asString(aliases.getInGroup(key, group));
   }
 
-  public static get(key: string, group = AliasGroup.ORGS) {
+  public static get(key: string, group = AliasGroup.ORGS): Optional<string> {
     const aliases = new Aliases(Aliases.getDefaultOptions());
     aliases.readSync();
     return asString(aliases.getInGroup(key, group));

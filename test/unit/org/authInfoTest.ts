@@ -1550,7 +1550,6 @@ describe('AuthInfo', () => {
         oauth2Options: refreshTokenConfig,
       });
 
-      
       const fields = authInfo.getFields();
       delete fields.instanceUrl;
       $$.SANDBOX.stub(authInfo, 'getFields').returns(fields);

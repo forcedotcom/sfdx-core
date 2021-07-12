@@ -517,7 +517,8 @@ export class Logger {
   /**
    * Gets the underlying Bunyan logger.
    */
-  public getBunyanLogger() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public getBunyanLogger(): any {
     return this.bunyan;
   }
 
@@ -682,7 +683,7 @@ export class Logger {
    *
    * @param cb A callback that returns on array objects to be logged.
    */
-  public debugCallback(cb: () => unknown[] | string) {
+  public debugCallback(cb: () => unknown[] | string): void {
     if (this.getLevel() === LoggerLevel.DEBUG || process.env.DEBUG) {
       const result = cb();
       if (isArray(result)) {
@@ -740,7 +741,7 @@ export class Logger {
    * Enables logging to stdout when the DEBUG environment variable is used. It uses the logger
    * name as the debug name, so you can do DEBUG=<logger-name> to filter the results to your logger.
    */
-  public enableDEBUG() {
+  public enableDEBUG(): void {
     // The debug library does this for you, but no point setting up the stream if it isn't there
     if (process.env.DEBUG && !this.debugEnabled) {
       const debuggers: Dictionary<Debug.IDebugger> = {};

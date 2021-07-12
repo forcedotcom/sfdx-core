@@ -97,7 +97,7 @@ export class SfdxError extends NamedError {
     return sfdxError;
   }
 
-  public get code() {
+  public get code(): string {
     return this._code || this.name;
   }
 

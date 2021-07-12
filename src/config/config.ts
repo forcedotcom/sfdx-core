@@ -129,7 +129,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     description: '',
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
+      validator: (value: ConfigValue): boolean => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
       failedMessage: messages.getMessage('invalidInstanceUrl'),
     },
   },
@@ -139,7 +139,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     hidden: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
+      validator: (value: ConfigValue): boolean => value == null || (isString(value) && sfdc.validateApiVersion(value)),
       failedMessage: messages.getMessage('invalidApiVersion'),
     },
   },
@@ -157,7 +157,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     encrypted: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || isString(value),
+      validator: (value: ConfigValue): boolean => value == null || isString(value),
       failedMessage: messages.getMessage('invalidIsvDebuggerSid'),
     },
   },
@@ -166,7 +166,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     description: '',
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || isString(value),
+      validator: (value: ConfigValue): boolean => value == null || isString(value),
       failedMessage: messages.getMessage('invalidIsvDebuggerUrl'),
     },
   },
@@ -174,7 +174,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     key: SfdxPropertyKeys.DISABLE_TELEMETRY,
     description: '',
     input: {
-      validator: (value: ConfigValue) => value == null || ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value == null || ['true', 'false'].includes(value.toString()),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -184,7 +184,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     description: '',
     hidden: true,
     input: {
-      validator: (value: ConfigValue) => value != null && ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value != null && ['true', 'false'].includes(value.toString()),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -194,7 +194,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     input: {
       // the bit shift will remove the negative bit, and any decimal numbers
       // then the parseFloat will handle converting it to a number from a string
-      validator: (value: ConfigValue) =>
+      validator: (value: ConfigValue): boolean =>
         (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
       failedMessage: messages.getMessage('invalidNumberConfigValue'),
     },

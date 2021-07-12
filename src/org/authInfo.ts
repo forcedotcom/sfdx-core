@@ -185,7 +185,7 @@ export class OAuth2WithVerifier extends OAuth2 {
    *
    * @param params
    */
-  public getAuthorizationUrl(params: Record<string, unknown>) {
+  public getAuthorizationUrl(params: Record<string, unknown>): string {
     // code verifier must be a base 64 url encoded hash of 128 bytes of random data. Our random data is also
     // base 64 url encoded. See Connection.create();
     const codeChallenge = base64UrlEscape(createHash('sha256').update(this.codeVerifier).digest('base64'));
@@ -194,7 +194,10 @@ export class OAuth2WithVerifier extends OAuth2 {
     return super.getAuthorizationUrl(params);
   }
 
-  public async requestToken(code: string, callback?: (err: Error, tokenResponse: TokenResponse) => void) {
+  public async requestToken(
+    code: string,
+    callback?: (err: Error, tokenResponse: TokenResponse) => void
+  ): Promise<TokenResponse> {
     return super.requestToken(code, callback);
   }
 
@@ -205,7 +208,8 @@ export class OAuth2WithVerifier extends OAuth2 {
    *
    * See https://github.com/jsforce/jsforce/issues/665
    */
-  protected async _postParams(params: Record<string, unknown>, callback: AnyFunction) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected async _postParams(params: Record<string, unknown>, callback: AnyFunction): Promise<any> {
     set(params, 'code_verifier', this.codeVerifier);
     // @ts-ignore TODO: need better typings for jsforce
     return super._postParams(params, callback);
@@ -245,7 +249,7 @@ async function resolvesToSandbox(options: OAuth2Options & { createdOrgInstance?:
   return cnames.some((cname) => isSandboxUrl({ ...options, loginUrl: cname }));
 }
 
-export async function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }) {
+export async function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }): Promise<string> {
   // environment variable is used as an override
   if (process.env.SFDX_AUDIENCE_URL) {
     return process.env.SFDX_AUDIENCE_URL;
@@ -454,7 +458,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * ```
    * @param sfdxAuthUrl
    */
-  public static parseSfdxAuthUrl(sfdxAuthUrl: string) {
+  public static parseSfdxAuthUrl(sfdxAuthUrl: string): {
+    clientId: string;
+    clientSecret: string;
+    refreshToken: string;
+    loginUrl: string;
+  } {
     const match = sfdxAuthUrl.match(
       /^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/
     );
@@ -645,7 +654,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    *
    * @param options
    */
-  public async setAsDefault(options: { org?: boolean; devHub?: boolean } = { org: true }) {
+  public async setAsDefault(options: { org?: boolean; devHub?: boolean } = { org: true }): Promise<void> {
     let config: Config;
     // if we fail to create the local config, default to the global config
     try {
@@ -673,7 +682,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    *
    * @param alias alias to set
    */
-  public async setAlias(alias: string) {
+  public async setAlias(alias: string): Promise<void> {
     const username = this.getUsername();
     await Aliases.parseAndUpdate([`${alias}=${username}`]);
   }

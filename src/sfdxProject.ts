@@ -98,7 +98,7 @@ export type ProjectJson = ConfigContents & {
 export class SfdxProjectJson extends ConfigFile {
   public static BLOCKLIST = ['packageAliases'];
 
-  public static getFileName() {
+  public static getFileName(): string {
     return SFDX_PROJECT_JSON;
   }
 
@@ -589,7 +589,7 @@ export class SfdxProject {
    *
    * @param pkgName The package name to activate. E.g. 'force-app'
    */
-  public setActivePackage(packageName: Nullable<string>) {
+  public setActivePackage(packageName: Nullable<string>): void {
     if (packageName == null) {
       this.activePackage = null;
     } else {

@@ -26,7 +26,7 @@ type CarInfo = {
   serialNumber: string;
 };
 
-class CarConfig extends BaseConfigStore<{}, CarInfo> {
+class CarConfig extends BaseConfigStore<BaseConfigStore.Options, CarInfo> {
   protected static encryptedKeys = ['serialNumber', 'creditCardNumber', specialKey, /password/i];
 }
 class TestConfig<P extends ConfigContents> extends BaseConfigStore<BaseConfigStore.Options, P> {}

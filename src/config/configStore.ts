@@ -77,7 +77,8 @@ export abstract class BaseConfigStore<
     P extends ConfigContents = ConfigContents
   >
   extends AsyncOptionalCreatable<T>
-  implements ConfigStore<P> {
+  implements ConfigStore<P>
+{
   protected static encryptedKeys: Array<string | RegExp> = [];
 
   protected options: T;
@@ -114,7 +115,7 @@ export abstract class BaseConfigStore<
    * If the value is an object, a clone will be returned.
    */
   public get<K extends Key<P>>(key: K, decrypt?: boolean): P[K];
-  public get<T = ConfigValue>(key: string, decrypt?: boolean): T;
+  public get<U = ConfigValue>(key: string, decrypt?: boolean): U;
   public get<K extends Key<P>>(key: K | string, decrypt = false): P[K] | ConfigValue {
     const k = key as string;
     let value = this.getMethod(this.contents, k);
@@ -164,7 +165,7 @@ export abstract class BaseConfigStore<
    * @param value The value.
    */
   public set<K extends Key<P>>(key: K, value: P[K]): void;
-  public set<T = ConfigValue>(key: string, value: T): void;
+  public set<U = ConfigValue>(key: string, value: U): void;
   public set<K extends Key<P>>(key: K | string, value: P[K] | ConfigValue): void {
     if (this.hasEncryption()) {
       if (isJsonMap(value)) {
@@ -184,7 +185,7 @@ export abstract class BaseConfigStore<
    * @param value The value.
    */
   public update<K extends Key<P>>(key: K, value: Partial<P[K]>): void;
-  public update<T = ConfigValue>(key: string, value: Partial<T>): void;
+  public update<U = ConfigValue>(key: string, value: Partial<U>): void;
   public update<K extends Key<P>>(key: K | string, value: Partial<P[K]> | Partial<ConfigValue>): void {
     const existingValue = this.get(key, true);
     if (isPlainObject(existingValue) && isPlainObject(value)) {
@@ -331,7 +332,7 @@ export abstract class BaseConfigStore<
   // Allows extended classes the ability to override the set method. i.e. maybe they want
   // nested object set from kit.
   // NOTE: Key and value must stay string and value to be reliably overwritten.
-  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue) {
+  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
     set(contents, key, value);
   }
 
@@ -381,7 +382,7 @@ export abstract class BaseConfigStore<
    * @param key The key. Supports query key like `a.b[0]`.
    * @returns Should encrypt/decrypt
    */
-  protected isCryptoKey(key: string) {
+  protected isCryptoKey(key: string): boolean {
     function resolveProperty(): string {
       // Handle query keys
       const dotAccessor = /\.([a-zA-Z0-9@._-]+)$/;
@@ -392,7 +393,7 @@ export abstract class BaseConfigStore<
     }
 
     // Any keys named the following should be encrypted/decrypted
-    return (this.statics.encryptedKeys || []).find((keyOrExp) => {
+    return !!(this.statics.encryptedKeys || []).find((keyOrExp) => {
       const property = resolveProperty();
       if (keyOrExp instanceof RegExp) {
         return keyOrExp.test(property);
@@ -424,7 +425,7 @@ export abstract class BaseConfigStore<
    * @param keyPaths: The complete path of the (nested) data
    * @param data: The current (nested) data being worked on.
    */
-  protected recursiveEncrypt<T extends JsonMap>(data: T, parentKey?: string): T {
+  protected recursiveEncrypt<U extends JsonMap>(data: U, parentKey?: string): U {
     for (const key of Object.keys(data)) {
       this.recursiveCrypto(this.encrypt.bind(this), [...(parentKey ? [parentKey] : []), key], data);
     }

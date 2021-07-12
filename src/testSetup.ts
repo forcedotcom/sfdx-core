@@ -232,8 +232,8 @@ function defaultFakeConnectionRequest(): Promise<AnyJson> {
  * ```
  * @param sinon
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const instantiateContext = (sinon?: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+export const instantiateContext = (sinon?: any): TestContext => {
   if (!sinon) {
     try {
       sinon = require('sinon');
@@ -337,10 +337,10 @@ export const instantiateContext = (sinon?: any) => {
  * ```
  * @param testContext
  */
-export const stubContext = (testContext: TestContext) => {
+export const stubContext = (testContext: TestContext): void => {
   // Turn off the interoperability feature so that we don't have to mock
   // the old .sfdx config files
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   Global.SFDX_INTEROPERABILITY = false;
 
@@ -470,7 +470,7 @@ export const stubContext = (testContext: TestContext) => {
  * ```
  * @param testContext
  */
-export const restoreContext = (testContext: TestContext) => {
+export const restoreContext = (testContext: TestContext): void => {
   testContext.SANDBOX.restore();
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
