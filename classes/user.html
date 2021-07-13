@@ -120,7 +120,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/08372023/src/user.ts#L250">src/user.ts:250</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/648d878e/src/user.ts#L287">src/user.ts:287</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -158,7 +158,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/08372023/src/user.ts#L293">src/user.ts:293</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/648d878e/src/user.ts#L330">src/user.ts:330</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -204,7 +204,7 @@ await <span class="hljs-keyword">user</span>.assignPermissionSets(fields.id, [<s
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/08372023/src/user.ts#L332">src/user.ts:332</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/648d878e/src/user.ts#L369">src/user.ts:369</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -250,7 +250,7 @@ const <span class="hljs-keyword">info</span>: AuthInfo = await <span class="hljs
 							<aside class="tsd-sources">
 								<p>Overrides AsyncCreatable.init</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/08372023/src/user.ts#L237">src/user.ts:237</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/648d878e/src/user.ts#L274">src/user.ts:274</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -272,7 +272,7 @@ const <span class="hljs-keyword">info</span>: AuthInfo = await <span class="hljs
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/08372023/src/user.ts#L386">src/user.ts:386</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/648d878e/src/user.ts#L423">src/user.ts:423</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -351,13 +351,13 @@ const fields: UserFields = await <span class="hljs-keyword">user</span>.retrieve
 					<a name="generatepasswordutf8" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> generate<wbr>Password<wbr>Utf8</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
-						<li class="tsd-signature tsd-kind-icon">generate<wbr>Password<wbr>Utf8<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="securebuffer.html" class="tsd-signature-type">SecureBuffer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">generate<wbr>Password<wbr>Utf8<span class="tsd-signature-symbol">(</span>passwordCondition<span class="tsd-signature-symbol">?: </span><a href="../interfaces/passwordconditions.html" class="tsd-signature-type">PasswordConditions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="securebuffer.html" class="tsd-signature-type">SecureBuffer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/08372023/src/user.ts#L217">src/user.ts:217</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/648d878e/src/user.ts#L241">src/user.ts:241</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -365,6 +365,12 @@ const fields: UserFields = await <span class="hljs-keyword">user</span>.retrieve
 									<p>Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.</p>
 								</div>
 							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> passwordCondition: <a href="../interfaces/passwordconditions.html" class="tsd-signature-type">PasswordConditions</a><span class="tsd-signature-symbol"> = { length: 13, complexity: 5 }</span></h5>
+								</li>
+							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="securebuffer.html" class="tsd-signature-type">SecureBuffer</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
