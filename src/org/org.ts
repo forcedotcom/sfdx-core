@@ -540,12 +540,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Returns an org field. Returns undefined if the field is not set or invalid.
    */
   public getField<T = AnyJson>(key: Org.Fields): T {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore Legacy. We really shouldn't be doing this.
     const ownProp = this[key];
     if (ownProp && typeof ownProp !== 'function') return ownProp;
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return this.getConnection().getAuthInfoFields()[key];
   }

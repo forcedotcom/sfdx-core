@@ -7,7 +7,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/ban-types */
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
 import { AsyncCreatable, Duration, parseJsonMap } from '@salesforce/kit';

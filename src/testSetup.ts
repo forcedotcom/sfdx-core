@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
@@ -339,7 +339,7 @@ export const instantiateContext = (sinon?: any) => {
 export const stubContext = (testContext: TestContext) => {
   // Turn off the interoperability feature so that we don't have to mock
   // the old .sfdx config files
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   GlobalInfo.enableInteroperability = false;
 

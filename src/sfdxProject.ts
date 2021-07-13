@@ -7,7 +7,7 @@
 import { basename, dirname, isAbsolute, normalize, sep } from 'path';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
-import { SfdcUrl } from './authInfo';
+import { SfdcUrl } from './org/authInfo';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';

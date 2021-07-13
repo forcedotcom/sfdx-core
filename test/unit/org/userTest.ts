@@ -6,7 +6,7 @@
  */
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson } from '@salesforce/ts-types';
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { GlobalInfo } from '../../../src/config/globalInfoConfig';
 import { Connection } from '../../../src/org/connection';

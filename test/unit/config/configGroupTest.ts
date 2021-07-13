@@ -40,6 +40,7 @@ describe('ConfigGroup', () => {
     store.set('test', 'val');
     expect(store.get('test')).equals('val');
     expect(store.getInGroup('test')).equals('val');
+    // @ts-ignore
     expect(ensureJsonMap(store.getGroup('default')).test).equals('val');
   });
 
@@ -57,6 +58,7 @@ describe('ConfigGroup', () => {
     store.setInGroup('test', 'val', 'worldly');
     expect(store.get('test')).equals(undefined);
     expect(store.getInGroup('test', 'worldly')).equals('val');
+    // @ts-ignore
     expect(ensureJsonMap(store.getGroup('worldly'))['test']).equals('val');
   });
 
@@ -68,6 +70,7 @@ describe('ConfigGroup', () => {
     expect(store.getInGroup('test')).equals('val2');
     expect(store.getInGroup('test', 'default')).equals('val');
     expect(store.getInGroup('test', 'worldly')).equals('val2');
+    // @ts-ignore
     expect(ensureJsonMap(store.getGroup('worldly'))['test']).equals('val2');
   });
 

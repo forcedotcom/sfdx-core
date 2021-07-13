@@ -125,9 +125,7 @@ export class PermissionSetAssignment {
    *
    * @param permSetString The permission set string.
    */
-  private parsePermissionSetString(
-    permSetString: string
-  ): {
+  private parsePermissionSetString(permSetString: string): {
     nsPrefix: Optional<string>;
     permSetName: Optional<string>;
   } {

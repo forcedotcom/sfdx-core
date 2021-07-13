@@ -65,6 +65,8 @@ const messages = Messages.load('@salesforce/core', 'user', [
   'missingId',
   'permsetNamesAreRequired',
   'missingFields',
+  'lengthOutOfBound',
+  'complexityOutOfBound',
 ]);
 
 /**
@@ -251,10 +253,12 @@ export class User extends AsyncCreatable<User.Options> {
     passwordCondition: PasswordConditions = { length: 13, complexity: 5 }
   ): SecureBuffer<void> {
     if (!PASSWORD_COMPLEXITY[passwordCondition.complexity]) {
-      throw SfdxError.create('@salesforce/core', 'user', 'complexityOutOfBound');
+      const msg = messages.getMessage('complexityOutOfBound');
+      throw new SfdxError(msg, 'complexityOutOfBound');
     }
     if (passwordCondition.length < 8 || passwordCondition.length > 1000) {
-      throw SfdxError.create('@salesforce/core', 'user', 'lengthOutOfBound');
+      const msg = messages.getMessage('lengthOutOfBound');
+      throw new SfdxError(msg, 'lengthOutOfBound');
     }
 
     let password: string[] = [];
@@ -307,7 +311,7 @@ export class User extends AsyncCreatable<User.Options> {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       password.value(async (buffer: Buffer) => {
         try {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO: expose `soap` on Connection however appropriate
           const soap = userConnection.soap;
           await soap.setPassword(info.getFields().userId as string, buffer.toString('utf8'));

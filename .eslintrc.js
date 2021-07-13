@@ -19,6 +19,9 @@ module.exports = {
     '@typescript-eslint/camelcase': 'off',
     'no-underscore-dangle': 'off',
     '@typescript-eslint/require-await': 'off',
+    '@typescript-eslint/no-shadow': 'off',
+    '@typescript-eslint/no-floating-promises': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
 
     '@typescript-eslint/no-unsafe-member-access': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',

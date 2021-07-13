@@ -77,7 +77,8 @@ export abstract class BaseConfigStore<
     P extends ConfigContents = ConfigContents
   >
   extends AsyncOptionalCreatable<T>
-  implements ConfigStore<P> {
+  implements ConfigStore<P>
+{
   protected static encryptedKeys: Array<string | RegExp> = [];
 
   protected options: T;
