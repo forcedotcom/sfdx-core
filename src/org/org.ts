@@ -178,7 +178,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     let results;
     try {
-      results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<object>>);
+      results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<Record<string, unknown>>>);
     } catch (err) {
       if (err.name === 'INVALID_TYPE') {
         throw messages.createError('notADevHub', [devHubConnection.getUsername()]);

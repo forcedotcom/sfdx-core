@@ -307,6 +307,7 @@ export abstract class BaseConfigStore<
    *
    * @param obj The object.
    */
+  // eslint-disable-next-line @typescript-eslint/ban-types
   public setContentsFromObject<U extends object>(obj: U): void {
     this.contents = {} as P;
     Object.entries(obj).forEach(([key, value]) => {
