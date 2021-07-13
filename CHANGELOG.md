@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.26.0](https://github.com/forcedotcom/sfdx-core/compare/v2.25.1...v2.26.0) (2021-07-13)
+
+
+### Features
+
+* update generate password functionality ([#432](https://github.com/forcedotcom/sfdx-core/issues/432)) ([ed65e83](https://github.com/forcedotcom/sfdx-core/commit/ed65e83da3afe0d101743ee89cc7b2a7a38d5254))
+
 ### [2.25.1](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.2...v2.25.1) (2021-06-30)
 
 
