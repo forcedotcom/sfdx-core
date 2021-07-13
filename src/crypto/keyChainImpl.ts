@@ -315,6 +315,7 @@ const _linuxImpl: OsImpl = {
       // This is a workaround for linux.
       // Calling secret-tool too fast can cause it to return an unexpected error. (below)
       if (stderr != null && stderr.includes('invalid or unencryptable secret')) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore TODO: make an error subclass with this field
         error.retry = true;
 

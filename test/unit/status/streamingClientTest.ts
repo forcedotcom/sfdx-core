@@ -361,9 +361,11 @@ describe('streaming client tests', () => {
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
     try {
       await shouldThrow(
-        asyncStatusClient.subscribe(async (): Promise<void> => {
-          return Promise.resolve();
-        })
+        asyncStatusClient.subscribe(
+          async (): Promise<void> => {
+            return Promise.resolve();
+          }
+        )
       );
     } catch (e) {
       expect(e.name).to.equal(StreamingClient.TimeoutErrorType.SUBSCRIBE);

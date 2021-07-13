@@ -8,6 +8,7 @@ import { EventEmitter } from 'events';
 import * as os from 'os';
 import * as path from 'path';
 import { Writable } from 'stream';
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Bunyan from '@salesforce/bunyan';
 import { parseJson, parseJsonMap } from '@salesforce/kit';
