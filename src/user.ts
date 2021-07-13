@@ -29,13 +29,31 @@ import { SecureBuffer } from './secureBuffer';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
 
-const PASSWORD_LENGTH = 13;
-const LOWER = 'abcdefghijklmnopqrstuvwxyz';
-const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const NUMBERS = '1234567890';
-const SYMBOLS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '[', ']', '|', '-'];
-
 const rand = (len: Many<string>): number => Math.floor(Math.random() * len.length);
+
+interface Complexity {
+  [key: string]: boolean | undefined;
+  LOWER?: boolean;
+  UPPER?: boolean;
+  NUMBERS?: boolean;
+  SYMBOLS?: boolean;
+}
+
+const CHARACTERS: { [index: string]: string | string[] } = {
+  LOWER: 'abcdefghijklmnopqrstuvwxyz',
+  UPPER: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  NUMBERS: '1234567890',
+  SYMBOLS: ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '[', ']', '|', '-'],
+};
+
+const PASSWORD_COMPLEXITY: { [index: number]: Complexity } = {
+  '0': { LOWER: true },
+  '1': { LOWER: true, NUMBERS: true },
+  '2': { LOWER: true, SYMBOLS: true },
+  '3': { LOWER: true, UPPER: true, NUMBERS: true },
+  '4': { LOWER: true, NUMBERS: true, SYMBOLS: true },
+  '5': { LOWER: true, UPPER: true, NUMBERS: true, SYMBOLS: true },
+};
 
 const scimEndpoint = '/services/scim/v1/Users';
 const scimHeaders = { 'auto-approve-user': 'true' };
@@ -196,6 +214,11 @@ export namespace DefaultUserFields {
   }
 }
 
+export interface PasswordConditions {
+  length: number;
+  complexity: number;
+}
+
 /**
  * A class for creating a User, generating a password for a user, and assigning a user to one or more permission sets.
  * See methods for examples.
@@ -211,20 +234,34 @@ export class User extends AsyncCreatable<User.Options> {
     super(options);
     this.org = options.org;
   }
+
   /**
    * Generate default password for a user. Returns An encrypted buffer containing a utf8 encoded password.
    */
-  public static generatePasswordUtf8(): SecureBuffer<void> {
-    // one character of each of the 4 types followed by the remaining random characters, then quasi-randomize
-    const ALLCHARS = UPPER.concat(LOWER, NUMBERS, SYMBOLS.join(''));
-    const password = [UPPER[rand(UPPER)], LOWER[rand(LOWER)], NUMBERS[rand(NUMBERS)], SYMBOLS[rand(SYMBOLS)]]
-      .concat(
-        Array(PASSWORD_LENGTH - 4)
-          .fill('0')
-          .map(() => ALLCHARS[rand(ALLCHARS)])
-      )
-      .sort(() => Math.random() - 0.5);
+  public static generatePasswordUtf8(
+    passwordCondition: PasswordConditions = { length: 13, complexity: 5 }
+  ): SecureBuffer<void> {
+    if (!PASSWORD_COMPLEXITY[passwordCondition.complexity]) {
+      throw SfdxError.create('@salesforce/core', 'user', 'complexityOutOfBound');
+    }
+    if (passwordCondition.length < 8 || passwordCondition.length > 1000) {
+      throw SfdxError.create('@salesforce/core', 'user', 'lengthOutOfBound');
+    }
 
+    let password: string[] = [];
+    ['SYMBOLS', 'NUMBERS', 'UPPER', 'LOWER'].forEach((charSet) => {
+      if (PASSWORD_COMPLEXITY[passwordCondition.complexity][charSet]) {
+        password.push(CHARACTERS[charSet][rand(CHARACTERS[charSet])]);
+      }
+    });
+
+    // Concatinating remaining length randomly with all lower characters
+    password = password.concat(
+      Array(Math.max(passwordCondition.length - password.length, 0))
+        .fill('0')
+        .map(() => CHARACTERS['LOWER'][rand(CHARACTERS['LOWER'])])
+    );
+    password = password.sort(() => Math.random() - 0.5);
     const secureBuffer: SecureBuffer<void> = new SecureBuffer<void>();
     secureBuffer.consume(Buffer.from(password.join(''), 'utf8'));
 
