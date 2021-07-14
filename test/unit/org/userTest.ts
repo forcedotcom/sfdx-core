@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { stubMethod } from '@salesforce/ts-sinon';
-import { AnyJson } from '@salesforce/ts-types';
+import { AnyJson, isString } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { GlobalInfo } from '../../../src/config/globalInfoConfig';
@@ -36,7 +36,10 @@ describe('User Tests', () => {
       },
     };
 
-    $$.fakeConnectionRequest = (): Promise<AnyJson> => {
+    $$.fakeConnectionRequest = (request): Promise<AnyJson> => {
+      if (isString(request) && request.endsWith('sobjects/User/describe')) {
+        return Promise.resolve({ fields: {} });
+      }
       return Promise.resolve({});
     };
 
@@ -66,14 +69,12 @@ describe('User Tests', () => {
       return {};
     });
 
-    stubMethod($$.SANDBOX, Connection.prototype, 'describe').resolves({ fields: {} });
-
     refreshSpy = stubMethod($$.SANDBOX, Org.prototype, 'refreshAuth').resolves({});
   });
 
   describe('init tests', () => {
     it('refresh auth called', async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'request').resolves({
+      stubMethod($$.SANDBOX, User.prototype, 'rawRequest').resolves({
         statusCode: 201,
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         body: `{"id": "${user1.getMockUserInfo()['Id']}"}`,
@@ -92,7 +93,7 @@ describe('User Tests', () => {
     });
 
     it('refresh auth called error code 400', async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'request').resolves({
+      stubMethod($$.SANDBOX, User.prototype, 'rawRequest').resolves({
         body: `{
                     "statusCode": "400"
                 }`,
@@ -141,7 +142,7 @@ describe('User Tests', () => {
 
   describe('createUser', () => {
     it('should create a user', async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'request').resolves({
+      stubMethod($$.SANDBOX, User.prototype, 'rawRequest').resolves({
         statusCode: 201,
         body: '{"id": "123456"}',
         headers: {
@@ -227,7 +228,7 @@ describe('User Tests', () => {
     let org: Org;
 
     beforeEach(async () => {
-      stubMethod($$.SANDBOX, Connection.prototype, 'request').resolves({
+      stubMethod($$.SANDBOX, User.prototype, 'rawRequest').resolves({
         statusCode: 201,
         body: '{"id": "56789"}',
         headers: {

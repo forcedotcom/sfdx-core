@@ -183,16 +183,12 @@ describe('DeviceOauthService', () => {
       const service = await DeviceOauthService.create({});
       // @ts-ignore because private method
       const opts = service.getLoginOptions(url);
-      expect(opts).to.deep.equal({
-        url,
-        headers: SFDX_HTTP_HEADERS,
-        method: 'POST',
-        form: {
-          client_id: 'PlatformCLI',
-          response_type: 'device_code',
-          scope: 'refresh_token web api',
-        },
-      });
+      expect(opts.url).to.equal(url);
+      expect(opts.headers).to.equal(SFDX_HTTP_HEADERS);
+      expect(opts.method).to.equal('POST');
+      expect(opts.body.toString()).to.equal(
+        'client_id=PlatformCLI&response_type=device_code&scope=refresh_token+web+api'
+      );
     });
   });
 
@@ -202,16 +198,11 @@ describe('DeviceOauthService', () => {
       const service = await DeviceOauthService.create({});
       // @ts-ignore because private method
       const opts = service.getPollingOptions(url, '12345');
-      expect(opts).to.deep.equal({
-        url,
-        headers: SFDX_HTTP_HEADERS,
-        method: 'POST',
-        form: {
-          code: '12345',
-          grant_type: 'device',
-          client_id: 'PlatformCLI',
-        },
-      });
+
+      expect(opts.url).to.equal(url);
+      expect(opts.headers).to.equal(SFDX_HTTP_HEADERS);
+      expect(opts.method).to.equal('POST');
+      expect(opts.body.toString()).to.equal('client_id=PlatformCLI&grant_type=device&code=12345');
     });
   });
 });
