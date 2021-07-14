@@ -26,7 +26,7 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { HttpResponse, OAuth2, OAuth2Config as JsforceOAuth2Config, TokenResponse } from 'jsforce';
+import { OAuth2, OAuth2Config as JsforceOAuth2Config, TokenResponse } from 'jsforce';
 import * as jwt from 'jsonwebtoken';
 import Transport from 'jsforce/lib/transport';
 import { Aliases } from '../config/aliases';
@@ -960,7 +960,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const userInfoUrl = `${baseUrl}services/oauth2/userinfo`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
     try {
-      this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${url}`);
+      this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${userInfoUrl}`);
       let response = await new Transport().httpRequest({ url: userInfoUrl, method: 'GET', headers });
       if (response.statusCode >= 400) {
         this.throwUserGetException(response);
