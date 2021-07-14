@@ -949,20 +949,17 @@ describe('AuthInfo', () => {
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
 
-      // const userInfoResponseBody = {
-      //   body: JSON.stringify({ preferred_username: username, organization_id: testMetadata.orgId }),
-      // };
-      // const userResponseBody = {
-      //   body: JSON.stringify({ Username: username.toUpperCase() }),
-      // };
-      // stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
-      //   .onFirstCall()
-      //   .returns(Promise.resolve(userInfoResponseBody))
-      //   .onSecondCall()
-      //   .returns(Promise.resolve(userResponseBody));
-
-      const responseBody = { body: JSON.stringify({ Username: username }) };
-      const stub = stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: username, organization_id: testMetadata.orgId }),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: username.toUpperCase() }),
+      };
+      const stub = stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
 
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
