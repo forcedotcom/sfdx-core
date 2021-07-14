@@ -17,6 +17,15 @@ import { shouldThrow } from '../../../src/testSetup';
 function* generator(testName: string): IterableIterator<StatusResult> {
   yield { completed: false };
   yield { completed: false };
+  yield { completed: false };
+  yield { completed: false };
+  yield { completed: false };
+  yield { completed: false };
+  yield { completed: false };
+  yield { completed: false };
+  yield { completed: false };
+  yield { completed: false };
+  yield { completed: false };
   yield {
     completed: true,
     payload: { name: testName },
