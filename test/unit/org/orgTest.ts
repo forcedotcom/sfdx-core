@@ -13,7 +13,7 @@ import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { OAuth2 } from 'jsforce';
-import * as Transport from 'jsforce/lib/transport';
+import { Transport } from 'jsforce/lib/transport';
 import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
 import { Aliases } from '../../../src/config/aliases';
 import { Config, SfdxPropertyKeys } from '../../../src/config/config';
@@ -126,7 +126,7 @@ describe('Org Tests', () => {
   describe('retrieveMaxApiVersion', () => {
     it('no username', async () => {
       $$.SANDBOXES.CONNECTION.restore();
-      $$.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(() =>
+      stubMethod($$.SANDBOXES.CONNECTION, Connection.prototype, 'request').callsFake(() =>
         Promise.resolve([{ version: '89.0' }, { version: '90.0' }, { version: '88.0' }])
       );
       const org: Org = await Org.create({

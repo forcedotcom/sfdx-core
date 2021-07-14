@@ -11,7 +11,7 @@ import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import { AnyFunction, AnyJson, ensure, Optional } from '@salesforce/ts-types';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
-import { StatusResult } from './client';
+import { StatusResult } from './streamingClient';
 
 /**
  * This is a polling client that can be used to poll the status of long running tasks. It can be used as a replacement
@@ -60,7 +60,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
    * Returns a promise to call the specified polling function using the interval and timeout specified
    * in the polling options.
    */
-  public subscribe(): Promise<AnyJson> {
+  public subscribe(): Promise<AnyJson | undefined> {
     // This promise is held open while setInterval tries to resolve or reject.
     // If set interval can't do it then the timeout will reject.
     return new Promise((resolve, reject) => {

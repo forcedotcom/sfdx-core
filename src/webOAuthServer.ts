@@ -12,9 +12,9 @@ import { Socket } from 'net';
 
 import { AsyncCreatable, set, toNumber, Env } from '@salesforce/kit';
 import { Nullable, get, asString } from '@salesforce/ts-types';
-import { OAuth2Options } from 'jsforce';
+import { OAuth2 } from 'jsforce';
 import { Logger } from './logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, OAuth2WithVerifier } from './org/authInfo';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, OAuth2Config } from './org/authInfo';
 import { SfdxError } from './sfdxError';
 import { Messages } from './messages';
 import { SfdxProjectJson } from './sfdxProject';
@@ -50,8 +50,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private authUrl!: string;
   private logger!: Logger;
   private webServer!: WebServer;
-  private oauth2!: OAuth2WithVerifier;
-  private oauthConfig: OAuth2Options;
+  private oauth2!: OAuth2;
+  private oauthConfig: OAuth2Config;
 
   public constructor(options: WebOAuthServer.Options) {
     super(options);
@@ -142,7 +142,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     if (!this.oauthConfig.redirectUri) this.oauthConfig.redirectUri = `http://localhost:${port}/OauthRedirect`;
 
     this.webServer = await WebServer.create({ port });
-    this.oauth2 = new OAuth2WithVerifier(this.oauthConfig);
+    this.oauth2 = new OAuth2(this.oauthConfig);
     this.authUrl = AuthInfo.getAuthorizationUrl(this.oauthConfig, this.oauth2);
   }
 
@@ -248,7 +248,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 
 export namespace WebOAuthServer {
   export interface Options {
-    oauthConfig: OAuth2Options;
+    oauthConfig: OAuth2Config;
   }
 
   export type Request = http.IncomingMessage & { query: { code: string; state: string } };
