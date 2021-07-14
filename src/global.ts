@@ -28,6 +28,13 @@ export enum Mode {
  */
 export class Global {
   /**
+   * Enable interoperability between `.sfdx` and `.sf`.
+   *
+   * When @salesforce/core@v2 is deprecated and no longer used, this can be removed.
+   */
+  public static SFDX_INTEROPERABILITY = env.getBoolean('SF_SFDX_INTEROPERABILITY', true);
+
+  /**
    * The global folder in which sfdx state is stored.
    */
   public static readonly SFDX_STATE_FOLDER = '.sfdx';

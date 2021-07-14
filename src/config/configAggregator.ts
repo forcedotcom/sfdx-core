@@ -6,7 +6,7 @@
  */
 
 import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
-import { AnyJson, definiteEntriesOf, Dictionary, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { AnyJson, definiteEntriesOf, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { Config, ConfigPropertyMeta } from './config';
 
@@ -161,9 +161,9 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    *
    * @param key The key of the property.
    */
-  public getPropertyValue(key: string): Optional<AnyJson> {
+  public getPropertyValue<T extends AnyJson>(key: string): Optional<T> {
     if (this.getAllowedProperties().some((element) => key === element.key)) {
-      return this.getConfig()[key];
+      return this.getConfig()[key] as T;
     } else {
       throw messages.createError('unknownConfigKey', [key]);
     }
@@ -288,6 +288,17 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   public async reload(): Promise<ConfigAggregator> {
     await this.loadProperties();
     return this;
+  }
+
+  /**
+   * Add an allowed config property.
+   */
+  public addAllowedProperties(configMetas: ConfigPropertyMeta | ConfigPropertyMeta[]): void {
+    if (isArray(configMetas)) {
+      this.allowedProperties.push(...configMetas);
+    } else {
+      this.allowedProperties.push(configMetas);
+    }
   }
 
   /**

@@ -36,6 +36,7 @@ import { SfdxError } from './sfdxError';
 import { SfdxProject, SfdxProjectJson } from './sfdxProject';
 import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
 import { GlobalInfo, SfOrg } from './config/globalInfoConfig';
+import { Global } from './global';
 // import { fs } from '../src/util/fs';
 
 /**
@@ -341,7 +342,7 @@ export const stubContext = (testContext: TestContext) => {
   // the old .sfdx config files
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  GlobalInfo.enableInteroperability = false;
+  Global.SFDX_INTEROPERABILITY = false;
 
   // Most core files create a child logger so stub this to return our test logger.
   stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
@@ -448,10 +449,6 @@ export const stubContext = (testContext: TestContext) => {
 
   // Always start with the default and tests beforeEach or it methods can override it.
   testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
-
-  // stubMethod(testContext.SANDBOXES.FS, fs, 'mkdirp').resolves();
-  // stubMethod(testContext.SANDBOXES.FS, fs, 'writeFile').resolves();
-  // stubMethod(testContext.SANDBOXES.FS, fs, 'readJsonMap').resolves({});
 };
 
 /**
