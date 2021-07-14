@@ -25,7 +25,6 @@ workflows:
           # post-job-steps:
           #   - run: yarn ci-docs
           tag: 'v3-beta'
-          prerelease: true
           requires:
             - release-management/test-package
           filters:
