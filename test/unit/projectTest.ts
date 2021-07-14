@@ -285,6 +285,7 @@ describe('SfdxProject', () => {
   describe('resolveProjectConfig', () => {
     beforeEach(() => {
       delete process.env.FORCE_SFDC_LOGIN_URL;
+      delete process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
     });
     it('gets default login url', async () => {
       $$.configStubs.SfdxProjectJson = { contents: {} };
@@ -332,6 +333,25 @@ describe('SfdxProject', () => {
       const project = await SfdxProject.resolve();
       const config = await project.resolveProjectConfig();
       expect(config['sfdcLoginUrl']).to.equal('envarUrl');
+    });
+    it('gets signupTargetLoginUrl local', async () => {
+      const read = async function () {
+        return { signupTargetLoginUrl: 'localUrl' };
+      };
+      $$.configStubs.SfdxProjectJson = { retrieveContents: read };
+      const project = await SfdxProject.resolve();
+      const config = await project.resolveProjectConfig();
+      expect(config['signupTargetLoginUrl']).to.equal('localUrl');
+    });
+    it('gets SFDX_SCRATCH_ORG_CREATION_LOGIN_URL env overrides config', async () => {
+      process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL = 'envarUrl';
+      const read = async function () {
+        return { signupTargetLoginUrl: 'localUrl' };
+      };
+      $$.configStubs.SfdxProjectJson = { retrieveContents: read };
+      const project = await SfdxProject.resolve();
+      const config = await project.resolveProjectConfig();
+      expect(config['signupTargetLoginUrl']).to.equal('envarUrl');
     });
     it('gets config instanceUrl sets sfdcLoginUrl when there is none elsewhere', async () => {
       const read = async function () {

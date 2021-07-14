@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.26.0](https://github.com/forcedotcom/sfdx-core/compare/v2.25.1...v2.26.0) (2021-07-13)
+
+
+### Features
+
+* update generate password functionality ([#432](https://github.com/forcedotcom/sfdx-core/issues/432)) ([ed65e83](https://github.com/forcedotcom/sfdx-core/commit/ed65e83da3afe0d101743ee89cc7b2a7a38d5254))
+
+### [2.25.1](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.2...v2.25.1) (2021-06-30)
+
+
+### Bug Fixes
+
+* set retries to INFINITELY for polling client ([31539b4](https://github.com/forcedotcom/sfdx-core/commit/31539b4f0edd0cc1c049f70331ed5e40b8af55ea))
+
+## [2.25.0](https://github.com/forcedotcom/sfdx-core/compare/v2.24.2...v2.25.0) (2021-06-30)
+
+
+### Features
+
+* @W-9517449@ Allow signupTargetLoginUrl to be overridden via env var ([#429](https://github.com/forcedotcom/sfdx-core/issues/429)) ([e2b8b36](https://github.com/forcedotcom/sfdx-core/commit/e2b8b36b2836b5277c83ffe22922978dc32e7b11)), closes [#427](https://github.com/forcedotcom/sfdx-core/issues/427)
+
+### [2.24.2](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.1...v2.24.2) (2021-06-23)
+
+
+### Bug Fixes
+
+* puts some types back in dependencies ([94bea31](https://github.com/forcedotcom/sfdx-core/commit/94bea31037a41d4377faecb22bce8a2d12e95f4f))
+
+### [2.24.1](https://github.com/forcedotcom/sfdx-core/compare/v2.24.0...v2.24.1) (2021-06-23)
+
+
+### Bug Fixes
+
+* rewrite polling client ([8d363d1](https://github.com/forcedotcom/sfdx-core/commit/8d363d13616f5efa944d4bb717a010add3c996b5))
+
 ## [2.24.0](https://github.com/forcedotcom/sfdx-core/compare/v2.23.5...v2.24.0) (2021-06-08)
 
 
