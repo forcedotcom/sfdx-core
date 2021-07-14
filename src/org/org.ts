@@ -10,12 +10,10 @@ import { AsyncOptionalCreatable } from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
-  asString,
   ensure,
   ensureJsonArray,
   ensureString,
   getNumber,
-  getString,
   isArray,
   isBoolean,
   isString,
@@ -25,7 +23,7 @@ import {
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import { Aliases, AliasGroup } from '../config/aliases';
-import { Config } from '../config/config';
+import { Config, SfdxPropertyKeys } from '../config/config';
 import { ConfigAggregator, ConfigInfo } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStore';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
@@ -39,6 +37,7 @@ import { GlobalInfo } from '../config/globalInfoConfig';
 import { Messages } from '../messages';
 import { Connection } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
+import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'org', ['notADevHub']);
@@ -165,7 +164,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   public async checkScratchOrg(devHubUsernameOrAlias?: string): Promise<Partial<AuthFields>> {
     let aliasOrUsername = devHubUsernameOrAlias;
     if (!aliasOrUsername) {
-      aliasOrUsername = asString(this.configAggregator.getPropertyValue(Config.DEFAULT_DEV_HUB_USERNAME));
+      aliasOrUsername =
+        this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB) ||
+        this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME);
     }
 
     const devHubConnection = (await Org.create({ aliasOrUsername })).getConnection();
@@ -580,8 +581,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       if (this.options.aliasOrUsername == null) {
         this.configAggregator = this.getConfigAggregator();
         const aliasOrUsername = this.options.isDevHub
-          ? getString(this.configAggregator.getInfo(Config.DEFAULT_DEV_HUB_USERNAME), 'value')
-          : getString(this.configAggregator.getInfo(Config.DEFAULT_USERNAME), 'value');
+          ? this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB) ||
+            // Fall back to old sfdx key
+            this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME)
+          : this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG) ||
+            // Fall back to old sfdx key
+            this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_USERNAME);
         this.options.aliasOrUsername = aliasOrUsername || undefined;
       }
 
@@ -606,8 +611,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * Returns a promise to delete an auth info file from the local file system and any related cache information for
-   * this Org.. You don't want to call this method directly. Instead consider calling Org.remove()
+   * Delete an auth info file from the local file system and any related cache information for
+   * this Org. You don't want to call this method directly. Instead consider calling Org.remove()
    */
   private async removeAuth(): Promise<void> {
     const config = await GlobalInfo.getInstance();
@@ -681,16 +686,20 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
           orgForUser = await Org.create({ connection });
         }
 
-        const orgType = this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
+        const removeConfig = async (configInfo: ConfigInfo) => {
+          if (
+            (configInfo.value === username || aliasKeys.includes(configInfo.value as AliasGroup)) &&
+            (configInfo.isGlobal() || configInfo.isLocal())
+          ) {
+            await Config.update(configInfo.isGlobal(), configInfo.key, undefined);
+          }
+        };
 
-        const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
+        await removeConfig(this.configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME));
+        await removeConfig(this.configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME));
+        await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_DEV_HUB));
+        await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_ORG));
 
-        if (
-          (configInfo.value === username || aliasKeys.includes(configInfo.value as AliasGroup)) &&
-          (configInfo.isGlobal() || configInfo.isLocal())
-        ) {
-          await Config.update(configInfo.isGlobal(), orgType, undefined);
-        }
         await orgForUser.removeAuth();
       }
 

@@ -5,11 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { dirname as pathDirname, join as pathJoin } from 'path';
 import { keyBy, set } from '@salesforce/kit';
-import { Dictionary, ensure, isString, JsonPrimitive } from '@salesforce/ts-types';
+import { Dictionary, ensure, isBoolean, isString, JsonPrimitive } from '@salesforce/ts-types';
+import { Global } from '../global';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { sfdc } from '../util/sfdc';
+import { fs } from '../util/fs';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -28,6 +31,7 @@ const messages = Messages.load('@salesforce/core', 'config', [
 
 const log = Logger.childFromRoot('core:config');
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
+const CONFIG_FILE_NAME = 'config.json';
 
 /**
  * Interface for meta information about config properties
@@ -37,6 +41,11 @@ export interface ConfigPropertyMeta {
    *  The config property name.
    */
   key: string;
+
+  /**
+   * Description
+   */
+  description: string;
 
   /**
    *  Reference to the config data input validation.
@@ -68,8 +77,132 @@ export interface ConfigPropertyMetaInput {
   /**
    * The message to return in the error if the validation fails.
    */
-  failedMessage: string;
+  failedMessage: string | ((value: ConfigValue) => string);
 }
+
+export enum SfdxPropertyKeys {
+  /**
+   * Username associated with the default dev hub org.
+   */
+  DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername',
+
+  /**
+   * Username associate with the default org.
+   */
+  DEFAULT_USERNAME = 'defaultusername',
+
+  /**
+   * The sid for the debugger configuration.
+   */
+  ISV_DEBUGGER_SID = 'isvDebuggerSid',
+
+  /**
+   * The url for the debugger configuration.
+   */
+  ISV_DEBUGGER_URL = 'isvDebuggerUrl',
+
+  /**
+   * The api version
+   */
+  API_VERSION = 'apiVersion',
+
+  /**
+   * Disables telemetry reporting
+   */
+  DISABLE_TELEMETRY = 'disableTelemetry',
+
+  /**
+   * allows users to override the 10,000 result query limit
+   */
+  MAX_QUERY_LIMIT = 'maxQueryLimit',
+
+  /** */
+  REST_DEPLOY = 'restDeploy',
+
+  /** */
+  INSTANCE_URL = 'instanceUrl',
+}
+
+export const SFDX_ALLOWED_PROPERTIES = [
+  {
+    key: SfdxPropertyKeys.INSTANCE_URL,
+    description: '',
+    input: {
+      // If a value is provided validate it otherwise no value is unset.
+      validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
+      failedMessage: messages.getMessage('invalidInstanceUrl'),
+    },
+  },
+  {
+    key: SfdxPropertyKeys.API_VERSION,
+    description: '',
+    hidden: true,
+    input: {
+      // If a value is provided validate it otherwise no value is unset.
+      validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
+      failedMessage: messages.getMessage('invalidApiVersion'),
+    },
+  },
+  {
+    key: SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME,
+    description: '',
+  },
+  {
+    key: SfdxPropertyKeys.DEFAULT_USERNAME,
+    description: '',
+  },
+  {
+    key: SfdxPropertyKeys.ISV_DEBUGGER_SID,
+    description: '',
+    encrypted: true,
+    input: {
+      // If a value is provided validate it otherwise no value is unset.
+      validator: (value: ConfigValue) => value == null || isString(value),
+      failedMessage: messages.getMessage('invalidIsvDebuggerSid'),
+    },
+  },
+  {
+    key: SfdxPropertyKeys.ISV_DEBUGGER_URL,
+    description: '',
+    input: {
+      // If a value is provided validate it otherwise no value is unset.
+      validator: (value: ConfigValue) => value == null || isString(value),
+      failedMessage: messages.getMessage('invalidIsvDebuggerUrl'),
+    },
+  },
+  {
+    key: SfdxPropertyKeys.DISABLE_TELEMETRY,
+    description: '',
+    input: {
+      validator: (value: ConfigValue) => value == null || ['true', 'false'].includes(value.toString()),
+      failedMessage: messages.getMessage('invalidBooleanConfigValue'),
+    },
+  },
+  // This should be brought in by a plugin, but there isn't a way to do that right now.
+  {
+    key: SfdxPropertyKeys.REST_DEPLOY,
+    description: '',
+    hidden: true,
+    input: {
+      validator: (value: ConfigValue) => value != null && ['true', 'false'].includes(value.toString()),
+      failedMessage: messages.getMessage('invalidBooleanConfigValue'),
+    },
+  },
+  {
+    key: SfdxPropertyKeys.MAX_QUERY_LIMIT,
+    description: '',
+    input: {
+      // the bit shift will remove the negative bit, and any decimal numbers
+      // then the parseFloat will handle converting it to a number from a string
+      validator: (value: ConfigValue) =>
+        (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
+      failedMessage: messages.getMessage('invalidNumberConfigValue'),
+    },
+  },
+];
+
+// Generic global config properties. Specific properties can be loaded like orgConfigProperties.ts.
+export const SfProperty: { [index: string]: ConfigPropertyMeta } = {};
 
 export type ConfigProperties = { [index: string]: JsonPrimitive };
 
@@ -87,111 +220,26 @@ export type ConfigProperties = { [index: string]: JsonPrimitive };
  * https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_config_values.htm
  */
 export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
-  /**
-   * Username associated with the default dev hub org.
-   */
-  public static readonly DEFAULT_DEV_HUB_USERNAME: string = 'defaultdevhubusername';
+  private static allowedProperties: ConfigPropertyMeta[] = [...SFDX_ALLOWED_PROPERTIES];
 
-  /**
-   * Username associate with the default org.
-   */
-  public static readonly DEFAULT_USERNAME: string = 'defaultusername';
-
-  /**
-   * The sid for the debugger configuration.
-   */
-  public static readonly ISV_DEBUGGER_SID: string = 'isvDebuggerSid';
-
-  /**
-   * The url for the debugger configuration.
-   */
-  public static readonly ISV_DEBUGGER_URL: string = 'isvDebuggerUrl';
-
-  /**
-   * The api version
-   */
-  public static readonly API_VERSION = 'apiVersion';
-
-  /**
-   * Disables telemetry reporting
-   */
-  public static readonly DISABLE_TELEMETRY = 'disableTelemetry';
-
-  /**
-   * allows users to override the 10,000 result query limit
-   */
-  public static readonly MAX_QUERY_LIMIT = 'maxQueryLimit';
-
-  private static get propertyConfigMap(): Dictionary<ConfigPropertyMeta> {
-    return keyBy(Config.allowedProperties, 'key');
-  }
-
-  private static allowedProperties: ConfigPropertyMeta[] = [
-    {
-      key: 'instanceUrl',
-      input: {
-        // If a value is provided validate it otherwise no value is unset.
-        validator: (value) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
-        failedMessage: messages.getMessage('invalidInstanceUrl'),
-      },
-    },
-    {
-      key: Config.API_VERSION,
-      hidden: true,
-      input: {
-        // If a value is provided validate it otherwise no value is unset.
-        validator: (value) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
-        failedMessage: messages.getMessage('invalidApiVersion'),
-      },
-    },
-    { key: Config.DEFAULT_DEV_HUB_USERNAME },
-    { key: Config.DEFAULT_USERNAME },
-    {
-      key: Config.ISV_DEBUGGER_SID,
-      encrypted: true,
-      input: {
-        // If a value is provided validate it otherwise no value is unset.
-        validator: (value) => value == null || isString(value),
-        failedMessage: messages.getMessage('invalidIsvDebuggerSid'),
-      },
-    },
-    {
-      key: Config.ISV_DEBUGGER_URL,
-      input: {
-        // If a value is provided validate it otherwise no value is unset.
-        validator: (value) => value == null || isString(value),
-        failedMessage: messages.getMessage('invalidIsvDebuggerUrl'),
-      },
-    },
-    {
-      key: Config.DISABLE_TELEMETRY,
-      input: {
-        validator: (value) => value == null || ['true', 'false'].includes(value.toString()),
-        failedMessage: messages.getMessage('invalidBooleanConfigValue'),
-      },
-    },
-    // This should be brought in by a plugin, but there isn't a way to do that right now.
-    {
-      key: 'restDeploy',
-      hidden: true,
-      input: {
-        validator: (value) => value != null && ['true', 'false'].includes(value.toString()),
-        failedMessage: messages.getMessage('invalidBooleanConfigValue'),
-      },
-    },
-    {
-      key: Config.MAX_QUERY_LIMIT,
-      input: {
-        // the bit shift will remove the negative bit, and any decimal numbers
-        // then the parseFloat will handle converting it to a number from a string
-        validator: (value) => (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
-        failedMessage: messages.getMessage('invalidNumberConfigValue'),
-      },
-    },
-  ];
+  private sfdxPath?: string;
 
   public constructor(options?: ConfigFile.Options) {
-    super(options || Config.getDefaultOptions(false));
+    super(
+      Object.assign(
+        {
+          isGlobal: false,
+        },
+        options,
+        {
+          // Don't let consumers of config override this. If they really really want to,
+          // they can extend this class.
+          isState: true,
+          filename: Config.getFileName(),
+          stateFolder: Global.SF_STATE_FOLDER,
+        }
+      )
+    );
 
     // Resolve the config path on creation.
     this.getPath();
@@ -200,10 +248,10 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   /**
    * Returns the default file name for a config file.
    *
-   * **See** {@link SFDX_CONFIG_FILE_NAME}
+   * **See** {@link CONFIG_FILE_NAME}
    */
   public static getFileName(): string {
-    return SFDX_CONFIG_FILE_NAME;
+    return CONFIG_FILE_NAME;
   }
 
   /**
@@ -219,7 +267,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * @param metas Array of objects to set as the allowed config properties.
    */
   public static addAllowedProperties(metas: ConfigPropertyMeta[]): void {
-    const currentMetaKeys = Object.keys(Config.propertyConfigMap);
+    const currentMetaKeys = Object.keys(Config.propertyConfigMap());
 
     metas.forEach((meta) => {
       if (currentMetaKeys.includes(meta.key)) {
@@ -232,20 +280,6 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   }
 
   /**
-   * Gets default options.
-   *
-   * @param isGlobal Make the config global.
-   * @param filename Override the default file. {@link Config.getFileName}
-   */
-  public static getDefaultOptions(isGlobal = false, filename?: string): ConfigFile.Options {
-    return {
-      isGlobal,
-      isState: true,
-      filename: filename || this.getFileName(),
-    };
-  }
-
-  /**
    * The value of a supported config property.
    *
    * @param isGlobal True for a global config. False for a local config.
@@ -253,7 +287,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * @param value The property value.
    */
   public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<ConfigContents> {
-    const config = await Config.create(Config.getDefaultOptions(isGlobal));
+    const config = await Config.create({ isGlobal });
 
     const content = await config.read();
 
@@ -270,25 +304,41 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * Clear all the configured properties both local and global.
    */
   public static async clear(): Promise<void> {
-    let config = await Config.create(Config.getDefaultOptions(true));
-    config.clear();
-    await config.write();
+    const globalConfig = await Config.create({ isGlobal: true });
+    globalConfig.clear();
+    await globalConfig.write();
 
-    config = await Config.create(Config.getDefaultOptions(false));
-    config.clear();
-    await config.write();
+    const localConfig = await Config.create();
+    localConfig.clear();
+    await localConfig.write();
   }
+
+  private static propertyConfigMap(): Dictionary<ConfigPropertyMeta> {
+    return keyBy(Config.allowedProperties, 'key');
+  }
+
   /**
    * Read, assign, and return the config contents.
    */
   public async read(force = true): Promise<ConfigProperties> {
     try {
-      await super.read(false, force);
+      const config = await super.read(false, force);
+      // Merge .sfdx/sfdx-config.json and .sf/config.json
+      const sfdxConfig = Global.SFDX_INTEROPERABILITY ? this.readSfdxConfigSync() : {};
+      this.setContents(Object.assign(sfdxConfig, config));
       await this.cryptProperties(false);
       return this.getContents();
     } finally {
       await this.clearCrypto();
     }
+  }
+
+  public readSync(force = true): ConfigProperties {
+    const config = super.readSync(false, force);
+    // Merge .sfdx/sfdx-config.json and .sf/config.json
+    const sfdxConfig = Global.SFDX_INTEROPERABILITY ? this.readSfdxConfigSync() : {};
+    this.setContents(Object.assign(sfdxConfig, config));
+    return this.getContents();
   }
 
   /**
@@ -304,6 +354,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     await this.cryptProperties(true);
 
     await super.write();
+    await this.writeSfdxConfig();
 
     await this.cryptProperties(false);
 
@@ -342,7 +393,13 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
       if (property.input && property.input.validator(value)) {
         super.set(property.key, value);
       } else {
-        throw messages.createError('invalidConfigValue', [property.input.failedMessage ?? '']);
+        let valueError: string = value?.toString() || '';
+        if (property.input.failedMessage) {
+          valueError = isString(property.input.failedMessage)
+            ? property.input.failedMessage
+            : property.input.failedMessage(value);
+        }
+        throw messages.createError('invalidConfigValue', [valueError]);
       }
     } else {
       super.set(property.key, value);
@@ -375,6 +432,47 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     await super.init();
   }
 
+  private readSfdxConfigSync() {
+    try {
+      return fs.readJsonMapSync(this.getSfdxPath());
+    } catch (error) {
+      /* Do nothing */
+      return {};
+    }
+  }
+
+  private async writeSfdxConfig() {
+    try {
+      await fs.mkdirp(pathDirname(this.getSfdxPath()));
+      this.logger.info(`Writing to config file: ${this.getPath()}`);
+      await fs.writeJson(this.getSfdxPath(), this.toObject());
+    } catch (error) {
+      /* Do nothing */
+    }
+  }
+
+  private getSfdxPath(): string {
+    if (!this.sfdxPath) {
+      const stateFolder = Global.SFDX_STATE_FOLDER;
+      const fileName = SFDX_CONFIG_FILE_NAME;
+
+      const _isGlobal: boolean = isBoolean(this.options.isGlobal) && this.options.isGlobal;
+      const _isState: boolean = isBoolean(this.options.isState) && this.options.isState;
+
+      // Don't let users store config files in homedir without being in the state folder.
+      let configRootFolder = this.options.rootFolder
+        ? this.options.rootFolder
+        : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
+
+      if (_isGlobal || _isState) {
+        configRootFolder = pathJoin(configRootFolder, stateFolder);
+      }
+
+      this.sfdxPath = pathJoin(configRootFolder, fileName);
+    }
+    return this.sfdxPath;
+  }
+
   /**
    * Get an individual property config.
    *
@@ -383,7 +481,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * @param propertyName The name of the property.
    */
   private getPropertyConfig(propertyName: string): ConfigPropertyMeta {
-    const prop = Config.propertyConfigMap[propertyName];
+    const prop = Config.propertyConfigMap()[propertyName];
 
     if (!prop) {
       throw messages.createError('unknownConfigKey', [propertyName]);
@@ -398,7 +496,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    */
   private async cryptProperties(encrypt: boolean): Promise<void> {
     const hasEncryptedProperties = this.entries().some(([key]) => {
-      return !!Config.propertyConfigMap[key]?.encrypted;
+      return !!Config.propertyConfigMap()[key]?.encrypted;
     });
 
     if (hasEncryptedProperties) {

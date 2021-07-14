@@ -8,11 +8,12 @@
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
 import { Aliases } from '../config/aliases';
-import { Config } from '../config/config';
+import { Config, SfdxPropertyKeys } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { SfOrg, GlobalInfo, SfOrgs } from '../config/globalInfoConfig';
+import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const coreMessages = Messages.load('@salesforce/core', 'core', ['namedOrgNotFound']);
@@ -139,7 +140,9 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   private async getDefaultUsername(): Promise<string> {
     const configAggregator = await ConfigAggregator.create();
-    const defaultUsername = configAggregator.getInfo(Config.DEFAULT_USERNAME).value;
+    const defaultUsername =
+      configAggregator.getInfo(OrgConfigProperties.TARGET_ORG).value ||
+      configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME).value;
     if (!defaultUsername) {
       throw messages.createError('defaultUsernameNotSet');
     }

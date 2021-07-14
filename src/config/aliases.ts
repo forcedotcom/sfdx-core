@@ -100,6 +100,12 @@ export class Aliases extends ConfigGroup {
     return asString(aliases.getInGroup(key, group));
   }
 
+  public static get(key: string, group = AliasGroup.ORGS) {
+    const aliases = new Aliases(Aliases.getDefaultOptions());
+    aliases.readSync();
+    return asString(aliases.getInGroup(key, group));
+  }
+
   // Don't use kit's set to prevent nested object save
   protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
     contents[key] = value;

@@ -9,7 +9,7 @@ import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { assert, expect } from 'chai';
 import { AuthRemover } from '../../../src/org/authRemover';
 import { Aliases } from '../../../src/config/aliases';
-import { Config } from '../../../src/config/config';
+import { Config, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { GlobalInfo } from '../../../src/config/globalInfoConfig';
 import { testSetup } from '../../../src/testSetup';
@@ -83,7 +83,8 @@ describe('AuthRemover', () => {
     it('should return authorization for defaultusername (set to username) if no username is provided', async () => {
       stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
-        .withArgs(Config.DEFAULT_USERNAME)
+        .returns({})
+        .withArgs(SfdxPropertyKeys.DEFAULT_USERNAME)
         .returns({ value: username });
       const remover = await AuthRemover.create();
       const auth = await remover.findAuth();
@@ -94,7 +95,8 @@ describe('AuthRemover', () => {
       const alias = 'MyAlias';
       stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
-        .withArgs(Config.DEFAULT_USERNAME)
+        .returns({})
+        .withArgs(SfdxPropertyKeys.DEFAULT_USERNAME)
         .returns({ value: alias });
       stubMethod($$.SANDBOX, Aliases.prototype, 'get').withArgs(alias).returns(username);
       const remover = await AuthRemover.create();
@@ -104,7 +106,8 @@ describe('AuthRemover', () => {
 
     it('should throw an error if no username is provided and defaultusername is not set', async () => {
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
-        .withArgs(Config.DEFAULT_USERNAME)
+        .returns({})
+        .withArgs(SfdxPropertyKeys.DEFAULT_USERNAME)
         .returns({ value: undefined });
       const remover = await AuthRemover.create();
       try {
@@ -125,8 +128,8 @@ describe('AuthRemover', () => {
       const alias = 'MyAlias';
       stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns([alias]);
       stubMethod($$.SANDBOX, Config.prototype, 'getKeysByValue').returns([
-        Config.DEFAULT_USERNAME,
-        Config.DEFAULT_DEV_HUB_USERNAME,
+        SfdxPropertyKeys.DEFAULT_USERNAME,
+        SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME,
       ]);
 
       const remover = await AuthRemover.create();
@@ -139,10 +142,10 @@ describe('AuthRemover', () => {
       // 4. unset defaultdevhubusername globally
       expect(configUnsetSpy.callCount).to.equal(4);
       expect(configUnsetSpy.args).to.deep.equal([
-        [Config.DEFAULT_USERNAME],
-        [Config.DEFAULT_DEV_HUB_USERNAME],
-        [Config.DEFAULT_USERNAME],
-        [Config.DEFAULT_DEV_HUB_USERNAME],
+        [SfdxPropertyKeys.DEFAULT_USERNAME],
+        [SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME],
+        [SfdxPropertyKeys.DEFAULT_USERNAME],
+        [SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME],
       ]);
       expect(configWriteSpy.callCount).to.equal(1);
     });
