@@ -8,24 +8,6 @@ import { expect } from 'chai';
 import { sfdc } from '../../../src/util/sfdc';
 
 describe('util/sfdc', () => {
-  describe('isSalesforceDomain', () => {
-    it('is allowlist domain', () => {
-      expect(sfdc.isSalesforceDomain('http://www.salesforce.com')).to.be.true;
-    });
-
-    it('is not allowlist or host', () => {
-      expect(sfdc.isSalesforceDomain('http://www.ghostbusters.com')).to.be.false;
-    });
-
-    it('is allowlist host', () => {
-      expect(sfdc.isSalesforceDomain('http://developer.salesforce.com')).to.be.true;
-    });
-
-    it('falsy', () => {
-      expect(sfdc.isSalesforceDomain(undefined)).to.be.false;
-    });
-  });
-
   it('should trim an 18 character id to 15 characters', () => {
     const id: string = sfdc.trimTo15('ABCDEFGHIJKLMNOPQR');
     const trimmed = sfdc.trimTo15(id);
@@ -145,23 +127,6 @@ describe('util/sfdc', () => {
     });
     it('should return false for an invalid access token', () => {
       expect(sfdc.matchesAccessToken('iamjustaregularusername@example.com')).to.equal(false);
-    });
-  });
-
-  describe('internal domains', () => {
-    it('stm is internal but not local', () => {
-      expect(sfdc.isInternalUrl('https://inttestdevhub02-dev-ed.lightning.stmfa.stm.force.com/')).to.equal(true);
-      expect(sfdc.isLocalUrl('https://inttestdevhub02-dev-ed.lightning.stmfa.stm.force.com/')).to.equal(false);
-    });
-    it('pc.rnd is internal but not local', () => {
-      expect(sfdc.isInternalUrl('https://alm-cidevhubora3test1core4.test1.lightning.pc-rnd.force.com/')).to.equal(true);
-      expect(sfdc.isLocalUrl('https://alm-cidevhubora3test1core4.test1.lightning.pc-rnd.force.com/')).to.equal(false);
-      expect(sfdc.isInternalUrl('https://alm-cidevhubora3test1core4.test1.my.pc-rnd.salesforce.com')).to.equal(true);
-      expect(sfdc.isLocalUrl('https://alm-cidevhubora3test1core4.test1.my.pc-rnd.salesforce.com')).to.equal(false);
-    });
-    it('localhost domain is both internal and local, and tolerates local host ports', () => {
-      expect(sfdc.isInternalUrl('scorpio-ryan-2873-dev-ed.my.localhost.sfdcdev.salesforce.com:6109')).to.equal(true);
-      expect(sfdc.isLocalUrl('scorpio-ryan-2873-dev-ed.my.localhost.sfdcdev.salesforce.com:6109')).to.equal(true);
     });
   });
 });

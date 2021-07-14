@@ -6,11 +6,8 @@
  */
 
 import { createHash, randomBytes } from 'crypto';
-import { URL } from 'url';
-import * as dns from 'dns';
 import { resolve as pathResolve } from 'path';
 import { basename, extname } from 'path';
-import { parse as urlParse } from 'url';
 import * as os from 'os';
 import { AsyncCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap, set } from '@salesforce/kit';
 import {
@@ -45,7 +42,7 @@ import { Logger } from './logger';
 import { SfdxError, SfdxErrorConfig } from './sfdxError';
 import { fs } from './util/fs';
 import { sfdc } from './util/sfdc';
-import { MyDomainResolver } from './status/myDomainResolver';
+import { SfdcUrl } from './util/sfdcUrl';
 
 /**
  * Fields for authorization, org, and local information.
@@ -185,7 +182,7 @@ export class OAuth2WithVerifier extends OAuth2 {
    *
    * @param params
    */
-  public getAuthorizationUrl(params: Record<string, unknown>) {
+  public getAuthorizationUrl(params: Record<string, unknown>): string {
     // code verifier must be a base 64 url encoded hash of 128 bytes of random data. Our random data is also
     // base 64 url encoded. See Connection.create();
     const codeChallenge = base64UrlEscape(createHash('sha256').update(this.codeVerifier).digest('base64'));
@@ -194,7 +191,10 @@ export class OAuth2WithVerifier extends OAuth2 {
     return super.getAuthorizationUrl(params);
   }
 
-  public async requestToken(code: string, callback?: (err: Error, tokenResponse: TokenResponse) => void) {
+  public async requestToken(
+    code: string,
+    callback?: (err: Error, tokenResponse: TokenResponse) => void
+  ): Promise<TokenResponse> {
     return super.requestToken(code, callback);
   }
 
@@ -210,62 +210,6 @@ export class OAuth2WithVerifier extends OAuth2 {
     // @ts-ignore TODO: need better typings for jsforce
     return super._postParams(params, callback);
   }
-}
-
-/**
- * Salesforce URLs.
- */
-export enum SfdcUrl {
-  SANDBOX = 'https://test.salesforce.com',
-  PRODUCTION = 'https://login.salesforce.com',
-}
-
-function isSandboxUrl(options: OAuth2Options & { createdOrgInstance?: string }): boolean {
-  const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
-  const loginUrl = options.loginUrl ?? '';
-  return (
-    /^cs|s$/gi.test(createdOrgInstance) ||
-    /sandbox\.my\.salesforce\.com/gi.test(loginUrl) || // enhanced domains >= 230
-    /(cs[0-9]+(\.my|)\.salesforce\.com)/gi.test(loginUrl) || // my domains on CS instance OR CS instance without my domain
-    /([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/gi.test(loginUrl) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
-    /([a-z]{3}[0-9]+s\.sfdc-.+\.force\.com)/gi.test(loginUrl) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
-    urlParse(loginUrl).hostname === 'test.salesforce.com'
-  );
-}
-
-async function resolvesToSandbox(options: OAuth2Options & { createdOrgInstance?: string }): Promise<boolean> {
-  if (isSandboxUrl(options)) {
-    return true;
-  }
-  let cnames: string[] = [];
-  if (options.loginUrl) {
-    const myDomainResolver = await MyDomainResolver.create({ url: new URL(options.loginUrl) });
-    cnames = await myDomainResolver.getCnames();
-  }
-  return cnames.some((cname) => isSandboxUrl({ ...options, loginUrl: cname }));
-}
-
-export async function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }) {
-  // environment variable is used as an override
-  if (process.env.SFDX_AUDIENCE_URL) {
-    return process.env.SFDX_AUDIENCE_URL;
-  }
-
-  if (options.loginUrl && sfdc.isInternalUrl(options.loginUrl)) {
-    // This is for internal developers when just doing authorize;
-    return options.loginUrl;
-  }
-
-  if (await resolvesToSandbox(options)) {
-    return SfdcUrl.SANDBOX;
-  }
-
-  const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
-  if (/^gs1/gi.test(createdOrgInstance) || /(gs1.my.salesforce.com)/gi.test(options.loginUrl ?? '')) {
-    return 'https://gs1.salesforce.com';
-  }
-
-  return SfdcUrl.PRODUCTION;
 }
 
 // parses the id field returned from jsForce oauth2 methods to get
@@ -972,7 +916,10 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
   // Build OAuth config for a JWT auth flow
   private async buildJwtConfig(options: OAuth2Options): Promise<AuthFields> {
     const privateKeyContents = await fs.readFile(ensure(options.privateKey), 'utf8');
-    const audienceUrl = await getJwtAudienceUrl(options);
+    const { loginUrl = SfdcUrl.PRODUCTION } = options;
+    const url = new SfdcUrl(loginUrl);
+    const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
+    const audienceUrl = await url.getJwtAudienceUrl(createdOrgInstance);
     const jwtToken = jwt.sign(
       {
         iss: options.clientId,
@@ -1003,10 +950,10 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     };
 
     const instanceUrl = ensureString(authFieldsBuilder.instance_url);
-    const parsedUrl = urlParse(instanceUrl);
+    const sfdcUrl = new SfdcUrl(instanceUrl);
     try {
       // Check if the url is resolvable. This can fail when my-domains have not been replicated.
-      await this.lookup(ensure(parsedUrl.hostname));
+      await sfdcUrl.lookup();
       authFields.instanceUrl = instanceUrl;
     } catch (err) {
       this.logger.debug(
@@ -1107,7 +1054,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
     // within this file to support it.
     const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
     const instance = ensure(instanceUrl);
-    const baseUrl = new URL(instance);
+    const baseUrl = new SfdcUrl(instance);
     const userInfoUrl = `${baseUrl}services/oauth2/userinfo`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
     try {
@@ -1155,19 +1102,6 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
       messages = `${bodyAsString}`;
     }
     throw new SfdxError(messages);
-  }
-
-  // See https://nodejs.org/api/dns.html#dns_dns_lookup_hostname_options_callback
-  private async lookup(host: string): Promise<{ address: string; family: number }> {
-    return new Promise<{ address: string; family: number }>((resolve, reject) => {
-      dns.lookup(host, (err, address: string, family: number) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ address, family });
-        }
-      });
-    });
   }
 }
 
