@@ -4,6 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import { URL } from 'url';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
 import { Callback } from 'jsforce/connection';
@@ -29,7 +32,6 @@ import {
   Tooling as JSForceTooling,
 } from 'jsforce';
 // no types for Transport
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
 import { AuthFields, AuthInfo } from '../org/authInfo';
@@ -50,7 +52,6 @@ const messages = Messages.load('@salesforce/core', 'connection', [
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
  * jsforce which expects .thenCall. Add .thenCall to the node promise to prevent breakage.
  */
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 Promise.prototype.thenCall = JsforcePromise.prototype.thenCall;
 
@@ -252,12 +253,11 @@ export class Connection extends JSForceConnection {
    * @param request HTTP request object or URL to GET request.
    * @param options HTTP API request options.
    */
-  public async request(request: RequestInfo | string, options?: JsonMap): Promise<JsonCollection> {
+  public async request<T = JsonCollection>(request: RequestInfo | string, options?: JsonMap): Promise<T> {
     const requestInfo: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
     requestInfo.headers = Object.assign({}, SFDX_HTTP_HEADERS, requestInfo.headers);
     this.logger.debug(`request: ${JSON.stringify(requestInfo)}`);
-    //  The "as" is a workaround for the jsforce typings.
-    return super.request(requestInfo, options) as Promise<JsonCollection>;
+    return super.request<T>(requestInfo, options);
   }
 
   /**
@@ -313,7 +313,6 @@ export class Connection extends JSForceConnection {
       return this.request(requestInfo, requestOptions);
     } else {
       // the _invoke is private in jsforce, we can call the SOAP deployRecentValidation like this
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       return this.metadata['_invoke']('deployRecentValidation', {
         validationId: options.id,
@@ -326,7 +325,7 @@ export class Connection extends JSForceConnection {
   public async retrieveMaxApiVersion(): Promise<string> {
     await this.isResolvable();
     type Versioned = { version: string };
-    const versions = (await this.request(`${this.instanceUrl}/services/data`)) as Versioned[];
+    const versions = await this.request<Versioned[]>(`${this.instanceUrl}/services/data`);
     this.logger.debug(`response for org versions: ${versions.map((item) => item.version).join(',')}`);
     const max = ensure(maxBy(versions, (version: Versioned) => version.version));
 

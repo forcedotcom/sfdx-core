@@ -179,7 +179,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     let results;
     try {
-      results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<object>>);
+      results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<Record<string, unknown>>>);
     } catch (err) {
       if (err.name === 'INVALID_TYPE') {
         throw messages.createError('notADevHub', [devHubConnection.getUsername()]);
@@ -541,12 +541,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Returns an org field. Returns undefined if the field is not set or invalid.
    */
   public getField<T = AnyJson>(key: Org.Fields): T {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore Legacy. We really shouldn't be doing this.
     const ownProp = this[key];
     if (ownProp && typeof ownProp !== 'function') return ownProp;
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return this.getConnection().getAuthInfoFields()[key];
   }

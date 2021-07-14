@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import { EventEmitter } from 'events';
 import { resolve as resolveUrl } from 'url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Faye from 'sfdx-faye';
 import { Logger } from '../logger';
@@ -330,7 +331,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
    * @param streamInit This function should call the platform apis that result in streaming updates on push topics.
    * {@link StatusResult}
    */
-  public subscribe(streamInit?: () => Promise<void>): Promise<AnyJson> {
+  public subscribe(streamInit?: () => Promise<void>): Promise<AnyJson | void> {
     let timeout: NodeJS.Timer;
 
     // This outer promise is to hold the streaming promise chain open until the streaming processor
@@ -338,7 +339,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     return new Promise((subscribeResolve, subscribeReject) => {
       // This is the inner promise chain that's satisfied when the client impl (Faye/Mock) says it's subscribed.
-      return new Promise((subscriptionResolve, subscriptionReject) => {
+      return new Promise<void>((subscriptionResolve, subscriptionReject) => {
         timeout = setTimeout(() => {
           const timeoutError = messages.createError('genericTimeout');
           this.doTimeout(timeout, timeoutError);
@@ -430,12 +431,9 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     // and will prevent the timeout from disconnecting. Here for example we will detect there is no client id but
     // unauthenticated connections are being made to salesforce. Let's close the dispatcher if it exists and
     // has no clientId.
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     if (this.cometClient._dispatcher) {
       this.log('Closing the faye dispatcher');
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       const dispatcher = this.cometClient._dispatcher;
       this.log(`dispatcher.clientId: ${dispatcher.clientId}`);

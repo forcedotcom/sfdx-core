@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { basename, dirname, isAbsolute, normalize, sep } from 'path';
-
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
+import { SfdcUrl } from './org/authInfo';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
@@ -622,25 +622,31 @@ export class SfdxProject {
    */
   public async resolveProjectConfig(): Promise<JsonMap> {
     if (!this.projectConfig) {
-      // Get sfdx-project.json from the ~/.sfdx directory to provide defaults
-      const global = await this.retrieveSfdxProjectJson(true);
-      const local = await this.retrieveSfdxProjectJson();
+      // Do fs operations in parallel
+      const [global, local, configAggregator] = await Promise.all([
+        this.retrieveSfdxProjectJson(true),
+        this.retrieveSfdxProjectJson(),
+        ConfigAggregator.create(),
+      ]);
+      await Promise.all([global.read(), local.read()]);
 
-      await global.read();
-      await local.read();
-
-      const defaultValues = {
-        sfdcLoginUrl: 'https://login.salesforce.com',
-      };
-
-      this.projectConfig = defaults(local.toObject(), global.toObject(), defaultValues);
+      this.projectConfig = defaults(local.toObject(), global.toObject());
 
       // Add fields in sfdx-config.json
-      Object.assign(this.projectConfig, (await ConfigAggregator.create()).getConfig());
+      Object.assign(this.projectConfig, configAggregator.getConfig());
 
+      // we don't have a login url yet, so use instanceUrl from config or default
+      if (!this.projectConfig.sfdcLoginUrl) {
+        this.projectConfig.sfdcLoginUrl = configAggregator.getConfig().instanceUrl ?? SfdcUrl.PRODUCTION;
+      }
       // LEGACY - Allow override of sfdcLoginUrl via env var FORCE_SFDC_LOGIN_URL
       if (process.env.FORCE_SFDC_LOGIN_URL) {
         this.projectConfig.sfdcLoginUrl = process.env.FORCE_SFDC_LOGIN_URL;
+      }
+
+      // Allow override of signupTargetLoginUrl via env var SFDX_SCRATCH_ORG_CREATION_LOGIN_URL
+      if (process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL) {
+        this.projectConfig.signupTargetLoginUrl = process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
       }
     }
 

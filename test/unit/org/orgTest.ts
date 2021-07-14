@@ -400,9 +400,12 @@ describe('Org Tests', () => {
 
       for (const user of users) {
         userAuthResponse = {
+          // eslint-disable-next-line camelcase
           access_token: user.accessToken,
+          // eslint-disable-next-line camelcase
           instance_url: user.instanceUrl,
           id: user.testId,
+          // eslint-disable-next-line camelcase
           refresh_token: user.refreshToken,
         };
 

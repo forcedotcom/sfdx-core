@@ -18,7 +18,7 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
 
     // Tests usually access private or protected methods/variables
-    '@typescript-eslint/ban-ts-ignore': 'off',
+    '@typescript-eslint/ban-ts-comment': 'off',
 
     // It is common for tests to stub out method.
     '@typescript-eslint/camelcase': 'off',

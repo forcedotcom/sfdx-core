@@ -4,6 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable camelcase */
+/* eslint-disable @typescript-eslint/ban-types */
+
 import * as dns from 'dns';
 import * as pathImport from 'path';
 import { URL } from 'url';
@@ -2093,8 +2096,7 @@ describe('AuthInfo', () => {
     it('user get returns server error with html body', async () => {
       const responseBody = {
         statusCode: 500,
-        body:
-          '<html lang=""><body>Server error occurred, please contact Salesforce Support if the error persists</body></html>',
+        body: '<html lang=""><body>Server error occurred, please contact Salesforce Support if the error persists</body></html>',
       };
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
       try {

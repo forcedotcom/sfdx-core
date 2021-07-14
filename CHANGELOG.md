@@ -11,38 +11,34 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [3.1.1-v3.2](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-v3.1...v3.1.1-v3.2) (2021-06-29)
 
-
 ### Bug Fixes
 
-* do not use function prop ([#426](https://github.com/forcedotcom/sfdx-core/issues/426)) ([39efe0c](https://github.com/forcedotcom/sfdx-core/commit/39efe0ccc84b05bc891e54b24bfcddc62790ae0e))
+- do not use function prop ([#426](https://github.com/forcedotcom/sfdx-core/issues/426)) ([39efe0c](https://github.com/forcedotcom/sfdx-core/commit/39efe0ccc84b05bc891e54b24bfcddc62790ae0e))
 
 ### [3.1.1-v3.1](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-v3.0...v3.1.1-v3.1) (2021-06-14)
 
-
 ### Bug Fixes
 
-* keep track of auth changes ([210be6c](https://github.com/forcedotcom/sfdx-core/commit/210be6cb408bd9ecc861989570df0e14f6a3a566))
+- keep track of auth changes ([210be6c](https://github.com/forcedotcom/sfdx-core/commit/210be6cb408bd9ecc861989570df0e14f6a3a566))
 
 ### [3.1.1-v3.0](https://github.com/forcedotcom/sfdx-core/compare/v2.23.3...v3.1.1-v3.0) (2021-06-03)
 
-
 ### ⚠ BREAKING CHANGES
 
-* default to reading files from cache
+- default to reading files from cache
 
 ### Features
 
-* add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([889425c](https://github.com/forcedotcom/sfdx-core/commit/889425c06e8ed6a364d9a2bc3dd5ef0a38a66046))
-* add message support for markdown files ([0f235a2](https://github.com/forcedotcom/sfdx-core/commit/0f235a23d5dddbd7b3f07544d8c7e380875c6c55))
-* default to reading files from cache ([558319d](https://github.com/forcedotcom/sfdx-core/commit/558319dfdc81e2bae549d58be75a701162801994))
-* move crypto to config file @W-9225317@ ([#406](https://github.com/forcedotcom/sfdx-core/issues/406)) ([bac83c3](https://github.com/forcedotcom/sfdx-core/commit/bac83c3a52b15c9b462dfb68be9d080e710493cd))
-
+- add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([889425c](https://github.com/forcedotcom/sfdx-core/commit/889425c06e8ed6a364d9a2bc3dd5ef0a38a66046))
+- add message support for markdown files ([0f235a2](https://github.com/forcedotcom/sfdx-core/commit/0f235a23d5dddbd7b3f07544d8c7e380875c6c55))
+- default to reading files from cache ([558319d](https://github.com/forcedotcom/sfdx-core/commit/558319dfdc81e2bae549d58be75a701162801994))
+- move crypto to config file @W-9225317@ ([#406](https://github.com/forcedotcom/sfdx-core/issues/406)) ([bac83c3](https://github.com/forcedotcom/sfdx-core/commit/bac83c3a52b15c9b462dfb68be9d080e710493cd))
 
 ### Bug Fixes
 
-* compilation errors ([33a9876](https://github.com/forcedotcom/sfdx-core/commit/33a9876575eff7944bb287d428f52413831725d9))
-* unit test failures ([4507575](https://github.com/forcedotcom/sfdx-core/commit/45075754175d411b6cb71eb809096e6eb3e23d95))
-* unsetAuthorization ([#399](https://github.com/forcedotcom/sfdx-core/issues/399)) ([dd57438](https://github.com/forcedotcom/sfdx-core/commit/dd57438a95b49515f560d3b915cdf916a4b8643b))
+- compilation errors ([33a9876](https://github.com/forcedotcom/sfdx-core/commit/33a9876575eff7944bb287d428f52413831725d9))
+- unit test failures ([4507575](https://github.com/forcedotcom/sfdx-core/commit/45075754175d411b6cb71eb809096e6eb3e23d95))
+- unsetAuthorization ([#399](https://github.com/forcedotcom/sfdx-core/issues/399)) ([dd57438](https://github.com/forcedotcom/sfdx-core/commit/dd57438a95b49515f560d3b915cdf916a4b8643b))
 
 ## [3.1.0](https://github.com/forcedotcom/sfdx-core/compare/v3.1.0-v3.0...v3.1.0) (2021-05-26)
 
@@ -62,7 +58,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 - unsetAuthorization ([#399](https://github.com/forcedotcom/sfdx-core/issues/399)) ([60594ad](https://github.com/forcedotcom/sfdx-core/commit/60594add6c7bf2497692fa6e9e1da430ec0cb9bc))
 
-## [3.0.0](https://github.com/forcedotcom/sfdx-core/compare/v2.20.10...v3.0.0) (2021-04-30)
+## [3.0.0](https://github.com/forcedotcom/sfdx-core/compare/v2.26.0...v3.0.0) (2021-04-30)
 
 ### ⚠ BREAKING CHANGES
 
@@ -72,6 +68,54 @@ All notable changes to this project will be documented in this file. See [standa
 
 - add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([579998b](https://github.com/forcedotcom/sfdx-core/commit/579998b6ee70dbb9772e65896bbabf6d812aae23))
 - default to reading files from cache ([12b5930](https://github.com/forcedotcom/sfdx-core/commit/12b59301df96395c4edcbfb0816dbddd45af95db))
+
+## [2.26.0](https://github.com/forcedotcom/sfdx-core/compare/v2.25.1...v2.26.0) (2021-07-13)
+
+### Features
+
+- update generate password functionality ([#432](https://github.com/forcedotcom/sfdx-core/issues/432)) ([ed65e83](https://github.com/forcedotcom/sfdx-core/commit/ed65e83da3afe0d101743ee89cc7b2a7a38d5254))
+
+### [2.25.1](https://github.com/forcedotcom/sfdx-core/compare/v2.25.0...v2.25.1) (2021-06-30)
+
+### Bug Fixes
+
+- set retries to INFINITELY for polling client ([31539b4](https://github.com/forcedotcom/sfdx-core/commit/31539b4f0edd0cc1c049f70331ed5e40b8af55ea))
+
+## [2.25.0](https://github.com/forcedotcom/sfdx-core/compare/v2.24.2...v2.25.0) (2021-06-30)
+
+### Features
+
+- @W-9517449@ Allow signupTargetLoginUrl to be overridden via env var ([#429](https://github.com/forcedotcom/sfdx-core/issues/429)) ([e2b8b36](https://github.com/forcedotcom/sfdx-core/commit/e2b8b36b2836b5277c83ffe22922978dc32e7b11)), closes [#427](https://github.com/forcedotcom/sfdx-core/issues/427)
+
+### [2.24.2](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.1...v2.24.2) (2021-06-23)
+
+### Bug Fixes
+
+- puts some types back in dependencies ([94bea31](https://github.com/forcedotcom/sfdx-core/commit/94bea31037a41d4377faecb22bce8a2d12e95f4f))
+
+### [2.24.1](https://github.com/forcedotcom/sfdx-core/compare/v2.24.0...v2.24.1) (2021-06-23)
+
+### Bug Fixes
+
+- rewrite polling client ([8d363d1](https://github.com/forcedotcom/sfdx-core/commit/8d363d13616f5efa944d4bb717a010add3c996b5))
+
+## [2.24.0](https://github.com/forcedotcom/sfdx-core/compare/v2.23.5...v2.24.0) (2021-06-08)
+
+### Features
+
+- exported function checkLightningDomain() ([#415](https://github.com/forcedotcom/sfdx-core/issues/415)) ([8e75231](https://github.com/forcedotcom/sfdx-core/commit/8e752313abf4a383a6ef18250ffac78b398987dd))
+
+### [2.23.5](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.0...v2.23.5) (2021-06-07)
+
+### Bug Fixes
+
+- w-9299422 (login url from config) and fs-parallelization ([043bb17](https://github.com/forcedotcom/sfdx-core/commit/043bb179dbf64f9c4522a4c0f0720ae09794227c))
+
+### [2.23.4](https://github.com/forcedotcom/sfdx-core/compare/v2.23.3...v2.23.4) (2021-06-03)
+
+### Bug Fixes
+
+- works with TS4+ and jsforce types ([#413](https://github.com/forcedotcom/sfdx-core/issues/413)) ([b77cdad](https://github.com/forcedotcom/sfdx-core/commit/b77cdad56b114290b8e5fd23d968e23e7d4eedf4))
 
 ### [2.23.3](https://github.com/forcedotcom/sfdx-core/compare/v2.23.2...v2.23.3) (2021-06-03)
 

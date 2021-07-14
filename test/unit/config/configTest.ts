@@ -75,7 +75,6 @@ describe('Config', () => {
         .returns(Promise.resolve(clone(configFileContents)));
 
       // Manipulate config.hasRead to force a read
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       config.hasRead = false;
 
