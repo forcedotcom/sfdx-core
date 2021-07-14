@@ -504,8 +504,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       opts = {
         oauth2: {
           loginUrl: instanceUrl || 'https://login.salesforce.com',
-          clientId: decryptedCopy.clientId || DEFAULT_CONNECTED_APP_INFO.legacyClientId,
-          redirectUri: 'http://localhost:1717/OauthRedirect',
+          clientId: this.getClientId(),
+          redirectUri: this.getRedirectUri(),
         },
         accessToken,
         instanceUrl,
@@ -515,6 +515,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     // decrypt the fields
     return opts;
+  }
+
+  public getClientId(): string {
+    return this.getFields()?.clientId || DEFAULT_CONNECTED_APP_INFO.legacyClientId;
+  }
+
+  public getRedirectUri(): string {
+    return 'http://localhost:1717/OauthRedirect';
   }
 
   /**
@@ -821,6 +829,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       options.clientSecret = DEFAULT_CONNECTED_APP_INFO.legacyClientSecret;
     }
 
+    if (!options.redirectUri) {
+      options.redirectUri = this.getRedirectUri();
+    }
+
     const oauth2 = new OAuth2(options);
     let authFieldsBuilder: TokenResponse;
     try {
@@ -867,6 +879,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param oauth2 The oauth2 extension that includes a code_challenge
    */
   private async exchangeToken(options: OAuth2Config, oauth2: OAuth2 = new OAuth2(options)): Promise<AuthFields> {
+    if (!oauth2.redirectUri) {
+      oauth2.redirectUri = this.getRedirectUri();
+    }
+    if (!oauth2.clientId) {
+      oauth2.clientId = this.getClientId();
+    }
+
     // Exchange the auth code for an access token and refresh token.
     let authFields: TokenResponse;
     try {

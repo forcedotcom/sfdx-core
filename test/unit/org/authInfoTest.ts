@@ -831,6 +831,7 @@ describe('AuthInfo', () => {
         clientSecret: 'authInfoTest_clientSecret',
         refreshToken: testMetadata.refreshToken,
         loginUrl: testMetadata.loginUrl,
+        redirectUri: 'http://localhost:1717/OauthRedirect',
       };
       const authResponse = {
         access_token: testMetadata.accessToken,

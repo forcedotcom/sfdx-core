@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { URL } from 'url';
-import { URLSearchParams } from 'url';
+import * as FormData from 'form-data';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
 import { Duration, maxBy, env } from '@salesforce/kit';
 import {
@@ -218,19 +218,18 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
         headers.clientId = client;
       }
 
-      const form = new URLSearchParams();
+      const form = new FormData();
 
-      // TODO need to use form-data-node
       // Add the zip file
-      // form.append('file', zipInput, {
-      //   contentType: 'application/zip',
-      //   filename: 'package.xml',
-      // });
+      form.append('file', zipInput, {
+        contentType: 'application/zip',
+        filename: 'package.xml',
+      });
 
-      // // Add the deploy options
-      // form.append('entity_content', JSON.stringify({ deployOptions: options }), {
-      //   contentType: 'application/json',
-      // });
+      // Add the deploy options
+      form.append('entity_content', JSON.stringify({ deployOptions: options }), {
+        contentType: 'application/json',
+      });
 
       const url = `${this.baseUrl()}/metadata/deployRequest`;
 
@@ -256,25 +255,6 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     //  The "as" is a workaround for the jsforce typings.
     return super.request(httpRequest, options);
   }
-
-  // /**
-  //  * Send REST API request with given HTTP request info, with connected session information
-  //  * and SFDX headers. This method returns a raw http response which includes a response body and statusCode.
-  //  *
-  //  * @param request HTTP request object or URL to GET request.
-  //  */
-  // public async requestRaw(request: HttpRequest): Promise<JsonMap> {
-  //   const headers = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {};
-
-  //   merge(headers, SFDX_HTTP_HEADERS, request.headers);
-
-  //   return this._transport.httpRequest({
-  //     method: request.method,
-  //     url: request.url,
-  //     headers,
-  //     body: request.body,
-  //   });
-  // }
 
   /**
    * The Force API base url for the instance.

@@ -17,8 +17,9 @@ import {
   isJsonMap,
   Many,
 } from '@salesforce/ts-types';
-import { QueryResult, HttpRequest } from 'jsforce';
-import { Schema, SObjectUpdateRecord } from 'jsforce/lib/types';
+import type { QueryResult } from 'jsforce';
+import { HttpApi } from 'jsforce/lib/http-api';
+import type { HttpRequest, HttpResponse, Schema, SObjectUpdateRecord } from 'jsforce/lib/types';
 import { Connection } from '../org/connection';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -454,9 +455,7 @@ export class User extends AsyncCreatable<User.Options> {
       body,
     };
 
-    // TODO fix type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await conn.request<any>(info);
+    const response = await this.rawRequest(conn, info);
     const responseBody = parseJsonMap(ensureString(response['body']));
     const statusCode = asNumber(response.statusCode);
 
@@ -489,6 +488,15 @@ export class User extends AsyncCreatable<User.Options> {
       buffer,
       userId: fields.id,
     };
+  }
+
+  private async rawRequest(conn: Connection, options: HttpRequest): Promise<HttpResponse> {
+    return new Promise<HttpResponse>((resolve, reject) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const httpApi = new HttpApi(conn as any, options);
+      httpApi.on('response', (response: HttpResponse) => resolve(response));
+      httpApi.request(options).catch(reject);
+    });
   }
 
   /**
