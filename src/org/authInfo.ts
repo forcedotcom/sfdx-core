@@ -55,7 +55,8 @@ const messages = Messages.load('@salesforce/core', 'core', [
   'authCodeExchangeError',
 ]);
 
-// Can or should these be brought into jsforce?
+// These should these be brought into jsforce, especially all the jwt stuff.
+// See https://github.com/jsforce/jsforce/issues/896
 export type OAuth2Config = JsforceOAuth2Config & {
   privateKey?: string;
   privateKeyFile?: string;

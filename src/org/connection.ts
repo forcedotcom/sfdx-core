@@ -71,7 +71,7 @@ export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
    * @param soql The SOQL string.
    * @param options The query options.  NOTE: the autoFetch option will always be true.
    */
-  autoFetchQuery<T>(soql: string, options?: QueryOptions): Promise<QueryResult<T>>;
+  autoFetchQuery<T extends Schema = S>(soql: string, options?: QueryOptions): Promise<QueryResult<T>>;
 }
 
 /**
@@ -96,18 +96,11 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    */
   public get tooling(): Tooling<S> {
     return super.tooling as Tooling<S>;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-    // @ts-ignore
-    // tooling.autoFetchQuery = Connection.prototype.autoFetchQuery.bind(tooling);
-
-    // return tooling as Tooling<S>;
   }
 
   // We want to use 1 logger for this class and the jsForce base classes so override
   // the jsForce connection.tooling.logger and connection.logger.
   private logger!: Logger;
-  // private _transport!: { httpRequest: (request: HttpRequest) => JsonMap };
-  // private _normalizeUrl!: (url: string) => string;
   private options: Connection.Options<S>;
 
   // All connections are tied to a username
@@ -440,14 +433,8 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
         } or greater than ${maxFetch}.`
       );
     }
-    //   resolve({
-    //     done: true,
-    //     totalSize,
-    //     records,
-    //   });
-    // });
+
     return query;
-    // });
   }
 
   /**
@@ -560,6 +547,9 @@ export namespace Connection {
   }
 }
 
+// jsforce does some interesting proxy loading on lib classes.
+// Setting this in the Connection.tooling getter will not work, it
+// must be set on the prototype.
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 JSForceTooling.prototype.autoFetchQuery = Connection.prototype.autoFetchQuery; // eslint-disable-line @typescript-eslint/unbound-method
