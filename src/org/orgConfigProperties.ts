@@ -18,7 +18,7 @@ export enum OrgConfigProperties {
 function exist(aliasOrUsername: string) {
   try {
     const username = Aliases.get(aliasOrUsername) || aliasOrUsername;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const globalInfo = GlobalInfo.instance || new GlobalInfo();
     globalInfo.readSync();
