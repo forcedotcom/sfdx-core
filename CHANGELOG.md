@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.2.0-v3.0](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-v3.2...v3.2.0-v3.0) (2021-07-14)
+
+
+### Features
+
+* use .sf/config.json @W-9546117@ ([#433](https://github.com/forcedotcom/sfdx-core/issues/433)) ([6c41653](https://github.com/forcedotcom/sfdx-core/commit/6c416531a9bae10e855ded3efc289a99196bc26b))
+
 ### [3.1.1-v3.2](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-v3.1...v3.1.1-v3.2) (2021-06-29)
 
 
