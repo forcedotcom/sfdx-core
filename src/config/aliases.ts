@@ -7,6 +7,7 @@
 
 import { asString, Dictionary, JsonMap, Optional } from '@salesforce/ts-types/lib';
 import { Messages } from '../messages';
+import { Global } from '../global';
 import { ConfigGroup } from './configGroup';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -50,7 +51,9 @@ export class Aliases extends ConfigGroup {
    * Get Aliases specific options.
    */
   public static getDefaultOptions(): ConfigGroup.Options {
-    return ConfigGroup.getOptions(AliasGroup.ORGS, Aliases.getFileName());
+    const opts = ConfigGroup.getOptions(AliasGroup.ORGS, Aliases.getFileName());
+    opts.stateFolder = Global.SFDX_STATE_FOLDER;
+    return opts;
   }
 
   /**
