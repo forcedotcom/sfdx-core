@@ -217,13 +217,12 @@ describe('Logger', () => {
   });
 
   describe('filters', () => {
-    const sid = 'SIDHERE!';
+    const sid = '00D55000000M2qA!AQ0AQHg3LnYDOyobmH07';
     const simpleString = `sid=${sid}`;
     const stringWithObject = ` The rain in Spain: ${JSON.stringify({
       // eslint-disable-next-line camelcase
       access_token: sid,
     })}`;
-    const jsforceStringWithToken = `Connection refresh completed. Refreshed access token = ${sid}`;
     const obj1 = { accessToken: `${sid}`, refreshToken: `${sid}` };
     const obj2 = { key: 'Access Token', value: `${sid}` };
     const arr1 = [
@@ -236,7 +235,7 @@ describe('Logger', () => {
       { key: ' refresh  _TOKEn ', value: ` ${sid} ` },
       { key: ' SfdX__AuthUrl  ', value: ` ${sid} ` },
     ];
-    const testLogEntries = [simpleString, stringWithObject, jsforceStringWithToken, obj1, obj2, arr1, arr2];
+    const testLogEntries = [simpleString, stringWithObject, obj1, obj2, arr1, arr2];
 
     async function runTest(logLevel: [string, number]) {
       const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(0);
