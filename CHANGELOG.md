@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.1](https://github.com/forcedotcom/sfdx-core/compare/v2.26.0...v2.26.1) (2021-07-19)
+
+
+### Bug Fixes
+
+* force:org:open force:org:open --urlonly display bug ([#439](https://github.com/forcedotcom/sfdx-core/issues/439)) ([2ea0e74](https://github.com/forcedotcom/sfdx-core/commit/2ea0e74b8bf1bff6de8af70372025cac10fc8c18))
+
 ## [2.26.0](https://github.com/forcedotcom/sfdx-core/compare/v2.25.1...v2.26.0) (2021-07-13)
 
 
