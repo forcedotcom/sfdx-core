@@ -192,6 +192,9 @@ export class SfdcUrl extends URL {
     }
     const myDomainResolver = await MyDomainResolver.create({ url: this });
     const cnames: string[] = await myDomainResolver.getCnames();
-    return cnames.some((cname) => new SfdcUrl(cname).isSandboxUrl());
+    return cnames.some((cname) => {
+      const url = new SfdcUrl(`https://${cname}`);
+      return url.isSandboxUrl();
+    });
   }
 }

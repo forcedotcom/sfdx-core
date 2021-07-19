@@ -14,7 +14,7 @@ import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 
 const $$ = testSetup();
 const TEST_IP = '1.1.1.1';
-const TEST_CNAMES = ['https://login.salesforce.com', 'https://test.salesforce.com'];
+const TEST_CNAMES = ['login.salesforce.com', 'test.salesforce.com'];
 
 describe('util/sfdcUrl', () => {
   describe('isSalesforceDomain', () => {
