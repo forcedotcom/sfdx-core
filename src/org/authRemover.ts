@@ -80,7 +80,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFoundError' }* if specified user is not found
    *
    * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured defaultusername
-   * @returns {Promise<Authorization>}
+   * @returns {Promise<SfOrg>}
    */
   public async findAuth(usernameOrAlias?: string): Promise<SfOrg> {
     const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getDefaultUsername();
@@ -94,7 +94,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
   /**
    * Finds all authorization files in the global .sfdx folder
    *
-   * @returns {Promise<SfOrgs>}
+   * @returns {SfOrgs}
    */
   public findAllAuths(): SfOrgs {
     return this.globalInfo.getOrgs();
