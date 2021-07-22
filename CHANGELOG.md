@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.3.3](https://github.com/forcedotcom/sfdx-core/compare/v3.3.2...v3.3.3) (2021-07-22)
+
+
+### Bug Fixes
+
+* write sf.json contents on init ([c47f649](https://github.com/forcedotcom/sfdx-core/commit/c47f64954118d0d2f7f4a8e992d3450516239084))
+
 ### [3.3.2](https://github.com/forcedotcom/sfdx-core/compare/v3.3.1...v3.3.2) (2021-07-21)
 
 
