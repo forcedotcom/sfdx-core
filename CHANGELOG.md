@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.3.4](https://github.com/forcedotcom/sfdx-core/compare/v3.3.3...v3.3.4) (2021-07-26)
+
+
+### Bug Fixes
+
+* remove bad validator function ([1b97dc6](https://github.com/forcedotcom/sfdx-core/commit/1b97dc6f4d657a5b86489d33c4843ebfd54b3715))
+
 ### [3.3.3](https://github.com/forcedotcom/sfdx-core/compare/v3.3.2...v3.3.3) (2021-07-22)
 
 
