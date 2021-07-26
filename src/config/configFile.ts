@@ -371,12 +371,10 @@ export namespace ConfigFile {
      * The root folder where the config file is stored.
      */
     rootFolder?: string;
-
     /**
      * The state folder where the config file is stored.
      */
     stateFolder?: string;
-
     /**
      * The file name.
      */

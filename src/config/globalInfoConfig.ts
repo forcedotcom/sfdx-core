@@ -7,6 +7,7 @@
 import { isEmpty } from '@salesforce/kit';
 import { AnyJson, isPlainObject, JsonMap, Optional } from '@salesforce/ts-types';
 import { Global } from '../global';
+import { SfdxError } from '../sfdxError';
 import { ConfigFile } from './configFile';
 import { ConfigValue } from './configStore';
 import { SfdxDataHandler } from './sfdxDataHandler';
@@ -14,13 +15,13 @@ import { SfdxDataHandler } from './sfdxDataHandler';
 export enum SfInfoKeys {
   ORGS = 'orgs',
   TOKENS = 'tokens',
+  ALIASES = 'aliases',
 }
 
 export type Timestamp = { timestamp: string };
 export type SfEntry = JsonMap;
 
 export type SfOrg = {
-  alias: Optional<string>;
   username: Optional<string>;
   orgId: Optional<string>;
   instanceUrl: Optional<string>;
@@ -42,9 +43,16 @@ export interface SfTokens {
   [key: string]: SfToken & Timestamp;
 }
 
+export type SfAlias = string;
+
+export interface SfAliases {
+  [key: string]: SfAlias;
+}
+
 export type SfInfo = {
   [SfInfoKeys.ORGS]: SfOrgs;
   [SfInfoKeys.TOKENS]: SfTokens;
+  [SfInfoKeys.ALIASES]: SfAliases & Timestamp;
 };
 
 export function deepCopy<T extends AnyJson>(data: T): T {
@@ -56,6 +64,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   private static EMPTY_DATA_MODEL: SfInfo = {
     [SfInfoKeys.ORGS]: {},
     [SfInfoKeys.TOKENS]: {},
+    [SfInfoKeys.ALIASES]: { timestamp: Date.now().toString() },
   };
   private static instance: Optional<GlobalInfo>;
 
@@ -150,6 +159,35 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
 
   public unsetToken(name: string): void {
     delete this.get(SfInfoKeys.TOKENS)[name];
+  }
+
+  public getAliases(): SfAliases {
+    return this.get(SfInfoKeys.ALIASES) || {};
+  }
+
+  public getAlias(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string | null {
+    if (typeof aliasee === 'string') return this.getAliases()[aliasee];
+
+    const name = (aliasee.username ?? aliasee.user) as string;
+    return this.getAliases()[name] ?? null;
+  }
+
+  public setAlias(alias: string, aliasee: Partial<SfOrg> | Partial<SfToken>): void {
+    if (!(aliasee.username || aliasee.user)) {
+      throw new SfdxError(`Can not assign alias to ${JSON.stringify(aliasee)}`);
+    }
+    this.set(`${SfInfoKeys.ALIASES}["${alias}"]`, (aliasee.username ?? aliasee.user) as string);
+  }
+
+  public updateAlias(alias: string, aliasee: Partial<SfOrg> | Partial<SfToken>): void {
+    if (!(aliasee.username || aliasee.user)) {
+      throw new SfdxError(`Can not assign alias to ${JSON.stringify(aliasee)}`);
+    }
+    this.update(`${SfInfoKeys.ALIASES}["${alias}"]`, (aliasee.username ?? aliasee.user) as string);
+  }
+
+  public unsetAlias(alias: string): void {
+    delete this.get(SfInfoKeys.ALIASES)[alias];
   }
 
   public set(key: string, value: ConfigValue): void {

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { basename, extname } from 'path';
+import { basename, extname, join } from 'path';
 import { set } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
 import { Global } from '../global';
@@ -39,7 +39,7 @@ interface Changes<T> {
 }
 
 export class SfdxDataHandler {
-  public handlers = [new AuthHandler()];
+  public handlers = [new AuthHandler(), new AliasesHandler()];
   private original!: SfInfo;
 
   public async write(latest: SfInfo = GlobalInfo.emptyDataModel): Promise<void> {
@@ -109,6 +109,9 @@ abstract class BaseHandler<T extends SfInfoKeys> implements Handler<T> {
     return merged;
   }
 
+  /* A handler's migrate function should take data from sfdx config files
+   * and reshape it to fit the new sf config format
+   */
   public abstract migrate(): Promise<Pick<SfInfo, T>>;
   public abstract write(latest: SfInfo, original: SfInfo): Promise<void>;
 }
@@ -190,5 +193,43 @@ export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
       auths.push(auth);
     }
     return auths;
+  }
+}
+
+export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
+  private static SFDX_ALIASES_FILENAME = 'alias.json';
+
+  public sfKey: typeof SfInfoKeys.ALIASES = SfInfoKeys.ALIASES;
+
+  public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.ALIASES>> {
+    // TODO: Mitigate ~/.sfdx/alias.json file not existing
+    const aliasesFilePath = join(Global.SFDX_DIR, AliasesHandler.SFDX_ALIASES_FILENAME);
+    const sfdxAliases = ((await fs.readJson(aliasesFilePath)) as Record<'orgs', Record<string, string>>).orgs;
+    const timestamp = (await fs.stat(aliasesFilePath)).mtime.toISOString();
+    return { [this.sfKey]: { ...sfdxAliases, timestamp } };
+  }
+
+  // AliasesHandler implements its own merge method because the structure of aliases is flat instead of nested by SfInfoKey types.
+  public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<Partial<SfInfo>> {
+    const sfdxAliases = (await this.migrate())[SfInfoKeys.ALIASES];
+    const merged = deepCopy<SfInfo>(sfData);
+
+    // See the merge method of the BaseHandler class for the reasoning behind the two following loops
+    // Overwrite sfAliases with sfdxAliases
+    for (const alias in sfdxAliases) {
+      if (alias !== 'timestamp') merged[SfInfoKeys.ALIASES][alias] = sfdxAliases[alias];
+    }
+
+    // Delete any keys that are not in sfdxData
+    for (const alias in merged[SfInfoKeys.ALIASES]) {
+      if (!sfdxAliases[alias]) delete merged[SfInfoKeys.ALIASES][alias];
+    }
+
+    return merged;
+  }
+
+  public async write(latest: SfInfo, original: SfInfo): Promise<void> {
+    console.log(latest); // eslint-disable-line no-console
+    console.log(original); // eslint-disable-line no-console
   }
 }
