@@ -9,7 +9,7 @@ import { Env, Duration } from '@salesforce/kit';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { sfdc } from './sfdc';
 
-export default async function checkLightningDomain(url: string): Promise<boolean> {
+export async function checkLightningDomain(url: string): Promise<boolean | never> {
   const domain = `https://${/https?:\/\/([^.]*)/.exec(url)?.slice(1, 2).pop()}.lightning.force.com`;
   const quantity = new Env().getNumber('SFDX_DOMAIN_RETRY', 240) ?? 0;
   const timeout = new Duration(quantity, Duration.Unit.SECONDS);

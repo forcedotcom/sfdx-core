@@ -78,3 +78,4 @@ export { PermissionSetAssignment, PermissionSetAssignmentFields } from './permis
 // Utility sub-modules
 export * from './util/fs';
 export * from './util/sfdc';
+export * from './util/checkLightningDomain';
