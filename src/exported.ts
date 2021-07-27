@@ -42,6 +42,8 @@ export { WebOAuthServer } from './webOAuthServer';
 
 export { SfdcUrl } from './util/sfdcUrl';
 
+export { getJwtAudienceUrl } from './util/getJwtAudienceUrl';
+
 export {
   Fields,
   FieldValue,
