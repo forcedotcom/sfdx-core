@@ -7,6 +7,7 @@
 
 import { findKey } from '@salesforce/kit';
 import { AnyJson, asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { SfdcUrl } from './sfdcUrl';
 
 export const sfdc = {
   /**
@@ -88,4 +89,11 @@ export const sfdc = {
   matchesAccessToken: (value: string): boolean => {
     return /^(00D\w{12,15})![.\w]*$/.test(value);
   },
+
+  /**
+   * Tests whether a given url is an internal Salesforce domain
+   *
+   * @param url
+   */
+  isInternalUrl: (url: string): boolean => new SfdcUrl(url).isInternalUrl(),
 };
