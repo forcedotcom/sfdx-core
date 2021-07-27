@@ -7,7 +7,6 @@
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
-import { Aliases } from '../config/aliases';
 import { Config, SfdxPropertyKeys } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
@@ -47,7 +46,6 @@ export class AuthRemover extends AsyncOptionalCreatable {
   private localConfig: Nullable<Config>;
   private globalInfo!: GlobalInfo;
   private logger!: Logger;
-  private aliases!: Aliases;
 
   /**
    * Removes the authentication and any configs or aliases associated with it
@@ -105,7 +103,6 @@ export class AuthRemover extends AsyncOptionalCreatable {
     this.globalConfig = await this.getConfig(true);
     this.localConfig = await this.getConfig(false);
     this.globalInfo = await GlobalInfo.getInstance();
-    this.aliases = await Aliases.create(Aliases.getDefaultOptions());
   }
 
   /**
@@ -115,8 +112,8 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<string>}
    */
   private async resolveUsername(usernameOrAlias: string): Promise<string> {
-    const aliasedValue = this.aliases.get(usernameOrAlias);
-    return (aliasedValue || usernameOrAlias) as string;
+    const alias = this.globalInfo.getAliasOf(usernameOrAlias);
+    return Array.isArray(alias) ? alias[0] : alias ?? usernameOrAlias;
   }
 
   /**
@@ -156,7 +153,10 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<string[]>}
    */
   private getAliases(username: string): string[] {
-    return this.aliases.getKeysByValue(username) || [];
+    const aliases = this.globalInfo.getAliasOf(username);
+    if (typeof aliases === 'string') return [aliases];
+    if (Array.isArray(aliases)) return aliases;
+    return [];
   }
 
   /**
@@ -190,9 +190,13 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   private async unsetAliases(username: string) {
     this.logger.debug(`Clearing aliases for username: ${username}`);
-    const existingAliases = this.aliases.getKeysByValue(username);
+    let existingAliases = this.globalInfo.getAliasOf(username);
+
+    if (!existingAliases) return;
+    if (!Array.isArray(existingAliases)) existingAliases = [existingAliases];
+
     this.logger.debug(`Found these aliases to remove: ${existingAliases}`);
-    existingAliases.forEach((alias) => this.aliases.unset(alias));
-    await this.aliases.write();
+    existingAliases.forEach((alias) => this.globalInfo.unsetAlias(alias));
+    await this.globalInfo.write();
   }
 }

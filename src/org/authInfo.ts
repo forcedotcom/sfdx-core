@@ -34,7 +34,6 @@ import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 // @ts-ignore
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-import { Aliases } from '../config/aliases';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
@@ -379,11 +378,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   public static async listAllAuthorizations(): Promise<SfOrg[]> {
     const globalInfo = await GlobalInfo.getInstance();
     const auths = Object.values(globalInfo.getOrgs());
-    const aliases = await Aliases.create(Aliases.getDefaultOptions());
     const final: SfOrg[] = [];
     for (const auth of auths) {
       const username = ensureString(auth.username);
-      const [alias] = aliases.getKeysByValue(username);
+      const aliases = globalInfo.getAliasOf(username);
+      const alias = Array.isArray(aliases) ? aliases[0] : aliases ?? '';
       try {
         const authInfo = await AuthInfo.create({ username });
         const { orgId, instanceUrl } = authInfo.getFields();
@@ -657,8 +656,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     const username = ensureString(this.getUsername());
-    const aliases = await Aliases.create(Aliases.getDefaultOptions());
-    const value = aliases.getKeysByValue(username)[0] || username;
+    const alias = this.globalInfo.getAliasOf(username);
+    const value = Array.isArray(alias) ? alias[0] : alias ?? username;
 
     if (options.org) {
       config.set(OrgConfigProperties.TARGET_ORG, value);
@@ -676,8 +675,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param alias alias to set
    */
   public async setAlias(alias: string) {
-    const username = this.getUsername();
-    await Aliases.parseAndUpdate([`${alias}=${username}`]);
+    this.globalInfo.setAlias(alias, this.getUsername());
   }
 
   /**

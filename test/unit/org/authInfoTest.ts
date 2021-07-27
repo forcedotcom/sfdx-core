@@ -20,7 +20,6 @@ import { match } from 'sinon';
 import * as Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { AuthFields, AuthInfo, OAuth2WithVerifier } from '../../../src/org/authInfo';
-import { Aliases } from '../../../src/config/aliases';
 import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
@@ -1562,12 +1561,13 @@ describe('AuthInfo', () => {
     const alias = 'MyAlias';
 
     it('should set alias', async () => {
-      const aliasSpy = spyMethod($$.SANDBOX, Aliases, 'parseAndUpdate');
+      const globalInfoSpy = spyMethod($$.SANDBOX, GlobalInfo.prototype, 'setAlias');
       $$.SANDBOX.stub(GlobalInfo.prototype, 'hasOrg').returns(true);
       const authInfo = await AuthInfo.create({ username });
       await authInfo.setAlias(alias);
-      expect(aliasSpy.calledOnce).to.be.true;
-      expect(aliasSpy.firstCall.args).to.deep.equal([[`${alias}=${username}`]]);
+      expect(globalInfoSpy.calledOnce).to.be.true;
+      expect(globalInfoSpy.firstCall.args[0]).to.equal(alias);
+      expect(globalInfoSpy.firstCall.args[1]).to.equal(alias);
     });
   });
 
@@ -1596,7 +1596,7 @@ describe('AuthInfo', () => {
     });
 
     it('should set alias to target-org', async () => {
-      stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns([alias]);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').returns([alias]);
       const authInfo = await AuthInfo.create({ username });
       await authInfo.setAsDefault({ org: true });
       expect(configSpy.called).to.be.true;
@@ -1604,7 +1604,7 @@ describe('AuthInfo', () => {
     });
 
     it('should set alias to target-dev-hub', async () => {
-      stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns([alias]);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').returns([alias]);
       const authInfo = await AuthInfo.create({ username });
       await authInfo.setAsDefault({ devHub: true });
       expect(configSpy.called).to.be.true;
@@ -1895,7 +1895,7 @@ describe('AuthInfo', () => {
       });
 
       it('should return list of authorizations with alias', async () => {
-        stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns(['MyAlias']);
+        stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').returns(['MyAlias']);
         const auths = await AuthInfo.listAllAuthorizations();
         expect(auths).to.deep.equal([
           {
@@ -1946,7 +1946,7 @@ describe('AuthInfo', () => {
       });
 
       it('should return list of authorizations with unknown oauthMethod and alias', async () => {
-        stubMethod($$.SANDBOX, Aliases.prototype, 'getKeysByValue').returns(['MyAlias']);
+        stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').returns(['MyAlias']);
         const auths = await AuthInfo.listAllAuthorizations();
         expect(auths).to.deep.equal([
           {

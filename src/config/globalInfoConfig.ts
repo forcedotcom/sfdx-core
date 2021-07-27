@@ -189,6 +189,12 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     delete this.get(SfInfoKeys.ALIASES)[alias];
   }
 
+  public unsetAliasOf(aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
+    const aliases = this.getAliasOf(aliasee) ?? [];
+    if (typeof aliasee === 'string') this.unsetAlias(aliasee);
+    if (Array.isArray(aliases)) aliases.forEach((alias) => this.unsetAlias(alias));
+  }
+
   public set(key: string, value: ConfigValue): void {
     if (isPlainObject(value)) {
       value = this.timestamp(value as JsonMap);

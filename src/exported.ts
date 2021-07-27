@@ -10,11 +10,7 @@ Messages.importMessagesDirectory(__dirname);
 
 export { OAuth2Options } from 'jsforce';
 
-export { Aliases, AliasGroup } from './config/aliases';
-
 export { ConfigFile } from './config/configFile';
-
-export { ConfigGroup } from './config/configGroup';
 
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 

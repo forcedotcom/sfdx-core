@@ -8,7 +8,7 @@ import { set } from '@salesforce/kit';
 import { PartialDeep } from '@salesforce/kit/lib/nodash/support';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { GlobalInfo, SfInfo } from '../../../src/config/globalInfoConfig';
+import { GlobalInfo, SfInfo, SfInfoKeys } from '../../../src/config/globalInfoConfig';
 import { ConfigFile } from '../../../src/config/configFile';
 import { AuthHandler, SfdxDataHandler } from '../../../src/config/sfdxDataHandler';
 import { fs } from '../../../src/exported';
@@ -193,6 +193,9 @@ describe('SfdxDataHandler', () => {
     it('should call migrate on all registered handlers', async () => {
       const sfdxDataHandler = new SfdxDataHandler();
       const migrateStubs = sfdxDataHandler.handlers.map((handler) => {
+        if (handler.sfKey === SfInfoKeys.ALIASES) {
+          return sandbox.stub(handler, 'migrate').resolves({ [SfInfoKeys.ALIASES]: {} });
+        }
         return sandbox.stub(handler, 'migrate').resolves({ [handler.sfKey]: {} });
       });
 
