@@ -7,7 +7,7 @@
 
 import { basename, extname, join } from 'path';
 import { set } from '@salesforce/kit';
-import { ensureString } from '@salesforce/ts-types';
+import { ensureString, isPlainObject } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { fs } from '../util/fs';
 import { ConfigFile } from './configFile';
@@ -29,6 +29,9 @@ function isEqual(object1: Record<string, unknown>, object2: Record<string, unkno
 interface Handler<T extends SfInfoKeys> {
   sfKey: T;
   merge: (sfData: SfInfo) => Promise<Partial<SfInfo>>;
+  /* A handler's migrate function should take data from sfdx config files
+   * and return it reshaped into the new sf config format
+   */
   migrate: () => Promise<Pick<SfInfo, T>>;
   write: (latest: SfInfo, original: SfInfo) => Promise<void>;
 }
@@ -78,7 +81,8 @@ abstract class BaseHandler<T extends SfInfoKeys> implements Handler<T> {
     const commonKeys = sfKeys.filter((k) => sfdxKeys.includes(k));
     for (const k of commonKeys) {
       const [newer, older] = [sfData[key][k], sfdxData[key][k]].sort((a, b) => {
-        return new Date(a.timestamp) < new Date(b.timestamp) ? 1 : -1;
+        if (isPlainObject(a) && isPlainObject(b)) return new Date(a.timestamp) < new Date(b.timestamp) ? 1 : -1;
+        return 0;
       });
       set(merged, `${key}["${k}"]`, Object.assign({}, older, newer));
     }
@@ -109,9 +113,6 @@ abstract class BaseHandler<T extends SfInfoKeys> implements Handler<T> {
     return merged;
   }
 
-  /* A handler's migrate function should take data from sfdx config files
-   * and reshape it to fit the new sf config format
-   */
   public abstract migrate(): Promise<Pick<SfInfo, T>>;
   public abstract write(latest: SfInfo, original: SfInfo): Promise<void>;
 }
@@ -205,20 +206,19 @@ export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
     // TODO: Mitigate ~/.sfdx/alias.json file not existing
     const aliasesFilePath = join(Global.SFDX_DIR, AliasesHandler.SFDX_ALIASES_FILENAME);
     const sfdxAliases = ((await fs.readJson(aliasesFilePath)) as Record<'orgs', Record<string, string>>).orgs;
-    const timestamp = (await fs.stat(aliasesFilePath)).mtime.toISOString();
-    return { [this.sfKey]: { ...sfdxAliases, timestamp } };
+    return { [this.sfKey]: { ...sfdxAliases } };
   }
 
   // AliasesHandler implements its own merge method because the structure of aliases is flat instead of nested by SfInfoKey types.
   public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<Partial<SfInfo>> {
-    const sfdxAliases = (await this.migrate())[SfInfoKeys.ALIASES];
+    const sfdxAliases: Record<string, string> = (await this.migrate())[SfInfoKeys.ALIASES];
     const merged = deepCopy<SfInfo>(sfData);
 
     // See the merge method of the BaseHandler class for the reasoning behind the two following loops
     // Overwrite sfAliases with sfdxAliases
-    for (const alias in sfdxAliases) {
-      if (alias !== 'timestamp') merged[SfInfoKeys.ALIASES][alias] = sfdxAliases[alias];
-    }
+    Object.keys(sfdxAliases).forEach((alias) => {
+      merged[SfInfoKeys.ALIASES][alias] = sfdxAliases[alias];
+    });
 
     // Delete any keys that are not in sfdxData
     for (const alias in merged[SfInfoKeys.ALIASES]) {
@@ -228,8 +228,8 @@ export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
     return merged;
   }
 
-  public async write(latest: SfInfo, original: SfInfo): Promise<void> {
-    console.log(latest); // eslint-disable-line no-console
-    console.log(original); // eslint-disable-line no-console
+  public async write(latest: SfInfo): Promise<void> {
+    const aliasesFilePath = join(Global.SFDX_DIR, AliasesHandler.SFDX_ALIASES_FILENAME);
+    fs.writeJson(aliasesFilePath, { orgs: latest[SfInfoKeys.ALIASES] });
   }
 }

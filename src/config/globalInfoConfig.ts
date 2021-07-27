@@ -22,6 +22,7 @@ export type Timestamp = { timestamp: string };
 export type SfEntry = JsonMap;
 
 export type SfOrg = {
+  alias: Optional<string>;
   username: Optional<string>;
   orgId: Optional<string>;
   instanceUrl: Optional<string>;
@@ -42,17 +43,14 @@ export type SfToken = {
 export interface SfTokens {
   [key: string]: SfToken & Timestamp;
 }
-
-export type SfAlias = string;
-
 export interface SfAliases {
-  [key: string]: SfAlias;
+  [key: string]: string;
 }
 
 export type SfInfo = {
   [SfInfoKeys.ORGS]: SfOrgs;
   [SfInfoKeys.TOKENS]: SfTokens;
-  [SfInfoKeys.ALIASES]: SfAliases & Timestamp;
+  [SfInfoKeys.ALIASES]: SfAliases;
 };
 
 export function deepCopy<T extends AnyJson>(data: T): T {
@@ -64,7 +62,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   private static EMPTY_DATA_MODEL: SfInfo = {
     [SfInfoKeys.ORGS]: {},
     [SfInfoKeys.TOKENS]: {},
-    [SfInfoKeys.ALIASES]: { timestamp: Date.now().toString() },
+    [SfInfoKeys.ALIASES]: {},
   };
   private static instance: Optional<GlobalInfo>;
 
@@ -165,25 +163,26 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     return this.get(SfInfoKeys.ALIASES) || {};
   }
 
-  public getAlias(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string | null {
-    if (typeof aliasee === 'string') return this.getAliases()[aliasee];
-
-    const name = (aliasee.username ?? aliasee.user) as string;
-    return this.getAliases()[name] ?? null;
+  public getAlias(alias: string): string | null {
+    return this.getAliases()[alias] ?? null;
   }
 
-  public setAlias(alias: string, aliasee: Partial<SfOrg> | Partial<SfToken>): void {
-    if (!(aliasee.username || aliasee.user)) {
-      throw new SfdxError(`Can not assign alias to ${JSON.stringify(aliasee)}`);
-    }
-    this.set(`${SfInfoKeys.ALIASES}["${alias}"]`, (aliasee.username ?? aliasee.user) as string);
+  public getAliasOf(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string[] | string | null {
+    const aliaseeName = this.getAliaseeName(aliasee);
+    const matchedAliases = Object.entries(this.getAliases()).filter((entry) => entry[1] === aliaseeName);
+
+    // Only return the alias or aliases
+    return matchedAliases.length > 1 ? matchedAliases.map((entry) => entry[0]) : matchedAliases[0] ?? null;
   }
 
-  public updateAlias(alias: string, aliasee: Partial<SfOrg> | Partial<SfToken>): void {
-    if (!(aliasee.username || aliasee.user)) {
-      throw new SfdxError(`Can not assign alias to ${JSON.stringify(aliasee)}`);
-    }
-    this.update(`${SfInfoKeys.ALIASES}["${alias}"]`, (aliasee.username ?? aliasee.user) as string);
+  public setAlias(alias: string, aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
+    const aliaseeName = this.getAliaseeName(aliasee);
+    this.set(`${SfInfoKeys.ALIASES}["${alias}"]`, aliaseeName);
+  }
+
+  public updateAlias(alias: string, aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
+    const aliaseeName = this.getAliaseeName(aliasee);
+    this.update(`${SfInfoKeys.ALIASES}["${alias}"]`, aliaseeName);
   }
 
   public unsetAlias(alias: string): void {
@@ -208,6 +207,15 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     const contents = Global.SFDX_INTEROPERABILITY ? await this.mergeWithSfdxData() : await this.loadSfData();
     this.setContents(contents);
     await this.write(contents);
+  }
+
+  private getAliaseeName(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string {
+    if (typeof aliasee === 'string') return aliasee;
+    const aliaseeName = aliasee.username ?? aliasee.user;
+    if (!aliaseeName) {
+      throw new SfdxError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(aliasee)}`);
+    }
+    return aliaseeName as string;
   }
 
   private timestamp<T extends JsonMap>(data: T): T {
