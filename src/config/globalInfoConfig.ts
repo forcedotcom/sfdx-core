@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isEmpty } from '@salesforce/kit';
 import { AnyJson, isPlainObject, JsonMap, Optional } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
@@ -30,6 +29,7 @@ export type SfOrg = {
   oauthMethod?: 'jwt' | 'web' | 'token' | 'unknown';
   error?: string;
 } & SfEntry;
+
 export interface SfOrgs {
   [key: string]: SfOrg & Timestamp;
 }
@@ -230,7 +230,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
 
   private async loadSfData(): Promise<SfInfo> {
     const data = await this.read();
-    return isEmpty(data) ? GlobalInfo.emptyDataModel : data;
+    return Object.assign(GlobalInfo.emptyDataModel, data);
   }
 
   private async mergeWithSfdxData(): Promise<SfInfo> {

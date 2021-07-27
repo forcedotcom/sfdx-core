@@ -53,9 +53,9 @@ export class SfdxDataHandler {
   }
 
   public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<SfInfo> {
-    const merged = deepCopy<SfInfo>(sfData);
+    let merged = deepCopy<SfInfo>(sfData);
     for (const handler of this.handlers) {
-      Object.assign(merged, await handler.merge(merged));
+      merged = Object.assign(merged, await handler.merge(merged));
     }
     this.setOriginal(merged);
     return merged;
