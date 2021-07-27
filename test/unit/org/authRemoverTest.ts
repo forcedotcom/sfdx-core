@@ -31,6 +31,7 @@ describe('AuthRemover', () => {
       this.setContentsFromObject(contents);
       return this.getContents();
     });
+    stubMethod($$.SANDBOX, GlobalInfo.prototype, 'write').callsFake(() => {});
   });
 
   describe('resolveUsername', () => {

@@ -167,6 +167,7 @@ describe('Org Tests', () => {
       $$.SANDBOXES.CONFIG.restore();
       // Cleared the config, so manually set the authorization.
       (await GlobalInfo.getInstance()).setOrg(testData.username, await testData.getConfig());
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'write').callsFake(() => {});
       let invalidProjectWorkspace = false;
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
         invalidProjectWorkspace = true;
@@ -192,6 +193,7 @@ describe('Org Tests', () => {
       $$.SANDBOXES.CONFIG.restore();
       // Cleared the config, so manually set the authorization.
       (await GlobalInfo.getInstance()).setOrg(testData.username, await testData.getConfig());
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'write').callsFake(() => {});
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
         const err = new Error();
         err.name = 'gozer';
