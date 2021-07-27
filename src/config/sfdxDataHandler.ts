@@ -217,13 +217,28 @@ export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
     const sfdxAliases: Record<string, string> = (await this.migrate())[SfInfoKeys.ALIASES];
     const merged = deepCopy<SfInfo>(sfData);
 
-    // See the merge method of the BaseHandler class for the reasoning behind the two following loops
-    // Overwrite sfAliases with sfdxAliases
+    /* Overwrite `sf` aliases with `sfdx` aliases
+     *  `sf` will alaways modify `sfdx` files but `sfdx` won't modify `sf` files
+     *  because of this we can assume that any changes in `sfdx` files that aren't
+     *  in `sf` are the latest data
+     *
+     *  This breaks down if a user of `sf` manually modifies the `~/.sf/sf.json` file
+     *  but we don't support that use case out-of-the-box (yet?)
+     *
+     *  Note: See also the explanation on the merge method in the BaseHandler class
+     */
     Object.keys(sfdxAliases).forEach((alias) => {
       merged[SfInfoKeys.ALIASES][alias] = sfdxAliases[alias];
     });
 
-    // Delete any keys that are not in sfdxData
+    /* Delete any aliases that don't exist in sfdx config files
+     *  Aliases that exist in .sf but not .sfdx are deleted because we assume
+     *  that this means the alias was deleted while using sfdx. We can make
+     *  this assumption because keys that are created by sf will always be
+     *  migrated back to sfdx.
+     *
+     *  Note: See also the explanation on the merge method in the BaseHandler class
+     */
     for (const alias in merged[SfInfoKeys.ALIASES]) {
       if (!sfdxAliases[alias]) delete merged[SfInfoKeys.ALIASES][alias];
     }
