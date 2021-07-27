@@ -203,10 +203,13 @@ export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
   public sfKey: typeof SfInfoKeys.ALIASES = SfInfoKeys.ALIASES;
 
   public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.ALIASES>> {
-    // TODO: Mitigate ~/.sfdx/alias.json file not existing
     const aliasesFilePath = join(Global.SFDX_DIR, AliasesHandler.SFDX_ALIASES_FILENAME);
-    const sfdxAliases = ((await fs.readJson(aliasesFilePath)) as Record<'orgs', Record<string, string>>).orgs;
-    return { [this.sfKey]: { ...sfdxAliases } };
+    try {
+      const sfdxAliases = ((await fs.readJson(aliasesFilePath)) as Record<'orgs', Record<string, string>>).orgs;
+      return { [this.sfKey]: { ...sfdxAliases } };
+    } catch (e) {
+      return { [this.sfKey]: {} };
+    }
   }
 
   // AliasesHandler implements its own merge method because the structure of aliases is flat instead of nested by SfInfoKey types.
