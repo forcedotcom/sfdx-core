@@ -22,6 +22,10 @@ describe('getJwtAudienceUrl', () => {
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
   });
 
+  afterEach(() => {
+    env.unset('SFDX_AUDIENCE_URL');
+  });
+
   it('return the jwt audicence url for sandbox domains', async () => {
     const options: OAuth2Options = {
       loginUrl: 'https://organization.my.salesforce.com',

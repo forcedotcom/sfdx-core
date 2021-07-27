@@ -123,6 +123,10 @@ describe('util/sfdcUrl', () => {
       $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
     });
 
+    afterEach(() => {
+      env.unset('SFDX_AUDIENCE_URL');
+    });
+
     it('return the jwt audicence url for sandbox domains', async () => {
       const url = new SfdcUrl('https://organization.my.salesforce.com');
       const response = await url.getJwtAudienceUrl();
