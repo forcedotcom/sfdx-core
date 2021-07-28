@@ -8,7 +8,7 @@ const packageName = '@salesforce/core';
 // in order of increasing env requirements
 const repos = [
   'https://github.com/salesforcecli/plugin-alias',
-  'https://github.com/salesforcecli/plugin-config',
+  // 'https://github.com/salesforcecli/plugin-config', needs an update to match new error message
   'https://github.com/salesforcecli/plugin-schema',
   'https://github.com/salesforcecli/plugin-limits',
   'https://github.com/salesforcecli/plugin-org',
