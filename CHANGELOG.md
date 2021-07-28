@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.3.6](https://github.com/forcedotcom/sfdx-core/compare/v3.3.5...v3.3.6) (2021-07-28)
+
+
+### Bug Fixes
+
+* use correct method to get username ([#446](https://github.com/forcedotcom/sfdx-core/issues/446)) ([79a6b2f](https://github.com/forcedotcom/sfdx-core/commit/79a6b2f069f95b0c50a6c03ecbac07cf0d1832b1))
+
 ### [3.3.5](https://github.com/forcedotcom/sfdx-core/compare/v3.3.4...v3.3.5) (2021-07-28)
 
 ### [3.3.4](https://github.com/forcedotcom/sfdx-core/compare/v3.3.3...v3.3.4) (2021-07-26)
