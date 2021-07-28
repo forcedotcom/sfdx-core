@@ -30,7 +30,7 @@ workflows:
             - run: yarn ci-docs
           requires:
             - release-management/test-package
-            - release-management/test-nut
+            - nuts-on-linux
           filters:
             branches:
               only: main
