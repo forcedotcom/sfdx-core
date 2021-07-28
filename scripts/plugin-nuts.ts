@@ -2,6 +2,8 @@ import * as shell from 'shelljs';
 import { strict as assert } from 'assert';
 import * as os from 'os';
 import * as path from 'path';
+import { ensureString } from '@salesforce/ts-types';
+import { Env } from '@salesforce/kit';
 
 const packageName = '@salesforce/core';
 
@@ -17,7 +19,14 @@ const repos = [
   // toolbelt isn't implemented yet
   // 'https://github.com/salesforcecli/toolbelt'
 ];
-// check envs to make sure we can support all auth needed?
+
+// check envs to make sure we can support all auth that will be used?
+const env = new Env();
+ensureString(env.getString('TESTKIT_HUB_USERNAME'));
+ensureString(env.getString('TESTKIT_HUB_INSTANCE'));
+ensureString(env.getString('TESTKIT_JWT_CLIENT_ID'));
+ensureString(env.getString('TESTKIT_JWT_KEY'));
+ensureString(env.getString('TESTKIT_AUTH_URL'));
 
 // link sfdx-core
 shell.exec(`yarn link`);
