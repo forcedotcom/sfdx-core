@@ -24,6 +24,8 @@ workflows:
           sfdx_version: latest
           requires:
             - release-management/test-package
+          size: xlarge
+          node_version: lts
       - release-management/release-package:
           github-release: true
           post-job-steps:
