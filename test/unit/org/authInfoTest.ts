@@ -1567,7 +1567,7 @@ describe('AuthInfo', () => {
       await authInfo.setAlias(alias);
       expect(globalInfoSpy.calledOnce).to.be.true;
       expect(globalInfoSpy.firstCall.args[0]).to.equal(alias);
-      expect(globalInfoSpy.firstCall.args[1]).to.equal(alias);
+      expect(globalInfoSpy.firstCall.args[1]).to.equal(username);
     });
   });
 

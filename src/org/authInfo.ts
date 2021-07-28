@@ -382,7 +382,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     for (const auth of auths) {
       const username = ensureString(auth.username);
       const aliases = globalInfo.getAliasOf(username);
-      const alias = Array.isArray(aliases) ? aliases[0] : aliases ?? '';
+      const alias = Array.isArray(aliases) ? aliases[0] : aliases ?? undefined;
       try {
         const authInfo = await AuthInfo.create({ username });
         const { orgId, instanceUrl } = authInfo.getFields();
