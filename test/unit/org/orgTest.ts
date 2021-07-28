@@ -76,12 +76,12 @@ describe('Org Tests', () => {
       expect(org.getUsername()).to.eq(testData.username);
     });
 
-    it.skip('should create an org from an alias', async () => {
+    it.only('should create an org from an alias', async () => {
       const config = await testData.getConfig();
       delete config.username;
       $$.configStubs.GlobalInfo = { contents: { orgs: { [testData.username]: config } } };
       const alias = 'foo';
-      // await Aliases.parseAndUpdate([`${alias}=${testData.username}`]);
+      (await GlobalInfo.getInstance()).setAlias(alias, testData.username);
       const org: Org = await Org.create({ aliasOrUsername: alias });
       expect(org.getUsername()).to.eq(testData.username);
     });
