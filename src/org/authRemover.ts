@@ -112,7 +112,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<string>}
    */
   private async resolveUsername(usernameOrAlias: string): Promise<string> {
-    return this.globalInfo.getAlias(usernameOrAlias) ?? usernameOrAlias;
+    return this.globalInfo.getAliasee(usernameOrAlias) ?? usernameOrAlias;
   }
 
   /**

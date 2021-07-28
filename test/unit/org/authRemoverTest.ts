@@ -44,7 +44,7 @@ describe('AuthRemover', () => {
 
     it('should return username if given an alias', async () => {
       const alias = 'MyAlias';
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAlias').withArgs(alias).returns(username);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasee').withArgs(alias).returns(username);
       const remover = await AuthRemover.create();
       // @ts-ignore because private method
       const resolved = await remover.resolveUsername(alias);
