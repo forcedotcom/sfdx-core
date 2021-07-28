@@ -337,12 +337,12 @@ describe('Org Tests', () => {
 
       const globalInfo = await GlobalInfo.getInstance();
       globalInfo.setAlias('foo', testData.username);
-      let alias = globalInfo.getAlias('foo');
-      expect(alias).eq(testData.username);
+      const user = globalInfo.getAliasee('foo');
+      expect(user).eq(testData.username);
 
       await org.remove();
 
-      alias = globalInfo.getAlias('foo');
+      const alias = globalInfo.getAlias('foo');
       expect(alias).eq(null);
     });
 
@@ -466,15 +466,15 @@ describe('Org Tests', () => {
 
       const globalInfo = await GlobalInfo.getInstance();
       globalInfo.setAlias('foo', org1Username);
-      let alias = globalInfo.getAlias('foo');
-      expect(alias).eq(org1Username);
+      const user = globalInfo.getAliasee('foo');
+      expect(user).eq(org1Username);
 
       await orgs[0].remove();
 
       await configAggregator.reload();
       expect(configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME)).has.property('value', undefined);
 
-      alias = globalInfo.getAlias('foo');
+      const alias = globalInfo.getAlias(user);
       expect(alias).eq(null);
     });
 

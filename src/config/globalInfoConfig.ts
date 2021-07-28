@@ -159,20 +159,42 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     delete this.get(SfInfoKeys.TOKENS)[name];
   }
 
-  public getAliases(): SfAliases {
+  public getAllAliases(): SfAliases {
     return this.get(SfInfoKeys.ALIASES) || {};
   }
 
-  public getAlias(alias: string): string | null {
-    return this.getAliases()[alias] ?? null;
+  /**
+   * This method always returns the first alias found if it exists.
+   *
+   * @param aliasee - The entity whose alias you want to find
+   */
+  public getAlias(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string | null {
+    const matchedAliases = this.getAliases(aliasee);
+
+    if (matchedAliases.length === 0) return null;
+    return matchedAliases[0];
   }
 
-  public getAliasOf(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string[] | string | null {
+  /**
+   * This method always returns an array of aliases or an empty array if none exist.
+   *
+   * @param aliasee - The entity whose aliases you want to find
+   */
+  public getAliases(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string[] {
     const aliaseeName = this.getAliaseeName(aliasee);
-    const matchedAliases = Object.entries(this.getAliases()).filter((entry) => entry[1] === aliaseeName);
+    const matchedAliases = Object.entries(this.getAllAliases()).filter((entry) => entry[1] === aliaseeName);
 
-    // Only return the alias or aliases
-    return matchedAliases.length > 1 ? matchedAliases.map((entry) => entry[0]) : matchedAliases[0] ?? null;
+    // Only return the actual aliases
+    return matchedAliases.map((entry) => entry[0]);
+  }
+
+  /**
+   * This method returns the name that an alias refers to if one exists.
+   *
+   * @param alias -The alias of the name you want to get.
+   */
+  public getAliasee(alias: string): string | null {
+    return this.getAllAliases()[alias] ?? null;
   }
 
   public setAlias(alias: string, aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
@@ -189,10 +211,14 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     delete this.get(SfInfoKeys.ALIASES)[alias];
   }
 
-  public unsetAliasOf(aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
-    const aliases = this.getAliasOf(aliasee) ?? [];
-    if (typeof aliasee === 'string') this.unsetAlias(aliasee);
-    if (Array.isArray(aliases)) aliases.forEach((alias) => this.unsetAlias(alias));
+  /**
+   * This method unsets all the aliases for a particular aliasee.
+   *
+   * @param aliasee - The entity whose aliases you want to unset.
+   */
+  public unsetAliases(aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
+    const aliases = this.getAliases(aliasee);
+    aliases.forEach((alias) => this.unsetAlias(alias));
   }
 
   public set(key: string, value: ConfigValue): void {

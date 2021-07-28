@@ -1596,7 +1596,7 @@ describe('AuthInfo', () => {
     });
 
     it('should set alias to target-org', async () => {
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').returns([alias]);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAlias').returns(alias);
       const authInfo = await AuthInfo.create({ username });
       await authInfo.setAsDefault({ org: true });
       expect(configSpy.called).to.be.true;
@@ -1604,7 +1604,7 @@ describe('AuthInfo', () => {
     });
 
     it('should set alias to target-dev-hub', async () => {
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').returns([alias]);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAlias').returns(alias);
       const authInfo = await AuthInfo.create({ username });
       await authInfo.setAsDefault({ devHub: true });
       expect(configSpy.called).to.be.true;
@@ -1895,7 +1895,7 @@ describe('AuthInfo', () => {
       });
 
       it('should return list of authorizations with alias', async () => {
-        stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').returns(['MyAlias']);
+        stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAlias').returns('MyAlias');
         const auths = await AuthInfo.listAllAuthorizations();
         expect(auths).to.deep.equal([
           {
@@ -1946,7 +1946,7 @@ describe('AuthInfo', () => {
       });
 
       it('should return list of authorizations with unknown oauthMethod and alias', async () => {
-        stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').returns(['MyAlias']);
+        stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAlias').returns('MyAlias');
         const auths = await AuthInfo.listAllAuthorizations();
         expect(auths).to.deep.equal([
           {

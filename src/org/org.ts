@@ -590,8 +590,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         this.options.aliasOrUsername = aliasOrUsername || undefined;
       }
 
-      const aliases = globalInfo.getAliasOf(this.options.aliasOrUsername as string);
-      const username = Array.isArray(aliases) ? aliases[0] : aliases ?? this.options.aliasOrUsername;
+      const alias = globalInfo.getAlias(this.options.aliasOrUsername as string);
+      const username = alias ?? this.options.aliasOrUsername;
       this.connection = await Connection.create({
         // If no username is provided or resolvable from an alias, AuthInfo will throw an SfdxError.
         authInfo: await AuthInfo.create({
@@ -675,8 +675,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       for (const auth of authInfos) {
         const username = auth.getFields().username;
 
-        const aliases = (username && globalInfo.getAliasOf(username)) || [];
-        if (username) globalInfo.unsetAliasOf(username);
+        const aliases = (username && globalInfo.getAliases(username)) || [];
+        globalInfo.unsetAliases(username as string);
 
         let orgForUser;
         if (username === this.getUsername()) {

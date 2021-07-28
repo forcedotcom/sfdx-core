@@ -381,8 +381,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const final: SfOrg[] = [];
     for (const auth of auths) {
       const username = ensureString(auth.username);
-      const aliases = globalInfo.getAliasOf(username);
-      const alias = Array.isArray(aliases) ? aliases[0] : aliases ?? undefined;
+      const alias = globalInfo.getAlias(username) ?? undefined;
       try {
         const authInfo = await AuthInfo.create({ username });
         const { orgId, instanceUrl } = authInfo.getFields();
@@ -656,8 +655,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     const username = ensureString(this.getUsername());
-    const alias = this.globalInfo.getAliasOf(username);
-    const value = Array.isArray(alias) ? alias[0] : alias ?? username;
+    const alias = this.globalInfo.getAlias(username);
+    const value = alias ?? username;
 
     if (options.org) {
       config.set(OrgConfigProperties.TARGET_ORG, value);

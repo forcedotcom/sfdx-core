@@ -44,7 +44,7 @@ describe('AuthRemover', () => {
 
     it('should return username if given an alias', async () => {
       const alias = 'MyAlias';
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').withArgs(alias).returns(username);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAlias').withArgs(alias).returns(username);
       const remover = await AuthRemover.create();
       // @ts-ignore because private method
       const resolved = await remover.resolveUsername(alias);
@@ -73,7 +73,7 @@ describe('AuthRemover', () => {
 
     it('should return authorization for provided alias', async () => {
       const alias = 'MyAlias';
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').withArgs(alias).returns(username);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAlias').withArgs(alias).returns(username);
       stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
       const remover = await AuthRemover.create();
       const auth = await remover.findAuth(alias);
@@ -98,7 +98,7 @@ describe('AuthRemover', () => {
         .returns({})
         .withArgs(SfdxPropertyKeys.DEFAULT_USERNAME)
         .returns({ value: alias });
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').withArgs(alias).returns(username);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAlias').withArgs(alias).returns(username);
       const remover = await AuthRemover.create();
       const auth = await remover.findAuth();
       expect(auth).to.deep.equal({ username, orgId: '12345' });
@@ -126,7 +126,7 @@ describe('AuthRemover', () => {
       const configUnsetSpy = spyMethod($$.SANDBOX, Config.prototype, 'unset');
 
       const alias = 'MyAlias';
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').returns([alias]);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliases').returns([alias]);
       stubMethod($$.SANDBOX, Config.prototype, 'getKeysByValue').returns([
         SfdxPropertyKeys.DEFAULT_USERNAME,
         SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME,
@@ -154,7 +154,7 @@ describe('AuthRemover', () => {
   describe('unsetAliases', () => {
     it('should unset aliases for provided username', async () => {
       const aliasesSpy = spyMethod($$.SANDBOX, GlobalInfo.prototype, 'unsetAlias');
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliasOf').returns(['MyAlias', 'MyOtherAlias']);
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAliases').returns(['MyAlias', 'MyOtherAlias']);
 
       const remover = await AuthRemover.create();
       // @ts-ignore because private member
