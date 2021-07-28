@@ -221,6 +221,12 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     aliases.forEach((alias) => this.unsetAlias(alias));
   }
 
+  public getUser(usernameOrAlias: string): string | null {
+    return (
+      this.getOrg(usernameOrAlias)?.username ?? this.getToken(usernameOrAlias)?.user ?? this.getAliasee(usernameOrAlias)
+    );
+  }
+
   public set(key: string, value: ConfigValue): void {
     if (isPlainObject(value)) {
       value = this.timestamp(value as JsonMap);
