@@ -5,7 +5,7 @@ import * as path from 'path';
 
 const packageName = '@salesforce/core';
 
-// in order of increasing time/complexity
+// in order of increasing env requirements
 const repos = [
   'https://github.com/salesforcecli/plugin-alias',
   'https://github.com/salesforcecli/plugin-config',
@@ -14,6 +14,8 @@ const repos = [
   'https://github.com/salesforcecli/plugin-org',
   'https://github.com/salesforcecli/plugin-user',
   'https://github.com/salesforcecli/plugin-auth',
+  // toolbelt isn't implemented yet
+  // 'https://github.com/salesforcecli/toolbelt'
 ];
 // check envs to make sure we can support all auth needed?
 
