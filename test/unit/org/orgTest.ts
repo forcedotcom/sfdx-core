@@ -76,7 +76,7 @@ describe('Org Tests', () => {
       expect(org.getUsername()).to.eq(testData.username);
     });
 
-    it.only('should create an org from an alias', async () => {
+    it('should create an org from an alias', async () => {
       const config = await testData.getConfig();
       delete config.username;
       $$.configStubs.GlobalInfo = { contents: { orgs: { [testData.username]: config } } };
