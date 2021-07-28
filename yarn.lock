@@ -582,11 +582,6 @@
     "@salesforce/ts-types" "^1.5.20"
     tslib "^2.2.0"
 
-"@salesforce/prettier-config@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@salesforce/prettier-config/-/prettier-config-0.0.1.tgz#4ef70bca610ea981181fb030b25a27797b15cdff"
-  integrity sha512-o43j1I6JliElZXmTL5q1ni2frSkO5o/kCjIp7nI56cWBHWeZaM81vXOmap8TESDzIrEok6tF5jLKyEv4+SOleQ==
-
 "@salesforce/prettier-config@^0.0.2":
   version "0.0.2"
   resolved "https://registry.npmjs.org/@salesforce/prettier-config/-/prettier-config-0.0.2.tgz#ded39bf7cb75238edc9db6dd093649111350f8bc"
@@ -4147,7 +4142,7 @@ lodash.map@^4.5.1:
 
 lodash.merge@^4.6.2:
   version "4.6.2"
-  resolved "https://registry.npmjs.org/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
+  resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
 
 lodash.once@^4.0.0:

@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isEmpty } from '@salesforce/kit';
 import { AnyJson, isPlainObject, JsonMap, Optional } from '@salesforce/ts-types';
 import { Global } from '../global';
+import { SfdxError } from '../sfdxError';
 import { ConfigFile } from './configFile';
 import { ConfigValue } from './configStore';
 import { SfdxDataHandler } from './sfdxDataHandler';
@@ -14,6 +14,7 @@ import { SfdxDataHandler } from './sfdxDataHandler';
 export enum SfInfoKeys {
   ORGS = 'orgs',
   TOKENS = 'tokens',
+  ALIASES = 'aliases',
 }
 
 export type Timestamp = { timestamp: string };
@@ -28,6 +29,7 @@ export type SfOrg = {
   oauthMethod?: 'jwt' | 'web' | 'token' | 'unknown';
   error?: string;
 } & SfEntry;
+
 export interface SfOrgs {
   [key: string]: SfOrg & Timestamp;
 }
@@ -41,10 +43,14 @@ export type SfToken = {
 export interface SfTokens {
   [key: string]: SfToken & Timestamp;
 }
+export interface SfAliases {
+  [key: string]: string;
+}
 
 export type SfInfo = {
   [SfInfoKeys.ORGS]: SfOrgs;
   [SfInfoKeys.TOKENS]: SfTokens;
+  [SfInfoKeys.ALIASES]: SfAliases;
 };
 
 export function deepCopy<T extends AnyJson>(data: T): T {
@@ -56,6 +62,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   private static EMPTY_DATA_MODEL: SfInfo = {
     [SfInfoKeys.ORGS]: {},
     [SfInfoKeys.TOKENS]: {},
+    [SfInfoKeys.ALIASES]: {},
   };
   private static instance: Optional<GlobalInfo>;
 
@@ -152,6 +159,68 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     delete this.get(SfInfoKeys.TOKENS)[name];
   }
 
+  public getAllAliases(): SfAliases {
+    return this.get(SfInfoKeys.ALIASES) || {};
+  }
+
+  /**
+   * This method always returns the first alias found if it exists.
+   *
+   * @param aliasee - The entity whose alias you want to find
+   */
+  public getAlias(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string | null {
+    const matchedAliases = this.getAliases(aliasee);
+
+    if (matchedAliases.length === 0) return null;
+    return matchedAliases[0];
+  }
+
+  /**
+   * This method always returns an array of aliases or an empty array if none exist.
+   *
+   * @param aliasee - The entity whose aliases you want to find
+   */
+  public getAliases(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string[] {
+    const aliaseeName = this.getAliaseeName(aliasee);
+    const matchedAliases = Object.entries(this.getAllAliases()).filter((entry) => entry[1] === aliaseeName);
+
+    // Only return the actual aliases
+    return matchedAliases.map((entry) => entry[0]);
+  }
+
+  /**
+   * This method returns the name that an alias refers to if one exists.
+   *
+   * @param alias -The alias of the name you want to get.
+   */
+  public getAliasee(alias: string): string | null {
+    return this.getAllAliases()[alias] ?? null;
+  }
+
+  public setAlias(alias: string, aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
+    const aliaseeName = this.getAliaseeName(aliasee);
+    this.set(`${SfInfoKeys.ALIASES}["${alias}"]`, aliaseeName);
+  }
+
+  public updateAlias(alias: string, aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
+    const aliaseeName = this.getAliaseeName(aliasee);
+    this.update(`${SfInfoKeys.ALIASES}["${alias}"]`, aliaseeName);
+  }
+
+  public unsetAlias(alias: string): void {
+    delete this.get(SfInfoKeys.ALIASES)[alias];
+  }
+
+  /**
+   * This method unsets all the aliases for a particular aliasee.
+   *
+   * @param aliasee - The entity whose aliases you want to unset.
+   */
+  public unsetAliases(aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
+    const aliases = this.getAliases(aliasee);
+    aliases.forEach((alias) => this.unsetAlias(alias));
+  }
+
   public set(key: string, value: ConfigValue): void {
     if (isPlainObject(value)) {
       value = this.timestamp(value as JsonMap);
@@ -172,13 +241,22 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     await this.write(contents);
   }
 
+  private getAliaseeName(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string {
+    if (typeof aliasee === 'string') return aliasee;
+    const aliaseeName = aliasee.username ?? aliasee.user;
+    if (!aliaseeName) {
+      throw new SfdxError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(aliasee)}`);
+    }
+    return aliaseeName as string;
+  }
+
   private timestamp<T extends JsonMap>(data: T): T {
     return Object.assign(data, { timestamp: new Date() });
   }
 
   private async loadSfData(): Promise<SfInfo> {
     const data = await this.read();
-    return isEmpty(data) ? GlobalInfo.emptyDataModel : data;
+    return Object.assign(GlobalInfo.emptyDataModel, data);
   }
 
   private async mergeWithSfdxData(): Promise<SfInfo> {

@@ -22,7 +22,6 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import { Aliases, AliasGroup } from '../config/aliases';
 import { Config, SfdxPropertyKeys } from '../config/config';
 import { ConfigAggregator, ConfigInfo } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStore';
@@ -573,6 +572,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Initialize async components.
    */
   protected async init(): Promise<void> {
+    const globalInfo = await GlobalInfo.getInstance();
     this.logger = await Logger.child('Org');
 
     this.configAggregator = this.options.aggregator ? this.options.aggregator : await ConfigAggregator.create();
@@ -590,11 +590,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         this.options.aliasOrUsername = aliasOrUsername || undefined;
       }
 
-      const username = this.options.aliasOrUsername;
       this.connection = await Connection.create({
         // If no username is provided or resolvable from an alias, AuthInfo will throw an SfdxError.
         authInfo: await AuthInfo.create({
-          username: (username != null && (await Aliases.fetch(username))) || username,
+          username: globalInfo.getAliasee(this.options.aliasOrUsername as string) ?? this.options.aliasOrUsername,
         }),
       });
     } else {
@@ -663,19 +662,19 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async removeUsers(throwWhenRemoveFails: boolean): Promise<void> {
+    const globalInfo = await GlobalInfo.getInstance();
     this.logger.debug(`Removing users associate with org: ${this.getOrgId()}`);
     const config = await this.retrieveOrgUsersConfig();
     this.logger.debug(`using path for org users: ${config.getPath()}`);
     if (await config.exists()) {
       const authInfos: AuthInfo[] = await this.readUserAuthFiles();
-      const aliases: Aliases = await Aliases.create(Aliases.getDefaultOptions());
       this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
 
       for (const auth of authInfos) {
         const username = auth.getFields().username;
 
-        const aliasKeys = (username && aliases.getKeysByValue(username)) || [];
-        aliases.unsetAll(aliasKeys);
+        const aliases = (username && globalInfo.getAliases(username)) || [];
+        globalInfo.unsetAliases(username as string);
 
         let orgForUser;
         if (username === this.getUsername()) {
@@ -688,7 +687,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
         const removeConfig = async (configInfo: ConfigInfo) => {
           if (
-            (configInfo.value === username || aliasKeys.includes(configInfo.value as AliasGroup)) &&
+            (configInfo.value === username || aliases.includes(configInfo.value as string)) &&
             (configInfo.isGlobal() || configInfo.isLocal())
           ) {
             await Config.update(configInfo.isGlobal(), configInfo.key, undefined);
@@ -703,7 +702,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         await orgForUser.removeAuth();
       }
 
-      await aliases.write();
+      await globalInfo.write();
     }
   }
 

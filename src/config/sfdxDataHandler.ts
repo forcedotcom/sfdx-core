@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { basename, extname } from 'path';
+import { basename, extname, join } from 'path';
 import { set } from '@salesforce/kit';
-import { ensureString } from '@salesforce/ts-types';
+import { ensureString, isPlainObject } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { fs } from '../util/fs';
 import { ConfigFile } from './configFile';
@@ -29,6 +29,9 @@ function isEqual(object1: Record<string, unknown>, object2: Record<string, unkno
 interface Handler<T extends SfInfoKeys> {
   sfKey: T;
   merge: (sfData: SfInfo) => Promise<Partial<SfInfo>>;
+  /* A handler's migrate function should take data from sfdx config files
+   * and return it reshaped into the new sf config format
+   */
   migrate: () => Promise<Pick<SfInfo, T>>;
   write: (latest: SfInfo, original: SfInfo) => Promise<void>;
 }
@@ -39,7 +42,7 @@ interface Changes<T> {
 }
 
 export class SfdxDataHandler {
-  public handlers = [new AuthHandler()];
+  public handlers = [new AuthHandler(), new AliasesHandler()];
   private original!: SfInfo;
 
   public async write(latest: SfInfo = GlobalInfo.emptyDataModel): Promise<void> {
@@ -50,9 +53,9 @@ export class SfdxDataHandler {
   }
 
   public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<SfInfo> {
-    const merged = deepCopy<SfInfo>(sfData);
+    let merged = deepCopy<SfInfo>(sfData);
     for (const handler of this.handlers) {
-      Object.assign(merged, await handler.merge(merged));
+      merged = Object.assign(merged, await handler.merge(merged));
     }
     this.setOriginal(merged);
     return merged;
@@ -78,7 +81,8 @@ abstract class BaseHandler<T extends SfInfoKeys> implements Handler<T> {
     const commonKeys = sfKeys.filter((k) => sfdxKeys.includes(k));
     for (const k of commonKeys) {
       const [newer, older] = [sfData[key][k], sfdxData[key][k]].sort((a, b) => {
-        return new Date(a.timestamp) < new Date(b.timestamp) ? 1 : -1;
+        if (isPlainObject(a) && isPlainObject(b)) return new Date(a.timestamp) < new Date(b.timestamp) ? 1 : -1;
+        return 0;
       });
       set(merged, `${key}["${k}"]`, Object.assign({}, older, newer));
     }
@@ -190,5 +194,60 @@ export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
       auths.push(auth);
     }
     return auths;
+  }
+}
+
+export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
+  private static SFDX_ALIASES_FILENAME = 'alias.json';
+
+  public sfKey: typeof SfInfoKeys.ALIASES = SfInfoKeys.ALIASES;
+
+  public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.ALIASES>> {
+    const aliasesFilePath = join(Global.SFDX_DIR, AliasesHandler.SFDX_ALIASES_FILENAME);
+    try {
+      const sfdxAliases = ((await fs.readJson(aliasesFilePath)) as Record<'orgs', Record<string, string>>).orgs;
+      return { [this.sfKey]: { ...sfdxAliases } };
+    } catch (e) {
+      return { [this.sfKey]: {} };
+    }
+  }
+
+  // AliasesHandler implements its own merge method because the structure of aliases is flat instead of nested by SfInfoKey types.
+  public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<Partial<SfInfo>> {
+    const sfdxAliases: Record<string, string> = (await this.migrate())[SfInfoKeys.ALIASES];
+    const merged = deepCopy<SfInfo>(sfData);
+
+    /* Overwrite `sf` aliases with `sfdx` aliases
+     *  `sf` will alaways modify `sfdx` files but `sfdx` won't modify `sf` files
+     *  because of this we can assume that any changes in `sfdx` files that aren't
+     *  in `sf` are the latest data
+     *
+     *  This breaks down if a user of `sf` manually modifies the `~/.sf/sf.json` file
+     *  but we don't support that use case out-of-the-box (yet?)
+     *
+     *  Note: See also the explanation on the merge method in the BaseHandler class
+     */
+    Object.keys(sfdxAliases).forEach((alias) => {
+      merged[SfInfoKeys.ALIASES][alias] = sfdxAliases[alias];
+    });
+
+    /* Delete any aliases that don't exist in sfdx config files
+     *  Aliases that exist in .sf but not .sfdx are deleted because we assume
+     *  that this means the alias was deleted while using sfdx. We can make
+     *  this assumption because keys that are created by sf will always be
+     *  migrated back to sfdx.
+     *
+     *  Note: See also the explanation on the merge method in the BaseHandler class
+     */
+    for (const alias in merged[SfInfoKeys.ALIASES]) {
+      if (!sfdxAliases[alias]) delete merged[SfInfoKeys.ALIASES][alias];
+    }
+
+    return merged;
+  }
+
+  public async write(latest: SfInfo): Promise<void> {
+    const aliasesFilePath = join(Global.SFDX_DIR, AliasesHandler.SFDX_ALIASES_FILENAME);
+    fs.writeJson(aliasesFilePath, { orgs: latest[SfInfoKeys.ALIASES] });
   }
 }

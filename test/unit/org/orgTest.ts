@@ -15,7 +15,6 @@ import { assert, expect } from 'chai';
 import { OAuth2 } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
-import { Aliases } from '../../../src/config/aliases';
 import { Config, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
@@ -82,7 +81,7 @@ describe('Org Tests', () => {
       delete config.username;
       $$.configStubs.GlobalInfo = { contents: { orgs: { [testData.username]: config } } };
       const alias = 'foo';
-      await Aliases.parseAndUpdate([`${alias}=${testData.username}`]);
+      (await GlobalInfo.getInstance()).setAlias(alias, testData.username);
       const org: Org = await Org.create({ aliasOrUsername: alias });
       expect(org.getUsername()).to.eq(testData.username);
     });
@@ -168,6 +167,7 @@ describe('Org Tests', () => {
       $$.SANDBOXES.CONFIG.restore();
       // Cleared the config, so manually set the authorization.
       (await GlobalInfo.getInstance()).setOrg(testData.username, await testData.getConfig());
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'write').callsFake(() => {});
       let invalidProjectWorkspace = false;
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
         invalidProjectWorkspace = true;
@@ -193,6 +193,7 @@ describe('Org Tests', () => {
       $$.SANDBOXES.CONFIG.restore();
       // Cleared the config, so manually set the authorization.
       (await GlobalInfo.getInstance()).setOrg(testData.username, await testData.getConfig());
+      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'write').callsFake(() => {});
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
         const err = new Error();
         err.name = 'gozer';
@@ -334,14 +335,15 @@ describe('Org Tests', () => {
         }),
       });
 
-      await Aliases.parseAndUpdate([`foo=${testData.username}`]);
-      let alias = await Aliases.fetch('foo');
-      expect(alias).eq(testData.username);
+      const globalInfo = await GlobalInfo.getInstance();
+      globalInfo.setAlias('foo', testData.username);
+      const user = globalInfo.getAliasee('foo');
+      expect(user).eq(testData.username);
 
       await org.remove();
 
-      alias = await Aliases.fetch('foo');
-      expect(alias).eq(undefined);
+      const alias = globalInfo.getAlias('foo');
+      expect(alias).eq(null);
     });
 
     it('should not fail when no sandboxOrgConfig', async () => {
@@ -461,17 +463,19 @@ describe('Org Tests', () => {
       expect(info).has.property('value', org0Username);
 
       const org1Username = orgs[1].getUsername();
-      await Aliases.parseAndUpdate([`foo=${org1Username}`]);
-      let alias = await Aliases.fetch('foo');
-      expect(alias).eq(org1Username);
+
+      const globalInfo = await GlobalInfo.getInstance();
+      globalInfo.setAlias('foo', org1Username);
+      const user = globalInfo.getAliasee('foo');
+      expect(user).eq(org1Username);
 
       await orgs[0].remove();
 
       await configAggregator.reload();
       expect(configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME)).has.property('value', undefined);
 
-      alias = await Aliases.fetch('foo');
-      expect(alias).eq(undefined);
+      const alias = globalInfo.getAlias(user);
+      expect(alias).eq(null);
     });
 
     it('should not try to delete auth files when deleting an org via access token', async () => {
