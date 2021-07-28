@@ -112,8 +112,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<string>}
    */
   private async resolveUsername(usernameOrAlias: string): Promise<string> {
-    const alias = this.globalInfo.getAlias(usernameOrAlias);
-    return alias ?? usernameOrAlias;
+    return this.globalInfo.getAlias(usernameOrAlias) ?? usernameOrAlias;
   }
 
   /**
@@ -188,7 +187,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
   private async unsetAliases(username: string) {
     this.logger.debug(`Clearing aliases for username: ${username}`);
     const existingAliases = this.globalInfo.getAliases(username);
-    if (existingAliases.length <= 1) return;
+    if (existingAliases.length === 0) return;
 
     this.logger.debug(`Found these aliases to remove: ${existingAliases}`);
     existingAliases.forEach((alias) => this.globalInfo.unsetAlias(alias));
