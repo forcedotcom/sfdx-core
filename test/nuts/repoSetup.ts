@@ -7,7 +7,7 @@
 import { expect } from 'chai';
 import * as shell from 'shelljs';
 
-export const repoSetup = (repo: string, localDir: string, packageName: string) => {
+export const repoSetup = (repo: string, localDir: string, packageName: string): void => {
   let result = shell.exec(`git clone ${repo} ${localDir}`);
   expect(result.code).to.equal(0);
 
