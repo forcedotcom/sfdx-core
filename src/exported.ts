@@ -28,7 +28,7 @@ export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config } from './config/co
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
-export { Authorization, AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl, getJwtAudienceUrl } from './authInfo';
+export { Authorization, AuthFields, AuthInfo, OAuth2WithVerifier } from './authInfo';
 
 export { AuthConfigs, AuthRemover } from './authRemover';
 
@@ -39,6 +39,10 @@ export { Mode, Global } from './global';
 export { Lifecycle } from './lifecycleEvents';
 
 export { WebOAuthServer } from './webOAuthServer';
+
+export { SfdcUrl } from './util/sfdcUrl';
+
+export { getJwtAudienceUrl } from './util/getJwtAudienceUrl';
 
 export {
   Fields,
