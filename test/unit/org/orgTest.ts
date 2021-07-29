@@ -26,7 +26,7 @@ import { Org } from '../../../src/org/org';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
-import { GlobalInfo, OrgAccessor } from '../../../src/config/globalInfoConfig';
+import { GlobalInfo, OrgAccessor } from '../../../src/globalInfo';
 
 const $$ = testSetup();
 

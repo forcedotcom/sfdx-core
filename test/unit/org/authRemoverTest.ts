@@ -10,7 +10,7 @@ import { assert, expect } from 'chai';
 import { AuthRemover } from '../../../src/org/authRemover';
 import { Config, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
-import { AliasAccessor, GlobalInfo, OrgAccessor } from '../../../src/config/globalInfoConfig';
+import { AliasAccessor, GlobalInfo, OrgAccessor } from '../../../src/globalInfo';
 import { testSetup } from '../../../src/testSetup';
 
 describe('AuthRemover', () => {

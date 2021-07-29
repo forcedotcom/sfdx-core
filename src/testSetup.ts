@@ -35,7 +35,7 @@ import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { SfdxProject, SfdxProjectJson } from './sfdxProject';
 import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
-import { GlobalInfo, SfOrg } from './config/globalInfoConfig';
+import { GlobalInfo, SfOrg } from './globalInfo';
 import { Global } from './global';
 // import { fs } from '../src/util/fs';
 

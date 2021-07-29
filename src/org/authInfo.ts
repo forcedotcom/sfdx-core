@@ -41,7 +41,7 @@ import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
 import { MyDomainResolver } from '../status/myDomainResolver';
-import { SfOrg, GlobalInfo } from '../config/globalInfoConfig';
+import { SfOrg, GlobalInfo } from '../globalInfo';
 import { Messages } from '../messages';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';

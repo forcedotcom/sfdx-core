@@ -11,7 +11,7 @@ import { Config, SfdxPropertyKeys } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
-import { SfOrg, GlobalInfo, SfOrgs } from '../config/globalInfoConfig';
+import { SfOrg, GlobalInfo, SfOrgs } from '../globalInfo';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);

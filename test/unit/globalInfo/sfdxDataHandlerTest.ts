@@ -8,9 +8,9 @@ import { set } from '@salesforce/kit';
 import { PartialDeep } from '@salesforce/kit/lib/nodash/support';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { GlobalInfo, SfInfo, SfInfoKeys } from '../../../src/config/globalInfoConfig';
+import { GlobalInfo, SfInfo, SfInfoKeys } from '../../../src/globalInfo';
 import { ConfigFile } from '../../../src/config/configFile';
-import { AliasesHandler, AuthHandler, SfdxDataHandler } from '../../../src/config/sfdxDataHandler';
+import { AliasesHandler, AuthHandler, SfdxDataHandler } from '../../../src/globalInfo/sfdxDataHandler';
 import { fs } from '../../../src/exported';
 
 describe('SfdxDataHandler', () => {

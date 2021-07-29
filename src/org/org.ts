@@ -32,7 +32,7 @@ import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
-import { GlobalInfo } from '../config/globalInfoConfig';
+import { GlobalInfo } from '../globalInfo';
 import { Messages } from '../messages';
 import { Connection } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
