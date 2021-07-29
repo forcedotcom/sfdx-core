@@ -6,24 +6,24 @@ workflows:
   version: 2
   test-and-release:
     jobs:
-      - release-management/validate-pr:
-          filters:
-            branches:
-              ignore: main
-      - release-management/test-package:
-          matrix:
-            parameters:
-              os:
-                - linux
-              node_version:
-                - latest
-                - lts
-                - maintenance
+      # - release-management/validate-pr:
+      #     filters:
+      #       branches:
+      #         ignore: main
+      # - release-management/test-package:
+      #     matrix:
+      #       parameters:
+      #         os:
+      #           - linux
+      #         node_version:
+      #           - latest
+      #           - lts
+      #           - maintenance
       - release-management/test-nut:
           name: nuts-on-linux
           sfdx_version: latest
-          requires:
-            - release-management/test-package
+          # requires:
+          #   - release-management/test-package
           size: 2xlarge
           node_version: lts
       - release-management/release-package:
