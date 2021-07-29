@@ -34,6 +34,7 @@ export const repoSetup = (repo: string, localDir: string): void => {
   tsconfig.compilerOptions.paths = tsconfig.compilerOptions.paths ?? {
     '@salesforce/kit': ['./node_modules/@salesforce/kit'],
   };
+  tsconfig.compilerOptions.baseUrl = './';
   writeFileSync(tsConfigPath, JSON.stringify(tsconfig));
   result = shell.exec('yarn build', { cwd: localDir }) as shell.ExecOutputReturnValue;
   expect(result.code).to.equal(0);
