@@ -28,14 +28,19 @@ export const repoSetup = (repo: string, localDir: string): void => {
   expect(result.code).to.equal(0);
 
   // yarn:link doesn't like classes in two different packages with private properties.  kit is the most common violator.
-  // updating tsconfig.json to find the dependency in the correct place helps
+  // updating tsconfig.json to find the dependency from core so it matches
   // comments need to be removed to avoid errors
   const tsConfigPath = `${localDir}${path.sep}tsconfig.json`;
   const tsconfig = JSON.parse(stripJSONComments(fs.readFileSync(tsConfigPath)));
   tsconfig.compilerOptions.paths = tsconfig.compilerOptions.paths ?? {
-    '@salesforce/kit': ['./node_modules/@salesforce/kit'],
+    '@salesforce/kit': ['./node_modules/@salesforce/core/node_modules/@salesforce/kit'],
   };
   tsconfig.compilerOptions.baseUrl = './';
+
+  // without this, you get errors that look like
+  // src/lib/org/scratchOrgInfoApi.ts(201,14): error TS2742: The inferred type of 'requestScratchOrgCreation' cannot be named without a reference to '@salesforce/core/node_modules/@types/jsforce'. This is likely not portable. A type annotation is necessary.
+  tsconfig.compilerOptions.declaration = false;
+
   writeFileSync(tsConfigPath, JSON.stringify(tsconfig));
   result = shell.exec('yarn build', { cwd: localDir }) as shell.ExecOutputReturnValue;
   expect(result.code).to.equal(0);
