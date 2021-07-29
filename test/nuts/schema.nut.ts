@@ -18,7 +18,7 @@ describe(repo, () => {
     repoSetup(repo, localDir);
   });
 
-  it('executes the nuts', () => {
+  it(`executes the nuts from ${localDir}`, () => {
     const nutResult = shell.exec('yarn test:nuts', { cwd: localDir }) as shell.ExecOutputReturnValue;
     expect(nutResult.code, `${nutResult.stderr}`).to.equal(0);
   });
