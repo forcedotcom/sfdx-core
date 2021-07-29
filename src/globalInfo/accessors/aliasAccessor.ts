@@ -16,22 +16,25 @@ export class AliasAccessor {
   public constructor(private globalInfo: GlobalInfo) {}
 
   /**
-   * Returns all the aliases
+   * Returns all the aliases for all the usernames
    */
-  public all(): SfAliases {
-    return this.globalInfo.get(SfInfoKeys.ALIASES) || {};
-  }
-
+  public getAll(): SfAliases;
   /**
    * Returns all the aliases for a given entity
    *
    * @param entity the aliasable entity that you want to get the aliases of
    */
-  public getAll(entity: Aliasable): string[] {
-    const username = this.getNameOf(entity);
-    return Object.entries(this.all())
-      .filter((entry) => entry[1] === username)
-      .map((entry) => entry[0]);
+  public getAll(entity: Aliasable): string[];
+  public getAll(entity?: Aliasable): string[] | SfAliases {
+    const all = this.globalInfo.get(SfInfoKeys.ALIASES) || {};
+    if (entity) {
+      const username = this.getNameOf(entity);
+      return Object.entries(all)
+        .filter((entry) => entry[1] === username)
+        .map((entry) => entry[0]);
+    } else {
+      return all;
+    }
   }
 
   /**
@@ -52,7 +55,7 @@ export class AliasAccessor {
    * @param alias the alias that corresponds to a username
    */
   public getUsername(alias: string): Nullable<string> {
-    return this.all()[alias] ?? null;
+    return this.getAll()[alias] ?? null;
   }
 
   /**

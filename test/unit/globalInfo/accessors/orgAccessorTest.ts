@@ -40,7 +40,7 @@ describe('OrgAccessor', () => {
   });
 
   describe('get', () => {
-    it('should org that corresponds to a username', async () => {
+    it('should return org that corresponds to a username', async () => {
       const globalInfo = await GlobalInfo.create();
       const result = globalInfo.orgs.get(username);
       expect(result).to.deep.equal(org);
