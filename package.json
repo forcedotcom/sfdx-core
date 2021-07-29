@@ -18,9 +18,9 @@
     "prepack": "sf-build",
     "pretest": "sf-compile-test",
     "test": "sf-test",
-    "test:nuts": "mocha \"test/nuts/*.nut.ts\" --slow 4500 --timeout 1200000 --parallel --require test/nuts/setup.js",
-    "test:nuts:alias": "mocha \"test/nuts/alias.nut.ts\" --slow 4500 --timeout 1200000 --parallel --require test/nuts/setup.js",
-    "test:nuts:toolbelt": "mocha \"test/nuts/toolbelt.nut.ts\" --slow 4500 --timeout 1200000 --parallel --require test/nuts/setup.js"
+    "test:nuts": "mocha \"test/nuts/*.nut.ts\" --slow 4500 --timeout 1200000 --require test/nuts/setup.js",
+    "test:nuts:alias": "mocha \"test/nuts/alias.nut.ts\" --slow 4500 --timeout 1200000 --require test/nuts/setup.js",
+    "test:nuts:toolbelt": "mocha \"test/nuts/toolbelt.nut.ts\" --slow 4500 --timeout 1200000 --require test/nuts/setup.js"
   },
   "keywords": [
     "force",
