@@ -11,10 +11,18 @@ import * as shell from 'shelljs';
 import { fs } from '../../src/util/fs';
 
 const packageName = '@salesforce/core';
+const nutTimeout = 2400000;
 
 export const repoSetup = (repo: string, localDir: string): void => {
   let result = shell.exec(`git clone ${repo} ${localDir}`);
   expect(result.code).to.equal(0);
+
+  // extend the NUT timeouts
+  const pjsonPath = `${localDir}${path.sep}package.json`;
+  const pjson = fs.readJsonSync(pjsonPath) as { scripts: { 'test:nuts': string } };
+  pjson.scripts['test:nuts'] = pjson.scripts['test:nuts'].replace(/--timeout \d*/, `--timeout ${nutTimeout}`);
+
+  writeFileSync(pjsonPath, JSON.stringify(pjson));
 
   // on circle, when you have multiple `yarn install`s running, you'll get corrupt file warnings like
   // error https://registry.yarnpkg.com/cli-ux/-/cli-ux-4.9.3.tgz: Extracting tar content of undefined failed, the file appears to be corrupt: "ENOENT: no such file or directory, chmod '/home/circleci/.cache/yarn/v6/npm-cli-ux-4.9.3-4c3e070c1ea23eef010bbdb041192e0661be84ce-integrity/node_modules/cli-ux/lib/action/base.js'"
@@ -42,6 +50,7 @@ export const repoSetup = (repo: string, localDir: string): void => {
   tsconfig.compilerOptions.declaration = false;
 
   writeFileSync(tsConfigPath, JSON.stringify(tsconfig));
+
   result = shell.exec('yarn build', { cwd: localDir }) as shell.ExecOutputReturnValue;
   expect(result.code).to.equal(0);
 
