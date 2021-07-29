@@ -8,6 +8,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import { expect } from 'chai';
+import { repoSetup } from './repoSetup';
 
 const packageName = '@salesforce/core';
 
@@ -16,11 +17,7 @@ const localDir = `${os.tmpdir}${path.sep}${repo.split('/')[repo.split('/').lengt
 
 describe(repo, () => {
   before(() => {
-    shell.exec(`git clone ${repo} ${localDir}`);
-    shell.exec('yarn install', { cwd: localDir });
-    shell.exec(`yarn link "${packageName}"`, { cwd: localDir });
-    shell.exec('yarn build', { cwd: localDir });
-    shell.exec('ls -l node_modules/@salesforce/core', { cwd: localDir });
+    repoSetup(repo, localDir, packageName);
   });
 
   it('executes the nuts', () => {
