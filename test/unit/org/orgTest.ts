@@ -81,7 +81,7 @@ describe('Org Tests', () => {
       delete config.username;
       $$.configStubs.GlobalInfo = { contents: { orgs: { [testData.username]: config } } };
       const alias = 'foo';
-      (await GlobalInfo.getInstance()).setAlias(alias, testData.username);
+      (await GlobalInfo.getInstance()).aliases.set(alias, testData.username);
       const org: Org = await Org.create({ aliasOrUsername: alias });
       expect(org.getUsername()).to.eq(testData.username);
     });
@@ -336,13 +336,13 @@ describe('Org Tests', () => {
       });
 
       const globalInfo = await GlobalInfo.getInstance();
-      globalInfo.setAlias('foo', testData.username);
-      const user = globalInfo.getAliasee('foo');
+      globalInfo.aliases.set('foo', testData.username);
+      const user = globalInfo.aliases.getUsername('foo');
       expect(user).eq(testData.username);
 
       await org.remove();
 
-      const alias = globalInfo.getAlias('foo');
+      const alias = globalInfo.aliases.get('foo');
       expect(alias).eq(null);
     });
 
@@ -465,8 +465,8 @@ describe('Org Tests', () => {
       const org1Username = orgs[1].getUsername();
 
       const globalInfo = await GlobalInfo.getInstance();
-      globalInfo.setAlias('foo', org1Username);
-      const user = globalInfo.getAliasee('foo');
+      globalInfo.aliases.set('foo', org1Username);
+      const user = globalInfo.aliases.getUsername('foo');
       expect(user).eq(org1Username);
 
       await orgs[0].remove();
@@ -474,7 +474,7 @@ describe('Org Tests', () => {
       await configAggregator.reload();
       expect(configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME)).has.property('value', undefined);
 
-      const alias = globalInfo.getAlias(user);
+      const alias = globalInfo.aliases.get(user);
       expect(alias).eq(null);
     });
 

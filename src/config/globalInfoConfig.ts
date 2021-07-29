@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AnyJson, isPlainObject, JsonMap, Optional } from '@salesforce/ts-types';
+import { AnyJson, isPlainObject, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { SfdxError } from '../sfdxError';
 import { ConfigFile } from './configFile';
@@ -44,9 +44,15 @@ export interface SfTokens {
   [key: string]: SfToken & Timestamp;
 }
 
+/**
+ * The key will always be the alias and the value will always be the username, e.g.
+ * { "MyAlias": "user@salesforce.com" }
+ */
 export interface SfAliases {
-  [key: string]: string;
+  [alias: string]: string;
 }
+
+export type Aliasable = string | Partial<SfOrg> | Partial<SfToken>;
 
 export type SfInfo = {
   [SfInfoKeys.ORGS]: SfOrgs;
@@ -113,66 +119,8 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     return new TokenAccessor(this);
   }
 
-  public getAllAliases(): SfAliases {
-    return this.get(SfInfoKeys.ALIASES) || {};
-  }
-
-  /**
-   * This method always returns the first alias found if it exists.
-   *
-   * @param aliasee - The entity whose alias you want to find
-   */
-  public getAlias(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string | null {
-    const matchedAliases = this.getAliases(aliasee);
-
-    if (matchedAliases.length === 0) return null;
-    return matchedAliases[0];
-  }
-
-  /**
-   * This method always returns an array of aliases or an empty array if none exist.
-   *
-   * @param aliasee - The entity whose aliases you want to find
-   */
-  public getAliases(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string[] {
-    const aliaseeName = this.getAliaseeName(aliasee);
-    const matchedAliases = Object.entries(this.getAllAliases()).filter((entry) => entry[1] === aliaseeName);
-
-    // Only return the actual aliases
-    return matchedAliases.map((entry) => entry[0]);
-  }
-
-  /**
-   * This method returns the name that an alias refers to if one exists.
-   *
-   * @param alias -The alias of the name you want to get.
-   */
-  public getAliasee(alias: string): string | null {
-    return this.getAllAliases()[alias] ?? null;
-  }
-
-  public setAlias(alias: string, aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
-    const aliaseeName = this.getAliaseeName(aliasee);
-    this.set(`${SfInfoKeys.ALIASES}["${alias}"]`, aliaseeName);
-  }
-
-  public updateAlias(alias: string, aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
-    const aliaseeName = this.getAliaseeName(aliasee);
-    this.update(`${SfInfoKeys.ALIASES}["${alias}"]`, aliaseeName);
-  }
-
-  public unsetAlias(alias: string): void {
-    delete this.get(SfInfoKeys.ALIASES)[alias];
-  }
-
-  /**
-   * This method unsets all the aliases for a particular aliasee.
-   *
-   * @param aliasee - The entity whose aliases you want to unset.
-   */
-  public unsetAliases(aliasee: string | Partial<SfOrg> | Partial<SfToken>): void {
-    const aliases = this.getAliases(aliasee);
-    aliases.forEach((alias) => this.unsetAlias(alias));
+  public get aliases(): AliasAccessor {
+    return new AliasAccessor(this);
   }
 
   public set(key: string, value: ConfigValue): void {
@@ -193,15 +141,6 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     const contents = Global.SFDX_INTEROPERABILITY ? await this.mergeWithSfdxData() : await this.loadSfData();
     this.setContents(contents);
     await this.write(contents);
-  }
-
-  private getAliaseeName(aliasee: string | Partial<SfOrg> | Partial<SfToken>): string {
-    if (typeof aliasee === 'string') return aliasee;
-    const aliaseeName = aliasee.username ?? aliasee.user;
-    if (!aliaseeName) {
-      throw new SfdxError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(aliasee)}`);
-    }
-    return aliaseeName as string;
   }
 
   private timestamp<T extends JsonMap>(data: T): T {
@@ -280,5 +219,111 @@ export class TokenAccessor {
 
   public unset(name: string): void {
     delete this.globalInfo.get(SfInfoKeys.TOKENS)[name];
+  }
+}
+
+export class AliasAccessor {
+  public constructor(private globalInfo: GlobalInfo) {}
+
+  /**
+   * Returns all the aliases
+   */
+  public all(): SfAliases {
+    return this.globalInfo.get(SfInfoKeys.ALIASES) || {};
+  }
+
+  /**
+   * Returns all the aliases for a given entity
+   *
+   * @param entity the aliasable entity that you want to get the aliases of
+   */
+  public getAll(entity: Aliasable): string[] {
+    const username = this.getNameOf(entity);
+    return Object.entries(this.all())
+      .filter((entry) => entry[1] === username)
+      .map((entry) => entry[0]);
+  }
+
+  /**
+   * Returns the first alias found for a given entity
+   *
+   * @param entity the aliasable entity that you want to get the alias of
+   */
+  public get(entity: Aliasable): Nullable<string> {
+    const matchedAliases = this.getAll(entity);
+
+    if (matchedAliases.length === 0) return null;
+    return matchedAliases[0];
+  }
+
+  /**
+   * Returns the username that corresponds to the given alias if it exists
+   *
+   * @param alias the alias that corresponds to a username
+   */
+  public getUsername(alias: string): Nullable<string> {
+    return this.all()[alias] ?? null;
+  }
+
+  /**
+   * If the provided string is an alias, it returns the corresponding username.
+   * If the provided string is not an alias, we assume that the provided string
+   * is the username and return it.
+   *
+   * This method is helpful when you don't know if the string you have is a username
+   * or an alias.
+   *
+   * @param usernameOrAlias a string that might be a username or might be an alias
+   */
+  public resolveUsername(usernameOrAlias: string): string {
+    return this.getUsername(usernameOrAlias) ?? usernameOrAlias;
+  }
+
+  /**
+   * Set an alias for the given aliasable entity
+   *
+   * @param alias the alias you want to set
+   * @param entity the aliasable entity that's being aliased
+   */
+  public set(alias: string, entity: Aliasable): void {
+    const username = this.getNameOf(entity);
+    this.globalInfo.set(`${SfInfoKeys.ALIASES}["${alias}"]`, username);
+  }
+
+  /**
+   * Updates the alias for the given aliasable entity
+   *
+   * @param alias the alias you want to set
+   * @param entity the aliasable entity that's being aliased
+   */
+  public update(alias: string, entity: Aliasable): void {
+    const username = this.getNameOf(entity);
+    this.globalInfo.update(`${SfInfoKeys.ALIASES}["${alias}"]`, username);
+  }
+
+  public unset(alias: string): void {
+    delete this.globalInfo.get(SfInfoKeys.ALIASES)[alias];
+  }
+
+  /**
+   * This method unsets all the aliases for the given entity.
+   *
+   * @param entity the aliasable entity for which you want to unset all aliases
+   */
+  public unsetAll(entity: Aliasable): void {
+    const aliases = this.getAll(entity);
+    aliases.forEach((alias) => this.unset(alias));
+  }
+
+  /**
+   * Returns the username of given aliasable entity
+   */
+  private getNameOf(entity: Aliasable): string {
+    if (typeof entity === 'string') return entity;
+    const aliaseeName = entity.username ?? entity.user;
+    if (!aliaseeName) {
+      throw new SfdxError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(entity)}`);
+    }
+    return aliaseeName as string;
   }
 }
