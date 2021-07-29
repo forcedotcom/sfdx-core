@@ -10,7 +10,11 @@ import * as shell from 'shelljs';
 export const repoSetup = (repo: string, localDir: string, packageName: string) => {
   let result = shell.exec(`git clone ${repo} ${localDir}`);
   expect(result.code).to.equal(0);
-  result = shell.exec('yarn install', { cwd: localDir }) as shell.ExecOutputReturnValue;
+
+  result = shell.exec('mkdir .yarncache', { cwd: localDir }) as shell.ExecOutputReturnValue;
+  expect(result.code).to.equal(0);
+
+  result = shell.exec('yarn install --cache-folder ./.yarncache', { cwd: localDir }) as shell.ExecOutputReturnValue;
   expect(result.code).to.equal(0);
 
   result = shell.exec(`yarn link "${packageName}"`, { cwd: localDir }) as shell.ExecOutputReturnValue;
