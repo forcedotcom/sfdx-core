@@ -109,28 +109,8 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     return new OrgAccessor(this);
   }
 
-  public getTokens(decrypt = false): SfTokens {
-    return this.get(SfInfoKeys.TOKENS, decrypt) || {};
-  }
-
-  public getToken(name: string, decrypt = false): Optional<SfToken & Timestamp> {
-    return this.get(`${SfInfoKeys.TOKENS}["${name}"]`, decrypt);
-  }
-
-  public hasToken(name: string): boolean {
-    return !!this.getTokens()[name];
-  }
-
-  public setToken(name: string, token: SfToken): void {
-    this.set(`${SfInfoKeys.TOKENS}["${name}"]`, token);
-  }
-
-  public updateToken(name: string, token: Partial<SfToken>): void {
-    this.update(`${SfInfoKeys.TOKENS}["${name}"]`, token);
-  }
-
-  public unsetToken(name: string): void {
-    delete this.get(SfInfoKeys.TOKENS)[name];
+  public get tokens(): TokenAccessor {
+    return new TokenAccessor(this);
   }
 
   public getAllAliases(): SfAliases {
@@ -272,5 +252,33 @@ export class OrgAccessor {
 
   public unset(username: string): void {
     delete this.globalInfo.get(SfInfoKeys.ORGS)[username];
+  }
+}
+
+export class TokenAccessor {
+  public constructor(private globalInfo: GlobalInfo) {}
+
+  public getAll(decrypt = false): SfTokens {
+    return this.globalInfo.get(SfInfoKeys.TOKENS, decrypt) || {};
+  }
+
+  public get(name: string, decrypt = false): Optional<SfToken & Timestamp> {
+    return this.globalInfo.get(`${SfInfoKeys.TOKENS}["${name}"]`, decrypt);
+  }
+
+  public has(name: string): boolean {
+    return !!this.getAll()[name];
+  }
+
+  public set(name: string, token: SfToken): void {
+    this.globalInfo.set(`${SfInfoKeys.TOKENS}["${name}"]`, token);
+  }
+
+  public update(name: string, token: Partial<SfToken>): void {
+    this.globalInfo.update(`${SfInfoKeys.TOKENS}["${name}"]`, token);
+  }
+
+  public unset(name: string): void {
+    delete this.globalInfo.get(SfInfoKeys.TOKENS)[name];
   }
 }
