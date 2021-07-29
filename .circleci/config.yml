@@ -30,8 +30,8 @@ workflows:
           github-release: true
           post-job-steps:
             - run: yarn ci-docs
-          requires:
-            - release-management/test-package
+          # requires:
+          #   - release-management/test-package
           filters:
             branches:
               only: main
