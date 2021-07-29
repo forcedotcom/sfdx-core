@@ -10,7 +10,7 @@ import { assert, expect } from 'chai';
 import { AuthRemover } from '../../../src/org/authRemover';
 import { Config, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
-import { GlobalInfo } from '../../../src/config/globalInfoConfig';
+import { GlobalInfo, OrgAccessor } from '../../../src/config/globalInfoConfig';
 import { testSetup } from '../../../src/testSetup';
 
 describe('AuthRemover', () => {
@@ -54,7 +54,7 @@ describe('AuthRemover', () => {
 
   describe('findAllAuths', () => {
     it('should return all authorization', async () => {
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrgs').returns({ [username]: {} });
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'getAll').returns({ [username]: {} });
       const remover = await AuthRemover.create();
       const auths = remover.findAllAuths();
 
@@ -64,7 +64,7 @@ describe('AuthRemover', () => {
 
   describe('findAuth', () => {
     it('should return authorization for provided username', async () => {
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get').returns({ username, orgId: '12345' });
       const remover = await AuthRemover.create();
       const auth = await remover.findAuth(username);
 
@@ -74,14 +74,14 @@ describe('AuthRemover', () => {
     it('should return authorization for provided alias', async () => {
       const alias = 'MyAlias';
       stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getAlias').withArgs(alias).returns(username);
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get').returns({ username, orgId: '12345' });
       const remover = await AuthRemover.create();
       const auth = await remover.findAuth(alias);
       expect(auth).to.deep.equal({ username, orgId: '12345' });
     });
 
     it('should return authorization for defaultusername (set to username) if no username is provided', async () => {
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get').returns({ username, orgId: '12345' });
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
         .returns({})
         .withArgs(SfdxPropertyKeys.DEFAULT_USERNAME)
@@ -93,7 +93,7 @@ describe('AuthRemover', () => {
 
     it('should return authorization for defaultusername (set to alias) if no username is provided', async () => {
       const alias = 'MyAlias';
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrg').returns({ username, orgId: '12345' });
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get').returns({ username, orgId: '12345' });
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
         .returns({})
         .withArgs(SfdxPropertyKeys.DEFAULT_USERNAME)

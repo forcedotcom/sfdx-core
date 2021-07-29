@@ -8,7 +8,7 @@ import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson } from '@salesforce/ts-types';
 import { expect, assert } from 'chai';
 import { AuthInfo } from '../../../src/org/authInfo';
-import { GlobalInfo } from '../../../src/config/globalInfoConfig';
+import { OrgAccessor } from '../../../src/config/globalInfoConfig';
 import { Connection } from '../../../src/org/connection';
 import { Org } from '../../../src/org/org';
 import { PermissionSetAssignment } from '../../../src/org/permissionSetAssignment';
@@ -276,7 +276,7 @@ describe('User Tests', () => {
         },
       });
 
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'hasOrg').returns(true);
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'has').returns(true);
 
       org = await Org.create({
         connection: await Connection.create({

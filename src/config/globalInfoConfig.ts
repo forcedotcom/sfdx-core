@@ -43,6 +43,7 @@ export type SfToken = {
 export interface SfTokens {
   [key: string]: SfToken & Timestamp;
 }
+
 export interface SfAliases {
   [key: string]: string;
 }
@@ -104,35 +105,8 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     };
   }
 
-  public getOrgs(decrypt = false): SfOrgs {
-    return this.get(SfInfoKeys.ORGS, decrypt);
-  }
-
-  public getOrg(username: string, decrypt = false): Optional<SfOrg & Timestamp> {
-    const auth: SfOrg & Timestamp = this.get(`${SfInfoKeys.ORGS}["${username}"]`, decrypt);
-    // For legacy, some things wants the username in the returned auth info.
-    if (auth && !auth.username) auth.username = username;
-    return auth;
-  }
-
-  public hasOrg(username: string): boolean {
-    return !!this.getOrgs()[username];
-  }
-
-  public setOrg(username: string, org: SfOrg): void {
-    // For legacy, and to keep things standard, some things wants the username in auth info.
-    if (!org.username) org.username = username;
-    this.set(`${SfInfoKeys.ORGS}["${username}"]`, org);
-  }
-
-  public updateOrg(username: string, authorization: Partial<SfOrg>): void {
-    // For legacy, and to keep things standard, some things wants the username in auth info.
-    if (!authorization.username) authorization.username = username;
-    this.update(`${SfInfoKeys.ORGS}["${username}"]`, authorization);
-  }
-
-  public unsetOrg(username: string): void {
-    delete this.get(SfInfoKeys.ORGS)[username];
+  public get orgs(): OrgAccessor {
+    return new OrgAccessor(this);
   }
 
   public getTokens(decrypt = false): SfTokens {
@@ -263,5 +237,40 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     const sfData = await this.loadSfData();
     const merged = await this.sfdxHandler.merge(sfData);
     return merged;
+  }
+}
+
+export class OrgAccessor {
+  public constructor(private globalInfo: GlobalInfo) {}
+
+  public getAll(decrypt = false): SfOrgs {
+    return this.globalInfo.get(SfInfoKeys.ORGS, decrypt);
+  }
+
+  public get(username: string, decrypt = false): Optional<SfOrg> {
+    const auth = this.globalInfo.get<SfOrg>(`${SfInfoKeys.ORGS}["${username}"]`, decrypt);
+    // For legacy, some things wants the username in the returned auth info.
+    if (auth && !auth.username) auth.username = username;
+    return auth;
+  }
+
+  public has(username: string): boolean {
+    return !!this.getAll()[username];
+  }
+
+  public set(username: string, org: SfOrg): void {
+    // For legacy, and to keep things standard, some things wants the username in auth info.
+    if (!org.username) org.username = username;
+    this.globalInfo.set(`${SfInfoKeys.ORGS}["${username}"]`, org);
+  }
+
+  public update(username: string, authorization: Partial<SfOrg>): void {
+    // For legacy, and to keep things standard, some things wants the username in auth info.
+    if (!authorization.username) authorization.username = username;
+    this.globalInfo.update(`${SfInfoKeys.ORGS}["${username}"]`, authorization);
+  }
+
+  public unset(username: string): void {
+    delete this.globalInfo.get(SfInfoKeys.ORGS)[username];
   }
 }

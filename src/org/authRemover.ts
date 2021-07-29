@@ -57,7 +57,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
     this.logger.debug(`Removing authorization for user ${username}`);
     await this.unsetConfigValues(username);
     await this.unsetAliases(username);
-    this.globalInfo.unsetOrg(username);
+    this.globalInfo.orgs.unset(username);
     await this.globalInfo.write();
   }
 
@@ -82,7 +82,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   public async findAuth(usernameOrAlias?: string): Promise<SfOrg> {
     const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getDefaultUsername();
-    const auth = this.globalInfo.getOrg(username);
+    const auth = this.globalInfo.orgs.get(username);
     if (!auth) {
       throw coreMessages.createError('namedOrgNotFound');
     }
@@ -95,7 +95,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {SfOrgs}
    */
   public findAllAuths(): SfOrgs {
-    return this.globalInfo.getOrgs();
+    return this.globalInfo.orgs.getAll();
   }
 
   protected async init() {

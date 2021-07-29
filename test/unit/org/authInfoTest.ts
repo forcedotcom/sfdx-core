@@ -24,11 +24,12 @@ import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
+import { GlobalInfo, OrgAccessor } from '../../../src/config/globalInfoConfig';
 import { Crypto } from '../../../src/crypto/crypto';
 import { SfdxError } from '../../../src/sfdxError';
 import { testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
-import { GlobalInfo, MyDomainResolver } from '../../../src/exported';
+import { MyDomainResolver } from '../../../src/exported';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 
 const TEST_KEY = {
@@ -392,7 +393,7 @@ describe('AuthInfo', () => {
 
     describe('AuthInfo', () => {
       it('should not have a client secret or decrypted refresh token', () => {
-        const authInfoString: string = JSON.stringify(authInfo);
+        const authInfoString = JSON.stringify(authInfo);
 
         // verify the returned object doesn't have secrets
         expect(() => walkAndSearchForSecrets(toJsonMap(authInfo) || {})).to.not.throw();
@@ -428,7 +429,7 @@ describe('AuthInfo', () => {
     it('should return an AuthInfo instance when passed a parent username', async () => {
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'hasOrg').returns(false);
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'has').returns(false);
       // Stub the http request (OAuth2.refreshToken())
       // This will be called for both, and we want to make sure the clientSecrete is the
       // same for both.
@@ -551,7 +552,7 @@ describe('AuthInfo', () => {
         stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>
           done(null, { address: '1.1.1.1', family: 4 })
         );
-        $$.SANDBOX.stub(GlobalInfo.prototype, 'hasOrg').returns(false);
+        $$.SANDBOX.stub(OrgAccessor.prototype, 'has').returns(false);
 
         // Create the JWT AuthInfo instance
         const authInfo = await AuthInfo.create({
@@ -645,7 +646,7 @@ describe('AuthInfo', () => {
       set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
       testMetadata.fetchConfigInfo = () => jwtData;
 
-      $$.SANDBOX.stub(GlobalInfo.prototype, 'hasOrg').returns(true);
+      $$.SANDBOX.stub(OrgAccessor.prototype, 'has').returns(true);
 
       // Create the JWT AuthInfo instance
       try {
@@ -1562,7 +1563,7 @@ describe('AuthInfo', () => {
 
     it('should set alias', async () => {
       const globalInfoSpy = spyMethod($$.SANDBOX, GlobalInfo.prototype, 'setAlias');
-      $$.SANDBOX.stub(GlobalInfo.prototype, 'hasOrg').returns(true);
+      $$.SANDBOX.stub(OrgAccessor.prototype, 'has').returns(true);
       const authInfo = await AuthInfo.create({ username });
       await authInfo.setAlias(alias);
       expect(globalInfoSpy.calledOnce).to.be.true;
@@ -1578,7 +1579,7 @@ describe('AuthInfo', () => {
 
     beforeEach(() => {
       configSpy = spyMethod($$.SANDBOX, Config.prototype, 'set');
-      $$.SANDBOX.stub(GlobalInfo.prototype, 'hasOrg').returns(true);
+      $$.SANDBOX.stub(OrgAccessor.prototype, 'has').returns(true);
     });
 
     it('should set username to target-org', async () => {
@@ -1791,7 +1792,7 @@ describe('AuthInfo', () => {
 
   describe('hasAuthentications', () => {
     it('should return false', async () => {
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'getOrgs').returns({});
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'getAll').returns({});
       const result = await AuthInfo.hasAuthentications();
       expect(result).to.be.false;
     });
@@ -1810,7 +1811,7 @@ describe('AuthInfo', () => {
       beforeEach(async () => {
         stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
         stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
-        stubMethod($$.SANDBOX, GlobalInfo.prototype, 'hasOrg').returns(false);
+        stubMethod($$.SANDBOX, OrgAccessor.prototype, 'has').returns(false);
         // Stub the http request (OAuth2.refreshToken())
         // This will be called for both, and we want to make sure the clientSecrete is the
         // same for both.
@@ -1842,7 +1843,7 @@ describe('AuthInfo', () => {
             authCode: testMetadata.authCode,
           },
         });
-        timestamp = (await GlobalInfo.getInstance()).getOrg(username).timestamp;
+        timestamp = (await GlobalInfo.getInstance()).orgs.get(username).timestamp;
         stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).returns(Promise.resolve(authInfo));
       });
 
