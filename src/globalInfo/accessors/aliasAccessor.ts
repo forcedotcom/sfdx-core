@@ -43,10 +43,7 @@ export class AliasAccessor {
    * @param entity the aliasable entity that you want to get the alias of
    */
   public get(entity: Aliasable): Nullable<string> {
-    const matchedAliases = this.getAll(entity);
-
-    if (matchedAliases.length === 0) return null;
-    return matchedAliases[0];
+    return this.getAll(entity).find((alias) => alias) ?? null;
   }
 
   /**

@@ -33,10 +33,10 @@ export class OrgAccessor {
     this.globalInfo.set(`${SfInfoKeys.ORGS}["${username}"]`, org);
   }
 
-  public update(username: string, authorization: Partial<SfOrg>): void {
+  public update(username: string, org: Partial<SfOrg>): void {
     // For legacy, and to keep things standard, some things wants the username in auth info.
-    if (!authorization.username) authorization.username = username;
-    this.globalInfo.update(`${SfInfoKeys.ORGS}["${username}"]`, authorization);
+    if (!org.username) org.username = username;
+    this.globalInfo.update(`${SfInfoKeys.ORGS}["${username}"]`, org);
   }
 
   public unset(username: string): void {
