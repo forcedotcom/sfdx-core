@@ -24,7 +24,7 @@ workflows:
           sfdx_version: latest
           requires:
             - release-management/test-package
-          size: xlarge
+          size: 2xlarge
           node_version: lts
       - release-management/release-package:
           github-release: true
