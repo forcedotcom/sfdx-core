@@ -29,8 +29,9 @@ export const repoSetup = (repo: string, localDir: string): void => {
 
   // yarn:link doesn't like classes in two different packages with private properties.  kit is the most common violator.
   // updating tsconfig.json to find the dependency in the correct place helps
+  // comments need to be removed to avoid errors
   const tsConfigPath = `${localDir}${path.sep}tsconfig.json`;
-  const tsconfig = fs.readJsonSync(tsConfigPath) as any;
+  const tsconfig = JSON.parse(stripJSONComments(fs.readFileSync(tsConfigPath)));
   tsconfig.compilerOptions.paths = tsconfig.compilerOptions.paths ?? {
     '@salesforce/kit': ['./node_modules/@salesforce/kit'],
   };
@@ -41,4 +42,9 @@ export const repoSetup = (repo: string, localDir: string): void => {
 
   result = shell.exec('ls -l node_modules/@salesforce/core', { cwd: localDir }) as shell.ExecOutputReturnValue;
   expect(result.code).to.equal(0);
+};
+
+const stripJSONComments = (data: Buffer) => {
+  const re = new RegExp('//(.*)', 'g');
+  return data.toString().replace(re, '');
 };
