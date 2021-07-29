@@ -4,8 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { writeFileSync } from 'fs';
+import * as path from 'path';
 import { expect } from 'chai';
 import * as shell from 'shelljs';
+import { fs } from '../../src/util/fs';
+
 const packageName = '@salesforce/core';
 
 export const repoSetup = (repo: string, localDir: string): void => {
@@ -23,6 +27,14 @@ export const repoSetup = (repo: string, localDir: string): void => {
   result = shell.exec(`yarn link "${packageName}"`, { cwd: localDir }) as shell.ExecOutputReturnValue;
   expect(result.code).to.equal(0);
 
+  // yarn:link doesn't like classes in two different packages with private properties.  kit is the most common violator.
+  // updating tsconfig.json to find the dependency in the correct place helps
+  const tsConfigPath = `${localDir}${path.sep}tsconfig.json`;
+  const tsconfig = fs.readJsonSync(tsConfigPath) as any;
+  tsconfig.compilerOptions.paths = tsconfig.compilerOptions.paths ?? {
+    '@salesforce/kit': ['./node_modules/@salesforce/kit'],
+  };
+  writeFileSync(tsConfigPath, JSON.stringify(tsconfig));
   result = shell.exec('yarn build', { cwd: localDir }) as shell.ExecOutputReturnValue;
   expect(result.code).to.equal(0);
 
