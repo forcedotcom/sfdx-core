@@ -23,6 +23,7 @@ export const repoSetup = (repo: string, localDir: string): void => {
   pjson.scripts['test:nuts'] = pjson.scripts['test:nuts'].replace(/--timeout \d*/, `--timeout ${nutTimeout}`);
 
   writeFileSync(pjsonPath, JSON.stringify(pjson));
+  result = shell.exec('pwd', { cwd: localDir }) as shell.ExecOutputReturnValue;
 
   // on circle, when you have multiple `yarn install`s running, you'll get corrupt file warnings like
   // error https://registry.yarnpkg.com/cli-ux/-/cli-ux-4.9.3.tgz: Extracting tar content of undefined failed, the file appears to be corrupt: "ENOENT: no such file or directory, chmod '/home/circleci/.cache/yarn/v6/npm-cli-ux-4.9.3-4c3e070c1ea23eef010bbdb041192e0661be84ce-integrity/node_modules/cli-ux/lib/action/base.js'"
