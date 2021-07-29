@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.27.0](https://github.com/forcedotcom/sfdx-core/compare/v2.26.1...v2.27.0) (2021-07-29)
+
+
+### Features
+
+* Core URL class SfdcUrl ([#420](https://github.com/forcedotcom/sfdx-core/issues/420)) ([66881ea](https://github.com/forcedotcom/sfdx-core/commit/66881eae2f30215c862ea398bfc1630d9a5898fe))
+
 ### [2.26.1](https://github.com/forcedotcom/sfdx-core/compare/v2.26.0...v2.26.1) (2021-07-19)
 
 
