@@ -10,14 +10,12 @@ import * as shell from 'shelljs';
 import { expect } from 'chai';
 import { repoSetup } from './repoSetup';
 
-const packageName = '@salesforce/core';
-
 const repo = 'https://github.com/salesforcecli/plugin-limits';
 const localDir = `${os.tmpdir}${path.sep}${repo.split('/')[repo.split('/').length - 1]}`;
 
 describe(repo, () => {
   before(() => {
-    repoSetup(repo, localDir, packageName);
+    repoSetup(repo, localDir);
   });
 
   it('executes the nuts', () => {
