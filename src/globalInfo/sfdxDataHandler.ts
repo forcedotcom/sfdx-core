@@ -191,7 +191,10 @@ export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
       const configFile = await this.createAuthFileConfig(username);
       const contents = configFile.getContents() as SfOrg;
       const stat = await configFile.stat();
-      const auth = Object.assign(contents, { timestamp: stat.mtime.toISOString() });
+      const auth = Object.assign(contents, {
+        timestamp: stat.mtime.toISOString(),
+        aliases: contents.alias ? [contents.alias] : [],
+      });
       auths.push(auth);
     }
     return auths;

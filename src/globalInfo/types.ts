@@ -16,7 +16,7 @@ export type Timestamp = { timestamp: string };
 export type SfEntry = JsonMap;
 
 export type SfOrg = {
-  alias: Optional<string>;
+  aliases: Optional<string[]>;
   username: Optional<string>;
   orgId: Optional<string>;
   instanceUrl: Optional<string>;
