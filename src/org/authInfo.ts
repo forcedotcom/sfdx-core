@@ -89,6 +89,18 @@ export type AuthFields = {
   expirationDate?: string;
 };
 
+export type OrgAuthorization = {
+  orgId: string;
+  username: string;
+  oauthMethod: 'jwt' | 'web' | 'token' | 'unknown';
+  aliases: Nullable<string[]>;
+  configs: Nullable<string[]>;
+  isScratchOrg?: boolean;
+  instanceUrl?: string;
+  accessToken?: string;
+  error?: string;
+};
+
 /**
  * Options for access token flow.
  */
@@ -373,37 +385,44 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   /**
    * Get a list of all authorizations based on auth files stored in the global directory.
    *
-   * @returns {Promise<SfOrg[]>}
+   * @returns {Promise<OrgAuthorization[]>}
    */
-  public static async listAllAuthorizations(): Promise<SfOrg[]> {
+  public static async listAllAuthorizations(): Promise<OrgAuthorization[]> {
     const globalInfo = await GlobalInfo.getInstance();
+    const config = (await ConfigAggregator.create()).getConfigInfo();
     const auths = Object.values(globalInfo.orgs.getAll());
-    const removeKeys = ['loginUrl', 'clientId', 'refreshToken', 'clientSecret', 'timestamp', 'privateKey'];
-    const final: SfOrg[] = [];
+    const final: OrgAuthorization[] = [];
     for (const auth of auths) {
       const username = ensureString(auth.username);
       const aliases = globalInfo.aliases.getAll(username) ?? undefined;
+      const configs = config
+        .filter((c) => aliases.includes(c.value as string) || c.value === username)
+        .map((c) => c.key);
       try {
         const authInfo = await AuthInfo.create({ username });
-        const { instanceUrl } = authInfo.getFields();
-        const info = {
+        const { orgId, instanceUrl, devHubUsername } = authInfo.getFields();
+        const isScratchOrg = Boolean(devHubUsername);
+        final.push({
           aliases,
+          configs,
+          username,
           instanceUrl,
+          isScratchOrg,
+          orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
-        };
-        removeKeys.forEach((k) => delete auth[k]);
-        final.push({ ...auth, ...info } as SfOrg);
+        });
       } catch (err) {
-        const info = {
+        final.push({
           aliases,
-          instanceUrl: auth.instanceUrl as string,
+          configs,
+          username,
+          orgId: auth.orgId,
+          instanceUrl: auth.instanceUrl,
           accessToken: undefined,
           oauthMethod: 'unknown',
           error: err.message,
-        };
-        removeKeys.forEach((k) => delete auth[k]);
-        final.push({ ...auth, ...info } as SfOrg);
+        });
       }
     }
 
