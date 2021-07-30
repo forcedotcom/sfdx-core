@@ -32,7 +32,7 @@ import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
-import { GlobalInfo } from '../config/globalInfoConfig';
+import { GlobalInfo } from '../globalInfo';
 import { Messages } from '../messages';
 import { Connection } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
@@ -351,7 +351,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       const isSandbox = organization.IsSandbox && !organization.TrialExpirationDate;
       const info = await GlobalInfo.getInstance();
 
-      info.updateOrg(username, {
+      info.orgs.update(username, {
         [Org.Fields.NAME]: organization.Name,
         [Org.Fields.INSTANCE_NAME]: organization.InstanceName,
         [Org.Fields.NAMESPACE_PREFIX]: organization.NamespacePrefix,
@@ -590,11 +590,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         this.options.aliasOrUsername = aliasOrUsername || undefined;
       }
 
+      const username = globalInfo.aliases.resolveUsername(this.options.aliasOrUsername as string);
+      if (!username) {
+        throw new SfdxError('No username found', 'NoUsernameFound');
+      }
       this.connection = await Connection.create({
         // If no username is provided or resolvable from an alias, AuthInfo will throw an SfdxError.
-        authInfo: await AuthInfo.create({
-          username: globalInfo.getAliasee(this.options.aliasOrUsername as string) ?? this.options.aliasOrUsername,
-        }),
+        authInfo: await AuthInfo.create({ username }),
       });
     } else {
       this.connection = this.options.connection;
@@ -621,7 +623,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (username) {
       this.logger.debug(`Removing auth for user: ${username}`);
       this.logger.debug(`Clearing auth cache for user: ${username}`);
-      config.unsetOrg(username);
+      config.orgs.unset(username);
     }
     await config.write();
   }
@@ -673,8 +675,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       for (const auth of authInfos) {
         const username = auth.getFields().username;
 
-        const aliases = (username && globalInfo.getAliases(username)) || [];
-        globalInfo.unsetAliases(username as string);
+        const aliases = (username && globalInfo.aliases.getAll(username)) || [];
+        globalInfo.aliases.unsetAll(username as string);
 
         let orgForUser;
         if (username === this.getUsername()) {

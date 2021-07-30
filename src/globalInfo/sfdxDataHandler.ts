@@ -10,8 +10,9 @@ import { set } from '@salesforce/kit';
 import { ensureString, isPlainObject } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { fs } from '../util/fs';
-import { ConfigFile } from './configFile';
-import { SfOrgs, SfOrg, deepCopy, GlobalInfo, SfInfo, SfInfoKeys } from './globalInfoConfig';
+import { ConfigFile } from '../config/configFile';
+import { deepCopy, GlobalInfo } from './globalInfoConfig';
+import { SfOrgs, SfOrg, SfInfo, SfInfoKeys } from './types';
 
 function isEqual(object1: Record<string, unknown>, object2: Record<string, unknown>): boolean {
   const keys1 = Object.keys(object1).filter((k) => k !== 'timestamp');

@@ -11,7 +11,7 @@ import { Config, SfdxPropertyKeys } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
-import { SfOrg, GlobalInfo, SfOrgs } from '../config/globalInfoConfig';
+import { SfOrg, GlobalInfo, SfOrgs } from '../globalInfo';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
@@ -57,7 +57,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
     this.logger.debug(`Removing authorization for user ${username}`);
     await this.unsetConfigValues(username);
     await this.unsetAliases(username);
-    this.globalInfo.unsetOrg(username);
+    this.globalInfo.orgs.unset(username);
     await this.globalInfo.write();
   }
 
@@ -82,7 +82,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   public async findAuth(usernameOrAlias?: string): Promise<SfOrg> {
     const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getDefaultUsername();
-    const auth = this.globalInfo.getOrg(username);
+    const auth = this.globalInfo.orgs.get(username);
     if (!auth) {
       throw coreMessages.createError('namedOrgNotFound');
     }
@@ -95,7 +95,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {SfOrgs}
    */
   public findAllAuths(): SfOrgs {
-    return this.globalInfo.getOrgs();
+    return this.globalInfo.orgs.getAll();
   }
 
   protected async init() {
@@ -112,7 +112,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<string>}
    */
   private async resolveUsername(usernameOrAlias: string): Promise<string> {
-    return this.globalInfo.getAliasee(usernameOrAlias) ?? usernameOrAlias;
+    return this.globalInfo.aliases.resolveUsername(usernameOrAlias);
   }
 
   /**
@@ -152,7 +152,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<string[]>}
    */
   private getAliases(username: string): string[] {
-    return this.globalInfo.getAliases(username);
+    return this.globalInfo.aliases.getAll(username);
   }
 
   /**
@@ -186,11 +186,11 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   private async unsetAliases(username: string) {
     this.logger.debug(`Clearing aliases for username: ${username}`);
-    const existingAliases = this.globalInfo.getAliases(username);
+    const existingAliases = this.globalInfo.aliases.getAll(username);
     if (existingAliases.length === 0) return;
 
     this.logger.debug(`Found these aliases to remove: ${existingAliases}`);
-    existingAliases.forEach((alias) => this.globalInfo.unsetAlias(alias));
+    existingAliases.forEach((alias) => this.globalInfo.aliases.unset(alias));
     await this.globalInfo.write();
   }
 }

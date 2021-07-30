@@ -26,7 +26,7 @@ import { Org } from '../../../src/org/org';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
-import { GlobalInfo } from '../../../src/config/globalInfoConfig';
+import { GlobalInfo, OrgAccessor } from '../../../src/globalInfo';
 
 const $$ = testSetup();
 
@@ -81,7 +81,7 @@ describe('Org Tests', () => {
       delete config.username;
       $$.configStubs.GlobalInfo = { contents: { orgs: { [testData.username]: config } } };
       const alias = 'foo';
-      (await GlobalInfo.getInstance()).setAlias(alias, testData.username);
+      (await GlobalInfo.getInstance()).aliases.set(alias, testData.username);
       const org: Org = await Org.create({ aliasOrUsername: alias });
       expect(org.getUsername()).to.eq(testData.username);
     });
@@ -166,7 +166,7 @@ describe('Org Tests', () => {
     it('InvalidProjectWorkspaceError', async () => {
       $$.SANDBOXES.CONFIG.restore();
       // Cleared the config, so manually set the authorization.
-      (await GlobalInfo.getInstance()).setOrg(testData.username, await testData.getConfig());
+      (await GlobalInfo.getInstance()).orgs.set(testData.username, await testData.getConfig());
       stubMethod($$.SANDBOX, GlobalInfo.prototype, 'write').callsFake(() => {});
       let invalidProjectWorkspace = false;
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
@@ -192,7 +192,7 @@ describe('Org Tests', () => {
     it('Random Error', async () => {
       $$.SANDBOXES.CONFIG.restore();
       // Cleared the config, so manually set the authorization.
-      (await GlobalInfo.getInstance()).setOrg(testData.username, await testData.getConfig());
+      (await GlobalInfo.getInstance()).orgs.set(testData.username, await testData.getConfig());
       stubMethod($$.SANDBOX, GlobalInfo.prototype, 'write').callsFake(() => {});
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolder').callsFake(() => {
         const err = new Error();
@@ -336,13 +336,13 @@ describe('Org Tests', () => {
       });
 
       const globalInfo = await GlobalInfo.getInstance();
-      globalInfo.setAlias('foo', testData.username);
-      const user = globalInfo.getAliasee('foo');
+      globalInfo.aliases.set('foo', testData.username);
+      const user = globalInfo.aliases.getUsername('foo');
       expect(user).eq(testData.username);
 
       await org.remove();
 
-      const alias = globalInfo.getAlias('foo');
+      const alias = globalInfo.aliases.get('foo');
       expect(alias).eq(null);
     });
 
@@ -465,8 +465,8 @@ describe('Org Tests', () => {
       const org1Username = orgs[1].getUsername();
 
       const globalInfo = await GlobalInfo.getInstance();
-      globalInfo.setAlias('foo', org1Username);
-      const user = globalInfo.getAliasee('foo');
+      globalInfo.aliases.set('foo', org1Username);
+      const user = globalInfo.aliases.getUsername('foo');
       expect(user).eq(org1Username);
 
       await orgs[0].remove();
@@ -474,7 +474,7 @@ describe('Org Tests', () => {
       await configAggregator.reload();
       expect(configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME)).has.property('value', undefined);
 
-      const alias = globalInfo.getAlias(user);
+      const alias = globalInfo.aliases.get(user);
       expect(alias).eq(null);
     });
 
@@ -764,7 +764,7 @@ describe('Org Tests', () => {
         return Promise.resolve(true);
       });
 
-      stubMethod($$.SANDBOX, GlobalInfo.prototype, 'hasOrg').callsFake(async function () {
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'has').callsFake(async function () {
         if (this.path && this.path.includes(testData.orgId)) {
           return Promise.resolve(false);
         }
@@ -778,7 +778,7 @@ describe('Org Tests', () => {
         return Promise.resolve({});
       });
 
-      const unsetSpy = stubMethod($$.SANDBOX, GlobalInfo.prototype, 'unsetOrg').returns(null);
+      const unsetSpy = stubMethod($$.SANDBOX, OrgAccessor.prototype, 'unset').returns(null);
 
       // Create an org and add a sandbox config
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
