@@ -66,8 +66,8 @@ describe('OrgAccessor', () => {
       const globalInfo = await GlobalInfo.create();
       const newOrg = { username: 'foobar@baz.com', token: '123' } as unknown as SfOrg;
       globalInfo.orgs.set('foobar@baz.com', newOrg);
-      const result = globalInfo.orgs.get('foobar@baz.com');
-      expect(result).to.deep.equal(newOrg);
+      const result = globalInfo.orgs.has('foobar@baz.com');
+      expect(result).to.be.true;
     });
 
     it('should add the username if does not exist on the object', async () => {
@@ -83,7 +83,7 @@ describe('OrgAccessor', () => {
     const instanceUrl = 'https://login.salesforce.com';
     it('should update the org', async () => {
       const globalInfo = await GlobalInfo.create();
-      const newOrg = Object.assign(org, { instanceUrl });
+      const newOrg = { ...org, instanceUrl };
       globalInfo.orgs.update(username, newOrg);
       const result = globalInfo.orgs.get(username);
       expect(result.instanceUrl).to.deep.equal(instanceUrl);
@@ -91,7 +91,7 @@ describe('OrgAccessor', () => {
 
     it('should add the username if does not exist on the object', async () => {
       const globalInfo = await GlobalInfo.create();
-      const newOrg = Object.assign(org, { instanceUrl });
+      const newOrg = { ...org, instanceUrl };
       delete newOrg.username;
 
       globalInfo.orgs.set(username, newOrg);

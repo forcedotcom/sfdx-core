@@ -66,8 +66,8 @@ describe('TokenAccessor', () => {
       const globalInfo = await GlobalInfo.create();
       const newToken = { username: 'foobar@baz.com', token: '123', url: 'https://login.salesforce.com' };
       globalInfo.tokens.set('foobar@baz.com', newToken);
-      const result = globalInfo.tokens.get('foobar@baz.com');
-      expect(result).to.deep.equal(newToken);
+      const result = globalInfo.tokens.has('foobar@baz.com');
+      expect(result).to.be.true;
     });
   });
 
@@ -75,7 +75,7 @@ describe('TokenAccessor', () => {
     it('should update the token', async () => {
       const globalInfo = await GlobalInfo.create();
       const instanceUrl = 'https://login.salesforce.com';
-      const newToken = Object.assign(token, { instanceUrl });
+      const newToken = { ...token, instanceUrl };
       globalInfo.tokens.update(username, newToken);
       const result = globalInfo.tokens.get(username);
       expect(result.instanceUrl).to.deep.equal(instanceUrl);

@@ -98,12 +98,12 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   }
 
   private timestamp<T extends JsonMap>(data: T): T {
-    return Object.assign(data, { timestamp: new Date() });
+    return { ...data, timestamp: new Date() };
   }
 
   private async loadSfData(): Promise<SfInfo> {
     const data = await this.read();
-    return Object.assign(GlobalInfo.emptyDataModel, data);
+    return { ...GlobalInfo.emptyDataModel, ...data };
   }
 
   private async mergeWithSfdxData(): Promise<SfInfo> {
