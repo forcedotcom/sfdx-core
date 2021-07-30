@@ -378,35 +378,35 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   public static async listAllAuthorizations(): Promise<SfOrg[]> {
     const globalInfo = await GlobalInfo.getInstance();
     const auths = Object.values(globalInfo.orgs.getAll());
+    const removeKeys = ['loginUrl', 'clientId', 'refreshToken', 'clientSecret', 'timestamp', 'privateKey'];
     const final: SfOrg[] = [];
     for (const auth of auths) {
       const username = ensureString(auth.username);
-      const alias = globalInfo.aliases.get(username) ?? undefined;
+      const aliases = globalInfo.aliases.getAll(username) ?? undefined;
       try {
         const authInfo = await AuthInfo.create({ username });
-        const { orgId, instanceUrl } = authInfo.getFields();
-        final.push({
-          alias,
-          username,
-          orgId,
+        const { instanceUrl } = authInfo.getFields();
+        const info = {
+          aliases,
           instanceUrl,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
-          timestamp: auth.timestamp,
-        });
+        };
+        removeKeys.forEach((k) => delete auth[k]);
+        final.push({ ...auth, ...info } as SfOrg);
       } catch (err) {
-        final.push({
-          alias,
-          username,
-          orgId: auth.orgId as string,
+        const info = {
+          aliases,
           instanceUrl: auth.instanceUrl as string,
           accessToken: undefined,
           oauthMethod: 'unknown',
           error: err.message,
-          timestamp: auth.timestamp,
-        });
+        };
+        removeKeys.forEach((k) => delete auth[k]);
+        final.push({ ...auth, ...info } as SfOrg);
       }
     }
+
     return final;
   }
 
