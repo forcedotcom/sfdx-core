@@ -48,7 +48,7 @@ describe('SfdxDataHandler', () => {
           username,
           timestamp,
           instanceUrl: 'https://login.salesforce.com',
-          alias: 'myOrg',
+          aliases: ['myOrg'],
         },
       };
       const merged: SfInfo = GlobalInfo.emptyDataModel;
@@ -115,7 +115,7 @@ describe('SfdxDataHandler', () => {
             orgId: '12345_NEW_SFDX',
             username: newSfdxAuthUsername,
             instanceUrl: 'https://login.salesforce.com',
-            alias: 'newUser',
+            aliases: ['newUser'],
           },
         },
       });
@@ -141,7 +141,7 @@ describe('SfdxDataHandler', () => {
             orgId: '12345_NEW_SFDX',
             username: newSfdxAuthUsername,
             instanceUrl: 'https://login.salesforce.com',
-            alias: 'newUser',
+            aliases: ['newUser'],
           },
         },
       });
@@ -167,7 +167,7 @@ describe('SfdxDataHandler', () => {
             orgId: '12345_NEW_SFDX',
             username: newSfdxAuthUsername,
             instanceUrl: 'https://login.salesforce.com',
-            alias: 'newUser',
+            aliases: ['newUser'],
           },
         },
         tokens: {
@@ -180,7 +180,7 @@ describe('SfdxDataHandler', () => {
             orgId: '12345_NEW_SFDX',
             username: newSfdxAuthUsername,
             instanceUrl: 'https://login.salesforce.com',
-            alias: 'newUser',
+            aliases: ['newUser'],
           },
         },
       });
@@ -221,7 +221,7 @@ describe('AuthHandler', () => {
     accessToken: 'token_12345',
     username,
     instanceUrl: 'https://login.salesforce.com',
-    alias: 'myOrg',
+    aliases: ['myOrg'],
   };
 
   beforeEach(() => {
