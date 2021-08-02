@@ -19,7 +19,7 @@ const coreMessages = Messages.load('@salesforce/core', 'core', ['namedOrgNotFoun
 const messages = Messages.load('@salesforce/core', 'auth', ['defaultUsernameNotSet']);
 
 /**
- * Handles the removing of authorizations, which includes deleting the auth file
+ * Handles  the removing of authorizations, which includes deleting the auth file
  * in the global .sfdx folder, deleting any configs that are associated with the username/alias,
  * and deleting any aliases associated with the username
  *
