@@ -24,7 +24,7 @@ export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config, SfdxPropertyKeys }
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
-export { AuthFields, AuthInfo, OAuth2WithVerifier, SfdcUrl, getJwtAudienceUrl } from './org/authInfo';
+export { AuthFields, AuthInfo, OAuth2WithVerifier } from './org/authInfo';
 
 export { AuthRemover } from './org/authRemover';
 
@@ -76,3 +76,4 @@ export { PermissionSetAssignment, PermissionSetAssignmentFields } from './org/pe
 // Utility sub-modules
 export * from './util/fs';
 export * from './util/sfdc';
+export * from './util/sfdcUrl';

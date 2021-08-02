@@ -29,6 +29,7 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
+
 import { OAuth2, OAuth2Options, TokenResponse } from 'jsforce';
 // No typings directly available for jsforce/lib/transport
 // @ts-ignore
@@ -40,9 +41,9 @@ import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
-import { MyDomainResolver } from '../status/myDomainResolver';
 import { SfOrg, GlobalInfo } from '../globalInfo';
 import { Messages } from '../messages';
+import { SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
 
@@ -211,62 +212,6 @@ export class OAuth2WithVerifier extends OAuth2 {
     // @ts-ignore TODO: need better typings for jsforce
     return super._postParams(params, callback);
   }
-}
-
-/**
- * Salesforce URLs.
- */
-export enum SfdcUrl {
-  SANDBOX = 'https://test.salesforce.com',
-  PRODUCTION = 'https://login.salesforce.com',
-}
-
-function isSandboxUrl(options: OAuth2Options & { createdOrgInstance?: string }): boolean {
-  const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
-  const loginUrl = options.loginUrl ?? '';
-  return (
-    /^cs|s$/gi.test(createdOrgInstance) ||
-    /sandbox\.my\.salesforce\.com/gi.test(loginUrl) || // enhanced domains >= 230
-    /(cs[0-9]+(\.my|)\.salesforce\.com)/gi.test(loginUrl) || // my domains on CS instance OR CS instance without my domain
-    /([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/gi.test(loginUrl) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
-    /([a-z]{3}[0-9]+s\.sfdc-.+\.force\.com)/gi.test(loginUrl) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
-    urlParse(loginUrl).hostname === 'test.salesforce.com'
-  );
-}
-
-async function resolvesToSandbox(options: OAuth2Options & { createdOrgInstance?: string }): Promise<boolean> {
-  if (isSandboxUrl(options)) {
-    return true;
-  }
-  let cnames: string[] = [];
-  if (options.loginUrl) {
-    const myDomainResolver = await MyDomainResolver.create({ url: new URL(options.loginUrl) });
-    cnames = await myDomainResolver.getCnames();
-  }
-  return cnames.some((cname) => isSandboxUrl({ ...options, loginUrl: cname }));
-}
-
-export async function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }) {
-  // environment variable is used as an override
-  if (process.env.SFDX_AUDIENCE_URL) {
-    return process.env.SFDX_AUDIENCE_URL;
-  }
-
-  if (options.loginUrl && sfdc.isInternalUrl(options.loginUrl)) {
-    // This is for internal developers when just doing authorize;
-    return options.loginUrl;
-  }
-
-  if (await resolvesToSandbox(options)) {
-    return SfdcUrl.SANDBOX;
-  }
-
-  const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
-  if (/^gs1/gi.test(createdOrgInstance) || /(gs1.my.salesforce.com)/gi.test(options.loginUrl ?? '')) {
-    return 'https://gs1.salesforce.com';
-  }
-
-  return SfdcUrl.PRODUCTION;
 }
 
 // parses the id field returned from jsForce oauth2 methods to get
@@ -853,7 +798,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   // Build OAuth config for a JWT auth flow
   private async buildJwtConfig(options: OAuth2Options): Promise<AuthFields> {
     const privateKeyContents = await fs.readFile(ensure(options.privateKey), 'utf8');
-    const audienceUrl = await getJwtAudienceUrl(options);
+    const { loginUrl = SfdcUrl.PRODUCTION } = options;
+    const url = new SfdcUrl(loginUrl);
+    const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
+    const audienceUrl = await url.getJwtAudienceUrl(createdOrgInstance);
     const jwtToken = jwt.sign(
       {
         iss: options.clientId,
