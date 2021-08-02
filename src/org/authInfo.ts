@@ -395,19 +395,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     for (const auth of auths) {
       const username = ensureString(auth.username);
       const aliases = globalInfo.aliases.getAll(username) ?? undefined;
+      // Get a list of configuration values that are set to either the username or one
+      // of the aliases
       const configs = config
         .filter((c) => aliases.includes(c.value as string) || c.value === username)
         .map((c) => c.key);
       try {
         const authInfo = await AuthInfo.create({ username });
         const { orgId, instanceUrl, devHubUsername } = authInfo.getFields();
-        const isScratchOrg = Boolean(devHubUsername);
         final.push({
           aliases,
           configs,
           username,
           instanceUrl,
-          isScratchOrg,
+          isScratchOrg: Boolean(devHubUsername),
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
