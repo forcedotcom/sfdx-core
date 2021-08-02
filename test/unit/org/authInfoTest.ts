@@ -1806,7 +1806,6 @@ describe('AuthInfo', () => {
   describe('listAllAuthorizations', () => {
     describe('with no AuthInfo.create errors', () => {
       const username = 'espresso@coffee.com';
-      let timestamp;
 
       beforeEach(async () => {
         stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
@@ -1843,7 +1842,6 @@ describe('AuthInfo', () => {
             authCode: testMetadata.authCode,
           },
         });
-        timestamp = (await GlobalInfo.getInstance()).orgs.get(username).timestamp;
         stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).returns(Promise.resolve(authInfo));
       });
 
@@ -1851,13 +1849,14 @@ describe('AuthInfo', () => {
         const auths = await AuthInfo.listAllAuthorizations();
         expect(auths).to.deep.equal([
           {
-            alias: undefined,
+            aliases: [],
+            configs: [],
+            isScratchOrg: false,
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
-            timestamp,
           },
         ]);
       });
@@ -1867,13 +1866,14 @@ describe('AuthInfo', () => {
         const auths = await AuthInfo.listAllAuthorizations();
         expect(auths).to.deep.equal([
           {
-            alias: undefined,
+            aliases: [],
+            configs: [],
+            isScratchOrg: false,
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'jwt',
-            timestamp,
           },
         ]);
       });
@@ -1884,29 +1884,58 @@ describe('AuthInfo', () => {
         const auths = await AuthInfo.listAllAuthorizations();
         expect(auths).to.deep.equal([
           {
-            alias: undefined,
+            aliases: [],
+            configs: [],
+            isScratchOrg: false,
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'token',
-            timestamp,
           },
         ]);
       });
 
-      it('should return list of authorizations with alias', async () => {
-        stubMethod($$.SANDBOX, AliasAccessor.prototype, 'get').returns('MyAlias');
+      it('should return list of authorizations with aliases', async () => {
+        stubMethod($$.SANDBOX, AliasAccessor.prototype, 'getAll').returns(['MyAlias']);
         const auths = await AuthInfo.listAllAuthorizations();
         expect(auths).to.deep.equal([
           {
-            alias: 'MyAlias',
+            aliases: ['MyAlias'],
+            configs: [],
+            isScratchOrg: false,
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
-            timestamp,
+          },
+        ]);
+      });
+
+      it('should return list of authorizations with configs', async () => {
+        stubMethod($$.SANDBOX, AliasAccessor.prototype, 'getAll').returns(['MyAlias']);
+        stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getConfigInfo').returns([
+          {
+            value: 'MyAlias',
+            key: OrgConfigProperties.TARGET_ORG,
+          },
+          {
+            value: username,
+            key: OrgConfigProperties.TARGET_DEV_HUB,
+          },
+        ]);
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            aliases: ['MyAlias'],
+            configs: [OrgConfigProperties.TARGET_ORG, OrgConfigProperties.TARGET_DEV_HUB],
+            isScratchOrg: false,
+            username: 'espresso@coffee.com',
+            orgId: '00DAuthInfoTest_orgId',
+            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            accessToken: 'authInfoTest_access_token',
+            oauthMethod: 'web',
           },
         ]);
       });
@@ -1934,31 +1963,31 @@ describe('AuthInfo', () => {
         const auths = await AuthInfo.listAllAuthorizations();
         expect(auths).to.deep.equal([
           {
-            alias: undefined,
+            aliases: [],
+            configs: [],
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: undefined,
             oauthMethod: 'unknown',
             error: 'FAIL!',
-            timestamp: undefined,
           },
         ]);
       });
 
       it('should return list of authorizations with unknown oauthMethod and alias', async () => {
-        stubMethod($$.SANDBOX, AliasAccessor.prototype, 'get').returns('MyAlias');
+        stubMethod($$.SANDBOX, AliasAccessor.prototype, 'getAll').returns(['MyAlias']);
         const auths = await AuthInfo.listAllAuthorizations();
         expect(auths).to.deep.equal([
           {
-            alias: 'MyAlias',
+            aliases: ['MyAlias'],
+            configs: [],
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: undefined,
             oauthMethod: 'unknown',
             error: 'FAIL!',
-            timestamp: undefined,
           },
         ]);
       });

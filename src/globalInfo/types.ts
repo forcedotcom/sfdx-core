@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { JsonMap, Optional } from '@salesforce/ts-types';
+import { JsonMap } from '@salesforce/ts-types';
 
 export enum SfInfoKeys {
   ORGS = 'orgs',
@@ -16,13 +16,10 @@ export type Timestamp = { timestamp: string };
 export type SfEntry = JsonMap;
 
 export type SfOrg = {
-  alias: Optional<string>;
-  username: Optional<string>;
-  orgId: Optional<string>;
-  instanceUrl: Optional<string>;
+  username: string;
+  orgId: string;
+  instanceUrl: string;
   accessToken?: string;
-  oauthMethod?: 'jwt' | 'web' | 'token' | 'unknown';
-  error?: string;
 } & SfEntry;
 
 export interface SfOrgs {

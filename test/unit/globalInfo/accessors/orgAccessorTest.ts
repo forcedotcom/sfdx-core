@@ -12,7 +12,7 @@ import { testSetup } from '../../../../src/testSetup';
 describe('OrgAccessor', () => {
   const username = 'espresso@coffee.com';
   const alias = 'MyAlias';
-  const org = { username, orgId: '12345', alias };
+  const org = { username, orgId: '12345', aliases: [alias] };
   const token = { token: '123', url: 'https://login.salesforce.com', user: username };
   const $$ = testSetup();
 
