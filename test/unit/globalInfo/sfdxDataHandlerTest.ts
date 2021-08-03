@@ -335,7 +335,7 @@ describe('AliasesHandler', () => {
       instanceUrl: 'https://login.salesforce.com',
     } as SfOrg;
     it('should merge sfdx aliases to aliases', async () => {
-      sandbox.stub(fs, 'readJson').resolves({ orgs: { ['myorg']: username, someOtherAlias: 'someOtherAliasValue' } });
+      sandbox.stub(fs, 'readJson').resolves({ orgs: { myorg: username, someOtherAlias: 'someOtherAliasValue' } });
       const getContentsStub = sinon.stub().returns(auth);
       sandbox.replace(ConfigFile.prototype, 'getContents', getContentsStub);
       const sfInfo = {
