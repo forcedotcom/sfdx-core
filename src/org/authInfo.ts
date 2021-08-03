@@ -8,10 +8,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { createHash, randomBytes } from 'crypto';
-import { URL } from 'url';
-import * as dns from 'dns';
 import { resolve as pathResolve } from 'path';
-import { parse as urlParse } from 'url';
 import * as os from 'os';
 import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap, set } from '@salesforce/kit';
 import {
@@ -852,10 +849,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     };
 
     const instanceUrl = ensureString(authFieldsBuilder.instance_url);
-    const parsedUrl = urlParse(instanceUrl);
+    const sfdcUrl = new SfdcUrl(instanceUrl);
     try {
       // Check if the url is resolvable. This can fail when my-domains have not been replicated.
-      await this.lookup(ensure(parsedUrl.hostname));
+      await sfdcUrl.lookup();
       authFields.instanceUrl = instanceUrl;
     } catch (err) {
       this.logger.debug(
@@ -956,7 +953,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // within this file to support it.
     const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
     const instance = ensure(instanceUrl);
-    const baseUrl = new URL(instance);
+    const baseUrl = new SfdcUrl(instance);
     const userInfoUrl = `${baseUrl}services/oauth2/userinfo`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
     try {
@@ -1004,19 +1001,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       errorMsg = `${bodyAsString}`;
     }
     throw new SfdxError(errorMsg);
-  }
-
-  // See https://nodejs.org/api/dns.html#dns_dns_lookup_hostname_options_callback
-  private async lookup(host: string): Promise<{ address: string; family: number }> {
-    return new Promise<{ address: string; family: number }>((resolve, reject) => {
-      dns.lookup(host, (err, address: string, family: number) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ address, family });
-        }
-      });
-    });
   }
 }
 

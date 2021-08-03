@@ -13,6 +13,7 @@ import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { sfdc } from '../util/sfdc';
 import { fs } from '../util/fs';
+import { SfdcUrl } from '../util/sfdcUrl';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -129,7 +130,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     description: '',
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
+      validator: (value: ConfigValue) => value == null || (isString(value) && new SfdcUrl(value).isSalesforceDomain()),
       failedMessage: messages.getMessage('invalidInstanceUrl'),
     },
   },
@@ -277,6 +278,20 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 
       Config.allowedProperties.push(meta);
     });
+  }
+
+  /**
+   * Gets default options.
+   *
+   * @param isGlobal Make the config global.
+   * @param filename Override the default file. {@link Config.getFileName}
+   */
+  public static getDefaultOptions(isGlobal = false, filename?: string): ConfigFile.Options {
+    return {
+      isGlobal,
+      isState: true,
+      filename: filename || this.getFileName(),
+    };
   }
 
   /**

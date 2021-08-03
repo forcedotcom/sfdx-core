@@ -13,7 +13,7 @@ import { ensureString } from '@salesforce/ts-types';
 
 import { AsyncOptionalCreatable, Duration, Env } from '@salesforce/kit';
 import { Logger } from '../logger';
-import { sfdc } from '../util/sfdc';
+import { SfdcUrl } from '../util/sfdcUrl';
 import { StatusResult } from './client';
 import { PollingClient } from './pollingClient';
 
@@ -82,12 +82,12 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
     const self: MyDomainResolver = this;
     const pollingOptions: PollingClient.Options = {
       async poll(): Promise<StatusResult> {
-        const host: string = self.options.url.host;
+        const { host } = self.options.url;
         let dnsResult: { address: string };
 
         try {
           self.logger.debug(`Attempting to resolve url: ${host}`);
-          if (sfdc.isLocalUrl(host)) {
+          if (new SfdcUrl(self.options.url).isLocalUrl()) {
             return {
               completed: true,
               payload: '127.0.0.1',

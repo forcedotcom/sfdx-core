@@ -37,7 +37,6 @@ import { SfdxProject, SfdxProjectJson } from './sfdxProject';
 import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
 import { GlobalInfo, SfOrg } from './globalInfo';
 import { Global } from './global';
-// import { fs } from '../src/util/fs';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for

@@ -788,7 +788,7 @@ describe('Org Tests', () => {
 
       // Remove the org
       await org.remove();
-      // Expect the authoization to be removed
+      // Expect the authorization to be removed
       expect(unsetSpy.firstCall.args).to.deep.equal([testData.username]);
       // Expect the sandbox config is deleted.
       expect(deletedPaths).includes(

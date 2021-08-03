@@ -12,6 +12,17 @@ import { ConfigFile } from './configFile';
  */
 export class OrgUsersConfig extends ConfigFile<OrgUsersConfig.Options> {
   /**
+   * Constructor.
+   * **Do not directly construct instances of this class -- use {@link OrgUsersConfig.create} instead.**
+   *
+   * @param options The options for the class instance
+   * @ignore
+   */
+  public constructor(options?: OrgUsersConfig.Options) {
+    super(options);
+  }
+
+  /**
    * Gets the config options for a given org ID.
    *
    * @param orgId The orgId. Generally this org would have multiple users configured.
