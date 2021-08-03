@@ -281,20 +281,6 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   }
 
   /**
-   * Gets default options.
-   *
-   * @param isGlobal Make the config global.
-   * @param filename Override the default file. {@link Config.getFileName}
-   */
-  public static getDefaultOptions(isGlobal = false, filename?: string): ConfigFile.Options {
-    return {
-      isGlobal,
-      isState: true,
-      filename: filename || this.getFileName(),
-    };
-  }
-
-  /**
    * The value of a supported config property.
    *
    * @param isGlobal True for a global config. False for a local config.
