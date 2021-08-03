@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.3.8](https://github.com/forcedotcom/sfdx-core/compare/v3.3.7...v3.3.8) (2021-08-02)
+
+
+### Bug Fixes
+
+* return all info from AuthInfo.listAllAuthorizations ([#449](https://github.com/forcedotcom/sfdx-core/issues/449)) ([17e60ea](https://github.com/forcedotcom/sfdx-core/commit/17e60eabe87c73a83c26344967076f365ddea81c))
+
 ### [3.3.7](https://github.com/forcedotcom/sfdx-core/compare/v3.3.6...v3.3.7) (2021-07-30)
 
 ### [3.3.6](https://github.com/forcedotcom/sfdx-core/compare/v3.3.5...v3.3.6) (2021-07-28)
