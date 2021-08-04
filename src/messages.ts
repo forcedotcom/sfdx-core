@@ -546,7 +546,8 @@ export class Messages<T extends string> {
     //     'myMessage' -> `MyMessageError`
     //     'myMessageError' -> `MyMessageError`
     //     'error.myMessage' -> `MyMessageError`
-    const errName = `${upperFirst(key.replace(/^error\./, ''))}${/Error$/.exec(key) ? '' : 'Error'}`;
+    //     'errors.myMessage' -> `MyMessageError`
+    const errName = `${upperFirst(key.replace(/^errors*\./, ''))}${/Error$/.exec(key) ? '' : 'Error'}`;
     const errMessage = this.getMessage(key, tokens);
     let errActions;
     try {
