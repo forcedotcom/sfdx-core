@@ -13,6 +13,7 @@ import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { sfdc } from '../util/sfdc';
 import { fs } from '../util/fs';
+import { SfdcUrl } from '../util/sfdcUrl';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -129,7 +130,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     description: '',
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
+      validator: (value: ConfigValue) => value == null || (isString(value) && new SfdcUrl(value).isSalesforceDomain()),
       failedMessage: messages.getMessage('invalidInstanceUrl'),
     },
   },

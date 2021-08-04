@@ -68,7 +68,7 @@ describe('AuthInfo No fs mock', () => {
 
 // Cleanly encapsulate the test data.
 class MetaAuthDataMock {
-  private _instanceUrl = 'http://mydevhub.localhost.internal.salesforce.com:6109';
+  private _instanceUrl = 'https://mydevhub.localhost.internal.salesforce.com:6109';
   private _accessToken = 'authInfoTest_access_token';
   private _encryptedAccessToken: string = this._accessToken;
   private _refreshToken = 'authInfoTest_refresh_token';
@@ -189,7 +189,7 @@ class MetaAuthDataMock {
       // const configContents = new Map<string, ConfigValue>();
       const configContents = {};
 
-      set(configContents, 'instanceUrl', 'http://mydevhub.localhost.internal.salesforce.com:6109');
+      set(configContents, 'instanceUrl', 'https://mydevhub.localhost.internal.salesforce.com:6109');
       set(configContents, 'accessToken', this.encryptedAccessToken);
       set(configContents, 'privateKey', '123456');
       set(configContents, 'username', this.username);
@@ -691,7 +691,7 @@ describe('AuthInfo', () => {
       };
       const authResponse = {
         access_token: testMetadata.accessToken,
-        instance_url: testMetadata.instanceUrl,
+        instance_url: testMetadata.instanceUrl.replace('.internal', ''),
         id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
       };
 
@@ -699,9 +699,6 @@ describe('AuthInfo', () => {
       readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
       _postParmsStub.returns(Promise.resolve(authResponse));
       stubMethod($$.SANDBOX, jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-      stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string | Error, done: (v: Error) => {}) =>
-        done(new Error('authInfoTest_ERROR_MSG'))
-      );
       stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'getTimeout').returns(Duration.milliseconds(10));
       stubMethod($$.SANDBOX, dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
         callback(null, []);
@@ -1662,24 +1659,24 @@ describe('AuthInfo', () => {
       });
 
       it('should use the correct audience URL for an internal URL (.vpod)', async () => {
-        const vpodUrl = 'http://mydevhub.vpod.salesforce.com';
+        const vpodUrl = 'https://mydevhub.vpod.salesforce.com';
         await runTest({ loginUrl: vpodUrl }, vpodUrl);
       });
 
       it('should use the correct audience URL for an internal URL (.blitz)', async () => {
-        const blitzUrl = 'http://mydevhub.blitz.salesforce.com';
+        const blitzUrl = 'https://mydevhub.blitz.salesforce.com';
         await runTest({ loginUrl: blitzUrl }, blitzUrl);
       });
 
       it('should use the correct audience URL for an internal URL (.stm)', async () => {
-        const stmUrl = 'http://mydevhub.stm.salesforce.com';
+        const stmUrl = 'https://mydevhub.stm.salesforce.com';
         await runTest({ loginUrl: stmUrl }, stmUrl);
       });
     });
 
     describe('sandboxes', () => {
       it('should use the correct audience URL for a sandbox', async () => {
-        await runTest({ loginUrl: 'http://test.salesforce.com/foo/bar' }, 'https://test.salesforce.com');
+        await runTest({ loginUrl: 'https://test.salesforce.com/foo/bar' }, 'https://test.salesforce.com');
       });
 
       it('should use the correct audience URL for createdOrgInstance beginning with "cs"', async () => {
@@ -1747,7 +1744,7 @@ describe('AuthInfo', () => {
     });
 
     it('should use the correct audience URL for SFDX_AUDIENCE_URL env var', async () => {
-      process.env.SFDX_AUDIENCE_URL = 'http://authInfoTest/audienceUrl/test';
+      process.env.SFDX_AUDIENCE_URL = 'https://authInfoTest/audienceUrl/test';
       await runTest({}, process.env.SFDX_AUDIENCE_URL);
     });
 
@@ -1854,7 +1851,7 @@ describe('AuthInfo', () => {
             isScratchOrg: false,
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
-            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
           },
@@ -1871,7 +1868,7 @@ describe('AuthInfo', () => {
             isScratchOrg: false,
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
-            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'jwt',
           },
@@ -1889,7 +1886,7 @@ describe('AuthInfo', () => {
             isScratchOrg: false,
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
-            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'token',
           },
@@ -1906,7 +1903,7 @@ describe('AuthInfo', () => {
             isScratchOrg: false,
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
-            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
           },
@@ -1933,7 +1930,7 @@ describe('AuthInfo', () => {
             isScratchOrg: false,
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
-            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
           },
@@ -1967,7 +1964,7 @@ describe('AuthInfo', () => {
             configs: [],
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
-            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: undefined,
             oauthMethod: 'unknown',
             error: 'FAIL!',
@@ -1984,7 +1981,7 @@ describe('AuthInfo', () => {
             configs: [],
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
-            instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+            instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: undefined,
             oauthMethod: 'unknown',
             error: 'FAIL!',
