@@ -156,12 +156,7 @@ export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
         changed[username] = auth;
       }
     }
-    const deleted: string[] = [];
-    for (const username of Object.keys(originalAuths)) {
-      if (!latestAuths[username]) {
-        deleted.push(username);
-      }
-    }
+    const deleted: string[] = Object.keys(originalAuths).filter((username) => !latestAuths[username]);
 
     return { changed, deleted };
   }
@@ -219,7 +214,7 @@ export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
     const merged = deepCopy<SfInfo>(sfData);
 
     /* Overwrite `sf` aliases with `sfdx` aliases
-     *  `sf` will alaways modify `sfdx` files but `sfdx` won't modify `sf` files
+     *  `sf` will always modify `sfdx` files but `sfdx` won't modify `sf` files
      *  because of this we can assume that any changes in `sfdx` files that aren't
      *  in `sf` are the latest data
      *

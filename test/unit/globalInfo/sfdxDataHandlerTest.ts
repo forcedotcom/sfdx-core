@@ -12,6 +12,7 @@ import { GlobalInfo, SfInfo, SfInfoKeys } from '../../../src/globalInfo';
 import { ConfigFile } from '../../../src/config/configFile';
 import { AliasesHandler, AuthHandler, SfdxDataHandler } from '../../../src/globalInfo/sfdxDataHandler';
 import { fs } from '../../../src/exported';
+import { SfOrg } from '../../../lib/globalInfo';
 
 describe('SfdxDataHandler', () => {
   let sandbox: sinon.SinonSandbox;
@@ -302,6 +303,62 @@ describe('AuthHandler', () => {
       const handler = new AuthHandler();
       const auths = await handler.listAllAuthorizations();
       expect(auths).to.deep.equal([Object.assign({}, auth, { timestamp: mtime.toISOString() })]);
+    });
+  });
+});
+
+describe('AliasesHandler', () => {
+  let sandbox: sinon.SinonSandbox;
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+  describe('migrate', () => {
+    const username = 'myAccount@salesforce.com';
+    it('should migrate aliases from sfdx to sf', async () => {
+      sandbox.stub(fs, 'readJson').resolves({ orgs: { ['myorg']: username } });
+      const aliasesHandler = new AliasesHandler();
+      const migrated = await aliasesHandler.migrate();
+      expect(migrated.aliases).to.deep.equal({ ['myorg']: username });
+    });
+  });
+  describe('merge', () => {
+    const username = 'myAccount@salesforce.com';
+    const timestamp = new Date().toISOString();
+    const auth = {
+      orgId: '12345_SF',
+      accessToken: 'token_12345',
+      username,
+      instanceUrl: 'https://login.salesforce.com',
+    } as SfOrg;
+    it('should merge sfdx aliases to aliases', async () => {
+      sandbox.stub(fs, 'readJson').resolves({ orgs: { myorg: username, someOtherAlias: 'someOtherAliasValue' } });
+      const getContentsStub = sinon.stub().returns(auth);
+      sandbox.replace(ConfigFile.prototype, 'getContents', getContentsStub);
+      const sfInfo = {
+        [SfInfoKeys.ORGS]: { [username]: { ...auth, timestamp } },
+        [SfInfoKeys.TOKENS]: {},
+        [SfInfoKeys.ALIASES]: { someOtherAlias: 'someOtherAliasValue' },
+      } as SfInfo;
+      const aliasesHandler = new AliasesHandler();
+      const merged = await aliasesHandler.merge(sfInfo);
+      expect(merged.aliases).to.deep.equal({ ['myorg']: username, someOtherAlias: 'someOtherAliasValue' });
+    });
+    it('should remove alias when deleted from sfdx aliases', async () => {
+      sandbox.stub(fs, 'readJson').resolves({ orgs: { ['myorg']: username } });
+      const getContentsStub = sinon.stub().returns(auth);
+      sandbox.replace(ConfigFile.prototype, 'getContents', getContentsStub);
+      const sfInfo = {
+        [SfInfoKeys.ORGS]: { [username]: { ...auth, timestamp } },
+        [SfInfoKeys.TOKENS]: {},
+        [SfInfoKeys.ALIASES]: { ['myorg']: username, someOtherAlias: 'someOtherAliasValue' },
+      } as SfInfo;
+      const aliasesHandler = new AliasesHandler();
+      const merged = await aliasesHandler.merge(sfInfo);
+      expect(merged.aliases).to.deep.equal({ ['myorg']: username });
     });
   });
 });
