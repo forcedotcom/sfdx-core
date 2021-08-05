@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.27.2](https://github.com/forcedotcom/sfdx-core/compare/v2.27.1...v2.27.2) (2021-08-05)
+
+
+### Bug Fixes
+
+* improve error handling while removing config props ([eecf7b0](https://github.com/forcedotcom/sfdx-core/commit/eecf7b0d0cf14e1371dc4c5ef03a413f864b0a8b))
+
 ### [2.27.1](https://github.com/forcedotcom/sfdx-core/compare/v2.27.0...v2.27.1) (2021-08-05)
 
 
