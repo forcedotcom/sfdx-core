@@ -220,8 +220,11 @@ export class AuthRemover extends AsyncOptionalCreatable {
           .reduce((x, y) => x.concat(y), []);
         const allKeys = keysWithUsername.concat(keysWithAlias);
         this.logger.debug(`Found these config keys to remove: ${allKeys}`);
-        allKeys.forEach((key) => config.unset(key));
-        await config.write();
+        try {
+          allKeys.forEach((key) => config.unset(key));
+        } finally {
+          await config.write();
+        }
       }
     }
   }
