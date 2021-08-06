@@ -9,7 +9,7 @@ import { AnyJson, ensure } from '@salesforce/ts-types';
 import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
-import { StatusResult } from './client';
+import { StatusResult } from './streamingClient';
 /**
  * This is a polling client that can be used to poll the status of long running tasks. It can be used as a replacement
  * for Streaming when streaming topics are not available or when streaming handshakes are failing. Why wouldn't you

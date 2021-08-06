@@ -14,7 +14,7 @@ import { ensureString } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, Duration, Env } from '@salesforce/kit';
 import { Logger } from '../logger';
 import { SfdcUrl } from '../util/sfdcUrl';
-import { StatusResult } from './client';
+import { StatusResult } from './streamingClient';
 import { PollingClient } from './pollingClient';
 
 // Timeout for DNS lookup polling defaults to 3 seconds and should always be at least 3 seconds

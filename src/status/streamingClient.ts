@@ -7,17 +7,17 @@
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import { EventEmitter } from 'events';
 import { resolve as resolveUrl } from 'url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
-// @ts-ignore
 import * as Faye from 'sfdx-faye';
+import type { Client as CometClient, StreamProcessor, CometSubscription, StatusResult } from 'sfdx-faye';
 import { Logger } from '../logger';
 import { Org } from '../org/org';
 import { SfdxError } from '../sfdxError';
 import { Messages } from '../messages';
-import { StatusResult } from './client';
+
+export { Client as CometClient, StreamProcessor, CometSubscription, StatusResult, StreamingExtension } from 'sfdx-faye';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'streaming', [
@@ -27,80 +27,6 @@ const messages = Messages.load('@salesforce/core', 'streaming', [
   'genericTimeout',
   'handshakeApiVersionError',
 ]);
-
-/**
- * Types for defining extensions.
- */
-export interface StreamingExtension {
-  /**
-   * Extension for outgoing message.
-   *
-   * @param message The message.
-   * @param callback The callback to invoke after the message is processed.
-   */
-  outgoing?: (message: JsonMap, callback: AnyFunction) => void;
-  /**
-   * Extension for the incoming message.
-   *
-   * @param message The message.
-   * @param callback The callback to invoke after the message is processed.
-   */
-  incoming?: (message: JsonMap, callback: AnyFunction) => void;
-}
-
-/**
- * Function type for processing messages
- */
-export declare type StreamProcessor = (message: JsonMap) => StatusResult;
-
-/**
- * Comet client interface. The is to allow for mocking the inner streaming Cometd implementation.
- * The Faye implementation is used by default but it could be used to adapt another Cometd impl.
- */
-export abstract class CometClient extends EventEmitter {
-  /**
-   * Disable polling features.
-   *
-   * @param label Polling feature label.
-   */
-  public abstract disable(label: string): void;
-
-  /**
-   * Add a custom extension to the underlying client.
-   *
-   * @param extension The json function for the extension.
-   */
-  public abstract addExtension(extension: StreamingExtension): void;
-
-  /**
-   * Sets an http header name/value.
-   *
-   * @param name The header name.
-   * @param value The header value.
-   */
-  public abstract setHeader(name: string, value: string): void;
-
-  /**
-   * handshake with the streaming channel
-   *
-   * @param callback Callback for the handshake when it successfully completes. The handshake should throw
-   * errors when errors are encountered.
-   */
-  public abstract handshake(callback: () => void): void;
-
-  /**
-   * Subscribes to Comet topics. Subscribe should perform a handshake if one hasn't been performed yet.
-   *
-   * @param channel The topic to subscribe to.
-   * @param callback The callback to execute once a message has been received.
-   */
-  public abstract subscribe(channel: string, callback: (message: JsonMap) => void): CometSubscription;
-
-  /**
-   * Method to call to disconnect the client from the server.
-   */
-  public abstract disconnect(): void;
-}
 
 /**
  * Inner streaming client interface. This implements the Cometd behavior.
@@ -120,14 +46,6 @@ export interface StreamingClientIfc {
    * @param logLine A log message passed to the the assigned function.
    */
   setLogger: (logLine: (message: string) => void) => void;
-}
-
-/**
- * The subscription object returned from the cometd subscribe object.
- */
-export interface CometSubscription {
-  callback(callback: () => void): void;
-  errback(callback: (error: Error) => void): void;
 }
 
 /**
@@ -571,6 +489,7 @@ export namespace StreamingClient {
           });
         },
         setLogger: (logLine: (message: string) => void): void => {
+          // @ts-ignore
           Faye.logger = {};
           ['info', 'error', 'fatal', 'warn', 'debug'].forEach((element) => {
             set(Faye.logger, element, logLine);

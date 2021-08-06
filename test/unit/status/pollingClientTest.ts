@@ -10,7 +10,7 @@ import * as sinon from 'sinon';
 import { ensureJsonMap } from '@salesforce/ts-types';
 
 import { Duration, sleep } from '@salesforce/kit';
-import { StatusResult } from '../../../src/status/client';
+import { StatusResult } from '../../../src/status/streamingClient';
 import { PollingClient } from '../../../src/status/pollingClient';
 import { shouldThrow } from '../../../src/testSetup';
 

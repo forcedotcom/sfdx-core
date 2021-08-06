@@ -17,8 +17,9 @@ import {
   isJsonMap,
   Many,
 } from '@salesforce/ts-types';
-import { QueryResult, RequestInfo } from 'jsforce';
-import { DescribeSObjectResult } from 'jsforce/describe-result';
+import type { QueryResult } from 'jsforce';
+import { HttpApi } from 'jsforce/lib/http-api';
+import type { HttpRequest, HttpResponse, Schema, SObjectUpdateRecord } from 'jsforce/lib/types';
 import { Connection } from '../org/connection';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -314,7 +315,7 @@ export class User extends AsyncCreatable<User.Options> {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO: expose `soap` on Connection however appropriate
           const soap = userConnection.soap;
-          await soap.setPassword(info.getFields().userId as string, buffer.toString('utf8'));
+          await soap.setPassword(ensureString(info.getFields().userId), buffer.toString('utf8'));
           this.logger.debug(`Set password for userId: ${info.getFields().userId}`);
           resolve();
         } catch (e) {
@@ -448,7 +449,7 @@ export class User extends AsyncCreatable<User.Options> {
 
     this.logger.debug(`Created connection for user: ${newUserAuthInfo.getUsername()}`);
 
-    const userDescribe: DescribeSObjectResult = await connection.describe('User');
+    const userDescribe = await connection.describe('User');
 
     if (userDescribe && userDescribe.fields) {
       await newUserAuthInfo.save();
@@ -488,14 +489,14 @@ export class User extends AsyncCreatable<User.Options> {
     const scimUrl = conn.normalizeUrl(scimEndpoint);
     this.logger.debug(`scimUrl: ${scimUrl}`);
 
-    const info: RequestInfo = {
+    const info: HttpRequest = {
       method: 'POST',
       url: scimUrl,
       headers: scimHeaders,
       body,
     };
 
-    const response = await conn.requestRaw(info);
+    const response = await this.rawRequest(conn, info);
     const responseBody = parseJsonMap(ensureString(response['body']));
     const statusCode = asNumber(response.statusCode);
 
@@ -530,6 +531,15 @@ export class User extends AsyncCreatable<User.Options> {
     };
   }
 
+  private async rawRequest(conn: Connection, options: HttpRequest): Promise<HttpResponse> {
+    return new Promise<HttpResponse>((resolve, reject) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const httpApi = new HttpApi(conn as any, options);
+      httpApi.on('response', (response: HttpResponse) => resolve(response));
+      httpApi.request(options).catch(reject);
+    });
+  }
+
   /**
    * Update the remaining required fields for the user.
    *
@@ -542,7 +552,9 @@ export class User extends AsyncCreatable<User.Options> {
       REQUIRED_FIELDS.lastName,
       REQUIRED_FIELDS.profileId,
     ]);
-    const object = mapKeys(leftOverRequiredFields, (value: unknown, key: string) => upperFirst(key));
+    const object = mapKeys(leftOverRequiredFields, (value: unknown, key: string) =>
+      upperFirst(key)
+    ) as SObjectUpdateRecord<Schema, 'User'>;
     await this.org.getConnection().sobject('User').update(object);
     this.logger.debug(`Successfully Updated additional properties for user: ${fields.username}`);
   }

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OAuth2Options } from 'jsforce';
+import { OAuth2Config } from 'jsforce';
 import { expect } from 'chai';
 import { Env } from '@salesforce/kit';
 import { testSetup } from '../../../src/testSetup';
@@ -27,7 +27,7 @@ describe('getJwtAudienceUrl', () => {
   });
 
   it('return the jwt audicence url for sandbox domains', async () => {
-    const options: OAuth2Options = {
+    const options: OAuth2Config = {
       loginUrl: 'https://organization.my.salesforce.com',
     };
     const url = await getJwtAudienceUrl(options);
@@ -35,13 +35,13 @@ describe('getJwtAudienceUrl', () => {
   });
 
   it('return the correct jwt audicence for undefined loginUrl', async () => {
-    const options: OAuth2Options = {};
+    const options: OAuth2Config = {};
     const url = await getJwtAudienceUrl(options);
     expect(url).to.be.equal(SfdcUrl.PRODUCTION);
   });
 
   it('return the jwt audicence url for internal domains (same)', async () => {
-    const options: OAuth2Options = {
+    const options: OAuth2Config = {
       loginUrl: 'https://organization.stm.salesforce.com',
     };
     const url = await getJwtAudienceUrl(options);
@@ -49,7 +49,7 @@ describe('getJwtAudienceUrl', () => {
   });
 
   it('return the jwt audicence url for sandbox domains', async () => {
-    const options: OAuth2Options = {
+    const options: OAuth2Config = {
       loginUrl: 'https://organization.sandbox.my.salesforce.com',
     };
     const url = await getJwtAudienceUrl(options);
@@ -58,7 +58,7 @@ describe('getJwtAudienceUrl', () => {
 
   it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves([]);
-    const options: OAuth2Options & { createdOrgInstance?: string } = {
+    const options: OAuth2Config & { createdOrgInstance?: string } = {
       loginUrl: 'https://foo.bar.baz',
       createdOrgInstance: 'gs1',
     };
@@ -68,7 +68,7 @@ describe('getJwtAudienceUrl', () => {
 
   it('should return production URL if domain cannot be resolved', async () => {
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves([]);
-    const options: OAuth2Options = {
+    const options: OAuth2Config = {
       loginUrl: 'https://foo.bar.baz',
     };
     const url = await getJwtAudienceUrl(options);
