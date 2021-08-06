@@ -25,7 +25,9 @@ const repoSetup = async (repo) => {
   console.log(`cloning/building ${repoName} at ${folderPath}`);
 
   await exec(`git clone ${repo} ${folderPath}`);
-  await exec(`yarn install`, { cwd: folderPath });
+  await exec('mkdir .yarncache', { cwd: localDir });
+
+  await exec(`yarn install --cache-folder ./.yarncache`, { cwd: folderPath });
   await exec('yarn link "@salesforce/core"', { cwd: folderPath });
   await exec(`yarn compile`, { cwd: folderPath });
   const { stdout, stderr } = await exec(`yarn test:nuts`, { cwd: folderPath });
