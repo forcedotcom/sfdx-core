@@ -26,10 +26,11 @@ Of course, there are some negatives to creating a new folder as well. The main o
 
 ### What
 
-In v2, an auth file would be created for each org that was authenticated. Over time, non-auth data was stored in those file and other files were created to provide additional information, like user mappings. In v3, all this information is stored in a single file, `sf.json`.
+In v2, an auth file would be created for each org that was authenticated. Over time, non-auth data was stored in those file and other files were created to provide additional information, like user mappings. In v3, all this information is stored in a single file, `sf.json`. This file also contains all aliases.
 
 - Removed `AuthInfoConfig`
 - Removed `AuthInfo.listAllAuthFiles`
+- Removed `Aliases`
 
 ### Why
 
@@ -39,6 +40,7 @@ This simplifies the codebase by preventing a new class for every single new kind
 
 ```typescript
 await AuthInfo.listAllAuthFiles();
+await Aliases.create(Aliases.getDefaultOptions());
 ```
 
 **v3:**
@@ -51,7 +53,8 @@ OR
 
 ```typescript
 const info = await GlobalInfo.create();
-info.getOrgs();
+info.orgs.getAll();
+info.aliases.getAll();
 ```
 
 ## Config
