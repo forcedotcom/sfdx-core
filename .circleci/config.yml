@@ -9,6 +9,7 @@ workflows:
       - release-management/test-external-nut:
           sfdx_version: latest
           os: linux
+          node_version: lts
           dependency_to_replace: '@salesforce/core'
           external_project_git_url: 'https://github.com/salesforcecli/plugin-user'
       # - - release-management/test-nut:
