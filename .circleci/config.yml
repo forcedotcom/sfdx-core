@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  release-management: salesforce/npm-release-management@dev:80f2a12
+  release-management: salesforce/npm-release-management@dev:alpha
 
 workflows:
   version: 2
