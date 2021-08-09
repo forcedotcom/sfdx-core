@@ -48,17 +48,17 @@ jobs:
           - 2xlarge
 
     executor:
-      name: << parameters.os >>
+      name: release-management/<< parameters.os >>
       size: << parameters.size >>
 
     environment:
       TESTKIT_EXECUTABLE_PATH: <<parameters.sfdx_executable_path>>
 
     steps:
-      - install-node:
+      - release-management/install-node:
           version: <<parameters.node_version>>
           os: <<parameters.os>>
-      - install-sfdx:
+      - release-management/install-sfdx:
           version: <<parameters.sfdx_version>>
           os: <<parameters.os>>
       - run: git clone <<parameters.external_project_git_url>> $(pwd)
@@ -99,7 +99,7 @@ jobs:
       - run:
           name: Build
           command: yarn build
-      - verify-installed-plugin
+      - release-management/verify-installed-plugin
       - run:
           name: set TESTKIT_ENABLE_ZIP for artifacts on linux
           command: |
