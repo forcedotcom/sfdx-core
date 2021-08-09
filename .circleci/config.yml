@@ -104,12 +104,13 @@ workflows:
   test-and-release:
     jobs:
       - external-nut:
+          requires:
+            - release-management/test-package
           sfdx_version: latest
-          os: linux
-          node_version: lts
           matrix:
             parameters:
               os: [linux]
+              node_version: [lts]
               external_project_git_url:
                 [
                   'https://github.com/salesforcecli/plugin-user',
