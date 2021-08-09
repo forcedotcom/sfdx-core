@@ -94,11 +94,18 @@ jobs:
       # install and build in the core module
       - run:
           name: install/build core
-          command: yarn install && rm -rf node_modules/\@salesforce/command/node_modules/\@salesforce/core yarn build
+          command: |
+            yarn install
+            yarn build
           working_directory: node_modules/<<parameters.dependency_to_replace>>
       - run:
+          name: remove command/core
+          command: rm -rf node_modules/\@salesforce/command/node_modules/\@salesforce/core
+      - run:
           name: Build
-          command: yarn build
+          # deletes command/core to prevent ts conflicts
+          command: |
+            yarn build
       - release-management/verify-installed-plugin
       - run:
           name: set TESTKIT_ENABLE_ZIP for artifacts on linux
