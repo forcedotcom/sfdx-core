@@ -24,10 +24,6 @@ jobs:
         description: "Path to sfdx executable to be used by NUTs, defaults to ''"
         default: ''
         type: string
-      dependency_to_replace:
-        description: 'The fully qualified npm module name, i.e. @salesforce/core, that will be replaced in the external NUTs.  Should match this project'
-        type: string
-        default: ''
       external_project_git_url:
         description: 'The url that will be cloned.  This contains the NUTs you want to run.  Ex: https://github.com/salesforcecli/plugin-user'
         type: string
@@ -90,14 +86,14 @@ jobs:
           command: yarn
       - run:
           name: swap dependencies
-          command: yarn remove <<parameters.dependency_to_replace>> && yarn add $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME#$CIRCLE_SHA1
+          command: yarn remove @salesforce/core && yarn add $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME#$CIRCLE_SHA1
       # install and build in the core module
       - run:
           name: install/build core
           command: |
             yarn install
             yarn build
-          working_directory: node_modules/<<parameters.dependency_to_replace>>
+          working_directory: node_modules/@salesforce/core
       - run:
           name: remove command/core
           # deletes command/core to prevent ts conflicts
@@ -134,12 +130,15 @@ workflows:
           sfdx_version: latest
           os: linux
           node_version: lts
-          dependency_to_replace: '@salesforce/core'
           matrix:
             parameters:
               os: [linux]
               external_project_git_url:
-                ['https://github.com/salesforcecli/plugin-user']
+                [
+                  'https://github.com/salesforcecli/plugin-user',
+                  'https://github.com/salesforcecli/plugin-config',
+                  'https://github.com/salesforcecli/plugin-alias',
+                ]
       # - - release-management/test-nut:
       #     name: nuts-on-windows
       #     os: windows
