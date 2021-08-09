@@ -98,7 +98,7 @@ export type OrgAuthorization = {
   instanceUrl?: string;
   accessToken?: string;
   error?: string;
-  isExpired: boolean | unknown;
+  isExpired: boolean | 'unknown';
 };
 
 /**
@@ -373,7 +373,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           isExpired:
             Boolean(devHubUsername) && expirationDate
               ? new Date(ensureString(expirationDate)).getTime() < new Date().getTime()
-              : undefined,
+              : 'unknown',
         });
       } catch (err) {
         final.push({
@@ -385,7 +385,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           accessToken: undefined,
           oauthMethod: 'unknown',
           error: err.message,
-          isExpired: false,
+          isExpired: 'unknown',
         });
       }
     }
@@ -394,9 +394,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       typeof orgAuthFilter !== 'boolean'
         ? orgAuthFilter
         : (orgAuth: OrgAuthorization): boolean => {
+            // handle 'unknown' expiry - always treat as active
+            if (typeof orgAuth.isExpired === 'string') {
+              return true;
+            }
             if (!orgAuthFilter) {
               // inactive
-              return !orgAuth.isExpired;
+              return orgAuth.isExpired;
             } else {
               return !orgAuth.error && !orgAuth.isExpired;
             }

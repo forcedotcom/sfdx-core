@@ -1857,7 +1857,7 @@ describe('AuthInfo', () => {
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
             isDevHub: false,
-            isExpired: undefined,
+            isExpired: 'unknown',
           },
         ]);
       });
@@ -1865,6 +1865,9 @@ describe('AuthInfo', () => {
       it('should return list of authorizations with jwt oauthMethod', async () => {
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'isJwt').returns(true);
         const auths = await AuthInfo.listAllAuthorizations(false);
+        const expiryDate = new Date(Date.now());
+        expiryDate.setFullYear(expiryDate.getFullYear() - 1);
+        authInfo.getFields().expirationDate = expiryDate.toISOString();
         expect(auths).to.deep.equal([
           {
             aliases: [],
@@ -1876,7 +1879,7 @@ describe('AuthInfo', () => {
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'jwt',
             isDevHub: false,
-            isExpired: undefined,
+            isExpired: 'unknown',
           },
         ]);
       });
@@ -1896,7 +1899,7 @@ describe('AuthInfo', () => {
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'token',
             isDevHub: false,
-            isExpired: undefined,
+            isExpired: 'unknown',
           },
         ]);
       });
@@ -1917,7 +1920,7 @@ describe('AuthInfo', () => {
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
             isDevHub: false,
-            isExpired: undefined,
+            isExpired: 'unknown',
           },
         ]);
       });
@@ -1948,7 +1951,7 @@ describe('AuthInfo', () => {
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
             isDevHub: false,
-            isExpired: undefined,
+            isExpired: 'unknown',
           },
         ]);
       });
@@ -2002,7 +2005,7 @@ describe('AuthInfo', () => {
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
-            isExpired: false,
+            isExpired: 'unknown',
             accessToken: undefined,
             oauthMethod: 'unknown',
             error: 'FAIL!',
@@ -2020,7 +2023,7 @@ describe('AuthInfo', () => {
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
-            isExpired: false,
+            isExpired: 'unknown',
             accessToken: undefined,
             oauthMethod: 'unknown',
             error: 'FAIL!',
