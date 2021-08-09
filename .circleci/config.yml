@@ -100,10 +100,10 @@ jobs:
           working_directory: node_modules/<<parameters.dependency_to_replace>>
       - run:
           name: remove command/core
+          # deletes command/core to prevent ts conflicts
           command: rm -rf node_modules/\@salesforce/command/node_modules/\@salesforce/core
       - run:
           name: Build
-          # deletes command/core to prevent ts conflicts
           command: |
             yarn build
       - release-management/verify-installed-plugin
@@ -135,7 +135,11 @@ workflows:
           os: linux
           node_version: lts
           dependency_to_replace: '@salesforce/core'
-          external_project_git_url: 'https://github.com/salesforcecli/plugin-user'
+          matrix:
+            parameters:
+              os: [linux]
+              external_project_git_url:
+                ['https://github.com/salesforcecli/plugin-user']
       # - - release-management/test-nut:
       #     name: nuts-on-windows
       #     os: windows
