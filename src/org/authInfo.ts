@@ -98,7 +98,7 @@ export type OrgAuthorization = {
   instanceUrl?: string;
   accessToken?: string;
   error?: string;
-  isExpired: boolean;
+  isExpired: boolean | unknown;
 };
 
 /**
@@ -332,7 +332,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   /**
    * Get a list of all authorizations based on auth files stored in the global directory.
-   * One can supply a filter (see @param orgAuthFilter) and calling this function withoyt
+   * One can supply a filter (see @param orgAuthFilter) and calling this function without
    * a filter will return all authorizations.
    *
    * @param orgAuthFilter a boolean value or a predicate function that filters authorizations
@@ -373,7 +373,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           isExpired:
             Boolean(devHubUsername) && expirationDate
               ? new Date(ensureString(expirationDate)).getTime() < new Date().getTime()
-              : false,
+              : undefined,
         });
       } catch (err) {
         final.push({

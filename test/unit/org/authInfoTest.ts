@@ -1803,7 +1803,7 @@ describe('AuthInfo', () => {
   describe('listAllAuthorizations', () => {
     describe('with no AuthInfo.create errors', () => {
       const username = 'espresso@coffee.com';
-
+      let authInfo;
       beforeEach(async () => {
         stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
         stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
@@ -1830,7 +1830,7 @@ describe('AuthInfo', () => {
         set(jwtData, 'username', username);
         testMetadata.fetchConfigInfo = () => jwtData;
 
-        const authInfo = await AuthInfo.create({
+        authInfo = await AuthInfo.create({
           username,
           oauth2Options: {
             clientId: testMetadata.clientId,
@@ -1857,7 +1857,7 @@ describe('AuthInfo', () => {
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
             isDevHub: false,
-            isExpired: false,
+            isExpired: undefined,
           },
         ]);
       });
@@ -1876,7 +1876,7 @@ describe('AuthInfo', () => {
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'jwt',
             isDevHub: false,
-            isExpired: false,
+            isExpired: undefined,
           },
         ]);
       });
@@ -1896,7 +1896,7 @@ describe('AuthInfo', () => {
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'token',
             isDevHub: false,
-            isExpired: false,
+            isExpired: undefined,
           },
         ]);
       });
@@ -1917,7 +1917,7 @@ describe('AuthInfo', () => {
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
             isDevHub: false,
-            isExpired: false,
+            isExpired: undefined,
           },
         ]);
       });
@@ -1942,6 +1942,27 @@ describe('AuthInfo', () => {
             aliases: ['MyAlias'],
             configs: [OrgConfigProperties.TARGET_ORG, OrgConfigProperties.TARGET_DEV_HUB],
             isScratchOrg: false,
+            username: 'espresso@coffee.com',
+            orgId: '00DAuthInfoTest_orgId',
+            instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
+            accessToken: 'authInfoTest_access_token',
+            oauthMethod: 'web',
+            isDevHub: false,
+            isExpired: undefined,
+          },
+        ]);
+      });
+      it('should return list of authorizations devhub username', async () => {
+        authInfo.getFields().devHubUsername = 'foobarusername';
+        const expiryDate = new Date(Date.now());
+        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+        authInfo.getFields().expirationDate = expiryDate.toISOString();
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            aliases: [],
+            configs: [],
+            isScratchOrg: true,
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
