@@ -365,7 +365,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           configs,
           username,
           instanceUrl,
-          isScratchOrg: Boolean(devHubUsername) ?? false,
+          isScratchOrg: Boolean(devHubUsername),
           isDevHub: isDevHub || false,
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
