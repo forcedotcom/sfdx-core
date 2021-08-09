@@ -103,6 +103,19 @@ workflows:
   version: 2
   test-and-release:
     jobs:
+      - release-management/validate-pr:
+          filters:
+            branches:
+              ignore: main
+      - release-management/test-package:
+          matrix:
+            parameters:
+              os:
+                - linux
+              node_version:
+                - latest
+                - lts
+                - maintenance
       - external-nut:
           requires:
             - release-management/test-package
@@ -123,32 +136,14 @@ workflows:
                   'https://github.com/salesforcecli/toolbelt',
                 ]
                 # TODO: data (unlernafied)
-      # - - release-management/test-nut:
-      #     name: nuts-on-windows
-      #     os: windows
-      #     requires:
-      #       - release-management/test-package
-      # - release-management/validate-pr:
-      #     filters:
-      #       branches:
-      #         ignore: main
-      # - release-management/test-package:
-      #     matrix:
-      #       parameters:
-      #         os:
-      #           - linux
-      #         node_version:
-      #           - latest
-      #           - lts
-      #           - maintenance
-      # - release-management/release-package:
-      #     github-release: true
-      #     post-job-steps:
-      #       - run: yarn ci-docs
-      #     requires:
-      #       - release-management/test-package
-      #     filters:
-      #       branches:
-      #         only: main
-      #     context: CLI_CTC
-# TODO: data (unlernafied)
+      - release-management/release-package:
+          github-release: true
+          post-job-steps:
+            - run: yarn ci-docs
+          requires:
+            - release-management/test-package
+            - external-nut
+          filters:
+            branches:
+              only: main
+          context: CLI_CTC
