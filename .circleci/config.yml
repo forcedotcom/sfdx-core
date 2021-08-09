@@ -133,9 +133,10 @@ workflows:
                   'https://github.com/salesforcecli/plugin-auth',
                   'https://github.com/salesforcecli/plugin-schema',
                   'https://github.com/salesforcecli/plugin-telemetry',
-                  'https://github.com/salesforcecli/toolbelt',
                 ]
-                # TODO: data (unlernafied)
+                # TODO
+                # data (unlernafied)
+                # toolbelt (git auth because private)
       - release-management/release-package:
           github-release: true
           post-job-steps:
