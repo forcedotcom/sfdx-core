@@ -58,29 +58,6 @@ jobs:
           version: <<parameters.sfdx_version>>
           os: <<parameters.os>>
       - run: git clone <<parameters.external_project_git_url>> $(pwd)
-      # - when:
-      #     condition:
-      #       and:
-      #         - equal: ['windows', <<parameters.os>>]
-      #         - <<parameters.repo_tag>>
-      #     steps:
-      #       - run:
-      #           name: Switch to tag v<<parameters.repo_tag>> or <<parameters.npm_module_name>>@<<parameters.repo_tag>>
-      #           command: |
-      #             git checkout "v<<parameters.repo_tag>>"
-      #             if (!$?)
-      #             {
-      #               git checkout "<<parameters.npm_module_name>>@<<parameters.repo_tag>>"
-      #             }
-      # - when:
-      #     condition:
-      #       and:
-      #         - equal: ['linux', <<parameters.os>>]
-      #         - <<parameters.repo_tag>>
-      #     steps:
-      #       - run:
-      #           name: Switch to tag v<<parameters.repo_tag>> or <<parameters.npm_module_name>>@<<parameters.repo_tag>>
-      #           command: git checkout v<<parameters.repo_tag>> || git checkout <<parameters.npm_module_name>>@<<parameters.repo_tag>>
       - run:
           name: Install dependencies
           command: yarn
@@ -138,7 +115,13 @@ workflows:
                   'https://github.com/salesforcecli/plugin-user',
                   'https://github.com/salesforcecli/plugin-config',
                   'https://github.com/salesforcecli/plugin-alias',
+                  'https://github.com/salesforcecli/plugin-limits',
+                  'https://github.com/salesforcecli/plugin-auth',
+                  'https://github.com/salesforcecli/plugin-schema',
+                  'https://github.com/salesforcecli/plugin-telemetry',
+                  'https://github.com/salesforcecli/toolbelt',
                 ]
+                # TODO: data (unlernafied)
       # - - release-management/test-nut:
       #     name: nuts-on-windows
       #     os: windows
@@ -167,3 +150,4 @@ workflows:
       #       branches:
       #         only: main
       #     context: CLI_CTC
+# TODO: data (unlernafied)
