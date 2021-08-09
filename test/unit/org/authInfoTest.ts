@@ -1843,7 +1843,9 @@ describe('AuthInfo', () => {
       });
 
       it('should return list of authorizations with web oauthMethod', async () => {
-        const auths = await AuthInfo.listAllAuthorizations();
+        const auths = await AuthInfo.listAllAuthorizations(
+          (orgAuth) => orgAuth.oauthMethod !== 'jwt' && !orgAuth.isScratchOrg
+        );
         expect(auths).to.deep.equal([
           {
             aliases: [],
@@ -1854,13 +1856,15 @@ describe('AuthInfo', () => {
             instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
+            isDevHub: false,
+            isExpired: false,
           },
         ]);
       });
 
       it('should return list of authorizations with jwt oauthMethod', async () => {
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'isJwt').returns(true);
-        const auths = await AuthInfo.listAllAuthorizations();
+        const auths = await AuthInfo.listAllAuthorizations(false);
         expect(auths).to.deep.equal([
           {
             aliases: [],
@@ -1871,6 +1875,8 @@ describe('AuthInfo', () => {
             instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'jwt',
+            isDevHub: false,
+            isExpired: false,
           },
         ]);
       });
@@ -1889,13 +1895,17 @@ describe('AuthInfo', () => {
             instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'token',
+            isDevHub: false,
+            isExpired: false,
           },
         ]);
       });
 
       it('should return list of authorizations with aliases', async () => {
         stubMethod($$.SANDBOX, AliasAccessor.prototype, 'getAll').returns(['MyAlias']);
-        const auths = await AuthInfo.listAllAuthorizations();
+        const auths = await AuthInfo.listAllAuthorizations(
+          (orgAuth) => orgAuth.aliases.length === 1 && orgAuth.aliases.includes('MyAlias')
+        );
         expect(auths).to.deep.equal([
           {
             aliases: ['MyAlias'],
@@ -1906,6 +1916,8 @@ describe('AuthInfo', () => {
             instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
+            isDevHub: false,
+            isExpired: false,
           },
         ]);
       });
@@ -1922,7 +1934,9 @@ describe('AuthInfo', () => {
             key: OrgConfigProperties.TARGET_DEV_HUB,
           },
         ]);
-        const auths = await AuthInfo.listAllAuthorizations();
+        const auths = await AuthInfo.listAllAuthorizations((orgAuth) =>
+          orgAuth.configs.includes(OrgConfigProperties.TARGET_ORG)
+        );
         expect(auths).to.deep.equal([
           {
             aliases: ['MyAlias'],
@@ -1933,6 +1947,8 @@ describe('AuthInfo', () => {
             instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
             accessToken: 'authInfoTest_access_token',
             oauthMethod: 'web',
+            isDevHub: false,
+            isExpired: false,
           },
         ]);
       });
@@ -1957,7 +1973,7 @@ describe('AuthInfo', () => {
       });
 
       it('should return list of authorizations with unknown oauthMethod', async () => {
-        const auths = await AuthInfo.listAllAuthorizations();
+        const auths = await AuthInfo.listAllAuthorizations((orgAuth) => orgAuth.error === 'FAIL!');
         expect(auths).to.deep.equal([
           {
             aliases: [],
@@ -1965,6 +1981,7 @@ describe('AuthInfo', () => {
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
+            isExpired: false,
             accessToken: undefined,
             oauthMethod: 'unknown',
             error: 'FAIL!',
@@ -1982,6 +1999,7 @@ describe('AuthInfo', () => {
             username: 'espresso@coffee.com',
             orgId: '00DAuthInfoTest_orgId',
             instanceUrl: 'https://mydevhub.localhost.internal.salesforce.com:6109',
+            isExpired: false,
             accessToken: undefined,
             oauthMethod: 'unknown',
             error: 'FAIL!',

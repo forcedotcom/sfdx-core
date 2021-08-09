@@ -24,7 +24,7 @@ export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config, SfdxPropertyKeys }
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
-export { AuthFields, AuthInfo, OAuth2WithVerifier, OrgAuthorization } from './org/authInfo';
+export { AuthFields, AuthInfo, OAuth2WithVerifier, OrgAuthorization, OrgAuthorizationFilter } from './org/authInfo';
 
 export { AuthRemover } from './org/authRemover';
 

@@ -94,9 +94,11 @@ export type OrgAuthorization = {
   aliases: Nullable<string[]>;
   configs: Nullable<string[]>;
   isScratchOrg?: boolean;
+  isDevHub?: boolean;
   instanceUrl?: string;
   accessToken?: string;
   error?: string;
+  isExpired: boolean;
 };
 
 /**
@@ -292,6 +294,10 @@ function base64UrlEscape(base64Encoded: string): string {
  * const connection = await Connection.create({ authInfo });
  * ```
  */
+
+const defaultOrgAuthFilter = (orgAuth: OrgAuthorization): boolean => !!orgAuth;
+export type OrgAuthorizationFilter = boolean | typeof defaultOrgAuthFilter;
+
 export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   // Possibly overridden in create
   private usingAccessToken = false;
@@ -326,16 +332,25 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   /**
    * Get a list of all authorizations based on auth files stored in the global directory.
+   * One can supply a filter (see @param orgAuthFilter) and calling this function withoyt
+   * a filter will return all authorizations.
+   *
+   * @param orgAuthFilter a boolean value or a predicate function that filters authorizations
+   *        For boolean value of true, return active org authorizations, false returns inactive
+   *        org authorizations. For a predicate function as (orgAuthorization: {OrgAuthorization}): boolean return
+   *        true for those org authorizations that are to be retained.
    *
    * @returns {Promise<OrgAuthorization[]>}
    */
-  public static async listAllAuthorizations(): Promise<OrgAuthorization[]> {
+  public static async listAllAuthorizations(
+    orgAuthFilter: OrgAuthorizationFilter = defaultOrgAuthFilter
+  ): Promise<OrgAuthorization[]> {
     const globalInfo = await GlobalInfo.getInstance();
     const config = (await ConfigAggregator.create()).getConfigInfo();
-    const auths = Object.values(globalInfo.orgs.getAll());
+    const orgs = Object.values(globalInfo.orgs.getAll());
     const final: OrgAuthorization[] = [];
-    for (const auth of auths) {
-      const username = ensureString(auth.username);
+    for (const org of orgs) {
+      const username = ensureString(org.username);
       const aliases = globalInfo.aliases.getAll(username) ?? undefined;
       // Get a list of configuration values that are set to either the username or one
       // of the aliases
@@ -344,32 +359,50 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         .map((c) => c.key);
       try {
         const authInfo = await AuthInfo.create({ username });
-        const { orgId, instanceUrl, devHubUsername } = authInfo.getFields();
+        const { orgId, instanceUrl, devHubUsername, expirationDate, isDevHub } = authInfo.getFields();
         final.push({
           aliases,
           configs,
           username,
           instanceUrl,
-          isScratchOrg: Boolean(devHubUsername),
+          isScratchOrg: Boolean(devHubUsername) ?? false,
+          isDevHub: isDevHub || false,
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
+          isExpired:
+            Boolean(devHubUsername) && expirationDate
+              ? new Date(ensureString(expirationDate)).getTime() < new Date().getTime()
+              : false,
         });
       } catch (err) {
         final.push({
           aliases,
           configs,
           username,
-          orgId: auth.orgId,
-          instanceUrl: auth.instanceUrl,
+          orgId: org.orgId,
+          instanceUrl: org.instanceUrl,
           accessToken: undefined,
           oauthMethod: 'unknown',
           error: err.message,
+          isExpired: false,
         });
       }
     }
 
-    return final;
+    const applyThisFilter =
+      typeof orgAuthFilter !== 'boolean'
+        ? orgAuthFilter
+        : (orgAuth: OrgAuthorization): boolean => {
+            if (!orgAuthFilter) {
+              // inactive
+              return !orgAuth.isExpired;
+            } else {
+              return !orgAuth.error && !orgAuth.isExpired;
+            }
+          };
+
+    return final.filter(applyThisFilter);
   }
 
   /**
