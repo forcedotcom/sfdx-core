@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.3.12](https://github.com/forcedotcom/sfdx-core/compare/v3.3.11...v3.3.12) (2021-08-10)
+
+
+### Bug Fixes
+
+* add predicate function to list all auths ([ccdb02c](https://github.com/forcedotcom/sfdx-core/commit/ccdb02c268fae7532b23e0c791bcdd831f77cf98))
+
 ### [3.3.11](https://github.com/forcedotcom/sfdx-core/compare/v3.3.10...v3.3.11) (2021-08-04)
 
 
