@@ -28,10 +28,6 @@ jobs:
         description: 'The url that will be cloned.  This contains the NUTs you want to run.  Ex: https://github.com/salesforcecli/plugin-user'
         type: string
         default: ''
-      # repo_tag:
-      #   description: "The tag of the module repo to checkout, '' defaults to branch/PR"
-      #   default: ''
-      #   type: string
       size:
         type: enum
         description: |
