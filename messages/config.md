@@ -6,6 +6,10 @@ Unknown config name: %s.
 
 Deprecated config name: %s. Please use %s instead.
 
+# invalidWrite
+
+The writeSync method is not allowed on SfdxConfig. Use the async write method instead.
+
 # invalidConfigValue
 
 Invalid config value: %s.

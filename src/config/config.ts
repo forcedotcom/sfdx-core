@@ -28,6 +28,7 @@ const messages = Messages.load('@salesforce/core', 'config', [
   'invalidIsvDebuggerSid',
   'invalidIsvDebuggerUrl',
   'invalidNumberConfigValue',
+  'invalidWrite',
   'unknownConfigKey',
 ]);
 
@@ -379,6 +380,19 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     await this.cryptProperties(false);
 
     return this.getContents();
+  }
+
+  /**
+   * DO NOT CALL - The config file needs to encrypt values which can only be done asynchronously.
+   * Call {@link SfdxConfig.write} instead.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'InvalidWriteError' }* Always.
+   *
+   * @param newContents Contents to write
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public writeSync(newContents?: ConfigProperties): ConfigProperties {
+    throw messages.createError('invalidWrite');
   }
 
   /**
