@@ -332,10 +332,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * One can supply a filter (see @param orgAuthFilter) and calling this function without
    * a filter will return all authorizations.
    *
-   * @param orgAuthFilter a boolean value or a predicate function that filters authorizations
-   *        For boolean value of true, return active org authorizations, false returns inactive
-   *        org authorizations. For a predicate function as (orgAuthorization: {OrgAuthorization}): boolean return
-   *        true for those org authorizations that are to be retained.
+   * @param orgAuthFilter A predicate function that returns true for those org authorizations that are to be retained.
    *
    * @returns {Promise<OrgAuthorization[]>}
    */
