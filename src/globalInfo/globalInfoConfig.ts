@@ -94,7 +94,6 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     await this.initCrypto();
     const contents = Global.SFDX_INTEROPERABILITY ? await this.mergeWithSfdxData() : await this.loadSfData();
     this.setContents(contents);
-    await this.write(contents);
   }
 
   private timestamp<T extends JsonMap>(data: T): T {
@@ -109,6 +108,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   private async mergeWithSfdxData(): Promise<SfInfo> {
     const sfData = await this.loadSfData();
     const merged = await this.sfdxHandler.merge(sfData);
+    await this.write(merged);
     return merged;
   }
 }

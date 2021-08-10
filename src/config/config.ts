@@ -14,20 +14,21 @@ import { Messages } from '../messages';
 import { sfdc } from '../util/sfdc';
 import { fs } from '../util/fs';
 import { SfdcUrl } from '../util/sfdcUrl';
+import { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from '../org/orgConfigProperties';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'config', [
-  'invalidInstanceUrl',
+  'deprecatedConfigKey',
   'invalidApiVersion',
+  'invalidBooleanConfigValue',
+  'invalidConfigValue',
+  'invalidInstanceUrl',
   'invalidIsvDebuggerSid',
   'invalidIsvDebuggerUrl',
-  'invalidBooleanConfigValue',
   'invalidNumberConfigValue',
-  'invalidWrite',
   'unknownConfigKey',
-  'invalidConfigValue',
 ]);
 
 const log = Logger.childFromRoot('core:config');
@@ -39,7 +40,7 @@ const CONFIG_FILE_NAME = 'config.json';
  */
 export interface ConfigPropertyMeta {
   /**
-   *  The config property name.
+   * The config property name.
    */
   key: string;
 
@@ -49,12 +50,12 @@ export interface ConfigPropertyMeta {
   description: string;
 
   /**
-   *  Reference to the config data input validation.
+   * Reference to the config data input validation.
    */
   input?: ConfigPropertyMetaInput;
 
   /**
-   *  True if the property should be indirectly hidden from the user.
+   * True if the property should be indirectly hidden from the user.
    */
   hidden?: boolean;
 
@@ -62,6 +63,17 @@ export interface ConfigPropertyMeta {
    * True if the property values should be stored encrypted.
    */
   encrypted?: boolean;
+
+  /**
+   * True if the property is deprecated
+   */
+  deprecated?: boolean;
+
+  /**
+   * Reference to config property name that will eventually replace this one.
+   * Is only used if deprecated is set to true.
+   */
+  newKey?: string;
 }
 
 /**
@@ -146,10 +158,14 @@ export const SFDX_ALLOWED_PROPERTIES = [
   },
   {
     key: SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME,
+    newKey: OrgConfigProperties.TARGET_DEV_HUB,
+    deprecated: true,
     description: '',
   },
   {
     key: SfdxPropertyKeys.DEFAULT_USERNAME,
+    newKey: OrgConfigProperties.TARGET_ORG,
+    deprecated: true,
     description: '',
   },
   {
@@ -221,7 +237,10 @@ export type ConfigProperties = { [index: string]: JsonPrimitive };
  * https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_config_values.htm
  */
 export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
-  private static allowedProperties: ConfigPropertyMeta[] = [...SFDX_ALLOWED_PROPERTIES];
+  private static allowedProperties: ConfigPropertyMeta[] = [
+    ...SFDX_ALLOWED_PROPERTIES,
+    ...ORG_CONFIG_ALLOWED_PROPERTIES,
+  ];
 
   private sfdxPath?: string;
 
@@ -355,24 +374,11 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     await this.cryptProperties(true);
 
     await super.write();
-    await this.writeSfdxConfig();
+    if (Global.SFDX_INTEROPERABILITY) await this.writeSfdxConfig();
 
     await this.cryptProperties(false);
 
     return this.getContents();
-  }
-
-  /**
-   * DO NOT CALL - The config file needs to encrypt values which can only be done asynchronously.
-   * Call {@link SfdxConfig.write} instead.
-   *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidWriteError' }* Always.
-   *
-   * @param newContents Contents to write
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public writeSync(newContents?: ConfigProperties): ConfigProperties {
-    throw messages.createError('invalidWrite');
   }
 
   /**
@@ -390,6 +396,10 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     if (!property) {
       throw messages.createError('unknownConfigKey', [key]);
     }
+    if (property.deprecated && property.newKey) {
+      throw messages.createError('deprecatedConfigKey', [key, property.newKey]);
+    }
+
     if (property.input) {
       if (property.input && property.input.validator(value)) {
         super.set(property.key, value);
@@ -433,9 +443,10 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     await super.init();
   }
 
-  private readSfdxConfigSync() {
+  private readSfdxConfigSync(): ConfigProperties {
     try {
-      return fs.readJsonMapSync(this.getSfdxPath());
+      const contents = fs.readJsonMapSync(this.getSfdxPath());
+      return this.normalize(contents as ConfigProperties, 'toNew');
     } catch (error) {
       /* Do nothing */
       return {};
@@ -446,10 +457,35 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     try {
       await fs.mkdirp(pathDirname(this.getSfdxPath()));
       this.logger.info(`Writing to config file: ${this.getPath()}`);
-      await fs.writeJson(this.getSfdxPath(), this.toObject());
+      const mapped = this.normalize(this.toObject() as ConfigProperties, 'toOld');
+      await fs.writeJson(this.getSfdxPath(), mapped);
     } catch (error) {
       /* Do nothing */
     }
+  }
+
+  /**
+   * If toNew is specified: migrate all deprecated configs with a newKey to the newKey.
+   * - For example, defaultusername will be renamed to target-org.
+   *
+   * If toOld is specified: migrate all deprecated configs back to their original key.
+   * - For example, target-org will be renamed to defaultusername.
+   */
+  private normalize(contents: ConfigProperties, direction: 'toNew' | 'toOld'): ConfigProperties {
+    const mapped = {} as ConfigProperties;
+    for (const [key, value] of Object.entries(contents)) {
+      const propConfig =
+        direction === 'toNew'
+          ? this.getPropertyConfig(key)
+          : Config.allowedProperties.find((c) => c.newKey === key) ?? ({} as ConfigPropertyMeta);
+      if (propConfig.deprecated && propConfig.newKey) {
+        const normalizedKey = direction === 'toNew' ? propConfig.newKey : propConfig.key;
+        mapped[normalizedKey] = value;
+      } else {
+        mapped[key] = value;
+      }
+    }
+    return mapped;
   }
 
   private getSfdxPath(): string {

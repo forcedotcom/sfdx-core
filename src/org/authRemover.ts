@@ -16,7 +16,7 @@ import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const coreMessages = Messages.load('@salesforce/core', 'core', ['namedOrgNotFound']);
-const messages = Messages.load('@salesforce/core', 'auth', ['defaultUsernameNotSet']);
+const messages = Messages.load('@salesforce/core', 'auth', ['targetOrgNotSet']);
 
 /**
  * Handles  the removing of authorizations, which includes deleting the auth file
@@ -81,7 +81,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<SfOrg>}
    */
   public async findAuth(usernameOrAlias?: string): Promise<SfOrg> {
-    const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getDefaultUsername();
+    const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getTargetOrg();
     const auth = this.globalInfo.orgs.get(username);
     if (!auth) {
       throw coreMessages.createError('namedOrgNotFound');
@@ -134,15 +134,15 @@ export class AuthRemover extends AsyncOptionalCreatable {
   /**
    * @returns {Promise<string>}
    */
-  private async getDefaultUsername(): Promise<string> {
+  private async getTargetOrg(): Promise<string> {
     const configAggregator = await ConfigAggregator.create();
-    const defaultUsername =
+    const targetOrg =
       configAggregator.getInfo(OrgConfigProperties.TARGET_ORG).value ||
       configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME).value;
-    if (!defaultUsername) {
-      throw messages.createError('defaultUsernameNotSet');
+    if (!targetOrg) {
+      throw messages.createError('targetOrgNotSet');
     }
-    return defaultUsername as string;
+    return targetOrg as string;
   }
 
   /**

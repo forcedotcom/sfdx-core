@@ -115,7 +115,7 @@ describe('AuthRemover', () => {
         await remover.findAuth();
         assert.fail();
       } catch (err) {
-        expect(err.name).to.equal('DefaultUsernameNotSetError');
+        expect(err.name).to.equal('TargetOrgNotSetError');
         expect(err.actions).has.length(3);
       }
     });
