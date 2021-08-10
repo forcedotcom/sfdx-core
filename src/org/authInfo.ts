@@ -295,9 +295,6 @@ function base64UrlEscape(base64Encoded: string): string {
  * ```
  */
 
-const defaultOrgAuthFilter = (orgAuth: OrgAuthorization): boolean => !!orgAuth;
-export type OrgAuthorizationFilter = boolean | typeof defaultOrgAuthFilter;
-
 export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   // Possibly overridden in create
   private usingAccessToken = false;
@@ -343,7 +340,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @returns {Promise<OrgAuthorization[]>}
    */
   public static async listAllAuthorizations(
-    orgAuthFilter: OrgAuthorizationFilter = defaultOrgAuthFilter
+    orgAuthFilter = (orgAuth: OrgAuthorization): boolean => !!orgAuth
   ): Promise<OrgAuthorization[]> {
     const globalInfo = await GlobalInfo.getInstance();
     const config = (await ConfigAggregator.create()).getConfigInfo();
@@ -390,23 +387,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
     }
 
-    const applyThisFilter =
-      typeof orgAuthFilter !== 'boolean'
-        ? orgAuthFilter
-        : (orgAuth: OrgAuthorization): boolean => {
-            // handle 'unknown' expiry - always treat as active
-            if (typeof orgAuth.isExpired === 'string') {
-              return true;
-            }
-            if (!orgAuthFilter) {
-              // inactive
-              return orgAuth.isExpired;
-            } else {
-              return !orgAuth.error && !orgAuth.isExpired;
-            }
-          };
-
-    return final.filter(applyThisFilter);
+    return final.filter(orgAuthFilter);
   }
 
   /**

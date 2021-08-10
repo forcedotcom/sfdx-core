@@ -1864,7 +1864,7 @@ describe('AuthInfo', () => {
 
       it('should return list of authorizations with jwt oauthMethod', async () => {
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'isJwt').returns(true);
-        const auths = await AuthInfo.listAllAuthorizations(false);
+        const auths = await AuthInfo.listAllAuthorizations();
         const expiryDate = new Date(Date.now());
         expiryDate.setFullYear(expiryDate.getFullYear() - 1);
         authInfo.getFields().expirationDate = expiryDate.toISOString();
