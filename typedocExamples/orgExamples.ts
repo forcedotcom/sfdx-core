@@ -7,7 +7,7 @@ export const orgExamples = {
   classDoc: async () => {
     // Email username
     const org1: Org = await Org.create({ aliasOrUsername: 'foo@example.com' });
-    // The defaultusername config property
+    // The target-org config property
     const org2: Org = await Org.create();
     // Full Connection
     const org3: Org = await Org.create({

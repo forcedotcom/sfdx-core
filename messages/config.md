@@ -2,6 +2,14 @@
 
 Unknown config name: %s.
 
+# deprecatedConfigKey
+
+Deprecated config name: %s. Please use %s instead.
+
+# invalidWrite
+
+The writeSync method is not allowed on SfdxConfig. Use the async write method instead.
+
 # invalidConfigValue
 
 Invalid config value: %s.
@@ -58,10 +66,6 @@ The path "%s", specified in sfdx-project.json, must be indicated as a relative p
 # multipleDefaultPaths
 
 In sfdx-project.json, indicate only one package directory (path) as the default.
-
-# invalidWrite
-
-The writeSync method is not allowed on SfdxConfig. Use the async write method instead.
 
 # singleNonDefaultPackage
 

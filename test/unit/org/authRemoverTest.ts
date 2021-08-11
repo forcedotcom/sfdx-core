@@ -8,10 +8,11 @@
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { assert, expect } from 'chai';
 import { AuthRemover } from '../../../src/org/authRemover';
-import { Config, SfdxPropertyKeys } from '../../../src/config/config';
+import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { AliasAccessor, GlobalInfo, OrgAccessor } from '../../../src/globalInfo';
 import { testSetup } from '../../../src/testSetup';
+import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 
 describe('AuthRemover', () => {
   const username = 'espresso@coffee.com';
@@ -81,23 +82,23 @@ describe('AuthRemover', () => {
       expect(auth).to.deep.equal({ username, orgId: '12345' });
     });
 
-    it('should return authorization for defaultusername (set to username) if no username is provided', async () => {
+    it('should return authorization for target-org (set to username) if no username is provided', async () => {
       stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get').returns({ username, orgId: '12345' });
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
         .returns({})
-        .withArgs(SfdxPropertyKeys.DEFAULT_USERNAME)
+        .withArgs(OrgConfigProperties.TARGET_ORG)
         .returns({ value: username });
       const remover = await AuthRemover.create();
       const auth = await remover.findAuth();
       expect(auth).to.deep.equal({ username, orgId: '12345' });
     });
 
-    it('should return authorization for defaultusername (set to alias) if no username is provided', async () => {
+    it('should return authorization for target-org (set to alias) if no username is provided', async () => {
       const alias = 'MyAlias';
       stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get').returns({ username, orgId: '12345' });
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
         .returns({})
-        .withArgs(SfdxPropertyKeys.DEFAULT_USERNAME)
+        .withArgs(OrgConfigProperties.TARGET_ORG)
         .returns({ value: alias });
       stubMethod($$.SANDBOX, AliasAccessor.prototype, 'getUsername').withArgs(alias).returns(username);
       const remover = await AuthRemover.create();
@@ -105,17 +106,17 @@ describe('AuthRemover', () => {
       expect(auth).to.deep.equal({ username, orgId: '12345' });
     });
 
-    it('should throw an error if no username is provided and defaultusername is not set', async () => {
+    it('should throw an error if no username is provided and target-org is not set', async () => {
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getInfo')
         .returns({})
-        .withArgs(SfdxPropertyKeys.DEFAULT_USERNAME)
+        .withArgs(OrgConfigProperties.TARGET_ORG)
         .returns({ value: undefined });
       const remover = await AuthRemover.create();
       try {
         await remover.findAuth();
         assert.fail();
       } catch (err) {
-        expect(err.name).to.equal('DefaultUsernameNotSetError');
+        expect(err.name).to.equal('TargetOrgNotSetError');
         expect(err.actions).has.length(3);
       }
     });
@@ -129,24 +130,24 @@ describe('AuthRemover', () => {
       const alias = 'MyAlias';
       stubMethod($$.SANDBOX, AliasAccessor.prototype, 'getAll').returns([alias]);
       stubMethod($$.SANDBOX, Config.prototype, 'getKeysByValue').returns([
-        SfdxPropertyKeys.DEFAULT_USERNAME,
-        SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME,
+        OrgConfigProperties.TARGET_ORG,
+        OrgConfigProperties.TARGET_DEV_HUB,
       ]);
 
       const remover = await AuthRemover.create();
       // @ts-ignore because private member
       await remover.unsetConfigValues(username);
       // expect 4 calls to unset:
-      // 1. unset defaultusername locally
-      // 2. unset defaultusername globally
-      // 3. unset defaultdevhubusername locally
-      // 4. unset defaultdevhubusername globally
+      // 1. unset target-org locally
+      // 2. unset target-org globally
+      // 3. unset target-dev-hub locally
+      // 4. unset target-dev-hub globally
       expect(configUnsetSpy.callCount).to.equal(4);
       expect(configUnsetSpy.args).to.deep.equal([
-        [SfdxPropertyKeys.DEFAULT_USERNAME],
-        [SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME],
-        [SfdxPropertyKeys.DEFAULT_USERNAME],
-        [SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME],
+        [OrgConfigProperties.TARGET_ORG],
+        [OrgConfigProperties.TARGET_DEV_HUB],
+        [OrgConfigProperties.TARGET_ORG],
+        [OrgConfigProperties.TARGET_DEV_HUB],
       ]);
       expect(configWriteSpy.callCount).to.equal(1);
     });

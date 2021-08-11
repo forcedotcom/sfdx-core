@@ -1,8 +1,8 @@
-# defaultUsernameNotSet
+# targetOrgNotSet
 
 A default user is not set.
 
-# defaultUsernameNotSet.actions
+# targetOrgNotSet.actions
 
 - Run the "sfdx auth" commands with --setdefaultusername to connect to an org and set it as your default org.
 - Run "force:org:create" with --setdefaultusername to create a scratch org and set it as your default org.

@@ -7,7 +7,7 @@
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
-import { Config, SfdxPropertyKeys } from '../config/config';
+import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -16,7 +16,7 @@ import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const coreMessages = Messages.load('@salesforce/core', 'core', ['namedOrgNotFound']);
-const messages = Messages.load('@salesforce/core', 'auth', ['defaultUsernameNotSet']);
+const messages = Messages.load('@salesforce/core', 'auth', ['targetOrgNotSet']);
 
 /**
  * Handles  the removing of authorizations, which includes deleting the auth file
@@ -74,14 +74,14 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Finds authorization files for username/alias in the global .sfdx folder
-   * **Throws** *{@link SfdxError}{ name: 'DefaultUsernameNotSetError' }* if no defaultusername
+   * **Throws** *{@link SfdxError}{ name: 'TargetOrgNotSetError' }* if no target-org
    * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFoundError' }* if specified user is not found
    *
-   * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured defaultusername
+   * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured target-org
    * @returns {Promise<SfOrg>}
    */
   public async findAuth(usernameOrAlias?: string): Promise<SfOrg> {
-    const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getDefaultUsername();
+    const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getTargetOrg();
     const auth = this.globalInfo.orgs.get(username);
     if (!auth) {
       throw coreMessages.createError('namedOrgNotFound');
@@ -134,15 +134,13 @@ export class AuthRemover extends AsyncOptionalCreatable {
   /**
    * @returns {Promise<string>}
    */
-  private async getDefaultUsername(): Promise<string> {
+  private async getTargetOrg(): Promise<string> {
     const configAggregator = await ConfigAggregator.create();
-    const defaultUsername =
-      configAggregator.getInfo(OrgConfigProperties.TARGET_ORG).value ||
-      configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME).value;
-    if (!defaultUsername) {
-      throw messages.createError('defaultUsernameNotSet');
+    const targetOrg = configAggregator.getInfo(OrgConfigProperties.TARGET_ORG).value;
+    if (!targetOrg) {
+      throw messages.createError('targetOrgNotSet');
     }
-    return defaultUsername as string;
+    return targetOrg as string;
   }
 
   /**

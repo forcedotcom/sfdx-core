@@ -11,7 +11,7 @@ import { Messages } from '../messages';
 import { Config, ConfigPropertyMeta } from './config';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'config', ['unknownConfigKey']);
+const messages = Messages.load('@salesforce/core', 'config', ['unknownConfigKey', 'deprecatedConfigKey']);
 
 const propertyToEnvName = (property: string): string => `SFDX_${snakeCase(property).toUpperCase()}`;
 
@@ -52,6 +52,11 @@ export interface ConfigInfo {
    * `true` if the config property is an environment variable.
    */
   isEnvVar: () => boolean;
+
+  /**
+   * True if the config property is deprecated.
+   */
+  deprecated?: boolean;
 }
 
 /**
@@ -66,7 +71,7 @@ export interface ConfigInfo {
  *
  * ```
  * const aggregator = await ConfigAggregator.create();
- * console.log(aggregator.getPropertyValue('defaultusername'));
+ * console.log(aggregator.getPropertyValue('target-org'));
  * ```
  */
 export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
@@ -170,11 +175,31 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   }
 
   /**
+   * Get a resolved config property meta.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
+   *
+   * @param key The key of the property.
+   */
+  public getPropertyMeta(key: string): ConfigPropertyMeta {
+    const match = this.getAllowedProperties().find((element) => key === element.key);
+    if (match) {
+      return match;
+    } else {
+      throw messages.createError('unknownConfigKey', [key]);
+    }
+  }
+
+  /**
    * Get a resolved config property.
    *
    * @param key The key of the property.
    */
   public getInfo(key: string): ConfigInfo {
+    const meta = this.getPropertyMeta(key);
+    if (meta.deprecated && meta.newKey) {
+      throw messages.createError('deprecatedConfigKey', [key, meta.newKey]);
+    }
     const location = this.getLocation(key);
     return {
       key,
@@ -184,6 +209,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
       isLocal: () => location === ConfigAggregator.Location.LOCAL,
       isGlobal: () => location === ConfigAggregator.Location.GLOBAL,
       isEnvVar: () => location === ConfigAggregator.Location.ENVIRONMENT,
+      deprecated: meta.deprecated ?? false,
     };
   }
 
@@ -242,7 +268,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * > console.log(aggregator.getConfigInfo());
    * [
    *     { key: 'logLevel', val: 'INFO', location: 'Environment', path: '$SFDX_LOG_LEVEL'}
-   *     { key: 'defaultusername', val: '<username>', location: 'Local', path: './.sfdx/sfdx-config.json'}
+   *     { key: 'target-org', val: '<username>', location: 'Local', path: './.sf/config.json'}
    * ]
    * ```
    */

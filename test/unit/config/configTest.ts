@@ -10,6 +10,7 @@ import { assert, expect } from 'chai';
 import { Config, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
+import { OrgConfigProperties } from '../../../src/exported';
 import { testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 
@@ -17,8 +18,8 @@ import { fs } from '../../../src/util/fs';
 const $$ = testSetup();
 
 const configFileContents = {
-  defaultdevhubusername: 'configTest_devhub',
-  defaultusername: 'configTest_default',
+  'target-dev-hub': 'configTest_devhub',
+  'target-org': 'configTest_default',
 };
 
 const clone = (obj: JsonMap) => JSON.parse(JSON.stringify(obj));
@@ -80,8 +81,8 @@ describe('Config', () => {
 
       const content: ConfigContents = await config.read();
 
-      expect(content.defaultusername).to.equal(configFileContents.defaultusername);
-      expect(content.defaultdevhubusername).to.equal(configFileContents.defaultdevhubusername);
+      expect(content['target-org']).to.equal(configFileContents['target-org']);
+      expect(content['target-dev-hub']).to.equal(configFileContents['target-dev-hub']);
       expect(config.toObject()).to.deep.equal(configFileContents);
     });
   });
@@ -93,9 +94,9 @@ describe('Config', () => {
 
       const expectedFileContents = clone(configFileContents);
       const newUsername = 'updated_val';
-      expectedFileContents.defaultusername = newUsername;
+      expectedFileContents['target-org'] = newUsername;
 
-      await Config.update(false, 'defaultusername', newUsername);
+      await Config.update(false, 'target-org', newUsername);
 
       expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);
     });
@@ -103,18 +104,16 @@ describe('Config', () => {
     it('calls Config.write with deleted file contents', async () => {
       const expectedFileContents = clone(configFileContents);
       const newUsername = 'updated_val';
-      expectedFileContents.defaultusername = newUsername;
+      expectedFileContents['target-org'] = newUsername;
 
-      await Config.update(false, 'defaultusername', newUsername);
+      await Config.update(false, 'target-org', newUsername);
 
       stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
       const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
-      const { defaultdevhubusername } = configFileContents;
+      const targetDevhub = configFileContents['target-dev-hub'];
 
-      await Config.update(false, 'defaultusername');
-      expect(writeStub.getCall(0).args[1]).to.deep.equal({
-        defaultdevhubusername,
-      });
+      await Config.update(false, 'target-org');
+      expect(writeStub.getCall(0).args[1]).to.deep.equal({ 'target-dev-hub': targetDevhub });
     });
   });
 
@@ -229,8 +228,8 @@ describe('Config', () => {
 
     it('PropertyInput validation', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(SfdxPropertyKeys.DEFAULT_USERNAME, 'foo@example.com');
-      expect(config.get(SfdxPropertyKeys.DEFAULT_USERNAME)).to.be.equal('foo@example.com');
+      config.set(OrgConfigProperties.TARGET_ORG, 'foo@example.com');
+      expect(config.get(OrgConfigProperties.TARGET_ORG)).to.be.equal('foo@example.com');
     });
   });
 
@@ -240,10 +239,10 @@ describe('Config', () => {
       const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
 
       const expectedFileContents = clone(configFileContents);
-      delete expectedFileContents.defaultusername;
+      delete expectedFileContents['target-org'];
 
       const config = await Config.create({ isGlobal: false });
-      config.unset('defaultusername');
+      config.unset('target-org');
       await config.write();
 
       expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);

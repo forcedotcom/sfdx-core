@@ -17,6 +17,16 @@ const TEST_IP = '1.1.1.1';
 const TEST_CNAMES = ['login.salesforce.com', 'test.salesforce.com'];
 
 describe('util/sfdcUrl', () => {
+  describe('isValidUrl', () => {
+    it('should return true if given a valid url', () => {
+      expect(SfdcUrl.isValidUrl('https://www.salesforce.com')).to.be.true;
+    });
+
+    it('should return false if given an invalid url', () => {
+      expect(SfdcUrl.isValidUrl('salesforce.com')).to.be.false;
+    });
+  });
+
   describe('allow domains', () => {
     it('is allowlist domain', () => {
       const url = new SfdcUrl('https://www.salesforce.com');

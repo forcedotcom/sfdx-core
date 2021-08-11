@@ -15,7 +15,7 @@ import { assert, expect } from 'chai';
 import { OAuth2 } from 'jsforce';
 import * as Transport from 'jsforce/lib/transport';
 import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
-import { Config, SfdxPropertyKeys } from '../../../src/config/config';
+import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
@@ -27,6 +27,7 @@ import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { GlobalInfo, OrgAccessor } from '../../../src/globalInfo';
+import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 
 const $$ = testSetup();
 
@@ -86,9 +87,9 @@ describe('Org Tests', () => {
       expect(org.getUsername()).to.eq(testData.username);
     });
 
-    it('should create an org from the default username', async () => {
+    it('should create an org from the target-org username', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(SfdxPropertyKeys.DEFAULT_USERNAME, testData.username);
+      config.set(OrgConfigProperties.TARGET_ORG, testData.username);
       await config.write();
 
       const configAggregator: ConfigAggregator = await ConfigAggregator.create();
@@ -99,7 +100,7 @@ describe('Org Tests', () => {
 
     it('should create a default devhub org', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME, testData.username);
+      config.set(OrgConfigProperties.TARGET_DEV_HUB, testData.username);
       await config.write();
 
       const configAggregator: ConfigAggregator = await ConfigAggregator.create();
@@ -308,17 +309,17 @@ describe('Org Tests', () => {
       });
 
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(SfdxPropertyKeys.DEFAULT_USERNAME, testData.username);
+      config.set(OrgConfigProperties.TARGET_ORG, testData.username);
       await config.write();
 
       await configAggregator.reload();
-      expect(configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME)).has.property('value', testData.username);
+      expect(configAggregator.getInfo(OrgConfigProperties.TARGET_ORG)).has.property('value', testData.username);
 
       await org.remove();
       await configAggregator.reload();
 
-      const defaultusername = configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME);
-      expect(defaultusername.value).eq(undefined);
+      const targetOrg = configAggregator.getInfo(OrgConfigProperties.TARGET_ORG);
+      expect(targetOrg.value).eq(undefined);
     });
 
     it('should remove the alias', async () => {
@@ -453,13 +454,13 @@ describe('Org Tests', () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
 
       const org0Username = orgs[0].getUsername();
-      config.set(SfdxPropertyKeys.DEFAULT_USERNAME, ensureString(org0Username));
+      config.set(OrgConfigProperties.TARGET_ORG, ensureString(org0Username));
       await config.write();
 
       expect(await config.exists()).to.be.true;
 
       const configAggregator = await orgs[0].getConfigAggregator().reload();
-      const info = configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME);
+      const info = configAggregator.getInfo(OrgConfigProperties.TARGET_ORG);
       expect(info).has.property('value', org0Username);
 
       const org1Username = orgs[1].getUsername();
@@ -472,7 +473,7 @@ describe('Org Tests', () => {
       await orgs[0].remove();
 
       await configAggregator.reload();
-      expect(configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME)).has.property('value', undefined);
+      expect(configAggregator.getInfo(OrgConfigProperties.TARGET_ORG)).has.property('value', undefined);
 
       const alias = globalInfo.aliases.get(user);
       expect(alias).eq(null);
@@ -523,7 +524,7 @@ describe('Org Tests', () => {
       org = await Org.create({ connection, aggregator: configAggregator });
 
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME, devHub);
+      config.set(OrgConfigProperties.TARGET_DEV_HUB, devHub);
       await config.write();
 
       await org.getConfigAggregator().reload();

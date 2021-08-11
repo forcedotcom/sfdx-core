@@ -28,6 +28,15 @@ export class SfdcUrl extends URL {
     }
   }
 
+  public static isValidUrl(input: string | URL): boolean {
+    try {
+      new URL(input.toString());
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /**
    * Returns the appropriate jwt audience url for this url
    * Use SFDX_AUDIENCE_URL env var to override the audience url
