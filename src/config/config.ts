@@ -143,8 +143,16 @@ export const SFDX_ALLOWED_PROPERTIES = [
     description: '',
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) =>
-        value == null || (isString(value) && SfdcUrl.isValidUrl(value) && new SfdcUrl(value).isSalesforceDomain()),
+      validator: (value: ConfigValue) => {
+        if (value == null) return true;
+        // validate if the value is a stirng and is a valid url and is either a salesforce domain
+        // or an internal url.
+        return (
+          isString(value) &&
+          SfdcUrl.isValidUrl(value) &&
+          (new SfdcUrl(value).isSalesforceDomain() || new SfdcUrl(value).isInternalUrl())
+        );
+      },
       failedMessage: messages.getMessage('invalidInstanceUrl'),
     },
   },
