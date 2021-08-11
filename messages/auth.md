@@ -4,9 +4,9 @@ A default user is not set.
 
 # targetOrgNotSet.actions
 
-- Run the "sfdx auth" commands with --setdefaultusername to connect to an org and set it as your default org.
+- Run the "sf login org" commands with --set-default to connect to an org and set it as your default org.
 - Run "force:org:create" with --setdefaultusername to create a scratch org and set it as your default org.
-- Run "sfdx config:set defaultusername=<username>" to set your default username.
+- Run "sf config set target-org=<username>" to set your default org.
 
 # portInUse
 

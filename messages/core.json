@@ -9,7 +9,7 @@
   "RefreshTokenAuthError": "Error authenticating with the refresh token due to: %s",
   "OrgDataNotAvailableError": "An attempt to refresh the authentication token failed with a 'Data Not Found Error'. The org identified by username %s does not appear to exist. Likely cause is that the org was deleted by another user or has expired.",
   "OrgDataNotAvailableErrorAction1": "Run `sfdx force:org:list --clean` to remove stale org authentications.",
-  "OrgDataNotAvailableErrorAction2": "Use `sfdx force:config:set` to update the defaultusername.",
+  "OrgDataNotAvailableErrorAction2": "Use `sf config set` to update the target-org.",
   "OrgDataNotAvailableErrorAction3": "Use `sfdx force:org:create` to create a new org.",
   "OrgDataNotAvailableErrorAction4": "Use `sfdx force:auth` to authenticate an existing org.",
   "NamedOrgNotFound": "No AuthInfo found for name %s",

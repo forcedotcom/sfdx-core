@@ -35,9 +35,9 @@ An attempt to refresh the authentication token failed with a 'Data Not Found Err
 # orgDataNotAvailableError.actions
 
 - Run `sfdx force:org:list --clean` to remove stale org authentications.
-- Use `sfdx force:config:set` to update the defaultusername.
+- Use `sf config set` to update the default org.
 - Use `sfdx force:org:create` to create a new org.
-- Use `sfdx auth` to authenticate an existing org.
+- Use `sf login org` to authenticate an existing org.
 
 # namedOrgNotFound
 
