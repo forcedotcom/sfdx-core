@@ -194,6 +194,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * Get a resolved config property.
    *
    * @param key The key of the property.
+   * @param throwOnDeprecation True, if you want an error throw when reading a deprecated config
    */
   public getInfo(key: string, throwOnDeprecation = false): ConfigInfo {
     const meta = this.getPropertyMeta(key);
