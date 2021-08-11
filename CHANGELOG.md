@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.4.1](https://github.com/forcedotcom/sfdx-core/compare/v3.4.0...v3.4.1) (2021-08-11)
+
+
+### Bug Fixes
+
+* optionally throw error when reading deprecated config key ([#466](https://github.com/forcedotcom/sfdx-core/issues/466)) ([3118ad8](https://github.com/forcedotcom/sfdx-core/commit/3118ad836db384ac27c2b1db88c4753e6121e4db))
+
 ## [3.4.0](https://github.com/forcedotcom/sfdx-core/compare/v3.3.12...v3.4.0) (2021-08-11)
 
 
