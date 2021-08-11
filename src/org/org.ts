@@ -22,7 +22,7 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import { Config, SfdxPropertyKeys } from '../config/config';
+import { Config } from '../config/config';
 import { ConfigAggregator, ConfigInfo } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStore';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
@@ -39,7 +39,7 @@ import { AuthFields, AuthInfo } from './authInfo';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'org', ['notADevHub']);
+const messages = Messages.load('@salesforce/core', 'org', ['notADevHub', 'noUsernameFound']);
 
 export type OrganizationInformation = {
   Name: string;
@@ -63,7 +63,7 @@ export type OrganizationInformation = {
  * ```
  * // Email username
  * const org1: Org = await Org.create({ aliasOrUsername: 'foo@example.com' });
- * // The defaultusername config property
+ * // The target-org config property
  * const org2: Org = await Org.create();
  * // Full Connection
  * const org3: Org = await Org.create({
@@ -163,9 +163,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   public async checkScratchOrg(devHubUsernameOrAlias?: string): Promise<Partial<AuthFields>> {
     let aliasOrUsername = devHubUsernameOrAlias;
     if (!aliasOrUsername) {
-      aliasOrUsername =
-        this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB) ||
-        this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME);
+      aliasOrUsername = this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
     }
 
     const devHubConnection = (await Org.create({ aliasOrUsername })).getConnection();
@@ -581,18 +579,14 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       if (this.options.aliasOrUsername == null) {
         this.configAggregator = this.getConfigAggregator();
         const aliasOrUsername = this.options.isDevHub
-          ? this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB) ||
-            // Fall back to old sfdx key
-            this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME)
-          : this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG) ||
-            // Fall back to old sfdx key
-            this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_USERNAME);
+          ? this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB)
+          : this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
         this.options.aliasOrUsername = aliasOrUsername || undefined;
       }
 
       const username = globalInfo.aliases.resolveUsername(this.options.aliasOrUsername as string);
       if (!username) {
-        throw new SfdxError('No username found', 'NoUsernameFound');
+        throw messages.createError('noUsernameFound');
       }
       this.connection = await Connection.create({
         // If no username is provided or resolvable from an alias, AuthInfo will throw an SfdxError.
@@ -696,8 +690,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
           }
         };
 
-        await removeConfig(this.configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME));
-        await removeConfig(this.configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME));
         await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_DEV_HUB));
         await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_ORG));
 

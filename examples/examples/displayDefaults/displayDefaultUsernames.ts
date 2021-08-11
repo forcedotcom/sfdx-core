@@ -26,8 +26,8 @@ export async function displayDefaultUsernames() {
   // Display the default user info
   console.log(
     [
-      formatUser('hub', aggregator.getInfo('defaultdevhubusername')),
-      formatUser('user', aggregator.getInfo('defaultusername'))
+      formatUser('hub', aggregator.getInfo('target-dev-hub')),
+      formatUser('user', aggregator.getInfo('target-org')),
     ].join(' ')
   );
 }

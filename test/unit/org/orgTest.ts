@@ -87,7 +87,7 @@ describe('Org Tests', () => {
       expect(org.getUsername()).to.eq(testData.username);
     });
 
-    it('should create an org from the default username', async () => {
+    it('should create an org from the target-org username', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
       config.set(OrgConfigProperties.TARGET_ORG, testData.username);
       await config.write();
@@ -318,8 +318,8 @@ describe('Org Tests', () => {
       await org.remove();
       await configAggregator.reload();
 
-      const defaultusername = configAggregator.getInfo(OrgConfigProperties.TARGET_ORG);
-      expect(defaultusername.value).eq(undefined);
+      const targetOrg = configAggregator.getInfo(OrgConfigProperties.TARGET_ORG);
+      expect(targetOrg.value).eq(undefined);
     });
 
     it('should remove the alias', async () => {

@@ -239,10 +239,10 @@ describe('Config', () => {
       const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
 
       const expectedFileContents = clone(configFileContents);
-      delete expectedFileContents.defaultusername;
+      delete expectedFileContents['target-org'];
 
       const config = await Config.create({ isGlobal: false });
-      config.unset('defaultusername');
+      config.unset('target-org');
       await config.write();
 
       expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);

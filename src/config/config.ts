@@ -143,7 +143,8 @@ export const SFDX_ALLOWED_PROPERTIES = [
     description: '',
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || (isString(value) && new SfdcUrl(value).isSalesforceDomain()),
+      validator: (value: ConfigValue) =>
+        value == null || (isString(value) && SfdcUrl.isValidUrl(value) && new SfdcUrl(value).isSalesforceDomain()),
       failedMessage: messages.getMessage('invalidInstanceUrl'),
     },
   },
@@ -232,7 +233,7 @@ export type ConfigProperties = { [index: string]: JsonPrimitive };
  *
  * ```
  * const localConfig = await Config.create();
- * localConfig.set('defaultusername', 'username@company.org');
+ * localConfig.set('target-org', 'username@company.org');
  * await localConfig.write();
  * ```
  * https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_config_values.htm
@@ -445,6 +446,11 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     if (!property) {
       throw messages.createError('unknownConfigKey', [key]);
     }
+
+    if (property.deprecated && property.newKey) {
+      throw messages.createError('deprecatedConfigKey', [key, property.newKey]);
+    }
+
     return super.unset(property.key);
   }
 

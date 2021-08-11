@@ -8,6 +8,7 @@ import { assert, expect } from 'chai';
 import { Config, ConfigProperties, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
+import { OrgConfigProperties } from '../../../src/exported';
 import { testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 
@@ -30,7 +31,7 @@ describe('ConfigAggregator', () => {
   });
 
   afterEach(() => {
-    delete process.env.SFDX_DEFAULTUSERNAME;
+    delete process.env.SFDX_TARGET_ORG;
   });
 
   describe('instantiation', () => {
@@ -41,9 +42,9 @@ describe('ConfigAggregator', () => {
     });
 
     it('converts env vars', async () => {
-      process.env.SFDX_DEFAULTUSERNAME = 'test';
+      process.env.SFDX_TARGET_ORG = 'test';
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getPropertyValue(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal('test');
+      expect(aggregator.getPropertyValue(OrgConfigProperties.TARGET_ORG)).to.equal('test');
     });
 
     it('constructor creates local and global config', async () => {
@@ -90,20 +91,20 @@ describe('ConfigAggregator', () => {
   describe('initialization', () => {
     beforeEach(() => {
       $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function (this: Config) {
-        const config: ConfigProperties = this.isGlobal() ? { defaultusername: 2 } : { defaultusername: 1 };
+        const config: ConfigProperties = this.isGlobal() ? { 'target-org': 2 } : { 'target-org': 1 };
         this.setContents(config);
         return config;
       });
     });
     it('local overrides global', async () => {
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getPropertyValue(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal(1);
+      expect(aggregator.getPropertyValue(OrgConfigProperties.TARGET_ORG)).to.equal(1);
     });
 
     it('env overrides local and global', async () => {
-      process.env.SFDX_DEFAULTUSERNAME = 'test';
+      process.env.SFDX_TARGET_ORG = 'test';
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getPropertyValue(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal('test');
+      expect(aggregator.getPropertyValue(OrgConfigProperties.TARGET_ORG)).to.equal('test');
     });
   });
 
@@ -113,15 +114,15 @@ describe('ConfigAggregator', () => {
       $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {
-            return Promise.resolve({ defaultusername: 2 });
+            return Promise.resolve({ 'target-org': 2 });
           } else if (path.includes(await $$.localPathRetriever(id))) {
-            return Promise.resolve({ defaultusername: 1 });
+            return Promise.resolve({ 'target-org': 1 });
           }
         }
         return Promise.resolve();
       });
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getLocation(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal('Local');
+      expect(aggregator.getLocation(OrgConfigProperties.TARGET_ORG)).to.equal('Local');
     });
 
     it('global', async () => {
@@ -129,7 +130,7 @@ describe('ConfigAggregator', () => {
       $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {
-            return Promise.resolve({ defaultusername: 2 });
+            return Promise.resolve({ 'target-org': 2 });
           } else if (path.includes(await $$.localPathRetriever(id))) {
             return Promise.resolve({});
           }
@@ -137,33 +138,33 @@ describe('ConfigAggregator', () => {
         return Promise.resolve();
       });
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      expect(aggregator.getLocation(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal('Global');
+      expect(aggregator.getLocation(OrgConfigProperties.TARGET_ORG)).to.equal('Global');
     });
 
     it('env', async () => {
-      process.env.SFDX_DEFAULTUSERNAME = 'test';
+      process.env.SFDX_TARGET_ORG = 'test';
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
       // @ts-ignore
       $$.SANDBOX.stub(fs, 'readJson').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {
-            return Promise.resolve({ defaultusername: 1 });
+            return Promise.resolve({ 'target-org': 1 });
           } else if (path.includes(await $$.localPathRetriever(id))) {
-            return Promise.resolve({ defaultusername: 2 });
+            return Promise.resolve({ 'target-org': 2 });
           }
         }
         return Promise.resolve();
       });
-      expect(aggregator.getLocation(SfdxPropertyKeys.DEFAULT_USERNAME)).to.equal('Environment');
+      expect(aggregator.getLocation(OrgConfigProperties.TARGET_ORG)).to.equal('Environment');
     });
 
     it('configInfo with env', async () => {
-      process.env.SFDX_DEFAULTUSERNAME = 'test';
+      process.env.SFDX_TARGET_ORG = 'test';
       $$.SANDBOX.stub(fs, 'readJson').returns(Promise.resolve({}));
 
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
       const info = aggregator.getConfigInfo()[0];
-      expect(info.key).to.equal('defaultusername');
+      expect(info.key).to.equal('target-org');
       expect(info.value).to.equal('test');
       expect(info.location).to.equal('Environment');
     });

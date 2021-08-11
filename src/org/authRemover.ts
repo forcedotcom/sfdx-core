@@ -7,7 +7,7 @@
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
-import { Config, SfdxPropertyKeys } from '../config/config';
+import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -74,10 +74,10 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Finds authorization files for username/alias in the global .sfdx folder
-   * **Throws** *{@link SfdxError}{ name: 'DefaultUsernameNotSetError' }* if no defaultusername
+   * **Throws** *{@link SfdxError}{ name: 'TargetOrgNotSetError' }* if no target-org
    * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFoundError' }* if specified user is not found
    *
-   * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured defaultusername
+   * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured target-org
    * @returns {Promise<SfOrg>}
    */
   public async findAuth(usernameOrAlias?: string): Promise<SfOrg> {
@@ -136,9 +136,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   private async getTargetOrg(): Promise<string> {
     const configAggregator = await ConfigAggregator.create();
-    const targetOrg =
-      configAggregator.getInfo(OrgConfigProperties.TARGET_ORG).value ||
-      configAggregator.getInfo(SfdxPropertyKeys.DEFAULT_USERNAME).value;
+    const targetOrg = configAggregator.getInfo(OrgConfigProperties.TARGET_ORG).value;
     if (!targetOrg) {
       throw messages.createError('targetOrgNotSet');
     }
