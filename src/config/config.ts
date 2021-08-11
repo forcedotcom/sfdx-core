@@ -145,7 +145,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
       // If a value is provided validate it otherwise no value is unset.
       validator: (value: ConfigValue) => {
         if (value == null) return true;
-        // validate if the value is a stirng and is a valid url and is either a salesforce domain
+        // validate if the value is a string and is a valid url and is either a salesforce domain
         // or an internal url.
         return (
           isString(value) &&
