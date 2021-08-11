@@ -195,9 +195,9 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    *
    * @param key The key of the property.
    */
-  public getInfo(key: string): ConfigInfo {
+  public getInfo(key: string, throwOnDeprecation = false): ConfigInfo {
     const meta = this.getPropertyMeta(key);
-    if (meta.deprecated && meta.newKey) {
+    if (throwOnDeprecation && meta.deprecated && meta.newKey) {
       throw messages.createError('deprecatedConfigKey', [key, meta.newKey]);
     }
     const location = this.getLocation(key);
