@@ -63,6 +63,7 @@ info.aliases.getAll();
 
 - Moved `.sfdx/sfdx-config.json` to `.sf/config.json`
 - Removed `Config.<config key name>`
+- Deprecated `DEFAULT_USERNAME` and `DEFAULT_DEV_HUB_USERNAME`
 
 ### Why
 
