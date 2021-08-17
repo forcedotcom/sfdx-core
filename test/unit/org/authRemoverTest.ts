@@ -7,6 +7,7 @@
 
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { assert, expect } from 'chai';
+import * as sinon from 'sinon';
 import { AuthRemover } from '../../../src/org/authRemover';
 import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
@@ -17,6 +18,7 @@ import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 describe('AuthRemover', () => {
   const username = 'espresso@coffee.com';
   const $$ = testSetup();
+  let configWriteSpy: sinon.SinonStub;
 
   beforeEach(async () => {
     $$.SANDBOXES.CONFIG.restore();
@@ -33,6 +35,7 @@ describe('AuthRemover', () => {
       return this.getContents();
     });
     stubMethod($$.SANDBOX, GlobalInfo.prototype, 'write').callsFake(() => {});
+    configWriteSpy = stubMethod($$.SANDBOX, Config.prototype, 'write').callsFake(() => {});
   });
 
   describe('resolveUsername', () => {
@@ -124,7 +127,6 @@ describe('AuthRemover', () => {
 
   describe('unsetConfigValues', () => {
     it('should unset config values for provided username locally and globally', async () => {
-      const configWriteSpy = spyMethod($$.SANDBOX, Config.prototype, 'write');
       const configUnsetSpy = spyMethod($$.SANDBOX, Config.prototype, 'unset');
 
       const alias = 'MyAlias';

@@ -252,7 +252,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     ...ORG_CONFIG_ALLOWED_PROPERTIES,
   ];
 
-  private sfdxPath?: string;
+  private sfdxConfig: SfdxConfig;
 
   public constructor(options?: ConfigFile.Options) {
     super(
@@ -273,6 +273,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 
     // Resolve the config path on creation.
     this.getPath();
+    this.sfdxConfig = new SfdxConfig(options, this);
   }
 
   /**
@@ -354,8 +355,8 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     try {
       const config = await super.read(false, force);
       // Merge .sfdx/sfdx-config.json and .sf/config.json
-      const sfdxConfig = Global.SFDX_INTEROPERABILITY ? this.readSfdxConfigSync() : {};
-      this.setContents(Object.assign(sfdxConfig, config));
+      const merged = this.sfdxConfig.merge(config);
+      this.setContents(merged);
       await this.cryptProperties(false);
       return this.getContents();
     } finally {
@@ -366,8 +367,8 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   public readSync(force = true): ConfigProperties {
     const config = super.readSync(false, force);
     // Merge .sfdx/sfdx-config.json and .sf/config.json
-    const sfdxConfig = Global.SFDX_INTEROPERABILITY ? this.readSfdxConfigSync() : {};
-    this.setContents(Object.assign(sfdxConfig, config));
+    const merged = this.sfdxConfig.merge(config);
+    this.setContents(merged);
     return this.getContents();
   }
 
@@ -384,7 +385,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     await this.cryptProperties(true);
 
     await super.write();
-    if (Global.SFDX_INTEROPERABILITY) await this.writeSfdxConfig();
+    if (Global.SFDX_INTEROPERABILITY) await this.sfdxConfig.writeSync();
 
     await this.cryptProperties(false);
 
@@ -463,6 +464,22 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   }
 
   /**
+   * Get an individual property config.
+   *
+   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
+   *
+   * @param propertyName The name of the property.
+   */
+  public getPropertyConfig(propertyName: string): ConfigPropertyMeta {
+    const prop = Config.propertyConfigMap()[propertyName];
+
+    if (!prop) {
+      throw messages.createError('unknownConfigKey', [propertyName]);
+    }
+    return prop;
+  }
+
+  /**
    * Initializer for supported config types.
    */
   protected async init(): Promise<void> {
@@ -471,7 +488,61 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     await super.init();
   }
 
-  private readSfdxConfigSync(): ConfigProperties {
+  /**
+   * Encrypts and content properties that have a encryption attribute.
+   *
+   * @param encrypt `true` to encrypt.
+   */
+  private async cryptProperties(encrypt: boolean): Promise<void> {
+    const hasEncryptedProperties = this.entries().some(([key]) => {
+      return !!Config.propertyConfigMap()[key]?.encrypted;
+    });
+
+    if (hasEncryptedProperties) {
+      await this.initCrypto();
+      const crypto = ensure(this.crypto);
+
+      this.forEach((key, value) => {
+        if (this.getPropertyConfig(key).encrypted && isString(value)) {
+          this.set(key, ensure(encrypt ? crypto.encrypt(value) : crypto.decrypt(value)));
+        }
+      });
+    }
+  }
+}
+
+class SfdxConfig {
+  private sfdxPath: string;
+  public constructor(private options: ConfigFile.Options = {}, private config: Config) {
+    this.sfdxPath = this.getSfdxPath();
+  }
+
+  /**
+   * If Global.SFDX_INTEROPERABILITY is enabled, merge the sfdx config into the sf config
+   */
+  public merge(config: ConfigProperties): ConfigProperties | undefined {
+    if (!Global.SFDX_INTEROPERABILITY) return config;
+
+    const sfdxConfig = this.readSync();
+
+    const sfdxPropKeys = Object.values(SfdxPropertyKeys) as string[];
+
+    // Get a list of config keys that are NOT provided by SfdxPropertyKeys
+    const nonSfdxPropKeys = Config.getAllowedProperties()
+      .filter((p) => !sfdxPropKeys.includes(p.key))
+      .map((p) => p.key);
+
+    // Remove any config from .sf that isn't also in .sfdx
+    // This handles the scenario where a config has been deleted
+    // from .sfdx and we want to mirror that change in .sf
+    for (const key of nonSfdxPropKeys) {
+      if (!sfdxConfig[key]) delete config[key];
+    }
+
+    return Object.assign(config, sfdxConfig);
+  }
+
+  public readSync(): ConfigProperties {
     try {
       const contents = fs.readJsonMapSync(this.getSfdxPath());
       return this.normalize(contents as ConfigProperties, 'toNew');
@@ -481,39 +552,15 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     }
   }
 
-  private async writeSfdxConfig() {
+  public async writeSync(config = this.config.toObject()) {
     try {
-      await fs.mkdirp(pathDirname(this.getSfdxPath()));
-      this.logger.info(`Writing to config file: ${this.getPath()}`);
-      const mapped = this.normalize(this.toObject() as ConfigProperties, 'toOld');
-      await fs.writeJson(this.getSfdxPath(), mapped);
+      const sfdxPath = this.getSfdxPath();
+      await fs.mkdirp(pathDirname(sfdxPath));
+      const mapped = this.normalize(config as ConfigProperties, 'toOld');
+      await fs.writeJson(sfdxPath, mapped);
     } catch (error) {
       /* Do nothing */
     }
-  }
-
-  /**
-   * If toNew is specified: migrate all deprecated configs with a newKey to the newKey.
-   * - For example, defaultusername will be renamed to target-org.
-   *
-   * If toOld is specified: migrate all deprecated configs back to their original key.
-   * - For example, target-org will be renamed to defaultusername.
-   */
-  private normalize(contents: ConfigProperties, direction: 'toNew' | 'toOld'): ConfigProperties {
-    const mapped = {} as ConfigProperties;
-    for (const [key, value] of Object.entries(contents)) {
-      const propConfig =
-        direction === 'toNew'
-          ? this.getPropertyConfig(key)
-          : Config.allowedProperties.find((c) => c.newKey === key) ?? ({} as ConfigPropertyMeta);
-      if (propConfig.deprecated && propConfig.newKey) {
-        const normalizedKey = direction === 'toNew' ? propConfig.newKey : propConfig.key;
-        mapped[normalizedKey] = value;
-      } else {
-        mapped[key] = value;
-      }
-    }
-    return mapped;
   }
 
   private getSfdxPath(): string {
@@ -539,40 +586,26 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   }
 
   /**
-   * Get an individual property config.
+   * If toNew is specified: migrate all deprecated configs with a newKey to the newKey.
+   * - For example, defaultusername will be renamed to target-org.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
-   *
-   * @param propertyName The name of the property.
+   * If toOld is specified: migrate all deprecated configs back to their original key.
+   * - For example, target-org will be renamed to defaultusername.
    */
-  private getPropertyConfig(propertyName: string): ConfigPropertyMeta {
-    const prop = Config.propertyConfigMap()[propertyName];
-
-    if (!prop) {
-      throw messages.createError('unknownConfigKey', [propertyName]);
+  private normalize(contents: ConfigProperties, direction: 'toNew' | 'toOld'): ConfigProperties {
+    const mapped = {} as ConfigProperties;
+    for (const [key, value] of Object.entries(contents)) {
+      const propConfig =
+        direction === 'toNew'
+          ? this.config.getPropertyConfig(key)
+          : Config.getAllowedProperties().find((c) => c.newKey === key) ?? ({} as ConfigPropertyMeta);
+      if (propConfig.deprecated && propConfig.newKey) {
+        const normalizedKey = direction === 'toNew' ? propConfig.newKey : propConfig.key;
+        mapped[normalizedKey] = value;
+      } else {
+        mapped[key] = value;
+      }
     }
-    return prop;
-  }
-
-  /**
-   * Encrypts and content properties that have a encryption attribute.
-   *
-   * @param encrypt `true` to encrypt.
-   */
-  private async cryptProperties(encrypt: boolean): Promise<void> {
-    const hasEncryptedProperties = this.entries().some(([key]) => {
-      return !!Config.propertyConfigMap()[key]?.encrypted;
-    });
-
-    if (hasEncryptedProperties) {
-      await this.initCrypto();
-      const crypto = ensure(this.crypto);
-
-      this.forEach((key, value) => {
-        if (this.getPropertyConfig(key).encrypted && isString(value)) {
-          this.set(key, ensure(encrypt ? crypto.encrypt(value) : crypto.decrypt(value)));
-        }
-      });
-    }
+    return mapped;
   }
 }
