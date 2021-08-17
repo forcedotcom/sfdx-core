@@ -526,11 +526,16 @@ class SfdxConfig {
     const sfdxConfig = this.readSync();
 
     const sfdxPropKeys = Object.values(SfdxPropertyKeys) as string[];
+
+    // Get a list of config keys that are NOT provided by SfdxPropertyKeys
     const nonSfdxPropKeys = Config.getAllowedProperties()
       .filter((p) => !sfdxPropKeys.includes(p.key))
       .map((p) => p.key);
 
-    for (const key of Object.values(nonSfdxPropKeys)) {
+    // Remove any config from .sf that isn't also in .sfdx
+    // This handles the scenario where a config has been deleted
+    // from .sfdx and we want to mirror that change in .sf
+    for (const key of nonSfdxPropKeys) {
       if (!sfdxConfig[key]) delete config[key];
     }
 
