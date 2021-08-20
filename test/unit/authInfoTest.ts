@@ -75,7 +75,10 @@ describe('AuthInfo No fs mock', () => {
       assert.fail(`should have thrown error with name: ${expectedErrorName}`);
     } catch (e) {
       expect(e).to.have.property('name', expectedErrorName);
-      expect(e).to.have.property('message', 'No AuthInfo found for devhub username does_not_exist@gb.com');
+      expect(e).to.have.property(
+        'message',
+        'No authorization information found for devhub username does_not_exist@gb.com'
+      );
     }
   });
 });
