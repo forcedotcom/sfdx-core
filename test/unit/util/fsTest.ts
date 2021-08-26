@@ -141,6 +141,51 @@ describe('util/fs', () => {
     });
   });
 
+  describe('copyDir', () => {
+    it('should copy a folder with no files', () => {
+      const folderToCopy = pathJoin(osTmpdir(), 'foo');
+      const folderToCopyTo = pathJoin(osTmpdir(), 'bar');
+      fs.mkdirpSync(folderToCopy);
+      fs.copyDir(folderToCopy, folderToCopyTo);
+
+      expect(fs.existsSync(folderToCopyTo)).to.be.true;
+    });
+
+    it('should copy a folder with one file', () => {
+      const file = 'test.json';
+      const folderToCopy = pathJoin(osTmpdir(), 'foo');
+      const folderToCopyTo = pathJoin(osTmpdir(), 'bar');
+      fs.mkdirpSync(folderToCopy);
+      fs.copyDir(folderToCopy, folderToCopyTo);
+
+      expect(fs.existsSync(folderToCopyTo)).to.be.true;
+      expect(fs.fileExistsSync(pathJoin(folderToCopyTo, file))).to.be.true;
+    });
+
+    it('should copy nested sub dirs', () => {
+      const folderToCopy = pathJoin(osTmpdir(), 'alpha');
+      const sub1 = pathJoin(folderToCopy, 'bravo');
+      const sub2 = pathJoin(folderToCopy, 'charlie');
+      const nestedSub1 = pathJoin(sub1, 'echo');
+      const file1 = pathJoin(nestedSub1, 'foo.txt');
+      const file2 = pathJoin(sub2, 'foo.txt');
+      const folderToCopyTo = pathJoin(osTmpdir(), 'foo');
+
+      fs.mkdirpSync(sub2);
+      fs.mkdirpSync(nestedSub1);
+
+      fs.writeJsonSync(file1, {});
+      fs.writeJsonSync(file2, {});
+
+      fs.copyDir(folderToCopy, folderToCopyTo);
+
+      for (const path of [file1, file2, nestedSub1, sub2, sub1]) {
+        const copyPath = path.replace(folderToCopy, folderToCopyTo);
+        expect(fs.fileExistsSync(copyPath)).to.be.true;
+      }
+    });
+  });
+
   describe('traverseForFile', () => {
     let statFileStub;
     let statError;

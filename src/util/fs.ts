@@ -6,6 +6,7 @@
  */
 
 import * as crypto from 'crypto';
+import { join } from 'path';
 import * as path from 'path';
 import { promisify } from 'util';
 import { parseJson, parseJsonMap } from '@salesforce/kit';
@@ -196,6 +197,24 @@ export const fs = Object.assign({}, fsLib, {
       }
     }
     return foundProjectDir;
+  },
+
+  /**
+   * Will copy a directory to the destination recursively
+   *
+   * @param src path to directory to be copied
+   * @param dest location for the directory to be copied to
+   */
+  copyDir: (src: string, dest: string): void => {
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+    fs.mkdirSync(dest, { recursive: true });
+
+    entries.map((entry) => {
+      const srcPath = join(src, entry.name);
+      const destPath = join(dest, entry.name);
+
+      return entry.isDirectory() ? fs.copyDir(srcPath, destPath) : fs.copyFileSync(srcPath, destPath);
+    });
   },
 
   /**
