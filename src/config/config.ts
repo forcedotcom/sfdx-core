@@ -140,7 +140,16 @@ export class Config extends ConfigFile<ConfigFile.Options> {
         },
       },
     },
-    { key: Config.CUSTOM_TEMPLATES },
+    {
+      key: Config.CUSTOM_TEMPLATES,
+      input: {
+        // If a value is provided validate it otherwise no value is unset.
+        validator: (value) => value == null || isString(value),
+        get failedMessage() {
+          return Config.messages?.getMessage('InvalidCustomTemplates');
+        },
+      },
+    },
     { key: Config.DEFAULT_DEV_HUB_USERNAME },
     { key: Config.DEFAULT_USERNAME },
     {

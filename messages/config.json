@@ -3,6 +3,7 @@
   "InvalidConfigValue": "Invalid config value. %s",
   "InvalidInstanceUrl": "Specify a valid Salesforce instance URL",
   "InvalidApiVersion": "Specify a valid Salesforce API version, for example, 42.0",
+  "InvalidCustomTemplates": "Specify a valid Custom Templates repository URL or location",
   "InvalidIsvDebuggerSid": "Specify a valid Debugger SID",
   "InvalidIsvDebuggerUrl": "Specify a valid Debugger URL",
   "InvalidNumberConfigValue": "Specify a valid number, for example, 150000",
