@@ -77,11 +77,15 @@ export interface ConfigPropertyMetaInput {
 export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Username associated with the default dev hub org.
+   *
+   * @deprecated Replaced by OrgConfigProperties.TARGET_DEV_HUB in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   public static readonly DEFAULT_DEV_HUB_USERNAME: string = 'defaultdevhubusername';
 
   /**
    * Username associate with the default org.
+   *
+   * @deprecated Replaced by OrgConfigProperties.TARGET_ORG in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   public static readonly DEFAULT_USERNAME: string = 'defaultusername';
 
