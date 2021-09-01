@@ -898,18 +898,7 @@ const _filter = (...args: unknown[]): unknown => {
         _arg = _arg.replace(keyRegex, `$1${hiddenAttrMessage}`);
       });
 
-      // This is a jsforce message we are masking. This can be removed after the following pull request is committed
-      // and pushed to a jsforce release.
-      //
-      // Looking  For: "Refreshed access token = ..."
-      // Related Jsforce pull requests:
-      //  https://github.com/jsforce/jsforce/pull/598
-      //  https://github.com/jsforce/jsforce/pull/608
-      //  https://github.com/jsforce/jsforce/pull/609
-      const jsForceTokenRefreshRegEx = new RegExp('Refreshed(.*)access(.*)token(.*)=\\s*[^\'"\\s*]*');
-      _arg = _arg.replace(jsForceTokenRefreshRegEx, `<refresh_token - ${HIDDEN}>`);
-
-      _arg = _arg.replace(/sid=(.*)/, `sid=<${HIDDEN}>`);
+      _arg = _arg.replace(/(00D\w{12,15})![.\w]*/, `<${HIDDEN}>`);
 
       // return an object if an object was logged; otherwise return the filtered string.
       return isObject(arg) ? parseJson(_arg) : _arg;

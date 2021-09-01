@@ -27,7 +27,7 @@ describe('util/sfdcUrl', () => {
     });
   });
 
-  describe('allow domains', () => {
+  describe('isSalesforceDomain', () => {
     it('is allowlist domain', () => {
       const url = new SfdcUrl('https://www.salesforce.com');
       expect(url.isSalesforceDomain()).to.be.true;

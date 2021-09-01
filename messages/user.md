@@ -29,3 +29,11 @@ Invalid complexity value. Specify a value between 0 and 5, inclusive.
 # lengthOutOfBound
 
 Invalid length value. Specify a value between 8 and 1000, inclusive.
+
+# complexityOutOfBound
+
+Invalid complexity value. Specify a value between 0 and 5, inclusive.
+
+# lengthOutOfBound
+
+Invalid length value. Specify a value between 8 and 1000, inclusive.

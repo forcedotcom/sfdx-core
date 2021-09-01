@@ -6,7 +6,7 @@
  */
 import * as dns from 'dns';
 import { URL } from 'url';
-import { Duration } from '@salesforce/kit';
+import { Duration, Env } from '@salesforce/kit';
 import { AnyFunction } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
@@ -44,6 +44,22 @@ describe('myDomainResolver', () => {
     const ip = await resolver.resolve();
     expect(ip).to.be.equal(TEST_IP);
     expect(lookupAsyncSpy.callCount).to.be.equal(CALL_COUNT);
+  });
+
+  describe('disable dns check', () => {
+    const env = new Env();
+    it('should return host if SFDX_DISABLE_DNS_CHECK is set to true', async () => {
+      env.setBoolean('SFDX_DISABLE_DNS_CHECK', true);
+      const options: MyDomainResolver.Options = {
+        url: new URL(`http://${POSITIVE_HOST}`),
+        timeout: Duration.milliseconds(50),
+        frequency: Duration.milliseconds(10),
+      };
+      const resolver: MyDomainResolver = await MyDomainResolver.create(options);
+      const ip = await resolver.resolve();
+      expect(ip).to.be.equal(POSITIVE_HOST);
+      expect(lookupAsyncSpy.callCount).to.be.equal(0);
+    });
   });
 
   it('should resolve with defaults', async () => {
