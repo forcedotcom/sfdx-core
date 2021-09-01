@@ -8,6 +8,7 @@
 export * from './globalInfoConfig';
 export * from './sfdxDataHandler';
 export * from './types';
+export { DxWellKnownEnvVars, DX_SUPPORTED_ENV_VARS } from './dxEnvVars';
 export { OrgAccessor } from './accessors/orgAccessor';
 export { AliasAccessor } from './accessors/aliasAccessor';
 export { TokenAccessor } from './accessors/tokenAccessor';

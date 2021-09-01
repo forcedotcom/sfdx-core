@@ -14,7 +14,18 @@ export { ConfigFile } from './config/configFile';
 
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
-export { GlobalInfo, SfEntry, SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfToken, SfTokens } from './globalInfo';
+export {
+  GlobalInfo,
+  SfEntry,
+  SfInfo,
+  SfInfoKeys,
+  SfOrg,
+  SfOrgs,
+  SfToken,
+  SfTokens,
+  DX_SUPPORTED_ENV_VARS,
+  DxWellKnownEnvVars,
+} from './globalInfo';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
 
@@ -51,7 +62,7 @@ export { Messages } from './messages';
 
 export { Org } from './org/org';
 
-export { OrgConfigProperties } from './org/orgConfigProperties';
+export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
 

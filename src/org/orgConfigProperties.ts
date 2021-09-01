@@ -5,6 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { join as pathJoin } from 'path';
+import { Messages } from '../messages';
+
+Messages.importMessagesDirectory(pathJoin(__dirname));
+const messages = Messages.load('@salesforce/core', 'config', ['targetOrg', 'targetDevHub']);
+
 export enum OrgConfigProperties {
   TARGET_ORG = 'target-org',
   TARGET_DEV_HUB = 'target-dev-hub',
@@ -13,10 +19,10 @@ export enum OrgConfigProperties {
 export const ORG_CONFIG_ALLOWED_PROPERTIES = [
   {
     key: OrgConfigProperties.TARGET_ORG,
-    description: 'The target to be used for any command communicating with an org.',
+    description: messages.getMessage('targetOrg'),
   },
   {
     key: OrgConfigProperties.TARGET_DEV_HUB,
-    description: 'The target to be used for any command communicating with a dev hub org.',
+    description: messages.getMessage('targetDevHub'),
   },
 ];

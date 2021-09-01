@@ -5,15 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
+import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
 import { AnyJson, definiteEntriesOf, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { snakeCase } from 'change-case';
 import { Messages } from '../messages';
+import { envVarsResolve } from '../globalInfo/dxEnvVars';
 import { Config, ConfigPropertyMeta } from './config';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'config', ['unknownConfigKey', 'deprecatedConfigKey']);
 
-const propertyToEnvName = (property: string): string => `SFDX_${snakeCase(property).toUpperCase()}`;
+const propertyToEnvName = (property: string, prefix = 'SFDX_'): string =>
+  `${prefix || ''}${snakeCase(property).toUpperCase()}`;
 
 /**
  * Information about a config property.
@@ -321,11 +324,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * Add an allowed config property.
    */
   public addAllowedProperties(configMetas: ConfigPropertyMeta | ConfigPropertyMeta[]): void {
-    if (isArray(configMetas)) {
-      this.allowedProperties.push(...configMetas);
-    } else {
-      this.allowedProperties.push(configMetas);
-    }
+    this.allowedProperties.push(...(isArray(configMetas) ? configMetas : [configMetas]));
   }
 
   /**
@@ -344,10 +343,10 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   }
 
   private resolveProperties(globalConfig: JsonMap, localConfig?: JsonMap): JsonMap {
-    const accumulator: Dictionary<string> = {};
+    const accumulator = envVarsResolve();
     this.setEnvVars(
       this.getAllowedProperties().reduce((obj, property) => {
-        const val = process.env[propertyToEnvName(property.key)];
+        const val = accumulator[propertyToEnvName(property.key)];
         if (val != null) {
           obj[property.key] = val;
         }

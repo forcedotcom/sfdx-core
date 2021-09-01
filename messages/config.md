@@ -70,3 +70,11 @@ In sfdx-project.json, indicate only one package directory (path) as the default.
 # singleNonDefaultPackage
 
 The sfdx-project.json file must include one, and only one, default package directory (path). Because your sfdx-project.json file contains only one package directory, it must be the default. Remove the `"default": false` key and try again.
+
+# targetOrg
+
+The target to be used for any command communicating with an org.
+
+# targetDevHub
+
+The target to be used for any command communicating with a dev hub org.
