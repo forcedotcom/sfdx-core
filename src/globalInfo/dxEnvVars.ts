@@ -355,11 +355,11 @@ export const envVarsResolve = (): Dictionary<string> => {
   Object.entries(process.env).forEach(([key, value]) => {
     // save all env vars to dictionary
     dict[key] = value;
-    // cross populate value to synonym if synonym is null or undefined
     if (DX_SUPPORTED_ENV_VARS[key]) {
+      // cross populate value to synonym if synonym exists
       if (DX_SUPPORTED_ENV_VARS[key].synonymOf) {
         const synonym = DX_SUPPORTED_ENV_VARS[key].synonymOf;
-        // set synonym only if it is not set in in current env
+        // set synonym only if it is the map and running in interoperability mode
         if (synonym && Global.SFDX_INTEROPERABILITY) {
           dict[synonym] = process.env[key];
           process.env[synonym] = dict[synonym];
