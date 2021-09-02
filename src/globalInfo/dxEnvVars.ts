@@ -6,7 +6,8 @@
  */
 import { join as pathJoin } from 'path';
 import { Dictionary, Nullable } from '@salesforce/ts-types';
-import { camelCase } from 'change-case';
+import { camelCase, snakeCase } from 'change-case';
+import { env, Env } from '@salesforce/kit';
 import { Messages } from '../messages';
 import { Global } from '../global';
 
@@ -339,22 +340,55 @@ export const DX_SUPPORTED_ENV_VARS: EnvType = {
   },
 };
 
-export const envVarsResolve = (): Dictionary<string> => {
-  const dict = {} as Dictionary<string>;
-  Object.entries(process.env).forEach(([key, value]) => {
-    // save all env vars to dictionary
-    dict[key] = value;
-    if (DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable]) {
-      // cross populate value to synonym if synonym exists
-      if (DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf) {
-        const synonym = DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf;
-        // set synonym only if it is in the map and running in interoperability mode
-        if (synonym && Global.SFDX_INTEROPERABILITY) {
-          dict[synonym] = process.env[key];
-          process.env[synonym] = dict[synonym];
+export class EnvVars extends Env {
+  public constructor() {
+    super();
+    this.resolve();
+  }
+
+  public propertyToEnvName(property: string, prefix = 'SFDX_'): string {
+    return `${prefix || ''}${snakeCase(property).toUpperCase()}`;
+  }
+
+  public setPropertyFromEnv(property: string, prefix = 'SFDX_'): void {
+    const envName = this.propertyToEnvName(property, prefix);
+    const value = this.getString(envName);
+    if (value) {
+      this.setString(property, value);
+    }
+  }
+
+  public asDictionary(): Dictionary<string> {
+    return this.entries().reduce((accumulator, [key, value]) => {
+      accumulator[key] = value;
+      return accumulator;
+    }, {} as Dictionary<string>);
+  }
+
+  public asMap(): Map<string, string> {
+    return this.entries().reduce((accumulator, [key, value]) => {
+      accumulator.set(key, value);
+      return accumulator;
+    }, new Map<string, string>());
+  }
+
+  private resolve(): void {
+    const overrideInteroperabilityEnvVar = process.env['TEST_OVERRIDE_GLOBAL_SF_SFDX_INTEROPERABILITY'];
+    const interoperabilityEnabled =
+      (overrideInteroperabilityEnvVar ? env.getBoolean(overrideInteroperabilityEnvVar) : true) &&
+      Global.SFDX_INTEROPERABILITY;
+
+    this.entries().forEach(([key, value]) => {
+      if (DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable]) {
+        // cross populate value to synonym if synonym exists
+        if (DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf) {
+          const synonym = DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf;
+          // set synonym only if it is in the map and running in interoperability mode
+          if (synonym && interoperabilityEnabled) {
+            this.setString(synonym, value);
+          }
         }
       }
-    }
-  });
-  return dict;
-};
+    });
+  }
+}
