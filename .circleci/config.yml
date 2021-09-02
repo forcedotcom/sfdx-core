@@ -122,17 +122,11 @@ workflows:
               node_version: [lts]
               external_project_git_url:
                 [
-                  'https://github.com/salesforcecli/plugin-user',
-                  'https://github.com/salesforcecli/plugin-config',
-                  'https://github.com/salesforcecli/plugin-alias',
-                  'https://github.com/salesforcecli/plugin-limits',
-                  'https://github.com/salesforcecli/plugin-auth',
-                  'https://github.com/salesforcecli/plugin-schema',
-                  'https://github.com/salesforcecli/plugin-telemetry',
+                  'https://github.com/salesforcecli/plugin-env',
+                  'https://github.com/salesforcecli/plugin-login',
+                  'https://github.com/salesforcecli/plugin-deploy-retrieve',
+                  'https://github.com/salesforcecli/plugin-deploy-retrieve-metadata',
                 ]
-                # TODO
-                # data (unlernafied)
-                # toolbelt (git auth because private)
       - release-management/release-package:
           # TODO: add these back when we're ready to GA v3
           # github-release: true
