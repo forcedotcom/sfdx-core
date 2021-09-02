@@ -134,15 +134,11 @@ some useful text
 
 some useful text
 
-# targetOrg
+# sfTargetOrg
 
 some useful text
 
-# targetDevHub
-
-some useful text
-
-# sfSfdxInteroperability
+# sfTargetDevHub
 
 some useful text
 
@@ -163,14 +159,6 @@ some useful text
 some useful text
 
 # sfContentType
-
-some useful text
-
-# sfDefaultdevhubusername
-
-some useful text
-
-# sfDefaultusername
 
 some useful text
 

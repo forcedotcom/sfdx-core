@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import { envVarsResolve } from '../../../src/globalInfo/dxEnvVars';
 
 describe('dxEnvVars', () => {
-  const testEnvVars = ['foo', 'SFDX_ACCESS_TOKEN', 'SF_ACCESS_TOKEN'];
+  const testEnvVars = ['foo', 'SFDX_ACCESS_TOKEN', 'SF_ACCESS_TOKEN', 'SF_SFDX_INTEROPERABILITY'];
   afterEach(() => {
     for (const envVar of testEnvVars) {
       delete process.env[envVar];
@@ -27,11 +27,12 @@ describe('dxEnvVars', () => {
     const envVars = envVarsResolve();
     expect(envVars['SFDX_ACCESS_TOKEN']).to.equal('some access token');
     expect(envVars['SF_ACCESS_TOKEN']).to.equal('some access token');
+    expect(process.env['SF_ACCESS_TOKEN']).to.equal('some access token');
   });
   it('should load well known env var not set synonym interoperability is disabled', () => {
     process.env['SFDX_ACCESS_TOKEN'] = 'some access token';
     process.env['SF_ACCESS_TOKEN'] = 'some other access token';
-    process.env['SF_SSFDX_INTEROPERABILITY'] = 'false';
+    process.env['SF_SFDX_INTEROPERABILITY'] = 'false';
     const envVars = envVarsResolve();
     expect(envVars['SFDX_ACCESS_TOKEN']).to.equal('some access token');
     expect(envVars['SF_ACCESS_TOKEN']).to.equal('some other access token');

@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { join as pathJoin } from 'path';
-import { Dictionary, Optional } from '@salesforce/ts-types';
+import { Dictionary, Nullable } from '@salesforce/ts-types';
 import { camelCase } from 'change-case';
 import { Messages } from '../messages';
 import { Global } from '../global';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
 const messages = Messages.loadMessages('@salesforce/core', 'envVars');
-export enum DxWellKnownEnvVars {
+export enum EnvironmentVariable {
   'FORCE_OPEN_URL' = 'FORCE_OPEN_URL',
   'FORCE_SHOW_SPINNER' = 'FORCE_SHOW_SPINNER',
   'FORCE_SPINNER_DELAY' = 'FORCE_SPINNER_DELAY',
@@ -47,16 +47,13 @@ export enum DxWellKnownEnvVars {
   'SFDX_SOURCE_MEMBER_POLLING_TIMEOUT' = 'SFDX_SOURCE_MEMBER_POLLING_TIMEOUT',
   'SFDX_USE_GENERIC_UNIX_KEYCHAIN' = 'SFDX_USE_GENERIC_UNIX_KEYCHAIN',
   'SFDX_USE_PROGRESS_BAR' = 'SFDX_USE_PROGRESS_BAR',
-  'TARGET_ORG' = 'TARGET_ORG',
-  'TARGET_DEV_HUB' = 'TARGET_DEV_HUB',
-  'SF_SFDX_INTEROPERABILITY' = 'SF_SFDX_INTEROPERABILITY',
+  'SF_TARGET_ORG' = 'SF_TARGET_ORG',
+  'SF_TARGET_DEV_HUB' = 'SF_TARGET_DEV_HUB',
   'SF_ACCESS_TOKEN' = 'SF_ACCESS_TOKEN',
   'SF_API_VERSION' = 'SF_API_VERSION',
   'SF_AUDIENCE_URL' = 'SF_AUDIENCE_URL',
   'SF_CODE_COVERAGE_REQUIREMENT' = 'SF_CODE_COVERAGE_REQUIREMENT',
   'SF_CONTENT_TYPE' = 'SF_CONTENT_TYPE',
-  'SF_DEFAULTDEVHUBUSERNAME' = 'SF_DEFAULTDEVHUBUSERNAME',
-  'SF_DEFAULTUSERNAME' = 'SF_DEFAULTUSERNAME',
   'SF_DISABLE_AUTOUPDATE' = 'SF_DISABLE_AUTOUPDATE',
   'SF_AUTOUPDATE_DISABLE' = 'SF_AUTOUPDATE_DISABLE',
   'SF_DISABLE_SOURCE_MEMBER_POLLING' = 'SF_DISABLE_SOURCE_MEMBER_POLLING',
@@ -80,273 +77,265 @@ export enum DxWellKnownEnvVars {
 }
 type EnvMetaData = {
   description: string;
-  synonymOf: Optional<string>;
+  synonymOf: Nullable<string>;
 };
 type EnvType = {
-  [key: string]: EnvMetaData;
+  [key in EnvironmentVariable]: EnvMetaData;
 };
+
+const getMessage = (environmentVariable: EnvironmentVariable): string =>
+  messages.getMessage(camelCase(environmentVariable));
+
 export const DX_SUPPORTED_ENV_VARS: EnvType = {
-  [DxWellKnownEnvVars.FORCE_SHOW_SPINNER]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.FORCE_SHOW_SPINNER)),
-    synonymOf: undefined,
+  [EnvironmentVariable.FORCE_SHOW_SPINNER]: {
+    description: getMessage(EnvironmentVariable.FORCE_SHOW_SPINNER),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.FORCE_SPINNER_DELAY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.FORCE_SPINNER_DELAY)),
-    synonymOf: undefined,
+  [EnvironmentVariable.FORCE_SPINNER_DELAY]: {
+    description: getMessage(EnvironmentVariable.FORCE_SPINNER_DELAY),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.FORCE_OPEN_URL]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.FORCE_OPEN_URL)),
-    synonymOf: undefined,
+  [EnvironmentVariable.FORCE_OPEN_URL]: {
+    description: getMessage(EnvironmentVariable.FORCE_OPEN_URL),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.HTTP_PROXY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.HTTP_PROXY)),
-    synonymOf: undefined,
+  [EnvironmentVariable.HTTP_PROXY]: {
+    description: getMessage(EnvironmentVariable.HTTP_PROXY),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.HTTPS_PROXY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.HTTPS_PROXY)),
-    synonymOf: undefined,
+  [EnvironmentVariable.HTTPS_PROXY]: {
+    description: getMessage(EnvironmentVariable.HTTPS_PROXY),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.NODE_EXTRA_CA_CERTS]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.NODE_EXTRA_CA_CERTS)),
-    synonymOf: undefined,
+  [EnvironmentVariable.NODE_EXTRA_CA_CERTS]: {
+    description: getMessage(EnvironmentVariable.NODE_EXTRA_CA_CERTS),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.NODE_TLS_REJECT_UNAUTHORIZED]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.NODE_TLS_REJECT_UNAUTHORIZED)),
-    synonymOf: undefined,
+  [EnvironmentVariable.NODE_TLS_REJECT_UNAUTHORIZED]: {
+    description: getMessage(EnvironmentVariable.NODE_TLS_REJECT_UNAUTHORIZED),
+    synonymOf: null,
   },
   // sfdx vars
-  [DxWellKnownEnvVars.SFDX_ACCESS_TOKEN]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_ACCESS_TOKEN)),
-    synonymOf: DxWellKnownEnvVars.SF_ACCESS_TOKEN,
+  [EnvironmentVariable.SFDX_ACCESS_TOKEN]: {
+    description: getMessage(EnvironmentVariable.SFDX_ACCESS_TOKEN),
+    synonymOf: EnvironmentVariable.SF_ACCESS_TOKEN,
   },
-  [DxWellKnownEnvVars.SFDX_API_VERSION]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_API_VERSION)),
-    synonymOf: DxWellKnownEnvVars.SF_API_VERSION,
+  [EnvironmentVariable.SFDX_API_VERSION]: {
+    description: getMessage(EnvironmentVariable.SFDX_API_VERSION),
+    synonymOf: EnvironmentVariable.SF_API_VERSION,
   },
-  [DxWellKnownEnvVars.SFDX_AUDIENCE_URL]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_AUDIENCE_URL)),
-    synonymOf: DxWellKnownEnvVars.SF_AUDIENCE_URL,
+  [EnvironmentVariable.SFDX_AUDIENCE_URL]: {
+    description: getMessage(EnvironmentVariable.SFDX_AUDIENCE_URL),
+    synonymOf: EnvironmentVariable.SF_AUDIENCE_URL,
   },
-  [DxWellKnownEnvVars.SFDX_CODE_COVERAGE_REQUIREMENT]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_CODE_COVERAGE_REQUIREMENT)),
-    synonymOf: DxWellKnownEnvVars.SF_CODE_COVERAGE_REQUIREMENT,
+  [EnvironmentVariable.SFDX_CODE_COVERAGE_REQUIREMENT]: {
+    description: getMessage(EnvironmentVariable.SFDX_CODE_COVERAGE_REQUIREMENT),
+    synonymOf: EnvironmentVariable.SF_CODE_COVERAGE_REQUIREMENT,
   },
-  [DxWellKnownEnvVars.SFDX_CONTENT_TYPE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_CONTENT_TYPE)),
-    synonymOf: DxWellKnownEnvVars.SF_CONTENT_TYPE,
+  [EnvironmentVariable.SFDX_CONTENT_TYPE]: {
+    description: getMessage(EnvironmentVariable.SFDX_CONTENT_TYPE),
+    synonymOf: EnvironmentVariable.SF_CONTENT_TYPE,
   },
-  [DxWellKnownEnvVars.SFDX_DEFAULTDEVHUBUSERNAME]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_DEFAULTDEVHUBUSERNAME)),
-    synonymOf: DxWellKnownEnvVars.SF_DEFAULTDEVHUBUSERNAME,
+  [EnvironmentVariable.SFDX_DEFAULTDEVHUBUSERNAME]: {
+    description: getMessage(EnvironmentVariable.SFDX_DEFAULTDEVHUBUSERNAME),
+    synonymOf: EnvironmentVariable.SF_TARGET_DEV_HUB,
   },
-  [DxWellKnownEnvVars.SFDX_DEFAULTUSERNAME]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_DEFAULTUSERNAME)),
-    synonymOf: DxWellKnownEnvVars.SF_DEFAULTUSERNAME,
+  [EnvironmentVariable.SFDX_DEFAULTUSERNAME]: {
+    description: getMessage(EnvironmentVariable.SFDX_DEFAULTUSERNAME),
+    synonymOf: EnvironmentVariable.SF_TARGET_ORG,
   },
-  [DxWellKnownEnvVars.SFDX_DISABLE_AUTOUPDATE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_DISABLE_AUTOUPDATE)),
-    synonymOf: DxWellKnownEnvVars.SF_DISABLE_AUTOUPDATE,
+  [EnvironmentVariable.SFDX_DISABLE_AUTOUPDATE]: {
+    description: getMessage(EnvironmentVariable.SFDX_DISABLE_AUTOUPDATE),
+    synonymOf: EnvironmentVariable.SF_DISABLE_AUTOUPDATE,
   },
-  [DxWellKnownEnvVars.SFDX_AUTOUPDATE_DISABLE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_AUTOUPDATE_DISABLE)),
-    synonymOf: DxWellKnownEnvVars.SF_AUTOUPDATE_DISABLE,
+  [EnvironmentVariable.SFDX_AUTOUPDATE_DISABLE]: {
+    description: getMessage(EnvironmentVariable.SFDX_AUTOUPDATE_DISABLE),
+    synonymOf: EnvironmentVariable.SF_AUTOUPDATE_DISABLE,
   },
-  [DxWellKnownEnvVars.SFDX_DISABLE_SOURCE_MEMBER_POLLING]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_DISABLE_SOURCE_MEMBER_POLLING)),
-    synonymOf: DxWellKnownEnvVars.SF_DISABLE_SOURCE_MEMBER_POLLING,
+  [EnvironmentVariable.SFDX_DISABLE_SOURCE_MEMBER_POLLING]: {
+    description: getMessage(EnvironmentVariable.SFDX_DISABLE_SOURCE_MEMBER_POLLING),
+    synonymOf: EnvironmentVariable.SF_DISABLE_SOURCE_MEMBER_POLLING,
   },
-  [DxWellKnownEnvVars.SFDX_DISABLE_TELEMETRY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_DISABLE_TELEMETRY)),
-    synonymOf: DxWellKnownEnvVars.SF_DISABLE_TELEMETRY,
+  [EnvironmentVariable.SFDX_DISABLE_TELEMETRY]: {
+    description: getMessage(EnvironmentVariable.SFDX_DISABLE_TELEMETRY),
+    synonymOf: EnvironmentVariable.SF_DISABLE_TELEMETRY,
   },
-  [DxWellKnownEnvVars.SFDX_DNS_TIMEOUT]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_DNS_TIMEOUT)),
-    synonymOf: DxWellKnownEnvVars.SF_DNS_TIMEOUT,
+  [EnvironmentVariable.SFDX_DNS_TIMEOUT]: {
+    description: getMessage(EnvironmentVariable.SFDX_DNS_TIMEOUT),
+    synonymOf: EnvironmentVariable.SF_DNS_TIMEOUT,
   },
-  [DxWellKnownEnvVars.SFDX_DOMAIN_RETRY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_DOMAIN_RETRY)),
-    synonymOf: DxWellKnownEnvVars.SF_DOMAIN_RETRY,
+  [EnvironmentVariable.SFDX_DOMAIN_RETRY]: {
+    description: getMessage(EnvironmentVariable.SFDX_DOMAIN_RETRY),
+    synonymOf: EnvironmentVariable.SF_DOMAIN_RETRY,
   },
-  [DxWellKnownEnvVars.SFDX_IMPROVED_CODE_COVERAGE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_IMPROVED_CODE_COVERAGE)),
-    synonymOf: DxWellKnownEnvVars.SF_IMPROVED_CODE_COVERAGE,
+  [EnvironmentVariable.SFDX_IMPROVED_CODE_COVERAGE]: {
+    description: getMessage(EnvironmentVariable.SFDX_IMPROVED_CODE_COVERAGE),
+    synonymOf: EnvironmentVariable.SF_IMPROVED_CODE_COVERAGE,
   },
-  [DxWellKnownEnvVars.SFDX_INSTANCE_URL]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_INSTANCE_URL)),
-    synonymOf: DxWellKnownEnvVars.SF_INSTANCE_URL,
+  [EnvironmentVariable.SFDX_INSTANCE_URL]: {
+    description: getMessage(EnvironmentVariable.SFDX_INSTANCE_URL),
+    synonymOf: EnvironmentVariable.SF_INSTANCE_URL,
   },
-  [DxWellKnownEnvVars.SFDX_JSON_TO_STDOUT]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_JSON_TO_STDOUT)),
-    synonymOf: DxWellKnownEnvVars.SF_JSON_TO_STDOUT,
+  [EnvironmentVariable.SFDX_JSON_TO_STDOUT]: {
+    description: getMessage(EnvironmentVariable.SFDX_JSON_TO_STDOUT),
+    synonymOf: EnvironmentVariable.SF_JSON_TO_STDOUT,
   },
-  [DxWellKnownEnvVars.SFDX_LOG_LEVEL]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_LOG_LEVEL)),
-    synonymOf: DxWellKnownEnvVars.SF_LOG_LEVEL,
+  [EnvironmentVariable.SFDX_LOG_LEVEL]: {
+    description: getMessage(EnvironmentVariable.SFDX_LOG_LEVEL),
+    synonymOf: EnvironmentVariable.SF_LOG_LEVEL,
   },
-  [DxWellKnownEnvVars.SFDX_MAX_QUERY_LIMIT]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_MAX_QUERY_LIMIT)),
-    synonymOf: DxWellKnownEnvVars.SF_MAX_QUERY_LIMIT,
+  [EnvironmentVariable.SFDX_MAX_QUERY_LIMIT]: {
+    description: getMessage(EnvironmentVariable.SFDX_MAX_QUERY_LIMIT),
+    synonymOf: EnvironmentVariable.SF_MAX_QUERY_LIMIT,
   },
-  [DxWellKnownEnvVars.SFDX_MDAPI_TEMP_DIR]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_MDAPI_TEMP_DIR)),
-    synonymOf: DxWellKnownEnvVars.SF_MDAPI_TEMP_DIR,
+  [EnvironmentVariable.SFDX_MDAPI_TEMP_DIR]: {
+    description: getMessage(EnvironmentVariable.SFDX_MDAPI_TEMP_DIR),
+    synonymOf: EnvironmentVariable.SF_MDAPI_TEMP_DIR,
   },
-  [DxWellKnownEnvVars.SFDX_NPM_REGISTRY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_NPM_REGISTRY)),
-    synonymOf: DxWellKnownEnvVars.SF_NPM_REGISTRY,
+  [EnvironmentVariable.SFDX_NPM_REGISTRY]: {
+    description: getMessage(EnvironmentVariable.SFDX_NPM_REGISTRY),
+    synonymOf: EnvironmentVariable.SF_NPM_REGISTRY,
   },
-  [DxWellKnownEnvVars.SFDX_PRECOMPILE_ENABLE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_PRECOMPILE_ENABLE)),
-    synonymOf: DxWellKnownEnvVars.SF_PRECOMPILE_ENABLE,
+  [EnvironmentVariable.SFDX_PRECOMPILE_ENABLE]: {
+    description: getMessage(EnvironmentVariable.SFDX_PRECOMPILE_ENABLE),
+    synonymOf: EnvironmentVariable.SF_PRECOMPILE_ENABLE,
   },
-  [DxWellKnownEnvVars.SFDX_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE)),
-    synonymOf: DxWellKnownEnvVars.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE,
+  [EnvironmentVariable.SFDX_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE]: {
+    description: getMessage(EnvironmentVariable.SFDX_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE),
+    synonymOf: EnvironmentVariable.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE,
   },
-  [DxWellKnownEnvVars.SFDX_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE]: {
+  [EnvironmentVariable.SFDX_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE]: {
     description: messages.getMessage(
-      camelCase(DxWellKnownEnvVars.SFDX_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE)
+      camelCase(EnvironmentVariable.SFDX_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE)
     ),
-    synonymOf: DxWellKnownEnvVars.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE,
+    synonymOf: EnvironmentVariable.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE,
   },
-  [DxWellKnownEnvVars.SFDX_REST_DEPLOY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_REST_DEPLOY)),
-    synonymOf: DxWellKnownEnvVars.SF_REST_DEPLOY,
+  [EnvironmentVariable.SFDX_REST_DEPLOY]: {
+    description: getMessage(EnvironmentVariable.SFDX_REST_DEPLOY),
+    synonymOf: EnvironmentVariable.SF_REST_DEPLOY,
   },
-  [DxWellKnownEnvVars.SFDX_SOURCE_MEMBER_POLLING_TIMEOUT]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_SOURCE_MEMBER_POLLING_TIMEOUT)),
-    synonymOf: DxWellKnownEnvVars.SF_SOURCE_MEMBER_POLLING_TIMEOUT,
+  [EnvironmentVariable.SFDX_SOURCE_MEMBER_POLLING_TIMEOUT]: {
+    description: getMessage(EnvironmentVariable.SFDX_SOURCE_MEMBER_POLLING_TIMEOUT),
+    synonymOf: EnvironmentVariable.SF_SOURCE_MEMBER_POLLING_TIMEOUT,
   },
-  [DxWellKnownEnvVars.SFDX_USE_GENERIC_UNIX_KEYCHAIN]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_USE_GENERIC_UNIX_KEYCHAIN)),
-    synonymOf: DxWellKnownEnvVars.SF_USE_GENERIC_UNIX_KEYCHAIN,
+  [EnvironmentVariable.SFDX_USE_GENERIC_UNIX_KEYCHAIN]: {
+    description: getMessage(EnvironmentVariable.SFDX_USE_GENERIC_UNIX_KEYCHAIN),
+    synonymOf: EnvironmentVariable.SF_USE_GENERIC_UNIX_KEYCHAIN,
   },
-  [DxWellKnownEnvVars.SFDX_USE_PROGRESS_BAR]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SFDX_USE_PROGRESS_BAR)),
-    synonymOf: DxWellKnownEnvVars.SF_USE_PROGRESS_BAR,
+  [EnvironmentVariable.SFDX_USE_PROGRESS_BAR]: {
+    description: getMessage(EnvironmentVariable.SFDX_USE_PROGRESS_BAR),
+    synonymOf: EnvironmentVariable.SF_USE_PROGRESS_BAR,
   },
-  [DxWellKnownEnvVars.TARGET_ORG]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.TARGET_ORG)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_TARGET_ORG]: {
+    description: getMessage(EnvironmentVariable.SF_TARGET_ORG),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.TARGET_DEV_HUB]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.TARGET_DEV_HUB)),
-    synonymOf: undefined,
-  },
-  [DxWellKnownEnvVars.SF_SFDX_INTEROPERABILITY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_SFDX_INTEROPERABILITY)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_TARGET_DEV_HUB]: {
+    description: getMessage(EnvironmentVariable.SF_TARGET_DEV_HUB),
+    synonymOf: null,
   },
   // sf vars
-  [DxWellKnownEnvVars.SF_ACCESS_TOKEN]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_ACCESS_TOKEN)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_ACCESS_TOKEN]: {
+    description: getMessage(EnvironmentVariable.SF_ACCESS_TOKEN),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_API_VERSION]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_API_VERSION)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_API_VERSION]: {
+    description: getMessage(EnvironmentVariable.SF_API_VERSION),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_AUDIENCE_URL]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_AUDIENCE_URL)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_AUDIENCE_URL]: {
+    description: getMessage(EnvironmentVariable.SF_AUDIENCE_URL),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_CODE_COVERAGE_REQUIREMENT]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_CODE_COVERAGE_REQUIREMENT)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_CODE_COVERAGE_REQUIREMENT]: {
+    description: getMessage(EnvironmentVariable.SF_CODE_COVERAGE_REQUIREMENT),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_CONTENT_TYPE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_CONTENT_TYPE)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_CONTENT_TYPE]: {
+    description: getMessage(EnvironmentVariable.SF_CONTENT_TYPE),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_DEFAULTDEVHUBUSERNAME]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_DEFAULTDEVHUBUSERNAME)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_DISABLE_AUTOUPDATE]: {
+    description: getMessage(EnvironmentVariable.SF_DISABLE_AUTOUPDATE),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_DEFAULTUSERNAME]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_DEFAULTUSERNAME)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_AUTOUPDATE_DISABLE]: {
+    description: getMessage(EnvironmentVariable.SF_AUTOUPDATE_DISABLE),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_DISABLE_AUTOUPDATE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_DISABLE_AUTOUPDATE)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_DISABLE_SOURCE_MEMBER_POLLING]: {
+    description: getMessage(EnvironmentVariable.SF_DISABLE_SOURCE_MEMBER_POLLING),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_AUTOUPDATE_DISABLE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_AUTOUPDATE_DISABLE)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_DISABLE_TELEMETRY]: {
+    description: getMessage(EnvironmentVariable.SF_DISABLE_TELEMETRY),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_DISABLE_SOURCE_MEMBER_POLLING]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_DISABLE_SOURCE_MEMBER_POLLING)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_DNS_TIMEOUT]: {
+    description: getMessage(EnvironmentVariable.SF_DNS_TIMEOUT),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_DISABLE_TELEMETRY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_DISABLE_TELEMETRY)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_DOMAIN_RETRY]: {
+    description: getMessage(EnvironmentVariable.SF_DOMAIN_RETRY),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_DNS_TIMEOUT]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_DNS_TIMEOUT)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_IMPROVED_CODE_COVERAGE]: {
+    description: getMessage(EnvironmentVariable.SF_IMPROVED_CODE_COVERAGE),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_DOMAIN_RETRY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_DOMAIN_RETRY)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_INSTANCE_URL]: {
+    description: getMessage(EnvironmentVariable.SF_INSTANCE_URL),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_IMPROVED_CODE_COVERAGE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_IMPROVED_CODE_COVERAGE)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_JSON_TO_STDOUT]: {
+    description: getMessage(EnvironmentVariable.SF_JSON_TO_STDOUT),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_INSTANCE_URL]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_INSTANCE_URL)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_LOG_LEVEL]: {
+    description: getMessage(EnvironmentVariable.SF_LOG_LEVEL),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_JSON_TO_STDOUT]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_JSON_TO_STDOUT)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_MAX_QUERY_LIMIT]: {
+    description: getMessage(EnvironmentVariable.SF_MAX_QUERY_LIMIT),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_LOG_LEVEL]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_LOG_LEVEL)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_MDAPI_TEMP_DIR]: {
+    description: getMessage(EnvironmentVariable.SF_MDAPI_TEMP_DIR),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_MAX_QUERY_LIMIT]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_MAX_QUERY_LIMIT)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_NPM_REGISTRY]: {
+    description: getMessage(EnvironmentVariable.SF_NPM_REGISTRY),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_MDAPI_TEMP_DIR]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_MDAPI_TEMP_DIR)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_PRECOMPILE_ENABLE]: {
+    description: getMessage(EnvironmentVariable.SF_PRECOMPILE_ENABLE),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_NPM_REGISTRY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_NPM_REGISTRY)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE]: {
+    description: getMessage(EnvironmentVariable.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_PRECOMPILE_ENABLE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_PRECOMPILE_ENABLE)),
-    synonymOf: undefined,
-  },
-  [DxWellKnownEnvVars.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE)),
-    synonymOf: undefined,
-  },
-  [DxWellKnownEnvVars.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE]: {
+  [EnvironmentVariable.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE]: {
     description: messages.getMessage(
-      camelCase(DxWellKnownEnvVars.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE)
+      camelCase(EnvironmentVariable.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE)
     ),
-    synonymOf: undefined,
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_REST_DEPLOY]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_REST_DEPLOY)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_REST_DEPLOY]: {
+    description: getMessage(EnvironmentVariable.SF_REST_DEPLOY),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_SOURCE_MEMBER_POLLING_TIMEOUT]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_SOURCE_MEMBER_POLLING_TIMEOUT)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_SOURCE_MEMBER_POLLING_TIMEOUT]: {
+    description: getMessage(EnvironmentVariable.SF_SOURCE_MEMBER_POLLING_TIMEOUT),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_USE_GENERIC_UNIX_KEYCHAIN]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_USE_GENERIC_UNIX_KEYCHAIN)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_USE_GENERIC_UNIX_KEYCHAIN]: {
+    description: getMessage(EnvironmentVariable.SF_USE_GENERIC_UNIX_KEYCHAIN),
+    synonymOf: null,
   },
-  [DxWellKnownEnvVars.SF_USE_PROGRESS_BAR]: {
-    description: messages.getMessage(camelCase(DxWellKnownEnvVars.SF_USE_PROGRESS_BAR)),
-    synonymOf: undefined,
+  [EnvironmentVariable.SF_USE_PROGRESS_BAR]: {
+    description: getMessage(EnvironmentVariable.SF_USE_PROGRESS_BAR),
+    synonymOf: null,
   },
 };
 
@@ -355,11 +344,11 @@ export const envVarsResolve = (): Dictionary<string> => {
   Object.entries(process.env).forEach(([key, value]) => {
     // save all env vars to dictionary
     dict[key] = value;
-    if (DX_SUPPORTED_ENV_VARS[key]) {
+    if (DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable]) {
       // cross populate value to synonym if synonym exists
-      if (DX_SUPPORTED_ENV_VARS[key].synonymOf) {
-        const synonym = DX_SUPPORTED_ENV_VARS[key].synonymOf;
-        // set synonym only if it is the map and running in interoperability mode
+      if (DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf) {
+        const synonym = DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf;
+        // set synonym only if it is in the map and running in interoperability mode
         if (synonym && Global.SFDX_INTEROPERABILITY) {
           dict[synonym] = process.env[key];
           process.env[synonym] = dict[synonym];

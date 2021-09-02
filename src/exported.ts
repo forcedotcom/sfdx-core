@@ -24,7 +24,7 @@ export {
   SfToken,
   SfTokens,
   DX_SUPPORTED_ENV_VARS,
-  DxWellKnownEnvVars,
+  EnvironmentVariable,
 } from './globalInfo';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
