@@ -264,7 +264,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
         {
           isGlobal: false,
         },
-        options,
+        options ?? {},
         {
           // Don't let consumers of config override this. If they really really want to,
           // they can extend this class.
@@ -277,7 +277,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 
     // Resolve the config path on creation.
     this.getPath();
-    this.sfdxConfig = new SfdxConfig(options, this);
+    this.sfdxConfig = new SfdxConfig(this.options, this);
   }
 
   /**
