@@ -6,8 +6,6 @@
  */
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
-import { Nullable } from '@salesforce/ts-types';
-import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -42,8 +40,7 @@ const messages = Messages.load('@salesforce/core', 'auth', ['targetOrgNotSet']);
  * ```
  */
 export class AuthRemover extends AsyncOptionalCreatable {
-  private globalConfig: Nullable<Config>;
-  private localConfig: Nullable<Config>;
+  private config!: ConfigAggregator;
   private globalInfo!: GlobalInfo;
   private logger!: Logger;
 
@@ -81,7 +78,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<SfOrg>}
    */
   public async findAuth(usernameOrAlias?: string): Promise<SfOrg> {
-    const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : await this.getTargetOrg();
+    const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : this.getTargetOrg();
     const auth = this.globalInfo.orgs.get(username);
     if (!auth) {
       throw coreMessages.createError('namedOrgNotFound');
@@ -100,8 +97,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   protected async init() {
     this.logger = await Logger.child(this.constructor.name);
-    this.globalConfig = await this.getConfig(true);
-    this.localConfig = await this.getConfig(false);
+    this.config = await ConfigAggregator.create();
     this.globalInfo = await GlobalInfo.getInstance();
   }
 
@@ -116,27 +112,10 @@ export class AuthRemover extends AsyncOptionalCreatable {
   }
 
   /**
-   * Instantiates config class
-   *
-   * @param isGlobal
-   * @returns {Promise<Nullable<Config>>}
+   * @returns {string}
    */
-  private async getConfig(isGlobal: boolean): Promise<Nullable<Config>> {
-    let config: Nullable<Config>;
-    try {
-      config = await Config.create({ isGlobal });
-    } catch {
-      config = null;
-    }
-    return config;
-  }
-
-  /**
-   * @returns {Promise<string>}
-   */
-  private async getTargetOrg(): Promise<string> {
-    const configAggregator = await ConfigAggregator.create();
-    const targetOrg = configAggregator.getInfo(OrgConfigProperties.TARGET_ORG).value;
+  private getTargetOrg(): string {
+    const targetOrg = this.config.getInfo(OrgConfigProperties.TARGET_ORG).value;
     if (!targetOrg) {
       throw messages.createError('targetOrgNotSet');
     }
@@ -162,7 +141,8 @@ export class AuthRemover extends AsyncOptionalCreatable {
     const aliases = this.getAliases(username);
 
     this.logger.debug(`Clearing config keys for username ${username} and aliases: ${aliases}`);
-    for (const config of [this.globalConfig, this.localConfig]) {
+    const configs = [this.config.getGlobalConfig(), this.config.getLocalConfig()];
+    for (const config of configs) {
       if (config) {
         const keysWithUsername = config.getKeysByValue(username) || [];
         const keysWithAlias = aliases
