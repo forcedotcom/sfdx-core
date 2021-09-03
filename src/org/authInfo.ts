@@ -198,7 +198,7 @@ export class OAuth2WithVerifier extends OAuth2 {
    *
    * @param params
    */
-  public getAuthorizationUrl(params: Record<string, unknown>) {
+  public getAuthorizationUrl(params: Record<string, unknown>): string {
     // code verifier must be a base 64 url encoded hash of 128 bytes of random data. Our random data is also
     // base 64 url encoded. See Connection.create();
     const codeChallenge = base64UrlEscape(createHash('sha256').update(this.codeVerifier).digest('base64'));
@@ -207,7 +207,10 @@ export class OAuth2WithVerifier extends OAuth2 {
     return super.getAuthorizationUrl(params);
   }
 
-  public async requestToken(code: string, callback?: (err: Error, tokenResponse: TokenResponse) => void) {
+  public async requestToken(
+    code: string,
+    callback?: (err: Error, tokenResponse: TokenResponse) => void
+  ): Promise<TokenResponse> {
     return super.requestToken(code, callback);
   }
 

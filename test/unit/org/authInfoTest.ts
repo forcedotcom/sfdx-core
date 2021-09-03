@@ -29,7 +29,7 @@ import { Crypto } from '../../../src/crypto/crypto';
 import { SfdxError } from '../../../src/sfdxError';
 import { testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
-import { MyDomainResolver } from '../../../src/exported';
+import { MyDomainResolver, SfdcUrl } from '../../../src/exported';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 
 const TEST_KEY = {
@@ -703,6 +703,11 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
         callback(null, []);
       });
+      stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string | Error, done: (v: Error) => {}) =>
+        done(new Error('authInfoTest_ERROR_MSG'))
+      );
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'lookup').throws(new Error('authInfoTest_ERROR_MSG'));
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'resolvesToSandbox').resolves(true);
       // Create the JWT AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
@@ -1757,18 +1762,12 @@ describe('AuthInfo', () => {
     });
     it('should use correct audience url derived from cname in salesforce.com', async () => {
       const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
-      const usa3sVIP = new URL('https://usa3s.sfdc-ypmv18.salesforce.com');
-      $$.SANDBOX.stub(dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
-        callback(null, [usa3sVIP.host]);
-      });
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'resolvesToSandbox').resolves(true);
       await runTest({ loginUrl: sandboxNondescriptUrl.toString() }, 'https://test.salesforce.com');
     });
     it('should use correct audience url derived from cname in force.com', async () => {
       const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
-      const usa3sVIP = new URL('https://usa3s.sfdc-ypmv18.force.com');
-      $$.SANDBOX.stub(dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
-        callback(null, [usa3sVIP.host]);
-      });
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'resolvesToSandbox').resolves(true);
       await runTest({ loginUrl: sandboxNondescriptUrl.toString() }, 'https://test.salesforce.com');
     });
   });

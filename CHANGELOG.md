@@ -6,107 +6,93 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [3.4.2](https://github.com/forcedotcom/sfdx-core/compare/v3.4.1...v3.4.2) (2021-08-17)
 
-
 ### Bug Fixes
 
-* improve interoperability when unsetting ([#467](https://github.com/forcedotcom/sfdx-core/issues/467)) ([ad781d5](https://github.com/forcedotcom/sfdx-core/commit/ad781d5378652dfd64ccb476c11f418e940b8669))
+- improve interoperability when unsetting ([#467](https://github.com/forcedotcom/sfdx-core/issues/467)) ([ad781d5](https://github.com/forcedotcom/sfdx-core/commit/ad781d5378652dfd64ccb476c11f418e940b8669))
 
 ### [3.4.1](https://github.com/forcedotcom/sfdx-core/compare/v3.4.0...v3.4.1) (2021-08-11)
 
-
 ### Bug Fixes
 
-* optionally throw error when reading deprecated config key ([#466](https://github.com/forcedotcom/sfdx-core/issues/466)) ([3118ad8](https://github.com/forcedotcom/sfdx-core/commit/3118ad836db384ac27c2b1db88c4753e6121e4db))
+- optionally throw error when reading deprecated config key ([#466](https://github.com/forcedotcom/sfdx-core/issues/466)) ([3118ad8](https://github.com/forcedotcom/sfdx-core/commit/3118ad836db384ac27c2b1db88c4753e6121e4db))
 
 ## [3.4.0](https://github.com/forcedotcom/sfdx-core/compare/v3.3.12...v3.4.0) (2021-08-11)
 
-
 ### Features
 
-* config interoperability ([#461](https://github.com/forcedotcom/sfdx-core/issues/461)) ([11b60ad](https://github.com/forcedotcom/sfdx-core/commit/11b60adbe54acc8e16a90327c77abbe2613fbaab))
+- config interoperability ([#461](https://github.com/forcedotcom/sfdx-core/issues/461)) ([11b60ad](https://github.com/forcedotcom/sfdx-core/commit/11b60adbe54acc8e16a90327c77abbe2613fbaab))
 
 ### [3.3.12](https://github.com/forcedotcom/sfdx-core/compare/v3.3.11...v3.3.12) (2021-08-10)
 
-
 ### Bug Fixes
 
-* add predicate function to list all auths ([ccdb02c](https://github.com/forcedotcom/sfdx-core/commit/ccdb02c268fae7532b23e0c791bcdd831f77cf98))
+- add predicate function to list all auths ([ccdb02c](https://github.com/forcedotcom/sfdx-core/commit/ccdb02c268fae7532b23e0c791bcdd831f77cf98))
 
 ### [3.3.11](https://github.com/forcedotcom/sfdx-core/compare/v3.3.10...v3.3.11) (2021-08-04)
 
-
 ### Bug Fixes
 
-* allows for message keys of error and errors ([#455](https://github.com/forcedotcom/sfdx-core/issues/455)) ([3bfac58](https://github.com/forcedotcom/sfdx-core/commit/3bfac587c6cf1734af6f2b517439d278591ddd50))
+- allows for message keys of error and errors ([#455](https://github.com/forcedotcom/sfdx-core/issues/455)) ([3bfac58](https://github.com/forcedotcom/sfdx-core/commit/3bfac587c6cf1734af6f2b517439d278591ddd50))
 
 ### [3.3.10](https://github.com/forcedotcom/sfdx-core/compare/v3.3.9...v3.3.10) (2021-08-04)
 
 ### [3.3.9](https://github.com/forcedotcom/sfdx-core/compare/v3.3.8...v3.3.9) (2021-08-04)
 
-
 ### Bug Fixes
 
-* merge main(v2) into v3 ([#452](https://github.com/forcedotcom/sfdx-core/issues/452)) ([3a003b9](https://github.com/forcedotcom/sfdx-core/commit/3a003b9c17962f77344e4a23314bb608e1ae50db))
+- merge main(v2) into v3 ([#452](https://github.com/forcedotcom/sfdx-core/issues/452)) ([3a003b9](https://github.com/forcedotcom/sfdx-core/commit/3a003b9c17962f77344e4a23314bb608e1ae50db))
 
 ### [3.3.8](https://github.com/forcedotcom/sfdx-core/compare/v3.3.7...v3.3.8) (2021-08-02)
 
-
 ### Bug Fixes
 
-* return all info from AuthInfo.listAllAuthorizations ([#449](https://github.com/forcedotcom/sfdx-core/issues/449)) ([17e60ea](https://github.com/forcedotcom/sfdx-core/commit/17e60eabe87c73a83c26344967076f365ddea81c))
+- return all info from AuthInfo.listAllAuthorizations ([#449](https://github.com/forcedotcom/sfdx-core/issues/449)) ([17e60ea](https://github.com/forcedotcom/sfdx-core/commit/17e60eabe87c73a83c26344967076f365ddea81c))
 
 ### [3.3.7](https://github.com/forcedotcom/sfdx-core/compare/v3.3.6...v3.3.7) (2021-07-30)
 
 ### [3.3.6](https://github.com/forcedotcom/sfdx-core/compare/v3.3.5...v3.3.6) (2021-07-28)
 
-
 ### Bug Fixes
 
-* use correct method to get username ([#446](https://github.com/forcedotcom/sfdx-core/issues/446)) ([79a6b2f](https://github.com/forcedotcom/sfdx-core/commit/79a6b2f069f95b0c50a6c03ecbac07cf0d1832b1))
+- use correct method to get username ([#446](https://github.com/forcedotcom/sfdx-core/issues/446)) ([79a6b2f](https://github.com/forcedotcom/sfdx-core/commit/79a6b2f069f95b0c50a6c03ecbac07cf0d1832b1))
 
 ### [3.3.5](https://github.com/forcedotcom/sfdx-core/compare/v3.3.4...v3.3.5) (2021-07-28)
 
 ### [3.3.4](https://github.com/forcedotcom/sfdx-core/compare/v3.3.3...v3.3.4) (2021-07-26)
 
-
 ### Bug Fixes
 
-* remove bad validator function ([1b97dc6](https://github.com/forcedotcom/sfdx-core/commit/1b97dc6f4d657a5b86489d33c4843ebfd54b3715))
+- remove bad validator function ([1b97dc6](https://github.com/forcedotcom/sfdx-core/commit/1b97dc6f4d657a5b86489d33c4843ebfd54b3715))
 
 ### [3.3.3](https://github.com/forcedotcom/sfdx-core/compare/v3.3.2...v3.3.3) (2021-07-22)
 
-
 ### Bug Fixes
 
-* write sf.json contents on init ([c47f649](https://github.com/forcedotcom/sfdx-core/commit/c47f64954118d0d2f7f4a8e992d3450516239084))
+- write sf.json contents on init ([c47f649](https://github.com/forcedotcom/sfdx-core/commit/c47f64954118d0d2f7f4a8e992d3450516239084))
 
 ### [3.3.2](https://github.com/forcedotcom/sfdx-core/compare/v3.3.1...v3.3.2) (2021-07-21)
 
-
 ### Bug Fixes
 
-* correct jsdoc ([a362e94](https://github.com/forcedotcom/sfdx-core/commit/a362e94c4ae7538cbbcd7dae8fcd3244629d845c))
+- correct jsdoc ([a362e94](https://github.com/forcedotcom/sfdx-core/commit/a362e94c4ae7538cbbcd7dae8fcd3244629d845c))
 
 ### [3.3.1](https://github.com/forcedotcom/sfdx-core/compare/v3.3.0...v3.3.1) (2021-07-15)
 
-
 ### Bug Fixes
 
-* temporarily point Alias back to .sfdx ([#438](https://github.com/forcedotcom/sfdx-core/issues/438)) ([4bffcd8](https://github.com/forcedotcom/sfdx-core/commit/4bffcd84362d5b3049ef428e90dc1b538a435f81))
+- temporarily point Alias back to .sfdx ([#438](https://github.com/forcedotcom/sfdx-core/issues/438)) ([4bffcd8](https://github.com/forcedotcom/sfdx-core/commit/4bffcd84362d5b3049ef428e90dc1b538a435f81))
 
 ## [3.3.0](https://github.com/forcedotcom/sfdx-core/compare/v3.2.0-v3.0...v3.3.0) (2021-07-14)
 
-
 ### Features
 
-* V3 merge ([#436](https://github.com/forcedotcom/sfdx-core/issues/436)) ([1193449](https://github.com/forcedotcom/sfdx-core/commit/119344969147679088e30bae4c4fc5e941661078)), closes [#413](https://github.com/forcedotcom/sfdx-core/issues/413) [#415](https://github.com/forcedotcom/sfdx-core/issues/415) [#428](https://github.com/forcedotcom/sfdx-core/issues/428) [#429](https://github.com/forcedotcom/sfdx-core/issues/429) [#427](https://github.com/forcedotcom/sfdx-core/issues/427) [#432](https://github.com/forcedotcom/sfdx-core/issues/432)
+- V3 merge ([#436](https://github.com/forcedotcom/sfdx-core/issues/436)) ([1193449](https://github.com/forcedotcom/sfdx-core/commit/119344969147679088e30bae4c4fc5e941661078)), closes [#413](https://github.com/forcedotcom/sfdx-core/issues/413) [#415](https://github.com/forcedotcom/sfdx-core/issues/415) [#428](https://github.com/forcedotcom/sfdx-core/issues/428) [#429](https://github.com/forcedotcom/sfdx-core/issues/429) [#427](https://github.com/forcedotcom/sfdx-core/issues/427) [#432](https://github.com/forcedotcom/sfdx-core/issues/432)
 
 ## [3.2.0-v3.0](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-v3.2...v3.2.0-v3.0) (2021-07-14)
 
-
 ### Features
 
-* use .sf/config.json @W-9546117@ ([#433](https://github.com/forcedotcom/sfdx-core/issues/433)) ([6c41653](https://github.com/forcedotcom/sfdx-core/commit/6c416531a9bae10e855ded3efc289a99196bc26b))
+- use .sf/config.json @W-9546117@ ([#433](https://github.com/forcedotcom/sfdx-core/issues/433)) ([6c41653](https://github.com/forcedotcom/sfdx-core/commit/6c416531a9bae10e855ded3efc289a99196bc26b))
 
 ### [3.1.1-v3.2](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-v3.1...v3.1.1-v3.2) (2021-06-29)
 
@@ -168,13 +154,37 @@ All notable changes to this project will be documented in this file. See [standa
 - add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([579998b](https://github.com/forcedotcom/sfdx-core/commit/579998b6ee70dbb9772e65896bbabf6d812aae23))
 - default to reading files from cache ([12b5930](https://github.com/forcedotcom/sfdx-core/commit/12b59301df96395c4edcbfb0816dbddd45af95db))
 
+### [2.27.2](https://github.com/forcedotcom/sfdx-core/compare/v2.27.1...v2.27.2) (2021-08-05)
+
+### Bug Fixes
+
+- improve error handling while removing config props ([eecf7b0](https://github.com/forcedotcom/sfdx-core/commit/eecf7b0d0cf14e1371dc4c5ef03a413f864b0a8b))
+
+### [2.27.1](https://github.com/forcedotcom/sfdx-core/compare/v2.27.0...v2.27.1) (2021-08-05)
+
+### Bug Fixes
+
+- dont fail when trying to unset sf config keys ([#456](https://github.com/forcedotcom/sfdx-core/issues/456)) ([8aff9fd](https://github.com/forcedotcom/sfdx-core/commit/8aff9fd4bdb73ec20e58f5a16a8192a8eecba912))
+
+## [2.27.0](https://github.com/forcedotcom/sfdx-core/compare/v2.26.1...v2.27.0) (2021-07-29)
+
+### Features
+
+- Core URL class SfdcUrl ([#420](https://github.com/forcedotcom/sfdx-core/issues/420)) ([66881ea](https://github.com/forcedotcom/sfdx-core/commit/66881eae2f30215c862ea398bfc1630d9a5898fe))
+
+### [2.26.1](https://github.com/forcedotcom/sfdx-core/compare/v2.26.0...v2.26.1) (2021-07-19)
+
+### Bug Fixes
+
+- force:org:open force:org:open --urlonly display bug ([#439](https://github.com/forcedotcom/sfdx-core/issues/439)) ([2ea0e74](https://github.com/forcedotcom/sfdx-core/commit/2ea0e74b8bf1bff6de8af70372025cac10fc8c18))
+
 ## [2.26.0](https://github.com/forcedotcom/sfdx-core/compare/v2.25.1...v2.26.0) (2021-07-13)
 
 ### Features
 
 - update generate password functionality ([#432](https://github.com/forcedotcom/sfdx-core/issues/432)) ([ed65e83](https://github.com/forcedotcom/sfdx-core/commit/ed65e83da3afe0d101743ee89cc7b2a7a38d5254))
 
-### [2.25.1](https://github.com/forcedotcom/sfdx-core/compare/v2.25.0...v2.25.1) (2021-06-30)
+### [2.25.1](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.2...v2.25.1) (2021-06-30)
 
 ### Bug Fixes
 

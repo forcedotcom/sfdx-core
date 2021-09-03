@@ -97,11 +97,15 @@ export interface ConfigPropertyMetaInput {
 export enum SfdxPropertyKeys {
   /**
    * Username associated with the default dev hub org.
+   *
+   * @deprecated Replaced by OrgConfigProperties.TARGET_DEV_HUB in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername',
 
   /**
    * Username associate with the default org.
+   *
+   * @deprecated Replaced by OrgConfigProperties.TARGET_ORG in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   DEFAULT_USERNAME = 'defaultusername',
 
