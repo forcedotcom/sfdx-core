@@ -78,7 +78,7 @@ export interface ConfigInfo {
  * ```
  */
 export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
-  private static instance: AsyncOptionalCreatable | undefined;
+  private static instance: AsyncOptionalCreatable;
   private static encrypted = true;
 
   // Initialized in loadProperties
