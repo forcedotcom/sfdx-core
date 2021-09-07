@@ -84,7 +84,6 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
       async poll(): Promise<StatusResult> {
         const { host } = self.options.url;
         let dnsResult: { address: string };
-
         try {
           self.logger.debug(`Attempting to resolve url: ${host}`);
           if (new SfdcUrl(self.options.url).isLocalUrl()) {

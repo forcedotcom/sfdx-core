@@ -2,6 +2,99 @@ version: 2.1
 orbs:
   release-management: salesforce/npm-release-management@4
 
+jobs:
+  external-nut:
+    description: Runs NUTs from other (external) repos by cloning them.  Substitutes a dependency for the current pull request.  For example, you're testing a PR to a library and want to test a plugin in another repo that uses the library.
+
+    parameters:
+      node_version:
+        description: version of node to run tests against
+        type: string
+        default: 'latest'
+      os:
+        description: operating system to run tests on
+        type: enum
+        enum: ['linux', 'windows']
+        default: 'linux'
+      sfdx_version:
+        description: 'By default, the latest version of the standalone CLI will be installed. To install via npm, supply a version tag such as "latest" or "6".'
+        default: ''
+        type: string
+      sfdx_executable_path:
+        description: "Path to sfdx executable to be used by NUTs, defaults to ''"
+        default: ''
+        type: string
+      external_project_git_url:
+        description: 'The url that will be cloned.  This contains the NUTs you want to run.  Ex: https://github.com/salesforcecli/plugin-user'
+        type: string
+        default: ''
+      size:
+        type: enum
+        description: |
+          The size of machine resource to use. Defaults to medium.
+        default: medium
+        enum:
+          - medium
+          - large
+          - xlarge
+          - 2xlarge
+
+    executor:
+      name: release-management/<< parameters.os >>
+      size: << parameters.size >>
+
+    environment:
+      TESTKIT_EXECUTABLE_PATH: <<parameters.sfdx_executable_path>>
+
+    steps:
+      - release-management/install-node:
+          version: <<parameters.node_version>>
+          os: <<parameters.os>>
+      - release-management/install-sfdx:
+          version: <<parameters.sfdx_version>>
+          os: <<parameters.os>>
+      - run: git clone <<parameters.external_project_git_url>> $(pwd)
+      - run:
+          name: Install dependencies
+          command: yarn
+      - run:
+          name: swap dependencies
+          command: yarn remove @salesforce/core && yarn add $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME#$CIRCLE_SHA1
+      # install and build in the core module
+      - run:
+          name: install/build core
+          command: |
+            yarn install
+            yarn build
+          working_directory: node_modules/@salesforce/core
+      - run:
+          name: remove command/core
+          # deletes command/core to prevent ts conflicts
+          command: rm -rf node_modules/\@salesforce/command/node_modules/\@salesforce/core
+      - run:
+          name: Build
+          command: |
+            yarn build
+      - release-management/verify-installed-plugin
+      - run:
+          name: set TESTKIT_ENABLE_ZIP for artifacts on linux
+          command: |
+            echo "export TESTKIT_ENABLE_ZIP=true" >> $BASH_ENV
+      - run:
+          name: Create artifact dir
+          command: |
+            mkdir artifacts
+      - run:
+          name: Nuts
+          command: |
+            echo "Using node: $(node --version)"
+            echo "Environment Variables:"
+            env
+            yarn test:nuts
+          # this is in the command instead of the circle project environment to prevent it from happening on windows
+      - store_artifacts:
+          path: artifacts
+
 workflows:
   version: 2
   test-and-release:
@@ -19,6 +112,21 @@ workflows:
                 - latest
                 - lts
                 - maintenance
+      - external-nut:
+          requires:
+            - release-management/test-package
+          sfdx_version: latest
+          matrix:
+            parameters:
+              os: [linux]
+              node_version: [lts]
+              external_project_git_url:
+                [
+                  'https://github.com/salesforcecli/plugin-env',
+                  'https://github.com/salesforcecli/plugin-login',
+                  'https://github.com/salesforcecli/plugin-deploy-retrieve',
+                  'https://github.com/salesforcecli/plugin-deploy-retrieve-metadata',
+                ]
       - release-management/release-package:
           # TODO: add these back when we're ready to GA v3
           # github-release: true
@@ -27,6 +135,7 @@ workflows:
           tag: 'v3-beta'
           requires:
             - release-management/test-package
+            - external-nut
           filters:
             branches:
               only: v3
