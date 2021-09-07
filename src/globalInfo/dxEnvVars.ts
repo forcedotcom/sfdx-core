@@ -322,10 +322,6 @@ export const DX_SUPPORTED_ENV_VARS: EnvType = {
     ),
     synonymOf: null,
   },
-  [EnvironmentVariable.SF_REST_DEPLOY]: {
-    description: getMessage(EnvironmentVariable.SF_REST_DEPLOY),
-    synonymOf: null,
-  },
   [EnvironmentVariable.SF_SOURCE_MEMBER_POLLING_TIMEOUT]: {
     description: getMessage(EnvironmentVariable.SF_SOURCE_MEMBER_POLLING_TIMEOUT),
     synonymOf: null,
