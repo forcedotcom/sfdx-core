@@ -78,3 +78,39 @@ The target to be used for any command communicating with an org.
 # targetDevHub
 
 The target to be used for any command communicating with a dev hub org.
+
+# defaultUsername
+
+Default username to use for a given command
+
+# defaultDevHubUsername
+
+Default dev hub org
+
+# isvDebuggerSid
+
+ISV debugger SID
+
+# isvDebuggerUrl
+
+ISV debugger URL
+
+# apiVersion
+
+API version to use when making requests to app server
+
+# disableTelemetry
+
+Disable telemetry
+
+# maxQueryLimit
+
+Maximum rows to return for a SOQL query.
+
+# restDeploy
+
+Boolean that enables deploy via REST API.
+
+# instanceUrl
+
+Instance URL to use for a command.
