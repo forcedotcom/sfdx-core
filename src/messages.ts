@@ -453,7 +453,7 @@ export class Messages<T extends string> {
     }
 
     if (messages) {
-      // Type gaurd on key length, but do a runtime check.
+      // Type guard on key length, but do a runtime check.
       if (!keys || keys.length === 0) {
         throw new NamedError(
           'MissingKeysError',

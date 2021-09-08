@@ -30,6 +30,15 @@ const messages = Messages.load('@salesforce/core', 'config', [
   'invalidNumberConfigValue',
   'invalidWrite',
   'unknownConfigKey',
+  'defaultUsername',
+  'defaultDevHubUsername',
+  'isvDebuggerSid',
+  'isvDebuggerUrl',
+  'apiVersion',
+  'disableTelemetry',
+  'maxQueryLimit',
+  'restDeploy',
+  'instanceUrl',
 ]);
 
 const log = Logger.childFromRoot('core:config');
@@ -144,7 +153,7 @@ export enum SfdxPropertyKeys {
 export const SFDX_ALLOWED_PROPERTIES = [
   {
     key: SfdxPropertyKeys.INSTANCE_URL,
-    description: '',
+    description: messages.getMessage(SfdxPropertyKeys.INSTANCE_URL),
     input: {
       // If a value is provided validate it otherwise no value is unset.
       validator: (value: ConfigValue) => {
@@ -162,7 +171,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
   },
   {
     key: SfdxPropertyKeys.API_VERSION,
-    description: '',
+    description: messages.getMessage(SfdxPropertyKeys.API_VERSION),
     hidden: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
@@ -174,17 +183,17 @@ export const SFDX_ALLOWED_PROPERTIES = [
     key: SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME,
     newKey: OrgConfigProperties.TARGET_DEV_HUB,
     deprecated: true,
-    description: '',
+    description: messages.getMessage('defaultDevHubUsername'),
   },
   {
     key: SfdxPropertyKeys.DEFAULT_USERNAME,
     newKey: OrgConfigProperties.TARGET_ORG,
     deprecated: true,
-    description: '',
+    description: messages.getMessage('defaultUsername'),
   },
   {
     key: SfdxPropertyKeys.ISV_DEBUGGER_SID,
-    description: '',
+    description: messages.getMessage(SfdxPropertyKeys.ISV_DEBUGGER_SID),
     encrypted: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
@@ -194,7 +203,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
   },
   {
     key: SfdxPropertyKeys.ISV_DEBUGGER_URL,
-    description: '',
+    description: messages.getMessage(SfdxPropertyKeys.ISV_DEBUGGER_URL),
     input: {
       // If a value is provided validate it otherwise no value is unset.
       validator: (value: ConfigValue) => value == null || isString(value),
@@ -203,7 +212,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
   },
   {
     key: SfdxPropertyKeys.DISABLE_TELEMETRY,
-    description: '',
+    description: messages.getMessage(SfdxPropertyKeys.DISABLE_TELEMETRY),
     input: {
       validator: (value: ConfigValue) => value == null || ['true', 'false'].includes(value.toString()),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
@@ -212,7 +221,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
   // This should be brought in by a plugin, but there isn't a way to do that right now.
   {
     key: SfdxPropertyKeys.REST_DEPLOY,
-    description: '',
+    description: messages.getMessage(SfdxPropertyKeys.REST_DEPLOY),
     hidden: true,
     input: {
       validator: (value: ConfigValue) => value != null && ['true', 'false'].includes(value.toString()),
@@ -221,7 +230,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
   },
   {
     key: SfdxPropertyKeys.MAX_QUERY_LIMIT,
-    description: '',
+    description: messages.getMessage(SfdxPropertyKeys.MAX_QUERY_LIMIT),
     input: {
       // the bit shift will remove the negative bit, and any decimal numbers
       // then the parseFloat will handle converting it to a number from a string

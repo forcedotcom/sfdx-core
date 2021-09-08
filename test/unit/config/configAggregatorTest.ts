@@ -32,6 +32,7 @@ describe('ConfigAggregator', () => {
 
   afterEach(() => {
     delete process.env.SFDX_TARGET_ORG;
+    delete process.env['target-org'];
   });
 
   describe('instantiation', () => {

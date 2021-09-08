@@ -12,6 +12,8 @@ export { OAuth2Options } from 'jsforce';
 
 export { ConfigFile } from './config/configFile';
 
+export { EnvironmentVariable, SUPPORTED_ENV_VARS } from './config/envVars';
+
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
 export { GlobalInfo, SfEntry, SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfToken, SfTokens } from './globalInfo';
@@ -55,7 +57,7 @@ export { Messages } from './messages';
 
 export { Org } from './org/org';
 
-export { OrgConfigProperties } from './org/orgConfigProperties';
+export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
 

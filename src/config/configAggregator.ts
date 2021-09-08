@@ -5,15 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncOptionalCreatable, merge, snakeCase, sortBy } from '@salesforce/kit';
-import { AnyJson, definiteEntriesOf, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
+import { AnyJson, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { snakeCase } from 'change-case';
 import { Messages } from '../messages';
+import { EnvVars } from './envVars';
 import { Config, ConfigPropertyMeta } from './config';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'config', ['unknownConfigKey', 'deprecatedConfigKey']);
 
-const propertyToEnvName = (property: string): string => `SFDX_${snakeCase(property).toUpperCase()}`;
+const propertyToEnvName = (property: string, prefix = 'SFDX_'): string =>
+  `${prefix || ''}${snakeCase(property).toUpperCase()}`;
 
 /**
  * Information about a config property.
@@ -82,7 +85,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   private allowedProperties!: ConfigPropertyMeta[];
   private localConfig?: Config;
   private globalConfig: Config;
-  private envVars!: Dictionary<string>;
+  private envVars!: EnvVars;
 
   private get config(): JsonMap {
     return this.resolveProperties(this.globalConfig.getContents(), this.localConfig && this.localConfig.getContents());
@@ -251,7 +254,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * @param key The key of the property.
    */
   public getPath(key: string): Optional<string> {
-    if (this.envVars[key] != null) {
+    if (this.envVars.getString(key) != null) {
       return `$${propertyToEnvName(key)}`;
     }
     if (this.localConfig && this.localConfig.getContents()[key] != null) {
@@ -306,7 +309,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * Get the config properties that are environment variables.
    */
   public getEnvVars(): Map<string, string> {
-    return new Map<string, string>(definiteEntriesOf(this.envVars));
+    return this.envVars.asMap();
   }
 
   /**
@@ -344,16 +347,11 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   }
 
   private resolveProperties(globalConfig: JsonMap, localConfig?: JsonMap): JsonMap {
-    const accumulator: Dictionary<string> = {};
-    this.setEnvVars(
-      this.getAllowedProperties().reduce((obj, property) => {
-        const val = process.env[propertyToEnvName(property.key)];
-        if (val != null) {
-          obj[property.key] = val;
-        }
-        return obj;
-      }, accumulator)
-    );
+    this.envVars = new EnvVars();
+
+    for (const property of this.getAllowedProperties()) {
+      this.envVars.setPropertyFromEnv(property.key);
+    }
 
     // Global config must be read first so it is on the left hand of the
     // object assign and is overwritten by the local config.
@@ -365,7 +363,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
       configs.push(localConfig);
     }
 
-    configs.push(this.envVars);
+    configs.push(this.envVars.asDictionary());
 
     const json: JsonMap = {};
     const reduced = configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
@@ -386,15 +384,6 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   private setAllowedProperties(properties: ConfigPropertyMeta[]) {
     this.allowedProperties = properties;
-  }
-
-  /**
-   * Sets the env variables.
-   *
-   * @param envVars The env variables to set.
-   */
-  private setEnvVars(envVars: Dictionary<string>) {
-    this.envVars = envVars;
   }
 }
 
