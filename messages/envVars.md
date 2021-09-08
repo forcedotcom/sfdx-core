@@ -184,7 +184,7 @@ Specifies the number of seconds that the force:org:\* commands wait for a respon
 
 # sfDomainRetry
 
-some useful text
+Specifies the time, in seconds, that the CLI waits for the Lightning Experience custom domain to resolve and become available in a newly created scratch org.
 
 # sfImprovedCodeCoverage
 
@@ -220,7 +220,7 @@ Set to true to enable Apex pre-compile before the tests are run. Default is fals
 
 # sfProjectAutoupdateDisableForPackageCreate
 
-some useful text
+For force:package:create, disables automatic updates to the sfdx-project.json file.
 
 # sfProjectAutoupdateDisableForPackageVersionCreate
 

@@ -7,7 +7,7 @@
 import { join as pathJoin } from 'path';
 import { Dictionary, Nullable } from '@salesforce/ts-types';
 import { camelCase, snakeCase } from 'change-case';
-import { env, Env } from '@salesforce/kit';
+import { Env } from '@salesforce/kit';
 import { Messages } from '../messages';
 import { Global } from '../global';
 
@@ -79,6 +79,7 @@ type EnvMetaData = {
   description: string;
   synonymOf: Nullable<string>;
 };
+
 type EnvType = {
   [key in EnvironmentVariable]: EnvMetaData;
 };
@@ -368,18 +369,13 @@ export class EnvVars extends Env {
   }
 
   private resolve(): void {
-    const overrideInteroperabilityEnvVar = process.env['TEST_OVERRIDE_GLOBAL_SF_SFDX_INTEROPERABILITY'];
-    const interoperabilityEnabled =
-      (overrideInteroperabilityEnvVar ? env.getBoolean(overrideInteroperabilityEnvVar) : true) &&
-      Global.SFDX_INTEROPERABILITY;
-
     this.entries().forEach(([key, value]) => {
       if (SUPPORTED_ENV_VARS[key as EnvironmentVariable]) {
         // cross populate value to synonym if synonym exists
         if (SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf) {
           const synonym = SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf;
           // set synonym only if it is in the map and running in interoperability mode
-          if (synonym && interoperabilityEnabled) {
+          if (synonym && Global.SFDX_INTEROPERABILITY) {
             this.setString(synonym, value);
           }
         }
