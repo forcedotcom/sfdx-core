@@ -71,7 +71,6 @@ export enum EnvironmentVariable {
   'SF_PRECOMPILE_ENABLE' = 'SF_PRECOMPILE_ENABLE',
   'SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE' = 'SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE',
   'SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE' = 'SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE',
-  'SF_REST_DEPLOY' = 'SF_REST_DEPLOY',
   'SF_SOURCE_MEMBER_POLLING_TIMEOUT' = 'SF_SOURCE_MEMBER_POLLING_TIMEOUT',
   'SF_USE_GENERIC_UNIX_KEYCHAIN' = 'SF_USE_GENERIC_UNIX_KEYCHAIN',
   'SF_USE_PROGRESS_BAR' = 'SF_USE_PROGRESS_BAR',
@@ -87,7 +86,7 @@ type EnvType = {
 const getMessage = (environmentVariable: EnvironmentVariable): string =>
   messages.getMessage(camelCase(environmentVariable));
 
-export const DX_SUPPORTED_ENV_VARS: EnvType = {
+export const SUPPORTED_ENV_VARS: EnvType = {
   [EnvironmentVariable.FORCE_SHOW_SPINNER]: {
     description: getMessage(EnvironmentVariable.FORCE_SHOW_SPINNER),
     synonymOf: null,
@@ -213,7 +212,7 @@ export const DX_SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SFDX_REST_DEPLOY]: {
     description: getMessage(EnvironmentVariable.SFDX_REST_DEPLOY),
-    synonymOf: EnvironmentVariable.SF_REST_DEPLOY,
+    synonymOf: null,
   },
   [EnvironmentVariable.SFDX_SOURCE_MEMBER_POLLING_TIMEOUT]: {
     description: getMessage(EnvironmentVariable.SFDX_SOURCE_MEMBER_POLLING_TIMEOUT),
@@ -375,10 +374,10 @@ export class EnvVars extends Env {
       Global.SFDX_INTEROPERABILITY;
 
     this.entries().forEach(([key, value]) => {
-      if (DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable]) {
+      if (SUPPORTED_ENV_VARS[key as EnvironmentVariable]) {
         // cross populate value to synonym if synonym exists
-        if (DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf) {
-          const synonym = DX_SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf;
+        if (SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf) {
+          const synonym = SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf;
           // set synonym only if it is in the map and running in interoperability mode
           if (synonym && interoperabilityEnabled) {
             this.setString(synonym, value);

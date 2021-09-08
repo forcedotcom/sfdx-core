@@ -12,20 +12,11 @@ export { OAuth2Options } from 'jsforce';
 
 export { ConfigFile } from './config/configFile';
 
+export { EnvironmentVariable, SUPPORTED_ENV_VARS } from './config/envVars';
+
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
-export {
-  GlobalInfo,
-  SfEntry,
-  SfInfo,
-  SfInfoKeys,
-  SfOrg,
-  SfOrgs,
-  SfToken,
-  SfTokens,
-  DX_SUPPORTED_ENV_VARS,
-  EnvironmentVariable,
-} from './globalInfo';
+export { GlobalInfo, SfEntry, SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfToken, SfTokens } from './globalInfo';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
 

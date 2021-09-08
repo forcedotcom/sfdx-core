@@ -9,7 +9,7 @@ import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
 import { AnyJson, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { snakeCase } from 'change-case';
 import { Messages } from '../messages';
-import { EnvVars } from '../globalInfo/dxEnvVars';
+import { EnvVars } from './envVars';
 import { Config, ConfigPropertyMeta } from './config';
 
 Messages.importMessagesDirectory(__dirname);
@@ -324,7 +324,11 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * Add an allowed config property.
    */
   public addAllowedProperties(configMetas: ConfigPropertyMeta | ConfigPropertyMeta[]): void {
-    this.allowedProperties.push(...(isArray(configMetas) ? configMetas : [configMetas]));
+    if (isArray(configMetas)) {
+      this.allowedProperties.push(...configMetas);
+    } else {
+      this.allowedProperties.push(configMetas);
+    }
   }
 
   /**

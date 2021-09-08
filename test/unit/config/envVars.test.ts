@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { EnvVars } from '../../../src/globalInfo/dxEnvVars';
+import { EnvVars } from '../../../src/config/envVars';
 
 describe('dxEnvVars', () => {
   const testEnvVars = ['foo', 'SFDX_ACCESS_TOKEN', 'SF_ACCESS_TOKEN', 'SF_SFDX_INTEROPERABILITY'];
