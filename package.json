@@ -39,6 +39,7 @@
     }
   },
   "dependencies": {
+    "@oclif/core": "^0.5.35",
     "@salesforce/bunyan": "^2.0.0",
     "@salesforce/kit": "^1.5.8",
     "@salesforce/schemas": "^1.0.1",

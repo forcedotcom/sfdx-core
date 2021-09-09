@@ -14,6 +14,8 @@ export { ConfigFile } from './config/configFile';
 
 export { EnvironmentVariable, SUPPORTED_ENV_VARS } from './config/envVars';
 
+export { toHelpSection } from './util/helpSectionUtils';
+
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
 export { GlobalInfo, SfEntry, SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfToken, SfTokens } from './globalInfo';
