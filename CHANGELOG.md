@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.6.0](https://github.com/forcedotcom/sfdx-core/compare/v3.5.0...v3.6.0) (2021-09-10)
+
+
+### Features
+
+* add help section helper ([#474](https://github.com/forcedotcom/sfdx-core/issues/474)) ([b34c2d7](https://github.com/forcedotcom/sfdx-core/commit/b34c2d7a442aed2cf091fd394a7c3656287d1dbf))
+
 ## [3.5.0](https://github.com/forcedotcom/sfdx-core/compare/v3.4.5...v3.5.0) (2021-09-09)
 
 ### Features
