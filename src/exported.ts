@@ -22,7 +22,13 @@ export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } fro
 
 export { OrgUsersConfig } from './config/orgUsersConfig';
 
-export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config, SfdxPropertyKeys } from './config/config';
+export {
+  ConfigPropertyMeta,
+  ConfigPropertyMetaInput,
+  Config,
+  SfdxPropertyKeys,
+  SFDX_ALLOWED_PROPERTIES,
+} from './config/config';
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
