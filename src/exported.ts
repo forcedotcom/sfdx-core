@@ -14,8 +14,6 @@ export { ConfigFile } from './config/configFile';
 
 export { EnvironmentVariable, SUPPORTED_ENV_VARS } from './config/envVars';
 
-export { toHelpSection } from './util/helpSectionUtils';
-
 export { BaseConfigStore, ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
 export { GlobalInfo, SfEntry, SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfToken, SfTokens } from './globalInfo';
@@ -24,7 +22,13 @@ export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } fro
 
 export { OrgUsersConfig } from './config/orgUsersConfig';
 
-export { ConfigPropertyMeta, ConfigPropertyMetaInput, Config, SfdxPropertyKeys } from './config/config';
+export {
+  ConfigPropertyMeta,
+  ConfigPropertyMetaInput,
+  Config,
+  SfdxPropertyKeys,
+  SFDX_ALLOWED_PROPERTIES,
+} from './config/config';
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
