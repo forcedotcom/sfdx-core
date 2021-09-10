@@ -4,10 +4,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [3.5.0](https://github.com/forcedotcom/sfdx-core/compare/v3.4.5...v3.5.0) (2021-09-09)
 
-
 ### Features
 
-* expose well known env vars as part of core ([#473](https://github.com/forcedotcom/sfdx-core/issues/473)) ([11c3f53](https://github.com/forcedotcom/sfdx-core/commit/11c3f53f964459072826274e6ebb33d4a9ecb990))
+- expose well known env vars as part of core ([#473](https://github.com/forcedotcom/sfdx-core/issues/473)) ([11c3f53](https://github.com/forcedotcom/sfdx-core/commit/11c3f53f964459072826274e6ebb33d4a9ecb990))
 
 ### [3.4.5](https://github.com/forcedotcom/sfdx-core/compare/v3.4.4...v3.4.5) (2021-09-03)
 
