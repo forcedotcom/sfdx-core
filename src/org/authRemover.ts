@@ -54,6 +54,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
     this.logger.debug(`Removing authorization for user ${username}`);
     await this.unsetConfigValues(username);
     await this.unsetAliases(username);
+    this.unsetTokens(username);
     this.globalInfo.orgs.unset(username);
     await this.globalInfo.write();
   }
@@ -87,7 +88,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
   }
 
   /**
-   * Finds all authorization files in the global .sfdx folder
+   * Finds all org authorizations in the global info file (.sf/sf.json)
    *
    * @returns {SfOrgs}
    */
@@ -175,6 +176,15 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
     this.logger.debug(`Found these aliases to remove: ${existingAliases}`);
     existingAliases.forEach((alias) => this.globalInfo.aliases.unset(alias));
-    await this.globalInfo.write();
+  }
+
+  private unsetTokens(username: string) {
+    this.logger.debug(`Clearing tokens for username: ${username}`);
+    const tokens = this.globalInfo.tokens.getAll();
+    for (const [key, token] of Object.entries(tokens)) {
+      if (token.user === username) {
+        this.globalInfo.tokens.unset(key);
+      }
+    }
   }
 }
