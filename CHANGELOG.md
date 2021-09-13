@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.6.1](https://github.com/forcedotcom/sfdx-core/compare/v3.6.0...v3.6.1) (2021-09-13)
+
+
+### Bug Fixes
+
+* remove tokens associated with org ([#477](https://github.com/forcedotcom/sfdx-core/issues/477)) ([5034fa2](https://github.com/forcedotcom/sfdx-core/commit/5034fa2d4c52d347c00499e137a71366e4feba7f))
+
 ## [3.6.0](https://github.com/forcedotcom/sfdx-core/compare/v3.5.0...v3.6.0) (2021-09-10)
 
 
