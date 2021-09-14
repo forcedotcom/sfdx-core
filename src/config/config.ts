@@ -107,7 +107,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Custom templates repo or local location.
    */
-  public static readonly CUSTOM_TEMPLATES = 'customTemplates';
+  public static readonly CUSTOM_ORG_METADATA_TEMPLATES = 'customOrgMetadataTemplates';
 
   /**
    * allows users to override the 10,000 result query limit
@@ -141,12 +141,12 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       },
     },
     {
-      key: Config.CUSTOM_TEMPLATES,
+      key: Config.CUSTOM_ORG_METADATA_TEMPLATES,
       input: {
         // If a value is provided validate it otherwise no value is unset.
         validator: (value) => value == null || isString(value),
         get failedMessage() {
-          return Config.messages?.getMessage('InvalidCustomTemplates');
+          return Config.messages?.getMessage('InvalidCustomOrgMetadataTemplates');
         },
       },
     },
