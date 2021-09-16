@@ -64,7 +64,8 @@ export interface ConfigStore {
  */
 export abstract class BaseConfigStore<T extends BaseConfigStore.Options>
   extends AsyncCreatable<T>
-  implements ConfigStore {
+  implements ConfigStore
+{
   protected options: T;
 
   // Initialized in setContents
@@ -228,6 +229,7 @@ export abstract class BaseConfigStore<T extends BaseConfigStore.Options>
    *
    * @param obj The object.
    */
+  // eslint-disable-next-line @typescript-eslint/ban-types
   public setContentsFromObject<U extends object>(obj: U): void {
     this.contents = {};
     Object.entries(obj).forEach(([key, value]) => {
@@ -251,7 +253,7 @@ export namespace BaseConfigStore {
    */
   export interface Options {
     /**
-     * Intial contents for the config.
+     * Initial contents for the config.
      */
     contents?: ConfigContents;
   }

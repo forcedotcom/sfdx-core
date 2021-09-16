@@ -6,7 +6,7 @@
  */
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson } from '@salesforce/ts-types';
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import { AuthInfo } from '../../src/authInfo';
 import { Connection } from '../../src/connection';
 import { Org } from '../../src/org';
@@ -109,11 +109,64 @@ describe('User Tests', () => {
   });
 
   describe('generatePasswordUtf8', () => {
-    it('Should generate a password', () => {
-      const password: SecureBuffer<void> = User.generatePasswordUtf8();
+    const iterations = 1000;
+
+    it(`Should generate ${iterations} passwords containing at least one number and one upper and lowercase letter `, () => {
+      for (let i = 0; i < iterations; i++) {
+        const password: SecureBuffer<void> = User.generatePasswordUtf8();
+        password.value((buffer: Buffer): void => {
+          const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
+          expect(passwordAsArrayOfCharacters.length).to.be.equal(13);
+          expect(
+            passwordAsArrayOfCharacters.some((char) =>
+              ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(char)
+            )
+          );
+          expect(passwordAsArrayOfCharacters.some((char) => char.toUpperCase() !== char.toLowerCase()));
+          expect(passwordAsArrayOfCharacters.some((char) => char.toLowerCase() !== char.toLowerCase()));
+        });
+      }
+    });
+
+    it('Should generate length 12 and complexity 5 password containing at least one number and one  lowercase letter ', () => {
+      const passwordCondition = { length: 12, complexity: 5 };
+      const password: SecureBuffer<void> = User.generatePasswordUtf8(passwordCondition);
       password.value((buffer: Buffer): void => {
-        expect(buffer.toString('utf8').length).to.be.equal(9);
+        const passwordAsArrayOfCharacters = buffer.toString('utf8');
+        const complexity5Regex = new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$|%^&*()[]_-])(?=.{12})');
+
+        expect(complexity5Regex.test(passwordAsArrayOfCharacters));
       });
+    });
+    it('Should generate length 14 and complexity 3 password containing at least one number and one  lowercase letter ', () => {
+      const passwordCondition = { length: 14, complexity: 3 };
+      const password: SecureBuffer<void> = User.generatePasswordUtf8(passwordCondition);
+      password.value((buffer: Buffer): void => {
+        const passwordAsArrayOfCharacters = buffer.toString('utf8');
+        const complexity3Regex = new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{14})');
+
+        expect(complexity3Regex.test(passwordAsArrayOfCharacters));
+      });
+    });
+
+    it('Should throw an error beacuse of complexity not a valid value', () => {
+      try {
+        const passwordCondition = { length: 14, complexity: 9 };
+        User.generatePasswordUtf8(passwordCondition);
+        assert.fail('The above code need to throw an error');
+      } catch (err) {
+        expect(err.message).to.equal('Invalid complexity value. Specify a value between 0 and 5, inclusive.');
+      }
+    });
+
+    it('Should throw an error beacuse of length not a valid value', () => {
+      try {
+        const passwordCondition = { length: 7, complexity: 2 };
+        User.generatePasswordUtf8(passwordCondition);
+        assert.fail('The above code need to throw an error');
+      } catch (err) {
+        expect(err.message).to.equal('Invalid length value. Specify a value between 8 and 1000, inclusive.');
+      }
     });
   });
 

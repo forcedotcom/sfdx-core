@@ -40,7 +40,7 @@ describe('Logger', () => {
       const logger1 = new Logger('testLogger');
       expect(logger1).to.be.instanceof(Logger);
       expect(logger1.getName()).to.equal('testLogger');
-      const logger2 = Logger.root();
+      const logger2 = await Logger.root();
       expect(logger2).to.not.equal(logger1);
     });
   });
@@ -167,7 +167,6 @@ describe('Logger', () => {
       const rootLogger = await Logger.root();
       $$.SANDBOX.stub(rootLogger, 'fatal');
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
       expect(rootLogger.fatal['called']).to.be.true;
@@ -189,7 +188,6 @@ describe('Logger', () => {
       const childLogger = await Logger.child(childLoggerName);
       $$.SANDBOX.stub(childLogger, 'fatal');
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
       expect(childLogger.fatal['called']).to.be.false;
@@ -219,12 +217,12 @@ describe('Logger', () => {
   });
 
   describe('filters', () => {
-    const sid = 'SIDHERE!';
+    const sid = '00D55000000M2qA!AQ0AQHg3LnYDOyobmH07';
     const simpleString = `sid=${sid}`;
     const stringWithObject = ` The rain in Spain: ${JSON.stringify({
+      // eslint-disable-next-line camelcase
       access_token: sid,
     })}`;
-    const jsforceStringWithToken = `Connection refresh completed. Refreshed access token = ${sid}`;
     const obj1 = { accessToken: `${sid}`, refreshToken: `${sid}` };
     const obj2 = { key: 'Access Token', value: `${sid}` };
     const arr1 = [
@@ -237,7 +235,7 @@ describe('Logger', () => {
       { key: ' refresh  _TOKEn ', value: ` ${sid} ` },
       { key: ' SfdX__AuthUrl  ', value: ` ${sid} ` },
     ];
-    const testLogEntries = [simpleString, stringWithObject, jsforceStringWithToken, obj1, obj2, arr1, arr2];
+    const testLogEntries = [simpleString, stringWithObject, obj1, obj2, arr1, arr2];
 
     async function runTest(logLevel: [string, number]) {
       const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(0);
@@ -328,7 +326,6 @@ describe('Logger', () => {
     let output;
     beforeEach(() => {
       Logger.destroyRoot();
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore enable debug logging
       debug.useColors = () => false;
       debug.enable('*');
@@ -346,6 +343,7 @@ describe('Logger', () => {
         return (output += error);
       });
       const logger = await Logger.root();
+      expect(logger.debugEnabled).to.equal(true);
       logger.warn('warn');
       out.restore();
       err.restore();

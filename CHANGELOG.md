@@ -2,143 +2,445 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [2.16.0](https://github.com/forcedotcom/sfdx-core/compare/v2.15.5...v2.16.0) (2021-01-12)
-
-
-### Features
-
-* singleRecordQuery ([ea72d9f](https://github.com/forcedotcom/sfdx-core/commit/ea72d9f3e31aff8dbcf1f15fd7539f75cafc4ffc))
+### [2.27.2](https://github.com/forcedotcom/sfdx-core/compare/v2.27.1...v2.27.2) (2021-08-05)
 
 
 ### Bug Fixes
 
-* bumped npm release to v4 ([1ad0a98](https://github.com/forcedotcom/sfdx-core/commit/1ad0a984fd75e5e0cba20a907f542014b919095f))
-* dry-run fixed orb ([b3eb476](https://github.com/forcedotcom/sfdx-core/commit/b3eb4764b63869907d653d63e47f4e092df75481))
-* per peter feedback ([e0c366a](https://github.com/forcedotcom/sfdx-core/commit/e0c366ad6d7b7affb746aa8ba4869685f8563b5d))
-* remove another redundant condition ([021ff2d](https://github.com/forcedotcom/sfdx-core/commit/021ff2d08292148e50cf1ba8eccc54c92ed12328))
-* revert dry-run fix ([b415aca](https://github.com/forcedotcom/sfdx-core/commit/b415aca58e005093760cd8873e67d69ce70e1935))
-* updated yarn.lock ([7caaed5](https://github.com/forcedotcom/sfdx-core/commit/7caaed58d4f18bb6be675b690b1b9fc17c16d207))
+* improve error handling while removing config props ([eecf7b0](https://github.com/forcedotcom/sfdx-core/commit/eecf7b0d0cf14e1371dc4c5ef03a413f864b0a8b))
+
+### [2.27.1](https://github.com/forcedotcom/sfdx-core/compare/v2.27.0...v2.27.1) (2021-08-05)
+
+
+### Bug Fixes
+
+* dont fail when trying to unset sf config keys ([#456](https://github.com/forcedotcom/sfdx-core/issues/456)) ([8aff9fd](https://github.com/forcedotcom/sfdx-core/commit/8aff9fd4bdb73ec20e58f5a16a8192a8eecba912))
+
+## [2.27.0](https://github.com/forcedotcom/sfdx-core/compare/v2.26.1...v2.27.0) (2021-07-29)
+
+
+### Features
+
+* Core URL class SfdcUrl ([#420](https://github.com/forcedotcom/sfdx-core/issues/420)) ([66881ea](https://github.com/forcedotcom/sfdx-core/commit/66881eae2f30215c862ea398bfc1630d9a5898fe))
+
+### [2.26.1](https://github.com/forcedotcom/sfdx-core/compare/v2.26.0...v2.26.1) (2021-07-19)
+
+
+### Bug Fixes
+
+* force:org:open force:org:open --urlonly display bug ([#439](https://github.com/forcedotcom/sfdx-core/issues/439)) ([2ea0e74](https://github.com/forcedotcom/sfdx-core/commit/2ea0e74b8bf1bff6de8af70372025cac10fc8c18))
+
+## [2.26.0](https://github.com/forcedotcom/sfdx-core/compare/v2.25.1...v2.26.0) (2021-07-13)
+
+
+### Features
+
+* update generate password functionality ([#432](https://github.com/forcedotcom/sfdx-core/issues/432)) ([ed65e83](https://github.com/forcedotcom/sfdx-core/commit/ed65e83da3afe0d101743ee89cc7b2a7a38d5254))
+
+### [2.25.1](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.2...v2.25.1) (2021-06-30)
+
+
+### Bug Fixes
+
+* set retries to INFINITELY for polling client ([31539b4](https://github.com/forcedotcom/sfdx-core/commit/31539b4f0edd0cc1c049f70331ed5e40b8af55ea))
+
+## [2.25.0](https://github.com/forcedotcom/sfdx-core/compare/v2.24.2...v2.25.0) (2021-06-30)
+
+
+### Features
+
+* @W-9517449@ Allow signupTargetLoginUrl to be overridden via env var ([#429](https://github.com/forcedotcom/sfdx-core/issues/429)) ([e2b8b36](https://github.com/forcedotcom/sfdx-core/commit/e2b8b36b2836b5277c83ffe22922978dc32e7b11)), closes [#427](https://github.com/forcedotcom/sfdx-core/issues/427)
+
+### [2.24.2](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.1...v2.24.2) (2021-06-23)
+
+
+### Bug Fixes
+
+* puts some types back in dependencies ([94bea31](https://github.com/forcedotcom/sfdx-core/commit/94bea31037a41d4377faecb22bce8a2d12e95f4f))
+
+### [2.24.1](https://github.com/forcedotcom/sfdx-core/compare/v2.24.0...v2.24.1) (2021-06-23)
+
+
+### Bug Fixes
+
+* rewrite polling client ([8d363d1](https://github.com/forcedotcom/sfdx-core/commit/8d363d13616f5efa944d4bb717a010add3c996b5))
+
+## [2.24.0](https://github.com/forcedotcom/sfdx-core/compare/v2.23.5...v2.24.0) (2021-06-08)
+
+
+### Features
+
+* exported function checkLightningDomain() ([#415](https://github.com/forcedotcom/sfdx-core/issues/415)) ([8e75231](https://github.com/forcedotcom/sfdx-core/commit/8e752313abf4a383a6ef18250ffac78b398987dd))
+
+### [2.23.5](https://github.com/forcedotcom/sfdx-core/compare/v3.1.1-3.0...v2.23.5) (2021-06-07)
+
+
+### Bug Fixes
+
+* w-9299422 (login url from config) and fs-parallelization ([043bb17](https://github.com/forcedotcom/sfdx-core/commit/043bb179dbf64f9c4522a4c0f0720ae09794227c))
+
+### [2.23.4](https://github.com/forcedotcom/sfdx-core/compare/v2.23.3...v2.23.4) (2021-06-03)
+
+
+### Bug Fixes
+
+* works with TS4+ and jsforce types ([#413](https://github.com/forcedotcom/sfdx-core/issues/413)) ([b77cdad](https://github.com/forcedotcom/sfdx-core/commit/b77cdad56b114290b8e5fd23d968e23e7d4eedf4))
+
+### [2.23.3](https://github.com/forcedotcom/sfdx-core/compare/v2.23.2...v2.23.3) (2021-06-03)
+
+### [2.23.2](https://github.com/forcedotcom/sfdx-core/compare/v2.23.1...v2.23.2) (2021-06-02)
+
+
+### Bug Fixes
+
+* authinfo returning only lowercase usernames. ([#411](https://github.com/forcedotcom/sfdx-core/issues/411)) ([243668e](https://github.com/forcedotcom/sfdx-core/commit/243668e61cd8418b6acb2f0d4806da50ccf37b29)), closes [#405](https://github.com/forcedotcom/sfdx-core/issues/405)
+
+### [2.23.1](https://github.com/forcedotcom/sfdx-core/compare/v2.23.0...v2.23.1) (2021-05-27)
+
+## [2.23.0](https://github.com/forcedotcom/sfdx-core/compare/v2.22.0...v2.23.0) (2021-05-26)
+
+
+### Features
+
+* export getJwtAudienceUrl ([e7d26d2](https://github.com/forcedotcom/sfdx-core/commit/e7d26d20106d6abb6b424936bdf26c0a9f8cd175))
+
+
+### Bug Fixes
+
+* export library method ([d0016f9](https://github.com/forcedotcom/sfdx-core/commit/d0016f96da1246535049884c1043399239a33c00))
+
+## [2.22.0](https://github.com/forcedotcom/sfdx-core/compare/v2.21.0...v2.22.0) (2021-05-24)
+
+
+### Features
+
+* export getJwtAudienceUrl ([#407](https://github.com/forcedotcom/sfdx-core/issues/407)) ([585bb07](https://github.com/forcedotcom/sfdx-core/commit/585bb073434d73473a855ee52b7ddc6f0228aae1))
+
+## [2.21.0](https://github.com/forcedotcom/sfdx-core/compare/v2.20.11...v2.21.0) (2021-05-24)
+
+
+### Features
+
+* modify authInfo to return username for access token auth ([160b7d2](https://github.com/forcedotcom/sfdx-core/commit/160b7d20e32b80d7a54c8cf679154fcbaa9e8cda))
+
+### [2.20.11](https://github.com/forcedotcom/sfdx-core/compare/v3.1.0-3.0...v2.20.11) (2021-05-12)
+
+
+### Bug Fixes
+
+* force release ([f0b837a](https://github.com/forcedotcom/sfdx-core/commit/f0b837ab7b4d0361c2fa3ba15fe56cd2f7cc1fd0))
+
+### [2.20.10](https://github.com/forcedotcom/sfdx-core/compare/v2.20.9...v2.20.10) (2021-04-14)
+
+
+### Bug Fixes
+
+* add another internal test env domain ([6ea538f](https://github.com/forcedotcom/sfdx-core/commit/6ea538f2ce62daba7262a247472ce821c6e2616f))
+
+### [2.20.9](https://github.com/forcedotcom/sfdx-core/compare/v2.20.8...v2.20.9) (2021-04-05)
+
+
+### Bug Fixes
+
+* allow = in authUrl tokens ([2337fcd](https://github.com/forcedotcom/sfdx-core/commit/2337fcddfb1907a7092cd52f5b3ad73ae963d59e))
+
+### [2.20.8](https://github.com/forcedotcom/sfdx-core/compare/v2.20.7...v2.20.8) (2021-04-03)
+
+
+### Bug Fixes
+
+* debugEnabled should be public ([dbd0124](https://github.com/forcedotcom/sfdx-core/commit/dbd01243003f555b8b4db45c83e81cc08b8cb9a1))
+
+### [2.20.7](https://github.com/forcedotcom/sfdx-core/compare/v2.20.6...v2.20.7) (2021-04-02)
+
+
+### Bug Fixes
+
+* add deployRecentValidation ([62d367b](https://github.com/forcedotcom/sfdx-core/commit/62d367b217e6b552573bd7176b064e28252348c5))
+* add deployRecentValidation ([a39c329](https://github.com/forcedotcom/sfdx-core/commit/a39c329b3fab603b537ae5ed8cce4773bdf24eb6))
+* add test, clarify comments ([8d5679e](https://github.com/forcedotcom/sfdx-core/commit/8d5679ecbd482af84842f5c1c8908a059d97ef3f))
+
+### [2.20.6](https://github.com/forcedotcom/sfdx-core/compare/v2.20.5...v2.20.6) (2021-04-02)
+
+### Bug Fixes
+
+- add REST deploy and test ([a1204f8](https://github.com/forcedotcom/sfdx-core/commit/a1204f857654ef979913708a8404d3b1e5328352))
+- deploy with REST working :) ([ec36851](https://github.com/forcedotcom/sfdx-core/commit/ec368515cd2d5d947f947573abbdaa83d3a853a2))
+- remove requrie ts-node/register from package ([5377fe4](https://github.com/forcedotcom/sfdx-core/commit/5377fe46c3ed5707d31e45794f9fd397aabbcf63))
+- rest deploy without fs :D ([9a4202d](https://github.com/forcedotcom/sfdx-core/commit/9a4202d157131fbf6aebb007a0334d3d1ce1d4e8))
+- working on adding REST deploy ([0b3947b](https://github.com/forcedotcom/sfdx-core/commit/0b3947b4e39b1ecd790cd6c03077e4388faf2b04))
+
+### [2.20.5](https://github.com/forcedotcom/sfdx-core/compare/v2.20.4...v2.20.5) (2021-03-08)
+
+### Bug Fixes
+
+- qualify a sandbox url via cname lookup ([#385](https://github.com/forcedotcom/sfdx-core/issues/385)) ([3e27623](https://github.com/forcedotcom/sfdx-core/commit/3e276237278fabb609b890e3271c4d8a28c0f573))
+
+### [2.20.4](https://github.com/forcedotcom/sfdx-core/compare/v2.20.3...v2.20.4) (2021-03-03)
+
+### [2.20.3](https://github.com/forcedotcom/sfdx-core/compare/v2.20.2...v2.20.3) (2021-02-25)
+
+### Bug Fixes
+
+- await the call to authInfo.save ([299499e](https://github.com/forcedotcom/sfdx-core/commit/299499ee29e9243b7d60fb9bdef22165a34b4611))
+- web:login fails when org cannot access REST ([31b139a](https://github.com/forcedotcom/sfdx-core/commit/31b139a56ce37e0d8a15946163dbf96c872c565b))
+
+### [2.20.2](https://github.com/forcedotcom/sfdx-core/compare/v2.20.1...v2.20.2) (2021-02-25)
+
+### [2.20.1](https://github.com/forcedotcom/sfdx-core/compare/v2.20.0...v2.20.1) (2021-02-24)
+
+### Bug Fixes
+
+- await the call to authInfo.save ([b26ea70](https://github.com/forcedotcom/sfdx-core/commit/b26ea700793eb2a985f28ce7fc349164d5edaf89))
+
+## [2.20.0](https://github.com/forcedotcom/sfdx-core/compare/v2.19.1...v2.20.0) (2021-02-22)
+
+### Features
+
+- cache api version on auth info ([cb21cf0](https://github.com/forcedotcom/sfdx-core/commit/cb21cf099a4ab6911e49b26488b51eb6988b2be7))
+
+### Bug Fixes
+
+- do not save access token files ([46d88b9](https://github.com/forcedotcom/sfdx-core/commit/46d88b90c11c7de392412ef64ded201a2145de9d))
+
+### [2.19.1](https://github.com/forcedotcom/sfdx-core/compare/v2.19.0...v2.19.1) (2021-02-19)
+
+### Bug Fixes
+
+- meet more password requirements ([53025f0](https://github.com/forcedotcom/sfdx-core/commit/53025f00a5a52cb32ed8ac20178c409df5014b76))
+
+## [2.19.0](https://github.com/forcedotcom/sfdx-core/compare/v2.18.6...v2.19.0) (2021-02-17)
+
+### Features
+
+- add SFDX_DISABLE_DNS_CHECK ([2e2cb84](https://github.com/forcedotcom/sfdx-core/commit/2e2cb84f557ecb057358efa107c616d79dbc160b))
+
+### Bug Fixes
+
+- move env vars to myDomainResolver ([fcf1a4a](https://github.com/forcedotcom/sfdx-core/commit/fcf1a4a4e333e6ac9e8d6e91204d030031de3d1c))
+- revert dns polling timeout to 30 and frequency to 10 ([4ba7a63](https://github.com/forcedotcom/sfdx-core/commit/4ba7a63ad5019c33123773789af6c7c58e4c6eb3))
+
+### [2.18.6](https://github.com/forcedotcom/sfdx-core/compare/v2.18.5...v2.18.6) (2021-02-17)
+
+### Bug Fixes
+
+- pass decrypted client secret for oauth ([#374](https://github.com/forcedotcom/sfdx-core/issues/374)) ([63bf84e](https://github.com/forcedotcom/sfdx-core/commit/63bf84eaa962c151dc6a5ffcec3edcdf4bf91b05))
+
+### [2.18.5](https://github.com/forcedotcom/sfdx-core/compare/v2.18.4...v2.18.5) (2021-02-11)
+
+### Bug Fixes
+
+- filter allowedProperties on getConfigInfo ([cbb91e1](https://github.com/forcedotcom/sfdx-core/commit/cbb91e1604f7c7c8b192b8d6ca2c64bdd4fb05b2))
+- no throw on unknown config value ([49618db](https://github.com/forcedotcom/sfdx-core/commit/49618db01cd180fd1267092d36754d83a6514182))
+
+### [2.18.4](https://github.com/forcedotcom/sfdx-core/compare/v2.18.3...v2.18.4) (2021-02-10)
+
+### Bug Fixes
+
+- isresolvable mock ([6a7e8b1](https://github.com/forcedotcom/sfdx-core/commit/6a7e8b153a42135792a3df58b809981706492e83))
+
+### [2.18.3](https://github.com/forcedotcom/sfdx-core/compare/v2.18.2...v2.18.3) (2021-02-05)
+
+### Bug Fixes
+
+- update password jsdoc for v51 + return type ([390ed8d](https://github.com/forcedotcom/sfdx-core/commit/390ed8d0f15ee3915e35ccea5505890b10f16c81))
+
+### [2.18.2](https://github.com/forcedotcom/sfdx-core/compare/v2.18.1...v2.18.2) (2021-02-04)
+
+### Bug Fixes
+
+- fixed maxQueryLimit validation ([6431065](https://github.com/forcedotcom/sfdx-core/commit/6431065a0da6a615ef19594f69c069a19885f3e5))
+- fixed test descriptions ([1455204](https://github.com/forcedotcom/sfdx-core/commit/145520456c48c59003b1397ef7bcdf7a047ac083))
+- improved validation, error message, add test ([63e6c4d](https://github.com/forcedotcom/sfdx-core/commit/63e6c4d5814aa324d41b87a7ec275c16a085ef78))
+- maxQueryLimit must be > 0 ([a3d9156](https://github.com/forcedotcom/sfdx-core/commit/a3d91561f7510901dc02e42e80bb943bf3008a62))
+
+### [2.18.1](https://github.com/forcedotcom/sfdx-core/compare/v2.18.0...v2.18.1) (2021-02-04)
+
+### Bug Fixes
+
+- add space option to write json ([51d01aa](https://github.com/forcedotcom/sfdx-core/commit/51d01aae7f7b2fc7fe0cf10ec9cffd170e0574ca))
+
+## [2.18.0](https://github.com/forcedotcom/sfdx-core/compare/v2.17.0...v2.18.0) (2021-02-01)
+
+### Features
+
+- falcon usa support w/o createdOrgInstance ([ec15d37](https://github.com/forcedotcom/sfdx-core/commit/ec15d37cb2500e41e787c432579e87ec7ed126d4))
+- more falcon domain support, url case insensitivity ([f72b85d](https://github.com/forcedotcom/sfdx-core/commit/f72b85d3e8a875306654bc7eb5b692218f242518))
+- more jwt audience domains ([03751ea](https://github.com/forcedotcom/sfdx-core/commit/03751ea884eacb59eecaadd139a8a09035cd08d0))
+
+### Bug Fixes
+
+- audience for loginUrls without my in the domain ([2bca84c](https://github.com/forcedotcom/sfdx-core/commit/2bca84c0b66d59b536ffa61f051e43b43c4c23dd))
+- audiences handle uppercased CS instances ([0d6d3ea](https://github.com/forcedotcom/sfdx-core/commit/0d6d3ea14601c1008f16e7d23af2802ef8e3ff65))
+- audiences use instanceURL ([64590cc](https://github.com/forcedotcom/sfdx-core/commit/64590cc4f9f30a37dbf4d17a6cf8db53ba0bdd09))
+- support enhanced domains ([a89ce21](https://github.com/forcedotcom/sfdx-core/commit/a89ce21c24ddbdd4cfad0772490f16768e5a0e3c))
+
+## [2.17.0](https://github.com/forcedotcom/sfdx-core/compare/v2.16.6...v2.17.0) (2021-01-29)
+
+### Features
+
+- adjustable DNS timeout ([9db7b66](https://github.com/forcedotcom/sfdx-core/commit/9db7b66bf8f3fb284ab98c0fbd0906c6195eabc6))
+
+### Bug Fixes
+
+- at least 3 ([109da8a](https://github.com/forcedotcom/sfdx-core/commit/109da8a5b335678c4967bd2aef92069e1f1bd955))
+
+### [2.16.6](https://github.com/forcedotcom/sfdx-core/compare/v2.16.5...v2.16.6) (2021-01-29)
+
+### Bug Fixes
+
+- add internal mil environment ([27e33ae](https://github.com/forcedotcom/sfdx-core/commit/27e33ae0a99ebc2c63364a67348174ab56468290))
+- additional "internal" host ([af15447](https://github.com/forcedotcom/sfdx-core/commit/af15447166e85124326134a4f8d51b9fd05381ea))
+- internal, local, and new stm.force domains ([b93f26d](https://github.com/forcedotcom/sfdx-core/commit/b93f26d2a2e255a0ef3089cde1d20445aa12e802))
+- myDomainResolver shouldn't check localhost ([c07984e](https://github.com/forcedotcom/sfdx-core/commit/c07984e507d98be59ca15da97621b92bd2e73497))
+
+### [2.16.5](https://github.com/forcedotcom/sfdx-core/compare/v2.16.4...v2.16.5) (2021-01-29)
+
+### Bug Fixes
+
+- send oauth error to browser ([5fd027a](https://github.com/forcedotcom/sfdx-core/commit/5fd027a2ee8c12b21621f7478763175f499a1517))
+
+### [2.16.4](https://github.com/forcedotcom/sfdx-core/compare/v2.16.3...v2.16.4) (2021-01-27)
+
+### Bug Fixes
+
+- remove mobile domains ([ae413db](https://github.com/forcedotcom/sfdx-core/commit/ae413db35916ecd480524d1994664729c0685f2f))
+
+### [2.16.3](https://github.com/forcedotcom/sfdx-core/compare/v2.16.2...v2.16.3) (2021-01-21)
+
+### [2.16.2](https://github.com/forcedotcom/sfdx-core/compare/v2.16.1...v2.16.2) (2021-01-21)
+
+### Bug Fixes
+
+- better error messaging and Steve feedback ([20c8977](https://github.com/forcedotcom/sfdx-core/commit/20c897739d077a15945701843fac9c2c3457dff4))
+- better error name ([43cac98](https://github.com/forcedotcom/sfdx-core/commit/43cac980bba0bf276a28cd7d90b4bc3656cacd3b))
+- error name as a constant ([92ced7e](https://github.com/forcedotcom/sfdx-core/commit/92ced7e7de418c4dc36af6d12be930adcf801706))
+- export name for testing ([fda9ce0](https://github.com/forcedotcom/sfdx-core/commit/fda9ce0a802917cbcf496dc03450182f3ec5f79a))
+- line spacing ([89e4dc7](https://github.com/forcedotcom/sfdx-core/commit/89e4dc7d46e7b3b553329c7eb125caa75015dce1))
+- log versions as string ([d82fe3e](https://github.com/forcedotcom/sfdx-core/commit/d82fe3e8a41c177bd905ee3278332db375dc9761))
+- prevent DNS ENOTFOUND from hitting stdout ([1bc473f](https://github.com/forcedotcom/sfdx-core/commit/1bc473fc36ff70edbb1145b1c2f3ae6e0a4331ee))
+
+### [2.16.1](https://github.com/forcedotcom/sfdx-core/compare/v2.16.0...v2.16.1) (2021-01-20)
+
+## [2.16.0](https://github.com/forcedotcom/sfdx-core/compare/v2.15.5...v2.16.0) (2021-01-12)
+
+### Features
+
+- singleRecordQuery ([ea72d9f](https://github.com/forcedotcom/sfdx-core/commit/ea72d9f3e31aff8dbcf1f15fd7539f75cafc4ffc))
+
+### Bug Fixes
+
+- bumped npm release to v4 ([1ad0a98](https://github.com/forcedotcom/sfdx-core/commit/1ad0a984fd75e5e0cba20a907f542014b919095f))
+- dry-run fixed orb ([b3eb476](https://github.com/forcedotcom/sfdx-core/commit/b3eb4764b63869907d653d63e47f4e092df75481))
+- per peter feedback ([e0c366a](https://github.com/forcedotcom/sfdx-core/commit/e0c366ad6d7b7affb746aa8ba4869685f8563b5d))
+- remove another redundant condition ([021ff2d](https://github.com/forcedotcom/sfdx-core/commit/021ff2d08292148e50cf1ba8eccc54c92ed12328))
+- revert dry-run fix ([b415aca](https://github.com/forcedotcom/sfdx-core/commit/b415aca58e005093760cd8873e67d69ce70e1935))
+- updated yarn.lock ([7caaed5](https://github.com/forcedotcom/sfdx-core/commit/7caaed58d4f18bb6be675b690b1b9fc17c16d207))
 
 ### [2.15.5](https://github.com/forcedotcom/sfdx-core/compare/v2.15.4...v2.15.5) (2021-01-07)
 
-
 ### Bug Fixes
 
-* accessToken works as username ([6f0ec24](https://github.com/forcedotcom/sfdx-core/commit/6f0ec24d0b220f4ba6f3460392c2ae6fc3b4d998))
-* get username from accessToken ([18dd97d](https://github.com/forcedotcom/sfdx-core/commit/18dd97dad14639d66a19cfde0b33497864fa3594))
-* test > match ([56815e8](https://github.com/forcedotcom/sfdx-core/commit/56815e85cbaf6fd0b7253c83af08d62ba6b1f685))
+- accessToken works as username ([6f0ec24](https://github.com/forcedotcom/sfdx-core/commit/6f0ec24d0b220f4ba6f3460392c2ae6fc3b4d998))
+- get username from accessToken ([18dd97d](https://github.com/forcedotcom/sfdx-core/commit/18dd97dad14639d66a19cfde0b33497864fa3594))
+- test > match ([56815e8](https://github.com/forcedotcom/sfdx-core/commit/56815e85cbaf6fd0b7253c83af08d62ba6b1f685))
 
 ### [2.15.4](https://github.com/forcedotcom/sfdx-core/compare/v2.15.3...v2.15.4) (2020-12-09)
 
-
 ### Bug Fixes
 
-* **windows:** throw error when file is not accessible ([3c5e5f8](https://github.com/forcedotcom/sfdx-core/commit/3c5e5f83ead8fe5f8e9cfc9623a3d4296e42458f))
+- **windows:** throw error when file is not accessible ([3c5e5f8](https://github.com/forcedotcom/sfdx-core/commit/3c5e5f83ead8fe5f8e9cfc9623a3d4296e42458f))
 
 ### [2.15.3](https://github.com/forcedotcom/sfdx-core/compare/v2.15.2...v2.15.3) (2020-12-02)
 
-
 ### Bug Fixes
 
-* added docs around MyDomainResolver constructor method ([68d8e52](https://github.com/forcedotcom/sfdx-core/commit/68d8e520353dae10cda4b04153ec7cc753cbc02a))
-* single package entry is defaulted to default package ([badff89](https://github.com/forcedotcom/sfdx-core/commit/badff89be92c492d990dc91ce79ff94eb88a7117))
+- added docs around MyDomainResolver constructor method ([68d8e52](https://github.com/forcedotcom/sfdx-core/commit/68d8e520353dae10cda4b04153ec7cc753cbc02a))
+- single package entry is defaulted to default package ([badff89](https://github.com/forcedotcom/sfdx-core/commit/badff89be92c492d990dc91ce79ff94eb88a7117))
 
 ### [2.15.2](https://github.com/forcedotcom/sfdx-core/compare/v2.15.1...v2.15.2) (2020-11-11)
 
-
 ### Bug Fixes
 
-* config aggregator show changes to local and global config ([e3b3a55](https://github.com/forcedotcom/sfdx-core/commit/e3b3a55b7ea5e3a728ea021c8eb6a24555b63dc4))
-* localConfig typings now correctly show it might not exist ([3cb7716](https://github.com/forcedotcom/sfdx-core/commit/3cb7716fff790aac2357cd28dd28e11e81513e4f))
-* updated various logic and QOL on User and PermissionSetAssignment ([1bab28f](https://github.com/forcedotcom/sfdx-core/commit/1bab28fc799cba944aa01aa5d330e5524e267b63))
+- config aggregator show changes to local and global config ([e3b3a55](https://github.com/forcedotcom/sfdx-core/commit/e3b3a55b7ea5e3a728ea021c8eb6a24555b63dc4))
+- localConfig typings now correctly show it might not exist ([3cb7716](https://github.com/forcedotcom/sfdx-core/commit/3cb7716fff790aac2357cd28dd28e11e81513e4f))
+- updated various logic and QOL on User and PermissionSetAssignment ([1bab28f](https://github.com/forcedotcom/sfdx-core/commit/1bab28fc799cba944aa01aa5d330e5524e267b63))
 
 ### [2.15.1](https://github.com/forcedotcom/sfdx-core/compare/v2.15.0...v2.15.1) (2020-11-02)
 
-
 ### Bug Fixes
 
-* move @types/mkdirp to dependencies ([e8e5cf7](https://github.com/forcedotcom/sfdx-core/commit/e8e5cf753c9d3ca56ae9f55e90b41d6168b49d0b))
+- move @types/mkdirp to dependencies ([e8e5cf7](https://github.com/forcedotcom/sfdx-core/commit/e8e5cf753c9d3ca56ae9f55e90b41d6168b49d0b))
 
 ## [2.15.0](https://github.com/forcedotcom/sfdx-core/compare/v2.14.0...v2.15.0) (2020-10-30)
 
-
 ### Features
 
-* allow adding property metas to allowedProperties on config ([2a264d3](https://github.com/forcedotcom/sfdx-core/commit/2a264d3ca3002c4c90c771beaa2036a06d331697))
+- allow adding property metas to allowedProperties on config ([2a264d3](https://github.com/forcedotcom/sfdx-core/commit/2a264d3ca3002c4c90c771beaa2036a06d331697))
 
 ## [2.14.0](https://github.com/forcedotcom/sfdx-core/compare/v2.13.0...v2.14.0) (2020-10-22)
 
-
 ### Features
 
-* add decrypt option to getFields ([ccd32e2](https://github.com/forcedotcom/sfdx-core/commit/ccd32e20aa613554153c75bab59373225cea2382))
+- add decrypt option to getFields ([ccd32e2](https://github.com/forcedotcom/sfdx-core/commit/ccd32e20aa613554153c75bab59373225cea2382))
 
 ## [2.13.0](https://github.com/forcedotcom/sfdx-core/compare/v2.12.3...v2.13.0) (2020-10-13)
 
-
 ### Features
 
-* add DeviceOauthService ([3e72962](https://github.com/forcedotcom/sfdx-core/commit/3e72962fd3a192b7dc6ff2ce7123ef7312185694))
-* add WebOauthServer for web based auth flow ([25cea05](https://github.com/forcedotcom/sfdx-core/commit/25cea057200fcb5861d6862f877832a1ad93fd79))
-
+- add DeviceOauthService ([3e72962](https://github.com/forcedotcom/sfdx-core/commit/3e72962fd3a192b7dc6ff2ce7123ef7312185694))
+- add WebOauthServer for web based auth flow ([25cea05](https://github.com/forcedotcom/sfdx-core/commit/25cea057200fcb5861d6862f877832a1ad93fd79))
 
 ### Bug Fixes
 
-* add falcon sandboxes ([558dd72](https://github.com/forcedotcom/sfdx-core/commit/558dd720d1988ad2d80fa9227b277e56c284e09a))
-* mock package json instead of fs ([8cba4d1](https://github.com/forcedotcom/sfdx-core/commit/8cba4d1e04a7c8fbe98e9cc646f663f404330394))
-* resolve sfdx project path before checking cache ([265e523](https://github.com/forcedotcom/sfdx-core/commit/265e52350a69028f6a81aafb2e9779f455a29c31))
+- add falcon sandboxes ([558dd72](https://github.com/forcedotcom/sfdx-core/commit/558dd720d1988ad2d80fa9227b277e56c284e09a))
+- mock package json instead of fs ([8cba4d1](https://github.com/forcedotcom/sfdx-core/commit/8cba4d1e04a7c8fbe98e9cc646f663f404330394))
+- resolve sfdx project path before checking cache ([265e523](https://github.com/forcedotcom/sfdx-core/commit/265e52350a69028f6a81aafb2e9779f455a29c31))
 
 ### [2.12.3](https://github.com/forcedotcom/sfdx-core/compare/v2.12.2...v2.12.3) (2020-10-01)
 
-
 ### Bug Fixes
 
-* lifecycle should be a singleton across core versions ([66a450b](https://github.com/forcedotcom/sfdx-core/commit/66a450b0a0030d85c61645eb8c782289e4938e4a))
-* stub should call resolver at runtime ([9002cbf](https://github.com/forcedotcom/sfdx-core/commit/9002cbf8f02da9422dd547a3ea989d174749726b))
+- lifecycle should be a singleton across core versions ([66a450b](https://github.com/forcedotcom/sfdx-core/commit/66a450b0a0030d85c61645eb8c782289e4938e4a))
+- stub should call resolver at runtime ([9002cbf](https://github.com/forcedotcom/sfdx-core/commit/9002cbf8f02da9422dd547a3ea989d174749726b))
 
 ### [2.12.2](https://github.com/forcedotcom/sfdx-core/compare/v2.12.1...v2.12.2) (2020-09-28)
 
-
 ### Bug Fixes
 
-* fixed mocking error ([f5cfe52](https://github.com/forcedotcom/sfdx-core/commit/f5cfe52605e54ab8250e155e17077bc03b0cd6ec))
+- fixed mocking error ([f5cfe52](https://github.com/forcedotcom/sfdx-core/commit/f5cfe52605e54ab8250e155e17077bc03b0cd6ec))
 
 ### [2.12.1](https://github.com/forcedotcom/sfdx-core/compare/v2.12.0...v2.12.1) (2020-09-18)
 
-
 ### Bug Fixes
 
-* missed line in merge ([9f73ba5](https://github.com/forcedotcom/sfdx-core/commit/9f73ba52c6cf3330b3a3f4560920e35296151bd5))
+- missed line in merge ([9f73ba5](https://github.com/forcedotcom/sfdx-core/commit/9f73ba52c6cf3330b3a3f4560920e35296151bd5))
 
 ## [2.12.0](https://github.com/forcedotcom/sfdx-core/compare/v2.11.0...v2.12.0) (2020-09-14)
 
-
 ### Features
 
-* add a lot of sync method, add package directory information to the project ([#284](https://github.com/forcedotcom/sfdx-core/issues/284)) ([b973901](https://github.com/forcedotcom/sfdx-core/commit/b973901d69855debecc553452a6664dc482cc3c5))
-* add scope options ([#289](https://github.com/forcedotcom/sfdx-core/issues/289)) ([6bc23ec](https://github.com/forcedotcom/sfdx-core/commit/6bc23ecbb0f744e8575ac21b90a59bf540a79156))
-* support plugin-auth ([a1f6eca](https://github.com/forcedotcom/sfdx-core/commit/a1f6eca37d26cb869014e1cd7eafcc3eb5b5e830))
-
+- add a lot of sync method, add package directory information to the project ([#284](https://github.com/forcedotcom/sfdx-core/issues/284)) ([b973901](https://github.com/forcedotcom/sfdx-core/commit/b973901d69855debecc553452a6664dc482cc3c5))
+- add scope options ([#289](https://github.com/forcedotcom/sfdx-core/issues/289)) ([6bc23ec](https://github.com/forcedotcom/sfdx-core/commit/6bc23ecbb0f744e8575ac21b90a59bf540a79156))
+- support plugin-auth ([a1f6eca](https://github.com/forcedotcom/sfdx-core/commit/a1f6eca37d26cb869014e1cd7eafcc3eb5b5e830))
 
 ### Bug Fixes
 
-* convert core from tslint -> eslint ([d4791c8](https://github.com/forcedotcom/sfdx-core/commit/d4791c8db200a18973d2164971395998693b3d03))
-* query for username during refresh token flow ([f640070](https://github.com/forcedotcom/sfdx-core/commit/f640070feef25c0589cbcad8868152a564be028c))
-* some changes regressed toolbelt ([#299](https://github.com/forcedotcom/sfdx-core/issues/299)) ([2c571a7](https://github.com/forcedotcom/sfdx-core/commit/2c571a729c4d62fc2da4427aa28ebfc769c92b97))
+- convert core from tslint -> eslint ([d4791c8](https://github.com/forcedotcom/sfdx-core/commit/d4791c8db200a18973d2164971395998693b3d03))
+- query for username during refresh token flow ([f640070](https://github.com/forcedotcom/sfdx-core/commit/f640070feef25c0589cbcad8868152a564be028c))
+- some changes regressed toolbelt ([#299](https://github.com/forcedotcom/sfdx-core/issues/299)) ([2c571a7](https://github.com/forcedotcom/sfdx-core/commit/2c571a729c4d62fc2da4427aa28ebfc769c92b97))
 
 ## [2.11.0](https://github.com/forcedotcom/sfdx-core/compare/v2.10.0...v2.11.0) (2020-08-27)
 
-
 ### Features
 
-* support array of messages when using getMessage ([ac7407a](https://github.com/forcedotcom/sfdx-core/commit/ac7407ad899fba3825082ba23f53b66101b699de))
-* support logfmt style formatting ([#273](https://github.com/forcedotcom/sfdx-core/issues/273)) ([2767cbf](https://github.com/forcedotcom/sfdx-core/commit/2767cbfe4ec356915140260dfb780ec3b39ccb84))
-
+- support array of messages when using getMessage ([ac7407a](https://github.com/forcedotcom/sfdx-core/commit/ac7407ad899fba3825082ba23f53b66101b699de))
+- support logfmt style formatting ([#273](https://github.com/forcedotcom/sfdx-core/issues/273)) ([2767cbf](https://github.com/forcedotcom/sfdx-core/commit/2767cbfe4ec356915140260dfb780ec3b39ccb84))
 
 ### Bug Fixes
 
-* examples/package.json & examples/yarn.lock to reduce vulnerabilities ([d062ccc](https://github.com/forcedotcom/sfdx-core/commit/d062cccdd96d16f45dafd41425827299a26ed766))
-* wrap logfmt message with double quotes ([#280](https://github.com/forcedotcom/sfdx-core/issues/280)) ([3ef407b](https://github.com/forcedotcom/sfdx-core/commit/3ef407b667cdd65dc2bbd8259924e0b8b7ecb284))
+- examples/package.json & examples/yarn.lock to reduce vulnerabilities ([d062ccc](https://github.com/forcedotcom/sfdx-core/commit/d062cccdd96d16f45dafd41425827299a26ed766))
+- wrap logfmt message with double quotes ([#280](https://github.com/forcedotcom/sfdx-core/issues/280)) ([3ef407b](https://github.com/forcedotcom/sfdx-core/commit/3ef407b667cdd65dc2bbd8259924e0b8b7ecb284))
 
 # [2.10.0](https://github.com/forcedotcom/sfdx-core/compare/v2.9.4...v2.10.0) (2020-08-10)
 

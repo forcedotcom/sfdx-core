@@ -82,7 +82,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     if (!this.webServer.server) await this.start();
 
     return new Promise((resolve, reject) => {
-      this.webServer.server.once('listening', () => {
+      const handler = () => {
         this.logger.debug(`OAuth web login service listening on port: ${this.webServer.port}`);
         this.executeOauthRequest()
           .then(async (response) => {
@@ -96,6 +96,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
               response.end();
               resolve(authInfo);
             } catch (err) {
+              this.webServer.reportError(err, response);
               reject(err);
             }
           })
@@ -107,7 +108,13 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
             this.logger.debug('closing server connection');
             this.webServer.close();
           });
-      });
+      };
+      // if the server is already listening the listening event won't be fired anymore so execute handler() directly
+      if (this.webServer.server.listening) {
+        handler();
+      } else {
+        this.webServer.server.once('listening', handler);
+      }
     });
   }
 
@@ -146,6 +153,11 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         if (request.method === 'GET') {
           if (url.pathname && url.pathname.startsWith('/OauthRedirect')) {
             request.query = parseQueryString(url.query as string);
+            if (request.query.error) {
+              const err = new SfdxError(request.query.error_description || request.query.error, request.query.error);
+              this.webServer.reportError(err, response);
+              return reject(err);
+            }
             this.logger.debug(`request.query.state: ${request.query.state as string}`);
             try {
               this.oauthConfig.authCode = asString(this.parseAuthCodeFromRequest(response, request));
@@ -189,6 +201,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         this.logger.debug(`Successfully obtained auth code: ...${authCode.substring(authCode.length - 5)}`);
       } else {
         this.logger.debug('Expected an auth code but could not find one.');
+        throw SfdxError.create('@salesforce/core', 'auth', 'missingAuthCode');
       }
       this.logger.debug(`oauthConfig.loginUrl: ${this.oauthConfig.loginUrl}`);
       this.logger.debug(`oauthConfig.clientId: ${this.oauthConfig.clientId}`);
@@ -313,6 +326,19 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
     const body = `${status} - Redirecting to ${url}`;
     response.setHeader('Content-Length', Buffer.byteLength(body));
     response.writeHead(status, { Location: url });
+    response.end(body);
+  }
+
+  /**
+   * sends a response to the browser reporting an error.
+   *
+   * @param error the error
+   * @param response the response to write the redirect to.
+   */
+  public reportError(error: Error, response: http.ServerResponse): void {
+    response.setHeader('Content-Type', 'text/html');
+    const body = messages.getMessage('serverErrorHTMLResponse', [error.message]);
+    response.setHeader('Content-Length', Buffer.byteLength(body));
     response.end(body);
   }
 

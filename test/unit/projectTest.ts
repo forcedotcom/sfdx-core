@@ -20,7 +20,6 @@ describe('SfdxProject', () => {
 
   beforeEach(async () => {
     projectPath = await $$.localPathRetriever($$.id);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     SfdxProject.instances.clear();
   });
@@ -198,7 +197,6 @@ describe('SfdxProject', () => {
 
   describe('resolve', () => {
     it('caches the sfdx-project.json per path', async () => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore  SfdxProject.instances is private so override for testing.
       const instanceSetSpy = $$.SANDBOX.spy(SfdxProject.instances, 'set');
       const project1 = await SfdxProject.resolve('foo');
@@ -287,6 +285,7 @@ describe('SfdxProject', () => {
   describe('resolveProjectConfig', () => {
     beforeEach(() => {
       delete process.env.FORCE_SFDC_LOGIN_URL;
+      delete process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
     });
     it('gets default login url', async () => {
       $$.configStubs.SfdxProjectJson = { contents: {} };
@@ -320,7 +319,7 @@ describe('SfdxProject', () => {
       const config = await project.resolveProjectConfig();
       expect(config['sfdcLoginUrl']).to.equal('localUrl');
     });
-    it('gets env overrides local', async () => {
+    it('gets env overrides local and config', async () => {
       process.env.FORCE_SFDC_LOGIN_URL = 'envarUrl';
       const read = async function () {
         if (this.isGlobal()) {
@@ -330,9 +329,57 @@ describe('SfdxProject', () => {
         }
       };
       $$.configStubs.SfdxProjectJson = { retrieveContents: read };
+      $$.configStubs.Config = { contents: { instanceUrl: 'https://dontusethis.my.salesforce.com' } };
       const project = await SfdxProject.resolve();
       const config = await project.resolveProjectConfig();
       expect(config['sfdcLoginUrl']).to.equal('envarUrl');
+    });
+    it('gets signupTargetLoginUrl local', async () => {
+      const read = async function () {
+        return { signupTargetLoginUrl: 'localUrl' };
+      };
+      $$.configStubs.SfdxProjectJson = { retrieveContents: read };
+      const project = await SfdxProject.resolve();
+      const config = await project.resolveProjectConfig();
+      expect(config['signupTargetLoginUrl']).to.equal('localUrl');
+    });
+    it('gets SFDX_SCRATCH_ORG_CREATION_LOGIN_URL env overrides config', async () => {
+      process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL = 'envarUrl';
+      const read = async function () {
+        return { signupTargetLoginUrl: 'localUrl' };
+      };
+      $$.configStubs.SfdxProjectJson = { retrieveContents: read };
+      const project = await SfdxProject.resolve();
+      const config = await project.resolveProjectConfig();
+      expect(config['signupTargetLoginUrl']).to.equal('envarUrl');
+    });
+    it('gets config instanceUrl sets sfdcLoginUrl when there is none elsewhere', async () => {
+      const read = async function () {
+        if (this.isGlobal()) {
+          return { apiVersion: 38.0 };
+        } else {
+          return { apiVersion: 39.0 };
+        }
+      };
+      $$.configStubs.SfdxProjectJson = { retrieveContents: read };
+      $$.configStubs.Config = { contents: { apiVersion: 40.0, instanceUrl: 'https://usethis.my.salesforce.com' } };
+      const project = await SfdxProject.resolve();
+      const config = await project.resolveProjectConfig();
+      expect(config['sfdcLoginUrl']).to.equal('https://usethis.my.salesforce.com');
+    });
+    it('config instanceUrl defers to sfdcLoginUrl in files', async () => {
+      const read = async function () {
+        if (this.isGlobal()) {
+          return { apiVersion: 38.0, sfdcLoginUrl: 'https://fromfiles.com' };
+        } else {
+          return { apiVersion: 39.0, sfdcLoginUrl: 'https://fromfiles.com' };
+        }
+      };
+      $$.configStubs.SfdxProjectJson = { retrieveContents: read };
+      $$.configStubs.Config = { contents: { apiVersion: 40.0, instanceUrl: 'https://dontusethis.my.salesforce.com' } };
+      const project = await SfdxProject.resolve();
+      const config = await project.resolveProjectConfig();
+      expect(config['sfdcLoginUrl']).to.equal('https://fromfiles.com');
     });
     it('gets config overrides local', async () => {
       const read = async function () {

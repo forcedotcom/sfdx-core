@@ -125,7 +125,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   ): Promise<T> {
     let config: ConfigAggregator = ConfigAggregator.instance as ConfigAggregator;
     if (!config) {
-      config = ConfigAggregator.instance = (new this(options) as unknown) as ConfigAggregator;
+      config = ConfigAggregator.instance = new this(options) as unknown as ConfigAggregator;
       await config.init();
     }
     if (ConfigAggregator.encrypted) {
@@ -245,6 +245,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   public getConfigInfo(): ConfigInfo[] {
     const infos = Object.keys(this.getConfig())
+      .filter((key) => this.getAllowedProperties().some((element) => key === element.key))
       .map((key) => this.getInfo(key))
       .filter((info): info is ConfigInfo => !!info);
     return sortBy(infos, 'key');

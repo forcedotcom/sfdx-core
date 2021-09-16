@@ -4,8 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable camelcase */
+/* eslint-disable @typescript-eslint/ban-types */
+
 import * as dns from 'dns';
 import * as pathImport from 'path';
+import { URL } from 'url';
 import { cloneJson, env, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
@@ -25,7 +29,7 @@ import { Crypto } from '../../src/crypto';
 import { SfdxError } from '../../src/sfdxError';
 import { testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
-
+import { SfdcUrl } from '../../src/util/sfdcUrl';
 const TEST_KEY = {
   service: 'sfdx',
   account: 'local',
@@ -73,7 +77,7 @@ class MetaAuthDataMock {
   private _refreshToken = 'authInfoTest_refresh_token';
   private _encryptedRefreshToken: string = this._refreshToken;
   private _clientId = 'authInfoTest_client_id';
-  private _loginUrl = 'authInfoTest_login_url';
+  private _loginUrl = 'https://foo.bar.baz';
   private _jwtUsername = 'authInfoTest_username_JWT';
   private _redirectUri = 'http://localhost:1717/OauthRedirect';
   private _authCode = 'authInfoTest_authCode';
@@ -292,10 +296,17 @@ describe('AuthInfo', () => {
 
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
-      const responseBody = {
-        body: JSON.stringify({ Username: testMetadata.username }),
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: testMetadata.username, organization_id: testMetadata.orgId }),
       };
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      const userResponseBody = {
+        body: JSON.stringify({ Username: testMetadata.username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
       authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
 
       const crypto = await Crypto.create();
@@ -414,6 +425,7 @@ describe('AuthInfo', () => {
       const expectedFields = {
         accessToken: username,
         instanceUrl: testMetadata.instanceUrl,
+        loginUrl: testMetadata.instanceUrl,
       };
       expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
@@ -478,6 +490,17 @@ describe('AuthInfo', () => {
     });
 
     it('should return an AuthInfo instance when passed an access token and instanceUrl for the access token flow', async () => {
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: testMetadata.username, organization_id: testMetadata.orgId }),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: testMetadata.username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
 
@@ -495,6 +518,7 @@ describe('AuthInfo', () => {
       const expectedFields = {
         accessToken,
         instanceUrl: testMetadata.instanceUrl,
+        loginUrl: testMetadata.instanceUrl,
       };
       expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
@@ -617,8 +641,17 @@ describe('AuthInfo', () => {
     });
 
     it('should not cache when no username is supplied', async () => {
-      const responseBody = { body: JSON.stringify({ Username: undefined }) };
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: undefined, organization_id: undefined }),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: undefined }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
 
       const cacheSize = AuthInfo['cache'].size;
 
@@ -763,7 +796,8 @@ describe('AuthInfo', () => {
       stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string | Error, done: (v: Error) => {}) =>
         done(new Error('authInfoTest_ERROR_MSG'))
       );
-
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'lookup').throws(new Error('authInfoTest_ERROR_MSG'));
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'resolvesToSandbox').resolves(true);
       // Create the JWT AuthInfo instance
       const authInfo = await AuthInfo.create({
         username,
@@ -1011,8 +1045,17 @@ describe('AuthInfo', () => {
 
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
-      const responseBody = { body: JSON.stringify({ Username: username }) };
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: username, organization_id: testMetadata.orgId }),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
 
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
@@ -1028,7 +1071,7 @@ describe('AuthInfo', () => {
       expect(authInfoConnOpts['oauth2']).to.have.property('loginUrl', testMetadata.instanceUrl); // why is this instanceUrl?
       expect(authInfoConnOpts['oauth2']).to.have.property('clientId', testMetadata.defaultConnectedAppInfo.clientId);
       expect(authInfoConnOpts['oauth2']).to.have.property('redirectUri', testMetadata.redirectUri);
-      expect(authInfo.getUsername()).to.equal(username);
+      expect(authInfo.getUsername()).to.equal(username.toUpperCase());
       expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
       expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
       expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
@@ -1053,7 +1096,7 @@ describe('AuthInfo', () => {
       const expectedAuthConfig = {
         accessToken: authResponse.access_token,
         instanceUrl: testMetadata.instanceUrl,
-        username,
+        username: username.toUpperCase(),
         orgId: authResponse.id.split('/')[0],
         loginUrl: authCodeConfig.loginUrl,
         refreshToken: authResponse.refresh_token,
@@ -1098,8 +1141,17 @@ describe('AuthInfo', () => {
       };
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
       _postParmsStub.returns(Promise.resolve(authResponse));
-      const responseBody = { body: JSON.stringify({ Username: username }) };
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: username, organization_id: testMetadata.orgId }),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
       await AuthInfo.create({ oauth2Options: options, oauth2 });
       expect(authInfoExchangeToken.args.length).to.equal(1);
       expect(authInfoExchangeToken.args[0].length).to.equal(2);
@@ -1124,7 +1176,7 @@ describe('AuthInfo', () => {
       }
     });
 
-    it('should throw a AuthCodeUsernameRetrievalError when username retrieval fails after auth code exchange', async () => {
+    it('should throw a AuthCodeUsernameRetrievalError when userInfo retrieval fails after auth code exchange', async () => {
       const authCodeConfig = {
         authCode: testMetadata.authCode,
         loginUrl: testMetadata.loginUrl,
@@ -1138,7 +1190,104 @@ describe('AuthInfo', () => {
 
       // Stub the http request (OAuth2.requestToken())
       _postParmsStub.returns(Promise.resolve(authResponse));
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').throws(new Error('authInfoTest_ERROR_MSG'));
+      const userInfoResponseBody = {
+        statusCode: 404,
+        body: JSON.stringify([
+          {
+            message: 'Could not retrieve the username after successful auth code exchange.\nDue to: %s',
+            errorCode: 'AuthCodeUsernameRetrievalError',
+          },
+        ]),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: testMetadata.username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
+
+      // Create the auth code AuthInfo instance
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert.fail('should have thrown an error within AuthInfo.buildWebAuthConfig()');
+      } catch (err) {
+        expect(err.name).to.equal('AuthCodeUsernameRetrievalError');
+      }
+    });
+    it('should throw a AuthCodeUsernameRetrievalError when userInfo retrieval fails after auth code exchange', async () => {
+      const authCodeConfig = {
+        authCode: testMetadata.authCode,
+        loginUrl: testMetadata.loginUrl,
+      };
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testMetadata.refreshToken,
+      };
+
+      // Stub the http request (OAuth2.requestToken())
+      _postParmsStub.returns(Promise.resolve(authResponse));
+      const userInfoResponseBody = {
+        statusCode: 404,
+        body: JSON.stringify([
+          {
+            message: 'Could not retrieve the username after successful auth code exchange.\nDue to: %s',
+            errorCode: 'AuthCodeUsernameRetrievalError',
+          },
+        ]),
+      };
+      const userResponseBody = {
+        body: JSON.stringify({ Username: testMetadata.username.toUpperCase() }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
+
+      // Create the auth code AuthInfo instance
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert.fail('should have thrown an error within AuthInfo.buildWebAuthConfig()');
+      } catch (err) {
+        expect(err.name).to.equal('AuthCodeUsernameRetrievalError');
+      }
+    });
+
+    it('should throw a AuthCodeUsernameRetrievalError when user sobject retrieval fails after auth code exchange', async () => {
+      const authCodeConfig = {
+        authCode: testMetadata.authCode,
+        loginUrl: testMetadata.loginUrl,
+      };
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testMetadata.refreshToken,
+      };
+
+      // Stub the http request (OAuth2.requestToken())
+      _postParmsStub.returns(Promise.resolve(authResponse));
+      const userInfoResponseBody = {
+        body: JSON.stringify({ preferred_username: testMetadata.username, organization_id: testMetadata.orgId }),
+      };
+      const userResponseBody = {
+        statusCode: 404,
+        body: JSON.stringify([
+          {
+            message: 'Could not retrieve the username after successful auth code exchange.\nDue to: %s',
+            errorCode: 'AuthCodeUsernameRetrievalError',
+          },
+        ]),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .onFirstCall()
+        .returns(Promise.resolve(userInfoResponseBody))
+        .onSecondCall()
+        .returns(Promise.resolve(userResponseBody));
 
       // Create the auth code AuthInfo instance
       try {
@@ -1222,6 +1371,27 @@ describe('AuthInfo', () => {
       // Note that this also verifies the clientId and clientSecret are not persisted,
       // and that data is encrypted when saved (because we have to decrypt it to verify here).
       expect(decryptedActualFields).to.deep.equal(expectedFields);
+    });
+
+    it('should not save accesstoken files', async () => {
+      // invalid access token
+      const username =
+        '00DB0000000H3bm!AQcAQFpuHljRg_fn_n.0g_3GJTXeCI_sQEucmwq2o5yd3.mwof3ODbsfWrJ4MCro8DOjpaloqoRFzAJ8w8f.TrjRiSaFSpvo';
+
+      // Create the AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username,
+        accessTokenOptions: {
+          accessToken: username,
+          instanceUrl: testMetadata.instanceUrl,
+        },
+      });
+
+      expect(authInfo.getUsername()).to.equal(username);
+
+      configFileWrite.rejects(new Error('Should not call save'));
+      await authInfo.save();
+      // If the test doesn't blow up, it is a success because the write (reject) never happened
     });
   });
 
@@ -1384,9 +1554,9 @@ describe('AuthInfo', () => {
   });
 
   describe('getAuthorizationUrl()', () => {
-    let scope;
+    let scope: string;
     beforeEach(() => {
-      scope = env.getString('SFDX_AUTH_SCOPES');
+      scope = env.getString('SFDX_AUTH_SCOPES', '');
     });
     afterEach(() => {
       env.setString('SFDX_AUTH_SCOPES', scope);
@@ -1480,7 +1650,7 @@ describe('AuthInfo', () => {
       );
     });
 
-    it('should hanlde undefined client secret', async () => {
+    it('should handle undefined client secret', async () => {
       const username = 'authInfoTest_username_RefreshToken';
       const refreshTokenConfig = {
         refreshToken: testMetadata.refreshToken,
@@ -1508,6 +1678,62 @@ describe('AuthInfo', () => {
       expect(authInfo.getSfdxAuthUrl()).to.contain(
         `force://SalesforceDevelopmentExperience::${testMetadata.refreshToken}@mydevhub.localhost.internal.salesforce.com:6109`
       );
+    });
+
+    it('should handle undefined refresh token', async () => {
+      const username = 'authInfoTest_username_RefreshToken';
+      const refreshTokenConfig = {
+        refreshToken: testMetadata.refreshToken,
+        loginUrl: testMetadata.loginUrl,
+      };
+
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      };
+
+      // Stub the http request (OAuth2.refreshToken())
+      _postParmsStub.returns(Promise.resolve(authResponse));
+
+      // Create the refresh token AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username,
+        oauth2Options: refreshTokenConfig,
+      });
+
+      // delete the refresh token
+      delete authInfo.getFields().refreshToken;
+
+      expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined refreshToken');
+    });
+
+    it('should handle undefined instance url', async () => {
+      const username = 'authInfoTest_username_RefreshToken';
+      const refreshTokenConfig = {
+        refreshToken: testMetadata.refreshToken,
+        loginUrl: testMetadata.loginUrl,
+      };
+
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      };
+
+      // Stub the http request (OAuth2.refreshToken())
+      _postParmsStub.returns(Promise.resolve(authResponse));
+
+      // Create the refresh token AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username,
+        oauth2Options: refreshTokenConfig,
+      });
+
+      // delete the instance url
+      delete authInfo.getFields().instanceUrl;
+
+      expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined instanceUrl');
     });
   });
 
@@ -1615,53 +1841,117 @@ describe('AuthInfo', () => {
       expect(signStub.firstCall.args[0]).to.have.property('aud', expectedUrl);
     }
 
+    describe('internal urls', () => {
+      it('should use the correct audience URL for an internal URL (.internal)', async () => {
+        await runTest({ loginUrl: testMetadata.instanceUrl }, testMetadata.instanceUrl);
+      });
+
+      it('should use the correct audience URL for an internal URL (.vpod)', async () => {
+        const vpodUrl = 'http://mydevhub.vpod.salesforce.com';
+        await runTest({ loginUrl: vpodUrl }, vpodUrl);
+      });
+
+      it('should use the correct audience URL for an internal URL (.blitz)', async () => {
+        const blitzUrl = 'http://mydevhub.blitz.salesforce.com';
+        await runTest({ loginUrl: blitzUrl }, blitzUrl);
+      });
+
+      it('should use the correct audience URL for an internal URL (.stm)', async () => {
+        const stmUrl = 'http://mydevhub.stm.salesforce.com';
+        await runTest({ loginUrl: stmUrl }, stmUrl);
+      });
+    });
+
+    describe('sandboxes', () => {
+      it('should use the correct audience URL for a sandbox', async () => {
+        await runTest({ loginUrl: 'http://test.salesforce.com/foo/bar' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for createdOrgInstance beginning with "cs"', async () => {
+        await runTest({ createdOrgInstance: 'cs17' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for createdOrgInstance beginning with "CS"', async () => {
+        await runTest({ createdOrgInstance: 'CS17' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for createdOrgInstance ending with "s"', async () => {
+        await runTest({ createdOrgInstance: 'usa2s' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for createdOrgInstance capitalized and ending with "s"', async () => {
+        await runTest({ createdOrgInstance: 'IND2S' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for sandbox enhanced domains', async () => {
+        await runTest(
+          { loginUrl: 'https://customdomain--sandboxname.sandbox.my.salesforce.com' },
+          'https://test.salesforce.com'
+        );
+      });
+
+      it('should use the correct audience URL for scratch orgs with domains', async () => {
+        await runTest({ loginUrl: 'https://cs17.my.salesforce.com' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for scratch orgs with domains (capitalized)', async () => {
+        await runTest({ loginUrl: 'https://CS17.my.salesforce.com' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for scratch orgs without domains', async () => {
+        await runTest({ loginUrl: 'https://cs17.salesforce.com' }, 'https://test.salesforce.com');
+      });
+
+      it('should use the correct audience URL for a typical scratch org domain', async () => {
+        await runTest(
+          { loginUrl: 'https://computing-nosoftware-9542-dev-ed.cs77.my.salesforce.com' },
+          'https://test.salesforce.com'
+        );
+      });
+      it('should use the correct audience URL for scratch orgs without domains (capitalized)', async () => {
+        await runTest({ loginUrl: 'https://CS17.salesforce.com' }, 'https://test.salesforce.com');
+      });
+    });
+
+    describe('falcon', () => {
+      it('returns sandbox audience for falcon domains', async () => {
+        await runTest({ loginUrl: 'https://usa2s.sfdc-yfeipo.salesforce.com/' }, 'https://test.salesforce.com');
+      });
+
+      it('returns sandbox audience for falcon domains in india', async () => {
+        await runTest({ loginUrl: 'https://ind2s.sfdc-yfeipo.salesforce.com/' }, 'https://test.salesforce.com');
+      });
+
+      it('returns sandbox audience for weirdly uppercased falcon domains', async () => {
+        await runTest({ loginUrl: 'https://USA2S.sfdc-yfeipo.salesforce.com/' }, 'https://test.salesforce.com');
+      });
+
+      it('returns prod audience for falcon domains', async () => {
+        await runTest({ loginUrl: 'https://usa2.sfdc-yfeipo.salesforce.com/' }, 'https://login.salesforce.com');
+      });
+    });
+
     it('should use the correct audience URL for SFDX_AUDIENCE_URL env var', async () => {
       process.env.SFDX_AUDIENCE_URL = 'http://authInfoTest/audienceUrl/test';
       await runTest({}, process.env.SFDX_AUDIENCE_URL);
     });
 
-    it('should use the correct audience URL for a sandbox', async () => {
-      await runTest({ loginUrl: 'http://test.salesforce.com/foo/bar' }, 'https://test.salesforce.com');
-    });
-
-    it('should use the correct audience URL for an internal URL (.internal)', async () => {
-      await runTest({ loginUrl: testMetadata.instanceUrl }, testMetadata.instanceUrl);
-    });
-
-    it('should use the correct audience URL for an internal URL (.vpod)', async () => {
-      const vpodUrl = 'http://mydevhub.vpod.salesforce.com';
-      await runTest({ loginUrl: vpodUrl }, vpodUrl);
-    });
-
-    it('should use the correct audience URL for an internal URL (.blitz)', async () => {
-      const blitzUrl = 'http://mydevhub.blitz.salesforce.com';
-      await runTest({ loginUrl: blitzUrl }, blitzUrl);
-    });
-
-    it('should use the correct audience URL for an internal URL (.stm)', async () => {
-      const stmUrl = 'http://mydevhub.stm.salesforce.com';
-      await runTest({ loginUrl: stmUrl }, stmUrl);
-    });
-
-    it('should use the correct audience URL for an internal URL (.mobile1)', async () => {
-      const mobile1Url = 'http://mobile1.t.salesforce.com';
-      await runTest({ loginUrl: mobile1Url }, mobile1Url);
-    });
-
-    it('should use the correct audience URL for createdOrgInstance beginning with "cs"', async () => {
-      await runTest({ createdOrgInstance: 'cs17' }, 'https://test.salesforce.com');
-    });
-
-    it('should use the correct audience URL for createdOrgInstance ending with "s"', async () => {
-      await runTest({ createdOrgInstance: 'usa2s' }, 'https://test.salesforce.com');
-    });
-
-    it('should use the correct audience URL for createdOrgInstance capitalized and ending with "s"', async () => {
-      await runTest({ createdOrgInstance: 'IND2S' }, 'https://test.salesforce.com');
-    });
-
     it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
       await runTest({ createdOrgInstance: 'gs1' }, 'https://gs1.salesforce.com');
+    });
+
+    it('should use the correct audience URL for production enhanced domains', async () => {
+      await runTest({ loginUrl: 'https://customdomain.my.salesforce.com' }, 'https://login.salesforce.com');
+    });
+    it('should use correct audience url derived from cname in salesforce.com', async () => {
+      const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'resolvesToSandbox').resolves(true);
+      await runTest({ loginUrl: sandboxNondescriptUrl.toString() }, 'https://test.salesforce.com');
+    });
+    it('should use correct audience url derived from cname in force.com', async () => {
+      const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'resolvesToSandbox').resolves(true);
+      await runTest({ loginUrl: sandboxNondescriptUrl.toString() }, 'https://test.salesforce.com');
     });
   });
 
@@ -1681,22 +1971,18 @@ describe('AuthInfo', () => {
 
   describe('hasAuthentications', () => {
     it('should return false', async () => {
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(
-        async (): Promise<string[]> => {
-          return Promise.resolve([]);
-        }
-      );
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+        return Promise.resolve([]);
+      });
 
       const result: boolean = await AuthInfo.hasAuthentications();
       expect(result).to.be.false;
     });
 
     it('should return true', async () => {
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(
-        async (): Promise<string[]> => {
-          return Promise.resolve(['file1']);
-        }
-      );
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+        return Promise.resolve(['file1']);
+      });
 
       const result: boolean = await AuthInfo.hasAuthentications();
       expect(result).to.be.equal(true);
@@ -1905,6 +2191,19 @@ describe('AuthInfo', () => {
       expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
     });
 
+    it('should parse the token that includes = for padding', () => {
+      const options = AuthInfo.parseSfdxAuthUrl(
+        'force://PlatformCLI::5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYU==@test.my.salesforce.com'
+      );
+
+      expect(options.refreshToken).to.equal(
+        '5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYU=='
+      );
+      expect(options.clientId).to.equal('PlatformCLI');
+      expect(options.clientSecret).to.equal('');
+      expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
+    });
+
     it('should parse the correct url with client secret', () => {
       const options = AuthInfo.parseSfdxAuthUrl(
         'force://3MVG9SemV5D80oBfPBCgboxuJ9cOMLWNM1DDOZ8zgvJGsz13H3J66coUBCFF3N0zEgLYijlkqeWk4ot_Q2.4o:438437816653243682:5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com'
@@ -1928,6 +2227,96 @@ describe('AuthInfo', () => {
         assert.fail();
       } catch (e) {
         expect(e.name).to.equal('INVALID_SFDX_AUTH_URL');
+      }
+    });
+  });
+  describe('Handle User Get Errors', () => {
+    let authCodeConfig: any;
+    beforeEach(async () => {
+      authCodeConfig = {
+        authCode: testMetadata.authCode,
+        loginUrl: testMetadata.loginUrl,
+      };
+      const authResponse = {
+        access_token: testMetadata.accessToken,
+        instance_url: testMetadata.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testMetadata.refreshToken,
+      };
+
+      // Stub the http requests (OAuth2.requestToken() and the request for the username)
+      _postParmsStub.returns(Promise.resolve(authResponse));
+    });
+    it('user get returns 403 with body of json array', async () => {
+      const responseBody = {
+        statusCode: 403,
+        body: JSON.stringify([
+          {
+            message: 'The REST API is not enabled for this Organization',
+            errorCode: 'RESTAPINOTENABLED',
+          },
+        ]),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
+      }
+    });
+    it('user get returns 403 with body of json map', async () => {
+      const responseBody = {
+        statusCode: 403,
+        body: JSON.stringify({
+          message: 'The REST API is not enabled for this Organization',
+          errorCode: 'RESTAPINOTENABLED',
+        }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
+      }
+    });
+    it('user get returns 403 with string body', async () => {
+      const responseBody = {
+        statusCode: 403,
+        body: 'The REST API is not enabled for this Organization',
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
+      }
+    });
+    it('user get returns server error with no body', async () => {
+      const responseBody = {
+        statusCode: 500,
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('UNKNOWN');
+      }
+    });
+    it('user get returns server error with html body', async () => {
+      const responseBody = {
+        statusCode: 500,
+        body: '<html lang=""><body>Server error occurred, please contact Salesforce Support if the error persists</body></html>',
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(Promise.resolve(responseBody));
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('Server error occurred');
       }
     });
   });

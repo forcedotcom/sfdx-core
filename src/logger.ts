@@ -8,7 +8,6 @@ import { EventEmitter } from 'events';
 import * as os from 'os';
 import * as path from 'path';
 import { Writable } from 'stream';
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import * as Bunyan from '@salesforce/bunyan';
 import { parseJson, parseJsonMap } from '@salesforce/kit';
@@ -187,7 +186,7 @@ export interface LogLine {
  * ```
  * **See** https://github.com/forcedotcom/node-bunyan
  *
- * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_log_messages.htm
+ * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_log_messages.htm
  */
 export class Logger {
   /**
@@ -220,11 +219,15 @@ export class Logger {
   // The sfdx root logger singleton
   private static rootLogger?: Logger;
 
+  /**
+   * Whether debug is enabled for this Logger.
+   */
+  public debugEnabled = false;
+
   // The actual Bunyan logger
   private bunyan: Bunyan;
 
   private readonly format: LoggerFormat;
-  private debugEnabled = false;
 
   /**
    * Constructs a new `Logger`.
@@ -894,18 +897,7 @@ const _filter = (...args: unknown[]): unknown => {
         _arg = _arg.replace(keyRegex, `$1${hiddenAttrMessage}`);
       });
 
-      // This is a jsforce message we are masking. This can be removed after the following pull request is committed
-      // and pushed to a jsforce release.
-      //
-      // Looking  For: "Refreshed access token = ..."
-      // Related Jsforce pull requests:
-      //  https://github.com/jsforce/jsforce/pull/598
-      //  https://github.com/jsforce/jsforce/pull/608
-      //  https://github.com/jsforce/jsforce/pull/609
-      const jsForceTokenRefreshRegEx = new RegExp('Refreshed(.*)access(.*)token(.*)=\\s*[^\'"\\s*]*');
-      _arg = _arg.replace(jsForceTokenRefreshRegEx, `<refresh_token - ${HIDDEN}>`);
-
-      _arg = _arg.replace(/sid=(.*)/, `sid=<${HIDDEN}>`);
+      _arg = _arg.replace(/(00D\w{12,15})![.\w]*/, `<${HIDDEN}>`);
 
       // return an object if an object was logged; otherwise return the filtered string.
       return isObject(arg) ? parseJson(_arg) : _arg;

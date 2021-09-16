@@ -5,42 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { URL } from 'url';
 import { findKey } from '@salesforce/kit';
 import { AnyJson, asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { SfdcUrl } from './sfdcUrl';
 
 export const sfdc = {
-  /**
-   * Returns `true` if a provided URL contains a Salesforce owned domain.
-   *
-   * @param urlString The URL to inspect.
-   */
-  isSalesforceDomain: (urlString: string): boolean => {
-    let url: URL;
-
-    try {
-      url = new URL(urlString);
-    } catch (e) {
-      return false;
-    }
-
-    // Source https://help.salesforce.com/articleView?id=000003652&type=1
-    const allowlistOfSalesforceDomainPatterns: string[] = [
-      '.cloudforce.com',
-      '.content.force.com',
-      '.force.com',
-      '.salesforce.com',
-      '.salesforceliveagent.com',
-      '.secure.force.com',
-    ];
-
-    const allowlistOfSalesforceHosts: string[] = ['developer.salesforce.com', 'trailhead.salesforce.com'];
-
-    return allowlistOfSalesforceDomainPatterns.some((pattern) => {
-      return url.hostname.endsWith(pattern) || allowlistOfSalesforceHosts.includes(url.hostname);
-    });
-  },
-
   /**
    * Converts an 18 character Salesforce ID to 15 characters.
    *
@@ -120,4 +89,11 @@ export const sfdc = {
   matchesAccessToken: (value: string): boolean => {
     return /^(00D\w{12,15})![.\w]*$/.test(value);
   },
+
+  /**
+   * Tests whether a given url is an internal Salesforce domain
+   *
+   * @param url
+   */
+  isInternalUrl: (url: string): boolean => new SfdcUrl(url).isInternalUrl(),
 };

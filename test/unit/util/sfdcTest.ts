@@ -8,24 +8,6 @@ import { expect } from 'chai';
 import { sfdc } from '../../../src/util/sfdc';
 
 describe('util/sfdc', () => {
-  describe('isSalesforceDomain', () => {
-    it('is allowlist domain', () => {
-      expect(sfdc.isSalesforceDomain('http://www.salesforce.com')).to.be.true;
-    });
-
-    it('is not allowlist or host', () => {
-      expect(sfdc.isSalesforceDomain('http://www.ghostbusters.com')).to.be.false;
-    });
-
-    it('is allowlist host', () => {
-      expect(sfdc.isSalesforceDomain('http://developer.salesforce.com')).to.be.true;
-    });
-
-    it('falsy', () => {
-      expect(sfdc.isSalesforceDomain(undefined)).to.be.false;
-    });
-  });
-
   it('should trim an 18 character id to 15 characters', () => {
     const id: string = sfdc.trimTo15('ABCDEFGHIJKLMNOPQR');
     const trimmed = sfdc.trimTo15(id);

@@ -165,7 +165,7 @@ export class KeychainAccess implements PasswordStore {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    credManager.on('close', async (code) => {
+    credManager.on('close', async (code: number) => {
       try {
         return await this.osImpl.onGetCommandClose(code, stdout, stderr, opts, fn);
       } catch (e) {
@@ -310,7 +310,6 @@ const _linuxImpl: OsImpl = {
       // This is a workaround for linux.
       // Calling secret-tool too fast can cause it to return an unexpected error. (below)
       if (stderr != null && stderr.includes('invalid or unencryptable secret')) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore TODO: make an error subclass with this field
         error.retry = true;
 
@@ -622,7 +621,9 @@ export class GenericWindowsKeychainAccess extends GenericKeychainAccess {
  * @ignore
  */
 export const keyChainImpl = {
+  // eslint-disable-next-line camelcase
   generic_unix: new GenericUnixKeychainAccess(),
+  // eslint-disable-next-line camelcase
   generic_windows: new GenericWindowsKeychainAccess(),
   darwin: new KeychainAccess(_darwinImpl, nodeFs),
   linux: new KeychainAccess(_linuxImpl, nodeFs),

@@ -246,7 +246,6 @@ describe('Config', () => {
       config = await TestConfig.create(TestConfig.getOptions('test', false, true));
       expect(readJsonMapStub.calledOnce).to.be.true;
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal(testFileContents);
@@ -265,7 +264,6 @@ describe('Config', () => {
       config = await TestConfig.create(TestConfig.getOptions('test', false, true));
       expect(readJsonMapStub.calledOnce).to.be.true;
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal({});
@@ -293,7 +291,6 @@ describe('Config', () => {
     it('sets hasRead=false by default', async () => {
       const configOptions = TestConfig.getOptions('test', false, true);
       const testConfig = new TestConfig(configOptions);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(testConfig.hasRead).to.be.false;
     });
@@ -304,7 +301,6 @@ describe('Config', () => {
       config = await TestConfig.create(TestConfig.getOptions('test', false, true));
       expect(readJsonMapStub.calledOnce).to.be.true;
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal(testFileContents);
@@ -336,12 +332,10 @@ describe('Config', () => {
       config = new TestConfig(TestConfig.getOptions('test', false, true));
       expect(readJsonMapStub.calledOnce).to.be.false;
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.false;
 
       config.readSync(false, false);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal(testFileContents);
@@ -361,7 +355,6 @@ describe('Config', () => {
       config.readSync();
       expect(readJsonMapStub.calledOnce).to.be.true;
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal({});

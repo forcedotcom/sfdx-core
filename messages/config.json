@@ -6,7 +6,7 @@
   "InvalidCustomOrgMetadataTemplates": "Specify a valid repository URL or directory for the custom org metadata templates.",
   "InvalidIsvDebuggerSid": "Specify a valid Debugger SID",
   "InvalidIsvDebuggerUrl": "Specify a valid Debugger URL",
-  "InvalidNumberConfigValue": "Specify a valid number, for example, 150000",
+  "InvalidNumberConfigValue": "Specify a valid positive integer, for example, 150000",
   "InvalidBooleanConfigValue": "The config value can only be set to true or false.",
   "InvalidProjectWorkspace": "This directory does not contain a valid Salesforce DX project",
   "SchemaValidationWarning": "The config file: %s is not schema valid\nDue to: %s",

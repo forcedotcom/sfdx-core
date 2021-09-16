@@ -6,12 +6,13 @@
  */
 
 import { keyBy, set } from '@salesforce/kit';
-import { Dictionary, ensure, isNumber, isString } from '@salesforce/ts-types';
+import { Dictionary, ensure, isString } from '@salesforce/ts-types';
 import { Logger } from '../logger';
 import { Crypto } from '../crypto';
 import { Messages } from '../messages';
 import { SfdxError } from '../sfdxError';
 import { sfdc } from '../util/sfdc';
+import { SfdcUrl } from '../util/sfdcUrl';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -76,11 +77,15 @@ export interface ConfigPropertyMetaInput {
 export class Config extends ConfigFile<ConfigFile.Options> {
   /**
    * Username associated with the default dev hub org.
+   *
+   * @deprecated Replaced by OrgConfigProperties.TARGET_DEV_HUB in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   public static readonly DEFAULT_DEV_HUB_USERNAME: string = 'defaultdevhubusername';
 
   /**
    * Username associate with the default org.
+   *
+   * @deprecated Replaced by OrgConfigProperties.TARGET_ORG in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   public static readonly DEFAULT_USERNAME: string = 'defaultusername';
 
@@ -123,7 +128,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
       key: 'instanceUrl',
       input: {
         // If a value is provided validate it otherwise no value is unset.
-        validator: (value) => value == null || (isString(value) && sfdc.isSalesforceDomain(value)),
+        validator: (value) => value == null || (isString(value) && new SfdcUrl(value).isSalesforceDomain()),
         get failedMessage() {
           return Config.messages?.getMessage('InvalidInstanceUrl');
         },
@@ -196,7 +201,9 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     {
       key: Config.MAX_QUERY_LIMIT,
       input: {
-        validator: (value) => isNumber(value),
+        // the bit shift will remove the negative bit, and any decimal numbers
+        // then the parseFloat will handle converting it to a number from a string
+        validator: (value) => (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
         get failedMessage() {
           return Config.messages?.getMessage('InvalidNumberConfigValue');
         },
@@ -438,7 +445,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
    */
   private async cryptProperties(encrypt: boolean): Promise<void> {
     const hasEncryptedProperties = this.entries().some(([key]) => {
-      return !!ensure(Config.propertyConfigMap[key]).encrypted;
+      return !!Config.propertyConfigMap[key]?.encrypted;
     });
 
     if (hasEncryptedProperties) {

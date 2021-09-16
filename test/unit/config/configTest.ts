@@ -63,7 +63,6 @@ describe('Config', () => {
         .returns(Promise.resolve(clone(configFileContents)));
 
       // Manipulate config.hasRead to force a read
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore -> hasRead is protected. Ignore for testing.
       config.hasRead = false;
 
@@ -146,6 +145,74 @@ describe('Config', () => {
           expect(err).to.have.property('name', 'InvalidConfigValue');
         }
       });
+      describe('maxQueryLimit', () => {
+        it('will throw an error when value is mixed alphanumeric', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', '123abc');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
+        it('will throw an error when value is not numeric', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', 'abc');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
+
+        it('will throw an error when value is negative', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', '-123');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
+
+        it('will throw an error when value is negative decimal', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', '-123.456');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
+        it('will throw an error when value is negative integer', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', '-123');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
+        it('will throw an error when value is 0', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          try {
+            config.set('maxQueryLimit', '0');
+            assert.fail('Expected an error to be thrown.');
+          } catch (err) {
+            expect(err).to.have.property('name', 'InvalidConfigValue');
+          }
+        });
+        it('will set config value with stringified number', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const res = config.set('maxQueryLimit', '123');
+          expect(res.maxQueryLimit).to.equal('123');
+        });
+        it('will set config value with as number as it should be', async () => {
+          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const res = config.set('maxQueryLimit', 123);
+          expect(res.maxQueryLimit).to.equal(123);
+        });
+      });
     });
 
     it('PropertyInput validation', async () => {
@@ -199,6 +266,15 @@ describe('Config', () => {
       await config.write();
 
       expect(writeStub.called).to.be.true;
+    });
+
+    it('calls ConfigFile.read with unknown key and does not throw on crypt', async () => {
+      stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
+        this.setContentsFromObject({ unknown: 'unknown config key and value' });
+      });
+
+      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      expect(config).to.exist;
     });
   });
 

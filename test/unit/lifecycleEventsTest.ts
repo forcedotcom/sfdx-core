@@ -14,6 +14,7 @@ const $$ = testSetup();
 
 describe('lifecycleEvents', () => {
   class Foo {
+    // eslint-disable-next-line @typescript-eslint/ban-types
     public bar(name: string, result: {}) {
       return result[name];
     }

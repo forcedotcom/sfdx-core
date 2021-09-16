@@ -196,6 +196,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    *
    * @param {object} obj The object.
    */
+  // eslint-disable-next-line @typescript-eslint/ban-types
   public setContentsFromObject<U extends object>(obj: U): void {
     const contents = new Map<string, ConfigValue>(Object.entries(obj));
     Array.from(contents.entries()).forEach(([groupKey, groupContents]) => {

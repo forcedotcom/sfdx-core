@@ -5,8 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { URL } from 'url';
-import { Duration, maxBy, merge } from '@salesforce/kit';
-import { asString, ensure, getNumber, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
+import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
+import { Callback } from 'jsforce/connection';
+import { Duration, maxBy, merge, env } from '@salesforce/kit';
+import {
+  asString,
+  ensure,
+  getNumber,
+  getString,
+  isString,
+  JsonCollection,
+  JsonMap,
+  Nullable,
+  Optional,
+} from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionOptions,
@@ -16,9 +28,11 @@ import {
   RequestInfo,
   Tooling as JSForceTooling,
 } from 'jsforce';
+// no types for Transport
+// @ts-ignore
+import * as Transport from 'jsforce/lib/transport';
 import { AuthFields, AuthInfo } from './authInfo';
 import { MyDomainResolver } from './status/myDomainResolver';
-
 import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
@@ -28,7 +42,6 @@ import { sfdc } from './util/sfdc';
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
  * jsforce which expects .thenCall. Add .thenCall to the node promise to prevent breakage.
  */
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 Promise.prototype.thenCall = JsforcePromise.prototype.thenCall;
 
@@ -39,6 +52,8 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'Domain Not Found';
+type recentValidationOptions = { id: string; rest?: boolean };
+export type DeployOptionsWithRest = DeployOptions & { rest?: boolean };
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
@@ -98,6 +113,7 @@ export class Connection extends JSForceConnection {
 
     this.options = options;
   }
+
   /**
    * Creates an instance of a Connection. Performs additional async initializations.
    *
@@ -107,29 +123,49 @@ export class Connection extends JSForceConnection {
     this: new (options: Connection.Options) => Connection,
     options: Connection.Options
   ): Promise<Connection> {
-    const configAggregator = options.configAggregator || (await ConfigAggregator.create());
-    const versionFromConfig = asString(configAggregator.getInfo('apiVersion').value);
     const baseOptions: ConnectionOptions = {
-      // Set the API version obtained from the config aggregator.
-      // Will use jsforce default if undefined.
-      version: versionFromConfig,
+      version: options.connectionOptions?.version,
       callOptions: {
         client: clientId,
       },
     };
+
+    if (!baseOptions.version) {
+      // Set the API version obtained from the config aggregator.
+      const configAggregator = options.configAggregator || (await ConfigAggregator.create());
+      baseOptions.version = asString(configAggregator.getInfo('apiVersion').value);
+    }
 
     // Get connection options from auth info and create a new jsForce connection
     options.connectionOptions = Object.assign(baseOptions, options.authInfo.getConnectionOptions());
 
     const conn = new this(options);
     await conn.init();
-    // verifies that subsequent requests to org will not hit DNS errors
 
-    if (!versionFromConfig) {
-      await conn.useLatestApiVersion();
+    try {
+      // No version passed in or in the config, so load one.
+      if (!baseOptions.version) {
+        const cachedVersion = await conn.loadInstanceApiVersion();
+        if (cachedVersion) {
+          conn.setApiVersion(cachedVersion);
+        }
+      } else {
+        conn.logger.debug(
+          `The apiVersion ${baseOptions.version} was found from ${
+            options.connectionOptions?.version ? 'passed in options' : 'config'
+          }`
+        );
+      }
+    } catch (e) {
+      if (e.name === DNS_ERROR_NAME) {
+        throw e;
+      }
+      conn.logger.debug(`Error trying to load the API version: ${e.name} - ${e.message}`);
     }
+    conn.logger.debug(`Using apiVersion ${conn.getApiVersion()}`);
     return conn;
   }
+
   /**
    * Async initializer.
    */
@@ -139,18 +175,74 @@ export class Connection extends JSForceConnection {
   }
 
   /**
+   * TODO: This should be moved into JSForce V2 once ready
+   * this is only a temporary solution to support both REST and SOAP APIs
+   *
+   * deploy a zipped buffer from the SDRL with REST or SOAP
+   *
+   * @param zipInput data to deploy
+   * @param options JSForce deploy options + a boolean for rest
+   * @param callback
+   */
+  public async deploy(
+    zipInput: Buffer,
+    options: DeployOptionsWithRest,
+    callback?: Callback<AsyncResult>
+  ): Promise<DeployResultLocator<AsyncResult>> {
+    const rest = options.rest;
+    // neither API expects this option
+    delete options.rest;
+    if (rest) {
+      this.logger.debug('deploy with REST');
+      const headers = {
+        Authorization: this && `OAuth ${this.accessToken}`,
+        clientId: this.oauth2 && this.oauth2.clientId,
+        'Sforce-Call-Options': 'client=sfdx-core',
+      };
+      const url = `${this.baseUrl()}/metadata/deployRequest`;
+      const request = Transport.prototype._getHttpRequestModule();
+
+      return new Promise((resolve, reject) => {
+        const req = request.post(url, { headers }, (err: Error, httpResponse: { statusCode: number }, body: string) => {
+          let res;
+          try {
+            res = JSON.parse(body);
+          } catch (e) {
+            reject(SfdxError.wrap(body));
+          }
+          resolve(res);
+        });
+        const form = req.form();
+
+        // Add the zip file
+        form.append('file', zipInput, {
+          contentType: 'application/zip',
+          filename: 'package.xml',
+        });
+
+        // Add the deploy options
+        form.append('entity_content', JSON.stringify({ deployOptions: options }), {
+          contentType: 'application/json',
+        });
+      });
+    } else {
+      this.logger.debug('deploy with SOAP');
+      return this.metadata.deploy(zipInput, options, callback);
+    }
+  }
+
+  /**
    * Send REST API request with given HTTP request info, with connected session information
    * and SFDX headers.
    *
    * @param request HTTP request object or URL to GET request.
    * @param options HTTP API request options.
    */
-  public async request(request: RequestInfo | string, options?: JsonMap): Promise<JsonCollection> {
+  public async request<T = JsonCollection>(request: RequestInfo | string, options?: JsonMap): Promise<T> {
     const requestInfo: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
     requestInfo.headers = Object.assign({}, SFDX_HTTP_HEADERS, requestInfo.headers);
     this.logger.debug(`request: ${JSON.stringify(requestInfo)}`);
-    //  The "as" is a workaround for the jsforce typings.
-    return super.request(requestInfo, options) as Promise<JsonCollection>;
+    return super.request<T>(requestInfo, options);
   }
 
   /**
@@ -181,12 +273,44 @@ export class Connection extends JSForceConnection {
   }
 
   /**
+   * TODO: This should be moved into JSForce V2 once ready
+   * this is only a temporary solution to support both REST and SOAP APIs
+   *
+   * Will deploy a recently validated deploy request
+   *
+   * @param options.id = the deploy ID that's been validated already from a previous checkOnly deploy request
+   * @param options.rest = a boolean whether or not to use the REST API
+   */
+  public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
+    const rest = options.rest;
+    delete options.rest;
+    if (rest) {
+      const url = `${this.baseUrl()}/metadata/deployRequest`;
+      const messageBody = JSON.stringify({
+        validatedDeployRequestId: options.id,
+      });
+      const requestInfo = {
+        method: 'POST',
+        url,
+        body: messageBody,
+      };
+      const requestOptions = { headers: 'json' };
+      return this.request(requestInfo, requestOptions);
+    } else {
+      // the _invoke is private in jsforce, we can call the SOAP deployRecentValidation like this
+      // @ts-ignore
+      return this.metadata['_invoke']('deployRecentValidation', {
+        validationId: options.id,
+      }) as JsonCollection;
+    }
+  }
+  /**
    * Retrieves the highest api version that is supported by the target server instance.
    */
   public async retrieveMaxApiVersion(): Promise<string> {
     await this.isResolvable();
     type Versioned = { version: string };
-    const versions = (await this.request(`${this.instanceUrl}/services/data`)) as Versioned[];
+    const versions = await this.request<Versioned[]>(`${this.instanceUrl}/services/data`);
     this.logger.debug(`response for org versions: ${versions.map((item) => item.version).join(',')}`);
     const max = ensure(maxBy(versions, (version: Versioned) => version.version));
 
@@ -218,8 +342,6 @@ export class Connection extends JSForceConnection {
     }
     const resolver = await MyDomainResolver.create({
       url: new URL(this.options.connectionOptions.instanceUrl),
-      timeout: Duration.seconds(10),
-      frequency: Duration.seconds(10),
     });
     try {
       await resolver.resolve();
@@ -229,6 +351,7 @@ export class Connection extends JSForceConnection {
         'Verify that the org still exists',
         'If your org is newly created, wait a minute and run your command again',
         "If you deployed or updated the org's My Domain, logout from the CLI and authenticate again",
+        'If you are running in a CI environment with a DNS that blocks external IPs, try setting SFDX_DISABLE_DNS_CHECK=true',
       ]);
     }
   }
@@ -361,6 +484,57 @@ export class Connection extends JSForceConnection {
       );
     }
     return result.records[0];
+  }
+
+  private async loadInstanceApiVersion(): Promise<Nullable<string>> {
+    const authFileFields = this.options.authInfo.getFields();
+    const lastCheckedDateString = authFileFields.instanceApiVersionLastRetrieved;
+    let version = getString(authFileFields, 'instanceApiVersion');
+    let lastChecked: Optional<number>;
+
+    try {
+      if (lastCheckedDateString && isString(lastCheckedDateString)) {
+        lastChecked = Date.parse(lastCheckedDateString);
+      }
+    } catch (e) {
+      /* Do nothing, it will just request the version again */
+    }
+
+    // Grab the latest api version from the server and cache it in the auth file
+    const useLatest = async () => {
+      // verifies DNS
+      await this.useLatestApiVersion();
+      version = this.getApiVersion();
+      await this.options.authInfo.save({
+        instanceApiVersion: version,
+        // This will get messed up if the user changes their local time on their machine.
+        // Not a big deal since it will just get updated sooner/later.
+        instanceApiVersionLastRetrieved: new Date().toLocaleString(),
+      });
+    };
+
+    const ignoreCache = env.getBoolean('SFDX_IGNORE_API_VERSION_CACHE', false);
+    if (lastChecked && !ignoreCache) {
+      const now = new Date();
+      const has24HoursPastSinceLastCheck = now.getTime() - lastChecked > Duration.hours(24).milliseconds;
+      this.logger.debug(
+        `Last checked on ${lastCheckedDateString} (now is ${now.toLocaleString()}) - ${
+          has24HoursPastSinceLastCheck ? '' : 'not '
+        }getting latest`
+      );
+      if (has24HoursPastSinceLastCheck) {
+        await useLatest();
+      }
+    } else {
+      this.logger.debug(
+        `Using the latest because lastChecked=${lastChecked} and SFDX_IGNORE_API_VERSION_CACHE=${ignoreCache}`
+      );
+      // No version found in the file (we never checked before)
+      // so get the latest.
+      await useLatest();
+    }
+    this.logger.debug(`Loaded latest apiVersion ${version}`);
+    return version;
   }
 }
 
