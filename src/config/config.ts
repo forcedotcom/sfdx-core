@@ -110,6 +110,11 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   public static readonly DISABLE_TELEMETRY = 'disableTelemetry';
 
   /**
+   * Custom templates repo or local location.
+   */
+  public static readonly CUSTOM_ORG_METADATA_TEMPLATES = 'customOrgMetadataTemplates';
+
+  /**
    * allows users to override the 10,000 result query limit
    */
   public static readonly MAX_QUERY_LIMIT = 'maxQueryLimit';
@@ -137,6 +142,16 @@ export class Config extends ConfigFile<ConfigFile.Options> {
         validator: (value) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
         get failedMessage() {
           return Config.messages?.getMessage('InvalidApiVersion');
+        },
+      },
+    },
+    {
+      key: Config.CUSTOM_ORG_METADATA_TEMPLATES,
+      input: {
+        // If a value is provided validate it otherwise no value is unset.
+        validator: (value) => value == null || isString(value),
+        get failedMessage() {
+          return Config.messages?.getMessage('InvalidCustomOrgMetadataTemplates');
         },
       },
     },
