@@ -7,7 +7,7 @@
 export class Cache extends Map {
   /* eslint-disable @typescript-eslint/explicit-member-accessibility */
   static #instance: Cache;
-  static #enabled: boolean;
+  static #enabled = true;
   #hits: number;
   #lookups: number;
   /* eslint-enable @typescript-eslint/explicit-member-accessibility */
@@ -27,6 +27,7 @@ export class Cache extends Map {
   }
 
   public static set<V>(key: string, value: V) {
+    Cache.instance();
     if (Cache.#enabled) {
       Cache.instance().set(key, value);
     }
