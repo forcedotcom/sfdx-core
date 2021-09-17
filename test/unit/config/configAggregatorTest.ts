@@ -11,6 +11,7 @@ import { ConfigFile } from '../../../src/config/configFile';
 import { OrgConfigProperties } from '../../../src/exported';
 import { testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
+import { Cache } from '../../../lib/util/cache';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -18,6 +19,7 @@ const $$ = testSetup();
 describe('ConfigAggregator', () => {
   let id: string;
   beforeEach(() => {
+    Cache.instance().clear();
     // Testing config functionality, so restore global stubs.
     $$.SANDBOXES.CONFIG.restore();
 

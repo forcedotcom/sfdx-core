@@ -13,6 +13,7 @@ import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, env } from '@salesforce/kit';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
+import { Cache } from '../util/cache';
 import { retrieveKeychain } from './keyChain';
 import { KeyChain } from './keyChainImpl';
 import { SecureBuffer } from './secureBuffer';
@@ -40,6 +41,12 @@ interface CredType {
   password: string;
 }
 
+const makeSecureBuffer = (password: string | undefined): SecureBuffer<string> => {
+  const newSb = new SecureBuffer<string>();
+  newSb.consume(Buffer.from(ensure(password), 'utf8'));
+  return newSb;
+};
+
 /**
  * osxKeyChain promise wrapper.
  */
@@ -52,12 +59,22 @@ const keychainPromises = {
    * @param account The keychain account name.
    */
   getPassword(_keychain: KeyChain, service: string, account: string): Promise<CredType> {
-    return new Promise((resolve, reject): {} =>
-      _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
-        if (err) return reject(err);
-        return resolve({ username: account, password: ensure(password) });
-      })
-    );
+    const sb = Cache.get<SecureBuffer<string>>(`${service}:${account}`);
+    if (!sb) {
+      return new Promise((resolve, reject): {} => {
+        return _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
+          if (err) return reject(err);
+          Cache.set(`${service}:${account}`, makeSecureBuffer(password));
+          return resolve({ username: account, password: ensure(password) });
+        });
+      });
+    } else {
+      const pw = sb.value((buffer) => buffer.toString('utf8'));
+      Cache.set(`${service}:${account}`, makeSecureBuffer(pw));
+      return new Promise((resolve): void => {
+        return resolve({ username: account, password: ensure(pw) });
+      });
+    }
   },
 
   /**
