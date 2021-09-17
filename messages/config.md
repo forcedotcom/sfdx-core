@@ -73,19 +73,19 @@ The sfdx-project.json file must include one, and only one, default package direc
 
 # targetOrg
 
-The target to be used for any command communicating with an org.
+Username or alias of the org that all commands run against by default. (sf only)
 
 # targetDevHub
 
-The target to be used for any command communicating with a dev hub org.
+Username or alias of your default Dev Hub org. (sf only)
 
 # defaultUsername
 
-Default username to use for a given command
+Username or alias of the org that all commands run against by default. (sfdx only)
 
 # defaultDevHubUsername
 
-Default dev hub org
+Username or alias of your default Dev Hub org. (sfdx only)
 
 # isvDebuggerSid
 
@@ -97,20 +97,20 @@ ISV debugger URL
 
 # apiVersion
 
-API version to use when making requests to app server
+API version of your project. Default: API version of your Dev Hub org. 
 
 # disableTelemetry
 
-Disable telemetry
+Disables the collection of usage and user environment information, etc. Default: true.
 
 # maxQueryLimit
 
-Maximum rows to return for a SOQL query.
+Maximum number of Salesforce records returned by a CLI command. Default: 10,000.
 
 # restDeploy
 
-Boolean that enables deploy via REST API.
+Whether deployments use the Metadata REST API (true) or SOAP API (false, default value).  
 
 # instanceUrl
 
-Instance URL to use for a command.
+URL of the Salesforce instance hosting your org. Default: https://login.salesforce.com.
