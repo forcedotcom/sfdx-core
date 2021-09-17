@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.6.2](https://github.com/forcedotcom/sfdx-core/compare/v3.6.1...v3.6.2) (2021-09-17)
+
+
+### Bug Fixes
+
+* improve time to build auths for many orgs @W-9914839@ ([#478](https://github.com/forcedotcom/sfdx-core/issues/478)) ([c788541](https://github.com/forcedotcom/sfdx-core/commit/c7885415d59994b28552227f0b84dcee5d3ec7cf))
+
 ### [3.6.1](https://github.com/forcedotcom/sfdx-core/compare/v3.6.0...v3.6.1) (2021-09-13)
 
 
