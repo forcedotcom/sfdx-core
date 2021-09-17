@@ -26,7 +26,7 @@ export class Cache extends Map {
   }
 
   public static get<V>(key: string): V {
-    if (Cache.instance().#enabled) {
+    if (!Cache.instance().#enabled) {
       return undefined as unknown as V;
     }
     Cache.instance().#lookups++;
