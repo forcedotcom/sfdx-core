@@ -27,7 +27,6 @@ export class Cache extends Map {
   }
 
   public static set<V>(key: string, value: V) {
-    Cache.instance();
     if (Cache.#enabled) {
       Cache.instance().set(key, value);
     }
