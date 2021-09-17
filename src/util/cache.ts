@@ -7,27 +7,34 @@
 export class Cache extends Map {
   /* eslint-disable @typescript-eslint/explicit-member-accessibility */
   static #instance: Cache;
-  #hits = 0;
-  #lookups = 0;
-  #enabled = true;
+  static #enabled: boolean;
+  #hits: number;
+  #lookups: number;
   /* eslint-enable @typescript-eslint/explicit-member-accessibility */
+
+  private constructor() {
+    super();
+    this.#hits = 0;
+    this.#lookups = 0;
+  }
 
   public static instance(): Cache {
     if (!Cache.#instance) {
+      Cache.#enabled = true;
       Cache.#instance = new Cache();
     }
     return Cache.#instance;
   }
 
   public static set<V>(key: string, value: V) {
-    if (Cache.instance().#enabled) {
+    if (Cache.#enabled) {
       Cache.instance().set(key, value);
     }
   }
 
-  public static get<V>(key: string): V {
-    if (!Cache.instance().#enabled) {
-      return undefined as unknown as V;
+  public static get<V>(key: string): V | undefined {
+    if (!Cache.#enabled) {
+      return undefined;
     }
     Cache.instance().#lookups++;
     Cache.instance().#hits += Cache.instance().has(key) ? 1 : 0;
@@ -35,17 +42,17 @@ export class Cache extends Map {
   }
 
   public static disable(): void {
-    Cache.instance().#enabled = false;
+    Cache.#enabled = false;
   }
 
   public static enable(): void {
-    Cache.instance().#enabled = true;
+    Cache.#enabled = true;
   }
 
-  public get hits(): number {
+  public static get hits(): number {
     return Cache.instance().#hits;
   }
-  public get lookups(): number {
+  public static get lookups(): number {
     return Cache.instance().#lookups;
   }
 }
