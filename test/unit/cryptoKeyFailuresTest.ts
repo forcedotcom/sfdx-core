@@ -11,6 +11,7 @@ import { AnyJson } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { Crypto } from '../../src/crypto';
 import { testSetup } from '../../src/testSetup';
+import { Cache } from '../../src/util/cache';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -44,11 +45,13 @@ if (os.platform() === 'darwin') {
 
     after(() => {
       process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL || '';
+      Cache.enable();
     });
 
     beforeEach(() => {
       // Testing crypto functionality, so restore global stubs.
       $$.SANDBOXES.CRYPTO.restore();
+      Cache.disable();
     });
 
     it('should throw SetCredentialError when unable to get/set a keychain password', async () => {
