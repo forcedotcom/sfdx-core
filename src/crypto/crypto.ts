@@ -41,6 +41,12 @@ interface CredType {
   password: string;
 }
 
+const makeSecureBuffer = (password: string | undefined): SecureBuffer<string> => {
+  const newSb = new SecureBuffer<string>();
+  newSb.consume(Buffer.from(ensure(password), 'utf8'));
+  return newSb;
+};
+
 /**
  * osxKeyChain promise wrapper.
  */
@@ -58,17 +64,13 @@ const keychainPromises = {
       return new Promise((resolve, reject): {} => {
         return _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
           if (err) return reject(err);
-          const newSb = new SecureBuffer<string>();
-          newSb.consume(Buffer.from(ensure(password), 'utf8'));
-          Cache.set(`${service}:${account}`, newSb);
+          Cache.set(`${service}:${account}`, makeSecureBuffer(password));
           return resolve({ username: account, password: ensure(password) });
         });
       });
     } else {
       const pw = sb.value((buffer) => buffer.toString('utf8'));
-      const newSb = new SecureBuffer<string>();
-      newSb.consume(Buffer.from(ensure(pw), 'utf8'));
-      Cache.set(`${service}:${account}`, newSb);
+      Cache.set(`${service}:${account}`, makeSecureBuffer(pw));
       return new Promise((resolve): void => {
         return resolve({ username: account, password: ensure(pw) });
       });
