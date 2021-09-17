@@ -13,6 +13,7 @@ import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, env } from '@salesforce/kit';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
+import { Cache } from '../util/cache';
 import { retrieveKeychain } from './keyChain';
 import { KeyChain } from './keyChainImpl';
 import { SecureBuffer } from './secureBuffer';
@@ -52,12 +53,26 @@ const keychainPromises = {
    * @param account The keychain account name.
    */
   getPassword(_keychain: KeyChain, service: string, account: string): Promise<CredType> {
-    return new Promise((resolve, reject): {} =>
-      _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
-        if (err) return reject(err);
-        return resolve({ username: account, password: ensure(password) });
-      })
-    );
+    const sb = Cache.get<SecureBuffer<string>>(`${service}:${account}`);
+    if (!sb) {
+      return new Promise((resolve, reject): {} => {
+        return _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
+          if (err) return reject(err);
+          const newSb = new SecureBuffer<string>();
+          newSb.consume(Buffer.from(ensure(password), 'utf8'));
+          Cache.set(`${service}:${account}`, newSb);
+          return resolve({ username: account, password: ensure(password) });
+        });
+      });
+    } else {
+      const pw = sb.value((buffer) => buffer.toString('utf8'));
+      const newSb = new SecureBuffer<string>();
+      newSb.consume(Buffer.from(ensure(pw), 'utf8'));
+      Cache.set(`${service}:${account}`, newSb);
+      return new Promise((resolve): void => {
+        return resolve({ username: account, password: ensure(pw) });
+      });
+    }
   },
 
   /**
