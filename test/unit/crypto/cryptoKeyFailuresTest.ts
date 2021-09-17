@@ -11,6 +11,7 @@ import { AnyJson } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
 import { testSetup } from '../../../src/testSetup';
+import { Cache } from '../../../lib/util/cache';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -40,10 +41,12 @@ if (os.platform() === 'darwin') {
 
     before(() => {
       process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = 'false';
+      Cache.disable();
     });
 
     after(() => {
       process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL || '';
+      Cache.enable();
     });
 
     beforeEach(() => {

@@ -8,6 +8,7 @@ export class Cache extends Map {
   private static _instance: Cache;
   private _hits = 0;
   private _lookups = 0;
+  private _enabled = true;
 
   public static instance(): Cache {
     if (!Cache._instance) {
@@ -17,13 +18,26 @@ export class Cache extends Map {
   }
 
   public static set<V>(key: string, value: V) {
-    Cache.instance().set(key, value);
+    if (Cache.instance()._enabled) {
+      Cache.instance().set(key, value);
+    }
   }
 
   public static get<V>(key: string): V {
+    if (Cache.instance()._enabled) {
+      return undefined as unknown as V;
+    }
     Cache.instance()._lookups++;
     Cache.instance()._hits += Cache.instance().has(key) ? 1 : 0;
     return Cache._instance.get(key) as V;
+  }
+
+  public static disable(): void {
+    Cache.instance()._enabled = false;
+  }
+
+  public static enable(): void {
+    Cache.instance()._enabled = true;
   }
 
   public get hits(): number {
