@@ -1,6 +1,6 @@
 # forceOpenUrl
 
-Specifies the web page that opens in your browser when you run force:org:open. For example, to open Lightning Experience, set to lightning.
+Web page that opens in your browser when you run "sf env open" on an org. For example, to open Lightning Experience, set to "lightning".
 
 # forceShowSpinner
 
@@ -8,23 +8,23 @@ Set to true to show a spinner animation on the command line when running asynchr
 
 # forceSpinnerDelay
 
-Specifies the speed of the spinner in milliseconds. Default is 60.
+Speed of the spinner in milliseconds. Default is 60.
 
 # httpProxy
 
-Set this variable to your http proxy server if behind a corporate firewall
+HTTP URL and port of the proxy server when using Salesforce CLI behind a corporate firewall or web proxy. 
 
 # httpsProxy
 
-Set this variable to your https proxy server if behind a corporate firewall
+HTTPS URL and port of the proxy server when using Salesforce CLI behind a corporate firewall or web proxy. 
 
 # nodeExtraCaCerts
 
-Installs your self-signed certificate. Indicate the fully qualified path to the certificate file name. Then run sfdx update.
+Fully qualified path to your self-signed certificate. Will be installed after you run "sfdx update". 
 
 # nodeTlsRejectUnauthorized
 
-Indicate 0 to allow Node.js to use the self-signed certificate in the certificate chain.
+Set to 0 to allow Node.js to use the self-signed certificate in the certificate chain.
 
 # sfdxAccessToken
 
@@ -32,91 +32,91 @@ Specifies an access token when using the auth:accesstoken:store command.
 
 # sfdxApiVersion
 
-The API version for a specific project or all projects.
+The API version for a specific project or all projects. Default value is the API version of your Dev Hub. Overrides the apiVersion config value.
 
 # sfdxAudienceUrl
 
-Overrides the aud (audience) field used for JWT authentication so that it matches the expected value of the authorization server URL for the org you’re logging into.
+URL that overrides the aud (audience) field used for JWT authentication so that it matches the expected value of the authorization server URL for the org you’re logging into. 
 
 # sfdxCodeCoverageRequirement
 
-Specifies the code coverage percentages that are displayed in green when you run force:apex:test:run or force:apex:test:report with the --codecoverage parameter.
+Code coverage percentages that are displayed in green when you run force:apex:test:\* with the --codecoverage parameter.
 
 # sfdxContentType
 
-When set to JSON, specifies that all CLI commands output results in JSON format.
+Set to JSON so that all CLI commands output results in JSON format. 
 
 # sfdxDefaultdevhubusername
 
-Specifies the username of your default Dev Hub org so you don’t have to use the --targetdevhubusername CLI parameter. Overrides the value of the defaultdevhubusername runtime configuration value.
+Username or alias of your default Dev Hub org. Overrides the defaultdevhubusername configuration value.
 
 # sfdxDefaultusername
 
-Specifies the username of your default org so you don’t have to use the --targetusername CLI parameter. Overrides the value of the defaultusername runtime configuration value.
+Username or alias of your default org. Overrides the defaultusername configuration value.
 
 # sfdxDisableAutoupdate
 
-Set to true to disable the auto-update feature of the CLI.
+Set to true to disable the auto-update feature of Salesforce CLI. Default value is false. 
 
 # sfdxAutoupdateDisable
 
-Set to true to disable the auto-update feature of the CLI.
+Set to true to disable the auto-update feature of Salesforce CLI. Default value is false. 
 
 # sfdxDisableSourceMemberPolling
 
-Set to true to disable polling of your org’s SourceMember object when you run the force:source:push|pull commands.
+Set to true to disable polling of your org’s SourceMember object when you run the force:source:push|pull commands. Default value is false.
 
 # sfdxDisableTelemetry
 
-Set to true to disable the CLI from collecting usage information, user environment information, and crash reports.
+Set to true to disable Salesforce CLI from collecting usage information, user environment information, and crash reports. Default value is false.
 
 # sfdxDnsTimeout
 
-Specifies the number of seconds that the force:org:\* commands wait for a response when checking whether an org is connected. If the commands don’t receive a response in that time, they time out. Default value is 3.
+Number of seconds that the force:org:\* commands wait for a response when checking whether an org is connected. Default value is 3.
 
 # sfdxDomainRetry
 
-Specifies the time, in seconds, that the CLI waits for the Lightning Experience custom domain to resolve and become available in a newly created scratch org.
+Time, in seconds, that Salesforce CLI waits for the Lightning Experience custom domain to resolve and become available in a scratch org. Default value is 240.
 
 # sfdxImprovedCodeCoverage
 
-Scopes Apex test results to the classes entered during a test run when running force:apex:test:run and force:apex:test:report. Set to true to improve code coverage.
+Set to true to scope Apex test results to the classes entered during a test run when running force:apex:test:\*. 
 
 # sfdxInstanceUrl
 
-The URL of the Salesforce instance that is hosting your org.
+URL of the Salesforce instance that is hosting your org. Default value is https://login.salesforce.com.
 
 # sfdxJsonToStdout
 
-Sends messages when Salesforce CLI commands fail to stdout instead of stderr.
+Set to true to send messages resulting from failed Salesforce CLI commands to stdout instead of stderr.
 
 # sfdxLogLevel
 
-Sets the level of messages that the CLI writes to the log file.
+Level of messages that the CLI writes to the log file. Valid values are trace, debug, info, warn, error, fatal. Default value is warn.
 
 # sfdxMaxQueryLimit
 
-The maximum number of Salesforce records returned by a CLI command. Default value is 10,000.
+Maximum number of Salesforce records returned by a CLI command. Default value is 10,000.
 
 # sfdxMdapiTempDir
 
-Places the files (in metadata format) in the specified directory when you run some CLI commands, such as force:source:<name>.
+Directory that contains files (in metadata format) when running certain Salesforce CLI commands, such as force:source:\*.
 
 # sfdxNpmRegistry
 
-Sets the URL to a private npm server, where all packages that you publish are private.
+URL to a private npm server, where all packages that you publish are private.
 
 # sfdxPrecompileEnable
 
-Set to true to enable Apex pre-compile before the tests are run. Default is false.
+Set to true to enable Apex pre-compile before the tests are run with the force:apex:test:run command. Default is false.
 
 # sfdxProjectAutoupdateDisableForPackageCreate
 
-For force:package:create, disables automatic updates to the sfdx-project.json file.
+Set to true to disable automatic updates to sfdx-project.json when running force:package:create.
 
 # sfdxProjectAutoupdateDisableForPackageVersionCreate
 
-For force:package:version:create, disables automatic updates to the sfdx-project.json file.
+Set to true to disable automatic updates to sfdx-project.json when running force:package:version:create.
 
 # sfdxRestDeploy
 
@@ -124,7 +124,7 @@ Set to true to make Salesforce CLI use the Metadata REST API for deployments. By
 
 # sfdxSourceMemberPollingTimeout
 
-Set to the number of seconds you want the force:source:push command to keep polling the SourceMember object before the command times out.
+Number of seconds you want the force:source:push command to keep polling the SourceMember object before the command times out.
 
 # sfdxUseGenericUnixKeychain
 
@@ -132,7 +132,7 @@ Set to the number of seconds you want the force:source:push command to keep poll
 
 # sfdxUseProgressBar
 
-For force:mdapi:deploy, force:source:deploy, and force:source:push, set to false to disable the progress bar.
+Set to false to disable the progress bar when running force:mdapi:deploy, force:source:deploy, or force:source:push.
 
 # sfTargetOrg
 
