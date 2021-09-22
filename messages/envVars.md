@@ -1,6 +1,6 @@
 # forceOpenUrl
 
-Web page that opens in your browser when you run "sf env open" on an org. For example, to open Lightning Experience, set to "lightning".
+Web page that opens in your browser when you connect to an org. For example, to open Lightning Experience, set to "lightning".
 
 # forceShowSpinner
 
