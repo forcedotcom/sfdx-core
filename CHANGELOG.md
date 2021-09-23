@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.6.4](https://github.com/forcedotcom/sfdx-core/compare/v3.6.3...v3.6.4) (2021-09-23)
+
+
+### Bug Fixes
+
+* edit the env var blurbs ([#482](https://github.com/forcedotcom/sfdx-core/issues/482)) ([bbbdb6d](https://github.com/forcedotcom/sfdx-core/commit/bbbdb6d0800015e94ce0f0c551eec8ed73dd87c6))
+
 ### [3.6.3](https://github.com/forcedotcom/sfdx-core/compare/v3.6.2...v3.6.3) (2021-09-23)
 
 
