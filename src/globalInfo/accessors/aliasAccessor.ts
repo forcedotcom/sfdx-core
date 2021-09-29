@@ -16,7 +16,7 @@ export class AliasAccessor {
   public constructor(private globalInfo: GlobalInfo) {}
 
   /**
-   * Returns all the aliases for all the usernames
+   * Returns all the aliases for all the values
    */
   public getAll(): SfAliases;
   /**
@@ -28,9 +28,9 @@ export class AliasAccessor {
   public getAll(entity?: Aliasable): string[] | SfAliases {
     const all = this.globalInfo.get(SfInfoKeys.ALIASES) || {};
     if (entity) {
-      const username = this.getNameOf(entity);
+      const value = this.getNameOf(entity);
       return Object.entries(all)
-        .filter((entry) => entry[1] === username)
+        .filter((entry) => entry[1] === value)
         .map((entry) => entry[0]);
     } else {
       return all;
@@ -47,12 +47,35 @@ export class AliasAccessor {
   }
 
   /**
+   * Returns the value that corresponds to the given alias if it exists
+   *
+   * @param alias the alias that corresponds to a value
+   */
+  public getValue(alias: string): Nullable<string> {
+    return this.getAll()[alias] ?? null;
+  }
+
+  /**
    * Returns the username that corresponds to the given alias if it exists
    *
    * @param alias the alias that corresponds to a username
    */
   public getUsername(alias: string): Nullable<string> {
     return this.getAll()[alias] ?? null;
+  }
+
+  /**
+   * If the provided string is an alias, it returns the corresponding value.
+   * If the provided string is not an alias, we assume that the provided string
+   * is the value and return it.
+   *
+   * This method is helpful when you don't know if the string you have is a value
+   * or an alias.
+   *
+   * @param valueOrAlias a string that might be a value or might be an alias
+   */
+  public resolveValue(valueOrAlias: string): string {
+    return this.getValue(valueOrAlias) ?? valueOrAlias;
   }
 
   /**
@@ -76,8 +99,8 @@ export class AliasAccessor {
    * @param entity the aliasable entity that's being aliased
    */
   public set(alias: string, entity: Aliasable): void {
-    const username = this.getNameOf(entity);
-    this.globalInfo.set(`${SfInfoKeys.ALIASES}["${alias}"]`, username);
+    const value = this.getNameOf(entity);
+    this.globalInfo.set(`${SfInfoKeys.ALIASES}["${alias}"]`, value);
   }
 
   /**
@@ -87,8 +110,8 @@ export class AliasAccessor {
    * @param entity the aliasable entity that's being aliased
    */
   public update(alias: string, entity: Aliasable): void {
-    const username = this.getNameOf(entity);
-    this.globalInfo.update(`${SfInfoKeys.ALIASES}["${alias}"]`, username);
+    const value = this.getNameOf(entity);
+    this.globalInfo.update(`${SfInfoKeys.ALIASES}["${alias}"]`, value);
   }
 
   public unset(alias: string): void {
