@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { URL } from 'url';
 import * as fs from 'fs';
 import { Optional } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
@@ -17,6 +16,7 @@ import { RecordResult } from 'jsforce';
 import { retry, retryDecorator } from 'ts-retry-promise';
 
 // Local
+import { SfdcUrl } from './util/sfdcUrl';
 import mapKeys from './util/mapKeys';
 import { Messages } from './messages';
 import SettingsGenerator, { ScratchDefinition } from './scratchOrgSettingsGenerator';
@@ -383,7 +383,7 @@ export const deploySettingsAndResolveUrl = async (
     const options = {
       timeout: Duration.minutes(3),
       frequency: Duration.seconds(10),
-      url: new URL(ensureString(scratchOrgAuthInfo.getFields().instanceUrl)),
+      url: new SfdcUrl(ensureString(scratchOrgAuthInfo.getFields().instanceUrl)),
     };
     try {
       const resolver = await MyDomainResolver.create(options);
