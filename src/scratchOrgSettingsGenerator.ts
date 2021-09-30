@@ -7,25 +7,20 @@
 
 // Node
 import * as os from 'os';
-import * as util from 'util';
 import * as path from 'path';
 import { promises as fs } from 'fs';
+import { Messages, SfdxError, Logger } from '@salesforce/core';
+import { set, isEmpty, env, upperFirst } from '@salesforce/kit';
+import { ComponentSet, ComponentStatus } from '@salesforce/source-deploy-retrieve';
+import { get, getObject, JsonMap, ensureString, ensureObject, Nullable, Optional } from '@salesforce/ts-types';
 
 // Thirdparty
+import * as js2xmlparser from 'js2xmlparser';
 
-// import { UX } from '@salesforce/command';
-// import * as jsToXml from 'js2xmlparser';
-import { Messages, SfdxError, Logger } from '@salesforce/core';
-// import { has } from 'lodash';
-import { get, getObject, JsonMap, ensureString, Nullable } from '@salesforce/ts-types';
-import { set, isEmpty, env } from '@salesforce/kit';
-import { ComponentSet, ComponentStatus } from '@salesforce/source-deploy-retrieve';
+// Local
 import getApiVersion from './config/getApiVersion';
-// import { Config } from '../../lib/core/configApi';
-// import { writeJSONasXML } from '../core/jsonXmlTools';
 import { writeJSONasXML } from './util/jsonXmlTools';
 import OrgPrefRegistry = require('./orgPrefRegistry');
-// const js2xmlparser = require('js2xmlparser');
 
 Messages.importMessagesDirectory(__dirname);
 const orgSettingsMessages: Messages = Messages.loadMessages('salesforce-alm', 'org_settings');
@@ -33,6 +28,14 @@ const orgSettingsMessages: Messages = Messages.loadMessages('salesforce-alm', 'o
 interface ObjectSetting extends JsonMap {
   sharingModel?: string;
   defaultRecordType?: string;
+}
+
+export interface ScratchDefinition extends Record<string, unknown> {
+  settings: Optional<Record<string, unknown>>;
+  orgPreferences: Optional<{
+    enabled: string[];
+    disabled: string[];
+  }>;
 }
 
 /**
@@ -50,13 +53,13 @@ export default class SettingsGenerator {
   }
 
   /** extract the settings from the scratch def file, if they are present. */
-  public async extract(scratchDef: Record<string, unknown>, apiVersion?: number): Promise<void> {
+  public async extract(scratchDef: ScratchDefinition, apiVersion?: string): Promise<void> {
     this.logger.debug('extracting settings from scratch definition file');
     if (!apiVersion) {
-      apiVersion = parseFloat(this.currentApiVersion);
+      apiVersion = this.currentApiVersion;
     }
-    if (apiVersion >= 47.0 && this.orgPreferenceSettingsMigrationRequired(scratchDef)) {
-      await this.extractAndMigrateSettings(scratchDef);
+    if (parseFloat(apiVersion) >= 47.0 && this.orgPreferenceSettingsMigrationRequired(scratchDef)) {
+      this.extractAndMigrateSettings(scratchDef);
     } else {
       this.settingData = getObject(scratchDef, 'settings');
       this.objectSettingsData = getObject(scratchDef, 'objectSettings');
@@ -69,19 +72,15 @@ export default class SettingsGenerator {
   }
 
   /** True if we are currently tracking setting or object setting data. */
-  public hasSettings() {
+  public hasSettings(): boolean {
     return !(isEmpty(this.settingData) && isEmpty(this.objectSettingsData));
   }
 
   /** Check to see if the scratchDef contains orgPreferenceSettings
    *  orgPreferenceSettings are no longer supported after api version 46.0
    */
-  public orgPreferenceSettingsMigrationRequired(scratchDef) {
-    return !(
-      util.isNullOrUndefined(scratchDef) ||
-      util.isNullOrUndefined(scratchDef.settings) ||
-      util.isNullOrUndefined(scratchDef.settings.orgPreferenceSettings)
-    );
+  public orgPreferenceSettingsMigrationRequired(scratchDef: ScratchDefinition): boolean {
+    return !(!scratchDef || !scratchDef.settings || !scratchDef.settings.orgPreferenceSettings);
   }
 
   /** This will copy all of the settings in the scratchOrgInfo orgPreferences mapping into the settings structure.
@@ -89,73 +88,77 @@ export default class SettingsGenerator {
    *  This returns a failure message in the promise upon critical error for api versions after 46.0.
    *  For api versions less than 47.0 it will return a warning.
    */
-  public async migrate(scratchDef, apiVersion?): Promise<void> {
+  public migrate(scratchDef: ScratchDefinition, apiVersion?: string): Optional<string[]> {
+    const warnings: string[] = [];
     // Make sure we have old style preferences
     if (!scratchDef.orgPreferences) {
-      return;
+      return warnings;
     }
 
-    if (util.isNullOrUndefined(apiVersion)) {
+    if (!apiVersion) {
       apiVersion = this.currentApiVersion;
     }
 
     // First, let's map the old style tooling preferences into MD-API preferences
     this.settingData = {};
 
-    const ux = await UX.create();
-
-    function lhccmdt(mdt) {
+    function lhccmdt(mdt: string): string {
       // lowercase head camel case metadata type
-      return util.isNullOrUndefined(mdt) ? mdt : mdt.substring(0, 1).toLowerCase() + mdt.substring(1);
+      return !mdt ? mdt : mdt.substring(0, 1).toLowerCase() + mdt.substring(1);
     }
 
-    function storePrefs(data, pref, prefVal) {
-      const orgPrefApi = lhccmdt(OrgPrefRegistry.whichApi(pref, apiVersion));
-      if (util.isNullOrUndefined(orgPrefApi)) {
-        ux.warn(`Unsupported org preference: ${pref}, ignored`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function storePrefs(data: Record<string, unknown>, pref: string, prefVal: any) {
+      const orgPrefApi = lhccmdt(ensureString(OrgPrefRegistry.whichApi(pref, apiVersion)));
+      if (!orgPrefApi) {
+        warnings.push(`Unsupported org preference: ${pref}, ignored`);
         return;
       }
 
-      const mdApiName = lhccmdt(OrgPrefRegistry.forMdApi(pref, apiVersion));
+      const mdApiName = lhccmdt(ensureString(OrgPrefRegistry.forMdApi(pref, apiVersion)));
 
-      if (!has(data, orgPrefApi)) {
+      if (!(orgPrefApi in data)) {
         set(data, orgPrefApi, {});
       }
-      const apiOrgPrefs: object = getObject(data, orgPrefApi);
+      const apiOrgPrefs = ensureObject(getObject(data, orgPrefApi));
       set(apiOrgPrefs, mdApiName, prefVal);
     }
 
     if (scratchDef.orgPreferences.enabled) {
       scratchDef.orgPreferences.enabled.forEach((pref) => {
-        storePrefs(this.settingData, pref, true);
+        storePrefs(ensureObject(this.settingData), pref, true);
       });
     }
     if (scratchDef.orgPreferences.disabled) {
       scratchDef.orgPreferences.disabled.forEach((pref) => {
-        storePrefs(this.settingData, pref, false);
+        storePrefs(ensureObject(this.settingData), pref, false);
       });
     }
     // It would be nice if cli.ux.styledJSON could return a colorized JSON string instead of logging to stdout.
     const message = orgSettingsMessages.getMessage(
-      apiVersion >= 47.0 ? 'deprecatedPrefFormat' : 'deprecatedPrefFormatLegacy',
+      parseFloat(apiVersion) >= 47.0 ? 'deprecatedPrefFormat' : 'deprecatedPrefFormatLegacy',
       [
         JSON.stringify({ orgPreferences: scratchDef.orgPreferences }, null, 4),
         JSON.stringify({ settings: this.settingData }, null, 4),
       ]
     );
-    if (apiVersion >= 47.0) {
-      throw new Error(message);
+    if (parseFloat(apiVersion) >= 47.0) {
+      throw new SfdxError(message);
     } else {
-      ux.warn(message);
+      warnings.push(message);
     }
     // No longer need these
     delete scratchDef.orgPreferences;
+
+    // return any warnings to the calle
+    return warnings;
   }
 
   /** This method converts all orgPreferenceSettings preferences into their respective
    *  org settings objects.
    */
-  public async extractAndMigrateSettings(scratchDef): Promise<void> {
+  public extractAndMigrateSettings(scratchDef: ScratchDefinition): Optional<string[]> {
+    const warnings: string[] = [];
     const oldScratchDef = JSON.stringify({ settings: scratchDef.settings }, null, 4);
 
     // Make sure we have old style preferences
@@ -166,41 +169,41 @@ export default class SettingsGenerator {
     // First, let's map the old style tooling preferences into MD-API preferences
     this.settingData = {};
 
-    const ux = await UX.create();
-    function storePrefs(data, pref, prefVal): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function storePrefs(data: Record<string, unknown>, pref: string, prefVal: any): boolean {
       let mdApiName = OrgPrefRegistry.newPrefNameForOrgSettingsMigration(pref);
-      if (util.isNullOrUndefined(mdApiName)) {
+      if (!mdApiName) {
         mdApiName = pref;
       }
       const orgPrefApi = OrgPrefRegistry.whichApiFromFinalPrefName(mdApiName);
-      if (util.isNullOrUndefined(orgPrefApi)) {
-        ux.warn(`Unknown org preference: ${pref}, ignored.`);
+      if (!orgPrefApi) {
+        warnings.push(`Unknown org preference: ${pref}, ignored.`);
         return false;
       }
 
       if (OrgPrefRegistry.isMigrationDeprecated(orgPrefApi)) {
-        ux.warn(`The setting "${pref}" is no longer supported as of API version 47.0`);
+        warnings.push(`The setting "${pref}" is no longer supported as of API version 47.0`);
         return false;
       }
 
-      if (!has(data, orgPrefApi)) {
+      if (!(orgPrefApi in data)) {
         set(data, orgPrefApi, {});
       }
-      const apiOrgPrefs = getObject(data, orgPrefApi);
+      const apiOrgPrefs = ensureObject(getObject(data, orgPrefApi));
 
       // check to see if the value is already set
       set(apiOrgPrefs, mdApiName, prefVal);
 
-      return orgPrefApi != OrgPrefRegistry.ORG_PREFERENCE_SETTINGS;
+      return orgPrefApi !== OrgPrefRegistry.ORG_PREFERENCE_SETTINGS;
     }
 
-    const orgPreferenceSettings = getObject(scratchDef, 'settings.orgPreferenceSettings');
-    delete scratchDef.settings.orgPreferenceSettings;
+    const orgPreferenceSettings = getObject(scratchDef, 'settings.orgPreferenceSettings') as Record<string, unknown>;
+    delete scratchDef.settings?.orgPreferenceSettings;
     this.settingData = getObject(scratchDef, 'settings');
 
     let migrated = false;
     for (const preference in orgPreferenceSettings) {
-      if (storePrefs(this.settingData, preference, orgPreferenceSettings[preference])) {
+      if (storePrefs(ensureObject(this.settingData), preference, orgPreferenceSettings[preference])) {
         migrated = true;
       }
     }
@@ -212,14 +215,15 @@ export default class SettingsGenerator {
         oldScratchDef,
         JSON.stringify({ settings: this.settingData }, null, 4),
       ]);
-      ux.warn(message);
+      warnings.push(message);
     }
+    return warnings;
   }
 
   /** Create temporary deploy directory used to upload the scratch org shape.
    * This will create the dir, all of the .setting files and minimal object files needed for objectSettings
    */
-  public async createDeployDir() {
+  public async createDeployDir(): Promise<string> {
     // Base dir for deployment is always the os.tmpdir().
     const shapeDirName = `shape_${Date.now()}`;
     const destRoot = path.join(os.tmpdir(), shapeDirName);
@@ -259,9 +263,7 @@ export default class SettingsGenerator {
     // Wait for polling to finish and get the DeployResult object
     const result = await deploy.pollStatus();
     // display errors if any
-    const errors = result.getFileResponses().filter((fileResponse) => {
-      fileResponse.state === ComponentStatus.Failed;
-    });
+    const errors = result.getFileResponses().filter((fileResponse) => fileResponse.state === ComponentStatus.Failed);
 
     if (errors.length > 0) {
       ux.styledHeader(`Component Failures [${errors.length}]`);
@@ -291,10 +293,10 @@ export default class SettingsGenerator {
     for (const objectName of Object.keys(this.objectSettingsData)) {
       const value = this.objectSettingsData[objectName];
       // writes the object file in source format
-      const objectDir = path.join(objectsDir, this.cap(objectName));
+      const objectDir = path.join(objectsDir, upperFirst(objectName));
       await fs.mkdir(objectDir);
       await writeJSONasXML({
-        path: path.join(objectDir, `${this.cap(objectName)}.object-meta.xml`),
+        path: path.join(objectDir, `${upperFirst(objectName)}.object-meta.xml`),
         type: 'CustomObject',
         json: this.createObjectFileContent(value),
       });
@@ -303,7 +305,7 @@ export default class SettingsGenerator {
         await fs.mkdir(recordTypesDir);
         const RTFileContent = this.createRecordTypeFileContent(objectName, value);
         await writeJSONasXML({
-          path: path.join(recordTypesDir, `${this.cap(value.defaultRecordType)}.recordType-meta.xml`),
+          path: path.join(recordTypesDir, `${upperFirst(value.defaultRecordType)}.recordType-meta.xml`),
           type: 'RecordType',
           json: RTFileContent,
         });
@@ -326,34 +328,30 @@ export default class SettingsGenerator {
 
   private async writeSettingsIfNeeded(settingsDir: string) {
     if (this.settingData) {
-      await fs.mkdirp(settingsDir);
+      await fs.mkdir(settingsDir);
       for (const item of Object.keys(this.settingData)) {
-        const value: object = getObject(this.settingData, item);
-        const typeName = this.cap(item);
+        const value = ensureObject(getObject(this.settingData, item));
+        const typeName = upperFirst(item);
         const fname = typeName.replace('Settings', '');
-        const fileContent = this._createSettingsFileContent(typeName, value);
+        const fileContent = this.createSettingsFileContent(typeName, value as Record<string, unknown>);
         await fs.writeFile(path.join(settingsDir, fname + '.settings-meta.xml'), fileContent);
       }
     }
   }
 
-  public _createSettingsFileContent(name, json) {
-    if (name == 'OrgPreferenceSettings') {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  private createSettingsFileContent(name: string, json: Record<string, unknown>) {
+    if (name === 'OrgPreferenceSettings') {
       // this is a stupid format
-      let res = `<?xml version="1.0" encoding="UTF-8"?>
-<OrgPreferenceSettings xmlns="http://soap.sforce.com/2006/04/metadata">
-`;
+      let res =
+        '<?xml version="1.0" encoding="UTF-8"?>\n<OrgPreferenceSettings xmlns="http://soap.sforce.com/2006/04/metadata">';
       res += Object.keys(json)
         .map(
           (pref) =>
-            `    <preferences>
-        <settingName>` +
-            this.cap(pref) +
-            `</settingName>
-        <settingValue>` +
-            get(json, pref) +
-            `</settingValue>
-    </preferences>`
+            `<preferences>
+              <settingName>${upperFirst(pref)}</settingName>
+              <settingValue>${get(json, pref)}</settingValue>
+            </preferences>`
         )
         .join('\n');
       res += '\n</OrgPreferenceSettings>';
@@ -363,32 +361,33 @@ export default class SettingsGenerator {
     }
   }
 
-  private createObjectFileContent(json) {
+  private createObjectFileContent(json: Record<string, string>) {
     const output: ObjectSetting = {};
     if (json.sharingModel) {
-      output.sharingModel = this.cap(json.sharingModel);
+      output.sharingModel = upperFirst(json.sharingModel);
     }
     return output;
   }
 
   private createRecordTypeFileContent(
-    objectName,
+    objectName: string,
     setting: ObjectSetting
   ): { fullName: string; label: string; active: boolean; businessProcess?: string } {
+    const defaultRecordType = ensureString(upperFirst(setting.defaultRecordType));
     const output = {
-      fullName: this.cap(setting.defaultRecordType),
-      label: this.cap(setting.defaultRecordType),
+      fullName: defaultRecordType,
+      label: defaultRecordType,
       active: true,
     };
     // all the edge cases
-    if (['Case', 'Lead', 'Opportunity', 'Solution'].includes(this.cap(objectName))) {
-      return { ...output, businessProcess: `${this.cap(setting.defaultRecordType)}Process` };
+    if (['Case', 'Lead', 'Opportunity', 'Solution'].includes(upperFirst(objectName))) {
+      return { ...output, businessProcess: `${defaultRecordType}Process` };
     }
     return output;
   }
 
-  private createBusinessProcessFileContent(objectName, businessProcessName) {
-    const ObjectToBusinessProcessPicklist = {
+  private createBusinessProcessFileContent(objectName: string, businessProcessName: string) {
+    const ObjectToBusinessProcessPicklist: Record<string, unknown> = {
       Opportunity: { fullName: 'Prospecting' },
       Case: { fullName: 'New', default: true },
       Lead: { fullName: 'New - Not Contacted', default: true },
@@ -398,11 +397,7 @@ export default class SettingsGenerator {
     return {
       fullName: businessProcessName,
       isActive: true,
-      values: [ObjectToBusinessProcessPicklist[this.cap(objectName)]],
+      values: [ObjectToBusinessProcessPicklist[upperFirst(objectName)]],
     };
-  }
-
-  cap(s: string) {
-    return s ? (s.length > 0 ? s.charAt(0).toUpperCase() + s.substring(1) : '') : null;
   }
 }

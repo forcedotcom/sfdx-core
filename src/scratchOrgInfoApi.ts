@@ -7,19 +7,19 @@
 
 import { URL } from 'url';
 import * as fs from 'fs';
-import { env, Duration } from '@salesforce/kit';
 import { Optional } from '@salesforce/ts-types';
+import { env, Duration, upperFirst } from '@salesforce/kit';
+import { ensureString, getString } from '@salesforce/ts-types';
 import { Logger, MyDomainResolver, SfdxError, AuthInfo, Org, OAuth2Options } from '@salesforce/core';
 
 // Thirdparty
+import { RecordResult } from 'jsforce';
 import { retry, retryDecorator } from 'ts-retry-promise';
 
 // Local
-import { ensureString, getString } from '@salesforce/ts-types';
-import { RecordResult } from 'jsforce';
-import { Messages } from './messages';
 import mapKeys from './util/mapKeys';
-import SettingsGenerator from './scratchOrgSettingsGenerator';
+import { Messages } from './messages';
+import SettingsGenerator, { ScratchDefinition } from './scratchOrgSettingsGenerator';
 
 export interface ScratchOrgInfo {
   AdminEmail?: string;
@@ -258,7 +258,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
  */
 export const requestScratchOrgCreation = async (
   hubOrg: Org,
-  scratchOrgRequest: Record<string, unknown>,
+  scratchOrgRequest: ScratchDefinition,
   settings: SettingsGenerator
 ): Promise<RecordResult> => {
   // If these were present, they were already used to initialize the scratchOrgSettingsGenerator.
@@ -274,10 +274,10 @@ export const requestScratchOrgCreation = async (
 
   // See if we need to migrate and warn about using old style orgPreferences
   if (scratchOrgRequest.orgPreferences) {
-    await settings.migrate(scratchOrgRequest);
+    settings.migrate(scratchOrgRequest);
   }
 
-  const scratchOrgInfo = mapKeys(scratchOrgRequest, (key: string) => key.charAt(0).toUpperCase() + key.slice(1), true);
+  const scratchOrgInfo = mapKeys(scratchOrgRequest, upperFirst, true);
 
   await checkOrgDoesntExist(scratchOrgInfo); // throw if it does exists.
   try {
