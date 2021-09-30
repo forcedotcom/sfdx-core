@@ -9,16 +9,21 @@ import * as fs from 'fs';
 import { Optional } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
 import { ensureString, getString } from '@salesforce/ts-types';
-import { Logger, MyDomainResolver, SfdxError, AuthInfo, Org, OAuth2Options } from '@salesforce/core';
 
 // Thirdparty
-import { RecordResult } from 'jsforce';
+import { RecordResult, OAuth2Options } from 'jsforce';
 import { retry, retryDecorator } from 'ts-retry-promise';
 
 // Local
-import { SfdcUrl } from './util/sfdcUrl';
+import { Org } from './org';
+import { Logger } from './logger';
 import mapKeys from './util/mapKeys';
+import { AuthInfo } from './authInfo';
 import { Messages } from './messages';
+import { SfdxError } from './sfdxError';
+import { SfdcUrl } from './util/sfdcUrl';
+import { MyDomainResolver } from './status/myDomainResolver';
+
 import SettingsGenerator, { ScratchDefinition } from './scratchOrgSettingsGenerator';
 
 export interface ScratchOrgInfo {

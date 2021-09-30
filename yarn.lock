@@ -423,7 +423,7 @@
     mv "~2"
     safe-json-stringify "~1"
 
-"@salesforce/core@2.28.0", "@salesforce/core@^2.28.0":
+"@salesforce/core@2.28.0":
   version "2.28.0"
   resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.28.0.tgz#2fb3d7be0dfac8505332f558b7dd4274afd34901"
   integrity sha512-CFw2xloL3UwuvLm+0nK588kFVGPRZFmUzeUBYFCIz+34CJShc1B7yN+anPlZcHWgT12Ih9yzKYaki0BjCeIgKQ==

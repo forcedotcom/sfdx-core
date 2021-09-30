@@ -9,7 +9,6 @@
 import * as os from 'os';
 import * as path from 'path';
 import { promises as fs } from 'fs';
-import { Messages, SfdxError, Logger } from '@salesforce/core';
 import { set, isEmpty, env, upperFirst } from '@salesforce/kit';
 import { ComponentSet, ComponentStatus } from '@salesforce/source-deploy-retrieve';
 import { get, getObject, JsonMap, ensureString, ensureObject, Nullable, Optional } from '@salesforce/ts-types';
@@ -18,6 +17,9 @@ import { get, getObject, JsonMap, ensureString, ensureObject, Nullable, Optional
 import * as js2xmlparser from 'js2xmlparser';
 
 // Local
+import { Logger } from './logger';
+import { Messages } from './messages';
+import { SfdxError } from './sfdxError';
 import getApiVersion from './config/getApiVersion';
 import { writeJSONasXML } from './util/jsonXmlTools';
 import OrgPrefRegistry = require('./orgPrefRegistry');
