@@ -497,6 +497,14 @@
     "@salesforce/ts-types" "^1.5.13"
     tslib "^1.10.0"
 
+"@salesforce/kit@^1.5.17":
+  version "1.5.17"
+  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-1.5.17.tgz#4fd9c50ba2e072c50d319654f86f86808c544795"
+  integrity sha512-Uuh+v7WPSo+L21moVprl+jbDTl3ndmcJM5et/vFLZW4ur6CCJCJSoReM9ttF1qZuQskyCyhVZo6/aMZrVUe+rQ==
+  dependencies:
+    "@salesforce/ts-types" "^1.5.20"
+    tslib "^2.2.0"
+
 "@salesforce/prettier-config@^0.0.1":
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/@salesforce/prettier-config/-/prettier-config-0.0.1.tgz#4ef70bca610ea981181fb030b25a27797b15cdff"
@@ -531,7 +539,7 @@
     sinon "^5.1.1"
     tslib "^2.2.0"
 
-"@salesforce/ts-types@^1.4.2":
+"@salesforce/ts-types@^1.4.2", "@salesforce/ts-types@^1.5.20":
   version "1.5.20"
   resolved "https://registry.yarnpkg.com/@salesforce/ts-types/-/ts-types-1.5.20.tgz#f6875a710ceca48223b240026a14af6d3b39882f"
   integrity sha512-Ov6um4CWd63EvkRavkHG0J/P9XYL55sdkDWPMr7+AIgqh5flHxDRz09/C4e9M94aX30rzJxW4TVX6EBf4Cu2BQ==
