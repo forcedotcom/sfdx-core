@@ -34,13 +34,27 @@ interface ObjectSetting extends JsonMap {
   defaultRecordType?: string;
 }
 
-export interface ScratchDefinition extends Record<string, unknown> {
+export interface ScratchDefinition {
   settings: Optional<Record<string, unknown>>;
   orgPreferences: Optional<{
     enabled: string[];
     disabled: string[];
   }>;
 }
+
+interface ObjectToBusinessProcessPicklist {
+  [key: string]: {
+    fullName: string;
+    default?: boolean;
+  };
+}
+
+interface BusinessProcessFileContent {
+  fullName: string;
+  isActive: boolean;
+  values: [Record<string, unknown>];
+}
+
 
 /**
  * Helper class for dealing with the settings that are defined in a scratch definition file.  This class knows how to extract the
@@ -258,7 +272,7 @@ export default class SettingsGenerator {
   /**
    * Deploys the settings to the org.
    */
-  public async deploySettingsViaFolder(username: string, sourceFolder: string): Promise<void> {
+  public async deploySettingsViaFolder(username: string, sourceFolder: string): Promise<FileResponse[]> {
     this.logger.debug(`deploying settings from ${sourceFolder}`);
 
     const componentSet = ComponentSet.fromSource(sourceFolder);
@@ -269,16 +283,6 @@ export default class SettingsGenerator {
     // display errors if any
     const errors = result.getFileResponses().filter((fileResponse) => fileResponse.state === ComponentStatus.Failed);
 
-    if (errors.length > 0) {
-      ux.styledHeader(`Component Failures [${errors.length}]`);
-      ux.table(errors, {
-        columns: [
-          { key: 'problemType', label: 'Type' },
-          { key: 'fullName', label: 'Name' },
-          { key: 'error', label: 'Problem' },
-        ],
-      });
-    }
     if (result.response.status === 'Failed') {
       throw new SfdxError(
         `A scratch org was created with username ${username}, but the settings failed to deploy`,
@@ -286,6 +290,7 @@ export default class SettingsGenerator {
         errors.map((e) => `${e.fullName}: ${e.filePath} | ${e.state === ComponentStatus.Failed ? e.error : ''}`)
       );
     }
+    return errors;
   }
 
   private async writeObjectSettingsIfNeeded(objectsDir: string) {
@@ -365,10 +370,10 @@ export default class SettingsGenerator {
     }
   }
 
-  private createObjectFileContent(json: Record<string, string>) {
+  private createObjectFileContent(json: Record<string, unknown>) {
     const output: ObjectSetting = {};
     if (json.sharingModel) {
-      output.sharingModel = upperFirst(json.sharingModel);
+      output.sharingModel = upperFirst(json.sharingModel as string);
     }
     return output;
   }
@@ -390,8 +395,11 @@ export default class SettingsGenerator {
     return output;
   }
 
-  private createBusinessProcessFileContent(objectName: string, businessProcessName: string) {
-    const ObjectToBusinessProcessPicklist: Record<string, unknown> = {
+  private createBusinessProcessFileContent(
+    objectName: string,
+    businessProcessName: string
+  ): BusinessProcessFileContent {
+    const objectToBusinessProcessPicklist: ObjectToBusinessProcessPicklist = {
       Opportunity: { fullName: 'Prospecting' },
       Case: { fullName: 'New', default: true },
       Lead: { fullName: 'New - Not Contacted', default: true },
@@ -401,7 +409,7 @@ export default class SettingsGenerator {
     return {
       fullName: businessProcessName,
       isActive: true,
-      values: [ObjectToBusinessProcessPicklist[upperFirst(objectName)]],
+      values: [objectToBusinessProcessPicklist[upperFirst(objectName)]],
     };
   }
 }
