@@ -9,6 +9,8 @@
 import * as os from 'os';
 import * as path from 'path';
 import { promises as fs } from 'fs';
+
+// @salesforce
 import { set, isEmpty, env, upperFirst } from '@salesforce/kit';
 import { ComponentSet, ComponentStatus } from '@salesforce/source-deploy-retrieve';
 import { get, getObject, JsonMap, ensureString, ensureObject, Nullable, Optional } from '@salesforce/ts-types';
@@ -25,7 +27,7 @@ import { writeJSONasXML } from './util/jsonXmlTools';
 import OrgPrefRegistry = require('./orgPrefRegistry');
 
 Messages.importMessagesDirectory(__dirname);
-const orgSettingsMessages: Messages = Messages.loadMessages('salesforce-alm', 'org_settings');
+const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgSettingsGenerator');
 
 interface ObjectSetting extends JsonMap {
   sharingModel?: string;
@@ -137,7 +139,7 @@ export default class SettingsGenerator {
       });
     }
     // It would be nice if cli.ux.styledJSON could return a colorized JSON string instead of logging to stdout.
-    const message = orgSettingsMessages.getMessage(
+    const message = messages.getMessage(
       parseFloat(apiVersion) >= 47.0 ? 'deprecatedPrefFormat' : 'deprecatedPrefFormatLegacy',
       [
         JSON.stringify({ orgPreferences: scratchDef.orgPreferences }, null, 4),
@@ -213,7 +215,7 @@ export default class SettingsGenerator {
     // Since we could have recommended some preferences that are still in OPS, only warn if any actually got moved there
     if (migrated) {
       // It would be nice if cli.ux.styledJSON could return a colorized JSON string instead of logging to stdout.
-      const message = orgSettingsMessages.getMessage('migratedPrefFormat', [
+      const message = messages.getMessage('migratedPrefFormat', [
         oldScratchDef,
         JSON.stringify({ settings: this.settingData }, null, 4),
       ]);

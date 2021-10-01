@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Node
 import * as fs from 'fs';
+
+// @salesforce
 import { Optional } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
 import { ensureString, getString } from '@salesforce/ts-types';
@@ -63,7 +66,7 @@ export interface JsForceError extends Error {
 }
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('scratchOrgInfoApi', 'scratchOrgInfoApi');
+const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
 
 const checkScratchOrgInfoForErrors = (orgInfo: ScratchOrgInfo, hubUsername: Optional<string>, logger: Logger) => {
   if (orgInfo.Status === 'Active') {
