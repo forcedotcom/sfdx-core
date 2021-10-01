@@ -12,7 +12,7 @@ import { promises as fs } from 'fs';
 
 // @salesforce
 import { set, isEmpty, env, upperFirst } from '@salesforce/kit';
-import { ComponentSet, ComponentStatus } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, ComponentStatus, FileResponse } from '@salesforce/source-deploy-retrieve';
 import { get, getObject, JsonMap, ensureString, ensureObject, Nullable, Optional } from '@salesforce/ts-types';
 
 // Thirdparty
@@ -36,6 +36,7 @@ interface ObjectSetting extends JsonMap {
 
 export interface ScratchDefinition {
   settings: Optional<Record<string, unknown>>;
+  objectSettings: Optional<Record<string, unknown>>;
   orgPreferences: Optional<{
     enabled: string[];
     disabled: string[];
@@ -49,12 +50,11 @@ interface ObjectToBusinessProcessPicklist {
   };
 }
 
-interface BusinessProcessFileContent {
+interface BusinessProcessFileContent extends JsonMap {
   fullName: string;
   isActive: boolean;
   values: [Record<string, unknown>];
 }
-
 
 /**
  * Helper class for dealing with the settings that are defined in a scratch definition file.  This class knows how to extract the

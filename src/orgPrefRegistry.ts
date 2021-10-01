@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Optional } from '@salesforce/ts-types';
+import { Optional, ensureString } from '@salesforce/ts-types';
 import getApiVersion from './config/getApiVersion';
 
 /**
@@ -554,7 +554,7 @@ export = {
    *  only if it is being migrated from the org preference settings
    *  to a new object.
    */
-  newPrefNameForOrgSettingsMigration(prefName): string {
+  newPrefNameForOrgSettingsMigration(prefName: string): Optional<string> {
     return orgPreferenceSettingsPrefNameMigrateMap.get(prefName);
   },
 
@@ -562,7 +562,7 @@ export = {
    * Does a lookup for the proper apiName for
    * the given final pref name.
    */
-  whichApiFromFinalPrefName(prefName): string {
+  whichApiFromFinalPrefName(prefName: string): Optional<string> {
     return orgPreferenceSettingsTypeMigrateMap.get(prefName);
   },
 
@@ -572,8 +572,8 @@ export = {
    *
    * @param apiVersion
    */
-  isMigrationDeprecated(prefType): boolean {
-    return DeprecatedSettingsApi == prefType;
+  isMigrationDeprecated(prefType: string): boolean {
+    return DeprecatedSettingsApi === prefType;
   },
 
   /**
@@ -582,9 +582,8 @@ export = {
    * @param prefName The org preference name
    * @returns the MDAPI name for the org preference
    */
-  forMdApi(prefName, apiVersion: string = getCurrentApiVersion()) {
-    const _apiVersion = parseInt(apiVersion, 10);
-    if (_apiVersion >= 47.0) {
+  forMdApi(prefName: string, apiVersion: Optional<string> = getCurrentApiVersion()): Optional<string> {
+    if (parseInt(ensureString(apiVersion), 10) >= 47.0) {
       return orgPreferenceMdMap.get(prefName);
     } else {
       return orgPreferenceMdMapPre47.get(prefName);
@@ -597,9 +596,8 @@ export = {
    * @param prefName The org preference name
    * @returns the API name for the org preference
    */
-  whichApi(prefName, apiVersion: string = getCurrentApiVersion()) {
-    const _apiVersion = parseInt(apiVersion, 10);
-    if (_apiVersion >= 47.0) {
+  whichApi(prefName: string, apiVersion: Optional<string> = getCurrentApiVersion()): Optional<string> {
+    if (parseInt(ensureString(apiVersion), 10) >= 47.0) {
       return orgPreferenceApiMap.get(prefName);
     } else {
       return orgPreferenceApiMapPre47.get(prefName);
@@ -611,9 +609,8 @@ export = {
    *
    * @returns the Org Preference Map
    */
-  allPrefsMap(apiVersion: string = getCurrentApiVersion()) {
-    const _apiVersion = parseInt(apiVersion, 10);
-    if (_apiVersion >= 47.0) {
+  allPrefsMap(apiVersion: Optional<string> = getCurrentApiVersion()): Map<string, string> {
+    if (parseInt(ensureString(apiVersion), 10) >= 47.0) {
       return orgPreferenceApiMap;
     } else {
       return orgPreferenceApiMapPre47;
