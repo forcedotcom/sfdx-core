@@ -25,6 +25,7 @@ import { SfdxError } from './sfdxError';
 import getApiVersion from './config/getApiVersion';
 import { writeJSONasXML } from './util/jsonXmlTools';
 import OrgPrefRegistry = require('./orgPrefRegistry');
+import { ScratchOrgInfo } from './scratchOrgInfoApi';
 
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgSettingsGenerator');
@@ -34,7 +35,7 @@ interface ObjectSetting extends JsonMap {
   defaultRecordType?: string;
 }
 
-export interface ScratchDefinition {
+export interface ScratchDefinition extends ScratchOrgInfo {
   settings: Optional<Record<string, unknown>>;
   objectSettings: Optional<Record<string, unknown>>;
   orgPreferences: Optional<{
@@ -53,7 +54,12 @@ interface ObjectToBusinessProcessPicklist {
 interface BusinessProcessFileContent extends JsonMap {
   fullName: string;
   isActive: boolean;
-  values: [Record<string, unknown>];
+  values: [
+    {
+      fullName: string;
+      default?: boolean;
+    }
+  ];
 }
 
 /**

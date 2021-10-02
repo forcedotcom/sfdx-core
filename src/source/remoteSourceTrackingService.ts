@@ -8,7 +8,7 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { join as pathJoin } from 'path';
-import { Dictionary, Optional } from '@salesforce/ts-types';
+import { Dictionary, Optional, ensureNumber } from '@salesforce/ts-types';
 import { Duration, env, sleep, toNumber } from '@salesforce/kit';
 import { ConfigFile } from '../config/configFile';
 import { Connection } from '../connection';
@@ -88,8 +88,8 @@ export class RemoteSourceTrackingService extends ConfigFile<RemoteSourceTracking
   protected logger!: Logger;
   private org?: Org;
   private readonly FIRST_REVISION_COUNTER_API_VERSION: string = '47.0';
-  private conn?: Connection;
-  private currentApiVersion?: string;
+  private connection!: Connection;
+  private currentApiVersion!: string;
   private isSourceTrackedOrg = true;
 
   // A short term cache (within the same process) of query results based on a revision.
@@ -141,8 +141,8 @@ export class RemoteSourceTrackingService extends ConfigFile<RemoteSourceTracking
     this.options.filename = RemoteSourceTrackingService.getFileName();
     this.org = await Org.create({ aliasOrUsername: this.options.username });
     this.logger = await Logger.child(this.constructor.name);
-    this.conn = this.org.getConnection();
-    this.currentApiVersion = this.conn.getApiVersion();
+    this.connection = this.org.getConnection();
+    this.currentApiVersion = this.connection.getApiVersion();
 
     try {
       await super.init();
@@ -438,8 +438,8 @@ export class RemoteSourceTrackingService extends ConfigFile<RemoteSourceTracking
     }
 
     const pollStartTime = Date.now();
-    let pollEndTime: number;
-    let totalPollTime: number;
+    let pollEndTime!: number;
+    let totalPollTime!: number;
     const fromRevision = this.getServerMaxRevision();
     this.logger.debug(
       `Polling for ${memberNames.length} SourceMembers from revision ${fromRevision} with timeout of ${pollingTimeout}s`
@@ -461,7 +461,7 @@ export class RemoteSourceTrackingService extends ConfigFile<RemoteSourceTracking
       );
       pollEndTime = Date.now();
       totalPollTime = Math.round((pollEndTime - pollStartTime) / 1000) || 1;
-      if (matches.size === 0 || totalPollTime >= pollingTimeout) {
+      if (matches.size === 0 || totalPollTime >= ensureNumber(pollingTimeout)) {
         return allMembers;
       }
 
@@ -508,7 +508,7 @@ export class RemoteSourceTrackingService extends ConfigFile<RemoteSourceTracking
 
     // because `serverMaxRevisionCounter` is always updated, we need to select > to catch the most recent change
     const query = `SELECT MemberType, MemberName, IsNameObsolete, RevisionCounter FROM SourceMember WHERE RevisionCounter > ${rev}`;
-    const queryResult = await this.query(query, quiet);
+    const queryResult: SourceMember[] = await this.query(query, quiet);
     this.queryCache.set(rev, queryResult);
 
     return queryResult;
@@ -535,11 +535,11 @@ export class RemoteSourceTrackingService extends ConfigFile<RemoteSourceTracking
 
     let results;
     if (parseFloat(this.currentApiVersion) < parseFloat(this.FIRST_REVISION_COUNTER_API_VERSION)) {
-      this.conn.setApiVersion(this.FIRST_REVISION_COUNTER_API_VERSION);
-      results = await this.conn.tooling.autoFetchQuery<T>(query);
-      this.conn.setApiVersion(this.currentApiVersion);
+      this.connection.setApiVersion(this.FIRST_REVISION_COUNTER_API_VERSION);
+      results = await this.connection.tooling.autoFetchQuery<T>(query);
+      this.connection.setApiVersion(this.currentApiVersion);
     } else {
-      results = await this.conn.tooling.autoFetchQuery<T>(query);
+      results = await this.connection.tooling.autoFetchQuery<T>(query);
     }
     return results.records;
   }

@@ -7,6 +7,7 @@
 
 import * as Config from '@oclif/config';
 import { Optional } from '@salesforce/ts-types';
+import { AuthFields } from './authInfo';
 
 type HookOpts<T> = {
   Command: Config.Command.Class;
@@ -15,18 +16,19 @@ type HookOpts<T> = {
   result: Optional<T>;
 };
 
-export type OrgCreateResult = {
-  accessToken: string;
-  clientId: string;
-  created: string;
-  createdOrgInstance: string;
-  devHubUsername: string;
-  expirationDate: string;
-  instanceUrl: string;
-  loginUrl: string;
-  orgId: string;
-  username: string;
-};
+export type OrgCreateResult = Pick<
+  AuthFields,
+  | 'accessToken'
+  | 'clientId'
+  | 'created'
+  | 'createdOrgInstance'
+  | 'devHubUsername'
+  | 'expirationDate'
+  | 'instanceUrl'
+  | 'loginUrl'
+  | 'orgId'
+  | 'username'
+>;
 
 type PostOrgCreateOpts = HookOpts<OrgCreateResult>;
 

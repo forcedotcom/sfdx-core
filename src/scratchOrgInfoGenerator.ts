@@ -5,12 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// @salesforce
+import { ensureString } from '@salesforce/ts-types';
+
 // Local
 import { Org } from './org';
 import { SfdxProjectJson } from './sfdxProject';
 import { WebOAuthServer } from './webOAuthServer';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
+import { ScratchOrgInfo } from './scratchOrgInfoApi';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
 
 const defaultConnectedAppInfo = {
@@ -21,6 +25,15 @@ const defaultConnectedAppInfo = {
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
 
+export interface ScratchOrgInfoPayload extends ScratchOrgInfo {
+  orgName: string;
+  package2AncestorIds: string;
+  features: string | string[];
+  connectedAppConsumerKey: string;
+  namespace: string;
+  connectedAppCallbackUrl: string;
+}
+
 /**
  * Generates the package2AncestorIds scratch org property
  * Rewrite of similar code in pkgUtils, but without dependency on old toolbelt core
@@ -30,7 +43,7 @@ const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenera
  * @param hubOrg - the hub org, in case we need to do queries
  */
 export const getAncestorIds = async (
-  scratchOrgInfo: Record<string, unknown>,
+  scratchOrgInfo: ScratchOrgInfoPayload,
   projectJson: SfdxProjectJson,
   hubOrg: Org
 ): Promise<string> => {
@@ -55,7 +68,8 @@ export const getAncestorIds = async (
           throw new Error(messages.getMessage('errorInvalidAncestorVersionFormat', [packageDir.ancestorVersion]));
         }
         // package can be an ID in original toolbelt code, but not according to docs
-        const packageId = (projectJson.get('packageAliases')?.[packageDir.package] as string) ?? packageDir.package;
+        const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
+        const packageId = packageAliases[ensureString(packageDir.package)] ?? packageDir.package;
         const splits = packageDir.ancestorVersion.split('.');
         let releasedAncestor;
         try {
@@ -95,8 +109,9 @@ export const getAncestorIds = async (
               )
           ).Id;
         }
-        if (projectJson.get('packageAliases')?.[packageDir.ancestorId]) {
-          return projectJson.get('packageAliases')?.[packageDir.ancestorId];
+        const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
+        if (packageAliases?.[packageDir.ancestorId]) {
+          return packageAliases?.[packageDir.ancestorId];
         }
         throw new Error(`Invalid ancestorId ${packageDir.ancestorId}`);
       }
@@ -121,11 +136,11 @@ export const generateScratchOrgInfo = async ({
   ignoreAncestorIds,
 }: {
   hubOrg: Org;
-  scratchOrgInfoPayload;
+  scratchOrgInfoPayload: ScratchOrgInfoPayload;
   nonamespace?: boolean;
   ignoreAncestorIds?: boolean;
-}) => {
-  let sfdxProject: SfdxProjectJson;
+}): Promise<ScratchOrgInfoPayload> => {
+  let sfdxProject!: SfdxProjectJson;
   try {
     sfdxProject = await SfdxProjectJson.create({});
   } catch (e) {
@@ -144,7 +159,7 @@ export const generateScratchOrgInfo = async ({
       const delimiter = scratchOrgInfoPayload.features.includes(';') ? ';' : ',';
       scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.split(delimiter);
     }
-    scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.map((feature) => feature.trim());
+    scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.map((feature: string) => feature.trim());
 
     const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation();
 
@@ -162,7 +177,7 @@ export const generateScratchOrgInfo = async ({
   }
 
   if (!nonamespace && sfdxProject?.get('namespace')) {
-    scratchOrgInfoPayload.namespace = sfdxProject.get('namespace');
+    scratchOrgInfoPayload.namespace = sfdxProject.get('namespace') as string;
   }
 
   // we already have the info, and want to get rid of configApi, so this doesn't use that
