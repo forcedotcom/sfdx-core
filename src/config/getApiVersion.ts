@@ -5,10 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'fs';
 import { ConfigAggregator, Messages, SfdxError } from '@salesforce/core';
 import { Optional } from '@salesforce/ts-types';
-import pjson = require('../../package.json');
+import { parseJson } from '@salesforce/kit';
 
+interface Pjson {
+  [key: string]: unknown;
+  version: string;
+}
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('getApiVersion', 'scratchOrgInfoApi');
 
@@ -16,6 +21,14 @@ const throwUnexpectedVersionFormat = function (incorrectVersion: string) {
   const errorName = 'UnexpectedVersionFormat';
   throw new SfdxError(messages.getMessage(errorName, [incorrectVersion]), 'versionCommand');
 };
+
+function readPjson(): Pjson {
+  const pjsonPath = '../../package.json';
+  const fileContents = fs.readFileSync(pjsonPath, 'utf8');
+  return parseJson(fileContents, pjsonPath, true) as Pjson;
+}
+
+const pjson = readPjson();
 
 export default function getApiVersion(): Optional<string> {
   let result;
