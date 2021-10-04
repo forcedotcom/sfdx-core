@@ -79,6 +79,8 @@ export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './user';
 
 export { PermissionSetAssignment, PermissionSetAssignmentFields } from './permissionSetAssignment';
 
+export { ScratchOrgCreateCommand } from './scratchOrgCreateCommand';
+
 // Utility sub-modules
 export * from './util/fs';
 export * from './util/sfdc';

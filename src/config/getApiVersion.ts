@@ -6,16 +6,18 @@
  */
 
 import * as fs from 'fs';
-import { ConfigAggregator, Messages, SfdxError } from '@salesforce/core';
 import { Optional } from '@salesforce/ts-types';
 import { parseJson } from '@salesforce/kit';
+import { Messages } from '../messages';
+import { SfdxError } from '../sfdxError';
+import { ConfigAggregator } from './configAggregator';
 
 interface Pjson {
   [key: string]: unknown;
   version: string;
 }
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('getApiVersion', 'scratchOrgInfoApi');
+const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
 
 const throwUnexpectedVersionFormat = function (incorrectVersion: string) {
   const errorName = 'UnexpectedVersionFormat';

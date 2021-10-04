@@ -8,6 +8,9 @@
 // Node
 import { promises as fs } from 'fs';
 
+// third
+import { OutputFlags } from '@oclif/parser';
+
 // @salesforce
 import { Duration, parseJson } from '@salesforce/kit';
 import { ensureString, ensureBoolean, Optional } from '@salesforce/ts-types';
@@ -38,13 +41,14 @@ import { RemoteSourceTrackingService } from './source/remoteSourceTrackingServic
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreateCommand');
 
-interface Flags {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface Flags extends OutputFlags<any> {
   setalias?: string;
   setdefaultusername?: boolean;
   apiversion?: string;
   definitionfile?: string;
   definitionjson?: string;
-  wait: Duration;
+  wait?: Duration;
   clientid?: string;
   durationdays?: number;
   nonamespace?: boolean;
@@ -83,7 +87,7 @@ const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unk
  * @param force - the force api
  * @constructor
  */
-export default class ScratchOrgCreateCommand {
+export class ScratchOrgCreateCommand {
   public static readonly SNAPSHOT_UNSUPPORTED_OPTIONS = [
     'features',
     'orgPreferences',
@@ -121,7 +125,7 @@ export default class ScratchOrgCreateCommand {
    */
   public async execute(
     clientSecret: string
-  ): Promise<{ orgId: Optional<string>; username: Optional<string>; warnings: string[] }> {
+  ): Promise<{ orgId: Optional<string>; username: Optional<string>; warnings: Optional<string[]> }> {
     this.logger = await Logger.child('scratchOrgCreateCommand');
     this.logger.debug('scratchOrgCreateCommand: execute');
 
