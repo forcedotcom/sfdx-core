@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import * as path from 'path';
 import { Optional } from '@salesforce/ts-types';
 import { parseJson } from '@salesforce/kit';
 import { Messages } from '../messages';
@@ -25,7 +26,7 @@ const throwUnexpectedVersionFormat = function (incorrectVersion: string) {
 };
 
 function readPjson(): Pjson {
-  const pjsonPath = '../../package.json';
+  const pjsonPath = path.join(__dirname, '../../package.json');
   const fileContents = fs.readFileSync(pjsonPath, 'utf8');
   return parseJson(fileContents, pjsonPath, true) as Pjson;
 }

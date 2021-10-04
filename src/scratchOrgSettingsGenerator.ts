@@ -255,8 +255,8 @@ export default class SettingsGenerator {
     const objectsDir = path.join(destRoot, 'objects');
 
     try {
-      await fs.mkdir(settingsDir);
-      await fs.mkdir(objectsDir);
+      await fs.mkdir(settingsDir, { recursive: true });
+      await fs.mkdir(objectsDir, { recursive: true });
     } catch (e) {
       // If directory creation failed, the root dir probably doesn't exist, so we're fine
       this.logger.debug('caught error:', e);
@@ -303,13 +303,13 @@ export default class SettingsGenerator {
     if (!this.objectSettingsData) {
       return;
     }
-    await fs.mkdir(objectsDir);
+    await fs.mkdir(objectsDir, { recursive: true });
     // TODO: parallelize all this FS for perf
     for (const objectName of Object.keys(this.objectSettingsData)) {
       const value = this.objectSettingsData[objectName];
       // writes the object file in source format
       const objectDir = path.join(objectsDir, upperFirst(objectName));
-      await fs.mkdir(objectDir);
+      await fs.mkdir(objectDir, { recursive: true });
       await writeJSONasXML({
         path: path.join(objectDir, `${upperFirst(objectName)}.object-meta.xml`),
         type: 'CustomObject',
@@ -317,7 +317,7 @@ export default class SettingsGenerator {
       });
       if (value.defaultRecordType) {
         const recordTypesDir = path.join(objectDir, 'recordTypes');
-        await fs.mkdir(recordTypesDir);
+        await fs.mkdir(recordTypesDir, { recursive: true });
         const RTFileContent = this.createRecordTypeFileContent(objectName, value);
         await writeJSONasXML({
           path: path.join(recordTypesDir, `${upperFirst(value.defaultRecordType)}.recordType-meta.xml`),
@@ -326,7 +326,7 @@ export default class SettingsGenerator {
         });
         // for things that required a businessProcess
         if (RTFileContent.businessProcess) {
-          await fs.mkdir(path.join(objectDir, 'businessProcesses'));
+          await fs.mkdir(path.join(objectDir, 'businessProcesses'), { recursive: true });
           await writeJSONasXML({
             path: path.join(
               objectDir,
@@ -343,7 +343,7 @@ export default class SettingsGenerator {
 
   private async writeSettingsIfNeeded(settingsDir: string) {
     if (this.settingData) {
-      await fs.mkdir(settingsDir);
+      await fs.mkdir(settingsDir, { recursive: true });
       for (const item of Object.keys(this.settingData)) {
         const value = ensureObject(getObject(this.settingData, item));
         const typeName = upperFirst(item);

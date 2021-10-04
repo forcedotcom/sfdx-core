@@ -23,30 +23,29 @@ import { isPlainObject } from '@salesforce/ts-types';
 
 export default function mapKeys(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-  target: any,
+  obj: any,
   converter: (key: string) => string,
   deep?: boolean
 ): Record<string, unknown> {
+  const target = Object.assign({}, obj);
   return Object.fromEntries(
     Object.entries(target).map(([key, value]) => {
       const k = converter.call(null, key);
       if (deep) {
         let v = value;
         if (Array.isArray(value)) {
-          value.forEach((v1) => {
+          v = value.map((v1) => {
             if (isPlainObject(v1)) {
-              v = mapKeys(v1, converter, deep);
+              return mapKeys(v1, converter, deep);
             }
+            return v1;
           });
         } else if (isPlainObject(value)) {
           v = mapKeys(value, converter, deep);
         }
-        target[k] = v;
-        if (key !== k) {
-          delete target[key];
-        }
+        return [k, v];
       }
-      return [k, target[k]];
+      return [k, value];
     })
   );
 }

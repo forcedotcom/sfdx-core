@@ -1,3 +1,3 @@
 {
-    "quantifiedFeatureWithoutQuantityWarning": "The feature %s will be deprecated in a future release. It's been replaced by %s:<value>, which requires you to specify a quantity.",
+  "quantifiedFeatureWithoutQuantityWarning": "The feature %s will be deprecated in a future release. It's been replaced by %s:<value>, which requires you to specify a quantity."
 }
