@@ -14,7 +14,7 @@ import getApiVersion from './config/getApiVersion';
  */
 // P R I V A T E
 
-let currentApiVersion: Optional<string>;
+let currentApiVersion: number;
 
 // pref APIs
 const AccountSettingsApi = 'accountSettings';
@@ -506,9 +506,9 @@ const orgPreferenceSettingsTypeMigrateMap = new Map([
   ['voiceEnabled', DeprecatedSettingsApi],
 ]);
 
-function getCurrentApiVersion(): Optional<string> {
+function getCurrentApiVersion(): number {
   if (!currentApiVersion) {
-    currentApiVersion = getApiVersion();
+    currentApiVersion = parseInt(ensureString(getApiVersion()), 10);
   }
 
   return currentApiVersion;
@@ -582,8 +582,8 @@ export = {
    * @param prefName The org preference name
    * @returns the MDAPI name for the org preference
    */
-  forMdApi(prefName: string, apiVersion: Optional<string> = getCurrentApiVersion()): Optional<string> {
-    if (parseInt(ensureString(apiVersion), 10) >= 47.0) {
+  forMdApi(prefName: string, apiVersion: number = getCurrentApiVersion()): Optional<string> {
+    if (apiVersion >= 47.0) {
       return orgPreferenceMdMap.get(prefName);
     } else {
       return orgPreferenceMdMapPre47.get(prefName);
@@ -596,8 +596,8 @@ export = {
    * @param prefName The org preference name
    * @returns the API name for the org preference
    */
-  whichApi(prefName: string, apiVersion: Optional<string> = getCurrentApiVersion()): Optional<string> {
-    if (parseInt(ensureString(apiVersion), 10) >= 47.0) {
+  whichApi(prefName: string, apiVersion: number = getCurrentApiVersion()): Optional<string> {
+    if (apiVersion >= 47.0) {
       return orgPreferenceApiMap.get(prefName);
     } else {
       return orgPreferenceApiMapPre47.get(prefName);
@@ -609,8 +609,8 @@ export = {
    *
    * @returns the Org Preference Map
    */
-  allPrefsMap(apiVersion: Optional<string> = getCurrentApiVersion()): Map<string, string> {
-    if (parseInt(ensureString(apiVersion), 10) >= 47.0) {
+  allPrefsMap(apiVersion: number = getCurrentApiVersion()): Map<string, string> {
+    if (apiVersion >= 47.0) {
       return orgPreferenceApiMap;
     } else {
       return orgPreferenceApiMapPre47;
