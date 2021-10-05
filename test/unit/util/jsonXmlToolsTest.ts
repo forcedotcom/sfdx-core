@@ -59,7 +59,7 @@ describe('jsonXmlTools', () => {
     expect(result).to.be.undefined;
   });
 
-  it('tries to write json as xml but fails to write to file', async () => {
+  it('fails to write json as xml but fails', async () => {
     fsWriteFileStub.restore();
     fsWriteFileStub = stubMethod($$.SANDBOX, fs, 'writeFile').rejects();
     try {

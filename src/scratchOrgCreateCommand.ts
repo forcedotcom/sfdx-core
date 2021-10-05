@@ -13,7 +13,7 @@ import { OutputFlags } from '@oclif/parser';
 
 // @salesforce
 import { Duration, parseJson } from '@salesforce/kit';
-import { ensureString, ensureBoolean, Optional } from '@salesforce/ts-types';
+import { ensureBoolean, Optional } from '@salesforce/ts-types';
 
 // Local
 import { Org } from './org';
@@ -36,7 +36,8 @@ import {
 import SettingsGenerator, { ScratchDefinition } from './scratchOrgSettingsGenerator';
 import { generateScratchOrgInfo } from './scratchOrgInfoGenerator';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
-import { RemoteSourceTrackingService } from './source/remoteSourceTrackingService';
+// ommited
+// import { RemoteSourceTrackingService } from './source/remoteSourceTrackingService';
 
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreateCommand');
@@ -181,13 +182,16 @@ export class ScratchOrgCreateCommand {
     this.logger.trace('Settings deployed to org');
     /** updating the revision num to zero during org:creation if source members are created during org:create.This only happens for some specific scratch org definition file.*/
     await this.updateRevisionCounterToZero();
+    /*
+     * OMIT ST INITIALIZATION
+     */
     // initialize the maxRevision.json file.
-    try {
-      await RemoteSourceTrackingService.getInstance({ username: ensureString(this.scratchOrg.getUsername()) });
-    } catch (err) {
-      // Do nothing. If org:create is not executed within sfdx project, allow the org to be created without errors.
-      this.logger.debug(`Failed to create the maxRevision.json file due to the error : ${err.message}`);
-    }
+    // try {
+    //   await RemoteSourceTrackingService.getInstance({ username: ensureString(this.scratchOrg.getUsername()) });
+    // } catch (err) {
+    //   // Do nothing. If org:create is not executed within sfdx project, allow the org to be created without errors.
+    //   this.logger.debug(`Failed to create the maxRevision.json file due to the error : ${err.message}`);
+    // }
 
     // emit postorgcreate event for hook
     const postOrgCreateHookInfo: OrgCreateResult = [orgData]
