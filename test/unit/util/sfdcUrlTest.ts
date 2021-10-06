@@ -17,6 +17,19 @@ const TEST_IP = '1.1.1.1';
 const TEST_CNAMES = ['login.salesforce.com', 'test.salesforce.com'];
 
 describe('util/sfdcUrl', () => {
+  describe('toLightningdomain', () => {
+    it('works for com', () => {
+      expect(new SfdcUrl('https://some-instance.my.salesforce.com').toLightningDomain()).to.equal(
+        'https://some-instance.lightning.force.com'
+      );
+    });
+    it('works for mil', () => {
+      expect(new SfdcUrl('https://some-instance.my.salesforce.mil').toLightningDomain()).to.equal(
+        'https://some-instance.lightning.crmforce.mil'
+      );
+    });
+  });
+
   describe('isSalesforceDomain', () => {
     it('is allowlist domain', () => {
       const url = new SfdcUrl('https://www.salesforce.com');
@@ -64,6 +77,12 @@ describe('util/sfdcUrl', () => {
 
     it('return true for internal urls', async () => {
       const url = new SfdcUrl('https://my-domain.stm.salesforce.com');
+      const response = await url.checkLightningDomain();
+      expect(response).to.be.true;
+    });
+
+    it('handles .mil domains', async () => {
+      const url = new SfdcUrl('https://my-domain.my.salesforce.mil');
       const response = await url.checkLightningDomain();
       expect(response).to.be.true;
     });
