@@ -74,6 +74,7 @@ export class SfdcUrl extends URL {
       '.salesforce.com',
       '.salesforceliveagent.com',
       '.secure.force.com',
+      'crmforce.mil',
     ];
 
     const allowlistOfSalesforceHosts: string[] = ['developer.salesforce.com', 'trailhead.salesforce.com'];
@@ -115,18 +116,20 @@ export class SfdcUrl extends URL {
     return LOCAL_PARTS.some((part) => this.origin.includes(part));
   }
 
+  public toLightningDomain(): string {
+    return `https://${ensureArray(/https?:\/\/([^.]*)/.exec(this.origin))
+      .slice(1, 2)
+      .pop()}.lightning.${this.origin.endsWith('.mil') ? 'crmforce.mil' : 'force.com'}`;
+  }
   /**
    * Tests whether this url has the lightning domain extension
-   * This method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again untill timeout
+   * This method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again until timeout
    * If SFDX_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
    *
    * @returns {Promise<true | never>} The resolved ip address or never
    * @throws {@link SfdxError} If can't resolve DNS.
    */
   public async checkLightningDomain(): Promise<true | never> {
-    const domain = `https://${ensureArray(/https?:\/\/([^.]*)/.exec(this.origin))
-      .slice(1, 2)
-      .pop()}.lightning.force.com`;
     const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));
     const timeout = new Duration(quantity, Duration.Unit.SECONDS);
 
@@ -135,7 +138,7 @@ export class SfdcUrl extends URL {
     }
 
     const resolver = await MyDomainResolver.create({
-      url: new URL(domain),
+      url: new URL(this.toLightningDomain()),
       timeout,
       frequency: new Duration(1, Duration.Unit.SECONDS),
     });
