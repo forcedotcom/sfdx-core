@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.1](https://github.com/forcedotcom/sfdx-core/compare/v2.28.0...v2.28.1) (2021-10-06)
+
+
+### Bug Fixes
+
+* crmforce.mil ([e263d5d](https://github.com/forcedotcom/sfdx-core/commit/e263d5d74be9c0651e5c2676d6eec1c31fca05e4))
+
 ## [2.28.0](https://github.com/forcedotcom/sfdx-core/compare/v2.27.2...v2.28.0) (2021-09-16)
 
 
