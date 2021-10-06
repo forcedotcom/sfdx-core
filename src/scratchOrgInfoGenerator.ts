@@ -163,9 +163,9 @@ export const generateScratchOrgInfo = async ({
 
     const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation();
 
-    scratchOrgInfoPayload.features = scratchOrgFeatureDeprecation.filterDeprecatedFeatures(
-      scratchOrgInfoPayload.features
-    ).join(';');
+    scratchOrgInfoPayload.features = scratchOrgFeatureDeprecation
+      .filterDeprecatedFeatures(scratchOrgInfoPayload.features)
+      .join(';');
   }
 
   // Use the Hub org's client ID value, if one wasn't provided to us, or the default

@@ -12,19 +12,18 @@ import { promises as fs } from 'fs';
 import { OutputFlags } from '@oclif/parser';
 
 // @salesforce
-import { Duration, parseJson } from '@salesforce/kit';
+import { parseJson } from '@salesforce/kit';
 import { ensureBoolean, Optional } from '@salesforce/ts-types';
 
 // Local
 import { Org } from './org';
 import { Logger } from './logger';
 import { sfdc } from './util/sfdc';
+import { AuthInfo } from './authInfo';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { Connection } from './connection';
 import { SfdxProject } from './sfdxProject';
-import { OrgCreateResult } from './orgHooks';
-import { Lifecycle } from './lifecycleEvents';
 import { ConfigAggregator } from './config/configAggregator';
 import {
   authorizeScratchOrg,
@@ -39,23 +38,16 @@ import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
 // ommited
 // import { RemoteSourceTrackingService } from './source/remoteSourceTrackingService';
 
+export interface ScratchOrgCreateCommandOptions {
+  hubOrg: Org;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  flags: OutputFlags<any>;
+  varargs: Record<string, unknown>;
+}
+
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreateCommand');
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface Flags extends OutputFlags<any> {
-  setalias?: string;
-  setdefaultusername?: boolean;
-  apiversion?: string;
-  definitionfile?: string;
-  definitionjson?: string;
-  wait?: Duration;
-  clientid?: string;
-  durationdays?: number;
-  nonamespace?: boolean;
-  noancestors?: boolean;
-  retry?: number;
-}
 // A validator function to ensure any options parameters entered by the user adhere
 // to a allowlist of valid option settings. Because org:create allows options to be
 // input either key=value pairs or within the definition file, this validator is
@@ -99,21 +91,13 @@ export class ScratchOrgCreateCommand {
     'language',
   ];
 
-  private hubOrg: Org;
   private scratchOrg!: Org;
   private scratchOrgInfoId!: string;
   private scratchOrgInfo!: ScratchOrgInfo;
-  private varargs: Record<string, unknown>;
-  private flags: Flags;
   private logger!: Logger;
-  private configAggregator: ConfigAggregator;
   private settingsGenerator: SettingsGenerator;
 
-  public constructor(hubOrg: Org, flags: Flags, varargs: Record<string, unknown>, configAggregator: ConfigAggregator) {
-    this.hubOrg = hubOrg;
-    this.flags = flags;
-    this.varargs = varargs;
-    this.configAggregator = configAggregator;
+  public constructor(private options: ScratchOrgCreateCommandOptions, private configAggregator: ConfigAggregator) {
     this.settingsGenerator = new SettingsGenerator();
   }
 
@@ -124,9 +108,7 @@ export class ScratchOrgCreateCommand {
    * @param stdinValues - param values obtained from stdin
    * @returns {Promise}
    */
-  public async execute(
-    clientSecret: string
-  ): Promise<{ orgId: Optional<string>; username: Optional<string>; warnings: Optional<string[]> }> {
+  public async execute(clientSecret: string): Promise<{ orgData: Optional<AuthInfo>; username: Optional<string>; warnings: Optional<string[]> }> {
     this.logger = await Logger.child('scratchOrgCreateCommand');
     this.logger.debug('scratchOrgCreateCommand: execute');
 
@@ -140,7 +122,7 @@ export class ScratchOrgCreateCommand {
 
     // creates the scratch org info in the devhub
     const scratchOrgInfoRequestResult = await requestScratchOrgCreation(
-      this.hubOrg,
+      this.options.hubOrg,
       this.scratchOrgInfo as ScratchDefinition,
       this.settingsGenerator
     );
@@ -149,7 +131,11 @@ export class ScratchOrgCreateCommand {
       this.scratchOrgInfoId = scratchOrgInfoRequestResult.id;
       this.logger.debug(`scratch org has recordId ${this.scratchOrgInfoId}`);
     }
-    const scratchOrgInfoResult = await pollForScratchOrgInfo(this.hubOrg, this.scratchOrgInfoId, this.flags.wait);
+    const scratchOrgInfoResult = await pollForScratchOrgInfo(
+      this.options.hubOrg,
+      this.scratchOrgInfoId,
+      this.options.flags.wait
+    );
 
     let signupTargetLoginUrlConfig!: string;
     try {
@@ -162,19 +148,19 @@ export class ScratchOrgCreateCommand {
 
     const scratchOrgAuthInfo = await authorizeScratchOrg({
       scratchOrgInfoComplete: scratchOrgInfoResult,
-      hubOrg: this.hubOrg,
+      hubOrg: this.options.hubOrg,
       clientSecret,
-      setAsDefault: ensureBoolean(this.flags.setdefaultusername),
-      alias: this.flags.setalias,
+      setAsDefault: ensureBoolean(this.options.flags.setdefaultusername),
+      alias: this.options.flags.setalias,
       signupTargetLoginUrlConfig,
-      retry: this.flags.retry || 0,
+      retry: this.options.flags.retry || 0,
     });
     // we'll need this scratch org connection later;
     this.scratchOrg = await Org.create({ connection: await Connection.create({ authInfo: scratchOrgAuthInfo }) });
 
     const orgData = await deploySettingsAndResolveUrl(
       scratchOrgAuthInfo,
-      this.flags.apiversion ??
+      this.options.flags.apiversion ??
         (this.configAggregator.getPropertyValue('apiVersion') as string) ??
         (await this.scratchOrg.retrieveMaxApiVersion()),
       this.settingsGenerator
@@ -182,36 +168,9 @@ export class ScratchOrgCreateCommand {
     this.logger.trace('Settings deployed to org');
     /** updating the revision num to zero during org:creation if source members are created during org:create.This only happens for some specific scratch org definition file.*/
     await this.updateRevisionCounterToZero();
-    /*
-     * OMIT ST INITIALIZATION
-     */
-    // initialize the maxRevision.json file.
-    // try {
-    //   await RemoteSourceTrackingService.getInstance({ username: ensureString(this.scratchOrg.getUsername()) });
-    // } catch (err) {
-    //   // Do nothing. If org:create is not executed within sfdx project, allow the org to be created without errors.
-    //   this.logger.debug(`Failed to create the maxRevision.json file due to the error : ${err.message}`);
-    // }
-
-    // emit postorgcreate event for hook
-    const postOrgCreateHookInfo: OrgCreateResult = [orgData]
-      .map((result) => result?.getFields())
-      .map((element) => ({
-        accessToken: element?.accessToken,
-        clientId: element?.clientId,
-        created: element?.created,
-        createdOrgInstance: element?.createdOrgInstance,
-        devHubUsername: element?.devHubUsername,
-        expirationDate: element?.expirationDate,
-        instanceUrl: element?.instanceUrl,
-        loginUrl: element?.loginUrl,
-        orgId: element?.orgId,
-        username: element?.username,
-      }))[0];
-    await Lifecycle.getInstance().emit('postorgcreate', postOrgCreateHookInfo);
 
     return {
-      orgId: orgData?.getFields().orgId,
+      orgData,
       username: this.scratchOrg.getUsername(),
       warnings,
     };
@@ -221,22 +180,22 @@ export class ScratchOrgCreateCommand {
   private async getScratchOrgInfo(): Promise<{ scratchOrgInfo: ScratchOrgInfo; warnings: string[] }> {
     const warnings: string[] = [];
     // Varargs input overrides definitionjson (-j option; hidden/deprecated)
-    const definitionJson = this.flags.definitionjson ? JSON.parse(this.flags.definitionjson) : {};
-    const orgConfigInput = { ...definitionJson, ...(this.varargs ?? {}) };
+    const definitionJson = this.options.flags.definitionjson ? JSON.parse(this.options.flags.definitionjson) : {};
+    const orgConfigInput = { ...definitionJson, ...(this.options.varargs ?? {}) };
 
     let scratchOrgInfoPayload = orgConfigInput;
 
     // the -f option
-    if (this.flags.definitionfile) {
+    if (this.options.flags.definitionfile) {
       try {
-        const fileData = await fs.readFile(this.flags.definitionfile, 'utf8');
+        const fileData = await fs.readFile(this.options.flags.definitionfile, 'utf8');
         const defFileContents = parseJson(fileData) as Record<string, unknown>;
         // definitionjson and varargs override file input
         scratchOrgInfoPayload = { ...defFileContents, ...orgConfigInput };
       } catch (err) {
         const error = err as Error;
         if (error.name === 'SyntaxError') {
-          throw new SfdxError(`An error occurred parsing ${this.flags.definitionfile}`);
+          throw new SfdxError(`An error occurred parsing ${this.options.flags.definitionfile}`);
         }
       }
     }
@@ -253,15 +212,15 @@ export class ScratchOrgCreateCommand {
     });
 
     // the -i option
-    if (this.flags.clientid) {
-      scratchOrgInfoPayload.connectedAppConsumerKey = this.flags.clientid;
+    if (this.options.flags.clientid) {
+      scratchOrgInfoPayload.connectedAppConsumerKey = this.options.flags.clientid;
     }
 
     // the -d option
-    scratchOrgInfoPayload.durationDays = this.flags.durationdays;
+    scratchOrgInfoPayload.durationDays = this.options.flags.durationdays;
 
     // Ignore ancestor ids only when 'nonamespace' or 'noancestors' options are specified
-    const ignoreAncestorIds = this.flags.nonamespace || this.flags.noancestors || false;
+    const ignoreAncestorIds = this.options.flags.nonamespace || this.options.flags.noancestors || false;
 
     // Throw warnings for deprecated scratch org features.
     const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation();
@@ -270,9 +229,9 @@ export class ScratchOrgCreateCommand {
     });
 
     const scratchOrgInfo = await generateScratchOrgInfo({
-      hubOrg: this.hubOrg,
+      hubOrg: this.options.hubOrg,
       scratchOrgInfoPayload,
-      nonamespace: this.flags.nonamespace,
+      nonamespace: this.options.flags.nonamespace,
       ignoreAncestorIds,
     });
 
