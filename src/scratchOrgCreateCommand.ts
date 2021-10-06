@@ -12,7 +12,7 @@ import { promises as fs } from 'fs';
 import { OutputFlags } from '@oclif/parser';
 
 // @salesforce
-import { parseJson } from '@salesforce/kit';
+import { AsyncCreatable, parseJson } from '@salesforce/kit';
 import { ensureBoolean, Optional } from '@salesforce/ts-types';
 
 // Local
@@ -38,12 +38,14 @@ import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
 // ommited
 // import { RemoteSourceTrackingService } from './source/remoteSourceTrackingService';
 
-export interface ScratchOrgCreateCommandOptions {
-  hubOrg: Org;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  flags: OutputFlags<any>;
-  varargs: Record<string, unknown>;
-}
+// export interface ScratchOrgCreateCommandOptions {
+//   hubOrg: Org;
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   flags: OutputFlags<any>;
+//   varargs: Record<string, unknown>;
+//   configAggregator: ConfigAggregator;
+//   clientSecret: string;
+// }
 
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreateCommand');
@@ -77,7 +79,7 @@ const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unk
  * @param force - the force api
  * @constructor
  */
-export class ScratchOrgCreateCommand {
+export class ScratchOrgCreateCommand extends AsyncCreatable<ScratchOrgCreateCommand.Options> {
   public static readonly SNAPSHOT_UNSUPPORTED_OPTIONS = [
     'features',
     'orgPreferences',
@@ -88,13 +90,17 @@ export class ScratchOrgCreateCommand {
     'language',
   ];
 
+  public authInfo?: AuthInfo;
+  public warnings: string[] = [];
+  public username: Optional<string>;
   private scratchOrg!: Org;
   private scratchOrgInfoId!: string;
   private scratchOrgInfo!: ScratchOrgInfo;
   private logger!: Logger;
   private settingsGenerator: SettingsGenerator;
 
-  public constructor(private options: ScratchOrgCreateCommandOptions, private configAggregator: ConfigAggregator) {
+  public constructor(private options: ScratchOrgCreateCommand.Options) {
+    super(options);
     this.settingsGenerator = new SettingsGenerator();
   }
 
@@ -105,15 +111,13 @@ export class ScratchOrgCreateCommand {
    * @param stdinValues - param values obtained from stdin
    * @returns {Promise}
    */
-  public async execute(
-    clientSecret: string
-  ): Promise<{ orgData: Optional<AuthInfo>; username: Optional<string>; warnings: Optional<string[]> }> {
+  protected async init(): Promise<void> {
     this.logger = await Logger.child('scratchOrgCreateCommand');
     this.logger.debug('scratchOrgCreateCommand: execute');
 
     const scratchOrgInfo = await this.getScratchOrgInfo();
     this.scratchOrgInfo = scratchOrgInfo.scratchOrgInfo;
-    const warnings = scratchOrgInfo.warnings;
+    this.warnings = scratchOrgInfo.warnings;
 
     // gets the scratch org settings (will use in both signup paths AND to deploy the settings)
     await this.settingsGenerator.extract(this.scratchOrgInfo as ScratchDefinition);
@@ -148,7 +152,7 @@ export class ScratchOrgCreateCommand {
     const scratchOrgAuthInfo = await authorizeScratchOrg({
       scratchOrgInfoComplete: scratchOrgInfoResult,
       hubOrg: this.options.hubOrg,
-      clientSecret,
+      clientSecret: this.options.clientSecret,
       setAsDefault: ensureBoolean(this.options.flags.setdefaultusername),
       alias: this.options.flags.setalias,
       signupTargetLoginUrlConfig,
@@ -156,23 +160,18 @@ export class ScratchOrgCreateCommand {
     });
     // we'll need this scratch org connection later;
     this.scratchOrg = await Org.create({ connection: await Connection.create({ authInfo: scratchOrgAuthInfo }) });
+    this.username = this.scratchOrg.getUsername();
 
-    const orgData = await deploySettingsAndResolveUrl(
+    this.authInfo = await deploySettingsAndResolveUrl(
       scratchOrgAuthInfo,
       this.options.flags.apiversion ??
-        (this.configAggregator.getPropertyValue('apiVersion') as string) ??
+        (this.options.configAggregator.getPropertyValue('apiVersion') as string) ??
         (await this.scratchOrg.retrieveMaxApiVersion()),
       this.settingsGenerator
     );
     this.logger.trace('Settings deployed to org');
     /** updating the revision num to zero during org:creation if source members are created during org:create.This only happens for some specific scratch org definition file.*/
     await this.updateRevisionCounterToZero();
-
-    return {
-      orgData,
-      username: this.scratchOrg.getUsername(),
-      warnings,
-    };
   }
 
   // Returns a valid signup json object
@@ -254,5 +253,19 @@ export class ScratchOrgCreateCommand {
       ]);
       throw new SfdxError(message, 'SourceStatusResetFailure');
     }
+  }
+}
+
+export namespace ScratchOrgCreateCommand {
+  /**
+   * Constructor options for ScratchOrgCreateCommand.
+   */
+  export interface Options {
+    hubOrg: Org;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    flags: OutputFlags<any>;
+    varargs: Record<string, unknown>;
+    configAggregator: ConfigAggregator;
+    clientSecret: string;
   }
 }
