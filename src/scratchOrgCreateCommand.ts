@@ -58,12 +58,9 @@ const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unk
   }
 
   if (key.toLowerCase() === 'snapshot') {
-    const foundInvalidFields: string[] = [];
-    ScratchOrgCreateCommand.SNAPSHOT_UNSUPPORTED_OPTIONS.forEach((invalidField) => {
-      if (invalidField in scratchOrgInfoPayload) {
-        foundInvalidFields.push(invalidField);
-      }
-    });
+    const foundInvalidFields = ScratchOrgCreateCommand.SNAPSHOT_UNSUPPORTED_OPTIONS.filter(
+      (invalidField) => invalidField in scratchOrgInfoPayload
+    );
 
     if (foundInvalidFields.length > 0) {
       throw new SfdxError(
@@ -108,7 +105,9 @@ export class ScratchOrgCreateCommand {
    * @param stdinValues - param values obtained from stdin
    * @returns {Promise}
    */
-  public async execute(clientSecret: string): Promise<{ orgData: Optional<AuthInfo>; username: Optional<string>; warnings: Optional<string[]> }> {
+  public async execute(
+    clientSecret: string
+  ): Promise<{ orgData: Optional<AuthInfo>; username: Optional<string>; warnings: Optional<string[]> }> {
     this.logger = await Logger.child('scratchOrgCreateCommand');
     this.logger.debug('scratchOrgCreateCommand: execute');
 
