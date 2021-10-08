@@ -141,7 +141,7 @@ export enum SfdxPropertyKeys {
   /**
    * Custom templates repo or local location.
    */
-  public static readonly CUSTOM_ORG_METADATA_TEMPLATES = 'customOrgMetadataTemplates';
+  CUSTOM_ORG_METADATA_TEMPLATES = 'customOrgMetadataTemplates',
 
   /**
    * allows users to override the 10,000 result query limit

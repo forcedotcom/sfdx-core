@@ -22,6 +22,10 @@ Specify a valid Salesforce instance URL.
 
 Specify a valid Salesforce API version, for example, 42.0.
 
+# invalidCustomOrgMetadataTemplates
+
+Specify a valid repository URL or directory for the custom org metadata templates.
+
 # invalidIsvDebuggerSid
 
 Specify a valid Debugger SID.
@@ -97,7 +101,7 @@ ISV debugger URL
 
 # apiVersion
 
-API version of your project. Default: API version of your Dev Hub org. 
+API version of your project. Default: API version of your Dev Hub org.
 
 # disableTelemetry
 
@@ -109,7 +113,7 @@ Maximum number of Salesforce records returned by a CLI command. Default: 10,000.
 
 # restDeploy
 
-Whether deployments use the Metadata REST API (true) or SOAP API (false, default value).  
+Whether deployments use the Metadata REST API (true) or SOAP API (false, default value).
 
 # instanceUrl
 
