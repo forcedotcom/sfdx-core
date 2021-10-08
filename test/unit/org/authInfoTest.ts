@@ -12,7 +12,7 @@ import * as pathImport from 'path';
 import { URL } from 'url';
 import { cloneJson, Duration, env, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
-import { AnyFunction, AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
+import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { OAuth2, OAuth2Options } from 'jsforce';
 import { match } from 'sinon';
