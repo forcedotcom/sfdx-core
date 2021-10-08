@@ -135,11 +135,11 @@ describe('Logger', () => {
   });
 
   describe('root', () => {
-    it('should construct the root SFDX logger', async () => {
+    it('should construct the root SF logger', async () => {
       $$.SANDBOX.spy(Logger.prototype, 'addFilter');
       const defaultLogger = await Logger.root();
       expect(defaultLogger).to.be.instanceof(Logger);
-      expect(defaultLogger.getName()).to.equal('sfdx');
+      expect(defaultLogger.getName()).to.equal('sf');
       expect(defaultLogger.addFilter['called'], 'new Logger() should have called addFilter()').to.be.true;
       const logger = await Logger.root();
       expect(logger).to.equal(defaultLogger);
@@ -147,7 +147,7 @@ describe('Logger', () => {
 
     it('should return the same root logger instance', async () => {
       const rootLogger = await Logger.root();
-      expect(rootLogger.getName()).to.equal('sfdx');
+      expect(rootLogger.getName()).to.equal('sf');
       expect(await Logger.root()).to.equal(rootLogger);
     });
 
@@ -155,7 +155,7 @@ describe('Logger', () => {
       $$.SANDBOX.stub(Logger.prototype, 'addLogFileStream');
       $$.SANDBOX.spy(Logger, 'root');
       const rootLogger = await Logger.root();
-      expect(rootLogger.getName()).to.equal('sfdx');
+      expect(rootLogger.getName()).to.equal('sf');
       expect(await Logger.root()).to.equal(rootLogger);
       expect(Logger.root['called']).to.be.true;
       expect(rootLogger.addLogFileStream['called']).to.be.false;
@@ -347,7 +347,7 @@ describe('Logger', () => {
       logger.warn('warn');
       out.restore();
       err.restore();
-      expect(output).to.contain('sfdx:core WARN warn');
+      expect(output).to.contain('sf:core WARN warn');
     });
 
     it('should use child name in output', async () => {
@@ -360,7 +360,7 @@ describe('Logger', () => {
       logger.warn('warn');
       out.restore();
       err.restore();
-      expect(output).to.contain('sfdx:test WARN warn');
+      expect(output).to.contain('sf:test WARN warn');
     });
 
     it('should include higher level', async () => {
@@ -374,7 +374,7 @@ describe('Logger', () => {
       logger.info('info');
       out.restore();
       err.restore();
-      expect(output).to.contain('sfdx:core INFO info');
+      expect(output).to.contain('sf:core INFO info');
     });
 
     it('should not include lower level', async () => {
@@ -388,7 +388,7 @@ describe('Logger', () => {
       logger.info('info');
       out.restore();
       err.restore();
-      expect(output).to.not.contain('sfdx:core INFO info');
+      expect(output).to.not.contain('sf:core INFO info');
     });
   });
 
