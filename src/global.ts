@@ -61,7 +61,7 @@ export class Global {
   /**
    * The full system path to the global log file.
    */
-  public static readonly LOG_FILE_PATH: string = path.join(Global.SFDX_DIR, 'sfdx.log');
+  public static readonly LOG_FILE_PATH: string = path.join(Global.SF_DIR, 'sf.log');
 
   /**
    * Gets the current mode environment variable as a {@link Mode} instance.

@@ -193,7 +193,7 @@ export class Logger {
   /**
    * The name of the root sfdx `Logger`.
    */
-  public static readonly ROOT_NAME = 'sfdx';
+  public static readonly ROOT_NAME = 'sf';
 
   /**
    * The default `LoggerLevel` when constructing new `Logger` instances.
