@@ -4,45 +4,39 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [3.6.5](https://github.com/forcedotcom/sfdx-core/compare/v3.6.4...v3.6.5) (2021-09-29)
 
-
 ### Bug Fixes
 
-* add getValue to AliasAccessor ([c4b69f5](https://github.com/forcedotcom/sfdx-core/commit/c4b69f5ff38547fad640c64833291fe0c6e06a79))
+- add getValue to AliasAccessor ([c4b69f5](https://github.com/forcedotcom/sfdx-core/commit/c4b69f5ff38547fad640c64833291fe0c6e06a79))
 
 ### [3.6.4](https://github.com/forcedotcom/sfdx-core/compare/v3.6.3...v3.6.4) (2021-09-23)
 
-
 ### Bug Fixes
 
-* edit the env var blurbs ([#482](https://github.com/forcedotcom/sfdx-core/issues/482)) ([bbbdb6d](https://github.com/forcedotcom/sfdx-core/commit/bbbdb6d0800015e94ce0f0c551eec8ed73dd87c6))
+- edit the env var blurbs ([#482](https://github.com/forcedotcom/sfdx-core/issues/482)) ([bbbdb6d](https://github.com/forcedotcom/sfdx-core/commit/bbbdb6d0800015e94ce0f0c551eec8ed73dd87c6))
 
 ### [3.6.3](https://github.com/forcedotcom/sfdx-core/compare/v3.6.2...v3.6.3) (2021-09-23)
 
-
 ### Bug Fixes
 
-* edit the config var blurbs ([#480](https://github.com/forcedotcom/sfdx-core/issues/480)) ([f845512](https://github.com/forcedotcom/sfdx-core/commit/f8455121bfd96f27495bc124dc06570632dfce70))
+- edit the config var blurbs ([#480](https://github.com/forcedotcom/sfdx-core/issues/480)) ([f845512](https://github.com/forcedotcom/sfdx-core/commit/f8455121bfd96f27495bc124dc06570632dfce70))
 
 ### [3.6.2](https://github.com/forcedotcom/sfdx-core/compare/v3.6.1...v3.6.2) (2021-09-17)
 
-
 ### Bug Fixes
 
-* improve time to build auths for many orgs @W-9914839@ ([#478](https://github.com/forcedotcom/sfdx-core/issues/478)) ([c788541](https://github.com/forcedotcom/sfdx-core/commit/c7885415d59994b28552227f0b84dcee5d3ec7cf))
+- improve time to build auths for many orgs @W-9914839@ ([#478](https://github.com/forcedotcom/sfdx-core/issues/478)) ([c788541](https://github.com/forcedotcom/sfdx-core/commit/c7885415d59994b28552227f0b84dcee5d3ec7cf))
 
 ### [3.6.1](https://github.com/forcedotcom/sfdx-core/compare/v3.6.0...v3.6.1) (2021-09-13)
 
-
 ### Bug Fixes
 
-* remove tokens associated with org ([#477](https://github.com/forcedotcom/sfdx-core/issues/477)) ([5034fa2](https://github.com/forcedotcom/sfdx-core/commit/5034fa2d4c52d347c00499e137a71366e4feba7f))
+- remove tokens associated with org ([#477](https://github.com/forcedotcom/sfdx-core/issues/477)) ([5034fa2](https://github.com/forcedotcom/sfdx-core/commit/5034fa2d4c52d347c00499e137a71366e4feba7f))
 
 ## [3.6.0](https://github.com/forcedotcom/sfdx-core/compare/v3.5.0...v3.6.0) (2021-09-10)
 
-
 ### Features
 
-* add help section helper ([#474](https://github.com/forcedotcom/sfdx-core/issues/474)) ([b34c2d7](https://github.com/forcedotcom/sfdx-core/commit/b34c2d7a442aed2cf091fd394a7c3656287d1dbf))
+- add help section helper ([#474](https://github.com/forcedotcom/sfdx-core/issues/474)) ([b34c2d7](https://github.com/forcedotcom/sfdx-core/commit/b34c2d7a442aed2cf091fd394a7c3656287d1dbf))
 
 ## [3.5.0](https://github.com/forcedotcom/sfdx-core/compare/v3.4.5...v3.5.0) (2021-09-09)
 
@@ -209,6 +203,20 @@ All notable changes to this project will be documented in this file. See [standa
 
 - add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([579998b](https://github.com/forcedotcom/sfdx-core/commit/579998b6ee70dbb9772e65896bbabf6d812aae23))
 - default to reading files from cache ([12b5930](https://github.com/forcedotcom/sfdx-core/commit/12b59301df96395c4edcbfb0816dbddd45af95db))
+
+### [2.28.1](https://github.com/forcedotcom/sfdx-core/compare/v2.28.0...v2.28.1) (2021-10-06)
+
+### Bug Fixes
+
+- crmforce.mil ([e263d5d](https://github.com/forcedotcom/sfdx-core/commit/e263d5d74be9c0651e5c2676d6eec1c31fca05e4))
+
+## [2.28.0](https://github.com/forcedotcom/sfdx-core/compare/v2.27.2...v2.28.0) (2021-09-16)
+
+### Features
+
+- add custom templates config ([3cf8a8c](https://github.com/forcedotcom/sfdx-core/commit/3cf8a8cee1e7196efced989dcca9b545e1283386))
+- add validator for custom templates config ([dd2bcfe](https://github.com/forcedotcom/sfdx-core/commit/dd2bcfe8e7fee5c5c1c6321189ec04288103d5b6))
+- update config name ([72e84bf](https://github.com/forcedotcom/sfdx-core/commit/72e84bfacef48a1c2d00a61ebbae3f632601abbd))
 
 ### [2.27.2](https://github.com/forcedotcom/sfdx-core/compare/v2.27.1...v2.27.2) (2021-08-05)
 

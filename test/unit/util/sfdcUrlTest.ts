@@ -78,6 +78,12 @@ describe('util/sfdcUrl', () => {
       expect(response).to.be.true;
     });
 
+    it('handles .mil domains', async () => {
+      const url = new SfdcUrl('https://my-domain.my.salesforce.mil');
+      const response = await url.checkLightningDomain();
+      expect(response).to.be.true;
+    });
+
     it('return true for urls that dns can resolve', async () => {
       const url = new SfdcUrl('https://login.salesforce.com');
       const response = await url.checkLightningDomain();

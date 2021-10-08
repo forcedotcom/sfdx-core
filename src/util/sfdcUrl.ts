@@ -83,6 +83,7 @@ export class SfdcUrl extends URL {
       '.salesforce.com',
       '.salesforceliveagent.com',
       '.secure.force.com',
+      'crmforce.mil',
     ];
 
     const allowlistOfSalesforceHosts: string[] = ['developer.salesforce.com', 'trailhead.salesforce.com'];
