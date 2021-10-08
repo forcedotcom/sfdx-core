@@ -193,7 +193,7 @@ export class Logger {
   /**
    * The name of the root sfdx `Logger`.
    */
-  public static readonly ROOT_NAME = 'sfdx';
+  public static readonly ROOT_NAME = 'sf';
 
   /**
    * The default `LoggerLevel` when constructing new `Logger` instances.
@@ -408,7 +408,7 @@ export class Logger {
       try {
         await fs.writeFile(logFile, '', { mode: fs.DEFAULT_USER_FILE_MODE });
       } catch (err3) {
-        throw SfdxError.wrap(err3);
+        throw SfdxError.wrap(err3 as string | Error);
       }
     }
 
@@ -450,7 +450,7 @@ export class Logger {
       try {
         fs.writeFileSync(logFile, '', { mode: fs.DEFAULT_USER_FILE_MODE });
       } catch (err3) {
-        throw SfdxError.wrap(err3);
+        throw SfdxError.wrap(err3 as string | Error);
       }
     }
 
