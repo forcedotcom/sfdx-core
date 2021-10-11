@@ -53,7 +53,17 @@ jobs:
       - release-management/install-sfdx:
           version: <<parameters.sfdx_version>>
           os: <<parameters.os>>
-      - run: git clone <<parameters.external_project_git_url>> $(pwd)
+      - run:
+          name: 'Clone repo'
+          command: |
+            url=$(echo <<parameters.external_project_git_url>> | cut -d "#" -f 1)
+            branch=main
+            if [[ "<<parameters.external_project_git_url>>" == *"#"* ]]; then
+              branch=$(echo <<parameters.external_project_git_url>> | cut -d "#" -f 2)
+            fi
+            echo URL: $url
+            echo BRANCH: $branch
+            git clone -b $branch $url $(pwd)
       - run:
           name: Install dependencies
           command: yarn
@@ -68,9 +78,9 @@ jobs:
             yarn build
           working_directory: node_modules/@salesforce/core
       - run:
-          name: remove command/core
-          # deletes command/core to prevent ts conflicts
-          command: rm -rf node_modules/\@salesforce/command/node_modules/\@salesforce/core
+          name: remove sf-plugins-core/core
+          # deletes sf-plugins-core/core to prevent ts conflicts
+          command: rm -rf node_modules/\@salesforce/sf-plugins-core/node_modules/\@salesforce/core
       - run:
           name: Build
           command: |
@@ -122,8 +132,9 @@ workflows:
               node_version: [lts]
               external_project_git_url:
                 [
+                  'https://github.com/salesforcecli/plugin-config#v2',
                   'https://github.com/salesforcecli/plugin-env',
-                  'https://github.com/salesforcecli/plugin-login',
+                  'https://github.com/salesforcecli/plugin-login#mdonnalley/jsforce',
                   'https://github.com/salesforcecli/plugin-deploy-retrieve',
                   'https://github.com/salesforcecli/plugin-deploy-retrieve-metadata',
                 ]
