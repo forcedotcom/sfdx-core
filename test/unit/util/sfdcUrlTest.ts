@@ -23,9 +23,14 @@ describe('util/sfdcUrl', () => {
         'https://some-instance.lightning.force.com'
       );
     });
-    it('works for mil', () => {
+    it('works for mil (prod)', () => {
       expect(new SfdcUrl('https://some-instance.my.salesforce.mil').toLightningDomain()).to.equal(
         'https://some-instance.lightning.crmforce.mil'
+      );
+    });
+    it('works for mil (sandbox)', () => {
+      expect(new SfdcUrl('https://some-instance--sboxname.sandbox.my.salesforce.mil').toLightningDomain()).to.equal(
+        'https://some-instance--sboxname.sandbox.lightning.crmforce.mil'
       );
     });
   });
@@ -226,6 +231,17 @@ describe('util/sfdcUrl', () => {
 
     it('production url', () => {
       expect(SfdcUrl.PRODUCTION).to.equal('https://login.salesforce.com');
+    });
+  });
+
+  describe('isSandboxUrl', () => {
+    it('.mil sandboxes with trailing slash', () => {
+      const url = new SfdcUrl('https://domain--sboxname.sandbox.my.salesforce.mil/');
+      expect(url.isSandboxUrl()).to.be.true;
+    });
+    it('.mil sandboxes without trailing slash', () => {
+      const url = new SfdcUrl('https://domain--sboxname.sandbox.my.salesforce.mil');
+      expect(url.isSandboxUrl()).to.be.true;
     });
   });
 });

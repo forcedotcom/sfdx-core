@@ -117,9 +117,13 @@ export class SfdcUrl extends URL {
   }
 
   public toLightningDomain(): string {
+    if (this.origin.endsWith('.my.salesforce.mil')) {
+      return this.origin.replace('.my.salesforce.mil', '.lightning.crmforce.mil');
+    }
+    // all non-mil domains
     return `https://${ensureArray(/https?:\/\/([^.]*)/.exec(this.origin))
       .slice(1, 2)
-      .pop()}.lightning.${this.origin.endsWith('.mil') ? 'crmforce.mil' : 'force.com'}`;
+      .pop()}.lightning.force.com`;
   }
   /**
    * Tests whether this url has the lightning domain extension
@@ -174,6 +178,7 @@ export class SfdcUrl extends URL {
   public isSandboxUrl(createdOrgInstance?: string): boolean {
     return (
       (createdOrgInstance && /^cs|s$/gi.test(createdOrgInstance)) ||
+      this.origin.endsWith('sandbox.my.salesforce.mil') ||
       /sandbox\.my\.salesforce\.com/gi.test(this.origin) || // enhanced domains >= 230
       /(cs[0-9]+(\.my|)\.salesforce\.com)/gi.test(this.origin) || // my domains on CS instance OR CS instance without my domain
       /([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
