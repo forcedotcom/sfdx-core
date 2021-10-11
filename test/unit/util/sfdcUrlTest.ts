@@ -33,6 +33,23 @@ describe('util/sfdcUrl', () => {
         'https://some-instance--sboxname.sandbox.lightning.crmforce.mil'
       );
     });
+    describe('trailing slashes', () => {
+      it('works for com', () => {
+        expect(new SfdcUrl('https://some-instance.my.salesforce.com/').toLightningDomain()).to.equal(
+          'https://some-instance.lightning.force.com'
+        );
+      });
+      it('works for mil (prod)', () => {
+        expect(new SfdcUrl('https://some-instance.my.salesforce.mil/').toLightningDomain()).to.equal(
+          'https://some-instance.lightning.crmforce.mil'
+        );
+      });
+      it('works for mil (sandbox)', () => {
+        expect(new SfdcUrl('https://some-instance--sboxname.sandbox.my.salesforce.mil/').toLightningDomain()).to.equal(
+          'https://some-instance--sboxname.sandbox.lightning.crmforce.mil'
+        );
+      });
+    });
   });
 
   describe('isSalesforceDomain', () => {
