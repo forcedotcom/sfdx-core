@@ -135,9 +135,7 @@ workflows:
                   'https://github.com/salesforcecli/plugin-env',
                   'https://github.com/salesforcecli/plugin-login#mdonnalley/jsforce',
                   'https://github.com/salesforcecli/plugin-deploy-retrieve',
-                  # The latest version of dreamhouse-lwc is not deployable as of 10/11/2021
-                  # Add this back once it's deployable again.
-                  # 'https://github.com/salesforcecli/plugin-deploy-retrieve-metadata',
+                  'https://github.com/salesforcecli/plugin-deploy-retrieve-metadata#mdonnalley/source-api-version',
                 ]
       - release-management/release-package:
           # TODO: add these back when we're ready to GA v3
