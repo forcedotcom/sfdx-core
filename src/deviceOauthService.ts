@@ -7,11 +7,11 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/ban-types */
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import * as Transport from 'jsforce/lib/transport';
+import { URLSearchParams } from 'url';
+import Transport from 'jsforce/lib/transport';
 import { AsyncCreatable, Duration, parseJsonMap } from '@salesforce/kit';
-import { OAuth2Options } from 'jsforce';
+import { OAuth2Config } from 'jsforce/lib/oauth2';
+import { HttpRequest } from 'jsforce';
 import { Nullable, ensureString, JsonMap } from '@salesforce/ts-types';
 import { Logger } from './logger';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
@@ -40,35 +40,13 @@ export interface DeviceCodePollingResponse extends JsonMap {
   issued_at: string;
 }
 
-interface DeviceLoginOptions {
-  url: string;
-  headers: object;
-  method: string;
-  form: {
-    client_id: string;
-    response_type: string;
-    scope: string;
-  };
-}
-
-interface DevicePollingOptions {
-  url: string;
-  headers: object;
-  method: string;
-  form: {
-    client_id: string;
-    grant_type: string;
-    code: string;
-  };
-}
-
 async function wait(ms = 1000): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 }
 
-async function makeRequest<T extends JsonMap>(options: DeviceLoginOptions | DevicePollingOptions): Promise<T> {
+async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> {
   const rawResponse = await new Transport().httpRequest(options);
   const response = parseJsonMap<T>(rawResponse.body);
   if (response.error) {
@@ -96,17 +74,17 @@ async function makeRequest<T extends JsonMap>(options: DeviceLoginOptions | Devi
  * const authInfo = await deviceOauthService.authorizeAndSave(approval);
  * ```
  */
-export class DeviceOauthService extends AsyncCreatable<OAuth2Options> {
+export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
   public static RESPONSE_TYPE = 'device_code';
   public static GRANT_TYPE = 'device';
   public static SCOPE = 'refresh_token web api';
   private static POLLING_COUNT_MAX = 100;
 
   private logger!: Logger;
-  private options: OAuth2Options;
+  private options: OAuth2Config;
   private pollingCount = 0;
 
-  public constructor(options: OAuth2Options) {
+  public constructor(options: OAuth2Config) {
     super(options);
     this.options = options;
     if (!this.options.clientId) this.options.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
@@ -161,29 +139,29 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Options> {
     this.logger.debug(`this.options.loginUrl: ${this.options.loginUrl}`);
   }
 
-  private getLoginOptions(url: string): DeviceLoginOptions {
+  private getLoginOptions(url: string): HttpRequest {
+    const body = new URLSearchParams();
+    body.append('client_id', ensureString(this.options.clientId));
+    body.append('response_type', DeviceOauthService.RESPONSE_TYPE);
+    body.append('scope', DeviceOauthService.SCOPE);
     return {
       url,
       headers: SFDX_HTTP_HEADERS,
       method: 'POST',
-      form: {
-        client_id: ensureString(this.options.clientId),
-        response_type: DeviceOauthService.RESPONSE_TYPE,
-        scope: DeviceOauthService.SCOPE,
-      },
+      body,
     };
   }
 
-  private getPollingOptions(url: string, code: string): DevicePollingOptions {
+  private getPollingOptions(url: string, code: string): HttpRequest {
+    const body = new URLSearchParams();
+    body.append('client_id', ensureString(this.options.clientId));
+    body.append('grant_type', DeviceOauthService.GRANT_TYPE);
+    body.append('code', code);
     return {
       url,
       headers: SFDX_HTTP_HEADERS,
       method: 'POST',
-      form: {
-        code,
-        grant_type: DeviceOauthService.GRANT_TYPE,
-        client_id: ensureString(this.options.clientId),
-      },
+      body,
     };
   }
 
@@ -191,12 +169,12 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Options> {
     return `${ensureString(this.options.loginUrl)}/services/oauth2/token`;
   }
 
-  private async poll(pollingOptions: DevicePollingOptions): Promise<Nullable<DeviceCodePollingResponse>> {
+  private async poll(httpRequest: HttpRequest): Promise<Nullable<DeviceCodePollingResponse>> {
     this.logger.debug(
       `polling for device approval (attempt ${this.pollingCount} of ${DeviceOauthService.POLLING_COUNT_MAX})`
     );
     try {
-      return await makeRequest<DeviceCodePollingResponse>(pollingOptions);
+      return await makeRequest<DeviceCodePollingResponse>(httpRequest);
     } catch (e) {
       const err = e.data;
       if (err.error && err.status === 400 && err.error === 'authorization_pending') {
@@ -218,13 +196,13 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Options> {
   }
 
   private async pollForDeviceApproval(
-    pollingOptions: DevicePollingOptions,
+    httpRequest: HttpRequest,
     interval: number
   ): Promise<Nullable<DeviceCodePollingResponse>> {
     this.logger.debug('BEGIN POLLING FOR DEVICE APPROVAL');
     let result: Nullable<DeviceCodePollingResponse>;
     while (this.shouldContinuePolling()) {
-      result = await this.poll(pollingOptions);
+      result = await this.poll(httpRequest);
       if (result) {
         this.logger.debug('POLLING FOR DEVICE APPROVAL SUCCESS');
         break;

@@ -21,7 +21,7 @@ import {
   JsonMap,
   Optional,
 } from '@salesforce/ts-types';
-import { QueryResult } from 'jsforce';
+import { HttpRequest } from 'jsforce';
 import { Config } from '../config/config';
 import { ConfigAggregator, ConfigInfo } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStore';
@@ -174,18 +174,16 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg='${trimmedId}'`;
 
-    let results;
     try {
-      results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<Record<string, unknown>>>);
+      const results = await devHubConnection.query(DEV_HUB_SOQL);
+      if (getNumber(results, 'records.length') !== 1) {
+        throw new SfdxError('No results', 'NoResultsError');
+      }
     } catch (err) {
       if (err.name === 'INVALID_TYPE') {
         throw messages.createError('notADevHub', [devHubConnection.getUsername()]);
       }
       throw err;
-    }
-
-    if (getNumber(results, 'records.length') !== 1) {
-      throw new SfdxError('No results', 'NoResultsError');
     }
 
     return thisOrgAuthConfig;
@@ -366,7 +364,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async refreshAuth(): Promise<void> {
     this.logger.debug('Refreshing auth for org.');
-    const requestInfo = {
+    const requestInfo: HttpRequest = {
       url: this.getConnection().baseUrl(),
       method: 'GET',
     };

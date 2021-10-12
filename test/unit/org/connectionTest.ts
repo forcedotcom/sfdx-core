@@ -4,15 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { get, getObject, JsonMap } from '@salesforce/ts-types';
+import { get } from '@salesforce/ts-types';
 
 import { assert, expect } from 'chai';
-import * as jsforce from 'jsforce';
-import { fromStub, stubInterface, StubbedType } from '@salesforce/ts-sinon';
+import { fromStub, stubInterface, StubbedType, stubMethod } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
-// no types for Transport
-// @ts-ignore
-import * as Transport from 'jsforce/lib/transport';
+import { Connection as JSForceConnection, HttpRequest } from 'jsforce';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { ConfigAggregator, ConfigInfo } from '../../../src/config/configAggregator';
@@ -27,7 +24,6 @@ describe('Connection', () => {
   const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
 
   let requestMock: sinon.SinonStub;
-  let initializeStub: sinon.SinonStub;
 
   let testAuthInfo: StubbedType<AuthInfo>;
   let testAuthInfoWithDomain: StubbedType<AuthInfo>;
@@ -37,10 +33,9 @@ describe('Connection', () => {
     $$.SANDBOX.stub(process, 'emitWarning');
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
 
-    initializeStub = $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns();
-    requestMock = $$.SANDBOX.stub(jsforce.Connection.prototype, 'request')
+    requestMock = $$.SANDBOX.stub(JSForceConnection.prototype, 'request')
       .onFirstCall()
-      .resolves([{ version: '42.0' }]);
+      .resolves([{ version: '50.0' }]);
 
     // Create proxied instances of AuthInfo
     testAuthInfo = stubInterface<AuthInfo>($$.SANDBOX, {
@@ -76,14 +71,13 @@ describe('Connection', () => {
     expect(conn.request).to.exist;
     expect(conn['oauth2']).to.be.an('object');
     expect(get(conn, 'options.authInfo')).to.exist;
-    expect(get(conn, 'loginUrl')).to.equal(testConnectionOptions.loginUrl);
-    expect((get(conn, 'callOptions') as JsonMap).client).to.contain('sfdx toolbelt:');
-    expect(initializeStub.called).to.be.true;
+    expect(conn.loginUrl).to.equal(testConnectionOptions.loginUrl);
+    expect(conn._callOptions.client).to.contain('sfdx toolbelt:');
   });
 
   it('create() should create a connection with the latest API version', async () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
-    expect(conn.getApiVersion()).to.equal('42.0');
+    expect(conn.getApiVersion()).to.equal('50.0');
   });
 
   it('create() should create a connection with the provided API version', async () => {
@@ -110,7 +104,7 @@ describe('Connection', () => {
     });
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
-    expect(conn.getApiVersion()).to.equal('42.0');
+    expect(conn.getApiVersion()).to.equal('50.0');
     expect(testAuthInfo.save.called).to.be.true;
   });
 
@@ -155,8 +149,8 @@ describe('Connection', () => {
       authInfo: fromStub(testAuthInfoWithDomain),
     });
 
-    // Test passing a RequestInfo object and options to conn.request()
-    const requestInfo = { method: 'POST', url: testUrl };
+    // Test passing a HttpRequest object and options to conn.request()
+    const requestInfo: HttpRequest = { method: 'POST', url: testUrl };
     const expectedRequestInfo = Object.assign({}, requestInfo, {
       headers: SFDX_HTTP_HEADERS,
     });
@@ -176,7 +170,7 @@ describe('Connection', () => {
       authInfo: fromStub(testAuthInfoWithDomain),
     });
 
-    const testUrl = '/services/data/v42.0/tooling/sobjects';
+    const testUrl = 'https://connectionTest/instanceUrl/services/data/v50.0/tooling/sobjects';
     const requestInfo = { method: 'GET', url: testUrl };
     const expectedRequestInfo = Object.assign({}, requestInfo, {
       headers: SFDX_HTTP_HEADERS,
@@ -190,39 +184,13 @@ describe('Connection', () => {
   });
 
   describe('deploy', () => {
-    it('deploy() will work with REST', async () => {
-      const conn = await Connection.create({
-        authInfo: fromStub(testAuthInfoWithDomain),
-      });
-
-      const req = Transport.prototype._getHttpRequestModule();
-      const postStub = $$.SANDBOX.stub(req, 'post').yields(null, null, '{"done": true}', {
-        form: () => {
-          return { append: () => {} };
-        },
-      });
-
-      await conn.deploy(new Buffer('test data'), { rest: true }, () => {});
-
-      const headers = getObject<{ Authorization: string; 'Sforce-Call-Options': string }>(
-        postStub.args[0][1],
-        'headers',
-        { Authorization: '', 'Sforce-Call-Options': '' }
-      );
-
-      expect(postStub.callCount).to.equal(1);
-      expect(postStub.args[0][0]).to.equal('/services/data/v42.0/metadata/deployRequest');
-      expect(headers.Authorization).to.include('OAuth');
-      expect(headers['Sforce-Call-Options']).to.equal('client=sfdx-core');
-    });
-
     it('deploy() will work with SOAP', async () => {
       const conn = await Connection.create({
         authInfo: fromStub(testAuthInfoWithDomain),
       });
       const soapDeployStub = $$.SANDBOX.stub(conn.metadata, 'deploy').resolves();
 
-      await conn.deploy(new Buffer('test data'), { rest: false }, () => {});
+      await conn.deploy(new Buffer('test data'), { rest: false });
       expect(soapDeployStub.callCount).to.equal(1);
     });
   });
@@ -230,11 +198,12 @@ describe('Connection', () => {
   it('autoFetchQuery() should call this.query with proper args', async () => {
     const records = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }];
     const queryResponse = { totalSize: records.length, done: true, records };
-    requestMock.onSecondCall().returns(Promise.resolve(queryResponse));
-    const querySpy = $$.SANDBOX.spy(jsforce.Connection.prototype, 'query');
+    const querySpy = $$.SANDBOX.spy(JSForceConnection.prototype, 'query');
     const soql = 'TEST_SOQL';
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+
+    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
     const queryResults = await conn.autoFetchQuery(soql);
 
     expect(queryResults).to.deep.equal({
@@ -249,10 +218,10 @@ describe('Connection', () => {
   it('tooling.autoFetchQuery() should call this.query with proper args', async () => {
     const records = [{ id: 7 }, { id: 8 }, { id: 9 }, { id: 10 }, { id: 11 }, { id: 12 }];
     const queryResponse = { totalSize: records.length, done: true, records };
-    requestMock.onSecondCall().returns(Promise.resolve(queryResponse));
     const soql = 'TEST_SOQL';
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
     const queryResults = await conn.tooling.autoFetchQuery(soql);
 
@@ -273,6 +242,7 @@ describe('Connection', () => {
     requestMock.returns(Promise.resolve(queryResponse));
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
     $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 50000 } as ConfigInfo);
     await conn.tooling.autoFetchQuery(soql);
@@ -287,9 +257,11 @@ describe('Connection', () => {
 
     const records = [{ id: 7 }, { id: 8 }, { id: 10 }, { id: 11 }, { id: 12 }];
     const queryResponse = { totalSize: 5, done: true, records };
-    requestMock.returns(Promise.resolve(queryResponse));
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+
+    stubMethod($$.SANDBOX, conn, 'request').returns(Promise.resolve(queryResponse));
+    stubMethod($$.SANDBOX, conn.tooling, 'request').returns(Promise.resolve(queryResponse));
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
     $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
     await conn.tooling.autoFetchQuery(soql);
@@ -342,9 +314,10 @@ describe('Connection', () => {
       name: 'testName',
     };
     const soql = 'TEST_SOQL';
-    requestMock.onSecondCall().resolves({ totalSize: 1, records: [mockSingleRecord] });
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
+
+    stubMethod($$.SANDBOX, conn, 'request').resolves({ totalSize: 1, records: [mockSingleRecord] });
 
     const queryResult = await conn.singleRecordQuery(soql);
     expect(queryResult).to.deep.equal({
@@ -353,9 +326,8 @@ describe('Connection', () => {
   });
 
   it('singleRecordQuery throws on no-records', async () => {
-    requestMock.returns(Promise.resolve({ totalSize: 0, records: [] }));
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-
+    stubMethod($$.SANDBOX, conn, 'request').resolves({ totalSize: 0, records: [] });
     try {
       await conn.singleRecordQuery('TEST_SOQL');
       assert.fail('SingleRecordQuery query should have errored.');

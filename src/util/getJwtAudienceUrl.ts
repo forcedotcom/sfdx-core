@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OAuth2Options } from 'jsforce';
+import { OAuth2Config } from 'jsforce';
 import { SfdcUrl } from './sfdcUrl';
 
-export async function getJwtAudienceUrl(options: OAuth2Options & { createdOrgInstance?: string }): Promise<string> {
+export async function getJwtAudienceUrl(options: OAuth2Config & { createdOrgInstance?: string }): Promise<string> {
   if (options.loginUrl) {
     const url = new SfdcUrl(options.loginUrl);
     return await url.getJwtAudienceUrl(options.createdOrgInstance);

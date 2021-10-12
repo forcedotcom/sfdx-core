@@ -8,13 +8,12 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { URL } from 'url';
+import * as FormData from 'form-data';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
-import { Callback } from 'jsforce/connection';
-import { Duration, maxBy, merge, env } from '@salesforce/kit';
+import { Duration, maxBy, env } from '@salesforce/kit';
 import {
   asString,
   ensure,
-  getNumber,
   getString,
   isString,
   JsonCollection,
@@ -24,16 +23,15 @@ import {
 } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
-  ConnectionOptions,
-  ExecuteOptions,
-  Promise as JsforcePromise,
+  ConnectionConfig,
+  HttpRequest,
+  QueryOptions,
   QueryResult,
-  RequestInfo,
-  Tooling as JSForceTooling,
+  Record,
+  Schema,
 } from 'jsforce';
-// no types for Transport
-// @ts-ignore
-import * as Transport from 'jsforce/lib/transport';
+import { Tooling as JSForceTooling } from 'jsforce/lib/api/tooling';
+import { StreamPromise } from 'jsforce/lib/util/promise';
 import { AuthFields, AuthInfo } from '../org/authInfo';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
@@ -48,12 +46,6 @@ const messages = Messages.load('@salesforce/core', 'connection', [
   'domainNotFoundError',
   'noInstanceUrlError',
 ]);
-/**
- * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
- * jsforce which expects .thenCall. Add .thenCall to the node promise to prevent breakage.
- */
-// @ts-ignore
-Promise.prototype.thenCall = JsforcePromise.prototype.thenCall;
 
 const clientId = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
 export const SFDX_HTTP_HEADERS = {
@@ -63,12 +55,14 @@ export const SFDX_HTTP_HEADERS = {
 
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
 type recentValidationOptions = { id: string; rest?: boolean };
-export type DeployOptionsWithRest = DeployOptions & { rest?: boolean };
+export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
 
 // This interface is so we can add the autoFetchQuery method to both the Connection
 // and Tooling classes and get nice typing info for it within editors.  JSForce is
 // unlikely to accept a PR for this method, but that would be another approach.
-export interface Tooling extends JSForceTooling {
+export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _logger: any;
   /**
    * Executes a query and auto-fetches (i.e., "queryMore") all results.  This is especially
    * useful with large query result sizes, such as over 2000 records.  The default maximum
@@ -77,7 +71,7 @@ export interface Tooling extends JSForceTooling {
    * @param soql The SOQL string.
    * @param options The query options.  NOTE: the autoFetch option will always be true.
    */
-  autoFetchQuery<T>(soql: string, options?: ExecuteOptions): Promise<QueryResult<T>>;
+  autoFetchQuery<T extends Schema = S>(soql: string, options?: QueryOptions): Promise<QueryResult<T>>;
 }
 
 /**
@@ -95,18 +89,18 @@ export interface Tooling extends JSForceTooling {
  * connection.query('SELECT Name from Account');
  * ```
  */
-export class Connection extends JSForceConnection {
+export class Connection<S extends Schema = Schema> extends JSForceConnection<S> {
   // The following are all initialized in either this constructor or the super constructor, sometimes conditionally...
   /**
    * Tooling api reference.
    */
-  public tooling!: Tooling;
+  public get tooling(): Tooling<S> {
+    return super.tooling as Tooling<S>;
+  }
   // We want to use 1 logger for this class and the jsForce base classes so override
   // the jsForce connection.tooling.logger and connection.logger.
   private logger!: Logger;
-  private _transport!: { httpRequest: (info: RequestInfo) => JsonMap };
-  private _normalizeUrl!: (url: string) => string;
-  private options: Connection.Options;
+  private options: Connection.Options<S>;
 
   // All connections are tied to a username
   private username!: string;
@@ -118,7 +112,7 @@ export class Connection extends JSForceConnection {
    * @param options The options for the class instance.
    * @ignore
    */
-  public constructor(options: Connection.Options) {
+  public constructor(options: Connection.Options<S>) {
     super(options.connectionOptions || {});
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -134,11 +128,11 @@ export class Connection extends JSForceConnection {
    *
    * @param options Constructor options.
    */
-  public static async create(
-    this: new (options: Connection.Options) => Connection,
-    options: Connection.Options
-  ): Promise<Connection> {
-    const baseOptions: ConnectionOptions = {
+  public static async create<S extends Schema>(
+    this: new (options: Connection.Options<S>) => Connection<S>,
+    options: Connection.Options<S>
+  ): Promise<Connection<S>> {
+    const baseOptions: ConnectionConfig = {
       version: options.connectionOptions?.version,
       callOptions: {
         client: clientId,
@@ -151,8 +145,10 @@ export class Connection extends JSForceConnection {
       baseOptions.version = asString(configAggregator.getInfo('apiVersion').value);
     }
 
+    const providedOptions = options.authInfo.getConnectionOptions();
+
     // Get connection options from auth info and create a new jsForce connection
-    options.connectionOptions = Object.assign(baseOptions, options.authInfo.getConnectionOptions());
+    options.connectionOptions = Object.assign(baseOptions, providedOptions) as ConnectionConfig<S>;
 
     const conn = new this(options);
     await conn.init();
@@ -201,48 +197,43 @@ export class Connection extends JSForceConnection {
    */
   public async deploy(
     zipInput: Buffer,
-    options: DeployOptionsWithRest,
-    callback?: Callback<AsyncResult>
-  ): Promise<DeployResultLocator<AsyncResult>> {
+    options: DeployOptionsWithRest
+  ): Promise<DeployResultLocator<AsyncResult & Schema>> {
     const rest = options.rest;
     // neither API expects this option
     delete options.rest;
     if (rest) {
       this.logger.debug('deploy with REST');
-      const headers = {
+      const headers: { [key: string]: string } = {
         Authorization: this && `OAuth ${this.accessToken}`,
-        clientId: this.oauth2 && this.oauth2.clientId,
         'Sforce-Call-Options': 'client=sfdx-core',
       };
-      const url = `${this.baseUrl()}/metadata/deployRequest`;
-      const request = Transport.prototype._getHttpRequestModule();
+      const client = this.oauth2 && this.oauth2.clientId;
 
-      return new Promise((resolve, reject) => {
-        const req = request.post(url, { headers }, (err: Error, httpResponse: { statusCode: number }, body: string) => {
-          let res;
-          try {
-            res = JSON.parse(body);
-          } catch (e) {
-            reject(SfdxError.wrap(body));
-          }
-          resolve(res);
-        });
-        const form = req.form();
+      if (client) {
+        headers.clientId = client;
+      }
 
-        // Add the zip file
-        form.append('file', zipInput, {
-          contentType: 'application/zip',
-          filename: 'package.xml',
-        });
+      const form = new FormData();
 
-        // Add the deploy options
-        form.append('entity_content', JSON.stringify({ deployOptions: options }), {
-          contentType: 'application/json',
-        });
+      // Add the zip file
+      form.append('file', zipInput, {
+        contentType: 'application/zip',
+        filename: 'package.xml',
       });
+
+      // Add the deploy options
+      form.append('entity_content', JSON.stringify({ deployOptions: options }), {
+        contentType: 'application/json',
+      });
+
+      const url = `${this.baseUrl()}/metadata/deployRequest`;
+
+      const httpRequest: HttpRequest = { method: 'POST', url, headers, body: form };
+      return this.request(httpRequest);
     } else {
       this.logger.debug('deploy with SOAP');
-      return this.metadata.deploy(zipInput, options, callback);
+      return this.metadata.deploy(zipInput, options);
     }
   }
 
@@ -253,30 +244,12 @@ export class Connection extends JSForceConnection {
    * @param request HTTP request object or URL to GET request.
    * @param options HTTP API request options.
    */
-  public async request<T = JsonCollection>(request: RequestInfo | string, options?: JsonMap): Promise<T> {
-    const requestInfo: RequestInfo = isString(request) ? { method: 'GET', url: request } : request;
-    requestInfo.headers = Object.assign({}, SFDX_HTTP_HEADERS, requestInfo.headers);
-    this.logger.debug(`request: ${JSON.stringify(requestInfo)}`);
-    return super.request<T>(requestInfo, options);
-  }
-
-  /**
-   * Send REST API request with given HTTP request info, with connected session information
-   * and SFDX headers. This method returns a raw http response which includes a response body and statusCode.
-   *
-   * @param request HTTP request object or URL to GET request.
-   */
-  public async requestRaw(request: RequestInfo): Promise<JsonMap> {
-    const headers = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {};
-
-    merge(headers, SFDX_HTTP_HEADERS, request.headers);
-
-    return this._transport.httpRequest({
-      method: request.method,
-      url: request.url,
-      headers,
-      body: request.body,
-    });
+  public request<R = unknown>(request: string | HttpRequest, options?: JsonMap): StreamPromise<R> {
+    const httpRequest: HttpRequest = isString(request) ? { method: 'GET', url: request } : request;
+    httpRequest.headers = Object.assign({}, SFDX_HTTP_HEADERS, httpRequest.headers);
+    this.logger.debug(`request: ${JSON.stringify(httpRequest)}`);
+    //  The "as" is a workaround for the jsforce typings.
+    return super.request(httpRequest, options);
   }
 
   /**
@@ -304,7 +277,7 @@ export class Connection extends JSForceConnection {
       const messageBody = JSON.stringify({
         validatedDeployRequestId: options.id,
       });
-      const requestInfo = {
+      const requestInfo: HttpRequest = {
         method: 'POST',
         url,
         body: messageBody,
@@ -325,7 +298,7 @@ export class Connection extends JSForceConnection {
   public async retrieveMaxApiVersion(): Promise<string> {
     await this.isResolvable();
     type Versioned = { version: string };
-    const versions = await this.request<Versioned[]>(`${this.instanceUrl}/services/data`);
+    const versions: Versioned[] = await this.request<Versioned[]>(`${this.instanceUrl}/services/data`);
     this.logger.debug(`response for org versions: ${versions.map((item) => item.version).join(',')}`);
     const max = ensure(maxBy(versions, (version: Versioned) => version.version));
 
@@ -436,39 +409,34 @@ export class Connection extends JSForceConnection {
    * fetch size is 10,000 records. Modify this via the options argument.
    *
    * @param soql The SOQL string.
-   * @param executeOptions The query options. NOTE: the autoFetch option will always be true.
+   * @param queryOptions The query options. NOTE: the autoFetch option will always be true.
    */
-  public async autoFetchQuery<T>(soql: string, executeOptions: ExecuteOptions = {}): Promise<QueryResult<T>> {
+  public async autoFetchQuery<T extends Schema = S>(
+    soql: string,
+    queryOptions: Partial<QueryOptions> = {}
+  ): Promise<QueryResult<T>> {
     const config: ConfigAggregator = await ConfigAggregator.create();
     // take the limit from the calling function, then the config, then default 10,000
-    const maxFetch: number = (config.getInfo('maxQueryLimit').value as number) || executeOptions.maxFetch || 10000;
+    const maxFetch: number = (config.getInfo('maxQueryLimit').value as number) || queryOptions.maxFetch || 10000;
 
-    const options: ExecuteOptions = Object.assign(executeOptions, {
+    const options: Partial<QueryOptions> = Object.assign(queryOptions, {
       autoFetch: true,
       maxFetch,
     });
-    const records: T[] = [];
 
-    return new Promise<QueryResult<T>>((resolve, reject) => {
-      const query = this.query<T>(soql, options)
-        .on('record', (rec) => records.push(rec))
-        .on('error', (err) => reject(err))
-        .on('end', () => {
-          const totalSize = getNumber(query, 'totalSize') || 0;
-          if (totalSize > records.length) {
-            process.emitWarning(
-              `The query result is missing ${
-                totalSize - records.length
-              } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${totalSize} or greater than ${maxFetch}.`
-            );
-          }
-          resolve({
-            done: true,
-            totalSize,
-            records,
-          });
-        });
-    });
+    const query = await this.query<T>(soql, options);
+
+    if (query.totalSize > query.records.length) {
+      process.emitWarning(
+        `The query result is missing ${
+          query.totalSize - query.records.length
+        } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${
+          query.totalSize
+        } or greater than ${maxFetch}.`
+      );
+    }
+
+    return query;
   }
 
   /**
@@ -478,7 +446,7 @@ export class Connection extends JSForceConnection {
    * @param soql The SOQL string.
    * @param options The query options.
    */
-  public async singleRecordQuery<T>(
+  public async singleRecordQuery<T extends Record>(
     soql: string,
     options: SingleRecordQueryOptions = {
       choiceField: 'Name',
@@ -565,7 +533,7 @@ export namespace Connection {
   /**
    * Connection Options.
    */
-  export interface Options {
+  export interface Options<S extends Schema> {
     /**
      * AuthInfo instance.
      */
@@ -577,6 +545,13 @@ export namespace Connection {
     /**
      * Additional connection parameters.
      */
-    connectionOptions?: ConnectionOptions;
+    connectionOptions?: ConnectionConfig<S>;
   }
 }
+
+// jsforce does some interesting proxy loading on lib classes.
+// Setting this in the Connection.tooling getter will not work, it
+// must be set on the prototype.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+JSForceTooling.prototype.autoFetchQuery = Connection.prototype.autoFetchQuery; // eslint-disable-line @typescript-eslint/unbound-method

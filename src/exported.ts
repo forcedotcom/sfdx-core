@@ -8,7 +8,7 @@
 import { Messages } from './messages';
 Messages.importMessagesDirectory(__dirname);
 
-export { OAuth2Options } from 'jsforce';
+export { OAuth2Config } from 'jsforce';
 
 export { ConfigFile } from './config/configFile';
 
@@ -32,7 +32,7 @@ export {
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
-export { AuthFields, AuthInfo, OAuth2WithVerifier, OrgAuthorization } from './org/authInfo';
+export { AuthFields, AuthInfo, OrgAuthorization } from './org/authInfo';
 
 export { AuthRemover } from './org/authRemover';
 
@@ -73,11 +73,9 @@ export { SchemaValidator } from './schema/validator';
 
 export { SfdxError } from './sfdxError';
 
-export { StatusResult } from './status/client';
-
 export { PollingClient } from './status/pollingClient';
 
-export { CometClient, CometSubscription, StreamingClient } from './status/streamingClient';
+export { CometClient, CometSubscription, StreamingClient, StatusResult } from './status/streamingClient';
 
 export { MyDomainResolver } from './status/myDomainResolver';
 
