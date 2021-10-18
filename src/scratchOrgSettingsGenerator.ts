@@ -11,7 +11,7 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 
 // @salesforce
-import { set, isEmpty, env, upperFirst } from '@salesforce/kit';
+import { set, isEmpty, env, upperFirst, lowerFirst } from '@salesforce/kit';
 import { ComponentSet, ComponentStatus, FileResponse } from '@salesforce/source-deploy-retrieve';
 import { get, getObject, JsonMap, ensureString, ensureObject, Nullable, Optional } from '@salesforce/ts-types';
 
@@ -90,9 +90,6 @@ export default class SettingsGenerator {
     }
 
     this.logger.debug('settings are', this.settingData);
-    // TODO, this is where we will validate the settings.
-    // See W-5068155
-    // if (this.hasSettings()) {  }
   }
 
   /** True if we are currently tracking setting or object setting data. */
@@ -128,7 +125,7 @@ export default class SettingsGenerator {
 
     function lhccmdt(mdt: string): string {
       // lowercase head camel case metadata type
-      return !mdt ? mdt : mdt.substring(0, 1).toLowerCase() + mdt.substring(1);
+      return !mdt ? mdt : lowerFirst(mdt);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

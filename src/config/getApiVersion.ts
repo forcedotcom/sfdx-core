@@ -26,7 +26,7 @@ const throwUnexpectedVersionFormat = function (incorrectVersion: string) {
 };
 
 function readPjson(): Pjson {
-  const pjsonPath = path.join(__dirname, '../../package.json');
+  const pjsonPath = path.join(__dirname, '..', '..', 'package.json');
   const fileContents = fs.readFileSync(pjsonPath, 'utf8');
   return parseJson(fileContents, pjsonPath, true) as Pjson;
 }

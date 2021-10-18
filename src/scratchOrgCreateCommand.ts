@@ -35,17 +35,6 @@ import {
 import SettingsGenerator, { ScratchDefinition } from './scratchOrgSettingsGenerator';
 import { generateScratchOrgInfo } from './scratchOrgInfoGenerator';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
-// ommited
-// import { RemoteSourceTrackingService } from './source/remoteSourceTrackingService';
-
-// export interface ScratchOrgCreateCommandOptions {
-//   hubOrg: Org;
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   flags: OutputFlags<any>;
-//   varargs: Record<string, unknown>;
-//   configAggregator: ConfigAggregator;
-//   clientSecret: string;
-// }
 
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreateCommand');
