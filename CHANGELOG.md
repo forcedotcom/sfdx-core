@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.2](https://github.com/forcedotcom/sfdx-core/compare/v2.28.1...v2.28.2) (2021-10-13)
+
+
+### Bug Fixes
+
+* support for .mil sandboxes ([9ef35c7](https://github.com/forcedotcom/sfdx-core/commit/9ef35c7b1ef0fe974c3bd3b89b862a436e00f7d9))
+
 ### [2.28.1](https://github.com/forcedotcom/sfdx-core/compare/v2.28.0...v2.28.1) (2021-10-06)
 
 
