@@ -15,7 +15,7 @@ import { ensureString, getString } from '@salesforce/ts-types';
 
 // Thirdparty
 import { RecordResult, OAuth2Options } from 'jsforce';
-import { retry, retryDecorator } from 'ts-retry-promise';
+import { retry, retryDecorator, RetryError } from 'ts-retry-promise';
 
 // Local
 import { Org } from './org';
@@ -184,27 +184,33 @@ export const authorizeScratchOrg = async (options: {
     retries,
   });
 
-  const authInfo = retries
-    ? await retryAuthorize({
-        username: scratchOrgInfoComplete.SignupUsername,
-        parentUsername: hubOrg.getUsername(),
-        oauth2Options,
-      }).catch((reason) => {
-        logger.error(reason);
-        if (reason.message.startsWith('Timeout after')) {
-          throw SfdxError.create('salesforce-alm', 'org_create', 'jwtAuthRetryTimedOut', [
-            scratchOrgInfoComplete.SignupUsername,
-            timeout,
-            retries,
-          ]);
-        }
-        throw reason.lastError || reason;
-      })
-    : await AuthInfo.create({
+  let authInfo;
+  if (retries) {
+    try {
+      authInfo = await retryAuthorize({
         username: scratchOrgInfoComplete.SignupUsername,
         parentUsername: hubOrg.getUsername(),
         oauth2Options,
       });
+    } catch (err) {
+      const error = err as RetryError;
+      logger.error(error);
+      if (error.message.startsWith('Timeout after')) {
+        throw SfdxError.create('salesforce-alm', 'org_create', 'jwtAuthRetryTimedOut', [
+          scratchOrgInfoComplete.SignupUsername,
+          timeout,
+          retries,
+        ]);
+      }
+      throw error.lastError || error;
+    }
+  } else {
+    authInfo = await AuthInfo.create({
+      username: scratchOrgInfoComplete.SignupUsername,
+      parentUsername: hubOrg.getUsername(),
+      oauth2Options,
+    });
+  }
 
   await authInfo.save({
     devHubUsername: hubOrg.getUsername(),

@@ -12,6 +12,7 @@ import { promises as fs } from 'fs';
 import { OutputFlags } from '@oclif/parser';
 
 // @salesforce
+// import * as schemas from '@salesforce/schema/sfdx-project-schema.json';
 import { AsyncCreatable, parseJson } from '@salesforce/kit';
 import { ensureBoolean, Optional } from '@salesforce/ts-types';
 
@@ -37,7 +38,7 @@ import { generateScratchOrgInfo } from './scratchOrgInfoGenerator';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
 
 Messages.importMessagesDirectory(__dirname);
-const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreateCommand');
+const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreate');
 
 // A validator function to ensure any options parameters entered by the user adhere
 // to a allowlist of valid option settings. Because org:create allows options to be
@@ -49,7 +50,7 @@ const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unk
   }
 
   if (key.toLowerCase() === 'snapshot') {
-    const foundInvalidFields = ScratchOrgCreateCommand.SNAPSHOT_UNSUPPORTED_OPTIONS.filter(
+    const foundInvalidFields = ScratchOrgCreate.SNAPSHOT_UNSUPPORTED_OPTIONS.filter(
       (invalidField) => invalidField in scratchOrgInfoPayload
     );
 
@@ -68,7 +69,7 @@ const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unk
  * @param force - the force api
  * @constructor
  */
-export class ScratchOrgCreateCommand extends AsyncCreatable<ScratchOrgCreateCommand.Options> {
+export class ScratchOrgCreate extends AsyncCreatable<ScratchOrgCreate.Options> {
   public static readonly SNAPSHOT_UNSUPPORTED_OPTIONS = [
     'features',
     'orgPreferences',
@@ -88,21 +89,14 @@ export class ScratchOrgCreateCommand extends AsyncCreatable<ScratchOrgCreateComm
   private logger!: Logger;
   private settingsGenerator: SettingsGenerator;
 
-  public constructor(private options: ScratchOrgCreateCommand.Options) {
+  public constructor(private options: ScratchOrgCreate.Options) {
     super(options);
     this.settingsGenerator = new SettingsGenerator();
   }
 
-  /**
-   * executes the command. this is a protocol style function intended to be represented by other commands.
-   *
-   * @param cliContext - the cli context
-   * @param stdinValues - param values obtained from stdin
-   * @returns {Promise}
-   */
   protected async init(): Promise<void> {
-    this.logger = await Logger.child('scratchOrgCreateCommand');
-    this.logger.debug('scratchOrgCreateCommand: execute');
+    this.logger = await Logger.child('scratchOrgCreate');
+    this.logger.debug('scratchOrgCreate: init');
 
     const scratchOrgInfo = await this.getScratchOrgInfo();
     this.scratchOrgInfo = scratchOrgInfo.scratchOrgInfo;
@@ -245,9 +239,9 @@ export class ScratchOrgCreateCommand extends AsyncCreatable<ScratchOrgCreateComm
   }
 }
 
-export namespace ScratchOrgCreateCommand {
+export namespace ScratchOrgCreate {
   /**
-   * Constructor options for ScratchOrgCreateCommand.
+   * Constructor options for ScratchOrgCreate.
    */
   export interface Options {
     hubOrg: Org;
