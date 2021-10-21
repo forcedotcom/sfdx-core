@@ -9,12 +9,9 @@
 import { promises as fs } from 'fs';
 
 // third
-import { OutputFlags } from '@oclif/parser';
-
-// @salesforce
-// import * as schemas from '@salesforce/schema/sfdx-project-schema.json';
-import { AsyncCreatable, parseJson } from '@salesforce/kit';
-import { ensureBoolean, Optional } from '@salesforce/ts-types';
+// import Ajv from 'ajv';
+import { AsyncCreatable, parseJson, Duration } from '@salesforce/kit';
+import { Optional } from '@salesforce/ts-types';
 
 // Local
 import { Org } from './org';
@@ -99,6 +96,7 @@ export class ScratchOrgCreate extends AsyncCreatable<ScratchOrgCreate.Options> {
     this.logger.debug('scratchOrgCreate: init');
 
     const scratchOrgInfo = await this.getScratchOrgInfo();
+
     this.scratchOrgInfo = scratchOrgInfo.scratchOrgInfo;
     this.warnings = scratchOrgInfo.warnings;
 
@@ -120,7 +118,7 @@ export class ScratchOrgCreate extends AsyncCreatable<ScratchOrgCreate.Options> {
     const scratchOrgInfoResult = await pollForScratchOrgInfo(
       this.options.hubOrg,
       this.scratchOrgInfoId,
-      this.options.flags.wait
+      this.options.wait
     );
 
     let signupTargetLoginUrlConfig!: string;
@@ -136,10 +134,10 @@ export class ScratchOrgCreate extends AsyncCreatable<ScratchOrgCreate.Options> {
       scratchOrgInfoComplete: scratchOrgInfoResult,
       hubOrg: this.options.hubOrg,
       clientSecret: this.options.clientSecret,
-      setAsDefault: ensureBoolean(this.options.flags.setdefaultusername),
-      alias: this.options.flags.setalias,
+      setAsDefault: this.options.setdefaultusername,
+      alias: this.options.setalias,
       signupTargetLoginUrlConfig,
-      retry: this.options.flags.retry || 0,
+      retry: this.options.retry || 0,
     });
     // we'll need this scratch org connection later;
     this.scratchOrg = await Org.create({ connection: await Connection.create({ authInfo: scratchOrgAuthInfo }) });
@@ -147,7 +145,7 @@ export class ScratchOrgCreate extends AsyncCreatable<ScratchOrgCreate.Options> {
 
     this.authInfo = await deploySettingsAndResolveUrl(
       scratchOrgAuthInfo,
-      this.options.flags.apiversion ??
+      this.options.apiversion ??
         (this.options.configAggregator.getPropertyValue('apiVersion') as string) ??
         (await this.scratchOrg.retrieveMaxApiVersion()),
       this.settingsGenerator
@@ -158,25 +156,25 @@ export class ScratchOrgCreate extends AsyncCreatable<ScratchOrgCreate.Options> {
   }
 
   // Returns a valid signup json object
-  private async getScratchOrgInfo(): Promise<{ scratchOrgInfo: ScratchOrgInfo; warnings: string[] }> {
+  private async getScratchOrgInfo(): Promise<ScratchOrgCreate.Result> {
     const warnings: string[] = [];
     // Varargs input overrides definitionjson (-j option; hidden/deprecated)
-    const definitionJson = this.options.flags.definitionjson ? JSON.parse(this.options.flags.definitionjson) : {};
-    const orgConfigInput = { ...definitionJson, ...(this.options.varargs ?? {}) };
+    const definitionJson = this.options.definitionjson ? JSON.parse(this.options.definitionjson) : {};
+    const orgConfigInput = { ...definitionJson, ...(this.options.orgConfig ?? {}) };
 
     let scratchOrgInfoPayload = orgConfigInput;
 
     // the -f option
-    if (this.options.flags.definitionfile) {
+    if (this.options.definitionfile) {
       try {
-        const fileData = await fs.readFile(this.options.flags.definitionfile, 'utf8');
+        const fileData = await fs.readFile(this.options.definitionfile, 'utf8');
         const defFileContents = parseJson(fileData) as Record<string, unknown>;
         // definitionjson and varargs override file input
         scratchOrgInfoPayload = { ...defFileContents, ...orgConfigInput };
       } catch (err) {
         const error = err as Error;
         if (error.name === 'SyntaxError') {
-          throw new SfdxError(`An error occurred parsing ${this.options.flags.definitionfile}`);
+          throw new SfdxError(`An error occurred parsing ${this.options.definitionfile}`);
         }
       }
     }
@@ -192,16 +190,14 @@ export class ScratchOrgCreate extends AsyncCreatable<ScratchOrgCreate.Options> {
       optionsValidator(key, scratchOrgInfoPayload);
     });
 
-    // the -i option
-    if (this.options.flags.clientid) {
-      scratchOrgInfoPayload.connectedAppConsumerKey = this.options.flags.clientid;
+    if (this.options.connectedAppConsumerKey) {
+      scratchOrgInfoPayload.connectedAppConsumerKey = this.options.connectedAppConsumerKey;
     }
 
-    // the -d option
-    scratchOrgInfoPayload.durationDays = this.options.flags.durationdays;
+    scratchOrgInfoPayload.durationDays = this.options.durationDays;
 
     // Ignore ancestor ids only when 'nonamespace' or 'noancestors' options are specified
-    const ignoreAncestorIds = this.options.flags.nonamespace || this.options.flags.noancestors || false;
+    const ignoreAncestorIds = this.options.nonamespace || this.options.noancestors || false;
 
     // Throw warnings for deprecated scratch org features.
     const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation();
@@ -212,7 +208,7 @@ export class ScratchOrgCreate extends AsyncCreatable<ScratchOrgCreate.Options> {
     const scratchOrgInfo = await generateScratchOrgInfo({
       hubOrg: this.options.hubOrg,
       scratchOrgInfoPayload,
-      nonamespace: this.options.flags.nonamespace,
+      nonamespace: this.options.nonamespace,
       ignoreAncestorIds,
     });
 
@@ -243,12 +239,26 @@ export namespace ScratchOrgCreate {
   /**
    * Constructor options for ScratchOrgCreate.
    */
+  export interface Result {
+    scratchOrgInfo: ScratchOrgInfo;
+    warnings: string[];
+  }
   export interface Options {
     hubOrg: Org;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    flags: OutputFlags<any>;
-    varargs: Record<string, unknown>;
+    connectedAppConsumerKey: string;
+    durationDays: number;
+    nonamespace: boolean;
+    noancestors: boolean;
+    wait: Duration;
+    setdefaultusername: boolean;
+    setalias: string;
+    retry: number;
+    apiversion: string;
+    definitionjson: string;
+    definitionfile: string;
+    orgConfig: Record<string, unknown>;
     configAggregator: ConfigAggregator;
+    test: boolean;
     clientSecret: string;
   }
 }
