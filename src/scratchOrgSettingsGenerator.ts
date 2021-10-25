@@ -21,7 +21,6 @@ import * as js2xmlparser from 'js2xmlparser';
 // Local
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
-import getApiVersion from './config/getApiVersion';
 import { writeJSONasXML } from './util/jsonXmlTools';
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
 
@@ -64,7 +63,6 @@ interface BusinessProcessFileContent extends JsonMap {
 export default class SettingsGenerator {
   private settingData: Nullable<Record<string, unknown>>;
   private objectSettingsData: Nullable<{ [objectName: string]: ObjectSetting }>;
-  private currentApiVersion = ensureString(getApiVersion());
   private logger: Logger;
 
   public constructor() {
@@ -72,14 +70,10 @@ export default class SettingsGenerator {
   }
 
   /** extract the settings from the scratch def file, if they are present. */
-  public async extract(scratchDef: ScratchDefinition, apiVersion?: string): Promise<void> {
+  public async extract(scratchDef: ScratchDefinition): Promise<void> {
     this.logger.debug('extracting settings from scratch definition file');
-    if (!apiVersion) {
-      apiVersion = this.currentApiVersion;
-    }
     this.settingData = getObject(scratchDef, 'settings');
     this.objectSettingsData = getObject(scratchDef, 'objectSettings');
-
     this.logger.debug('settings are', this.settingData);
   }
 
