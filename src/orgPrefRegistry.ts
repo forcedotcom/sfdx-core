@@ -5,16 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Optional, ensureString } from '@salesforce/ts-types';
-import getApiVersion from './config/getApiVersion';
+import { Optional } from '@salesforce/ts-types';
 
 /**
  * Org Preferences are exposed through different APIs
  * Singleton object encapsulating registry of supported Org Preference types
  */
 // P R I V A T E
-
-let currentApiVersion: string;
 
 // pref APIs
 const AccountSettingsApi = 'accountSettings';
@@ -53,175 +50,6 @@ const PathAssistantSettingsApi = 'pathAssistantSettings';
 const VoiceSettingsApi = 'voiceSettings';
 const SecuritySettingsPasswordPoliciesApi = 'securitySettings.passwordPolicies';
 const DeprecatedSettingsApi = 'DEPRECATED';
-
-// This map is used in the migration from orgPreferences -> settings types before 47.0
-// pre apiVersion 47.0 supported org preferences and the API through which they are set
-const orgPreferenceApiMapPre47 = new Map([
-  ['IsAccountTeamsEnabled', AccountSettingsApi],
-  ['ShowViewHierarchyLink', AccountSettingsApi],
-  ['IsActivityRemindersEnabled', ActivitiesSettingsApi],
-  ['IsDragAndDropSchedulingEnabled', ActivitiesSettingsApi],
-  ['IsEmailTrackingEnabled', ActivitiesSettingsApi],
-  ['IsGroupTasksEnabled', ActivitiesSettingsApi],
-  ['IsMultidayEventsEnabled', ActivitiesSettingsApi],
-  ['IsRecurringEventsEnabled', ActivitiesSettingsApi],
-  ['IsRecurringTasksEnabled', ActivitiesSettingsApi],
-  ['IsSidebarCalendarShortcutEnabled', ActivitiesSettingsApi],
-  ['IsSimpleTaskCreateUIEnabled', ActivitiesSettingsApi],
-  ['ShowEventDetailsMultiUserCalendar', ActivitiesSettingsApi],
-  ['ShowHomePageHoverLinksForEvents', ActivitiesSettingsApi],
-  ['ShowMyTasksHoverLinks', ActivitiesSettingsApi],
-  ['ShowRequestedMeetingsOnHomePage', ActivitiesSettingsApi],
-  ['AutoCalculateEndDate', ContractSettingsApi],
-  ['IsContractHistoryTrackingEnabled', ContractSettingsApi],
-  ['NotifyOwnersOnContractExpiration', ContractSettingsApi],
-  ['AssetLookupLimitedToActiveEntitlementsOnAccount', EntitlementSettingsApi],
-  ['AssetLookupLimitedToActiveEntitlementsOnContact', EntitlementSettingsApi],
-  ['AssetLookupLimitedToSameAccount', EntitlementSettingsApi],
-  ['AssetLookupLimitedToSameContact', EntitlementSettingsApi],
-  ['IsEntitlementsEnabled', EntitlementSettingsApi],
-  ['EntitlementLookupLimitedToActiveStatus', EntitlementSettingsApi],
-  ['EntitlementLookupLimitedToSameAccount', EntitlementSettingsApi],
-  ['EntitlementLookupLimitedToSameAsset', EntitlementSettingsApi],
-  ['EntitlementLookupLimitedToSameContact', EntitlementSettingsApi],
-  ['IsForecastsEnabled', ForecastingSettingsApi],
-  ['IsChatterProfileEnabled', IdeasSettingsApi],
-  ['IsIdeaThemesEnabled', IdeasSettingsApi],
-  ['IsIdeasEnabled', IdeasSettingsApi],
-  ['IsIdeasReputationEnabled', IdeasSettingsApi],
-  ['IsCreateEditOnArticlesTabEnabled', KnowledgeSettingsApi],
-  ['IsExternalMediaContentEnabled', KnowledgeSettingsApi],
-  ['IsKnowledgeEnabled', KnowledgeSettingsApi],
-  ['ShowArticleSummariesCustomerPortal', KnowledgeSettingsApi],
-  ['ShowArticleSummariesInternalApp', KnowledgeSettingsApi],
-  ['ShowArticleSummariesPartnerPortal', KnowledgeSettingsApi],
-  ['ShowValidationStatusField', KnowledgeSettingsApi],
-  ['IsLiveAgentEnabled', LiveAgentSettingsApi],
-  ['IsMiddleNameEnabled', NameSettingsApi],
-  ['IsNameSuffixEnabled', NameSettingsApi],
-  ['IsOpportunityTeamEnabled', OpportunitySettingsApi],
-  ['IsOrdersEnabled', OrderSettingsApi],
-  ['IsNegativeQuantityEnabled', OrderSettingsApi],
-  ['IsReductionOrdersEnabled', OrderSettingsApi],
-  ['IsCascadeActivateToRelatedPricesEnabled', ProductSettingsApi],
-  ['IsQuantityScheduleEnabled', ProductSettingsApi],
-  ['IsRevenueScheduleEnabled', ProductSettingsApi],
-  ['IsQuoteEnabled', QuoteSettingsApi],
-  ['DocumentContentSearchEnabled', SearchSettingsApi],
-  ['OptimizeSearchForCjkEnabled', SearchSettingsApi],
-  ['RecentlyViewedUsersForBlankLookupEnabled', SearchSettingsApi],
-  ['SidebarAutoCompleteEnabled', SearchSettingsApi],
-  ['SidebarDropDownListEnabled', SearchSettingsApi],
-  ['SidebarLimitToItemsIownCheckboxEnabled', SearchSettingsApi],
-  ['SingleSearchResultShortcutEnabled', SearchSettingsApi],
-  ['SpellCorrectKnowledgeSearchEnabled', SearchSettingsApi],
-  ['AnalyticsSharingEnable', OrganizationSettingsDetailApi],
-  ['DisableParallelApexTesting', OrganizationSettingsDetailApi],
-  ['EnhancedEmailEnabled', OrganizationSettingsDetailApi],
-  ['EventLogWaveIntegEnabled', OrganizationSettingsDetailApi],
-  ['SendThroughGmailPref', OrganizationSettingsDetailApi],
-  ['Translation', OrganizationSettingsDetailApi],
-  ['S1OfflinePref', OrganizationSettingsDetailApi],
-  ['S1EncryptedStoragePref2', OrganizationSettingsDetailApi],
-  ['OfflineDraftsEnabled', OrganizationSettingsDetailApi],
-  ['AsyncSaveEnabled', OrganizationSettingsDetailApi],
-  ['ChatterEnabled', OrganizationSettingsDetailApi],
-  ['SelfSetPasswordInApi', OrganizationSettingsDetailApi],
-  ['SocialProfilesEnable', OrganizationSettingsDetailApi],
-  ['PathAssistantsEnabled', OrganizationSettingsDetailApi],
-  ['LoginForensicsEnabled', OrganizationSettingsDetailApi],
-  ['S1DesktopEnabled', OrganizationSettingsDetailApi],
-  ['NetworksEnabled', OrganizationSettingsDetailApi],
-  ['NotesReservedPref01', OrganizationSettingsDetailApi],
-  ['CompileOnDeploy', OrganizationSettingsDetailApi],
-  ['VoiceEnabled', OrganizationSettingsDetailApi],
-  ['TerritoryManagement2Enable', OrganizationSettingsDetailApi],
-  ['ApexApprovalLockUnlock', OrganizationSettingsDetailApi],
-]);
-
-// This map is used in the migration from orgPreferences -> settings types before 47.0
-const orgPreferenceMdMapPre47 = new Map([
-  ['IsAccountTeamsEnabled', 'enableAccountTeams'],
-  ['ShowViewHierarchyLink', 'showViewHierarchyLink'],
-  ['IsActivityRemindersEnabled', 'enableActivityReminders'],
-  ['IsDragAndDropSchedulingEnabled', 'enableDragAndDropScheduling'],
-  ['IsEmailTrackingEnabled', 'enableEmailTracking'],
-  ['IsGroupTasksEnabled', 'enableGroupTasks'],
-  ['IsMultidayEventsEnabled', 'enableMultidayEvents'],
-  ['IsRecurringEventsEnabled', 'enableRecurringEvents'],
-  ['IsRecurringTasksEnabled', 'enableRecurringTasks'],
-  ['IsSidebarCalendarShortcutEnabled', 'enableSidebarCalendarShortcut'],
-  ['IsSimpleTaskCreateUIEnabled', 'enableSimpleTaskCreateUI'],
-  ['ShowEventDetailsMultiUserCalendar', 'showEventDetailsMultiUserCalendar'],
-  ['ShowHomePageHoverLinksForEvents', 'showHomePageHoverLinksForEvents'],
-  ['ShowMyTasksHoverLinks', 'showMyTasksHoverLinks'],
-  ['ShowRequestedMeetingsOnHomePage', 'showRequestedMeetingsOnHomePage'],
-  ['AutoCalculateEndDate', 'autoCalculateEndDate'],
-  ['IsContractHistoryTrackingEnabled', 'enableContractHistoryTracking'],
-  ['NotifyOwnersOnContractExpiration', 'notifyOwnersOnContractExpiration'],
-  ['AssetLookupLimitedToActiveEntitlementsOnAccount', 'assetLookupLimitedToActiveEntitlementsOnAccount'],
-  ['AssetLookupLimitedToActiveEntitlementsOnContact', 'assetLookupLimitedToActiveEntitlementsOnContact'],
-  ['AssetLookupLimitedToSameAccount', 'assetLookupLimitedToSameAccount'],
-  ['AssetLookupLimitedToSameContact', 'assetLookupLimitedToSameContact'],
-  ['IsEntitlementsEnabled', 'enableEntitlements'],
-  ['EntitlementLookupLimitedToActiveStatus', 'entitlementLookupLimitedToActiveStatus'],
-  ['EntitlementLookupLimitedToSameAccount', 'entitlementLookupLimitedToSameAccount'],
-  ['EntitlementLookupLimitedToSameAsset', 'entitlementLookupLimitedToSameAsset'],
-  ['EntitlementLookupLimitedToSameContact', 'entitlementLookupLimitedToSameContact'],
-  ['IsForecastsEnabled', 'enableForecasts'],
-  ['IsChatterProfileEnabled', 'enableChatterProfile'],
-  ['IsIdeaThemesEnabled', 'enableIdeaThemes'],
-  ['IsIdeasEnabled', 'enableIdeas'],
-  ['IsIdeasReputationEnabled', 'enableIdeasReputation'],
-  ['IsCreateEditOnArticlesTabEnabled', 'enableCreateEditOnArticlesTab'],
-  ['IsExternalMediaContentEnabled', 'enableExternalMediaContent'],
-  ['IsKnowledgeEnabled', 'enableKnowledge'],
-  ['ShowArticleSummariesCustomerPortal', 'showArticleSummariesCustomerPortal'],
-  ['ShowArticleSummariesInternalApp', 'showArticleSummariesInternalApp'],
-  ['ShowArticleSummariesPartnerPortal', 'showArticleSummariesPartnerPortal'],
-  ['ShowValidationStatusField', 'showValidationStatusField'],
-  ['IsLiveAgentEnabled', 'enableLiveAgent'],
-  ['IsMiddleNameEnabled', 'enableMiddleName'],
-  ['IsNameSuffixEnabled', 'enableNameSuffix'],
-  ['IsOpportunityTeamEnabled', 'enableOpportunityTeam'],
-  ['IsOrdersEnabled', 'enableOrders'],
-  ['IsNegativeQuantityEnabled', 'enableNegativeQuantity'],
-  ['IsReductionOrdersEnabled', 'enableReductionOrders'],
-  ['IsCascadeActivateToRelatedPricesEnabled', 'enableCascadeActivateToRelatedPrices'],
-  ['IsQuantityScheduleEnabled', 'enableQuantitySchedule'],
-  ['IsRevenueScheduleEnabled', 'enableRevenueSchedule'],
-  ['IsQuoteEnabled', 'enableQuote'],
-  ['DocumentContentSearchEnabled', 'documentContentSearchEnabled'],
-  ['OptimizeSearchForCjkEnabled', 'optimizeSearchForCJKEnabled'],
-  ['RecentlyViewedUsersForBlankLookupEnabled', 'recentlyViewedUsersForBlankLookupEnabled'],
-  ['SidebarAutoCompleteEnabled', 'sidebarAutoCompleteEnabled'],
-  ['SidebarDropDownListEnabled', 'sidebarDropDownListEnabled'],
-  ['SidebarLimitToItemsIownCheckboxEnabled', 'sidebarLimitToItemsIOwnCheckboxEnabled'],
-  ['SingleSearchResultShortcutEnabled', 'singleSearchResultShortcutEnabled'],
-  ['SpellCorrectKnowledgeSearchEnabled', 'spellCorrectKnowledgeSearchEnabled'],
-  ['AnalyticsSharingEnable', 'analyticsSharingEnable'],
-  ['DisableParallelApexTesting', 'disableParallelApexTesting'],
-  ['EnhancedEmailEnabled', 'enhancedEmailEnabled'],
-  ['EventLogWaveIntegEnabled', 'eventLogWaveIntegEnabled'],
-  ['SendThroughGmailPref', 'sendThroughGmailPref'],
-  ['Translation', 'translation'],
-  ['S1OfflinePref', 's1OfflinePref'],
-  ['S1EncryptedStoragePref2', 's1EncryptedStoragePref2'],
-  ['OfflineDraftsEnabled', 'offlineDraftsEnabled'],
-  ['AsyncSaveEnabled', 'asyncSaveEnabled'],
-  ['ChatterEnabled', 'chatterEnabled'],
-  ['SelfSetPasswordInApi', 'selfSetPasswordInApi'],
-  ['SocialProfilesEnable', 'socialProfilesEnable'],
-  ['PathAssistantsEnabled', 'pathAssistantsEnabled'],
-  ['LoginForensicsEnabled', 'loginForensicsEnabled'],
-  ['S1DesktopEnabled', 's1DesktopEnabled'],
-  ['NetworksEnabled', 'networksEnabled'],
-  ['NotesReservedPref01', 'notesReservedPref01'],
-  ['CompileOnDeploy', 'compileOnDeploy'],
-  ['VoiceEnabled', 'voiceEnabled'],
-  ['TerritoryManagement2Enable', 'territoryManagement2Enable'],
-  ['ApexApprovalLockUnlock', 'apexApprovalLockUnlock'],
-]);
 
 // This map is used in the migration from orgPreferences -> settings types
 // supported org preferences and the API through which they are set
@@ -506,14 +334,6 @@ const orgPreferenceSettingsTypeMigrateMap = new Map([
   ['voiceEnabled', DeprecatedSettingsApi],
 ]);
 
-function getCurrentApiVersion(): string {
-  if (!currentApiVersion) {
-    currentApiVersion = ensureString(getApiVersion());
-  }
-
-  return currentApiVersion;
-}
-
 // P U B L I C
 // vars and functions below exposed in API
 export = {
@@ -582,12 +402,8 @@ export = {
    * @param prefName The org preference name
    * @returns the MDAPI name for the org preference
    */
-  forMdApi(prefName: string, apiVersion: string = getCurrentApiVersion()): Optional<string> {
-    if (parseInt(apiVersion, 10) >= 47.0) {
-      return orgPreferenceMdMap.get(prefName);
-    } else {
-      return orgPreferenceMdMapPre47.get(prefName);
-    }
+  forMdApi(prefName: string): Optional<string> {
+    return orgPreferenceMdMap.get(prefName);
   },
 
   /**
@@ -596,12 +412,8 @@ export = {
    * @param prefName The org preference name
    * @returns the API name for the org preference
    */
-  whichApi(prefName: string, apiVersion: string = getCurrentApiVersion()): Optional<string> {
-    if (parseInt(apiVersion, 10) >= 47.0) {
-      return orgPreferenceApiMap.get(prefName);
-    } else {
-      return orgPreferenceApiMapPre47.get(prefName);
-    }
+  whichApi(prefName: string): Optional<string> {
+    return orgPreferenceApiMap.get(prefName);
   },
 
   /**
@@ -609,11 +421,7 @@ export = {
    *
    * @returns the Org Preference Map
    */
-  allPrefsMap(apiVersion: string = getCurrentApiVersion()): Map<string, string> {
-    if (parseInt(apiVersion, 10) >= 47.0) {
-      return orgPreferenceApiMap;
-    } else {
-      return orgPreferenceApiMapPre47;
-    }
+  allPrefsMap(): Map<string, string> {
+    return orgPreferenceApiMap;
   },
 };
