@@ -114,6 +114,138 @@ const getOrgInstanceAuthority = function (
   return signupTargetLoginUrlConfig ?? altUrl;
 };
 
+const buildOAuth2Options = async (options: {
+  hubOrg: Org;
+  clientSecret: string;
+  scratchOrgInfoComplete: ScratchOrgInfo;
+  retry?: number;
+  signupTargetLoginUrlConfig?: string;
+}): Promise<{
+  options: OAuth2Options;
+  retries: number;
+  timeout?: number;
+  delay?: number;
+}> => {
+  const logger = await Logger.child('buildOAuth2Options');
+  const isJwtFlow = !!options.hubOrg.getConnection().getAuthInfoFields().privateKey;
+  const oauth2Options: OAuth2Options = {
+    loginUrl: getOrgInstanceAuthority(
+      options.scratchOrgInfoComplete,
+      options.hubOrg.getField(Org.Fields.LOGIN_URL) as string,
+      options.signupTargetLoginUrlConfig
+    ),
+  };
+
+  logger.debug(`_authorize - isJwtFlow: ${isJwtFlow}`);
+
+  if (isJwtFlow && !process.env.SFDX_CLIENT_SECRET) {
+    oauth2Options.privateKeyFile = options.hubOrg.getConnection().getAuthInfoFields().privateKey;
+    const retries = options?.retry || env.getNumber('SFDX_JWT_AUTH_RETRY_ATTEMPTS') || 0;
+    const timeoutInSeconds = env.getNumber('SFDX_JWT_AUTH_RETRY_TIMEOUT') || 300;
+    const timeout = Duration.seconds(timeoutInSeconds).milliseconds;
+    const delay = retries ? timeout / retries : 1000;
+    return {
+      options: oauth2Options,
+      retries,
+      timeout,
+      delay,
+    };
+  } else {
+    // Web Server OAuth "auth code exchange" flow
+    if (process.env.SFDX_CLIENT_SECRET) {
+      oauth2Options.clientSecret = process.env.SFDX_CLIENT_SECRET;
+    } else if (options.clientSecret) {
+      oauth2Options.clientSecret = options.clientSecret;
+    }
+    oauth2Options.redirectUri = options.scratchOrgInfoComplete.ConnectedAppCallbackUrl;
+    oauth2Options.authCode = options.scratchOrgInfoComplete.AuthCode;
+    return {
+      options: oauth2Options,
+      retries: 0,
+    };
+  }
+};
+
+const getAuthInfo = async (options: {
+  hubOrg: Org;
+  username: string;
+  oauth2Options: OAuth2Options;
+  retries: number;
+  timeout?: number;
+  delay?: number;
+}): Promise<AuthInfo> => {
+  const logger = await Logger.child('getAuthInfo');
+
+  const retryAuthorize = retryDecorator(async (opts: AuthInfo.Options): Promise<AuthInfo> => AuthInfo.create(opts), {
+    timeout: options.timeout,
+    delay: options.delay,
+    retries: options.retries,
+  });
+
+  if (options.retries) {
+    try {
+      return await retryAuthorize({
+        username: options.username,
+        parentUsername: options.hubOrg.getUsername(),
+        oauth2Options: options.oauth2Options,
+      });
+    } catch (err) {
+      const error = err as RetryError;
+      logger.error(error);
+      if (error.message.startsWith('Timeout after')) {
+        throw SfdxError.create('salesforce-alm', 'org_create', 'jwtAuthRetryTimedOut', [
+          options.username,
+          options.timeout,
+          options.retries,
+        ]);
+      }
+      throw error.lastError || error;
+    }
+  } else {
+    try {
+      return await AuthInfo.create({
+        username: options.username,
+        parentUsername: options.hubOrg.getUsername(),
+        oauth2Options: options.oauth2Options,
+      });
+    } catch (error) {
+      throw SfdxError.wrap(error as Error);
+    }
+  }
+};
+
+const saveAuthInfo = async (options: {
+  scratchOrgInfoComplete: ScratchOrgInfo;
+  hubOrg: Org;
+  authInfo: AuthInfo;
+  setAsDefault: boolean;
+  alias?: string;
+}): Promise<void> => {
+  const logger = await Logger.child('saveAuthInfo');
+
+  await options.authInfo.save({
+    devHubUsername: options.hubOrg.getUsername(),
+    created: new Date(options.scratchOrgInfoComplete.CreatedDate ?? new Date()).valueOf().toString(),
+    expirationDate: options.scratchOrgInfoComplete.ExpirationDate,
+    clientId: options.scratchOrgInfoComplete.ConnectedAppConsumerKey,
+    createdOrgInstance: options.scratchOrgInfoComplete.SignupInstance,
+    isDevHub: false,
+    snapshot: options.scratchOrgInfoComplete.Snapshot,
+  });
+
+  if (options.alias) {
+    logger.debug(`_authorize - setting alias to ${options.alias}`);
+    await options.authInfo.setAlias(options.alias);
+    logger.debug(`_authorize - AuthInfo has alias to ${options.authInfo.getFields().alias}`);
+  }
+  if (options.setAsDefault) {
+    await options.authInfo.setAsDefault({ defaultUsername: true });
+  }
+
+  logger.debug(`_authorize - orgConfig.loginUrl: ${options.authInfo.getFields().loginUrl}`);
+  logger.debug(`_authorize - orgConfig.instanceUrl: ${options.authInfo.getFields().instanceUrl}`);
+};
+
 /**
  * after we successfully signup an org we need to trade the auth token for access and refresh token.
  *
@@ -143,96 +275,31 @@ export const authorizeScratchOrg = async (options: {
   if (!hubOrg.isDevHubOrg()) {
     await hubOrg.determineIfDevHubOrg(true);
   }
-  const isJwtFlow = !!hubOrg.getConnection().getAuthInfoFields().privateKey;
-  const oauth2Options: OAuth2Options = {
-    loginUrl: getOrgInstanceAuthority(
-      scratchOrgInfoComplete,
-      hubOrg.getField(Org.Fields.LOGIN_URL) as string,
-      signupTargetLoginUrlConfig
-    ),
-  };
 
-  logger.debug(`_authorize - isJwtFlow: ${isJwtFlow}`);
-
-  let retries = 0;
-  let delay = 1000;
-  let timeout = 1000;
-  if (isJwtFlow && !process.env.SFDX_CLIENT_SECRET) {
-    oauth2Options.privateKeyFile = hubOrg.getConnection().getAuthInfoFields().privateKey;
-    retries = options?.retry || env.getNumber('SFDX_JWT_AUTH_RETRY_ATTEMPTS') || 0;
-    const timeoutInSeconds = env.getNumber('SFDX_JWT_AUTH_RETRY_TIMEOUT') || 300;
-    timeout = Duration.seconds(timeoutInSeconds).milliseconds;
-    delay = retries ? timeout / retries : 1000;
-  } else {
-    // retry only for jwt for now
-    retries = 0;
-    // Web Server OAuth "auth code exchange" flow
-    if (process.env.SFDX_CLIENT_SECRET) {
-      oauth2Options.clientSecret = process.env.SFDX_CLIENT_SECRET;
-    } else if (clientSecret) {
-      oauth2Options.clientSecret = clientSecret;
-    }
-    oauth2Options.redirectUri = scratchOrgInfoComplete.ConnectedAppCallbackUrl;
-    oauth2Options.authCode = scratchOrgInfoComplete.AuthCode;
-  }
-
-  logger.debug(`_authorize - oauth2options: ${JSON.stringify(oauth2Options, null, 4)}`);
-
-  const retryAuthorize = retryDecorator(async (opts: AuthInfo.Options): Promise<AuthInfo> => AuthInfo.create(opts), {
-    timeout,
-    delay,
-    retries,
+  const oAuth2Options = await buildOAuth2Options({
+    hubOrg,
+    clientSecret,
+    scratchOrgInfoComplete,
+    retry: options?.retry,
+    signupTargetLoginUrlConfig,
   });
 
-  let authInfo;
-  if (retries) {
-    try {
-      authInfo = await retryAuthorize({
-        username: scratchOrgInfoComplete.SignupUsername,
-        parentUsername: hubOrg.getUsername(),
-        oauth2Options,
-      });
-    } catch (err) {
-      const error = err as RetryError;
-      logger.error(error);
-      if (error.message.startsWith('Timeout after')) {
-        throw SfdxError.create('salesforce-alm', 'org_create', 'jwtAuthRetryTimedOut', [
-          scratchOrgInfoComplete.SignupUsername,
-          timeout,
-          retries,
-        ]);
-      }
-      throw error.lastError || error;
-    }
-  } else {
-    authInfo = await AuthInfo.create({
-      username: scratchOrgInfoComplete.SignupUsername,
-      parentUsername: hubOrg.getUsername(),
-      oauth2Options,
-    });
-  }
-
-  await authInfo.save({
-    devHubUsername: hubOrg.getUsername(),
-    created: new Date(scratchOrgInfoComplete.CreatedDate ?? new Date()).valueOf().toString(),
-    expirationDate: scratchOrgInfoComplete.ExpirationDate,
-    clientId: scratchOrgInfoComplete.ConnectedAppConsumerKey,
-    createdOrgInstance: scratchOrgInfoComplete.SignupInstance,
-    isDevHub: false,
-    snapshot: scratchOrgInfoComplete.Snapshot,
+  const authInfo = await getAuthInfo({
+    hubOrg,
+    username: scratchOrgInfoComplete.SignupUsername,
+    oauth2Options: oAuth2Options.options,
+    retries: oAuth2Options.retries,
+    timeout: oAuth2Options.timeout,
+    delay: oAuth2Options.delay,
   });
 
-  if (alias) {
-    logger.debug(`_authorize - setting alias to ${alias}`);
-    await authInfo.setAlias(alias);
-    logger.debug(`_authorize - AuthInfo has alias to ${authInfo.getFields().alias}`);
-  }
-  if (setAsDefault) {
-    await authInfo.setAsDefault({ defaultUsername: true });
-  }
-
-  logger.debug(`_authorize - orgConfig.loginUrl: ${authInfo.getFields().loginUrl}`);
-  logger.debug(`_authorize - orgConfig.instanceUrl: ${authInfo.getFields().instanceUrl}`);
+  await saveAuthInfo({
+    scratchOrgInfoComplete,
+    hubOrg,
+    authInfo,
+    setAsDefault,
+    alias,
+  });
 
   return authInfo;
 };
