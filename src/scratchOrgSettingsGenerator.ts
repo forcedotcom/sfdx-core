@@ -11,7 +11,7 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 
 // @salesforce
-import { set, isEmpty, env, upperFirst, lowerFirst } from '@salesforce/kit';
+import { isEmpty, env, upperFirst } from '@salesforce/kit';
 import { ComponentSet, ComponentStatus, FileResponse } from '@salesforce/source-deploy-retrieve';
 import { get, getObject, JsonMap, ensureString, ensureObject, Nullable, Optional } from '@salesforce/ts-types';
 
@@ -20,15 +20,10 @@ import * as js2xmlparser from 'js2xmlparser';
 
 // Local
 import { Logger } from './logger';
-import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import getApiVersion from './config/getApiVersion';
 import { writeJSONasXML } from './util/jsonXmlTools';
-import OrgPrefRegistry = require('./orgPrefRegistry');
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
-
-Messages.importMessagesDirectory(__dirname);
-const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgSettingsGenerator');
 
 interface ObjectSetting extends JsonMap {
   sharingModel?: string;
@@ -82,12 +77,8 @@ export default class SettingsGenerator {
     if (!apiVersion) {
       apiVersion = this.currentApiVersion;
     }
-    if (parseFloat(apiVersion) >= 47.0 && this.orgPreferenceSettingsMigrationRequired(scratchDef)) {
-      this.extractAndMigrateSettings(scratchDef);
-    } else {
-      this.settingData = getObject(scratchDef, 'settings');
-      this.objectSettingsData = getObject(scratchDef, 'objectSettings');
-    }
+    this.settingData = getObject(scratchDef, 'settings');
+    this.objectSettingsData = getObject(scratchDef, 'objectSettings');
 
     this.logger.debug('settings are', this.settingData);
   }
@@ -95,150 +86,6 @@ export default class SettingsGenerator {
   /** True if we are currently tracking setting or object setting data. */
   public hasSettings(): boolean {
     return !(isEmpty(this.settingData) && isEmpty(this.objectSettingsData));
-  }
-
-  /** Check to see if the scratchDef contains orgPreferenceSettings
-   *  orgPreferenceSettings are no longer supported after api version 46.0
-   */
-  public orgPreferenceSettingsMigrationRequired(scratchDef: ScratchDefinition): boolean {
-    return !(!scratchDef || !scratchDef.settings || !scratchDef.settings.orgPreferenceSettings);
-  }
-
-  /** This will copy all of the settings in the scratchOrgInfo orgPreferences mapping into the settings structure.
-   *  It will also spit out a warning about the pending deprecation og the orgPreferences structure.
-   *  This returns a failure message in the promise upon critical error for api versions after 46.0.
-   *  For api versions less than 47.0 it will return a warning.
-   */
-  public migrate(scratchDef: ScratchDefinition, apiVersion?: string): Optional<string[]> {
-    const warnings: string[] = [];
-    // Make sure we have old style preferences
-    if (!scratchDef.orgPreferences) {
-      return warnings;
-    }
-
-    if (!apiVersion) {
-      apiVersion = this.currentApiVersion;
-    }
-
-    // First, let's map the old style tooling preferences into MD-API preferences
-    this.settingData = {};
-
-    function lhccmdt(mdt: string): string {
-      // lowercase head camel case metadata type
-      return !mdt ? mdt : lowerFirst(mdt);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function storePrefs(data: Record<string, unknown>, pref: string, prefVal: any) {
-      const orgPrefApi = lhccmdt(ensureString(OrgPrefRegistry.whichApi(pref, apiVersion)));
-      if (!orgPrefApi) {
-        warnings.push(`Unsupported org preference: ${pref}, ignored`);
-        return;
-      }
-
-      const mdApiName = lhccmdt(ensureString(OrgPrefRegistry.forMdApi(pref, apiVersion)));
-
-      if (!(orgPrefApi in data)) {
-        set(data, orgPrefApi, {});
-      }
-      const apiOrgPrefs = ensureObject(getObject(data, orgPrefApi));
-      set(apiOrgPrefs, mdApiName, prefVal);
-    }
-
-    if (scratchDef.orgPreferences.enabled) {
-      scratchDef.orgPreferences.enabled.forEach((pref) => {
-        storePrefs(ensureObject(this.settingData), pref, true);
-      });
-    }
-    if (scratchDef.orgPreferences.disabled) {
-      scratchDef.orgPreferences.disabled.forEach((pref) => {
-        storePrefs(ensureObject(this.settingData), pref, false);
-      });
-    }
-    // It would be nice if cli.ux.styledJSON could return a colorized JSON string instead of logging to stdout.
-    const message = messages.getMessage(
-      parseFloat(apiVersion) >= 47.0 ? 'deprecatedPrefFormat' : 'deprecatedPrefFormatLegacy',
-      [
-        JSON.stringify({ orgPreferences: scratchDef.orgPreferences }, null, 4),
-        JSON.stringify({ settings: this.settingData }, null, 4),
-      ]
-    );
-    if (parseFloat(apiVersion) >= 47.0) {
-      throw new SfdxError(message);
-    } else {
-      warnings.push(message);
-    }
-    // No longer need these
-    delete scratchDef.orgPreferences;
-
-    // return any warnings to the calle
-    return warnings;
-  }
-
-  /** This method converts all orgPreferenceSettings preferences into their respective
-   *  org settings objects.
-   */
-  public extractAndMigrateSettings(scratchDef: ScratchDefinition): Optional<string[]> {
-    const warnings: string[] = [];
-    const oldScratchDef = JSON.stringify({ settings: scratchDef.settings }, null, 4);
-
-    // Make sure we have old style preferences
-    if (!this.orgPreferenceSettingsMigrationRequired(scratchDef)) {
-      this.settingData = getObject(scratchDef, 'settings');
-      return;
-    }
-    // First, let's map the old style tooling preferences into MD-API preferences
-    this.settingData = {};
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function storePrefs(data: Record<string, unknown>, pref: string, prefVal: any): boolean {
-      let mdApiName = OrgPrefRegistry.newPrefNameForOrgSettingsMigration(pref);
-      if (!mdApiName) {
-        mdApiName = pref;
-      }
-      const orgPrefApi = OrgPrefRegistry.whichApiFromFinalPrefName(mdApiName);
-      if (!orgPrefApi) {
-        warnings.push(`Unknown org preference: ${pref}, ignored.`);
-        return false;
-      }
-
-      if (OrgPrefRegistry.isMigrationDeprecated(orgPrefApi)) {
-        warnings.push(`The setting "${pref}" is no longer supported as of API version 47.0`);
-        return false;
-      }
-
-      if (!(orgPrefApi in data)) {
-        set(data, orgPrefApi, {});
-      }
-      const apiOrgPrefs = ensureObject(getObject(data, orgPrefApi));
-
-      // check to see if the value is already set
-      set(apiOrgPrefs, mdApiName, prefVal);
-
-      return orgPrefApi !== OrgPrefRegistry.ORG_PREFERENCE_SETTINGS;
-    }
-
-    const orgPreferenceSettings = getObject(scratchDef, 'settings.orgPreferenceSettings') as Record<string, unknown>;
-    delete scratchDef.settings?.orgPreferenceSettings;
-    this.settingData = getObject(scratchDef, 'settings');
-
-    let migrated = false;
-    for (const preference in orgPreferenceSettings) {
-      if (storePrefs(ensureObject(this.settingData), preference, orgPreferenceSettings[preference])) {
-        migrated = true;
-      }
-    }
-
-    // Since we could have recommended some preferences that are still in OPS, only warn if any actually got moved there
-    if (migrated) {
-      // It would be nice if cli.ux.styledJSON could return a colorized JSON string instead of logging to stdout.
-      const message = messages.getMessage('migratedPrefFormat', [
-        oldScratchDef,
-        JSON.stringify({ settings: this.settingData }, null, 4),
-      ]);
-      warnings.push(message);
-    }
-    return warnings;
   }
 
   /** Create temporary deploy directory used to upload the scratch org shape.

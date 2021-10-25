@@ -286,9 +286,9 @@ export const requestScratchOrgCreation = async (
     throw new SfdxError('signupDuplicateSettingsSpecified');
   }
 
-  // See if we need to migrate and warn about using old style orgPreferences
+  // deprecated old style orgPreferences
   if (scratchOrgRequest.orgPreferences) {
-    settings.migrate(scratchOrgRequest);
+    throw new SfdxError(messages.getMessage('deprecatedPrefFormat'));
   }
 
   const scratchOrgInfo = mapKeys(scratchOrgRequest, upperFirst, true);
