@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.2](https://github.com/forcedotcom/sfdx-core/compare/v2.28.1...v2.28.2) (2021-10-13)
+
+
+### Bug Fixes
+
+* support for .mil sandboxes ([9ef35c7](https://github.com/forcedotcom/sfdx-core/commit/9ef35c7b1ef0fe974c3bd3b89b862a436e00f7d9))
+
+### [2.28.1](https://github.com/forcedotcom/sfdx-core/compare/v2.28.0...v2.28.1) (2021-10-06)
+
+
+### Bug Fixes
+
+* crmforce.mil ([e263d5d](https://github.com/forcedotcom/sfdx-core/commit/e263d5d74be9c0651e5c2676d6eec1c31fca05e4))
+
 ## [2.28.0](https://github.com/forcedotcom/sfdx-core/compare/v2.27.2...v2.28.0) (2021-09-16)
 
 
