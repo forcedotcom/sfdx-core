@@ -34,7 +34,7 @@ import { Logger } from './logger';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { SfdxProject, SfdxProjectJson } from './sfdxProject';
-import { CometClient, CometSubscription, StreamingExtension } from './status/streamingClient';
+import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
 import { GlobalInfo, SfOrg } from './globalInfo';
 import { Global } from './global';
 
@@ -591,7 +591,7 @@ export interface StreamingMockCometSubscriptionOptions {
   /**
    * A list of messages to playback for the client. One message per process tick.
    */
-  messagePlaylist?: JsonMap[];
+  messagePlaylist?: Message[];
 }
 
 /**
@@ -694,7 +694,7 @@ export class StreamingMockCometClient extends CometClient {
    * @param channel The streaming channel.
    * @param callback The function to invoke after the subscription completes.
    */
-  public subscribe(channel: string, callback: (message: JsonMap) => void): CometSubscription {
+  public subscribe(channel: string, callback: (message: Message) => void): CometSubscription {
     const subscription: StreamingMockCometSubscription = new StreamingMockCometSubscription(this.options);
     subscription.on('subscriptionComplete', () => {
       if (!this.options.messagePlaylist) return;
