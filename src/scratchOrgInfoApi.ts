@@ -27,7 +27,7 @@ import { SfdxError } from './sfdxError';
 import { SfdcUrl } from './util/sfdcUrl';
 import { MyDomainResolver } from './status/myDomainResolver';
 
-import SettingsGenerator, { ScratchDefinition } from './scratchOrgSettingsGenerator';
+import SettingsGenerator from './scratchOrgSettingsGenerator';
 
 export interface ScratchOrgInfo {
   AdminEmail?: string;
@@ -58,6 +58,12 @@ export interface ScratchOrgInfo {
   readonly SignupUsername: string;
   readonly SignupInstance: string;
   Username: string;
+  settings: Optional<Record<string, unknown>>;
+  objectSettings: Optional<Record<string, unknown>>;
+  orgPreferences: Optional<{
+    enabled: string[];
+    disabled: string[];
+  }>;
 }
 
 export interface JsForceError extends Error {
@@ -339,7 +345,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
  */
 export const requestScratchOrgCreation = async (
   hubOrg: Org,
-  scratchOrgRequest: ScratchDefinition,
+  scratchOrgRequest: ScratchOrgInfo,
   settings: SettingsGenerator
 ): Promise<RecordResult> => {
   // If these were present, they were already used to initialize the scratchOrgSettingsGenerator.

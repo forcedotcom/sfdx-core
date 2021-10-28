@@ -13,7 +13,7 @@ import { promises as fs } from 'fs';
 // @salesforce
 import { isEmpty, env, upperFirst } from '@salesforce/kit';
 import { ComponentSet, ComponentStatus, FileResponse } from '@salesforce/source-deploy-retrieve';
-import { get, getObject, JsonMap, ensureString, ensureObject, Nullable, Optional } from '@salesforce/ts-types';
+import { get, getObject, JsonMap, ensureString, ensureObject, Nullable } from '@salesforce/ts-types';
 
 // Thirdparty
 import * as js2xmlparser from 'js2xmlparser';
@@ -27,15 +27,6 @@ import { ScratchOrgInfo } from './scratchOrgInfoApi';
 interface ObjectSetting extends JsonMap {
   sharingModel?: string;
   defaultRecordType?: string;
-}
-
-export interface ScratchDefinition extends ScratchOrgInfo {
-  settings: Optional<Record<string, unknown>>;
-  objectSettings: Optional<Record<string, unknown>>;
-  orgPreferences: Optional<{
-    enabled: string[];
-    disabled: string[];
-  }>;
 }
 
 interface ObjectToBusinessProcessPicklist {
@@ -70,7 +61,7 @@ export default class SettingsGenerator {
   }
 
   /** extract the settings from the scratch def file, if they are present. */
-  public async extract(scratchDef: ScratchDefinition): Promise<void> {
+  public async extract(scratchDef: ScratchOrgInfo): Promise<void> {
     this.logger.debug('extracting settings from scratch definition file');
     this.settingData = getObject(scratchDef, 'settings');
     this.objectSettingsData = getObject(scratchDef, 'objectSettings');

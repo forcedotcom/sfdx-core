@@ -4,12 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+// Node
+import { promises as fs } from 'fs';
 
 // @salesforce
+import { parseJson } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
 
 // Local
 import { Org } from './org';
+import { sfdc } from './util/sfdc';
 import { SfdxProjectJson } from './sfdxProject';
 import { WebOAuthServer } from './webOAuthServer';
 import { Messages } from './messages';
@@ -33,6 +37,39 @@ export interface ScratchOrgInfoPayload extends ScratchOrgInfo {
   namespace: string;
   connectedAppCallbackUrl: string;
 }
+
+const SNAPSHOT_UNSUPPORTED_OPTIONS = [
+  'features',
+  'orgPreferences',
+  'edition',
+  'sourceOrg',
+  'settingsPath',
+  'releaseVersion',
+  'language',
+];
+
+// A validator function to ensure any options parameters entered by the user adhere
+// to a allowlist of valid option settings. Because org:create allows options to be
+// input either key=value pairs or within the definition file, this validator is
+// executed within the ctor and also after parsing/normalization of the definition file.
+const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unknown>): void => {
+  if (key.toLowerCase() === 'durationdays') {
+    throw new SfdxError('unrecognizedScratchOrgOption', 'durationDays');
+  }
+
+  if (key.toLowerCase() === 'snapshot') {
+    const foundInvalidFields = SNAPSHOT_UNSUPPORTED_OPTIONS.filter(
+      (invalidField) => invalidField in scratchOrgInfoPayload
+    );
+
+    if (foundInvalidFields.length > 0) {
+      throw new SfdxError(
+        messages.getMessage('unsupportedSnapshotOrgCreateOptions', [foundInvalidFields.join(', ')]),
+        'orgSnapshot'
+      );
+    }
+  }
+};
 
 /**
  * Generates the package2AncestorIds scratch org property
@@ -153,21 +190,6 @@ export const generateScratchOrgInfo = async ({
       ? await getAncestorIds(scratchOrgInfoPayload, sfdxProject, hubOrg)
       : '';
 
-  // convert various supported array and string formats to a semi-colon-delimited string
-  if (scratchOrgInfoPayload.features) {
-    if (typeof scratchOrgInfoPayload.features === 'string') {
-      const delimiter = scratchOrgInfoPayload.features.includes(';') ? ';' : ',';
-      scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.split(delimiter);
-    }
-    scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.map((feature: string) => feature.trim());
-
-    const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation();
-
-    scratchOrgInfoPayload.features = scratchOrgFeatureDeprecation
-      .filterDeprecatedFeatures(scratchOrgInfoPayload.features)
-      .join(';');
-  }
-
   // Use the Hub org's client ID value, if one wasn't provided to us, or the default
   if (!scratchOrgInfoPayload.connectedAppConsumerKey) {
     scratchOrgInfoPayload.connectedAppConsumerKey =
@@ -181,4 +203,96 @@ export const generateScratchOrgInfo = async ({
   // we already have the info, and want to get rid of configApi, so this doesn't use that
   scratchOrgInfoPayload.connectedAppCallbackUrl = `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`;
   return scratchOrgInfoPayload;
+};
+
+/**
+ * Returns a valid signup json
+ *
+ * @param definitionjson
+ * @param definitionfile
+ * @param connectedAppConsumerKey
+ * @param durationdays
+ * @param nonamespace
+ * @param noancestors
+ * @param orgConfig
+ * @returns scratchOrgInfoPayload: ScratchOrgInfoPayload;
+            ignoreAncestorIds: boolean;
+            warnings: string[]; 
+ */
+export const getScratchOrgInfoPayload = async (options: {
+  definitionjson: string;
+  definitionfile: string;
+  connectedAppConsumerKey: string;
+  durationDays: number;
+  nonamespace: boolean;
+  noancestors: boolean;
+  orgConfig: Record<string, unknown>;
+}): Promise<{
+  scratchOrgInfoPayload: ScratchOrgInfoPayload;
+  ignoreAncestorIds: boolean;
+  warnings: string[];
+}> => {
+  const warnings: string[] = [];
+  // Varargs input overrides definitionjson (-j option; hidden/deprecated)
+  const definitionJson = options.definitionjson ? JSON.parse(options.definitionjson) : {};
+  const orgConfigInput = { ...definitionJson, ...(options.orgConfig ?? {}) };
+
+  let scratchOrgInfoPayload = orgConfigInput;
+
+  // the -f option
+  if (options.definitionfile) {
+    try {
+      const fileData = await fs.readFile(options.definitionfile, 'utf8');
+      const defFileContents = parseJson(fileData) as Record<string, unknown>;
+      // definitionjson and varargs override file input
+      scratchOrgInfoPayload = { ...defFileContents, ...orgConfigInput };
+    } catch (err) {
+      const error = err as Error;
+      if (error.name === 'SyntaxError') {
+        throw new SfdxError(`An error occurred parsing ${options.definitionfile}`);
+      }
+    }
+  }
+
+  // scratchOrgInfoPayload must be heads down camelcase.
+  const upperCaseKey = sfdc.findUpperCaseKeys(scratchOrgInfoPayload);
+  if (upperCaseKey) {
+    throw new SfdxError('InvalidJsonCasing', upperCaseKey);
+  }
+
+  // Now run the fully resolved user input against the validator
+  Object.keys(scratchOrgInfoPayload).forEach((key) => {
+    optionsValidator(key, scratchOrgInfoPayload);
+  });
+
+  if (options.connectedAppConsumerKey) {
+    scratchOrgInfoPayload.connectedAppConsumerKey = options.connectedAppConsumerKey;
+  }
+
+  scratchOrgInfoPayload.durationDays = options.durationDays;
+
+  // Throw warnings for deprecated scratch org features.
+  const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation();
+  scratchOrgFeatureDeprecation.getFeatureWarnings(scratchOrgInfoPayload.features).forEach((warning) => {
+    warnings.push(warning);
+  });
+
+  // convert various supported array and string formats to a semi-colon-delimited string
+  if (scratchOrgInfoPayload.features) {
+    if (typeof scratchOrgInfoPayload.features === 'string') {
+      const delimiter = scratchOrgInfoPayload.features.includes(';') ? ';' : ',';
+      scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.split(delimiter);
+    }
+    scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.map((feature: string) => feature.trim());
+    scratchOrgInfoPayload.features = scratchOrgFeatureDeprecation
+      .filterDeprecatedFeatures(scratchOrgInfoPayload.features)
+      .join(';');
+  }
+
+  return {
+    scratchOrgInfoPayload,
+    // Ignore ancestor ids only when 'nonamespace' or 'noancestors' options are specified
+    ignoreAncestorIds: options.nonamespace || options.noancestors || false,
+    warnings,
+  };
 };
