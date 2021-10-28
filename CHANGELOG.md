@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.2](https://github.com/forcedotcom/sfdx-core/compare/v3.7.1...v3.7.2) (2021-10-28)
+
+
+### Bug Fixes
+
+* make @types/sfdx-faye a dependendcy ([683680b](https://github.com/forcedotcom/sfdx-core/commit/683680b8133048f71d25ef4df7aa24d9700dc5e8))
+
 ### [3.7.1](https://github.com/forcedotcom/sfdx-core/compare/v3.7.0...v3.7.1) (2021-10-28)
 
 ## [3.7.0](https://github.com/forcedotcom/sfdx-core/compare/v3.6.6...v3.7.0) (2021-10-12)
