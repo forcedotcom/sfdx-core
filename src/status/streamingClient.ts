@@ -11,13 +11,20 @@ import { resolve as resolveUrl } from 'url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
 import * as Faye from 'sfdx-faye';
-import type { Client as CometClient, StreamProcessor, CometSubscription, StatusResult } from 'sfdx-faye';
+import type { Client as CometClient, Message, StreamProcessor, CometSubscription, StatusResult } from 'sfdx-faye';
 import { Logger } from '../logger';
 import { Org } from '../org/org';
 import { SfdxError } from '../sfdxError';
 import { Messages } from '../messages';
 
-export { Client as CometClient, StreamProcessor, CometSubscription, StatusResult, StreamingExtension } from 'sfdx-faye';
+export {
+  Client as CometClient,
+  Message,
+  StreamProcessor,
+  CometSubscription,
+  StatusResult,
+  StreamingExtension,
+} from 'sfdx-faye';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'streaming', [
@@ -265,7 +272,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
         }, this.options.subscribeTimeout.milliseconds);
 
         // Initialize the subscription.
-        const subscription: CometSubscription = this.cometClient.subscribe(this.options.channel, (message: JsonMap) => {
+        const subscription: CometSubscription = this.cometClient.subscribe(this.options.channel, (message: Message) => {
           try {
             // The result of the stream processor determines the state of the outer promise.
             const result: StatusResult = this.options.streamProcessor(message);
