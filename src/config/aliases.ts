@@ -34,6 +34,8 @@ export enum AliasGroup {
  * const username: string = await Aliases.fetch('myAlias');
  * ```
  * https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
+ *
+ * @deprecated Replaced by GlobalInfo in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#globalinfo}
  */
 export class Aliases extends ConfigGroup<ConfigGroup.Options> {
   /**

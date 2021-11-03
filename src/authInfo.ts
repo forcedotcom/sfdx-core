@@ -358,6 +358,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * Get a list of all auth files stored in the global directory.
    *
    * @returns {Promise<string[]>}
+   *
+   * @deprecated Removed in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#globalinfo}
    */
   public static async listAllAuthFiles(): Promise<string[]> {
     const globalFiles = await fs.readdir(Global.DIR);
@@ -456,6 +458,8 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * Forces the auth file to be re-read from disk for a given user. Returns `true` if a value was removed.
    *
    * @param username The username for the auth info to re-read.
+   *
+   * @deprecated Removed in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#configstore-configfile-authinfo-and-encrypting-values}
    */
   public static clearCache(username: string): boolean {
     if (username) {
