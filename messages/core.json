@@ -13,7 +13,7 @@
   "OrgDataNotAvailableErrorAction3": "Use `sfdx force:org:create` to create a new org.",
   "OrgDataNotAvailableErrorAction4": "Use `sfdx force:auth` to authenticate an existing org.",
   "NamedOrgNotFound": "No authorization information found for %s %s.",
-  "NoAliasesFound": "Nothing to set",
+  "NoAliasesFound": "Nothing to set.",
   "InvalidFormat": "Setting aliases must be in the format <key>=<value> but found: [%s]",
   "NoAuthInfoFound": "No authorization information can be found.",
   "InvalidJsonCasing": "All JSON input must have heads down camelcase keys.  E.g., { sfdcLoginUrl: \"https://login.salesforce.com\" }\nFound \"%s\" at %s"
