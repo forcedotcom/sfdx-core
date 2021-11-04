@@ -10,7 +10,17 @@ import * as jsToXml from 'js2xmlparser';
 import { JsonMap } from '@salesforce/ts-types';
 import { IOptions } from 'js2xmlparser/lib/options';
 
-const standardOptions: IOptions = {
+export interface JSONasXML {
+  json: JsonMap;
+  type: string;
+  options?: IOptions;
+}
+
+export interface WriteJSONasXMLInputs extends JSONasXML {
+  path: string;
+}
+
+export const standardOptions: IOptions = {
   declaration: {
     include: true,
     encoding: 'UTF-8',
@@ -21,19 +31,21 @@ const standardOptions: IOptions = {
   },
 };
 
-const writeJSONasXML = async ({ path, json, type, options = standardOptions }: WriteJSONasXMLInputs): Promise<void> => {
+export const writeJSONasXML = async ({
+  path,
+  json,
+  type,
+  options = standardOptions,
+}: WriteJSONasXMLInputs): Promise<void> => {
   const xml = jsToXml.parse(type, fixExistingDollarSign(json), options);
   return await fs.writeFile(path, xml);
 };
 
-interface WriteJSONasXMLInputs {
-  path: string;
-  json: JsonMap;
-  type: string;
-  options?: IOptions;
-}
+export const JsonAsXml = ({ json, type, options = standardOptions }: JSONasXML): string => {
+  return jsToXml.parse(type, fixExistingDollarSign(json), options);
+};
 
-const fixExistingDollarSign = (existing: WriteJSONasXMLInputs['json']): Record<string, unknown> => {
+export const fixExistingDollarSign = (existing: WriteJSONasXMLInputs['json']): Record<string, unknown> => {
   const existingCopy = { ...existing } as Record<string, unknown>;
   if (existingCopy.$) {
     const temp = existingCopy.$;
@@ -42,5 +54,3 @@ const fixExistingDollarSign = (existing: WriteJSONasXMLInputs['json']): Record<s
   }
   return existingCopy;
 };
-
-export { writeJSONasXML, standardOptions, fixExistingDollarSign };
