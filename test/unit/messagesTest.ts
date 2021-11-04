@@ -6,6 +6,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import { EOL } from 'os';
 import { cloneJson } from '@salesforce/kit';
 import { assert, expect } from 'chai';
 import { Messages } from '../../src/messages';
@@ -64,7 +65,7 @@ describe('Messages', () => {
 
     it('should return single string from array of messages', () => {
       expect(messages.getMessage('manyMsgs', ['blah', 864])).to.equal(
-        'hello blah 864\nworld blah 864\ntest message 2 blah and 864'
+        `hello blah 864${EOL}world blah 864${EOL}test message 2 blah and 864`
       );
     });
   });
