@@ -164,9 +164,9 @@ describe('Messages', () => {
     });
 
     it('should not remove the "/lib" if dist is already removed', () => {
-      truncatePath = '/var/src/sfdx-core/dist';
-      Messages.importMessagesDirectory('/var/src/sfdx-core/dist/src/utils.js');
-      const expectedMsgDirPath = '/var/src/sfdx-core/dist/messages';
+      truncatePath = path.join('/var', 'src', 'sfdx-core', 'dist');
+      Messages.importMessagesDirectory(path.join('/var', 'src', 'sfdx-core', 'dist', 'src', 'utils.js'));
+      const expectedMsgDirPath = path.join('/var', 'src', 'sfdx-core', 'dist', 'messages');
       expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
       expect(importMessageFileStub.firstCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
       expect(importMessageFileStub.secondCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
