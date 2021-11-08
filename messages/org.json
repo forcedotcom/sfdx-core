@@ -1,6 +1,7 @@
 {
   "NotFoundOnDevHub": "The scratch org does not belong to the dev hub username %s.",
   "NotADevHub": "The provided dev hub username %s is not a valid dev hub.",
+  "NoDevHubFound": "Unable to associate this scratch org with a DevHub",
   "deleteOrgHubError": "The Dev Hub org cannot be deleted.",
   "insufficientAccessToDelete": "You do not have the appropriate permissions to delete a scratch org. Please contact your Salesforce admin.",
   "attemptingToDeleteExpiredOrDeleted": "Attempting to delete an expired or deleted org",
