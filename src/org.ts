@@ -211,6 +211,11 @@ export class Org extends AsyncCreatable<Org.Options> {
     }
   }
 
+  /**
+   * If this Org is a scratch org, calling this method will delete the scratch org from the DevHub and clean up any local files
+   *
+   * @param hubOrg - optional DevHub Org of the to-be-deleted scratch org
+   */
   public async deleteScratchOrg(hubOrg?: Org): Promise<void> {
     const logger = await Logger.child('deleteScratchOrg');
 
@@ -241,6 +246,7 @@ export class Org extends AsyncCreatable<Org.Options> {
         if (err.name === SingleRecordQueryErrors.NoRecords) {
           logger.info('The above error can be the result of deleting an expired or already deleted org.');
           logger.info('attempting to cleanup the auth file');
+          await this.removeAuth();
           throw SfdxError.create('@salesforce/core', 'org', 'attemptingToDeleteExpiredOrDeleted');
         }
         throw err;
