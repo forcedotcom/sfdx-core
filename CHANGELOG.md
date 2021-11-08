@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.3](https://github.com/forcedotcom/sfdx-core/compare/v2.28.2...v2.28.3) (2021-11-08)
+
+
+### Bug Fixes
+
+* fix unit test ([d903c04](https://github.com/forcedotcom/sfdx-core/commit/d903c04e5f3e4f01fccb3f00b91560c443013ddf))
+* force new release ([124bb74](https://github.com/forcedotcom/sfdx-core/commit/124bb744c5ecc28cb8babf285c6d8c3032eb7ef6))
+* improve error message when providing an invalid username ([2ab4bbd](https://github.com/forcedotcom/sfdx-core/commit/2ab4bbdefd962283d88ccb735de88c88fe189d39))
+
 ### [2.28.2](https://github.com/forcedotcom/sfdx-core/compare/v2.28.1...v2.28.2) (2021-10-13)
 
 
