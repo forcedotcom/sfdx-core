@@ -123,7 +123,6 @@ workflows:
               external_project_git_url:
                 [
                   'https://github.com/salesforcecli/plugin-user',
-                  'https://github.com/salesforcecli/plugin-config',
                   'https://github.com/salesforcecli/plugin-alias',
                   'https://github.com/salesforcecli/plugin-limits',
                   'https://github.com/salesforcecli/plugin-auth',
@@ -131,6 +130,7 @@ workflows:
                   'https://github.com/salesforcecli/plugin-telemetry',
                 ]
                 # TODO
+                # re-enable: https://github.com/salesforcecli/plugin-config
                 # data (unlernafied)
                 # toolbelt (git auth because private)
       - release-management/release-package:
