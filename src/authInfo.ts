@@ -870,7 +870,10 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
         return config.toObject();
       } catch (e) {
         if (e.code === 'ENOENT') {
-          throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [username]);
+          throw SfdxError.create('@salesforce/core', 'core', 'NamedOrgNotFound', [
+            this.options.isDevHub ? 'devhub username' : 'username',
+            username,
+          ]);
         } else {
           throw e;
         }
@@ -1135,5 +1138,7 @@ export namespace AuthInfo {
      * creation.
      */
     parentUsername?: string;
+
+    isDevHub?: boolean;
   }
 }
