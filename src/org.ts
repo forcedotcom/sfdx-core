@@ -32,7 +32,7 @@ import { ConfigAggregator, ConfigInfo } from './config/configAggregator';
 import { ConfigContents } from './config/configStore';
 import { OrgUsersConfig } from './config/orgUsersConfig';
 import { SandboxOrgConfig } from './config/sandboxOrgConfig';
-import { Connection } from './connection';
+import { Connection, SingleRecordQueryErrors } from './connection';
 import { Global } from './global';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
@@ -208,6 +208,43 @@ export class Org extends AsyncCreatable<Org.Options> {
       return isDevHub;
     } else {
       return false;
+    }
+  }
+
+  public async deleteScratchOrg(hubOrg?: Org): Promise<void> {
+    const logger = await Logger.child('deleteScratchOrg');
+
+    // if we didn't get a hubOrg, we'll get it from the this org
+    hubOrg = hubOrg ?? (await this.getDevHubOrg());
+    if (hubOrg?.getOrgId() === this.getOrgId()) {
+      // we're attempting to delete a DevHub
+      throw SfdxError.create('@salesforce/core', 'org', 'deleteOrgHubError');
+    }
+    if (hubOrg) {
+      const hubOrgConn = hubOrg.getConnection();
+
+      try {
+        const activeScratchOrgRecordId = (
+          await hubOrgConn.singleRecordQuery<{ Id: string }>(
+            `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${this.getUsername()}'`
+          )
+        ).Id;
+        logger.trace(`found matching ActiveScratchOrg with SignupUsername: ${this.getUsername()}.  Deleting...`);
+        await hubOrgConn.delete('ActiveScratchOrg', activeScratchOrgRecordId);
+        await this.remove();
+      } catch (err) {
+        logger.info(err.message);
+        if (err.name === 'INVALID_TYPE' || err.name === 'INSUFFICIENT_ACCESS_OR_READONLY') {
+          logger.info('Insufficient privilege to access ActiveScratchOrgs.');
+          throw SfdxError.create('@salesforce/core', 'org', 'insufficientAccessToDelete');
+        }
+        if (err.name === SingleRecordQueryErrors.NoRecords) {
+          logger.info('The above error can be the result of deleting an expired or already deleted org.');
+          logger.info('attempting to cleanup the auth file');
+          throw SfdxError.create('@salesforce/core', 'org', 'attemptingToDeleteExpiredOrDeleted');
+        }
+        throw err;
+      }
     }
   }
 
@@ -538,7 +575,6 @@ export class Org extends AsyncCreatable<Org.Options> {
    *
    * @param throwWhenRemoveFails true if manageDelete should throw or not if the deleted fails.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async removeUsers(throwWhenRemoveFails: boolean): Promise<void> {
     this.logger.debug(`Removing users associate with org: ${this.getOrgId()}`);
     const config = await this.retrieveOrgUsersConfig();

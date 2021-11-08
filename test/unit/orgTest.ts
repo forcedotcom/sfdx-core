@@ -22,7 +22,7 @@ import { ConfigAggregator } from '../../src/config/configAggregator';
 import { ConfigFile } from '../../src/config/configFile';
 import { OrgUsersConfig } from '../../src/config/orgUsersConfig';
 import { SandboxOrgConfig } from '../../src/config/sandboxOrgConfig';
-import { Connection } from '../../src/connection';
+import { Connection, SingleRecordQueryErrors } from '../../src/connection';
 import { Global } from '../../src/global';
 import { Org } from '../../src/org';
 import { MockTestOrgData, testSetup } from '../../src/testSetup';
@@ -219,6 +219,107 @@ describe('Org Tests', () => {
       $$.configStubs.AuthInfoConfig = {
         retrieveContents: configFileReadJsonMock,
       };
+    });
+
+    it('should throw error when attempting to delete devhub org', async () => {
+      const dev: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: testData.username }),
+        }),
+      });
+      const org: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: testData.username }),
+        }),
+      });
+      try {
+        await org.deleteScratchOrg(dev);
+        assert.fail('the above should throw an error');
+      } catch (e) {
+        expect(e.message).to.contain('The Dev Hub org cannot be deleted.');
+      }
+    });
+
+    it('should delete the org from the DevHub org', async () => {
+      const dev: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: testData.username }),
+        }),
+      });
+      const orgTestData = new MockTestOrgData();
+      const org: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: orgTestData.username }),
+        }),
+      });
+
+      const devHubQuery = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+        Id: orgTestData.orgId,
+      });
+      const devHubDelete = stubMethod($$.SANDBOX, Connection.prototype, 'delete').resolves();
+      const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
+
+      await org.deleteScratchOrg(dev);
+
+      expect(devHubQuery.calledOnce).to.be.true;
+      expect(devHubQuery.firstCall.args[0]).to.equal(
+        `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${orgTestData.username}'`
+      );
+      expect(devHubDelete.calledOnce).to.be.true;
+      expect(devHubDelete.firstCall.args).to.deep.equal(['ActiveScratchOrg', orgTestData.orgId]);
+      expect(removeSpy.calledOnce).to.be.true;
+    });
+
+    it('should handle INVALID_TYPE or INSUFFICIENT_ACCESS_OR_READONLY errors', async () => {
+      const dev: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: testData.username }),
+        }),
+      });
+      const orgTestData = new MockTestOrgData();
+      const org: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: orgTestData.username }),
+        }),
+      });
+      const e = new Error('test error');
+      e.name = 'INVALID_TYPE';
+
+      stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').throws(e);
+
+      try {
+        await org.deleteScratchOrg(dev);
+        assert.fail('the above should throw an error');
+      } catch (err) {
+        expect(err.message).to.contain(
+          'You do not have the appropriate permissions to delete a scratch org. Please contact your Salesforce admin.'
+        );
+      }
+    });
+
+    it('should handle SingleRecordQueryErrors.NoRecords errors', async () => {
+      const dev: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: testData.username }),
+        }),
+      });
+      const orgTestData = new MockTestOrgData();
+      const org: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: orgTestData.username }),
+        }),
+      });
+      const e = new Error('test error');
+      e.name = SingleRecordQueryErrors.NoRecords;
+
+      stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').throws(e);
+
+      try {
+        await org.deleteScratchOrg(dev);
+        assert.fail('the above should throw an error');
+      } catch (err) {
+        expect(err.message).to.contain('Attempting to delete an expired or deleted org');
+      }
     });
 
     it('should remove all assets associated with the org', async () => {
