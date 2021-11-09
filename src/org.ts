@@ -501,6 +501,7 @@ export class Org extends AsyncCreatable<Org.Options> {
         // If no username is provided or resolvable from an alias, AuthInfo will throw an SfdxError.
         authInfo: await AuthInfo.create({
           username: (username != null && (await Aliases.fetch(username))) || username,
+          isDevHub: this.options.isDevHub,
         }),
       });
     } else {
