@@ -12,7 +12,7 @@ import { testSetup } from '../../src/testSetup';
 
 const $$ = testSetup();
 
-describe.only('lifecycleEvents', () => {
+describe('lifecycleEvents', () => {
   class Foo {
     // eslint-disable-next-line @typescript-eslint/ban-types
     public bar(name: string, result: {}) {
