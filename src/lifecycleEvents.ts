@@ -16,6 +16,8 @@ declare const global: {
   salesforceCoreLifecycle?: Lifecycle;
 };
 
+const warningEventName = 'warning';
+const telemetryEventName = 'telemetry';
 /**
  * An asynchronous event listener and emitter that follows the singleton pattern. The singleton pattern allows lifecycle
  * events to be emitted from deep within a library and still be consumed by any other library or tool. It allows other
@@ -41,6 +43,7 @@ export class Lifecycle {
   private constructor() {
     this.listeners = {};
   }
+
   /**
    * Retrieve the singleton instance of this class so that all listeners and emitters can interact from any library or tool
    */
@@ -93,6 +96,23 @@ export class Lifecycle {
   }
 
   /**
+   * Create a listener for the `telemetry` event
+   *
+   * @param cb The callback function to run when the event is emitted
+   */
+  public onTelemetry(cb: (data: string) => Promise<void>): void {
+    this.on(telemetryEventName, cb);
+  }
+
+  /**
+   * Create a listener for the `warning` event
+   *
+   * @param cb The callback function to run when the event is emitted
+   */
+  public onWarning(cb: (warning: string) => Promise<void>): void {
+    this.on(warningEventName, cb);
+  }
+  /**
    * Create a new listener for a given event
    *
    * @param eventName The name of the event that is being listened for
@@ -113,6 +133,26 @@ export class Lifecycle {
     this.listeners[eventName] = listeners;
   }
 
+  /**
+   * Emit a `telemetry` event, causing all callback functions to be run in the order they were registered
+   *
+   * @param data The data to emit
+   */
+  public async emitTelemetry(data: AnyJson): Promise<void> {
+    return this.emit(telemetryEventName, data);
+  }
+  /**
+   * Emit a `warning` event, causing all callback functions to be run in the order they were registered
+   *
+   * @param data The warning (string) to emit
+   */
+  public async emitWarning(warning: string): Promise<void> {
+    // if there are no listeners, warnings should go to the node process so they're not lost
+    if (this.getListeners(warningEventName).length === 0) {
+      process.emitWarning(warning);
+    }
+    return this.emit(warningEventName, warning);
+  }
   /**
    * Emit a given event, causing all callback functions to be run in the order they were registered
    *
