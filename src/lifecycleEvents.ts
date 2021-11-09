@@ -34,6 +34,9 @@ declare const global: {
  *
  * // Deep in the deploy code, fire the event for all libraries and plugins to hear.
  * Lifecycle.getInstance().emit('deploy-metadata', metadataToBeDeployed);
+ *
+ * // if you don't need to await anything
+ * use `void Lifecycle.getInstance().emit('deploy-metadata', metadataToBeDeployed)` ;
  * ```
  */
 export class Lifecycle {
@@ -162,6 +165,7 @@ export class Lifecycle {
    */
   public async emitWarning(warning: string): Promise<void> {
     // if there are no listeners, warnings should go to the node process so they're not lost
+    // this also preserves behavior in UT where there's a spy on process.emitWarning
     if (this.getListeners(Lifecycle.warningEventName).length === 0) {
       process.emitWarning(warning);
     }
