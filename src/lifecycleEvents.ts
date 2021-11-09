@@ -124,7 +124,7 @@ export class Lifecycle {
    *
    * @param cb The callback function to run when the event is emitted
    */
-  public onTelemetry(cb: (data: AnyJson) => Promise<void>): void {
+  public onTelemetry(cb: (data: Record<string, unknown>) => Promise<void>): void {
     this.on(Lifecycle.telemetryEventName, cb);
   }
 
