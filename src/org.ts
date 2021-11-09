@@ -212,50 +212,22 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
-   * If this Org is a scratch org, calling this method will delete the scratch org from the DevHub and clean up any local files
+   * Will delete 'this' instance remotely and any files locally
    *
-   * @param devHub - optional DevHub Org of the to-be-deleted scratch org
+   * @param controllingOrg username or Org that 'this.devhub' or 'this.production' refers to. AKA a DevHub for a scratch org, or a Production Org for a sandbox
    */
-  public async deleteScratchOrg(devHub?: Org): Promise<void> {
-    const logger = await Logger.child('deleteScratchOrg');
-
-    // if we didn't get a devHub, we'll get it from the this org
-    devHub = devHub ?? (await this.getDevHubOrg());
-    if (devHub?.getOrgId() === this.getOrgId()) {
-      // we're attempting to delete a DevHub
-      throw SfdxError.create('@salesforce/core', 'org', 'deleteOrgHubError');
+  public async selfDestruct(controllingOrg?: string | Org): Promise<void> {
+    if (typeof controllingOrg === 'string') {
+      controllingOrg = await Org.create({
+        aggregator: this.configAggregator,
+        aliasOrUsername: controllingOrg,
+      });
     }
-    if (devHub) {
-      const devHubConn = devHub.getConnection();
-
-      try {
-        const activeScratchOrgRecordId = (
-          await devHubConn.singleRecordQuery<{ Id: string }>(
-            `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${this.getUsername()}'`
-          )
-        ).Id;
-        logger.trace(`found matching ActiveScratchOrg with SignupUsername: ${this.getUsername()}.  Deleting...`);
-        await devHubConn.delete('ActiveScratchOrg', activeScratchOrgRecordId);
-        await this.remove();
-      } catch (err) {
-        logger.info(err.message);
-        if (err.name === 'INVALID_TYPE' || err.name === 'INSUFFICIENT_ACCESS_OR_READONLY') {
-          // most likely from devHubConn.delete
-          logger.info('Insufficient privilege to access ActiveScratchOrgs.');
-          throw SfdxError.create('@salesforce/core', 'org', 'insufficientAccessToDelete');
-        }
-        if (err.name === SingleRecordQueryErrors.NoRecords) {
-          // most likely from singleRecordQuery
-          logger.info('The above error can be the result of deleting an expired or already deleted org.');
-          logger.info('attempting to cleanup the auth file');
-          await this.removeAuth();
-          throw SfdxError.create('@salesforce/core', 'org', 'attemptingToDeleteExpiredOrDeleted');
-        }
-        throw err;
-      }
+    if (await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)) {
+      await this.deleteSandbox(controllingOrg);
+    } else {
+      await this.deleteScratchOrg(controllingOrg);
     }
-
-    throw SfdxError.create('@salesforce/core', 'org', 'NoDevHubFound');
   }
 
   /**
@@ -530,6 +502,114 @@ export class Org extends AsyncCreatable<Org.Options> {
    */
   protected getDefaultOptions(): Org.Options {
     throw new SfdxError('Not Supported');
+  }
+
+  private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
+    return await org.connection.singleRecordQuery<{ SandboxInfoId: string }>(
+      `SELECT SandboxInfoId FROM SandboxProcess WHERE ${field} ='${value}' AND Status NOT IN ('D', 'E')`,
+      { tooling: true }
+    );
+  }
+
+  /**
+   * this method will delete the sandbox org from the production org and clean up any local files
+   *
+   * @param prodOrg - Production org associated with this sandbox
+   * @private
+   */
+  private async deleteSandbox(prodOrg?: Org): Promise<void> {
+    const id = this.getOrgId();
+    prodOrg =
+      prodOrg ??
+      (await Org.create({
+        aggregator: this.configAggregator,
+        aliasOrUsername: await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME),
+      }));
+    let result: { SandboxInfoId: string };
+    let nameQueryFailed = false;
+    // try to calculate sandbox name from the production org
+    // production org: admin@integrationtesthub.org
+    // this.getUsername: admin@integrationtesthub.org.dev1
+    // sandboxName in Production: dev1
+    const sandboxName = (this.getUsername() || '').split(`${prodOrg.getUsername()}.`)[1];
+
+    if (sandboxName) {
+      // attempt to locate sandbox id by username
+      this.logger.debug(`attempting to locating sandbox with username ${sandboxName}`);
+      try {
+        result = await this.queryProduction(prodOrg, 'SandboxName', sandboxName);
+      } catch {
+        // if an error is thrown, don't panic yet. we'll try querying by orgId
+        nameQueryFailed = true;
+      }
+    }
+
+    if (!sandboxName || nameQueryFailed) {
+      // revert back to trimTo15 orgId method
+      const trimmedId = sfdc.trimTo15(id) as string;
+      this.logger.debug(
+        `Failed to find sandbox with username: ${sandboxName}, defaulting to trimming id from ${id} to ${trimmedId}`
+      );
+      result = await this.queryProduction(prodOrg, 'SandboxOrganization', trimmedId);
+    }
+
+    const deleteResult = await prodOrg.connection.tooling.delete('SandboxInfo', result!.SandboxInfoId);
+    this.logger.debug('Return from calling tooling.delete: %o ', deleteResult);
+    await this.remove();
+
+    if (!Array.isArray(deleteResult) && deleteResult.success) {
+      return;
+    } else {
+      throw SfdxError.create('@salesforce/core', 'org', 'sandboxDeleteFailed', [JSON.stringify(deleteResult)]);
+    }
+  }
+
+  /**
+   * If this Org is a scratch org, calling this method will delete the scratch org from the DevHub and clean up any local files
+   *
+   * @param devHub - optional DevHub Org of the to-be-deleted scratch org
+   * @private
+   */
+  private async deleteScratchOrg(devHub?: Org): Promise<void> {
+    const logger = await Logger.child('deleteScratchOrg');
+
+    // if we didn't get a devHub, we'll get it from the this org
+    devHub = devHub ?? (await this.getDevHubOrg());
+    if (devHub?.getOrgId() === this.getOrgId()) {
+      // we're attempting to delete a DevHub
+      throw SfdxError.create('@salesforce/core', 'org', 'deleteOrgHubError');
+    }
+    if (devHub) {
+      const devHubConn = devHub.getConnection();
+
+      try {
+        const activeScratchOrgRecordId = (
+          await devHubConn.singleRecordQuery<{ Id: string }>(
+            `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${this.getUsername()}'`
+          )
+        ).Id;
+        logger.trace(`found matching ActiveScratchOrg with SignupUsername: ${this.getUsername()}.  Deleting...`);
+        await devHubConn.delete('ActiveScratchOrg', activeScratchOrgRecordId);
+        await this.remove();
+      } catch (err) {
+        logger.info(err.message);
+        if (err.name === 'INVALID_TYPE' || err.name === 'INSUFFICIENT_ACCESS_OR_READONLY') {
+          // most likely from devHubConn.delete
+          logger.info('Insufficient privilege to access ActiveScratchOrgs.');
+          throw SfdxError.create('@salesforce/core', 'org', 'insufficientAccessToDelete');
+        }
+        if (err.name === SingleRecordQueryErrors.NoRecords) {
+          // most likely from singleRecordQuery
+          logger.info('The above error can be the result of deleting an expired or already deleted org.');
+          logger.info('attempting to cleanup the auth file');
+          await this.removeAuth();
+          throw SfdxError.create('@salesforce/core', 'org', 'attemptingToDeleteExpiredOrDeleted');
+        }
+        throw err;
+      }
+    } else {
+      throw SfdxError.create('@salesforce/core', 'org', 'NoDevHubFound');
+    }
   }
 
   /**

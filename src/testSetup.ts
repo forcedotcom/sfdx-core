@@ -722,11 +722,11 @@ export class MockTestOrgData {
   public userId: string;
   public redirectUri: string;
 
-  public constructor(id: string = uniqid()) {
+  public constructor(id: string = uniqid(), options?: { username: string }) {
     this.testId = id;
     this.userId = `user_id_${this.testId}`;
     this.orgId = `${this.testId}`;
-    this.username = `admin_${this.testId}@gb.org`;
+    this.username = options?.username || `admin_${this.testId}@gb.org`;
     this.loginUrl = `http://login.${this.testId}.salesforce.com`;
     this.instanceUrl = `http://instance.${this.testId}.salesforce.com`;
     this.clientId = `${this.testId}/client_id`;
