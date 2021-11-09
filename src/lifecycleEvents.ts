@@ -7,6 +7,8 @@
 
 import { AnyJson, Dictionary } from '@salesforce/ts-types';
 import * as Debug from 'debug';
+import { compare } from 'semver';
+import * as pjson from '../package.json';
 
 // Data of any type can be passed to the callback. Can be cast to any type that is given in emit().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,8 +18,6 @@ declare const global: {
   salesforceCoreLifecycle?: Lifecycle;
 };
 
-const warningEventName = 'warning';
-const telemetryEventName = 'telemetry';
 /**
  * An asynchronous event listener and emitter that follows the singleton pattern. The singleton pattern allows lifecycle
  * events to be emitted from deep within a library and still be consumed by any other library or tool. It allows other
@@ -37,6 +37,8 @@ const telemetryEventName = 'telemetry';
  * ```
  */
 export class Lifecycle {
+  public static readonly telemetryEventName = 'telemetry';
+  public static readonly warningEventName = 'warning';
   private debug = Debug(`sfdx:${this.constructor.name}`);
   private readonly listeners: Dictionary<callback[]>;
 
@@ -44,6 +46,9 @@ export class Lifecycle {
     this.listeners = {};
   }
 
+  public static staticVersion(): string {
+    return pjson.version;
+  }
   /**
    * Retrieve the singleton instance of this class so that all listeners and emitters can interact from any library or tool
    */
@@ -65,10 +70,19 @@ export class Lifecycle {
     //
     // Nothing should EVER be removed, even across major versions.
 
-    if (!global.salesforceCoreLifecycle) {
+    if (
+      // it's not been loaded yet
+      !global.salesforceCoreLifecycle ||
+      // an older version was loaded that should be replaced
+      compare(global.salesforceCoreLifecycle.version(), Lifecycle.staticVersion()) === -1
+    ) {
       global.salesforceCoreLifecycle = new Lifecycle();
     }
     return global.salesforceCoreLifecycle;
+  }
+
+  public version(): string {
+    return pjson.version;
   }
 
   /**
@@ -101,7 +115,7 @@ export class Lifecycle {
    * @param cb The callback function to run when the event is emitted
    */
   public onTelemetry(cb: (data: string) => Promise<void>): void {
-    this.on(telemetryEventName, cb);
+    this.on(Lifecycle.telemetryEventName, cb);
   }
 
   /**
@@ -110,7 +124,7 @@ export class Lifecycle {
    * @param cb The callback function to run when the event is emitted
    */
   public onWarning(cb: (warning: string) => Promise<void>): void {
-    this.on(warningEventName, cb);
+    this.on(Lifecycle.warningEventName, cb);
   }
   /**
    * Create a new listener for a given event
@@ -139,7 +153,7 @@ export class Lifecycle {
    * @param data The data to emit
    */
   public async emitTelemetry(data: AnyJson): Promise<void> {
-    return this.emit(telemetryEventName, data);
+    return this.emit(Lifecycle.telemetryEventName, data);
   }
   /**
    * Emit a `warning` event, causing all callback functions to be run in the order they were registered
@@ -148,10 +162,10 @@ export class Lifecycle {
    */
   public async emitWarning(warning: string): Promise<void> {
     // if there are no listeners, warnings should go to the node process so they're not lost
-    if (this.getListeners(warningEventName).length === 0) {
+    if (this.getListeners(Lifecycle.warningEventName).length === 0) {
       process.emitWarning(warning);
     }
-    return this.emit(warningEventName, warning);
+    return this.emit(Lifecycle.warningEventName, warning);
   }
   /**
    * Emit a given event, causing all callback functions to be run in the order they were registered
