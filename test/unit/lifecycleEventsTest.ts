@@ -161,7 +161,10 @@ describe.only('lifecycleEvents', () => {
 
     // the replacement version
     const lifecycle2 = Lifecycle.getInstance();
+
     chai.expect(lifecycle2.getListeners('test7')).to.have.lengthOf(1);
+    // original instance's listeners are removed
+    chai.expect(lifecycle.getListeners('test7')).to.have.lengthOf(0);
     lifecycle2.removeAllListeners('test7');
   });
 });

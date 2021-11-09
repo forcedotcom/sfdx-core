@@ -77,8 +77,14 @@ export class Lifecycle {
       // an older version was loaded that should be replaced
       compare(global.salesforceCoreLifecycle.version(), Lifecycle.staticVersion()) === -1
     ) {
+      const oldInstance = global.salesforceCoreLifecycle;
       // use the newer version and transfer any listeners from the old version
-      global.salesforceCoreLifecycle = new Lifecycle(global.salesforceCoreLifecycle.listeners);
+      // object spread keeps them from being references
+      global.salesforceCoreLifecycle = new Lifecycle({ ...oldInstance.listeners });
+      // clean up any listeners on the old version
+      Object.keys(oldInstance.listeners).map((eventName) => {
+        oldInstance.removeAllListeners(eventName);
+      });
     }
     return global.salesforceCoreLifecycle;
   }
