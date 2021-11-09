@@ -8,6 +8,8 @@
 import { AnyJson, Dictionary } from '@salesforce/ts-types';
 import * as Debug from 'debug';
 import { compare } from 'semver';
+// needed for TS to not put everything inside /lib/src
+// @ts-ignore
 import * as pjson from '../package.json';
 
 // Data of any type can be passed to the callback. Can be cast to any type that is given in emit().
@@ -122,7 +124,7 @@ export class Lifecycle {
    *
    * @param cb The callback function to run when the event is emitted
    */
-  public onTelemetry(cb: (data: string) => Promise<void>): void {
+  public onTelemetry(cb: (data: AnyJson) => Promise<void>): void {
     this.on(Lifecycle.telemetryEventName, cb);
   }
 
