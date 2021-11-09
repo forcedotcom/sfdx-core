@@ -235,7 +235,7 @@ describe('Org Tests', () => {
             }),
           });
           try {
-            await org.selfDestruct(dev);
+            await org.deleteFrom(dev);
             assert.fail('the above should throw an error');
           } catch (e) {
             expect(e.message).to.contain('The Dev Hub org cannot be deleted.');
@@ -261,7 +261,7 @@ describe('Org Tests', () => {
           const devHubDelete = stubMethod($$.SANDBOX, Connection.prototype, 'delete').resolves();
           const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
 
-          await org.selfDestruct(dev);
+          await org.deleteFrom(dev);
 
           expect(devHubQuery.calledOnce).to.be.true;
           expect(devHubQuery.firstCall.args[0]).to.equal(
@@ -290,7 +290,7 @@ describe('Org Tests', () => {
           stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').throws(e);
 
           try {
-            await org.selfDestruct(dev);
+            await org.deleteFrom(dev);
             assert.fail('the above should throw an error');
           } catch (err) {
             expect(err.message).to.contain(
@@ -317,7 +317,7 @@ describe('Org Tests', () => {
           stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').throws(e);
 
           try {
-            await org.selfDestruct(dev);
+            await org.deleteFrom(dev);
             assert.fail('the above should throw an error');
           } catch (err) {
             expect(err.message).to.contain('Attempting to delete an expired or deleted org');
@@ -347,7 +347,7 @@ describe('Org Tests', () => {
           const prodDelete = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'delete').resolves({ success: true });
           const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
 
-          await org.selfDestruct(prod);
+          await org.deleteFrom(prod);
 
           expect(prodQuerySpy.calledOnce).to.be.true;
           expect(prodQuerySpy.firstCall.args[0]).to.equal(
@@ -384,7 +384,7 @@ describe('Org Tests', () => {
           const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
           stubMethod($$.SANDBOX, org, 'getOrgId').returns(orgTestData.orgId);
 
-          await org.selfDestruct(prod);
+          await org.deleteFrom(prod);
 
           expect(prodQuerySpy.calledTwice).to.be.true;
           expect(prodQuerySpy.firstCall.args[0]).to.equal(
@@ -420,7 +420,7 @@ describe('Org Tests', () => {
           const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
           stubMethod($$.SANDBOX, org, 'getOrgId').returns(orgTestData.orgId);
 
-          await org.selfDestruct(prod);
+          await org.deleteFrom(prod);
 
           expect(prodQuerySpy.calledOnce).to.be.true;
           expect(prodQuerySpy.firstCall.args[0]).to.equal(
