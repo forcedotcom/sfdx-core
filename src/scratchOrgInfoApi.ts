@@ -5,9 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Node
-import * as fs from 'fs';
-
 // @salesforce
 import { Optional } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
@@ -437,7 +434,8 @@ export const pollForScratchOrgInfo = async (
 export const deploySettingsAndResolveUrl = async (
   scratchOrgAuthInfo: AuthInfo,
   apiVersion: string,
-  orgSettings: SettingsGenerator
+  orgSettings: SettingsGenerator,
+  scratchOrg: Org
 ): Promise<Optional<AuthInfo>> => {
   const logger = await Logger.child('scratchOrgInfoApi-deploySettingsAndResolveUrl');
 
@@ -445,22 +443,14 @@ export const deploySettingsAndResolveUrl = async (
     // deploy the settings to the newly created scratch org
     logger.debug(`deploying scratch org settings with apiVersion ${apiVersion}`);
 
-    let deployDir;
     try {
-      deployDir = await orgSettings.createDeployDir();
-      await orgSettings.deploySettingsViaFolder(ensureString(scratchOrgAuthInfo.getUsername()), deployDir);
-    } finally {
-      // delete the deploy dir
-      if (deployDir && fs.existsSync(deployDir)) {
-        try {
-          fs.rmdirSync(deployDir, { recursive: true });
-        } catch (error) {
-          const sfdxError = SfdxError.wrap(error as Error);
-          logger.debug(`Error when trying to clean up settings deploy dir: ${deployDir}. ${sfdxError?.message}`);
-        }
-      }
+      await orgSettings.createDeploy();
+      await orgSettings.deploySettingsViaFolder(scratchOrgAuthInfo.getUsername(), scratchOrg, apiVersion);
+    } catch (error) {
+      throw SfdxError.wrap(error as Error);
     }
   }
+
   if (scratchOrgAuthInfo.getFields().instanceUrl) {
     logger.debug(
       `processScratchOrgInfoResult - resultData.instanceUrl: ${JSON.stringify(

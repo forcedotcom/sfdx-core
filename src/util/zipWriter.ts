@@ -5,17 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createWriteStream } from 'fs';
+import { createWriteStream, createReadStream } from 'fs';
 import { pipeline as cbPipeline, Readable, Writable } from 'stream';
 import { promisify } from 'util';
 import { Archiver, create as createArchive } from 'archiver';
 
 export const pipeline = promisify(cbPipeline);
-
-export type WriteInfo = {
-  output: string;
-  source: Readable;
-};
 
 export class ZipWriter extends Writable {
   // compression-/speed+ (0)<---(3)---------->(9) compression+/speed-
@@ -35,6 +30,7 @@ export class ZipWriter extends Writable {
 
   public async finalize(): Promise<void> {
     await this.zip.finalize();
+    await this.getInputBuffer();
   }
 
   private getOutputStream(): Writable {
@@ -48,6 +44,23 @@ export class ZipWriter extends Writable {
         cb();
       };
       return bufferWritable;
+    }
+  }
+
+  private async getInputBuffer(): Promise<void> {
+    if (this.rootDestination) {
+      const inputStream = createReadStream(this.rootDestination);
+      return new Promise((resolve, reject) => {
+        inputStream.on('data', (chunk: Buffer) => {
+          this.buffers.push(chunk);
+        });
+        inputStream.once('end', () => {
+          return resolve();
+        });
+        inputStream.once('error', (error: Error) => {
+          return reject(error);
+        });
+      });
     }
   }
 

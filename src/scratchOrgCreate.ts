@@ -7,7 +7,7 @@
 
 // third
 import { Duration } from '@salesforce/kit';
-import { Optional } from '@salesforce/ts-types';
+import { Optional, getString, ensureString } from '@salesforce/ts-types';
 
 // Local
 import { Org } from './org';
@@ -57,7 +57,7 @@ export interface ScratchOrgCreateOptions {
 export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promise<ScratchOrgCreateResult> => {
   const logger = await Logger.child('scratchOrgCreate');
   logger.debug('scratchOrgCreate');
-  const settingsGenerator = new SettingsGenerator();
+
   const {
     hubOrg,
     connectedAppConsumerKey,
@@ -74,6 +74,8 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     configAggregator,
     clientSecret,
   } = options;
+
+  const settingsGenerator = new SettingsGenerator();
 
   const { scratchOrgInfoPayload, ignoreAncestorIds, warnings } = await getScratchOrgInfoPayload({
     definitionjson,
@@ -99,11 +101,8 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   // creates the scratch org info in the devhub
   const scratchOrgInfoRequestResult = await requestScratchOrgCreation(hubOrg, scratchOrgInfo, settingsGenerator);
 
-  let scratchOrgInfoId!: string;
-  if (scratchOrgInfoRequestResult.success === true) {
-    scratchOrgInfoId = scratchOrgInfoRequestResult.id;
-    logger.debug(`scratch org has recordId ${scratchOrgInfoRequestResult.id}`);
-  }
+  const scratchOrgInfoId = ensureString(getString(scratchOrgInfoRequestResult, 'id'));
+  logger.debug(`scratch org has recordId ${scratchOrgInfoId}`);
 
   const scratchOrgInfoResult = await pollForScratchOrgInfo(options.hubOrg, scratchOrgInfoId, options.wait);
 
@@ -128,7 +127,8 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     apiversion ??
       (configAggregator.getPropertyValue('apiVersion') as string) ??
       (await scratchOrg.retrieveMaxApiVersion()),
-    settingsGenerator
+    settingsGenerator,
+    scratchOrg
   );
 
   logger.trace('Settings deployed to org');

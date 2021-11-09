@@ -6,22 +6,21 @@
  */
 
 // Node
-import * as os from 'os';
+// import * as os from 'os';
 import * as path from 'path';
-import { promises as fs } from 'fs';
 
 // @salesforce
 import { isEmpty, env, upperFirst } from '@salesforce/kit';
-import { ComponentSet, ComponentStatus, FileResponse } from '@salesforce/source-deploy-retrieve';
-import { get, getObject, JsonMap, ensureString, ensureObject, Nullable } from '@salesforce/ts-types';
-
-// Thirdparty
+import { get, getObject, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
+import { AsyncResult } from 'jsforce/api/metadata';
 import * as js2xmlparser from 'js2xmlparser';
 
 // Local
+import { Org } from './org';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
-import { writeJSONasXML } from './util/jsonXmlTools';
+import { JsonAsXml } from './util/jsonXmlTools';
+import { ZipWriter } from './util/zipWriter';
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
 
 interface ObjectSetting extends JsonMap {
@@ -55,9 +54,13 @@ export default class SettingsGenerator {
   private settingData: Nullable<Record<string, unknown>>;
   private objectSettingsData: Nullable<{ [objectName: string]: ObjectSetting }>;
   private logger: Logger;
+  private writer: ZipWriter;
 
   public constructor() {
     this.logger = Logger.childFromRoot('SettingsGenerator');
+    // If SFDX_MDAPI_TEMP_DIR is set, copy settings to that dir for people to inspect.
+    const mdapiTmpDir = env.getString('SFDX_MDAPI_TEMP_DIR');
+    this.writer = new ZipWriter(mdapiTmpDir);
   }
 
   /** extract the settings from the scratch def file, if they are present. */
@@ -76,95 +79,75 @@ export default class SettingsGenerator {
   /** Create temporary deploy directory used to upload the scratch org shape.
    * This will create the dir, all of the .setting files and minimal object files needed for objectSettings
    */
-  public async createDeployDir(): Promise<string> {
-    // Base dir for deployment is always the os.tmpdir().
-    const shapeDirName = `shape_${Date.now()}`;
-    const destRoot = path.join(os.tmpdir(), shapeDirName);
-    const settingsDir = path.join(destRoot, 'settings');
-    const objectsDir = path.join(destRoot, 'objects');
-
-    try {
-      await fs.mkdir(settingsDir, { recursive: true });
-      await fs.mkdir(objectsDir, { recursive: true });
-    } catch (e) {
-      // If directory creation failed, the root dir probably doesn't exist, so we're fine
-      this.logger.debug('caught error:', e);
-    }
-
-    await Promise.all([this.writeSettingsIfNeeded(settingsDir), this.writeObjectSettingsIfNeeded(objectsDir)]);
-
-    // If SFDX_MDAPI_TEMP_DIR is set, copy settings to that dir for people to inspect.
-    const mdapiTmpDir = env.getString('SFDX_MDAPI_TEMP_DIR');
-    if (mdapiTmpDir) {
-      const tmpDir = path.join(mdapiTmpDir, shapeDirName);
-      this.logger.debug(`Copying settings to: ${tmpDir}`);
-      await fs.copyFile(destRoot, tmpDir);
-    }
-
-    return destRoot;
+  public async createDeploy(): Promise<void> {
+    await Promise.all([this.writeSettingsIfNeeded('settings'), this.writeObjectSettingsIfNeeded('objects')]);
   }
 
   /**
    * Deploys the settings to the org.
    */
-  public async deploySettingsViaFolder(username: string, sourceFolder: string): Promise<FileResponse[]> {
-    this.logger.debug(`deploying settings from ${sourceFolder}`);
+  public async deploySettingsViaFolder(username: Optional<string>, scratchOrg: Org, apiVersion: string): Promise<void> {
+    const logger = await Logger.child('deploySettingsViaFolder');
+    this.createPackageXml(apiVersion);
+    await this.writer.finalize();
 
-    const componentSet = ComponentSet.fromSource(sourceFolder);
-    const deploy = await componentSet.deploy({ usernameOrConnection: username });
+    const connection = scratchOrg.getConnection();
+    logger.debug(`deployng to apiVersion: ${apiVersion}`);
+    connection.setApiVersion(apiVersion);
+    const { id } = await connection.deploy(this.writer.buffer, {});
 
-    // Wait for polling to finish and get the DeployResult object
-    const result = await deploy.pollStatus();
-    // display errors if any
-    const errors = result.getFileResponses().filter((fileResponse) => fileResponse.state === ComponentStatus.Failed);
+    logger.debug(`deploying settings id ${id}`);
 
-    if (result.response.status === 'Failed') {
+    const result = (await connection.metadata.checkStatus(id)) as AsyncResult;
+
+    if (result.state !== 'Completed') {
       throw new SfdxError(
         `A scratch org was created with username ${username}, but the settings failed to deploy`,
-        'ProblemDeployingSettings',
-        errors.map((e) => `${e.fullName}: ${e.filePath} | ${e.state === ComponentStatus.Failed ? e.error : ''}`)
+        'ProblemDeployingSettings'
       );
     }
-    return errors;
   }
 
   private async writeObjectSettingsIfNeeded(objectsDir: string) {
     if (!this.objectSettingsData) {
       return;
     }
-    await fs.mkdir(objectsDir, { recursive: true });
     // TODO: parallelize all this FS for perf
     for (const objectName of Object.keys(this.objectSettingsData)) {
       const value = this.objectSettingsData[objectName];
       // writes the object file in source format
       const objectDir = path.join(objectsDir, upperFirst(objectName));
-      await fs.mkdir(objectDir, { recursive: true });
-      await writeJSONasXML({
-        path: path.join(objectDir, `${upperFirst(objectName)}.object-meta.xml`),
-        type: 'CustomObject',
+      const customObjectDir = path.join(objectDir, `${upperFirst(objectName)}.object-meta.xml`);
+      const customObjectXml = JsonAsXml({
         json: this.createObjectFileContent(value),
+        type: 'RecordType',
       });
+      this.writer.addToZip(customObjectXml, customObjectDir);
+
       if (value.defaultRecordType) {
-        const recordTypesDir = path.join(objectDir, 'recordTypes');
-        await fs.mkdir(recordTypesDir, { recursive: true });
-        const RTFileContent = this.createRecordTypeFileContent(objectName, value);
-        await writeJSONasXML({
-          path: path.join(recordTypesDir, `${upperFirst(value.defaultRecordType)}.recordType-meta.xml`),
+        const recordTypesDir = path.join(
+          objectDir,
+          'recordTypes',
+          `${upperFirst(value.defaultRecordType)}.recordType-meta.xml`
+        );
+        const recordTypesFileContent = this.createRecordTypeFileContent(objectName, value);
+        const recordTypesXml = JsonAsXml({
+          json: recordTypesFileContent,
           type: 'RecordType',
-          json: RTFileContent,
         });
+        this.writer.addToZip(recordTypesXml, recordTypesDir);
         // for things that required a businessProcess
-        if (RTFileContent.businessProcess) {
-          await fs.mkdir(path.join(objectDir, 'businessProcesses'), { recursive: true });
-          await writeJSONasXML({
-            path: path.join(
-              objectDir,
-              'businessProcesses',
-              `${RTFileContent.businessProcess}.businessProcess-meta.xml`
-            ),
+        if (recordTypesFileContent.businessProcess) {
+          const businessProcessesDir = path.join(
+            objectDir,
+            'businessProcesses',
+            `${recordTypesFileContent.businessProcess}.businessProcess-meta.xml`
+          );
+          const businessProcessesXml = JsonAsXml({
+            json: this.createBusinessProcessFileContent(objectName, recordTypesFileContent.businessProcess),
             type: 'BusinessProcess',
-            json: this.createBusinessProcessFileContent(objectName, RTFileContent.businessProcess),
           });
+          this.writer.addToZip(businessProcessesXml, businessProcessesDir);
         }
       }
     }
@@ -172,13 +155,12 @@ export default class SettingsGenerator {
 
   private async writeSettingsIfNeeded(settingsDir: string) {
     if (this.settingData) {
-      await fs.mkdir(settingsDir, { recursive: true });
       for (const item of Object.keys(this.settingData)) {
-        const value = ensureObject(getObject(this.settingData, item));
+        const value = getObject(this.settingData, item);
         const typeName = upperFirst(item);
         const fname = typeName.replace('Settings', '');
         const fileContent = this.createSettingsFileContent(typeName, value as Record<string, unknown>);
-        await fs.writeFile(path.join(settingsDir, fname + '.settings-meta.xml'), fileContent);
+        this.writer.addToZip(fileContent, path.join(settingsDir, fname + '.settings-meta.xml'));
       }
     }
   }
@@ -205,6 +187,18 @@ export default class SettingsGenerator {
     }
   }
 
+  private createPackageXml(apiVersion: string): void {
+    const pkg = `<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+      <members>*</members>
+      <name>Settings</name>
+    </types>
+  <version>${apiVersion}</version>
+</Package>`;
+    this.writer.addToZip(pkg, path.join('settings', 'package.xml'));
+  }
+
   private createObjectFileContent(json: Record<string, unknown>) {
     const output: ObjectSetting = {};
     if (json.sharingModel) {
@@ -216,8 +210,8 @@ export default class SettingsGenerator {
   private createRecordTypeFileContent(
     objectName: string,
     setting: ObjectSetting
-  ): { fullName: string; label: string; active: boolean; businessProcess?: string } {
-    const defaultRecordType = ensureString(upperFirst(setting.defaultRecordType));
+  ): { fullName: Optional<string>; label: Optional<string>; active: boolean; businessProcess?: Optional<string> } {
+    const defaultRecordType = upperFirst(setting.defaultRecordType);
     const output = {
       fullName: defaultRecordType,
       label: defaultRecordType,
