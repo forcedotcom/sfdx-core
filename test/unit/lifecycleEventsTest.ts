@@ -29,8 +29,16 @@ describe('lifecycleEvents', () => {
     fakeSpy = spyMethod($$.SANDBOX, fake, 'bar');
   });
 
+  afterEach(() => {
+    $$.SANDBOX.restore();
+  });
+
   it('getInstance is a functioning singleton pattern', async () => {
     chai.assert(Lifecycle.getInstance() === Lifecycle.getInstance());
+  });
+
+  it('provides a version on both the static and instance', async () => {
+    chai.assert(Lifecycle.getInstance().version() === Lifecycle.staticVersion());
   });
 
   it('getInstance is on the global object to protect against npm version dependency mismatch', async () => {
@@ -38,11 +46,25 @@ describe('lifecycleEvents', () => {
     chai.assert(Lifecycle.getInstance() === global.salesforceCoreLifecycle);
   });
 
-  it('has not changed', async () => {
-    chai.assert(
-      Object.getOwnPropertyNames(Lifecycle.prototype).length === 5,
-      'Lifecycle can not be changed without adding version support to update the instance to the latest version. See note in Lifecycle.getInstance'
-    );
+  it('handles the warnings and telemetry events', async () => {
+    Lifecycle.getInstance().onWarning(async (result) => {
+      fake.bar('test1', result);
+    });
+    Lifecycle.getInstance().onTelemetry(async (result) => {
+      fake.bar('test1', result);
+    });
+    chai.expect(fakeSpy.callCount).to.be.equal(0);
+
+    await Lifecycle.getInstance().emitWarning('This is a warning');
+    chai.expect(fakeSpy.callCount).to.be.equal(1);
+    chai.expect(fakeSpy.args[0][1]).to.be.equal('This is a warning');
+
+    await Lifecycle.getInstance().emitTelemetry({ foo: 6, bar: 'nope' });
+    chai.expect(fakeSpy.callCount).to.be.equal(2);
+    chai.expect(fakeSpy.args[1][1]).to.deep.equal({ foo: 6, bar: 'nope' });
+
+    Lifecycle.getInstance().removeAllListeners('warning');
+    Lifecycle.getInstance().removeAllListeners('telemetry');
   });
 
   it('successful event registration and emitting causes the callback to be called', async () => {
@@ -61,6 +83,9 @@ describe('lifecycleEvents', () => {
     await Lifecycle.getInstance().emit('test2', 'Also Success');
     chai.expect(fakeSpy.callCount).to.be.equal(2);
     chai.expect(fakeSpy.args[1][1]).to.be.equal('Also Success');
+
+    Lifecycle.getInstance().removeAllListeners('test1');
+    Lifecycle.getInstance().removeAllListeners('test2');
   });
 
   it('an event registering twice logs a warning but creates two listeners that both fire when emitted', async () => {
@@ -80,6 +105,7 @@ describe('lifecycleEvents', () => {
 
     await Lifecycle.getInstance().emit('test3', 'Two Listeners');
     chai.expect(fakeSpy.callCount).to.be.equal(2);
+    Lifecycle.getInstance().removeAllListeners('test3');
   });
 
   it('emitting an event that is not registered logs a warning and will not call the callback', async () => {
@@ -91,6 +117,7 @@ describe('lifecycleEvents', () => {
       .to.be.equal(
         'A lifecycle event with the name test4 does not exist. An event must be registered before it can be emitted.'
       );
+    Lifecycle.getInstance().removeAllListeners('test4');
   });
 
   it('removeAllListeners works', async () => {
@@ -117,8 +144,10 @@ describe('lifecycleEvents', () => {
       fake.bar('test6', result);
     };
     Lifecycle.getInstance().on('test6', x);
-    chai.expect(Lifecycle.getInstance().getListeners('test6')[0]).to.be.equal(x);
+    chai.expect(Lifecycle.getInstance().getListeners('test6')).to.have.lengthOf(1);
+    chai.expect(Lifecycle.getInstance().getListeners('test6')[0]).to.deep.equal(x);
 
     chai.expect(Lifecycle.getInstance().getListeners('undefinedKey').length).to.be.equal(0);
+    Lifecycle.getInstance().removeAllListeners('test6');
   });
 });
