@@ -5,5 +5,6 @@
   "deleteOrgHubError": "The Dev Hub org cannot be deleted.",
   "insufficientAccessToDelete": "You do not have the appropriate permissions to delete a scratch org. Please contact your Salesforce admin.",
   "attemptingToDeleteExpiredOrDeleted": "Attempting to delete an expired or deleted org",
-  "sandboxDeleteFailed": "The sandbox org deletion failed with a result of %s."
+  "sandboxDeleteFailed": "The sandbox org deletion failed with a result of %s.",
+  "sandboxProcessNotFoundByOrgId": "We can't find a SandboxProcess for the sandbox org %s."
 }

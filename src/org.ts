@@ -562,7 +562,11 @@ export class Org extends AsyncCreatable<Org.Options> {
       this.logger.debug(
         `Failed to find sandbox with username: ${sandboxName}, defaulting to trimming id from ${id} to ${trimmedId}`
       );
-      result = await this.queryProduction(prodOrg, 'SandboxOrganization', trimmedId);
+      try {
+        result = await this.queryProduction(prodOrg, 'SandboxOrganization', trimmedId);
+      } catch {
+        throw SfdxError.create('@salesforce/core', 'org', 'sandboxProcessNotFoundByOrgId', [trimmedId]);
+      }
     }
 
     const deleteResult = await prodOrg.connection.tooling.delete('SandboxInfo', result!.SandboxInfoId);
