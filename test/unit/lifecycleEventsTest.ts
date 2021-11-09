@@ -12,7 +12,7 @@ import { testSetup } from '../../src/testSetup';
 
 const $$ = testSetup();
 
-describe('lifecycleEvents', () => {
+describe.only('lifecycleEvents', () => {
   class Foo {
     // eslint-disable-next-line @typescript-eslint/ban-types
     public bar(name: string, result: {}) {
@@ -149,5 +149,19 @@ describe('lifecycleEvents', () => {
 
     chai.expect(Lifecycle.getInstance().getListeners('undefinedKey').length).to.be.equal(0);
     Lifecycle.getInstance().removeAllListeners('test6');
+  });
+
+  it('will use a newer version and transfer the listeners', () => {
+    // the original
+    const lifecycle = Lifecycle.getInstance();
+    lifecycle.on('test7', async (result) => {
+      fake.bar('test7', result);
+    });
+    $$.SANDBOX.stub(Lifecycle, 'staticVersion').returns('999999.0.0');
+
+    // the replacement version
+    const lifecycle2 = Lifecycle.getInstance();
+    chai.expect(lifecycle2.getListeners('test7')).to.have.lengthOf(1);
+    lifecycle2.removeAllListeners('test7');
   });
 });

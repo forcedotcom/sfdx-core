@@ -43,11 +43,8 @@ export class Lifecycle {
   public static readonly telemetryEventName = 'telemetry';
   public static readonly warningEventName = 'warning';
   private debug = Debug(`sfdx:${this.constructor.name}`);
-  private readonly listeners: Dictionary<callback[]>;
 
-  private constructor() {
-    this.listeners = {};
-  }
+  private constructor(private readonly listeners: Dictionary<callback[]> = {}) {}
 
   public static staticVersion(): string {
     return pjson.version;
@@ -73,13 +70,15 @@ export class Lifecycle {
     //
     // Nothing should EVER be removed, even across major versions.
 
-    if (
-      // it's not been loaded yet
-      !global.salesforceCoreLifecycle ||
+    if (!global.salesforceCoreLifecycle) {
+      // it's not been loaded yet (basic singleton pattern)
+      global.salesforceCoreLifecycle = new Lifecycle();
+    } else if (
       // an older version was loaded that should be replaced
       compare(global.salesforceCoreLifecycle.version(), Lifecycle.staticVersion()) === -1
     ) {
-      global.salesforceCoreLifecycle = new Lifecycle();
+      // use the newer version and transfer any listeners from the old version
+      global.salesforceCoreLifecycle = new Lifecycle(global.salesforceCoreLifecycle.listeners);
     }
     return global.salesforceCoreLifecycle;
   }
