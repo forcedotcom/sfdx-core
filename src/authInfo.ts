@@ -477,7 +477,9 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * ```
    * @param sfdxAuthUrl
    */
-  public static parseSfdxAuthUrl(sfdxAuthUrl: string) {
+  public static parseSfdxAuthUrl(
+    sfdxAuthUrl: string
+  ): Pick<AuthFields, 'clientId' | 'clientSecret' | 'refreshToken' | 'loginUrl'> {
     const match = sfdxAuthUrl.match(
       /^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/
     );
@@ -680,7 +682,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    *
    * @param options
    */
-  public async setAsDefault(options: { defaultUsername?: boolean; defaultDevhubUsername?: boolean }) {
+  public async setAsDefault(options: { defaultUsername?: boolean; defaultDevhubUsername?: boolean }): Promise<void> {
     let config: Config;
     // if we fail to create the local config, default to the global config
     try {
@@ -708,7 +710,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    *
    * @param alias alias to set
    */
-  public async setAlias(alias: string) {
+  public async setAlias(alias: string): Promise<void> {
     const username = this.getUsername();
     await Aliases.parseAndUpdate([`${alias}=${username}`]);
   }
