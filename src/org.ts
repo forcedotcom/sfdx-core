@@ -524,7 +524,7 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
-    return await org.connection.singleRecordQuery<{ SandboxInfoId: string }>(
+    return org.connection.singleRecordQuery<{ SandboxInfoId: string }>(
       `SELECT SandboxInfoId FROM SandboxProcess WHERE ${field} ='${value}' AND Status NOT IN ('D', 'E')`,
       { tooling: true }
     );
@@ -537,12 +537,10 @@ export class Org extends AsyncCreatable<Org.Options> {
    * @private
    */
   private async deleteSandbox(prodOrg?: Org): Promise<void> {
-    prodOrg =
-      prodOrg ??
-      (await Org.create({
-        aggregator: this.configAggregator,
-        aliasOrUsername: await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME),
-      }));
+    prodOrg ??= await Org.create({
+      aggregator: this.configAggregator,
+      aliasOrUsername: await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME),
+    });
     let result: { SandboxInfoId: string };
 
     // attempt to locate sandbox id by username
@@ -556,7 +554,7 @@ export class Org extends AsyncCreatable<Org.Options> {
         this.logger.debug('Could not construct a sandbox name');
         throw new Error();
       }
-      this.logger.debug(`attempting to locating sandbox with username ${sandboxName}`);
+      this.logger.debug(`attempting to locate sandbox with username ${sandboxName}`);
       result = await this.queryProduction(prodOrg, 'SandboxName', sandboxName);
       if (!result) {
         this.logger.debug(`Failed to find sandbox with username: ${sandboxName}`);
@@ -590,7 +588,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    */
   private async deleteScratchOrg(devHub?: Org): Promise<void> {
     // if we didn't get a devHub, we'll get it from the this org
-    devHub = devHub ?? (await this.getDevHubOrg());
+    devHub ??= await this.getDevHubOrg();
     if (!devHub) {
       throw SfdxError.create('@salesforce/core', 'org', 'NoDevHubFound');
     }
