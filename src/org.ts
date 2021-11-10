@@ -584,17 +584,17 @@ export class Org extends AsyncCreatable<Org.Options> {
   private async deleteScratchOrg(devHub?: Org): Promise<void> {
     // if we didn't get a devHub, we'll get it from the this org
     devHub = devHub ?? (await this.getDevHubOrg());
-    if (devHub?.getOrgId() === this.getOrgId()) {
-      // we're attempting to delete a DevHub
-      throw SfdxError.create('@salesforce/core', 'org', 'deleteOrgHubError');
-    }
     if (!devHub) {
       throw SfdxError.create('@salesforce/core', 'org', 'NoDevHubFound');
     }
-    const devHubConn = devHub.getConnection();
-    const username = this.getUsername();
+    if (devHub.getOrgId() === this.getOrgId()) {
+      // we're attempting to delete a DevHub
+      throw SfdxError.create('@salesforce/core', 'org', 'deleteOrgHubError');
+    }
 
     try {
+      const devHubConn = devHub.getConnection();
+      const username = this.getUsername();
       const activeScratchOrgRecordId = (
         await devHubConn.singleRecordQuery<{ Id: string }>(
           `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${username}'`
