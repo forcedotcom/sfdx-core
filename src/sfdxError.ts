@@ -319,3 +319,11 @@ export class SfdxError extends NamedError {
     return obj;
   }
 }
+
+export const errorHasName = (e: unknown): e is { name: string } =>
+  typeof e !== undefined && 'name' in (e as { name: string }) && typeof (e as { name: string }).name === 'string';
+
+export const errorHasMessage = (e: unknown): e is { message: string } =>
+  typeof e !== undefined &&
+  'message' in (e as { message: string }) &&
+  typeof (e as { message: string }).message === 'string';
