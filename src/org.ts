@@ -35,7 +35,7 @@ import { SandboxOrgConfig } from './config/sandboxOrgConfig';
 import { Connection, SingleRecordQueryErrors } from './connection';
 import { Global } from './global';
 import { Logger } from './logger';
-import { SfdxError, errorHasMessage, errorHasName } from './sfdxError';
+import { SfdxError } from './sfdxError';
 import { fs } from './util/fs';
 import { sfdc } from './util/sfdc';
 
@@ -97,7 +97,7 @@ export class Org extends AsyncCreatable<Org.Options> {
       dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
       this.logger.debug(`cleaning data for path: ${dataPath}`);
     } catch (err) {
-      if (errorHasName(err) && err.name === 'InvalidProjectWorkspace') {
+      if (err instanceof Error && err.name === 'InvalidProjectWorkspace') {
         // If we aren't in a project dir, we can't clean up data files.
         // If the user unlink this org outside of the workspace they used it in,
         // data files will be left over.
@@ -140,6 +140,13 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
+   * Check if org is a sandbox org by checking its SandboxOrgConfig.
+   *
+   */
+  public async isSandbox(): Promise<boolean> {
+    return !!(await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME));
+  }
+  /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
    *
    * **Throws** *{@link SfdxError}{ name: 'NotADevHub' }* Not a Dev Hub.
@@ -166,7 +173,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     try {
       results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<Record<string, unknown>>>);
     } catch (err) {
-      if (errorHasName(err) && err.name === 'INVALID_TYPE') {
+      if (err instanceof Error && err.name === 'INVALID_TYPE') {
         throw SfdxError.create('@salesforce/core', 'org', 'NotADevHub', [devHubConnection.getUsername()]);
       }
       throw err;
@@ -223,7 +230,7 @@ export class Org extends AsyncCreatable<Org.Options> {
         aliasOrUsername: controllingOrg,
       });
     }
-    if (await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)) {
+    if (await this.isSandbox()) {
       await this.deleteSandbox(controllingOrg);
     } else {
       await this.deleteScratchOrg(controllingOrg);
@@ -234,7 +241,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    * Will delete 'this' instance remotely and any files locally
    */
   public async delete(): Promise<void> {
-    if (await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)) {
+    if (await this.isSandbox()) {
       await this.deleteSandbox();
     } else {
       await this.deleteScratchOrg();
@@ -604,13 +611,13 @@ export class Org extends AsyncCreatable<Org.Options> {
       await devHubConn.delete('ActiveScratchOrg', activeScratchOrgRecordId);
       await this.remove();
     } catch (err) {
-      this.logger.info(errorHasMessage(err) ? err.message : err);
-      if (errorHasName(err) && (err.name === 'INVALID_TYPE' || err.name === 'INSUFFICIENT_ACCESS_OR_READONLY')) {
+      this.logger.info(err instanceof Error ? err.message : err);
+      if (err instanceof Error && (err.name === 'INVALID_TYPE' || err.name === 'INSUFFICIENT_ACCESS_OR_READONLY')) {
         // most likely from devHubConn.delete
         this.logger.info('Insufficient privilege to access ActiveScratchOrgs.');
         throw SfdxError.create('@salesforce/core', 'org', 'insufficientAccessToDelete');
       }
-      if (errorHasName(err) && err.name === SingleRecordQueryErrors.NoRecords) {
+      if (err instanceof Error && err.name === SingleRecordQueryErrors.NoRecords) {
         // most likely from singleRecordQuery
         this.logger.info('The above error can be the result of deleting an expired or already deleted org.');
         this.logger.info('attempting to cleanup the auth file');
