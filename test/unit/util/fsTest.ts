@@ -7,11 +7,14 @@
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import { expect } from 'chai';
+import { SinonStub } from 'sinon';
 import { shouldThrow, testSetup, unexpectedResult } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
+
+const isWin = process.platform === 'win32';
 
 describe('util/fs', () => {
   describe('remove', () => {
@@ -142,7 +145,7 @@ describe('util/fs', () => {
   });
 
   describe('traverseForFile', () => {
-    let statFileStub;
+    let statFileStub: SinonStub;
     let statError;
 
     beforeEach(() => {
@@ -157,17 +160,28 @@ describe('util/fs', () => {
     });
 
     it('should find a file in a parent dir', async () => {
-      statFileStub.withArgs('/foo/bar/baz/fizz').returns(Promise.reject(statError));
-      const path = await fs.traverseForFile('/foo/bar/baz', 'fizz');
-      expect(path).to.equal('/foo/bar');
+      const fooBarBazFizz = isWin ? 'C:\\foo\\bar\\baz\\fizz' : '/foo/bar/baz/fizz';
+      const pathToFile = isWin ? 'C:\\foo\\bar\\baz' : '/foo/bar/baz';
+      const parentDir = isWin ? 'C:\\foo\\bar' : '/foo/bar';
+
+      statFileStub.withArgs(fooBarBazFizz).returns(Promise.reject(statError));
+      const path = await fs.traverseForFile(pathToFile, 'fizz');
+      expect(path).to.equal(parentDir);
     });
 
     it('should find a file in the root dir', async () => {
-      statFileStub.withArgs('/foo/bar/baz/fizz').returns(Promise.reject(statError));
-      statFileStub.withArgs('/foo/bar/fizz').returns(Promise.reject(statError));
-      statFileStub.withArgs('/foo/fizz').returns(Promise.reject(statError));
-      const path = await fs.traverseForFile('/foo/bar/baz', 'fizz');
-      expect(path).to.equal('/');
+      const fooBarBazFizz = isWin ? 'C:\\foo\\bar\\baz\\fizz' : '/foo/bar/baz/fizz';
+      const fooBarFizz = isWin ? 'C:\\foo\\bar\\fizz' : '/foo/bar/fizz';
+      const fooFizz = isWin ? 'C:\\foo\\fizz' : '/foo/fizz';
+
+      const pathToFile = isWin ? 'C:\\foo\\bar\\baz' : '/foo/bar/baz';
+      const rootDir = isWin ? 'C:\\' : '/';
+
+      statFileStub.withArgs(fooBarBazFizz).returns(Promise.reject(statError));
+      statFileStub.withArgs(fooBarFizz).returns(Promise.reject(statError));
+      statFileStub.withArgs(fooFizz).returns(Promise.reject(statError));
+      const path = await fs.traverseForFile(pathToFile, 'fizz');
+      expect(path).to.equal(rootDir);
     });
 
     it('should return undefined if not found', async () => {
@@ -178,7 +192,7 @@ describe('util/fs', () => {
   });
 
   describe('traverseForFileSync', () => {
-    let statFileStub;
+    let statFileStub: SinonStub;
     let statError;
 
     beforeEach(() => {
@@ -193,17 +207,28 @@ describe('util/fs', () => {
     });
 
     it('should find a file in a parent dir', () => {
-      statFileStub.withArgs('/foo/bar/baz/fizz').throws(statError);
-      const path = fs.traverseForFileSync('/foo/bar/baz', 'fizz');
-      expect(path).to.equal('/foo/bar');
+      const fooBarBazFizz = isWin ? 'C:\\foo\\bar\\baz\\fizz' : '/foo/bar/baz/fizz';
+      const pathToFile = isWin ? 'C:\\foo\\bar\\baz' : '/foo/bar/baz';
+      const parentDir = isWin ? 'C:\\foo\\bar' : '/foo/bar';
+
+      statFileStub.withArgs(fooBarBazFizz).throws(statError);
+      const path = fs.traverseForFileSync(pathToFile, 'fizz');
+      expect(path).to.equal(parentDir);
     });
 
     it('should find a file in the root dir', () => {
-      statFileStub.withArgs('/foo/bar/baz/fizz').throws(statError);
-      statFileStub.withArgs('/foo/bar/fizz').throws(statError);
-      statFileStub.withArgs('/foo/fizz').throws(statError);
-      const path = fs.traverseForFileSync('/foo/bar/baz', 'fizz');
-      expect(path).to.equal('/');
+      const fooBarBazFizz = isWin ? 'C:\\foo\\bar\\baz\\fizz' : '/foo/bar/baz/fizz';
+      const fooBarFizz = isWin ? 'C:\\foo\\bar\\fizz' : '/foo/bar/fizz';
+      const fooFizz = isWin ? 'C:\\foo\\fizz' : '/foo/fizz';
+
+      const pathToFile = isWin ? 'C:\\foo\\bar\\baz' : '/foo/bar/baz';
+      const rootDir = isWin ? 'C:\\' : '/';
+
+      statFileStub.withArgs(fooBarBazFizz).throws(statError);
+      statFileStub.withArgs(fooBarFizz).throws(statError);
+      statFileStub.withArgs(fooFizz).throws(statError);
+      const path = fs.traverseForFileSync(pathToFile, 'fizz');
+      expect(path).to.equal(rootDir);
     });
 
     it('should return undefined if not found', () => {

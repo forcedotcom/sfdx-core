@@ -108,10 +108,16 @@ workflows:
             parameters:
               os:
                 - linux
+                - windows
               node_version:
                 - latest
                 - lts
                 - maintenance
+            exclude:
+              - os: windows
+                node_version: lts
+              - os: windows
+                node_version: maintenance
       - external-nut:
           requires:
             - release-management/test-package
@@ -129,9 +135,9 @@ workflows:
                   'https://github.com/salesforcecli/plugin-auth',
                   'https://github.com/salesforcecli/plugin-schema',
                   'https://github.com/salesforcecli/plugin-telemetry',
+                  'https://github.com/salesforcecli/plugin-data',
                 ]
                 # TODO
-                # data (unlernafied)
                 # toolbelt (git auth because private)
       - release-management/release-package:
           github-release: true
