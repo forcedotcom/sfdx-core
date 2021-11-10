@@ -567,7 +567,7 @@ export class Org extends AsyncCreatable<Org.Options> {
       try {
         result = await this.queryProduction(prodOrg, 'SandboxOrganization', trimmedId);
       } catch {
-        throw SfdxError.create('@salesforce/core', 'org', 'sandboxProcessNotFoundByOrgId', [trimmedId]);
+        throw SfdxError.create('@salesforce/core', 'org', 'SandboxNotFound', [trimmedId]);
       }
     }
 
@@ -576,7 +576,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     await this.remove();
 
     if (Array.isArray(deleteResult) || !deleteResult.success) {
-      throw SfdxError.create('@salesforce/core', 'org', 'sandboxDeleteFailed', [JSON.stringify(deleteResult)]);
+      throw SfdxError.create('@salesforce/core', 'org', 'SandboxDeleteFailed', [JSON.stringify(deleteResult)]);
     }
   }
 
@@ -594,7 +594,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     }
     if (devHub.getOrgId() === this.getOrgId()) {
       // we're attempting to delete a DevHub
-      throw SfdxError.create('@salesforce/core', 'org', 'deleteOrgHubError');
+      throw SfdxError.create('@salesforce/core', 'org', 'DeleteOrgHubError');
     }
 
     try {
@@ -613,14 +613,14 @@ export class Org extends AsyncCreatable<Org.Options> {
       if (err instanceof Error && (err.name === 'INVALID_TYPE' || err.name === 'INSUFFICIENT_ACCESS_OR_READONLY')) {
         // most likely from devHubConn.delete
         this.logger.info('Insufficient privilege to access ActiveScratchOrgs.');
-        throw SfdxError.create('@salesforce/core', 'org', 'insufficientAccessToDelete');
+        throw SfdxError.create('@salesforce/core', 'org', 'InsufficientAccessToDelete');
       }
       if (err instanceof Error && err.name === SingleRecordQueryErrors.NoRecords) {
         // most likely from singleRecordQuery
         this.logger.info('The above error can be the result of deleting an expired or already deleted org.');
         this.logger.info('attempting to cleanup the auth file');
         await this.removeAuth();
-        throw SfdxError.create('@salesforce/core', 'org', 'attemptingToDeleteExpiredOrDeleted');
+        throw SfdxError.create('@salesforce/core', 'org', 'ScratchOrgNotFound');
       }
       throw err;
     }
