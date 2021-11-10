@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.4](https://github.com/forcedotcom/sfdx-core/compare/v2.28.3...v2.28.4) (2021-11-10)
+
+
+### Bug Fixes
+
+* bump jsforce types and run unit tests on Windows ([#485](https://github.com/forcedotcom/sfdx-core/issues/485)) ([3952c8f](https://github.com/forcedotcom/sfdx-core/commit/3952c8fe248531a0597477ed12240f611048caba))
+
 ### [2.28.3](https://github.com/forcedotcom/sfdx-core/compare/v2.28.2...v2.28.3) (2021-11-08)
 
 
