@@ -12,7 +12,6 @@ import * as path from 'path';
 // @salesforce
 import { isEmpty, env, upperFirst } from '@salesforce/kit';
 import { get, getObject, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
-import { AsyncResult } from 'jsforce/api/metadata';
 import * as js2xmlparser from 'js2xmlparser';
 
 // Local
@@ -23,19 +22,35 @@ import { JsonAsXml } from './util/jsonXmlTools';
 import { ZipWriter } from './util/zipWriter';
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
 
-interface ObjectSetting extends JsonMap {
+export enum RequestStatus {
+  Pending = 'Pending',
+  InProgress = 'InProgress',
+  Succeeded = 'Succeeded',
+  SucceededPartial = 'SucceededPartial',
+  Failed = 'Failed',
+  Canceling = 'Canceling',
+  Canceled = 'Canceled',
+}
+
+export enum BreakPooling {
+  Succeeded = 'Succeeded',
+  Failed = 'Failed',
+  Canceled = 'Canceled',
+}
+
+export interface ObjectSetting extends JsonMap {
   sharingModel?: string;
   defaultRecordType?: string;
 }
 
-interface ObjectToBusinessProcessPicklist {
+export interface ObjectToBusinessProcessPicklist {
   [key: string]: {
     fullName: string;
     default?: boolean;
   };
 }
 
-interface BusinessProcessFileContent extends JsonMap {
+export interface BusinessProcessFileContent extends JsonMap {
   fullName: string;
   isActive: boolean;
   values: [
@@ -98,9 +113,15 @@ export default class SettingsGenerator {
 
     logger.debug(`deploying settings id ${id}`);
 
-    const result = (await connection.metadata.checkStatus(id)) as AsyncResult;
+    let result = await connection.metadata.checkDeployStatus(id);
 
-    if (result.state !== 'Completed') {
+    while (!Object.keys(BreakPooling).includes(result.status)) {
+      result = await connection.metadata.checkDeployStatus(id);
+    }
+
+    logger.debug(`settings deployment status ${result.status}`);
+
+    if (result.status !== RequestStatus.Succeeded) {
       throw new SfdxError(
         `A scratch org was created with username ${username}, but the settings failed to deploy`,
         'ProblemDeployingSettings'
