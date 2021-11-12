@@ -21,6 +21,7 @@ import { SfdxError } from './sfdxError';
 import { JsonAsXml } from './util/jsonXmlTools';
 import { ZipWriter } from './util/zipWriter';
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
+import { Lifecycle } from './lifecycleEvents';
 
 export enum RequestStatus {
   Pending = 'Pending',
@@ -114,9 +115,15 @@ export default class SettingsGenerator {
     logger.debug(`deploying settings id ${id}`);
 
     let result = await connection.metadata.checkDeployStatus(id);
+    await Lifecycle.getInstance().emit('deploySettingsViaFolder', {
+      status: result.status,
+    });
 
     while (!Object.keys(BreakPooling).includes(result.status)) {
       result = await connection.metadata.checkDeployStatus(id);
+      await Lifecycle.getInstance().emit('deploySettingsViaFolder', {
+        status: result.status,
+      });
     }
 
     logger.debug(`settings deployment status ${result.status}`);

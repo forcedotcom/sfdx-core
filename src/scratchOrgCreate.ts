@@ -17,6 +17,7 @@ import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { Connection } from './connection';
 import { SfdxProject } from './sfdxProject';
+import { Lifecycle } from './lifecycleEvents';
 import { ConfigAggregator } from './config/configAggregator';
 import {
   authorizeScratchOrg,
@@ -116,6 +117,10 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     alias: setalias,
     signupTargetLoginUrlConfig,
     retry: retry || 0,
+  });
+
+  await Lifecycle.getInstance().emit('scratchOrgCreate', {
+    status: 'getAuthInfo',
   });
 
   // we'll need this scratch org connection later;
