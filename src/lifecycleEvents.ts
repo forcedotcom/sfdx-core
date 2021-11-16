@@ -48,9 +48,13 @@ export class Lifecycle {
 
   private constructor(private readonly listeners: Dictionary<callback[]> = {}) {}
 
+  /**
+   * return the package.json version of the sfdx-core library.
+  */
   public static staticVersion(): string {
     return pjson.version;
   }
+
   /**
    * Retrieve the singleton instance of this class so that all listeners and emitters can interact from any library or tool
    */
