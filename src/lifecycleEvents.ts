@@ -91,6 +91,9 @@ export class Lifecycle {
     return global.salesforceCoreLifecycle;
   }
 
+  /**
+   * return the package.json version of the sfdx-core library.
+   */
   public version(): string {
     return pjson.version;
   }
