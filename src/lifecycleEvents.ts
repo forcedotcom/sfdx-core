@@ -50,7 +50,7 @@ export class Lifecycle {
 
   /**
    * return the package.json version of the sfdx-core library.
-  */
+   */
   public static staticVersion(): string {
     return pjson.version;
   }

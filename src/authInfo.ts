@@ -205,7 +205,8 @@ export class OAuth2WithVerifier extends OAuth2 {
    *
    * See https://github.com/jsforce/jsforce/issues/665
    */
-  protected async _postParams(params: Record<string, unknown>, callback: AnyFunction) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected async _postParams(params: Record<string, unknown>, callback: AnyFunction): Promise<any> {
     set(params, 'code_verifier', this.codeVerifier);
     // @ts-ignore TODO: need better typings for jsforce
     return super._postParams(params, callback);
