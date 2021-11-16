@@ -29,6 +29,10 @@ export type PackageDirDependency = {
 export type PackageDir = {
   ancestorId?: string;
   ancestorVersion?: string;
+  apexTestAccess?: {
+    permissionSets?: string | string[];
+    permissionSetLicenses?: string | string[];
+  };
   default?: boolean;
   definitionFile?: string;
   dependencies?: PackageDirDependency[];
@@ -39,6 +43,9 @@ export type PackageDir = {
   postInstallUrl?: string;
   releaseNotesUrl?: string;
   uninstallScript?: string;
+  unpackagedMetadata?: {
+    path: string;
+  };
   versionDescription?: string;
   versionName?: string;
   versionNumber?: string;
@@ -90,7 +97,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
     super(options);
   }
 
-  public static getFileName() {
+  public static getFileName(): string {
     return SFDX_PROJECT_JSON;
   }
 
@@ -593,7 +600,7 @@ export class SfdxProject {
    *
    * @param pkgName The package name to activate. E.g. 'force-app'
    */
-  public setActivePackage(packageName: Nullable<string>) {
+  public setActivePackage(packageName: Nullable<string>): void {
     if (packageName == null) {
       this.activePackage = null;
     } else {
