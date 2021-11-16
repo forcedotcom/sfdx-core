@@ -7,7 +7,8 @@
 
 // third
 import { Duration } from '@salesforce/kit';
-import { Optional, getString, ensureString } from '@salesforce/ts-types';
+import { SuccessResult } from 'jsforce';
+import { Optional } from '@salesforce/ts-types';
 
 // Local
 import { Org } from './org';
@@ -51,7 +52,6 @@ export interface ScratchOrgCreateOptions {
   definitionfile: string;
   orgConfig: Record<string, unknown>;
   configAggregator: ConfigAggregator;
-  test: boolean;
   clientSecret: string;
 }
 
@@ -100,12 +100,19 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   logger.debug(`the scratch org def file has settings: ${settingsGenerator.hasSettings()}`);
 
   // creates the scratch org info in the devhub
-  const scratchOrgInfoRequestResult = await requestScratchOrgCreation(hubOrg, scratchOrgInfo, settingsGenerator);
+  const scratchOrgInfoRequestResult = (await requestScratchOrgCreation(
+    hubOrg,
+    scratchOrgInfo,
+    settingsGenerator
+  )) as SuccessResult;
 
-  const scratchOrgInfoId = ensureString(getString(scratchOrgInfoRequestResult, 'id'));
-  logger.debug(`scratch org has recordId ${scratchOrgInfoId}`);
+  logger.debug(`scratch org has recordId ${scratchOrgInfoRequestResult.id}`);
 
-  const scratchOrgInfoResult = await pollForScratchOrgInfo(options.hubOrg, scratchOrgInfoId, options.wait);
+  const scratchOrgInfoResult = await pollForScratchOrgInfo(
+    options.hubOrg,
+    scratchOrgInfoRequestResult.id,
+    options.wait
+  );
 
   const signupTargetLoginUrlConfig = await getsSgnupTargetLoginUrlConfig();
 
@@ -135,6 +142,10 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     settingsGenerator,
     scratchOrg
   );
+
+  await Lifecycle.getInstance().emit('scratchOrgCreate', {
+    status: 'settingsDeployed',
+  });
 
   logger.trace('Settings deployed to org');
   /** updating the revision num to zero during org:creation if source members are created during org:create.This only happens for some specific scratch org definition file.*/
