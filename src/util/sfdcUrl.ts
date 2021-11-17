@@ -10,7 +10,7 @@ import { Env, Duration } from '@salesforce/kit';
 import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { Logger } from '../logger';
-
+import { Lifecycle } from '../lifecycleEvents';
 export class SfdcUrl extends URL {
   /**
    * Salesforce URLs
@@ -24,7 +24,7 @@ export class SfdcUrl extends URL {
     super(input.toString(), base);
     if (this.protocol !== 'https:' && !SfdcUrl.cache.has(this.origin)) {
       SfdcUrl.cache.add(this.origin);
-      process.emitWarning('Using insecure protocol: ' + this.protocol + ' on url: ' + this.origin);
+      void Lifecycle.getInstance().emitWarning(`Using insecure protocol: ${this.protocol} on url: ${this.origin}`);
     }
   }
 
