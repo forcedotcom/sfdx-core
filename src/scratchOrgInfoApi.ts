@@ -24,7 +24,7 @@ import { SfdxError } from './sfdxError';
 import { SfdcUrl } from './util/sfdcUrl';
 import { Lifecycle } from './lifecycleEvents';
 import { MyDomainResolver } from './status/myDomainResolver';
-import SettingsGenerator from './scratchOrgSettingsGenerator';
+import SettingsGenerator, { ObjectSetting } from './scratchOrgSettingsGenerator';
 
 export interface ScratchOrgInfo {
   AdminEmail?: string;
@@ -55,12 +55,12 @@ export interface ScratchOrgInfo {
   readonly SignupUsername: string;
   readonly SignupInstance: string;
   Username: string;
-  settings: Optional<Record<string, unknown>>;
-  objectSettings: Optional<Record<string, unknown>>;
-  orgPreferences: Optional<{
+  settings?: Record<string, unknown>;
+  objectSettings?: { [objectName: string]: ObjectSetting };
+  orgPreferences?: {
     enabled: string[];
     disabled: string[];
-  }>;
+  };
 }
 
 export interface JsForceError extends Error {
@@ -456,7 +456,7 @@ export const deploySettingsAndResolveUrl = async (
 
     try {
       await orgSettings.createDeploy();
-      await orgSettings.deploySettingsViaFolder(scratchOrgAuthInfo.getUsername(), scratchOrg, apiVersion);
+      await orgSettings.deploySettingsViaFolder(scratchOrg, apiVersion);
     } catch (error) {
       throw SfdxError.wrap(error as Error);
     }

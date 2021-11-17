@@ -11,7 +11,7 @@ import * as path from 'path';
 
 // @salesforce
 import { isEmpty, env, upperFirst } from '@salesforce/kit';
-import { get, getObject, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
+import { get, getObject, JsonMap, Optional } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
 
 // Local
@@ -33,18 +33,14 @@ export enum RequestStatus {
   Canceled = 'Canceled',
 }
 
-export enum BreakPooling {
-  Succeeded = 'Succeeded',
-  Failed = 'Failed',
-  Canceled = 'Canceled',
-}
+const breakPooling = ['Succeeded', 'Failed', 'Canceled'];
 
 export interface ObjectSetting extends JsonMap {
   sharingModel?: string;
   defaultRecordType?: string;
 }
 
-export interface ObjectToBusinessProcessPicklist {
+interface ObjectToBusinessProcessPicklist {
   [key: string]: {
     fullName: string;
     default?: boolean;
@@ -67,8 +63,9 @@ export interface BusinessProcessFileContent extends JsonMap {
  * settings from the definition, how to expand them into a MD directory and how to generate a package.xml.
  */
 export default class SettingsGenerator {
-  private settingData: Nullable<Record<string, unknown>>;
-  private objectSettingsData: Nullable<{ [objectName: string]: ObjectSetting }>;
+  private settingData?: Record<string, unknown>;
+  // private objectSettingsData: Optional<Record<string, unknown>>;
+  private objectSettingsData?: { [objectName: string]: ObjectSetting };
   private logger: Logger;
   private writer: ZipWriter;
 
@@ -82,14 +79,14 @@ export default class SettingsGenerator {
   /** extract the settings from the scratch def file, if they are present. */
   public async extract(scratchDef: ScratchOrgInfo): Promise<void> {
     this.logger.debug('extracting settings from scratch definition file');
-    this.settingData = getObject(scratchDef, 'settings');
-    this.objectSettingsData = getObject(scratchDef, 'objectSettings');
+    this.settingData = scratchDef.settings;
+    this.objectSettingsData = scratchDef.objectSettings;
     this.logger.debug('settings are', this.settingData);
   }
 
   /** True if we are currently tracking setting or object setting data. */
   public hasSettings(): boolean {
-return `!isEmpty(this.settingData) || !isEmpty(this.objectSettingsData))`
+    return !isEmpty(this.settingData) || !isEmpty(this.objectSettingsData);
   }
 
   /** Create temporary deploy directory used to upload the scratch org shape.
@@ -102,13 +99,14 @@ return `!isEmpty(this.settingData) || !isEmpty(this.objectSettingsData))`
   /**
    * Deploys the settings to the org.
    */
-  public async deploySettingsViaFolder(username: Optional<string>, scratchOrg: Org, apiVersion: string): Promise<void> {
+  public async deploySettingsViaFolder(scratchOrg: Org, apiVersion: string): Promise<void> {
+    const username = scratchOrg.getUsername();
     const logger = await Logger.child('deploySettingsViaFolder');
     this.createPackageXml(apiVersion);
     await this.writer.finalize();
 
     const connection = scratchOrg.getConnection();
-    logger.debug(`deployng to apiVersion: ${apiVersion}`);
+    logger.debug(`deploying to apiVersion: ${apiVersion}`);
     connection.setApiVersion(apiVersion);
     const { id } = await connection.deploy(this.writer.buffer, {});
 
@@ -119,7 +117,7 @@ return `!isEmpty(this.settingData) || !isEmpty(this.objectSettingsData))`
       status: result.status,
     });
 
-    while (!Object.keys(BreakPooling).includes(result.status)) {
+    while (!breakPooling.includes(result.status)) {
       result = await connection.metadata.checkDeployStatus(id);
       await Lifecycle.getInstance().emit('deploySettingsViaFolder', {
         status: result.status,
@@ -196,7 +194,6 @@ return `!isEmpty(this.settingData) || !isEmpty(this.objectSettingsData))`
   // eslint-disable-next-line @typescript-eslint/ban-types
   private createSettingsFileContent(name: string, json: Record<string, unknown>) {
     if (name === 'OrgPreferenceSettings') {
-      // this is a stupid format
       let res =
         '<?xml version="1.0" encoding="UTF-8"?>\n<OrgPreferenceSettings xmlns="http://soap.sforce.com/2006/04/metadata">';
       res += Object.keys(json)

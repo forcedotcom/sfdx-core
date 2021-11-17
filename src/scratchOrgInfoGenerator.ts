@@ -232,7 +232,7 @@ export const getScratchOrgInfoPayload = async (options: {
   ignoreAncestorIds: boolean;
   warnings: string[];
 }> => {
-  const warnings: string[] = [];
+  let warnings: string[] = [];
   // Varargs input overrides definitionjson (-j option; hidden/deprecated)
   const definitionJson = options.definitionjson ? JSON.parse(options.definitionjson) : {};
   const orgConfigInput = { ...definitionJson, ...(options.orgConfig ?? {}) };
@@ -273,9 +273,6 @@ export const getScratchOrgInfoPayload = async (options: {
 
   // Throw warnings for deprecated scratch org features.
   const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation();
-  scratchOrgFeatureDeprecation.getFeatureWarnings(scratchOrgInfoPayload.features).forEach((warning) => {
-    warnings.push(warning);
-  });
 
   // convert various supported array and string formats to a semi-colon-delimited string
   if (scratchOrgInfoPayload.features) {
@@ -283,6 +280,7 @@ export const getScratchOrgInfoPayload = async (options: {
       const delimiter = scratchOrgInfoPayload.features.includes(';') ? ';' : ',';
       scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.split(delimiter);
     }
+    warnings = scratchOrgFeatureDeprecation.getFeatureWarnings(scratchOrgInfoPayload.features);
     scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.map((feature: string) => feature.trim());
     scratchOrgInfoPayload.features = scratchOrgFeatureDeprecation
       .filterDeprecatedFeatures(scratchOrgInfoPayload.features)

@@ -8,7 +8,6 @@
 // third
 import { Duration } from '@salesforce/kit';
 import { SuccessResult } from 'jsforce';
-import { Optional } from '@salesforce/ts-types';
 
 // Local
 import { Org } from './org';
@@ -32,9 +31,11 @@ import { generateScratchOrgInfo, getScratchOrgInfoPayload } from './scratchOrgIn
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreate');
 
+const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
+
 export interface ScratchOrgCreateResult {
-  username: Optional<string>;
-  authInfo: Optional<AuthInfo>;
+  username?: string;
+  authInfo?: AuthInfo;
   warnings: string[];
 }
 export interface ScratchOrgCreateOptions {
@@ -65,9 +66,10 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     durationDays,
     nonamespace,
     noancestors,
+    wait = Duration.minutes(DEFAULT_STREAM_TIMEOUT_MINUTES),
     setdefaultusername,
     setalias,
-    retry,
+    retry = 0,
     apiversion,
     definitionjson,
     definitionfile,
@@ -108,13 +110,9 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
 
   logger.debug(`scratch org has recordId ${scratchOrgInfoRequestResult.id}`);
 
-  const scratchOrgInfoResult = await pollForScratchOrgInfo(
-    options.hubOrg,
-    scratchOrgInfoRequestResult.id,
-    options.wait
-  );
+  const scratchOrgInfoResult = await pollForScratchOrgInfo(hubOrg, scratchOrgInfoRequestResult.id, wait);
 
-  const signupTargetLoginUrlConfig = await getsSgnupTargetLoginUrlConfig();
+  const signupTargetLoginUrlConfig = await getSignupTargetLoginUrl();
 
   const scratchOrgAuthInfo = await authorizeScratchOrg({
     scratchOrgInfoComplete: scratchOrgInfoResult,
@@ -158,7 +156,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   };
 };
 
-export const getsSgnupTargetLoginUrlConfig = async (): Promise<string | undefined> => {
+export const getSignupTargetLoginUrl = async (): Promise<string | undefined> => {
   try {
     const project = await SfdxProject.resolve();
     const projectJson = await project.resolveProjectConfig();
