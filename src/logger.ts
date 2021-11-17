@@ -517,7 +517,8 @@ export class Logger {
   /**
    * Gets the underlying Bunyan logger.
    */
-  public getBunyanLogger(): Bunyan {
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  public getBunyanLogger() {
     return this.bunyan;
   }
 
