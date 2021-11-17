@@ -68,6 +68,7 @@ export default class SettingsGenerator {
   private objectSettingsData?: { [objectName: string]: ObjectSetting };
   private logger: Logger;
   private writer: ZipWriter;
+  private shapeDirName = `shape_${Date.now()}`;
 
   public constructor() {
     this.logger = Logger.childFromRoot('SettingsGenerator');
@@ -93,7 +94,9 @@ export default class SettingsGenerator {
    * This will create the dir, all of the .setting files and minimal object files needed for objectSettings
    */
   public async createDeploy(): Promise<void> {
-    await Promise.all([this.writeSettingsIfNeeded('settings'), this.writeObjectSettingsIfNeeded('objects')]);
+    const settingsDir = path.join(this.shapeDirName, 'settings');
+    const objectsDir = path.join(this.shapeDirName, 'objects');
+    await Promise.all([this.writeSettingsIfNeeded(settingsDir), this.writeObjectSettingsIfNeeded(objectsDir)]);
   }
 
   /**
@@ -143,7 +146,7 @@ export default class SettingsGenerator {
       const value = this.objectSettingsData[objectName];
       // writes the object file in source format
       const objectDir = path.join(objectsDir, upperFirst(objectName));
-      const customObjectDir = path.join(objectDir, `${upperFirst(objectName)}.object-meta.xml`);
+      const customObjectDir = path.join(objectDir, `${upperFirst(objectName)}.object`);
       const customObjectXml = JsonAsXml({
         json: this.createObjectFileContent(value),
         type: 'RecordType',
@@ -151,11 +154,7 @@ export default class SettingsGenerator {
       this.writer.addToZip(customObjectXml, customObjectDir);
 
       if (value.defaultRecordType) {
-        const recordTypesDir = path.join(
-          objectDir,
-          'recordTypes',
-          `${upperFirst(value.defaultRecordType)}.recordType-meta.xml`
-        );
+        const recordTypesDir = path.join(objectDir, 'recordTypes', `${upperFirst(value.defaultRecordType)}.recordType`);
         const recordTypesFileContent = this.createRecordTypeFileContent(objectName, value);
         const recordTypesXml = JsonAsXml({
           json: recordTypesFileContent,
@@ -167,7 +166,7 @@ export default class SettingsGenerator {
           const businessProcessesDir = path.join(
             objectDir,
             'businessProcesses',
-            `${recordTypesFileContent.businessProcess}.businessProcess-meta.xml`
+            `${recordTypesFileContent.businessProcess}.businessProcess`
           );
           const businessProcessesXml = JsonAsXml({
             json: this.createBusinessProcessFileContent(objectName, recordTypesFileContent.businessProcess),
@@ -186,7 +185,7 @@ export default class SettingsGenerator {
         const typeName = upperFirst(item);
         const fname = typeName.replace('Settings', '');
         const fileContent = this.createSettingsFileContent(typeName, value as Record<string, unknown>);
-        this.writer.addToZip(fileContent, path.join(settingsDir, fname + '.settings-meta.xml'));
+        this.writer.addToZip(fileContent, path.join(settingsDir, fname + '.settings'));
       }
     }
   }
@@ -216,12 +215,16 @@ export default class SettingsGenerator {
     const pkg = `<?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
-      <members>*</members>
-      <name>Settings</name>
+        <members>*</members>
+        <name>Settings</name>
     </types>
-  <version>${apiVersion}</version>
+    <types>
+        <members>*</members>
+        <name>CustomObject</name>
+    </types>
+    <version>${apiVersion}</version>
 </Package>`;
-    this.writer.addToZip(pkg, path.join('settings', 'package.xml'));
+    this.writer.addToZip(pkg, path.join(this.shapeDirName, 'package.xml'));
   }
 
   private createObjectFileContent(json: Record<string, unknown>) {
