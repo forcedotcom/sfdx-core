@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.29.0](https://github.com/forcedotcom/sfdx-core/compare/v2.28.4...v2.29.0) (2021-11-17)
+
+
+### Features
+
+* cleans up old listeners from upgraded instance ([e3f2d69](https://github.com/forcedotcom/sfdx-core/commit/e3f2d69ccd5c096d37addb1b982e19354175f11a))
+* use warnings instead of process in sfdx-core ([c1f7e98](https://github.com/forcedotcom/sfdx-core/commit/c1f7e98f6b19d57da1a2ee0cdf58e449079f0ee7))
+* warning and telemetry events ([80a8039](https://github.com/forcedotcom/sfdx-core/commit/80a8039e2f686d973ddbc24c9a2980fb93928d13))
+* warning and telemetry events ([a04b293](https://github.com/forcedotcom/sfdx-core/commit/a04b29355c8ca6c7e37e071ccc159aff5e5e9ca0))
+
+
+### Bug Fixes
+
+* transfer listeners when upgrading the global instance to newer version ([0a40831](https://github.com/forcedotcom/sfdx-core/commit/0a408317c132548771ced0fe196178d2e9c76232))
+
 ### [2.28.4](https://github.com/forcedotcom/sfdx-core/compare/v2.28.3...v2.28.4) (2021-11-10)
 
 ### Bug Fixes
