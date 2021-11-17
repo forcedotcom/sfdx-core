@@ -89,7 +89,7 @@ export default class SettingsGenerator {
 
   /** True if we are currently tracking setting or object setting data. */
   public hasSettings(): boolean {
-    return !(isEmpty(this.settingData) && isEmpty(this.objectSettingsData));
+return `!isEmpty(this.settingData) || !isEmpty(this.objectSettingsData))`
   }
 
   /** Create temporary deploy directory used to upload the scratch org shape.
