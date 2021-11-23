@@ -130,10 +130,12 @@ export default class SettingsGenerator {
     logger.debug(`settings deployment status ${result.status}`);
 
     if (result.status !== RequestStatus.Succeeded) {
-      throw new SfdxError(
+      const error = new SfdxError(
         `A scratch org was created with username ${username}, but the settings failed to deploy`,
         'ProblemDeployingSettings'
       );
+      error.setData(result);
+      throw error;
     }
   }
 
@@ -141,7 +143,6 @@ export default class SettingsGenerator {
     if (!this.objectSettingsData) {
       return;
     }
-    // TODO: parallelize all this FS for perf
     for (const objectName of Object.keys(this.objectSettingsData)) {
       const value = this.objectSettingsData[objectName];
       // writes the object file in source format
@@ -190,7 +191,6 @@ export default class SettingsGenerator {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
   private createSettingsFileContent(name: string, json: Record<string, unknown>) {
     if (name === 'OrgPreferenceSettings') {
       let res =
