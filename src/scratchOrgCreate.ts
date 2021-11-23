@@ -9,7 +9,6 @@
 import { Duration } from '@salesforce/kit';
 import { ensureString, getString } from '@salesforce/ts-types';
 
-
 // Local
 import { Org } from './org';
 import { Logger } from './logger';
