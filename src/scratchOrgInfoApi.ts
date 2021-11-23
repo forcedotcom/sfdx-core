@@ -119,7 +119,7 @@ const getOrgInstanceAuthority = function (
 
 const buildOAuth2Options = async (options: {
   hubOrg: Org;
-  clientSecret: string;
+  clientSecret?: string;
   scratchOrgInfoComplete: ScratchOrgInfo;
   retry?: number;
   signupTargetLoginUrlConfig?: string;
@@ -264,7 +264,7 @@ const saveAuthInfo = async (options: {
 export const authorizeScratchOrg = async (options: {
   scratchOrgInfoComplete: ScratchOrgInfo;
   hubOrg: Org;
-  clientSecret: string;
+  clientSecret?: string;
   setAsDefault: boolean;
   signupTargetLoginUrlConfig?: string;
   alias?: string;

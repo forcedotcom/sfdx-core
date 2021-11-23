@@ -7,7 +7,8 @@
 
 // third
 import { Duration } from '@salesforce/kit';
-import { SuccessResult } from 'jsforce';
+import { ensureString, getString } from '@salesforce/ts-types';
+
 
 // Local
 import { Org } from './org';
@@ -41,19 +42,19 @@ export interface ScratchOrgCreateResult {
 export interface ScratchOrgCreateOptions {
   hubOrg: Org;
   connectedAppConsumerKey: string;
-  durationDays: number;
+  durationDays?: number;
   nonamespace: boolean;
   noancestors: boolean;
-  wait: Duration;
-  setdefaultusername: boolean;
-  setalias: string;
-  retry: number;
+  wait?: Duration;
+  defaultusername?: boolean;
+  alias?: string;
+  retry?: number;
   apiversion: string;
   definitionjson: string;
   definitionfile: string;
   orgConfig: Record<string, unknown>;
   configAggregator: ConfigAggregator;
-  clientSecret: string;
+  clientSecret?: string;
 }
 
 export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promise<ScratchOrgCreateResult> => {
@@ -63,22 +64,20 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   const {
     hubOrg,
     connectedAppConsumerKey,
-    durationDays,
+    durationDays = 1,
     nonamespace,
     noancestors,
     wait = Duration.minutes(DEFAULT_STREAM_TIMEOUT_MINUTES),
-    setdefaultusername,
-    setalias,
+    defaultusername = false,
+    alias = undefined,
     retry = 0,
     apiversion,
     definitionjson,
     definitionfile,
     orgConfig,
     configAggregator,
-    clientSecret,
+    clientSecret = undefined,
   } = options;
-
-  const settingsGenerator = new SettingsGenerator();
 
   const { scratchOrgInfoPayload, ignoreAncestorIds, warnings } = await getScratchOrgInfoPayload({
     definitionjson,
@@ -98,19 +97,18 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   });
 
   // gets the scratch org settings (will use in both signup paths AND to deploy the settings)
+  const settingsGenerator = new SettingsGenerator();
   await settingsGenerator.extract(scratchOrgInfo);
   logger.debug(`the scratch org def file has settings: ${settingsGenerator.hasSettings()}`);
 
   // creates the scratch org info in the devhub
-  const scratchOrgInfoRequestResult = (await requestScratchOrgCreation(
-    hubOrg,
-    scratchOrgInfo,
-    settingsGenerator
-  )) as SuccessResult;
+  const scratchOrgInfoRequestResult = await requestScratchOrgCreation(hubOrg, scratchOrgInfo, settingsGenerator);
 
-  logger.debug(`scratch org has recordId ${scratchOrgInfoRequestResult.id}`);
+  const scratchOrgInfoId = ensureString(getString(scratchOrgInfoRequestResult, 'id'));
 
-  const scratchOrgInfoResult = await pollForScratchOrgInfo(hubOrg, scratchOrgInfoRequestResult.id, wait);
+  logger.debug(`scratch org has recordId ${scratchOrgInfoId}`);
+
+  const scratchOrgInfoResult = await pollForScratchOrgInfo(hubOrg, scratchOrgInfoId, wait);
 
   const signupTargetLoginUrlConfig = await getSignupTargetLoginUrl();
 
@@ -118,8 +116,8 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     scratchOrgInfoComplete: scratchOrgInfoResult,
     hubOrg,
     clientSecret,
-    setAsDefault: setdefaultusername,
-    alias: setalias,
+    setAsDefault: defaultusername,
+    alias,
     signupTargetLoginUrlConfig,
     retry: retry || 0,
   });
@@ -156,7 +154,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   };
 };
 
-export const getSignupTargetLoginUrl = async (): Promise<string | undefined> => {
+const getSignupTargetLoginUrl = async (): Promise<string | undefined> => {
   try {
     const project = await SfdxProject.resolve();
     const projectJson = await project.resolveProjectConfig();
@@ -166,7 +164,7 @@ export const getSignupTargetLoginUrl = async (): Promise<string | undefined> => 
   }
 };
 
-export const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void> => {
+const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void> => {
   const conn = scratchOrg.getConnection();
   const queryResult = await conn.tooling.sobject('SourceMember').find({ RevisionCounter: { $gt: 0 } }, ['Id']);
   try {
