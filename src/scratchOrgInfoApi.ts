@@ -86,14 +86,14 @@ const checkScratchOrgInfoForErrors = (orgInfo: ScratchOrgInfo, hubUsername: Opti
   }
   throw new SfdxError(messages.getMessage('signupUnexpected'), 'UnexpectedSignupStatus');
 };
+
 /**
  * Returns the url to be used to authorize into the new scratch org
  *
- * @param scratchOrgInfoComplete
- * @param force
- * @param useLoginUrl
- * @returns {*}
- * @private
+ * @param scratchOrgInfoComplete The completed ScratchOrgInfo
+ * @param hubOrgLoginUrl the hun org login url
+ * @param signupTargetLoginUrlConfig the login url
+ * @returns {string}
  */
 const getOrgInstanceAuthority = function (
   scratchOrgInfoComplete: ScratchOrgInfo,
@@ -117,6 +117,16 @@ const getOrgInstanceAuthority = function (
   return signupTargetLoginUrlConfig ?? altUrl;
 };
 
+/**
+ * Returns OAuth2Options object
+ *
+ * @param hubOrg the environment hub org
+ * @param clientSecret The OAuth client secret. May be null for JWT OAuth flow.
+ * @param scratchOrgInfoComplete The completed ScratchOrgInfo which should contain an access token.
+ * @param retry auth retry attempts
+ * @param signupTargetLoginUrlConfig the login url
+ * @returns {OAuth2Options, number, number, number} options, retries, timeout, delay
+ */
 const buildOAuth2Options = async (options: {
   hubOrg: Org;
   clientSecret?: string;
@@ -169,6 +179,17 @@ const buildOAuth2Options = async (options: {
   }
 };
 
+/**
+ * Returns OAuth2Options object
+ *
+ * @param hubOrg the environment hub org
+ * @param username The OAuth client secret. May be null for JWT OAuth flow.
+ * @param oauth2Options The completed ScratchOrgInfo which should contain an access token.
+ * @param retries auth retry attempts
+ * @param timeout the login url
+ * @param delay the login url
+ * @returns {OAuth2Options, number, number, number} options, retries, timeout, delay
+ */
 const getAuthInfo = async (options: {
   hubOrg: Org;
   username: string;
@@ -217,6 +238,16 @@ const getAuthInfo = async (options: {
   }
 };
 
+/**
+ * after we successfully signup an org we need to trade the auth token for access and refresh token.
+ *
+ * @param scratchOrgInfoComplete - The completed ScratchOrgInfo which should contain an access token.
+ * @param hubOrg - the environment hub org
+ * @param authInfo - The AuthInfo object
+ * @param setAsDefault - {boolean} - whether to save this org as the default for this workspace.
+ * @param alias - scratch org alias
+ * @returns {Promise<void>}
+ */
 const saveAuthInfo = async (options: {
   scratchOrgInfoComplete: ScratchOrgInfo;
   hubOrg: Org;
@@ -253,13 +284,13 @@ const saveAuthInfo = async (options: {
  * after we successfully signup an org we need to trade the auth token for access and refresh token.
  *
  * @param scratchOrgInfoComplete - The completed ScratchOrgInfo which should contain an access token.
- * @param force - the force api
  * @param hubOrg - the environment hub org
- * @param scratchOrg - the scratch org to save to disk
  * @param clientSecret - The OAuth client secret. May be null for JWT OAuth flow.
- * @param saveAsDefault {boolean} - whether to save this org as the default for this workspace.
- * @returns {*}
- * @private
+ * @param setAsDefault - {boolean} - whether to save this org as the default for this workspace.
+ * @param signupTargetLoginUrlConfig - Login url
+ * @param alias - scratch org alias
+ * @param retry - auth retry attempts
+ * @returns {Promise<AuthInfo>}
  */
 export const authorizeScratchOrg = async (options: {
   scratchOrgInfoComplete: ScratchOrgInfo;
@@ -345,8 +376,10 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
 /**
  * This extracts orgPrefs/settings from the user input and performs a basic scratchOrgInfo request.
  *
- * @param scratchOrgInfo - An object containing the fields of the ScratchOrgInfo.
- * @returns {*|promise}
+ * @param hubOrg - the environment hub org
+ * @param scratchOrgRequest - An object containing the fields of the ScratchOrgInfo
+ * @param settings - An object containing org settings
+ * @returns {Promise<RecordResult>}
  */
 export const requestScratchOrgCreation = async (
   hubOrg: Org,
@@ -389,7 +422,7 @@ export const requestScratchOrgCreation = async (
  * @param hubOrg
  * @param scratchOrgInfoId - the id of the scratchOrgInfo that we are retrieving
  * @param timeout - A Duration object
- * @returns {BBPromise}
+ * @returns {Promise<ScratchOrgInfo>}
  */
 export const pollForScratchOrgInfo = async (
   hubOrg: Org,
@@ -436,11 +469,11 @@ export const pollForScratchOrgInfo = async (
 /**
  * This authenticates into the newly created org and sets org preferences
  *
- * @param scratchOrgInfoResult - an object containing the fields of the ScratchOrgInfo
- * @param clientSecret - the OAuth client secret. May be null for JWT OAuth flow
- * @param scratchOrg - The ScratchOrg configuration
- * @param saveAsDefault - Save the org as the default for commands to run against
- * @returns {*}
+ * @param scratchOrgAuthInfo - an object containing the AuthInfo of the ScratchOrg
+ * @param apiVersion - the target api version
+ * @param orgSettings - The ScratchOrg settings
+ * @param scratchOrg - The scratchOrg Org info
+ * @returns {Promise<Optional<AuthInfo>>}
  */
 export const deploySettingsAndResolveUrl = async (
   scratchOrgAuthInfo: AuthInfo,
