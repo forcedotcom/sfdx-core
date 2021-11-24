@@ -228,8 +228,9 @@ function defaultFakeConnectionRequest(): Promise<AnyJson> {
  * ```
  * @param sinon
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const instantiateContext = (sinon?: any) => {
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+export const instantiateContext = (sinon?: any): TestContext => {
   if (!sinon) {
     try {
       sinon = require('sinon');
@@ -332,7 +333,7 @@ export const instantiateContext = (sinon?: any) => {
  * ```
  * @param testContext
  */
-export const stubContext = (testContext: TestContext) => {
+export const stubContext = (testContext: TestContext): void => {
   // Most core files create a child logger so stub this to return our test logger.
   stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
   stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
@@ -459,7 +460,7 @@ export const stubContext = (testContext: TestContext) => {
  * ```
  * @param testContext
  */
-export const restoreContext = (testContext: TestContext) => {
+export const restoreContext = (testContext: TestContext): void => {
   testContext.SANDBOX.restore();
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};

@@ -121,7 +121,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   /**
    * Starts the web server
    */
-  public async start() {
+  public async start(): Promise<void> {
     await this.webServer.start();
   }
 
