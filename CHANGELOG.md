@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.30.0](https://github.com/forcedotcom/sfdx-core/compare/v2.29.0...v2.30.0) (2021-11-25)
+
+
+### Features
+
+* delete scratch orgs and sandboxes ([#491](https://github.com/forcedotcom/sfdx-core/issues/491)) ([468c348](https://github.com/forcedotcom/sfdx-core/commit/468c348f0ecc69ddeea02927bf7a26ca660a86ca))
+
 ## [2.29.0](https://github.com/forcedotcom/sfdx-core/compare/v2.28.4...v2.29.0) (2021-11-17)
 
 ### Features
