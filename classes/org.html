@@ -121,6 +121,8 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#addusername" class="tsd-kind-icon">add<wbr>Username</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#checkscratchorg" class="tsd-kind-icon">check<wbr>Scratch<wbr>Org</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#cleanlocalorgdata" class="tsd-kind-icon">clean<wbr>Local<wbr>Org<wbr>Data</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#delete" class="tsd-kind-icon">delete</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#deletefrom" class="tsd-kind-icon">delete<wbr>From</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#determineifdevhuborg" class="tsd-kind-icon">determine<wbr>IfDev<wbr>Hub<wbr>Org</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#getconfigaggregator" class="tsd-kind-icon">get<wbr>Config<wbr>Aggregator</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#getconnection" class="tsd-kind-icon">get<wbr>Connection</a></li>
@@ -133,6 +135,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#getusername" class="tsd-kind-icon">get<wbr>Username</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected"><a href="org.html#init" class="tsd-kind-icon">init</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#isdevhuborg" class="tsd-kind-icon">is<wbr>Dev<wbr>Hub<wbr>Org</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#issandbox" class="tsd-kind-icon">is<wbr>Sandbox</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#readuserauthfiles" class="tsd-kind-icon">read<wbr>User<wbr>Auth<wbr>Files</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#refreshauth" class="tsd-kind-icon">refresh<wbr>Auth</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="org.html#remove" class="tsd-kind-icon">remove</a></li>
@@ -157,7 +160,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L304">src/org.ts:304</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L341">src/org.ts:341</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -198,7 +201,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L151">src/org.ts:151</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L158">src/org.ts:158</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -231,7 +234,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L93">src/org.ts:93</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L93">src/org.ts:93</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -259,6 +262,59 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="delete" class="tsd-anchor"></a>
+					<h3>delete</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">delete<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L243">src/org.ts:243</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Will delete &#39;this&#39; instance remotely and any files locally</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="deletefrom" class="tsd-anchor"></a>
+					<h3>delete<wbr>From</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">delete<wbr>From<span class="tsd-signature-symbol">(</span>controllingOrg<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="org.html" class="tsd-signature-type">Org</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L226">src/org.ts:226</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Will delete &#39;this&#39; instance remotely and any files locally</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>controllingOrg: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="org.html" class="tsd-signature-type">Org</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>username or Org that &#39;this.devhub&#39; or &#39;this.production&#39; refers to. AKA a DevHub for a scratch org, or a Production Org for a sandbox</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="determineifdevhuborg" class="tsd-anchor"></a>
 					<h3>determine<wbr>IfDev<wbr>Hub<wbr>Org</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -268,7 +324,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L224">src/org.ts:224</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L261">src/org.ts:261</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -303,7 +359,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L422">src/org.ts:422</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L459">src/org.ts:459</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -325,7 +381,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L448">src/org.ts:448</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L485">src/org.ts:485</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -347,7 +403,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L485">src/org.ts:485</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L522">src/org.ts:522</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -369,7 +425,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L185">src/org.ts:185</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L192">src/org.ts:192</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -391,7 +447,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L429">src/org.ts:429</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L466">src/org.ts:466</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -419,7 +475,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L437">src/org.ts:437</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L474">src/org.ts:474</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -447,7 +503,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L415">src/org.ts:415</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L452">src/org.ts:452</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -469,7 +525,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L391">src/org.ts:391</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L428">src/org.ts:428</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -497,7 +553,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L408">src/org.ts:408</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L445">src/org.ts:445</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -520,7 +576,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 							<aside class="tsd-sources">
 								<p>Overrides AsyncCreatable.init</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L455">src/org.ts:455</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L492">src/org.ts:492</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -542,7 +598,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L205">src/org.ts:205</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L212">src/org.ts:212</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -558,6 +614,28 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="issandbox" class="tsd-anchor"></a>
+					<h3>is<wbr>Sandbox</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">is<wbr>Sandbox<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L146">src/org.ts:146</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Check if org is a sandbox org by checking its SandboxOrgConfig.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="readuserauthfiles" class="tsd-anchor"></a>
 					<h3>read<wbr>User<wbr>Auth<wbr>Files</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -567,7 +645,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L269">src/org.ts:269</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L306">src/org.ts:306</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -589,7 +667,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L256">src/org.ts:256</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L293">src/org.ts:293</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -611,7 +689,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L126">src/org.ts:126</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L126">src/org.ts:126</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -644,7 +722,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L352">src/org.ts:352</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L389">src/org.ts:389</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -676,7 +754,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L401">src/org.ts:401</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L438">src/org.ts:438</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -700,7 +778,7 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/c4f87f5f/src/org.ts#L380">src/org.ts:380</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/ded972c7/src/org.ts#L417">src/org.ts:417</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -803,6 +881,12 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 								<a href="org.html#cleanlocalorgdata" class="tsd-kind-icon">clean<wbr>Local<wbr>Org<wbr>Data</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="org.html#delete" class="tsd-kind-icon">delete</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="org.html#deletefrom" class="tsd-kind-icon">delete<wbr>From</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="org.html#determineifdevhuborg" class="tsd-kind-icon">determine<wbr>IfDev<wbr>Hub<wbr>Org</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
@@ -837,6 +921,9 @@ await org.add<span class="hljs-constructor">Username(<span class="hljs-params">u
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="org.html#isdevhuborg" class="tsd-kind-icon">is<wbr>Dev<wbr>Hub<wbr>Org</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="org.html#issandbox" class="tsd-kind-icon">is<wbr>Sandbox</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="org.html#readuserauthfiles" class="tsd-kind-icon">read<wbr>User<wbr>Auth<wbr>Files</a>
