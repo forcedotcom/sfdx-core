@@ -487,7 +487,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
 
     if (!match) {
       throw new SfdxError(
-        'Invalid sfdx auth url. Must be in the format `force://<clientId>:<clientSecret>:<refreshToken>@<loginUrl>`. The instanceUrl must not have the protocol set.',
+        'Invalid SFDX auth URL. Must be in the format "force://<clientId>:<clientSecret>:<refreshToken>@<instanceUrl>".  Note that the SFDX auth URL uses the "force" protocol, and not "http" or "https".  Also note that the "instanceUrl" inside the SFDX auth URL doesn\'t include the protocol ("https://").',
         'INVALID_SFDX_AUTH_URL'
       );
     }
