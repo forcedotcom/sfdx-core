@@ -31,7 +31,7 @@ import { generateScratchOrgInfo, getScratchOrgInfoPayload } from './scratchOrgIn
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreate');
 
-const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
+export const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
 
 export interface ScratchOrgCreateResult {
   username?: string;
@@ -47,10 +47,10 @@ export interface ScratchOrgCreateResult {
  * @param durationDays duration of the scratch org (in days) (default:1, min:1, max:30)
  * @param nonamespace create the scratch org with no namespace
  * @param noancestors do not include second-generation package ancestors in the scratch org
- * @param wait the streaming client socket timeout (in minutes)
- * @param defaultusername scratch org default username
+ * @param wait the streaming client socket timeout (in minutes) must be an instance of the Duration utility class (default:6, min:2)
+ * @param defaultusername set the created org as the default username (default:false)
  * @param alias alias for the created org
- * @param retry number of scratch org auth retries after scratch org is successfully signed up
+ * @param retry number of scratch org auth retries after scratch org is successfully signed up (default:0, min:0, max:10)
  * @param apiversion target server instance API version
  * @param definitionjson org definition in JSON format
  * @param definitionfile path to an org definition file
@@ -75,6 +75,45 @@ export interface ScratchOrgCreateOptions {
   clientSecret?: string;
 }
 
+const validateDuration = (durationDays: number) => {
+  const min = 1;
+  const max = 30;
+  if (Number.isInteger(durationDays)) {
+    if (durationDays < min) {
+      throw new SfdxError(
+        `Expected 'durationDays' greater than or equal to ${min} but received ${durationDays}`,
+        'BoundsError'
+      );
+    }
+    if (durationDays > max) {
+      throw new SfdxError(
+        `Expected 'durationDays' less than or equal to ${max} but received ${durationDays}`,
+        'BoundsError'
+      );
+    }
+    return;
+  }
+  throw new SfdxError("Expected 'durationDays' to be an integer number", 'TypeError');
+};
+
+const validateRetry = (retry: number) => {
+  const max = 10;
+  if (Number.isInteger(retry)) {
+    if (retry > max) {
+      throw new SfdxError(`Expected 'retry' less than or equal to ${max} but received ${retry}`, 'BoundsError');
+    }
+    return;
+  }
+  throw new SfdxError("Expected 'durationDays' to be an integer number", 'TypeError');
+};
+
+const validateWait = (wait: Duration) => {
+  const min = 2;
+  if (wait.minutes < min) {
+    throw new SfdxError(`Expected 'wait' greater than or equal to ${min} but received ${wait}`, 'BoundsError');
+  }
+};
+
 export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promise<ScratchOrgCreateResult> => {
   const logger = await Logger.child('scratchOrgCreate');
   logger.debug('scratchOrgCreate');
@@ -95,6 +134,10 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     orgConfig,
     clientSecret = undefined,
   } = options;
+
+  validateDuration(durationDays);
+  validateRetry(retry);
+  validateWait(wait);
 
   const { scratchOrgInfoPayload, ignoreAncestorIds, warnings } = await getScratchOrgInfoPayload({
     definitionjson,
