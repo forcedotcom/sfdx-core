@@ -2,12 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [2.30.0](https://github.com/forcedotcom/sfdx-core/compare/v2.29.0...v2.30.0) (2021-11-25)
-
+## [2.31.0](https://github.com/forcedotcom/sfdx-core/compare/v2.30.1...v2.31.0) (2021-11-30)
 
 ### Features
 
-* delete scratch orgs and sandboxes ([#491](https://github.com/forcedotcom/sfdx-core/issues/491)) ([468c348](https://github.com/forcedotcom/sfdx-core/commit/468c348f0ecc69ddeea02927bf7a26ca660a86ca))
+- bump version of jsforce ([7d89024](https://github.com/forcedotcom/sfdx-core/commit/7d89024f593968c031af22ac817efc26d00fcd54))
+
+### [2.30.1](https://github.com/forcedotcom/sfdx-core/compare/v2.30.0...v2.30.1) (2021-11-30)
+
+### Bug Fixes
+
+- better output for authUrl errors ([f3ec729](https://github.com/forcedotcom/sfdx-core/commit/f3ec7298bdbd3194d3d14bfea09f47f413669376))
+
+## [2.30.0](https://github.com/forcedotcom/sfdx-core/compare/v2.29.0...v2.30.0) (2021-11-25)
+
+### Features
+
+- delete scratch orgs and sandboxes ([#491](https://github.com/forcedotcom/sfdx-core/issues/491)) ([468c348](https://github.com/forcedotcom/sfdx-core/commit/468c348f0ecc69ddeea02927bf7a26ca660a86ca))
 
 ## [2.29.0](https://github.com/forcedotcom/sfdx-core/compare/v2.28.4...v2.29.0) (2021-11-17)
 
