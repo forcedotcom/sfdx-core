@@ -161,10 +161,10 @@ export const getAncestorIds = async (
 /**
  * Takes in a scratchOrgInfo and fills in the missing fields
  *
- * @param hubOrg
+ * @param hubOrg the environment hub org
  * @param scratchOrgInfoPayload - the scratchOrgInfo passed in by the user
- * @param nonamespace - true if the org should have no namespace
- * @param ignoreAncestorIds - true if the sfdx-project.json ancestorId keys should be ignored
+ * @param nonamespace create the scratch org with no namespace
+ * @param ignoreAncestorIds true if the sfdx-project.json ancestorId keys should be ignored
  */
 export const generateScratchOrgInfo = async ({
   hubOrg,
@@ -208,32 +208,32 @@ export const generateScratchOrgInfo = async ({
 /**
  * Returns a valid signup json
  *
- * @param definitionjson
- * @param definitionfile
- * @param connectedAppConsumerKey
- * @param durationdays
- * @param nonamespace
- * @param noancestors
- * @param orgConfig
+ * @param definitionjson org definition in JSON format
+ * @param definitionfile path to an org definition file
+ * @param connectedAppConsumerKey The connected app consumer key. May be null for JWT OAuth flow.
+ * @param durationdays duration of the scratch org (in days) (default:1, min:1, max:30)
+ * @param nonamespace create the scratch org with no namespace
+ * @param noancestors do not include second-generation package ancestors in the scratch org
+ * @param orgConfig overrides definitionjson
  * @returns scratchOrgInfoPayload: ScratchOrgInfoPayload;
             ignoreAncestorIds: boolean;
             warnings: string[]; 
  */
 export const getScratchOrgInfoPayload = async (options: {
-  definitionjson: string;
-  definitionfile: string;
-  connectedAppConsumerKey: string;
+  definitionjson?: string;
+  definitionfile?: string;
+  connectedAppConsumerKey?: string;
   durationDays: number;
-  nonamespace: boolean;
-  noancestors: boolean;
-  orgConfig: Record<string, unknown>;
+  nonamespace?: boolean;
+  noancestors?: boolean;
+  orgConfig?: Record<string, unknown>;
 }): Promise<{
   scratchOrgInfoPayload: ScratchOrgInfoPayload;
   ignoreAncestorIds: boolean;
   warnings: string[];
 }> => {
   let warnings: string[] = [];
-  // Varargs input overrides definitionjson (-j option; hidden/deprecated)
+  // orgConfig input overrides definitionjson (-j option; hidden/deprecated)
   const definitionJson = options.definitionjson ? JSON.parse(options.definitionjson) : {};
   const orgConfigInput = { ...definitionJson, ...(options.orgConfig ?? {}) };
 
@@ -244,7 +244,7 @@ export const getScratchOrgInfoPayload = async (options: {
     try {
       const fileData = await fs.readFile(options.definitionfile, 'utf8');
       const defFileContents = parseJson(fileData) as Record<string, unknown>;
-      // definitionjson and varargs override file input
+      // definitionjson and orgConfig override file input
       scratchOrgInfoPayload = { ...defFileContents, ...orgConfigInput };
     } catch (err) {
       const error = err as Error;

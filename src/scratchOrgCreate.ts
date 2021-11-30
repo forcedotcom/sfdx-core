@@ -38,21 +38,40 @@ export interface ScratchOrgCreateResult {
   authInfo?: AuthInfo;
   warnings: string[];
 }
+
+/**
+ * interface ScratchOrgCreateOptions
+ *
+ * @param hubOrg the environment hub org
+ * @param connectedAppConsumerKey The connected app consumer key. May be null for JWT OAuth flow.
+ * @param durationDays duration of the scratch org (in days) (default:1, min:1, max:30)
+ * @param nonamespace create the scratch org with no namespace
+ * @param noancestors do not include second-generation package ancestors in the scratch org
+ * @param wait the streaming client socket timeout (in minutes)
+ * @param defaultusername scratch org default username
+ * @param alias alias for the created org
+ * @param retry number of scratch org auth retries after scratch org is successfully signed up
+ * @param apiversion target server instance API version
+ * @param definitionjson org definition in JSON format
+ * @param definitionfile path to an org definition file
+ * @param orgConfig overrides definitionjson
+ * @param clientSecret OAuth client secret of personal connected app
+ */
+
 export interface ScratchOrgCreateOptions {
   hubOrg: Org;
-  connectedAppConsumerKey: string;
+  connectedAppConsumerKey?: string;
   durationDays?: number;
-  nonamespace: boolean;
-  noancestors: boolean;
+  nonamespace?: boolean;
+  noancestors?: boolean;
   wait?: Duration;
   defaultusername?: boolean;
   alias?: string;
   retry?: number;
-  apiversion: string;
-  definitionjson: string;
-  definitionfile: string;
-  orgConfig: Record<string, unknown>;
-  configAggregator: ConfigAggregator;
+  apiversion?: string;
+  definitionjson?: string;
+  definitionfile?: string;
+  orgConfig?: Record<string, unknown>;
   clientSecret?: string;
 }
 
@@ -74,7 +93,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     definitionjson,
     definitionfile,
     orgConfig,
-    configAggregator,
     clientSecret = undefined,
   } = options;
 
@@ -129,6 +147,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   const scratchOrg = await Org.create({ connection: await Connection.create({ authInfo: scratchOrgAuthInfo }) });
   const username = scratchOrg.getUsername();
 
+  const configAggregator = new ConfigAggregator();
   const authInfo = await deploySettingsAndResolveUrl(
     scratchOrgAuthInfo,
     apiversion ??
