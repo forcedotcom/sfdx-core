@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.30.1](https://github.com/forcedotcom/sfdx-core/compare/v2.30.0...v2.30.1) (2021-11-30)
+
+
+### Bug Fixes
+
+* better output for authUrl errors ([f3ec729](https://github.com/forcedotcom/sfdx-core/commit/f3ec7298bdbd3194d3d14bfea09f47f413669376))
+
 ## [2.30.0](https://github.com/forcedotcom/sfdx-core/compare/v2.29.0...v2.30.0) (2021-11-25)
 
 
