@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "2.30.0",
+  "version": "2.30.1",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "types": "lib/exported.d.ts",
@@ -44,7 +44,7 @@
     "debug": "^3.1.0",
     "graceful-fs": "^4.2.4",
     "jsen": "0.6.6",
-    "jsforce": "^1.10.1",
+    "jsforce": "^1.11.0",
     "jsonwebtoken": "8.5.0",
     "mkdirp": "1.0.4",
     "semver": "^7.3.5",
