@@ -205,7 +205,8 @@ export class OAuth2WithVerifier extends OAuth2 {
    *
    * See https://github.com/jsforce/jsforce/issues/665
    */
-  protected async _postParams(params: Record<string, unknown>, callback: AnyFunction) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected async _postParams(params: Record<string, unknown>, callback: AnyFunction): Promise<any> {
     set(params, 'code_verifier', this.codeVerifier);
     // @ts-ignore TODO: need better typings for jsforce
     return super._postParams(params, callback);
@@ -477,14 +478,16 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    * ```
    * @param sfdxAuthUrl
    */
-  public static parseSfdxAuthUrl(sfdxAuthUrl: string) {
+  public static parseSfdxAuthUrl(
+    sfdxAuthUrl: string
+  ): Pick<AuthFields, 'clientId' | 'clientSecret' | 'refreshToken' | 'loginUrl'> {
     const match = sfdxAuthUrl.match(
       /^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/
     );
 
     if (!match) {
       throw new SfdxError(
-        'Invalid sfdx auth url. Must be in the format `force://<clientId>:<clientSecret>:<refreshToken>@<loginUrl>`. The instanceUrl must not have the protocol set.',
+        'Invalid SFDX auth URL. Must be in the format "force://<clientId>:<clientSecret>:<refreshToken>@<instanceUrl>".  Note that the SFDX auth URL uses the "force" protocol, and not "http" or "https".  Also note that the "instanceUrl" inside the SFDX auth URL doesn\'t include the protocol ("https://").',
         'INVALID_SFDX_AUTH_URL'
       );
     }
@@ -680,7 +683,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    *
    * @param options
    */
-  public async setAsDefault(options: { defaultUsername?: boolean; defaultDevhubUsername?: boolean }) {
+  public async setAsDefault(options: { defaultUsername?: boolean; defaultDevhubUsername?: boolean }): Promise<void> {
     let config: Config;
     // if we fail to create the local config, default to the global config
     try {
@@ -708,7 +711,7 @@ export class AuthInfo extends AsyncCreatable<AuthInfo.Options> {
    *
    * @param alias alias to set
    */
-  public async setAlias(alias: string) {
+  public async setAlias(alias: string): Promise<void> {
     const username = this.getUsername();
     await Aliases.parseAndUpdate([`${alias}=${username}`]);
   }

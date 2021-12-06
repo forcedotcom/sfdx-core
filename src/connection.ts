@@ -37,7 +37,7 @@ import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
-
+import { Lifecycle } from './lifecycleEvents';
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
  * jsforce which expects .thenCall. Add .thenCall to the node promise to prevent breakage.
@@ -443,7 +443,7 @@ export class Connection extends JSForceConnection {
         .on('end', () => {
           const totalSize = getNumber(query, 'totalSize') || 0;
           if (totalSize > records.length) {
-            process.emitWarning(
+            void Lifecycle.getInstance().emitWarning(
               `The query result is missing ${
                 totalSize - records.length
               } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${totalSize} or greater than ${maxFetch}.`

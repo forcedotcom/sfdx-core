@@ -60,7 +60,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    *
    * @param usernameOrAlias the username or alias that you want to remove
    */
-  public async removeAuth(usernameOrAlias: string) {
+  public async removeAuth(usernameOrAlias: string): Promise<void> {
     const username = await this.resolveUsername(usernameOrAlias);
     this.logger.debug(`Removing authorization for user ${username}`);
     AuthInfo.clearCache(username);
@@ -72,7 +72,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
   /**
    * Removes all authentication files and any configs or aliases associated with them
    */
-  public async removeAllAuths() {
+  public async removeAllAuths(): Promise<void> {
     const authConfigs = await this.findAllAuthConfigs();
     const usernames = [...authConfigs.keys()];
     for (const username of usernames) {
@@ -114,7 +114,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
     return this.authConfigs;
   }
 
-  protected async init() {
+  protected async init(): Promise<void> {
     this.logger = await Logger.child(this.constructor.name);
     this.globalConfig = await this.getConfig(true);
     this.localConfig = await this.getConfig(false);
