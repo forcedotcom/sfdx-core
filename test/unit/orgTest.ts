@@ -438,7 +438,7 @@ describe('Org Tests', () => {
 
           it('will auth sandbox user correctly', async () => {
             const sandboxResponse = {
-              SandboxName: 'wrTest1',
+              SandboxName: 'test',
               EndDate: '2021-19-06T20:25:46.000+0000',
             };
             const requestStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'request').resolves();
@@ -446,7 +446,7 @@ describe('Org Tests', () => {
             await prod.sandboxSignupComplete(sandboxResponse);
             expect(requestStub.firstCall.args).to.deep.equal([
               {
-                body: '{"sandboxName":"wrTest1","callbackUrl":"http://localhost:1717/OauthRedirect"}',
+                body: '{"sandboxName":"test","callbackUrl":"http://localhost:1717/OauthRedirect"}',
                 headers: {
                   'Content-Type': 'application/json',
                 },
@@ -459,7 +459,7 @@ describe('Org Tests', () => {
           it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
             const logStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
             const sandboxResponse = {
-              SandboxName: 'wrTest1',
+              SandboxName: 'test',
               EndDate: '2021-19-06T20:25:46.000+0000',
             };
             stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws({
@@ -474,10 +474,10 @@ describe('Org Tests', () => {
 
           it('will pollStatusAndAuth correctly', async () => {
             const sandboxInProgress: SandboxProcessObject = {
-              Id: '0GR4p000000U8ECGA0',
+              Id: '0GR4p000000U8ECXXX',
               Status: 'Pending',
-              SandboxName: 'wrTest1',
-              SandboxInfoId: '0GQ4p000000U6rvGAC',
+              SandboxName: 'test',
+              SandboxInfoId: '0GQ4p000000U6rvXXX',
               LicenseType: 'DEVELOPER',
               CreatedDate: '2021-12-06T20:25:46.000+0000',
               CopyProgress: 28,
@@ -486,33 +486,13 @@ describe('Org Tests', () => {
               Description: null,
               EndDate: null,
             };
-            const sandboxComplete: SandboxProcessObject = {
-              Id: '0GR4p000000U8ECGA0',
-              Status: 'Completed',
-              SandboxName: 'wrTest1',
-              SandboxInfoId: 'GQ4p000000U6nFGAS',
-              LicenseType: 'DEVELOPER',
-              CreatedDate: '2021-12-06T20:25:46.000+0000',
-              CopyProgress: 100,
-              SandboxOrganization: 'D2f0000008i3i',
-              SourceId: null,
-              Description: null,
-              EndDate: '2021-08-02T20:50:00.000+0000',
-            };
             pollStatusAndAuthStub.restore();
             querySandboxProcessStub.restore();
-            stubMethod($$.SANDBOX, prod, 'sandboxSignupComplete')
-              .onFirstCall()
-              .resolves()
-              .onSecondCall()
-              .resolves({ authUserName: 'myname' });
-            querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess')
-              .onFirstCall()
-              .resolves(sandboxInProgress)
-              .onSecondCall()
-              .resolves(sandboxComplete);
+            querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves(sandboxInProgress);
 
+            stubMethod($$.SANDBOX, prod, 'sandboxSignupComplete').onSecondCall().resolves({ authUserName: 'myname' });
             stubMethod($$.SANDBOX, prod, 'writeSandboxAuthFile').resolves();
+
             const lifecycleStub = stubMethod($$.SANDBOX, Lifecycle.prototype, 'emit');
             const loggerStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
 
