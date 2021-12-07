@@ -168,8 +168,7 @@ export class SfdxError extends NamedError {
    * The message string. Error.message
    */
   public message!: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public name: any;
+  public name!: string;
 
   /**
    * Action messages. Hints to the users regarding what can be done to fix related issues.
@@ -269,8 +268,7 @@ export class SfdxError extends NamedError {
     return sfdxError;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public get code(): string | undefined | any {
+  public get code(): string {
     return this._code || this.name;
   }
 
