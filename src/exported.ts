@@ -57,7 +57,15 @@ export {
 
 export { Messages } from './messages';
 
-export { Org } from './org';
+export {
+  Org,
+  SandboxProcessObject,
+  SandboxEvents,
+  SandboxUserAuthResponse,
+  SandboxUserAuthRequest,
+  SandboxRequest,
+  OrgTypes,
+} from './org';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
 
