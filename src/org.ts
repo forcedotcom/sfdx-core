@@ -136,9 +136,12 @@ export class Org extends AsyncCreatable<Org.Options> {
    * 'this' needs to be a production org with sandbox licenses available
    *
    * @param sandboxReq SandboxRequest options to create the sandbox with
-   * @param wait a Duration to wait for the sandbox to be created
+   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
    */
-  public async createSandbox(sandboxReq: SandboxRequest, wait: Duration): Promise<SandboxProcessObject> {
+  public async createSandbox(
+    sandboxReq: SandboxRequest,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
     this.logger.debug('CreateSandbox called with SandboxRequest: %s ', sandboxReq);
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
     this.logger.debug('Return from calling tooling.create: %s ', createResult);
@@ -147,13 +150,13 @@ export class Org extends AsyncCreatable<Org.Options> {
       const sandboxCreationProgress = await this.querySandboxProcess(createResult.id);
       this.logger.debug('Return from calling singleRecordQuery with tooling: %s', sandboxCreationProgress);
 
-      const retries = wait ? wait.seconds / Duration.seconds(30).seconds : 0;
+      const retries = options.wait ? options.wait.seconds / Duration.seconds(30).seconds : 0;
       this.logger.debug(
         'pollStatusAndAuth sandboxProcessObj %s, maxPollingRetries %i',
         sandboxCreationProgress,
         retries
       );
-      return await this.pollStatusAndAuth(sandboxCreationProgress, retries, retries > 0);
+      return await this.pollStatusAndAuth(sandboxCreationProgress, retries, retries > 0, options.interval);
     } else {
       throw SfdxError.create('@salesforce/core', 'org', 'SandboxInfoCreateFailed', [JSON.stringify(createResult)]);
     }
@@ -813,11 +816,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     }
   }
 
-  private async writeSandboxAuthFile(
-    sandboxProcessObj: SandboxProcessObject,
-    sandboxRes: SandboxUserAuthResponse,
-    lifecycle: Lifecycle
-  ) {
+  private async writeSandboxAuthFile(sandboxProcessObj: SandboxProcessObject, sandboxRes: SandboxUserAuthResponse) {
     this.logger.debug('writeSandboxAuthFile sandboxProcessObj: %s, sandboxRes: %s', sandboxProcessObj, sandboxRes);
     if (sandboxRes.authUserName) {
       const productionAuthFields: AuthFields = this.connection.getAuthInfoFields();
@@ -852,7 +851,7 @@ export class Org extends AsyncCreatable<Org.Options> {
         productionAuthFields.username as string
       );
 
-      await lifecycle.emit(SandboxEvents.EVENT_RESULT, {
+      await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESULT, {
         sandboxProcessObj,
         sandboxRes,
       });
@@ -886,7 +885,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     if (sandboxInfo) {
       try {
         this.logger.debug('sandbox signup complete with %s', sandboxInfo);
-        await this.writeSandboxAuthFile(sandboxProcessObj, sandboxInfo, lifecycle);
+        await this.writeSandboxAuthFile(sandboxProcessObj, sandboxInfo);
         pollFinished = true;
       } catch (err) {
         this.logger.debug('Exception while calling writeSandboxAuthFile %s', err);

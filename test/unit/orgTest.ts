@@ -407,12 +407,12 @@ describe('Org Tests', () => {
           });
 
           it('will calculate the amount of retries correctly', async () => {
-            await prod.createSandbox({ SandboxName: 'testSandbox' }, Duration.seconds(30));
+            await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
             expect(createStub.calledOnce).to.be.true;
             expect(querySandboxProcessStub.calledOnce).to.be.true;
             // Duration.seconds(30)/ Duration.seconds(30) = 1
             expect(pollStatusAndAuthStub.firstCall.args[1]).to.equal(1);
-            await prod.createSandbox({ SandboxName: 'testSandbox' }, Duration.seconds(90));
+            await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(90) });
             // 90/30 = 3
             expect(pollStatusAndAuthStub.secondCall.args[1]).to.equal(3);
           });
