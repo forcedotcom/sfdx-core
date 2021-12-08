@@ -146,20 +146,22 @@ export class Org extends AsyncCreatable<Org.Options> {
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
     this.logger.debug('Return from calling tooling.create: %s ', createResult);
 
-    if (!Array.isArray(createResult) && createResult.success) {
-      const sandboxCreationProgress = await this.querySandboxProcess(createResult.id);
-      this.logger.debug('Return from calling singleRecordQuery with tooling: %s', sandboxCreationProgress);
-
-      const retries = options.wait ? options.wait.seconds / Duration.seconds(30).seconds : 0;
-      this.logger.debug(
-        'pollStatusAndAuth sandboxProcessObj %s, maxPollingRetries %i',
-        sandboxCreationProgress,
-        retries
-      );
-      return await this.pollStatusAndAuth(sandboxCreationProgress, retries, retries > 0, options.interval);
-    } else {
+    if (Array.isArray(createResult) || !createResult.success) {
       throw SfdxError.create('@salesforce/core', 'org', 'SandboxInfoCreateFailed', [JSON.stringify(createResult)]);
     }
+
+    const sandboxCreationProgress = await this.querySandboxProcess(createResult.id);
+    this.logger.debug('Return from calling singleRecordQuery with tooling: %s', sandboxCreationProgress);
+
+    const retries = options.wait ? options.wait.seconds / Duration.seconds(30).seconds : 0;
+    this.logger.debug('pollStatusAndAuth sandboxProcessObj %s, maxPollingRetries %i', sandboxCreationProgress, retries);
+    const pollInterval = options.interval ?? Duration.seconds(30);
+    return this.pollStatusAndAuth({
+      sandboxProcessObj: sandboxCreationProgress,
+      retries,
+      shouldPoll: retries > 0,
+      pollInterval,
+    });
   }
 
   /**
@@ -864,18 +866,20 @@ export class Org extends AsyncCreatable<Org.Options> {
   /**
    * Polls for the new sandbox to be created - and will write the associated auth files
    *
-   * @param sandboxProcessObj The in-progress sandbox signup request
-   * @param retries the number of retries to poll for every 30s
-   * @param shouldPoll wait for polling, or just return
-   * @param pollInterval Duration to sleep between poll events, default 30 seconds
    * @private
+   * @param options
+   *  sandboxProcessObj: The in-progress sandbox signup request
+   *  retries: the number of retries to poll for every 30s
+   *  shouldPoll: wait for polling, or just return
+   *  pollInterval: Duration to sleep between poll events, default 30 seconds
    */
-  private async pollStatusAndAuth(
-    sandboxProcessObj: SandboxProcessObject,
-    retries: number,
-    shouldPoll: boolean,
-    pollInterval = Duration.seconds(30)
-  ): Promise<SandboxProcessObject> {
+  private async pollStatusAndAuth(options: {
+    sandboxProcessObj: SandboxProcessObject;
+    retries: number;
+    shouldPoll: boolean;
+    pollInterval: Duration;
+  }): Promise<SandboxProcessObject> {
+    const { sandboxProcessObj, retries, shouldPoll, pollInterval } = options;
     this.logger.debug('PollStatusAndAuth called with SandboxProcessObject%s, retries %s', sandboxProcessObj, retries);
     const lifecycle = Lifecycle.getInstance();
     let pollFinished = false;
@@ -889,7 +893,7 @@ export class Org extends AsyncCreatable<Org.Options> {
         pollFinished = true;
       } catch (err) {
         this.logger.debug('Exception while calling writeSandboxAuthFile %s', err);
-        if (err.name === 'JWTAuthError' && err.stack.includes("user hasn't approved")) {
+        if (err?.name === 'JWTAuthError' && err?.stack.includes("user hasn't approved")) {
           waitingOnAuth = true;
         } else {
           throw SfdxError.wrap(err);
@@ -900,19 +904,26 @@ export class Org extends AsyncCreatable<Org.Options> {
     if (!pollFinished) {
       if (retries > 0) {
         // emit the signup progress of the sandbox and query the production org again after waiting the interval
-        await lifecycle.emit(SandboxEvents.EVENT_STATUS, {
-          sandboxProcessObj,
-          interval: pollInterval.seconds,
-          retries,
-          waitingOnAuth,
-        });
-        await sleep(pollInterval);
+        await Promise.all([
+          await lifecycle.emit(SandboxEvents.EVENT_STATUS, {
+            sandboxProcessObj,
+            interval: pollInterval.seconds,
+            retries,
+            waitingOnAuth,
+          }),
+          await sleep(pollInterval),
+        ]);
 
         const polledSandboxProcessObj: SandboxProcessObject = await this.querySandboxProcess(
           sandboxProcessObj.SandboxInfoId
         );
 
-        return this.pollStatusAndAuth(polledSandboxProcessObj, retries - 1, shouldPoll);
+        return this.pollStatusAndAuth({
+          sandboxProcessObj: polledSandboxProcessObj,
+          retries: retries - 1,
+          shouldPoll,
+          pollInterval,
+        });
       } else {
         if (shouldPoll) {
           // timed out on retries
@@ -950,43 +961,46 @@ export class Org extends AsyncCreatable<Org.Options> {
     sandboxProcessObj: SandboxProcessObject
   ): Promise<SandboxUserAuthResponse | undefined> {
     this.logger.debug('sandboxSignupComplete called with SandboxProcessObject %s', sandboxProcessObj);
-    if (sandboxProcessObj.EndDate) {
-      try {
-        // call server side /sandboxAuth API to auth the sandbox org user with the connected app
-        const authFields: AuthFields = this.connection.getAuthInfoFields();
-        const callbackUrl = `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`;
-        const sandboxReq: SandboxUserAuthRequest = {
-          clientId: authFields.clientId as string,
-          sandboxName: sandboxProcessObj.SandboxName,
-          callbackUrl,
-        };
+    if (!sandboxProcessObj.EndDate) {
+      return;
+    }
 
-        this.logger.debug('Calling sandboxAuth with SandboxUserAuthRequest %s', sandboxReq);
+    try {
+      // call server side /sandboxAuth API to auth the sandbox org user with the connected app
+      const authFields = this.connection.getAuthInfoFields();
+      const callbackUrl = `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`;
 
-        const url = `${this.connection.tooling._baseUrl()}/sandboxAuth`;
-        const params = {
-          method: 'POST',
-          url,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sandboxReq),
-        };
+      const sandboxReq: SandboxUserAuthRequest = {
+        // the sandbox signup has been completed on production, we have production clientId by this point
+        clientId: authFields.clientId as string,
+        sandboxName: sandboxProcessObj.SandboxName,
+        callbackUrl,
+      };
 
-        const result: SandboxUserAuthResponse = await this.connection.tooling.request(params);
+      this.logger.debug('Calling sandboxAuth with SandboxUserAuthRequest %s', sandboxReq);
 
-        this.logger.debug('Result of calling sandboxAuth %s', result);
-        return result;
-      } catch (err) {
-        // There are cases where the endDate is set before the sandbox has actually completed.
-        // In that case, the sandboxAuth call will throw a specific exception.
-        if (err.name === 'INVALID_STATUS') {
-          this.logger.debug('Error while authenticating the user %s', err.toString());
-        } else {
-          // If it fails for any unexpected reason, just pass that through
-          throw SfdxError.wrap(err);
-        }
+      const url = `${this.connection.tooling._baseUrl()}/sandboxAuth`;
+      const params = {
+        method: 'POST',
+        url,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sandboxReq),
+      };
+
+      const result: SandboxUserAuthResponse = await this.connection.tooling.request(params);
+
+      this.logger.debug('Result of calling sandboxAuth %s', result);
+      return result;
+    } catch (err) {
+      // There are cases where the endDate is set before the sandbox has actually completed.
+      // In that case, the sandboxAuth call will throw a specific exception.
+      if (err?.name === 'INVALID_STATUS') {
+        this.logger.debug('Error while authenticating the user %s', err?.toString());
+      } else {
+        // If it fails for any unexpected reason, just pass that through
+        throw SfdxError.wrap(err);
       }
     }
-    return;
   }
 }
 

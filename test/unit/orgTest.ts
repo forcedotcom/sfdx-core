@@ -411,10 +411,10 @@ describe('Org Tests', () => {
             expect(createStub.calledOnce).to.be.true;
             expect(querySandboxProcessStub.calledOnce).to.be.true;
             // Duration.seconds(30)/ Duration.seconds(30) = 1
-            expect(pollStatusAndAuthStub.firstCall.args[1]).to.equal(1);
+            expect(pollStatusAndAuthStub.firstCall.args[0].retries).to.equal(1);
             await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(90) });
             // 90/30 = 3
-            expect(pollStatusAndAuthStub.secondCall.args[1]).to.equal(3);
+            expect(pollStatusAndAuthStub.secondCall.args[0].retries).to.equal(3);
           });
 
           it('will throw an error if it fails to create SandboxInfo', async () => {
@@ -496,7 +496,12 @@ describe('Org Tests', () => {
             const lifecycleStub = stubMethod($$.SANDBOX, Lifecycle.prototype, 'emit');
             const loggerStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
 
-            const res = await prod.pollStatusAndAuth(sandboxInProgress, 1, true, Duration.seconds(1));
+            const res = await prod.pollStatusAndAuth({
+              pollInterval: Duration.seconds(1),
+              retries: 1,
+              shouldPoll: true,
+              sandboxProcessObj: sandboxInProgress,
+            });
             expect(res).to.deep.equal(sandboxInProgress);
             expect(loggerStub.callCount).to.equal(3);
             expect(lifecycleStub.callCount).to.equal(1);
