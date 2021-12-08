@@ -46,6 +46,18 @@ export enum OrgTypes {
   Sandbox = 'sandbox',
 }
 
+export interface StatusEvent {
+  sandboxProcessObj: SandboxProcessObject;
+  interval: number;
+  retries: number;
+  waitingOnAuth: boolean;
+}
+
+export interface ResultEvent {
+  sandboxProcessObj: SandboxProcessObject;
+  sandboxRes: SandboxUserAuthResponse;
+}
+
 export interface SandboxUserAuthRequest {
   sandboxName: string;
   clientId: string;
@@ -856,7 +868,7 @@ export class Org extends AsyncCreatable<Org.Options> {
       await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESULT, {
         sandboxProcessObj,
         sandboxRes,
-      });
+      } as ResultEvent);
     } else {
       // no authed sandbox user, error
       throw SfdxError.create('@salesforce/core', 'org', 'MissingAuthUsername', [sandboxProcessObj.SandboxName]);
@@ -910,7 +922,7 @@ export class Org extends AsyncCreatable<Org.Options> {
             interval: pollInterval.seconds,
             retries,
             waitingOnAuth,
-          }),
+          } as StatusEvent),
           await sleep(pollInterval),
         ]);
 

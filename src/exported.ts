@@ -60,11 +60,13 @@ export { Messages } from './messages';
 export {
   Org,
   SandboxProcessObject,
+  StatusEvent,
   SandboxEvents,
   SandboxUserAuthResponse,
   SandboxUserAuthRequest,
   SandboxRequest,
   OrgTypes,
+  ResultEvent,
 } from './org';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
