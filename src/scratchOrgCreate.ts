@@ -43,7 +43,7 @@ export interface ScratchOrgCreateResult {
  * interface ScratchOrgCreateOptions
  *
  * @param hubOrg the environment hub org
- * @param connectedAppConsumerKey The connected app consumer key. May be null for JWT OAuth flow.
+ * @param connectedAppConsumerKey The connected app consumer key.
  * @param durationDays duration of the scratch org (in days) (default:1, min:1, max:30)
  * @param nonamespace create the scratch org with no namespace
  * @param noancestors do not include second-generation package ancestors in the scratch org
