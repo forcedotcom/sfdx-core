@@ -29,7 +29,20 @@ const defaultConnectedAppInfo = {
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
 
-export interface ScratchOrgInfoPayload extends ScratchOrgInfo {
+type PartialScratchOrgInfo = Pick<
+  ScratchOrgInfo,
+  | 'ConnectedAppConsumerKey'
+  | 'AuthCode'
+  | 'Snapshot'
+  | 'Status'
+  | 'LoginUrl'
+  | 'SignupEmail'
+  | 'SignupUsername'
+  | 'SignupInstance'
+  | 'Username'
+>;
+
+export interface ScratchOrgInfoPayload extends PartialScratchOrgInfo {
   orgName: string;
   package2AncestorIds: string;
   features: string | string[];

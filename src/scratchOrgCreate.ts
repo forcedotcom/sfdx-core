@@ -97,14 +97,10 @@ const validateDuration = (durationDays: number) => {
 };
 
 const validateRetry = (retry: number) => {
-  const max = 10;
   if (Number.isInteger(retry)) {
-    if (retry > max) {
-      throw new SfdxError(`Expected 'retry' less than or equal to ${max} but received ${retry}`, 'BoundsError');
-    }
     return;
   }
-  throw new SfdxError("Expected 'durationDays' to be an integer number", 'TypeError');
+  throw new SfdxError("Expected 'retry' to be an integer number", 'TypeError');
 };
 
 const validateWait = (wait: Duration) => {

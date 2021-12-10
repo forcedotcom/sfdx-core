@@ -24,6 +24,7 @@ import { SfdxError } from './sfdxError';
 import { SfdcUrl } from './util/sfdcUrl';
 import { Lifecycle } from './lifecycleEvents';
 import { MyDomainResolver } from './status/myDomainResolver';
+import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
 import SettingsGenerator, { ObjectSetting } from './scratchOrgSettingsGenerator';
 
 export interface ScratchOrgInfo {
@@ -71,22 +72,6 @@ export interface JsForceError extends Error {
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
 
-const checkScratchOrgInfoForErrors = (orgInfo: ScratchOrgInfo, hubUsername: Optional<string>, logger: Logger) => {
-  if (orgInfo.Status === 'Active') {
-    return orgInfo;
-  }
-  if (orgInfo.Status === 'Error' && orgInfo.ErrorCode) {
-    throw new SfdxError(messages.getMessage('signupFailed', [orgInfo.ErrorCode]), 'RemoteOrgSignupFailed');
-  }
-  if (orgInfo.Status === 'Error') {
-    // Maybe the request object can help the user somehow
-    logger.error('No error code on signup error! Logging request.');
-    logger.error(orgInfo);
-    throw new SfdxError(messages.getMessage('signupFailedUnknown', [orgInfo.Id, hubUsername]));
-  }
-  throw new SfdxError(messages.getMessage('signupUnexpected'), 'UnexpectedSignupStatus');
-};
-
 /**
  * Returns the url to be used to authorize into the new scratch org
  *
@@ -129,8 +114,8 @@ const getOrgInstanceAuthority = function (
  */
 const buildOAuth2Options = async (options: {
   hubOrg: Org;
-  clientSecret?: string;
   scratchOrgInfoComplete: ScratchOrgInfo;
+  clientSecret?: string;
   retry?: number;
   signupTargetLoginUrlConfig?: string;
 }): Promise<{
@@ -149,7 +134,7 @@ const buildOAuth2Options = async (options: {
     ),
   };
 
-  logger.debug(`_authorize - isJwtFlow: ${isJwtFlow}`);
+  logger.debug(`isJwtFlow: ${isJwtFlow}`);
 
   if (isJwtFlow && !process.env.SFDX_CLIENT_SECRET) {
     oauth2Options.privateKeyFile = options.hubOrg.getConnection().getAuthInfoFields().privateKey;
@@ -216,13 +201,6 @@ const getAuthInfo = async (options: {
     } catch (err) {
       const error = err as RetryError;
       logger.error(error);
-      if (error.message.startsWith('Timeout after')) {
-        throw SfdxError.create('salesforce-alm', 'org_create', 'jwtAuthRetryTimedOut', [
-          options.username,
-          options.timeout,
-          options.retries,
-        ]);
-      }
       throw error.lastError || error;
     }
   } else {
@@ -268,16 +246,15 @@ const saveAuthInfo = async (options: {
   });
 
   if (options.alias) {
-    logger.debug(`_authorize - setting alias to ${options.alias}`);
     await options.authInfo.setAlias(options.alias);
-    logger.debug(`_authorize - AuthInfo has alias to ${options.authInfo.getFields().alias}`);
+    logger.debug(`AuthInfo has alias to ${options.authInfo.getFields().alias}`);
   }
   if (options.setAsDefault) {
     await options.authInfo.setAsDefault({ defaultUsername: true });
   }
 
-  logger.debug(`_authorize - orgConfig.loginUrl: ${options.authInfo.getFields().loginUrl}`);
-  logger.debug(`_authorize - orgConfig.instanceUrl: ${options.authInfo.getFields().instanceUrl}`);
+  logger.debug(`orgConfig.loginUrl: ${options.authInfo.getFields().loginUrl}`);
+  logger.debug(`orgConfig.instanceUrl: ${options.authInfo.getFields().instanceUrl}`);
 };
 
 /**
@@ -303,7 +280,7 @@ export const authorizeScratchOrg = async (options: {
 }): Promise<AuthInfo> => {
   const { scratchOrgInfoComplete, hubOrg, clientSecret, setAsDefault, signupTargetLoginUrlConfig, alias } = options;
   const logger = await Logger.child('authorizeScratchOrg');
-  logger.debug(`_authorize - scratchOrgInfoComplete: ${JSON.stringify(scratchOrgInfoComplete, null, 4)}`);
+  logger.debug(`scratchOrgInfoComplete: ${JSON.stringify(scratchOrgInfoComplete, null, 4)}`);
 
   // if we didn't have it marked as a devhub but just successfully used it as one, this will update the authFile, fix cache, etc
   if (!hubOrg.isDevHubOrg()) {
@@ -432,7 +409,6 @@ export const pollForScratchOrgInfo = async (
 ): Promise<ScratchOrgInfo> => {
   const logger = await Logger.child('scratchOrgInfoApi-pollForScratchOrgInfo');
   logger.debug(`PollingTimeout in minutes: ${timeout.minutes}`);
-  logger.debug(`pollForScratchOrgInfo this.scratchOrgInfoId: ${scratchOrgInfoId} from devHub ${hubOrg.getUsername()}`);
 
   const response = await retry(
     async () => {
