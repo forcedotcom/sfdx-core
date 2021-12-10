@@ -204,15 +204,11 @@ const getAuthInfo = async (options: {
       throw error.lastError || error;
     }
   } else {
-    try {
-      return await AuthInfo.create({
-        username: options.username,
-        parentUsername: options.hubOrg.getUsername(),
-        oauth2Options: options.oauth2Options,
-      });
-    } catch (error) {
-      throw SfdxError.wrap(error as Error);
-    }
+    return await AuthInfo.create({
+      username: options.username,
+      parentUsername: options.hubOrg.getUsername(),
+      oauth2Options: options.oauth2Options,
+    });
   }
 };
 
@@ -385,6 +381,7 @@ export const requestScratchOrgCreation = async (
   try {
     return await hubOrg.getConnection().sobject('ScratchOrgInfo').create(scratchOrgInfo);
   } catch (error) {
+    // this is a jsforce error which contains the property "fields" which regular error don't
     const jsForceError = error as JsForceError;
     if (jsForceError.errorCode === 'REQUIRED_FIELD_MISSING') {
       throw new SfdxError(messages.getMessage('signupFieldsMissing', [jsForceError.fields.toString()]));
@@ -487,14 +484,14 @@ export const deploySettingsAndResolveUrl = async (
       await resolver.resolve();
     } catch (error) {
       const sfdxError = SfdxError.wrap(error as Error);
-      logger.debug(`processScratchOrgInfoResult - err: ${JSON.stringify(error, null, 4)}`);
+      logger.debug('processScratchOrgInfoResult - err: %s', error);
       if (sfdxError.name === 'MyDomainResolverTimeoutError') {
         sfdxError.setData({
           orgId: scratchOrgAuthInfo.getFields().orgId,
           username: scratchOrgAuthInfo.getFields().username,
           instanceUrl: scratchOrgAuthInfo.getFields().instanceUrl,
         });
-        logger.debug(`processScratchOrgInfoResult - err data: ${JSON.stringify(sfdxError.data, null, 4)}`);
+        logger.debug('processScratchOrgInfoResult - err data: %s', sfdxError.data);
       }
       throw sfdxError;
     }

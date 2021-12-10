@@ -75,7 +75,7 @@ export interface ScratchOrgCreateOptions {
   clientSecret?: string;
 }
 
-const validateDuration = (durationDays: number) => {
+const validateDuration = (durationDays: number): void => {
   const min = 1;
   const max = 30;
   if (Number.isInteger(durationDays)) {
@@ -96,14 +96,14 @@ const validateDuration = (durationDays: number) => {
   throw new SfdxError("Expected 'durationDays' to be an integer number", 'TypeError');
 };
 
-const validateRetry = (retry: number) => {
+const validateRetry = (retry: number): void => {
   if (Number.isInteger(retry)) {
     return;
   }
   throw new SfdxError("Expected 'retry' to be an integer number", 'TypeError');
 };
 
-const validateWait = (wait: Duration) => {
+const validateWait = (wait: Duration): void => {
   const min = 2;
   if (wait.minutes < min) {
     throw new SfdxError(`Expected 'wait' greater than or equal to ${min} but received ${wait}`, 'BoundsError');

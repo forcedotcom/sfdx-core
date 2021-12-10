@@ -16,9 +16,6 @@ const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
 
-// Messages.importMessagesDirectory(__dirname);
-// const messages = Messages.loadMessages('salesforce-alm', 'scratchorg_error_codes');
-
 // getMessage will throw when the code isn't found
 // and we don't know whether a given code takes arguments or not
 const optionalErrorCodeMessage = (errorCode: string, args: string[]): string | undefined => {
