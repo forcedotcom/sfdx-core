@@ -24,7 +24,6 @@ const FEATURE_TYPES = {
     SALESWAVE: ['DEVELOPMENTWAVE'],
     SERVICEWAVE: ['DEVELOPMENTWAVE'],
   },
-  quantifiedFeatureMapping: {},
   deprecatedFeatures: [
     'EXPANDEDSOURCETRACKING',
     'LISTCUSTOMSETTINGCREATION',
@@ -40,7 +39,6 @@ const FEATURE_TYPES = {
 
 interface FeatureTypes {
   simpleFeatureMapping: { [key: string]: string[] };
-  quantifiedFeatureMapping: Record<string, string>;
   deprecatedFeatures: string[];
 }
 
