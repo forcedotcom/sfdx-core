@@ -25,7 +25,7 @@ const TEST_IP = '1.1.1.1';
 
 describe('Connection', () => {
   const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
-
+  let warningStub: sinon.SinonStub;
   let requestMock: sinon.SinonStub;
   let initializeStub: sinon.SinonStub;
 
@@ -34,7 +34,7 @@ describe('Connection', () => {
 
   beforeEach(() => {
     $$.SANDBOXES.CONNECTION.restore();
-    $$.SANDBOX.stub(process, 'emitWarning');
+    warningStub = $$.SANDBOX.stub(process, 'emitWarning');
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
 
     initializeStub = $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns();
@@ -282,6 +282,24 @@ describe('Connection', () => {
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 50000);
   });
 
+  it('tooling.autoFetchQuery() should not throw a warning when records is empty', async () => {
+    const soql = 'TEST_SOQL';
+
+    const queryResponse = { totalSize: 5, done: true, records: [] };
+    requestMock.returns(Promise.resolve(queryResponse));
+
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+
+    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
+    await conn.tooling.autoFetchQuery(soql);
+
+    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
+    expect(warningStub.callCount).to.equal(0);
+  });
+
   it('tooling.autoFetchQuery() should throw a warning when more than 10k records returned without the config', async () => {
     const soql = 'TEST_SOQL';
 
@@ -291,12 +309,14 @@ describe('Connection', () => {
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+
     $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
     await conn.tooling.autoFetchQuery(soql);
 
     expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
+    expect(warningStub.callCount).to.equal(1);
   });
 
   it('autoFetch() should reject the promise upon query error', async () => {
