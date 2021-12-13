@@ -42,13 +42,13 @@
     "@types/jsforce": "^1.9.35",
     "@types/mkdirp": "^1.0.1",
     "debug": "^3.1.0",
+    "faye": "^1.4.0",
     "graceful-fs": "^4.2.4",
     "jsen": "0.6.6",
     "jsforce": "^1.11.0",
     "jsonwebtoken": "8.5.0",
     "mkdirp": "1.0.4",
     "semver": "^7.3.5",
-    "sfdx-faye": "^1.0.9",
     "ts-retry-promise": "^0.6.0"
   },
   "devDependencies": {
