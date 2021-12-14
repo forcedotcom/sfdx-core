@@ -441,8 +441,9 @@ export class Connection extends JSForceConnection {
         .on('record', (rec) => records.push(rec))
         .on('error', (err) => reject(err))
         .on('end', () => {
-          const totalSize = getNumber(query, 'totalSize') || 0;
-          if (totalSize > records.length) {
+          const totalSize = getNumber(query, 'totalSize', 0);
+          // records.legnth can be 0 in count() query, but totalSize is bigger.
+          if (records.length && totalSize > records.length) {
             void Lifecycle.getInstance().emitWarning(
               `The query result is missing ${
                 totalSize - records.length
