@@ -11,7 +11,7 @@ import * as path from 'path';
 
 // @salesforce
 import { isEmpty, env, upperFirst } from '@salesforce/kit';
-import { get, getObject, JsonMap, Optional } from '@salesforce/ts-types';
+import { getObject, JsonMap, Optional } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
 
 // Local
