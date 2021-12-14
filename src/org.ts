@@ -68,6 +68,7 @@ export enum SandboxEvents {
   EVENT_STATUS = 'status',
   EVENT_ASYNC_RESULT = 'asyncResult',
   EVENT_RESULT = 'result',
+  EVENT_AUTH = 'auth',
 }
 
 export interface SandboxUserAuthResponse {
@@ -899,6 +900,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
 
     if (sandboxInfo) {
+      await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
       try {
         this.logger.debug('sandbox signup complete with %s', sandboxInfo);
         await this.writeSandboxAuthFile(sandboxProcessObj, sandboxInfo);

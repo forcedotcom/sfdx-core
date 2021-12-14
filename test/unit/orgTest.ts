@@ -504,7 +504,7 @@ describe('Org Tests', () => {
             });
             expect(res).to.deep.equal(sandboxInProgress);
             expect(loggerStub.callCount).to.equal(3);
-            expect(lifecycleStub.callCount).to.equal(1);
+            expect(lifecycleStub.callCount).to.equal(2);
           });
         });
       });
