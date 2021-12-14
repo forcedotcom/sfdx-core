@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>TimeoutErrorType | @salesforce/core</title>
+	<title>SandboxUserAuthResponse | @salesforce/core</title>
 	<meta name="description" content="Documentation for @salesforce/core">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -52,71 +52,81 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../classes/streamingclient.html">StreamingClient</a>
-				</li>
-				<li>
-					<a href="streamingclient.timeouterrortype.html">TimeoutErrorType</a>
+					<a href="sandboxuserauthresponse.html">SandboxUserAuthResponse</a>
 				</li>
 			</ul>
-			<h1>Enumeration TimeoutErrorType</h1>
+			<h1>Interface SandboxUserAuthResponse</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Indicators to test error names for StreamingTimeouts</p>
-					</div>
-				</div>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">SandboxUserAuthResponse</span>
+					</li>
+				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Enumeration members</h3>
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="streamingclient.timeouterrortype.html#handshake" class="tsd-kind-icon">HANDSHAKE</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="streamingclient.timeouterrortype.html#subscribe" class="tsd-kind-icon">SUBSCRIBE</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="sandboxuserauthresponse.html#authcode" class="tsd-kind-icon">auth<wbr>Code</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="sandboxuserauthresponse.html#authusername" class="tsd-kind-icon">auth<wbr>User<wbr>Name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="sandboxuserauthresponse.html#instanceurl" class="tsd-kind-icon">instance<wbr>Url</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="sandboxuserauthresponse.html#loginurl" class="tsd-kind-icon">login<wbr>Url</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Enumeration members</h2>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-					<a name="handshake" class="tsd-anchor"></a>
-					<h3>HANDSHAKE</h3>
-					<div class="tsd-signature tsd-kind-icon">HANDSHAKE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;genericHandshakeTimeoutMessage&quot;</span></div>
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="authcode" class="tsd-anchor"></a>
+					<h3>auth<wbr>Code</h3>
+					<div class="tsd-signature tsd-kind-icon">auth<wbr>Code<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e556c180/src/status/streamingClient.ts#L630">src/status/streamingClient.ts:630</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e556c180/src/org.ts#L76">src/org.ts:76</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>To indicate the error occurred on handshake</p>
-						</div>
-					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-					<a name="subscribe" class="tsd-anchor"></a>
-					<h3>SUBSCRIBE</h3>
-					<div class="tsd-signature tsd-kind-icon">SUBSCRIBE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;genericTimeoutMessage&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="authusername" class="tsd-anchor"></a>
+					<h3>auth<wbr>User<wbr>Name</h3>
+					<div class="tsd-signature tsd-kind-icon">auth<wbr>User<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e556c180/src/status/streamingClient.ts#L634">src/status/streamingClient.ts:634</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e556c180/src/org.ts#L75">src/org.ts:75</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>To indicate the error occurred on subscribe</p>
-						</div>
-					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="instanceurl" class="tsd-anchor"></a>
+					<h3>instance<wbr>Url</h3>
+					<div class="tsd-signature tsd-kind-icon">instance<wbr>Url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e556c180/src/org.ts#L77">src/org.ts:77</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="loginurl" class="tsd-anchor"></a>
+					<h3>login<wbr>Url</h3>
+					<div class="tsd-signature tsd-kind-icon">login<wbr>Url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e556c180/src/org.ts#L78">src/org.ts:78</a></li>
+						</ul>
+					</aside>
 				</section>
 			</section>
 		</div>
@@ -132,46 +142,20 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-class">
-						<a href="../classes/streamingclient.html" class="tsd-kind-icon">Streaming<wbr>Client</a>
+					<li class="current tsd-kind-interface">
+						<a href="sandboxuserauthresponse.html" class="tsd-kind-icon">Sandbox<wbr>User<wbr>Auth<wbr>Response</a>
 						<ul>
-							<li class=" tsd-kind-enum tsd-parent-kind-class tsd-is-static">
-								<a href="streamingclient.connectionstate.html" class="tsd-kind-icon">Connection<wbr>State</a>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="sandboxuserauthresponse.html#authcode" class="tsd-kind-icon">auth<wbr>Code</a>
 							</li>
-							<li class="current tsd-kind-enum tsd-parent-kind-class tsd-is-static">
-								<a href="streamingclient.timeouterrortype.html" class="tsd-kind-icon">Timeout<wbr>Error<wbr>Type</a>
-								<ul>
-									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-										<a href="streamingclient.timeouterrortype.html#handshake" class="tsd-kind-icon">HANDSHAKE</a>
-									</li>
-									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-										<a href="streamingclient.timeouterrortype.html#subscribe" class="tsd-kind-icon">SUBSCRIBE</a>
-									</li>
-								</ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="sandboxuserauthresponse.html#authusername" class="tsd-kind-icon">auth<wbr>User<wbr>Name</a>
 							</li>
-							<li class=" tsd-kind-class tsd-parent-kind-class">
-								<a href="../classes/streamingclient.defaultoptions.html" class="tsd-kind-icon">Default<wbr>Options</a>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="sandboxuserauthresponse.html#instanceurl" class="tsd-kind-icon">instance<wbr>Url</a>
 							</li>
-							<li class=" tsd-kind-interface tsd-parent-kind-class">
-								<a href="../interfaces/streamingclient.options.html" class="tsd-kind-icon">Options</a>
-							</li>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-								<a href="../classes/streamingclient.html#constructor" class="tsd-kind-icon">constructor</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="../classes/streamingclient.html#handshake" class="tsd-kind-icon">handshake</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
-								<a href="../classes/streamingclient.html#init" class="tsd-kind-icon">init</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="../classes/streamingclient.html#replay" class="tsd-kind-icon">replay</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="../classes/streamingclient.html#subscribe" class="tsd-kind-icon">subscribe</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited tsd-is-static">
-								<a href="../classes/streamingclient.html#create" class="tsd-kind-icon">create</a>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="sandboxuserauthresponse.html#loginurl" class="tsd-kind-icon">login<wbr>Url</a>
 							</li>
 						</ul>
 					</li>
