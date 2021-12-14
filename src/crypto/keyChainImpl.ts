@@ -79,7 +79,7 @@ const _validateProgram = async (
   programPath: string,
   fsIfc: FsIfc,
   isExeIfc: (mode: number, gid: number, uid: number) => boolean
-) => {
+): Promise<void> => {
   let noPermission;
   try {
     const stats = fsIfc.statSync(programPath);
@@ -134,7 +134,7 @@ export class KeychainAccess implements PasswordStore {
   /**
    * Validates the os level program is executable.
    */
-  public async validateProgram() {
+  public async validateProgram(): Promise<void> {
     await _validateProgram(this.osImpl.getProgram(), this.fsIfc, _isExe);
   }
 

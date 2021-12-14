@@ -1,7 +1,9 @@
 {
   "extends": "@salesforce/dev-config/tsconfig-strict",
   "compilerOptions": {
-    "outDir": "./lib"
+    "outDir": "./lib",
+    "resolveJsonModule": true,
+    "rootDir": "./src"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["./src/**/*.ts"]
 }

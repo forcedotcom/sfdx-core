@@ -97,7 +97,8 @@ export class SfdxError extends NamedError {
     return sfdxError;
   }
 
-  public get code() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public get code(): string | undefined | any {
     return this._code || this.name;
   }
 

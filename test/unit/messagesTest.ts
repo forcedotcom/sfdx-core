@@ -6,6 +6,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import { EOL } from 'os';
 import { cloneJson } from '@salesforce/kit';
 import { assert, expect } from 'chai';
 import { Messages } from '../../src/messages';
@@ -65,7 +66,7 @@ describe('Messages', () => {
 
     it('should return single string from array of messages', () => {
       expect(messages.getMessage('manyMsgs', ['blah', 864])).to.equal(
-        'hello blah 864\nworld blah 864\ntest message 2 blah and 864'
+        `hello blah 864${EOL}world blah 864${EOL}test message 2 blah and 864`
       );
     });
 
@@ -172,9 +173,9 @@ describe('Messages', () => {
     });
 
     it('should not remove the "/lib" if dist is already removed', () => {
-      truncatePath = '/var/src/sfdx-core/dist';
-      Messages.importMessagesDirectory('/var/src/sfdx-core/dist/src/utils.js');
-      const expectedMsgDirPath = '/var/src/sfdx-core/dist/messages';
+      truncatePath = path.join('/var', 'src', 'sfdx-core', 'dist');
+      Messages.importMessagesDirectory(path.join('/var', 'src', 'sfdx-core', 'dist', 'src', 'utils.js'));
+      const expectedMsgDirPath = path.join('/var', 'src', 'sfdx-core', 'dist', 'messages');
       expect(readdirSyncStub.firstCall.args[0]).to.equal(expectedMsgDirPath);
       expect(importMessageFileStub.firstCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[0]));
       expect(importMessageFileStub.secondCall.args[1]).to.equal(path.join(expectedMsgDirPath, msgFiles[1]));
