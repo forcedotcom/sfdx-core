@@ -185,29 +185,9 @@ export default class SettingsGenerator {
         const value = getObject(this.settingData, item);
         const typeName = upperFirst(item);
         const fname = typeName.replace('Settings', '');
-        const fileContent = this.createSettingsFileContent(typeName, value as Record<string, unknown>);
+        const fileContent = js2xmlparser.parse(typeName, value);
         this.writer.addToZip(fileContent, path.join(settingsDir, fname + '.settings'));
       }
-    }
-  }
-
-  private createSettingsFileContent(name: string, json: Record<string, unknown>) {
-    if (name === 'OrgPreferenceSettings') {
-      let res =
-        '<?xml version="1.0" encoding="UTF-8"?>\n<OrgPreferenceSettings xmlns="http://soap.sforce.com/2006/04/metadata">';
-      res += Object.keys(json)
-        .map(
-          (pref) =>
-            `<preferences>
-              <settingName>${upperFirst(pref)}</settingName>
-              <settingValue>${get(json, pref)}</settingValue>
-            </preferences>`
-        )
-        .join('\n');
-      res += '\n</OrgPreferenceSettings>';
-      return res;
-    } else {
-      return js2xmlparser.parse(name, json);
     }
   }
 

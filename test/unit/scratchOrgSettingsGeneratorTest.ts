@@ -7,19 +7,15 @@
 
 import * as sinon from 'sinon';
 import { /* assert, */ expect } from 'chai';
-import { stubMethod } from '@salesforce/ts-sinon';
-import { AnyJson } from '@salesforce/ts-types';
 import { Org } from '../../src/org';
 import { sfdc } from '../../src/util/sfdc';
-import { AuthInfo } from '../../src/authInfo';
 import { Connection } from '../../src/connection';
 import { ZipWriter } from '../../src/util/zipWriter';
 import { ScratchOrgInfo } from '../../src/scratchOrgInfoApi';
 import SettingsGenerator from '../../src/scratchOrgSettingsGenerator';
-import { MockTestOrgData, testSetup } from '../../src/testSetup';
+import { MockTestOrgData } from '../../src/testSetup';
 // import { generateScratchOrgInfo, getScratchOrgInfoPayload } from '../../scratchOrgInfoGenerator';
 
-const $$ = testSetup();
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
   LoginUrl: 'https://login.salesforce.com',
   Snapshot: '1234',
@@ -116,111 +112,18 @@ describe('scratchOrgSettingsGenerator', () => {
     });
   });
 
-  describe.skip('deploySettingsViaFolder', () => {
-    let adminTestData: MockTestOrgData;
-    // const scratchOrg = new Org({});
-    let scratchOrg;
-    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-    let addToZipStub: sinon.SinonStub;
-    let finalizeStub: sinon.SinonStub;
-    let getUsernameStub: sinon.SinonStub;
-    let getConnectionStub: sinon.SinonStub;
-    // const connection = sinon.createStubInstance(Connection);
-
-    beforeEach(async () => {
-      adminTestData = new MockTestOrgData();
-      scratchOrg = await Org.create({
-        connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: adminTestData.username }),
-        }),
-      });
-      $$.fakeConnectionRequest = (): Promise<AnyJson> => {
-        return Promise.resolve({});
-      };
-      // const connection = await Connection.create({
-      //   authInfo: await AuthInfo.create({ username: adminTestData.username }),
-      // });
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, path: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(path).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
-      finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-      stubMethod($$.SANDBOX, Connection.prototype, 'query').callsFake((query: string) => {
-        if (query.includes(adminTestData.username)) {
-          return {
-            records: [adminTestData.getMockUserInfo()],
-            totalSize: 1,
-          };
-        }
-      });
-      stubMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig').callsFake(() => {
-        return {};
-      });
-      // stubMethod($$.SANDBOX, Connection.prototype, 'deploy').resolves({ id: '123' });
-      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
-        return Promise.resolve({
-          id: '1',
-        });
-      });
-      stubMethod($$.SANDBOX, Org.prototype, 'refreshAuth').resolves({});
-      // getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
-      // getConnectionStub = sandbox.stub(scratchOrg, 'getConnection').returns(connection);
-    });
-
-    afterEach(() => {
-      sandbox.restore();
-    });
-
-    it('deploys the settings to the org', async () => {
-      const scratchDef = {
-        ...TEMPLATE_SCRATCH_ORG_INFO,
-        settings: {
-          lightningExperienceSettings: {
-            enableS1DesktopEnabled: true,
-          },
-          mobileSettings: {
-            enableS1EncryptedStoragePref2: false,
-          },
-        },
-      };
-      const settings = new SettingsGenerator();
-      await settings.extract(scratchDef);
-      await settings.createDeploy();
-      await settings.deploySettingsViaFolder(scratchOrg, '53.0');
-      expect(getUsernameStub.callCount).to.equal(1);
-      expect(getConnectionStub.callCount).to.equal(1);
-      expect(addToZipStub.callCount).to.equal(2);
-      expect(addToZipStub.firstCall.firstArg).to.be.a('string').and.length.to.be.greaterThan(0);
-      expect(addToZipStub.secondCall.firstArg).to.be.a('string').and.length.to.be.greaterThan(0);
-      expect(finalizeStub.callCount).to.equal(2);
-    });
-  });
-
   describe('deploySettingsViaFolder', () => {
     let adminTestData: MockTestOrgData;
     const scratchOrg = new Org({});
     const deployId = '12345678';
-    // let scratchOrg;
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     let addToZipStub: sinon.SinonStub;
     let finalizeStub: sinon.SinonStub;
     let getUsernameStub: sinon.SinonStub;
     let getConnectionStub: sinon.SinonStub;
-    // const connection = sinon.createStubInstance(Connection);
 
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      // scratchOrg = await Org.create({
-      //   connection: await Connection.create({
-      //     authInfo: await AuthInfo.create({ username: adminTestData.username }),
-      //   }),
-      // });
-      $$.fakeConnectionRequest = (): Promise<AnyJson> => {
-        return Promise.resolve({});
-      };
-      // const connection = await Connection.create({
-      //   authInfo: await AuthInfo.create({ username: adminTestData.username }),
-      // });
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, path: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
         expect(path).to.be.a('string').and.to.have.length.greaterThan(0);
