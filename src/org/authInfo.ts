@@ -573,7 +573,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    *
    * @param options
    */
-  public async setAsDefault(options: { org?: boolean; devHub?: boolean } = { org: true }) {
+  public async setAsDefault(options: { org?: boolean; devHub?: boolean } = { org: true }): Promise<void> {
     let config: Config;
     // if we fail to create the local config, default to the global config
     try {
@@ -601,7 +601,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    *
    * @param alias alias to set
    */
-  public async setAlias(alias: string) {
+  public async setAlias(alias: string): Promise<void> {
     this.globalInfo.aliases.set(alias, this.getUsername());
   }
 

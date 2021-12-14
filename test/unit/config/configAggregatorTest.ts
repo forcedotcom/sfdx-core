@@ -11,7 +11,7 @@ import { ConfigFile } from '../../../src/config/configFile';
 import { OrgConfigProperties } from '../../../src/exported';
 import { testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
-import { Cache } from '../../../lib/util/cache';
+import { Cache } from '../../../src/util/cache';
 
 // Setup the test environment.
 const $$ = testSetup();

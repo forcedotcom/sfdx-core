@@ -256,9 +256,11 @@ describe('Connection', () => {
     const soql = 'TEST_SOQL';
 
     const queryResponse = { totalSize: 5, done: true, records: [] };
-    requestMock.resolves(queryResponse);
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+
+    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
+    stubMethod($$.SANDBOX, conn.tooling, 'request').resolves(queryResponse);
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
 
     $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
@@ -278,8 +280,8 @@ describe('Connection', () => {
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
 
-    stubMethod($$.SANDBOX, conn, 'request').returns(Promise.resolve(queryResponse));
-    stubMethod($$.SANDBOX, conn.tooling, 'request').returns(Promise.resolve(queryResponse));
+    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
+    stubMethod($$.SANDBOX, conn.tooling, 'request').resolves(queryResponse);
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
 
     $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
@@ -288,7 +290,6 @@ describe('Connection', () => {
     expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
-    expect(warningStub.callCount).to.equal(1);
   });
 
   it('autoFetch() should reject the promise upon query error', async () => {

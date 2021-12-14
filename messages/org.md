@@ -6,26 +6,38 @@ The provided dev hub username %s is not a valid dev hub.
 
 No username found.
 
-# NoDevHubFound
+# noDevHubFound
 
 Unable to associate this scratch org with a DevHub.
 
-# DeleteOrgHubError
+# deleteOrgHubError
 
 The Dev Hub org cannot be deleted.
 
-# InsufficientAccessToDelete
+# insufficientAccessToDelete
 
 You do not have the appropriate permissions to delete a scratch org. Please contact your Salesforce admin.
 
-# ScratchOrgNotFound
+# scratchOrgNotFound
 
 Attempting to delete an expired or deleted org
 
-# SandboxDeleteFailed
+# sandboxDeleteFailed
 
 The sandbox org deletion failed with a result of %s.
 
-# SandboxNotFound
+# sandboxNotFound
 
 We can't find a SandboxProcess for the sandbox org %s.
+
+# sandboxInfoCreateFailed
+
+The sandbox org creation failed with a result of %s.
+
+# missingAuthUsername
+
+The sandbox %s does not have an authorized username.
+
+# orgPollingTimeout
+
+Sandbox status is %s; timed out waiting for completion.
