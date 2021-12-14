@@ -10,7 +10,7 @@ import { resolve as resolveUrl } from 'url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
 // @ts-ignore
-import * as Faye from 'sfdx-faye';
+import * as Faye from 'faye';
 import { Logger } from '../logger';
 import { Org } from '../org';
 import { SfdxError, SfdxErrorConfig } from '../sfdxError';
