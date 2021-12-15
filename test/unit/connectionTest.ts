@@ -25,7 +25,7 @@ const TEST_IP = '1.1.1.1';
 
 describe('Connection', () => {
   const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
-
+  let warningStub: sinon.SinonStub;
   let requestMock: sinon.SinonStub;
   let initializeStub: sinon.SinonStub;
 
@@ -34,7 +34,7 @@ describe('Connection', () => {
 
   beforeEach(() => {
     $$.SANDBOXES.CONNECTION.restore();
-    $$.SANDBOX.stub(process, 'emitWarning');
+    warningStub = $$.SANDBOX.stub(process, 'emitWarning');
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
 
     initializeStub = $$.SANDBOX.stub(jsforce.Connection.prototype, 'initialize').returns();
@@ -270,7 +270,7 @@ describe('Connection', () => {
 
     const records = [{ id: 7 }, { id: 8 }, { id: 10 }, { id: 11 }, { id: 12 }];
     const queryResponse = { totalSize: 50000, done: true, records };
-    requestMock.returns(Promise.resolve(queryResponse));
+    requestMock.resolves(queryResponse);
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
@@ -282,21 +282,41 @@ describe('Connection', () => {
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 50000);
   });
 
-  it('tooling.autoFetchQuery() should throw a warning when more than 10k records returned without the config', async () => {
+  it('tooling.autoFetchQuery() should not throw a warning when records is empty', async () => {
     const soql = 'TEST_SOQL';
 
-    const records = [{ id: 7 }, { id: 8 }, { id: 10 }, { id: 11 }, { id: 12 }];
-    const queryResponse = { totalSize: 5, done: true, records };
-    requestMock.returns(Promise.resolve(queryResponse));
+    const queryResponse = { totalSize: 5, done: true, records: [] };
+    requestMock.resolves(queryResponse);
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+
     $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
     await conn.tooling.autoFetchQuery(soql);
 
     expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
+    expect(warningStub.callCount).to.equal(0);
+  });
+
+  it('tooling.autoFetchQuery() should throw a warning when more than 10k records returned without the config', async () => {
+    const soql = 'TEST_SOQL';
+
+    const records = [{ id: 7 }, { id: 8 }, { id: 10 }, { id: 11 }, { id: 12 }];
+    const queryResponse = { totalSize: 5, done: true, records };
+    requestMock.resolves(queryResponse);
+
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+
+    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
+    await conn.tooling.autoFetchQuery(soql);
+
+    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
+    expect(warningStub.callCount).to.equal(1);
   });
 
   it('autoFetch() should reject the promise upon query error', async () => {
@@ -353,7 +373,7 @@ describe('Connection', () => {
   });
 
   it('singleRecordQuery throws on no-records', async () => {
-    requestMock.returns(Promise.resolve({ totalSize: 0, records: [] }));
+    requestMock.resolves({ totalSize: 0, records: [] });
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
     try {
@@ -365,7 +385,7 @@ describe('Connection', () => {
   });
 
   it('singleRecordQuery throws on multiple records', async () => {
-    requestMock.returns(Promise.resolve({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] }));
+    requestMock.resolves({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] });
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
     try {
@@ -377,7 +397,7 @@ describe('Connection', () => {
   });
 
   it('singleRecordQuery throws on multiple records with options', async () => {
-    requestMock.returns(Promise.resolve({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] }));
+    requestMock.resolves({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] });
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
     try {
@@ -394,7 +414,7 @@ describe('Connection', () => {
       id: '123',
       name: 'testName',
     };
-    requestMock.returns(Promise.resolve({ totalSize: 1, records: [mockSingleRecord] }));
+    requestMock.resolves({ totalSize: 1, records: [mockSingleRecord] });
     const soql = 'TEST_SOQL';
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });

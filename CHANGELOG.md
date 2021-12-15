@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.33.0](https://github.com/forcedotcom/sfdx-core/compare/v2.32.0...v2.33.0) (2021-12-14)
+
+### Features
+
+- sandbox creation ([314dcf1](https://github.com/forcedotcom/sfdx-core/commit/314dcf164d93bd0e3a5f4763a4dfcdde7d0cb14a))
+
+## [2.32.0](https://github.com/forcedotcom/sfdx-core/compare/v2.31.1...v2.32.0) (2021-12-14)
+
+### Features
+
+- switch sfdx-faye with faye ([a0545e5](https://github.com/forcedotcom/sfdx-core/commit/a0545e57d5041c97e499f284afbd7fcb16cf2247))
+
+### Bug Fixes
+
+- no maxquery warning when records.length is 0 ([758f912](https://github.com/forcedotcom/sfdx-core/commit/758f912a23bd3e9f8d4f854f3e07682dd4d4c4aa))
+
 ### [2.31.1](https://github.com/forcedotcom/sfdx-core/compare/v2.31.0...v2.31.1) (2021-12-06)
 
 ## [2.31.0](https://github.com/forcedotcom/sfdx-core/compare/v2.30.1...v2.31.0) (2021-11-30)
