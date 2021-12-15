@@ -257,7 +257,6 @@ describe('Messages', () => {
       $$.SANDBOX.stub(fs, 'readFileSync').returns('# myKey\n* my value 1\n* my value 2');
 
       const messages = loaderFn(Messages.getLocale());
-      expect(messages.getMessage('myKey')).to.equal('my value 1\nmy value 2');
       expect(messages.getMessages('myKey')).to.deep.equal(['my value 1', 'my value 2']);
     });
 
@@ -266,14 +265,13 @@ describe('Messages', () => {
       $$.SANDBOX.stub(fs, 'readFileSync').returns(`
 # myKey
 * my value 1
-  
+
   more value 1
 - my value 2
   more value 2
 `);
 
       const messages = loaderFn(Messages.getLocale());
-      expect(messages.getMessage('myKey')).to.equal('my value 1\nmore value 1\nmy value 2\nmore value 2');
       // markdown will ignore the extra line in the same list item, so we should too.
       expect(messages.getMessages('myKey')).to.deep.equal(['my value 1\nmore value 1', 'my value 2\nmore value 2']);
     });
