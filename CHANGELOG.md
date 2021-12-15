@@ -4,19 +4,17 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [3.7.2](https://github.com/forcedotcom/sfdx-core/compare/v3.7.1...v3.7.2) (2021-10-28)
 
-
 ### Bug Fixes
 
-* make @types/sfdx-faye a dependendcy ([683680b](https://github.com/forcedotcom/sfdx-core/commit/683680b8133048f71d25ef4df7aa24d9700dc5e8))
+- make @types/sfdx-faye a dependendcy ([683680b](https://github.com/forcedotcom/sfdx-core/commit/683680b8133048f71d25ef4df7aa24d9700dc5e8))
 
 ### [3.7.1](https://github.com/forcedotcom/sfdx-core/compare/v3.7.0...v3.7.1) (2021-10-28)
 
 ## [3.7.0](https://github.com/forcedotcom/sfdx-core/compare/v3.6.6...v3.7.0) (2021-10-12)
 
-
 ### Features
 
-* use jsforce v2 ([#457](https://github.com/forcedotcom/sfdx-core/issues/457)) ([4a9094e](https://github.com/forcedotcom/sfdx-core/commit/4a9094e958288cdcc6c69f5d87b10a70a437d8e9))
+- use jsforce v2 ([#457](https://github.com/forcedotcom/sfdx-core/issues/457)) ([4a9094e](https://github.com/forcedotcom/sfdx-core/commit/4a9094e958288cdcc6c69f5d87b10a70a437d8e9))
 
 ### [3.6.6](https://github.com/forcedotcom/sfdx-core/compare/v3.6.5...v3.6.6) (2021-10-08)
 
@@ -221,6 +219,18 @@ All notable changes to this project will be documented in this file. See [standa
 
 - add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([579998b](https://github.com/forcedotcom/sfdx-core/commit/579998b6ee70dbb9772e65896bbabf6d812aae23))
 - default to reading files from cache ([12b5930](https://github.com/forcedotcom/sfdx-core/commit/12b59301df96395c4edcbfb0816dbddd45af95db))
+
+### [2.33.1](https://github.com/forcedotcom/sfdx-core/compare/v2.33.0...v2.33.1) (2021-12-15)
+
+### Bug Fixes
+
+- faye doesn't use custom stuff passed it ([b1cefc7](https://github.com/forcedotcom/sfdx-core/commit/b1cefc76afde7f0dd56ed72b5539a47c118eef63))
+
+## [2.33.0](https://github.com/forcedotcom/sfdx-core/compare/v2.32.0...v2.33.0) (2021-12-14)
+
+### Features
+
+- sandbox creation ([314dcf1](https://github.com/forcedotcom/sfdx-core/commit/314dcf164d93bd0e3a5f4763a4dfcdde7d0cb14a))
 
 ## [2.32.0](https://github.com/forcedotcom/sfdx-core/compare/v2.31.1...v2.32.0) (2021-12-14)
 
