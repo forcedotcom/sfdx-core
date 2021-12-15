@@ -24,7 +24,7 @@ describe('util/sfdcUrl', () => {
 
     it('should return false if given an invalid url', () => {
       expect(SfdcUrl.isValidUrl('salesforce.com')).to.be.false;
-    })
+    });
   });
 
   describe('toLightningdomain', () => {
