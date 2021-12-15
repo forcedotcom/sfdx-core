@@ -515,7 +515,6 @@ export namespace StreamingClient {
     public handshakeTimeout: Duration;
     public channel: string;
     public streamingImpl: StreamingClientIfc;
-    private envDep: Env;
 
     /**
      * Constructor for DefaultStreamingOptions
@@ -528,6 +527,10 @@ export namespace StreamingClient {
      * @see {@link StatusResult}
      */
     public constructor(org: Org, channel: string, streamProcessor: StreamProcessor, envDep: Env = env) {
+      if (envDep) {
+        const logger = Logger.childFromRoot('StreamingClient');
+        logger.warn('envDep is deprecated');
+      }
       if (!streamProcessor) {
         throw new SfdxError('Missing stream processor', 'MissingArg');
       }
@@ -540,7 +543,6 @@ export namespace StreamingClient {
         throw new SfdxError('Missing streaming channel', 'MissingArg');
       }
 
-      this.envDep = envDep;
       this.org = org;
       this.apiVersion = org.getConnection().getApiVersion();
 
@@ -558,21 +560,7 @@ export namespace StreamingClient {
       this.handshakeTimeout = StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT;
       this.streamingImpl = {
         getCometClient: (url: string): CometClient => {
-          const x = this.envDep.getString(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS);
-          return new Faye.Client(url, {
-            // This parameter ensures all cookies regardless of path are included in subsequent requests. Otherwise
-            // only cookies with the path "/" and "/cometd" are known to be included.
-            // if SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS is *not* set the default to true.
-            cookiesAllowAllPaths:
-              x === undefined
-                ? true
-                : this.envDep.getBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS),
-            // WARNING - The allows request/response exchanges to be written to the log instance which includes
-            // header and cookie information.
-            enableRequestResponseLogging: this.envDep.getBoolean(
-              StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING
-            ),
-          });
+          return new Faye.Client(url);
         },
         setLogger: (logLine: (message: string) => void): void => {
           Faye.logger = {};
