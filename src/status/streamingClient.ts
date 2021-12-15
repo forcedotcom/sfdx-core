@@ -10,21 +10,13 @@
 import { resolve as resolveUrl } from 'url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
-import * as Faye from 'sfdx-faye';
-import type { Client as CometClient, Message, StreamProcessor, CometSubscription, StatusResult } from 'sfdx-faye';
+import * as Faye from 'faye';
 import { Logger } from '../logger';
 import { Org } from '../org/org';
 import { SfdxError } from '../sfdxError';
 import { Messages } from '../messages';
-
-export {
-  Client as CometClient,
-  Message,
-  StreamProcessor,
-  CometSubscription,
-  StatusResult,
-  StreamingExtension,
-} from 'sfdx-faye';
+import { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor } from './types';
+export { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor };
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'streaming', [
@@ -481,12 +473,14 @@ export namespace StreamingClient {
       this.handshakeTimeout = StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT;
       this.streamingImpl = {
         getCometClient: (url: string): CometClient => {
+          // @ts-ignore
           return new Faye.Client(url);
         },
         setLogger: (logLine: (message: string) => void): void => {
           // @ts-ignore
           Faye.logger = {};
           ['info', 'error', 'fatal', 'warn', 'debug'].forEach((element) => {
+            // @ts-ignore
             set(Faye.logger, element, logLine);
           });
         },
