@@ -331,8 +331,7 @@ export abstract class BaseConfigStore<
 
   // Allows extended classes the ability to override the set method. i.e. maybe they want
   // nested object set from kit.
-  // NOTE: Key and value must stay string and value to be reliably overwritten.
-  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue) {
+  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
     set(contents, key, value);
   }
 

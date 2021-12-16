@@ -10,7 +10,7 @@ import { Env, Duration } from '@salesforce/kit';
 import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { Logger } from '../logger';
-
+import { Lifecycle } from '../lifecycleEvents';
 export class SfdcUrl extends URL {
   /**
    * Salesforce URLs
@@ -24,7 +24,7 @@ export class SfdcUrl extends URL {
     super(input.toString(), base);
     if (this.protocol !== 'https:' && !SfdcUrl.cache.has(this.origin)) {
       SfdcUrl.cache.add(this.origin);
-      process.emitWarning('Using insecure protocol: ' + this.protocol + ' on url: ' + this.origin);
+      void Lifecycle.getInstance().emitWarning(`Using insecure protocol: ${this.protocol} on url: ${this.origin}`);
     }
   }
 
@@ -125,18 +125,24 @@ export class SfdcUrl extends URL {
     return LOCAL_PARTS.some((part) => this.origin.includes(part));
   }
 
+  public toLightningDomain(): string {
+    if (this.origin.endsWith('.my.salesforce.mil')) {
+      return this.origin.replace('.my.salesforce.mil', '.lightning.crmforce.mil');
+    }
+    // all non-mil domains
+    return `https://${ensureArray(/https?:\/\/([^.]*)/.exec(this.origin))
+      .slice(1, 2)
+      .pop()}.lightning.force.com`;
+  }
   /**
    * Tests whether this url has the lightning domain extension
-   * This method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again untill timeout
+   * This method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again until timeout
    * If SFDX_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
    *
    * @returns {Promise<true | never>} The resolved ip address or never
    * @throws {@link SfdxError} If can't resolve DNS.
    */
   public async checkLightningDomain(): Promise<true | never> {
-    const domain = `https://${ensureArray(/https?:\/\/([^.]*)/.exec(this.origin))
-      .slice(1, 2)
-      .pop()}.lightning.force.com`;
     const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));
     const timeout = new Duration(quantity, Duration.Unit.SECONDS);
 
@@ -145,7 +151,7 @@ export class SfdcUrl extends URL {
     }
 
     const resolver = await MyDomainResolver.create({
-      url: new URL(domain),
+      url: new URL(this.toLightningDomain()),
       timeout,
       frequency: new Duration(1, Duration.Unit.SECONDS),
     });
@@ -181,6 +187,7 @@ export class SfdcUrl extends URL {
   public isSandboxUrl(createdOrgInstance?: string): boolean {
     return (
       (createdOrgInstance && /^cs|s$/gi.test(createdOrgInstance)) ||
+      this.origin.endsWith('sandbox.my.salesforce.mil') ||
       /sandbox\.my\.salesforce\.com/gi.test(this.origin) || // enhanced domains >= 230
       /(cs[0-9]+(\.my|)\.salesforce\.com)/gi.test(this.origin) || // my domains on CS instance OR CS instance without my domain
       /([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com

@@ -41,7 +41,7 @@ An attempt to refresh the authentication token failed with a 'Data Not Found Err
 
 # namedOrgNotFound
 
-No AuthInfo found for name %s.
+No authorization information found for %s.
 
 # noAliasesFound
 

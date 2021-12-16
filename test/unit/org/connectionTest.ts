@@ -22,7 +22,7 @@ const TEST_IP = '1.1.1.1';
 
 describe('Connection', () => {
   const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
-
+  let warningStub: sinon.SinonStub;
   let requestMock: sinon.SinonStub;
 
   let testAuthInfo: StubbedType<AuthInfo>;
@@ -30,7 +30,7 @@ describe('Connection', () => {
 
   beforeEach(() => {
     $$.SANDBOXES.CONNECTION.restore();
-    $$.SANDBOX.stub(process, 'emitWarning');
+    warningStub = $$.SANDBOX.stub(process, 'emitWarning');
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
 
     requestMock = $$.SANDBOX.stub(JSForceConnection.prototype, 'request')
@@ -239,7 +239,7 @@ describe('Connection', () => {
 
     const records = [{ id: 7 }, { id: 8 }, { id: 10 }, { id: 11 }, { id: 12 }];
     const queryResponse = { totalSize: 50000, done: true, records };
-    requestMock.returns(Promise.resolve(queryResponse));
+    requestMock.resolves(queryResponse);
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
     stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
@@ -252,6 +252,26 @@ describe('Connection', () => {
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 50000);
   });
 
+  it('tooling.autoFetchQuery() should not throw a warning when records is empty', async () => {
+    const soql = 'TEST_SOQL';
+
+    const queryResponse = { totalSize: 5, done: true, records: [] };
+
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+
+    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
+    stubMethod($$.SANDBOX, conn.tooling, 'request').resolves(queryResponse);
+    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+
+    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
+    await conn.tooling.autoFetchQuery(soql);
+
+    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
+    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
+    expect(warningStub.callCount).to.equal(0);
+  });
+
   it('tooling.autoFetchQuery() should throw a warning when more than 10k records returned without the config', async () => {
     const soql = 'TEST_SOQL';
 
@@ -260,9 +280,10 @@ describe('Connection', () => {
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
 
-    stubMethod($$.SANDBOX, conn, 'request').returns(Promise.resolve(queryResponse));
-    stubMethod($$.SANDBOX, conn.tooling, 'request').returns(Promise.resolve(queryResponse));
+    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
+    stubMethod($$.SANDBOX, conn.tooling, 'request').resolves(queryResponse);
     const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+
     $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
     await conn.tooling.autoFetchQuery(soql);
 
@@ -337,7 +358,7 @@ describe('Connection', () => {
   });
 
   it('singleRecordQuery throws on multiple records', async () => {
-    requestMock.returns(Promise.resolve({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] }));
+    requestMock.resolves({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] });
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
     try {
@@ -349,7 +370,7 @@ describe('Connection', () => {
   });
 
   it('singleRecordQuery throws on multiple records with options', async () => {
-    requestMock.returns(Promise.resolve({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] }));
+    requestMock.resolves({ totalSize: 2, records: [{ id: 1 }, { id: 2 }] });
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
     try {
@@ -366,7 +387,7 @@ describe('Connection', () => {
       id: '123',
       name: 'testName',
     };
-    requestMock.returns(Promise.resolve({ totalSize: 1, records: [mockSingleRecord] }));
+    requestMock.resolves({ totalSize: 1, records: [mockSingleRecord] });
     const soql = 'TEST_SOQL';
 
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });

@@ -12,7 +12,7 @@ import * as pathImport from 'path';
 import { URL } from 'url';
 import { cloneJson, Duration, env, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
-import { AnyFunction, AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
+import { AnyJson, AnyFunction, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { OAuth2, OAuth2Config } from 'jsforce';
 import { match } from 'sinon';
@@ -61,6 +61,17 @@ describe('AuthInfo No fs mock', () => {
       assert.fail(`should have thrown error with name: ${expectedErrorName}`);
     } catch (e) {
       expect(e).to.have.property('name', expectedErrorName);
+    }
+  });
+
+  it('invalid devhub username', async () => {
+    const expectedErrorName = 'NamedOrgNotFoundError';
+    try {
+      await AuthInfo.create({ username: 'does_not_exist@gb.com', isDevHub: true });
+      assert.fail(`should have thrown error with name: ${expectedErrorName}`);
+    } catch (e) {
+      expect(e).to.have.property('name', expectedErrorName);
+      expect(e).to.have.property('message', 'No authorization information found for does_not_exist@gb.com.');
     }
   });
 });

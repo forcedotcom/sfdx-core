@@ -92,7 +92,7 @@ describe('KeyChainImpl Tests', () => {
           expect(error.name).to.equal('MissingCredentialProgramError');
         }
       });
-      it('program access', async () => {
+      (process.platform !== 'win32' ? it : it.skip)('program access', async () => {
         // @ts-ignore
         $$.SANDBOX.stub(fs, 'statSync').returns(true);
         const access = new KeychainAccess(testImpl, fs);

@@ -39,6 +39,7 @@ import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { sfdc } from '../util/sfdc';
 import { Messages } from '../messages';
+import { Lifecycle } from '../lifecycleEvents';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'connection', [
@@ -167,7 +168,8 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
           }`
         );
       }
-    } catch (e) {
+    } catch (err) {
+      const e = err as Error;
       if (e.name === DNS_ERROR_NAME) {
         throw e;
       }
@@ -426,8 +428,8 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
 
     const query = await this.query<T>(soql, options);
 
-    if (query.totalSize > query.records.length) {
-      process.emitWarning(
+    if (query.records.length && query.totalSize > query.records.length) {
+      void Lifecycle.getInstance().emitWarning(
         `The query result is missing ${
           query.totalSize - query.records.length
         } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${

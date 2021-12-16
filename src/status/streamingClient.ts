@@ -10,21 +10,13 @@
 import { resolve as resolveUrl } from 'url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
-import * as Faye from 'sfdx-faye';
-import type { Client as CometClient, Message, StreamProcessor, CometSubscription, StatusResult } from 'sfdx-faye';
+import * as Faye from 'faye';
 import { Logger } from '../logger';
 import { Org } from '../org/org';
 import { SfdxError } from '../sfdxError';
 import { Messages } from '../messages';
-
-export {
-  Client as CometClient,
-  Message,
-  StreamProcessor,
-  CometSubscription,
-  StatusResult,
-  StreamingExtension,
-} from 'sfdx-faye';
+import { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor } from './types';
+export { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor };
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'streaming', [
@@ -436,7 +428,6 @@ export namespace StreamingClient {
     public handshakeTimeout: Duration;
     public channel: string;
     public streamingImpl: StreamingClientIfc;
-    private envDep: Env;
 
     /**
      * Constructor for DefaultStreamingOptions
@@ -449,6 +440,10 @@ export namespace StreamingClient {
      * @see {@link StatusResult}
      */
     public constructor(org: Org, channel: string, streamProcessor: StreamProcessor, envDep: Env = env) {
+      if (envDep) {
+        const logger = Logger.childFromRoot('StreamingClient');
+        logger.warn('envDep is deprecated');
+      }
       if (!streamProcessor) {
         throw new SfdxError('Missing stream processor', 'MissingArg');
       }
@@ -461,7 +456,6 @@ export namespace StreamingClient {
         throw new SfdxError('Missing streaming channel', 'MissingArg');
       }
 
-      this.envDep = envDep;
       this.org = org;
       this.apiVersion = org.getConnection().getApiVersion();
 
@@ -479,26 +473,14 @@ export namespace StreamingClient {
       this.handshakeTimeout = StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT;
       this.streamingImpl = {
         getCometClient: (url: string): CometClient => {
-          const x = this.envDep.getString(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS);
-          return new Faye.Client(url, {
-            // This parameter ensures all cookies regardless of path are included in subsequent requests. Otherwise
-            // only cookies with the path "/" and "/cometd" are known to be included.
-            // if SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS is *not* set the default to true.
-            cookiesAllowAllPaths:
-              x === undefined
-                ? true
-                : this.envDep.getBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS),
-            // WARNING - The allows request/response exchanges to be written to the log instance which includes
-            // header and cookie information.
-            enableRequestResponseLogging: this.envDep.getBoolean(
-              StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING
-            ),
-          });
+          // @ts-ignore
+          return new Faye.Client(url);
         },
         setLogger: (logLine: (message: string) => void): void => {
           // @ts-ignore
           Faye.logger = {};
           ['info', 'error', 'fatal', 'warn', 'debug'].forEach((element) => {
+            // @ts-ignore
             set(Faye.logger, element, logLine);
           });
         },

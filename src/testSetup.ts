@@ -231,8 +231,9 @@ function defaultFakeConnectionRequest(): Promise<AnyJson> {
  * ```
  * @param sinon
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const instantiateContext = (sinon?: any) => {
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+export const instantiateContext = (sinon?: any): TestContext => {
   if (!sinon) {
     try {
       sinon = require('sinon');
@@ -469,7 +470,7 @@ export const stubContext = (testContext: TestContext) => {
  * ```
  * @param testContext
  */
-export const restoreContext = (testContext: TestContext) => {
+export const restoreContext = (testContext: TestContext): void => {
   testContext.SANDBOX.restore();
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
@@ -652,7 +653,7 @@ export class StreamingMockCometClient extends CometClient {
    * @param {StreamingMockCometSubscriptionOptions} options Extends the StreamingClient options.
    */
   public constructor(options: StreamingMockCometSubscriptionOptions) {
-    super(options.url);
+    super();
     this.options = options;
     if (!this.options.messagePlaylist) {
       this.options.messagePlaylist = [{ id: this.options.id }];
@@ -734,11 +735,11 @@ export class MockTestOrgData {
   public userId: string;
   public redirectUri: string;
 
-  public constructor(id: string = uniqid()) {
+  public constructor(id: string = uniqid(), options?: { username: string }) {
     this.testId = id;
     this.userId = `user_id_${this.testId}`;
     this.orgId = `${this.testId}`;
-    this.username = `admin_${this.testId}@gb.org`;
+    this.username = options?.username || `admin_${this.testId}@gb.org`;
     this.loginUrl = `http://login.${this.testId}.salesforce.com`;
     this.instanceUrl = `http://instance.${this.testId}.salesforce.com`;
     this.clientId = `${this.testId}/client_id`;

@@ -7,10 +7,9 @@
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { SinonSpyCall } from 'sinon';
-import { Duration, Env } from '@salesforce/kit';
+import { Duration } from '@salesforce/kit';
 import { get, JsonMap } from '@salesforce/ts-types';
-import * as Faye from 'sfdx-faye';
-import { CometClient, StreamingClient, StatusResult } from '../../../src/status/streamingClient';
+import { CometClient, StatusResult, StreamingClient } from '../../../src/status/streamingClient';
 
 import { Connection } from '../../../src/org/connection';
 import { Crypto } from '../../../src/crypto/crypto';
@@ -106,63 +105,6 @@ describe('streaming client tests', () => {
         completed: true,
       };
     };
-
-    let env: Env;
-
-    beforeEach(() => {
-      env = new Env({});
-    });
-
-    function getStub(org: Org): sinon.SinonStub {
-      const stub = $$.SANDBOX.stub(Faye, 'Client');
-
-      const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
-        org,
-        MOCK_TOPIC,
-        streamProcessor,
-        env
-      );
-
-      options.streamingImpl.getCometClient('http://example.com');
-      return stub;
-    }
-
-    it('expect default options', async () => {
-      const org: Org = await Org.create({ aliasOrUsername: username });
-      const stub = getStub(org);
-
-      expect(stub.args[0]).to.not.be.undefined;
-      expect(stub.args[0]).to.have.length(2);
-      const clientOptions = stub.args[0][1];
-      expect(clientOptions).to.have.property('cookiesAllowAllPaths', true);
-      expect(clientOptions).to.have.property('enableRequestResponseLogging', false);
-    });
-
-    it('set enableRequestResponseLogging', async () => {
-      env.setBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_REQUEST_RESPONSE_LOGGING, true);
-
-      const org: Org = await Org.create({ aliasOrUsername: username });
-      const stub = getStub(org);
-
-      expect(stub.args[0]).to.not.be.undefined;
-      expect(stub.args[0]).to.have.length(2);
-
-      const clientOptions = stub.args[0][1];
-      expect(clientOptions).to.have.property('enableRequestResponseLogging', true);
-    });
-
-    it('unset cookiesAllowAllPaths', async () => {
-      env.setBoolean(StreamingClient.DefaultOptions.SFDX_ENABLE_FAYE_COOKIES_ALLOW_ALL_PATHS, true);
-
-      const org: Org = await Org.create({ aliasOrUsername: username });
-      const stub = getStub(org);
-
-      expect(stub.args[0]).to.not.be.undefined;
-      expect(stub.args[0]).to.have.length(2);
-
-      const clientOptions = stub.args[0][1];
-      expect(clientOptions).to.have.property('cookiesAllowAllPaths', true);
-    });
 
     it('bogus apiVersion', async () => {
       const org: Org = await Org.create({ aliasOrUsername: username });

@@ -209,7 +209,7 @@ describe('SfdxProject', () => {
       const project = await SfdxProject.resolve();
       expect(project.getPath()).to.equal(projectPath);
       const sfdxProject = await project.retrieveSfdxProjectJson();
-      expect(sfdxProject.getPath()).to.equal(`${projectPath}/${SfdxProjectJson.getFileName()}`);
+      expect(sfdxProject.getPath()).to.equal(`${projectPath}${sep}${SfdxProjectJson.getFileName()}`);
     });
     it('with working directory throws with no sfdx-project.json', async () => {
       $$.SANDBOXES.PROJECT.restore();
@@ -223,11 +223,11 @@ describe('SfdxProject', () => {
     });
     it('with path', async () => {
       $$.SANDBOXES.PROJECT.restore();
-      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').resolves('/path');
-      const project = await SfdxProject.resolve('/path');
-      expect(project.getPath()).to.equal('/path');
+      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').resolves(projectPath);
+      const project = await SfdxProject.resolve(projectPath);
+      expect(project.getPath()).to.equal(projectPath);
       const sfdxProject = await project.retrieveSfdxProjectJson();
-      expect(sfdxProject.getPath()).to.equal(`/path/${SfdxProjectJson.getFileName()}`);
+      expect(sfdxProject.getPath()).to.equal(`${projectPath}${sep}${SfdxProjectJson.getFileName()}`);
     });
     it('with path in project', async () => {
       $$.SANDBOXES.PROJECT.restore();
@@ -254,11 +254,11 @@ describe('SfdxProject', () => {
   describe('getInstance', () => {
     it('with path', async () => {
       $$.SANDBOXES.PROJECT.restore();
-      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPathSync').returns('/path');
-      const project = SfdxProject.getInstance('/path');
-      expect(project.getPath()).to.equal('/path');
+      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPathSync').returns(projectPath);
+      const project = SfdxProject.getInstance(projectPath);
+      expect(project.getPath()).to.equal(projectPath);
       const sfdxProject = await project.retrieveSfdxProjectJson();
-      expect(sfdxProject.getPath()).to.equal(`/path/${SfdxProjectJson.getFileName()}`);
+      expect(sfdxProject.getPath()).to.equal(`${projectPath}${sep}${SfdxProjectJson.getFileName()}`);
     });
     it('with path in project', async () => {
       $$.SANDBOXES.PROJECT.restore();

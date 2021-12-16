@@ -6,10 +6,16 @@
  */
 import { expect } from 'chai';
 import { EnvVars } from '../../../src/config/envVars';
+import { Global } from '../../../src/global';
 import { testSetup } from '../../../src/testSetup';
 
 describe('envVars', () => {
   const testEnvVars = ['foo', 'SFDX_ACCESS_TOKEN', 'SF_ACCESS_TOKEN', 'SF_SFDX_INTEROPERABILITY'];
+
+  beforeEach(() => {
+    Global.SFDX_INTEROPERABILITY = true;
+  });
+
   afterEach(() => {
     for (const envVar of testEnvVars) {
       delete process.env[envVar];

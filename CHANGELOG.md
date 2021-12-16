@@ -4,19 +4,17 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [3.7.2](https://github.com/forcedotcom/sfdx-core/compare/v3.7.1...v3.7.2) (2021-10-28)
 
-
 ### Bug Fixes
 
-* make @types/sfdx-faye a dependendcy ([683680b](https://github.com/forcedotcom/sfdx-core/commit/683680b8133048f71d25ef4df7aa24d9700dc5e8))
+- make @types/sfdx-faye a dependendcy ([683680b](https://github.com/forcedotcom/sfdx-core/commit/683680b8133048f71d25ef4df7aa24d9700dc5e8))
 
 ### [3.7.1](https://github.com/forcedotcom/sfdx-core/compare/v3.7.0...v3.7.1) (2021-10-28)
 
 ## [3.7.0](https://github.com/forcedotcom/sfdx-core/compare/v3.6.6...v3.7.0) (2021-10-12)
 
-
 ### Features
 
-* use jsforce v2 ([#457](https://github.com/forcedotcom/sfdx-core/issues/457)) ([4a9094e](https://github.com/forcedotcom/sfdx-core/commit/4a9094e958288cdcc6c69f5d87b10a70a437d8e9))
+- use jsforce v2 ([#457](https://github.com/forcedotcom/sfdx-core/issues/457)) ([4a9094e](https://github.com/forcedotcom/sfdx-core/commit/4a9094e958288cdcc6c69f5d87b10a70a437d8e9))
 
 ### [3.6.6](https://github.com/forcedotcom/sfdx-core/compare/v3.6.5...v3.6.6) (2021-10-08)
 
@@ -221,6 +219,81 @@ All notable changes to this project will be documented in this file. See [standa
 
 - add GlobalInfo config file ([#397](https://github.com/forcedotcom/sfdx-core/issues/397)) ([579998b](https://github.com/forcedotcom/sfdx-core/commit/579998b6ee70dbb9772e65896bbabf6d812aae23))
 - default to reading files from cache ([12b5930](https://github.com/forcedotcom/sfdx-core/commit/12b59301df96395c4edcbfb0816dbddd45af95db))
+
+### [2.33.1](https://github.com/forcedotcom/sfdx-core/compare/v2.33.0...v2.33.1) (2021-12-15)
+
+### Bug Fixes
+
+- faye doesn't use custom stuff passed it ([b1cefc7](https://github.com/forcedotcom/sfdx-core/commit/b1cefc76afde7f0dd56ed72b5539a47c118eef63))
+
+## [2.33.0](https://github.com/forcedotcom/sfdx-core/compare/v2.32.0...v2.33.0) (2021-12-14)
+
+### Features
+
+- sandbox creation ([314dcf1](https://github.com/forcedotcom/sfdx-core/commit/314dcf164d93bd0e3a5f4763a4dfcdde7d0cb14a))
+
+## [2.32.0](https://github.com/forcedotcom/sfdx-core/compare/v2.31.1...v2.32.0) (2021-12-14)
+
+### Features
+
+- switch sfdx-faye with faye ([a0545e5](https://github.com/forcedotcom/sfdx-core/commit/a0545e57d5041c97e499f284afbd7fcb16cf2247))
+
+### Bug Fixes
+
+- no maxquery warning when records.length is 0 ([758f912](https://github.com/forcedotcom/sfdx-core/commit/758f912a23bd3e9f8d4f854f3e07682dd4d4c4aa))
+
+### [2.31.1](https://github.com/forcedotcom/sfdx-core/compare/v2.31.0...v2.31.1) (2021-12-06)
+
+## [2.31.0](https://github.com/forcedotcom/sfdx-core/compare/v2.30.1...v2.31.0) (2021-11-30)
+
+### Features
+
+- bump version of jsforce ([7d89024](https://github.com/forcedotcom/sfdx-core/commit/7d89024f593968c031af22ac817efc26d00fcd54))
+
+### [2.30.1](https://github.com/forcedotcom/sfdx-core/compare/v2.30.0...v2.30.1) (2021-11-30)
+
+### Bug Fixes
+
+- better output for authUrl errors ([f3ec729](https://github.com/forcedotcom/sfdx-core/commit/f3ec7298bdbd3194d3d14bfea09f47f413669376))
+
+## [2.30.0](https://github.com/forcedotcom/sfdx-core/compare/v2.29.0...v2.30.0) (2021-11-25)
+
+### Features
+
+- delete scratch orgs and sandboxes ([#491](https://github.com/forcedotcom/sfdx-core/issues/491)) ([468c348](https://github.com/forcedotcom/sfdx-core/commit/468c348f0ecc69ddeea02927bf7a26ca660a86ca))
+
+## [2.29.0](https://github.com/forcedotcom/sfdx-core/compare/v2.28.4...v2.29.0) (2021-11-17)
+
+### Features
+
+- cleans up old listeners from upgraded instance ([e3f2d69](https://github.com/forcedotcom/sfdx-core/commit/e3f2d69ccd5c096d37addb1b982e19354175f11a))
+- use warnings instead of process in sfdx-core ([c1f7e98](https://github.com/forcedotcom/sfdx-core/commit/c1f7e98f6b19d57da1a2ee0cdf58e449079f0ee7))
+- warning and telemetry events ([80a8039](https://github.com/forcedotcom/sfdx-core/commit/80a8039e2f686d973ddbc24c9a2980fb93928d13))
+- warning and telemetry events ([a04b293](https://github.com/forcedotcom/sfdx-core/commit/a04b29355c8ca6c7e37e071ccc159aff5e5e9ca0))
+
+### Bug Fixes
+
+- transfer listeners when upgrading the global instance to newer version ([0a40831](https://github.com/forcedotcom/sfdx-core/commit/0a408317c132548771ced0fe196178d2e9c76232))
+
+### [2.28.4](https://github.com/forcedotcom/sfdx-core/compare/v2.28.3...v2.28.4) (2021-11-10)
+
+### Bug Fixes
+
+- bump jsforce types and run unit tests on Windows ([#485](https://github.com/forcedotcom/sfdx-core/issues/485)) ([3952c8f](https://github.com/forcedotcom/sfdx-core/commit/3952c8fe248531a0597477ed12240f611048caba))
+
+### [2.28.3](https://github.com/forcedotcom/sfdx-core/compare/v2.28.2...v2.28.3) (2021-11-08)
+
+### Bug Fixes
+
+- fix unit test ([d903c04](https://github.com/forcedotcom/sfdx-core/commit/d903c04e5f3e4f01fccb3f00b91560c443013ddf))
+- force new release ([124bb74](https://github.com/forcedotcom/sfdx-core/commit/124bb744c5ecc28cb8babf285c6d8c3032eb7ef6))
+- improve error message when providing an invalid username ([2ab4bbd](https://github.com/forcedotcom/sfdx-core/commit/2ab4bbdefd962283d88ccb735de88c88fe189d39))
+
+### [2.28.2](https://github.com/forcedotcom/sfdx-core/compare/v2.28.1...v2.28.2) (2021-10-13)
+
+### Bug Fixes
+
+- support for .mil sandboxes ([9ef35c7](https://github.com/forcedotcom/sfdx-core/commit/9ef35c7b1ef0fe974c3bd3b89b862a436e00f7d9))
 
 ### [2.28.1](https://github.com/forcedotcom/sfdx-core/compare/v2.28.0...v2.28.1) (2021-10-06)
 
