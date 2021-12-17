@@ -24,8 +24,8 @@ const badPackageId = '03iB0000000cWwnIAE';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
 
-const sandbox = sinon.createSandbox();
 describe('ancestorIds', () => {
+  const sandbox = sinon.createSandbox();
   beforeEach(() => {
     stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
     stubMethod(sandbox, Org.prototype, 'getConnection').returns(Connection.prototype);
@@ -301,6 +301,7 @@ describe('ancestorIds', () => {
 });
 
 describe('throws on singleRecordQuery', () => {
+  const sandbox = sinon.createSandbox();
   beforeEach(() => {
     stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
     stubMethod(sandbox, Org.prototype, 'getConnection').returns(Connection.prototype);
@@ -359,6 +360,7 @@ describe('throws on singleRecordQuery', () => {
 });
 
 describe('different ancestorId', () => {
+  const sandbox = sinon.createSandbox();
   beforeEach(() => {
     stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
     stubMethod(sandbox, Org.prototype, 'getConnection').returns(Connection.prototype);
@@ -384,38 +386,7 @@ describe('different ancestorId', () => {
   });
 
   describe('Invalid ancestorId throws', () => {
-    it('Should throw on a bad returned Id', async () => {
-      const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
-        getPackageDirectories: () => [
-          {
-            path: 'foo',
-            package: badPackageId,
-            versionNumber: '4.7.0.NEXT',
-            ancestorId: badPackageId,
-          },
-        ],
-        get: (arg) => {
-          if (arg === 'packageAliases') {
-            return { alias: packageId };
-          }
-        },
-      });
-      try {
-        await shouldThrow(
-          getAncestorIds(
-            { ancestorId: 'ABC' } as unknown as ScratchOrgInfoPayload,
-            projectJson as unknown as SfdxProjectJson,
-            await Org.create({})
-          )
-        );
-      } catch (err) {
-        expect(err).to.exist;
-      }
-    });
-  });
-
-  describe('Invalid ancestorId throws', () => {
-    it('Should throw on a bad returned Id', async () => {
+    it('Should throw on a bad packageAliases', async () => {
       const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
         getPackageDirectories: () => [
           {
@@ -447,8 +418,24 @@ describe('different ancestorId', () => {
 });
 
 describe('generateScratchOrgInfo', () => {
-  it('Should join multiple ancestors', async () => {
+  const sandbox = sinon.createSandbox();
+  beforeEach(() => {
+    stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
+    stubMethod(sandbox, Org.prototype, 'getConnection').returns(Connection.prototype);
+    stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
+      clientId: '1234',
+    });
     stubMethod(sandbox, SfdxProjectJson, 'create').returns(SfdxProjectJson.prototype);
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  after(() => {
+    sandbox.restore();
+  });
+  it('Generates the package2AncestorIds scratch org property', async () => {
     expect(
       await generateScratchOrgInfo({
         hubOrg: await Org.create({}),
@@ -459,7 +446,7 @@ describe('generateScratchOrgInfo', () => {
     ).to.deep.equal({
       orgName: 'Company',
       package2AncestorIds: '',
-      connectedAppConsumerKey: '3MVG9PdA0zYitRgXv7CwY97K.qZl.ozd5bWBjIuSPCO8V_CZQbd.YDaIR_wGZl9Wv6HYL78PSG7nIpkVkLfIN',
+      connectedAppConsumerKey: '1234',
       connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
     });
   });
