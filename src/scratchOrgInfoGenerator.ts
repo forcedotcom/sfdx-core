@@ -135,7 +135,7 @@ export const getAncestorIds = async (
         } catch (err) {
           throw new SfdxError(
             messages.getMessage('errorNoMatchingAncestor', [packageDir.ancestorVersion, packageDir.package]),
-            'errorNoMatchingAncestor',
+            'ErrorNoMatchingAncestor',
             [messages.getMessage('errorAncestorNotReleased', [packageDir.ancestorVersion])]
           );
         }
