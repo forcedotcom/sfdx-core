@@ -232,6 +232,30 @@ describe('ancestorIds', () => {
       ).to.equal(packageId);
     });
 
+    it('Should resolve an alias packageAliases is undefined', async () => {
+      const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        getPackageDirectories: () => [
+          { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'alias' },
+        ],
+        get: (arg) => {
+          if (arg === 'packageAliases') {
+            return undefined;
+          }
+        },
+      });
+      try {
+        await shouldThrow(
+          getAncestorIds(
+            {} as unknown as ScratchOrgInfoPayload,
+            projectJson as unknown as SfdxProjectJson,
+            await Org.create({})
+          )
+        );
+      } catch (err) {
+        expect(err).to.exist;
+      }
+    });
+
     it('Should throw on unresolvable alias', async () => {
       const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
         getPackageDirectories: () => [
@@ -419,10 +443,11 @@ describe('different ancestorId', () => {
 
 describe('generateScratchOrgInfo', () => {
   const sandbox = sinon.createSandbox();
+  let getAuthInfoFieldsStub: sinon.SinonStub;
   beforeEach(() => {
     stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
     stubMethod(sandbox, Org.prototype, 'getConnection').returns(Connection.prototype);
-    stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
+    getAuthInfoFieldsStub = stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
       clientId: '1234',
     });
     stubMethod(sandbox, SfdxProjectJson, 'create').returns(SfdxProjectJson.prototype);
@@ -435,7 +460,7 @@ describe('generateScratchOrgInfo', () => {
   after(() => {
     sandbox.restore();
   });
-  it('Generates the package2AncestorIds scratch org property', async () => {
+  it('Generates empty package2AncestorIds scratch org property', async () => {
     expect(
       await generateScratchOrgInfo({
         hubOrg: await Org.create({}),
@@ -445,6 +470,153 @@ describe('generateScratchOrgInfo', () => {
       })
     ).to.deep.equal({
       orgName: 'Company',
+      package2AncestorIds: '',
+      connectedAppConsumerKey: '1234',
+      connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+    });
+  });
+  it('Generates empty package2AncestorIds scratch org property with hasPackages', async () => {
+    stubMethod(sandbox, SfdxProjectJson.prototype, 'hasPackages').returns(true);
+    stubMethod(sandbox, SfdxProjectJson.prototype, 'isGlobal').returns(true);
+    expect(
+      await generateScratchOrgInfo({
+        hubOrg: await Org.create({}),
+        scratchOrgInfoPayload: {} as ScratchOrgInfoPayload,
+        nonamespace: false,
+        ignoreAncestorIds: false,
+      })
+    ).to.deep.equal({
+      orgName: 'Company',
+      package2AncestorIds: '',
+      connectedAppConsumerKey: '1234',
+      connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+    });
+  });
+  it('Generates the package2AncestorIds scratch org property with ignoreAncestorIds', async () => {
+    expect(
+      await generateScratchOrgInfo({
+        hubOrg: await Org.create({}),
+        scratchOrgInfoPayload: {} as ScratchOrgInfoPayload,
+        nonamespace: false,
+        ignoreAncestorIds: true,
+      })
+    ).to.deep.equal({
+      orgName: 'Company',
+      package2AncestorIds: '',
+      connectedAppConsumerKey: '1234',
+      connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+    });
+  });
+  it('Generates the package2AncestorIds scratch org property with ignoreAncestorIds no clientId with connectedAppConsumerKey', async () => {
+    getAuthInfoFieldsStub.restore();
+    stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
+      clientId: undefined,
+    });
+    expect(
+      await generateScratchOrgInfo({
+        hubOrg: await Org.create({}),
+        scratchOrgInfoPayload: {
+          connectedAppConsumerKey: '1234',
+        } as ScratchOrgInfoPayload,
+        nonamespace: false,
+        ignoreAncestorIds: true,
+      })
+    ).to.deep.equal({
+      orgName: 'Company',
+      package2AncestorIds: '',
+      connectedAppConsumerKey: '1234',
+      connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+    });
+  });
+  it('Generates the package2AncestorIds scratch org property with ignoreAncestorIds no clientId with no connectedAppConsumerKey and orgName', async () => {
+    getAuthInfoFieldsStub.restore();
+    stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
+      clientId: undefined,
+    });
+    expect(
+      await generateScratchOrgInfo({
+        hubOrg: await Org.create({}),
+        scratchOrgInfoPayload: {
+          orgName: 'MyOrgName',
+          connectedAppConsumerKey: undefined,
+        } as ScratchOrgInfoPayload,
+        nonamespace: false,
+        ignoreAncestorIds: true,
+      })
+    ).to.deep.equal({
+      orgName: 'MyOrgName',
+      package2AncestorIds: '',
+      connectedAppConsumerKey: 'PlatformCLI',
+      connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+    });
+  });
+});
+
+describe('generateScratchOrgInfo no SfdxProjectJson', () => {
+  const sandbox = sinon.createSandbox();
+  beforeEach(() => {
+    stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
+    stubMethod(sandbox, Org.prototype, 'getConnection').returns(Connection.prototype);
+    stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
+      clientId: '1234',
+    });
+    stubMethod(sandbox, SfdxProjectJson, 'create').rejects();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  after(() => {
+    sandbox.restore();
+  });
+  it('Generates the package2AncestorIds scratch org property no SfdxProjectJson', async () => {
+    expect(
+      await generateScratchOrgInfo({
+        hubOrg: await Org.create({}),
+        scratchOrgInfoPayload: {} as ScratchOrgInfoPayload,
+        nonamespace: false,
+        ignoreAncestorIds: false,
+      })
+    ).to.deep.equal({
+      orgName: 'Company',
+      package2AncestorIds: '',
+      connectedAppConsumerKey: '1234',
+      connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+    });
+  });
+});
+
+describe('generateScratchOrgInfo no nonamespace', () => {
+  const sandbox = sinon.createSandbox();
+  beforeEach(() => {
+    stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
+    stubMethod(sandbox, Org.prototype, 'getConnection').returns(Connection.prototype);
+    stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
+      clientId: '1234',
+    });
+    stubMethod(sandbox, SfdxProjectJson, 'create').returns(SfdxProjectJson.prototype);
+    stubMethod(sandbox, SfdxProjectJson.prototype, 'get').withArgs('namespace').returns('my-namespace');
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  after(() => {
+    sandbox.restore();
+  });
+  it('calls generateScratchOrgInfo with no nonamespace but SfdxProjectJson.get("name") is true', async () => {
+    expect(
+      await generateScratchOrgInfo({
+        hubOrg: await Org.create({}),
+        scratchOrgInfoPayload: {} as ScratchOrgInfoPayload,
+        nonamespace: false,
+        ignoreAncestorIds: false,
+      })
+    ).to.deep.equal({
+      orgName: 'Company',
+      namespace: 'my-namespace',
       package2AncestorIds: '',
       connectedAppConsumerKey: '1234',
       connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',

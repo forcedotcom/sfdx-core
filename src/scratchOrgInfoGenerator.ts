@@ -149,26 +149,24 @@ export const getAncestorIds = async (
         return releasedAncestor.Id;
       }
 
-      if (packageDir.ancestorId) {
-        if (packageDir.ancestorId.startsWith('05i')) {
-          return packageDir.ancestorId;
-        }
-        if (packageDir.ancestorId.startsWith('04t')) {
-          return (
-            await hubOrg
-              .getConnection()
-              .singleRecordQuery<{ Id: string }>(
-                `SELECT Id FROM Package2Version WHERE SubscriberPackageVersionId = '${packageDir.ancestorId}'`,
-                { tooling: true }
-              )
-          ).Id;
-        }
-        const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
-        if (packageAliases?.[packageDir.ancestorId]) {
-          return packageAliases?.[packageDir.ancestorId];
-        }
-        throw new SfdxError(`Invalid ancestorId ${packageDir.ancestorId}`, 'InvalidAncestorId');
+      if (packageDir.ancestorId && packageDir.ancestorId.startsWith('05i')) {
+        return packageDir.ancestorId;
       }
+      if (packageDir.ancestorId && packageDir.ancestorId.startsWith('04t')) {
+        return (
+          await hubOrg
+            .getConnection()
+            .singleRecordQuery<{ Id: string }>(
+              `SELECT Id FROM Package2Version WHERE SubscriberPackageVersionId = '${packageDir.ancestorId}'`,
+              { tooling: true }
+            )
+        ).Id;
+      }
+      const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
+      if (packageDir.ancestorId && packageAliases?.[packageDir.ancestorId]) {
+        return packageAliases[packageDir.ancestorId];
+      }
+      throw new SfdxError(`Invalid ancestorId ${packageDir.ancestorId}`, 'InvalidAncestorId');
     })
   );
 
