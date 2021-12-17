@@ -98,7 +98,7 @@ export const getAncestorIds = async (
   hubOrg: Org
 ): Promise<string> => {
   if (Object.prototype.hasOwnProperty.call(scratchOrgInfo, 'package2AncestorIds')) {
-    throw new Error(messages.getMessage('errorpackage2AncestorIdsKeyNotSupported'));
+    throw new SfdxError(messages.getMessage('errorpackage2AncestorIdsKeyNotSupported'), 'DeprecationError');
   }
   const packagesWithAncestors = (await projectJson.getPackageDirectories())
     // check that the package has any ancestor types (id or version)
