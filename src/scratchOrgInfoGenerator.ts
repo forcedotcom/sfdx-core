@@ -115,7 +115,10 @@ export const getAncestorIds = async (
           !/^[0-9]+.[0-9]+.[0-9]+.[0-9]+$/.test(packageDir.ancestorVersion) &&
           !/^[0-9]+.[0-9]+.[0-9]+$/.test(packageDir.ancestorVersion)
         ) {
-          throw new Error(messages.getMessage('errorInvalidAncestorVersionFormat', [packageDir.ancestorVersion]));
+          throw new SfdxError(
+            messages.getMessage('errorInvalidAncestorVersionFormat', [packageDir.ancestorVersion]),
+            'InvalidAncestorVersion'
+          );
         }
         // package can be an ID in original toolbelt code, but not according to docs
         const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
@@ -137,8 +140,9 @@ export const getAncestorIds = async (
           );
         }
         if (packageDir.ancestorId && packageDir.ancestorId !== releasedAncestor.Id) {
-          throw new Error(
-            messages.getMessage('errorAncestorIdVersionMismatch', [packageDir.ancestorVersion, packageDir.ancestorId])
+          throw new SfdxError(
+            messages.getMessage('errorAncestorIdVersionMismatch', [packageDir.ancestorVersion, packageDir.ancestorId]),
+            'ErrorAncestorIdVersionMismatch'
           );
         }
 
@@ -163,7 +167,7 @@ export const getAncestorIds = async (
         if (packageAliases?.[packageDir.ancestorId]) {
           return packageAliases?.[packageDir.ancestorId];
         }
-        throw new Error(`Invalid ancestorId ${packageDir.ancestorId}`);
+        throw new SfdxError(`Invalid ancestorId ${packageDir.ancestorId}`, 'InvalidAncestorId');
       }
     })
   );
