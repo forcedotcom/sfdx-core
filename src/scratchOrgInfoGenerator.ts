@@ -263,7 +263,7 @@ export const getScratchOrgInfoPayload = async (options: {
       scratchOrgInfoPayload = { ...defFileContents, ...orgConfigInput };
     } catch (err) {
       const error = err as Error;
-      if (error.name === 'SyntaxError') {
+      if (error.name === 'JsonParseError') {
         throw new SfdxError(`An error occurred parsing ${options.definitionfile}`);
       }
     }
