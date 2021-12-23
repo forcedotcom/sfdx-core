@@ -342,7 +342,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
       throw error;
     }
     // An org file already exists
-    throw SfdxError.create('scratchOrgInfoApi', 'signup', 'C-1007');
+    throw SfdxError.create('@salesforce/core', 'scratchOrgErrorCodes', 'C-1007');
   }
 };
 

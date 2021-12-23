@@ -12,6 +12,7 @@ import { SObject } from 'jsforce';
 import { shouldThrow } from '../../src/testSetup';
 import { Org } from '../../src/org';
 import { Connection } from '../../src/connection';
+import { AuthInfo } from '../../src/authInfo';
 import SettingsGenerator from '../../src/scratchOrgSettingsGenerator';
 import { requestScratchOrgCreation, ScratchOrgInfo, JsForceError } from '../../src/scratchOrgInfoApi';
 import { Messages } from '../../src/messages';
@@ -33,6 +34,7 @@ const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
 describe('requestScratchOrgCreation', () => {
   const sandbox = sinon.createSandbox();
   const connectionStub = sinon.createStubInstance(Connection);
+
   beforeEach(() => {
     stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
@@ -40,21 +42,26 @@ describe('requestScratchOrgCreation', () => {
     } as unknown as SObject<unknown>);
     stubMethod(sandbox, Org.prototype, 'getConnection').returns(connectionStub);
   });
+
   afterEach(() => {
     sandbox.restore();
   });
 
   it('requestScratchOrgCreation', async () => {
+    const error = new Error('MyError');
+    error.name = 'NamedOrgNotFound';
+    stubMethod(sandbox, AuthInfo, 'create').rejects(error);
     const hubOrg = new Org({});
     const settings = new SettingsGenerator();
     const result = await requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings);
     expect(result).to.be.true;
   });
   it('requestScratchOrgCreation JsForce Error', async () => {
-    const errorString = 'JsForce-Error';
-    const jsForceError = new Error(errorString) as JsForceError;
+    const err = new Error('MyError');
+    err.name = 'NamedOrgNotFound';
+    stubMethod(sandbox, AuthInfo, 'create').rejects(err);
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
-      create: sinon.stub().rejects(jsForceError),
+      create: sinon.stub().rejects(),
     } as unknown as SObject<unknown>);
     const hubOrg = new Org({});
     const settings = new SettingsGenerator();
@@ -62,10 +69,12 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.toString()).to.include(errorString);
     }
   });
-  it('requestScratchOrgCreation JsForce Error', async () => {
+  it('requestScratchOrgCreation JsForce Error with REQUIRED_FIELD_MISSING', async () => {
+    const err = new Error('MyError');
+    err.name = 'NamedOrgNotFound';
+    stubMethod(sandbox, AuthInfo, 'create').rejects(err);
     const jsForceError = new Error('JsForce-Error') as JsForceError;
     jsForceError.errorCode = 'REQUIRED_FIELD_MISSING';
     jsForceError.fields = ['error-field'];
@@ -78,10 +87,13 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.toString()).to.include(messages.getMessage('signupFieldsMissing', [jsForceError.fields.toString()]));
+      expect(error.message).to.include(messages.getMessage('signupFieldsMissing', [jsForceError.fields.toString()]));
     }
   });
   it('requestScratchOrgCreation has signupDuplicateSettingsSpecified', async () => {
+    const err = new Error('MyError');
+    err.name = 'NamedOrgNotFound';
+    stubMethod(sandbox, AuthInfo, 'create').rejects(err);
     const hubOrg = new Org({});
     const s = { a: 'b' };
     const scratchDef = {
@@ -103,6 +115,9 @@ describe('requestScratchOrgCreation', () => {
     }
   });
   it('requestScratchOrgCreation is deprecatedPrefFormat', async () => {
+    const err = new Error('MyError');
+    err.name = 'NamedOrgNotFound';
+    stubMethod(sandbox, AuthInfo, 'create').rejects(err);
     const hubOrg = new Org({});
     const scratchDef = {
       ...TEMPLATE_SCRATCH_ORG_INFO,
