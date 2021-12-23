@@ -320,9 +320,7 @@ export const authorizeScratchOrg = async (options: {
 };
 
 const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Promise<void> => {
-  const usernameKey = Object.keys(scratchOrgInfo).find((key: string) =>
-    key ? key.toUpperCase() === 'USERNAME' : false
-  );
+  const usernameKey = Object.keys(scratchOrgInfo).find((key: string) => key.toUpperCase() === 'USERNAME');
   if (!usernameKey) {
     return;
   }
@@ -339,7 +337,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
         return;
       }
       // Something unexpected
-      throw error;
+      throw sfdxError;
     }
     // An org file already exists
     throw SfdxError.create('@salesforce/core', 'scratchOrgErrorCodes', 'C-1007');

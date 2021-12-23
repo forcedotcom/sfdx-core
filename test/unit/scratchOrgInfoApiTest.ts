@@ -19,6 +19,7 @@ import { Messages } from '../../src/messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
+const errorCodesMessages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
 
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
   LoginUrl: 'https://login.salesforce.com',
@@ -56,7 +57,38 @@ describe('requestScratchOrgCreation', () => {
     const result = await requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings);
     expect(result).to.be.true;
   });
-  it('requestScratchOrgCreation JsForce Error', async () => {
+
+  it('requestScratchOrgCreation no username field in scratchOrgRequest', async () => {
+    const scratchOrgRequest = Object.assign({}, TEMPLATE_SCRATCH_ORG_INFO);
+    delete scratchOrgRequest.Username;
+    const hubOrg = new Org({});
+    const settings = new SettingsGenerator();
+    const result = await requestScratchOrgCreation(hubOrg, scratchOrgRequest, settings);
+    expect(result).to.be.true;
+  });
+
+  it('requestScratchOrgCreation no username field in scratchOrgRequest is empty', async () => {
+    const scratchOrgRequest = Object.assign({}, TEMPLATE_SCRATCH_ORG_INFO);
+    scratchOrgRequest.Username = undefined;
+    const hubOrg = new Org({});
+    const settings = new SettingsGenerator();
+    const result = await requestScratchOrgCreation(hubOrg, scratchOrgRequest, settings);
+    expect(result).to.be.true;
+  });
+
+  it('requestScratchOrgCreation user exists', async () => {
+    stubMethod(sandbox, AuthInfo, 'create').resolves();
+    const hubOrg = new Org({});
+    const settings = new SettingsGenerator();
+    try {
+      await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
+    } catch (error) {
+      expect(error).to.exist;
+      expect(error.message).to.include(errorCodesMessages.getMessage('C-1007'));
+    }
+  });
+
+  it('requestScratchOrgCreation JsForce Error NamedOrgNotFound', async () => {
     const err = new Error('MyError');
     err.name = 'NamedOrgNotFound';
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
@@ -71,6 +103,23 @@ describe('requestScratchOrgCreation', () => {
       expect(error).to.exist;
     }
   });
+
+  it('requestScratchOrgCreation JsForce Error', async () => {
+    const err = new Error('MyError');
+    stubMethod(sandbox, AuthInfo, 'create').rejects(err);
+    connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
+      create: sinon.stub().rejects(),
+    } as unknown as SObject<unknown>);
+    const hubOrg = new Org({});
+    const settings = new SettingsGenerator();
+    try {
+      await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
+    } catch (error) {
+      expect(error).to.exist;
+      expect(error.message).to.include('MyError');
+    }
+  });
+
   it('requestScratchOrgCreation JsForce Error with REQUIRED_FIELD_MISSING', async () => {
     const err = new Error('MyError');
     err.name = 'NamedOrgNotFound';
@@ -90,6 +139,27 @@ describe('requestScratchOrgCreation', () => {
       expect(error.message).to.include(messages.getMessage('signupFieldsMissing', [jsForceError.fields.toString()]));
     }
   });
+
+  it('requestScratchOrgCreation JsForce Error with REQUIRED_FIELD_MISSING', async () => {
+    const err = new Error('MyError');
+    err.name = 'NamedOrgNotFound';
+    stubMethod(sandbox, AuthInfo, 'create').rejects(err);
+    const jsForceError = new Error('JsForce-Error') as JsForceError;
+    jsForceError.errorCode = 'REQUIRED_FIELD_MISSING';
+    jsForceError.fields = ['error-field'];
+    connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
+      create: sinon.stub().rejects(jsForceError),
+    } as unknown as SObject<unknown>);
+    const hubOrg = new Org({});
+    const settings = new SettingsGenerator();
+    try {
+      await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
+    } catch (error) {
+      expect(error).to.exist;
+      expect(error.message).to.include(messages.getMessage('signupFieldsMissing', [jsForceError.fields.toString()]));
+    }
+  });
+
   it('requestScratchOrgCreation has signupDuplicateSettingsSpecified', async () => {
     const err = new Error('MyError');
     err.name = 'NamedOrgNotFound';
@@ -114,6 +184,7 @@ describe('requestScratchOrgCreation', () => {
       expect(error.toString()).to.include('signupDuplicateSettingsSpecified');
     }
   });
+
   it('requestScratchOrgCreation is deprecatedPrefFormat', async () => {
     const err = new Error('MyError');
     err.name = 'NamedOrgNotFound';
