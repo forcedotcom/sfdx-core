@@ -24,7 +24,7 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from '../src/scratchOrgCreate';
+import { ScratchOrgCreateOptions, scratchOrgCreate } from '../src/scratchOrgCreate';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Aliases } from './config/aliases';
 import { AuthInfoConfig } from './config/authInfoConfig';
@@ -100,6 +100,12 @@ export type SandboxRequest = {
   SourceId?: string;
   Description?: string;
 };
+
+export interface ScrathcOrgProcessObject {
+  username?: string;
+  authFields?: AuthFields;
+  warnings: string[];
+}
 
 export type ScratchOrgRequest = Pick<
   ScratchOrgCreateOptions,
@@ -200,9 +206,14 @@ export class Org extends AsyncCreatable<Org.Options> {
    * @returns {ScratchOrgCreateResult}
    */
 
-  public async scratchOrgCreate(options: ScratchOrgRequest): Promise<ScratchOrgCreateResult> {
+  public async scratchOrgCreate(options: ScratchOrgRequest): Promise<ScrathcOrgProcessObject> {
     try {
-      return await scratchOrgCreate({ ...options, hubOrg: this });
+      const scrathcOrgProcessObject = await scratchOrgCreate({ ...options, hubOrg: this });
+      return {
+        username: scrathcOrgProcessObject.username,
+        authFields: scrathcOrgProcessObject.authInfo && scrathcOrgProcessObject.authInfo.getFields(),
+        warnings: scrathcOrgProcessObject.warnings,
+      };
     } catch (error) {
       throw SfdxError.create('@salesforce/core', 'org', 'FailedToCreateScratchOrg');
     }

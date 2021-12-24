@@ -68,6 +68,7 @@ export {
   OrgTypes,
   ResultEvent,
   ScratchOrgRequest,
+  ScrathcOrgProcessObject,
 } from './org';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
