@@ -138,7 +138,7 @@ const buildOAuth2Options = async (options: {
 
   if (isJwtFlow && !process.env.SFDX_CLIENT_SECRET) {
     oauth2Options.privateKeyFile = options.hubOrg.getConnection().getAuthInfoFields().privateKey;
-    const retries = options?.retry || env.getNumber('SFDX_JWT_AUTH_RETRY_ATTEMPTS') || 0;
+    const retries = (options && options.retry) || env.getNumber('SFDX_JWT_AUTH_RETRY_ATTEMPTS') || 0;
     const timeoutInSeconds = env.getNumber('SFDX_JWT_AUTH_RETRY_TIMEOUT') || 300;
     const timeout = Duration.seconds(timeoutInSeconds).milliseconds;
     const delay = retries ? timeout / retries : 1000;
@@ -222,11 +222,12 @@ const getAuthInfo = async (options: {
  * @param alias - scratch org alias
  * @returns {Promise<void>}
  */
+/*
 const saveAuthInfo = async (options: {
   scratchOrgInfoComplete: ScratchOrgInfo;
   hubOrg: Org;
   authInfo: AuthInfo;
-  setAsDefault: boolean;
+  setAsDefault?: boolean;
   alias?: string;
 }): Promise<void> => {
   const logger = await Logger.child('saveAuthInfo');
@@ -252,6 +253,7 @@ const saveAuthInfo = async (options: {
   logger.debug(`orgConfig.loginUrl: ${options.authInfo.getFields().loginUrl}`);
   logger.debug(`orgConfig.instanceUrl: ${options.authInfo.getFields().instanceUrl}`);
 };
+*/
 
 /**
  * after we successfully signup an org we need to trade the auth token for access and refresh token.
@@ -269,12 +271,18 @@ export const authorizeScratchOrg = async (options: {
   scratchOrgInfoComplete: ScratchOrgInfo;
   hubOrg: Org;
   clientSecret?: string;
-  setAsDefault: boolean;
+  setAsDefault?: boolean;
   signupTargetLoginUrlConfig?: string;
   alias?: string;
   retry?: number;
 }): Promise<AuthInfo> => {
-  const { scratchOrgInfoComplete, hubOrg, clientSecret, setAsDefault, signupTargetLoginUrlConfig, alias } = options;
+  const {
+    scratchOrgInfoComplete,
+    hubOrg,
+    clientSecret /* , setAsDefault*/,
+    signupTargetLoginUrlConfig /* , alias */,
+    retry: maxRetries,
+  } = options;
   const logger = await Logger.child('authorizeScratchOrg');
   logger.debug(`scratchOrgInfoComplete: ${JSON.stringify(scratchOrgInfoComplete, null, 4)}`);
 
@@ -291,7 +299,7 @@ export const authorizeScratchOrg = async (options: {
     hubOrg,
     clientSecret,
     scratchOrgInfoComplete,
-    retry: options?.retry,
+    retry: maxRetries,
     signupTargetLoginUrlConfig,
   });
 
@@ -308,15 +316,17 @@ export const authorizeScratchOrg = async (options: {
     delay: oAuth2Options.delay,
   });
 
-  await saveAuthInfo({
-    scratchOrgInfoComplete,
-    hubOrg,
-    authInfo,
-    setAsDefault,
-    alias,
-  });
-
   return authInfo;
+
+  // await saveAuthInfo({
+  //   scratchOrgInfoComplete,
+  //   hubOrg,
+  //   authInfo,
+  //   setAsDefault,
+  //   alias,
+  // });
+
+  // return authInfo;
 };
 
 const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Promise<void> => {

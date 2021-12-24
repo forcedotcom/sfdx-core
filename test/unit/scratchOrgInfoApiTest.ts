@@ -7,7 +7,7 @@
 
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
-import { Duration } from '@salesforce/kit';
+import { env, Duration } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { SObject } from 'jsforce';
 import { shouldThrow } from '../../src/testSetup';
@@ -22,6 +22,7 @@ import {
   JsForceError,
   deploySettingsAndResolveUrl,
   pollForScratchOrgInfo,
+  authorizeScratchOrg,
 } from '../../src/scratchOrgInfoApi';
 import { Messages } from '../../src/messages';
 
@@ -388,6 +389,151 @@ describe('pollForScratchOrgInfo', () => {
     } catch (error) {
       expect(error).to.exist;
       expect(error.name).to.include('orgCreationTimeout');
+    }
+  });
+});
+
+describe('authorizeScratchOrg', () => {
+  const sandbox = sinon.createSandbox();
+  const hubOrgStub = sinon.createStubInstance(Org);
+  const connectionStub = sinon.createStubInstance(Connection);
+  const privateKey = '12345';
+  const username = 'PlatformCLI';
+  const authInfo = 'my-auth-info';
+  let authInfoStub: sinon.SinonStub;
+  beforeEach(() => {
+    authInfoStub = stubMethod(sandbox, AuthInfo, 'create').resolves(authInfo);
+    stubMethod(sandbox, AuthInfo.prototype, 'save').resolves();
+    connectionStub.getAuthInfoFields.returns({
+      privateKey,
+    });
+    hubOrgStub.getConnection.returns(connectionStub);
+    hubOrgStub.getUsername.returns(username);
+  });
+
+  afterEach(() => {
+    env.unset('SFDX_CLIENT_SECRET');
+    sandbox.restore();
+  });
+
+  it('authorizeScratchOrg', async () => {
+    hubOrgStub.isDevHubOrg.returns(true);
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
+      hubOrg: hubOrgStub,
+    });
+
+    expect(result).to.be.equal(authInfo);
+  });
+
+  it('authorizeScratchOrg with signupTargetLoginUrlConfig', async () => {
+    hubOrgStub.isDevHubOrg.returns(true);
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
+      hubOrg: hubOrgStub,
+      signupTargetLoginUrlConfig: 'http://salesforce.com',
+    });
+
+    expect(result).to.be.equal(authInfo);
+  });
+
+  it('authorizeScratchOrg with SignupInstance', async () => {
+    hubOrgStub.isDevHubOrg.returns(true);
+    const scratchOrgInfoComplete = Object.assign({}, TEMPLATE_SCRATCH_ORG_INFO, {
+      SignupInstance: 'utf8',
+    });
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete,
+      hubOrg: hubOrgStub,
+    });
+
+    expect(result).to.be.equal(authInfo);
+  });
+
+  it('authorizeScratchOrg with SignupInstance ends with s', async () => {
+    hubOrgStub.isDevHubOrg.returns(true);
+    const scratchOrgInfoComplete = Object.assign({}, TEMPLATE_SCRATCH_ORG_INFO, {
+      SignupInstance: 's',
+    });
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete,
+      hubOrg: hubOrgStub,
+    });
+
+    expect(result).to.be.equal(authInfo);
+  });
+
+  it('authorizeScratchOrg isJwtFlow with SFDX_CLIENT_SECRET', async () => {
+    hubOrgStub.isDevHubOrg.returns(true);
+    env.setString('SFDX_CLIENT_SECRET', '1234');
+
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
+      hubOrg: hubOrgStub,
+    });
+
+    expect(result).to.be.equal(authInfo);
+  });
+
+  it('authorizeScratchOrg not isJwtFlow and clientSecret', async () => {
+    hubOrgStub.isDevHubOrg.returns(true);
+    connectionStub.getAuthInfoFields.returns({
+      privateKey: undefined,
+    });
+
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
+      hubOrg: hubOrgStub,
+      clientSecret: '1234',
+    });
+
+    expect(result).to.be.equal(authInfo);
+  });
+
+  it('authorizeScratchOrg not isJwtFlow no clientSecret', async () => {
+    hubOrgStub.isDevHubOrg.returns(true);
+    connectionStub.getAuthInfoFields.returns({
+      privateKey: undefined,
+    });
+
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
+      hubOrg: hubOrgStub,
+    });
+
+    expect(result).to.be.equal(authInfo);
+  });
+
+  it('authorizeScratchOrg not DevHub with retry', async () => {
+    hubOrgStub.isDevHubOrg.returns(false);
+    hubOrgStub.determineIfDevHubOrg.withArgs(true).resolves();
+
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
+      hubOrg: hubOrgStub,
+      retry: 2,
+    });
+
+    expect(result).to.be.equal(authInfo);
+  });
+
+  it('authorizeScratchOrg retry fails and timeouts', async () => {
+    authInfoStub.restore();
+    stubMethod(sandbox, AuthInfo, 'create').rejects(new Error('MyError'));
+    env.setNumber('SFDX_JWT_AUTH_RETRY_TIMEOUT', 1);
+    hubOrgStub.isDevHubOrg.returns(true);
+
+    try {
+      await shouldThrow(
+        authorizeScratchOrg({
+          scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
+          hubOrg: hubOrgStub,
+          retry: 2,
+        })
+      );
+    } catch (error) {
+      expect(error).to.exist;
+      expect(error.toString()).to.include('Timeout');
     }
   });
 });
