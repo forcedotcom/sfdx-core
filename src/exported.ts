@@ -68,7 +68,6 @@ export {
   OrgTypes,
   ResultEvent,
   ScratchOrgRequest,
-  ScrathcOrgProcessObject,
 } from './org';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
@@ -92,6 +91,8 @@ export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './user';
 export { PermissionSetAssignment, PermissionSetAssignmentFields } from './permissionSetAssignment';
 
 export { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from './scratchOrgCreate';
+
+export { ScratchOrgInfo } from './scratchOrgInfoApi';
 
 // Utility sub-modules
 export * from './util/fs';

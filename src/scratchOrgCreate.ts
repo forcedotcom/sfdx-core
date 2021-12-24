@@ -24,6 +24,7 @@ import {
   requestScratchOrgCreation,
   pollForScratchOrgInfo,
   deploySettingsAndResolveUrl,
+  ScratchOrgInfo,
 } from './scratchOrgInfoApi';
 import SettingsGenerator from './scratchOrgSettingsGenerator';
 import { generateScratchOrgInfo, getScratchOrgInfoPayload } from './scratchOrgInfoGenerator';
@@ -35,6 +36,7 @@ export const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
 
 export interface ScratchOrgCreateResult {
   username?: string;
+  scratchOrgInfo?: ScratchOrgInfo;
   authInfo?: AuthInfo;
   warnings: string[];
 }
@@ -206,6 +208,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
 
   return {
     username,
+    scratchOrgInfo: scratchOrgInfoResult,
     authInfo,
     warnings,
   };
