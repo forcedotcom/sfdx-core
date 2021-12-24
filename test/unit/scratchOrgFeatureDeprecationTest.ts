@@ -20,6 +20,12 @@ describe('scratchOrgFeatureDeprecation', () => {
   const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation(FEATURE_TYPES);
 
   describe('getFeatureWarnings', () => {
+    it('No features.', () => {
+      expect(scratchOrgFeatureDeprecation.getFeatureWarnings(undefined)).to.be.an('array').that.is.empty;
+    });
+    it('features is a string', () => {
+      expect(scratchOrgFeatureDeprecation.getFeatureWarnings('MultiCurrency')).to.be.an('array').that.is.empty;
+    });
     it('Should not get any warnings when there are no deprecated features or mapped features.', () => {
       const inputFeatures: string[] = ['CustomApps:7', 'MultiCurrency', 'AddCustomTabs:8'];
       expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures)).to.be.an('array').that.is.empty;
@@ -69,6 +75,24 @@ describe('scratchOrgFeatureDeprecation', () => {
         'TestA2',
         'AddCustomTabs:8',
       ]);
+    });
+  });
+});
+
+describe('scratchOrgFeatureDeprecation empty constructor', () => {
+  const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation();
+
+  describe('getFeatureWarnings', () => {
+    it('Should not get any warnings when there are no deprecated features or mapped features.', () => {
+      const inputFeatures: string[] = ['CustomApps:7', 'MultiCurrency', 'AddCustomTabs:8'];
+      expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures)).to.be.an('array').that.is.empty;
+    });
+    it('Should not get a warning when quantified features are mapped with quantity.', () => {
+      const inputFeatures: string[] = ['CustomApps', 'MultiCurrency', 'CustomTabs'];
+      expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures)).to.be.an('array');
+      expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures).length).to.equal(0);
+      expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures)[0]).to.equal(undefined);
+      expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures)[1]).to.equal(undefined);
     });
   });
 });
