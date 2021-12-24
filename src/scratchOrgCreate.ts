@@ -65,8 +65,8 @@ export interface ScratchOrgCreateOptions {
   nonamespace?: boolean;
   noancestors?: boolean;
   wait?: Duration;
-  defaultusername?: boolean;
-  alias?: string;
+  // defaultusername?: boolean;
+  // alias?: string;
   retry?: number;
   apiversion?: string;
   definitionjson?: string;
@@ -121,8 +121,8 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     nonamespace,
     noancestors,
     wait = Duration.minutes(DEFAULT_STREAM_TIMEOUT_MINUTES),
-    defaultusername = false,
-    alias = undefined,
+    // defaultusername = false,
+    // alias = undefined,
     retry = 0,
     apiversion,
     definitionjson,
@@ -172,8 +172,8 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     scratchOrgInfoComplete: scratchOrgInfoResult,
     hubOrg,
     clientSecret,
-    setAsDefault: defaultusername,
-    alias,
+    // setAsDefault: defaultusername,
+    // alias,
     signupTargetLoginUrlConfig,
     retry: retry || 0,
   });
@@ -183,7 +183,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   });
 
   // we'll need this scratch org connection later;
-  const scratchOrg = await Org.create({ connection: await Connection.create({ authInfo: scratchOrgAuthInfo }) });
+  const scratchOrg = await Org.create({ connection: await Connection.create({ authInfo: scratchOrgAuthInfo }) }); // scartchOrg should come from command
   const username = scratchOrg.getUsername();
 
   const configAggregator = new ConfigAggregator();

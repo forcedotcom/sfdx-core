@@ -279,8 +279,10 @@ export const authorizeScratchOrg = async (options: {
   const {
     scratchOrgInfoComplete,
     hubOrg,
-    clientSecret /* , setAsDefault*/,
-    signupTargetLoginUrlConfig /* , alias */,
+    clientSecret,
+    // setAsDefault,
+    signupTargetLoginUrlConfig,
+    //  alias,
     retry: maxRetries,
   } = options;
   const logger = await Logger.child('authorizeScratchOrg');
