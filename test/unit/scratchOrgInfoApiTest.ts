@@ -7,6 +7,7 @@
 
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
+import { Duration } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { SObject } from 'jsforce';
 import { shouldThrow } from '../../src/testSetup';
@@ -20,6 +21,7 @@ import {
   ScratchOrgInfo,
   JsForceError,
   deploySettingsAndResolveUrl,
+  pollForScratchOrgInfo,
 } from '../../src/scratchOrgInfoApi';
 import { Messages } from '../../src/messages';
 
@@ -312,5 +314,80 @@ describe('requestScratchOrgCreation', () => {
     myDomainResolverStub.resolve.resolves();
     const authInfo = await deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg);
     expect(authInfo).to.equal(undefined);
+  });
+});
+
+describe('pollForScratchOrgInfo', () => {
+  const sandbox = sinon.createSandbox();
+  const hubOrg = new Org({});
+  const scratchOrgInfoId = '1234';
+  const username = 'PlatformCLI';
+  const connectionStub = sinon.createStubInstance(Connection);
+
+  beforeEach(() => {
+    stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
+    stubMethod(sandbox, Org.prototype, 'getConnection').returns(connectionStub);
+    stubMethod(sandbox, Org.prototype, 'getUsername').returns(username);
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  it('pollForScratchOrgInfo return Status: Active', async () => {
+    const retrieve = {
+      Status: 'Active',
+    };
+    connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
+      retrieve: sinon.stub().withArgs(scratchOrgInfoId).resolves(retrieve),
+    } as unknown as SObject<unknown>);
+    const result = await pollForScratchOrgInfo(hubOrg, scratchOrgInfoId);
+    expect(result).to.deep.equal(retrieve);
+  });
+
+  it('pollForScratchOrgInfo return Status: Error', async () => {
+    const retrieve = {
+      Status: 'Error',
+      Id: scratchOrgInfoId,
+    };
+    connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
+      retrieve: sinon.stub().withArgs(scratchOrgInfoId).resolves(retrieve),
+    } as unknown as SObject<unknown>);
+    try {
+      await shouldThrow(pollForScratchOrgInfo(hubOrg, scratchOrgInfoId));
+    } catch (error) {
+      expect(error).to.exist;
+      expect(error.message).to.include(
+        errorCodesMessages.getMessage('signupFailedUnknown', [scratchOrgInfoId, username]),
+        'signupFailedUnknown'
+      );
+    }
+  });
+
+  it('pollForScratchOrgInfo retrieve rejects', async () => {
+    const creating = {
+      Status: 'Creating',
+    };
+    const active = {
+      Status: 'Active',
+    };
+    connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
+      retrieve: sinon.stub().withArgs(scratchOrgInfoId).onCall(0).resolves(creating).onCall(1).resolves(active),
+    } as unknown as SObject<unknown>);
+    const result = await pollForScratchOrgInfo(hubOrg, scratchOrgInfoId);
+    expect(result).to.deep.equal(active);
+  });
+
+  it('pollForScratchOrgInfo retrieve rejects', async () => {
+    const timeout = Duration.milliseconds(150);
+    connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
+      retrieve: sinon.stub().withArgs(scratchOrgInfoId).rejects(new Error('MyError')),
+    } as unknown as SObject<unknown>);
+    try {
+      await shouldThrow(pollForScratchOrgInfo(hubOrg, scratchOrgInfoId, timeout));
+    } catch (error) {
+      expect(error).to.exist;
+      expect(error.name).to.include('orgCreationTimeout');
+    }
   });
 });

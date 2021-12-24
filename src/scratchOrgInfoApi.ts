@@ -420,7 +420,7 @@ export const pollForScratchOrgInfo = async (
         return resultInProgress;
       }
       // all other statuses, OR lack of status (e.g. network errors) will cause a retry
-      throw new Error(`Scratch org status is ${resultInProgress.Status}`);
+      throw new SfdxError(`Scratch org status is ${resultInProgress.Status}`);
     },
     {
       retries: 'INFINITELY',
