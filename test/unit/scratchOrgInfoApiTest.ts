@@ -13,8 +13,14 @@ import { shouldThrow } from '../../src/testSetup';
 import { Org } from '../../src/org';
 import { Connection } from '../../src/connection';
 import { AuthInfo } from '../../src/authInfo';
+import { MyDomainResolver } from '../../src/status/myDomainResolver';
 import SettingsGenerator from '../../src/scratchOrgSettingsGenerator';
-import { requestScratchOrgCreation, ScratchOrgInfo, JsForceError } from '../../src/scratchOrgInfoApi';
+import {
+  requestScratchOrgCreation,
+  ScratchOrgInfo,
+  JsForceError,
+  deploySettingsAndResolveUrl,
+} from '../../src/scratchOrgInfoApi';
 import { Messages } from '../../src/messages';
 
 Messages.importMessagesDirectory(__dirname);
@@ -205,5 +211,106 @@ describe('requestScratchOrgCreation', () => {
       expect(error).to.have.keys(['cause', 'name', 'actions', 'exitCode']);
       expect(error.toString()).to.include(messages.getMessage('deprecatedPrefFormat'));
     }
+  });
+});
+
+describe('requestScratchOrgCreation', () => {
+  const sandbox = sinon.createSandbox();
+  const scratchOrgAuthInfoStub = sinon.createStubInstance(AuthInfo);
+  const orgSettingsStub = sinon.createStubInstance(SettingsGenerator);
+  const myDomainResolverStub = sinon.createStubInstance(MyDomainResolver);
+  const apiVersion = '53.0';
+  const scratchOrg = new Org({});
+  beforeEach(() => {
+    stubMethod(sandbox, MyDomainResolver, 'create').returns(myDomainResolverStub);
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  it('requestScratchOrgCreation happy path', async () => {
+    orgSettingsStub.hasSettings.returns(true);
+    orgSettingsStub.createDeploy.resolves();
+    orgSettingsStub.deploySettingsViaFolder.withArgs(scratchOrg, apiVersion).resolves();
+    scratchOrgAuthInfoStub.getFields.returns({
+      instanceUrl: 'https://my-org.salesforce.com',
+    });
+    myDomainResolverStub.resolve.resolves();
+    const authInfo = await deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg);
+    expect(authInfo).to.equal(scratchOrgAuthInfoStub);
+  });
+
+  it('requestScratchOrgCreation does not have settings', async () => {
+    orgSettingsStub.hasSettings.returns(false);
+    orgSettingsStub.createDeploy.resolves();
+    orgSettingsStub.deploySettingsViaFolder.withArgs(scratchOrg, apiVersion).resolves();
+    scratchOrgAuthInfoStub.getFields.returns({
+      instanceUrl: 'https://my-org.salesforce.com',
+    });
+    myDomainResolverStub.resolve.resolves();
+    const authInfo = await deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg);
+    expect(authInfo).to.equal(scratchOrgAuthInfoStub);
+  });
+
+  it('requestScratchOrgCreation createDeploy fails', async () => {
+    orgSettingsStub.hasSettings.returns(true);
+    orgSettingsStub.createDeploy.rejects(new Error('MyError'));
+    try {
+      await shouldThrow(deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg));
+    } catch (error) {
+      expect(error).to.exist;
+      expect(error.message).to.include('MyError');
+    }
+  });
+
+  it('requestScratchOrgCreation cant resolve loginUrl', async () => {
+    orgSettingsStub.hasSettings.returns(false);
+    orgSettingsStub.createDeploy.resolves();
+    orgSettingsStub.deploySettingsViaFolder.withArgs(scratchOrg, apiVersion).resolves();
+    scratchOrgAuthInfoStub.getFields.returns({
+      instanceUrl: 'https://my-org.salesforce.com',
+    });
+    myDomainResolverStub.resolve.rejects(new Error('MyError'));
+    try {
+      await shouldThrow(deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg));
+    } catch (error) {
+      expect(error).to.exist;
+      expect(error.message).to.include('MyError');
+    }
+  });
+
+  it('requestScratchOrgCreation cant resolve loginUrl with MyDomainResolverTimeoutError', async () => {
+    orgSettingsStub.hasSettings.returns(false);
+    orgSettingsStub.createDeploy.resolves();
+    orgSettingsStub.deploySettingsViaFolder.withArgs(scratchOrg, apiVersion).resolves();
+    const fields = {
+      instanceUrl: 'https://my-org.salesforce.com',
+      orgId: 'MyOrg',
+      username: 'PlatformCLI',
+    };
+    scratchOrgAuthInfoStub.getFields.returns(fields);
+    const networkError = new Error('MyError');
+    networkError.name = 'MyDomainResolverTimeoutError';
+    myDomainResolverStub.resolve.rejects(networkError);
+    try {
+      await shouldThrow(deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg));
+    } catch (error) {
+      expect(error).to.exist;
+      expect(error.data).to.have.keys(['orgId', 'username', 'instanceUrl']);
+      expect(error.data).to.deep.equal(fields);
+    }
+  });
+
+  it('requestScratchOrgCreation AuthInfo.getFields returns undefined instanceUrl', async () => {
+    orgSettingsStub.hasSettings.returns(true);
+    orgSettingsStub.createDeploy.resolves();
+    orgSettingsStub.deploySettingsViaFolder.withArgs(scratchOrg, apiVersion).resolves();
+    scratchOrgAuthInfoStub.getFields.returns({
+      instanceUrl: undefined,
+    });
+    myDomainResolverStub.resolve.resolves();
+    const authInfo = await deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg);
+    expect(authInfo).to.equal(undefined);
   });
 });

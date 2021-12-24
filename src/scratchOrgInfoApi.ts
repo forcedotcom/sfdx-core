@@ -8,7 +8,7 @@
 // @salesforce
 import { Optional } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
-import { ensureString, getString } from '@salesforce/ts-types';
+import { getString } from '@salesforce/ts-types';
 
 // Thirdparty
 import { RecordResult, OAuth2Options } from 'jsforce';
@@ -466,16 +466,13 @@ export const deploySettingsAndResolveUrl = async (
     }
   }
 
-  if (scratchOrgAuthInfo.getFields().instanceUrl) {
-    logger.debug(
-      `processScratchOrgInfoResult - resultData.instanceUrl: ${JSON.stringify(
-        scratchOrgAuthInfo.getFields().instanceUrl
-      )}`
-    );
+  const { instanceUrl } = scratchOrgAuthInfo.getFields();
+  if (instanceUrl) {
+    logger.debug(`processScratchOrgInfoResult - resultData.instanceUrl: ${instanceUrl}`);
     const options = {
       timeout: Duration.minutes(3),
       frequency: Duration.seconds(10),
-      url: new SfdcUrl(ensureString(scratchOrgAuthInfo.getFields().instanceUrl)),
+      url: new SfdcUrl(instanceUrl),
     };
     try {
       const resolver = await MyDomainResolver.create(options);
@@ -487,7 +484,7 @@ export const deploySettingsAndResolveUrl = async (
         sfdxError.setData({
           orgId: scratchOrgAuthInfo.getFields().orgId,
           username: scratchOrgAuthInfo.getFields().username,
-          instanceUrl: scratchOrgAuthInfo.getFields().instanceUrl,
+          instanceUrl,
         });
         logger.debug('processScratchOrgInfoResult - err data: %s', sfdxError.data);
       }
