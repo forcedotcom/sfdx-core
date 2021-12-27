@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
 import { Org } from '../../src/org';
@@ -120,9 +121,9 @@ describe('scratchOrgSettingsGenerator', () => {
     let addToZipStub: sinon.SinonStub;
 
     beforeEach(() => {
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, path: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(path).to.be.a('string').and.to.have.length.greaterThan(0);
+        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
     });
 
@@ -152,13 +153,13 @@ describe('scratchOrgSettingsGenerator', () => {
         .and.length.to.be.greaterThan(0)
         .and.to.include('<LightningExperienceSettings>')
         .and.to.include('<enableS1DesktopEnabled>true</enableS1DesktopEnabled>');
-      expect(addToZipStub.firstCall.args[1]).to.include('settings/LightningExperience.settings');
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('settings', 'LightningExperience.settings'));
       expect(addToZipStub.secondCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
         .and.to.include('<MobileSettings>')
         .and.to.include('<enableS1EncryptedStoragePref2>false</enableS1EncryptedStoragePref2>');
-      expect(addToZipStub.secondCall.args[1]).to.include('settings/Mobile.settings');
+      expect(addToZipStub.secondCall.args[1]).to.include(path.join('settings', 'Mobile.settings'));
     });
   });
 
@@ -173,9 +174,9 @@ describe('scratchOrgSettingsGenerator', () => {
 
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, path: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(path).to.be.a('string').and.to.have.length.greaterThan(0);
+        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
@@ -222,14 +223,14 @@ describe('scratchOrgSettingsGenerator', () => {
         .and.length.to.be.greaterThan(0)
         .and.to.include('<LightningExperienceSettings>')
         .and.to.include('<enableS1DesktopEnabled>true</enableS1DesktopEnabled>');
-      expect(addToZipStub.firstCall.args[1]).to.include('settings/LightningExperience.settings');
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('settings', 'LightningExperience.settings'));
       expect(addToZipStub.secondCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
         .and.to.include('<MobileSettings>')
         .and.to.include('<enableS1EncryptedStoragePref2>false</enableS1EncryptedStoragePref2>');
       expect(finalizeStub.callCount).to.equal(1);
-      expect(addToZipStub.secondCall.args[1]).to.include('settings/Mobile.settings');
+      expect(addToZipStub.secondCall.args[1]).to.include(path.join('settings', 'Mobile.settings'));
     });
   });
 
@@ -245,9 +246,9 @@ describe('scratchOrgSettingsGenerator', () => {
 
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, path: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(path).to.be.a('string').and.to.have.length.greaterThan(0);
+        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
@@ -307,9 +308,9 @@ describe('scratchOrgSettingsGenerator', () => {
 
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, path: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(path).to.be.a('string').and.to.have.length.greaterThan(0);
+        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
@@ -356,14 +357,14 @@ describe('scratchOrgSettingsGenerator', () => {
         .and.length.to.be.greaterThan(0)
         .and.to.include('<LightningExperienceSettings>')
         .and.to.include('<enableS1DesktopEnabled>true</enableS1DesktopEnabled>');
-      expect(addToZipStub.firstCall.args[1]).to.include('settings/LightningExperience.settings');
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('settings', 'LightningExperience.settings'));
       expect(addToZipStub.secondCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
         .and.to.include('<MobileSettings>')
         .and.to.include('<enableS1EncryptedStoragePref2>false</enableS1EncryptedStoragePref2>');
       expect(finalizeStub.callCount).to.equal(1);
-      expect(addToZipStub.secondCall.args[1]).to.include('settings/Mobile.settings');
+      expect(addToZipStub.secondCall.args[1]).to.include(path.join('settings', 'Mobile.settings'));
     });
   });
 
@@ -372,9 +373,9 @@ describe('scratchOrgSettingsGenerator', () => {
     let addToZipStub: sinon.SinonStub;
 
     beforeEach(() => {
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, path: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(path).to.be.a('string').and.to.have.length.greaterThan(0);
+        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
     });
 
@@ -401,7 +402,7 @@ describe('scratchOrgSettingsGenerator', () => {
         .and.length.to.be.greaterThan(0)
         .and.to.include('<RecordType>')
         .and.to.include('<sharingModel>My-sharing-model</sharingModel>');
-      expect(addToZipStub.firstCall.args[1]).to.include('objects/MyObject/MyObject.object');
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject', 'MyObject.object'));
       expect(addToZipStub.secondCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
@@ -409,7 +410,9 @@ describe('scratchOrgSettingsGenerator', () => {
         .and.to.include('<fullName>My-record-type</fullName>')
         .and.to.include('<label>My-record-type</label>')
         .and.to.include('<active>true</active>');
-      expect(addToZipStub.secondCall.args[1]).to.include('objects/MyObject/recordTypes/My-record-type.recordType');
+      expect(addToZipStub.secondCall.args[1]).to.include(
+        path.join('objects', 'MyObject', 'recordTypes', 'My-record-type.recordType')
+      );
     });
 
     it('calls writeObjectSettingsIfNeeded without sharingModel', async () => {
@@ -429,7 +432,7 @@ describe('scratchOrgSettingsGenerator', () => {
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
         .and.to.include('<RecordType/>');
-      expect(addToZipStub.firstCall.args[1]).to.include('objects/MyObject/MyObject.object');
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject', 'MyObject.object'));
       expect(addToZipStub.secondCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
@@ -437,7 +440,9 @@ describe('scratchOrgSettingsGenerator', () => {
         .and.to.include('<fullName>My-record-type</fullName>')
         .and.to.include('<label>My-record-type</label>')
         .and.to.include('<active>true</active>');
-      expect(addToZipStub.secondCall.args[1]).to.include('objects/MyObject/recordTypes/My-record-type.recordType');
+      expect(addToZipStub.secondCall.args[1]).to.include(
+        path.join('objects', 'MyObject', 'recordTypes', 'My-record-type.recordType')
+      );
     });
 
     it('calls writeObjectSettingsIfNeeded without defaultRecordType', async () => {
@@ -458,7 +463,7 @@ describe('scratchOrgSettingsGenerator', () => {
         .and.length.to.be.greaterThan(0)
         .and.to.include('<RecordType>')
         .and.to.include('<sharingModel>My-sharing-model</sharingModel>');
-      expect(addToZipStub.firstCall.args[1]).to.include('objects/MyObject/MyObject.object');
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject', 'MyObject.object'));
     });
 
     it('deploys the object settings to the org with businessProcess', async () => {
@@ -480,7 +485,7 @@ describe('scratchOrgSettingsGenerator', () => {
         .and.length.to.be.greaterThan(0)
         .and.to.include('<RecordType>')
         .and.to.include('<sharingModel>My-sharing-model</sharingModel>');
-      expect(addToZipStub.firstCall.args[1]).to.include('objects/Opportunity/Opportunity.object');
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'Opportunity', 'Opportunity.object'));
       expect(addToZipStub.secondCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
@@ -488,7 +493,9 @@ describe('scratchOrgSettingsGenerator', () => {
         .and.to.include('<fullName>My-record-type</fullName>')
         .and.to.include('<label>My-record-type</label>')
         .and.to.include('<active>true</active>');
-      expect(addToZipStub.secondCall.args[1]).to.include('objects/Opportunity/recordTypes/My-record-type.recordType');
+      expect(addToZipStub.secondCall.args[1]).to.include(
+        path.join('objects', 'Opportunity', 'recordTypes', 'My-record-type.recordType')
+      );
       expect(addToZipStub.thirdCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
@@ -497,7 +504,7 @@ describe('scratchOrgSettingsGenerator', () => {
         .and.to.include('<isActive>true</isActive>')
         .and.to.include('<fullName>Prospecting</fullName>');
       expect(addToZipStub.thirdCall.args[1]).to.include(
-        'objects/Opportunity/businessProcesses/My-record-typeProcess.businessProcess'
+        path.join('objects', 'Opportunity', 'businessProcesses', 'My-record-typeProcess.businessProcess')
       );
     });
   });
