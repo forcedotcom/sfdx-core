@@ -116,6 +116,11 @@ describe('ZipWriter write to file and throws', () => {
       }
       return readStreamStub;
     });
+    const createMock = {
+      append: sinon.spy(),
+      finalize: sinon.stub().resolves(),
+    } as unknown as ZipArchiver.Archiver;
+    sandbox.stub(ZipArchiver, 'create').returns(createMock);
   });
 
   afterEach(() => {
@@ -159,6 +164,11 @@ describe('ZipWriter write to file', () => {
       }
       return readStreamStub;
     });
+    const createMock = {
+      append: sinon.spy(),
+      finalize: sinon.stub().resolves(),
+    } as unknown as ZipArchiver.Archiver;
+    sandbox.stub(ZipArchiver, 'create').returns(createMock);
   });
 
   afterEach(() => {
