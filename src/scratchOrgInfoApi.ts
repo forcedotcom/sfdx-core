@@ -204,7 +204,7 @@ const getAuthInfo = async (options: {
       throw error.lastError || error;
     }
   } else {
-    return await AuthInfo.create({
+    return AuthInfo.create({
       username: options.username,
       parentUsername: options.hubOrg.getUsername(),
       oauth2Options: options.oauth2Options,

@@ -12,7 +12,7 @@ import { ensureString, getString } from '@salesforce/ts-types';
 // Local
 import { Org } from './org';
 import { Logger } from './logger';
-import { AuthInfo } from './authInfo';
+import { AuthInfo, AuthFields } from './authInfo';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { Connection } from './connection';
@@ -38,6 +38,7 @@ export interface ScratchOrgCreateResult {
   username?: string;
   scratchOrgInfo?: ScratchOrgInfo;
   authInfo?: AuthInfo;
+  authFields?: AuthFields;
   warnings: string[];
 }
 
@@ -185,7 +186,9 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   });
 
   // we'll need this scratch org connection later;
-  const scratchOrg = await Org.create({ connection: await Connection.create({ authInfo: scratchOrgAuthInfo }) }); // scartchOrg should come from command
+  const connection = await Connection.create({ authInfo: scratchOrgAuthInfo });
+  const scratchOrg = await Org.create({ connection }); // scartchOrg should come from command
+
   const username = scratchOrg.getUsername();
 
   const configAggregator = new ConfigAggregator();
@@ -210,6 +213,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     username,
     scratchOrgInfo: scratchOrgInfoResult,
     authInfo,
+    authFields: authInfo?.getFields(),
     warnings,
   };
 };
