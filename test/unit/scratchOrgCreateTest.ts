@@ -11,7 +11,7 @@ import { Org } from '../../src/org';
 import { Connection } from '../../src/connection';
 import { AuthInfo } from '../../src/authInfo';
 import { scratchOrgCreate, ScratchOrgCreateOptions } from '../../src/scratchOrgCreate';
-import { SfdxProjectJson } from '../../src/sfdxProject';
+import { SfdxProjectJson, SfdxProject } from '../../src/sfdxProject';
 import { Messages } from '../../src/messages';
 
 Messages.importMessagesDirectory(__dirname);
@@ -32,12 +32,17 @@ describe('scratchOrgCreate', () => {
     Status: 'Active',
   };
   beforeEach(() => {
-    sfdxProjectJsonStub.getPackageDirectories.resolves([
-      { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
-    ]);
     sandbox.stub(Connection, 'create').resolves();
     sandbox.stub(Org, 'create').resolves(hubOrgStub);
     sandbox.stub(AuthInfo, 'create').resolves(authInfoStub);
+    sfdxProjectJsonStub.getPackageDirectories.resolves([
+      { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
+    ]);
+    sandbox.stub(SfdxProject, 'resolve').resolves({
+      resolveProjectConfig: sandbox.stub().resolves({
+        signupTargetLoginUrl: 'https://salesforce.com',
+      }),
+    } as unknown as SfdxProject);
     hubOrgStub.isDevHubOrg.returns(false);
     hubOrgStub.determineIfDevHubOrg.withArgs(true).resolves();
     hubOrgStub.getConnection.returns({
