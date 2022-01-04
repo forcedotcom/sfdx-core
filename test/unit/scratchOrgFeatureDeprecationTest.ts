@@ -20,9 +20,6 @@ describe('scratchOrgFeatureDeprecation', () => {
   const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation(FEATURE_TYPES);
 
   describe('getFeatureWarnings', () => {
-    it('No features.', () => {
-      expect(scratchOrgFeatureDeprecation.getFeatureWarnings(undefined)).to.be.an('array').that.is.empty;
-    });
     it('features is a string', () => {
       expect(scratchOrgFeatureDeprecation.getFeatureWarnings('MultiCurrency')).to.be.an('array').that.is.empty;
     });
