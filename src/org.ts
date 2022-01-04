@@ -194,7 +194,8 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
-   * Create scratchOrg calling it
+   * Creates a scratchOrg
+   * 'this' needs to be a valid dev-hub
    *
    * @param {options} ScratchOrgCreateOptions
    * @returns {ScratchOrgCreateResult}

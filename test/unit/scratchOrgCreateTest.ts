@@ -12,10 +12,6 @@ import { Connection } from '../../src/connection';
 import { AuthInfo } from '../../src/authInfo';
 import { scratchOrgCreate, ScratchOrgCreateOptions } from '../../src/scratchOrgCreate';
 import { SfdxProjectJson, SfdxProject } from '../../src/sfdxProject';
-import { Messages } from '../../src/messages';
-
-Messages.importMessagesDirectory(__dirname);
-// const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreate');
 
 const packageId = '05iB0000000cWwnIAE';
 const packageVersionSubscriberId = '04tB0000000cWwnIAE';

@@ -10,12 +10,25 @@ import { ScratchOrgFeatureDeprecation } from '../../src/scratchOrgFeatureDepreca
 
 describe('scratchOrgFeatureDeprecation', () => {
   const FEATURE_TYPES = {
-    simpleFeatureMapping: { SF1: ['TestA1', 'TestA2'] },
+    simpleFeatureMapping: {
+      SALESWAVE: ['DEVELOPMENTWAVE'],
+      SERVICEWAVE: ['DEVELOPMENTWAVE'],
+    },
     quantifiedFeatureMapping: {
       CUSTOMAPPS: 'AddCustomApps',
       CUSTOMTABS: 'AddCustomTabs',
     },
-    deprecatedFeatures: ['TestFormsPilotFeatureValue'],
+    deprecatedFeatures: [
+      'EXPANDEDSOURCETRACKING',
+      'LISTCUSTOMSETTINGCREATION',
+      'AppNavCapabilities',
+      'EditInSubtab',
+      'OldNewRecordFlowConsole',
+      'OldNewRecordFlowStd',
+      'DesktopLayoutStandardOff',
+      'SplitViewOnStandardOff',
+      'PopOutUtilities',
+    ],
   };
   const scratchOrgFeatureDeprecation = new ScratchOrgFeatureDeprecation(FEATURE_TYPES);
 
@@ -39,38 +52,37 @@ describe('scratchOrgFeatureDeprecation', () => {
       );
     });
     it('Should get a warning when simple features are mapped.', () => {
-      const inputFeatures: string[] = ['sf1', 'MultiCurrency'];
+      const inputFeatures: string[] = ['saleswave', 'MultiCurrency'];
       expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures)).to.be.an('array');
       expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures).length).to.equal(1);
       expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures)[0]).to.equal(
-        "The feature SF1 has been deprecated. It has been replaced with ['TestA1','TestA2'] in this scratch org create request."
+        "The feature SALESWAVE has been deprecated. It has been replaced with ['DEVELOPMENTWAVE'] in this scratch org create request."
       );
     });
     it('Should get a warning for when a feature is deprecated.', () => {
-      const inputFeatures: string[] = ['CustomApps:7', 'TestFORMSPilotFeatureValue', 'AddCustomTabs:8'];
+      const inputFeatures: string[] = ['EXPANDEDSOURCETRACKING:7', 'TestFORMSPilotFeatureValue', 'AddCustomTabs:8'];
       expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures)).to.be.an('array');
       expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures).length).to.equal(1);
       expect(scratchOrgFeatureDeprecation.getFeatureWarnings(inputFeatures)[0]).to.equal(
-        'The feature TESTFORMSPILOTFEATUREVALUE has been deprecated. It has been removed from the list of requested features.'
+        'The feature EXPANDEDSOURCETRACKING has been deprecated. It has been removed from the list of requested features.'
       );
     });
   });
 
   describe('filterDeprecatedFeatures', () => {
     it('Should remove deprecated features from list.', () => {
-      const inputFeatures: string[] = ['CustomApps:7', 'TestFORMSPilotFeatureValue', 'AddCustomTabs:8'];
+      const inputFeatures: string[] = ['CustomApps:7', 'EXPANDEDSOURCETRACKING', 'AddCustomTabs:8'];
       expect(scratchOrgFeatureDeprecation.filterDeprecatedFeatures(inputFeatures)).deep.equal([
         'CustomApps:7',
         'AddCustomTabs:8',
       ]);
     });
     it('Should perform simple feature mapping.', () => {
-      const inputFeatures: string[] = ['CustomApps:7', 'sf1', 'AddCustomTabs:8'];
+      const inputFeatures: string[] = ['SALESWAVE', 'sf1', 'EXPANDEDSOURCETRACKING:8'];
       expect(scratchOrgFeatureDeprecation.filterDeprecatedFeatures(inputFeatures)).deep.equal([
-        'CustomApps:7',
-        'TestA1',
-        'TestA2',
-        'AddCustomTabs:8',
+        'DEVELOPMENTWAVE',
+        'sf1',
+        'EXPANDEDSOURCETRACKING:8',
       ]);
     });
   });
