@@ -142,7 +142,6 @@ describe('ZipWriter write to file', () => {
   const sandbox: sinon.SinonSandbox = sinon.createSandbox();
   const rootDestination = path.join(os.tmpdir(), 'my-zip.zip');
   const bufferString = 'DEADBEEF';
-  // const rootDestination = path.join('/Users', 'bmaggi', 'tmp', 'my-zip.zip');
   let writeStreamStub: sinon.SinonStubbedInstance<WritableFileStream>;
   let readStreamStub: sinon.SinonStubbedInstance<ReadableFileStream>;
   let createWriteStreamStub: sinon.SinonStub;

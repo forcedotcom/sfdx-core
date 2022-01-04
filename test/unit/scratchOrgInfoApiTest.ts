@@ -57,7 +57,7 @@ describe('requestScratchOrgCreation', () => {
     sandbox.restore();
   });
 
-  it('requestScratchOrgCreation', async () => {
+  it('requestScratchOrgCreation tests basic ScratchOrgInfo object with all fields included', async () => {
     const error = new Error('MyError');
     error.name = 'NamedOrgNotFound';
     stubMethod(sandbox, AuthInfo, 'create').rejects(error);
@@ -102,7 +102,7 @@ describe('requestScratchOrgCreation', () => {
     err.name = 'NamedOrgNotFound';
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
-      create: sinon.stub().rejects(),
+      create: sinon.stub().rejects(new Error('MyCreateError')),
     } as unknown as SObject<unknown>);
     const hubOrg = new Org({});
     const settings = new SettingsGenerator();
@@ -110,6 +110,7 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
       expect(error).to.exist;
+      expect(error.message).to.include('MyCreateError');
     }
   });
 

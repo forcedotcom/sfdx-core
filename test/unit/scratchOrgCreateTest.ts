@@ -31,6 +31,10 @@ describe('scratchOrgCreate', () => {
   const retrieve = {
     Status: 'Active',
   };
+  const authFields = {
+    instanceUrl: 'https://salesforce.com',
+    orgId: '12345',
+  };
   beforeEach(() => {
     sandbox.stub(Connection, 'create').resolves();
     sandbox.stub(Org, 'create').resolves(hubOrgStub);
@@ -50,17 +54,20 @@ describe('scratchOrgCreate', () => {
         clientId,
       }),
       tooling: {
-        sobject: sandbox.stub().returns({
-          find: sandbox
-            .stub()
-            .withArgs({ RevisionCounter: { $gt: 0 } }, ['Id'])
-            .resolves([
-              {
-                Id: '1234',
-              },
-            ]),
-          update: sandbox.spy(),
-        }),
+        sobject: sandbox
+          .stub()
+          .withArgs('SourceMember')
+          .returns({
+            find: sandbox
+              .stub()
+              .withArgs({ RevisionCounter: { $gt: 0 } }, ['Id'])
+              .resolves([
+                {
+                  Id: '1234',
+                },
+              ]),
+            update: sandbox.spy(),
+          }),
       },
       sobject: sandbox
         .stub()
@@ -86,10 +93,7 @@ describe('scratchOrgCreate', () => {
         .resolves({ Id: packageId, IsReleased: true }),
     } as unknown as Connection);
     hubOrgStub.getUsername.returns(username);
-    authInfoStub.getFields.returns({
-      instanceUrl: 'https://salesforce.com',
-      orgId: '12345',
-    });
+    authInfoStub.getFields.returns(authFields);
   });
   afterEach(() => {
     sandbox.restore();
@@ -111,5 +115,14 @@ describe('scratchOrgCreate', () => {
       warnings: [],
     });
     expect(scratchOrgCreateResult).to.have.keys(['username', 'scratchOrgInfo', 'authInfo', 'authFields', 'warnings']);
+    expect(scratchOrgCreateResult).to.deep.equal({
+      username,
+      scratchOrgInfo: {
+        Status: 'Active',
+      },
+      authInfo: {},
+      authFields,
+      warnings: [],
+    });
   });
 });

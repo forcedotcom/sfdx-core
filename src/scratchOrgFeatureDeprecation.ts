@@ -69,35 +69,32 @@ export class ScratchOrgFeatureDeprecation {
   public getFeatureWarnings(features: string | string[]): string[] {
     /* Get warning messages for deprecated features and feature mappings.*/
     const featureWarningMessages: string[] = [];
-    if (features) {
-      // const requestedFeatures = _.toUpper(isString(features) ? features : features.join(';'));
-      const requestedFeatures = (isString(features) ? features : features.join(';')).toUpperCase();
+    const requestedFeatures = (isString(features) ? features : features.join(';')).toUpperCase();
 
-      /* If a public quantified feature is defined without a quantity, throw a warning.*/
-      Object.keys(this.featureTypes.quantifiedFeatureMapping).forEach((key) => {
-        if (new RegExp(`${key};|${key},|${key}$`, 'i').test(requestedFeatures)) {
-          featureWarningMessages.push(
-            messages.getMessage('quantifiedFeatureWithoutQuantityWarning', [
-              key,
-              this.featureTypes.quantifiedFeatureMapping[key],
-            ])
-          );
-        }
-      });
-      /* If a simply mapped feature is defined, log a warning.*/
-      Object.keys(this.featureTypes.simpleFeatureMapping).forEach((key) => {
-        if (new RegExp(`${key};|${key},|${key}$`, 'i').test(requestedFeatures)) {
-          const tokens = '[' + this.featureTypes.simpleFeatureMapping[key].map((v) => "'" + v + "'").join(',') + ']';
-          featureWarningMessages.push(messages.getMessage('mappedFeatureWarning', [key, tokens]));
-        }
-      });
-      /* If a deprecated feature is identified as deprecated, throw a warning.*/
-      this.featureTypes.deprecatedFeatures.forEach((deprecatedFeature) => {
-        if (requestedFeatures.includes(deprecatedFeature)) {
-          featureWarningMessages.push(messages.getMessage('deprecatedFeatureWarning', [deprecatedFeature]));
-        }
-      });
-    }
+    /* If a public quantified feature is defined without a quantity, throw a warning.*/
+    Object.keys(this.featureTypes.quantifiedFeatureMapping).forEach((key) => {
+      if (new RegExp(`${key};|${key},|${key}$`, 'i').test(requestedFeatures)) {
+        featureWarningMessages.push(
+          messages.getMessage('quantifiedFeatureWithoutQuantityWarning', [
+            key,
+            this.featureTypes.quantifiedFeatureMapping[key],
+          ])
+        );
+      }
+    });
+    /* If a simply mapped feature is defined, log a warning.*/
+    Object.keys(this.featureTypes.simpleFeatureMapping).forEach((key) => {
+      if (new RegExp(`${key};|${key},|${key}$`, 'i').test(requestedFeatures)) {
+        const tokens = '[' + this.featureTypes.simpleFeatureMapping[key].map((v) => "'" + v + "'").join(',') + ']';
+        featureWarningMessages.push(messages.getMessage('mappedFeatureWarning', [key, tokens]));
+      }
+    });
+    /* If a deprecated feature is identified as deprecated, throw a warning.*/
+    this.featureTypes.deprecatedFeatures.forEach((deprecatedFeature) => {
+      if (requestedFeatures.includes(deprecatedFeature)) {
+        featureWarningMessages.push(messages.getMessage('deprecatedFeatureWarning', [deprecatedFeature]));
+      }
+    });
     return featureWarningMessages;
   }
 

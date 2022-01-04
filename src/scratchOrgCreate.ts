@@ -68,8 +68,6 @@ export interface ScratchOrgCreateOptions {
   nonamespace?: boolean;
   noancestors?: boolean;
   wait?: Duration;
-  // defaultusername?: boolean;
-  // alias?: string;
   retry?: number;
   apiversion?: string;
   definitionjson?: string;

@@ -138,7 +138,7 @@ const buildOAuth2Options = async (options: {
 
   if (isJwtFlow && !process.env.SFDX_CLIENT_SECRET) {
     oauth2Options.privateKeyFile = options.hubOrg.getConnection().getAuthInfoFields().privateKey;
-    const retries = (options && options.retry) || env.getNumber('SFDX_JWT_AUTH_RETRY_ATTEMPTS') || 0;
+    const retries = options?.retry || env.getNumber('SFDX_JWT_AUTH_RETRY_ATTEMPTS') || 0;
     const timeoutInSeconds = env.getNumber('SFDX_JWT_AUTH_RETRY_TIMEOUT') || 300;
     const timeout = Duration.seconds(timeoutInSeconds).milliseconds;
     const delay = retries ? timeout / retries : 1000;
@@ -222,38 +222,6 @@ const getAuthInfo = async (options: {
  * @param alias - scratch org alias
  * @returns {Promise<void>}
  */
-/*
-const saveAuthInfo = async (options: {
-  scratchOrgInfoComplete: ScratchOrgInfo;
-  hubOrg: Org;
-  authInfo: AuthInfo;
-  setAsDefault?: boolean;
-  alias?: string;
-}): Promise<void> => {
-  const logger = await Logger.child('saveAuthInfo');
-
-  await options.authInfo.save({
-    devHubUsername: options.hubOrg.getUsername(),
-    created: new Date(options.scratchOrgInfoComplete.CreatedDate ?? new Date()).valueOf().toString(),
-    expirationDate: options.scratchOrgInfoComplete.ExpirationDate,
-    clientId: options.scratchOrgInfoComplete.ConnectedAppConsumerKey,
-    createdOrgInstance: options.scratchOrgInfoComplete.SignupInstance,
-    isDevHub: false,
-    snapshot: options.scratchOrgInfoComplete.Snapshot,
-  });
-
-  if (options.alias) {
-    await options.authInfo.setAlias(options.alias);
-    logger.debug(`AuthInfo has alias to ${options.authInfo.getFields().alias}`);
-  }
-  if (options.setAsDefault) {
-    await options.authInfo.setAsDefault({ defaultUsername: true });
-  }
-
-  logger.debug(`orgConfig.loginUrl: ${options.authInfo.getFields().loginUrl}`);
-  logger.debug(`orgConfig.instanceUrl: ${options.authInfo.getFields().instanceUrl}`);
-};
-*/
 
 /**
  * after we successfully signup an org we need to trade the auth token for access and refresh token.
@@ -396,7 +364,7 @@ export const requestScratchOrgCreation = async (
     if (jsForceError.errorCode === 'REQUIRED_FIELD_MISSING') {
       throw new SfdxError(messages.getMessage('signupFieldsMissing', [jsForceError.fields.toString()]));
     }
-    throw jsForceError;
+    throw SfdxError.wrap(jsForceError);
   }
 };
 
