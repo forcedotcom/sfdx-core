@@ -379,7 +379,9 @@ describe('authorizeScratchOrg', () => {
   const connectionStub = sinon.createStubInstance(Connection);
   const privateKey = '12345';
   const username = 'PlatformCLI';
-  const authInfo = 'my-auth-info';
+  const authInfo = {
+    save: sinon.stub().resolves(),
+  };
   let authInfoStub: sinon.SinonStub;
   beforeEach(() => {
     authInfoStub = stubMethod(sandbox, AuthInfo, 'create').resolves(authInfo);

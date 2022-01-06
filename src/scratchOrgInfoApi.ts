@@ -286,17 +286,17 @@ export const authorizeScratchOrg = async (options: {
     delay: oAuth2Options.delay,
   });
 
+  await authInfo.save({
+    devHubUsername: hubOrg.getUsername(),
+    created: new Date(scratchOrgInfoComplete.CreatedDate ?? new Date()).valueOf().toString(),
+    expirationDate: scratchOrgInfoComplete.ExpirationDate,
+    clientId: scratchOrgInfoComplete.ConnectedAppConsumerKey,
+    createdOrgInstance: scratchOrgInfoComplete.SignupInstance,
+    isDevHub: false,
+    snapshot: scratchOrgInfoComplete.Snapshot,
+  });
+
   return authInfo;
-
-  // await saveAuthInfo({
-  //   scratchOrgInfoComplete,
-  //   hubOrg,
-  //   authInfo,
-  //   setAsDefault,
-  //   alias,
-  // });
-
-  // return authInfo;
 };
 
 const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Promise<void> => {
