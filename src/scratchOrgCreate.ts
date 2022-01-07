@@ -51,8 +51,6 @@ export interface ScratchOrgCreateResult {
  * @param nonamespace create the scratch org with no namespace
  * @param noancestors do not include second-generation package ancestors in the scratch org
  * @param wait the streaming client socket timeout (in minutes) must be an instance of the Duration utility class (default:6, min:2)
- * @param defaultusername set the created org as the default username (default:false)
- * @param alias alias for the created org
  * @param retry number of scratch org auth retries after scratch org is successfully signed up (default:0, min:0, max:10)
  * @param apiversion target server instance API version
  * @param definitionjson org definition in JSON format
@@ -173,8 +171,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     scratchOrgInfoComplete: scratchOrgInfoResult,
     hubOrg,
     clientSecret,
-    // setAsDefault: defaultusername,
-    // alias,
     signupTargetLoginUrlConfig,
     retry: retry || 0,
   });

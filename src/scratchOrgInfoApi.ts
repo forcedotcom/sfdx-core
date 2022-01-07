@@ -217,21 +217,8 @@ const getAuthInfo = async (options: {
  *
  * @param scratchOrgInfoComplete - The completed ScratchOrgInfo which should contain an access token.
  * @param hubOrg - the environment hub org
- * @param authInfo - The AuthInfo object
- * @param setAsDefault - {boolean} - whether to save this org as the default for this workspace.
- * @param alias - scratch org alias
- * @returns {Promise<void>}
- */
-
-/**
- * after we successfully signup an org we need to trade the auth token for access and refresh token.
- *
- * @param scratchOrgInfoComplete - The completed ScratchOrgInfo which should contain an access token.
- * @param hubOrg - the environment hub org
  * @param clientSecret - The OAuth client secret. May be null for JWT OAuth flow.
- * @param setAsDefault - {boolean} - whether to save this org as the default for this workspace.
  * @param signupTargetLoginUrlConfig - Login url
- * @param alias - scratch org alias
  * @param retry - auth retry attempts
  * @returns {Promise<AuthInfo>}
  */
@@ -239,20 +226,10 @@ export const authorizeScratchOrg = async (options: {
   scratchOrgInfoComplete: ScratchOrgInfo;
   hubOrg: Org;
   clientSecret?: string;
-  setAsDefault?: boolean;
   signupTargetLoginUrlConfig?: string;
-  alias?: string;
   retry?: number;
 }): Promise<AuthInfo> => {
-  const {
-    scratchOrgInfoComplete,
-    hubOrg,
-    clientSecret,
-    // setAsDefault,
-    signupTargetLoginUrlConfig,
-    //  alias,
-    retry: maxRetries,
-  } = options;
+  const { scratchOrgInfoComplete, hubOrg, clientSecret, signupTargetLoginUrlConfig, retry: maxRetries } = options;
   const logger = await Logger.child('authorizeScratchOrg');
   logger.debug(`scratchOrgInfoComplete: ${JSON.stringify(scratchOrgInfoComplete, null, 4)}`);
 
