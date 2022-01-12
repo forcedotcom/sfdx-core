@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import { assert } from 'sinon';
 import { Logger } from '../../src/logger';
 import { SfdxError } from '../../src/sfdxError';
 import { checkScratchOrgInfoForErrors } from '../../src/scratchOrgErrorCodes';
@@ -29,6 +30,7 @@ describe('getHumanErrorMessage', () => {
     const ErrorCode = 'T-0002';
     try {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername, logger);
+      assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfdxError);
       expect(err.message).to.include('couldn’t find a');
@@ -43,6 +45,7 @@ describe('getHumanErrorMessage', () => {
     const ErrorCode = 'SH-0002';
     try {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername, logger);
+      assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfdxError);
       expect(err.message).to.include('create scratch org');
@@ -57,6 +60,7 @@ describe('getHumanErrorMessage', () => {
     const ErrorCode = 'B-1717';
     try {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername, logger);
+      assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfdxError);
       expect(err.message).to.equal('The request to create a scratch org failed with error code: B-1717.');
@@ -68,6 +72,7 @@ describe('getHumanErrorMessage', () => {
   it('test get default message for undefined error code.', () => {
     try {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo }, testUsername, logger);
+      assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfdxError);
       expect(err.message).to.include('An unknown server error occurred');
@@ -80,6 +85,7 @@ describe('getHumanErrorMessage', () => {
   it('test get default message for undefined error code.', () => {
     try {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode: null }, testUsername, logger);
+      assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfdxError);
       expect(err.message).to.include('An unknown server error occurred');
@@ -92,6 +98,7 @@ describe('getHumanErrorMessage', () => {
   it('Throws generic error for undefined status', () => {
     try {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo, Status: undefined }, testUsername, logger);
+      assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfdxError);
       expect(err.message).to.include('unexpected status');
