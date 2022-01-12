@@ -115,10 +115,9 @@ export const getAncestorIds = async (
           !/^[0-9]+.[0-9]+.[0-9]+.[0-9]+$/.test(packageDir.ancestorVersion) &&
           !/^[0-9]+.[0-9]+.[0-9]+$/.test(packageDir.ancestorVersion)
         ) {
-          throw new SfdxError(
-            messages.getMessage('errorInvalidAncestorVersionFormat', [packageDir.ancestorVersion]),
-            'InvalidAncestorVersion'
-          );
+          throw SfdxError.create('@salesforce/core', 'scratchOrgInfogenerator', 'errorInvalidAncestorsVersionFormat', [
+            packageDir.ancestorVersion,
+          ]);
         }
         // package can be an ID in original toolbelt code, but not according to docs
         const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
@@ -140,19 +139,19 @@ export const getAncestorIds = async (
           );
         }
         if (packageDir.ancestorId && packageDir.ancestorId !== releasedAncestor.Id) {
-          throw new SfdxError(
-            messages.getMessage('errorAncestorIdVersionMismatch', [packageDir.ancestorVersion, packageDir.ancestorId]),
-            'ErrorAncestorIdVersionMismatch'
-          );
+          throw SfdxError.create('@salesforce/core', 'scratchOrgInfogenerator', 'ErrorAncestorIdVersionMismatch', [
+            packageDir.ancestorVersion,
+            packageDir.ancestorId,
+          ]);
         }
 
         return releasedAncestor.Id;
       }
 
-      if (packageDir.ancestorId && packageDir.ancestorId.startsWith('05i')) {
+      if (packageDir?.ancestorId?.startsWith('05i')) {
         return packageDir.ancestorId;
       }
-      if (packageDir.ancestorId && packageDir.ancestorId.startsWith('04t')) {
+      if (packageDir?.ancestorId?.startsWith('04t')) {
         return (
           await hubOrg
             .getConnection()
