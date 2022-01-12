@@ -120,8 +120,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     nonamespace,
     noancestors,
     wait = Duration.minutes(DEFAULT_STREAM_TIMEOUT_MINUTES),
-    // defaultusername = false,
-    // alias = undefined,
     retry = 0,
     apiversion,
     definitionjson,
