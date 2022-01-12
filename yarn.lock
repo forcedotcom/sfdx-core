@@ -578,6 +578,11 @@
   resolved "https://registry.yarnpkg.com/@salesforce/dev-config/-/dev-config-2.1.2.tgz#b4e206f860e87065d068bf8ba3994a032389ad81"
   integrity sha512-1swy07rynHoTRk8lj6nuC0JceRBo300OuWnovQe2OMvLpQM5Dh1SUnv1SE8012PsrK9BC1WqGXp4BUyMo04x7w==
 
+"@salesforce/dev-config@^2.1.3":
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/@salesforce/dev-config/-/dev-config-2.1.3.tgz#77fa29be9e1df2c5919c36d55b2fef9c9be27c46"
+  integrity sha512-J6NRMfwzgbKgo6/mO0ZhPxDKVNhoEd044vCTAxWLVJA5Ld7mB+/Sx6oosW89FvIkl0098LyfIMmwRDu/zcZd9g==
+
 "@salesforce/dev-scripts@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@salesforce/dev-scripts/-/dev-scripts-1.0.2.tgz#940d28b2f94530b7bd3916da3fbd0fee1f31f458"
