@@ -34,7 +34,6 @@
     "!lib/**/*.map"
   ],
   "dependencies": {
-    "@oclif/config": "^1.18.1",
     "@salesforce/bunyan": "^2.0.0",
     "@salesforce/kit": "^1.5.17",
     "@salesforce/schemas": "^1.0.1",
