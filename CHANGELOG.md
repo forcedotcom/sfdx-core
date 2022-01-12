@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.33.1](https://github.com/forcedotcom/sfdx-core/compare/v2.33.0...v2.33.1) (2021-12-15)
+
+### Bug Fixes
+
+- faye doesn't use custom stuff passed it ([b1cefc7](https://github.com/forcedotcom/sfdx-core/commit/b1cefc76afde7f0dd56ed72b5539a47c118eef63))
+
 ## [2.33.0](https://github.com/forcedotcom/sfdx-core/compare/v2.32.0...v2.33.0) (2021-12-14)
 
 ### Features
