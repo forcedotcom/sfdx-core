@@ -115,7 +115,7 @@ export const getAncestorIds = async (
           !/^[0-9]+.[0-9]+.[0-9]+.[0-9]+$/.test(packageDir.ancestorVersion) &&
           !/^[0-9]+.[0-9]+.[0-9]+$/.test(packageDir.ancestorVersion)
         ) {
-          throw SfdxError.create('@salesforce/core', 'scratchOrgInfogenerator', 'errorInvalidAncestorsVersionFormat', [
+          throw SfdxError.create('@salesforce/core', 'scratchOrgInfoGenerator', 'errorInvalidAncestorVersionFormat', [
             packageDir.ancestorVersion,
           ]);
         }
