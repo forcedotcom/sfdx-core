@@ -12,7 +12,7 @@ import { ensureString, getString } from '@salesforce/ts-types';
 // Local
 import { Org } from './org';
 import { Logger } from './logger';
-import { AuthInfo } from './authInfo';
+import { AuthInfo, AuthFields } from './authInfo';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { Connection } from './connection';
@@ -24,6 +24,7 @@ import {
   requestScratchOrgCreation,
   pollForScratchOrgInfo,
   deploySettingsAndResolveUrl,
+  ScratchOrgInfo,
 } from './scratchOrgInfoApi';
 import SettingsGenerator from './scratchOrgSettingsGenerator';
 import { generateScratchOrgInfo, getScratchOrgInfoPayload } from './scratchOrgInfoGenerator';
@@ -35,7 +36,9 @@ export const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
 
 export interface ScratchOrgCreateResult {
   username?: string;
+  scratchOrgInfo?: ScratchOrgInfo;
   authInfo?: AuthInfo;
+  authFields?: AuthFields;
   warnings: string[];
 }
 
@@ -48,8 +51,6 @@ export interface ScratchOrgCreateResult {
  * @param nonamespace create the scratch org with no namespace
  * @param noancestors do not include second-generation package ancestors in the scratch org
  * @param wait the streaming client socket timeout (in minutes) must be an instance of the Duration utility class (default:6, min:2)
- * @param defaultusername set the created org as the default username (default:false)
- * @param alias alias for the created org
  * @param retry number of scratch org auth retries after scratch org is successfully signed up (default:0, min:0, max:10)
  * @param apiversion target server instance API version
  * @param definitionjson org definition in JSON format
@@ -65,8 +66,6 @@ export interface ScratchOrgCreateOptions {
   nonamespace?: boolean;
   noancestors?: boolean;
   wait?: Duration;
-  defaultusername?: boolean;
-  alias?: string;
   retry?: number;
   apiversion?: string;
   definitionjson?: string;
@@ -121,8 +120,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     nonamespace,
     noancestors,
     wait = Duration.minutes(DEFAULT_STREAM_TIMEOUT_MINUTES),
-    defaultusername = false,
-    alias = undefined,
     retry = 0,
     apiversion,
     definitionjson,
@@ -172,8 +169,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     scratchOrgInfoComplete: scratchOrgInfoResult,
     hubOrg,
     clientSecret,
-    setAsDefault: defaultusername,
-    alias,
     signupTargetLoginUrlConfig,
     retry: retry || 0,
   });
@@ -183,7 +178,9 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   });
 
   // we'll need this scratch org connection later;
-  const scratchOrg = await Org.create({ connection: await Connection.create({ authInfo: scratchOrgAuthInfo }) });
+  const connection = await Connection.create({ authInfo: scratchOrgAuthInfo });
+  const scratchOrg = await Org.create({ connection }); // scartchOrg should come from command
+
   const username = scratchOrg.getUsername();
 
   const configAggregator = new ConfigAggregator();
@@ -206,7 +203,9 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
 
   return {
     username,
+    scratchOrgInfo: scratchOrgInfoResult,
     authInfo,
+    authFields: authInfo?.getFields(),
     warnings,
   };
 };

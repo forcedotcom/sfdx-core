@@ -98,7 +98,7 @@ export const getAncestorIds = async (
   hubOrg: Org
 ): Promise<string> => {
   if (Object.prototype.hasOwnProperty.call(scratchOrgInfo, 'package2AncestorIds')) {
-    throw new Error(messages.getMessage('errorpackage2AncestorIdsKeyNotSupported'));
+    throw new SfdxError(messages.getMessage('errorpackage2AncestorIdsKeyNotSupported'), 'DeprecationError');
   }
   const packagesWithAncestors = (await projectJson.getPackageDirectories())
     // check that the package has any ancestor types (id or version)
@@ -115,7 +115,9 @@ export const getAncestorIds = async (
           !/^[0-9]+.[0-9]+.[0-9]+.[0-9]+$/.test(packageDir.ancestorVersion) &&
           !/^[0-9]+.[0-9]+.[0-9]+$/.test(packageDir.ancestorVersion)
         ) {
-          throw new Error(messages.getMessage('errorInvalidAncestorVersionFormat', [packageDir.ancestorVersion]));
+          throw SfdxError.create('@salesforce/core', 'scratchOrgInfoGenerator', 'errorInvalidAncestorVersionFormat', [
+            packageDir.ancestorVersion,
+          ]);
         }
         // package can be an ID in original toolbelt code, but not according to docs
         const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
@@ -132,39 +134,38 @@ export const getAncestorIds = async (
         } catch (err) {
           throw new SfdxError(
             messages.getMessage('errorNoMatchingAncestor', [packageDir.ancestorVersion, packageDir.package]),
-            'errorNoMatchingAncestor',
+            'ErrorNoMatchingAncestor',
             [messages.getMessage('errorAncestorNotReleased', [packageDir.ancestorVersion])]
           );
         }
         if (packageDir.ancestorId && packageDir.ancestorId !== releasedAncestor.Id) {
-          throw new Error(
-            messages.getMessage('errorAncestorIdVersionMismatch', [packageDir.ancestorVersion, packageDir.ancestorId])
-          );
+          throw SfdxError.create('@salesforce/core', 'scratchOrgInfogenerator', 'ErrorAncestorIdVersionMismatch', [
+            packageDir.ancestorVersion,
+            packageDir.ancestorId,
+          ]);
         }
 
         return releasedAncestor.Id;
       }
 
-      if (packageDir.ancestorId) {
-        if (packageDir.ancestorId.startsWith('05i')) {
-          return packageDir.ancestorId;
-        }
-        if (packageDir.ancestorId.startsWith('04t')) {
-          return (
-            await hubOrg
-              .getConnection()
-              .singleRecordQuery<{ Id: string }>(
-                `SELECT Id FROM Package2Version WHERE SubscriberPackageVersionId = '${packageDir.ancestorId}'`,
-                { tooling: true }
-              )
-          ).Id;
-        }
-        const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
-        if (packageAliases?.[packageDir.ancestorId]) {
-          return packageAliases?.[packageDir.ancestorId];
-        }
-        throw new Error(`Invalid ancestorId ${packageDir.ancestorId}`);
+      if (packageDir?.ancestorId?.startsWith('05i')) {
+        return packageDir.ancestorId;
       }
+      if (packageDir?.ancestorId?.startsWith('04t')) {
+        return (
+          await hubOrg
+            .getConnection()
+            .singleRecordQuery<{ Id: string }>(
+              `SELECT Id FROM Package2Version WHERE SubscriberPackageVersionId = '${packageDir.ancestorId}'`,
+              { tooling: true }
+            )
+        ).Id;
+      }
+      const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
+      if (packageDir.ancestorId && packageAliases?.[packageDir.ancestorId]) {
+        return packageAliases[packageDir.ancestorId];
+      }
+      throw new SfdxError(`Invalid ancestorId ${packageDir.ancestorId}`, 'InvalidAncestorId');
     })
   );
 
@@ -261,7 +262,7 @@ export const getScratchOrgInfoPayload = async (options: {
       scratchOrgInfoPayload = { ...defFileContents, ...orgConfigInput };
     } catch (err) {
       const error = err as Error;
-      if (error.name === 'SyntaxError') {
+      if (error.name === 'JsonParseError') {
         throw new SfdxError(`An error occurred parsing ${options.definitionfile}`);
       }
     }

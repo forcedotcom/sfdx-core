@@ -24,6 +24,7 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
+import { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from '../src/scratchOrgCreate';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Aliases } from './config/aliases';
 import { AuthInfoConfig } from './config/authInfoConfig';
@@ -100,6 +101,21 @@ export type SandboxRequest = {
   Description?: string;
 };
 
+export type ScratchOrgRequest = Pick<
+  ScratchOrgCreateOptions,
+  | 'connectedAppConsumerKey'
+  | 'durationDays'
+  | 'nonamespace'
+  | 'noancestors'
+  | 'wait'
+  | 'retry'
+  | 'apiversion'
+  | 'definitionjson'
+  | 'definitionfile'
+  | 'orgConfig'
+  | 'clientSecret'
+>;
+
 /**
  * Provides a way to manage a locally authenticated Org.
  *
@@ -175,6 +191,22 @@ export class Org extends AsyncCreatable<Org.Options> {
       shouldPoll: retries > 0,
       pollInterval,
     });
+  }
+
+  /**
+   * Creates a scratchOrg
+   * 'this' needs to be a valid dev-hub
+   *
+   * @param {options} ScratchOrgCreateOptions
+   * @returns {ScratchOrgCreateResult}
+   */
+
+  public async scratchOrgCreate(options: ScratchOrgRequest): Promise<ScratchOrgCreateResult> {
+    try {
+      return await scratchOrgCreate({ ...options, hubOrg: this });
+    } catch (error) {
+      throw SfdxError.create('@salesforce/core', 'org', 'FailedToCreateScratchOrg');
+    }
   }
 
   /**

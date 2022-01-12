@@ -8,7 +8,7 @@
 // @salesforce
 import { Optional } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
-import { ensureString, getString } from '@salesforce/ts-types';
+import { getString } from '@salesforce/ts-types';
 
 // Thirdparty
 import { RecordResult, OAuth2Options } from 'jsforce';
@@ -204,7 +204,7 @@ const getAuthInfo = async (options: {
       throw error.lastError || error;
     }
   } else {
-    return await AuthInfo.create({
+    return AuthInfo.create({
       username: options.username,
       parentUsername: options.hubOrg.getUsername(),
       oauth2Options: options.oauth2Options,
@@ -217,51 +217,8 @@ const getAuthInfo = async (options: {
  *
  * @param scratchOrgInfoComplete - The completed ScratchOrgInfo which should contain an access token.
  * @param hubOrg - the environment hub org
- * @param authInfo - The AuthInfo object
- * @param setAsDefault - {boolean} - whether to save this org as the default for this workspace.
- * @param alias - scratch org alias
- * @returns {Promise<void>}
- */
-const saveAuthInfo = async (options: {
-  scratchOrgInfoComplete: ScratchOrgInfo;
-  hubOrg: Org;
-  authInfo: AuthInfo;
-  setAsDefault: boolean;
-  alias?: string;
-}): Promise<void> => {
-  const logger = await Logger.child('saveAuthInfo');
-
-  await options.authInfo.save({
-    devHubUsername: options.hubOrg.getUsername(),
-    created: new Date(options.scratchOrgInfoComplete.CreatedDate ?? new Date()).valueOf().toString(),
-    expirationDate: options.scratchOrgInfoComplete.ExpirationDate,
-    clientId: options.scratchOrgInfoComplete.ConnectedAppConsumerKey,
-    createdOrgInstance: options.scratchOrgInfoComplete.SignupInstance,
-    isDevHub: false,
-    snapshot: options.scratchOrgInfoComplete.Snapshot,
-  });
-
-  if (options.alias) {
-    await options.authInfo.setAlias(options.alias);
-    logger.debug(`AuthInfo has alias to ${options.authInfo.getFields().alias}`);
-  }
-  if (options.setAsDefault) {
-    await options.authInfo.setAsDefault({ defaultUsername: true });
-  }
-
-  logger.debug(`orgConfig.loginUrl: ${options.authInfo.getFields().loginUrl}`);
-  logger.debug(`orgConfig.instanceUrl: ${options.authInfo.getFields().instanceUrl}`);
-};
-
-/**
- * after we successfully signup an org we need to trade the auth token for access and refresh token.
- *
- * @param scratchOrgInfoComplete - The completed ScratchOrgInfo which should contain an access token.
- * @param hubOrg - the environment hub org
  * @param clientSecret - The OAuth client secret. May be null for JWT OAuth flow.
- * @param setAsDefault - {boolean} - whether to save this org as the default for this workspace.
  * @param signupTargetLoginUrlConfig - Login url
- * @param alias - scratch org alias
  * @param retry - auth retry attempts
  * @returns {Promise<AuthInfo>}
  */
@@ -269,12 +226,10 @@ export const authorizeScratchOrg = async (options: {
   scratchOrgInfoComplete: ScratchOrgInfo;
   hubOrg: Org;
   clientSecret?: string;
-  setAsDefault: boolean;
   signupTargetLoginUrlConfig?: string;
-  alias?: string;
   retry?: number;
 }): Promise<AuthInfo> => {
-  const { scratchOrgInfoComplete, hubOrg, clientSecret, setAsDefault, signupTargetLoginUrlConfig, alias } = options;
+  const { scratchOrgInfoComplete, hubOrg, clientSecret, signupTargetLoginUrlConfig, retry: maxRetries } = options;
   const logger = await Logger.child('authorizeScratchOrg');
   logger.debug(`scratchOrgInfoComplete: ${JSON.stringify(scratchOrgInfoComplete, null, 4)}`);
 
@@ -291,7 +246,7 @@ export const authorizeScratchOrg = async (options: {
     hubOrg,
     clientSecret,
     scratchOrgInfoComplete,
-    retry: options?.retry,
+    retry: maxRetries,
     signupTargetLoginUrlConfig,
   });
 
@@ -308,21 +263,21 @@ export const authorizeScratchOrg = async (options: {
     delay: oAuth2Options.delay,
   });
 
-  await saveAuthInfo({
-    scratchOrgInfoComplete,
-    hubOrg,
-    authInfo,
-    setAsDefault,
-    alias,
+  await authInfo.save({
+    devHubUsername: hubOrg.getUsername(),
+    created: new Date(scratchOrgInfoComplete.CreatedDate ?? new Date()).valueOf().toString(),
+    expirationDate: scratchOrgInfoComplete.ExpirationDate,
+    clientId: scratchOrgInfoComplete.ConnectedAppConsumerKey,
+    createdOrgInstance: scratchOrgInfoComplete.SignupInstance,
+    isDevHub: false,
+    snapshot: scratchOrgInfoComplete.Snapshot,
   });
 
   return authInfo;
 };
 
 const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Promise<void> => {
-  const usernameKey = Object.keys(scratchOrgInfo).find((key: string) =>
-    key ? key.toUpperCase() === 'USERNAME' : false
-  );
+  const usernameKey = Object.keys(scratchOrgInfo).find((key: string) => key.toUpperCase() === 'USERNAME');
   if (!usernameKey) {
     return;
   }
@@ -339,10 +294,10 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
         return;
       }
       // Something unexpected
-      throw error;
+      throw sfdxError;
     }
     // An org file already exists
-    throw SfdxError.create('scratchOrgInfoApi', 'signup', 'C-1007');
+    throw SfdxError.create('@salesforce/core', 'scratchOrgErrorCodes', 'C-1007');
   }
 };
 
@@ -386,7 +341,7 @@ export const requestScratchOrgCreation = async (
     if (jsForceError.errorCode === 'REQUIRED_FIELD_MISSING') {
       throw new SfdxError(messages.getMessage('signupFieldsMissing', [jsForceError.fields.toString()]));
     }
-    throw jsForceError;
+    throw SfdxError.wrap(jsForceError);
   }
 };
 
@@ -422,7 +377,7 @@ export const pollForScratchOrgInfo = async (
         return resultInProgress;
       }
       // all other statuses, OR lack of status (e.g. network errors) will cause a retry
-      throw new Error(`Scratch org status is ${resultInProgress.Status}`);
+      throw new SfdxError(`Scratch org status is ${resultInProgress.Status}`);
     },
     {
       retries: 'INFINITELY',
@@ -468,16 +423,13 @@ export const deploySettingsAndResolveUrl = async (
     }
   }
 
-  if (scratchOrgAuthInfo.getFields().instanceUrl) {
-    logger.debug(
-      `processScratchOrgInfoResult - resultData.instanceUrl: ${JSON.stringify(
-        scratchOrgAuthInfo.getFields().instanceUrl
-      )}`
-    );
+  const { instanceUrl } = scratchOrgAuthInfo.getFields();
+  if (instanceUrl) {
+    logger.debug(`processScratchOrgInfoResult - resultData.instanceUrl: ${instanceUrl}`);
     const options = {
       timeout: Duration.minutes(3),
       frequency: Duration.seconds(10),
-      url: new SfdcUrl(ensureString(scratchOrgAuthInfo.getFields().instanceUrl)),
+      url: new SfdcUrl(instanceUrl),
     };
     try {
       const resolver = await MyDomainResolver.create(options);
@@ -489,7 +441,7 @@ export const deploySettingsAndResolveUrl = async (
         sfdxError.setData({
           orgId: scratchOrgAuthInfo.getFields().orgId,
           username: scratchOrgAuthInfo.getFields().username,
-          instanceUrl: scratchOrgAuthInfo.getFields().instanceUrl,
+          instanceUrl,
         });
         logger.debug('processScratchOrgInfoResult - err data: %s', sfdxError.data);
       }
