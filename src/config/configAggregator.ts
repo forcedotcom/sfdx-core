@@ -104,7 +104,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     try {
       this.localConfig = new Config(Config.getDefaultOptions(false));
     } catch (err) {
-      if (err.name !== 'InvalidProjectWorkspaceError') {
+      if ((err as Error).name !== 'InvalidProjectWorkspaceError') {
         throw err;
       }
     }

@@ -165,7 +165,7 @@ export const fs = Object.assign({}, fsLib, {
       await fs.stat(path.join(dir, file));
       foundProjectDir = dir;
     } catch (err) {
-      if (err && err.code === 'ENOENT') {
+      if (err && (err as SfdxError).code === 'ENOENT') {
         const nextDir = path.resolve(dir, '..');
         if (nextDir !== dir) {
           // stop at root
@@ -190,7 +190,7 @@ export const fs = Object.assign({}, fsLib, {
       fs.statSync(path.join(dir, file));
       foundProjectDir = dir;
     } catch (err) {
-      if (err && err.code === 'ENOENT') {
+      if (err && (err as SfdxError).code === 'ENOENT') {
         const nextDir = path.resolve(dir, '..');
         if (nextDir !== dir) {
           // stop at root
@@ -377,7 +377,10 @@ export const fs = Object.assign({}, fsLib, {
 
       return fs.getContentHash(contentA) === fs.getContentHash(contentB);
     } catch (err) {
-      throw new SfdxError(`The path: ${err.path} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
+      throw new SfdxError(
+        `The path: ${(err as { path: string }).path} doesn't exist or access is denied.`,
+        'DirMissingOrNoAccess'
+      );
     }
   },
 
@@ -401,7 +404,10 @@ export const fs = Object.assign({}, fsLib, {
 
       return fs.getContentHash(contentA) === fs.getContentHash(contentB);
     } catch (err) {
-      throw new SfdxError(`The path: ${err.path} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
+      throw new SfdxError(
+        `The path: ${(err as { path: string }).path} doesn't exist or access is denied.`,
+        'DirMissingOrNoAccess'
+      );
     }
   },
 

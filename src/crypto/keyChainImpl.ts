@@ -183,6 +183,7 @@ export class KeychainAccess implements PasswordStore {
       try {
         return await this.osImpl.onGetCommandClose(code, stdout, stderr, opts, fn);
       } catch (e) {
+        // @ts-ignore
         if (e.retry) {
           if (retryCount >= GET_PASSWORD_RETRY_COUNT) {
             throw messages.createError('passwordRetryError', [GET_PASSWORD_RETRY_COUNT]);
@@ -451,7 +452,7 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
 
     fn(null, contents);
   } catch (err) {
-    fn(err);
+    fn(err as Error);
   }
 }
 
@@ -487,7 +488,7 @@ export class GenericKeychainAccess implements PasswordStore {
             fn(messages.createError('genericKeychainServiceError', [secretFile]));
           }
         } catch (readJsonErr) {
-          fn(readJsonErr);
+          fn(readJsonErr as Error);
         }
       } else {
         if (fileAccessError.code === 'ENOENT') {
@@ -530,7 +531,7 @@ export class GenericKeychainAccess implements PasswordStore {
       );
       await cb(null);
     } catch (err) {
-      await cb(err);
+      await cb(err as Error);
     }
   }
 }
@@ -577,7 +578,7 @@ export class GenericWindowsKeychainAccess extends GenericKeychainAccess {
           await fs.access(secretFile, fs.constants.R_OK | fs.constants.W_OK);
           await cb(null);
         } catch (e) {
-          await cb(e);
+          await cb(e as Error);
         }
       }
     });

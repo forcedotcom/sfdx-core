@@ -168,11 +168,12 @@ export class SfdxProjectJson extends ConfigFile {
         await validator.load();
         await validator.validate(this.getContents());
       } catch (err) {
+        const error = err as Error;
         // Don't throw errors if the global isn't valid, but still warn the user.
         if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
-          throw messages.createError('schemaValidationError', [this.getPath(), err.message], [this.getPath()], err);
+          throw messages.createError('schemaValidationError', [this.getPath(), error.message], [this.getPath()], error);
         } else {
-          this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), err.message]));
+          this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), error.message]));
         }
       }
     }
@@ -206,11 +207,12 @@ export class SfdxProjectJson extends ConfigFile {
         validator.loadSync();
         validator.validateSync(this.getContents());
       } catch (err) {
+        const error = err as Error;
         // Don't throw errors if the global isn't valid, but still warn the user.
         if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
-          throw messages.createError('schemaValidationError', [this.getPath(), err.message], [this.getPath()], err);
+          throw messages.createError('schemaValidationError', [this.getPath(), error.message], [this.getPath()], error);
         } else {
-          this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), err.message]));
+          this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), error.message]));
         }
       }
     }

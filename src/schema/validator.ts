@@ -153,7 +153,7 @@ export class SchemaValidator {
     try {
       return fs.readJsonMapSync(schemaPath);
     } catch (err) {
-      if (err.code === 'ENOENT') {
+      if ((err as SfdxError).code === 'ENOENT') {
         throw new SfdxError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');
       }
       throw err;

@@ -176,7 +176,8 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
     try {
       return await makeRequest<DeviceCodePollingResponse>(httpRequest);
     } catch (e) {
-      const err = e.data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const err: any = (e as SfdxError).data;
       if (err.error && err.status === 400 && err.error === 'authorization_pending') {
         // do nothing because we're still waiting
       } else {
