@@ -146,10 +146,10 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       baseOptions.version = asString(configAggregator.getInfo('apiVersion').value);
     }
 
-    // const providedOptions = options.authInfo.getConnectionOptions();
+    const providedOptions = options.authInfo.getConnectionOptions();
 
     // Get connection options from auth info and create a new jsForce connection
-    // options.connectionOptions = { ...baseOptions, ...providedOptions } as ConnectionConfig<S>;
+    options.connectionOptions = Object.assign(baseOptions, providedOptions) as ConnectionConfig<S>;
 
     const conn = new this(options);
     await conn.init();

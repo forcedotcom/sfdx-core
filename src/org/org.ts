@@ -310,10 +310,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       return this;
     } else if (this.getField(Org.Fields.DEV_HUB_USERNAME)) {
       const devHubUsername = ensureString(this.getField(Org.Fields.DEV_HUB_USERNAME));
-      const authInfo = await AuthInfo.create({ username: devHubUsername });
-      // @ts-ignore
-      const connection = await Connection.create({ authInfo });
-      return Org.create({ connection });
+      return Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username: devHubUsername }),
+        }),
+      });
     }
   }
 
