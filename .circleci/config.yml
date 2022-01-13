@@ -85,6 +85,23 @@ jobs:
           command: |
             mkdir artifacts
       - run:
+          name: Clean all, swap and install
+          command: |
+            yarn clean-all
+            rm -fr node_modules
+            yarn remove @salesforce/core && yarn add $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME#$CIRCLE_SHA1
+            yarn install
+      - run:
+          name: install/build core
+          command: |
+            yarn install
+            yarn build
+          working_directory: node_modules/@salesforce/core
+      - run:
+          name: build project
+          command: |
+            yarn build
+      - run:
           name: Nuts
           command: |
             echo "Using node: $(node --version)"
