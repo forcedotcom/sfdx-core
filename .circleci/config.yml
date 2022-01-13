@@ -87,6 +87,7 @@ jobs:
       - run:
           name: Clean all, swap and install
           command: |
+            git reset --hard
             yarn clean-all
             rm -fr node_modules
             yarn remove @salesforce/core && yarn add $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME#$CIRCLE_SHA1
@@ -98,9 +99,10 @@ jobs:
             yarn build
           working_directory: node_modules/@salesforce/core
       - run:
-          name: build project
+          name: build project and test
           command: |
             yarn build
+            yarn test
       - run:
           name: Nuts
           command: |
