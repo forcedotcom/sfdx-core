@@ -24,7 +24,7 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from '../src/scratchOrgCreate';
+import { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from './scratchOrgCreate';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Aliases } from './config/aliases';
 import { AuthInfoConfig } from './config/authInfoConfig';
