@@ -140,10 +140,7 @@ export default class SettingsGenerator {
   }
 
   private async writeObjectSettingsIfNeeded(objectsDir: string) {
-    if (!this.objectSettingsData) {
-      return;
-    }
-    for (const objectName of Object.keys(this.objectSettingsData)) {
+    for (const objectName of Object.keys(this.objectSettingsData || [])) {
       const value = this.objectSettingsData[objectName];
       // writes the object file in source format
       const objectDir = path.join(objectsDir, upperFirst(objectName));

@@ -97,7 +97,7 @@ export const getAncestorIds = async (
   projectJson: SfdxProjectJson,
   hubOrg: Org
 ): Promise<string> => {
-  if (Object.prototype.hasOwnProperty.call(scratchOrgInfo, 'package2AncestorIds')) {
+  if (Reflect.has(scratchOrgInfo, 'package2AncestorIds')) {
     throw new SfdxError(messages.getMessage('errorpackage2AncestorIdsKeyNotSupported'), 'DeprecationError');
   }
   const packagesWithAncestors = (await projectJson.getPackageDirectories())
@@ -112,8 +112,7 @@ export const getAncestorIds = async (
       // according to docs, 05i is not ok: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev2gp_config_file.htm
       if (packageDir.ancestorVersion) {
         if (
-          !/^[0-9]+.[0-9]+.[0-9]+.[0-9]+$/.test(packageDir.ancestorVersion) &&
-          !/^[0-9]+.[0-9]+.[0-9]+$/.test(packageDir.ancestorVersion)
+          !/^[0-9]+.[0-9]+.[0-9]+(.[0-9]+)?$/.test(packageDir.ancestorVersion)
         ) {
           throw SfdxError.create('@salesforce/core', 'scratchOrgInfoGenerator', 'errorInvalidAncestorVersionFormat', [
             packageDir.ancestorVersion,
@@ -122,13 +121,13 @@ export const getAncestorIds = async (
         // package can be an ID in original toolbelt code, but not according to docs
         const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
         const packageId = packageAliases[ensureString(packageDir.package)] ?? packageDir.package;
-        const splits = packageDir.ancestorVersion.split('.');
+        const [major, minor, patch, build] = packageDir.ancestorVersion.split('.');
         let releasedAncestor;
         try {
           releasedAncestor = await hubOrg
             .getConnection()
             .singleRecordQuery<{ Id: string; IsReleased: boolean }>(
-              `SELECT Id, IsReleased FROM Package2Version WHERE Package2Id = '${packageId}' AND MajorVersion = ${splits[0]} AND MinorVersion = ${splits[1]} AND PatchVersion = ${splits[2]} and IsReleased = true`,
+              `SELECT Id, IsReleased FROM Package2Version WHERE Package2Id = '${packageId}' AND MajorVersion = ${major} AND MinorVersion = ${minor} AND PatchVersion = ${patch} and IsReleased = true`,
               { tooling: true }
             );
         } catch (err) {
@@ -291,8 +290,7 @@ export const getScratchOrgInfoPayload = async (options: {
   // convert various supported array and string formats to a semi-colon-delimited string
   if (scratchOrgInfoPayload.features) {
     if (typeof scratchOrgInfoPayload.features === 'string') {
-      const delimiter = scratchOrgInfoPayload.features.includes(';') ? ';' : ',';
-      scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.split(delimiter);
+      scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.split(/[;,]/);
     }
     warnings = scratchOrgFeatureDeprecation.getFeatureWarnings(scratchOrgInfoPayload.features);
     scratchOrgInfoPayload.features = scratchOrgInfoPayload.features.map((feature: string) => feature.trim());
