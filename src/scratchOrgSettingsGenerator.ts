@@ -64,7 +64,6 @@ export interface BusinessProcessFileContent extends JsonMap {
  */
 export default class SettingsGenerator {
   private settingData?: Record<string, unknown>;
-  // private objectSettingsData: Optional<Record<string, unknown>>;
   private objectSettingsData?: { [objectName: string]: ObjectSetting };
   private logger: Logger;
   private writer: ZipWriter;
@@ -141,7 +140,10 @@ export default class SettingsGenerator {
 
   private async writeObjectSettingsIfNeeded(objectsDir: string) {
     for (const objectName of Object.keys(this.objectSettingsData || [])) {
-      const value = this.objectSettingsData[objectName];
+      const value = this.objectSettingsData?.[objectName];
+      if (!value) {
+        continue;
+      }
       // writes the object file in source format
       const objectDir = path.join(objectsDir, upperFirst(objectName));
       const customObjectDir = path.join(objectDir, `${upperFirst(objectName)}.object`);
