@@ -85,8 +85,7 @@ const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unk
 };
 
 /**
- * Generates the package2AncestorIds scratch org property
- * Rewrite of similar code in pkgUtils, but without dependency on old toolbelt core
+ * getAncestorIds gets project ancestor ids
  *
  * @param scratchOrgInfo - the scratchOrgInfo passed in by the user
  * @param projectJson - sfdxProjectJson
@@ -108,20 +107,18 @@ export const getAncestorIds = async (
   }
   const ancestorIds = await Promise.all(
     packagesWithAncestors.map(async (packageDir) => {
-      // ancestorID can be 05i, or 04t, alias; OR "ancestorVersion": "4.6.0.1" according to toolbelt code
+      // ancestorID can be 05i, or 04t, alias; OR "ancestorVersion": "4.6.0.1"
       // according to docs, 05i is not ok: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev2gp_config_file.htm
       if (packageDir.ancestorVersion) {
-        if (
-          !/^[0-9]+.[0-9]+.[0-9]+(.[0-9]+)?$/.test(packageDir.ancestorVersion)
-        ) {
+        if (!/^[0-9]+.[0-9]+.[0-9]+(.[0-9]+)?$/.test(packageDir.ancestorVersion)) {
           throw SfdxError.create('@salesforce/core', 'scratchOrgInfoGenerator', 'errorInvalidAncestorVersionFormat', [
             packageDir.ancestorVersion,
           ]);
         }
-        // package can be an ID in original toolbelt code, but not according to docs
+        // package can be an ID, but not according to docs
         const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
         const packageId = packageAliases[ensureString(packageDir.package)] ?? packageDir.package;
-        const [major, minor, patch, build] = packageDir.ancestorVersion.split('.');
+        const [major, minor, patch] = packageDir.ancestorVersion.split('.');
         let releasedAncestor;
         try {
           releasedAncestor = await hubOrg
@@ -148,9 +145,11 @@ export const getAncestorIds = async (
       }
 
       if (packageDir?.ancestorId?.startsWith('05i')) {
+        // if it's already a 05i return it, otherwise query for it
         return packageDir.ancestorId;
       }
       if (packageDir?.ancestorId?.startsWith('04t')) {
+        // query for the Id
         return (
           await hubOrg
             .getConnection()
@@ -160,6 +159,7 @@ export const getAncestorIds = async (
             )
         ).Id;
       }
+      // ancestorID can be an alias get it from projectJson
       const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
       if (packageDir.ancestorId && packageAliases?.[packageDir.ancestorId]) {
         return packageAliases[packageDir.ancestorId];
@@ -264,6 +264,7 @@ export const getScratchOrgInfoPayload = async (options: {
       if (error.name === 'JsonParseError') {
         throw new SfdxError(`An error occurred parsing ${options.definitionfile}`);
       }
+      throw SfdxError.wrap(error);
     }
   }
 
