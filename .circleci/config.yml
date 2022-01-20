@@ -115,7 +115,7 @@ workflows:
                 - maintenance
             exclude:
               - os: windows
-                node_version: lts
+                node_version: latest
               - os: windows
                 node_version: maintenance
       - external-nut:
