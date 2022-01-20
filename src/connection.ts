@@ -194,6 +194,9 @@ export class Connection extends JSForceConnection {
     delete options.rest;
     if (rest) {
       this.logger.debug('deploy with REST');
+      // do a quick auth refresh because the raw transport used doesn't handle expired AccessTokens
+      await this.refreshAuth();
+
       const headers = {
         Authorization: this && `OAuth ${this.accessToken}`,
         clientId: this.oauth2 && this.oauth2.clientId,
@@ -252,6 +255,8 @@ export class Connection extends JSForceConnection {
    * @param request HTTP request object or URL to GET request.
    */
   public async requestRaw(request: RequestInfo): Promise<JsonMap> {
+    await this.refreshAuth();
+
     const headers = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {};
 
     merge(headers, SFDX_HTTP_HEADERS, request.headers);
@@ -485,6 +490,19 @@ export class Connection extends JSForceConnection {
       );
     }
     return result.records[0];
+  }
+
+  /**
+   * Executes a get request on the baseUrl to force an auth refresh
+   * Useful for the raw methods (request, requestRaw) that use the accessToken directly and don't handle refreshes
+   */
+  public async refreshAuth(): Promise<void> {
+    this.logger.debug('Refreshing auth for org.');
+    const requestInfo = {
+      url: this.baseUrl(),
+      method: 'GET',
+    };
+    await this.request(requestInfo);
   }
 
   private async loadInstanceApiVersion(): Promise<Nullable<string>> {
