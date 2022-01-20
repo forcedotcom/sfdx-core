@@ -9,7 +9,6 @@
  * Certain Org Features require a translation or should be deprecated.
  * Encapsulates feature mappings and deprecated features.
  */
-// P R I V A T E
 
 import { isString } from '@salesforce/ts-types';
 

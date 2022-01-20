@@ -6,7 +6,6 @@
  */
 
 // Node
-// import * as os from 'os';
 import * as path from 'path';
 
 // @salesforce
@@ -119,11 +118,30 @@ export default class SettingsGenerator {
       status: result.status,
     });
 
-    while (!breakPooling.includes(result.status)) {
+    const timer = (timeout?: number) => {
+      let expired = false;
+      setTimeout(() => {
+        expired = true;
+      }, timeout);
+      return (): boolean => expired;
+    };
+
+    const sleep = async (delay?: number): Promise<void> => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          return resolve();
+        }, delay);
+      });
+    };
+
+    const timeout = timer(10 * 60 * 1000); // timeout of 10 minutes
+
+    while (!breakPooling.includes(result.status) && !timeout()) {
       result = await connection.metadata.checkDeployStatus(id);
       await Lifecycle.getInstance().emit('deploySettingsViaFolder', {
         status: result.status,
       });
+      await sleep(250); // sleep 250 ms before the next iteration
     }
 
     logger.debug(`settings deployment status ${result.status}`);

@@ -85,7 +85,7 @@ const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unk
 };
 
 /**
- * getAncestorIds gets project ancestor ids
+ * Generates the package2AncestorIds scratch org property
  *
  * @param scratchOrgInfo - the scratchOrgInfo passed in by the user
  * @param projectJson - sfdxProjectJson

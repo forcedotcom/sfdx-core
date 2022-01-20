@@ -37,7 +37,6 @@
     "@salesforce/bunyan": "^2.0.0",
     "@salesforce/kit": "^1.5.17",
     "@salesforce/schemas": "^1.0.1",
-    "@salesforce/source-deploy-retrieve": "^4.4.7",
     "@salesforce/ts-types": "^1.5.20",
     "@types/graceful-fs": "^4.1.5",
     "@types/jsforce": "^1.9.35",
