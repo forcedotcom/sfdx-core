@@ -33,7 +33,7 @@ export enum RequestStatus {
   Canceled = 'Canceled',
 }
 
-const breakPooling = ['Succeeded', 'SucceededPartial', 'Failed', 'Canceled'];
+const breakPolling = ['Succeeded', 'SucceededPartial', 'Failed', 'Canceled'];
 
 export interface ObjectSetting extends JsonMap {
   sharingModel?: string;
@@ -121,7 +121,7 @@ export default class SettingsGenerator {
         try {
           result = await connection.metadata.checkDeployStatus(id);
           logger.debug(`Deploy id: ${id} status: ${result.status}`);
-          if (breakPooling.includes(result.status)) {
+          if (breakPolling.includes(result.status)) {
             return {
               completed: true,
               payload: result.status,
