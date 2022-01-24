@@ -67,6 +67,7 @@ export {
   SandboxRequest,
   OrgTypes,
   ResultEvent,
+  ScratchOrgRequest,
 } from './org';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
@@ -88,6 +89,10 @@ export { MyDomainResolver } from './status/myDomainResolver';
 export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './user';
 
 export { PermissionSetAssignment, PermissionSetAssignmentFields } from './permissionSetAssignment';
+
+export { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from './scratchOrgCreate';
+
+export { ScratchOrgInfo } from './scratchOrgInfoApi';
 
 // Utility sub-modules
 export * from './util/fs';
