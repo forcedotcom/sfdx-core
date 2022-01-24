@@ -9,7 +9,7 @@
 import * as path from 'path';
 
 // @salesforce
-import { isEmpty, env, upperFirst } from '@salesforce/kit';
+import { isEmpty, env, upperFirst, Duration } from '@salesforce/kit';
 import { getObject, JsonMap, Optional } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
 
@@ -20,6 +20,8 @@ import { SfdxError } from './sfdxError';
 import { JsonAsXml } from './util/jsonXmlTools';
 import { ZipWriter } from './util/zipWriter';
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
+import { StatusResult } from './status/client';
+import { PollingClient } from './status/pollingClient';
 
 export enum RequestStatus {
   Pending = 'Pending',
@@ -114,34 +116,38 @@ export default class SettingsGenerator {
 
     let result = await connection.metadata.checkDeployStatus(id);
 
-    const timer = (timeout?: number) => {
-      let expired = false;
-      const timerId = setTimeout(() => {
-        expired = true;
-      }, timeout);
-      return { timeout: () => expired, timerId };
+    const pollingOptions: PollingClient.Options = {
+      async poll(): Promise<StatusResult> {
+        try {
+          result = await connection.metadata.checkDeployStatus(id);
+          logger.debug(`Deploy id: ${id} status: ${result.status}`);
+          if (breakPooling.includes(result.status)) {
+            return {
+              completed: true,
+              payload: result.status,
+            };
+          }
+          return {
+            completed: false,
+          };
+        } catch (error) {
+          logger.debug(`An error occurred trying to check deploy id: ${id}`);
+          logger.debug(`Error: ${(error as Error).message}`);
+          logger.debug('Re-trying deploy check again....');
+          return {
+            completed: false,
+          };
+        }
+      },
+      timeout: Duration.seconds(10 * 60), // 10 minutes
+      frequency: Duration.seconds(1),
+      timeoutErrorName: 'DeployingSettingsTimeoutError',
     };
 
-    const sleep = async (delay?: number): Promise<void> => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          return resolve();
-        }, delay);
-      });
-    };
+    const client = await PollingClient.create(pollingOptions);
+    const status = (await client.subscribe()) as string;
 
-    const { timeout, timerId } = timer(10 * 60 * 1000); // timeout of 10 minutes
-
-    while (!breakPooling.includes(result.status) && !timeout()) {
-      result = await connection.metadata.checkDeployStatus(id);
-      await sleep(250); // sleep 250 ms before the next iteration
-    }
-
-    clearTimeout(timerId);
-
-    logger.debug(`settings deployment status ${result.status}`);
-
-    if (result.status !== RequestStatus.Succeeded) {
+    if (status !== RequestStatus.Succeeded) {
       const error = new SfdxError(
         `A scratch org was created with username ${username}, but the settings failed to deploy`,
         'ProblemDeployingSettings'

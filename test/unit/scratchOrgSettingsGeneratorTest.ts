@@ -164,7 +164,6 @@ describe('scratchOrgSettingsGenerator', () => {
   });
 
   describe('deploySettingsViaFolder', () => {
-    let clock: sinon.SinonFakeTimers;
     let adminTestData: MockTestOrgData;
     const scratchOrg = new Org({});
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
@@ -174,7 +173,6 @@ describe('scratchOrgSettingsGenerator', () => {
     let getConnectionStub: sinon.SinonStub;
 
     beforeEach(async () => {
-      clock = sinon.useFakeTimers();
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -194,7 +192,6 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     afterEach(() => {
-      clock.restore();
       addToZipStub.restore();
       finalizeStub.restore();
       getUsernameStub.restore();
@@ -217,9 +214,7 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       await settings.extract(scratchDef);
       await settings.createDeploy();
-      const promise = settings.deploySettingsViaFolder(scratchOrg, '53.0');
-      await clock.runAllAsync();
-      await promise;
+      await settings.deploySettingsViaFolder(scratchOrg, '53.0');
       expect(getUsernameStub.callCount).to.equal(1);
       expect(getConnectionStub.callCount).to.equal(1);
       expect(addToZipStub.callCount).to.equal(3);
@@ -240,7 +235,6 @@ describe('scratchOrgSettingsGenerator', () => {
   });
 
   describe('deploySettingsViaFolder succeeded partial', () => {
-    let clock: sinon.SinonFakeTimers;
     let adminTestData: MockTestOrgData;
     const scratchOrg = new Org({});
     const deployId = '12345';
@@ -251,7 +245,6 @@ describe('scratchOrgSettingsGenerator', () => {
     let getConnectionStub: sinon.SinonStub;
 
     beforeEach(async () => {
-      clock = sinon.useFakeTimers();
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -271,7 +264,6 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     afterEach(() => {
-      clock.restore();
       addToZipStub.restore();
       finalizeStub.restore();
       getUsernameStub.restore();
@@ -294,10 +286,8 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       await settings.extract(scratchDef);
       await settings.createDeploy();
-      const promise = settings.deploySettingsViaFolder(scratchOrg, '53.0');
-      await clock.runAllAsync();
       try {
-        await promise;
+        await settings.deploySettingsViaFolder(scratchOrg, '53.0');
         assert.fail('Expected an error to be thrown.');
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
@@ -307,7 +297,6 @@ describe('scratchOrgSettingsGenerator', () => {
   });
 
   describe('deploySettingsViaFolder fails', () => {
-    let clock: sinon.SinonFakeTimers;
     let adminTestData: MockTestOrgData;
     const scratchOrg = new Org({});
     const deployId = '12345';
@@ -318,7 +307,6 @@ describe('scratchOrgSettingsGenerator', () => {
     let getConnectionStub: sinon.SinonStub;
 
     beforeEach(async () => {
-      clock = sinon.useFakeTimers();
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -338,7 +326,6 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     afterEach(() => {
-      clock.restore();
       addToZipStub.restore();
       finalizeStub.restore();
       getUsernameStub.restore();
@@ -361,10 +348,8 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       await settings.extract(scratchDef);
       await settings.createDeploy();
-      const promise = settings.deploySettingsViaFolder(scratchOrg, '53.0');
-      await clock.runAllAsync();
       try {
-        await promise;
+        await settings.deploySettingsViaFolder(scratchOrg, '53.0');
         assert.fail('Expected an error to be thrown.');
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
@@ -374,7 +359,6 @@ describe('scratchOrgSettingsGenerator', () => {
   });
 
   describe('deploySettingsViaFolder pools', () => {
-    let clock: sinon.SinonFakeTimers;
     let adminTestData: MockTestOrgData;
     const scratchOrg = new Org({});
     const deployId = '12345';
@@ -385,7 +369,6 @@ describe('scratchOrgSettingsGenerator', () => {
     let getConnectionStub: sinon.SinonStub;
 
     beforeEach(async () => {
-      clock = sinon.useFakeTimers();
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -405,7 +388,6 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     afterEach(() => {
-      clock.restore();
       addToZipStub.restore();
       finalizeStub.restore();
       getUsernameStub.restore();
@@ -428,9 +410,7 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       await settings.extract(scratchDef);
       await settings.createDeploy();
-      const promise = settings.deploySettingsViaFolder(scratchOrg, '53.0');
-      await clock.runAllAsync();
-      await promise;
+      await settings.deploySettingsViaFolder(scratchOrg, '53.0');
       expect(getUsernameStub.callCount).to.equal(1);
       expect(getConnectionStub.callCount).to.equal(1);
       expect(addToZipStub.callCount).to.equal(3);
@@ -491,19 +471,18 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     it('tries to deploy the settings to the org pools untill timeouts', async () => {
-      const timeout = 10 * 60 * 1000;
-      const sleep = 250;
+      const timeout = 10 * 60 * 1000; // 10 minutes
+      const frequency = 1000;
       const settings = new SettingsGenerator();
       const promise = settings.deploySettingsViaFolder(scratchOrg, '53.0');
-      for (let i = 0; i <= timeout / sleep; i++) {
+      for (let i = 0; i <= timeout / frequency; i++) {
         await clock.nextAsync();
       }
       try {
         await promise;
         assert.fail('Expected an error to be thrown.');
       } catch (error) {
-        expect(error).to.have.property('name', 'ProblemDeployingSettings');
-        expect(error).to.have.property('data').that.deep.equals({ status: 'InProgress' });
+        expect(error).to.have.property('name', 'DeployingSettingsTimeoutError');
       }
     });
   });
