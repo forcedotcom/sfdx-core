@@ -139,7 +139,7 @@ export default class SettingsGenerator {
           };
         }
       },
-      timeout: Duration.seconds(10 * 60), // 10 minutes
+      timeout: Duration.minutes(10),
       frequency: Duration.seconds(1),
       timeoutErrorName: 'DeployingSettingsTimeoutError',
     };
