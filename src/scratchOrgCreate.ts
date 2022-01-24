@@ -17,7 +17,6 @@ import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { Connection } from './connection';
 import { SfdxProject } from './sfdxProject';
-import { Lifecycle } from './lifecycleEvents';
 import { ConfigAggregator } from './config/configAggregator';
 import {
   authorizeScratchOrg,
@@ -173,15 +172,13 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     retry: retry || 0,
   });
 
-  await Lifecycle.getInstance().emit('scratchOrgCreate', {
-    status: 'getAuthInfo',
-  });
-
   // we'll need this scratch org connection later;
   const connection = await Connection.create({ authInfo: scratchOrgAuthInfo });
   const scratchOrg = await Org.create({ connection }); // scartchOrg should come from command
 
   const username = scratchOrg.getUsername();
+
+  logger.debug(`scratch org username ${username}`);
 
   const configAggregator = new ConfigAggregator();
   const authInfo = await deploySettingsAndResolveUrl(
@@ -192,10 +189,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     settingsGenerator,
     scratchOrg
   );
-
-  await Lifecycle.getInstance().emit('scratchOrgCreate', {
-    status: 'settingsDeployed',
-  });
 
   logger.trace('Settings deployed to org');
   /** updating the revision num to zero during org:creation if source members are created during org:create.This only happens for some specific scratch org definition file.*/

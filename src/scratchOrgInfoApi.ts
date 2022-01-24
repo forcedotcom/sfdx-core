@@ -22,7 +22,6 @@ import { AuthInfo } from './authInfo';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { SfdcUrl } from './util/sfdcUrl';
-import { Lifecycle } from './lifecycleEvents';
 import { MyDomainResolver } from './status/myDomainResolver';
 import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
 import SettingsGenerator, { ObjectSetting } from './scratchOrgSettingsGenerator';
@@ -238,20 +237,12 @@ export const authorizeScratchOrg = async (options: {
     await hubOrg.determineIfDevHubOrg(true);
   }
 
-  await Lifecycle.getInstance().emit('authorizeScratchOrg', {
-    status: 'buildOAuth2Options',
-  });
-
   const oAuth2Options = await buildOAuth2Options({
     hubOrg,
     clientSecret,
     scratchOrgInfoComplete,
     retry: maxRetries,
     signupTargetLoginUrlConfig,
-  });
-
-  await Lifecycle.getInstance().emit('authorizeScratchOrg', {
-    status: 'getAuthInfo',
   });
 
   const authInfo = await getAuthInfo({
@@ -369,9 +360,6 @@ export const pollForScratchOrgInfo = async (
         .sobject<ScratchOrgInfo>('ScratchOrgInfo')
         .retrieve(scratchOrgInfoId);
       logger.debug(`polling client result: ${JSON.stringify(resultInProgress, null, 4)}`);
-      await Lifecycle.getInstance().emit('scratchOrgInfoApi-pollForScratchOrgInfo', {
-        status: resultInProgress.Status,
-      });
       // Once it's "done" we can return it
       if (resultInProgress.Status === 'Active' || resultInProgress.Status === 'Error') {
         return resultInProgress;

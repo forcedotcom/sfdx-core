@@ -20,7 +20,6 @@ import { SfdxError } from './sfdxError';
 import { JsonAsXml } from './util/jsonXmlTools';
 import { ZipWriter } from './util/zipWriter';
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
-import { Lifecycle } from './lifecycleEvents';
 
 export enum RequestStatus {
   Pending = 'Pending',
@@ -114,16 +113,13 @@ export default class SettingsGenerator {
     logger.debug(`deploying settings id ${id}`);
 
     let result = await connection.metadata.checkDeployStatus(id);
-    await Lifecycle.getInstance().emit('deploySettingsViaFolder', {
-      status: result.status,
-    });
 
     const timer = (timeout?: number) => {
       let expired = false;
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         expired = true;
       }, timeout);
-      return (): boolean => expired;
+      return { timeout: () => expired, timerId };
     };
 
     const sleep = async (delay?: number): Promise<void> => {
@@ -134,15 +130,14 @@ export default class SettingsGenerator {
       });
     };
 
-    const timeout = timer(10 * 60 * 1000); // timeout of 10 minutes
+    const { timeout, timerId } = timer(10 * 60 * 1000); // timeout of 10 minutes
 
     while (!breakPooling.includes(result.status) && !timeout()) {
       result = await connection.metadata.checkDeployStatus(id);
-      await Lifecycle.getInstance().emit('deploySettingsViaFolder', {
-        status: result.status,
-      });
       await sleep(250); // sleep 250 ms before the next iteration
     }
+
+    clearTimeout(timerId);
 
     logger.debug(`settings deployment status ${result.status}`);
 

@@ -202,11 +202,7 @@ export class Org extends AsyncCreatable<Org.Options> {
    */
 
   public async scratchOrgCreate(options: ScratchOrgRequest): Promise<ScratchOrgCreateResult> {
-    try {
-      return await scratchOrgCreate({ ...options, hubOrg: this });
-    } catch (error) {
-      throw SfdxError.create('@salesforce/core', 'org', 'FailedToCreateScratchOrg');
-    }
+    return scratchOrgCreate({ ...options, hubOrg: this });
   }
 
   /**
