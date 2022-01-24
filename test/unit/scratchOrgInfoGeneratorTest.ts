@@ -657,21 +657,7 @@ describe('getScratchOrgInfoPayload', () => {
       warnings: [],
     });
   });
-  it('generates scratch org info payload with definitionjson', async () => {
-    expect(
-      await getScratchOrgInfoPayload({
-        durationDays: 1,
-        definitionjson: '{ "features": "my-feature" }',
-      })
-    ).to.deep.equal({
-      scratchOrgInfoPayload: {
-        durationDays: 1,
-        features: 'my-feature',
-      },
-      ignoreAncestorIds: false,
-      warnings: [],
-    });
-  });
+
   it('generates scratch org info payload with definitionfile', async () => {
     expect(
       await getScratchOrgInfoPayload({

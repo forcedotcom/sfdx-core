@@ -52,9 +52,8 @@ export interface ScratchOrgCreateResult {
  * @param wait the streaming client socket timeout (in minutes) must be an instance of the Duration utility class (default:6, min:2)
  * @param retry number of scratch org auth retries after scratch org is successfully signed up (default:0, min:0, max:10)
  * @param apiversion target server instance API version
- * @param definitionjson org definition in JSON format
  * @param definitionfile path to an org definition file
- * @param orgConfig overrides definitionjson
+ * @param orgConfig org definition
  * @param clientSecret OAuth client secret of personal connected app
  */
 
@@ -67,7 +66,6 @@ export interface ScratchOrgCreateOptions {
   wait?: Duration;
   retry?: number;
   apiversion?: string;
-  definitionjson?: string;
   definitionfile?: string;
   orgConfig?: Record<string, unknown>;
   clientSecret?: string;
@@ -121,7 +119,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     wait = Duration.minutes(DEFAULT_STREAM_TIMEOUT_MINUTES),
     retry = 0,
     apiversion,
-    definitionjson,
     definitionfile,
     orgConfig,
     clientSecret = undefined,
@@ -132,7 +129,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   validateWait(wait);
 
   const { scratchOrgInfoPayload, ignoreAncestorIds, warnings } = await getScratchOrgInfoPayload({
-    definitionjson,
     definitionfile,
     connectedAppConsumerKey,
     durationDays,

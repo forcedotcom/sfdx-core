@@ -8,7 +8,6 @@
 import { promises as fs } from 'fs';
 
 // @salesforce
-import { parseJson } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
 
 // Local
@@ -221,19 +220,17 @@ export const generateScratchOrgInfo = async ({
 /**
  * Returns a valid signup json
  *
- * @param definitionjson org definition in JSON format
  * @param definitionfile path to an org definition file
  * @param connectedAppConsumerKey The connected app consumer key. May be null for JWT OAuth flow.
  * @param durationdays duration of the scratch org (in days) (default:1, min:1, max:30)
  * @param nonamespace create the scratch org with no namespace
  * @param noancestors do not include second-generation package ancestors in the scratch org
- * @param orgConfig overrides definitionjson
+ * @param orgConfig org definition
  * @returns scratchOrgInfoPayload: ScratchOrgInfoPayload;
             ignoreAncestorIds: boolean;
             warnings: string[]; 
  */
 export const getScratchOrgInfoPayload = async (options: {
-  definitionjson?: string;
   definitionfile?: string;
   connectedAppConsumerKey?: string;
   durationDays: number;
@@ -246,27 +243,17 @@ export const getScratchOrgInfoPayload = async (options: {
   warnings: string[];
 }> => {
   let warnings: string[] = [];
-  // orgConfig input overrides definitionjson (-j option; hidden/deprecated)
-  const definitionJson = options.definitionjson ? JSON.parse(options.definitionjson) : {};
-  const orgConfigInput = { ...definitionJson, ...(options.orgConfig ?? {}) };
-
-  let scratchOrgInfoPayload = orgConfigInput;
-
-  // the -f option
-  if (options.definitionfile) {
-    try {
-      const fileData = await fs.readFile(options.definitionfile, 'utf8');
-      const defFileContents = parseJson(fileData) as Record<string, unknown>;
-      // definitionjson and orgConfig override file input
-      scratchOrgInfoPayload = { ...defFileContents, ...orgConfigInput };
-    } catch (err) {
-      const error = err as Error;
-      if (error.name === 'JsonParseError') {
-        throw new SfdxError(`An error occurred parsing ${options.definitionfile}`);
-      }
-      throw SfdxError.wrap(error);
-    }
+  let definitionfile;
+  try {
+    // the -f option
+    definitionfile = options.definitionfile ? JSON.parse(await fs.readFile(options.definitionfile, 'utf8')) : {};
+  } catch (error) {
+    throw new SfdxError(`An error occurred parsing ${options.definitionfile}`);
   }
+
+  const orgConfigInput = { ...definitionfile, ...(options.orgConfig ?? {}) };
+
+  const scratchOrgInfoPayload = orgConfigInput;
 
   // scratchOrgInfoPayload must be heads down camelcase.
   const upperCaseKey = sfdc.findUpperCaseKeys(scratchOrgInfoPayload);

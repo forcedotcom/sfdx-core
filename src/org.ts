@@ -110,7 +110,6 @@ export type ScratchOrgRequest = Pick<
   | 'wait'
   | 'retry'
   | 'apiversion'
-  | 'definitionjson'
   | 'definitionfile'
   | 'orgConfig'
   | 'clientSecret'
