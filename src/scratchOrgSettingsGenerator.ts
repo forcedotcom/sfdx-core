@@ -31,7 +31,7 @@ export enum RequestStatus {
   Canceled = 'Canceled',
 }
 
-const breakPooling = ['Succeeded', 'Failed', 'Canceled'];
+const breakPooling = ['Succeeded', 'SucceededPartial', 'Failed', 'Canceled'];
 
 export interface ObjectSetting extends JsonMap {
   sharingModel?: string;

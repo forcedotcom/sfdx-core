@@ -239,6 +239,73 @@ describe('scratchOrgSettingsGenerator', () => {
     });
   });
 
+  describe('deploySettingsViaFolder succeeded partial', () => {
+    let clock: sinon.SinonFakeTimers;
+    let adminTestData: MockTestOrgData;
+    const scratchOrg = new Org({});
+    const deployId = '12345';
+    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
+    let addToZipStub: sinon.SinonStub;
+    let finalizeStub: sinon.SinonStub;
+    let getUsernameStub: sinon.SinonStub;
+    let getConnectionStub: sinon.SinonStub;
+
+    beforeEach(async () => {
+      clock = sinon.useFakeTimers();
+      adminTestData = new MockTestOrgData();
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
+        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+      });
+      finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
+      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
+        return Promise.resolve({
+          id: '1',
+        });
+      });
+      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => {
+        return 'mybuffer';
+      });
+      getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
+      getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, 'SucceededPartial');
+    });
+
+    afterEach(() => {
+      clock.restore();
+      addToZipStub.restore();
+      finalizeStub.restore();
+      getUsernameStub.restore();
+      getConnectionStub.restore();
+      sandbox.restore();
+    });
+
+    it('tries to deploy the settings to the org but deploy status is SucceededPartial', async () => {
+      const scratchDef = {
+        ...TEMPLATE_SCRATCH_ORG_INFO,
+        settings: {
+          lightningExperienceSettings: {
+            enableS1DesktopEnabled: true,
+          },
+          mobileSettings: {
+            enableS1EncryptedStoragePref2: false,
+          },
+        },
+      };
+      const settings = new SettingsGenerator();
+      await settings.extract(scratchDef);
+      await settings.createDeploy();
+      const promise = settings.deploySettingsViaFolder(scratchOrg, '53.0');
+      await clock.runAllAsync();
+      try {
+        await promise;
+        assert.fail('Expected an error to be thrown.');
+      } catch (error) {
+        expect(error).to.have.property('name', 'ProblemDeployingSettings');
+        expect(error).to.have.property('data').that.deep.equals({ status: 'SucceededPartial' });
+      }
+    });
+  });
+
   describe('deploySettingsViaFolder fails', () => {
     let clock: sinon.SinonFakeTimers;
     let adminTestData: MockTestOrgData;
