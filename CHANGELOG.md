@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.34.3](https://github.com/forcedotcom/sfdx-core/compare/v2.34.2...v2.34.3) (2022-01-25)
+
+### Bug Fixes
+
+- refresh auth on a connection, too ([ff32a70](https://github.com/forcedotcom/sfdx-core/commit/ff32a705d87d6e410d06597eefa407b54eeb215d))
+
 ### [2.34.2](https://github.com/forcedotcom/sfdx-core/compare/v2.33.2...v2.34.2) (2022-01-25)
 
 ### [2.33.2](https://github.com/forcedotcom/sfdx-core/compare/v2.33.1...v2.33.2) (2022-01-25)
