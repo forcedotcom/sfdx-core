@@ -413,13 +413,8 @@ export class Org extends AsyncCreatable<Org.Options> {
    * Refreshes the auth for this org's instance by calling HTTP GET on the baseUrl of the connection object.
    */
   public async refreshAuth(): Promise<void> {
-    this.logger.debug('Refreshing auth for org.');
-    const requestInfo = {
-      url: this.getConnection().baseUrl(),
-      method: 'GET',
-    };
     const conn = this.getConnection();
-    await conn.request(requestInfo);
+    await conn.refreshAuth();
   }
 
   /**
