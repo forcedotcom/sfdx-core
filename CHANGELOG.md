@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.34.2](https://github.com/forcedotcom/sfdx-core/compare/v2.33.2...v2.34.2) (2022-01-25)
+
+### [2.33.2](https://github.com/forcedotcom/sfdx-core/compare/v2.33.1...v2.33.2) (2022-01-25)
+
+### Bug Fixes
+
+- cant use require on json as module use readFileSync instead ([3085029](https://github.com/forcedotcom/sfdx-core/commit/3085029e70d7f88e2535bf0b80240855f13abf37))
+- correct import declaration ([4c69d2d](https://github.com/forcedotcom/sfdx-core/commit/4c69d2dc3370c5f920becfe260ccb178279e4d92))
+- exit deploy loop with error on status SucceededPartial ([492e891](https://github.com/forcedotcom/sfdx-core/commit/492e89184e4c865cc7fcf7df41b9c6af6a6f2237))
+- remove unwanted dep ([12ccc3a](https://github.com/forcedotcom/sfdx-core/commit/12ccc3adc0efbe687059187ab4d849b1741c823d))
+- save auth info ([226bbd2](https://github.com/forcedotcom/sfdx-core/commit/226bbd2dc09a7a8df5887c0ae7548c83ae19b748))
+- use correct dir structure ([e947fec](https://github.com/forcedotcom/sfdx-core/commit/e947fecf33a1c19ff80b33f7515e39d4e524f77f))
+
 ### [2.33.1](https://github.com/forcedotcom/sfdx-core/compare/v2.33.0...v2.33.1) (2021-12-15)
 
 ### Bug Fixes
