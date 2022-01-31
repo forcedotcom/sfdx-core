@@ -17,6 +17,7 @@ import * as js2xmlparser from 'js2xmlparser';
 import { Org } from './org';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
+import { Lifecycle } from './lifecycleEvents';
 import { JsonAsXml } from './util/jsonXmlTools';
 import { ZipWriter } from './util/zipWriter';
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
@@ -134,9 +135,16 @@ export default class SettingsGenerator {
           logger.debug(`An error occurred trying to check deploy id: ${id}`);
           logger.debug(`Error: ${(error as Error).message}`);
           logger.debug('Re-trying deploy check again....');
-          return {
-            completed: false,
-          };
+          if (
+            ['ETIMEDOUT', 'ENOTFOUND', 'ECONNRESET', 'socket hang up'].some((retryableNetworkError) =>
+              (error as Error).message.includes(retryableNetworkError)
+            )
+          ) {
+            logger.debug('Network error on the request', error);
+            await Lifecycle.getInstance().emitWarning('Network error occurred.  Continuing to poll.');
+            return { completed: false };
+          }
+          throw SfdxError.wrap(error as Error);
         }
       },
       timeout: Duration.minutes(10),
