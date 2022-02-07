@@ -6,6 +6,7 @@
  */
 
 export * from './globalInfoConfig';
+export * from './whoAmI';
 export * from './sfdxDataHandler';
 export * from './types';
 export { OrgAccessor } from './accessors/orgAccessor';

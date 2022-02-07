@@ -48,6 +48,11 @@ export enum EnvironmentVariable {
   'SFDX_SOURCE_MEMBER_POLLING_TIMEOUT' = 'SFDX_SOURCE_MEMBER_POLLING_TIMEOUT',
   'SFDX_USE_GENERIC_UNIX_KEYCHAIN' = 'SFDX_USE_GENERIC_UNIX_KEYCHAIN',
   'SFDX_USE_PROGRESS_BAR' = 'SFDX_USE_PROGRESS_BAR',
+  'SFDX_LAZY_LOAD_MODULES' = 'SFDX_LAZY_LOAD_MODULES',
+  'SFDX_S3_HOST' = 'SFDX_S3_HOST',
+  'SFDX_UPDATE_INSTRUCTIONS' = 'SFDX_UPDATE_INSTRUCTIONS',
+  'SFDX_INSTALLER' = 'SFDX_INSTALLER',
+  'SFDX_ENV' = 'SFDX_ENV',
   'SF_TARGET_ORG' = 'SF_TARGET_ORG',
   'SF_TARGET_DEV_HUB' = 'SF_TARGET_DEV_HUB',
   'SF_ACCESS_TOKEN' = 'SF_ACCESS_TOKEN',
@@ -74,6 +79,11 @@ export enum EnvironmentVariable {
   'SF_SOURCE_MEMBER_POLLING_TIMEOUT' = 'SF_SOURCE_MEMBER_POLLING_TIMEOUT',
   'SF_USE_GENERIC_UNIX_KEYCHAIN' = 'SF_USE_GENERIC_UNIX_KEYCHAIN',
   'SF_USE_PROGRESS_BAR' = 'SF_USE_PROGRESS_BAR',
+  'SF_LAZY_LOAD_MODULES' = 'SF_LAZY_LOAD_MODULES',
+  'SF_S3_HOST' = 'SF_S3_HOST',
+  'SF_UPDATE_INSTRUCTIONS' = 'SF_UPDATE_INSTRUCTIONS',
+  'SF_INSTALLER' = 'SF_INSTALLER',
+  'SF_ENV' = 'SF_ENV',
 }
 type EnvMetaData = {
   description: string;
@@ -227,6 +237,26 @@ export const SUPPORTED_ENV_VARS: EnvType = {
     description: getMessage(EnvironmentVariable.SFDX_USE_PROGRESS_BAR),
     synonymOf: EnvironmentVariable.SF_USE_PROGRESS_BAR,
   },
+  [EnvironmentVariable.SFDX_LAZY_LOAD_MODULES]: {
+    description: getMessage(EnvironmentVariable.SFDX_USE_PROGRESS_BAR),
+    synonymOf: EnvironmentVariable.SF_LAZY_LOAD_MODULES,
+  },
+  [EnvironmentVariable.SFDX_S3_HOST]: {
+    description: getMessage(EnvironmentVariable.SFDX_S3_HOST),
+    synonymOf: EnvironmentVariable.SF_S3_HOST,
+  },
+  [EnvironmentVariable.SFDX_UPDATE_INSTRUCTIONS]: {
+    description: getMessage(EnvironmentVariable.SFDX_UPDATE_INSTRUCTIONS),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SFDX_INSTALLER]: {
+    description: getMessage(EnvironmentVariable.SFDX_INSTALLER),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SFDX_ENV]: {
+    description: getMessage(EnvironmentVariable.SFDX_ENV),
+    synonymOf: null,
+  },
   [EnvironmentVariable.SF_TARGET_ORG]: {
     description: getMessage(EnvironmentVariable.SF_TARGET_ORG),
     synonymOf: null,
@@ -334,11 +364,31 @@ export const SUPPORTED_ENV_VARS: EnvType = {
     description: getMessage(EnvironmentVariable.SF_USE_PROGRESS_BAR),
     synonymOf: null,
   },
+  [EnvironmentVariable.SF_LAZY_LOAD_MODULES]: {
+    description: getMessage(EnvironmentVariable.SF_LAZY_LOAD_MODULES),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SF_S3_HOST]: {
+    description: getMessage(EnvironmentVariable.SF_S3_HOST),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SF_UPDATE_INSTRUCTIONS]: {
+    description: getMessage(EnvironmentVariable.SF_UPDATE_INSTRUCTIONS),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SF_INSTALLER]: {
+    description: getMessage(EnvironmentVariable.SF_INSTALLER),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SF_ENV]: {
+    description: getMessage(EnvironmentVariable.SF_ENV),
+    synonymOf: null,
+  },
 };
 
 export class EnvVars extends Env {
-  public constructor() {
-    super();
+  public constructor(env = process.env) {
+    super(env);
     this.resolve();
   }
 
