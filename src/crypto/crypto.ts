@@ -182,7 +182,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
         dec = decipher.update(secret, 'hex', 'utf8');
         dec += decipher.final('utf8');
       } catch (err) {
-        const error = messages.createError('authDecryptError', [err.message], [], err);
+        const error = messages.createError('authDecryptError', [(err as Error).message], [], err as Error);
         const useGenericUnixKeychain =
           env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
         if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
@@ -255,7 +255,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
       );
     } catch (err) {
       // No password found
-      if (err.name === 'PasswordNotFoundError') {
+      if ((err as Error).name === 'PasswordNotFoundError') {
         // If we already tried to create a new key then bail.
         if (this.options.retryStatus === 'KEY_SET') {
           logger.debug('a key was set but the retry to get the password failed.');

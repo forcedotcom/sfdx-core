@@ -1032,11 +1032,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         await this.writeSandboxAuthFile(sandboxProcessObj, sandboxInfo);
         pollFinished = true;
       } catch (err) {
+        const error = err as Error;
         this.logger.debug('Exception while calling writeSandboxAuthFile %s', err);
-        if (err?.name === 'JWTAuthError' && err?.stack.includes("user hasn't approved")) {
+        if (error?.name === 'JWTAuthError' && error?.stack?.includes("user hasn't approved")) {
           waitingOnAuth = true;
         } else {
-          throw SfdxError.wrap(err);
+          throw SfdxError.wrap(error);
         }
       }
     }
@@ -1132,13 +1133,14 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       this.logger.debug('Result of calling sandboxAuth %s', result);
       return result;
     } catch (err) {
+      const error = err as Error;
       // There are cases where the endDate is set before the sandbox has actually completed.
       // In that case, the sandboxAuth call will throw a specific exception.
-      if (err?.name === 'INVALID_STATUS') {
-        this.logger.debug('Error while authenticating the user %s', err?.toString());
+      if (error?.name === 'INVALID_STATUS') {
+        this.logger.debug('Error while authenticating the user %s', error?.toString());
       } else {
         // If it fails for any unexpected reason, just pass that through
-        throw SfdxError.wrap(err);
+        throw SfdxError.wrap(error);
       }
     }
   }

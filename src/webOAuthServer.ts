@@ -104,7 +104,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
               response.end();
               resolve(authInfo);
             } catch (err) {
-              this.webServer.reportError(err, response);
+              this.webServer.reportError(err as Error, response);
               reject(err);
             }
           })
@@ -287,7 +287,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
       });
       this.server.listen(this.port, this.host);
     } catch (err) {
-      if (err.name === 'EADDRINUSE') {
+      if ((err as Error).name === 'EADDRINUSE') {
         throw messages.createError('portInUse', [this.port], [this.port]);
       } else {
         throw err;

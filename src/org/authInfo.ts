@@ -317,7 +317,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           instanceUrl: org.instanceUrl,
           accessToken: undefined,
           oauthMethod: 'unknown',
-          error: err.message,
+          error: (err as Error).message,
           isExpired: 'unknown',
         });
       }
@@ -334,10 +334,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       const auths = (await GlobalInfo.getInstance()).orgs.getAll();
       return !isEmpty(auths);
     } catch (err) {
-      if (err.name === 'OrgDataNotAvailableError' || err.code === 'ENOENT') {
+      const error = err as SfdxError;
+      if (error.name === 'OrgDataNotAvailableError' || error.code === 'ENOENT') {
         return false;
       }
-      throw err;
+      throw error;
     }
   }
 
@@ -770,11 +771,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       await this.save();
       return await callback(null, fields.accessToken);
     } catch (err) {
-      if (err.message && err.message.includes('Data Not Available')) {
+      const error = err as Error;
+      if (error?.message?.includes('Data Not Available')) {
         // Set cause to keep original stacktrace
-        return await callback(messages.createError('orgDataNotAvailableError', [this.getUsername()], [], err));
+        return await callback(messages.createError('orgDataNotAvailableError', [this.getUsername()], [], error));
       }
-      return await callback(err);
+      return await callback(error);
     }
   }
 
@@ -803,7 +805,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     try {
       authFieldsBuilder = ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
     } catch (err) {
-      throw messages.createError('jwtAuthError', [err.message]);
+      throw messages.createError('jwtAuthError', [(err as Error).message]);
     }
 
     const authFields: AuthFields = {
@@ -848,7 +850,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     try {
       authFieldsBuilder = await oauth2.refreshToken(ensure(options.refreshToken));
     } catch (err) {
-      throw messages.createError('refreshTokenAuthError', [err.message]);
+      throw messages.createError('refreshTokenAuthError', [(err as Error).message]);
     }
 
     // @ts-ignore
@@ -894,7 +896,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
-      throw messages.createError('authCodeExchangeError', [err.message]);
+      throw messages.createError('authCodeExchangeError', [(err as Error).message]);
     }
 
     // @ts-ignore TODO: need better typings for jsforce
@@ -952,7 +954,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         return { username: userInfoJson.preferred_username, organizationId: userInfoJson.organization_id };
       }
     } catch (err) {
-      throw messages.createError('authCodeUsernameRetrievalError', [err.message]);
+      throw messages.createError('authCodeUsernameRetrievalError', [(err as Error).message]);
     }
   }
 

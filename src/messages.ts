@@ -107,9 +107,10 @@ const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): St
     }
   } catch (err) {
     // Provide a nicer error message for a common JSON parse error; Unexpected token
-    if (err.message.startsWith('Unexpected token')) {
-      const parseError = new Error(`Invalid JSON content in message file: ${filePath}\n${err.message}`);
-      parseError.name = err.name;
+    const error = err as Error;
+    if (error.message.startsWith('Unexpected token')) {
+      const parseError = new Error(`Invalid JSON content in message file: ${filePath}\n${error.message}`);
+      parseError.name = error.name;
       throw parseError;
     }
     throw err;
@@ -342,7 +343,7 @@ export class Messages<T extends string> {
         fs.statSync(path.join(projectRoot, 'package.json'));
         break;
       } catch (err) {
-        if (err.code !== 'ENOENT') throw err;
+        if ((err as SfdxError).code !== 'ENOENT') throw err;
         projectRoot = projectRoot.substring(0, projectRoot.lastIndexOf(path.sep));
       }
     }
@@ -359,7 +360,7 @@ export class Messages<T extends string> {
           throw new NamedError('MissingPackageName', errMessage);
         }
       } catch (err) {
-        throw new NamedError('MissingPackageName', errMessage, err);
+        throw new NamedError('MissingPackageName', errMessage, err as Error);
       }
     }
 

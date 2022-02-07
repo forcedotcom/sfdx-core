@@ -165,7 +165,7 @@ export class ConfigFile<
       }
       return this.getContents();
     } catch (err) {
-      if (err.code === 'ENOENT') {
+      if ((err as SfdxError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
           return this.getContents();
@@ -199,7 +199,7 @@ export class ConfigFile<
       }
       return this.getContents();
     } catch (err) {
-      if (err.code === 'ENOENT') {
+      if ((err as SfdxError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
           return this.getContents();

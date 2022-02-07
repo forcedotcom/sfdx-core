@@ -63,7 +63,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
       } catch (error) {
         errorInPollingFunction = error;
         // there was an actual error thrown, so we don't want to keep retrying
-        throw new NotRetryableError(error.name);
+        throw new NotRetryableError((error as Error).name);
       }
       if (result.completed) {
         return result.payload;

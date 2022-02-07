@@ -100,7 +100,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
           };
         } catch (e) {
           self.logger.debug(`An error occurred trying to resolve: ${host}`);
-          self.logger.debug(`Error: ${e.message}`);
+          self.logger.debug(`Error: ${(e as Error).message}`);
           self.logger.debug('Re-trying dns lookup again....');
           return {
             completed: false,
@@ -121,7 +121,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
       return await promisify(resolveCname)(this.options.url.host);
     } catch (e) {
       this.logger.debug(`An error occurred trying to resolve: ${this.options.url.host}`);
-      this.logger.debug(`Error: ${e.message}`);
+      this.logger.debug(`Error: ${(e as Error).message}`);
       return [];
     }
   }

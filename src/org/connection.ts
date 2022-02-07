@@ -313,11 +313,12 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     try {
       this.setApiVersion(await this.retrieveMaxApiVersion());
     } catch (err) {
-      if (err.name === DNS_ERROR_NAME) {
-        throw err; // throws on DNS connection errors
+      const error = err as Error;
+      if (error.name === DNS_ERROR_NAME) {
+        throw error; // throws on DNS connection errors
       }
       // Don't fail if we can't use the latest, just use the default
-      this.logger.warn('Failed to set the latest API version:', err);
+      this.logger.warn('Failed to set the latest API version:', error);
     }
   }
 
@@ -335,7 +336,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       await resolver.resolve();
       return true;
     } catch (e) {
-      throw messages.createError('domainNotFoundError', [], [], e);
+      throw messages.createError('domainNotFoundError', [], [], e as Error);
     }
   }
 
