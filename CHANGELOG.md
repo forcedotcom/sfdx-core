@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.35.0](https://github.com/forcedotcom/sfdx-core/compare/v2.34.2...v2.35.0) (2022-01-25)
+
+### Bug Fixes
+
+- jsforce dep and pjson version realign ([#516](https://github.com/forcedotcom/sfdx-core/issues/516)) ([9f35f2f](https://github.com/forcedotcom/sfdx-core/commit/9f35f2f0ce30e996a0b4c88461c2babb536c33f7))
+- refresh auth on a connection, too ([ff32a70](https://github.com/forcedotcom/sfdx-core/commit/ff32a705d87d6e410d06597eefa407b54eeb215d))
+
+### [2.34.2](https://github.com/forcedotcom/sfdx-core/compare/v2.33.2...v2.34.2) (2022-01-25)
+
+### [2.33.2](https://github.com/forcedotcom/sfdx-core/compare/v2.33.1...v2.33.2) (2022-01-25)
+
+### Bug Fixes
+
+- cant use require on json as module use readFileSync instead ([3085029](https://github.com/forcedotcom/sfdx-core/commit/3085029e70d7f88e2535bf0b80240855f13abf37))
+- correct import declaration ([4c69d2d](https://github.com/forcedotcom/sfdx-core/commit/4c69d2dc3370c5f920becfe260ccb178279e4d92))
+- exit deploy loop with error on status SucceededPartial ([492e891](https://github.com/forcedotcom/sfdx-core/commit/492e89184e4c865cc7fcf7df41b9c6af6a6f2237))
+- remove unwanted dep ([12ccc3a](https://github.com/forcedotcom/sfdx-core/commit/12ccc3adc0efbe687059187ab4d849b1741c823d))
+- save auth info ([226bbd2](https://github.com/forcedotcom/sfdx-core/commit/226bbd2dc09a7a8df5887c0ae7548c83ae19b748))
+- use correct dir structure ([e947fec](https://github.com/forcedotcom/sfdx-core/commit/e947fecf33a1c19ff80b33f7515e39d4e524f77f))
+
+### [2.33.1](https://github.com/forcedotcom/sfdx-core/compare/v2.33.0...v2.33.1) (2021-12-15)
+
+### Bug Fixes
+
+- faye doesn't use custom stuff passed it ([b1cefc7](https://github.com/forcedotcom/sfdx-core/commit/b1cefc76afde7f0dd56ed72b5539a47c118eef63))
+
+## [2.33.0](https://github.com/forcedotcom/sfdx-core/compare/v2.32.0...v2.33.0) (2021-12-14)
+
+### Features
+
+- sandbox creation ([314dcf1](https://github.com/forcedotcom/sfdx-core/commit/314dcf164d93bd0e3a5f4763a4dfcdde7d0cb14a))
+
+## [2.32.0](https://github.com/forcedotcom/sfdx-core/compare/v2.31.1...v2.32.0) (2021-12-14)
+
+### Features
+
+- switch sfdx-faye with faye ([a0545e5](https://github.com/forcedotcom/sfdx-core/commit/a0545e57d5041c97e499f284afbd7fcb16cf2247))
+
+### Bug Fixes
+
+- no maxquery warning when records.length is 0 ([758f912](https://github.com/forcedotcom/sfdx-core/commit/758f912a23bd3e9f8d4f854f3e07682dd4d4c4aa))
+
 ### [2.31.1](https://github.com/forcedotcom/sfdx-core/compare/v2.31.0...v2.31.1) (2021-12-06)
 
 ## [2.31.0](https://github.com/forcedotcom/sfdx-core/compare/v2.30.1...v2.31.0) (2021-11-30)
