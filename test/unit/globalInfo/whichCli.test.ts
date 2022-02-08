@@ -5,19 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { whoAmI, WhoAmI, WhoAmIFactory, WhoAmIInterface } from '../../../src/exported';
+import { whichCli, WhichCli, WhichCliFactory, WhichCliInterface } from '../../../src/exported';
 
-class TestWhoAmI extends WhoAmI {}
-const createWhoAmI = (cliName = 'sf'): WhoAmIInterface => {
-  WhoAmIFactory.whoAmI = undefined;
-  const me = WhoAmIFactory.instance(TestWhoAmI);
+class TestWhichCli extends WhichCli {}
+const createWhoAmI = (cliName = 'sf'): WhichCliInterface => {
+  WhichCliFactory.whichCli = undefined;
+  const me = WhichCliFactory.instance(TestWhichCli);
   me.cliName = cliName;
   return me;
 };
 describe('whoAmI', () => {
   it('should be set by default', () => {
-    expect(whoAmI).to.be.ok;
-    expect(whoAmI.isOther()).to.be.true;
+    expect(whichCli).to.be.ok;
+    expect(whichCli.isOther()).to.be.true;
   });
   it('should be sf', () => {
     const me = createWhoAmI('sf');

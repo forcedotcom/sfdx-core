@@ -10,6 +10,7 @@ import { camelCase, snakeCase } from 'change-case';
 import { Env } from '@salesforce/kit';
 import { Messages } from '../messages';
 import { Global } from '../global';
+import { WhichCliFactory } from '../exported';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
 const messages = Messages.loadMessages('@salesforce/core', 'envVars');
@@ -392,11 +393,17 @@ export class EnvVars extends Env {
     this.resolve();
   }
 
-  public propertyToEnvName(property: string, prefix = 'SFDX_'): string {
+  private static defaultPrefix(): string | undefined {
+    if (WhichCliFactory.whichCli.isSf()) return 'SF_';
+    if (WhichCliFactory.whichCli.isSfdx()) return 'SFDX_';
+    return 'SFDX_';
+  }
+
+  public propertyToEnvName(property: string, prefix = EnvVars.defaultPrefix()): string {
     return `${prefix || ''}${snakeCase(property).toUpperCase()}`;
   }
 
-  public setPropertyFromEnv(property: string, prefix = 'SFDX_'): void {
+  public setPropertyFromEnv(property: string, prefix = EnvVars.defaultPrefix()): void {
     const envName = this.propertyToEnvName(property, prefix);
     const value = this.getString(envName);
     if (value) {
@@ -404,11 +411,16 @@ export class EnvVars extends Env {
     }
   }
 
-  public asDictionary(): Dictionary<string> {
+  public getPropertyFromEnv<T>(property: string, prefix = EnvVars.defaultPrefix()): T | undefined {
+    const envName = this.propertyToEnvName(property, prefix);
+    return this.get(envName);
+  }
+
+  public asDictionary(): Dictionary<unknown> {
     return this.entries().reduce((accumulator, [key, value]) => {
       accumulator[key] = value;
       return accumulator;
-    }, {} as Dictionary<string>);
+    }, {} as Dictionary<unknown>);
   }
 
   public asMap(): Map<string, string> {
@@ -416,6 +428,69 @@ export class EnvVars extends Env {
       accumulator.set(key, value);
       return accumulator;
     }, new Map<string, string>());
+  }
+
+  public isAutoupdateDisabled(): boolean {
+    return (
+      this.getBoolean(EnvironmentVariable.SFDX_AUTOUPDATE_DISABLE) ||
+      this.getBoolean(EnvironmentVariable.SFDX_DISABLE_AUTOUPDATE)
+    );
+  }
+
+  public isAutoupdateDisabledSet(): boolean {
+    return (
+      !!this.getString(EnvironmentVariable.SFDX_AUTOUPDATE_DISABLE) ||
+      !!this.getString(EnvironmentVariable.SFDX_DISABLE_AUTOUPDATE)
+    );
+  }
+
+  public setAutoupdateDisabled(value: boolean, updateInstructions?: string): void {
+    this.setBoolean(EnvironmentVariable.SFDX_AUTOUPDATE_DISABLE, value);
+    this.setBoolean(EnvironmentVariable.SFDX_DISABLE_AUTOUPDATE, value);
+    if (updateInstructions) {
+      this.setUpdateInstructions(updateInstructions);
+    }
+  }
+
+  public setUpdateInstructions(value: string): void {
+    this.setString(EnvironmentVariable.SFDX_UPDATE_INSTRUCTIONS, value);
+  }
+
+  public isDemoMode(): boolean {
+    return (this.getString(EnvironmentVariable.SFDX_ENV, 'production') || '').toLowerCase() === 'demo';
+  }
+
+  public isInstaller(): boolean {
+    return this.getBoolean(EnvironmentVariable.SFDX_INSTALLER);
+  }
+
+  public getS3HostOverride(): string {
+    return this.getString(EnvironmentVariable.SFDX_S3_HOST) as string;
+  }
+
+  public setS3HostOverride(value: string): void {
+    return this.setString(EnvironmentVariable.SFDX_S3_HOST, value);
+  }
+
+  public getNpmRegistryOverride(): string {
+    return this.getString(EnvironmentVariable.SFDX_NPM_REGISTRY) as string;
+  }
+
+  public setNpmRegistryOverride(value: string): void {
+    return this.setString(EnvironmentVariable.SFDX_NPM_REGISTRY, value);
+  }
+
+  public isLazyRequireEnabled(): boolean {
+    return this.getBoolean(EnvironmentVariable.SFDX_LAZY_LOAD_MODULES);
+  }
+
+  public normalizeAutoupdateDisabled(): void {
+    // Ensure that the legacy envar always causes the oclif counterpart to be set
+    if (this.getBoolean(EnvironmentVariable.SFDX_AUTOUPDATE_DISABLE)) {
+      this.setBoolean(EnvironmentVariable.SFDX_DISABLE_AUTOUPDATE, true);
+    } else if (this.getBoolean(EnvironmentVariable.SFDX_DISABLE_AUTOUPDATE)) {
+      this.setBoolean(EnvironmentVariable.SFDX_DISABLE_AUTOUPDATE, true);
+    }
   }
 
   private resolve(): void {
@@ -432,4 +507,10 @@ export class EnvVars extends Env {
       }
     });
   }
+
+  private get<T>(envName: string): T {
+    return this.asDictionary()[envName] as T;
+  }
 }
+
+export const envVars = new EnvVars();

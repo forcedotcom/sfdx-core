@@ -8,7 +8,7 @@ import { assert, expect } from 'chai';
 import { Config, ConfigProperties, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
-import { OrgConfigProperties } from '../../../src/exported';
+import { OrgConfigProperties, WhichCli, WhichCliFactory } from '../../../src/exported';
 import { testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 import { Cache } from '../../../src/util/cache';
@@ -106,6 +106,8 @@ describe('ConfigAggregator', () => {
 
     it('env overrides local and global', async () => {
       process.env.SFDX_TARGET_ORG = 'test';
+      WhichCliFactory.whichCli = undefined;
+      WhichCliFactory.instance(WhichCli);
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
       expect(aggregator.getPropertyValue(OrgConfigProperties.TARGET_ORG)).to.equal('test');
     });

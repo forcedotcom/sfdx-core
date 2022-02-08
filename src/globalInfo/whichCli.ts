@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export interface WhoAmIInterface {
+export interface WhichCliInterface {
   cliName: string;
   isSfdx: () => boolean;
   isSf: () => boolean;
@@ -13,10 +13,10 @@ export interface WhoAmIInterface {
 }
 
 /**
- * default impl of WhoAmIInterface
+ * default impl of WhichCliInterface
  * examines process.argv[0] to see current process has been started from sf or sfdx
  */
-export class WhoAmI implements WhoAmIInterface {
+export class WhichCli implements WhichCliInterface {
   public cliName: string;
   public constructor() {
     this.cliName = process.argv[0] || 'sf';
@@ -35,15 +35,15 @@ export class WhoAmI implements WhoAmIInterface {
   }
 }
 
-export class WhoAmIFactory<T extends WhoAmIInterface> {
+export class WhichCliFactory<T extends WhichCliInterface> {
   // @ts-ignore
-  public static whoAmI;
-  public static instance<T extends WhoAmIInterface>(c: new () => T): T {
-    if (!this.whoAmI) {
-      WhoAmIFactory.whoAmI = new c();
+  public static whichCli: T;
+  public static instance<T extends WhichCliInterface>(c: new () => T): T {
+    if (!this.whichCli) {
+      WhichCliFactory.whichCli = new c();
     }
-    return WhoAmIFactory.whoAmI;
+    return WhichCliFactory.whichCli;
   }
 }
 
-export const whoAmI = WhoAmIFactory.instance(WhoAmI);
+export const whichCli = WhichCliFactory.instance(WhichCli);

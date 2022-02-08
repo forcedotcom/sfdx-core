@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import { describe } from 'mocha';
 import { EnvVars } from '../../../src/config/envVars';
 import { Global } from '../../../src/global';
 import { testSetup } from '../../../src/testSetup';
@@ -43,6 +44,18 @@ describe('envVars', () => {
     const envVars = new EnvVars();
     expect(envVars.getString('SFDX_ACCESS_TOKEN')).to.equal('some access token');
     expect(envVars.getString('SF_ACCESS_TOKEN')).to.equal('some access token');
+  });
+});
+
+describe('env vars w/o std prefix of SFDX or SF', () => {
+  it('should set env vars w/o prefix', () => {
+    const envVars = new EnvVars();
+    envVars.setString('FORCE_OPEN_URL', 'https://force.com');
+    expect(envVars.getString('FORCE_OPEN_URL')).to.equal('https://force.com');
+    expect(process.env.FORCE_OPEN_URL).to.equal('https://force.com');
+    envVars.setString('FORCE_OPEN_URL', 'https://example.com');
+    envVars.setPropertyFromEnv('FORCE_OPEN_URL', undefined);
+    expect(process.env.FORCE_OPEN_URL).to.equal('https://example.com');
   });
 });
 

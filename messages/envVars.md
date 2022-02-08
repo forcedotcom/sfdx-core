@@ -148,7 +148,7 @@ Text that describes how to update sfdx
 
 # sfdxInstaller
 
-Maybe path to installer
+Boolean indicating that the installer is running
 
 # sfdxEnv
 
@@ -272,7 +272,7 @@ Text that describes how to update sf
 
 # sfInstaller
 
-Maybe path to installer
+Boolean indicating that the installer is running
 
 # sfEnv
 

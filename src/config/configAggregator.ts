@@ -6,7 +6,7 @@
  */
 
 import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
-import { AnyJson, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
+import { AnyJson, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { snakeCase } from 'change-case';
 import { Messages } from '../messages';
 import { EnvVars } from './envVars';
@@ -363,7 +363,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
       configs.push(localConfig);
     }
 
-    configs.push(this.envVars.asDictionary());
+    configs.push(this.envVars.asDictionary() as Dictionary<string>);
 
     const json: JsonMap = {};
     const reduced = configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
