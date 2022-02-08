@@ -5,15 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Node
 import * as path from 'path';
-
-// @salesforce
 import { isEmpty, env, upperFirst, Duration } from '@salesforce/kit';
-import { getObject, JsonMap, Optional } from '@salesforce/ts-types';
+import { ensureObject, getObject, JsonMap, Optional } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
-
-// Local
 import { Org } from './org';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
@@ -119,7 +114,7 @@ export default class SettingsGenerator {
     const pollingOptions: PollingClient.Options = {
       async poll(): Promise<StatusResult> {
         try {
-          result = await connection.metadata.checkDeployStatus(id);
+          result = await connection.metadata.checkDeployStatus(id, true);
           logger.debug(`Deploy id: ${id} status: ${result.status}`);
           if (breakPolling.includes(result.status)) {
             return {
@@ -148,8 +143,14 @@ export default class SettingsGenerator {
     const status = (await client.subscribe()) as string;
 
     if (status !== RequestStatus.Succeeded) {
+      const componentFailures = ensureObject<{
+        componentFailures: Record<string, unknown> | Array<Record<string, unknown>>;
+      }>(result.details).componentFailures;
+      const failures = (Array.isArray(componentFailures) ? componentFailures : [componentFailures])
+        .map((failure) => failure.problem)
+        .join('\n');
       const error = new SfdxError(
-        `A scratch org was created with username ${username}, but the settings failed to deploy`,
+        `A scratch org was created with username ${username}, but the settings failed to deploy due to: \n${failures}`,
         'ProblemDeployingSettings'
       );
       error.setData(result);

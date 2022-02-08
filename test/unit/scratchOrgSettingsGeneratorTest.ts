@@ -40,6 +40,12 @@ const fakeConnection = (
         expect(id).to.equal(deployId).to.have.property('length').and.to.be.greaterThan(0);
         return {
           status: result,
+          details: {
+            // should only be present for failures, but it's only read when the status != 'Succeeded'
+            componentFailures: {
+              problem: 'settings/True.settings is not a valid metadata object. Check the name and casing of the file',
+            },
+          },
         };
       };
       if (Array.isArray(deployStatus)) {
@@ -71,6 +77,33 @@ const fakeConnection = (
   };
   return sandbox.stub(scratchOrg, 'getConnection').callsFake(fakeConnectionMock(deployStatus));
 };
+
+let adminTestData: MockTestOrgData;
+const scratchOrg = new Org({});
+const sandbox: sinon.SinonSandbox = sinon.createSandbox();
+let addToZipStub: sinon.SinonStub;
+let finalizeStub: sinon.SinonStub;
+let getUsernameStub: sinon.SinonStub;
+let getConnectionStub: sinon.SinonStub;
+const deployId = '12345';
+
+function createStubs() {
+  adminTestData = new MockTestOrgData();
+  addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
+    expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+    expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+  });
+  finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
+  sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
+    return Promise.resolve({
+      id: '1',
+    });
+  });
+  sandbox.stub(ZipWriter.prototype, 'buffer').get(() => {
+    return 'mybuffer';
+  });
+  getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
+}
 
 describe('scratchOrgSettingsGenerator', () => {
   describe('extract', () => {
@@ -117,9 +150,6 @@ describe('scratchOrgSettingsGenerator', () => {
   });
 
   describe('createDeploy', () => {
-    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-    let addToZipStub: sinon.SinonStub;
-
     beforeEach(() => {
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -128,7 +158,6 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     afterEach(() => {
-      addToZipStub.restore();
       sandbox.restore();
     });
 
@@ -164,38 +193,12 @@ describe('scratchOrgSettingsGenerator', () => {
   });
 
   describe('deploySettingsViaFolder', () => {
-    let adminTestData: MockTestOrgData;
-    const scratchOrg = new Org({});
-    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-    let addToZipStub: sinon.SinonStub;
-    let finalizeStub: sinon.SinonStub;
-    let getUsernameStub: sinon.SinonStub;
-    let getConnectionStub: sinon.SinonStub;
-
     beforeEach(async () => {
-      adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
-      finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
-        return Promise.resolve({
-          id: '1',
-        });
-      });
-      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => {
-        return 'mybuffer';
-      });
-      getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
+      createStubs();
       getConnectionStub = fakeConnection(sandbox, scratchOrg);
     });
 
     afterEach(() => {
-      addToZipStub.restore();
-      finalizeStub.restore();
-      getUsernameStub.restore();
-      getConnectionStub.restore();
       sandbox.restore();
     });
 
@@ -235,15 +238,6 @@ describe('scratchOrgSettingsGenerator', () => {
   });
 
   describe('deploySettingsViaFolder succeeded partial', () => {
-    let adminTestData: MockTestOrgData;
-    const scratchOrg = new Org({});
-    const deployId = '12345';
-    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-    let addToZipStub: sinon.SinonStub;
-    let finalizeStub: sinon.SinonStub;
-    let getUsernameStub: sinon.SinonStub;
-    let getConnectionStub: sinon.SinonStub;
-
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
@@ -264,10 +258,6 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     afterEach(() => {
-      addToZipStub.restore();
-      finalizeStub.restore();
-      getUsernameStub.restore();
-      getConnectionStub.restore();
       sandbox.restore();
     });
 
@@ -291,21 +281,24 @@ describe('scratchOrgSettingsGenerator', () => {
         assert.fail('Expected an error to be thrown.');
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
-        expect(error).to.have.property('data').that.deep.equals({ status: 'SucceededPartial' });
+        expect(error.message).to.include(
+          'settings/True.settings is not a valid metadata object. Check the name and casing of the file'
+        );
+        expect(error)
+          .to.have.property('data')
+          .that.deep.equals({
+            status: 'SucceededPartial',
+            details: {
+              componentFailures: {
+                problem: 'settings/True.settings is not a valid metadata object. Check the name and casing of the file',
+              },
+            },
+          });
       }
     });
   });
 
   describe('deploySettingsViaFolder fails', () => {
-    let adminTestData: MockTestOrgData;
-    const scratchOrg = new Org({});
-    const deployId = '12345';
-    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-    let addToZipStub: sinon.SinonStub;
-    let finalizeStub: sinon.SinonStub;
-    let getUsernameStub: sinon.SinonStub;
-    let getConnectionStub: sinon.SinonStub;
-
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
@@ -326,10 +319,6 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     afterEach(() => {
-      addToZipStub.restore();
-      finalizeStub.restore();
-      getUsernameStub.restore();
-      getConnectionStub.restore();
       sandbox.restore();
     });
 
@@ -353,21 +342,24 @@ describe('scratchOrgSettingsGenerator', () => {
         assert.fail('Expected an error to be thrown.');
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
-        expect(error).to.have.property('data').that.deep.equals({ status: 'Failed' });
+        expect(error.message).to.include(
+          'settings/True.settings is not a valid metadata object. Check the name and casing of the file'
+        );
+        expect(error)
+          .to.have.property('data')
+          .that.deep.equals({
+            status: 'Failed',
+            details: {
+              componentFailures: {
+                problem: 'settings/True.settings is not a valid metadata object. Check the name and casing of the file',
+              },
+            },
+          });
       }
     });
   });
 
   describe('deploySettingsViaFolder pools', () => {
-    let adminTestData: MockTestOrgData;
-    const scratchOrg = new Org({});
-    const deployId = '12345';
-    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-    let addToZipStub: sinon.SinonStub;
-    let finalizeStub: sinon.SinonStub;
-    let getUsernameStub: sinon.SinonStub;
-    let getConnectionStub: sinon.SinonStub;
-
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
@@ -388,10 +380,6 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     afterEach(() => {
-      addToZipStub.restore();
-      finalizeStub.restore();
-      getUsernameStub.restore();
-      getConnectionStub.restore();
       sandbox.restore();
     });
 
@@ -432,14 +420,6 @@ describe('scratchOrgSettingsGenerator', () => {
 
   describe('deploySettingsViaFolder pools timeouts', () => {
     let clock: sinon.SinonFakeTimers;
-    let adminTestData: MockTestOrgData;
-    const scratchOrg = new Org({});
-    const deployId = '12345';
-    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-    let addToZipStub: sinon.SinonStub;
-    let finalizeStub: sinon.SinonStub;
-    let getUsernameStub: sinon.SinonStub;
-    let getConnectionStub: sinon.SinonStub;
 
     beforeEach(async () => {
       clock = sandbox.useFakeTimers();
@@ -463,10 +443,6 @@ describe('scratchOrgSettingsGenerator', () => {
 
     afterEach(() => {
       clock.restore();
-      addToZipStub.restore();
-      finalizeStub.restore();
-      getUsernameStub.restore();
-      getConnectionStub.restore();
       sandbox.restore();
     });
 
@@ -488,9 +464,6 @@ describe('scratchOrgSettingsGenerator', () => {
   });
 
   describe('writeObjectSettingsIfNeeded', () => {
-    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-    let addToZipStub: sinon.SinonStub;
-
     beforeEach(() => {
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
