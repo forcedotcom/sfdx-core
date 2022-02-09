@@ -76,7 +76,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
         throw new NotRetryableError(err.name);
       }
       if (result.completed) {
-        return result.payload as T;
+        return result.payload as unknown as T;
       }
       throw new Error('Operation did not complete.  Retrying...'); // triggers a retry
     };
