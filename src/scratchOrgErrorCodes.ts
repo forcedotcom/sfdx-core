@@ -33,10 +33,13 @@ const optionalErrorCodeMessage = (errorCode: string, args: string[]): string | u
 };
 
 export const checkScratchOrgInfoForErrors = (
-  orgInfo: ScratchOrgInfo,
+  orgInfo: Optional<ScratchOrgInfo>,
   hubUsername: Optional<string>,
   logger: Logger
 ): ScratchOrgInfo => {
+  if (!orgInfo) {
+    throw new SfdxError('No scratch org info found.', 'ScratchOrgInfoNotFound');
+  }
   if (orgInfo.Status === 'Active') {
     return orgInfo;
   }

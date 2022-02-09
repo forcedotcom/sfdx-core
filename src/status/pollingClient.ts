@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
-import { ensure } from '@salesforce/ts-types';
+import { AnyJson, ensure } from '@salesforce/ts-types';
 import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
@@ -55,7 +55,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
    * Returns a promise to call the specified polling function using the interval and timeout specified
    * in the polling options.
    */
-  public async subscribe<T>(): Promise<T> {
+  public async subscribe<T = AnyJson>(): Promise<T | undefined> {
     let errorInPollingFunction; // keep this around for returning in the catch block
     const doPoll = async (): Promise<T> => {
       let result;
@@ -76,7 +76,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
         throw new NotRetryableError(err.name);
       }
       if (result.completed) {
-        return result.payload as unknown as T;
+        return result.payload as T;
       }
       throw new Error('Operation did not complete.  Retrying...'); // triggers a retry
     };
