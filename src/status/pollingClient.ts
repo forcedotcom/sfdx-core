@@ -55,6 +55,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
    * Returns a promise to call the specified polling function using the interval and timeout specified
    * in the polling options.
    */
+  // TODO v3.0 remove undefined as this method ensures that the payload is always returned
   public async subscribe<T = AnyJson>(): Promise<T | undefined> {
     let errorInPollingFunction; // keep this around for returning in the catch block
     const doPoll = async (): Promise<T> => {
@@ -76,6 +77,8 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
         throw new NotRetryableError(err.name);
       }
       if (result.completed) {
+        // TODO v3.0: payload should be of type T always so that
+        // consumers get the same type in return.
         return result.payload as unknown as T;
       }
       throw new Error('Operation did not complete.  Retrying...'); // triggers a retry
