@@ -62,18 +62,19 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
       try {
         result = await this.options.poll();
       } catch (error) {
+        const err = error as Error;
         errorInPollingFunction = error;
         if (
           ['ETIMEDOUT', 'ENOTFOUND', 'ECONNRESET', 'socket hang up'].some((retryableNetworkError) =>
-            error.message.includes(retryableNetworkError)
+            err.message.includes(retryableNetworkError)
           )
         ) {
-          this.logger.debug('Network error on the request', error);
+          this.logger.debug('Network error on the request', err);
           await Lifecycle.getInstance().emitWarning('Network error occurred.  Continuing to poll.');
-          throw SfdxError.wrap(error as Error);
+          throw SfdxError.wrap(err);
         }
         // there was an actual error thrown, so we don't want to keep retrying
-        throw new NotRetryableError(error.name);
+        throw new NotRetryableError(err.name);
       }
       if (result.completed) {
         return result.payload;
