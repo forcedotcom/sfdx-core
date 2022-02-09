@@ -13,6 +13,7 @@ import { Duration, sleep } from '@salesforce/kit';
 import { StatusResult } from '../../../src/status/client';
 import { PollingClient } from '../../../src/status/pollingClient';
 import { shouldThrow } from '../../../src/testSetup';
+import { Lifecycle } from '../../../src/lifecycleEvents';
 
 function* generator(testName: string): IterableIterator<StatusResult> {
   yield { completed: false };
@@ -122,6 +123,58 @@ describe('clientTest', () => {
       await shouldThrow(client.subscribe());
     } catch (e) {
       expect(callCount).to.be.equal(1);
+    }
+  });
+
+  it('should toletare network errors', async () => {
+    const emitWarning = sandbox.spy();
+    sandbox.stub(Lifecycle, 'getInstance').returns({ emitWarning } as unknown as Lifecycle);
+    const TEST_VALUE = 'foo';
+    const pollingResultGenerator: IterableIterator<StatusResult> = generator(TEST_VALUE);
+    let callCount = 0;
+    const options: PollingClient.Options = {
+      async poll() {
+        callCount++;
+        await sleep(Duration.milliseconds(10));
+        if (callCount < 5) {
+          throw new Error('ETIMEDOUT');
+        }
+        if (callCount > 4 && callCount < 10) {
+          throw new Error('ENOTFOUND');
+        }
+        return Promise.resolve(pollingResultGenerator.next().value);
+      },
+      frequency: Duration.milliseconds(100),
+      timeout: Duration.seconds(5),
+    };
+    const client = await PollingClient.create(options);
+    const pollResult = ensureJsonMap(await client.subscribe());
+
+    expect(pollResult.name).equals('foo');
+    expect(emitWarning.callCount).to.be.equal(9 /* errors */);
+    expect(callCount).to.be.equal(9 /* errors */ + 1 /* initial poll */ + 11 /* iterations */);
+  });
+
+  it('should keep trying when network errors untill timeout', async () => {
+    const emitWarning = sandbox.spy();
+    sandbox.stub(Lifecycle, 'getInstance').returns({ emitWarning } as unknown as Lifecycle);
+    let callCount = 0;
+    const options: PollingClient.Options = {
+      async poll() {
+        callCount++;
+        await sleep(Duration.milliseconds(10));
+        throw new Error('ETIMEDOUT');
+      },
+      frequency: Duration.milliseconds(100),
+      timeout: Duration.milliseconds(1000),
+    };
+    const client = await PollingClient.create(options);
+
+    try {
+      await shouldThrow(client.subscribe());
+    } catch (e) {
+      expect(emitWarning.callCount).to.be.equal(1000 /* timeout */ / 100 /* frequency */ - 1 /* initial poll */);
+      expect(callCount).to.be.equal(1000 /* timeout */ / 100 /* frequency */ - 1 /* initial poll */);
     }
   });
 });

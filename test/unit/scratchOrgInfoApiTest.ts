@@ -371,6 +371,26 @@ describe('pollForScratchOrgInfo', () => {
       expect(error.name).to.include('orgCreationTimeout');
     }
   });
+
+  it('pollForScratchOrgInfo should tolerate network errors', async () => {
+    const retrieve = {
+      Status: 'Active',
+    };
+    const timeout = Duration.milliseconds(3000);
+    connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
+      retrieve: sinon
+        .stub()
+        .withArgs(scratchOrgInfoId)
+        .onCall(0)
+        .rejects(new Error('ETIMEDOUT'))
+        .onCall(1)
+        .rejects(new Error('ENOTFOUND'))
+        .onCall(2)
+        .resolves(retrieve),
+    } as unknown as SObject<unknown>);
+    const result = await pollForScratchOrgInfo(hubOrg, scratchOrgInfoId, timeout);
+    expect(result).to.deep.equal(retrieve);
+  });
 });
 
 describe('authorizeScratchOrg', () => {

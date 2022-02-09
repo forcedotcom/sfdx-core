@@ -9,6 +9,7 @@ import { AnyJson, ensure } from '@salesforce/ts-types';
 import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
+import { Lifecycle } from '../lifecycleEvents';
 import { StatusResult } from './client';
 /**
  * This is a polling client that can be used to poll the status of long running tasks. It can be used as a replacement
@@ -62,6 +63,15 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
         result = await this.options.poll();
       } catch (error) {
         errorInPollingFunction = error;
+        if (
+          ['ETIMEDOUT', 'ENOTFOUND', 'ECONNRESET', 'socket hang up'].some((retryableNetworkError) =>
+            error.message.includes(retryableNetworkError)
+          )
+        ) {
+          this.logger.debug('Network error on the request', error);
+          await Lifecycle.getInstance().emitWarning('Network error occurred.  Continuing to poll.');
+          throw SfdxError.wrap(error as Error);
+        }
         // there was an actual error thrown, so we don't want to keep retrying
         throw new NotRetryableError(error.name);
       }
