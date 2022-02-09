@@ -345,7 +345,7 @@ describe('pollForScratchOrgInfo', () => {
     }
   });
 
-  it('pollForScratchOrgInfo retrieve rejects', async () => {
+  it('pollForScratchOrgInfo keeps pooling untill Active', async () => {
     const creating = {
       Status: 'Creating',
     };
@@ -359,7 +359,7 @@ describe('pollForScratchOrgInfo', () => {
     expect(result).to.deep.equal(active);
   });
 
-  it('pollForScratchOrgInfo retrieve rejects', async () => {
+  it('pollForScratchOrgInfo retrieve rejects with timeout', async () => {
     const timeout = Duration.milliseconds(150);
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       retrieve: sinon.stub().withArgs(scratchOrgInfoId).rejects(new Error('MyError')),
@@ -368,7 +368,7 @@ describe('pollForScratchOrgInfo', () => {
       await shouldThrow(pollForScratchOrgInfo(hubOrg, scratchOrgInfoId, timeout));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.name).to.include('orgCreationTimeout');
+      expect(error.name).to.include('ScratchOrgInfoTimeoutError');
     }
   });
 

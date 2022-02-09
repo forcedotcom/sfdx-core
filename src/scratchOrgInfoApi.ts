@@ -6,7 +6,7 @@
  */
 
 // @salesforce
-import { Optional } from '@salesforce/ts-types';
+import { AnyJson, Optional } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
 import { getString } from '@salesforce/ts-types';
 
@@ -355,11 +355,10 @@ export const pollForScratchOrgInfo = async (
   const logger = await Logger.child('scratchOrgInfoApi-pollForScratchOrgInfo');
   logger.debug(`PollingTimeout in minutes: ${timeout.minutes}`);
 
-  let resultInProgress!: ScratchOrgInfo;
   const pollingOptions: PollingClient.Options = {
     async poll(): Promise<StatusResult> {
       try {
-        resultInProgress = await hubOrg
+        const resultInProgress = await hubOrg
           .getConnection()
           .sobject<ScratchOrgInfo>('ScratchOrgInfo')
           .retrieve(scratchOrgInfoId);
@@ -368,7 +367,7 @@ export const pollForScratchOrgInfo = async (
         if (resultInProgress.Status === 'Active' || resultInProgress.Status === 'Error') {
           return {
             completed: true,
-            payload: resultInProgress.Status,
+            payload: resultInProgress as unknown as AnyJson,
           };
         }
         logger.debug(`Scratch org status is ${resultInProgress.Status}`);
@@ -391,14 +390,17 @@ export const pollForScratchOrgInfo = async (
 
   const client = await PollingClient.create(pollingOptions);
   try {
-    await client.subscribe();
+    const resultInProgress = await client.subscribe<ScratchOrgInfo>();
+    return checkScratchOrgInfoForErrors(resultInProgress, hubOrg.getUsername(), logger);
   } catch (error) {
+    const err = error as Error;
+    if (err.message) {
+      throw SfdxError.wrap(err);
+    }
     throw new SfdxError(`The scratch org did not complete within ${timeout.minutes} minutes`, 'orgCreationTimeout', [
       'Try your force:org:create command again with a longer --wait value',
     ]);
   }
-
-  return checkScratchOrgInfoForErrors(resultInProgress, hubOrg.getUsername(), logger);
 };
 
 /**

@@ -140,7 +140,7 @@ export default class SettingsGenerator {
     };
 
     const client = await PollingClient.create(pollingOptions);
-    const status = (await client.subscribe()) as string;
+    const status = await client.subscribe<string>();
 
     if (status !== RequestStatus.Succeeded) {
       const componentFailures = ensureObject<{

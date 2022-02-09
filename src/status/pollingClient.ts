@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
-import { AnyJson, ensure } from '@salesforce/ts-types';
+import { ensure } from '@salesforce/ts-types';
 import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
@@ -55,29 +55,28 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
    * Returns a promise to call the specified polling function using the interval and timeout specified
    * in the polling options.
    */
-  public async subscribe(): Promise<AnyJson | undefined> {
+  public async subscribe<T>(): Promise<T> {
     let errorInPollingFunction; // keep this around for returning in the catch block
-    const doPoll = async () => {
+    const doPoll = async (): Promise<T> => {
       let result;
       try {
         result = await this.options.poll();
       } catch (error) {
-        const err = error as Error;
-        errorInPollingFunction = error;
+        const err = (errorInPollingFunction = error as Error);
         if (
           ['ETIMEDOUT', 'ENOTFOUND', 'ECONNRESET', 'socket hang up'].some((retryableNetworkError) =>
             err.message.includes(retryableNetworkError)
           )
         ) {
           this.logger.debug('Network error on the request', err);
-          await Lifecycle.getInstance().emitWarning('Network error occurred.  Continuing to poll.');
+          await Lifecycle.getInstance().emitWarning('Network error occurred. Continuing to poll.');
           throw SfdxError.wrap(err);
         }
         // there was an actual error thrown, so we don't want to keep retrying
         throw new NotRetryableError(err.name);
       }
       if (result.completed) {
-        return result.payload;
+        return result.payload as unknown as T;
       }
       throw new Error('Operation did not complete.  Retrying...'); // triggers a retry
     };
