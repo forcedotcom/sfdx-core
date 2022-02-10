@@ -379,7 +379,8 @@ export class User extends AsyncCreatable<User.Options> {
 
     // Setup oauth options for the new user
     const oauthOptions = {
-      loginUrl: adminUserAuthFields.loginUrl,
+      // Communities users require the instance for auth
+      loginUrl: adminUserAuthFields.instanceUrl ?? adminUserAuthFields.loginUrl,
       refreshToken: refreshTokenSecret.buffer.value((buffer: Buffer): string => buffer.toString('utf8')),
       clientId: adminUserAuthFields.clientId,
       clientSecret: adminUserAuthFields.clientSecret,
