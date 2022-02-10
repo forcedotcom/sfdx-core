@@ -14,7 +14,7 @@ const createWhoAmI = (cliName = 'sf'): WhichCliInterface => {
   me.cliName = cliName;
   return me;
 };
-describe('whoAmI', () => {
+describe('whichCli', () => {
   it('should be set by default', () => {
     expect(whichCli).to.be.ok;
     expect(whichCli.isOther()).to.be.true;
