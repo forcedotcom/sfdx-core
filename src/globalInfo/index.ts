@@ -6,7 +6,6 @@
  */
 
 export * from './globalInfoConfig';
-export * from './whichCli';
 export * from './sfdxDataHandler';
 export * from './types';
 export { OrgAccessor } from './accessors/orgAccessor';

@@ -10,7 +10,6 @@ import { camelCase, snakeCase } from 'change-case';
 import { Env } from '@salesforce/kit';
 import { Messages } from '../messages';
 import { Global } from '../global';
-import { WhichCliFactory } from '../exported';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
 const messages = Messages.loadMessages('@salesforce/core', 'envVars');
@@ -394,8 +393,8 @@ export class EnvVars extends Env {
   }
 
   private static defaultPrefix(): string | undefined {
-    if (WhichCliFactory.whichCli.isSf()) return 'SF_';
-    if (WhichCliFactory.whichCli.isSfdx()) return 'SFDX_';
+    if (process.argv[0].startsWith('sfdx')) return 'SFDX_';
+    if (process.argv[0].startsWith('sf')) return 'SF_';
     return 'SFDX_';
   }
 
