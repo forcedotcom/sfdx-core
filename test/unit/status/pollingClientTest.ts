@@ -162,7 +162,6 @@ describe('clientTest', () => {
     const options: PollingClient.Options = {
       async poll() {
         callCount++;
-        await sleep(Duration.milliseconds(10));
         throw new Error('ETIMEDOUT');
       },
       frequency: Duration.milliseconds(100),
@@ -173,8 +172,8 @@ describe('clientTest', () => {
     try {
       await shouldThrow(client.subscribe());
     } catch (e) {
-      expect(emitWarning.callCount).to.be.equal(1000 /* timeout */ / 100 /* frequency */ - 1 /* initial poll */);
-      expect(callCount).to.be.equal(1000 /* timeout */ / 100 /* frequency */ - 1 /* initial poll */);
+      expect(emitWarning.callCount).to.be.equal(1000 /* timeout */ / 100 /* frequency */);
+      expect(callCount).to.be.equal(1000 /* timeout */ / 100 /* frequency */);
     }
   });
 });
