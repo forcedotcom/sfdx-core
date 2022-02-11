@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.35.1](https://github.com/forcedotcom/sfdx-core/compare/v2.35.0...v2.35.1) (2022-02-10)
+
+### Bug Fixes
+
+- add error message on failed settings deploy ([e218b1e](https://github.com/forcedotcom/sfdx-core/commit/e218b1e40414ea9e4fec256b74224626d96eff4a))
+- prefer instanceUrl for loginUrl on user:create ([#518](https://github.com/forcedotcom/sfdx-core/issues/518)) ([c070a87](https://github.com/forcedotcom/sfdx-core/commit/c070a871861409dea722e85845eeb91f262ab66f))
+
 ## [2.35.0](https://github.com/forcedotcom/sfdx-core/compare/v2.34.2...v2.35.0) (2022-01-25)
 
 ### Bug Fixes
