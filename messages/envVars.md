@@ -12,15 +12,15 @@ Speed of the spinner in milliseconds. Default is 60.
 
 # httpProxy
 
-HTTP URL and port of the proxy server when using Salesforce CLI behind a corporate firewall or web proxy. 
+HTTP URL and port of the proxy server when using Salesforce CLI behind a corporate firewall or web proxy.
 
 # httpsProxy
 
-HTTPS URL and port of the proxy server when using Salesforce CLI behind a corporate firewall or web proxy. 
+HTTPS URL and port of the proxy server when using Salesforce CLI behind a corporate firewall or web proxy.
 
 # nodeExtraCaCerts
 
-Fully qualified path to your self-signed certificate. Will be installed after you run "sfdx update". 
+Fully qualified path to your self-signed certificate. Will be installed after you run "sfdx update".
 
 # nodeTlsRejectUnauthorized
 
@@ -36,7 +36,7 @@ The API version for a specific project or all projects. Default value is the API
 
 # sfdxAudienceUrl
 
-URL that overrides the aud (audience) field used for JWT authentication so that it matches the expected value of the authorization server URL for the org you’re logging into. 
+URL that overrides the aud (audience) field used for JWT authentication so that it matches the expected value of the authorization server URL for the org you’re logging into.
 
 # sfdxCodeCoverageRequirement
 
@@ -44,7 +44,7 @@ Code coverage percentages that are displayed in green when you run force:apex:te
 
 # sfdxContentType
 
-Set to JSON so that all CLI commands output results in JSON format. 
+Set to JSON so that all CLI commands output results in JSON format.
 
 # sfdxDefaultdevhubusername
 
@@ -56,11 +56,11 @@ Username or alias of your default org. Overrides the defaultusername configurati
 
 # sfdxDisableAutoupdate
 
-Set to true to disable the auto-update feature of Salesforce CLI. Default value is false. 
+Set to true to disable the auto-update feature of Salesforce CLI. Default value is false.
 
 # sfdxAutoupdateDisable
 
-Set to true to disable the auto-update feature of Salesforce CLI. Default value is false. 
+Set to true to disable the auto-update feature of Salesforce CLI. Default value is false.
 
 # sfdxDisableSourceMemberPolling
 
@@ -80,7 +80,7 @@ Time, in seconds, that Salesforce CLI waits for the Lightning Experience custom 
 
 # sfdxImprovedCodeCoverage
 
-Set to true to scope Apex test results to the classes entered during a test run when running force:apex:test:\*. 
+Set to true to scope Apex test results to the classes entered during a test run when running force:apex:test:\*.
 
 # sfdxInstanceUrl
 
@@ -134,6 +134,26 @@ Number of seconds you want the force:source:push command to keep polling the Sou
 
 Set to false to disable the progress bar when running force:mdapi:deploy, force:source:deploy, or force:source:push.
 
+# sfdxLazyLoadModules
+
+Set to true to enable lazy loading of sfdx modules
+
+# sfdxS3Host
+
+URL to S3 host
+
+# sfdxUpdateInstructions
+
+Text that describes how to update sfdx
+
+# sfdxInstaller
+
+Boolean indicating that the installer is running
+
+# sfdxEnv
+
+Describes if sfdx is in "demo" mode
+
 # sfTargetOrg
 
 Username or alias of your default org. Overrides the target-org configuration variable.
@@ -152,7 +172,7 @@ API version for a specific project or all projects. Default value is the API ver
 
 # sfAudienceUrl
 
-URL that overrides the aud (audience) field used for JWT authentication so that it matches the expected value of the authorization server URL for the org you’re logging into. 
+URL that overrides the aud (audience) field used for JWT authentication so that it matches the expected value of the authorization server URL for the org you’re logging into.
 
 # sfCodeCoverageRequirement
 
@@ -160,15 +180,15 @@ Code coverage percentages that are displayed in green when you run the Apex test
 
 # sfContentType
 
-Set to JSON so that all CLI commands output results in JSON format. 
+Set to JSON so that all CLI commands output results in JSON format.
 
 # sfDisableAutoupdate
 
-Set to true to disable the auto-update feature of Salesforce CLI. Default value is false. 
+Set to true to disable the auto-update feature of Salesforce CLI. Default value is false.
 
 # sfAutoupdateDisable
 
-Set to true to disable the auto-update feature of Salesforce CLI. Default value is false. 
+Set to true to disable the auto-update feature of Salesforce CLI. Default value is false.
 
 # sfDisableSourceMemberPolling
 
@@ -188,7 +208,7 @@ Time, in seconds, that Salesforce CLI waits for the Lightning Experience custom 
 
 # sfImprovedCodeCoverage
 
-Set to true to scope Apex test results to the classes entered during a test run when running the Apex test commands. 
+Set to true to scope Apex test results to the classes entered during a test run when running the Apex test commands.
 
 # sfInstanceUrl
 
@@ -237,3 +257,23 @@ Number of seconds you want the source push command to keep polling the SourceMem
 # sfUseProgressBar
 
 Set to false to disable the progress bar when running the metadata deploy command.
+
+# sfLazyLoadModules
+
+Set to true to enable lazy loading of sf modules
+
+# sfS3Host
+
+URL to S3 host
+
+# sfUpdateInstructions
+
+Text that describes how to update sf
+
+# sfInstaller
+
+Boolean indicating that the installer is running
+
+# sfEnv
+
+Describes if sf is in "demo" mode
