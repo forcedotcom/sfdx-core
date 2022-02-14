@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.5](https://github.com/forcedotcom/sfdx-core/compare/v3.7.4...v3.7.5) (2022-02-14)
+
+### Bug Fixes
+
+- add env vars from sfdx-cli init to envvars ([#520](https://github.com/forcedotcom/sfdx-core/issues/520)) ([8ef2785](https://github.com/forcedotcom/sfdx-core/commit/8ef27859d95bfffc5999b14f4792874d04f0504c))
+
 ### [3.7.4](https://github.com/forcedotcom/sfdx-core/compare/v3.7.3...v3.7.4) (2022-02-07)
 
 ### Bug Fixes
