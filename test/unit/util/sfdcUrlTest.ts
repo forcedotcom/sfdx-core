@@ -17,6 +17,41 @@ const TEST_IP = '1.1.1.1';
 const TEST_CNAMES = ['login.salesforce.com', 'test.salesforce.com'];
 
 describe('util/sfdcUrl', () => {
+  describe('toLightningdomain', () => {
+    it('works for com', () => {
+      expect(new SfdcUrl('https://some-instance.my.salesforce.com').toLightningDomain()).to.equal(
+        'https://some-instance.lightning.force.com'
+      );
+    });
+    it('works for mil (prod)', () => {
+      expect(new SfdcUrl('https://some-instance.my.salesforce.mil').toLightningDomain()).to.equal(
+        'https://some-instance.lightning.crmforce.mil'
+      );
+    });
+    it('works for mil (sandbox)', () => {
+      expect(new SfdcUrl('https://some-instance--sboxname.sandbox.my.salesforce.mil').toLightningDomain()).to.equal(
+        'https://some-instance--sboxname.sandbox.lightning.crmforce.mil'
+      );
+    });
+    describe('trailing slashes', () => {
+      it('works for com', () => {
+        expect(new SfdcUrl('https://some-instance.my.salesforce.com/').toLightningDomain()).to.equal(
+          'https://some-instance.lightning.force.com'
+        );
+      });
+      it('works for mil (prod)', () => {
+        expect(new SfdcUrl('https://some-instance.my.salesforce.mil/').toLightningDomain()).to.equal(
+          'https://some-instance.lightning.crmforce.mil'
+        );
+      });
+      it('works for mil (sandbox)', () => {
+        expect(new SfdcUrl('https://some-instance--sboxname.sandbox.my.salesforce.mil/').toLightningDomain()).to.equal(
+          'https://some-instance--sboxname.sandbox.lightning.crmforce.mil'
+        );
+      });
+    });
+  });
+
   describe('isSalesforceDomain', () => {
     it('is allowlist domain', () => {
       const url = new SfdcUrl('https://www.salesforce.com');
@@ -64,6 +99,12 @@ describe('util/sfdcUrl', () => {
 
     it('return true for internal urls', async () => {
       const url = new SfdcUrl('https://my-domain.stm.salesforce.com');
+      const response = await url.checkLightningDomain();
+      expect(response).to.be.true;
+    });
+
+    it('handles .mil domains', async () => {
+      const url = new SfdcUrl('https://my-domain.my.salesforce.mil');
       const response = await url.checkLightningDomain();
       expect(response).to.be.true;
     });
@@ -207,6 +248,17 @@ describe('util/sfdcUrl', () => {
 
     it('production url', () => {
       expect(SfdcUrl.PRODUCTION).to.equal('https://login.salesforce.com');
+    });
+  });
+
+  describe('isSandboxUrl', () => {
+    it('.mil sandboxes with trailing slash', () => {
+      const url = new SfdcUrl('https://domain--sboxname.sandbox.my.salesforce.mil/');
+      expect(url.isSandboxUrl()).to.be.true;
+    });
+    it('.mil sandboxes without trailing slash', () => {
+      const url = new SfdcUrl('https://domain--sboxname.sandbox.my.salesforce.mil');
+      expect(url.isSandboxUrl()).to.be.true;
     });
   });
 });

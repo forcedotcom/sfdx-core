@@ -8,7 +8,7 @@ import { deepStrictEqual } from 'assert';
 import { constants as fsConstants } from 'fs';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
-import { set } from '@salesforce/kit';
+import { Duration, set } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
@@ -22,9 +22,10 @@ import { ConfigAggregator } from '../../src/config/configAggregator';
 import { ConfigFile } from '../../src/config/configFile';
 import { OrgUsersConfig } from '../../src/config/orgUsersConfig';
 import { SandboxOrgConfig } from '../../src/config/sandboxOrgConfig';
-import { Connection } from '../../src/connection';
+import { Connection, SingleRecordQueryErrors } from '../../src/connection';
 import { Global } from '../../src/global';
-import { Org } from '../../src/org';
+import { Lifecycle } from '../../src/lifecycleEvents';
+import { Org, SandboxProcessObject, SandboxUserAuthResponse } from '../../src/org';
 import { MockTestOrgData, testSetup } from '../../src/testSetup';
 import { fs } from '../../src/util/fs';
 import { MyDomainResolver } from '../../src/status/myDomainResolver';
@@ -35,6 +36,14 @@ const $$ = testSetup();
 
 describe('Org Tests', () => {
   let testData: MockTestOrgData;
+
+  const createOrgViaAuthInfo = async (username = testData.username) => {
+    return Org.create({
+      connection: await Connection.create({
+        authInfo: await AuthInfo.create({ username }),
+      }),
+    });
+  };
 
   beforeEach(async () => {
     testData = new MockTestOrgData();
@@ -145,11 +154,7 @@ describe('Org Tests', () => {
       });
 
       it('no org data path', async () => {
-        const org: Org = await Org.create({
-          connection: await Connection.create({
-            authInfo: await AuthInfo.create({ username: testData.username }),
-          }),
-        });
+        const org = await createOrgViaAuthInfo();
 
         expect(removeStub.callCount).to.be.equal(0);
         await org.cleanLocalOrgData();
@@ -171,11 +176,8 @@ describe('Org Tests', () => {
       });
       stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
       const orgDataPath = 'foo';
-      const org: Org = await Org.create({
-        connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: testData.username }),
-        }),
-      });
+      const org = await createOrgViaAuthInfo();
+
       await org.cleanLocalOrgData(orgDataPath);
       expect(invalidProjectWorkspace).to.be.equal(true);
     });
@@ -192,11 +194,8 @@ describe('Org Tests', () => {
       });
       stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
       const orgDataPath = 'foo';
-      const org: Org = await Org.create({
-        connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: testData.username }),
-        }),
-      });
+      const org = await createOrgViaAuthInfo();
+
       try {
         await org.cleanLocalOrgData(orgDataPath);
         assert.fail('This should have failed');
@@ -221,12 +220,298 @@ describe('Org Tests', () => {
       };
     });
 
-    it('should remove all assets associated with the org', async () => {
-      const org: Org = await Org.create({
-        connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: testData.username }),
-        }),
+    describe('delete', () => {
+      describe('scratch org', () => {
+        it('should throw error when attempting to delete devhub org', async () => {
+          const org = await createOrgViaAuthInfo();
+          const dev = await createOrgViaAuthInfo();
+
+          try {
+            await org.deleteFrom(dev);
+            assert.fail('the above should throw an error');
+          } catch (e) {
+            expect(e.message).to.contain('The Dev Hub org cannot be deleted.');
+          }
+        });
+
+        it('should delete the org from the DevHub org', async () => {
+          const dev = await createOrgViaAuthInfo();
+
+          const orgTestData = new MockTestOrgData();
+          const org = await createOrgViaAuthInfo(orgTestData.username);
+
+          const devHubQuery = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+            Id: orgTestData.orgId,
+          });
+          const devHubDelete = stubMethod($$.SANDBOX, Connection.prototype, 'delete').resolves();
+          const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
+
+          await org.deleteFrom(dev);
+
+          expect(devHubQuery.calledOnce).to.be.true;
+          expect(devHubQuery.firstCall.args[0]).to.equal(
+            `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${orgTestData.username}'`
+          );
+          expect(devHubDelete.calledOnce).to.be.true;
+          expect(devHubDelete.firstCall.args).to.deep.equal(['ActiveScratchOrg', orgTestData.orgId]);
+          expect(removeSpy.calledOnce).to.be.true;
+        });
+
+        it('should handle INVALID_TYPE or INSUFFICIENT_ACCESS_OR_READONLY errors', async () => {
+          const dev = await createOrgViaAuthInfo();
+
+          const orgTestData = new MockTestOrgData();
+          const org = await createOrgViaAuthInfo(orgTestData.username);
+
+          const e = new Error('test error');
+          e.name = 'INVALID_TYPE';
+
+          stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').throws(e);
+
+          try {
+            await org.deleteFrom(dev);
+            assert.fail('the above should throw an error');
+          } catch (err) {
+            expect(err.message).to.contain(
+              'You do not have the appropriate permissions to delete a scratch org. Please contact your Salesforce admin.'
+            );
+          }
+        });
+
+        it('should handle SingleRecordQueryErrors.NoRecords errors', async () => {
+          const dev = await createOrgViaAuthInfo();
+
+          const orgTestData = new MockTestOrgData();
+          const org = await createOrgViaAuthInfo(orgTestData.username);
+
+          const e = new Error('test error');
+          e.name = SingleRecordQueryErrors.NoRecords;
+
+          stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').throws(e);
+
+          try {
+            await org.deleteFrom(dev);
+            assert.fail('the above should throw an error');
+          } catch (err) {
+            expect(err.message).to.contain('Attempting to delete an expired or deleted org');
+          }
+        });
       });
+
+      describe('sandbox', () => {
+        it('should calculate sandbox name from production username correctly', async () => {
+          const prodTestData = new MockTestOrgData('1234', { username: 'admin@production.org' });
+          const prod = await createOrgViaAuthInfo(prodTestData.username);
+
+          const orgTestData = new MockTestOrgData('4321', { username: 'admin@production.org.dev1' });
+          const org = await createOrgViaAuthInfo(orgTestData.username);
+
+          stubMethod($$.SANDBOX, org, 'getSandboxOrgConfigField').resolves(prodTestData.username);
+          const prodQuerySpy = stubMethod($$.SANDBOX, prod.getConnection(), 'singleRecordQuery').resolves({
+            SandboxInfoId: orgTestData.orgId,
+          });
+          const prodDelete = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'delete').resolves({ success: true });
+          const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
+
+          await org.deleteFrom(prod);
+
+          expect(prodQuerySpy.calledOnce).to.be.true;
+          expect(prodQuerySpy.firstCall.args[0]).to.equal(
+            "SELECT SandboxInfoId FROM SandboxProcess WHERE SandboxName ='dev1' AND Status NOT IN ('D', 'E')"
+          );
+          expect(prodDelete.calledOnce).to.be.true;
+          expect(prodDelete.firstCall.args).to.deep.equal(['SandboxInfo', orgTestData.orgId]);
+          expect(removeSpy.calledOnce).to.be.true;
+        });
+
+        it('should calculate sandbox name from orgId after first query throws', async () => {
+          const prodTestData = new MockTestOrgData('1234', { username: 'admin@production.org' });
+          const prod = await createOrgViaAuthInfo(prodTestData.username);
+
+          const orgTestData = new MockTestOrgData('4321', { username: 'admin@production.org.dev1' });
+          const org = await createOrgViaAuthInfo(orgTestData.username);
+
+          stubMethod($$.SANDBOX, org, 'getSandboxOrgConfigField').resolves(prodTestData.username);
+          const prodQuerySpy = stubMethod($$.SANDBOX, prod.getConnection(), 'singleRecordQuery')
+            .onFirstCall()
+            .throws('abc')
+            .onSecondCall()
+            .resolves({
+              SandboxInfoId: orgTestData.orgId,
+            });
+          const prodDelete = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'delete').resolves({ success: true });
+          const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
+          stubMethod($$.SANDBOX, org, 'getOrgId').returns(orgTestData.orgId);
+
+          await org.deleteFrom(prod);
+
+          expect(prodQuerySpy.calledTwice).to.be.true;
+          expect(prodQuerySpy.firstCall.args[0]).to.equal(
+            "SELECT SandboxInfoId FROM SandboxProcess WHERE SandboxName ='dev1' AND Status NOT IN ('D', 'E')"
+          );
+          expect(prodQuerySpy.secondCall.args[0]).to.equal(
+            "SELECT SandboxInfoId FROM SandboxProcess WHERE SandboxOrganization ='4321' AND Status NOT IN ('D', 'E')"
+          );
+          expect(prodDelete.calledOnce).to.be.true;
+          expect(prodDelete.firstCall.args).to.deep.equal(['SandboxInfo', orgTestData.orgId]);
+          expect(removeSpy.calledOnce).to.be.true;
+        });
+
+        it('should calculate and locate sandbox from trimTo15 orgId', async () => {
+          const prodTestData = new MockTestOrgData();
+          const prod = await createOrgViaAuthInfo(prodTestData.username);
+
+          const orgTestData = new MockTestOrgData('0GR4p000000U8CBGA0');
+          const org = await createOrgViaAuthInfo(orgTestData.username);
+
+          stubMethod($$.SANDBOX, org, 'getSandboxOrgConfigField').resolves(prodTestData.username);
+          const prodQuerySpy = stubMethod($$.SANDBOX, prod.getConnection(), 'singleRecordQuery').resolves({
+            SandboxInfoId: orgTestData.orgId,
+          });
+          const prodDelete = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'delete').resolves({ success: true });
+          const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
+          stubMethod($$.SANDBOX, org, 'getOrgId').returns(orgTestData.orgId);
+
+          await org.deleteFrom(prod);
+
+          expect(prodQuerySpy.calledOnce).to.be.true;
+          expect(prodQuerySpy.firstCall.args[0]).to.equal(
+            "SELECT SandboxInfoId FROM SandboxProcess WHERE SandboxOrganization ='0GR4p000000U8CB' AND Status NOT IN ('D', 'E')"
+          );
+          expect(prodDelete.calledOnce).to.be.true;
+          expect(prodDelete.firstCall.args).to.deep.equal(['SandboxInfo', orgTestData.orgId]);
+          expect(removeSpy.calledOnce).to.be.true;
+        });
+
+        describe('createSandbox', () => {
+          let prod;
+          let createStub;
+          let querySandboxProcessStub;
+          let pollStatusAndAuthStub;
+          beforeEach(async () => {
+            const prodTestData = new MockTestOrgData();
+            prod = await createOrgViaAuthInfo(prodTestData.username);
+            createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
+              id: '0GQ4p000000U6nFGAS',
+              success: true,
+            });
+            querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves();
+            pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
+          });
+
+          it('will create the SandboxInfo sObject correctly', async () => {
+            await prod.createSandbox({ SandboxName: 'testSandbox' }, Duration.seconds(30));
+            expect(createStub.calledOnce).to.be.true;
+            expect(querySandboxProcessStub.calledOnce).to.be.true;
+            expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+          });
+
+          it('will calculate the amount of retries correctly', async () => {
+            await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
+            expect(createStub.calledOnce).to.be.true;
+            expect(querySandboxProcessStub.calledOnce).to.be.true;
+            // Duration.seconds(30)/ Duration.seconds(30) = 1
+            expect(pollStatusAndAuthStub.firstCall.args[0].retries).to.equal(1);
+            await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(90) });
+            // 90/30 = 3
+            expect(pollStatusAndAuthStub.secondCall.args[0].retries).to.equal(3);
+          });
+
+          it('will throw an error if it fails to create SandboxInfo', async () => {
+            createStub.restore();
+            createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
+              error: 'duplicate value found: SandboxName duplicates value on record with id: 0GQ4p000000U6rv',
+              success: false,
+            });
+            try {
+              await prod.createSandbox({ SandboxName: 'testSandbox' }, Duration.seconds(30));
+              assert.fail('the above should throw a duplicate error');
+            } catch (e) {
+              expect(createStub.calledOnce).to.be.true;
+              expect(e.message).to.include('The sandbox org creation failed with a result of');
+              expect(e.message).to.include(
+                'duplicate value found: SandboxName duplicates value on record with id: 0GQ4p000000U6rv'
+              );
+              expect(e.exitCode).to.equal(1);
+            }
+          });
+
+          it('will auth sandbox user correctly', async () => {
+            const sandboxResponse = {
+              SandboxName: 'test',
+              EndDate: '2021-19-06T20:25:46.000+0000',
+            };
+            const requestStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'request').resolves();
+
+            await prod.sandboxSignupComplete(sandboxResponse);
+            expect(requestStub.firstCall.args).to.deep.equal([
+              {
+                body: '{"sandboxName":"test","callbackUrl":"http://localhost:1717/OauthRedirect"}',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                method: 'POST',
+                url: '/services/data/v42.0/tooling/sandboxAuth',
+              },
+            ]);
+          });
+
+          it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
+            const logStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
+            const sandboxResponse = {
+              SandboxName: 'test',
+              EndDate: '2021-19-06T20:25:46.000+0000',
+            };
+            stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws({
+              name: 'INVALID_STATUS',
+            });
+
+            await prod.sandboxSignupComplete(sandboxResponse);
+            expect(logStub.callCount).to.equal(3);
+            // error swallowed
+            expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user %s');
+          });
+
+          it('will pollStatusAndAuth correctly', async () => {
+            const sandboxInProgress: SandboxProcessObject = {
+              Id: '0GR4p000000U8ECXXX',
+              Status: 'Pending',
+              SandboxName: 'test',
+              SandboxInfoId: '0GQ4p000000U6rvXXX',
+              LicenseType: 'DEVELOPER',
+              CreatedDate: '2021-12-06T20:25:46.000+0000',
+              CopyProgress: 28,
+              SandboxOrganization: null,
+              SourceId: null,
+              Description: null,
+              EndDate: null,
+            };
+            pollStatusAndAuthStub.restore();
+            querySandboxProcessStub.restore();
+            querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves(sandboxInProgress);
+
+            stubMethod($$.SANDBOX, prod, 'sandboxSignupComplete').onSecondCall().resolves({ authUserName: 'myname' });
+            stubMethod($$.SANDBOX, prod, 'writeSandboxAuthFile').resolves();
+
+            const lifecycleStub = stubMethod($$.SANDBOX, Lifecycle.prototype, 'emit');
+            const loggerStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
+
+            const res = await prod.pollStatusAndAuth({
+              pollInterval: Duration.seconds(1),
+              retries: 1,
+              shouldPoll: true,
+              sandboxProcessObj: sandboxInProgress,
+            });
+            expect(res).to.deep.equal(sandboxInProgress);
+            expect(loggerStub.callCount).to.equal(3);
+            expect(lifecycleStub.callCount).to.equal(2);
+          });
+        });
+      });
+    });
+
+    it('should remove all assets associated with the org', async () => {
+      const org = await createOrgViaAuthInfo();
 
       const deletedPaths: string[] = [];
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function (this: ConfigFile<ConfigFile.Options>) {
@@ -254,11 +539,7 @@ describe('Org Tests', () => {
     });
 
     it('should not fail when no scratch org has been written', async () => {
-      const org: Org = await Org.create({
-        connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: testData.username }),
-        }),
-      });
+      const org = await createOrgViaAuthInfo();
 
       const error: Error = new Error();
       set(error, 'code', 'ENOENT');
@@ -319,11 +600,7 @@ describe('Org Tests', () => {
       stubMethod($$.SANDBOX, fs, 'unlink').callsFake(() => {
         return Promise.resolve({});
       });
-      const org: Org = await Org.create({
-        connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: testData.username }),
-        }),
-      });
+      const org = await createOrgViaAuthInfo();
 
       await Aliases.parseAndUpdate([`foo=${testData.username}`]);
       let alias = await Aliases.fetch('foo');
@@ -336,11 +613,7 @@ describe('Org Tests', () => {
     });
 
     it('should not fail when no sandboxOrgConfig', async () => {
-      const org: Org = await Org.create({
-        connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: testData.username }),
-        }),
-      });
+      const org = await createOrgViaAuthInfo();
 
       const deletedPaths: string[] = [];
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function (this: ConfigFile<ConfigFile.Options>) {
@@ -555,11 +828,7 @@ describe('Org Tests', () => {
 
     it('steel thread', async () => {
       testData.createDevHubUsername(devHubUser);
-      const org: Org = await Org.create({
-        connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: testData.username }),
-        }),
-      });
+      const org = await createOrgViaAuthInfo();
 
       const devHub: Optional<Org> = await org.getDevHubOrg();
       expect(devHub.getUsername()).eq(devHubUser);
@@ -567,11 +836,7 @@ describe('Org Tests', () => {
 
     it('org is devhub', async () => {
       testData.makeDevHub();
-      const org: Org = await Org.create({
-        connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: testData.username }),
-        }),
-      });
+      const org = await createOrgViaAuthInfo();
 
       const devHub: Optional<Org> | undefined = await org.getDevHubOrg();
       expect(devHub.getUsername()).eq(testData.username);
@@ -587,11 +852,8 @@ describe('Org Tests', () => {
       };
     });
     it('should request an refresh token', async () => {
-      const org: Org = await Org.create({
-        connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: testData.username }),
-        }),
-      });
+      const org = await createOrgViaAuthInfo();
+
       await org.refreshAuth();
       // Todo add the apiversion to the test string
       expect(url).to.include(`${testData.instanceUrl}/services/data/v`);

@@ -121,7 +121,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   /**
    * Starts the web server
    */
-  public async start() {
+  public async start(): Promise<void> {
     await this.webServer.start();
   }
 
@@ -146,8 +146,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private async executeOauthRequest(): Promise<http.ServerResponse> {
     return new Promise((resolve, reject) => {
       this.logger.debug('Starting web auth flow');
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this.webServer.server.on('request', async (request, response) => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/no-explicit-any
+      this.webServer.server.on('request', async (request: any, response) => {
         const url = parseUrl(request.url);
         this.logger.debug(`processing request for uri: ${url.pathname as string}`);
         if (request.method === 'GET') {

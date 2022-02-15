@@ -6,7 +6,7 @@
  */
 
 import { join as pathJoin } from 'path';
-import { AsyncCreatable } from '@salesforce/kit';
+import { AsyncCreatable, Duration, sleep } from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
@@ -24,6 +24,7 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
+import { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from './scratchOrgCreate';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Aliases } from './config/aliases';
 import { AuthInfoConfig } from './config/authInfoConfig';
@@ -32,12 +33,88 @@ import { ConfigAggregator, ConfigInfo } from './config/configAggregator';
 import { ConfigContents } from './config/configStore';
 import { OrgUsersConfig } from './config/orgUsersConfig';
 import { SandboxOrgConfig } from './config/sandboxOrgConfig';
-import { Connection } from './connection';
+import { Connection, SingleRecordQueryErrors } from './connection';
 import { Global } from './global';
+import { Lifecycle } from './lifecycleEvents';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { fs } from './util/fs';
 import { sfdc } from './util/sfdc';
+import { WebOAuthServer } from './webOAuthServer';
+
+export enum OrgTypes {
+  Scratch = 'scratch',
+  Sandbox = 'sandbox',
+}
+
+export interface StatusEvent {
+  sandboxProcessObj: SandboxProcessObject;
+  interval: number;
+  retries: number;
+  waitingOnAuth: boolean;
+}
+
+export interface ResultEvent {
+  sandboxProcessObj: SandboxProcessObject;
+  sandboxRes: SandboxUserAuthResponse;
+}
+
+export interface SandboxUserAuthRequest {
+  sandboxName: string;
+  clientId: string;
+  callbackUrl: string;
+}
+
+export enum SandboxEvents {
+  EVENT_STATUS = 'status',
+  EVENT_ASYNC_RESULT = 'asyncResult',
+  EVENT_RESULT = 'result',
+  EVENT_AUTH = 'auth',
+}
+
+export interface SandboxUserAuthResponse {
+  authUserName: string;
+  authCode: string;
+  instanceUrl: string;
+  loginUrl: string;
+}
+
+export interface SandboxProcessObject {
+  Id: string;
+  Status: string;
+  SandboxName: string;
+  SandboxInfoId: string;
+  LicenseType: string;
+  CreatedDate: string;
+  SandboxOrganization?: string;
+  CopyProgress?: number;
+  SourceId?: string;
+  Description?: string;
+  ApexClassId?: string;
+  EndDate?: string;
+}
+
+export type SandboxRequest = {
+  SandboxName: string;
+  LicenseType?: string;
+  SourceId?: string;
+  Description?: string;
+};
+
+export type ScratchOrgRequest = Pick<
+  ScratchOrgCreateOptions,
+  | 'connectedAppConsumerKey'
+  | 'durationDays'
+  | 'nonamespace'
+  | 'noancestors'
+  | 'wait'
+  | 'retry'
+  | 'apiversion'
+  | 'definitionjson'
+  | 'definitionfile'
+  | 'orgConfig'
+  | 'clientSecret'
+>;
 
 /**
  * Provides a way to manage a locally authenticated Org.
@@ -84,6 +161,51 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
+   * create a sandbox from a production org
+   * 'this' needs to be a production org with sandbox licenses available
+   *
+   * @param sandboxReq SandboxRequest options to create the sandbox with
+   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
+   */
+  public async createSandbox(
+    sandboxReq: SandboxRequest,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    this.logger.debug('CreateSandbox called with SandboxRequest: %s ', sandboxReq);
+    const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
+    this.logger.debug('Return from calling tooling.create: %s ', createResult);
+
+    if (Array.isArray(createResult) || !createResult.success) {
+      throw SfdxError.create('@salesforce/core', 'org', 'SandboxInfoCreateFailed', [JSON.stringify(createResult)]);
+    }
+
+    const sandboxCreationProgress = await this.querySandboxProcess(createResult.id);
+    this.logger.debug('Return from calling singleRecordQuery with tooling: %s', sandboxCreationProgress);
+
+    const retries = options.wait ? options.wait.seconds / Duration.seconds(30).seconds : 0;
+    this.logger.debug('pollStatusAndAuth sandboxProcessObj %s, maxPollingRetries %i', sandboxCreationProgress, retries);
+    const pollInterval = options.interval ?? Duration.seconds(30);
+    return this.pollStatusAndAuth({
+      sandboxProcessObj: sandboxCreationProgress,
+      retries,
+      shouldPoll: retries > 0,
+      pollInterval,
+    });
+  }
+
+  /**
+   * Creates a scratchOrg
+   * 'this' needs to be a valid dev-hub
+   *
+   * @param {options} ScratchOrgCreateOptions
+   * @returns {ScratchOrgCreateResult}
+   */
+
+  public async scratchOrgCreate(options: ScratchOrgRequest): Promise<ScratchOrgCreateResult> {
+    return scratchOrgCreate({ ...options, hubOrg: this });
+  }
+
+  /**
    * Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.
    *
    * @param orgDataPath A relative path other than "orgs/".
@@ -97,7 +219,7 @@ export class Org extends AsyncCreatable<Org.Options> {
       dataPath = pathJoin(rootFolder, Global.STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
       this.logger.debug(`cleaning data for path: ${dataPath}`);
     } catch (err) {
-      if (err.name === 'InvalidProjectWorkspace') {
+      if (err instanceof Error && err.name === 'InvalidProjectWorkspace') {
         // If we aren't in a project dir, we can't clean up data files.
         // If the user unlink this org outside of the workspace they used it in,
         // data files will be left over.
@@ -140,6 +262,13 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
+   * Check if org is a sandbox org by checking its SandboxOrgConfig.
+   *
+   */
+  public async isSandbox(): Promise<boolean> {
+    return !!(await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME));
+  }
+  /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
    *
    * **Throws** *{@link SfdxError}{ name: 'NotADevHub' }* Not a Dev Hub.
@@ -166,7 +295,7 @@ export class Org extends AsyncCreatable<Org.Options> {
     try {
       results = await (devHubConnection.query(DEV_HUB_SOQL) as Promise<QueryResult<Record<string, unknown>>>);
     } catch (err) {
-      if (err.name === 'INVALID_TYPE') {
+      if (err instanceof Error && err.name === 'INVALID_TYPE') {
         throw SfdxError.create('@salesforce/core', 'org', 'NotADevHub', [devHubConnection.getUsername()]);
       }
       throw err;
@@ -208,6 +337,36 @@ export class Org extends AsyncCreatable<Org.Options> {
       return isDevHub;
     } else {
       return false;
+    }
+  }
+
+  /**
+   * Will delete 'this' instance remotely and any files locally
+   *
+   * @param controllingOrg username or Org that 'this.devhub' or 'this.production' refers to. AKA a DevHub for a scratch org, or a Production Org for a sandbox
+   */
+  public async deleteFrom(controllingOrg: string | Org): Promise<void> {
+    if (typeof controllingOrg === 'string') {
+      controllingOrg = await Org.create({
+        aggregator: this.configAggregator,
+        aliasOrUsername: controllingOrg,
+      });
+    }
+    if (await this.isSandbox()) {
+      await this.deleteSandbox(controllingOrg);
+    } else {
+      await this.deleteScratchOrg(controllingOrg);
+    }
+  }
+
+  /**
+   * Will delete 'this' instance remotely and any files locally
+   */
+  public async delete(): Promise<void> {
+    if (await this.isSandbox()) {
+      await this.deleteSandbox();
+    } else {
+      await this.deleteScratchOrg();
     }
   }
 
@@ -254,13 +413,8 @@ export class Org extends AsyncCreatable<Org.Options> {
    * Refreshes the auth for this org's instance by calling HTTP GET on the baseUrl of the connection object.
    */
   public async refreshAuth(): Promise<void> {
-    this.logger.debug('Refreshing auth for org.');
-    const requestInfo = {
-      url: this.getConnection().baseUrl(),
-      method: 'GET',
-    };
     const conn = this.getConnection();
-    await conn.request(requestInfo);
+    await conn.refreshAuth();
   }
 
   /**
@@ -471,6 +625,7 @@ export class Org extends AsyncCreatable<Org.Options> {
         // If no username is provided or resolvable from an alias, AuthInfo will throw an SfdxError.
         authInfo: await AuthInfo.create({
           username: (username != null && (await Aliases.fetch(username))) || username,
+          isDevHub: this.options.isDevHub,
         }),
       });
     } else {
@@ -483,6 +638,109 @@ export class Org extends AsyncCreatable<Org.Options> {
    */
   protected getDefaultOptions(): Org.Options {
     throw new SfdxError('Not Supported');
+  }
+
+  private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
+    return org.connection.singleRecordQuery<{ SandboxInfoId: string }>(
+      `SELECT SandboxInfoId FROM SandboxProcess WHERE ${field} ='${value}' AND Status NOT IN ('D', 'E')`,
+      { tooling: true }
+    );
+  }
+
+  /**
+   * this method will delete the sandbox org from the production org and clean up any local files
+   *
+   * @param prodOrg - Production org associated with this sandbox
+   * @private
+   */
+  private async deleteSandbox(prodOrg?: Org): Promise<void> {
+    prodOrg ??= await Org.create({
+      aggregator: this.configAggregator,
+      aliasOrUsername: await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME),
+    });
+    let result: { SandboxInfoId: string };
+
+    // attempt to locate sandbox id by username
+    try {
+      // try to calculate sandbox name from the production org
+      // production org: admin@integrationtesthub.org
+      // this.getUsername: admin@integrationtesthub.org.dev1
+      // sandboxName in Production: dev1
+      const sandboxName = (this.getUsername() || '').split(`${prodOrg.getUsername()}.`)[1];
+      if (!sandboxName) {
+        this.logger.debug('Could not construct a sandbox name');
+        throw new Error();
+      }
+      this.logger.debug(`attempting to locate sandbox with username ${sandboxName}`);
+      result = await this.queryProduction(prodOrg, 'SandboxName', sandboxName);
+      if (!result) {
+        this.logger.debug(`Failed to find sandbox with username: ${sandboxName}`);
+        throw new Error();
+      }
+    } catch {
+      // if an error is thrown, don't panic yet. we'll try querying by orgId
+      const trimmedId = sfdc.trimTo15(this.getOrgId()) as string;
+      this.logger.debug(`defaulting to trimming id from ${this.getOrgId()} to ${trimmedId}`);
+      try {
+        result = await this.queryProduction(prodOrg, 'SandboxOrganization', trimmedId);
+      } catch {
+        throw SfdxError.create('@salesforce/core', 'org', 'SandboxNotFound', [trimmedId]);
+      }
+    }
+
+    const deleteResult = await prodOrg.connection.tooling.delete('SandboxInfo', result.SandboxInfoId);
+    this.logger.debug('Return from calling tooling.delete: %o ', deleteResult);
+    await this.remove();
+
+    if (Array.isArray(deleteResult) || !deleteResult.success) {
+      throw SfdxError.create('@salesforce/core', 'org', 'SandboxDeleteFailed', [JSON.stringify(deleteResult)]);
+    }
+  }
+
+  /**
+   * If this Org is a scratch org, calling this method will delete the scratch org from the DevHub and clean up any local files
+   *
+   * @param devHub - optional DevHub Org of the to-be-deleted scratch org
+   * @private
+   */
+  private async deleteScratchOrg(devHub?: Org): Promise<void> {
+    // if we didn't get a devHub, we'll get it from the this org
+    devHub ??= await this.getDevHubOrg();
+    if (!devHub) {
+      throw SfdxError.create('@salesforce/core', 'org', 'NoDevHubFound');
+    }
+    if (devHub.getOrgId() === this.getOrgId()) {
+      // we're attempting to delete a DevHub
+      throw SfdxError.create('@salesforce/core', 'org', 'DeleteOrgHubError');
+    }
+
+    try {
+      const devHubConn = devHub.getConnection();
+      const username = this.getUsername();
+      const activeScratchOrgRecordId = (
+        await devHubConn.singleRecordQuery<{ Id: string }>(
+          `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${username}'`
+        )
+      ).Id;
+      this.logger.trace(`found matching ActiveScratchOrg with SignupUsername: ${username}.  Deleting...`);
+      await devHubConn.delete('ActiveScratchOrg', activeScratchOrgRecordId);
+      await this.remove();
+    } catch (err) {
+      this.logger.info(err instanceof Error ? err.message : err);
+      if (err instanceof Error && (err.name === 'INVALID_TYPE' || err.name === 'INSUFFICIENT_ACCESS_OR_READONLY')) {
+        // most likely from devHubConn.delete
+        this.logger.info('Insufficient privilege to access ActiveScratchOrgs.');
+        throw SfdxError.create('@salesforce/core', 'org', 'InsufficientAccessToDelete');
+      }
+      if (err instanceof Error && err.name === SingleRecordQueryErrors.NoRecords) {
+        // most likely from singleRecordQuery
+        this.logger.info('The above error can be the result of deleting an expired or already deleted org.');
+        this.logger.info('attempting to cleanup the auth file');
+        await this.removeAuth();
+        throw SfdxError.create('@salesforce/core', 'org', 'ScratchOrgNotFound');
+      }
+      throw err;
+    }
   }
 
   /**
@@ -593,6 +851,192 @@ export class Org extends AsyncCreatable<Org.Options> {
         sandboxOrgConfig.getPath(),
         throwWhenRemoveFails
       );
+    }
+  }
+
+  private async writeSandboxAuthFile(sandboxProcessObj: SandboxProcessObject, sandboxRes: SandboxUserAuthResponse) {
+    this.logger.debug('writeSandboxAuthFile sandboxProcessObj: %s, sandboxRes: %s', sandboxProcessObj, sandboxRes);
+    if (sandboxRes.authUserName) {
+      const productionAuthFields: AuthFields = this.connection.getAuthInfoFields();
+      this.logger.debug('Result from getAuthInfoFields: AuthFields %s', productionAuthFields);
+
+      // let's do headless auth via jwt (if we have privateKey) or web auth
+      const oauth2Options: AuthFields & {
+        redirectUri?: string;
+      } = {
+        loginUrl: sandboxRes.loginUrl,
+        instanceUrl: sandboxRes.instanceUrl,
+        username: sandboxRes.authUserName,
+      };
+
+      // If we don't have a privateKey then we assume it's web auth.
+      if (!productionAuthFields.privateKey) {
+        oauth2Options.redirectUri = `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`;
+        oauth2Options.authCode = sandboxRes.authCode;
+      }
+
+      const authInfo = await AuthInfo.create({
+        username: sandboxRes.authUserName,
+        oauth2Options,
+        parentUsername: productionAuthFields.username,
+      });
+
+      await authInfo.save();
+      const sandboxOrg = await Org.create({ aliasOrUsername: authInfo.getUsername() });
+      await sandboxOrg.setSandboxOrgConfigField(
+        SandboxOrgConfig.Fields.PROD_ORG_USERNAME,
+        // we couldn't get this far into the process without a production org so username will be there
+        productionAuthFields.username as string
+      );
+
+      await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESULT, {
+        sandboxProcessObj,
+        sandboxRes,
+      } as ResultEvent);
+    } else {
+      // no authed sandbox user, error
+      throw SfdxError.create('@salesforce/core', 'org', 'MissingAuthUsername', [sandboxProcessObj.SandboxName]);
+    }
+  }
+
+  /**
+   * Polls for the new sandbox to be created - and will write the associated auth files
+   *
+   * @private
+   * @param options
+   *  sandboxProcessObj: The in-progress sandbox signup request
+   *  retries: the number of retries to poll for every 30s
+   *  shouldPoll: wait for polling, or just return
+   *  pollInterval: Duration to sleep between poll events, default 30 seconds
+   */
+  private async pollStatusAndAuth(options: {
+    sandboxProcessObj: SandboxProcessObject;
+    retries: number;
+    shouldPoll: boolean;
+    pollInterval: Duration;
+  }): Promise<SandboxProcessObject> {
+    const { sandboxProcessObj, retries, shouldPoll, pollInterval } = options;
+    this.logger.debug('PollStatusAndAuth called with SandboxProcessObject%s, retries %s', sandboxProcessObj, retries);
+    const lifecycle = Lifecycle.getInstance();
+    let pollFinished = false;
+    let waitingOnAuth = false;
+    const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
+
+    if (sandboxInfo) {
+      await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
+      try {
+        this.logger.debug('sandbox signup complete with %s', sandboxInfo);
+        await this.writeSandboxAuthFile(sandboxProcessObj, sandboxInfo);
+        pollFinished = true;
+      } catch (err) {
+        this.logger.debug('Exception while calling writeSandboxAuthFile %s', err);
+        if (err?.name === 'JWTAuthError' && err?.stack.includes("user hasn't approved")) {
+          waitingOnAuth = true;
+        } else {
+          throw SfdxError.wrap(err);
+        }
+      }
+    }
+
+    if (!pollFinished) {
+      if (retries > 0) {
+        // emit the signup progress of the sandbox and query the production org again after waiting the interval
+        await Promise.all([
+          await lifecycle.emit(SandboxEvents.EVENT_STATUS, {
+            sandboxProcessObj,
+            interval: pollInterval.seconds,
+            retries,
+            waitingOnAuth,
+          } as StatusEvent),
+          await sleep(pollInterval),
+        ]);
+
+        const polledSandboxProcessObj: SandboxProcessObject = await this.querySandboxProcess(
+          sandboxProcessObj.SandboxInfoId
+        );
+
+        return this.pollStatusAndAuth({
+          sandboxProcessObj: polledSandboxProcessObj,
+          retries: retries - 1,
+          shouldPoll,
+          pollInterval,
+        });
+      } else {
+        if (shouldPoll) {
+          // timed out on retries
+          throw SfdxError.create('@salesforce/core', 'org', 'OrgPollingTimeout', [sandboxProcessObj.Status]);
+        } else {
+          // The user didn't want us to poll, so simply return the status
+          // simply report status and exit
+          await lifecycle.emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxProcessObj);
+        }
+      }
+    }
+    return sandboxProcessObj;
+  }
+
+  /**
+   * query SandboxProcess via SandboxInfoId
+   *
+   * @param id SandboxInfoId to query for
+   * @private
+   */
+  private async querySandboxProcess(id: string): Promise<SandboxProcessObject> {
+    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxInfoId='${id}' AND Status != 'D'`;
+    return await this.connection.singleRecordQuery(queryStr, {
+      tooling: true,
+    });
+  }
+
+  /**
+   * determines if the sandbox has successfully been created
+   *
+   * @param sandboxProcessObj sandbox signup progeress
+   * @private
+   */
+  private async sandboxSignupComplete(
+    sandboxProcessObj: SandboxProcessObject
+  ): Promise<SandboxUserAuthResponse | undefined> {
+    this.logger.debug('sandboxSignupComplete called with SandboxProcessObject %s', sandboxProcessObj);
+    if (!sandboxProcessObj.EndDate) {
+      return;
+    }
+
+    try {
+      // call server side /sandboxAuth API to auth the sandbox org user with the connected app
+      const authFields = this.connection.getAuthInfoFields();
+      const callbackUrl = `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`;
+
+      const sandboxReq: SandboxUserAuthRequest = {
+        // the sandbox signup has been completed on production, we have production clientId by this point
+        clientId: authFields.clientId as string,
+        sandboxName: sandboxProcessObj.SandboxName,
+        callbackUrl,
+      };
+
+      this.logger.debug('Calling sandboxAuth with SandboxUserAuthRequest %s', sandboxReq);
+
+      const url = `${this.connection.tooling._baseUrl()}/sandboxAuth`;
+      const params = {
+        method: 'POST',
+        url,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sandboxReq),
+      };
+
+      const result: SandboxUserAuthResponse = await this.connection.tooling.request(params);
+
+      this.logger.debug('Result of calling sandboxAuth %s', result);
+      return result;
+    } catch (err) {
+      // There are cases where the endDate is set before the sandbox has actually completed.
+      // In that case, the sandboxAuth call will throw a specific exception.
+      if (err?.name === 'INVALID_STATUS') {
+        this.logger.debug('Error while authenticating the user %s', err?.toString());
+      } else {
+        // If it fails for any unexpected reason, just pass that through
+        throw SfdxError.wrap(err);
+      }
     }
   }
 }

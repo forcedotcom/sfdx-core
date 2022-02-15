@@ -14,6 +14,8 @@ import { ConfigFile } from './configFile';
  * ```
  * const authInfo = await AuthInfoConfig.create(AuthInfoConfig.getOptions(username));
  * ```
+ *
+ * @deprecated Replaced by GlobalInfo in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#globalinfo}
  */
 export class AuthInfoConfig extends ConfigFile<ConfigFile.Options> {
   /**

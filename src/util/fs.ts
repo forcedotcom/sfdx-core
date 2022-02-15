@@ -24,6 +24,9 @@ export type WriteJsonOptions = {
   space?: number;
 };
 
+/**
+ * @deprecated Use fs/promises instead
+ */
 export const fs = Object.assign({}, fsLib, {
   /**
    * The default file system mode to use when creating directories.

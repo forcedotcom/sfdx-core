@@ -7,6 +7,10 @@
 
 import { AnyJson, Dictionary } from '@salesforce/ts-types';
 import * as Debug from 'debug';
+import { compare } from 'semver';
+// needed for TS to not put everything inside /lib/src
+// @ts-ignore
+import * as pjson from '../package.json';
 
 // Data of any type can be passed to the callback. Can be cast to any type that is given in emit().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,15 +36,25 @@ declare const global: {
  *
  * // Deep in the deploy code, fire the event for all libraries and plugins to hear.
  * Lifecycle.getInstance().emit('deploy-metadata', metadataToBeDeployed);
+ *
+ * // if you don't need to await anything
+ * use `void Lifecycle.getInstance().emit('deploy-metadata', metadataToBeDeployed)` ;
  * ```
  */
 export class Lifecycle {
+  public static readonly telemetryEventName = 'telemetry';
+  public static readonly warningEventName = 'warning';
   private debug = Debug(`sfdx:${this.constructor.name}`);
-  private readonly listeners: Dictionary<callback[]>;
 
-  private constructor() {
-    this.listeners = {};
+  private constructor(private readonly listeners: Dictionary<callback[]> = {}) {}
+
+  /**
+   * return the package.json version of the sfdx-core library.
+   */
+  public static staticVersion(): string {
+    return pjson.version;
   }
+
   /**
    * Retrieve the singleton instance of this class so that all listeners and emitters can interact from any library or tool
    */
@@ -63,9 +77,29 @@ export class Lifecycle {
     // Nothing should EVER be removed, even across major versions.
 
     if (!global.salesforceCoreLifecycle) {
+      // it's not been loaded yet (basic singleton pattern)
       global.salesforceCoreLifecycle = new Lifecycle();
+    } else if (
+      // an older version was loaded that should be replaced
+      compare(global.salesforceCoreLifecycle.version(), Lifecycle.staticVersion()) === -1
+    ) {
+      const oldInstance = global.salesforceCoreLifecycle;
+      // use the newer version and transfer any listeners from the old version
+      // object spread keeps them from being references
+      global.salesforceCoreLifecycle = new Lifecycle({ ...oldInstance.listeners });
+      // clean up any listeners on the old version
+      Object.keys(oldInstance.listeners).map((eventName) => {
+        oldInstance.removeAllListeners(eventName);
+      });
     }
     return global.salesforceCoreLifecycle;
+  }
+
+  /**
+   * return the package.json version of the sfdx-core library.
+   */
+  public version(): string {
+    return pjson.version;
   }
 
   /**
@@ -93,6 +127,23 @@ export class Lifecycle {
   }
 
   /**
+   * Create a listener for the `telemetry` event
+   *
+   * @param cb The callback function to run when the event is emitted
+   */
+  public onTelemetry(cb: (data: Record<string, unknown>) => Promise<void>): void {
+    this.on(Lifecycle.telemetryEventName, cb);
+  }
+
+  /**
+   * Create a listener for the `warning` event
+   *
+   * @param cb The callback function to run when the event is emitted
+   */
+  public onWarning(cb: (warning: string) => Promise<void>): void {
+    this.on(Lifecycle.warningEventName, cb);
+  }
+  /**
    * Create a new listener for a given event
    *
    * @param eventName The name of the event that is being listened for
@@ -113,6 +164,27 @@ export class Lifecycle {
     this.listeners[eventName] = listeners;
   }
 
+  /**
+   * Emit a `telemetry` event, causing all callback functions to be run in the order they were registered
+   *
+   * @param data The data to emit
+   */
+  public async emitTelemetry(data: AnyJson): Promise<void> {
+    return this.emit(Lifecycle.telemetryEventName, data);
+  }
+  /**
+   * Emit a `warning` event, causing all callback functions to be run in the order they were registered
+   *
+   * @param data The warning (string) to emit
+   */
+  public async emitWarning(warning: string): Promise<void> {
+    // if there are no listeners, warnings should go to the node process so they're not lost
+    // this also preserves behavior in UT where there's a spy on process.emitWarning
+    if (this.getListeners(Lifecycle.warningEventName).length === 0) {
+      process.emitWarning(warning);
+    }
+    return this.emit(Lifecycle.warningEventName, warning);
+  }
   /**
    * Emit a given event, causing all callback functions to be run in the order they were registered
    *

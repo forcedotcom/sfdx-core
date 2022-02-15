@@ -37,7 +37,7 @@ import { ConfigAggregator } from './config/configAggregator';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
 import { sfdc } from './util/sfdc';
-
+import { Lifecycle } from './lifecycleEvents';
 /**
  * The 'async' in our request override replaces the jsforce promise with the node promise, then returns it back to
  * jsforce which expects .thenCall. Add .thenCall to the node promise to prevent breakage.
@@ -194,6 +194,9 @@ export class Connection extends JSForceConnection {
     delete options.rest;
     if (rest) {
       this.logger.debug('deploy with REST');
+      // do a quick auth refresh because the raw transport used doesn't handle expired AccessTokens
+      await this.refreshAuth();
+
       const headers = {
         Authorization: this && `OAuth ${this.accessToken}`,
         clientId: this.oauth2 && this.oauth2.clientId,
@@ -252,6 +255,8 @@ export class Connection extends JSForceConnection {
    * @param request HTTP request object or URL to GET request.
    */
   public async requestRaw(request: RequestInfo): Promise<JsonMap> {
+    await this.refreshAuth();
+
     const headers = this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {};
 
     merge(headers, SFDX_HTTP_HEADERS, request.headers);
@@ -441,9 +446,10 @@ export class Connection extends JSForceConnection {
         .on('record', (rec) => records.push(rec))
         .on('error', (err) => reject(err))
         .on('end', () => {
-          const totalSize = getNumber(query, 'totalSize') || 0;
-          if (totalSize > records.length) {
-            process.emitWarning(
+          const totalSize = getNumber(query, 'totalSize', 0);
+          // records.legnth can be 0 in count() query, but totalSize is bigger.
+          if (records.length && totalSize > records.length) {
+            void Lifecycle.getInstance().emitWarning(
               `The query result is missing ${
                 totalSize - records.length
               } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${totalSize} or greater than ${maxFetch}.`
@@ -484,6 +490,19 @@ export class Connection extends JSForceConnection {
       );
     }
     return result.records[0];
+  }
+
+  /**
+   * Executes a get request on the baseUrl to force an auth refresh
+   * Useful for the raw methods (request, requestRaw) that use the accessToken directly and don't handle refreshes
+   */
+  public async refreshAuth(): Promise<void> {
+    this.logger.debug('Refreshing auth for org.');
+    const requestInfo = {
+      url: this.baseUrl(),
+      method: 'GET',
+    };
+    await this.request(requestInfo);
   }
 
   private async loadInstanceApiVersion(): Promise<Nullable<string>> {
