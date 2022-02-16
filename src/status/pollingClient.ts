@@ -9,6 +9,7 @@ import { AnyJson, ensure } from '@salesforce/ts-types';
 import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
+import { Lifecycle } from '../lifecycleEvents';
 import { StatusResult } from './client';
 /**
  * This is a polling client that can be used to poll the status of long running tasks. It can be used as a replacement
@@ -54,19 +55,31 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
    * Returns a promise to call the specified polling function using the interval and timeout specified
    * in the polling options.
    */
-  public async subscribe(): Promise<AnyJson | undefined> {
+  // TODO v3.0 remove undefined as this method ensures that the payload is always returned
+  public async subscribe<T = AnyJson>(): Promise<T | undefined> {
     let errorInPollingFunction; // keep this around for returning in the catch block
-    const doPoll = async () => {
+    const doPoll = async (): Promise<T> => {
       let result;
       try {
         result = await this.options.poll();
       } catch (error) {
-        errorInPollingFunction = error;
+        const err = (errorInPollingFunction = error as Error);
+        if (
+          ['ETIMEDOUT', 'ENOTFOUND', 'ECONNRESET', 'socket hang up'].some((retryableNetworkError) =>
+            err.message.includes(retryableNetworkError)
+          )
+        ) {
+          this.logger.debug('Network error on the request', err);
+          await Lifecycle.getInstance().emitWarning('Network error occurred. Continuing to poll.');
+          throw SfdxError.wrap(err);
+        }
         // there was an actual error thrown, so we don't want to keep retrying
-        throw new NotRetryableError(error.name);
+        throw new NotRetryableError(err.name);
       }
       if (result.completed) {
-        return result.payload;
+        // TODO v3.0: payload should be of type T always so that
+        // consumers get the same type in return.
+        return result.payload as unknown as T;
       }
       throw new Error('Operation did not complete.  Retrying...'); // triggers a retry
     };

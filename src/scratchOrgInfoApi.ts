@@ -6,13 +6,13 @@
  */
 
 // @salesforce
-import { Optional } from '@salesforce/ts-types';
+import { AnyJson, Optional } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
 import { getString } from '@salesforce/ts-types';
 
 // Thirdparty
 import { RecordResult, OAuth2Options } from 'jsforce';
-import { retry, retryDecorator, RetryError } from 'ts-retry-promise';
+import { retryDecorator, RetryError } from 'ts-retry-promise';
 
 // Local
 import { Org } from './org';
@@ -22,6 +22,8 @@ import { AuthInfo } from './authInfo';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 import { SfdcUrl } from './util/sfdcUrl';
+import { StatusResult } from './status/client';
+import { PollingClient } from './status/pollingClient';
 import { MyDomainResolver } from './status/myDomainResolver';
 import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
 import SettingsGenerator, { ObjectSetting } from './scratchOrgSettingsGenerator';
@@ -353,33 +355,52 @@ export const pollForScratchOrgInfo = async (
   const logger = await Logger.child('scratchOrgInfoApi-pollForScratchOrgInfo');
   logger.debug(`PollingTimeout in minutes: ${timeout.minutes}`);
 
-  const response = await retry(
-    async () => {
-      const resultInProgress = await hubOrg
-        .getConnection()
-        .sobject<ScratchOrgInfo>('ScratchOrgInfo')
-        .retrieve(scratchOrgInfoId);
-      logger.debug(`polling client result: ${JSON.stringify(resultInProgress, null, 4)}`);
-      // Once it's "done" we can return it
-      if (resultInProgress.Status === 'Active' || resultInProgress.Status === 'Error') {
-        return resultInProgress;
+  const pollingOptions: PollingClient.Options = {
+    async poll(): Promise<StatusResult> {
+      try {
+        const resultInProgress = await hubOrg
+          .getConnection()
+          .sobject<ScratchOrgInfo>('ScratchOrgInfo')
+          .retrieve(scratchOrgInfoId);
+        logger.debug(`polling client result: ${JSON.stringify(resultInProgress, null, 4)}`);
+        // Once it's "done" we can return it
+        if (resultInProgress.Status === 'Active' || resultInProgress.Status === 'Error') {
+          return {
+            completed: true,
+            payload: resultInProgress as unknown as AnyJson,
+          };
+        }
+        logger.debug(`Scratch org status is ${resultInProgress.Status}`);
+        return {
+          completed: false,
+        };
+      } catch (error) {
+        logger.debug(`An error occurred trying to retrieve scratchOrgInfo for ${scratchOrgInfoId}`);
+        logger.debug(`Error: ${(error as Error).message}`);
+        logger.debug('Re-trying deploy check again....');
+        return {
+          completed: false,
+        };
       }
-      // all other statuses, OR lack of status (e.g. network errors) will cause a retry
-      throw new SfdxError(`Scratch org status is ${resultInProgress.Status}`);
     },
-    {
-      retries: 'INFINITELY',
-      timeout: timeout.milliseconds,
-      delay: Duration.seconds(2).milliseconds,
-      backoff: 'LINEAR',
-      maxBackOff: Duration.seconds(30).milliseconds,
+    timeout,
+    frequency: Duration.seconds(1),
+    timeoutErrorName: 'ScratchOrgInfoTimeoutError',
+  };
+
+  const client = await PollingClient.create(pollingOptions);
+  try {
+    const resultInProgress = await client.subscribe<ScratchOrgInfo>();
+    return checkScratchOrgInfoForErrors(resultInProgress, hubOrg.getUsername(), logger);
+  } catch (error) {
+    const err = error as Error;
+    if (err.message) {
+      throw SfdxError.wrap(err);
     }
-  ).catch(() => {
     throw new SfdxError(`The scratch org did not complete within ${timeout.minutes} minutes`, 'orgCreationTimeout', [
       'Try your force:org:create command again with a longer --wait value',
     ]);
-  });
-  return checkScratchOrgInfoForErrors(response, hubOrg.getUsername(), logger);
+  }
 };
 
 /**

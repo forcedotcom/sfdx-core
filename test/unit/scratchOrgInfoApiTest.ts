@@ -345,7 +345,7 @@ describe('pollForScratchOrgInfo', () => {
     }
   });
 
-  it('pollForScratchOrgInfo retrieve rejects', async () => {
+  it('pollForScratchOrgInfo keeps pooling untill Active', async () => {
     const creating = {
       Status: 'Creating',
     };
@@ -359,7 +359,7 @@ describe('pollForScratchOrgInfo', () => {
     expect(result).to.deep.equal(active);
   });
 
-  it('pollForScratchOrgInfo retrieve rejects', async () => {
+  it('pollForScratchOrgInfo retrieve rejects with timeout', async () => {
     const timeout = Duration.milliseconds(150);
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       retrieve: sinon.stub().withArgs(scratchOrgInfoId).rejects(new Error('MyError')),
@@ -368,8 +368,28 @@ describe('pollForScratchOrgInfo', () => {
       await shouldThrow(pollForScratchOrgInfo(hubOrg, scratchOrgInfoId, timeout));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.name).to.include('orgCreationTimeout');
+      expect(error.name).to.include('ScratchOrgInfoTimeoutError');
     }
+  });
+
+  it('pollForScratchOrgInfo should tolerate network errors', async () => {
+    const retrieve = {
+      Status: 'Active',
+    };
+    const timeout = Duration.milliseconds(3000);
+    connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
+      retrieve: sinon
+        .stub()
+        .withArgs(scratchOrgInfoId)
+        .onCall(0)
+        .rejects(new Error('ETIMEDOUT'))
+        .onCall(1)
+        .rejects(new Error('ENOTFOUND'))
+        .onCall(2)
+        .resolves(retrieve),
+    } as unknown as SObject<unknown>);
+    const result = await pollForScratchOrgInfo(hubOrg, scratchOrgInfoId, timeout);
+    expect(result).to.deep.equal(retrieve);
   });
 });
 

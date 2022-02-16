@@ -31,10 +31,10 @@ const fakeConnection = (
   sandbox: sinon.SinonSandbox,
   scratchOrg: Org,
   deployId = '12345',
-  deployStatus: string | string[] = 'Succeeded'
+  deployStatus: string | Array<string | Error> | Error = 'Succeeded'
 ): sinon.SinonStub => {
-  const fakeConnectionMock = (status: string | string[]) => {
-    const checkDeployStatusStub = (statusResult: string | string[]): sinon.SinonStub => {
+  const fakeConnectionMock = (status: string | Array<string | Error> | Error) => {
+    const checkDeployStatusStub = (statusResult: string | Array<string | Error> | Error): sinon.SinonStub => {
       const stub: sinon.SinonStub = sinon.stub();
       const fakeResult = (result: string) => (id: string) => {
         expect(id).to.equal(deployId).to.have.property('length').and.to.be.greaterThan(0);
@@ -50,10 +50,16 @@ const fakeConnection = (
       };
       if (Array.isArray(deployStatus)) {
         deployStatus.forEach((result, index) => {
-          stub.onCall(index).callsFake(fakeResult(result));
+          if (result instanceof Error) {
+            stub.onCall(index).rejects(result);
+          } else {
+            stub.onCall(index).callsFake(fakeResult(result));
+          }
         });
       } else if (typeof statusResult === 'string') {
         stub.callsFake(fakeResult(statusResult));
+      } else if (statusResult instanceof Error) {
+        stub.rejects(statusResult);
       }
       return stub;
     };
@@ -384,6 +390,48 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     it('tries to deploy the settings to the org pools untill succeded', async () => {
+      const scratchDef = {
+        ...TEMPLATE_SCRATCH_ORG_INFO,
+        settings: {
+          lightningExperienceSettings: {
+            enableS1DesktopEnabled: true,
+          },
+          mobileSettings: {
+            enableS1EncryptedStoragePref2: false,
+          },
+        },
+      };
+      const settings = new SettingsGenerator();
+      await settings.extract(scratchDef);
+      await settings.createDeploy();
+      await settings.deploySettingsViaFolder(scratchOrg, '53.0');
+      expect(getUsernameStub.callCount).to.equal(1);
+      expect(getConnectionStub.callCount).to.equal(1);
+      expect(addToZipStub.callCount).to.equal(3);
+      expect(addToZipStub.firstCall.firstArg)
+        .to.be.a('string')
+        .and.length.to.be.greaterThan(0)
+        .and.to.include('<LightningExperienceSettings>')
+        .and.to.include('<enableS1DesktopEnabled>true</enableS1DesktopEnabled>');
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('settings', 'LightningExperience.settings'));
+      expect(addToZipStub.secondCall.firstArg)
+        .to.be.a('string')
+        .and.length.to.be.greaterThan(0)
+        .and.to.include('<MobileSettings>')
+        .and.to.include('<enableS1EncryptedStoragePref2>false</enableS1EncryptedStoragePref2>');
+      expect(finalizeStub.callCount).to.equal(1);
+      expect(addToZipStub.secondCall.args[1]).to.include(path.join('settings', 'Mobile.settings'));
+    });
+
+    it('should tolerate network errors', async () => {
+      getConnectionStub.restore();
+      getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, [
+        'InProgress',
+        new Error('ETIMEDOUT'),
+        'InProgress',
+        new Error('ENOTFOUND'),
+        'Succeeded',
+      ]);
       const scratchDef = {
         ...TEMPLATE_SCRATCH_ORG_INFO,
         settings: {
