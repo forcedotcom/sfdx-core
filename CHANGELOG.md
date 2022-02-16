@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.35.2](https://github.com/forcedotcom/sfdx-core/compare/v2.35.1...v2.35.2) (2022-02-16)
+
+### Bug Fixes
+
+- network error tolerance ([#517](https://github.com/forcedotcom/sfdx-core/issues/517)) ([676ebfe](https://github.com/forcedotcom/sfdx-core/commit/676ebfe58b13826b53f461b2fef321c21f583004))
+- remove redundant warnings about no listerners on warnings ([7a5bd23](https://github.com/forcedotcom/sfdx-core/commit/7a5bd2390713da929e886f41d9dcbc811104f99a))
+
 ### [2.35.1](https://github.com/forcedotcom/sfdx-core/compare/v2.35.0...v2.35.1) (2022-02-10)
 
 ### Bug Fixes
