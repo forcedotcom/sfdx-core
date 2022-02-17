@@ -6,6 +6,10 @@ The provided dev hub username %s is not a valid dev hub.
 
 No username found.
 
+# usernameRequired
+
+If a default org does not exist, a username must be specified.
+
 # noDevHubFound
 
 Unable to associate this scratch org with a DevHub.

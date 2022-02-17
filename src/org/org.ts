@@ -50,6 +50,7 @@ const messages = Messages.load('@salesforce/core', 'org', [
   'notADevHub',
   'noUsernameFound',
   'orgPollingTimeout',
+  'usernameRequired',
   'sandboxDeleteFailed',
   'sandboxInfoCreateFailed',
   'sandboxNotFound',
@@ -709,7 +710,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         : this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG) ??
           this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_USERNAME);
 
-      const username = globalInfo.aliases.resolveUsername(this.options.aliasOrUsername as string);
+      if (!this.options.aliasOrUsername) {
+        throw messages.createError('usernameRequired');
+      }
+
+      const username = globalInfo.aliases.resolveUsername(this.options.aliasOrUsername);
       if (!username) {
         throw messages.createError('noUsernameFound');
       }
