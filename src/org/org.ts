@@ -36,6 +36,7 @@ import { GlobalInfo } from '../globalInfo';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
 import { WebOAuthServer } from '../webOAuthServer';
+import { SfdxPropertyKeys } from '../config/config';
 import { Connection, SingleRecordQueryErrors } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
 import { OrgConfigProperties } from './orgConfigProperties';
@@ -698,16 +699,15 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const globalInfo = await GlobalInfo.getInstance();
     this.logger = await Logger.child('Org');
 
-    this.configAggregator = this.options.aggregator ? this.options.aggregator : await ConfigAggregator.create();
+    this.configAggregator = this.options.aggregator ?? (await ConfigAggregator.create());
 
     if (!this.options.connection) {
-      if (this.options.aliasOrUsername == null) {
-        this.configAggregator = this.getConfigAggregator();
-        const aliasOrUsername = this.options.isDevHub
-          ? this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB)
-          : this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
-        this.options.aliasOrUsername = aliasOrUsername || undefined;
-      }
+      this.options.aliasOrUsername ??= this.options.isDevHub
+        ? // prefer the sf config but fall back to the sfdx ones
+          this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB) ??
+          this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME)
+        : this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG) ??
+          this.configAggregator.getPropertyValue<string>(SfdxPropertyKeys.DEFAULT_USERNAME);
 
       const username = globalInfo.aliases.resolveUsername(this.options.aliasOrUsername as string);
       if (!username) {
