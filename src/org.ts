@@ -807,30 +807,32 @@ export class Org extends AsyncCreatable<Org.Options> {
     this.logger.debug(`using path for org users: ${config.getPath()}`);
     this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
 
-    for (const auth of authInfos) {
-      const username = auth.getFields().username;
-      const aliasKeys = (username && aliases.getKeysByValue(username)) || [];
-      aliases.unsetAll(aliasKeys);
+    await Promise.all(
+      authInfos
+        .map((auth) => auth.getFields().username)
+        .map(async (username) => {
+          const aliasKeys = (username && aliases.getKeysByValue(username)) || [];
+          aliases.unsetAll(aliasKeys);
 
-      const orgForUser =
-        username === this.getUsername()
-          ? this
-          : await Org.create({
-              connection: await Connection.create({ authInfo: await AuthInfo.create({ username }) }),
-            });
+          const orgForUser =
+            username === this.getUsername()
+              ? this
+              : await Org.create({
+                  connection: await Connection.create({ authInfo: await AuthInfo.create({ username }) }),
+                });
 
-      const orgType = this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
+          const orgType = this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
+          const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
+          const needsConfigUpdate =
+            (configInfo.isGlobal() || configInfo.isLocal()) &&
+            (configInfo.value === username || aliasKeys.includes(configInfo.value as string));
 
-      const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
-
-      if (
-        (configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
-        (configInfo.isGlobal() || configInfo.isLocal())
-      ) {
-        await Config.update(configInfo.isGlobal(), orgType, undefined);
-      }
-      await orgForUser.removeAuth();
-    }
+          return [
+            orgForUser.removeAuth(),
+            needsConfigUpdate ? Config.update(configInfo.isGlobal(), orgType, undefined) : undefined,
+          ].filter(Boolean);
+        })
+    );
 
     await aliases.write();
   }
