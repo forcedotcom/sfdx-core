@@ -533,7 +533,7 @@ export class Messages<T extends string> {
    * @param key The key of the error message.
    * @param tokens The error message tokens.
    * @param actionTokens The action messages tokens.
-   * @param exitCodeOrCause The exit code which will be used by SfdxCommand or he underlying error that caused this error to be raised.
+   * @param exitCodeOrCause The exit code which will be used by SfdxCommand or the underlying error that caused this error to be raised.
    * @param cause The underlying error that caused this error to be raised.
    */
   public createError(
@@ -543,20 +543,90 @@ export class Messages<T extends string> {
     exitCodeOrCause?: number | Error,
     cause?: Error
   ): SfdxError {
+    return this.createSfdxError('error', key, tokens, actionTokens, exitCodeOrCause, cause);
+  }
+
+  /**
+   * Convenience method to create warning using message labels.
+   *
+   * `warning.name` will be the upper-cased key, remove prefixed `warning.` and will always end in Warning.
+   * `warning.actions` will be loaded using `${key}.actions` if available.
+   *
+   * @param key The key of the warning message.
+   * @param tokens The warning message tokens.
+   * @param actionTokens The action messages tokens.
+   * @param codeOrCause The error that caused this warning.
+   * @param cause The underlying error that caused this warning to be created.
+   */
+  public createWarning(
+    key: T,
+    tokens: Tokens = [],
+    actionTokens: Tokens = [],
+    codeOrCause?: Error,
+    cause?: Error
+  ): SfdxError {
+    return this.createSfdxError('warning', key, tokens, actionTokens, codeOrCause, cause);
+  }
+
+  /**
+   * Convenience method to create info using message labels.
+   *
+   * `info.name` will be the upper-cased key, remove prefixed `info.` and will always end in Info.
+   * `info.actions` will be loaded using `${key}.actions` if available.
+   *
+   * @param key The key of the warning message.
+   * @param tokens The warning message tokens.
+   * @param actionTokens The action messages tokens.
+   * @param codeOrCause The error that caused this warning.
+   * @param cause The underlying error that caused this warning to be created.
+   */
+  public createInfo(
+    key: T,
+    tokens: Tokens = [],
+    actionTokens: Tokens = [],
+    codeOrCause?: Error,
+    cause?: Error
+  ): SfdxError {
+    return this.createSfdxError('info', key, tokens, actionTokens, codeOrCause, cause);
+  }
+
+  /**
+   * Convenience method to create SfdxError using message labels.
+   *
+   * `<type>.name` will be the upper-cased key, remove prefixed `<type>.` and will always end in 'Error | Warning | Info.
+   * `<type>.actions` will be loaded using `${key}.actions` if available.
+   *
+   * @param type The type of the message set must 'error' | 'warning' | 'info'.
+   * @param key The key of the warning message.
+   * @param tokens The warning message tokens.
+   * @param actionTokens The action messages tokens.
+   * @param codeOrCause?? The error that caused this warning.
+   * @param cause??? The underlying error that caused this warning to be created.
+   */
+  private createSfdxError(
+    type: 'error' | 'warning' | 'info',
+    key: T,
+    tokens: Tokens = [],
+    actionTokens: Tokens = [],
+    codeOrCause?: number | Error,
+    cause?: Error
+  ): SfdxError {
+    const label = upperFirst(type);
+    const labelRegExp = new RegExp(`${label}$`);
+    const searchValue: RegExp = type === 'error' ? /^error.*\./ : new RegExp(`^${type}.`);
     // Convert key to name:
-    //     'myMessage' -> `MyMessageError`
-    //     'myMessageError' -> `MyMessageError`
-    //     'error.myMessage' -> `MyMessageError`
-    //     'errors.myMessage' -> `MyMessageError`
-    const errName = `${upperFirst(key.replace(/^errors*\./, ''))}${/Error$/.exec(key) ? '' : 'Error'}`;
-    const errMessage = this.getMessage(key, tokens);
-    let errActions;
+    //     'myMessage' -> `MyMessageWarning`
+    //     'myMessageError' -> `MyMessageWarning`
+    //     'warning.myMessage' -> `MyMessageWarning`
+    const name = `${upperFirst(key.replace(searchValue, ''))}${labelRegExp.exec(key) ? '' : label}`;
+    const message = this.getMessage(key, tokens);
+    let actions;
     try {
-      errActions = this.getMessageWithMap(`${key}.actions`, actionTokens, this.messages);
+      actions = this.getMessageWithMap(`${key}.actions`, actionTokens, this.messages);
     } catch (e) {
       /* just ignore if actions aren't found */
     }
-    return new SfdxError(errMessage, errName, errActions, exitCodeOrCause, cause);
+    return new SfdxError(message, name, actions, codeOrCause, cause);
   }
 
   private getMessageWithMap(key: string, tokens: Tokens = [], map: StoredMessageMap): string[] {
