@@ -1014,9 +1014,10 @@ describe('Org Tests', () => {
       });
 
       // Stub to track the deleted paths.
-      const deletedPaths: string[] = [];
+      const deletedPaths = new Set<string>();
+
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function (this: ConfigFile<ConfigFile.Options>) {
-        deletedPaths.push(this.getPath());
+        deletedPaths.add(this.getPath());
         return Promise.resolve({});
       });
 
@@ -1029,8 +1030,8 @@ describe('Org Tests', () => {
       // Remove the org
       await org.remove();
 
-      // Expect there are only two files.
-      expect(deletedPaths).to.have.length(2);
+      // Expect there are only two files deleted
+      expect(deletedPaths.size).to.equal(2);
       // Expect the sandbox config is deleted.
       expect(deletedPaths).includes(
         pathJoin(await $$.globalPathRetriever($$.id), Global.STATE_FOLDER, `${testData.orgId}.sandbox.json`)

@@ -799,43 +799,42 @@ export class Org extends AsyncCreatable<Org.Options> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async removeUsers(throwWhenRemoveFails: boolean): Promise<void> {
     this.logger.debug(`Removing users associate with org: ${this.getOrgId()}`);
-    const config = await this.retrieveOrgUsersConfig();
+    const [config, authInfos, aliases] = await Promise.all([
+      this.retrieveOrgUsersConfig(),
+      this.readUserAuthFiles(),
+      Aliases.create(Aliases.getDefaultOptions()),
+    ]);
     this.logger.debug(`using path for org users: ${config.getPath()}`);
-    if (await config.exists()) {
-      const authInfos: AuthInfo[] = await this.readUserAuthFiles();
-      const aliases: Aliases = await Aliases.create(Aliases.getDefaultOptions());
-      this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
+    this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
 
-      for (const auth of authInfos) {
-        const username = auth.getFields().username;
+    await Promise.all(
+      authInfos
+        .map((auth) => auth.getFields().username)
+        .map(async (username) => {
+          const aliasKeys = (username && aliases.getKeysByValue(username)) || [];
+          aliases.unsetAll(aliasKeys);
 
-        const aliasKeys = (username && aliases.getKeysByValue(username)) || [];
-        aliases.unsetAll(aliasKeys);
+          const orgForUser =
+            username === this.getUsername()
+              ? this
+              : await Org.create({
+                  connection: await Connection.create({ authInfo: await AuthInfo.create({ username }) }),
+                });
 
-        let orgForUser;
-        if (username === this.getUsername()) {
-          orgForUser = this;
-        } else {
-          const info = await AuthInfo.create({ username });
-          const connection: Connection = await Connection.create({ authInfo: info });
-          orgForUser = await Org.create({ connection });
-        }
+          const orgType = this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
+          const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
+          const needsConfigUpdate =
+            (configInfo.isGlobal() || configInfo.isLocal()) &&
+            (configInfo.value === username || aliasKeys.includes(configInfo.value as string));
 
-        const orgType = this.isDevHubOrg() ? Config.DEFAULT_DEV_HUB_USERNAME : Config.DEFAULT_USERNAME;
+          return [
+            orgForUser.removeAuth(),
+            needsConfigUpdate ? Config.update(configInfo.isGlobal(), orgType, undefined) : undefined,
+          ].filter(Boolean);
+        })
+    );
 
-        const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
-
-        if (
-          (configInfo.value === username || aliasKeys.includes(configInfo.value as string)) &&
-          (configInfo.isGlobal() || configInfo.isLocal())
-        ) {
-          await Config.update(configInfo.isGlobal(), orgType, undefined);
-        }
-        await orgForUser.removeAuth();
-      }
-
-      await aliases.write();
-    }
+    await aliases.write();
   }
 
   /**
