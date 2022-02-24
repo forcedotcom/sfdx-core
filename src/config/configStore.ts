@@ -80,7 +80,6 @@ export abstract class BaseConfigStore<
   implements ConfigStore<P>
 {
   protected static encryptedKeys: Array<string | RegExp> = [];
-
   protected options: T;
   protected crypto?: Crypto;
 
@@ -317,7 +316,7 @@ export abstract class BaseConfigStore<
   }
 
   protected getEncryptedKeys(): Array<string | RegExp> {
-    return [...(this.options.encryptedKeys || []), ...(this.statics.encryptedKeys || [])];
+    return [...(this.options?.encryptedKeys || []), ...(this.statics?.encryptedKeys || [])];
   }
 
   /**

@@ -20,12 +20,12 @@ import {
 import type { QueryResult } from 'jsforce';
 import { HttpApi } from 'jsforce/lib/http-api';
 import type { HttpRequest, HttpResponse, Schema, SObjectUpdateRecord } from 'jsforce/lib/types';
-import { Connection } from '../org/connection';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
 import { SfdxError } from '../sfdxError';
 import { sfdc } from '../util/sfdc';
+import { Connection } from './connection';
 import { PermissionSetAssignment } from './permissionSetAssignment';
 import { Org } from './org';
 import { AuthFields, AuthInfo } from './authInfo';
@@ -312,7 +312,6 @@ export class User extends AsyncCreatable<User.Options> {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       password.value(async (buffer: Buffer) => {
         try {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore TODO: expose `soap` on Connection however appropriate
           const soap = userConnection.soap;
           await soap.setPassword(ensureString(info.getFields().userId), buffer.toString('utf8'));
@@ -394,7 +393,8 @@ export class User extends AsyncCreatable<User.Options> {
 
     // Setup oauth options for the new user
     const oauthOptions = {
-      loginUrl: adminUserAuthFields.loginUrl,
+      // Communities users require the instance for auth
+      loginUrl: adminUserAuthFields.instanceUrl ?? adminUserAuthFields.loginUrl,
       refreshToken: refreshTokenSecret.buffer.value((buffer: Buffer): string => buffer.toString('utf8')),
       clientId: adminUserAuthFields.clientId,
       clientSecret: adminUserAuthFields.clientSecret,

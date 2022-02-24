@@ -98,7 +98,7 @@ export type ProjectJson = ConfigContents & {
 export class SfdxProjectJson extends ConfigFile {
   public static BLOCKLIST = ['packageAliases'];
 
-  public static getFileName() {
+  public static getFileName(): string {
     return SFDX_PROJECT_JSON;
   }
 

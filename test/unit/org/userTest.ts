@@ -7,14 +7,18 @@
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, isString } from '@salesforce/ts-types';
 import { expect, assert } from 'chai';
-import { AuthInfo } from '../../../src/org/authInfo';
 import { OrgAccessor } from '../../../src/globalInfo';
-import { Connection } from '../../../src/org/connection';
-import { Org } from '../../../src/org/org';
-import { PermissionSetAssignment } from '../../../src/org/permissionSetAssignment';
 import { SecureBuffer } from '../../../src/crypto/secureBuffer';
 import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
-import { DefaultUserFields, User, UserFields } from '../../../src/org/user';
+import {
+  DefaultUserFields,
+  User,
+  UserFields,
+  PermissionSetAssignment,
+  Org,
+  Connection,
+  AuthInfo,
+} from '../../../src/org';
 
 const $$ = testSetup();
 

@@ -8,26 +8,27 @@ import { deepStrictEqual } from 'assert';
 import { constants as fsConstants } from 'fs';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
-import { set } from '@salesforce/kit';
+import { Duration, set } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { OAuth2 } from 'jsforce';
 import { Transport } from 'jsforce/lib/transport';
-import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
+import { AuthFields, AuthInfo } from '../../../src/org';
 import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
 import { SandboxOrgConfig } from '../../../src/config/sandboxOrgConfig';
-import { Connection, SingleRecordQueryErrors } from '../../../src/org/connection';
+import { Connection, SingleRecordQueryErrors } from '../../../src/org';
 import { Global } from '../../../src/global';
-import { Org } from '../../../src/org/org';
+import { Org, SandboxProcessObject, SandboxUserAuthResponse } from '../../../src/org';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { GlobalInfo, OrgAccessor } from '../../../src/globalInfo';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
+import { Lifecycle } from '../../../src/exported';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -249,7 +250,7 @@ describe('Org Tests', () => {
           const devHubQuery = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
             Id: orgTestData.orgId,
           });
-          const devHubDelete = stubMethod($$.SANDBOX, Org.prototype, 'destoryScratchOrg').resolves();
+          const devHubDelete = stubMethod($$.SANDBOX, Org.prototype, 'destroyScratchOrg').resolves();
           const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
 
           await org.deleteFrom(dev);
@@ -389,6 +390,133 @@ describe('Org Tests', () => {
           expect(prodDelete.firstCall.args).to.deep.equal(['SandboxInfo', orgTestData.orgId]);
           expect(removeSpy.calledOnce).to.be.true;
         });
+      });
+    });
+
+    describe('createSandbox', () => {
+      let prod;
+      let createStub;
+      let querySandboxProcessStub;
+      let pollStatusAndAuthStub;
+      beforeEach(async () => {
+        const prodTestData = new MockTestOrgData();
+        prod = await createOrgViaAuthInfo(prodTestData.username);
+        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
+          id: '0GQ4p000000U6nFGAS',
+          success: true,
+        });
+        querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves();
+        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
+      });
+
+      it('will create the SandboxInfo sObject correctly', async () => {
+        await prod.createSandbox({ SandboxName: 'testSandbox' }, Duration.seconds(30));
+        expect(createStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.calledOnce).to.be.true;
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+      });
+
+      it('will calculate the amount of retries correctly', async () => {
+        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
+        expect(createStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.calledOnce).to.be.true;
+        // Duration.seconds(30)/ Duration.seconds(30) = 1
+        expect(pollStatusAndAuthStub.firstCall.args[0].retries).to.equal(1);
+        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(90) });
+        // 90/30 = 3
+        expect(pollStatusAndAuthStub.secondCall.args[0].retries).to.equal(3);
+      });
+
+      it('will throw an error if it fails to create SandboxInfo', async () => {
+        createStub.restore();
+        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
+          error: 'duplicate value found: SandboxName duplicates value on record with id: 0GQ4p000000U6rv',
+          success: false,
+        });
+        try {
+          await prod.createSandbox({ SandboxName: 'testSandbox' }, Duration.seconds(30));
+          assert.fail('the above should throw a duplicate error');
+        } catch (e) {
+          expect(createStub.calledOnce).to.be.true;
+          expect(e.message).to.include('The sandbox org creation failed with a result of');
+          expect(e.message).to.include(
+            'duplicate value found: SandboxName duplicates value on record with id: 0GQ4p000000U6rv'
+          );
+          expect(e.exitCode).to.equal(1);
+        }
+      });
+
+      it('will auth sandbox user correctly', async () => {
+        const sandboxResponse = {
+          SandboxName: 'test',
+          EndDate: '2021-19-06T20:25:46.000+0000',
+        };
+        const requestStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'request').resolves();
+        const instanceUrl = 'http://instance.123.salesforce.com.services/data/v50.0/tooling/';
+        stubMethod($$.SANDBOX, prod.connection.tooling, '_baseUrl').returns(instanceUrl);
+
+        await prod.sandboxSignupComplete(sandboxResponse);
+        expect(requestStub.firstCall.args).to.deep.equal([
+          {
+            body: '{"sandboxName":"test","callbackUrl":"http://localhost:1717/OauthRedirect"}',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            method: 'POST',
+            url: `${instanceUrl}/sandboxAuth`,
+          },
+        ]);
+      });
+
+      it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
+        const logStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
+        const sandboxResponse = {
+          SandboxName: 'test',
+          EndDate: '2021-19-06T20:25:46.000+0000',
+        };
+        stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws({
+          name: 'INVALID_STATUS',
+        });
+
+        await prod.sandboxSignupComplete(sandboxResponse);
+        expect(logStub.callCount).to.equal(3);
+        // error swallowed
+        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user %s');
+      });
+
+      it('will pollStatusAndAuth correctly', async () => {
+        const sandboxInProgress: SandboxProcessObject = {
+          Id: '0GR4p000000U8ECXXX',
+          Status: 'Pending',
+          SandboxName: 'test',
+          SandboxInfoId: '0GQ4p000000U6rvXXX',
+          LicenseType: 'DEVELOPER',
+          CreatedDate: '2021-12-06T20:25:46.000+0000',
+          CopyProgress: 28,
+          SandboxOrganization: null,
+          SourceId: null,
+          Description: null,
+          EndDate: null,
+        };
+        pollStatusAndAuthStub.restore();
+        querySandboxProcessStub.restore();
+        querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves(sandboxInProgress);
+
+        stubMethod($$.SANDBOX, prod, 'sandboxSignupComplete').onSecondCall().resolves({ authUserName: 'myname' });
+        stubMethod($$.SANDBOX, prod, 'writeSandboxAuthFile').resolves();
+
+        const lifecycleStub = stubMethod($$.SANDBOX, Lifecycle.prototype, 'emit');
+        const loggerStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
+
+        const res = await prod.pollStatusAndAuth({
+          pollInterval: Duration.seconds(1),
+          retries: 1,
+          shouldPoll: true,
+          sandboxProcessObj: sandboxInProgress,
+        });
+        expect(res).to.deep.equal(sandboxInProgress);
+        expect(loggerStub.callCount).to.equal(3);
+        expect(lifecycleStub.callCount).to.equal(2);
       });
     });
 

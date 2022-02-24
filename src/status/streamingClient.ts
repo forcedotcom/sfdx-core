@@ -12,7 +12,7 @@ import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
 import * as Faye from 'faye';
 import { Logger } from '../logger';
-import { Org } from '../org/org';
+import { Org } from '../org';
 import { SfdxError } from '../sfdxError';
 import { Messages } from '../messages';
 import { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor } from './types';
