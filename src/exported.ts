@@ -59,7 +59,7 @@ export {
   Logger,
 } from './logger';
 
-export { Messages } from './messages';
+export { Messages, StructuredMessage } from './messages';
 
 export {
   Org,

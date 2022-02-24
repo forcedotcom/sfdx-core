@@ -32,6 +32,12 @@ class Key {
   }
 }
 
+export type StructuredMessage = {
+  message: string;
+  name: string;
+  actions?: string[];
+};
+
 /**
  * A loader function to return messages.
  *
@@ -543,7 +549,8 @@ export class Messages<T extends string> {
     exitCodeOrCause?: number | Error,
     cause?: Error
   ): SfdxError {
-    return this.createSfdxError('error', key, tokens, actionTokens, exitCodeOrCause, cause);
+    const [message, name, actions] = this.formatMessageContents('error', key, tokens, actionTokens);
+    return new SfdxError(message, name, actions, exitCodeOrCause, cause);
   }
 
   /**
@@ -555,17 +562,10 @@ export class Messages<T extends string> {
    * @param key The key of the warning message.
    * @param tokens The warning message tokens.
    * @param actionTokens The action messages tokens.
-   * @param codeOrCause The error that caused this warning.
-   * @param cause The underlying error that caused this warning to be created.
    */
-  public createWarning(
-    key: T,
-    tokens: Tokens = [],
-    actionTokens: Tokens = [],
-    codeOrCause?: Error,
-    cause?: Error
-  ): SfdxError {
-    return this.createSfdxError('warning', key, tokens, actionTokens, codeOrCause, cause);
+  public createWarning(key: T, tokens: Tokens = [], actionTokens: Tokens = []): StructuredMessage {
+    const [message, name, actions] = this.formatMessageContents('warning', key, tokens, actionTokens);
+    return { message, name, actions };
   }
 
   /**
@@ -577,21 +577,14 @@ export class Messages<T extends string> {
    * @param key The key of the warning message.
    * @param tokens The warning message tokens.
    * @param actionTokens The action messages tokens.
-   * @param codeOrCause The error that caused this warning.
-   * @param cause The underlying error that caused this warning to be created.
    */
-  public createInfo(
-    key: T,
-    tokens: Tokens = [],
-    actionTokens: Tokens = [],
-    codeOrCause?: Error,
-    cause?: Error
-  ): SfdxError {
-    return this.createSfdxError('info', key, tokens, actionTokens, codeOrCause, cause);
+  public createInfo(key: T, tokens: Tokens = [], actionTokens: Tokens = []): StructuredMessage {
+    const [message, name, actions] = this.formatMessageContents('info', key, tokens, actionTokens);
+    return { message, name, actions };
   }
 
   /**
-   * Convenience method to create SfdxError using message labels.
+   * Formats message contents given a message type, key, tokens and actions tokens
    *
    * `<type>.name` will be the upper-cased key, remove prefixed `<type>.` and will always end in 'Error | Warning | Info.
    * `<type>.actions` will be loaded using `${key}.actions` if available.
@@ -600,17 +593,13 @@ export class Messages<T extends string> {
    * @param key The key of the warning message.
    * @param tokens The warning message tokens.
    * @param actionTokens The action messages tokens.
-   * @param codeOrCause?? The error that caused this warning.
-   * @param cause??? The underlying error that caused this warning to be created.
    */
-  private createSfdxError(
+  private formatMessageContents(
     type: 'error' | 'warning' | 'info',
     key: T,
     tokens: Tokens = [],
-    actionTokens: Tokens = [],
-    codeOrCause?: number | Error,
-    cause?: Error
-  ): SfdxError {
+    actionTokens: Tokens = []
+  ): [string, string, string[] | undefined] {
     const label = upperFirst(type);
     const labelRegExp = new RegExp(`${label}$`);
     const searchValue: RegExp = type === 'error' ? /^error.*\./ : new RegExp(`^${type}.`);
@@ -626,7 +615,7 @@ export class Messages<T extends string> {
     } catch (e) {
       /* just ignore if actions aren't found */
     }
-    return new SfdxError(message, name, actions, codeOrCause, cause);
+    return [message, name, actions];
   }
 
   private getMessageWithMap(key: string, tokens: Tokens = [], map: StoredMessageMap): string[] {
