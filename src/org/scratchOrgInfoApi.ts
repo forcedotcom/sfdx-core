@@ -294,7 +294,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
  * @param hubOrg - the environment hub org
  * @param scratchOrgRequest - An object containing the fields of the ScratchOrgInfo
  * @param settings - An object containing org settings
- * @returns {Promise<RecordResult>}
+ * @returns {Promise<SaveResult>}
  */
 export const requestScratchOrgCreation = async (
   hubOrg: Org,
