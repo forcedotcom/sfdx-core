@@ -155,37 +155,55 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     return new Promise((resolve, reject) => {
       this.logger.debug('Starting web auth flow');
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this.webServer.server.on('request', async (request, response) => {
-        const url = parseUrl(request.url);
-        this.logger.debug(`processing request for uri: ${url.pathname as string}`);
-        if (request.method === 'GET') {
-          if (url.pathname && url.pathname.startsWith('/OauthRedirect')) {
-            request.query = parseQueryString(url.query as string);
-            if (request.query.error) {
-              const err = new SfdxError(request.query.error_description || request.query.error, request.query.error);
-              this.webServer.reportError(err, response);
-              return reject(err);
-            }
-            this.logger.debug(`request.query.state: ${request.query.state as string}`);
-            try {
-              this.oauthConfig.authCode = asString(this.parseAuthCodeFromRequest(response, request));
-              resolve(response);
-            } catch (err) {
-              reject(err);
+      this.webServer.server.on(
+        'request',
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        async (
+          request: {
+            url: string;
+            method: string;
+            query: {
+              state: string;
+              error: string;
+              // eslint-disable-next-line camelcase
+              error_description: string;
+            };
+          },
+          response
+        ) => {
+          const url = parseUrl(request.url);
+          this.logger.debug(`processing request for uri: ${url.pathname as string}`);
+          if (request.method === 'GET') {
+            if (url.pathname && url.pathname.startsWith('/OauthRedirect')) {
+              // @ts-ignore
+              request.query = parseQueryString(url.query as string);
+              if (request.query.error) {
+                const err = new SfdxError(request.query.error_description || request.query.error, request.query.error);
+                this.webServer.reportError(err, response);
+                return reject(err);
+              }
+              this.logger.debug(`request.query.state: ${request.query.state}`);
+              try {
+                // @ts-ignore
+                this.oauthConfig.authCode = asString(this.parseAuthCodeFromRequest(response, request));
+                resolve(response);
+              } catch (err) {
+                reject(err);
+              }
+            } else {
+              this.webServer.sendError(404, 'Resource not found', response);
+              const errName = 'invalidRequestUri';
+              const errMessage = messages.getMessage(errName, [url.pathname]);
+              reject(new SfdxError(errMessage, errName));
             }
           } else {
-            this.webServer.sendError(404, 'Resource not found', response);
-            const errName = 'invalidRequestUri';
-            const errMessage = messages.getMessage(errName, [url.pathname]);
+            this.webServer.sendError(405, 'Unsupported http methods', response);
+            const errName = 'invalidRequestMethod';
+            const errMessage = messages.getMessage(errName, [request.method]);
             reject(new SfdxError(errMessage, errName));
           }
-        } else {
-          this.webServer.sendError(405, 'Unsupported http methods', response);
-          const errName = 'invalidRequestMethod';
-          const errMessage = messages.getMessage(errName, [request.method]);
-          reject(new SfdxError(errMessage, errName));
         }
-      });
+      );
     });
   }
 
