@@ -82,10 +82,6 @@ jobs:
           # deletes sf-plugins-core/core to prevent ts conflicts
           command: rm -rf node_modules/\@salesforce/sf-plugins-core/node_modules/\@salesforce/core
       - run:
-          name: remove command/core
-          # deletes command/core to prevent ts conflicts
-          command: rm -rf node_modules/\@salesforce/command/node_modules/\@salesforce/core
-      - run:
           name: Build
           command: |
             yarn build
