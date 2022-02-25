@@ -188,10 +188,11 @@ Quite often, customers would get the error `Missing message <bundle>:<key> for l
 
 We created the method `load` to really highlight the change and require the type key param. Making it optional on `loadMessages` could lead to mistakes as well. Plus, the word messages there is redundant. We did not rename `getMessages` to reduce the amount of code changes.
 
-## SfError (formerley SfdxError)
+## SfError (formerly SfdxError)
 
 ### What?
 
+- Renamed: `SfdxError` to `SfError`
 - Removed: `SfdxErrorConfig`
 - Removed: `SfdxError.create`
 
@@ -251,3 +252,14 @@ While standardizing on our message files, we realized that there were a lot of i
 | MissingGroupNameError                        | MissingGroupNameError                        |
 | ValidationSchemaFieldErrors                  | ValidationSchemaFieldError                   |
 | ValidationSchemaUnknown                      | ValidationSchemaUnknownError                 |
+
+## SfdxProject
+
+### What?
+
+- Renamed `SfdxProject` to `SfProject`
+- Renamed `SfdxProjectJson` to `SfProjectJson`
+
+### Why?
+
+As we move to supporting the new `sf` executable, we want the naming to be consistent.
