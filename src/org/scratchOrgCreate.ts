@@ -4,12 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-// third
 import { Duration } from '@salesforce/kit';
 import { ensureString, getString } from '@salesforce/ts-types';
-
-// Local
 import { Messages } from '../messages';
 import { Logger } from '../logger';
 import { ConfigAggregator } from '../config/configAggregator';
@@ -29,7 +25,14 @@ import { AuthFields, AuthInfo } from './authInfo';
 import { Connection } from './connection';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', ['SourceStatusResetFailureError']);
+const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', [
+  'SourceStatusResetFailureError',
+  'DurationDaysValidationMaxError',
+  'DurationDaysValidationMinError',
+  'RetryNotIntError',
+  'WaitValidationMaxError',
+  'DurationDaysNotIntError',
+]);
 
 export const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
 
@@ -78,33 +81,26 @@ const validateDuration = (durationDays: number): void => {
   const max = 30;
   if (Number.isInteger(durationDays)) {
     if (durationDays < min) {
-      throw new SfdxError(
-        `Expected 'durationDays' greater than or equal to ${min} but received ${durationDays}`,
-        'BoundsError'
-      );
+      throw messages.createError('DurationDaysValidationMinError', [min, durationDays]);
     }
     if (durationDays > max) {
-      throw new SfdxError(
-        `Expected 'durationDays' less than or equal to ${max} but received ${durationDays}`,
-        'BoundsError'
-      );
+      throw messages.createError('DurationDaysValidationMaxError', [max, durationDays]);
     }
     return;
   }
-  throw new SfdxError("Expected 'durationDays' to be an integer number", 'TypeError');
+  throw messages.createError('DurationDaysNotIntError');
 };
 
 const validateRetry = (retry: number): void => {
-  if (Number.isInteger(retry)) {
-    return;
+  if (!Number.isInteger(retry)) {
+    throw messages.createError('RetryNotIntError');
   }
-  throw new SfdxError("Expected 'retry' to be an integer number", 'TypeError');
 };
 
 const validateWait = (wait: Duration): void => {
   const min = 2;
   if (wait.minutes < min) {
-    throw new SfdxError(`Expected 'wait' greater than or equal to ${min} but received ${wait}`, 'BoundsError');
+    throw messages.createError('WaitValidationMaxError', [min, wait.minutes]);
   }
 };
 

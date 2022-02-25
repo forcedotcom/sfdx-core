@@ -10,7 +10,7 @@ import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { Lifecycle } from '../lifecycleEvents';
-import { StatusResult } from './streamingClient';
+import { StatusResult } from './types';
 
 /**
  * This is a polling client that can be used to poll the status of long running tasks. It can be used as a replacement
@@ -77,8 +77,6 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
         throw new NotRetryableError(err.name);
       }
       if (result.completed) {
-        // TODO v3.0: payload should be of type T always so that
-        // consumers get the same type in return.
         return result.payload as unknown as T;
       }
       throw new Error('Operation did not complete.  Retrying...'); // triggers a retry
