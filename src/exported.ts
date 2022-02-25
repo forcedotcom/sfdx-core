@@ -82,7 +82,7 @@ export { SchemaPrinter } from './schema/printer';
 
 export { SchemaValidator } from './schema/validator';
 
-export { SfdxError } from './sfdxError';
+export { SfError, SfdxError } from './sfError';
 
 export { PollingClient } from './status/pollingClient';
 

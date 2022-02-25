@@ -26,7 +26,7 @@ export const SFDX_PROJECT_JSON = 'sfdx-project.json';
  *
  * **See** {@link traverseForFile}
  *
- * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
+ * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
  *
  * @param dir The directory path to start traversing from.
  * @ignore
@@ -46,7 +46,7 @@ export async function resolveProjectPath(dir: string = process.cwd()): Promise<s
  *
  * **See** {@link traverseForFile}
  *
- * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
+ * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
  *
  * @param dir The directory path to start traversing from.
  * @ignore

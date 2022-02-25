@@ -15,7 +15,7 @@ import { Nullable, get, asString } from '@salesforce/ts-types';
 import { OAuth2 } from 'jsforce';
 import { Logger } from './logger';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, OAuth2Config } from './org/authInfo';
-import { SfdxError } from './sfdxError';
+import { SfError } from './sfError';
 import { Messages } from './messages';
 import { SfdxProjectJson } from './sfdxProject';
 
@@ -162,7 +162,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
           if (url.pathname && url.pathname.startsWith('/OauthRedirect')) {
             request.query = parseQueryString(url.query as string);
             if (request.query.error) {
-              const err = new SfdxError(request.query.error_description || request.query.error, request.query.error);
+              const err = new SfError(request.query.error_description || request.query.error, request.query.error);
               this.webServer.reportError(err, response);
               return reject(err);
             }
@@ -177,13 +177,13 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
             this.webServer.sendError(404, 'Resource not found', response);
             const errName = 'invalidRequestUri';
             const errMessage = messages.getMessage(errName, [url.pathname]);
-            reject(new SfdxError(errMessage, errName));
+            reject(new SfError(errMessage, errName));
           }
         } else {
           this.webServer.sendError(405, 'Unsupported http methods', response);
           const errName = 'invalidRequestMethod';
           const errMessage = messages.getMessage(errName, [request.method]);
-          reject(new SfdxError(errMessage, errName));
+          reject(new SfError(errMessage, errName));
         }
       });
     });
@@ -198,7 +198,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
    */
   private parseAuthCodeFromRequest(response: http.ServerResponse, request: WebOAuthServer.Request): Nullable<string> {
     if (!this.validateState(request)) {
-      const error = new SfdxError('urlStateMismatch');
+      const error = new SfError('urlStateMismatch');
       this.webServer.sendError(400, `${error.message}\n`, response);
       this.closeRequest(request);
       this.logger.warn('urlStateMismatchAttempt detected.');
@@ -369,14 +369,14 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
 
       socket.setTimeout(this.getSocketTimeout(), () => {
         socket.destroy();
-        const error = new SfdxError('timeout', 'SOCKET_TIMEOUT');
+        const error = new SfError('timeout', 'SOCKET_TIMEOUT');
         reject(error);
       });
 
       // An existing connection, means that the port is occupied
       socket.connect(clientConfig, () => {
         socket.destroy();
-        const error = new SfdxError('Address in use', 'EADDRINUSE');
+        const error = new SfError('Address in use', 'EADDRINUSE');
         error.data = {
           port: clientConfig.port,
           address: clientConfig.host,

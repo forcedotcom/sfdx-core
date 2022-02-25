@@ -188,12 +188,12 @@ Quite often, customers would get the error `Missing message <bundle>:<key> for l
 
 We created the method `load` to really highlight the change and require the type key param. Making it optional on `loadMessages` could lead to mistakes as well. Plus, the word messages there is redundant. We did not rename `getMessages` to reduce the amount of code changes.
 
-## SfdxError
+## SfError (formerley SfdxError)
 
 ### What?
 
 - Removed: `SfdxErrorConfig`
-- Removed: `Sfdx.create`
+- Removed: `SfdxError.create`
 
 **v2:**
 
@@ -210,7 +210,7 @@ const messages = Messages.load('<package>', '<bundle>', ['myKey', 'actionKey']);
 const errName = 'myKey';
 const errMessage = messages.getMessage(errName, ['tokens']);
 const errActions = messages.getMessages('actionsKey', ['actionTokens']);
-throw new SfdxError(errMessage, errName, errActions);
+throw new SfError(errMessage, errName, errActions);
 ```
 
 ### Why?

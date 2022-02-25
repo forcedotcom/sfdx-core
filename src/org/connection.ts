@@ -36,7 +36,7 @@ import { StreamPromise } from 'jsforce/lib/util/promise';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
@@ -352,7 +352,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   /**
    * Set the API version for all connection requests.
    *
-   * **Throws** *{@link SfdxError}{ name: 'IncorrectAPIVersionError' }* Incorrect API version.
+   * **Throws** *{@link SfError}{ name: 'IncorrectAPIVersionError' }* Incorrect API version.
    *
    * @param version The API version.
    */
@@ -459,10 +459,10 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   ): Promise<T> {
     const result = options.tooling ? await this.tooling.query<T>(soql) : await this.query<T>(soql);
     if (result.totalSize === 0) {
-      throw new SfdxError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
+      throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
     }
     if (result.totalSize > 1) {
-      throw new SfdxError(
+      throw new SfError(
         options.returnChoicesOnMultiple
           ? `Multiple records found. ${result.records.map((item) => item[options.choiceField as keyof T]).join(',')}`
           : 'The query returned more than 1 record',

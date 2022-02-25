@@ -11,7 +11,7 @@ import { dirname as pathDirname, join as pathJoin } from 'path';
 import { isBoolean, isPlainObject } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { fs } from '../util/fs';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
 import { BaseConfigStore, ConfigContents } from './configStore';
@@ -75,7 +75,7 @@ export class ConfigFile<
    */
   public static getFileName(): string {
     // Can not have abstract static methods, so throw a runtime error.
-    throw new SfdxError('Unknown filename for config file.');
+    throw new SfError('Unknown filename for config file.');
   }
 
   /**
@@ -149,7 +149,7 @@ export class ConfigFile<
    * Read the config file and set the config contents. Returns the config contents of the config file. As an
    * optimization, files are only read once per process and updated in memory and via `write()`. To force
    * a read from the filesystem pass `force=true`.
-   * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
+   * **Throws** *{@link SfError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
    *
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
@@ -165,7 +165,7 @@ export class ConfigFile<
       }
       return this.getContents();
     } catch (err) {
-      if ((err as SfdxError).code === 'ENOENT') {
+      if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
           return this.getContents();
@@ -183,7 +183,7 @@ export class ConfigFile<
    * Read the config file and set the config contents. Returns the config contents of the config file. As an
    * optimization, files are only read once per process and updated in memory and via `write()`. To force
    * a read from the filesystem pass `force=true`.
-   * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
+   * **Throws** *{@link SfError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
    *
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
@@ -199,7 +199,7 @@ export class ConfigFile<
       }
       return this.getContents();
     } catch (err) {
-      if ((err as SfdxError).code === 'ENOENT') {
+      if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
           return this.getContents();
@@ -294,7 +294,7 @@ export class ConfigFile<
     if (exists) {
       return await fs.unlink(this.getPath());
     }
-    throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
+    throw new SfError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
   }
 
   /**
@@ -308,7 +308,7 @@ export class ConfigFile<
     if (exists) {
       return fs.unlinkSync(this.getPath());
     }
-    throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
+    throw new SfError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
   }
 
   /**
@@ -321,7 +321,7 @@ export class ConfigFile<
   public getPath(): string {
     if (!this.path) {
       if (!this.options.filename) {
-        throw new SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
+        throw new SfError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
       }
 
       const _isGlobal: boolean = isBoolean(this.options.isGlobal) && this.options.isGlobal;

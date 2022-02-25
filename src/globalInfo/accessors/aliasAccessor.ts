@@ -6,7 +6,7 @@
  */
 
 import { Nullable } from '@salesforce/ts-types';
-import { SfdxError } from '../../sfdxError';
+import { SfError } from '../../sfError';
 import { GlobalInfo } from '../globalInfoConfig';
 import { SfAliases, SfOrg, SfInfoKeys, SfToken } from '../types';
 
@@ -135,7 +135,7 @@ export class AliasAccessor {
     if (typeof entity === 'string') return entity;
     const aliaseeName = entity.username ?? entity.user;
     if (!aliaseeName) {
-      throw new SfdxError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(entity)}`);
+      throw new SfError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(entity)}`);
     }
     return aliaseeName as string;
   }

@@ -1,10 +1,10 @@
-import { SfdxError } from '@salesforce/core';
+import { SfError } from '@salesforce/core';
 import { shouldThrow } from '@salesforce/core/lib/testSetup';
 import { strictEqual } from 'assert';
 
 class TestObject {
   public static async method() {
-    throw new SfdxError('Error', 'ExpectedError');
+    throw new SfError('Error', 'ExpectedError');
   }
 }
 

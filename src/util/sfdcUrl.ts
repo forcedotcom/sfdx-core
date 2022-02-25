@@ -140,7 +140,7 @@ export class SfdcUrl extends URL {
    * If SFDX_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
    *
    * @returns {Promise<true | never>} The resolved ip address or never
-   * @throws {@link SfdxError} If can't resolve DNS.
+   * @throws {@link SfError} If can't resolve DNS.
    */
   public async checkLightningDomain(): Promise<true | never> {
     const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));
@@ -165,7 +165,7 @@ export class SfdcUrl extends URL {
    * If SFDX_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
    *
    * @returns the resolved ip address.
-   * @throws {@link SfdxError} If can't resolve DNS.
+   * @throws {@link SfError} If can't resolve DNS.
    */
   public async lookup(): Promise<string> {
     const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));

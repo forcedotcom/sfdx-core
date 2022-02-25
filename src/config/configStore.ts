@@ -19,7 +19,7 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { Crypto } from '../crypto/crypto';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 
 /**
  * The allowed types stored in a config store.
@@ -403,17 +403,17 @@ export abstract class BaseConfigStore<
 
   protected encrypt(value: unknown): Optional<string> {
     if (!value) return;
-    if (!this.crypto) throw new SfdxError('crypto is not initialized', 'CryptoNotInitializedError');
+    if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))
-      throw new SfdxError(`can only encrypt strings but found: ${typeof value} : ${value}`, 'InvalidCryptoValueError');
+      throw new SfError(`can only encrypt strings but found: ${typeof value} : ${value}`, 'InvalidCryptoValueError');
     return this.crypto.isEncrypted(value) ? value : this.crypto.encrypt(value);
   }
 
   protected decrypt(value: unknown): Optional<string> {
     if (!value) return;
-    if (!this.crypto) throw new SfdxError('crypto is not initialized', 'CryptoNotInitializedError');
+    if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))
-      throw new SfdxError(`can only encrypt strings but found: ${typeof value} : ${value}`, 'InvalidCryptoValueError');
+      throw new SfError(`can only encrypt strings but found: ${typeof value} : ${value}`, 'InvalidCryptoValueError');
     return this.crypto.isEncrypted(value) ? this.crypto.decrypt(value) : value;
   }
 

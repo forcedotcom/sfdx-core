@@ -72,8 +72,8 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   /**
    * Finds authorization files for username/alias in the global .sfdx folder
-   * **Throws** *{@link SfdxError}{ name: 'TargetOrgNotSetError' }* if no target-org
-   * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFoundError' }* if specified user is not found
+   * **Throws** *{@link SfError}{ name: 'TargetOrgNotSetError' }* if no target-org
+   * **Throws** *{@link SfError}{ name: 'NamedOrgNotFoundError' }* if specified user is not found
    *
    * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured target-org
    * @returns {Promise<SfOrg>}

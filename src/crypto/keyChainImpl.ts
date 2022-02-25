@@ -12,7 +12,7 @@ import * as path from 'path';
 import { homedir } from 'os';
 import { asString, ensureString, Nullable } from '@salesforce/ts-types';
 import { Global } from '../global';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { fs } from '../util/fs';
 import { Messages } from '../messages';
 
@@ -67,9 +67,9 @@ const _isExe = (mode: number, gid: number, uid: number) => {
 /**
  * Private helper to validate that a program exists on the file system and is executable.
  *
- * **Throws** *{@link SfdxError}{ name: 'MissingCredentialProgramError' }* When the OS credential program isn't found.
+ * **Throws** *{@link SfError}{ name: 'MissingCredentialProgramError' }* When the OS credential program isn't found.
  *
- * **Throws** *{@link SfdxError}{ name: 'CredentialProgramAccessError' }* When the OS credential program isn't accessible.
+ * **Throws** *{@link SfError}{ name: 'CredentialProgramAccessError' }* When the OS credential program isn't accessible.
  *
  * @param programPath The absolute path of the program.
  * @param fsIfc The file system interface.
@@ -371,7 +371,7 @@ const _darwinImpl: OsImpl = {
   },
 
   async onGetCommandClose(code, stdout, stderr, opts, fn) {
-    let err: SfdxError;
+    let err: SfError;
 
     if (code !== 0) {
       switch (code) {

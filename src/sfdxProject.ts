@@ -16,7 +16,7 @@ import { SchemaValidator } from './schema/validator';
 import { fs } from './util/fs';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
-import { SfdxError } from './sfdxError';
+import { SfError } from './sfError';
 import { sfdc } from './util/sfdc';
 import { Messages } from './messages';
 
@@ -365,7 +365,7 @@ export class SfdxProject {
    *
    * @param path The path of the project.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    */
   public static async resolve(path?: string): Promise<SfdxProject> {
     path = await this.resolveProjectPath(path || process.cwd());
@@ -381,7 +381,7 @@ export class SfdxProject {
    *
    * @param path The path of the project.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    */
   public static getInstance(path?: string): SfdxProject {
     // Store instance based on the path of the actual project.
@@ -399,7 +399,7 @@ export class SfdxProject {
    *
    * @param dir The directory path to start traversing from.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    *
    * **See** {@link traverseForFile}
    *
@@ -414,7 +414,7 @@ export class SfdxProject {
    *
    * @param dir The directory path to start traversing from.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    *
    * **See** {@link traverseForFileSync}
    *
@@ -605,7 +605,7 @@ export class SfdxProject {
    */
   public getDefaultPackage(): NamedPackageDir {
     if (!this.hasPackages()) {
-      throw new SfdxError('The sfdx-project.json does not have any packageDirectories defined.');
+      throw new SfError('The sfdx-project.json does not have any packageDirectories defined.');
     }
     const defaultPackage = this.getPackageDirectories().find((packageDir) => packageDir.default === true);
     return defaultPackage || this.getPackageDirectories()[0];

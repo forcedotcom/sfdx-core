@@ -32,7 +32,7 @@ import { Connection } from './org/connection';
 import { Crypto } from './crypto/crypto';
 import { Logger } from './logger';
 import { Messages } from './messages';
-import { SfdxError } from './sfdxError';
+import { SfError } from './sfError';
 import { SfdxProject, SfdxProjectJson } from './sfdxProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
 import { GlobalInfo, SfOrg } from './globalInfo';
@@ -302,10 +302,10 @@ export const instantiateContext = (sinon?: any): TestContext => {
         );
       } else {
         testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').rejects(
-          new SfdxError('', 'InvalidProjectWorkspaceError')
+          new SfError('', 'InvalidProjectWorkspaceError')
         );
         testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPathSync').throws(
-          new SfdxError('', 'InvalidProjectWorkspaceError')
+          new SfError('', 'InvalidProjectWorkspaceError')
         );
       }
     },
@@ -532,7 +532,7 @@ export const testSetup = once(_testSetup);
  *
  * **See** {@link shouldThrow}
  */
-export const unexpectedResult = new SfdxError('This code was expected to fail', 'UnexpectedResult');
+export const unexpectedResult = new SfError('This code was expected to fail', 'UnexpectedResult');
 
 /**
  * Use for this testing pattern:
@@ -588,7 +588,7 @@ export interface StreamingMockCometSubscriptionOptions {
   /**
    * If it's an error that states what that error should be.
    */
-  subscriptionErrbackError?: SfdxError;
+  subscriptionErrbackError?: SfError;
   /**
    * A list of messages to playback for the client. One message per process tick.
    */

@@ -30,7 +30,7 @@ import { SandboxOrgConfig } from '../config/sandboxOrgConfig';
 import { Global } from '../global';
 import { Lifecycle } from '../lifecycleEvents';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
@@ -295,9 +295,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
    *
-   * **Throws** *{@link SfdxError}{ name: 'NotADevHubError' }* Not a Dev Hub.
+   * **Throws** *{@link SfError}{ name: 'NotADevHubError' }* Not a Dev Hub.
    *
-   * **Throws** *{@link SfdxError}{ name: 'NoResultsError' }* No results.
+   * **Throws** *{@link SfError}{ name: 'NoResultsError' }* No results.
    *
    * @param devHubUsernameOrAlias The username or alias of the dev hub org.
    */
@@ -318,7 +318,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     try {
       const results = await devHubConnection.query(DEV_HUB_SOQL);
       if (getNumber(results, 'records.length') !== 1) {
-        throw new SfdxError('No results', 'NoResultsError');
+        throw new SfError('No results', 'NoResultsError');
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'INVALID_TYPE') {
@@ -567,7 +567,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async addUsername(auth: AuthInfo | string): Promise<Org> {
     if (!auth) {
-      throw new SfdxError('Missing auth info', 'MissingAuthInfo');
+      throw new SfError('Missing auth info', 'MissingAuthInfo');
     }
 
     const authInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
@@ -581,7 +581,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const usernames = contents.usernames || [];
 
     if (!isArray(usernames)) {
-      throw new SfdxError('Usernames is not an array', 'UnexpectedDataFormat');
+      throw new SfError('Usernames is not an array', 'UnexpectedDataFormat');
     }
 
     let shouldUpdate = false;
@@ -609,13 +609,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * Removes a username from the user config for this object. For convenience `this` object is returned.
    *
-   * **Throws** *{@link SfdxError}{ name: 'MissingAuthInfoError' }* Auth info is missing.
+   * **Throws** *{@link SfError}{ name: 'MissingAuthInfoError' }* Auth info is missing.
    *
    * @param {AuthInfo | string} auth The AuthInfo containing the username to remove.
    */
   public async removeUsername(auth: AuthInfo | string): Promise<Org> {
     if (!auth) {
-      throw new SfdxError('Missing auth info', 'MissingAuthInfoError');
+      throw new SfError('Missing auth info', 'MissingAuthInfoError');
     }
 
     const authInfo: AuthInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
@@ -742,7 +742,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         throw messages.createError('noUsernameFound');
       }
       this.connection = await Connection.create({
-        // If no username is provided or resolvable from an alias, AuthInfo will throw an SfdxError.
+        // If no username is provided or resolvable from an alias, AuthInfo will throw an SfError.
         authInfo: await AuthInfo.create({ username, isDevHub: this.options.isDevHub }),
       });
     } else {
@@ -752,10 +752,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * **Throws** *{@link SfdxError}{ name: 'NotSupportedError' }* Throws an unsupported error.
+   * **Throws** *{@link SfError}{ name: 'NotSupportedError' }* Throws an unsupported error.
    */
   protected getDefaultOptions(): Org.Options {
-    throw new SfdxError('Not Supported', 'NotSupportedError');
+    throw new SfError('Not Supported', 'NotSupportedError');
   }
 
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
@@ -1058,7 +1058,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         if (error?.name === 'JWTAuthError' && error?.stack?.includes("user hasn't approved")) {
           waitingOnAuth = true;
         } else {
-          throw SfdxError.wrap(error);
+          throw SfError.wrap(error);
         }
       }
     }
@@ -1161,7 +1161,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         this.logger.debug('Error while authenticating the user %s', error?.toString());
       } else {
         // If it fails for any unexpected reason, just pass that through
-        throw SfdxError.wrap(error);
+        throw SfError.wrap(error);
       }
     }
   }

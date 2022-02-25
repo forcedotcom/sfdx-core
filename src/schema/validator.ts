@@ -22,7 +22,7 @@ import {
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { fs } from '../util/fs';
 
 /**
@@ -71,8 +71,8 @@ export class SchemaValidator {
    * Performs validation of JSON data against the schema located at the `schemaPath` value provided
    * at instantiation.
    *
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldError' }* If there are known validations errors.
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknownError' }* If there are unknown validations errors.
+   * **Throws** *{@link SfError}{ name: 'ValidationSchemaFieldError' }* If there are known validations errors.
+   * **Throws** *{@link SfError}{ name: 'ValidationSchemaUnknownError' }* If there are unknown validations errors.
    *
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
@@ -86,8 +86,8 @@ export class SchemaValidator {
    * Performs validation of JSON data against the schema located at the `schemaPath` value provided
    * at instantiation.
    *
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldError' }* If there are known validations errors.
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknownError' }* If there are unknown validations errors.
+   * **Throws** *{@link SfError}{ name: 'ValidationSchemaFieldError' }* If there are known validations errors.
+   * **Throws** *{@link SfError}{ name: 'ValidationSchemaUnknownError' }* If there are unknown validations errors.
    *
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
@@ -107,9 +107,9 @@ export class SchemaValidator {
     if (!validate(json)) {
       if (validate.errors) {
         const errors = this.getErrorsText(validate.errors, schema);
-        throw new SfdxError(`Validation errors:\n${errors}`, 'ValidationSchemaFieldError');
+        throw new SfError(`Validation errors:\n${errors}`, 'ValidationSchemaFieldError');
       } else {
-        throw new SfdxError('Unknown schema validation error', 'ValidationSchemaUnknownError');
+        throw new SfError('Unknown schema validation error', 'ValidationSchemaUnknownError');
       }
     }
 
@@ -134,7 +134,7 @@ export class SchemaValidator {
       if (isString(externalSchema.id)) {
         externalSchemas[externalSchema.id] = externalSchema;
       } else {
-        throw new SfdxError(
+        throw new SfError(
           `Unexpected external schema id type: ${typeof externalSchema.id}`,
           'ValidationSchemaTypeError'
         );
@@ -153,8 +153,8 @@ export class SchemaValidator {
     try {
       return fs.readJsonMapSync(schemaPath);
     } catch (err) {
-      if ((err as SfdxError).code === 'ENOENT') {
-        throw new SfdxError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');
+      if ((err as SfError).code === 'ENOENT') {
+        throw new SfError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');
       }
       throw err;
     }
