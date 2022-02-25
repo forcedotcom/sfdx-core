@@ -549,8 +549,14 @@ export class Messages<T extends string> {
     exitCodeOrCause?: number | Error,
     cause?: Error
   ): SfdxError {
-    const [message, name, actions] = this.formatMessageContents('error', key, tokens, actionTokens);
-    return new SfdxError(message, name, actions, exitCodeOrCause, cause);
+    const structuredMessage = this.formatMessageContents('error', key, tokens, actionTokens);
+    return new SfdxError(
+      structuredMessage.message,
+      structuredMessage.name,
+      structuredMessage.actions,
+      exitCodeOrCause,
+      cause
+    );
   }
 
   /**
@@ -564,8 +570,7 @@ export class Messages<T extends string> {
    * @param actionTokens The action messages tokens.
    */
   public createWarning(key: T, tokens: Tokens = [], actionTokens: Tokens = []): StructuredMessage {
-    const [message, name, actions] = this.formatMessageContents('warning', key, tokens, actionTokens);
-    return { message, name, actions };
+    return this.formatMessageContents('warning', key, tokens, actionTokens);
   }
 
   /**
@@ -579,8 +584,7 @@ export class Messages<T extends string> {
    * @param actionTokens The action messages tokens.
    */
   public createInfo(key: T, tokens: Tokens = [], actionTokens: Tokens = []): StructuredMessage {
-    const [message, name, actions] = this.formatMessageContents('info', key, tokens, actionTokens);
-    return { message, name, actions };
+    return this.formatMessageContents('info', key, tokens, actionTokens);
   }
 
   /**
@@ -599,7 +603,7 @@ export class Messages<T extends string> {
     key: T,
     tokens: Tokens = [],
     actionTokens: Tokens = []
-  ): [string, string, string[] | undefined] {
+  ): StructuredMessage {
     const label = upperFirst(type);
     const labelRegExp = new RegExp(`${label}$`);
     const searchValue: RegExp = type === 'error' ? /^error.*\./ : new RegExp(`^${type}.`);
@@ -615,7 +619,7 @@ export class Messages<T extends string> {
     } catch (e) {
       /* just ignore if actions aren't found */
     }
-    return [message, name, actions];
+    return { message, name, actions };
   }
 
   private getMessageWithMap(key: string, tokens: Tokens = [], map: StoredMessageMap): string[] {
