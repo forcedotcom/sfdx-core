@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { randomBytes, createHash } from 'crypto';
+import { randomBytes } from 'crypto';
 import { resolve as pathResolve } from 'path';
 import * as os from 'os';
-import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap, set } from '@salesforce/kit';
+import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
   asString,
@@ -22,7 +22,7 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { AuthzRequestParams, OAuth2, OAuth2Config as JsforceOAuth2Config, TokenResponse } from 'jsforce';
+import { OAuth2, OAuth2Config as JsforceOAuth2Config, TokenResponse } from 'jsforce';
 import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
@@ -166,58 +166,6 @@ class JwtOAuth2 extends OAuth2 {
       assertion: innerToken,
     });
   }
-}
-
-/**
- * Extend OAuth2 to add code verifier support for the auth code (web auth) flow
- * const oauth2 = new OAuth2WithVerifier({ loginUrl, clientSecret, clientId, redirectUri });
- *
- * const authUrl = oauth2.getAuthorizationUrl({
- *    state: 'foo',
- *    prompt: 'login',
- *    scope: 'api web'
- * });
- * console.log(authUrl);
- * const authCode = await retrieveCode();
- * const authInfo = await AuthInfo.create({ oauth2Options: { clientId, clientSecret, loginUrl, authCode }, oauth2});
- * console.log(`access token: ${authInfo.getFields().accessToken}`);
- */
-export class OAuth2WithVerifier extends OAuth2 {
-  public readonly codeVerifier: string;
-
-  public constructor(options: OAuth2Config) {
-    super(options);
-
-    // Set a code verifier string for OAuth authorization
-    this.codeVerifier = base64UrlEscape(randomBytes(Math.ceil(128)).toString('base64'));
-  }
-
-  /**
-   * Overrides jsforce.OAuth2.getAuthorizationUrl.  Get Salesforce OAuth2 authorization page
-   * URL to redirect user agent, adding a verification code for added security.
-   *
-   * @param params
-   */
-  public getAuthorizationUrl(params: AuthzRequestParams): string {
-    // code verifier must be a base 64 url encoded hash of 128 bytes of random data. Our random data is also
-    // base 64 url encoded. See Connection.create();
-    const codeChallenge = base64UrlEscape(createHash('sha256').update(this.codeVerifier).digest('base64'));
-    set(params, 'code_challenge', codeChallenge);
-
-    return super.getAuthorizationUrl(params);
-  }
-
-  public async requestToken(code: string, callback?: { [prop: string]: string } | undefined): Promise<TokenResponse> {
-    return super.requestToken(code, callback);
-  }
-}
-
-// Makes a nodejs base64 encoded string compatible with rfc4648 alternative encoding for urls.
-// @param base64Encoded a nodejs base64 encoded string
-function base64UrlEscape(base64Encoded: string): string {
-  // builtin node js base 64 encoding is not 64 url compatible.
-  // See https://toolsn.ietf.org/html/rfc4648#section-5
-  return base64Encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 // parses the id field returned from jsForce oauth2 methods to get

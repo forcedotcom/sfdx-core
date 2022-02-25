@@ -29,7 +29,7 @@ import { AuthFields, AuthInfo } from './authInfo';
 import { Connection } from './connection';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', ['SourceStatusResetFailure']);
+const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', ['SourceStatusResetFailureError']);
 
 export const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
 
@@ -221,7 +221,10 @@ const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void> => {
       .sobject('SourceMember')
       .update(queryResult.map((record) => ({ Id: record.Id, RevisionCounter: 0 })));
   } catch (err) {
-    const message = messages.getMessage('SourceStatusResetFailure', [scratchOrg.getOrgId(), scratchOrg.getUsername()]);
+    const message = messages.getMessage('SourceStatusResetFailureError', [
+      scratchOrg.getOrgId(),
+      scratchOrg.getUsername(),
+    ]);
     throw new SfdxError(message, 'SourceStatusResetFailure');
   }
 };

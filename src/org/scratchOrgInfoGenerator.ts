@@ -92,7 +92,7 @@ export const getAncestorIds = async (
   hubOrg: Org
 ): Promise<string> => {
   if (Reflect.has(scratchOrgInfo, 'package2AncestorIds')) {
-    throw new SfdxError(messages.getMessage('errorpackage2AncestorIdsKeyNotSupported'), 'DeprecationError');
+    throw new SfdxError(messages.getMessage('Package2AncestorsIdsKeyNotSupportedError'), 'DeprecationError');
   }
   const packagesWithAncestors = (await projectJson.getPackageDirectories())
     // check that the package has any ancestor types (id or version)
@@ -106,7 +106,7 @@ export const getAncestorIds = async (
       // according to docs, 05i is not ok: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev2gp_config_file.htm
       if (packageDir.ancestorVersion) {
         if (!/^[0-9]+.[0-9]+.[0-9]+(.[0-9]+)?$/.test(packageDir.ancestorVersion)) {
-          throw messages.createError('errorInvalidAncestorVersionFormat', [packageDir.ancestorVersion]);
+          throw messages.createError('InvalidAncestorVersionFormatError', [packageDir.ancestorVersion]);
         }
         // package can be an ID, but not according to docs
         const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
@@ -122,13 +122,13 @@ export const getAncestorIds = async (
             );
         } catch (err) {
           throw new SfdxError(
-            messages.getMessage('errorNoMatchingAncestor', [packageDir.ancestorVersion, packageDir.package]),
-            'ErrorNoMatchingAncestor',
-            [messages.getMessage('errorAncestorNotReleased', [packageDir.ancestorVersion])]
+            messages.getMessage('NoMatchingAncestorError', [packageDir.ancestorVersion, packageDir.package]),
+            'NoMatchingAncestorError',
+            [messages.getMessage('AncestorNotReleasedError', [packageDir.ancestorVersion])]
           );
         }
         if (packageDir.ancestorId && packageDir.ancestorId !== releasedAncestor.Id) {
-          throw messages.createError('ErrorAncestorIdVersionMismatch', [
+          throw messages.createError('AncestorIdVersionMismatchError', [
             packageDir.ancestorVersion,
             packageDir.ancestorId,
           ]);

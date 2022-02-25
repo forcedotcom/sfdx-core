@@ -309,12 +309,12 @@ export const requestScratchOrgCreation = async (
   // We do not allow you to specify the old and the new way of doing post create settings
   if (scratchOrgRequest.orgPreferences && settings.hasSettings()) {
     // This is not allowed
-    throw new SfdxError('signupDuplicateSettingsSpecified');
+    throw new SfdxError('SignupDuplicateSettingsSpecifiedError');
   }
 
   // deprecated old style orgPreferences
   if (scratchOrgRequest.orgPreferences) {
-    throw new SfdxError(messages.getMessage('deprecatedPrefFormat'));
+    throw new SfdxError(messages.getMessage('DeprecatedPrefFormat'));
   }
 
   const scratchOrgInfo = mapKeys(scratchOrgRequest, upperFirst, true);
@@ -326,7 +326,7 @@ export const requestScratchOrgCreation = async (
     // this is a jsforce error which contains the property "fields" which regular error don't
     const jsForceError = error as JsForceError;
     if (jsForceError.errorCode === 'REQUIRED_FIELD_MISSING') {
-      throw new SfdxError(messages.getMessage('signupFieldsMissing', [jsForceError.fields.toString()]));
+      throw new SfdxError(messages.getMessage('SignupFieldsMissingError', [jsForceError.fields.toString()]));
     }
     throw SfdxError.wrap(jsForceError);
   }

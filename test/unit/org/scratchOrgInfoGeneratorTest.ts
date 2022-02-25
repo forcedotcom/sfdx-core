@@ -184,7 +184,7 @@ describe('scratchOrgInfoGenerator', () => {
           );
         } catch (err) {
           expect(err).to.exist;
-          expect(err.message).to.equal(messages.getMessage('errorpackage2AncestorIdsKeyNotSupported'));
+          expect(err.message).to.equal(messages.getMessage('Package2AncestorsIdsKeyNotSupportedError'));
         }
       });
 
@@ -302,7 +302,7 @@ describe('scratchOrgInfoGenerator', () => {
           );
         } catch (err) {
           expect(err).to.exist;
-          expect(err.message).to.equal(messages.getMessage('errorInvalidAncestorVersionFormat', ['5.0']));
+          expect(err.message).to.equal(messages.getMessage('InvalidAncestorVersionFormatError', ['5.0']));
         }
       });
 

@@ -27,7 +27,10 @@ import { Messages } from '../../../src/messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
-const errorCodesMessages = Messages.load('@salesforce/core', 'scratchOrgErrorCodes', ['signupFailedUnknown', 'C-1007']);
+const errorCodesMessages = Messages.load('@salesforce/core', 'scratchOrgErrorCodes', [
+  'SignupFailedUnknownError',
+  'C-1007',
+]);
 
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
   LoginUrl: 'https://login.salesforce.com',
@@ -148,11 +151,13 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.message).to.include(messages.getMessage('signupFieldsMissing', [jsForceError.fields.toString()]));
+      expect(error.message).to.include(
+        messages.getMessage('SignupFieldsMissingError', [jsForceError.fields.toString()])
+      );
     }
   });
 
-  it('requestScratchOrgCreation has signupDuplicateSettingsSpecified', async () => {
+  it('requestScratchOrgCreation has SignupDuplicateSettingsSpecifiedError', async () => {
     const err = new Error('MyError');
     err.name = 'NamedOrgNotFound';
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
@@ -173,11 +178,11 @@ describe('requestScratchOrgCreation', () => {
     } catch (error) {
       expect(error).to.exist;
       expect(error).to.have.keys(['cause', 'name', 'actions', 'exitCode']);
-      expect(error.toString()).to.include('signupDuplicateSettingsSpecified');
+      expect(error.toString()).to.include('SignupDuplicateSettingsSpecifiedError');
     }
   });
 
-  it('requestScratchOrgCreation is deprecatedPrefFormat', async () => {
+  it('requestScratchOrgCreation is DeprecatedPrefFormat', async () => {
     const err = new Error('MyError');
     err.name = 'NamedOrgNotFound';
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
@@ -195,7 +200,7 @@ describe('requestScratchOrgCreation', () => {
     } catch (error) {
       expect(error).to.exist;
       expect(error).to.have.keys(['cause', 'name', 'actions', 'exitCode']);
-      expect(error.toString()).to.include(messages.getMessage('deprecatedPrefFormat'));
+      expect(error.toString()).to.include(messages.getMessage('DeprecatedPrefFormat'));
     }
   });
 });
@@ -344,7 +349,7 @@ describe('pollForScratchOrgInfo', () => {
     } catch (error) {
       expect(error).to.exist;
       expect(error.message).to.include(
-        errorCodesMessages.getMessage('signupFailedUnknown', [scratchOrgInfoId, username]),
+        errorCodesMessages.getMessage('SignupFailedUnknownError', [scratchOrgInfoId, username]),
         'signupFailedUnknown'
       );
     }

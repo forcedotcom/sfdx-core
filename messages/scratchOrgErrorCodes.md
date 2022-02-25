@@ -1,16 +1,16 @@
-# signupFailed
+# SignupFailedError
 
 The request to create a scratch org failed with error code: %s.
 
-# signupFailedUnknown
+# SignupFailedUnknownError
 
 An unknown server error occurred. Please try again. If you still see this error, contact Salesforce support for assistance. Include the information from 'sfdx force:data:record:get -s ScratchOrgInfo -i %s -u %s'.
 
-# signupFailedAction
+# SignupFailedActionError
 
 See https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_objects_signuprequest.htm for information on error code %s.
 
-# signupUnexpected
+# SignupUnexpectedError
 
 The request to create a scratch org returned an unexpected status
 

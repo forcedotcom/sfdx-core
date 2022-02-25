@@ -1,7 +1,7 @@
-# unsupportedSnapshotOrgCreateOptions
+# UnsupportedSnapshotOrgCreateOptionsError
 
 Org snapshots don’t support one or more options you specified: %s.
 
-# SourceStatusResetFailure
+# SourceStatusResetFailureError
 
 Successfully created org with ID: %s and name: %s. Unfortunately, source tracking isn’t working as expected. If you run force:source:status, the results may be incorrect. Try again by creating another scratch org.

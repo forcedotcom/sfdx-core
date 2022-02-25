@@ -15,6 +15,12 @@ const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
+const namedMessages = Messages.load('@salesforce/core', 'scratchOrgErrorCodes', [
+  'SignupFailedActionError',
+  'SignupFailedUnknownError',
+  'SignupFailedError',
+  'SignupUnexpectedError',
+]);
 
 // getMessage will throw when the code isn't found
 // and we don't know whether a given code takes arguments or not
@@ -47,16 +53,19 @@ export const checkScratchOrgInfoForErrors = (
     const message = optionalErrorCodeMessage(orgInfo.ErrorCode, [WORKSPACE_CONFIG_FILENAME]);
     if (message) {
       throw new SfdxError(message, 'RemoteOrgSignupFailed', [
-        messages.getMessage('signupFailedAction', [orgInfo.ErrorCode]),
+        namedMessages.getMessage('SignupFailedActionError', [orgInfo.ErrorCode]),
       ]);
     }
-    throw new SfdxError(messages.getMessage('signupFailed', [orgInfo.ErrorCode]));
+    throw new SfdxError(namedMessages.getMessage('SignupFailedError', [orgInfo.ErrorCode]));
   }
   if (orgInfo.Status === 'Error') {
     // Maybe the request object can help the user somehow
     logger.error('No error code on signup error! Logging request.');
     logger.error(orgInfo);
-    throw new SfdxError(messages.getMessage('signupFailedUnknown', [orgInfo.Id, hubUsername]), 'signupFailedUnknown');
+    throw new SfdxError(
+      namedMessages.getMessage('SignupFailedUnknownError', [orgInfo.Id, hubUsername]),
+      'signupFailedUnknown'
+    );
   }
-  throw new SfdxError(messages.getMessage('signupUnexpected'), 'UnexpectedSignupStatus');
+  throw new SfdxError(namedMessages.getMessage('SignupUnexpectedError'), 'UnexpectedSignupStatus');
 };
