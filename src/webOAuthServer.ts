@@ -17,7 +17,7 @@ import { Logger } from './logger';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, OAuth2Config } from './org/authInfo';
 import { SfError } from './sfError';
 import { Messages } from './messages';
-import { SfdxProjectJson } from './sfdxProject';
+import { SfProjectJson } from './sfProject';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'auth', [
@@ -65,8 +65,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
    */
   public static async determineOauthPort(): Promise<number> {
     try {
-      const sfdxProject = await SfdxProjectJson.create();
-      return (sfdxProject.get('oauthLocalPort') as number) || WebOAuthServer.DEFAULT_PORT;
+      const sfProject = await SfProjectJson.create();
+      return (sfProject.get('oauthLocalPort') as number) || WebOAuthServer.DEFAULT_PORT;
     } catch {
       return WebOAuthServer.DEFAULT_PORT;
     }

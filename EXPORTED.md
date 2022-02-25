@@ -27,13 +27,13 @@ Represents a config file at either a local or global path. The config file exten
 - {@link Aliases}
 - {@link OrgUsersConfig}
 - {@link Config}
-- {@link SfdxProjectJson}
+- {@link SfProjectJson}
 
 ## {@link ConfigAggregator}
 
 Aggregates local, global, and environment config values using {@link Config} and environment variables.
 
-## {@link SfdxProject}
+## {@link SfProject}
 
 Represents a Salesforce DX project, defined by the file `sfdx-project.json`.
 
