@@ -358,7 +358,7 @@ export class SfProject {
    *
    * @ignore
    */
-  private constructor(private path: string) {}
+  protected constructor(private path: string) {}
 
   /**
    * Get a Project from a given path or from the working directory.
@@ -659,7 +659,6 @@ export class SfProject {
 /**
  * @deprecated use SfProject instead
  */
-// @ts-expect-error
 export class SfdxProject extends SfProject {}
 
 /**
