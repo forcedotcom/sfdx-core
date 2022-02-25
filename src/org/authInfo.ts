@@ -4,15 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { randomBytes, createHash } from 'crypto';
 import { resolve as pathResolve } from 'path';
 import * as os from 'os';
 import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap, set } from '@salesforce/kit';
 import {
-  AnyFunction,
   AnyJson,
   asString,
   ensure,
@@ -26,7 +22,6 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-
 import { AuthzRequestParams, OAuth2, OAuth2Config as JsforceOAuth2Config, TokenResponse } from 'jsforce';
 import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
@@ -214,20 +209,6 @@ export class OAuth2WithVerifier extends OAuth2 {
 
   public async requestToken(code: string, callback?: { [prop: string]: string } | undefined): Promise<TokenResponse> {
     return super.requestToken(code, callback);
-  }
-
-  /**
-   * Overrides jsforce.OAuth2._postParams because jsforce's oauth impl doesn't support
-   * coder_verifier and code_challenge. This enables the server to disallow trading a one-time auth code
-   * for an access/refresh token when the verifier and challenge are out of alignment.
-   *
-   * See https://github.com/jsforce/jsforce/issues/665
-   */
-  // @ts-ignore
-  protected async _postParams(params: Record<string, unknown>, callback: AnyFunction): Promise<unknown> {
-    set(params, 'code_verifier', this.codeVerifier);
-    // @ts-ignore TODO: need better typings for jsforce
-    return super._postParams(params, callback);
   }
 }
 
