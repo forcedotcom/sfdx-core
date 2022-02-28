@@ -15,7 +15,7 @@ import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { sfdc } from '../util/sfdc';
 import { SfdcUrl } from '../util/sfdcUrl';
-import { ORG_CONFIG_ALLOWED_PROPERTIES } from '../org/orgConfigProperties';
+import { ORG_CONFIG_ALLOWED_PROPERTIES, OrgConfigProperties } from '../org/orgConfigProperties';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -106,6 +106,22 @@ export interface ConfigPropertyMetaInput {
 
 export enum SfdxPropertyKeys {
   /**
+   * Username associated with the default dev hub org.
+   *
+   * @deprecated Replaced by OrgConfigProperties.TARGET_DEV_HUB in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
+   * will remain in v3 for the foreseeable future so that `sfdx-core` can map between `sf` and `sfdx` config values
+   */
+  DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername',
+
+  /**
+   * Username associate with the default org.
+   *
+   * @deprecated Replaced by OrgConfigProperties.TARGET_ORG in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
+   * will remain in v3 for the foreseeable future so that `sfdx-core` can map between `sf` and `sfdx` config values
+   */
+  DEFAULT_USERNAME = 'defaultusername',
+
+  /**
    * The sid for the debugger configuration.
    */
   ISV_DEBUGGER_SID = 'isvDebuggerSid',
@@ -170,6 +186,20 @@ export const SFDX_ALLOWED_PROPERTIES = [
       validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
       failedMessage: messages.getMessage('invalidApiVersion'),
     },
+  },
+  {
+    // will remain in v3 for the foreseeable future so that `sfdx-core` can map between `sf` and `sfdx` config values
+    key: SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME,
+    newKey: OrgConfigProperties.TARGET_DEV_HUB,
+    deprecated: true,
+    description: messages.getMessage('defaultDevHubUsername'),
+  },
+  {
+    // will remain in v3 for the foreseeable future so that `sfdx-core` can map between `sf` and `sfdx` config values
+    key: SfdxPropertyKeys.DEFAULT_USERNAME,
+    newKey: OrgConfigProperties.TARGET_ORG,
+    deprecated: true,
+    description: messages.getMessage('defaultUsername'),
   },
   {
     key: SfdxPropertyKeys.ISV_DEBUGGER_SID,
