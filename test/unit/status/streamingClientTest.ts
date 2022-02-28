@@ -10,10 +10,9 @@ import { SinonSpyCall } from 'sinon';
 import { Duration } from '@salesforce/kit';
 import { get, JsonMap } from '@salesforce/ts-types';
 import { CometClient, StatusResult, StreamingClient } from '../../../src/status/streamingClient';
-
-import { Connection } from '../../../src/org/connection';
+import { Connection } from '../../../src/org';
 import { Crypto } from '../../../src/crypto/crypto';
-import { Org } from '../../../src/org/org';
+import { Org } from '../../../src/org';
 import { SfdxError } from '../../../src/sfdxError';
 import {
   shouldThrow,

@@ -9,7 +9,9 @@ import { AnyJson, ensure } from '@salesforce/ts-types';
 import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
-import { StatusResult } from './streamingClient';
+import { Lifecycle } from '../lifecycleEvents';
+import { StatusResult } from './types';
+
 /**
  * This is a polling client that can be used to poll the status of long running tasks. It can be used as a replacement
  * for Streaming when streaming topics are not available or when streaming handshakes are failing. Why wouldn't you
@@ -54,19 +56,28 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
    * Returns a promise to call the specified polling function using the interval and timeout specified
    * in the polling options.
    */
-  public async subscribe(): Promise<AnyJson | undefined> {
+  public async subscribe<T = AnyJson>(): Promise<T> {
     let errorInPollingFunction; // keep this around for returning in the catch block
     const doPoll = async () => {
       let result;
       try {
         result = await this.options.poll();
       } catch (error) {
-        errorInPollingFunction = error;
+        const err = (errorInPollingFunction = error as Error);
+        if (
+          ['ETIMEDOUT', 'ENOTFOUND', 'ECONNRESET', 'socket hang up'].some((retryableNetworkError) =>
+            err.message.includes(retryableNetworkError)
+          )
+        ) {
+          this.logger.debug('Network error on the request', err);
+          await Lifecycle.getInstance().emitWarning('Network error occurred. Continuing to poll.');
+          throw SfdxError.wrap(err);
+        }
         // there was an actual error thrown, so we don't want to keep retrying
-        throw new NotRetryableError((error as Error).name);
+        throw new NotRetryableError(err.name);
       }
       if (result.completed) {
-        return result.payload;
+        return result.payload as unknown as T;
       }
       throw new Error('Operation did not complete.  Retrying...'); // triggers a retry
     };
@@ -81,6 +92,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
       if (errorInPollingFunction) {
         throw errorInPollingFunction;
       }
+
       this.logger.debug('Polling timed out');
       throw new SfdxError('The client has timed out.', this.options.timeoutErrorName ?? 'PollingClientTimeout');
     }

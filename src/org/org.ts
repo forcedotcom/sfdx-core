@@ -28,16 +28,17 @@ import { ConfigContents } from '../config/configStore';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
 import { SandboxOrgConfig } from '../config/sandboxOrgConfig';
 import { Global } from '../global';
+import { Lifecycle } from '../lifecycleEvents';
 import { Logger } from '../logger';
 import { SfdxError } from '../sfdxError';
 import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
-import { GlobalInfo } from '../globalInfo';
-import { Messages } from '../messages';
-import { Lifecycle } from '../lifecycleEvents';
 import { WebOAuthServer } from '../webOAuthServer';
+import { Messages } from '../messages';
+import { GlobalInfo } from '../globalInfo';
 import { Connection, SingleRecordQueryErrors } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
+import { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from './scratchOrgCreate';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
@@ -122,6 +123,21 @@ export type SandboxRequest = {
   Description?: string;
 };
 
+export type ScratchOrgRequest = Pick<
+  ScratchOrgCreateOptions,
+  | 'connectedAppConsumerKey'
+  | 'durationDays'
+  | 'nonamespace'
+  | 'noancestors'
+  | 'wait'
+  | 'retry'
+  | 'apiversion'
+  | 'definitionjson'
+  | 'definitionfile'
+  | 'orgConfig'
+  | 'clientSecret'
+>;
+
 /**
  * Provides a way to manage a locally authenticated Org.
  *
@@ -199,6 +215,18 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       shouldPoll: retries > 0,
       pollInterval,
     });
+  }
+
+  /**
+   * Creates a scratchOrg
+   * 'this' needs to be a valid dev-hub
+   *
+   * @param {options} ScratchOrgCreateOptions
+   * @returns {ScratchOrgCreateResult}
+   */
+
+  public async scratchOrgCreate(options: ScratchOrgRequest): Promise<ScratchOrgCreateResult> {
+    return scratchOrgCreate({ ...options, hubOrg: this });
   }
 
   /**
@@ -737,11 +765,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     );
   }
 
-  private async destorySandbox(org: Org, id: string): Promise<SaveResult> {
+  private async destroySandbox(org: Org, id: string): Promise<SaveResult> {
     return org.getConnection().tooling.delete('SandboxInfo', id);
   }
 
-  private async destoryScratchOrg(org: Org, id: string): Promise<SaveResult> {
+  private async destroyScratchOrg(org: Org, id: string): Promise<SaveResult> {
     return org.getConnection().delete('ActiveScratchOrg', id);
   }
 
@@ -787,7 +815,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     // const deleteResult = await prodOrg.connection.tooling.delete('SandboxInfo', result.SandboxInfoId);
-    const deleteResult = await this.destorySandbox(prodOrg, result.SandboxInfoId);
+    const deleteResult = await this.destroySandbox(prodOrg, result.SandboxInfoId);
     this.logger.debug('Return from calling tooling.delete: %o ', deleteResult);
     await this.remove();
 
@@ -822,7 +850,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         )
       ).Id;
       this.logger.trace(`found matching ActiveScratchOrg with SignupUsername: ${username}.  Deleting...`);
-      await this.destoryScratchOrg(devHub, activeScratchOrgRecordId);
+      await this.destroyScratchOrg(devHub, activeScratchOrgRecordId);
       await this.remove();
     } catch (err) {
       this.logger.info(err instanceof Error ? err.message : err);
@@ -856,7 +884,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       this.logger.debug(`Clearing auth cache for user: ${username}`);
       config.orgs.unset(username);
     }
-    await config.write();
   }
 
   /**
@@ -903,42 +930,36 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     this.logger.debug(`Removing users associate with org: ${this.getOrgId()}`);
     const config = await this.retrieveOrgUsersConfig();
     this.logger.debug(`using path for org users: ${config.getPath()}`);
-    if (await config.exists()) {
-      const authInfos: AuthInfo[] = await this.readUserAuthFiles();
-      this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
+    const authInfos: AuthInfo[] = await this.readUserAuthFiles();
 
-      for (const auth of authInfos) {
-        const username = auth.getFields().username;
+    await Promise.all(
+      authInfos
+        .map((auth) => auth.getFields().username)
+        .map(async (username) => {
+          const aliasKeys = (username && globalInfo.aliases.getAll(username)) || [];
+          globalInfo.aliases.unsetAll(username as string);
 
-        const aliases = (username && globalInfo.aliases.getAll(username)) || [];
-        globalInfo.aliases.unsetAll(username as string);
+          const orgForUser =
+            username === this.getUsername()
+              ? this
+              : await Org.create({
+                  connection: await Connection.create({ authInfo: await AuthInfo.create({ username }) }),
+                });
 
-        let orgForUser;
-        if (username === this.getUsername()) {
-          orgForUser = this;
-        } else {
-          const info = await AuthInfo.create({ username });
-          const connection: Connection = await Connection.create({ authInfo: info });
-          orgForUser = await Org.create({ connection });
-        }
+          const orgType = this.isDevHubOrg() ? OrgConfigProperties.TARGET_DEV_HUB : OrgConfigProperties.TARGET_ORG;
+          const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
+          const needsConfigUpdate =
+            (configInfo.isGlobal() || configInfo.isLocal()) &&
+            (configInfo.value === username || aliasKeys.includes(configInfo.value as string));
 
-        const removeConfig = async (configInfo: ConfigInfo) => {
-          if (
-            (configInfo.value === username || aliases.includes(configInfo.value as string)) &&
-            (configInfo.isGlobal() || configInfo.isLocal())
-          ) {
-            await Config.update(configInfo.isGlobal(), configInfo.key, undefined);
-          }
-        };
+          return [
+            orgForUser.removeAuth(),
+            needsConfigUpdate ? Config.update(configInfo.isGlobal(), orgType, undefined) : undefined,
+          ].filter(Boolean);
+        })
+    );
 
-        await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_DEV_HUB));
-        await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_ORG));
-
-        await orgForUser.removeAuth();
-      }
-
-      await globalInfo.write();
-    }
+    await globalInfo.write();
   }
 
   /**

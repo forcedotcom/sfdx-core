@@ -29,3 +29,7 @@ Invalid complexity value. Specify a value between 0 and 5, inclusive.
 # lengthOutOfBound
 
 Invalid length value. Specify a value between 8 and 1000, inclusive.
+
+# problemsDescribingTheUserObject
+
+Problems occurred while attempting to describe the user object.

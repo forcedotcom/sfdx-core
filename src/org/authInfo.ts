@@ -4,9 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { randomBytes } from 'crypto';
 import { resolve as pathResolve } from 'path';
 import * as os from 'os';
@@ -25,7 +22,6 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-
 import { OAuth2, OAuth2Config as JsforceOAuth2Config, TokenResponse } from 'jsforce';
 import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';

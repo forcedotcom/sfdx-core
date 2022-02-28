@@ -71,6 +71,7 @@ export {
   SandboxRequest,
   OrgTypes,
   ResultEvent,
+  ScratchOrgRequest,
 } from './org';
 
 export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
@@ -92,6 +93,10 @@ export { MyDomainResolver } from './status/myDomainResolver';
 export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './org/user';
 
 export { PermissionSetAssignment, PermissionSetAssignmentFields } from './org/permissionSetAssignment';
+
+export { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from './org/scratchOrgCreate';
+
+export { ScratchOrgInfo } from './org/scratchOrgInfoApi';
 
 // Utility sub-modules
 export * from './util/fs';

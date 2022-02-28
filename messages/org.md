@@ -41,3 +41,7 @@ The sandbox %s does not have an authorized username.
 # orgPollingTimeout
 
 Sandbox status is %s; timed out waiting for completion.
+
+# NotFoundOnDevHub
+
+The scratch org does not belong to the dev hub username %s.
