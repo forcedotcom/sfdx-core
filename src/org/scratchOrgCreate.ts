@@ -9,8 +9,8 @@ import { ensureString, getString } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { Logger } from '../logger';
 import { ConfigAggregator } from '../config/configAggregator';
-import { SfdxProject } from '../sfdxProject';
-import { SfdxError } from '../sfdxError';
+import { SfProject } from '../sfProject';
+import { SfError } from '../sfError';
 import { Org } from './org';
 import {
   authorizeScratchOrg,
@@ -201,7 +201,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
 
 const getSignupTargetLoginUrl = async (): Promise<string | undefined> => {
   try {
-    const project = await SfdxProject.resolve();
+    const project = await SfProject.resolve();
     const projectJson = await project.resolveProjectConfig();
     return projectJson.signupTargetLoginUrl as string;
   } catch {
@@ -221,6 +221,6 @@ const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void> => {
       scratchOrg.getOrgId(),
       scratchOrg.getUsername(),
     ]);
-    throw new SfdxError(message, 'SourceStatusResetFailure');
+    throw new SfError(message, 'SourceStatusResetFailure');
   }
 };

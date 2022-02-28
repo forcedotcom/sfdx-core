@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { Connection } from 'jsforce'; // RecordResult
 import { AuthInfo, Org } from '../../../src/org';
-import { SfdxProjectJson, SfdxProject } from '../../../src/sfdxProject';
+import { SfProjectJson, SfProject } from '../../../src/sfProject';
 import { scratchOrgCreate, ScratchOrgCreateOptions } from '../../../src/org/scratchOrgCreate';
 
 const packageId = '05iB0000000cWwnIAE';
@@ -19,7 +19,7 @@ describe('scratchOrgCreate', () => {
   const sandbox = sinon.createSandbox();
   const hubOrgStub = sinon.createStubInstance(Org);
   const authInfoStub = sinon.createStubInstance(AuthInfo);
-  const sfdxProjectJsonStub = sinon.createStubInstance(SfdxProjectJson);
+  const sfProjectJsonStub = sinon.createStubInstance(SfProjectJson);
   const scratchOrgInfoId = '1234';
   const username = 'PlatformCLI';
   const retrieve = {
@@ -32,14 +32,14 @@ describe('scratchOrgCreate', () => {
   beforeEach(() => {
     sandbox.stub(Org, 'create').resolves(hubOrgStub);
     sandbox.stub(AuthInfo, 'create').resolves(authInfoStub);
-    sfdxProjectJsonStub.getPackageDirectories.resolves([
+    sfProjectJsonStub.getPackageDirectories.resolves([
       { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
     ]);
-    sandbox.stub(SfdxProject, 'resolve').resolves({
+    sandbox.stub(SfProject, 'resolve').resolves({
       resolveProjectConfig: sandbox.stub().resolves({
         signupTargetLoginUrl: 'https://salesforce.com',
       }),
-    } as unknown as SfdxProject);
+    } as unknown as SfProject);
     hubOrgStub.isDevHubOrg.returns(false);
     hubOrgStub.determineIfDevHubOrg.withArgs(true).resolves();
     // @ts-ignore

@@ -8,10 +8,10 @@ import { promises as fs } from 'fs';
 import { parseJson } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
 import { sfdc } from '../util/sfdc';
-import { SfdxProjectJson } from '../sfdxProject';
+import { SfProjectJson } from '../sfProject';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { Org } from './org';
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
@@ -62,7 +62,7 @@ const SNAPSHOT_UNSUPPORTED_OPTIONS = [
 // executed within the ctor and also after parsing/normalization of the definition file.
 const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unknown>): void => {
   if (key.toLowerCase() === 'durationdays') {
-    throw new SfdxError('unrecognizedScratchOrgOption', 'durationDays');
+    throw new SfError('unrecognizedScratchOrgOption', 'durationDays');
   }
 
   if (key.toLowerCase() === 'snapshot') {
@@ -71,7 +71,7 @@ const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unk
     );
 
     if (foundInvalidFields.length > 0) {
-      throw new SfdxError(
+      throw new SfError(
         messages.getMessage('unsupportedSnapshotOrgCreateOptions', [foundInvalidFields.join(', ')]),
         'orgSnapshot'
       );
@@ -83,16 +83,16 @@ const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unk
  * Generates the package2AncestorIds scratch org property
  *
  * @param scratchOrgInfo - the scratchOrgInfo passed in by the user
- * @param projectJson - sfdxProjectJson
+ * @param projectJson - sfProjectJson
  * @param hubOrg - the hub org, in case we need to do queries
  */
 export const getAncestorIds = async (
   scratchOrgInfo: ScratchOrgInfoPayload,
-  projectJson: SfdxProjectJson,
+  projectJson: SfProjectJson,
   hubOrg: Org
 ): Promise<string> => {
   if (Reflect.has(scratchOrgInfo, 'package2AncestorIds')) {
-    throw new SfdxError(messages.getMessage('Package2AncestorsIdsKeyNotSupportedError'), 'DeprecationError');
+    throw new SfError(messages.getMessage('Package2AncestorsIdsKeyNotSupportedError'), 'DeprecationError');
   }
   const packagesWithAncestors = (await projectJson.getPackageDirectories())
     // check that the package has any ancestor types (id or version)
@@ -121,7 +121,7 @@ export const getAncestorIds = async (
               { tooling: true }
             );
         } catch (err) {
-          throw new SfdxError(
+          throw new SfError(
             messages.getMessage('NoMatchingAncestorError', [packageDir.ancestorVersion, packageDir.package]),
             'NoMatchingAncestorError',
             [messages.getMessage('AncestorNotReleasedError', [packageDir.ancestorVersion])]
@@ -157,7 +157,7 @@ export const getAncestorIds = async (
       if (packageDir.ancestorId && packageAliases?.[packageDir.ancestorId]) {
         return packageAliases[packageDir.ancestorId];
       }
-      throw new SfdxError(`Invalid ancestorId ${packageDir.ancestorId}`, 'InvalidAncestorId');
+      throw new SfError(`Invalid ancestorId ${packageDir.ancestorId}`, 'InvalidAncestorId');
     })
   );
 
@@ -183,17 +183,17 @@ export const generateScratchOrgInfo = async ({
   nonamespace?: boolean;
   ignoreAncestorIds?: boolean;
 }): Promise<ScratchOrgInfoPayload> => {
-  let sfdxProject!: SfdxProjectJson;
+  let sfProject!: SfProjectJson;
   try {
-    sfdxProject = await SfdxProjectJson.create({});
+    sfProject = await SfProjectJson.create({});
   } catch (e) {
     // project is not required
   }
   scratchOrgInfoPayload.orgName = scratchOrgInfoPayload.orgName ?? 'Company';
 
   scratchOrgInfoPayload.package2AncestorIds =
-    !ignoreAncestorIds && sfdxProject?.hasPackages()
-      ? await getAncestorIds(scratchOrgInfoPayload, sfdxProject, hubOrg)
+    !ignoreAncestorIds && sfProject?.hasPackages()
+      ? await getAncestorIds(scratchOrgInfoPayload, sfProject, hubOrg)
       : '';
 
   // Use the Hub org's client ID value, if one wasn't provided to us, or the default
@@ -202,8 +202,8 @@ export const generateScratchOrgInfo = async ({
       hubOrg.getConnection().getAuthInfoFields().clientId ?? defaultConnectedAppInfo.clientId;
   }
 
-  if (!nonamespace && sfdxProject?.get('namespace')) {
-    scratchOrgInfoPayload.namespace = sfdxProject.get('namespace') as string;
+  if (!nonamespace && sfProject?.get('namespace')) {
+    scratchOrgInfoPayload.namespace = sfProject.get('namespace') as string;
   }
 
   // we already have the info, and want to get rid of configApi, so this doesn't use that
@@ -256,16 +256,16 @@ export const getScratchOrgInfoPayload = async (options: {
     } catch (err) {
       const error = err as Error;
       if (error.name === 'JsonParseError') {
-        throw new SfdxError(`An error occurred parsing ${options.definitionfile}`);
+        throw new SfError(`An error occurred parsing ${options.definitionfile}`);
       }
-      throw SfdxError.wrap(error);
+      throw SfError.wrap(error);
     }
   }
 
   // scratchOrgInfoPayload must be heads down camelcase.
   const upperCaseKey = sfdc.findUpperCaseKeys(scratchOrgInfoPayload);
   if (upperCaseKey) {
-    throw new SfdxError('InvalidJsonCasing', upperCaseKey);
+    throw new SfError('InvalidJsonCasing', upperCaseKey);
   }
 
   // Now run the fully resolved user input against the validator

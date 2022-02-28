@@ -7,7 +7,7 @@
 
 import { Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { Logger } from '../logger';
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
 
@@ -44,7 +44,7 @@ export const checkScratchOrgInfoForErrors = (
   logger: Logger
 ): ScratchOrgInfo => {
   if (!orgInfo) {
-    throw new SfdxError('No scratch org info found.', 'ScratchOrgInfoNotFound');
+    throw new SfError('No scratch org info found.', 'ScratchOrgInfoNotFound');
   }
   if (orgInfo.Status === 'Active') {
     return orgInfo;
@@ -52,20 +52,20 @@ export const checkScratchOrgInfoForErrors = (
   if (orgInfo.Status === 'Error' && orgInfo.ErrorCode) {
     const message = optionalErrorCodeMessage(orgInfo.ErrorCode, [WORKSPACE_CONFIG_FILENAME]);
     if (message) {
-      throw new SfdxError(message, 'RemoteOrgSignupFailed', [
+      throw new SfError(message, 'RemoteOrgSignupFailed', [
         namedMessages.getMessage('SignupFailedActionError', [orgInfo.ErrorCode]),
       ]);
     }
-    throw new SfdxError(namedMessages.getMessage('SignupFailedError', [orgInfo.ErrorCode]));
+    throw new SfError(namedMessages.getMessage('SignupFailedError', [orgInfo.ErrorCode]));
   }
   if (orgInfo.Status === 'Error') {
     // Maybe the request object can help the user somehow
     logger.error('No error code on signup error! Logging request.');
     logger.error(orgInfo);
-    throw new SfdxError(
+    throw new SfError(
       namedMessages.getMessage('SignupFailedUnknownError', [orgInfo.Id, hubUsername]),
       'signupFailedUnknown'
     );
   }
-  throw new SfdxError(namedMessages.getMessage('SignupUnexpectedError'), 'UnexpectedSignupStatus');
+  throw new SfError(namedMessages.getMessage('SignupUnexpectedError'), 'UnexpectedSignupStatus');
 };
