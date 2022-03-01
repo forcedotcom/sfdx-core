@@ -106,7 +106,6 @@ export interface ConfigPropertyMetaInput {
 
 export enum SfdxPropertyKeys {
   /**
-<<<<<<< HEAD
    * Username associated with the default dev hub org.
    *
    * @deprecated Replaced by OrgConfigProperties.TARGET_DEV_HUB in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
@@ -123,8 +122,6 @@ export enum SfdxPropertyKeys {
   DEFAULT_USERNAME = 'defaultusername',
 
   /**
-=======
->>>>>>> d1b2bf58 (chore: compiling, no UTs)
    * The sid for the debugger configuration.
    */
   ISV_DEBUGGER_SID = 'isvDebuggerSid',
