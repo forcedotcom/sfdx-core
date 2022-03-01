@@ -270,7 +270,7 @@ describe('AuthInfo', () => {
       .withArgs(match(/.*key.json/))
       .resolves()
       .rejects(); // .callThrough;
-    stubMethod($$.SANDBOX, fs.promises, 'readFile')
+    readFileStub = stubMethod($$.SANDBOX, fs.promises, 'readFile')
       .withArgs(match(/.*key.json/))
       .resolves({})
       .rejects();
