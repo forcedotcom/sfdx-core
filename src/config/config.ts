@@ -414,7 +414,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * DO NOT CALL - The config file needs to encrypt values which can only be done asynchronously.
    * Call {@link SfdxConfig.write} instead.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidWriteError' }* Always.
+   * **Throws** *{@link SfError}{ name: 'InvalidWriteError' }* Always.
    *
    * @param newContents Contents to write
    */
@@ -426,8 +426,8 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   /**
    * Sets a value for a property.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
-   * **Throws** *{@link SfdxError}{ name: 'InvalidConfigValueError' }* If the input validator fails.
+   * **Throws** *{@link SfError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
+   * **Throws** *{@link SfError}{ name: 'InvalidConfigValueError' }* If the input validator fails.
    *
    * @param key The property to set.
    * @param value The value of the property.
@@ -463,7 +463,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   /**
    * Unsets a value for a property.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* If the input validator fails.
+   * **Throws** *{@link SfError}{ name: 'UnknownConfigKeyError' }* If the input validator fails.
    *
    * @param key The property to unset.
    */
@@ -484,7 +484,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   /**
    * Get an individual property config.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
+   * **Throws** *{@link SfError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
    *
    * @param propertyName The name of the property.
    */

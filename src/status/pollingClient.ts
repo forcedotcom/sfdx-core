@@ -8,7 +8,7 @@ import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import { AnyJson, ensure } from '@salesforce/ts-types';
 import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { Lifecycle } from '../lifecycleEvents';
 import { StatusResult } from './types';
 
@@ -71,7 +71,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
         ) {
           this.logger.debug('Network error on the request', err);
           await Lifecycle.getInstance().emitWarning('Network error occurred. Continuing to poll.');
-          throw SfdxError.wrap(err);
+          throw SfError.wrap(err);
         }
         // there was an actual error thrown, so we don't want to keep retrying
         throw new NotRetryableError(err.name);
@@ -94,7 +94,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
       }
 
       this.logger.debug('Polling timed out');
-      throw new SfdxError('The client has timed out.', this.options.timeoutErrorName ?? 'PollingClientTimeout');
+      throw new SfError('The client has timed out.', this.options.timeoutErrorName ?? 'PollingClientTimeout');
     }
   }
 }

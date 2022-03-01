@@ -17,7 +17,7 @@ import {
   generateScratchOrgInfo,
   getScratchOrgInfoPayload,
 } from '../../../src/org/scratchOrgInfoGenerator';
-import { SfdxProjectJson } from '../../../src/sfdxProject';
+import { SfProjectJson } from '../../../src/sfProject';
 import { Messages } from '../../../src/messages';
 
 const packageId = '05iB0000000cWwnIAE';
@@ -56,7 +56,7 @@ describe('scratchOrgInfoGenerator', () => {
 
     describe('basic ids', () => {
       it('Should parse 05i ancestorId keys in sfdx-project.json', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
           ],
@@ -64,13 +64,13 @@ describe('scratchOrgInfoGenerator', () => {
         expect(
           await getAncestorIds(
             {} as unknown as ScratchOrgInfoPayload,
-            projectJson as unknown as SfdxProjectJson,
+            projectJson as unknown as SfProjectJson,
             await Org.create({})
           )
         ).to.equal(packageId);
       });
       it('Should parse 04t ancestorId keys in sfdx-project.json', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageVersionSubscriberId },
           ],
@@ -78,13 +78,13 @@ describe('scratchOrgInfoGenerator', () => {
         expect(
           await getAncestorIds(
             {} as unknown as ScratchOrgInfoPayload,
-            projectJson as unknown as SfdxProjectJson,
+            projectJson as unknown as SfProjectJson,
             await Org.create({})
           )
         ).to.equal(packageId);
       });
       it('Should throw on a bad ID', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'ABC' },
           ],
@@ -93,7 +93,7 @@ describe('scratchOrgInfoGenerator', () => {
           await shouldThrow(
             getAncestorIds(
               { package2AncestorIds: 'foo' } as unknown as ScratchOrgInfoPayload,
-              projectJson as unknown as SfdxProjectJson,
+              projectJson as unknown as SfProjectJson,
               await Org.create({})
             )
           );
@@ -102,7 +102,7 @@ describe('scratchOrgInfoGenerator', () => {
         }
       });
       it('Should throw on a bad returned Id', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             {
               path: 'foo',
@@ -122,7 +122,7 @@ describe('scratchOrgInfoGenerator', () => {
           await shouldThrow(
             getAncestorIds(
               { ancestorId: 'foABCo' } as unknown as ScratchOrgInfoPayload,
-              projectJson as unknown as SfdxProjectJson,
+              projectJson as unknown as SfProjectJson,
               await Org.create({})
             )
           );
@@ -134,7 +134,7 @@ describe('scratchOrgInfoGenerator', () => {
 
     describe('multiple ancestors', () => {
       it('Should merge duplicated ancestors', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
             { path: 'bar', package: 'barPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
@@ -143,7 +143,7 @@ describe('scratchOrgInfoGenerator', () => {
         expect(
           await getAncestorIds(
             {} as unknown as ScratchOrgInfoPayload,
-            projectJson as unknown as SfdxProjectJson,
+            projectJson as unknown as SfProjectJson,
             await Org.create({})
           )
         ).to.equal(packageId);
@@ -151,7 +151,7 @@ describe('scratchOrgInfoGenerator', () => {
 
       it('Should join multiple ancestors', async () => {
         const otherPackageId = packageId.replace('W', 'Q');
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
             { path: 'bar', package: 'barPkgName', versionNumber: '4.7.0.NEXT', ancestorId: otherPackageId },
@@ -160,7 +160,7 @@ describe('scratchOrgInfoGenerator', () => {
         expect(
           await getAncestorIds(
             {} as unknown as ScratchOrgInfoPayload,
-            projectJson as unknown as SfdxProjectJson,
+            projectJson as unknown as SfProjectJson,
             await Org.create({})
           )
         ).to.equal(`${packageId};${otherPackageId}`);
@@ -169,7 +169,7 @@ describe('scratchOrgInfoGenerator', () => {
 
     describe('unusual projects', () => {
       it('Should return an error if the package2AncestorIds key is included in the scratch org definition', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageVersionSubscriberId },
           ],
@@ -178,7 +178,7 @@ describe('scratchOrgInfoGenerator', () => {
           await shouldThrow(
             getAncestorIds(
               { package2AncestorIds: 'foo' } as unknown as ScratchOrgInfoPayload,
-              projectJson as unknown as SfdxProjectJson,
+              projectJson as unknown as SfProjectJson,
               await Org.create({})
             )
           );
@@ -189,26 +189,26 @@ describe('scratchOrgInfoGenerator', () => {
       });
 
       it('Should not fail with an empty packageDirectories key', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [],
         });
         expect(
           await getAncestorIds(
             {} as unknown as ScratchOrgInfoPayload,
-            projectJson as unknown as SfdxProjectJson,
+            projectJson as unknown as SfProjectJson,
             await Org.create({})
           )
         ).to.equal('');
       });
 
       it('Should return empty string with no ancestors', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [{ path: 'foo', package: 'fooPkgName' }],
         });
         expect(
           await getAncestorIds(
             {} as unknown as ScratchOrgInfoPayload,
-            projectJson as unknown as SfdxProjectJson,
+            projectJson as unknown as SfProjectJson,
             await Org.create({})
           )
         ).to.equal('');
@@ -217,7 +217,7 @@ describe('scratchOrgInfoGenerator', () => {
 
     describe('aliases as ancestorId', () => {
       it('Should resolve an alias', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'alias' },
           ],
@@ -230,14 +230,14 @@ describe('scratchOrgInfoGenerator', () => {
         expect(
           await getAncestorIds(
             {} as unknown as ScratchOrgInfoPayload,
-            projectJson as unknown as SfdxProjectJson,
+            projectJson as unknown as SfProjectJson,
             await Org.create({})
           )
         ).to.equal(packageId);
       });
 
       it('Should resolve an alias packageAliases is undefined', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'alias' },
           ],
@@ -251,7 +251,7 @@ describe('scratchOrgInfoGenerator', () => {
           await shouldThrow(
             getAncestorIds(
               {} as unknown as ScratchOrgInfoPayload,
-              projectJson as unknown as SfdxProjectJson,
+              projectJson as unknown as SfProjectJson,
               await Org.create({})
             )
           );
@@ -261,7 +261,7 @@ describe('scratchOrgInfoGenerator', () => {
       });
 
       it('Should throw on unresolvable alias', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'alias' },
           ],
@@ -275,7 +275,7 @@ describe('scratchOrgInfoGenerator', () => {
           await shouldThrow(
             getAncestorIds(
               { package2AncestorIds: 'foo' } as unknown as ScratchOrgInfoPayload,
-              projectJson as unknown as SfdxProjectJson,
+              projectJson as unknown as SfProjectJson,
               await Org.create({})
             )
           );
@@ -287,7 +287,7 @@ describe('scratchOrgInfoGenerator', () => {
 
     describe('ancestorVersion', () => {
       it('Should throw on an invalid ancestorVersion', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorVersion: '5.0' },
           ],
@@ -296,7 +296,7 @@ describe('scratchOrgInfoGenerator', () => {
           await shouldThrow(
             getAncestorIds(
               {} as unknown as ScratchOrgInfoPayload,
-              projectJson as unknown as SfdxProjectJson,
+              projectJson as unknown as SfProjectJson,
               await Org.create({})
             )
           );
@@ -307,7 +307,7 @@ describe('scratchOrgInfoGenerator', () => {
       });
 
       it('Should resolve an alias ancestor version', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorVersion: '4.0.0.0' },
           ],
@@ -320,7 +320,7 @@ describe('scratchOrgInfoGenerator', () => {
         expect(
           await getAncestorIds(
             {} as unknown as ScratchOrgInfoPayload,
-            projectJson as unknown as SfdxProjectJson,
+            projectJson as unknown as SfProjectJson,
             await Org.create({})
           )
         ).to.equal(packageId);
@@ -356,7 +356,7 @@ describe('scratchOrgInfoGenerator', () => {
 
     describe('basic ids throw', () => {
       it('Should throw on a bad returned Id', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             {
               path: 'foo',
@@ -376,7 +376,7 @@ describe('scratchOrgInfoGenerator', () => {
           await shouldThrow(
             getAncestorIds(
               { ancestorId: 'ABC' } as unknown as ScratchOrgInfoPayload,
-              projectJson as unknown as SfdxProjectJson,
+              projectJson as unknown as SfProjectJson,
               await Org.create({})
             )
           );
@@ -415,7 +415,7 @@ describe('scratchOrgInfoGenerator', () => {
 
     describe('Invalid ancestorId throws', () => {
       it('Should throw on a bad packageAliases', async () => {
-        const projectJson = stubInterface<SfdxProjectJson>(sandbox, {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
           getPackageDirectories: () => [
             {
               path: 'foo',
@@ -434,7 +434,7 @@ describe('scratchOrgInfoGenerator', () => {
           await shouldThrow(
             getAncestorIds(
               { ancestorId: 'ABC' } as unknown as ScratchOrgInfoPayload,
-              projectJson as unknown as SfdxProjectJson,
+              projectJson as unknown as SfProjectJson,
               await Org.create({})
             )
           );
@@ -454,7 +454,7 @@ describe('scratchOrgInfoGenerator', () => {
       getAuthInfoFieldsStub = stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
         clientId: '1234',
       });
-      stubMethod(sandbox, SfdxProjectJson, 'create').returns(SfdxProjectJson.prototype);
+      stubMethod(sandbox, SfProjectJson, 'create').returns(SfProjectJson.prototype);
     });
 
     afterEach(() => {
@@ -480,8 +480,8 @@ describe('scratchOrgInfoGenerator', () => {
       });
     });
     it('Generates empty package2AncestorIds scratch org property with hasPackages', async () => {
-      stubMethod(sandbox, SfdxProjectJson.prototype, 'hasPackages').returns(true);
-      stubMethod(sandbox, SfdxProjectJson.prototype, 'isGlobal').returns(true);
+      stubMethod(sandbox, SfProjectJson.prototype, 'hasPackages').returns(true);
+      stubMethod(sandbox, SfProjectJson.prototype, 'isGlobal').returns(true);
       expect(
         await generateScratchOrgInfo({
           hubOrg: await Org.create({}),
@@ -556,7 +556,7 @@ describe('scratchOrgInfoGenerator', () => {
     });
   });
 
-  describe('generateScratchOrgInfo no SfdxProjectJson', () => {
+  describe('generateScratchOrgInfo no SfProjectJson', () => {
     const sandbox = sinon.createSandbox();
     beforeEach(() => {
       stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
@@ -564,7 +564,7 @@ describe('scratchOrgInfoGenerator', () => {
       stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
         clientId: '1234',
       });
-      stubMethod(sandbox, SfdxProjectJson, 'create').rejects();
+      stubMethod(sandbox, SfProjectJson, 'create').rejects();
     });
 
     afterEach(() => {
@@ -574,7 +574,7 @@ describe('scratchOrgInfoGenerator', () => {
     after(() => {
       sandbox.restore();
     });
-    it('Generates the package2AncestorIds scratch org property no SfdxProjectJson', async () => {
+    it('Generates the package2AncestorIds scratch org property no SfProjectJson', async () => {
       expect(
         await generateScratchOrgInfo({
           hubOrg: await Org.create({}),
@@ -599,8 +599,8 @@ describe('scratchOrgInfoGenerator', () => {
       stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
         clientId: '1234',
       });
-      stubMethod(sandbox, SfdxProjectJson, 'create').returns(SfdxProjectJson.prototype);
-      stubMethod(sandbox, SfdxProjectJson.prototype, 'get').withArgs('namespace').returns('my-namespace');
+      stubMethod(sandbox, SfProjectJson, 'create').returns(SfProjectJson.prototype);
+      stubMethod(sandbox, SfProjectJson.prototype, 'get').withArgs('namespace').returns('my-namespace');
     });
 
     afterEach(() => {
@@ -610,7 +610,7 @@ describe('scratchOrgInfoGenerator', () => {
     after(() => {
       sandbox.restore();
     });
-    it('calls generateScratchOrgInfo with no nonamespace but SfdxProjectJson.get("name") is true', async () => {
+    it('calls generateScratchOrgInfo with no nonamespace but SfProjectJson.get("name") is true', async () => {
       expect(
         await generateScratchOrgInfo({
           hubOrg: await Org.create({}),

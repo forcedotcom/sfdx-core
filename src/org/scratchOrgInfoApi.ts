@@ -14,7 +14,7 @@ import { retryDecorator, RetryError } from 'ts-retry-promise';
 import { Logger } from '../logger';
 import mapKeys from '../util/mapKeys';
 import { Messages } from '../messages';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { StatusResult } from '../status/types';
 import { PollingClient } from '../status/pollingClient';
@@ -275,13 +275,13 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
     try {
       await AuthInfo.create({ username: username.toLowerCase() });
     } catch (error) {
-      const sfdxError = SfdxError.wrap(error as Error);
+      const sfError = SfError.wrap(error as Error);
       // if an AuthInfo couldn't be created that means no AuthFile exists.
-      if (sfdxError.name === 'NamedOrgNotFound') {
+      if (sfError.name === 'NamedOrgNotFound') {
         return;
       }
       // Something unexpected
-      throw sfdxError;
+      throw sfError;
     }
     // An org file already exists
     throw errorCodes.createError('C-1007');
@@ -309,12 +309,12 @@ export const requestScratchOrgCreation = async (
   // We do not allow you to specify the old and the new way of doing post create settings
   if (scratchOrgRequest.orgPreferences && settings.hasSettings()) {
     // This is not allowed
-    throw new SfdxError('SignupDuplicateSettingsSpecifiedError');
+    throw new SfError('SignupDuplicateSettingsSpecifiedError');
   }
 
   // deprecated old style orgPreferences
   if (scratchOrgRequest.orgPreferences) {
-    throw new SfdxError(messages.getMessage('DeprecatedPrefFormat'));
+    throw new SfError(messages.getMessage('DeprecatedPrefFormat'));
   }
 
   const scratchOrgInfo = mapKeys(scratchOrgRequest, upperFirst, true);
@@ -326,9 +326,9 @@ export const requestScratchOrgCreation = async (
     // this is a jsforce error which contains the property "fields" which regular error don't
     const jsForceError = error as JsForceError;
     if (jsForceError.errorCode === 'REQUIRED_FIELD_MISSING') {
-      throw new SfdxError(messages.getMessage('SignupFieldsMissingError', [jsForceError.fields.toString()]));
+      throw new SfError(messages.getMessage('SignupFieldsMissingError', [jsForceError.fields.toString()]));
     }
-    throw SfdxError.wrap(jsForceError);
+    throw SfError.wrap(jsForceError);
   }
 };
 
@@ -386,9 +386,9 @@ export const pollForScratchOrgInfo = async (
   } catch (error) {
     const err = error as Error;
     if (err.message) {
-      throw SfdxError.wrap(err);
+      throw SfError.wrap(err);
     }
-    throw new SfdxError(`The scratch org did not complete within ${timeout.minutes} minutes`, 'orgCreationTimeout', [
+    throw new SfError(`The scratch org did not complete within ${timeout.minutes} minutes`, 'orgCreationTimeout', [
       'Try your force:org:create command again with a longer --wait value',
     ]);
   }
@@ -419,7 +419,7 @@ export const deploySettingsAndResolveUrl = async (
       await orgSettings.createDeploy();
       await orgSettings.deploySettingsViaFolder(scratchOrg, apiVersion);
     } catch (error) {
-      throw SfdxError.wrap(error as Error);
+      throw SfError.wrap(error as Error);
     }
   }
 
@@ -435,17 +435,17 @@ export const deploySettingsAndResolveUrl = async (
       const resolver = await MyDomainResolver.create(options);
       await resolver.resolve();
     } catch (error) {
-      const sfdxError = SfdxError.wrap(error as Error);
+      const sfError = SfError.wrap(error as Error);
       logger.debug('processScratchOrgInfoResult - err: %s', error);
-      if (sfdxError.name === 'MyDomainResolverTimeoutError') {
-        sfdxError.setData({
+      if (sfError.name === 'MyDomainResolverTimeoutError') {
+        sfError.setData({
           orgId: scratchOrgAuthInfo.getFields().orgId,
           username: scratchOrgAuthInfo.getFields().username,
           instanceUrl,
         });
-        logger.debug('processScratchOrgInfoResult - err data: %s', sfdxError.data);
+        logger.debug('processScratchOrgInfoResult - err data: %s', sfError.data);
       }
-      throw sfdxError;
+      throw sfError;
     }
 
     return scratchOrgAuthInfo;

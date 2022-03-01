@@ -9,7 +9,7 @@ import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';
 import { ConfigFile } from '../../../src/config/configFile';
-import { SfdxError } from '../../../src/exported';
+import { SfError } from '../../../src/exported';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 
@@ -257,7 +257,7 @@ describe('Config', () => {
     });
 
     it('sets contents as empty object when file does not exist', async () => {
-      const err = SfdxError.wrap(new Error());
+      const err = SfError.wrap(new Error());
       err.code = 'ENOENT';
       readJsonMapStub.throws(err);
 
@@ -273,7 +273,7 @@ describe('Config', () => {
       const err = new Error('not here');
       err.name = 'FileNotFound';
       (err as any).code = 'ENOENT';
-      readJsonMapStub.throws(SfdxError.wrap(err));
+      readJsonMapStub.throws(SfError.wrap(err));
 
       const configOptions = {
         filename: 'test',
@@ -347,7 +347,7 @@ describe('Config', () => {
     });
 
     it('sets contents as empty object when file does not exist', () => {
-      const err = SfdxError.wrap(new Error());
+      const err = SfError.wrap(new Error());
       err.code = 'ENOENT';
       readJsonMapStub.throws(err);
 
@@ -364,7 +364,7 @@ describe('Config', () => {
       const err = new Error('not here');
       err.name = 'FileNotFound';
       (err as any).code = 'ENOENT';
-      readJsonMapStub.throws(SfdxError.wrap(err));
+      readJsonMapStub.throws(SfError.wrap(err));
 
       const configOptions = {
         filename: 'test',

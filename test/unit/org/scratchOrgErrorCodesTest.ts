@@ -7,7 +7,7 @@
 import { expect } from 'chai';
 import { assert } from 'sinon';
 import { Logger } from '../../../src/logger';
-import { SfdxError } from '../../../src/sfdxError';
+import { SfError } from '../../../src/sfError';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgInfoApi';
 import { checkScratchOrgInfoForErrors } from '../../../src/org/scratchOrgErrorCodes';
 
@@ -32,7 +32,7 @@ describe('getHumanErrorMessage', () => {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername, logger);
       assert.fail('the above should throw an error');
     } catch (err) {
-      expect(err).to.be.an.instanceof(SfdxError);
+      expect(err).to.be.an.instanceof(SfError);
       expect(err.message).to.include('couldn’t find a');
       expect(err.message).to.not.include('%s');
       expect(err.actions[0]).to.include('information on error code');
@@ -47,7 +47,7 @@ describe('getHumanErrorMessage', () => {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername, logger);
       assert.fail('the above should throw an error');
     } catch (err) {
-      expect(err).to.be.an.instanceof(SfdxError);
+      expect(err).to.be.an.instanceof(SfError);
       expect(err.message).to.include('create scratch org');
       expect(err.message).to.not.include('%s');
       expect(err.actions[0]).to.include('information on error code');
@@ -62,7 +62,7 @@ describe('getHumanErrorMessage', () => {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername, logger);
       assert.fail('the above should throw an error');
     } catch (err) {
-      expect(err).to.be.an.instanceof(SfdxError);
+      expect(err).to.be.an.instanceof(SfError);
       expect(err.message).to.equal('The request to create a scratch org failed with error code: B-1717.');
       expect(err.message).to.not.include('%s');
       expect(err.actions).to.be.undefined;
@@ -74,7 +74,7 @@ describe('getHumanErrorMessage', () => {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo }, testUsername, logger);
       assert.fail('the above should throw an error');
     } catch (err) {
-      expect(err).to.be.an.instanceof(SfdxError);
+      expect(err).to.be.an.instanceof(SfError);
       expect(err.message).to.include('An unknown server error occurred');
       expect(err.message).to.include(baseOrgInfo.Id);
       expect(err.message).to.not.include('%s');
@@ -87,7 +87,7 @@ describe('getHumanErrorMessage', () => {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode: null }, testUsername, logger);
       assert.fail('the above should throw an error');
     } catch (err) {
-      expect(err).to.be.an.instanceof(SfdxError);
+      expect(err).to.be.an.instanceof(SfError);
       expect(err.message).to.include('An unknown server error occurred');
       expect(err.message).to.include(baseOrgInfo.Id);
       expect(err.message).to.not.include('%s');
@@ -100,7 +100,7 @@ describe('getHumanErrorMessage', () => {
       checkScratchOrgInfoForErrors({ ...baseOrgInfo, Status: undefined }, testUsername, logger);
       assert.fail('the above should throw an error');
     } catch (err) {
-      expect(err).to.be.an.instanceof(SfdxError);
+      expect(err).to.be.an.instanceof(SfError);
       expect(err.message).to.include('unexpected status');
       expect(err.actions).to.be.undefined;
     }

@@ -52,7 +52,7 @@ describe('Mocking Auth data', () => {
 After having a valid AuthInfo object you can then create fake connections to a Salesforce.com scratch org. This allows for writing tests that can validate result responses for SOQL queries and REST endpoints.
 
 ```typescript
-import { AuthInfo, Connection, SfdxError } from '@salesforce/core';
+import { AuthInfo, Connection, SfError } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { AnyJson, ensureJsonMap, JsonMap } from '@salesforce/ts-types';
 import { ensureString } from '@salesforce/ts-types';
@@ -77,7 +77,7 @@ describe('Mocking a force server call', () => {
       if (request && ensureString(_request.url).includes('Account')) {
         return Promise.resolve(records);
       } else {
-        return Promise.reject(new SfdxError(`Unexpected request: ${_request.url}`));
+        return Promise.reject(new SfError(`Unexpected request: ${_request.url}`));
       }
     };
     const connection: Connection = await Connection.create({
@@ -117,13 +117,13 @@ describe('Using the built in Sinon sandbox.', () => {
 It's important to have negative tests that ensure proper error handling. With `shouldThrow` it's easy to test for expected async rejections.
 
 ```typescript
-import { SfdxError } from '@salesforce/core';
+import { SfError } from '@salesforce/core';
 import { shouldThrow } from '@salesforce/core/lib/testSetup';
 import { strictEqual } from 'assert';
 
 class TestObject {
   public static async method() {
-    throw new SfdxError('Error', 'ExpectedError');
+    throw new SfError('Error', 'ExpectedError');
   }
 }
 

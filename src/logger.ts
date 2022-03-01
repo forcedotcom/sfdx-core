@@ -26,7 +26,7 @@ import {
 } from '@salesforce/ts-types';
 import * as Debug from 'debug';
 import { Global, Mode } from './global';
-import { SfdxError } from './sfdxError';
+import { SfError } from './sfError';
 import { fs } from './util/fs';
 
 /**
@@ -234,7 +234,7 @@ export class Logger {
    *
    * @param optionsOrName A set of `LoggerOptions` or name to use with the default options.
    *
-   * **Throws** *{@link SfdxError}{ name: 'RedundantRootLoggerError' }* More than one attempt is made to construct the root
+   * **Throws** *{@link SfError}{ name: 'RedundantRootLoggerError' }* More than one attempt is made to construct the root
    * `Logger`.
    */
   public constructor(optionsOrName: LoggerOptions | string) {
@@ -250,7 +250,7 @@ export class Logger {
     }
 
     if (Logger.rootLogger && options.name === Logger.ROOT_NAME) {
-      throw new SfdxError('Can not create another root logger.', 'RedundantRootLoggerError');
+      throw new SfError('Can not create another root logger.', 'RedundantRootLoggerError');
     }
 
     // Inspect format to know what logging format to use then delete from options to
@@ -363,13 +363,13 @@ export class Logger {
    *
    * @param {string} levelName The level name to convert to a `LoggerLevel` enum value.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnrecognizedLoggerLevelNameError' }* The level name was not case-insensitively recognized as a valid `LoggerLevel` value.
+   * **Throws** *{@link SfError}{ name: 'UnrecognizedLoggerLevelNameError' }* The level name was not case-insensitively recognized as a valid `LoggerLevel` value.
    * @see {@Link LoggerLevel}
    */
   public static getLevelByName(levelName: string): LoggerLevelValue {
     levelName = levelName.toUpperCase();
     if (!isKeyOf(LoggerLevel, levelName)) {
-      throw new SfdxError(`Invalid log level "${levelName}".`, 'UnrecognizedLoggerLevelNameError');
+      throw new SfError(`Invalid log level "${levelName}".`, 'UnrecognizedLoggerLevelNameError');
     }
     return LoggerLevel[levelName];
   }
@@ -407,7 +407,7 @@ export class Logger {
       try {
         await fs.writeFile(logFile, '', { mode: fs.DEFAULT_USER_FILE_MODE });
       } catch (err3) {
-        throw SfdxError.wrap(err3 as string | Error);
+        throw SfError.wrap(err3 as string | Error);
       }
     }
 
@@ -449,7 +449,7 @@ export class Logger {
       try {
         fs.writeFileSync(logFile, '', { mode: fs.DEFAULT_USER_FILE_MODE });
       } catch (err3) {
-        throw SfdxError.wrap(err3 as string | Error);
+        throw SfError.wrap(err3 as string | Error);
       }
     }
 
@@ -492,7 +492,7 @@ export class Logger {
    *
    * @param {LoggerLevelValue} [level] The logger level.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnrecognizedLoggerLevelNameError' }* A value of `level` read from `SFDX_LOG_LEVEL`
+   * **Throws** *{@link SfError}{ name: 'UnrecognizedLoggerLevelNameError' }* A value of `level` read from `SFDX_LOG_LEVEL`
    * was invalid.
    *
    * ```
@@ -631,7 +631,7 @@ export class Logger {
    */
   public child(name: string, fields: Fields = {}): Logger {
     if (!name) {
-      throw new SfdxError('LoggerNameRequired');
+      throw new SfError('LoggerNameRequired');
     }
     fields.log = name;
 

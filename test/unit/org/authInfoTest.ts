@@ -25,7 +25,7 @@ import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
 import { AliasAccessor, GlobalInfo, OrgAccessor } from '../../../src/globalInfo';
 import { Crypto } from '../../../src/crypto/crypto';
-import { SfdxError } from '../../../src/sfdxError';
+import { SfError } from '../../../src/sfError';
 import { testSetup } from '../../../src/testSetup';
 import { fs } from '../../../src/util/fs';
 import { MyDomainResolver, SfdcUrl } from '../../../src/exported';
@@ -211,7 +211,7 @@ class MetaAuthDataMock {
 
   public async statForKeyFile(path: string): Promise<{}> {
     if (!path.includes('key.json')) {
-      return new SfdxError(`Unexpected path: ${path}`, 'UnexpectedInput');
+      return new SfError(`Unexpected path: ${path}`, 'UnexpectedInput');
     }
 
     return Promise.resolve({
@@ -1381,8 +1381,8 @@ describe('AuthInfo', () => {
       // @ts-ignore
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
       expect(testCallback.called).to.be.true;
-      const sfdxError = testCallback.firstCall.args[0];
-      expect(sfdxError.name).to.equal('OrgDataNotAvailableError', sfdxError.message);
+      const sfError = testCallback.firstCall.args[0];
+      expect(sfError.name).to.equal('OrgDataNotAvailableError', sfError.message);
     });
   });
 

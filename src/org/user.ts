@@ -23,7 +23,7 @@ import type { HttpRequest, HttpResponse, Schema, SObjectUpdateRecord } from 'jsf
 import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
 import { Connection } from './connection';
 import { PermissionSetAssignment } from './permissionSetAssignment';
@@ -255,11 +255,11 @@ export class User extends AsyncCreatable<User.Options> {
   ): SecureBuffer<void> {
     if (!PASSWORD_COMPLEXITY[passwordCondition.complexity]) {
       const msg = messages.getMessage('complexityOutOfBound');
-      throw new SfdxError(msg, 'complexityOutOfBound');
+      throw new SfError(msg, 'complexityOutOfBound');
     }
     if (passwordCondition.length < 8 || passwordCondition.length > 1000) {
       const msg = messages.getMessage('lengthOutOfBound');
-      throw new SfdxError(msg, 'lengthOutOfBound');
+      throw new SfError(msg, 'lengthOutOfBound');
     }
 
     let password: string[] = [];
@@ -515,7 +515,7 @@ export class User extends AsyncCreatable<User.Options> {
         }
       }
       this.logger.debug(message);
-      throw new SfdxError(message, 'UserCreateHttpError');
+      throw new SfError(message, 'UserCreateHttpError');
     }
 
     fields.id = ensureString(responseBody.id);

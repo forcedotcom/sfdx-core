@@ -12,8 +12,8 @@ import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
 import * as Faye from 'faye';
 import { Logger } from '../logger';
-import { Org } from '../org';
-import { SfdxError } from '../sfdxError';
+import { Org } from '../org/org';
+import { SfError } from '../sfError';
 import { Messages } from '../messages';
 import { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor } from './types';
 export { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor };
@@ -187,7 +187,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
       this.logger.debug(`accessToken: XXXXXX${accessToken.substring(accessToken.length - 5, accessToken.length - 1)}`);
       this.cometClient.setHeader('Authorization', `OAuth ${accessToken}`);
     } else {
-      throw new SfdxError('Missing or invalid access token', 'MissingOrInvalidAccessToken');
+      throw new SfError('Missing or invalid access token', 'MissingOrInvalidAccessToken');
     }
 
     this.log(`Streaming client target url: ${this.targetUrl}`);
@@ -243,7 +243,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
    * Subscribe to streaming events. When the streaming processor that's set in the options completes execution it
    * returns a payload in the StatusResult object. The payload is just echoed here for convenience.
    *
-   * **Throws** *{@link SfdxError}{ name: '{@link StreamingClient.TimeoutErrorType.SUBSCRIBE}'}* When the subscribe timeout occurs.
+   * **Throws** *{@link SfError}{ name: '{@link StreamingClient.TimeoutErrorType.SUBSCRIBE}'}* When the subscribe timeout occurs.
    *
    * @param streamInit This function should call the platform apis that result in streaming updates on push topics.
    * {@link StatusResult}
@@ -329,7 +329,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     cb(message);
   }
 
-  private doTimeout(timeout: NodeJS.Timer, error: SfdxError): SfdxError {
+  private doTimeout(timeout: NodeJS.Timer, error: SfError): SfError {
     this.disconnect();
     clearTimeout(timeout);
     this.log(JSON.stringify(error));
@@ -445,15 +445,15 @@ export namespace StreamingClient {
         logger.warn('envDep is deprecated');
       }
       if (!streamProcessor) {
-        throw new SfdxError('Missing stream processor', 'MissingArg');
+        throw new SfError('Missing stream processor', 'MissingArg');
       }
 
       if (!org) {
-        throw new SfdxError('Missing org', 'MissingArg');
+        throw new SfError('Missing org', 'MissingArg');
       }
 
       if (!channel) {
-        throw new SfdxError('Missing streaming channel', 'MissingArg');
+        throw new SfError('Missing streaming channel', 'MissingArg');
       }
 
       this.org = org;

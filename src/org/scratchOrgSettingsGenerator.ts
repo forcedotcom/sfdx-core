@@ -10,7 +10,7 @@ import { isEmpty, env, upperFirst, Duration } from '@salesforce/kit';
 import { ensureObject, getObject, JsonMap, Optional } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { JsonAsXml } from '../util/jsonXmlTools';
 import { ZipWriter } from '../util/zipWriter';
 import { StatusResult } from '../status/types';
@@ -149,7 +149,7 @@ export default class SettingsGenerator {
       const failures = (Array.isArray(componentFailures) ? componentFailures : [componentFailures])
         .map((failure) => failure.problem)
         .join('\n');
-      const error = new SfdxError(
+      const error = new SfError(
         `A scratch org was created with username ${username}, but the settings failed to deploy due to: \n${failures}`,
         'ProblemDeployingSettings'
       );

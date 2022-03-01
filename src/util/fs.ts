@@ -12,7 +12,7 @@ import { parseJson, parseJsonMap } from '@salesforce/kit';
 import { AnyJson, JsonMap, Optional } from '@salesforce/ts-types';
 import * as fsLib from 'graceful-fs';
 import * as mkdirpLib from 'mkdirp';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 
 type PerformFunction = (filePath: string, file?: string, dir?: string) => Promise<void>;
 type PerformFunctionSync = (filePath: string, file?: string, dir?: string) => void;
@@ -102,12 +102,12 @@ export const fs = Object.assign({}, fsLib, {
    */
   remove: async (dirPath: string): Promise<void> => {
     if (!dirPath) {
-      throw new SfdxError('Path is null or undefined.', 'PathIsNullOrUndefined');
+      throw new SfError('Path is null or undefined.', 'PathIsNullOrUndefined');
     }
     try {
       await fs.access(dirPath, fsLib.constants.R_OK);
     } catch (err) {
-      throw new SfdxError(`The path: ${dirPath} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
+      throw new SfError(`The path: ${dirPath} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
     }
     const files = await fs.readdir(dirPath);
     const stats = await Promise.all(files.map((file) => fs.stat(path.join(dirPath, file))));
@@ -128,12 +128,12 @@ export const fs = Object.assign({}, fsLib, {
    */
   removeSync: (dirPath: string): void => {
     if (!dirPath) {
-      throw new SfdxError('Path is null or undefined.', 'PathIsNullOrUndefined');
+      throw new SfError('Path is null or undefined.', 'PathIsNullOrUndefined');
     }
     try {
       fs.accessSync(dirPath, fsLib.constants.R_OK);
     } catch (err) {
-      throw new SfdxError(`The path: ${dirPath} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
+      throw new SfError(`The path: ${dirPath} doesn't exist or access is denied.`, 'DirMissingOrNoAccess');
     }
     fs.actOnSync(
       dirPath,
@@ -165,7 +165,7 @@ export const fs = Object.assign({}, fsLib, {
       await fs.stat(path.join(dir, file));
       foundProjectDir = dir;
     } catch (err) {
-      if (err && (err as SfdxError).code === 'ENOENT') {
+      if (err && (err as SfError).code === 'ENOENT') {
         const nextDir = path.resolve(dir, '..');
         if (nextDir !== dir) {
           // stop at root
@@ -190,7 +190,7 @@ export const fs = Object.assign({}, fsLib, {
       fs.statSync(path.join(dir, file));
       foundProjectDir = dir;
     } catch (err) {
-      if (err && (err as SfdxError).code === 'ENOENT') {
+      if (err && (err as SfError).code === 'ENOENT') {
         const nextDir = path.resolve(dir, '..');
         if (nextDir !== dir) {
           // stop at root
@@ -377,7 +377,7 @@ export const fs = Object.assign({}, fsLib, {
 
       return fs.getContentHash(contentA) === fs.getContentHash(contentB);
     } catch (err) {
-      throw new SfdxError(
+      throw new SfError(
         `The path: ${(err as { path: string }).path} doesn't exist or access is denied.`,
         'DirMissingOrNoAccess'
       );
@@ -404,7 +404,7 @@ export const fs = Object.assign({}, fsLib, {
 
       return fs.getContentHash(contentA) === fs.getContentHash(contentB);
     } catch (err) {
-      throw new SfdxError(
+      throw new SfError(
         `The path: ${(err as { path: string }).path} doesn't exist or access is denied.`,
         'DirMissingOrNoAccess'
       );

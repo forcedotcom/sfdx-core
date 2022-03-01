@@ -28,7 +28,7 @@ import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
 import { SfOrg, GlobalInfo } from '../globalInfo';
@@ -330,7 +330,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       const auths = (await GlobalInfo.getInstance()).orgs.getAll();
       return !isEmpty(auths);
     } catch (err) {
-      const error = err as SfdxError;
+      const error = err as SfError;
       if (error.name === 'OrgDataNotAvailableError' || error.code === 'ENOENT') {
         return false;
       }
@@ -377,7 +377,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     );
 
     if (!match) {
-      throw new SfdxError(
+      throw new SfError(
         'Invalid SFDX auth URL. Must be in the format "force://<clientId>:<clientSecret>:<refreshToken>@<instanceUrl>".  Note that the SFDX auth URL uses the "force" protocol, and not "http" or "https".  Also note that the "instanceUrl" inside the SFDX auth URL doesn\'t include the protocol ("https://").',
         'INVALID_SFDX_AUTH_URL'
       );
@@ -668,7 +668,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    *
    * @param options Options to be used for creating an OAuth2 instance.
    *
-   * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFoundError' }* Org information does not exist.
+   * **Throws** *{@link SfError}{ name: 'NamedOrgNotFoundError' }* Org information does not exist.
    * @returns {Promise<AuthInfo>}
    */
   private async initAuthOptions(options?: OAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
@@ -757,7 +757,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   // both for a JWT connection and an OAuth connection.
   private async refreshFn(
     conn: Connection,
-    callback: (err: Nullable<Error | SfdxError>, accessToken?: string, res?: Record<string, unknown>) => Promise<void>
+    callback: (err: Nullable<Error | SfError>, accessToken?: string, res?: Record<string, unknown>) => Promise<void>
   ): Promise<void> {
     this.logger.info('Access token has expired. Updating...');
 
@@ -975,7 +975,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     } catch (err) {
       errorMsg = `${bodyAsString}`;
     }
-    throw new SfdxError(errorMsg);
+    throw new SfError(errorMsg);
   }
 }
 

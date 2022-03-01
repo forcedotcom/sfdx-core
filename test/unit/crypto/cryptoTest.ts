@@ -10,7 +10,7 @@ import * as os from 'os';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
-import { SfdxError } from '../../../src/sfdxError';
+import { SfError } from '../../../src/sfError';
 import { Messages } from '../../../src/messages';
 import { testSetup } from '../../../src/testSetup';
 
@@ -149,7 +149,7 @@ describe('CryptoTest', function () {
         'macKeychainOutOfSync'
       );
       const err = Error('Failed to decipher auth data. reason: Unsupported state or unable to authenticate data.');
-      const sfdxErr = SfdxError.wrap(err);
+      const sfdxErr = SfError.wrap(err);
       sfdxErr.actions = [];
       sfdxErr.actions[0] = message;
       stubMethod($$.SANDBOX, os, 'platform').returns('darwin');
@@ -174,7 +174,7 @@ describe('CryptoTest', function () {
       const message: string = Messages.load('@salesforce/core', 'encryption', ['authDecryptError']).getMessage(
         'authDecryptError'
       );
-      const errorMessage: object = SfdxError.wrap(new Error(message));
+      const errorMessage: object = SfError.wrap(new Error(message));
       stubMethod($$.SANDBOX, os, 'platform').returns('darwin');
       stubMethod($$.SANDBOX, crypto, 'decrypt').callsFake(() => ({
         setAuthTag: () => {
