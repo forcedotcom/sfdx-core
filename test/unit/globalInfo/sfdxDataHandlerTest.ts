@@ -284,7 +284,7 @@ describe('AuthHandler', () => {
   describe('listAllAuthFiles', () => {
     it('should return all auth files under .sfdx directory', async () => {
       // @ts-ignore
-      sandbox.stub(fs, 'readdir').resolves([`${username}.json`, 'notAnAuthFile.json']);
+      sandbox.stub(fs.promises, 'readdir').resolves([`${username}.json`, 'notAnAuthFile.json']);
       const handler = new AuthHandler();
       const authFiles = await handler.listAllAuthFiles();
       expect(authFiles).to.deep.equal([`${username}.json`]);
@@ -318,7 +318,7 @@ describe('AliasesHandler', () => {
   describe('migrate', () => {
     const username = 'myAccount@salesforce.com';
     it('should migrate aliases from sfdx to sf', async () => {
-      sandbox.stub(fs.promises, 'readFile').resolves("{ orgs: { ['myorg']: username } }");
+      sandbox.stub(fs.promises, 'readFile').resolves(`{ "orgs": { "myorg": "${username}"}}`);
       const aliasesHandler = new AliasesHandler();
       const migrated = await aliasesHandler.migrate();
       expect(migrated.aliases).to.deep.equal({ ['myorg']: username });
@@ -336,7 +336,7 @@ describe('AliasesHandler', () => {
     it('should merge sfdx aliases to aliases', async () => {
       sandbox
         .stub(fs.promises, 'readFile')
-        .resolves("{ orgs: { myorg: username, someOtherAlias: 'someOtherAliasValue' } }");
+        .resolves(`{ "orgs": { "myorg": "${username}", "someOtherAlias": "someOtherAliasValue" } }`);
       const getContentsStub = sinon.stub().returns(auth);
       sandbox.replace(ConfigFile.prototype, 'getContents', getContentsStub);
       const sfInfo = {
@@ -349,7 +349,7 @@ describe('AliasesHandler', () => {
       expect(merged.aliases).to.deep.equal({ ['myorg']: username, someOtherAlias: 'someOtherAliasValue' });
     });
     it('should remove alias when deleted from sfdx aliases', async () => {
-      sandbox.stub(fs.promises, 'readFile').resolves("{ orgs: { ['myorg']: username } }");
+      sandbox.stub(fs.promises, 'readFile').resolves(`{ "orgs": { "myorg": "${username}" } }`);
       const getContentsStub = sinon.stub().returns(auth);
       sandbox.replace(ConfigFile.prototype, 'getContents', getContentsStub);
       const sfInfo = {

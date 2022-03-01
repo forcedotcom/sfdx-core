@@ -70,7 +70,7 @@ export function resolveProjectPathSync(dir: string = process.cwd()): string {
  * @param dir The directory path in which to start the upward search.
  * @param file The file name to look for.
  */
-async function traverseForFile(dir: string, file: string): Promise<Optional<string>> {
+export async function traverseForFile(dir: string, file: string): Promise<Optional<string>> {
   let foundProjectDir: Optional<string>;
   try {
     await fs.promises.stat(join(dir, file));
@@ -95,7 +95,7 @@ async function traverseForFile(dir: string, file: string): Promise<Optional<stri
  * @param dir The directory path in which to start the upward search.
  * @param file The file name to look for.
  */
-function traverseForFileSync(dir: string, file: string): Optional<string> {
+export function traverseForFileSync(dir: string, file: string): Optional<string> {
   let foundProjectDir: Optional<string>;
   try {
     fs.statSync(join(dir, file));

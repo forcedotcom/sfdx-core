@@ -20,7 +20,7 @@ describe('SfProject', () => {
 
   beforeEach(async () => {
     projectPath = await $$.localPathRetriever($$.id);
-    // @ts-ignore
+    // @ts-ignore private method
     SfProject.instances.clear();
   });
 

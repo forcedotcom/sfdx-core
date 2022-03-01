@@ -10,15 +10,16 @@
 import * as dns from 'dns';
 import * as pathImport from 'path';
 import { URL } from 'url';
+import * as fs from 'fs';
 import { cloneJson, Duration, env, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
-import { AnyJson, AnyFunction, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
+import { AnyFunction, AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { OAuth2, OAuth2Config } from 'jsforce';
 import { match } from 'sinon';
 import { Transport } from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
-import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
+import { AuthFields, AuthInfo } from '../../../src/org';
 import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
@@ -27,7 +28,6 @@ import { AliasAccessor, GlobalInfo, OrgAccessor } from '../../../src/globalInfo'
 import { Crypto } from '../../../src/crypto/crypto';
 import { SfError } from '../../../src/sfError';
 import { testSetup } from '../../../src/testSetup';
-import { fs } from '../../../src/util/fs';
 import { MyDomainResolver, SfdcUrl } from '../../../src/exported';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 
@@ -266,12 +266,11 @@ describe('AuthInfo', () => {
       return Promise.resolve();
     });
 
-    stubMethod($$.SANDBOX, fs, 'mkdirp').resolves();
-    stubMethod($$.SANDBOX, fs, 'write')
+    stubMethod($$.SANDBOX, fs.promises, 'writeFile')
       .withArgs(match(/.*key.json/))
       .resolves()
       .rejects(); // .callThrough;
-    stubMethod($$.SANDBOX, fs, 'readJsonMap')
+    stubMethod($$.SANDBOX, fs.promises, 'readFile')
       .withArgs(match(/.*key.json/))
       .resolves({})
       .rejects();
@@ -535,7 +534,7 @@ describe('AuthInfo', () => {
     //
 
     describe('ordered test', () => {
-      // There is an implicit order in these tests. Hence the isolation in the describe and the unique
+      // There is an implicit order in these tests. Hence the isolation in the "describe" and the unique
       // username that is generated in the MetaMock constructor.
       const sharedTestMeta = new MetaAuthDataMock();
       beforeEach(async () => {
@@ -556,7 +555,7 @@ describe('AuthInfo', () => {
         };
 
         // Stub file I/O, http requests, and the DNS lookup
-        readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
+        readFileStub.resolves('authInfoTest_private_key');
         _postParmsStub.returns(Promise.resolve(authResponse));
         stubMethod($$.SANDBOX, jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
         stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>

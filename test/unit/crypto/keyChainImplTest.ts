@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'fs';
 import { assert, expect } from 'chai';
 import { KeychainAccess, keyChainImpl } from '../../../src/crypto/keyChainImpl';
 import { testSetup } from '../../../src/testSetup';
-import { fs } from '../../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
