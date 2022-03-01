@@ -4,14 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as fs from 'fs';
 import { set } from '@salesforce/kit';
 import { PartialDeep } from '@salesforce/kit/lib/nodash/support';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { GlobalInfo, SfInfo, SfInfoKeys } from '../../../src/globalInfo';
+import { AliasesHandler, AuthHandler, GlobalInfo, SfdxDataHandler, SfInfo, SfInfoKeys } from '../../../src/globalInfo';
 import { ConfigFile } from '../../../src/config/configFile';
-import { AliasesHandler, AuthHandler, SfdxDataHandler } from '../../../src/globalInfo/sfdxDataHandler';
-import { fs } from '../../../src/exported';
 import { SfOrg } from '../../../lib/globalInfo';
 
 describe('SfdxDataHandler', () => {
@@ -319,7 +318,7 @@ describe('AliasesHandler', () => {
   describe('migrate', () => {
     const username = 'myAccount@salesforce.com';
     it('should migrate aliases from sfdx to sf', async () => {
-      sandbox.stub(fs, 'readJson').resolves({ orgs: { ['myorg']: username } });
+      sandbox.stub(fs.promises, 'readFile').resolves("{ orgs: { ['myorg']: username } }");
       const aliasesHandler = new AliasesHandler();
       const migrated = await aliasesHandler.migrate();
       expect(migrated.aliases).to.deep.equal({ ['myorg']: username });
@@ -335,7 +334,9 @@ describe('AliasesHandler', () => {
       instanceUrl: 'https://login.salesforce.com',
     } as SfOrg;
     it('should merge sfdx aliases to aliases', async () => {
-      sandbox.stub(fs, 'readJson').resolves({ orgs: { myorg: username, someOtherAlias: 'someOtherAliasValue' } });
+      sandbox
+        .stub(fs.promises, 'readFile')
+        .resolves("{ orgs: { myorg: username, someOtherAlias: 'someOtherAliasValue' } }");
       const getContentsStub = sinon.stub().returns(auth);
       sandbox.replace(ConfigFile.prototype, 'getContents', getContentsStub);
       const sfInfo = {
@@ -348,7 +349,7 @@ describe('AliasesHandler', () => {
       expect(merged.aliases).to.deep.equal({ ['myorg']: username, someOtherAlias: 'someOtherAliasValue' });
     });
     it('should remove alias when deleted from sfdx aliases', async () => {
-      sandbox.stub(fs, 'readJson').resolves({ orgs: { ['myorg']: username } });
+      sandbox.stub(fs.promises, 'readFile').resolves("{ orgs: { ['myorg']: username } }");
       const getContentsStub = sinon.stub().returns(auth);
       sandbox.replace(ConfigFile.prototype, 'getContents', getContentsStub);
       const sfInfo = {

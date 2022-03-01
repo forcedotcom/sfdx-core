@@ -6,15 +6,16 @@
  */
 
 import { dirname as pathDirname, join as pathJoin } from 'path';
-import { keyBy, set } from '@salesforce/kit';
+import * as fs from 'fs';
+import { keyBy, parseJsonMap, set } from '@salesforce/kit';
 import { Dictionary, ensure, isBoolean, isString, JsonPrimitive } from '@salesforce/ts-types';
+import * as mkdirp from 'mkdirp';
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { sfdc } from '../util/sfdc';
-import { fs } from '../util/fs';
 import { SfdcUrl } from '../util/sfdcUrl';
-import { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from '../org/orgConfigProperties';
+import { ORG_CONFIG_ALLOWED_PROPERTIES } from '../org/orgConfigProperties';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -105,20 +106,6 @@ export interface ConfigPropertyMetaInput {
 
 export enum SfdxPropertyKeys {
   /**
-   * Username associated with the default dev hub org.
-   *
-   * @deprecated Replaced by OrgConfigProperties.TARGET_DEV_HUB in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
-   */
-  DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername',
-
-  /**
-   * Username associate with the default org.
-   *
-   * @deprecated Replaced by OrgConfigProperties.TARGET_ORG in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
-   */
-  DEFAULT_USERNAME = 'defaultusername',
-
-  /**
    * The sid for the debugger configuration.
    */
   ISV_DEBUGGER_SID = 'isvDebuggerSid',
@@ -183,18 +170,6 @@ export const SFDX_ALLOWED_PROPERTIES = [
       validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
       failedMessage: messages.getMessage('invalidApiVersion'),
     },
-  },
-  {
-    key: SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME,
-    newKey: OrgConfigProperties.TARGET_DEV_HUB,
-    deprecated: true,
-    description: messages.getMessage('defaultDevHubUsername'),
-  },
-  {
-    key: SfdxPropertyKeys.DEFAULT_USERNAME,
-    newKey: OrgConfigProperties.TARGET_ORG,
-    deprecated: true,
-    description: messages.getMessage('defaultUsername'),
   },
   {
     key: SfdxPropertyKeys.ISV_DEBUGGER_SID,
@@ -562,7 +537,7 @@ class SfdxConfig {
 
   public readSync(): ConfigProperties {
     try {
-      const contents = fs.readJsonMapSync(this.getSfdxPath());
+      const contents = parseJsonMap(fs.readFileSync(this.getSfdxPath(), 'utf8'));
       return this.normalize(contents as ConfigProperties, 'toNew');
     } catch (error) {
       /* Do nothing */
@@ -573,9 +548,9 @@ class SfdxConfig {
   public async writeSync(config = this.config.toObject()) {
     try {
       const sfdxPath = this.getSfdxPath();
-      await fs.mkdirp(pathDirname(sfdxPath));
+      await mkdirp(pathDirname(sfdxPath));
       const mapped = this.normalize(config as ConfigProperties, 'toOld');
-      await fs.writeJson(sfdxPath, mapped);
+      await fs.promises.writeFile(sfdxPath, JSON.stringify(mapped, null, 2));
     } catch (error) {
       /* Do nothing */
     }

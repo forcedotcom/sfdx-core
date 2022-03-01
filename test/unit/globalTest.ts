@@ -44,7 +44,7 @@ describe('Global', () => {
       await Global.createDir();
       expect(mkdirpSpy.called).to.be.true;
       expect(mkdirpSpy.firstCall.args[0]).to.equal(Global.SFDX_DIR);
-      expect(mkdirpSpy.firstCall.args[1]).to.equal(fs.DEFAULT_USER_DIR_MODE);
+      expect(mkdirpSpy.firstCall.args[1]).to.equal('700');
     });
 
     it('should create a dir within the global dir when a dirPath is passed', async () => {
@@ -53,7 +53,7 @@ describe('Global', () => {
       await Global.createDir(dirPath);
       expect(mkdirpSpy.called).to.be.true;
       expect(mkdirpSpy.firstCall.args[0]).to.equal(path.join(Global.SFDX_DIR, dirPath));
-      expect(mkdirpSpy.firstCall.args[1]).to.equal(fs.DEFAULT_USER_DIR_MODE);
+      expect(mkdirpSpy.firstCall.args[1]).to.equal('700');
     });
   });
 });

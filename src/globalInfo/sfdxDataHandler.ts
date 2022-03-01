@@ -6,10 +6,10 @@
  */
 
 import { basename, extname, join } from 'path';
-import { set } from '@salesforce/kit';
+import * as fs from 'fs';
+import { parseJson, set } from '@salesforce/kit';
 import { ensureString, isPlainObject } from '@salesforce/ts-types';
 import { Global } from '../global';
-import { fs } from '../util/fs';
 import { ConfigFile } from '../config/configFile';
 import { deepCopy, GlobalInfo } from './globalInfoConfig';
 import { SfOrgs, SfOrg, SfInfo, SfInfoKeys } from './types';
@@ -174,7 +174,7 @@ export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
   }
 
   public async listAllAuthFiles(): Promise<string[]> {
-    const globalFiles = await fs.readdir(Global.SFDX_DIR);
+    const globalFiles = await fs.promises.readdir(Global.SFDX_DIR);
     return globalFiles.filter((file) => file.match(AuthHandler.authFilenameFilterRegEx));
   }
 
@@ -201,7 +201,9 @@ export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
   public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.ALIASES>> {
     const aliasesFilePath = join(Global.SFDX_DIR, AliasesHandler.SFDX_ALIASES_FILENAME);
     try {
-      const sfdxAliases = ((await fs.readJson(aliasesFilePath)) as Record<'orgs', Record<string, string>>).orgs;
+      const sfdxAliases = (
+        parseJson(await fs.promises.readFile(aliasesFilePath, 'utf8')) as Record<'orgs', Record<string, string>>
+      ).orgs;
       return { [this.sfKey]: { ...sfdxAliases } };
     } catch (e) {
       return { [this.sfKey]: {} };
@@ -244,6 +246,6 @@ export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
 
   public async write(latest: SfInfo): Promise<void> {
     const aliasesFilePath = join(Global.SFDX_DIR, AliasesHandler.SFDX_ALIASES_FILENAME);
-    fs.writeJson(aliasesFilePath, { orgs: latest[SfInfoKeys.ALIASES] });
+    await fs.promises.writeFile(aliasesFilePath, JSON.stringify({ orgs: latest[SfInfoKeys.ALIASES] }, null, 2));
   }
 }

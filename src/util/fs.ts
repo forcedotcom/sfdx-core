@@ -256,7 +256,7 @@ export const fs = Object.assign({}, fsLib, {
     const fileData: string = JSON.stringify(data, null, options.space);
     await fs.writeFile(jsonPath, fileData, {
       encoding: 'utf8',
-      mode: fs.DEFAULT_USER_FILE_MODE,
+      mode: '600',
     });
   },
 
@@ -271,7 +271,7 @@ export const fs = Object.assign({}, fsLib, {
     const fileData: string = JSON.stringify(data, null, options.space);
     fs.writeFileSync(jsonPath, fileData, {
       encoding: 'utf8',
-      mode: fs.DEFAULT_USER_FILE_MODE,
+      mode: '600',
     });
   },
 

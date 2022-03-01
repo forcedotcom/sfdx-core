@@ -8,6 +8,8 @@ import { EventEmitter } from 'events';
 import * as os from 'os';
 import * as path from 'path';
 import { Writable } from 'stream';
+import * as fs from 'fs';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as Bunyan from '@salesforce/bunyan';
 import { parseJson, parseJsonMap } from '@salesforce/kit';
@@ -25,9 +27,9 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import * as Debug from 'debug';
+import * as mkdirp from 'mkdirp';
 import { Global, Mode } from './global';
 import { SfError } from './sfError';
-import { fs } from './util/fs';
 
 /**
  * A Bunyan `Serializer` function.
@@ -395,17 +397,17 @@ export class Logger {
   public async addLogFileStream(logFile: string): Promise<void> {
     try {
       // Check if we have write access to the log file (i.e., we created it already)
-      await fs.access(logFile, fs.constants.W_OK);
+      await fs.promises.access(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        await fs.mkdirp(path.dirname(logFile), {
-          mode: fs.DEFAULT_USER_DIR_MODE,
+        await mkdirp(path.dirname(logFile), {
+          mode: '700',
         });
       } catch (err2) {
         // noop; directory exists already
       }
       try {
-        await fs.writeFile(logFile, '', { mode: fs.DEFAULT_USER_FILE_MODE });
+        await fs.promises.writeFile(logFile, '', { mode: '600' });
       } catch (err3) {
         throw SfError.wrap(err3 as string | Error);
       }
@@ -440,14 +442,14 @@ export class Logger {
       fs.accessSync(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        fs.mkdirpSync(path.dirname(logFile), {
-          mode: fs.DEFAULT_USER_DIR_MODE,
+        mkdirp.sync(path.dirname(logFile), {
+          mode: '700',
         });
       } catch (err2) {
         // noop; directory exists already
       }
       try {
-        fs.writeFileSync(logFile, '', { mode: fs.DEFAULT_USER_FILE_MODE });
+        fs.writeFileSync(logFile, '', { mode: '600' });
       } catch (err3) {
         throw SfError.wrap(err3 as string | Error);
       }
@@ -577,7 +579,7 @@ export class Logger {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.bunyan.streams.forEach(async (stream: any) => {
         if (stream.type === 'file') {
-          content += await fs.readFile(stream.path, 'utf8');
+          content += await fs.promises.readFile(stream.path, 'utf8');
         }
       });
       return content;

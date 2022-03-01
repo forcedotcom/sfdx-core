@@ -5,8 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'fs';
+import { join, resolve } from 'path';
+import { Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
-import { fs } from './fs';
+import { SfError } from '../sfError';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'config', ['invalidProjectWorkspace']);
@@ -32,7 +35,7 @@ export const SFDX_PROJECT_JSON = 'sfdx-project.json';
  * @ignore
  */
 export async function resolveProjectPath(dir: string = process.cwd()): Promise<string> {
-  const projectPath = await fs.traverseForFile(dir, SFDX_PROJECT_JSON);
+  const projectPath = await traverseForFile(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
     throw messages.createError('invalidProjectWorkspace');
   }
@@ -52,9 +55,59 @@ export async function resolveProjectPath(dir: string = process.cwd()): Promise<s
  * @ignore
  */
 export function resolveProjectPathSync(dir: string = process.cwd()): string {
-  const projectPath = fs.traverseForFileSync(dir, SFDX_PROJECT_JSON);
+  const projectPath = traverseForFileSync(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
     throw messages.createError('invalidProjectWorkspace');
   }
   return projectPath;
+}
+
+/**
+ * Searches a file path in an ascending manner (until reaching the filesystem root) for the first occurrence a
+ * specific file name.  Resolves with the directory path containing the located file, or `null` if the file was
+ * not found.
+ *
+ * @param dir The directory path in which to start the upward search.
+ * @param file The file name to look for.
+ */
+async function traverseForFile(dir: string, file: string): Promise<Optional<string>> {
+  let foundProjectDir: Optional<string>;
+  try {
+    await fs.promises.stat(join(dir, file));
+    foundProjectDir = dir;
+  } catch (err) {
+    if (err && (err as SfError).code === 'ENOENT') {
+      const nextDir = resolve(dir, '..');
+      if (nextDir !== dir) {
+        // stop at root
+        foundProjectDir = await traverseForFile(nextDir, file);
+      }
+    }
+  }
+  return foundProjectDir;
+}
+
+/**
+ * Searches a file path synchronously in an ascending manner (until reaching the filesystem root) for the first occurrence a
+ * specific file name.  Resolves with the directory path containing the located file, or `null` if the file was
+ * not found.
+ *
+ * @param dir The directory path in which to start the upward search.
+ * @param file The file name to look for.
+ */
+function traverseForFileSync(dir: string, file: string): Optional<string> {
+  let foundProjectDir: Optional<string>;
+  try {
+    fs.statSync(join(dir, file));
+    foundProjectDir = dir;
+  } catch (err) {
+    if (err && (err as SfError).code === 'ENOENT') {
+      const nextDir = resolve(dir, '..');
+      if (nextDir !== dir) {
+        // stop at root
+        foundProjectDir = traverseForFileSync(nextDir, file);
+      }
+    }
+  }
+  return foundProjectDir;
 }

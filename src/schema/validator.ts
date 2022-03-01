@@ -6,7 +6,8 @@
  */
 
 import * as path from 'path';
-import { getJsonValuesByName } from '@salesforce/kit';
+import * as fs from 'fs';
+import { getJsonValuesByName, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
   asJsonArray,
@@ -23,7 +24,6 @@ import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
-import { fs } from '../util/fs';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.
@@ -50,7 +50,7 @@ export class SchemaValidator {
    */
   public async load(): Promise<JsonMap> {
     if (!this.schema) {
-      this.schema = await fs.readJsonMap(this.schemaPath);
+      this.schema = parseJsonMap(await fs.promises.readFile(this.schemaPath, 'utf8'));
       this.logger.debug(`Schema loaded for ${this.schemaPath}`);
     }
     return this.schema;
@@ -61,7 +61,7 @@ export class SchemaValidator {
    */
   public loadSync(): JsonMap {
     if (!this.schema) {
-      this.schema = fs.readJsonMapSync(this.schemaPath);
+      this.schema = parseJsonMap(fs.readFileSync(this.schemaPath, 'utf8'));
       this.logger.debug(`Schema loaded for ${this.schemaPath}`);
     }
     return this.schema;
@@ -151,7 +151,7 @@ export class SchemaValidator {
   private loadExternalSchema(uri: string): JsonMap {
     const schemaPath = path.join(this.schemasDir, `${uri}.json`);
     try {
-      return fs.readJsonMapSync(schemaPath);
+      return parseJsonMap(fs.readFileSync(schemaPath, 'utf8'));
     } catch (err) {
       if ((err as SfError).code === 'ENOENT') {
         throw new SfError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');
