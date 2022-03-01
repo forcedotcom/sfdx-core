@@ -201,9 +201,8 @@ export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
   public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.ALIASES>> {
     const aliasesFilePath = join(Global.SFDX_DIR, AliasesHandler.SFDX_ALIASES_FILENAME);
     try {
-      const sfdxAliases = (
-        parseJson(await fs.promises.readFile(aliasesFilePath, 'utf8')) as Record<'orgs', Record<string, string>>
-      ).orgs;
+      const x = await fs.promises.readFile(aliasesFilePath, 'utf8');
+      const sfdxAliases = (parseJson(x) as Record<'orgs', Record<string, string>>).orgs;
       return { [this.sfKey]: { ...sfdxAliases } };
     } catch (e) {
       return { [this.sfKey]: {} };
