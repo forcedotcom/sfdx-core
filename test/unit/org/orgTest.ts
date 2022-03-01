@@ -170,7 +170,7 @@ describe('Org Tests', () => {
     describe('mock remove', () => {
       let removeStub: sinon.SinonStub;
       beforeEach(() => {
-        removeStub = stubMethod($$.SANDBOX, fs.promises, 'rm').resolves();
+        removeStub = stubMethod($$.SANDBOX, fs.promises, 'rmdir').resolves();
       });
 
       it('no org data path', async () => {
