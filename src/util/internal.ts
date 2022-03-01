@@ -35,7 +35,7 @@ export const SFDX_PROJECT_JSON = 'sfdx-project.json';
  * @ignore
  */
 export async function resolveProjectPath(dir: string = process.cwd()): Promise<string> {
-  const projectPath = await traverseForFile(dir, SFDX_PROJECT_JSON);
+  const projectPath = await traverse.forFile(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
     throw messages.createError('invalidProjectWorkspace');
   }
@@ -55,7 +55,7 @@ export async function resolveProjectPath(dir: string = process.cwd()): Promise<s
  * @ignore
  */
 export function resolveProjectPathSync(dir: string = process.cwd()): string {
-  const projectPath = traverseForFileSync(dir, SFDX_PROJECT_JSON);
+  const projectPath = traverse.forFileSync(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
     throw messages.createError('invalidProjectWorkspace');
   }
@@ -63,51 +63,58 @@ export function resolveProjectPathSync(dir: string = process.cwd()): string {
 }
 
 /**
- * Searches a file path in an ascending manner (until reaching the filesystem root) for the first occurrence a
- * specific file name.  Resolves with the directory path containing the located file, or `null` if the file was
- * not found.
+ * These methods were moved from the deprecated 'fs' module in v2 and are only used in sfdx-core above
  *
- * @param dir The directory path in which to start the upward search.
- * @param file The file name to look for.
+ * They were migrated into the 'traverse' constant in order to stub them in unit tests
  */
-export async function traverseForFile(dir: string, file: string): Promise<Optional<string>> {
-  let foundProjectDir: Optional<string>;
-  try {
-    await fs.promises.stat(join(dir, file));
-    foundProjectDir = dir;
-  } catch (err) {
-    if (err && (err as SfError).code === 'ENOENT') {
-      const nextDir = resolve(dir, '..');
-      if (nextDir !== dir) {
-        // stop at root
-        foundProjectDir = await traverseForFile(nextDir, file);
+export const traverse = {
+  /**
+   * Searches a file path in an ascending manner (until reaching the filesystem root) for the first occurrence a
+   * specific file name.  Resolves with the directory path containing the located file, or `null` if the file was
+   * not found.
+   *
+   * @param dir The directory path in which to start the upward search.
+   * @param file The file name to look for.
+   */
+  forFile: async (dir: string, file: string): Promise<Optional<string>> => {
+    let foundProjectDir: Optional<string>;
+    try {
+      fs.statSync(join(dir, file));
+      foundProjectDir = dir;
+    } catch (err) {
+      if (err && (err as SfError).code === 'ENOENT') {
+        const nextDir = resolve(dir, '..');
+        if (nextDir !== dir) {
+          // stop at root
+          foundProjectDir = await traverse.forFile(nextDir, file);
+        }
       }
     }
-  }
-  return foundProjectDir;
-}
+    return foundProjectDir;
+  },
 
-/**
- * Searches a file path synchronously in an ascending manner (until reaching the filesystem root) for the first occurrence a
- * specific file name.  Resolves with the directory path containing the located file, or `null` if the file was
- * not found.
- *
- * @param dir The directory path in which to start the upward search.
- * @param file The file name to look for.
- */
-export function traverseForFileSync(dir: string, file: string): Optional<string> {
-  let foundProjectDir: Optional<string>;
-  try {
-    fs.statSync(join(dir, file));
-    foundProjectDir = dir;
-  } catch (err) {
-    if (err && (err as SfError).code === 'ENOENT') {
-      const nextDir = resolve(dir, '..');
-      if (nextDir !== dir) {
-        // stop at root
-        foundProjectDir = traverseForFileSync(nextDir, file);
+  /**
+   * Searches a file path synchronously in an ascending manner (until reaching the filesystem root) for the first occurrence a
+   * specific file name.  Resolves with the directory path containing the located file, or `null` if the file was
+   * not found.
+   *
+   * @param dir The directory path in which to start the upward search.
+   * @param file The file name to look for.
+   */
+  forFileSync: (dir: string, file: string): Optional<string> => {
+    let foundProjectDir: Optional<string>;
+    try {
+      fs.statSync(join(dir, file));
+      foundProjectDir = dir;
+    } catch (err) {
+      if (err && (err as SfError).code === 'ENOENT') {
+        const nextDir = resolve(dir, '..');
+        if (nextDir !== dir) {
+          // stop at root
+          foundProjectDir = traverse.forFileSync(nextDir, file);
+        }
       }
     }
-  }
-  return foundProjectDir;
-}
+    return foundProjectDir;
+  },
+};
