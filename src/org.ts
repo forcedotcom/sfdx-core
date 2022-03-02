@@ -205,12 +205,18 @@ export class Org extends AsyncCreatable<Org.Options> {
     return scratchOrgCreate({ ...options, hubOrg: this });
   }
 
-  public async sandboxStatus(sandboxname: string, options: { wait?: Duration; interval?: Duration }): Promise<unknown> {
-    this.logger.debug('Status started with options %s ', this.options);
-    this.logger.debug('Calling auth for SandboxName args: %s ', sandboxname);
-    const results = await this.authWithRetriesByName(sandboxname, options);
-    this.logger.debug('Results for auth call: %s ', results);
-    return results;
+  /**
+   * Reports sandbox org creation status. If the org is ready, authenticates to the org.
+   *
+   * @param {sandboxname} string the sandbox name
+   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
+   * @returns {SandboxProcessObject} the sandbox process object
+   */
+  public async sandboxStatus(
+    sandboxname: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    return this.authWithRetriesByName(sandboxname, options);
   }
 
   /**
