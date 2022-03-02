@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { basename, dirname, isAbsolute, normalize, sep } from 'path';
+import * as fs from 'fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { SfdcUrl } from './util/sfdcUrl';
@@ -13,7 +14,6 @@ import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 
 import { SchemaValidator } from './schema/validator';
-import { fs } from './util/fs';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
 import { SfError } from './sfError';

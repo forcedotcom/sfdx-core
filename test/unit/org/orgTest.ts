@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { deepStrictEqual } from 'assert';
+import * as fs from 'fs';
 import { constants as fsConstants } from 'fs';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
@@ -14,17 +15,22 @@ import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optiona
 import { assert, expect } from 'chai';
 import { OAuth2 } from 'jsforce';
 import { Transport } from 'jsforce/lib/transport';
-import { AuthFields, AuthInfo } from '../../../src/org';
+import {
+  AuthFields,
+  AuthInfo,
+  Connection,
+  Org,
+  SandboxProcessObject,
+  SandboxUserAuthResponse,
+  SingleRecordQueryErrors,
+} from '../../../src/org';
 import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
 import { SandboxOrgConfig } from '../../../src/config/sandboxOrgConfig';
-import { Connection, SingleRecordQueryErrors } from '../../../src/org';
 import { Global } from '../../../src/global';
-import { Org, SandboxProcessObject, SandboxUserAuthResponse } from '../../../src/org';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
-import { fs } from '../../../src/util/fs';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { GlobalInfo, OrgAccessor } from '../../../src/globalInfo';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
@@ -164,9 +170,7 @@ describe('Org Tests', () => {
     describe('mock remove', () => {
       let removeStub: sinon.SinonStub;
       beforeEach(() => {
-        removeStub = stubMethod($$.SANDBOX, fs, 'remove').callsFake(() => {
-          return Promise.resolve();
-        });
+        removeStub = stubMethod($$.SANDBOX, fs.promises, 'rmdir').resolves();
       });
 
       it('no org data path', async () => {
@@ -193,7 +197,7 @@ describe('Org Tests', () => {
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolderSync').callsFake(() => {
         return $$.rootPathRetrieverSync(false);
       });
-      stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
+      stubMethod($$.SANDBOX, fs, 'readFile').resolves({});
       const orgDataPath = 'foo';
       const org = await createOrgViaAuthInfo();
 
@@ -214,7 +218,7 @@ describe('Org Tests', () => {
       stubMethod($$.SANDBOX, ConfigFile, 'resolveRootFolderSync').callsFake(() => {
         return osTmpdir();
       });
-      stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(() => Promise.resolve({}));
+      stubMethod($$.SANDBOX, fs, 'readFile').resolves({});
       const orgDataPath = 'foo';
       const org = await createOrgViaAuthInfo();
 
@@ -529,7 +533,7 @@ describe('Org Tests', () => {
         return Promise.resolve({});
       });
 
-      stubMethod($$.SANDBOX, fs, 'remove').callsFake(() => {
+      stubMethod($$.SANDBOX, fs, 'rmdir').callsFake(() => {
         return Promise.resolve({});
       });
 
@@ -558,7 +562,7 @@ describe('Org Tests', () => {
         throw error;
       });
 
-      stubMethod($$.SANDBOX, fs, 'remove').callsFake(async () => {
+      stubMethod($$.SANDBOX, fs, 'rmdir').callsFake(async () => {
         return Promise.reject(error);
       });
 
@@ -574,9 +578,7 @@ describe('Org Tests', () => {
         return this.path && this.path.endsWith(`${testData.orgId}.json`);
       });
 
-      stubMethod($$.SANDBOX, fs, 'unlink').callsFake(() => {
-        return Promise.resolve({});
-      });
+      stubMethod($$.SANDBOX, fs.promises, 'unlink').resolves();
 
       const configAggregator: ConfigAggregator = await ConfigAggregator.create();
       const org: Org = await Org.create({
@@ -605,9 +607,8 @@ describe('Org Tests', () => {
         return this.path && this.path.endsWith(`${testData.orgId}.json`);
       });
 
-      stubMethod($$.SANDBOX, fs, 'unlink').callsFake(() => {
-        return Promise.resolve({});
-      });
+      stubMethod($$.SANDBOX, fs.promises, 'unlink').resolves();
+
       const org = await createOrgViaAuthInfo();
 
       const globalInfo = await GlobalInfo.getInstance();
@@ -630,7 +631,7 @@ describe('Org Tests', () => {
         return Promise.resolve({});
       });
 
-      stubMethod($$.SANDBOX, fs, 'remove').callsFake(() => {
+      stubMethod($$.SANDBOX, fs, 'rmdir').callsFake(() => {
         return Promise.resolve({});
       });
 

@@ -7,6 +7,7 @@
 import { randomBytes } from 'crypto';
 import { resolve as pathResolve } from 'path';
 import * as os from 'os';
+import * as fs from 'fs';
 import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
@@ -29,9 +30,8 @@ import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
-import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
-import { SfOrg, GlobalInfo } from '../globalInfo';
+import { GlobalInfo, SfOrg } from '../globalInfo';
 import { Messages } from '../messages';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
@@ -778,7 +778,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   // Build OAuth config for a JWT auth flow
   private async buildJwtConfig(options: OAuth2Config): Promise<AuthFields> {
-    const privateKeyContents = await fs.readFile(ensure(options.privateKey), 'utf8');
+    const privateKeyContents = await fs.promises.readFile(ensure(options.privateKey), 'utf8');
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
     const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();

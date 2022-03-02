@@ -107,6 +107,5 @@ export { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } fro
 export { ScratchOrgInfo } from './org/scratchOrgInfoApi';
 
 // Utility sub-modules
-export * from './util/fs';
 export * from './util/sfdc';
 export * from './util/sfdcUrl';

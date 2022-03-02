@@ -6,6 +6,7 @@
  */
 
 import { join as pathJoin } from 'path';
+import * as fs from 'fs';
 import { AsyncOptionalCreatable, Duration, sleep } from '@salesforce/kit';
 import {
   AnyFunction,
@@ -31,14 +32,13 @@ import { Global } from '../global';
 import { Lifecycle } from '../lifecycleEvents';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
-import { fs } from '../util/fs';
 import { sfdc } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
 import { GlobalInfo } from '../globalInfo';
 import { Connection, SingleRecordQueryErrors } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
-import { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from './scratchOrgCreate';
+import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } from './scratchOrgCreate';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
@@ -252,7 +252,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw err;
     }
 
-    return this.manageDelete(async () => await fs.remove(dataPath), dataPath, throwWhenRemoveFails);
+    return this.manageDelete(async () => await fs.promises.rmdir(dataPath), dataPath, throwWhenRemoveFails);
   }
 
   /**
