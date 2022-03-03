@@ -609,7 +609,7 @@ export class Messages<T extends string> {
     const searchValue: RegExp = type === 'error' ? /^error.*\./ : new RegExp(`^${type}.`);
     // Convert key to name:
     //     'myMessage' -> `MyMessageWarning`
-    //     'myMessageError' -> `MyMessageWarning`
+    //     'myMessageError' -> `MyMessageError`
     //     'warning.myMessage' -> `MyMessageWarning`
     const name = `${upperFirst(key.replace(searchValue, ''))}${labelRegExp.exec(key) ? '' : label}`;
     const message = this.getMessage(key, tokens);
