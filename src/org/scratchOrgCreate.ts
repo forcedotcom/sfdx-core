@@ -10,7 +10,7 @@ import { Messages } from '../messages';
 import { Logger } from '../logger';
 import { ConfigAggregator } from '../config/configAggregator';
 import { SfProject } from '../sfProject';
-import { SfError } from '../sfError';
+import { Lifecycle } from '../lifecycleEvents';
 import { Org } from './org';
 import {
   authorizeScratchOrg,
@@ -212,15 +212,16 @@ const getSignupTargetLoginUrl = async (): Promise<string | undefined> => {
 const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void> => {
   const conn = scratchOrg.getConnection();
   const queryResult = await conn.tooling.sobject('SourceMember').find({ RevisionCounter: { $gt: 0 } }, ['Id']);
+  if (queryResult.length === 0) {
+    return;
+  }
   try {
     await conn.tooling
       .sobject('SourceMember')
       .update(queryResult.map((record) => ({ Id: record.Id, RevisionCounter: 0 })));
   } catch (err) {
-    const message = messages.getMessage('SourceStatusResetFailureError', [
-      scratchOrg.getOrgId(),
-      scratchOrg.getUsername(),
-    ]);
-    throw new SfError(message, 'SourceStatusResetFailure');
+    await Lifecycle.getInstance().emitWarning(
+      messages.getMessage('SourceStatusResetFailureError', [scratchOrg.getOrgId(), scratchOrg.getUsername()])
+    );
   }
 };
