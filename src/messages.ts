@@ -548,9 +548,9 @@ export class Messages<T extends string> {
     actionTokens: Tokens = [],
     exitCodeOrCause?: number | Error,
     cause?: Error
-  ): SfdxError {
+  ): SfError {
     const structuredMessage = this.formatMessageContents('error', key, tokens, actionTokens);
-    return new SfdxError(
+    return new SfError(
       structuredMessage.message,
       structuredMessage.name,
       structuredMessage.actions,
