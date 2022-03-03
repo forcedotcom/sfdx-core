@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.8](https://github.com/forcedotcom/sfdx-core/compare/v3.7.7...v3.7.8) (2022-03-03)
+
+### Bug Fixes
+
+- add create warning and info convenience functions ([#526](https://github.com/forcedotcom/sfdx-core/issues/526)) ([e3428b3](https://github.com/forcedotcom/sfdx-core/commit/e3428b35e00b9cee3c90153ed6ce08b352535ff7))
+
 ### [3.7.7](https://github.com/forcedotcom/sfdx-core/compare/v3.7.6...v3.7.7) (2022-03-01)
 
 ### [3.7.6](https://github.com/forcedotcom/sfdx-core/compare/v4.0.0...v3.7.6) (2022-02-28)
