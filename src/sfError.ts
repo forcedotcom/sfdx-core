@@ -21,10 +21,10 @@ import { hasString, isString, JsonMap } from '@salesforce/ts-types';
  * const messages = Messages.load('myPackageName', 'myBundleName');
  *
  * // To throw a non-bundle based error:
- * throw new SfdxError(message.getMessage('myError'), 'MyErrorName');
+ * throw new SfError(message.getMessage('myError'), 'MyErrorName');
  * ```
  */
-export class SfdxError extends NamedError {
+export class SfError extends NamedError {
   /**
    * Action messages. Hints to the users regarding what can be done to fix related issues.
    */
@@ -49,10 +49,10 @@ export class SfdxError extends NamedError {
   private _code?: string;
 
   /**
-   * Create an SfdxError.
+   * Create an SfError.
    *
    * @param message The error message.
-   * @param name The error name. Defaults to 'SfdxError'.
+   * @param name The error name. Defaults to 'SfError'.
    * @param actions The action message(s).
    * @param exitCodeOrCause The exit code which will be used by SfdxCommand or he underlying error that caused this error to be raised.
    * @param cause The underlying error that caused this error to be raised.
@@ -65,7 +65,7 @@ export class SfdxError extends NamedError {
     cause?: Error
   ) {
     cause = exitCodeOrCause instanceof Error ? exitCodeOrCause : cause;
-    super(name || 'SfdxError', message || name, cause);
+    super(name || 'SfError', message || name, cause);
     this.actions = actions;
     if (typeof exitCodeOrCause === 'number') {
       this.exitCode = exitCodeOrCause;
@@ -75,26 +75,26 @@ export class SfdxError extends NamedError {
   }
 
   /**
-   * Convert an Error to an SfdxError.
+   * Convert an Error to an SfError.
    *
    * @param err The error to convert.
    */
-  public static wrap(err: Error | string): SfdxError {
+  public static wrap(err: Error | string): SfError {
     if (isString(err)) {
-      return new SfdxError(err);
+      return new SfError(err);
     }
 
-    if (err instanceof SfdxError) {
+    if (err instanceof SfError) {
       return err;
     }
 
-    const sfdxError = new SfdxError(err.message, err.name, undefined, err);
+    const sfError = new SfError(err.message, err.name, undefined, err);
 
     // If the original error has a code, use that instead of name.
     if (hasString(err, 'code')) {
-      sfdxError.code = err.code;
+      sfError.code = err.code;
     }
-    return sfdxError;
+    return sfError;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,7 +111,7 @@ export class SfdxError extends NamedError {
    *
    * @param context The command name.
    */
-  public setContext(context: string): SfdxError {
+  public setContext(context: string): SfError {
     this.context = context;
     return this;
   }
@@ -121,13 +121,13 @@ export class SfdxError extends NamedError {
    *
    * @param data The payload data.
    */
-  public setData(data: unknown): SfdxError {
+  public setData(data: unknown): SfError {
     this.data = data;
     return this;
   }
 
   /**
-   * Convert an {@link SfdxError} state to an object. Returns a plain object representing the state of this error.
+   * Convert an {@link SfError} state to an object. Returns a plain object representing the state of this error.
    */
   public toObject(): JsonMap {
     const obj: JsonMap = {
@@ -148,12 +148,9 @@ export class SfdxError extends NamedError {
 
     return obj;
   }
-
-  /**
-   * @deprecated Does nothing. Do not use. This is kept around to support older versions of SfdxCommand.
-   * @param commandName
-   */
-  public setCommandName(): void {
-    /** Do nothing. */
-  }
 }
+
+/**
+ * @deprecated use SfError instead
+ */
+export class SfdxError extends SfError {}

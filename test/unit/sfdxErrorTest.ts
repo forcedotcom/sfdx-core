@@ -6,17 +6,17 @@
  */
 import { expect } from 'chai';
 import { Messages } from '../../src/messages';
-import { SfdxError } from '../../src/sfdxError';
+import { SfError } from '../../src/sfError';
 
 Messages.importMessageFile('pname', 'testMessages.json');
 
-describe('SfdxError', () => {
+describe('SfError', () => {
   describe('constructor', () => {
-    it('should return a mutable SfdxError', () => {
+    it('should return a mutable SfError', () => {
       const msg = 'this is a test message';
-      const err = new SfdxError(msg);
+      const err = new SfError(msg);
       expect(err.message).to.equal(msg);
-      expect(err.name).to.equal('SfdxError');
+      expect(err.name).to.equal('SfError');
       expect(err.actions).to.be.undefined;
       expect(err.exitCode).to.equal(1);
       const actions = ['Do this action', 'Do that action'];
@@ -33,11 +33,11 @@ describe('SfdxError', () => {
       const myErrorName = 'OhMyError';
       const myError = new Error(myErrorMsg);
       myError.name = myErrorName;
-      const mySfdxError = SfdxError.wrap(myError);
-      expect(mySfdxError).to.be.an.instanceOf(SfdxError);
-      expect(mySfdxError.message).to.equal(myErrorMsg);
-      expect(mySfdxError.name).to.equal(myErrorName);
-      expect(mySfdxError.fullStack).to.contain('Caused by:').and.contain(myError.stack);
+      const mySfError = SfError.wrap(myError);
+      expect(mySfError).to.be.an.instanceOf(SfError);
+      expect(mySfError.message).to.equal(myErrorMsg);
+      expect(mySfError.name).to.equal(myErrorName);
+      expect(mySfError.fullStack).to.contain('Caused by:').and.contain(myError.stack);
     });
 
     it('should return a wrapped error with a code', () => {
@@ -47,22 +47,22 @@ describe('SfdxError', () => {
       const myErrorCode = 'OhMyError';
       const myError = new CodeError('test');
       myError.code = myErrorCode;
-      const mySfdxError = SfdxError.wrap(myError);
-      expect(mySfdxError).to.be.an.instanceOf(SfdxError);
-      expect(mySfdxError.code).to.equal(myErrorCode);
+      const mySfError = SfError.wrap(myError);
+      expect(mySfError).to.be.an.instanceOf(SfError);
+      expect(mySfError.code).to.equal(myErrorCode);
     });
 
     it('should return a new error with just a string', () => {
-      const mySfdxError = SfdxError.wrap('test');
-      expect(mySfdxError).to.be.an.instanceOf(SfdxError);
-      expect(mySfdxError.message).to.equal('test');
+      const mySfError = SfError.wrap('test');
+      expect(mySfError).to.be.an.instanceOf(SfError);
+      expect(mySfError.message).to.equal('test');
     });
 
-    it('should return the error if already a SfdxError', () => {
-      const existingSfdxError = new SfdxError('test');
-      const mySfdxError = SfdxError.wrap(existingSfdxError);
-      expect(mySfdxError).to.be.an.instanceOf(SfdxError);
-      expect(mySfdxError).to.equal(existingSfdxError);
+    it('should return the error if already a SfError', () => {
+      const existingSfError = new SfError('test');
+      const mySfError = SfError.wrap(existingSfError);
+      expect(mySfError).to.be.an.instanceOf(SfError);
+      expect(mySfError).to.equal(existingSfError);
     });
   });
 
@@ -75,10 +75,10 @@ describe('SfdxError', () => {
       const context = 'TestContext1';
       const data = { foo: 'pity the foo' };
 
-      const sfdxError = new SfdxError(message, name, actions, exitCode);
-      sfdxError.setContext(context).setData(data);
+      const sfError = new SfError(message, name, actions, exitCode);
+      sfError.setContext(context).setData(data);
 
-      expect(sfdxError.toObject()).to.deep.equal({
+      expect(sfError.toObject()).to.deep.equal({
         name,
         message,
         exitCode,
@@ -92,9 +92,9 @@ describe('SfdxError', () => {
       const message = "it's a trap!";
       const name = 'BadError';
 
-      const sfdxError = new SfdxError(message, name);
+      const sfError = new SfError(message, name);
 
-      expect(sfdxError.toObject()).to.deep.equal({
+      expect(sfError.toObject()).to.deep.equal({
         name,
         message,
         exitCode: 1,

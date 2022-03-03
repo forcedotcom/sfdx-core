@@ -30,6 +30,21 @@
       "args": ["--timeout", "999999", "dist/test/unit/**/*.js"],
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/dist/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Active Test",
+      "protocol": "inspector",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": ["--inspect", "--no-timeouts", "--colors", "${file}"],
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "env": {
+        "NODE_ENV": "testing"
+      }
     }
   ]
 }

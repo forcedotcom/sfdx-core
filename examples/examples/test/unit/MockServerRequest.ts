@@ -1,4 +1,4 @@
-import { AuthInfo, Connection, SfdxError } from '@salesforce/core';
+import { AuthInfo, Connection, SfError } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { AnyJson, ensureJsonMap, JsonMap } from '@salesforce/ts-types';
 import { ensureString } from '@salesforce/ts-types';
@@ -23,7 +23,7 @@ describe('Mocking a force server call', () => {
       if (request && ensureString(_request.url).includes('Account')) {
         return Promise.resolve(records);
       } else {
-        return Promise.reject(new SfdxError(`Unexpected request: ${_request.url}`));
+        return Promise.reject(new SfError(`Unexpected request: ${_request.url}`));
       }
     };
     const connection: Connection = await Connection.create({

@@ -29,17 +29,18 @@ import {
   QueryResult,
   Record,
   Schema,
+  HttpMethods,
 } from 'jsforce';
 import { Tooling as JSForceTooling } from 'jsforce/lib/api/tooling';
 import { StreamPromise } from 'jsforce/lib/util/promise';
-import { AuthFields, AuthInfo } from '../org/authInfo';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
+import { AuthFields, AuthInfo } from './authInfo';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'connection', [
@@ -206,6 +207,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     delete options.rest;
     if (rest) {
       this.logger.debug('deploy with REST');
+      await this.refreshAuth();
       const headers: { [key: string]: string } = {
         Authorization: this && `OAuth ${this.accessToken}`,
         'Sforce-Call-Options': 'client=sfdx-core',
@@ -350,7 +352,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   /**
    * Set the API version for all connection requests.
    *
-   * **Throws** *{@link SfdxError}{ name: 'IncorrectAPIVersionError' }* Incorrect API version.
+   * **Throws** *{@link SfError}{ name: 'IncorrectAPIVersionError' }* Incorrect API version.
    *
    * @param version The API version.
    */
@@ -457,10 +459,10 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   ): Promise<T> {
     const result = options.tooling ? await this.tooling.query<T>(soql) : await this.query<T>(soql);
     if (result.totalSize === 0) {
-      throw new SfdxError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
+      throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
     }
     if (result.totalSize > 1) {
-      throw new SfdxError(
+      throw new SfError(
         options.returnChoicesOnMultiple
           ? `Multiple records found. ${result.records.map((item) => item[options.choiceField as keyof T]).join(',')}`
           : 'The query returned more than 1 record',
@@ -468,6 +470,19 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       );
     }
     return result.records[0];
+  }
+
+  /**
+   * Executes a get request on the baseUrl to force an auth refresh
+   * Useful for the raw methods (request, requestRaw) that use the accessToken directly and don't handle refreshes
+   */
+  public async refreshAuth(): Promise<void> {
+    this.logger.debug('Refreshing auth for org.');
+    const requestInfo = {
+      url: this.baseUrl(),
+      method: 'GET' as HttpMethods,
+    };
+    await this.request(requestInfo);
   }
 
   private async loadInstanceApiVersion(): Promise<Nullable<string>> {

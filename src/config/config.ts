@@ -6,15 +6,16 @@
  */
 
 import { dirname as pathDirname, join as pathJoin } from 'path';
-import { keyBy, set } from '@salesforce/kit';
+import * as fs from 'fs';
+import { keyBy, parseJsonMap, set } from '@salesforce/kit';
 import { Dictionary, ensure, isBoolean, isString, JsonPrimitive } from '@salesforce/ts-types';
+import * as mkdirp from 'mkdirp';
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { sfdc } from '../util/sfdc';
-import { fs } from '../util/fs';
 import { SfdcUrl } from '../util/sfdcUrl';
-import { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from '../org/orgConfigProperties';
+import { ORG_CONFIG_ALLOWED_PROPERTIES, OrgConfigProperties } from '../org/orgConfigProperties';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -108,6 +109,7 @@ export enum SfdxPropertyKeys {
    * Username associated with the default dev hub org.
    *
    * @deprecated Replaced by OrgConfigProperties.TARGET_DEV_HUB in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
+   * will remain in v3 for the foreseeable future so that `sfdx-core` can map between `sf` and `sfdx` config values
    */
   DEFAULT_DEV_HUB_USERNAME = 'defaultdevhubusername',
 
@@ -115,6 +117,7 @@ export enum SfdxPropertyKeys {
    * Username associate with the default org.
    *
    * @deprecated Replaced by OrgConfigProperties.TARGET_ORG in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
+   * will remain in v3 for the foreseeable future so that `sfdx-core` can map between `sf` and `sfdx` config values
    */
   DEFAULT_USERNAME = 'defaultusername',
 
@@ -185,12 +188,14 @@ export const SFDX_ALLOWED_PROPERTIES = [
     },
   },
   {
+    // will remain in v3 for the foreseeable future so that `sfdx-core` can map between `sf` and `sfdx` config values
     key: SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME,
     newKey: OrgConfigProperties.TARGET_DEV_HUB,
     deprecated: true,
     description: messages.getMessage('defaultDevHubUsername'),
   },
   {
+    // will remain in v3 for the foreseeable future so that `sfdx-core` can map between `sf` and `sfdx` config values
     key: SfdxPropertyKeys.DEFAULT_USERNAME,
     newKey: OrgConfigProperties.TARGET_ORG,
     deprecated: true,
@@ -414,7 +419,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * DO NOT CALL - The config file needs to encrypt values which can only be done asynchronously.
    * Call {@link SfdxConfig.write} instead.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidWriteError' }* Always.
+   * **Throws** *{@link SfError}{ name: 'InvalidWriteError' }* Always.
    *
    * @param newContents Contents to write
    */
@@ -426,8 +431,8 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   /**
    * Sets a value for a property.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
-   * **Throws** *{@link SfdxError}{ name: 'InvalidConfigValueError' }* If the input validator fails.
+   * **Throws** *{@link SfError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
+   * **Throws** *{@link SfError}{ name: 'InvalidConfigValueError' }* If the input validator fails.
    *
    * @param key The property to set.
    * @param value The value of the property.
@@ -463,7 +468,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   /**
    * Unsets a value for a property.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* If the input validator fails.
+   * **Throws** *{@link SfError}{ name: 'UnknownConfigKeyError' }* If the input validator fails.
    *
    * @param key The property to unset.
    */
@@ -484,7 +489,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   /**
    * Get an individual property config.
    *
-   * **Throws** *{@link SfdxError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
+   * **Throws** *{@link SfError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
    *
    * @param propertyName The name of the property.
    */
@@ -562,7 +567,7 @@ class SfdxConfig {
 
   public readSync(): ConfigProperties {
     try {
-      const contents = fs.readJsonMapSync(this.getSfdxPath());
+      const contents = parseJsonMap(fs.readFileSync(this.getSfdxPath(), 'utf8'));
       return this.normalize(contents as ConfigProperties, 'toNew');
     } catch (error) {
       /* Do nothing */
@@ -573,9 +578,9 @@ class SfdxConfig {
   public async writeSync(config = this.config.toObject()) {
     try {
       const sfdxPath = this.getSfdxPath();
-      await fs.mkdirp(pathDirname(sfdxPath));
+      await mkdirp(pathDirname(sfdxPath));
       const mapped = this.normalize(config as ConfigProperties, 'toOld');
-      await fs.writeJson(sfdxPath, mapped);
+      await fs.promises.writeFile(sfdxPath, JSON.stringify(mapped, null, 2));
     } catch (error) {
       /* Do nothing */
     }

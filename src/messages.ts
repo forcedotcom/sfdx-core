@@ -20,7 +20,7 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { NamedError, upperFirst } from '@salesforce/kit';
-import { SfdxError } from './sfdxError';
+import { SfError } from './sfError';
 
 export type Tokens = Array<string | boolean | number | null | undefined>;
 
@@ -91,7 +91,7 @@ const markdownLoader: FileParser = (filePath: string, fileContents: string): Sto
         map.set(key, rest);
       }
     } else {
-      // use error instead of SfdxError because messages.js should have no internal dependencies.
+      // use error instead of SfError because messages.js should have no internal dependencies.
       throw new Error(
         `Invalid markdown message file: ${filePath}\nThe line "# <key>" must be immediately followed by the message on a new line.`
       );
@@ -291,7 +291,7 @@ export class Messages<T extends string> {
       if (!fileContents || fileContents.trim().length === 0) {
         // messages.js should have no internal dependencies.
         const error = new Error(`Invalid message file: ${filePath}. No content.`);
-        error.name = 'SfdxError';
+        error.name = 'SfError';
         throw error;
       }
 
@@ -349,7 +349,7 @@ export class Messages<T extends string> {
         fs.statSync(path.join(projectRoot, 'package.json'));
         break;
       } catch (err) {
-        if ((err as SfdxError).code !== 'ENOENT') throw err;
+        if ((err as SfError).code !== 'ENOENT') throw err;
         projectRoot = projectRoot.substring(0, projectRoot.lastIndexOf(path.sep));
       }
     }

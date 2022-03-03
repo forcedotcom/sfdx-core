@@ -10,7 +10,7 @@ import { EOL } from 'os';
 import { cloneJson } from '@salesforce/kit';
 import { assert, expect } from 'chai';
 import { Messages } from '../../src/messages';
-import { SfdxError } from '../../src/sfdxError';
+import { SfError } from '../../src/sfError';
 import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
@@ -127,7 +127,7 @@ describe('Messages', () => {
     const msgFiles = ['apexMessages.json', 'soqlMessages.json'];
 
     const messagesDirPath = `${path.sep}root${path.sep}myModule${path.sep}dist${path.sep}lib`;
-    const truncateErr = new SfdxError('truncate error');
+    const truncateErr = new SfError('truncate error');
     truncateErr['code'] = 'ENOENT';
     let truncatePath = `${path.sep}root${path.sep}myModule`;
 
@@ -212,7 +212,7 @@ describe('Messages', () => {
         loaderFn(Messages.getLocale());
         assert.fail('should have thrown an error that the file was empty.');
       } catch (err) {
-        expect(err.name).to.equal('SfdxError');
+        expect(err.name).to.equal('SfError');
         expect(err.message).to.equal('Invalid message file: myPluginMessages.json. No content.');
       }
     });

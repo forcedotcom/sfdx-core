@@ -10,11 +10,10 @@ import { SinonSpyCall } from 'sinon';
 import { Duration } from '@salesforce/kit';
 import { get, JsonMap } from '@salesforce/ts-types';
 import { CometClient, StatusResult, StreamingClient } from '../../../src/status/streamingClient';
-
-import { Connection } from '../../../src/org/connection';
+import { Connection } from '../../../src/org';
 import { Crypto } from '../../../src/crypto/crypto';
 import { Org } from '../../../src/org/org';
-import { SfdxError } from '../../../src/sfdxError';
+import { SfError } from '../../../src/sfError';
 import {
   shouldThrow,
   StreamingMockCometClient,
@@ -72,7 +71,7 @@ describe('streaming client tests', () => {
           completed: true,
         };
       } else {
-        throw new SfdxError('unexpected message', 'UnexpectedMessage');
+        throw new SfError('unexpected message', 'UnexpectedMessage');
       }
     };
 
@@ -127,9 +126,9 @@ describe('streaming client tests', () => {
 
     const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
-        throw new SfdxError('TEST_ERROR', 'TEST_ERROR');
+        throw new SfError('TEST_ERROR', 'TEST_ERROR');
       } else {
-        throw new SfdxError('unexpected message', 'UnexpectedMessage');
+        throw new SfError('unexpected message', 'UnexpectedMessage');
       }
     };
 
@@ -172,7 +171,7 @@ describe('streaming client tests', () => {
           completed: true,
         };
       } else {
-        throw new SfdxError('unexpected message', 'UnexpectedMessage');
+        throw new SfError('unexpected message', 'UnexpectedMessage');
       }
     };
 
@@ -184,7 +183,7 @@ describe('streaming client tests', () => {
           url,
           id: TEST_STRING,
           subscriptionCall: StreamingMockSubscriptionCall.ERRORBACK,
-          subscriptionErrbackError: new SfdxError('TEST ERROR', TEST_STRING),
+          subscriptionErrbackError: new SfError('TEST ERROR', TEST_STRING),
         });
       },
       setLogger: () => {},
@@ -217,7 +216,7 @@ describe('streaming client tests', () => {
           completed: true,
         };
       } else {
-        throw new SfdxError('unexpected message', 'UnexpectedMessage');
+        throw new SfError('unexpected message', 'UnexpectedMessage');
       }
     };
 

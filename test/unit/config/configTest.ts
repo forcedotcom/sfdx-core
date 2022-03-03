@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as fs from 'fs';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { ensureString, JsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
@@ -12,15 +13,12 @@ import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
 import { OrgConfigProperties } from '../../../src/exported';
 import { testSetup } from '../../../src/testSetup';
-import { fs } from '../../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
 
-const configFileContents = {
-  'target-dev-hub': 'configTest_devhub',
-  'target-org': 'configTest_default',
-};
+const configFileContentsString = '{"target-dev-hub": "configTest_devhub","target-org": "configTest_default"}';
+const configFileContentsJson = { 'target-dev-hub': 'configTest_devhub', 'target-org': 'configTest_default' };
 
 const clone = (obj: JsonMap) => JSON.parse(JSON.stringify(obj));
 
@@ -71,9 +69,7 @@ describe('Config', () => {
     it('adds content of the config file from this.path to this.contents', async () => {
       const config: Config = await Config.create(Config.getDefaultOptions(true));
 
-      stubMethod($$.SANDBOX, fs, 'readJsonMap')
-        .withArgs(config.getPath())
-        .returns(Promise.resolve(clone(configFileContents)));
+      stubMethod($$.SANDBOX, fs.promises, 'readFile').withArgs(config.getPath()).resolves(configFileContentsString);
 
       // Manipulate config.hasRead to force a read
       // @ts-ignore -> hasRead is protected. Ignore for testing.
@@ -81,39 +77,39 @@ describe('Config', () => {
 
       const content: ConfigContents = await config.read();
 
-      expect(content['target-org']).to.equal(configFileContents['target-org']);
-      expect(content['target-dev-hub']).to.equal(configFileContents['target-dev-hub']);
-      expect(config.toObject()).to.deep.equal(configFileContents);
+      expect(content['target-org']).to.equal(configFileContentsJson['target-org']);
+      expect(content['target-dev-hub']).to.equal(configFileContentsJson['target-dev-hub']);
+      expect(config.toObject()).to.deep.equal(configFileContentsJson);
     });
   });
 
   describe('set', () => {
     it('calls Config.write with updated file contents', async () => {
-      stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
-      const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
+      stubMethod($$.SANDBOX, fs.promises, 'readFile').resolves(configFileContentsString);
+      const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
 
-      const expectedFileContents = clone(configFileContents);
+      const expectedFileContents = clone(configFileContentsJson);
       const newUsername = 'updated_val';
       expectedFileContents['target-org'] = newUsername;
 
       await Config.update(false, 'target-org', newUsername);
 
-      expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);
+      expect(writeStub.getCall(0).args[1]).to.deep.equal(JSON.stringify(expectedFileContents, null, 2));
     });
 
     it('calls Config.write with deleted file contents', async () => {
-      const expectedFileContents = clone(configFileContents);
+      const expectedFileContents = clone(configFileContentsJson);
       const newUsername = 'updated_val';
       expectedFileContents['target-org'] = newUsername;
 
       await Config.update(false, 'target-org', newUsername);
 
-      stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
-      const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
-      const targetDevhub = configFileContents['target-dev-hub'];
+      stubMethod($$.SANDBOX, fs.promises, 'readFile').resolves(configFileContentsString);
+      const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
+      const targetDevhub = configFileContentsJson['target-dev-hub'];
 
       await Config.update(false, 'target-org');
-      expect(writeStub.getCall(0).args[1]).to.deep.equal({ 'target-dev-hub': targetDevhub });
+      expect(writeStub.getCall(0).args[1]).to.deep.equal(JSON.stringify({ 'target-dev-hub': targetDevhub }, null, 2));
     });
   });
 
@@ -235,17 +231,17 @@ describe('Config', () => {
 
   describe('unset', () => {
     it('calls Config.write with updated file contents', async () => {
-      stubMethod($$.SANDBOX, fs, 'readJsonMap').callsFake(async () => Promise.resolve(clone(configFileContents)));
-      const writeStub = stubMethod($$.SANDBOX, fs, 'writeJson');
+      stubMethod($$.SANDBOX, fs.promises, 'readFile').resolves(configFileContentsString);
+      const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
 
-      const expectedFileContents = clone(configFileContents);
+      const expectedFileContents = clone(configFileContentsJson);
       delete expectedFileContents['target-org'];
 
       const config = await Config.create({ isGlobal: false });
       config.unset('target-org');
       await config.write();
 
-      expect(writeStub.getCall(0).args[1]).to.deep.equal(expectedFileContents);
+      expect(writeStub.getCall(0).args[1]).to.deep.equal(JSON.stringify(expectedFileContents, null, 2));
     });
   });
 

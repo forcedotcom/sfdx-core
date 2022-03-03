@@ -16,7 +16,7 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 
 /**
  * Renders schema properties.  By default, this is simply an identity transform.  Subclasses may provide more
@@ -95,7 +95,7 @@ export class SchemaPrinter {
       // No need to add to messages, since this should never happen. In fact,
       // this will cause a test failure if there is a command that uses a schema
       // with no properties defined.
-      throw new SfdxError('There is no purpose to print a schema with no properties or items');
+      throw new SfError('There is no purpose to print a schema with no properties or items');
     }
 
     const startLevel = 0;

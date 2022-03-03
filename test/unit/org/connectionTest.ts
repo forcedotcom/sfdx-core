@@ -290,6 +290,7 @@ describe('Connection', () => {
     expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
     expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
+    expect(warningStub.callCount).to.equal(0);
   });
 
   it('autoFetch() should reject the promise upon query error', async () => {
@@ -347,6 +348,7 @@ describe('Connection', () => {
   });
 
   it('singleRecordQuery throws on no-records', async () => {
+    requestMock.resolves({ totalSize: 0, records: [] });
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
     stubMethod($$.SANDBOX, conn, 'request').resolves({ totalSize: 0, records: [] });
     try {

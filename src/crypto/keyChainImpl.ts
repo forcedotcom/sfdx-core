@@ -7,13 +7,15 @@
 
 import * as childProcess from 'child_process';
 import * as nodeFs from 'fs';
+import * as fs from 'fs';
 import * as os from 'os';
-import * as path from 'path';
 import { homedir } from 'os';
+import * as path from 'path';
 import { asString, ensureString, Nullable } from '@salesforce/ts-types';
+import { parseJsonMap } from '@salesforce/kit';
+import * as mkdirp from 'mkdirp';
 import { Global } from '../global';
-import { SfdxError } from '../sfdxError';
-import { fs } from '../util/fs';
+import { SfError } from '../sfError';
 import { Messages } from '../messages';
 
 Messages.importMessagesDirectory(__dirname);
@@ -67,9 +69,9 @@ const _isExe = (mode: number, gid: number, uid: number) => {
 /**
  * Private helper to validate that a program exists on the file system and is executable.
  *
- * **Throws** *{@link SfdxError}{ name: 'MissingCredentialProgramError' }* When the OS credential program isn't found.
+ * **Throws** *{@link SfError}{ name: 'MissingCredentialProgramError' }* When the OS credential program isn't found.
  *
- * **Throws** *{@link SfdxError}{ name: 'CredentialProgramAccessError' }* When the OS credential program isn't accessible.
+ * **Throws** *{@link SfError}{ name: 'CredentialProgramAccessError' }* When the OS credential program isn't accessible.
  *
  * @param programPath The absolute path of the program.
  * @param fsIfc The file system interface.
@@ -316,7 +318,6 @@ const _linuxImpl: OsImpl = {
       // This is a workaround for linux.
       // Calling secret-tool too fast can cause it to return an unexpected error. (below)
       if (stderr != null && stderr.includes('invalid or unencryptable secret')) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore TODO: make an error subclass with this field
         error.retry = true;
 
@@ -372,7 +373,7 @@ const _darwinImpl: OsImpl = {
   },
 
   async onGetCommandClose(code, stdout, stderr, opts, fn) {
-    let err: SfdxError;
+    let err: SfError;
 
     if (code !== 0) {
       switch (code) {
@@ -447,8 +448,8 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
       [SecretField.KEY]: opts.password,
       [SecretField.SERVICE]: opts.service,
     };
-    await fs.mkdirp(path.dirname(secretFile));
-    await fs.writeFile(secretFile, JSON.stringify(contents, null, 4), { mode: '600' });
+    await mkdirp(path.dirname(secretFile));
+    await fs.promises.writeFile(secretFile, JSON.stringify(contents, null, 4), { mode: '600' });
 
     fn(null, contents);
   } catch (err) {
@@ -458,7 +459,7 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
 
 async function _readFile(): Promise<ProgramOpts> {
   // The file and access is validated before this method is called
-  const fileContents = await fs.readJsonMap(secretFile);
+  const fileContents = parseJsonMap(await fs.promises.readFile(secretFile, 'utf8'));
   return {
     account: ensureString(fileContents[SecretField.ACCOUNT]),
     password: asString(fileContents[SecretField.KEY]),
@@ -525,7 +526,7 @@ export class GenericKeychainAccess implements PasswordStore {
   protected async isValidFileAccess(cb: (error: Nullable<NodeJS.ErrnoException>) => Promise<void>): Promise<void> {
     try {
       const root = homedir();
-      await fs.access(
+      await fs.promises.access(
         path.join(root, Global.SFDX_STATE_FOLDER),
         fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK
       );
@@ -546,7 +547,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
       if (err != null) {
         await cb(err);
       } else {
-        const stats = await fs.stat(secretFile);
+        const stats = await fs.promises.stat(secretFile);
         const octalModeStr = (stats.mode & 0o777).toString(8);
         const EXPECTED_OCTAL_PERM_VALUE = '600';
         if (octalModeStr === EXPECTED_OCTAL_PERM_VALUE) {
@@ -575,7 +576,7 @@ export class GenericWindowsKeychainAccess extends GenericKeychainAccess {
         await cb(err);
       } else {
         try {
-          await fs.access(secretFile, fs.constants.R_OK | fs.constants.W_OK);
+          await fs.promises.access(secretFile, fs.constants.R_OK | fs.constants.W_OK);
           await cb(null);
         } catch (e) {
           await cb(e as Error);

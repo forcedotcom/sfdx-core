@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as fs from 'fs';
 import { isBoolean, isNumber, isString } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import * as debug from 'debug';
 import * as _ from 'lodash';
 import { Logger, LoggerFormat, LoggerLevel, LoggerStream } from '../../src/logger';
 import { testSetup } from '../../src/testSetup';
-import { fs } from '../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -94,24 +94,20 @@ describe('Logger', () => {
 
   describe('addLogFileStream', () => {
     const testLogFile = 'some/dir/mylogfile.json';
-
     let utilAccessStub;
-    let utilMkdirpStub;
     let utilWriteFileStub;
 
     beforeEach(() => {
-      utilAccessStub = $$.SANDBOX.stub(fs, 'access');
-      utilMkdirpStub = $$.SANDBOX.stub(fs, 'mkdirp');
-      utilWriteFileStub = $$.SANDBOX.stub(fs, 'writeFile');
+      utilAccessStub = $$.SANDBOX.stub(fs.promises, 'access');
+      utilWriteFileStub = $$.SANDBOX.stub(fs.promises, 'writeFile');
     });
 
     it('should not create a new log file if it exists already', async () => {
-      utilAccessStub.returns(Promise.resolve({}));
+      utilAccessStub.resolves({});
       const logger = new Logger('test');
       const addStreamStub = $$.SANDBOX.stub(logger, 'addStream');
       await logger.addLogFileStream(testLogFile);
       expect(utilAccessStub.firstCall.args[0]).to.equal(testLogFile);
-      expect(utilMkdirpStub.called).to.be.false;
       expect(utilWriteFileStub.called).to.be.false;
       const addStreamArgs = addStreamStub.firstCall.args[0];
       expect(addStreamArgs).to.have.property('type', 'file');
@@ -125,8 +121,6 @@ describe('Logger', () => {
       const addStreamStub = $$.SANDBOX.stub(logger, 'addStream');
       await logger.addLogFileStream(testLogFile);
       expect(utilAccessStub.firstCall.args[0]).to.equal(testLogFile);
-      expect(utilMkdirpStub.firstCall.args[0]).to.equal('some/dir');
-      expect(utilMkdirpStub.firstCall.args[1]).to.have.property('mode', '700');
       expect(utilWriteFileStub.firstCall.args[0]).to.equal(testLogFile);
       expect(utilWriteFileStub.firstCall.args[1]).to.equal('');
       expect(utilWriteFileStub.firstCall.args[2]).to.have.property('mode', '600');

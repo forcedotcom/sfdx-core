@@ -11,7 +11,7 @@ import { getString, hasArray, Optional } from '@salesforce/ts-types';
 import { QueryResult, Record } from 'jsforce';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
-import { SfdxError } from '../sfdxError';
+import { SfError } from '../sfError';
 import { Org } from './org';
 
 Messages.importMessagesDirectory(__dirname);
@@ -111,7 +111,7 @@ export class PermissionSetAssignment {
         errors.forEach((_message) => {
           message = `${message}${_message}${EOL}`;
         });
-        throw new SfdxError(message, 'errorsEncounteredCreatingAssignment');
+        throw new SfError(message, 'errorsEncounteredCreatingAssignment');
       } else {
         throw messages.createError('notSuccessfulButNoErrorsReported');
       }

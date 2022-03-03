@@ -12,7 +12,7 @@ import { assert } from '@salesforce/ts-types';
 import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { Env } from '@salesforce/kit';
 import { testSetup, MockTestOrgData } from '../../src/testSetup';
-import { SfdxProjectJson } from '../../src/sfdxProject';
+import { SfProjectJson } from '../../src/sfProject';
 import { WebOAuthServer, WebServer } from '../../src/webOAuthServer';
 import { AuthFields, AuthInfo } from '../../src/org/authInfo';
 
@@ -21,7 +21,7 @@ const $$ = testSetup();
 describe('WebOauthServer', () => {
   describe('determineOauthPort', () => {
     it('should return configured oauth port if it exists', async () => {
-      $$.SANDBOX.stub(SfdxProjectJson.prototype, 'get').withArgs('oauthLocalPort').returns(8080);
+      $$.SANDBOX.stub(SfProjectJson.prototype, 'get').withArgs('oauthLocalPort').returns(8080);
       const port = await WebOAuthServer.determineOauthPort();
       expect(port).to.equal(8080);
     });
