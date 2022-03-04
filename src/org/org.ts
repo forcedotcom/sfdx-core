@@ -1055,7 +1055,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       } catch (err) {
         const error = err as Error;
         this.logger.debug('Exception while calling writeSandboxAuthFile %s', err);
-        if (error?.name === 'JWTAuthError' && error?.stack?.includes("user hasn't approved")) {
+        if (error?.name === 'JwtAuthError' && error?.stack?.includes("user hasn't approved")) {
           waitingOnAuth = true;
         } else {
           throw SfError.wrap(error);
