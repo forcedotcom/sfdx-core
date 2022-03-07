@@ -1046,7 +1046,7 @@ describe('Org Tests', () => {
     });
   });
 
-  describe.only('sandboxStatus', () => {
+  describe('sandboxStatus', () => {
     let prod;
     let queryStub;
     let pollStatusAndAuthStub;
