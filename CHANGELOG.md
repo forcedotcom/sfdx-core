@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.8.0](https://github.com/forcedotcom/sfdx-core/compare/v3.7.9...v3.8.0) (2022-03-09)
+
+### Features
+
+- add handle side effect function to authinfo ([64c78e7](https://github.com/forcedotcom/sfdx-core/commit/64c78e74bc5e1cfb748fd2d64e4b1e8fc1062bf6))
+
 ### [3.7.9](https://github.com/forcedotcom/sfdx-core/compare/v3.7.8...v3.7.9) (2022-03-04)
 
 ### Bug Fixes
