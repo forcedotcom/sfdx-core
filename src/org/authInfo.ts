@@ -113,6 +113,12 @@ export interface AccessTokenOptions {
   instanceUrl?: string;
 }
 
+export type AuthSideEffects = {
+  alias: string;
+  setDefault: boolean;
+  setDefaultDevHub: boolean;
+};
+
 type UserInfo = AnyJson & {
   username: string;
   organizationId: string;
@@ -561,6 +567,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     sfdxAuthUrl += `${ensure(decryptedFields.refreshToken, 'undefined refreshToken')}@${instanceUrl}`;
     return sfdxAuthUrl;
+  }
+
+  /**
+   * Convenience function to handle typical side effects encountered when dealing with an AuthInfo.
+   * Given the values supplied in parameter sideEffects, this functions will set auth alias, default auth
+   * and default dev hub.
+   *
+   * @param sideEffects - instance of AuthSideEffects
+   */
+  public async handleAliasAndDefaultSettings(sideEffects: AuthSideEffects): Promise<void> {
+    if (sideEffects.alias) await this.setAlias(sideEffects.alias);
+    if (sideEffects.setDefault) await this.setAsDefault({ org: true });
+    if (sideEffects.setDefaultDevHub) await this.setAsDefault({ devHub: true });
+    await this.save();
   }
 
   /**
