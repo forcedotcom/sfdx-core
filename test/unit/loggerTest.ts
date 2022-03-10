@@ -34,9 +34,9 @@ describe('Logger', () => {
 
   afterEach(() => {
     Logger.destroyRoot();
-    process.env.SFDX_ENV = sfdxEnv;
-    process.env.SFDX_LOG_ROTATION_PERIOD = logRotationPeriodBackup;
-    process.env.SFDX_LOG_ROTATION_COUNT = logRotationCountBackup;
+    if (sfdxEnv) process.env.SFDX_ENV = sfdxEnv;
+    if (logRotationPeriodBackup) process.env.SFDX_LOG_ROTATION_PERIOD = logRotationPeriodBackup;
+    if (logRotationCountBackup) process.env.SFDX_LOG_ROTATION_COUNT = logRotationCountBackup;
   });
 
   describe('constructor', () => {
