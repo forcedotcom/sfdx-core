@@ -193,7 +193,7 @@ export class Lifecycle {
    */
   public async emit<T = AnyJson>(eventName: string, data: T): Promise<void> {
     const listeners = this.getListeners(eventName);
-    if (listeners.length === 0) {
+    if (listeners.length === 0 && eventName !== Lifecycle.warningEventName) {
       this.debug(
         `A lifecycle event with the name ${eventName} does not exist. An event must be registered before it can be emitted.`
       );

@@ -137,7 +137,6 @@ workflows:
                   'https://github.com/salesforcecli/plugin-env',
                   'https://github.com/salesforcecli/plugin-login',
                   'https://github.com/salesforcecli/plugin-deploy-retrieve',
-                  'https://github.com/salesforcecli/plugin-deploy-retrieve-metadata',
                 ]
       - release-management/release-package:
           # TODO: add these back when we're ready to GA v3

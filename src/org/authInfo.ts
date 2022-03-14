@@ -4,12 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { randomBytes } from 'crypto';
 import { resolve as pathResolve } from 'path';
 import * as os from 'os';
+import * as fs from 'fs';
 import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
@@ -25,17 +23,15 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-
 import { OAuth2, OAuth2Config as JsforceOAuth2Config, TokenResponse } from 'jsforce';
 import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
-import { fs } from '../util/fs';
+import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
-import { SfOrg, GlobalInfo } from '../globalInfo';
+import { GlobalInfo, SfOrg } from '../globalInfo';
 import { Messages } from '../messages';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
@@ -116,6 +112,12 @@ export interface AccessTokenOptions {
   loginUrl?: string;
   instanceUrl?: string;
 }
+
+export type AuthSideEffects = {
+  alias: string;
+  setDefault: boolean;
+  setDefaultDevHub: boolean;
+};
 
 type UserInfo = AnyJson & {
   username: string;
@@ -334,7 +336,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       const auths = (await GlobalInfo.getInstance()).orgs.getAll();
       return !isEmpty(auths);
     } catch (err) {
-      const error = err as SfdxError;
+      const error = err as SfError;
       if (error.name === 'OrgDataNotAvailableError' || error.code === 'ENOENT') {
         return false;
       }
@@ -381,7 +383,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     );
 
     if (!match) {
-      throw new SfdxError(
+      throw new SfError(
         'Invalid SFDX auth URL. Must be in the format "force://<clientId>:<clientSecret>:<refreshToken>@<instanceUrl>".  Note that the SFDX auth URL uses the "force" protocol, and not "http" or "https".  Also note that the "instanceUrl" inside the SFDX auth URL doesn\'t include the protocol ("https://").',
         'INVALID_SFDX_AUTH_URL'
       );
@@ -568,6 +570,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   /**
+   * Convenience function to handle typical side effects encountered when dealing with an AuthInfo.
+   * Given the values supplied in parameter sideEffects, this functions will set auth alias, default auth
+   * and default dev hub.
+   *
+   * @param sideEffects - instance of AuthSideEffects
+   */
+  public async handleAliasAndDefaultSettings(sideEffects: AuthSideEffects): Promise<void> {
+    if (sideEffects.alias) await this.setAlias(sideEffects.alias);
+    if (sideEffects.setDefault) await this.setAsDefault({ org: true });
+    if (sideEffects.setDefaultDevHub) await this.setAsDefault({ devHub: true });
+    await this.save();
+  }
+
+  /**
    * Set the target-env (default) or the target-dev-hub to the alias if
    * it exists otherwise to the username. Method will try to set the local
    * config first but will default to global config if that fails.
@@ -672,7 +688,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    *
    * @param options Options to be used for creating an OAuth2 instance.
    *
-   * **Throws** *{@link SfdxError}{ name: 'NamedOrgNotFoundError' }* Org information does not exist.
+   * **Throws** *{@link SfError}{ name: 'NamedOrgNotFoundError' }* Org information does not exist.
    * @returns {Promise<AuthInfo>}
    */
   private async initAuthOptions(options?: OAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
@@ -761,7 +777,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   // both for a JWT connection and an OAuth connection.
   private async refreshFn(
     conn: Connection,
-    callback: (err: Nullable<Error | SfdxError>, accessToken?: string, res?: Record<string, unknown>) => Promise<void>
+    callback: (err: Nullable<Error | SfError>, accessToken?: string, res?: Record<string, unknown>) => Promise<void>
   ): Promise<void> {
     this.logger.info('Access token has expired. Updating...');
 
@@ -782,7 +798,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   // Build OAuth config for a JWT auth flow
   private async buildJwtConfig(options: OAuth2Config): Promise<AuthFields> {
-    const privateKeyContents = await fs.readFile(ensure(options.privateKey), 'utf8');
+    const privateKeyContents = await fs.promises.readFile(ensure(options.privateKey), 'utf8');
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
     const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
@@ -979,7 +995,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     } catch (err) {
       errorMsg = `${bodyAsString}`;
     }
-    throw new SfdxError(errorMsg);
+    throw new SfError(errorMsg);
   }
 }
 

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
+import * as fs from 'fs';
 import { Nullable } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as _ from 'lodash';
@@ -15,7 +16,6 @@ import {
   keyChainImpl,
 } from '../../../src/crypto/keyChainImpl';
 import { testSetup } from '../../../src/testSetup';
-import { fs } from '../../../src/util/fs';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -80,9 +80,8 @@ describe('keyChain', () => {
     const TEST_PASSWORD = 'foo';
     const windowsKeychain = await retrieveKeychain('windows');
 
-    const accessSpy = $$.SANDBOX.stub(fs, 'access').throws({ code: 'ENOENT' });
-    const writeFileStub = $$.SANDBOX.stub(fs, 'writeFile').resolves(undefined);
-    const mkdirpStub = $$.SANDBOX.stub(fs, 'mkdirp').resolves();
+    const accessSpy = $$.SANDBOX.stub(fs.promises, 'access').throws({ code: 'ENOENT' });
+    const writeFileStub = $$.SANDBOX.stub(fs.promises, 'writeFile').resolves(undefined);
 
     const service = 'sfdx';
     const account = 'local';
@@ -100,7 +99,6 @@ describe('keyChain', () => {
           { service, account, password: TEST_PASSWORD },
           (setPasswordError: Nullable<Error>) => {
             expect(setPasswordError).to.be.null;
-            expect(mkdirpStub.called).to.be.true;
             expect(writeFileStub.called).to.be.true;
             expect(writeFileStub.args).to.have.length(1);
             expect(writeFileStub.args[0]).to.have.length(3);

@@ -1,9 +1,9 @@
-import { SfdxProject } from '../src/sfdxProject';
+import { SfProject } from '../src/sfProject';
 
-export const sfdxProjectExamples = {
+export const sfProjectExamples = {
   classDoc: async () => {
-    const project = await SfdxProject.resolve();
+    const project = await SfProject.resolve();
     const projectJson = await project.resolveProjectConfig();
     console.log(projectJson.sfdcLoginUrl);
-  }
+  },
 };

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "id": "sfdxProjectSchema",
+  "id": "sfProjectSchema",
   "type": "object",
   "title": "SFDX Project",
   "description": "The properties and shape of the SFDX project",

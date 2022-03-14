@@ -5,14 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'fs';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import { isBoolean, isPlainObject } from '@salesforce/ts-types';
+import { parseJsonMap } from '@salesforce/kit';
+import * as mkdirp from 'mkdirp';
 import { Global } from '../global';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
-import { fs } from '../util/fs';
+import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
 import { BaseConfigStore, ConfigContents } from './configStore';
 
@@ -75,7 +77,7 @@ export class ConfigFile<
    */
   public static getFileName(): string {
     // Can not have abstract static methods, so throw a runtime error.
-    throw new SfdxError('Unknown filename for config file.');
+    throw new SfError('Unknown filename for config file.');
   }
 
   /**
@@ -121,7 +123,7 @@ export class ConfigFile<
    */
   public async access(perm?: number): Promise<boolean> {
     try {
-      await fs.access(this.getPath(), perm);
+      await fs.promises.access(this.getPath(), perm);
       return true;
     } catch (err) {
       return false;
@@ -149,7 +151,7 @@ export class ConfigFile<
    * Read the config file and set the config contents. Returns the config contents of the config file. As an
    * optimization, files are only read once per process and updated in memory and via `write()`. To force
    * a read from the filesystem pass `force=true`.
-   * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
+   * **Throws** *{@link SfError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
    *
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
@@ -160,12 +162,12 @@ export class ConfigFile<
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
         this.logger.info(`Reading config file: ${this.getPath()}`);
-        const obj = await fs.readJsonMap(this.getPath());
+        const obj = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'));
         this.setContentsFromObject(obj);
       }
       return this.getContents();
     } catch (err) {
-      if ((err as SfdxError).code === 'ENOENT') {
+      if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
           return this.getContents();
@@ -183,7 +185,7 @@ export class ConfigFile<
    * Read the config file and set the config contents. Returns the config contents of the config file. As an
    * optimization, files are only read once per process and updated in memory and via `write()`. To force
    * a read from the filesystem pass `force=true`.
-   * **Throws** *{@link SfdxError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
+   * **Throws** *{@link SfError}{ name: 'UnexpectedJsonFileFormat' }* There was a problem reading or parsing the file.
    *
    * @param [throwOnNotFound = false] Optionally indicate if a throw should occur on file read.
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
@@ -194,12 +196,12 @@ export class ConfigFile<
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
         this.logger.info(`Reading config file: ${this.getPath()}`);
-        const obj = fs.readJsonMapSync(this.getPath());
+        const obj = parseJsonMap(fs.readFileSync(this.getPath(), 'utf8'));
         this.setContentsFromObject(obj);
       }
       return this.getContents();
     } catch (err) {
-      if ((err as SfdxError).code === 'ENOENT') {
+      if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
           return this.getContents();
@@ -224,10 +226,10 @@ export class ConfigFile<
       this.setContents(newContents);
     }
 
-    await fs.mkdirp(pathDirname(this.getPath()));
+    await mkdirp(pathDirname(this.getPath()));
 
     this.logger.info(`Writing to config file: ${this.getPath()}`);
-    await fs.writeJson(this.getPath(), this.toObject());
+    await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
 
     return this.getContents();
   }
@@ -243,10 +245,10 @@ export class ConfigFile<
       this.setContents(newContents);
     }
 
-    fs.mkdirpSync(pathDirname(this.getPath()));
+    mkdirp.sync(pathDirname(this.getPath()));
 
     this.logger.info(`Writing to config file: ${this.getPath()}`);
-    fs.writeJsonSync(this.getPath(), this.toObject());
+    fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
 
     return this.getContents();
   }
@@ -271,7 +273,7 @@ export class ConfigFile<
    * {@link fs.stat}
    */
   public async stat(): Promise<fsStats> {
-    return fs.stat(this.getPath());
+    return fs.promises.stat(this.getPath());
   }
 
   /**
@@ -292,9 +294,9 @@ export class ConfigFile<
   public async unlink(): Promise<void> {
     const exists = await this.exists();
     if (exists) {
-      return await fs.unlink(this.getPath());
+      return await fs.promises.unlink(this.getPath());
     }
-    throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
+    throw new SfError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
   }
 
   /**
@@ -308,7 +310,7 @@ export class ConfigFile<
     if (exists) {
       return fs.unlinkSync(this.getPath());
     }
-    throw new SfdxError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
+    throw new SfError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
   }
 
   /**
@@ -321,7 +323,7 @@ export class ConfigFile<
   public getPath(): string {
     if (!this.path) {
       if (!this.options.filename) {
-        throw new SfdxError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
+        throw new SfError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
       }
 
       const _isGlobal: boolean = isBoolean(this.options.isGlobal) && this.options.isGlobal;

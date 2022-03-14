@@ -32,7 +32,7 @@ export {
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
-export { AuthFields, AuthInfo, OrgAuthorization } from './org/authInfo';
+export { AuthFields, AuthInfo, AuthSideEffects, OrgAuthorization } from './org/authInfo';
 
 export { AuthRemover } from './org/authRemover';
 
@@ -59,7 +59,7 @@ export {
   Logger,
 } from './logger';
 
-export { Messages } from './messages';
+export { Messages, StructuredMessage } from './messages';
 
 export {
   Org,
@@ -71,17 +71,26 @@ export {
   SandboxRequest,
   OrgTypes,
   ResultEvent,
+  ScratchOrgRequest,
 } from './org';
 
 export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
 
-export { PackageDir, NamedPackageDir, PackageDirDependency, SfdxProject, SfdxProjectJson } from './sfdxProject';
+export {
+  PackageDir,
+  NamedPackageDir,
+  PackageDirDependency,
+  SfProject,
+  SfProjectJson,
+  SfdxProject,
+  SfdxProjectJson,
+} from './sfProject';
 
 export { SchemaPrinter } from './schema/printer';
 
 export { SchemaValidator } from './schema/validator';
 
-export { SfdxError } from './sfdxError';
+export { SfError, SfdxError } from './sfError';
 
 export { PollingClient } from './status/pollingClient';
 
@@ -93,7 +102,10 @@ export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './org/user
 
 export { PermissionSetAssignment, PermissionSetAssignmentFields } from './org/permissionSetAssignment';
 
+export { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from './org/scratchOrgCreate';
+
+export { ScratchOrgInfo } from './org/scratchOrgInfoApi';
+
 // Utility sub-modules
-export * from './util/fs';
 export * from './util/sfdc';
 export * from './util/sfdcUrl';

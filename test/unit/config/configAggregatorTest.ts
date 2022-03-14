@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as fs from 'fs';
 import { assert, expect } from 'chai';
 import { Config, ConfigProperties, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgConfigProperties } from '../../../src/exported';
 import { testSetup } from '../../../src/testSetup';
-import { fs } from '../../../src/util/fs';
 import { Cache } from '../../../src/util/cache';
 
 // Setup the test environment.
@@ -114,12 +114,12 @@ describe('ConfigAggregator', () => {
   describe('locations', () => {
     it('local', async () => {
       // @ts-ignore
-      $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path: string) => {
+      $$.SANDBOX.stub(fs.promises, 'readFile').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {
-            return Promise.resolve({ 'target-org': 2 });
+            return Promise.resolve('{ "target-org": 2 }');
           } else if (path.includes(await $$.localPathRetriever(id))) {
-            return Promise.resolve({ 'target-org': 1 });
+            return Promise.resolve('{ "target-org": 1 }');
           }
         }
         return Promise.resolve();
@@ -130,12 +130,12 @@ describe('ConfigAggregator', () => {
 
     it('global', async () => {
       // @ts-ignore
-      $$.SANDBOX.stub(fs, 'readJsonMap').callsFake(async (path: string) => {
+      $$.SANDBOX.stub(fs.promises, 'readFile').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {
-            return Promise.resolve({ 'target-org': 2 });
+            return Promise.resolve('{ "target-org": 2 }');
           } else if (path.includes(await $$.localPathRetriever(id))) {
-            return Promise.resolve({});
+            return Promise.resolve('{}');
           }
         }
         return Promise.resolve();
@@ -147,8 +147,8 @@ describe('ConfigAggregator', () => {
     it('env', async () => {
       process.env.SFDX_TARGET_ORG = 'test';
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      // @ts-ignore
-      $$.SANDBOX.stub(fs, 'readJson').callsFake(async (path: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      $$.SANDBOX.stub(fs, 'readFile').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {
             return Promise.resolve({ 'target-org': 1 });
@@ -163,7 +163,7 @@ describe('ConfigAggregator', () => {
 
     it('configInfo with env', async () => {
       process.env.SFDX_TARGET_ORG = 'test';
-      $$.SANDBOX.stub(fs, 'readJson').returns(Promise.resolve({}));
+      $$.SANDBOX.stub(fs, 'readFile').resolves({});
 
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
       const info = aggregator.getConfigInfo()[0];
@@ -173,7 +173,7 @@ describe('ConfigAggregator', () => {
     });
 
     it('configInfo ignores invalid entries', async () => {
-      $$.SANDBOX.stub(fs, 'readJsonMap').returns(Promise.resolve({ invalid: 'entry', apiVersion: 49.0 }));
+      $$.SANDBOX.stub(fs.promises, 'readFile').resolves('{ "invalid": "entry", "apiVersion": 49.0 }');
 
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
       const info = aggregator.getConfigInfo()[0];

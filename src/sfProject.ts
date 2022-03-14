@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { basename, dirname, isAbsolute, normalize, sep } from 'path';
+import * as fs from 'fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { SfdcUrl } from './util/sfdcUrl';
@@ -13,10 +14,9 @@ import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 
 import { SchemaValidator } from './schema/validator';
-import { fs } from './util/fs';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
-import { SfdxError } from './sfdxError';
+import { SfError } from './sfError';
 import { sfdc } from './util/sfdc';
 import { Messages } from './messages';
 
@@ -85,7 +85,7 @@ export type ProjectJson = ConfigContents & {
  * be in a top level property that represents your project or plugin.
  *
  * ```
- * const project = await SfdxProject.resolve();
+ * const project = await SfProject.resolve();
  * const projectJson = await project.resolveProjectConfig();
  * const myPluginProperties = projectJson.get('myplugin') || {};
  * myPluginProperties.myprop = 'someValue';
@@ -95,15 +95,15 @@ export type ProjectJson = ConfigContents & {
  *
  * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
  */
-export class SfdxProjectJson extends ConfigFile {
+export class SfProjectJson extends ConfigFile {
   public static BLOCKLIST = ['packageAliases'];
 
-  public static getFileName() {
+  public static getFileName(): string {
     return SFDX_PROJECT_JSON;
   }
 
   public static getDefaultOptions(isGlobal = false): ConfigFile.Options {
-    const options = ConfigFile.getDefaultOptions(isGlobal, SfdxProjectJson.getFileName());
+    const options = ConfigFile.getDefaultOptions(isGlobal, SfProjectJson.getFileName());
     options.isState = false;
     return options;
   }
@@ -296,7 +296,7 @@ export class SfdxProjectJson extends ConfigFile {
   }
 
   /**
-   * Get a list of the unique package names from within sfdx-project.json. Use {@link SfdxProject.getUniquePackageDirectories}
+   * Get a list of the unique package names from within sfdx-project.json. Use {@link SfProject.getUniquePackageDirectories}
    * for data other than the names.
    */
   public getUniquePackageNames(): string[] {
@@ -323,7 +323,7 @@ export class SfdxProjectJson extends ConfigFile {
 
   private validateKeys(): void {
     // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
-    const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfdxProjectJson.BLOCKLIST);
+    const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfProjectJson.BLOCKLIST);
     if (upperCaseKey) {
       throw coreMessages.createError('invalidJsonCasing', [upperCaseKey, this.getPath()]);
     }
@@ -331,49 +331,49 @@ export class SfdxProjectJson extends ConfigFile {
 }
 
 /**
- * Represents an SFDX project directory. This directory contains a {@link SfdxProjectJson} config file as well as
+ * Represents an SFDX project directory. This directory contains a {@link SfProjectJson} config file as well as
  * a hidden .sfdx folder that contains all the other local project config files.
  *
  * ```
- * const project = await SfdxProject.resolve();
+ * const project = await SfProject.resolve();
  * const projectJson = await project.resolveProjectConfig();
  * console.log(projectJson.sfdcLoginUrl);
  * ```
  */
-export class SfdxProject {
-  // Cache of SfdxProject instances per path.
-  private static instances = new Map<string, SfdxProject>();
+export class SfProject {
+  // Cache of SfProject instances per path.
+  private static instances = new Map<string, SfProject>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private projectConfig: any;
 
-  // Dynamically referenced in retrieveSfdxProjectJson
-  private sfdxProjectJson!: SfdxProjectJson;
-  private sfdxProjectJsonGlobal!: SfdxProjectJson;
+  // Dynamically referenced in retrieveSfProjectJson
+  private sfProjectJson!: SfProjectJson;
+  private sfProjectJsonGlobal!: SfProjectJson;
 
   private packageDirectories?: NamedPackageDir[];
   private activePackage: Nullable<NamedPackageDir>;
 
   /**
-   * Do not directly construct instances of this class -- use {@link SfdxProject.resolve} instead.
+   * Do not directly construct instances of this class -- use {@link SfProject.resolve} instead.
    *
    * @ignore
    */
-  private constructor(private path: string) {}
+  protected constructor(private path: string) {}
 
   /**
    * Get a Project from a given path or from the working directory.
    *
    * @param path The path of the project.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    */
-  public static async resolve(path?: string): Promise<SfdxProject> {
+  public static async resolve(path?: string): Promise<SfProject> {
     path = await this.resolveProjectPath(path || process.cwd());
-    if (!SfdxProject.instances.has(path)) {
-      const project = new SfdxProject(path);
-      SfdxProject.instances.set(path, project);
+    if (!SfProject.instances.has(path)) {
+      const project = new SfProject(path);
+      SfProject.instances.set(path, project);
     }
-    return ensure(SfdxProject.instances.get(path));
+    return ensure(SfProject.instances.get(path));
   }
 
   /**
@@ -381,17 +381,17 @@ export class SfdxProject {
    *
    * @param path The path of the project.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    */
-  public static getInstance(path?: string): SfdxProject {
+  public static getInstance(path?: string): SfProject {
     // Store instance based on the path of the actual project.
     path = this.resolveProjectPathSync(path || process.cwd());
 
-    if (!SfdxProject.instances.has(path)) {
-      const project = new SfdxProject(path);
-      SfdxProject.instances.set(path, project);
+    if (!SfProject.instances.has(path)) {
+      const project = new SfProject(path);
+      SfProject.instances.set(path, project);
     }
-    return ensure(SfdxProject.instances.get(path));
+    return ensure(SfProject.instances.get(path));
   }
 
   /**
@@ -399,7 +399,7 @@ export class SfdxProject {
    *
    * @param dir The directory path to start traversing from.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    *
    * **See** {@link traverseForFile}
    *
@@ -414,7 +414,7 @@ export class SfdxProject {
    *
    * @param dir The directory path to start traversing from.
    *
-   * **Throws** *{@link SfdxError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
+   * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    *
    * **See** {@link traverseForFileSync}
    *
@@ -435,24 +435,24 @@ export class SfdxProject {
    * Get the sfdx-project.json config. The global sfdx-project.json is used for user defaults
    * that are not checked in to the project specific file.
    *
-   * *Note:* When reading values from {@link SfdxProjectJson}, it is recommended to use
-   * {@link SfdxProject.resolveProjectConfig} instead.
+   * *Note:* When reading values from {@link SfProjectJson}, it is recommended to use
+   * {@link SfProject.resolveProjectConfig} instead.
    *
    * @param isGlobal True to get the global project file, otherwise the local project config.
    */
-  public async retrieveSfdxProjectJson(isGlobal = false): Promise<SfdxProjectJson> {
-    const options = SfdxProjectJson.getDefaultOptions(isGlobal);
+  public async retrieveSfProjectJson(isGlobal = false): Promise<SfProjectJson> {
+    const options = SfProjectJson.getDefaultOptions(isGlobal);
     if (isGlobal) {
-      if (!this.sfdxProjectJsonGlobal) {
-        this.sfdxProjectJsonGlobal = await SfdxProjectJson.create(options);
+      if (!this.sfProjectJsonGlobal) {
+        this.sfProjectJsonGlobal = await SfProjectJson.create(options);
       }
-      return this.sfdxProjectJsonGlobal;
+      return this.sfProjectJsonGlobal;
     } else {
       options.rootFolder = this.getPath();
-      if (!this.sfdxProjectJson) {
-        this.sfdxProjectJson = await SfdxProjectJson.create(options);
+      if (!this.sfProjectJson) {
+        this.sfProjectJson = await SfProjectJson.create(options);
       }
-      return this.sfdxProjectJson;
+      return this.sfProjectJson;
     }
   }
 
@@ -460,28 +460,28 @@ export class SfdxProject {
    * Get the sfdx-project.json config. The global sfdx-project.json is used for user defaults
    * that are not checked in to the project specific file.
    *
-   * *Note:* When reading values from {@link SfdxProjectJson}, it is recommended to use
-   * {@link SfdxProject.resolveProjectConfig} instead.
+   * *Note:* When reading values from {@link SfProjectJson}, it is recommended to use
+   * {@link SfProject.resolveProjectConfig} instead.
    *
-   * This is the sync method of {@link SfdxProject.resolveSfdxProjectJson}
+   * This is the sync method of {@link SfProject.resolveSfProjectJson}
    *
    * @param isGlobal True to get the global project file, otherwise the local project config.
    */
-  public getSfdxProjectJson(isGlobal = false): SfdxProjectJson {
-    const options = SfdxProjectJson.getDefaultOptions(isGlobal);
+  public getSfProjectJson(isGlobal = false): SfProjectJson {
+    const options = SfProjectJson.getDefaultOptions(isGlobal);
     if (isGlobal) {
-      if (!this.sfdxProjectJsonGlobal) {
-        this.sfdxProjectJsonGlobal = new SfdxProjectJson(options);
-        this.sfdxProjectJsonGlobal.readSync();
+      if (!this.sfProjectJsonGlobal) {
+        this.sfProjectJsonGlobal = new SfProjectJson(options);
+        this.sfProjectJsonGlobal.readSync();
       }
-      return this.sfdxProjectJsonGlobal;
+      return this.sfProjectJsonGlobal;
     } else {
       options.rootFolder = this.getPath();
-      if (!this.sfdxProjectJson) {
-        this.sfdxProjectJson = new SfdxProjectJson(options);
-        this.sfdxProjectJson.readSync();
+      if (!this.sfProjectJson) {
+        this.sfProjectJson = new SfProjectJson(options);
+        this.sfProjectJson.readSync();
       }
-      return this.sfdxProjectJson;
+      return this.sfProjectJson;
     }
   }
 
@@ -492,7 +492,7 @@ export class SfdxProject {
    */
   public getPackageDirectories(): NamedPackageDir[] {
     if (!this.packageDirectories) {
-      this.packageDirectories = this.getSfdxProjectJson().getPackageDirectoriesSync();
+      this.packageDirectories = this.getSfProjectJson().getPackageDirectoriesSync();
     }
     return this.packageDirectories;
   }
@@ -508,15 +508,15 @@ export class SfdxProject {
    * for packaging operations that want to do something for each package entry.
    */
   public getUniquePackageDirectories(): NamedPackageDir[] {
-    return this.getSfdxProjectJson().getUniquePackageDirectories();
+    return this.getSfProjectJson().getUniquePackageDirectories();
   }
 
   /**
-   * Get a list of the unique package names from within sfdx-project.json. Use {@link SfdxProject.getUniquePackageDirectories}
+   * Get a list of the unique package names from within sfdx-project.json. Use {@link SfProject.getUniquePackageDirectories}
    * for data other than the names.
    */
   public getUniquePackageNames(): string[] {
-    return this.getSfdxProjectJson().getUniquePackageNames();
+    return this.getSfProjectJson().getUniquePackageNames();
   }
 
   /**
@@ -567,14 +567,14 @@ export class SfdxProject {
    * Has package directories defined in the project.
    */
   public hasPackages(): boolean {
-    return this.getSfdxProjectJson().hasPackages();
+    return this.getSfProjectJson().hasPackages();
   }
 
   /**
    * Has multiple package directories (MPD) defined in the project.
    */
   public hasMultiplePackages(): boolean {
-    return this.getSfdxProjectJson().hasMultiplePackages();
+    return this.getSfProjectJson().hasMultiplePackages();
   }
 
   /**
@@ -605,18 +605,18 @@ export class SfdxProject {
    */
   public getDefaultPackage(): NamedPackageDir {
     if (!this.hasPackages()) {
-      throw new SfdxError('The sfdx-project.json does not have any packageDirectories defined.');
+      throw new SfError('The sfdx-project.json does not have any packageDirectories defined.');
     }
     const defaultPackage = this.getPackageDirectories().find((packageDir) => packageDir.default === true);
     return defaultPackage || this.getPackageDirectories()[0];
   }
 
   /**
-   * The project config is resolved from local and global {@link SfdxProjectJson},
+   * The project config is resolved from local and global {@link SfProjectJson},
    * {@link ConfigAggregator}, and a set of defaults. It is recommended to use
-   * this when reading values from SfdxProjectJson.
+   * this when reading values from SfProjectJson.
    *
-   * The global {@link SfdxProjectJson} is used to allow the user to provide default values they
+   * The global {@link SfProjectJson} is used to allow the user to provide default values they
    * may not want checked into their project's source.
    *
    * @returns A resolved config object that contains a bunch of different
@@ -626,8 +626,8 @@ export class SfdxProject {
     if (!this.projectConfig) {
       // Do fs operations in parallel
       const [global, local, configAggregator] = await Promise.all([
-        this.retrieveSfdxProjectJson(true),
-        this.retrieveSfdxProjectJson(),
+        this.retrieveSfProjectJson(true),
+        this.retrieveSfProjectJson(),
         ConfigAggregator.create(),
       ]);
       await Promise.all([global.read(), local.read()]);
@@ -655,3 +655,13 @@ export class SfdxProject {
     return this.projectConfig;
   }
 }
+
+/**
+ * @deprecated use SfProject instead
+ */
+export class SfdxProject extends SfProject {}
+
+/**
+ * @deprecated use SfProjectJson instead
+ */
+export class SfdxProjectJson extends SfProjectJson {}

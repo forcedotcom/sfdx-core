@@ -6,6 +6,7 @@
  */
 
 import { join as pathJoin } from 'path';
+import * as fs from 'fs';
 import { AsyncOptionalCreatable, Duration, sleep } from '@salesforce/kit';
 import {
   AnyFunction,
@@ -28,17 +29,17 @@ import { ConfigContents } from '../config/configStore';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
 import { SandboxOrgConfig } from '../config/sandboxOrgConfig';
 import { Global } from '../global';
-import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
-import { fs } from '../util/fs';
-import { sfdc } from '../util/sfdc';
-import { GlobalInfo } from '../globalInfo';
-import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
+import { Logger } from '../logger';
+import { SfError } from '../sfError';
+import { sfdc } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
 import { SfdxPropertyKeys } from '../config/config';
+import { Messages } from '../messages';
+import { GlobalInfo } from '../globalInfo';
 import { Connection, SingleRecordQueryErrors } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
+import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } from './scratchOrgCreate';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
@@ -124,6 +125,21 @@ export type SandboxRequest = {
   Description?: string;
 };
 
+export type ScratchOrgRequest = Pick<
+  ScratchOrgCreateOptions,
+  | 'connectedAppConsumerKey'
+  | 'durationDays'
+  | 'nonamespace'
+  | 'noancestors'
+  | 'wait'
+  | 'retry'
+  | 'apiversion'
+  | 'definitionjson'
+  | 'definitionfile'
+  | 'orgConfig'
+  | 'clientSecret'
+>;
+
 /**
  * Provides a way to manage a locally authenticated Org.
  *
@@ -204,6 +220,18 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
+   * Creates a scratchOrg
+   * 'this' needs to be a valid dev-hub
+   *
+   * @param {options} ScratchOrgCreateOptions
+   * @returns {ScratchOrgCreateResult}
+   */
+
+  public async scratchOrgCreate(options: ScratchOrgRequest): Promise<ScratchOrgCreateResult> {
+    return scratchOrgCreate({ ...options, hubOrg: this });
+  }
+
+  /**
    * Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.
    *
    * @param orgDataPath A relative path other than "orgs/".
@@ -226,7 +254,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw err;
     }
 
-    return this.manageDelete(async () => await fs.remove(dataPath), dataPath, throwWhenRemoveFails);
+    return this.manageDelete(async () => await fs.promises.rmdir(dataPath), dataPath, throwWhenRemoveFails);
   }
 
   /**
@@ -269,9 +297,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
    *
-   * **Throws** *{@link SfdxError}{ name: 'NotADevHubError' }* Not a Dev Hub.
+   * **Throws** *{@link SfError}{ name: 'NotADevHubError' }* Not a Dev Hub.
    *
-   * **Throws** *{@link SfdxError}{ name: 'NoResultsError' }* No results.
+   * **Throws** *{@link SfError}{ name: 'NoResultsError' }* No results.
    *
    * @param devHubUsernameOrAlias The username or alias of the dev hub org.
    */
@@ -292,7 +320,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     try {
       const results = await devHubConnection.query(DEV_HUB_SOQL);
       if (getNumber(results, 'records.length') !== 1) {
-        throw new SfdxError('No results', 'NoResultsError');
+        throw new SfError('No results', 'NoResultsError');
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'INVALID_TYPE') {
@@ -541,7 +569,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async addUsername(auth: AuthInfo | string): Promise<Org> {
     if (!auth) {
-      throw new SfdxError('Missing auth info', 'MissingAuthInfo');
+      throw new SfError('Missing auth info', 'MissingAuthInfo');
     }
 
     const authInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
@@ -555,7 +583,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const usernames = contents.usernames || [];
 
     if (!isArray(usernames)) {
-      throw new SfdxError('Usernames is not an array', 'UnexpectedDataFormat');
+      throw new SfError('Usernames is not an array', 'UnexpectedDataFormat');
     }
 
     let shouldUpdate = false;
@@ -583,13 +611,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * Removes a username from the user config for this object. For convenience `this` object is returned.
    *
-   * **Throws** *{@link SfdxError}{ name: 'MissingAuthInfoError' }* Auth info is missing.
+   * **Throws** *{@link SfError}{ name: 'MissingAuthInfoError' }* Auth info is missing.
    *
    * @param {AuthInfo | string} auth The AuthInfo containing the username to remove.
    */
   public async removeUsername(auth: AuthInfo | string): Promise<Org> {
     if (!auth) {
-      throw new SfdxError('Missing auth info', 'MissingAuthInfoError');
+      throw new SfError('Missing auth info', 'MissingAuthInfoError');
     }
 
     const authInfo: AuthInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
@@ -719,7 +747,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         throw messages.createError('noUsernameFound');
       }
       this.connection = await Connection.create({
-        // If no username is provided or resolvable from an alias, AuthInfo will throw an SfdxError.
+        // If no username is provided or resolvable from an alias, AuthInfo will throw an SfError.
         authInfo: await AuthInfo.create({ username, isDevHub: this.options.isDevHub }),
       });
     } else {
@@ -729,10 +757,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * **Throws** *{@link SfdxError}{ name: 'NotSupportedError' }* Throws an unsupported error.
+   * **Throws** *{@link SfError}{ name: 'NotSupportedError' }* Throws an unsupported error.
    */
   protected getDefaultOptions(): Org.Options {
-    throw new SfdxError('Not Supported', 'NotSupportedError');
+    throw new SfError('Not Supported', 'NotSupportedError');
   }
 
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
@@ -742,11 +770,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     );
   }
 
-  private async destorySandbox(org: Org, id: string): Promise<SaveResult> {
+  private async destroySandbox(org: Org, id: string): Promise<SaveResult> {
     return org.getConnection().tooling.delete('SandboxInfo', id);
   }
 
-  private async destoryScratchOrg(org: Org, id: string): Promise<SaveResult> {
+  private async destroyScratchOrg(org: Org, id: string): Promise<SaveResult> {
     return org.getConnection().delete('ActiveScratchOrg', id);
   }
 
@@ -792,7 +820,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     // const deleteResult = await prodOrg.connection.tooling.delete('SandboxInfo', result.SandboxInfoId);
-    const deleteResult = await this.destorySandbox(prodOrg, result.SandboxInfoId);
+    const deleteResult = await this.destroySandbox(prodOrg, result.SandboxInfoId);
     this.logger.debug('Return from calling tooling.delete: %o ', deleteResult);
     await this.remove();
 
@@ -827,7 +855,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         )
       ).Id;
       this.logger.trace(`found matching ActiveScratchOrg with SignupUsername: ${username}.  Deleting...`);
-      await this.destoryScratchOrg(devHub, activeScratchOrgRecordId);
+      await this.destroyScratchOrg(devHub, activeScratchOrgRecordId);
       await this.remove();
     } catch (err) {
       this.logger.info(err instanceof Error ? err.message : err);
@@ -861,7 +889,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       this.logger.debug(`Clearing auth cache for user: ${username}`);
       config.orgs.unset(username);
     }
-    await config.write();
   }
 
   /**
@@ -908,42 +935,36 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     this.logger.debug(`Removing users associate with org: ${this.getOrgId()}`);
     const config = await this.retrieveOrgUsersConfig();
     this.logger.debug(`using path for org users: ${config.getPath()}`);
-    if (await config.exists()) {
-      const authInfos: AuthInfo[] = await this.readUserAuthFiles();
-      this.logger.info(`Cleaning up usernames in org: ${this.getOrgId()}`);
+    const authInfos: AuthInfo[] = await this.readUserAuthFiles();
 
-      for (const auth of authInfos) {
-        const username = auth.getFields().username;
+    await Promise.all(
+      authInfos
+        .map((auth) => auth.getFields().username)
+        .map(async (username) => {
+          const aliasKeys = (username && globalInfo.aliases.getAll(username)) || [];
+          globalInfo.aliases.unsetAll(username as string);
 
-        const aliases = (username && globalInfo.aliases.getAll(username)) || [];
-        globalInfo.aliases.unsetAll(username as string);
+          const orgForUser =
+            username === this.getUsername()
+              ? this
+              : await Org.create({
+                  connection: await Connection.create({ authInfo: await AuthInfo.create({ username }) }),
+                });
 
-        let orgForUser;
-        if (username === this.getUsername()) {
-          orgForUser = this;
-        } else {
-          const info = await AuthInfo.create({ username });
-          const connection: Connection = await Connection.create({ authInfo: info });
-          orgForUser = await Org.create({ connection });
-        }
+          const orgType = this.isDevHubOrg() ? OrgConfigProperties.TARGET_DEV_HUB : OrgConfigProperties.TARGET_ORG;
+          const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
+          const needsConfigUpdate =
+            (configInfo.isGlobal() || configInfo.isLocal()) &&
+            (configInfo.value === username || aliasKeys.includes(configInfo.value as string));
 
-        const removeConfig = async (configInfo: ConfigInfo) => {
-          if (
-            (configInfo.value === username || aliases.includes(configInfo.value as string)) &&
-            (configInfo.isGlobal() || configInfo.isLocal())
-          ) {
-            await Config.update(configInfo.isGlobal(), configInfo.key, undefined);
-          }
-        };
+          return [
+            orgForUser.removeAuth(),
+            needsConfigUpdate ? Config.update(configInfo.isGlobal(), orgType, undefined) : undefined,
+          ].filter(Boolean);
+        })
+    );
 
-        await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_DEV_HUB));
-        await removeConfig(this.configAggregator.getInfo(OrgConfigProperties.TARGET_ORG));
-
-        await orgForUser.removeAuth();
-      }
-
-      await globalInfo.write();
-    }
+    await globalInfo.write();
   }
 
   /**
@@ -1039,10 +1060,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       } catch (err) {
         const error = err as Error;
         this.logger.debug('Exception while calling writeSandboxAuthFile %s', err);
-        if (error?.name === 'JWTAuthError' && error?.stack?.includes("user hasn't approved")) {
+        if (error?.name === 'JwtAuthError' && error?.stack?.includes("user hasn't approved")) {
           waitingOnAuth = true;
         } else {
-          throw SfdxError.wrap(error);
+          throw SfError.wrap(error);
         }
       }
     }
@@ -1145,7 +1166,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         this.logger.debug('Error while authenticating the user %s', error?.toString());
       } else {
         // If it fails for any unexpected reason, just pass that through
-        throw SfdxError.wrap(error);
+        throw SfError.wrap(error);
       }
     }
   }

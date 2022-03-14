@@ -20,7 +20,7 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { NamedError, upperFirst } from '@salesforce/kit';
-import { SfdxError } from './sfdxError';
+import { SfError } from './sfError';
 
 export type Tokens = Array<string | boolean | number | null | undefined>;
 
@@ -31,6 +31,12 @@ class Key {
     return `${this.packageName}:${this.bundleName}`;
   }
 }
+
+export type StructuredMessage = {
+  message: string;
+  name: string;
+  actions?: string[];
+};
 
 /**
  * A loader function to return messages.
@@ -85,7 +91,7 @@ const markdownLoader: FileParser = (filePath: string, fileContents: string): Sto
         map.set(key, rest);
       }
     } else {
-      // use error instead of SfdxError because messages.js should have no internal dependencies.
+      // use error instead of SfError because messages.js should have no internal dependencies.
       throw new Error(
         `Invalid markdown message file: ${filePath}\nThe line "# <key>" must be immediately followed by the message on a new line.`
       );
@@ -285,7 +291,7 @@ export class Messages<T extends string> {
       if (!fileContents || fileContents.trim().length === 0) {
         // messages.js should have no internal dependencies.
         const error = new Error(`Invalid message file: ${filePath}. No content.`);
-        error.name = 'SfdxError';
+        error.name = 'SfError';
         throw error;
       }
 
@@ -343,7 +349,7 @@ export class Messages<T extends string> {
         fs.statSync(path.join(projectRoot, 'package.json'));
         break;
       } catch (err) {
-        if ((err as SfdxError).code !== 'ENOENT') throw err;
+        if ((err as SfError).code !== 'ENOENT') throw err;
         projectRoot = projectRoot.substring(0, projectRoot.lastIndexOf(path.sep));
       }
     }
@@ -533,7 +539,7 @@ export class Messages<T extends string> {
    * @param key The key of the error message.
    * @param tokens The error message tokens.
    * @param actionTokens The action messages tokens.
-   * @param exitCodeOrCause The exit code which will be used by SfdxCommand or he underlying error that caused this error to be raised.
+   * @param exitCodeOrCause The exit code which will be used by SfdxCommand or the underlying error that caused this error to be raised.
    * @param cause The underlying error that caused this error to be raised.
    */
   public createError(
@@ -542,21 +548,78 @@ export class Messages<T extends string> {
     actionTokens: Tokens = [],
     exitCodeOrCause?: number | Error,
     cause?: Error
-  ): SfdxError {
+  ): SfError {
+    const structuredMessage = this.formatMessageContents('error', key, tokens, actionTokens);
+    return new SfError(
+      structuredMessage.message,
+      structuredMessage.name,
+      structuredMessage.actions,
+      exitCodeOrCause,
+      cause
+    );
+  }
+
+  /**
+   * Convenience method to create warning using message labels.
+   *
+   * `warning.name` will be the upper-cased key, remove prefixed `warning.` and will always end in Warning.
+   * `warning.actions` will be loaded using `${key}.actions` if available.
+   *
+   * @param key The key of the warning message.
+   * @param tokens The warning message tokens.
+   * @param actionTokens The action messages tokens.
+   */
+  public createWarning(key: T, tokens: Tokens = [], actionTokens: Tokens = []): StructuredMessage {
+    return this.formatMessageContents('warning', key, tokens, actionTokens);
+  }
+
+  /**
+   * Convenience method to create info using message labels.
+   *
+   * `info.name` will be the upper-cased key, remove prefixed `info.` and will always end in Info.
+   * `info.actions` will be loaded using `${key}.actions` if available.
+   *
+   * @param key The key of the warning message.
+   * @param tokens The warning message tokens.
+   * @param actionTokens The action messages tokens.
+   */
+  public createInfo(key: T, tokens: Tokens = [], actionTokens: Tokens = []): StructuredMessage {
+    return this.formatMessageContents('info', key, tokens, actionTokens);
+  }
+
+  /**
+   * Formats message contents given a message type, key, tokens and actions tokens
+   *
+   * `<type>.name` will be the upper-cased key, remove prefixed `<type>.` and will always end in 'Error | Warning | Info.
+   * `<type>.actions` will be loaded using `${key}.actions` if available.
+   *
+   * @param type The type of the message set must 'error' | 'warning' | 'info'.
+   * @param key The key of the warning message.
+   * @param tokens The warning message tokens.
+   * @param actionTokens The action messages tokens.
+   */
+  private formatMessageContents(
+    type: 'error' | 'warning' | 'info',
+    key: T,
+    tokens: Tokens = [],
+    actionTokens: Tokens = []
+  ): StructuredMessage {
+    const label = upperFirst(type);
+    const labelRegExp = new RegExp(`${label}$`);
+    const searchValue: RegExp = type === 'error' ? /^error.*\./ : new RegExp(`^${type}.`);
     // Convert key to name:
-    //     'myMessage' -> `MyMessageError`
+    //     'myMessage' -> `MyMessageWarning`
     //     'myMessageError' -> `MyMessageError`
-    //     'error.myMessage' -> `MyMessageError`
-    //     'errors.myMessage' -> `MyMessageError`
-    const errName = `${upperFirst(key.replace(/^errors*\./, ''))}${/Error$/.exec(key) ? '' : 'Error'}`;
-    const errMessage = this.getMessage(key, tokens);
-    let errActions;
+    //     'warning.myMessage' -> `MyMessageWarning`
+    const name = `${upperFirst(key.replace(searchValue, ''))}${labelRegExp.exec(key) ? '' : label}`;
+    const message = this.getMessage(key, tokens);
+    let actions;
     try {
-      errActions = this.getMessageWithMap(`${key}.actions`, actionTokens, this.messages);
+      actions = this.getMessageWithMap(`${key}.actions`, actionTokens, this.messages);
     } catch (e) {
       /* just ignore if actions aren't found */
     }
-    return new SfdxError(errMessage, errName, errActions, exitCodeOrCause, cause);
+    return { message, name, actions };
   }
 
   private getMessageWithMap(key: string, tokens: Tokens = [], map: StoredMessageMap): string[] {

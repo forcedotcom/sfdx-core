@@ -6,7 +6,8 @@
  */
 
 import * as path from 'path';
-import { getJsonValuesByName } from '@salesforce/kit';
+import * as fs from 'fs';
+import { getJsonValuesByName, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
   asJsonArray,
@@ -22,8 +23,7 @@ import {
 import * as validator from 'jsen';
 import { JsenValidateError } from 'jsen';
 import { Logger } from '../logger';
-import { SfdxError } from '../sfdxError';
-import { fs } from '../util/fs';
+import { SfError } from '../sfError';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.
@@ -50,7 +50,7 @@ export class SchemaValidator {
    */
   public async load(): Promise<JsonMap> {
     if (!this.schema) {
-      this.schema = await fs.readJsonMap(this.schemaPath);
+      this.schema = parseJsonMap(await fs.promises.readFile(this.schemaPath, 'utf8'));
       this.logger.debug(`Schema loaded for ${this.schemaPath}`);
     }
     return this.schema;
@@ -61,7 +61,7 @@ export class SchemaValidator {
    */
   public loadSync(): JsonMap {
     if (!this.schema) {
-      this.schema = fs.readJsonMapSync(this.schemaPath);
+      this.schema = parseJsonMap(fs.readFileSync(this.schemaPath, 'utf8'));
       this.logger.debug(`Schema loaded for ${this.schemaPath}`);
     }
     return this.schema;
@@ -71,8 +71,8 @@ export class SchemaValidator {
    * Performs validation of JSON data against the schema located at the `schemaPath` value provided
    * at instantiation.
    *
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldError' }* If there are known validations errors.
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknownError' }* If there are unknown validations errors.
+   * **Throws** *{@link SfError}{ name: 'ValidationSchemaFieldError' }* If there are known validations errors.
+   * **Throws** *{@link SfError}{ name: 'ValidationSchemaUnknownError' }* If there are unknown validations errors.
    *
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
@@ -86,8 +86,8 @@ export class SchemaValidator {
    * Performs validation of JSON data against the schema located at the `schemaPath` value provided
    * at instantiation.
    *
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaFieldError' }* If there are known validations errors.
-   * **Throws** *{@link SfdxError}{ name: 'ValidationSchemaUnknownError' }* If there are unknown validations errors.
+   * **Throws** *{@link SfError}{ name: 'ValidationSchemaFieldError' }* If there are known validations errors.
+   * **Throws** *{@link SfError}{ name: 'ValidationSchemaUnknownError' }* If there are unknown validations errors.
    *
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
@@ -107,9 +107,9 @@ export class SchemaValidator {
     if (!validate(json)) {
       if (validate.errors) {
         const errors = this.getErrorsText(validate.errors, schema);
-        throw new SfdxError(`Validation errors:\n${errors}`, 'ValidationSchemaFieldError');
+        throw new SfError(`Validation errors:\n${errors}`, 'ValidationSchemaFieldError');
       } else {
-        throw new SfdxError('Unknown schema validation error', 'ValidationSchemaUnknownError');
+        throw new SfError('Unknown schema validation error', 'ValidationSchemaUnknownError');
       }
     }
 
@@ -134,7 +134,7 @@ export class SchemaValidator {
       if (isString(externalSchema.id)) {
         externalSchemas[externalSchema.id] = externalSchema;
       } else {
-        throw new SfdxError(
+        throw new SfError(
           `Unexpected external schema id type: ${typeof externalSchema.id}`,
           'ValidationSchemaTypeError'
         );
@@ -151,10 +151,10 @@ export class SchemaValidator {
   private loadExternalSchema(uri: string): JsonMap {
     const schemaPath = path.join(this.schemasDir, `${uri}.json`);
     try {
-      return fs.readJsonMapSync(schemaPath);
+      return parseJsonMap(fs.readFileSync(schemaPath, 'utf8'));
     } catch (err) {
-      if ((err as SfdxError).code === 'ENOENT') {
-        throw new SfdxError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');
+      if ((err as SfError).code === 'ENOENT') {
+        throw new SfError(`Schema not found: ${schemaPath}`, 'ValidationSchemaNotFound');
       }
       throw err;
     }

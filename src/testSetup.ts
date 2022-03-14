@@ -32,8 +32,8 @@ import { Connection } from './org/connection';
 import { Crypto } from './crypto/crypto';
 import { Logger } from './logger';
 import { Messages } from './messages';
-import { SfdxError } from './sfdxError';
-import { SfdxProject, SfdxProjectJson } from './sfdxProject';
+import { SfError } from './sfError';
+import { SfProject, SfProjectJson } from './sfProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
 import { GlobalInfo, SfOrg } from './globalInfo';
 import { Global } from './global';
@@ -118,7 +118,7 @@ export interface TestContext {
     [configName: string]: Optional<ConfigStub>;
     GlobalInfo?: ConfigStub;
     Aliases?: ConfigStub;
-    SfdxProjectJson?: ConfigStub;
+    SfProjectJson?: ConfigStub;
     SfdxConfig?: ConfigStub;
   };
   /**
@@ -294,18 +294,18 @@ export const instantiateContext = (sinon?: any): TestContext => {
     inProject(inProject = true) {
       testContext.SANDBOXES.PROJECT.restore();
       if (inProject) {
-        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').callsFake(() =>
+        testContext.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPath').callsFake(() =>
           testContext.localPathRetriever(testContext.id)
         );
-        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPathSync').callsFake(() =>
+        testContext.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPathSync').callsFake(() =>
           testContext.localPathRetrieverSync(testContext.id)
         );
       } else {
-        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').rejects(
-          new SfdxError('', 'InvalidProjectWorkspaceError')
+        testContext.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPath').rejects(
+          new SfError('', 'InvalidProjectWorkspaceError')
         );
-        testContext.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPathSync').throws(
-          new SfdxError('', 'InvalidProjectWorkspaceError')
+        testContext.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPathSync').throws(
+          new SfError('', 'InvalidProjectWorkspaceError')
         );
       }
     },
@@ -355,7 +355,7 @@ export const stubContext = (testContext: TestContext) => {
     testContext.rootPathRetrieverSync(isGlobal, testContext.id)
   );
 
-  stubMethod(testContext.SANDBOXES.PROJECT, SfdxProjectJson.prototype, 'doesPackageExist').callsFake(() => true);
+  stubMethod(testContext.SANDBOXES.PROJECT, SfProjectJson.prototype, 'doesPackageExist').callsFake(() => true);
 
   const initStubForRead = (configFile: ConfigFile<ConfigFile.Options>): ConfigStub => {
     const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] || {};
@@ -532,7 +532,7 @@ export const testSetup = once(_testSetup);
  *
  * **See** {@link shouldThrow}
  */
-export const unexpectedResult = new SfdxError('This code was expected to fail', 'UnexpectedResult');
+export const unexpectedResult = new SfError('This code was expected to fail', 'UnexpectedResult');
 
 /**
  * Use for this testing pattern:
@@ -588,7 +588,7 @@ export interface StreamingMockCometSubscriptionOptions {
   /**
    * If it's an error that states what that error should be.
    */
-  subscriptionErrbackError?: SfdxError;
+  subscriptionErrbackError?: SfError;
   /**
    * A list of messages to playback for the client. One message per process tick.
    */

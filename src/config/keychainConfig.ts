@@ -6,7 +6,8 @@
  */
 
 import { dirname as pathDirname } from 'path';
-import { fs } from '../util/fs';
+import * as fs from 'fs';
+import * as mkdirp from 'mkdirp';
 import { ConfigFile } from './configFile';
 import { ConfigContents } from './configStore';
 
@@ -37,9 +38,9 @@ export class KeychainConfig extends ConfigFile<ConfigFile.Options> {
       this.setContents(newContents);
     }
 
-    await fs.mkdirp(pathDirname(this.getPath()));
+    await mkdirp(pathDirname(this.getPath()));
 
-    await fs.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 4), { mode: '600' });
+    await fs.promises.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 4), { mode: '600' });
 
     return this.getContents();
   }

@@ -15,7 +15,7 @@ import { HttpRequest } from 'jsforce';
 import { Nullable, ensureString, JsonMap } from '@salesforce/ts-types';
 import { Logger } from './logger';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
-import { SfdxError } from './sfdxError';
+import { SfError } from './sfError';
 import { SFDX_HTTP_HEADERS } from './org/connection';
 import { Messages } from './messages';
 
@@ -50,7 +50,7 @@ async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> 
   const rawResponse = await new Transport().httpRequest(options);
   const response = parseJsonMap<T>(rawResponse.body);
   if (response.error) {
-    const err = new SfdxError('Request Failed.');
+    const err = new SfError('Request Failed.');
     err.data = Object.assign(response, { status: rawResponse.statusCode });
     throw err;
   } else {
@@ -177,7 +177,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
       return await makeRequest<DeviceCodePollingResponse>(httpRequest);
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const err: any = (e as SfdxError).data;
+      const err: any = (e as SfError).data;
       if (err.error && err.status === 400 && err.error === 'authorization_pending') {
         // do nothing because we're still waiting
       } else {

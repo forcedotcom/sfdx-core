@@ -10,7 +10,7 @@ import { EOL } from 'os';
 import { cloneJson } from '@salesforce/kit';
 import { assert, expect } from 'chai';
 import { Messages } from '../../src/messages';
-import { SfdxError } from '../../src/sfdxError';
+import { SfError } from '../../src/sfError';
 import { testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
@@ -127,7 +127,7 @@ describe('Messages', () => {
     const msgFiles = ['apexMessages.json', 'soqlMessages.json'];
 
     const messagesDirPath = `${path.sep}root${path.sep}myModule${path.sep}dist${path.sep}lib`;
-    const truncateErr = new SfdxError('truncate error');
+    const truncateErr = new SfError('truncate error');
     truncateErr['code'] = 'ENOENT';
     let truncatePath = `${path.sep}root${path.sep}myModule`;
 
@@ -212,7 +212,7 @@ describe('Messages', () => {
         loaderFn(Messages.getLocale());
         assert.fail('should have thrown an error that the file was empty.');
       } catch (err) {
-        expect(err.name).to.equal('SfdxError');
+        expect(err.name).to.equal('SfError');
         expect(err.message).to.equal('Invalid message file: myPluginMessages.json. No content.');
       }
     });
@@ -364,6 +364,52 @@ describe('Messages', () => {
       expect(error.message).to.equal(testMessages.msg1);
       expect(error.actions.length).to.equal(1);
       expect(error.actions[0]).to.equal('from prefix');
+    });
+  });
+  describe('createWarning', () => {
+    it('creates warning with actions', () => {
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const warning = messages.createWarning('msg1');
+
+      expect(warning.name).to.equal('Msg1Warning');
+      expect(warning.message).to.equal(testMessages.msg1);
+      expect(warning.actions.length).to.equal(1);
+      expect(warning.actions[0]).to.equal(testMessages.msg2);
+    });
+
+    it('creates warning with removed warning prefix', () => {
+      msgMap.set('warning.msg1', msgMap.get('msg1'));
+      msgMap.set('warning.msg1.actions', ['from prefix']);
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const warning = messages.createWarning('warning.msg1');
+
+      expect(warning.name).to.equal('Msg1Warning');
+      expect(warning.message).to.equal(testMessages.msg1);
+      expect(warning.actions.length).to.equal(1);
+      expect(warning.actions[0]).to.equal('from prefix');
+    });
+  });
+  describe('createInfo', () => {
+    it('creates info with actions', () => {
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const info = messages.createInfo('msg1');
+
+      expect(info.name).to.equal('Msg1Info');
+      expect(info.message).to.equal(testMessages.msg1);
+      expect(info.actions.length).to.equal(1);
+      expect(info.actions[0]).to.equal(testMessages.msg2);
+    });
+
+    it('creates info with removed info prefix', () => {
+      msgMap.set('info.msg1', msgMap.get('msg1'));
+      msgMap.set('info.msg1.actions', ['from prefix']);
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const info = messages.createInfo('info.msg1');
+
+      expect(info.name).to.equal('Msg1Info');
+      expect(info.message).to.equal(testMessages.msg1);
+      expect(info.actions.length).to.equal(1);
+      expect(info.actions[0]).to.equal('from prefix');
     });
   });
 });
