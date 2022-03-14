@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.8.0](https://github.com/forcedotcom/sfdx-core/compare/v3.7.9...v3.8.0) (2022-03-09)
+
+### Features
+
+- add handle side effect function to authinfo ([64c78e7](https://github.com/forcedotcom/sfdx-core/commit/64c78e74bc5e1cfb748fd2d64e4b1e8fc1062bf6))
+
+### [3.7.9](https://github.com/forcedotcom/sfdx-core/compare/v3.7.8...v3.7.9) (2022-03-04)
+
+### Bug Fixes
+
+- error literal to match the error thrown ([#533](https://github.com/forcedotcom/sfdx-core/issues/533)) ([b91ce5c](https://github.com/forcedotcom/sfdx-core/commit/b91ce5c329c9b2b88fb4b0ad028aee5f6d5b6e77))
+
+### [3.7.8](https://github.com/forcedotcom/sfdx-core/compare/v3.7.7...v3.7.8) (2022-03-03)
+
+### Bug Fixes
+
+- add create warning and info convenience functions ([#526](https://github.com/forcedotcom/sfdx-core/issues/526)) ([e3428b3](https://github.com/forcedotcom/sfdx-core/commit/e3428b35e00b9cee3c90153ed6ce08b352535ff7))
+
 ### [3.7.7](https://github.com/forcedotcom/sfdx-core/compare/v3.7.6...v3.7.7) (2022-03-01)
 
 ### [3.7.6](https://github.com/forcedotcom/sfdx-core/compare/v4.0.0...v3.7.6) (2022-02-28)

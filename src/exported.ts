@@ -32,7 +32,7 @@ export {
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
-export { AuthFields, AuthInfo, OrgAuthorization } from './org/authInfo';
+export { AuthFields, AuthInfo, AuthSideEffects, OrgAuthorization } from './org/authInfo';
 
 export { AuthRemover } from './org/authRemover';
 
@@ -59,7 +59,7 @@ export {
   Logger,
 } from './logger';
 
-export { Messages } from './messages';
+export { Messages, StructuredMessage } from './messages';
 
 export {
   Org,
