@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import { assert } from 'sinon';
 import { Logger } from '../../../src/logger';
 import { SfError } from '../../../src/sfError';
-import { ScratchOrgInfo } from '../../../src/org/scratchOrgInfoApi';
+import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
 import { checkScratchOrgInfoForErrors } from '../../../src/org/scratchOrgErrorCodes';
 
 const testUsername = 'foo';

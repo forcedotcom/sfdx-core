@@ -17,12 +17,13 @@ import {
   requestScratchOrgCreation,
   pollForScratchOrgInfo,
   deploySettingsAndResolveUrl,
-  ScratchOrgInfo,
 } from './scratchOrgInfoApi';
+import { ScratchOrgInfo } from './scratchOrgTypes';
 import SettingsGenerator from './scratchOrgSettingsGenerator';
 import { generateScratchOrgInfo, getScratchOrgInfoPayload } from './scratchOrgInfoGenerator';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Connection } from './connection';
+import { emit } from './scratchOrgLifecycleEvents';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', [
@@ -106,8 +107,9 @@ const validateWait = (wait: Duration): void => {
 
 export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promise<ScratchOrgCreateResult> => {
   const logger = await Logger.child('scratchOrgCreate');
-  logger.debug('scratchOrgCreate');
 
+  logger.debug('scratchOrgCreate');
+  await emit({ stage: 'building request' });
   const {
     hubOrg,
     connectedAppConsumerKey,
@@ -151,7 +153,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
 
   // creates the scratch org info in the devhub
   const scratchOrgInfoRequestResult = await requestScratchOrgCreation(hubOrg, scratchOrgInfo, settingsGenerator);
-
   const scratchOrgInfoId = ensureString(getString(scratchOrgInfoRequestResult, 'id'));
 
   logger.debug(`scratch org has recordId ${scratchOrgInfoId}`);
@@ -177,6 +178,8 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   logger.debug(`scratch org username ${username}`);
 
   const configAggregator = new ConfigAggregator();
+  await emit({ stage: 'deploying', scratchOrgInfo: scratchOrgInfoResult });
+
   const authInfo = await deploySettingsAndResolveUrl(
     scratchOrgAuthInfo,
     apiversion ??

@@ -17,12 +17,12 @@ import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import SettingsGenerator from '../../../src/org/scratchOrgSettingsGenerator';
 import {
   requestScratchOrgCreation,
-  ScratchOrgInfo,
   JsForceError,
   deploySettingsAndResolveUrl,
   pollForScratchOrgInfo,
   authorizeScratchOrg,
 } from '../../../src/org/scratchOrgInfoApi';
+import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
 import { Messages } from '../../../src/messages';
 
 Messages.importMessagesDirectory(__dirname);
