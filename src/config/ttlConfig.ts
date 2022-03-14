@@ -24,6 +24,19 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
     super.set(key, this.timestamp(value));
   }
 
+  public getLatestEntry(): [string, TTLConfig.Entry<P>] {
+    const entries = this.entries() as Array<[string, TTLConfig.Entry<P>]>;
+    const sorted = entries.sort(([, valueA], [, valueB]) => {
+      return new Date(valueB.timestamp).getTime() - new Date(valueA.timestamp).getTime();
+    });
+    return sorted[0];
+  }
+
+  public getLatestKey(): string {
+    const [key] = this.getLatestEntry();
+    return key;
+  }
+
   protected async init(): Promise<void> {
     const contents = await this.read(this.options.throwOnNotFound);
     const purged = {} as TTLConfig.Contents<P>;
