@@ -37,6 +37,10 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
     return key;
   }
 
+  public isExpired(dateTime: number, value: P & { timestamp: string }): boolean {
+    return dateTime - new Date(value.timestamp).getTime() > this.options.ttl.milliseconds;
+  }
+
   protected async init(): Promise<void> {
     const contents = await this.read(this.options.throwOnNotFound);
     const purged = {} as TTLConfig.Contents<P>;
@@ -45,10 +49,6 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
       if (!this.isExpired(date, opts)) purged[key] = opts;
     }
     this.setContents(purged);
-  }
-
-  protected isExpired(dateTime: number, value: P & { timestamp: string }): boolean {
-    return dateTime - new Date(value.timestamp).getTime() > this.options.ttl.milliseconds;
   }
 
   private timestamp(value: Partial<TTLConfig.Entry<P>>): TTLConfig.Entry<P> {
