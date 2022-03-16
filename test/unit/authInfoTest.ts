@@ -2334,4 +2334,268 @@ describe('AuthInfo', () => {
       }
     });
   });
+  describe('getDevHubAuthInfos', () => {
+    it('should not find a dev hub when no auth files exist', async () => {
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+        return Promise.resolve([]);
+      });
+
+      const result: AuthInfo[] = await AuthInfo.getDevHubAuthInfos();
+      expect(result).to.have.lengthOf(0);
+    });
+    it('should not find a dev hub when one auth files exists that is not a dev hub', async () => {
+      const username = 'foobar@baz.org.json';
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: {
+          username,
+          orgId: '00DAuthInfoTest_orgId',
+          instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+          isDevHub: true,
+        },
+      });
+
+      stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'getContents').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        isDevHub: true,
+      });
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+        return Promise.resolve([username]);
+      });
+      const authInfo = await AuthInfo.create({
+        username,
+      });
+
+      stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).returns(Promise.resolve(authInfo));
+
+      const result: AuthInfo[] = await AuthInfo.getDevHubAuthInfos();
+      expect(result).to.have.lengthOf(0);
+    });
+    it('should find a dev hub', async () => {
+      const username = 'foobar@baz.org';
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: {
+          username,
+          orgId: '00DAuthInfoTest_orgId',
+          instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+          filename: `${username}.json`,
+        },
+      });
+
+      stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'getContents').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        filename: `${username}.json`,
+      });
+      stubMethod($$.SANDBOX, AuthInfoConfig, 'getDefaultOptions').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        filename: `${username}.json`,
+      });
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+        return Promise.resolve([`${username}.json`]);
+      });
+      const authInfo = await AuthInfo.create({
+        username,
+      });
+
+      stubMethod($$.SANDBOX, authInfo, 'getFields').returns({
+        username,
+        isDevHub: true,
+      });
+
+      stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).returns(Promise.resolve(authInfo));
+
+      const result: AuthInfo[] = await AuthInfo.getDevHubAuthInfos();
+      expect(result).to.have.lengthOf(1);
+    });
+  });
+  describe('identifyPossibleScratchOrgs', () => {
+    it('should not update org - no dev hubs', async () => {
+      const username = 'foobar@baz.org';
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: {
+          username,
+          orgId: '00DAuthInfoTest_orgId',
+          instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+          filename: `${username}.json`,
+        },
+      });
+
+      stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'getContents').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        filename: `${username}.json`,
+      });
+      stubMethod($$.SANDBOX, AuthInfoConfig, 'getDefaultOptions').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        filename: `${username}.json`,
+      });
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+        return Promise.resolve([`${username}.json`]);
+      });
+      const authInfo = await AuthInfo.create({
+        username,
+      });
+
+      stubMethod($$.SANDBOX, authInfo, 'getFields').returns({
+        username,
+        isDevHub: true,
+      });
+
+      stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).returns(Promise.resolve(authInfo));
+      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs({ orgId: '00DAuthInfoTest_orgId' }, authInfo);
+      expect(getDevHubAuthInfosStub.callCount).to.be.equal(1);
+      expect(queryScratchOrgStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+    it('should not update org - state already known', async () => {
+      const username = 'foobar@baz.org';
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: {
+          username,
+          orgId: '00DAuthInfoTest_orgId',
+          instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+          filename: `${username}.json`,
+        },
+      });
+
+      stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'getContents').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        filename: `${username}.json`,
+      });
+      stubMethod($$.SANDBOX, AuthInfoConfig, 'getDefaultOptions').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        filename: `${username}.json`,
+      });
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+        return Promise.resolve([`${username}.json`]);
+      });
+      const authInfo = await AuthInfo.create({
+        username,
+      });
+
+      stubMethod($$.SANDBOX, authInfo, 'getFields').returns({
+        username,
+        isDevHub: true,
+      });
+
+      stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).returns(Promise.resolve(authInfo));
+      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs({ orgId: '00DAuthInfoTest_orgId', isDevHub: true }, authInfo);
+      expect(getDevHubAuthInfosStub.callCount).to.be.equal(0);
+      expect(queryScratchOrgStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+    it('should not update org - no fields.orgId', async () => {
+      const username = 'foobar@baz.org';
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: {
+          username,
+          orgId: '00DAuthInfoTest_orgId',
+          instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+          filename: `${username}.json`,
+        },
+      });
+
+      stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'getContents').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        filename: `${username}.json`,
+      });
+      stubMethod($$.SANDBOX, AuthInfoConfig, 'getDefaultOptions').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        filename: `${username}.json`,
+      });
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+        return Promise.resolve([`${username}.json`]);
+      });
+      const authInfo = await AuthInfo.create({
+        username,
+      });
+
+      stubMethod($$.SANDBOX, authInfo, 'getFields').returns({
+        username,
+        isDevHub: true,
+      });
+
+      stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).returns(Promise.resolve(authInfo));
+      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs({}, authInfo);
+      expect(getDevHubAuthInfosStub.callCount).to.be.equal(0);
+      expect(queryScratchOrgStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+    it('should update org', async () => {
+      const username = 'foobar@baz.org';
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: {
+          username,
+          orgId: '00DAuthInfoTest_orgId',
+          instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+          filename: `${username}.json`,
+        },
+      });
+
+      stubMethod($$.SANDBOX, AuthInfoConfig.prototype, 'getContents').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        filename: `${username}.json`,
+      });
+      stubMethod($$.SANDBOX, AuthInfoConfig, 'getDefaultOptions').returns({
+        username,
+        orgId: '00DAuthInfoTest_orgId',
+        instanceUrl: 'http://mydevhub.localhost.internal.salesforce.com:6109',
+        filename: `${username}.json`,
+      });
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthFiles').callsFake(async (): Promise<string[]> => {
+        return Promise.resolve([`${username}.json`]);
+      });
+      const authInfo = await AuthInfo.create({
+        username,
+      });
+
+      const devHubuthInfo = await AuthInfo.create({
+        username: 'my@Devhub.org',
+      });
+      stubMethod($$.SANDBOX, authInfo, 'getFields').returns({
+        username,
+        isDevHub: true,
+      });
+
+      stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username }).returns(Promise.resolve(authInfo));
+      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([devHubuthInfo]);
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg').resolves({ totalSize: 1 });
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs({ orgId: '00DAuthInfoTest_orgId' }, authInfo);
+      expect(getDevHubAuthInfosStub.callCount).to.be.equal(1);
+      expect(queryScratchOrgStub.callCount).to.be.equal(1);
+      expect(authInfoSaveStub.callCount).to.be.equal(1);
+    });
+  });
 });
