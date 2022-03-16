@@ -10,9 +10,17 @@ import { ScratchOrgInfo } from './scratchOrgTypes';
 const emitter = Lifecycle.getInstance();
 
 export const scratchOrgLifecycleEventName = 'scratchOrgLifecycleEvent';
-
+export const scratchOrgLifecycleStages = [
+  'prepare request',
+  'send request',
+  'wait for org',
+  'available',
+  'authenticate',
+  'deploy settings',
+  'done',
+] as const;
 export interface ScratchOrgLifecycleEvent {
-  stage: 'building request' | 'requested' | 'pending' | 'ready' | 'authing' | 'deploying';
+  stage: typeof scratchOrgLifecycleStages[number];
   scratchOrgInfo?: ScratchOrgInfo;
 }
 

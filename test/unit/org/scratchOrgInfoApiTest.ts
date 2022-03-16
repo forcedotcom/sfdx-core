@@ -24,6 +24,7 @@ import {
 } from '../../../src/org/scratchOrgInfoApi';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
 import { Messages } from '../../../src/messages';
+import { SfError } from '../../../src/sfError';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
@@ -138,9 +139,12 @@ describe('requestScratchOrgCreation', () => {
     const err = new Error('MyError');
     err.name = 'NamedOrgNotFound';
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
-    const jsForceError = new Error('JsForce-Error') as JsForceError;
-    jsForceError.errorCode = 'REQUIRED_FIELD_MISSING';
-    jsForceError.fields = ['error-field'];
+    const jsForceError = {
+      ...new Error('JsForce-Error'),
+      errorCode: 'REQUIRED_FIELD_MISSING',
+      fields: ['error-field'],
+    } as JsForceError;
+
     // @ts-ignore
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       create: sinon.stub().rejects(jsForceError),
@@ -150,10 +154,10 @@ describe('requestScratchOrgCreation', () => {
     try {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
-      expect(error).to.exist;
-      expect(error.message).to.include(
-        messages.getMessage('SignupFieldsMissingError', [jsForceError.fields.toString()])
-      );
+      const e = error as SfError;
+      expect(e).to.exist;
+      expect(e).to.have.property('message');
+      expect(e.message).to.include(messages.getMessage('SignupFieldsMissingError', [jsForceError.fields.toString()]));
     }
   });
 

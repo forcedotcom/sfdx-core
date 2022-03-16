@@ -109,7 +109,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   const logger = await Logger.child('scratchOrgCreate');
 
   logger.debug('scratchOrgCreate');
-  await emit({ stage: 'building request' });
+  await emit({ stage: 'prepare request' });
   const {
     hubOrg,
     connectedAppConsumerKey,
@@ -178,7 +178,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   logger.debug(`scratch org username ${username}`);
 
   const configAggregator = new ConfigAggregator();
-  await emit({ stage: 'deploying', scratchOrgInfo: scratchOrgInfoResult });
+  await emit({ stage: 'deploy settings', scratchOrgInfo: scratchOrgInfoResult });
 
   const authInfo = await deploySettingsAndResolveUrl(
     scratchOrgAuthInfo,
@@ -192,6 +192,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   logger.trace('Settings deployed to org');
   /** updating the revision num to zero during org:creation if source members are created during org:create.This only happens for some specific scratch org definition file.*/
   await updateRevisionCounterToZero(scratchOrg);
+  await emit({ stage: 'done', scratchOrgInfo: scratchOrgInfoResult });
 
   return {
     username,

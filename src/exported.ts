@@ -105,7 +105,11 @@ export { PermissionSetAssignment, PermissionSetAssignmentFields } from './org/pe
 export { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from './org/scratchOrgCreate';
 
 export { ScratchOrgInfo } from './org/scratchOrgTypes';
-export { ScratchOrgLifecycleEvent, scratchOrgLifecycleEventName } from './org/scratchOrgLifeCycleEvents';
+export {
+  ScratchOrgLifecycleEvent,
+  scratchOrgLifecycleEventName,
+  scratchOrgLifecycleStages,
+} from './org/scratchOrgLifeCycleEvents';
 
 // Utility sub-modules
 export * from './util/sfdc';
