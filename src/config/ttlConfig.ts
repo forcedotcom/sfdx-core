@@ -33,7 +33,7 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
   }
 
   public getLatestKey(): string {
-    const [key] = this.getLatestEntry();
+    const [key] = this.getLatestEntry() || [];
     return key;
   }
 
