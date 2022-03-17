@@ -109,7 +109,7 @@ export {
   ScratchOrgLifecycleEvent,
   scratchOrgLifecycleEventName,
   scratchOrgLifecycleStages,
-} from './org/scratchOrgLifeCycleEvents';
+} from './org/scratchOrgLifecycleEvents';
 
 // Utility sub-modules
 export * from './util/sfdc';
