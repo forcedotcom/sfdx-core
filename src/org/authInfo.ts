@@ -571,16 +571,18 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   /**
    * Convenience function to handle typical side effects encountered when dealing with an AuthInfo.
-   * Given the values supplied in parameter sideEffects, this functions will set auth alias, default auth
+   * Given the values supplied in parameter sideEffects, this function will set auth alias, default auth
    * and default dev hub.
    *
    * @param sideEffects - instance of AuthSideEffects
    */
   public async handleAliasAndDefaultSettings(sideEffects: AuthSideEffects): Promise<void> {
-    if (sideEffects.alias) await this.setAlias(sideEffects.alias);
-    if (sideEffects.setDefault) await this.setAsDefault({ org: true });
-    if (sideEffects.setDefaultDevHub) await this.setAsDefault({ devHub: true });
-    await this.save();
+    if (sideEffects.alias || sideEffects.setDefault || sideEffects.setDefaultDevHub) {
+      if (sideEffects.alias) await this.setAlias(sideEffects.alias);
+      if (sideEffects.setDefault) await this.setAsDefault({ org: true });
+      if (sideEffects.setDefaultDevHub) await this.setAsDefault({ devHub: true });
+      await this.save();
+    }
   }
 
   /**
