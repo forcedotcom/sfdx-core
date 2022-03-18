@@ -11,7 +11,7 @@ import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
 import * as sinonType from 'sinon';
 
-import { once, set } from '@salesforce/kit';
+import { once } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
 import {
   AnyFunction,
@@ -20,7 +20,6 @@ import {
   ensureAnyJson,
   ensureJsonMap,
   ensureString,
-  getBoolean,
   isJsonMap,
   JsonMap,
   Optional,
@@ -721,7 +720,8 @@ export class StreamingMockCometClient extends CometClient {
  */
 export class MockTestOrgData {
   public testId: string;
-  public alias?: string;
+  public aliases?: string[];
+  public configs?: string[];
   public username: string;
   public devHubUsername?: string;
   public orgId: string;
@@ -734,6 +734,9 @@ export class MockTestOrgData {
   public refreshToken: string;
   public userId: string;
   public redirectUri: string;
+  public isDevHub?: boolean;
+  public isScratchOrg?: boolean;
+  public isExpired?: boolean | 'unknown';
 
   public constructor(id: string = uniqid(), options?: { username: string }) {
     this.testId = id;
@@ -755,13 +758,14 @@ export class MockTestOrgData {
   }
 
   public makeDevHub(): void {
-    set(this, 'isDevHub', true);
+    this.isDevHub = true;
   }
 
   public createUser(user: string): MockTestOrgData {
     const userMock = new MockTestOrgData();
     userMock.username = user;
-    userMock.alias = this.alias;
+    userMock.aliases = this.aliases;
+    userMock.configs = this.configs;
     userMock.devHubUsername = this.devHubUsername;
     userMock.orgId = this.orgId;
     userMock.loginUrl = this.loginUrl;
@@ -769,6 +773,9 @@ export class MockTestOrgData {
     userMock.clientId = this.clientId;
     userMock.clientSecret = this.clientSecret;
     userMock.redirectUri = this.redirectUri;
+    userMock.isDevHub = this.isDevHub;
+    userMock.isScratchOrg = this.isScratchOrg;
+    userMock.isExpired = this.isExpired;
     return userMock;
   }
 
@@ -777,7 +784,8 @@ export class MockTestOrgData {
       Id: this.userId,
       Username: this.username,
       LastName: `user_lastname_${this.testId}`,
-      Alias: this.alias || 'user_alias_blah',
+      Alias: this.aliases ? this.aliases[0] : 'user_alias_blah',
+      Configs: this.configs,
       TimeZoneSidKey: `user_timezonesidkey_${this.testId}`,
       LocaleSidKey: `user_localesidkey_${this.testId}`,
       EmailEncodingKey: `user_emailencodingkey_${this.testId}`,
@@ -808,16 +816,12 @@ export class MockTestOrgData {
     config.createdOrgInstance = 'CS1';
     config.created = '1519163543003';
     config.userId = this.userId;
-    // config.devHubUsername = 'tn@su-blitz.org';
 
     if (this.devHubUsername) {
       config.devHubUsername = this.devHubUsername;
     }
 
-    const isDevHub = getBoolean(this, 'isDevHub');
-    if (isDevHub) {
-      config.isDevHub = isDevHub;
-    }
+    config.isDevHub = this.isDevHub;
 
     return config as SfOrg;
   }
