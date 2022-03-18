@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.8.1](https://github.com/forcedotcom/sfdx-core/compare/v3.8.0...v3.8.1) (2022-03-18)
+
+### Bug Fixes
+
+- adjust mock org test data to conform to v3 ([38faf50](https://github.com/forcedotcom/sfdx-core/commit/38faf5063931955066312c24b4188b12c40098a5))
+- side effects function should not save when no changes ([#541](https://github.com/forcedotcom/sfdx-core/issues/541)) ([6bfb841](https://github.com/forcedotcom/sfdx-core/commit/6bfb84172fdf74882102b9ffc6e6fbfe58e6ffbc))
+
 ## [3.8.0](https://github.com/forcedotcom/sfdx-core/compare/v3.7.9...v3.8.0) (2022-03-09)
 
 ### Features
