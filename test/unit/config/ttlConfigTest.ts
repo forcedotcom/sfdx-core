@@ -56,6 +56,12 @@ describe('TTLConfig', () => {
       const latest = config.getLatestEntry();
       expect(latest).to.deep.equal(['2', config.get('2')]);
     });
+
+    it('should return null if there are no entries', async () => {
+      const config = await TestConfig.create();
+      const latest = config.getLatestEntry();
+      expect(latest).to.equal(null);
+    });
   });
 
   describe('getLatestKey', () => {
@@ -66,6 +72,12 @@ describe('TTLConfig', () => {
       config.set('2', { two: 'two' });
       const latest = config.getLatestKey();
       expect(latest).to.equal('2');
+    });
+
+    it('should return null if there are no entries', async () => {
+      const config = await TestConfig.create();
+      const latest = config.getLatestKey();
+      expect(latest).to.equal(null);
     });
   });
 

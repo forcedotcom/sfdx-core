@@ -6,7 +6,7 @@
  */
 
 import { Duration } from '@salesforce/kit';
-import { JsonMap } from '@salesforce/ts-types';
+import { JsonMap, Nullable } from '@salesforce/ts-types';
 import { ConfigFile } from './configFile';
 
 /**
@@ -24,16 +24,16 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
     super.set(key, this.timestamp(value));
   }
 
-  public getLatestEntry(): [string, TTLConfig.Entry<P>] {
+  public getLatestEntry(): Nullable<[string, TTLConfig.Entry<P>]> {
     const entries = this.entries() as Array<[string, TTLConfig.Entry<P>]>;
     const sorted = entries.sort(([, valueA], [, valueB]) => {
       return new Date(valueB.timestamp).getTime() - new Date(valueA.timestamp).getTime();
     });
-    return sorted[0];
+    return sorted.length > 0 ? sorted[0] : null;
   }
 
-  public getLatestKey(): string {
-    const [key] = this.getLatestEntry() || [];
+  public getLatestKey(): Nullable<string> {
+    const [key] = this.getLatestEntry() || [null];
     return key;
   }
 
