@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.9.0](https://github.com/forcedotcom/sfdx-core/compare/v3.8.1...v3.9.0) (2022-03-21)
+
+### Features
+
+- add TTLConfig ([#538](https://github.com/forcedotcom/sfdx-core/issues/538)) ([e623241](https://github.com/forcedotcom/sfdx-core/commit/e623241c7e513778c8f179dde4dc16e603a3778c))
+
 ### [3.8.1](https://github.com/forcedotcom/sfdx-core/compare/v3.8.0...v3.8.1) (2022-03-18)
 
 ### Bug Fixes
