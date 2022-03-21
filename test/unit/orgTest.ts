@@ -1051,10 +1051,7 @@ describe('Org Tests', () => {
     let queryStub;
     let pollStatusAndAuthStub;
     const sandboxNameIn = 'test-sandbox';
-    const SOBJECT_SANDBOXPROCESS = 'SandboxProcess';
-    const QUERY_SANDBOXPROCESS_FIELDS =
-      'Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate ';
-    const queryStr = `SELECT ${QUERY_SANDBOXPROCESS_FIELDS} FROM ${SOBJECT_SANDBOXPROCESS} WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
+    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
 
     const statusResult = {
       records: [
