@@ -618,6 +618,64 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
+   * Query the sandbox for the SandboxProcessObject by sandbox name
+   *
+   * @param sandboxName The name of the sandbox to query
+   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
+   */
+  public async queryLatestSandboxProcessBySandboxName(sandboxNameIn: string): Promise<SandboxProcessObject> {
+    const { tooling } = this.getConnection();
+    this.logger.debug('QueryLatestSandboxProcessBySandboxName called with SandboxName: %s ', sandboxNameIn);
+    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
+
+    const queryResult = await tooling.query(queryStr);
+    this.logger.debug('Return from calling queryToolingApi: %s ', queryResult);
+    if (queryResult.records && queryResult.records.length === 1) {
+      return queryResult.records[0] as SandboxProcessObject;
+    } else if (queryResult.records && queryResult.records.length > 1) {
+      throw SfdxError.create('@salesforce/core', 'org', 'MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
+    } else {
+      throw SfdxError.create('@salesforce/core', 'org', 'SandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
+    }
+  }
+
+  /**
+   * Gets the sandboxProcessObject and then pools for it to complete.
+   *
+   * @param sandboxProcessName sanbox process name
+   * @param options { wait?: Duration; interval?: Duration }
+   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
+   */
+  public async authWithRetriesByName(
+    sandboxProcessName: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    return this.authWithRetries(await this.queryLatestSandboxProcessBySandboxName(sandboxProcessName), options);
+  }
+
+  /**
+   * Polls the sandbox org for the sandboxProcessObject.
+   *
+   * @param sandboxProcessObj: The in-progress sandbox signup request
+   * @param options { wait?: Duration; interval?: Duration }
+   * @returns {SandboxProcessObject}
+   */
+  public async authWithRetries(
+    sandboxProcessObj: SandboxProcessObject,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    const retries = options.wait ? options.wait.seconds / Duration.seconds(30).seconds : 0;
+    const pollInterval = options.interval ?? Duration.seconds(30);
+    this.logger.debug('AuthWithRetries sandboxProcessObj %s, retries %i', sandboxProcessObj, retries);
+    return this.pollStatusAndAuth({
+      sandboxProcessObj,
+      retries,
+      shouldPoll: retries > 0,
+      pollInterval,
+    });
+  }
+
+  /**
    * Initialize async components.
    */
   protected async init(): Promise<void> {
@@ -652,69 +710,6 @@ export class Org extends AsyncCreatable<Org.Options> {
    */
   protected getDefaultOptions(): Org.Options {
     throw new SfdxError('Not Supported');
-  }
-
-  /**
-   * Query the sandbox for the SandboxProcessObject by sandbox name
-   *
-   * @param sandboxName The name of the sandbox to query
-   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
-   */
-  private async queryLatestSandboxProcessBySandboxName(sandboxNameIn: string): Promise<SandboxProcessObject> {
-    const { tooling } = this.getConnection();
-    const SOBJECT_SANDBOXPROCESS = 'SandboxProcess';
-    const QUERY_SANDBOXPROCESS_FIELDS =
-      'Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate ';
-
-    this.logger.debug('QueryLatestSandboxProcessBySandboxName called with SandboxName: %s ', sandboxNameIn);
-    const queryStr = `SELECT ${QUERY_SANDBOXPROCESS_FIELDS} FROM ${SOBJECT_SANDBOXPROCESS} WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
-
-    const queryResult = await tooling.query(queryStr);
-    this.logger.debug('Return from calling queryToolingApi: %s ', queryResult);
-    if (queryResult.records && queryResult.records.length === 1) {
-      return queryResult.records[0] as SandboxProcessObject;
-    } else if (queryResult.records && queryResult.records.length > 1) {
-      throw SfdxError.create('@salesforce/core', 'org', 'MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
-    } else {
-      throw SfdxError.create('@salesforce/core', 'org', 'SandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
-    }
-  }
-
-  /**
-   * Gets the sandboxProcessObject and then pools for it to complete.
-   *
-   * @param sandboxProcessName sanbox process name
-   * @param options { wait?: Duration; interval?: Duration }
-   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
-   */
-  private async authWithRetriesByName(
-    sandboxProcessName: string,
-    options: { wait?: Duration; interval?: Duration }
-  ): Promise<SandboxProcessObject> {
-    return this.authWithRetries(await this.queryLatestSandboxProcessBySandboxName(sandboxProcessName), options);
-  }
-
-  /**
-   * Polls the sandbox org for the sandboxProcessObject.
-   *
-   * @param sandboxProcessObj: The in-progress sandbox signup request
-   * @param options { wait?: Duration; interval?: Duration }
-   * @returns {SandboxProcessObject}
-   */
-  private async authWithRetries(
-    sandboxProcessObj: SandboxProcessObject,
-    options: { wait?: Duration; interval?: Duration }
-  ): Promise<SandboxProcessObject> {
-    const retries = options.wait ? options.wait.seconds / Duration.seconds(30).seconds : 0;
-    const pollInterval = options.interval ?? Duration.seconds(30);
-    // const maxPollingRetries = this.getMaxPollingRetries();
-    this.logger.debug('AuthWithRetries sandboxProcessObj %s, retries %i', sandboxProcessObj, retries);
-    return this.pollStatusAndAuth({
-      sandboxProcessObj,
-      retries,
-      shouldPoll: retries > 0,
-      pollInterval,
-    });
   }
 
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
