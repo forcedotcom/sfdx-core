@@ -106,6 +106,8 @@
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="logger.html#debugenabled" class="tsd-kind-icon">debug<wbr>Enabled</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="logger.html#logrotationcount" class="tsd-kind-icon">log<wbr>Rotation<wbr>Count</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="logger.html#logrotationperiod" class="tsd-kind-icon">log<wbr>Rotation<wbr>Period</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="logger.html#default_level" class="tsd-kind-icon">DEFAULT_<wbr>LEVEL</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="logger.html#level_names" class="tsd-kind-icon">LEVEL_<wbr>NAMES</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="logger.html#root_name" class="tsd-kind-icon">ROOT_<wbr>NAME</a></li>
@@ -159,7 +161,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L230">src/logger.ts:230</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L245">src/logger.ts:245</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -193,12 +195,45 @@
 					<div class="tsd-signature tsd-kind-icon">debug<wbr>Enabled<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L225">src/logger.ts:225</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L240">src/logger.ts:240</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
 							<p>Whether debug is enabled for this Logger.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="logrotationcount" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> log<wbr>Rotation<wbr>Count</h3>
+					<div class="tsd-signature tsd-kind-icon">log<wbr>Rotation<wbr>Count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = new Env().getNumber(&#x27;SFDX_LOG_ROTATION_COUNT&#x27;) || 2</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L235">src/logger.ts:235</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The number of backup rotated log files to keep.
+								Example: &#39;3&#39; will have the base sfdx.log file, and the past 3 (period) log files.
+							See &#39;count&#39; docs here: <a href="https://github.com/forcedotcom/node-bunyan#stream-type-rotating-file">https://github.com/forcedotcom/node-bunyan#stream-type-rotating-file</a></p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="logrotationperiod" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> log<wbr>Rotation<wbr>Period</h3>
+					<div class="tsd-signature tsd-kind-icon">log<wbr>Rotation<wbr>Period<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = new Env().getString(&#x27;SFDX_LOG_ROTATION_PERIOD&#x27;) || &#x27;1d&#x27;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L227">src/logger.ts:227</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The default rotation period for logs. Example &#39;1d&#39; will rotate logs daily (at midnight).
+							See &#39;period&#39; docs here: <a href="https://github.com/forcedotcom/node-bunyan#stream-type-rotating-file">https://github.com/forcedotcom/node-bunyan#stream-type-rotating-file</a></p>
 						</div>
 					</div>
 				</section>
@@ -208,7 +243,7 @@
 					<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>LEVEL<span class="tsd-signature-symbol">:</span> <a href="../enums/loggerlevel.html#warn" class="tsd-signature-type">WARN</a><span class="tsd-signature-symbol"> = LoggerLevel.WARN</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L200">src/logger.ts:200</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L200">src/logger.ts:200</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -223,7 +258,7 @@
 					<div class="tsd-signature tsd-kind-icon">LEVEL_<wbr>NAMES<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = Object.values(LoggerLevel).filter(isString).map((v: string) &#x3D;&gt; v.toLowerCase())</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L207">src/logger.ts:207</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L207">src/logger.ts:207</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -239,7 +274,7 @@
 					<div class="tsd-signature tsd-kind-icon">ROOT_<wbr>NAME<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"sfdx"</span><span class="tsd-signature-symbol"> = &quot;sfdx&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L195">src/logger.ts:195</a></li>
+							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L195">src/logger.ts:195</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -261,7 +296,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L655">src/logger.ts:655</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L670">src/logger.ts:670</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -298,7 +333,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L592">src/logger.ts:592</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L607">src/logger.ts:607</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -347,7 +382,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L395">src/logger.ts:395</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L410">src/logger.ts:410</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -378,7 +413,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L437">src/logger.ts:437</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L452">src/logger.ts:452</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -409,7 +444,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L383">src/logger.ts:383</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L398">src/logger.ts:398</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -446,7 +481,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L632">src/logger.ts:632</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L647">src/logger.ts:647</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -483,7 +518,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L606">src/logger.ts:606</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L621">src/logger.ts:621</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -515,7 +550,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L676">src/logger.ts:676</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L691">src/logger.ts:691</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -546,7 +581,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L686">src/logger.ts:686</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L701">src/logger.ts:701</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -589,7 +624,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L744">src/logger.ts:744</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L759">src/logger.ts:759</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -612,7 +647,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L722">src/logger.ts:722</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L737">src/logger.ts:737</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -643,7 +678,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L732">src/logger.ts:732</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L747">src/logger.ts:747</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -674,7 +709,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L558">src/logger.ts:558</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L573">src/logger.ts:573</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -696,7 +731,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L521">src/logger.ts:521</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L536">src/logger.ts:536</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -718,7 +753,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L484">src/logger.ts:484</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L499">src/logger.ts:499</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -740,7 +775,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L477">src/logger.ts:477</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L492">src/logger.ts:492</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -762,7 +797,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L702">src/logger.ts:702</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L717">src/logger.ts:717</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -793,7 +828,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L568">src/logger.ts:568</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L583">src/logger.ts:583</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -815,7 +850,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L509">src/logger.ts:509</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L524">src/logger.ts:524</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -845,7 +880,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L531">src/logger.ts:531</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L546">src/logger.ts:546</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -877,7 +912,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L666">src/logger.ts:666</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L681">src/logger.ts:681</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -908,7 +943,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L544">src/logger.ts:544</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L559">src/logger.ts:559</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -932,7 +967,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L712">src/logger.ts:712</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L727">src/logger.ts:727</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -963,7 +998,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L347">src/logger.ts:347</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L362">src/logger.ts:362</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1000,7 +1035,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L357">src/logger.ts:357</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L372">src/logger.ts:372</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1037,7 +1072,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L369">src/logger.ts:369</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L384">src/logger.ts:384</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1074,7 +1109,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L314">src/logger.ts:314</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L329">src/logger.ts:329</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1096,7 +1131,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/45b11c52/src/logger.ts#L296">src/logger.ts:296</a></li>
+									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/25891459/src/logger.ts#L311">src/logger.ts:311</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1130,6 +1165,12 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="logger.html#debugenabled" class="tsd-kind-icon">debug<wbr>Enabled</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="logger.html#logrotationcount" class="tsd-kind-icon">log<wbr>Rotation<wbr>Count</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="logger.html#logrotationperiod" class="tsd-kind-icon">log<wbr>Rotation<wbr>Period</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
 								<a href="logger.html#default_level" class="tsd-kind-icon">DEFAULT_<wbr>LEVEL</a>
