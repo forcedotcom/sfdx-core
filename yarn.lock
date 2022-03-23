@@ -750,10 +750,10 @@
   resolved "https://registry.yarnpkg.com/@types/jsen/-/jsen-0.0.19.tgz#f6f7ed4b390a88a52e8ac965945a761cbd9c83e9"
   integrity sha512-0XpFleNckrCh6X240Zelb91R7I9REYIx6VFTbxWCn/ontOreJe0+/HYTXyPSDOYKbx6s/Uo44UQjSAulk6jAjw==
 
-"@types/jsforce@^1.9.38":
-  version "1.9.38"
-  resolved "https://registry.yarnpkg.com/@types/jsforce/-/jsforce-1.9.38.tgz#7c4b491d29e8becb9dcdd58c60472becce223139"
-  integrity sha512-+Iwf5jlDiK8z+zI2LAi4mzln8++5lETv2YofFEATu+dNkrP8LACB76lz2tPsXDx/a+5uW8HQhbwL/SyqIic0cg==
+"@types/jsforce@^1.9.41":
+  version "1.9.41"
+  resolved "https://registry.yarnpkg.com/@types/jsforce/-/jsforce-1.9.41.tgz#08b31a0d04e14fd5f8a232196e16bc742e22bbed"
+  integrity sha512-J0dReK6EPGR98b4fAowqqQqFXH4DGtPxY2lLrZGcuCthrHYkYNrKnfGf2xM1jwiBC5CGdSEDmWEDwRwwmX25tA==
   dependencies:
     "@types/node" "*"
 

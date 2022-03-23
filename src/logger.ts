@@ -10,7 +10,7 @@ import * as path from 'path';
 import { Writable } from 'stream';
 // @ts-ignore
 import * as Bunyan from '@salesforce/bunyan';
-import { parseJson, parseJsonMap } from '@salesforce/kit';
+import { Env, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   Dictionary,
   ensure,
@@ -220,6 +220,21 @@ export class Logger {
   private static rootLogger?: Logger;
 
   /**
+   * The default rotation period for logs. Example '1d' will rotate logs daily (at midnight).
+   * See 'period' docs here: https://github.com/forcedotcom/node-bunyan#stream-type-rotating-file
+   */
+
+  public readonly logRotationPeriod = new Env().getString('SFDX_LOG_ROTATION_PERIOD') || '1d';
+
+  /**
+   * The number of backup rotated log files to keep.
+   * Example: '3' will have the base sfdx.log file, and the past 3 (period) log files.
+   * See 'count' docs here: https://github.com/forcedotcom/node-bunyan#stream-type-rotating-file
+   */
+
+  public readonly logRotationCount = new Env().getNumber('SFDX_LOG_ROTATION_COUNT') || 2;
+
+  /**
    * Whether debug is enabled for this Logger.
    */
   public debugEnabled = false;
@@ -416,14 +431,14 @@ export class Logger {
       !this.bunyan.streams.find(
         // No bunyan typings
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (stream: any) => stream.type === 'file' && stream.path === logFile
+        (stream: any) => stream.type === 'rotating-file' && stream.path === logFile
       )
     ) {
-      // TODO: rotating-file
-      // https://github.com/trentm/node-bunyan#stream-type-rotating-file
       this.addStream({
-        type: 'file',
+        type: 'rotating-file',
         path: logFile,
+        period: this.logRotationPeriod,
+        count: this.logRotationCount,
         level: this.bunyan.level() as number,
       });
     }
@@ -458,14 +473,14 @@ export class Logger {
       !this.bunyan.streams.find(
         // No bunyan typings
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (stream: any) => stream.type === 'file' && stream.path === logFile
+        (stream: any) => stream.type === 'rotating-file' && stream.path === logFile
       )
     ) {
-      // TODO: rotating-file
-      // https://github.com/trentm/node-bunyan#stream-type-rotating-file
       this.addStream({
-        type: 'file',
+        type: 'rotating-file',
         path: logFile,
+        period: this.logRotationPeriod,
+        count: this.logRotationCount,
         level: this.bunyan.level() as number,
       });
     }
