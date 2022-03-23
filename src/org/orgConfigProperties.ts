@@ -6,39 +6,143 @@
  */
 
 import { join as pathJoin } from 'path';
+import { isString } from '@salesforce/ts-types';
 import { ConfigValue } from '../config/configStore';
 import { Messages } from '../messages';
+import { SfdcUrl } from '../util/sfdcUrl';
+import { sfdc } from '../util/sfdc';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
 const messages = Messages.load('@salesforce/core', 'config', [
+  'invalidApiVersion',
   'invalidBooleanConfigValue',
-  'metadataRestDeploy',
-  'targetOrg',
-  'targetDevHub',
+  'invalidInstanceUrl',
+  'invalidIsvDebuggerSid',
+  'invalidIsvDebuggerUrl',
+  'invalidNumberConfigValue',
+  'org-api-version',
+  'org-instance-url',
+  'org-isv-debugger-sid',
+  'org-isv-debugger-url',
+  'org-max-query-limit',
+  'org-metadata-rest-deploy',
+  'target-dev-hub',
+  'target-org',
 ]);
 
 export enum OrgConfigProperties {
+  /**
+   * Username associate with the default org.
+   */
   TARGET_ORG = 'target-org',
+  /**
+   * Username associated with the default dev hub org.
+   */
   TARGET_DEV_HUB = 'target-dev-hub',
-  METADATA_REST_DEPLOY = 'metadata-rest-deploy',
+  /**
+   * Allow users to use the REST api for deployments.
+   */
+  ORG_METADATA_REST_DEPLOY = 'org-metadata-rest-deploy',
+  /**
+   * The api version
+   */
+  ORG_API_VERSION = 'org-api-version',
+  /**
+   * Custom templates repo or local location.
+   */
+  ORG_CUSTOM_METADATA_TEMPLATES = 'org-custom-metadata-templates',
+  /**
+   * Allows users to override the 10,000 result query limit.
+   */
+  ORG_MAX_QUERY_LIMIT = 'org-max-query-limit',
+  /**
+   * The instance url of the org.
+   */
+  ORG_INSTANCE_URL = 'org-instance-url',
+  /**
+   * The sid for the debugger configuration.
+   */
+  ORG_ISV_DEBUGGER_SID = 'org-isv-debugger-sid',
+  /**
+   * The url for the debugger configuration.
+   */
+  ORG_ISV_DEBUGGER_URL = 'org-isv-debugger-url',
 }
 
 export const ORG_CONFIG_ALLOWED_PROPERTIES = [
   {
     key: OrgConfigProperties.TARGET_ORG,
-    description: messages.getMessage('targetOrg'),
+    description: messages.getMessage(OrgConfigProperties.TARGET_ORG),
   },
   {
     key: OrgConfigProperties.TARGET_DEV_HUB,
-    description: messages.getMessage('targetDevHub'),
+    description: messages.getMessage(OrgConfigProperties.TARGET_DEV_HUB),
   },
   {
-    key: OrgConfigProperties.METADATA_REST_DEPLOY,
-    description: messages.getMessage('metadataRestDeploy'),
+    key: OrgConfigProperties.ORG_METADATA_REST_DEPLOY,
+    description: messages.getMessage(OrgConfigProperties.ORG_METADATA_REST_DEPLOY),
     hidden: true,
     input: {
       validator: (value: ConfigValue) => value != null && ['true', 'false'].includes(value.toString()),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
+    },
+  },
+  {
+    key: OrgConfigProperties.ORG_INSTANCE_URL,
+    description: messages.getMessage(OrgConfigProperties.ORG_INSTANCE_URL),
+    input: {
+      // If a value is provided validate it otherwise no value is unset.
+      validator: (value: ConfigValue) => {
+        if (value == null) return true;
+        // validate if the value is a string and is a valid url and is either a salesforce domain
+        // or an internal url.
+        return (
+          isString(value) &&
+          SfdcUrl.isValidUrl(value) &&
+          (new SfdcUrl(value).isSalesforceDomain() || new SfdcUrl(value).isInternalUrl())
+        );
+      },
+      failedMessage: messages.getMessage('invalidInstanceUrl'),
+    },
+  },
+  {
+    key: OrgConfigProperties.ORG_API_VERSION,
+    description: messages.getMessage(OrgConfigProperties.ORG_API_VERSION),
+    hidden: true,
+    input: {
+      // If a value is provided validate it otherwise no value is unset.
+      validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
+      failedMessage: messages.getMessage('invalidApiVersion'),
+    },
+  },
+  {
+    key: OrgConfigProperties.ORG_ISV_DEBUGGER_SID,
+    description: messages.getMessage(OrgConfigProperties.ORG_ISV_DEBUGGER_SID),
+    encrypted: true,
+    input: {
+      // If a value is provided validate it otherwise no value is unset.
+      validator: (value: ConfigValue) => value == null || isString(value),
+      failedMessage: messages.getMessage('invalidIsvDebuggerSid'),
+    },
+  },
+  {
+    key: OrgConfigProperties.ORG_ISV_DEBUGGER_URL,
+    description: messages.getMessage(OrgConfigProperties.ORG_ISV_DEBUGGER_URL),
+    input: {
+      // If a value is provided validate it otherwise no value is unset.
+      validator: (value: ConfigValue) => value == null || isString(value),
+      failedMessage: messages.getMessage('invalidIsvDebuggerUrl'),
+    },
+  },
+  {
+    key: OrgConfigProperties.ORG_MAX_QUERY_LIMIT,
+    description: messages.getMessage(OrgConfigProperties.ORG_MAX_QUERY_LIMIT),
+    input: {
+      // the bit shift will remove the negative bit, and any decimal numbers
+      // then the parseFloat will handle converting it to a number from a string
+      validator: (value: ConfigValue) =>
+        (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
+      failedMessage: messages.getMessage('invalidNumberConfigValue'),
     },
   },
 ];
