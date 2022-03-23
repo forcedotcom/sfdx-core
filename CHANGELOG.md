@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.36.0](https://github.com/forcedotcom/sfdx-core/compare/v2.35.3...v2.36.0) (2022-03-23)
+
+### Features
+
+- rotating log file ([d185e00](https://github.com/forcedotcom/sfdx-core/commit/d185e00aa66fc558f3c0d710cb2fafa0655a9fbc))
+
+### Bug Fixes
+
+- bump jsforce types ([ddacb98](https://github.com/forcedotcom/sfdx-core/commit/ddacb987068d00aec2147130f3464232a6bdccdf))
+- check env before resetting ([abf6ea1](https://github.com/forcedotcom/sfdx-core/commit/abf6ea1bd721f773c09f346ff9ae8d01a915e5cd))
+
 ### [2.35.3](https://github.com/forcedotcom/sfdx-core/compare/v2.35.2...v2.35.3) (2022-02-23)
 
 ### Bug Fixes
