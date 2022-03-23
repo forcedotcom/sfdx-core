@@ -65,7 +65,7 @@ info.aliases.getAll();
 - Removed `Config.<config key name>`
 - Deprecated the following:
 
-| Depreacted Config Var                            | New Config Var                                      |
+| Deprecated Config Var                            | New Config Var                                      |
 | ------------------------------------------------ | --------------------------------------------------- |
 | `SfdxPropertyKeys.API_VERSION`                   | `OrgConfigProperties.ORG_API_VERSION`               |
 | `SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES` | `OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES` |
