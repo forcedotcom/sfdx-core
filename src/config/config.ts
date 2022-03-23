@@ -183,7 +183,7 @@ export enum SfdxPropertyKeys {
   MAX_QUERY_LIMIT = 'maxQueryLimit',
 
   /**
-   * @deprecated Replaced by OrgConfigProperties.METADATA_REST_DEPLOY in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
+   * @deprecated Replaced by OrgConfigProperties.ORG_METADATA_REST_DEPLOY in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   REST_DEPLOY = 'restDeploy',
 
