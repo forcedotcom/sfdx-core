@@ -9,7 +9,7 @@ import { Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { Logger } from '../logger';
-import { ScratchOrgInfo } from './scratchOrgInfoApi';
+import { ScratchOrgInfo } from './scratchOrgTypes';
 
 const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 

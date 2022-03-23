@@ -13,7 +13,7 @@ import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { Org } from './org';
-import { ScratchOrgInfo } from './scratchOrgInfoApi';
+import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
 
 const defaultConnectedAppInfo = {
