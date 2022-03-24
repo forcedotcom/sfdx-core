@@ -38,6 +38,8 @@ export enum EnvironmentVariable {
   'SFDX_INSTANCE_URL' = 'SFDX_INSTANCE_URL',
   'SFDX_JSON_TO_STDOUT' = 'SFDX_JSON_TO_STDOUT',
   'SFDX_LOG_LEVEL' = 'SFDX_LOG_LEVEL',
+  'SFDX_LOG_ROTATION_COUNT' = 'SFDX_LOG_ROTATION_COUNT',
+  'SFDX_LOG_ROTATION_PERIOD' = 'SFDX_LOG_ROTATION_PERIOD',
   'SFDX_MAX_QUERY_LIMIT' = 'SFDX_MAX_QUERY_LIMIT',
   'SFDX_MDAPI_TEMP_DIR' = 'SFDX_MDAPI_TEMP_DIR',
   'SFDX_NPM_REGISTRY' = 'SFDX_NPM_REGISTRY',
@@ -70,6 +72,8 @@ export enum EnvironmentVariable {
   'SF_INSTANCE_URL' = 'SF_INSTANCE_URL',
   'SF_JSON_TO_STDOUT' = 'SF_JSON_TO_STDOUT',
   'SF_LOG_LEVEL' = 'SF_LOG_LEVEL',
+  'SF_LOG_ROTATION_COUNT' = 'SF_LOG_ROTATION_COUNT',
+  'SF_LOG_ROTATION_PERIOD' = 'SF_LOG_ROTATION_PERIOD',
   'SF_MAX_QUERY_LIMIT' = 'SF_MAX_QUERY_LIMIT',
   'SF_MDAPI_TEMP_DIR' = 'SF_MDAPI_TEMP_DIR',
   'SF_NPM_REGISTRY' = 'SF_NPM_REGISTRY',
@@ -194,6 +198,14 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   [EnvironmentVariable.SFDX_LOG_LEVEL]: {
     description: getMessage(EnvironmentVariable.SFDX_LOG_LEVEL),
     synonymOf: EnvironmentVariable.SF_LOG_LEVEL,
+  },
+  [EnvironmentVariable.SFDX_LOG_ROTATION_COUNT]: {
+    description: getMessage(EnvironmentVariable.SFDX_LOG_ROTATION_COUNT),
+    synonymOf: EnvironmentVariable.SF_LOG_ROTATION_COUNT,
+  },
+  [EnvironmentVariable.SFDX_LOG_ROTATION_PERIOD]: {
+    description: getMessage(EnvironmentVariable.SFDX_LOG_ROTATION_PERIOD),
+    synonymOf: EnvironmentVariable.SF_LOG_ROTATION_PERIOD,
   },
   [EnvironmentVariable.SFDX_MAX_QUERY_LIMIT]: {
     description: getMessage(EnvironmentVariable.SFDX_MAX_QUERY_LIMIT),
@@ -324,6 +336,14 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_LOG_LEVEL]: {
     description: getMessage(EnvironmentVariable.SF_LOG_LEVEL),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SF_LOG_ROTATION_COUNT]: {
+    description: getMessage(EnvironmentVariable.SF_LOG_ROTATION_COUNT),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SF_LOG_ROTATION_PERIOD]: {
+    description: getMessage(EnvironmentVariable.SF_LOG_ROTATION_PERIOD),
     synonymOf: null,
   },
   [EnvironmentVariable.SF_MAX_QUERY_LIMIT]: {

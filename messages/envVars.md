@@ -94,6 +94,14 @@ Set to true to send messages resulting from failed Salesforce CLI commands to st
 
 Level of messages that the CLI writes to the log file. Valid values are trace, debug, info, warn, error, fatal. Default value is warn.
 
+# sfdxLogRotationCount
+
+The default rotation period for logs. Example '1d' will rotate logs daily (at midnight).
+
+# sfdxLogRotationPeriod
+
+The number of backup rotated log files to keep. Example: '3' will have the base sf.log file, and the past 3 (period) log files.
+
 # sfdxMaxQueryLimit
 
 Maximum number of Salesforce records returned by a CLI command. Default value is 10,000. Overrides the maxQueryLimit configuration value.
@@ -221,6 +229,14 @@ Set to true to send messages resulting from failed Salesforce CLI commands to st
 # sfLogLevel
 
 Level of messages that the CLI writes to the log file. Valid values are trace, debug, info, warn, error, fatal. Default value is warn.
+
+# sfLogRotationCount
+
+The default rotation period for logs. Example '1d' will rotate logs daily (at midnight).
+
+# sfLogRotationPeriod
+
+The number of backup rotated log files to keep. Example: '3' will have the base sf.log file, and the past 3 (period) log files.
 
 # sfMaxQueryLimit
 
