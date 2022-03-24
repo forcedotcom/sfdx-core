@@ -20,6 +20,8 @@ const $$ = testSetup();
 
 describe('Logger', () => {
   const sfdxEnv = process.env.SFDX_ENV;
+  const logRotationPeriodBackup = process.env.SF_LOG_ROTATION_PERIOD;
+  const logRotationCountBackup = process.env.SF_LOG_ROTATION_COUNT;
 
   beforeEach(async () => {
     process.env.SFDX_ENV = 'test';
@@ -32,7 +34,9 @@ describe('Logger', () => {
 
   afterEach(() => {
     Logger.destroyRoot();
-    process.env.SFDX_ENV = sfdxEnv;
+    if (sfdxEnv) process.env.SFDX_ENV = sfdxEnv;
+    if (logRotationPeriodBackup) process.env.SF_LOG_ROTATION_PERIOD = logRotationPeriodBackup;
+    if (logRotationCountBackup) process.env.SF_LOG_ROTATION_COUNT = logRotationCountBackup;
   });
 
   describe('constructor', () => {
@@ -110,9 +114,23 @@ describe('Logger', () => {
       expect(utilAccessStub.firstCall.args[0]).to.equal(testLogFile);
       expect(utilWriteFileStub.called).to.be.false;
       const addStreamArgs = addStreamStub.firstCall.args[0];
-      expect(addStreamArgs).to.have.property('type', 'file');
+      expect(addStreamArgs).to.have.property('type', 'rotating-file');
       expect(addStreamArgs).to.have.property('path', testLogFile);
       expect(addStreamArgs).to.have.property('level', logger.getLevel());
+    });
+
+    it('should allow log rotation count and period overrides', async () => {
+      process.env.SF_LOG_ROTATION_PERIOD = '1w';
+      process.env.SF_LOG_ROTATION_COUNT = '3';
+
+      utilAccessStub.returns(Promise.resolve({}));
+      const logger = new Logger('testing-env-vars');
+      const addStreamStub = $$.SANDBOX.stub(logger, 'addStream');
+      await logger.addLogFileStream(testLogFile);
+
+      const addStreamArgs = addStreamStub.firstCall.args[0];
+      expect(addStreamArgs).to.have.property('period', '1w');
+      expect(addStreamArgs).to.have.property('count', 3);
     });
 
     it('should create a new log file and all directories if nonexistent', async () => {

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.10.0](https://github.com/forcedotcom/sfdx-core/compare/v3.9.0...v3.10.0) (2022-03-23)
+
+### Features
+
+- lifecycle events for scratch org create ([cba673b](https://github.com/forcedotcom/sfdx-core/commit/cba673b515df311165f3c392b155fcf5fbf9e2c6))
+- scratch org lifecycle events ([541349d](https://github.com/forcedotcom/sfdx-core/commit/541349d84b4784356d8bc504d1e331450487b6ec))
+
+### Bug Fixes
+
+- casing typo for import ([066a2bb](https://github.com/forcedotcom/sfdx-core/commit/066a2bbb37b07f62415f021ef511344976315128))
+- warnings about tracking aren't a throw (org will still auth, default) ([38114a3](https://github.com/forcedotcom/sfdx-core/commit/38114a3526267a615fa8f5d3470b79c9b36a8fa8))
+
 ## [3.9.0](https://github.com/forcedotcom/sfdx-core/compare/v3.8.1...v3.9.0) (2022-03-21)
 
 ### Features

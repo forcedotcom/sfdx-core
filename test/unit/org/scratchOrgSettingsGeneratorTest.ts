@@ -11,7 +11,7 @@ import { assert, expect } from 'chai';
 import { Org, Connection } from '../../../src/org';
 import { sfdc } from '../../../src/util/sfdc';
 import { ZipWriter } from '../../../src/util/zipWriter';
-import { ScratchOrgInfo } from '../../../src/org/scratchOrgInfoApi';
+import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
 import SettingsGenerator from '../../../src/org/scratchOrgSettingsGenerator';
 import { MockTestOrgData } from '../../../src/testSetup';
 

@@ -15,7 +15,7 @@ import { JsonAsXml } from '../util/jsonXmlTools';
 import { ZipWriter } from '../util/zipWriter';
 import { StatusResult } from '../status/types';
 import { PollingClient } from '../status/pollingClient';
-import { ScratchOrgInfo } from './scratchOrgInfoApi';
+import { ScratchOrgInfo, ObjectSetting } from './scratchOrgTypes';
 import { Org } from './org';
 
 export enum RequestStatus {
@@ -29,11 +29,6 @@ export enum RequestStatus {
 }
 
 const breakPolling = ['Succeeded', 'SucceededPartial', 'Failed', 'Canceled'];
-
-export interface ObjectSetting extends JsonMap {
-  sharingModel?: string;
-  defaultRecordType?: string;
-}
 
 interface ObjectToBusinessProcessPicklist {
   [key: string]: {

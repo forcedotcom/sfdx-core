@@ -10,19 +10,20 @@ import { Messages } from '../messages';
 import { Logger } from '../logger';
 import { ConfigAggregator } from '../config/configAggregator';
 import { SfProject } from '../sfProject';
-import { SfError } from '../sfError';
+import { Lifecycle } from '../lifecycleEvents';
 import { Org } from './org';
 import {
   authorizeScratchOrg,
   requestScratchOrgCreation,
   pollForScratchOrgInfo,
   deploySettingsAndResolveUrl,
-  ScratchOrgInfo,
 } from './scratchOrgInfoApi';
+import { ScratchOrgInfo } from './scratchOrgTypes';
 import SettingsGenerator from './scratchOrgSettingsGenerator';
 import { generateScratchOrgInfo, getScratchOrgInfoPayload } from './scratchOrgInfoGenerator';
 import { AuthFields, AuthInfo } from './authInfo';
 import { Connection } from './connection';
+import { emit } from './scratchOrgLifecycleEvents';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', [
@@ -106,8 +107,9 @@ const validateWait = (wait: Duration): void => {
 
 export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promise<ScratchOrgCreateResult> => {
   const logger = await Logger.child('scratchOrgCreate');
-  logger.debug('scratchOrgCreate');
 
+  logger.debug('scratchOrgCreate');
+  await emit({ stage: 'prepare request' });
   const {
     hubOrg,
     connectedAppConsumerKey,
@@ -151,7 +153,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
 
   // creates the scratch org info in the devhub
   const scratchOrgInfoRequestResult = await requestScratchOrgCreation(hubOrg, scratchOrgInfo, settingsGenerator);
-
   const scratchOrgInfoId = ensureString(getString(scratchOrgInfoRequestResult, 'id'));
 
   logger.debug(`scratch org has recordId ${scratchOrgInfoId}`);
@@ -177,6 +178,8 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   logger.debug(`scratch org username ${username}`);
 
   const configAggregator = new ConfigAggregator();
+  await emit({ stage: 'deploy settings', scratchOrgInfo: scratchOrgInfoResult });
+
   const authInfo = await deploySettingsAndResolveUrl(
     scratchOrgAuthInfo,
     apiversion ??
@@ -189,6 +192,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   logger.trace('Settings deployed to org');
   /** updating the revision num to zero during org:creation if source members are created during org:create.This only happens for some specific scratch org definition file.*/
   await updateRevisionCounterToZero(scratchOrg);
+  await emit({ stage: 'done', scratchOrgInfo: scratchOrgInfoResult });
 
   return {
     username,
@@ -212,15 +216,16 @@ const getSignupTargetLoginUrl = async (): Promise<string | undefined> => {
 const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void> => {
   const conn = scratchOrg.getConnection();
   const queryResult = await conn.tooling.sobject('SourceMember').find({ RevisionCounter: { $gt: 0 } }, ['Id']);
+  if (queryResult.length === 0) {
+    return;
+  }
   try {
     await conn.tooling
       .sobject('SourceMember')
       .update(queryResult.map((record) => ({ Id: record.Id, RevisionCounter: 0 })));
   } catch (err) {
-    const message = messages.getMessage('SourceStatusResetFailureError', [
-      scratchOrg.getOrgId(),
-      scratchOrg.getUsername(),
-    ]);
-    throw new SfError(message, 'SourceStatusResetFailure');
+    await Lifecycle.getInstance().emitWarning(
+      messages.getMessage('SourceStatusResetFailureError', [scratchOrg.getOrgId(), scratchOrg.getUsername()])
+    );
   }
 };

@@ -22,44 +22,9 @@ import { MyDomainResolver } from '../status/myDomainResolver';
 import { AuthInfo } from './authInfo';
 import { Org } from './org';
 import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
-import SettingsGenerator, { ObjectSetting } from './scratchOrgSettingsGenerator';
-export interface ScratchOrgInfo {
-  AdminEmail?: string;
-  readonly CreatedDate?: string;
-  ConnectedAppCallbackUrl?: string;
-  ConnectedAppConsumerKey?: string;
-  Country?: string;
-  Description?: string;
-  DurationDays?: string;
-  Edition?: string;
-  readonly ErrorCode?: string;
-  readonly ExpirationDate?: string;
-  Features?: string;
-  HasSampleData?: boolean;
-  readonly Id?: string;
-  Language?: string;
-  LoginUrl: string;
-  readonly Name?: string;
-  Namespace?: string;
-  OrgName?: string;
-  Release?: 'Current' | 'Previous' | 'Preview';
-  readonly ScratchOrg?: string;
-  SourceOrg?: string;
-  readonly AuthCode: string;
-  Snapshot: string;
-  readonly Status: 'New' | 'Creating' | 'Active' | 'Error' | 'Deleted';
-  readonly SignupEmail: string;
-  readonly SignupUsername: string;
-  readonly SignupInstance: string;
-  Username: string;
-  settings?: Record<string, unknown>;
-  objectSettings?: { [objectName: string]: ObjectSetting };
-  orgPreferences?: {
-    enabled: string[];
-    disabled: string[];
-  };
-}
-
+import SettingsGenerator from './scratchOrgSettingsGenerator';
+import { ScratchOrgInfo } from './scratchOrgTypes';
+import { emit } from './scratchOrgLifecycleEvents';
 export interface JsForceError extends Error {
   errorCode: string;
   fields: string[];
@@ -225,6 +190,7 @@ export const authorizeScratchOrg = async (options: {
   retry?: number;
 }): Promise<AuthInfo> => {
   const { scratchOrgInfoComplete, hubOrg, clientSecret, signupTargetLoginUrlConfig, retry: maxRetries } = options;
+  await emit({ stage: 'authenticate', scratchOrgInfo: scratchOrgInfoComplete });
   const logger = await Logger.child('authorizeScratchOrg');
   logger.debug(`scratchOrgInfoComplete: ${JSON.stringify(scratchOrgInfoComplete, null, 4)}`);
 
@@ -321,6 +287,8 @@ export const requestScratchOrgCreation = async (
 
   await checkOrgDoesntExist(scratchOrgInfo); // throw if it does exist.
   try {
+    await emit({ stage: 'send request' });
+    // return await will cause this catch block to run instead of the caller's catch block
     return await hubOrg.getConnection().sobject('ScratchOrgInfo').create(scratchOrgInfo);
   } catch (error) {
     // this is a jsforce error which contains the property "fields" which regular error don't
@@ -356,11 +324,14 @@ export const pollForScratchOrgInfo = async (
         logger.debug(`polling client result: ${JSON.stringify(resultInProgress, null, 4)}`);
         // Once it's "done" we can return it
         if (resultInProgress.Status === 'Active' || resultInProgress.Status === 'Error') {
+          await emit({ stage: 'available', scratchOrgInfo: resultInProgress as unknown as ScratchOrgInfo });
           return {
             completed: true,
             payload: resultInProgress as unknown as AnyJson,
           };
         }
+        await emit({ stage: 'wait for org', scratchOrgInfo: resultInProgress as unknown as ScratchOrgInfo });
+
         logger.debug(`Scratch org status is ${resultInProgress.Status}`);
         return {
           completed: false,
