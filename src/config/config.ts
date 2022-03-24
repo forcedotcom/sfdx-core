@@ -183,7 +183,7 @@ export enum SfdxPropertyKeys {
   MAX_QUERY_LIMIT = 'maxQueryLimit',
 
   /**
-   * @deprecated Replaced by OrgConfigProperties.ORG_METADATA_REST_DEPLOY in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
+   * @deprecated
    */
   REST_DEPLOY = 'restDeploy',
 
@@ -273,18 +273,11 @@ export const SFDX_ALLOWED_PROPERTIES = [
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
-  /**
-   * Ideally config vars like these should be brought in by the plugin's that need them, using
-   * the configMeta property in the oclif section of the package.json
-   *
-   * However, we need the new config var in sfdx-core so that we can enable interoperability between
-   * the old and new vars.
-   */
   {
     key: SfdxPropertyKeys.REST_DEPLOY,
     description: messages.getMessage(SfdxPropertyKeys.REST_DEPLOY),
     hidden: true,
-    newKey: OrgConfigProperties.ORG_METADATA_REST_DEPLOY,
+    newKey: 'org-metadata-rest-deploy',
     deprecated: true,
     input: {
       validator: (value: ConfigValue) => value != null && ['true', 'false'].includes(value.toString()),

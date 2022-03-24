@@ -135,10 +135,6 @@ Maximum number of Salesforce records returned by a CLI command. Default: 10,000.
 
 Whether deployments use the Metadata REST API (true) or SOAP API (false, default value). (sfdx only)
 
-# org-metadata-rest-deploy
-
-Whether deployments use the Metadata REST API (true) or SOAP API (false, default value).
-
 # instanceUrl
 
 URL of the Salesforce instance hosting your org. Default: https://login.salesforce.com. (sfdx only)

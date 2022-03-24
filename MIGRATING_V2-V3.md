@@ -76,7 +76,7 @@ info.aliases.getAll();
 | `SfdxPropertyKeys.ISV_DEBUGGER_SID`              | `OrgConfigProperties.ORG_ISV_DEBUGGER_SID`          |
 | `SfdxPropertyKeys.ISV_DEBUGGER_URL`              | `OrgConfigProperties.ORG_ISV_DEBUGGER_URL`          |
 | `SfdxPropertyKeys.MAX_QUERY_LIMIT`               | `OrgConfigProperties.ORG_MAX_QUERY_LIMIT`           |
-| `SfdxPropertyKeys.REST_DEPLOY`                   | `OrgConfigProperties.ORG_METDATA_REST_DEPLOY`               |
+| `SfdxPropertyKeys.REST_DEPLOY`                   | REMOVED                                             |
 
 ### Why
 

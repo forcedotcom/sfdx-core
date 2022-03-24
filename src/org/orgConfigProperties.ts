@@ -25,7 +25,6 @@ const messages = Messages.load('@salesforce/core', 'config', [
   'org-isv-debugger-sid',
   'org-isv-debugger-url',
   'org-max-query-limit',
-  'org-metadata-rest-deploy',
   'target-dev-hub',
   'target-org',
 ]);
@@ -39,10 +38,6 @@ export enum OrgConfigProperties {
    * Username associated with the default dev hub org.
    */
   TARGET_DEV_HUB = 'target-dev-hub',
-  /**
-   * Allow users to use the REST api for deployments.
-   */
-  ORG_METADATA_REST_DEPLOY = 'org-metadata-rest-deploy',
   /**
    * The api version
    */
@@ -77,15 +72,6 @@ export const ORG_CONFIG_ALLOWED_PROPERTIES = [
   {
     key: OrgConfigProperties.TARGET_DEV_HUB,
     description: messages.getMessage(OrgConfigProperties.TARGET_DEV_HUB),
-  },
-  {
-    key: OrgConfigProperties.ORG_METADATA_REST_DEPLOY,
-    description: messages.getMessage(OrgConfigProperties.ORG_METADATA_REST_DEPLOY),
-    hidden: true,
-    input: {
-      validator: (value: ConfigValue) => value != null && ['true', 'false'].includes(value.toString()),
-      failedMessage: messages.getMessage('invalidBooleanConfigValue'),
-    },
   },
   {
     key: OrgConfigProperties.ORG_INSTANCE_URL,
