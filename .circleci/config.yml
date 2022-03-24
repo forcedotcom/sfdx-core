@@ -133,7 +133,8 @@ workflows:
               node_version: [lts]
               external_project_git_url:
                 [
-                  'https://github.com/salesforcecli/plugin-config#v2',
+                  # 'https://github.com/salesforcecli/plugin-config#v2',
+                  'https://github.com/salesforcecli/plugin-config#mdonnalley/update-tests',
                   'https://github.com/salesforcecli/plugin-env',
                   'https://github.com/salesforcecli/plugin-login',
                   'https://github.com/salesforcecli/plugin-deploy-retrieve',

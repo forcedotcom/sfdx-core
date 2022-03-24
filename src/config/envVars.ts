@@ -56,7 +56,7 @@ export enum EnvironmentVariable {
   'SF_TARGET_ORG' = 'SF_TARGET_ORG',
   'SF_TARGET_DEV_HUB' = 'SF_TARGET_DEV_HUB',
   'SF_ACCESS_TOKEN' = 'SF_ACCESS_TOKEN',
-  'SF_API_VERSION' = 'SF_API_VERSION',
+  'SF_ORG_API_VERSION' = 'SF_ORG_API_VERSION',
   'SF_AUDIENCE_URL' = 'SF_AUDIENCE_URL',
   'SF_CODE_COVERAGE_REQUIREMENT' = 'SF_CODE_COVERAGE_REQUIREMENT',
   'SF_CONTENT_TYPE' = 'SF_CONTENT_TYPE',
@@ -67,10 +67,10 @@ export enum EnvironmentVariable {
   'SF_DNS_TIMEOUT' = 'SF_DNS_TIMEOUT',
   'SF_DOMAIN_RETRY' = 'SF_DOMAIN_RETRY',
   'SF_IMPROVED_CODE_COVERAGE' = 'SF_IMPROVED_CODE_COVERAGE',
-  'SF_INSTANCE_URL' = 'SF_INSTANCE_URL',
+  'SF_ORG_INSTANCE_URL' = 'SF_ORG_INSTANCE_URL',
   'SF_JSON_TO_STDOUT' = 'SF_JSON_TO_STDOUT',
   'SF_LOG_LEVEL' = 'SF_LOG_LEVEL',
-  'SF_MAX_QUERY_LIMIT' = 'SF_MAX_QUERY_LIMIT',
+  'SF_ORG_MAX_QUERY_LIMIT' = 'SF_ORG_MAX_QUERY_LIMIT',
   'SF_MDAPI_TEMP_DIR' = 'SF_MDAPI_TEMP_DIR',
   'SF_NPM_REGISTRY' = 'SF_NPM_REGISTRY',
   'SF_PRECOMPILE_ENABLE' = 'SF_PRECOMPILE_ENABLE',
@@ -133,7 +133,7 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SFDX_API_VERSION]: {
     description: getMessage(EnvironmentVariable.SFDX_API_VERSION),
-    synonymOf: EnvironmentVariable.SF_API_VERSION,
+    synonymOf: EnvironmentVariable.SF_ORG_API_VERSION,
   },
   [EnvironmentVariable.SFDX_AUDIENCE_URL]: {
     description: getMessage(EnvironmentVariable.SFDX_AUDIENCE_URL),
@@ -185,7 +185,7 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SFDX_INSTANCE_URL]: {
     description: getMessage(EnvironmentVariable.SFDX_INSTANCE_URL),
-    synonymOf: EnvironmentVariable.SF_INSTANCE_URL,
+    synonymOf: EnvironmentVariable.SF_ORG_INSTANCE_URL,
   },
   [EnvironmentVariable.SFDX_JSON_TO_STDOUT]: {
     description: getMessage(EnvironmentVariable.SFDX_JSON_TO_STDOUT),
@@ -197,7 +197,7 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SFDX_MAX_QUERY_LIMIT]: {
     description: getMessage(EnvironmentVariable.SFDX_MAX_QUERY_LIMIT),
-    synonymOf: EnvironmentVariable.SF_MAX_QUERY_LIMIT,
+    synonymOf: EnvironmentVariable.SF_ORG_MAX_QUERY_LIMIT,
   },
   [EnvironmentVariable.SFDX_MDAPI_TEMP_DIR]: {
     description: getMessage(EnvironmentVariable.SFDX_MDAPI_TEMP_DIR),
@@ -270,8 +270,8 @@ export const SUPPORTED_ENV_VARS: EnvType = {
     description: getMessage(EnvironmentVariable.SF_ACCESS_TOKEN),
     synonymOf: null,
   },
-  [EnvironmentVariable.SF_API_VERSION]: {
-    description: getMessage(EnvironmentVariable.SF_API_VERSION),
+  [EnvironmentVariable.SF_ORG_API_VERSION]: {
+    description: getMessage(EnvironmentVariable.SF_ORG_API_VERSION),
     synonymOf: null,
   },
   [EnvironmentVariable.SF_AUDIENCE_URL]: {
@@ -314,8 +314,8 @@ export const SUPPORTED_ENV_VARS: EnvType = {
     description: getMessage(EnvironmentVariable.SF_IMPROVED_CODE_COVERAGE),
     synonymOf: null,
   },
-  [EnvironmentVariable.SF_INSTANCE_URL]: {
-    description: getMessage(EnvironmentVariable.SF_INSTANCE_URL),
+  [EnvironmentVariable.SF_ORG_INSTANCE_URL]: {
+    description: getMessage(EnvironmentVariable.SF_ORG_INSTANCE_URL),
     synonymOf: null,
   },
   [EnvironmentVariable.SF_JSON_TO_STDOUT]: {
@@ -326,8 +326,8 @@ export const SUPPORTED_ENV_VARS: EnvType = {
     description: getMessage(EnvironmentVariable.SF_LOG_LEVEL),
     synonymOf: null,
   },
-  [EnvironmentVariable.SF_MAX_QUERY_LIMIT]: {
-    description: getMessage(EnvironmentVariable.SF_MAX_QUERY_LIMIT),
+  [EnvironmentVariable.SF_ORG_MAX_QUERY_LIMIT]: {
+    description: getMessage(EnvironmentVariable.SF_ORG_MAX_QUERY_LIMIT),
     synonymOf: null,
   },
   [EnvironmentVariable.SF_MDAPI_TEMP_DIR]: {

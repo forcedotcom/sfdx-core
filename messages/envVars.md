@@ -166,7 +166,7 @@ Username or alias of your default Dev Hub org. Overrides the target-dev-hub conf
 
 Specifies an access token when using a login command that uses access tokens.
 
-# sfApiVersion
+# sfOrgApiVersion
 
 API version for a specific project or all projects. Default value is the API version of your Dev Hub. Overrides the apiVersion configuration variable.
 
@@ -210,7 +210,7 @@ Time, in seconds, that Salesforce CLI waits for the Lightning Experience custom 
 
 Set to true to scope Apex test results to the classes entered during a test run when running the Apex test commands.
 
-# sfInstanceUrl
+# sfOrgInstanceUrl
 
 URL of the Salesforce instance that is hosting your org. Default value is https://login.salesforce.com. Overrides the instanceUrl configuration variable.
 
@@ -222,7 +222,7 @@ Set to true to send messages resulting from failed Salesforce CLI commands to st
 
 Level of messages that the CLI writes to the log file. Valid values are trace, debug, info, warn, error, fatal. Default value is warn.
 
-# sfMaxQueryLimit
+# sfOrgMaxQueryLimit
 
 Maximum number of Salesforce records returned by a CLI command. Default value is 10,000. Overrides the maxQueryLimit configuration variable.
 
