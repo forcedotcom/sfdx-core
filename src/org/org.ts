@@ -20,6 +20,7 @@ import {
   isString,
   JsonArray,
   JsonMap,
+  Nullable,
   Optional,
 } from '@salesforce/ts-types';
 import { HttpRequest, SaveResult } from 'jsforce';
@@ -27,7 +28,6 @@ import { Config } from '../config/config';
 import { ConfigAggregator, ConfigInfo } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStore';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
-import { SandboxOrgConfig } from '../config/sandboxOrgConfig';
 import { Global } from '../global';
 import { Lifecycle } from '../lifecycleEvents';
 import { Logger } from '../logger';
@@ -35,7 +35,7 @@ import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
-import { GlobalInfo } from '../globalInfo';
+import { GlobalInfo, SfSandbox } from '../globalInfo';
 import { Connection, SingleRecordQueryErrors } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
 import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } from './scratchOrgCreate';
@@ -54,6 +54,7 @@ const messages = Messages.load('@salesforce/core', 'org', [
   'sandboxInfoCreateFailed',
   'sandboxNotFound',
   'scratchOrgNotFound',
+  'error.AuthInfoOrgIdUndefined',
 ]);
 
 export type OrganizationInformation = {
@@ -275,7 +276,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (this.getConnection().isUsingAccessToken()) {
       return Promise.resolve();
     }
-    await this.removeSandboxConfig(throwWhenRemoveFails);
+    (await GlobalInfo.getInstance()).sandboxes.unset(this.getOrgId() || '');
     await this.removeUsers(throwWhenRemoveFails);
     await this.removeUsersConfig();
     // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's usersname is also
@@ -290,7 +291,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    *
    */
   public async isSandbox(): Promise<boolean> {
-    return !!(await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME));
+    return (await GlobalInfo.getInstance()).sandboxes.has(this.getOrgId());
   }
   /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
@@ -634,27 +635,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     return this;
   }
 
-  /**
-   * Sets the key/value pair in the sandbox config for this org. For convenience `this` object is returned.
-   *
-   *
-   * @param {key} The key for this value
-   * @param {value} The value to save
-   */
-  public async setSandboxOrgConfigField(field: SandboxOrgConfig.Fields, value: string): Promise<Org> {
-    const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
-    sandboxOrgConfig.set(field, value);
-    await sandboxOrgConfig.write();
+  public async setSandboxConfig(orgId: string, config: SfSandbox): Promise<Org> {
+    (await GlobalInfo.getInstance()).sandboxes.set(orgId, config);
     return this;
   }
 
-  /**
-   * Returns an org config field. Returns undefined if the field is not set or invalid.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public async getSandboxOrgConfigField(field: SandboxOrgConfig.Fields): Promise<any> {
-    const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
-    return sandboxOrgConfig.get(field);
+  public async getSandboxConfig(orgId: string): Promise<Nullable<SfSandbox>> {
+    return (await GlobalInfo.getInstance()).sandboxes.get(orgId);
   }
 
   /**
@@ -719,6 +706,22 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     return this.connection;
   }
 
+  public async supportsSourceTracking(): Promise<boolean> {
+    if (this.isScratch()) {
+      return true;
+    }
+    const conn = this.getConnection();
+    try {
+      await conn.tooling.sobject('SourceMember').describe();
+      return true;
+    } catch (err) {
+      if ((err as Error).message.includes('The requested resource does not exist')) {
+        return false;
+      }
+      throw err;
+    }
+  }
+
   /**
    * Initialize async components.
    */
@@ -780,27 +783,23 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @private
    */
   private async deleteSandbox(prodOrg?: Org): Promise<void> {
+    const sandbox = await this.getSandboxConfig(this.getOrgId());
     prodOrg ??= await Org.create({
       aggregator: this.configAggregator,
-      aliasOrUsername: await this.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME),
+      aliasOrUsername: sandbox?.sandboxUsername,
     });
     let result: { SandboxInfoId: string };
-
-    // attempt to locate sandbox id by username
     try {
-      // try to calculate sandbox name from the production org
-      // production org: admin@integrationtesthub.org
-      // this.getUsername: admin@integrationtesthub.org.dev1
-      // sandboxName in Production: dev1
-      const sandboxName = (this.getUsername() || '').split(`${prodOrg.getUsername()}.`)[1];
+      // grab sandboxName from config or try to calculate from the sandbox username
+      const sandboxName = sandbox?.sandboxName || (this.getUsername() || '').split(`${prodOrg.getUsername()}.`)[1];
       if (!sandboxName) {
-        this.logger.debug('Could not construct a sandbox name');
+        this.logger.debug('Sandbox name is not available');
         throw new Error();
       }
-      this.logger.debug(`attempting to locate sandbox with username ${sandboxName}`);
+      this.logger.debug(`attempting to locate sandbox with sandbox ${sandboxName}`);
       result = await this.queryProduction(prodOrg, 'SandboxName', sandboxName);
       if (!result) {
-        this.logger.debug(`Failed to find sandbox with username: ${sandboxName}`);
+        this.logger.debug(`Failed to find sandbox with sandbox name: ${sandboxName}`);
         throw new Error();
       }
     } catch {
@@ -897,13 +896,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   }
 
-  /**
-   * @ignore
-   */
-  private async retrieveSandboxOrgConfig(): Promise<SandboxOrgConfig> {
-    return await SandboxOrgConfig.create(SandboxOrgConfig.getOptions(this.getOrgId()));
-  }
-
   private async manageDelete(
     cb: AnyFunction<Promise<void>>,
     dirPath: string,
@@ -962,22 +954,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     await globalInfo.write();
   }
 
-  /**
-   * Remove an associate sandbox config.
-   *
-   * @param throwWhenRemoveFails true if manageDelete should throw or not if the deleted fails.
-   */
-  private async removeSandboxConfig(throwWhenRemoveFails: boolean): Promise<void> {
-    const sandboxOrgConfig = await this.retrieveSandboxOrgConfig();
-    if (await sandboxOrgConfig.exists()) {
-      await this.manageDelete(
-        async () => await sandboxOrgConfig.unlink(),
-        sandboxOrgConfig.getPath(),
-        throwWhenRemoveFails
-      );
-    }
-  }
-
   private async writeSandboxAuthFile(sandboxProcessObj: SandboxProcessObject, sandboxRes: SandboxUserAuthResponse) {
     this.logger.debug('writeSandboxAuthFile sandboxProcessObj: %s, sandboxRes: %s', sandboxProcessObj, sandboxRes);
     if (sandboxRes.authUserName) {
@@ -1005,13 +981,24 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         parentUsername: productionAuthFields.username,
       });
 
+      // save auth info for new sandbox
       await authInfo.save();
-      const sandboxOrg = await Org.create({ aliasOrUsername: authInfo.getUsername() });
-      await sandboxOrg.setSandboxOrgConfigField(
-        SandboxOrgConfig.Fields.PROD_ORG_USERNAME,
-        // we couldn't get this far into the process without a production org so username will be there
-        productionAuthFields.username as string
-      );
+
+      if (!authInfo.getFields().orgId) {
+        throw messages.createError('error.AuthInfoOrgIdUndefined');
+      }
+      // set the sandbox config value
+      const sfSandbox = {
+        sandboxUsername: sandboxRes.authUserName,
+        sandboxOrgId: authInfo.getFields().orgId || '',
+        prodOrgUsername: this.getUsername() || '',
+        sandboxName: sandboxProcessObj.SandboxName,
+        timestamp: new Date().toISOString(),
+      } as SfSandbox;
+
+      await this.setSandboxConfig(authInfo.getFields().orgId as string, sfSandbox);
+      const globalInfo = await GlobalInfo.getInstance();
+      await globalInfo.write();
 
       await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESULT, {
         sandboxProcessObj,

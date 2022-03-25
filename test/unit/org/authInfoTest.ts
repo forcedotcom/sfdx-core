@@ -1866,6 +1866,7 @@ describe('AuthInfo', () => {
             oauthMethod: 'web',
             isDevHub: false,
             isExpired: 'unknown',
+            isSandbox: false,
           },
         ]);
       });
@@ -1888,6 +1889,7 @@ describe('AuthInfo', () => {
             oauthMethod: 'jwt',
             isDevHub: false,
             isExpired: 'unknown',
+            isSandbox: false,
           },
         ]);
       });
@@ -1908,6 +1910,7 @@ describe('AuthInfo', () => {
             oauthMethod: 'token',
             isDevHub: false,
             isExpired: 'unknown',
+            isSandbox: false,
           },
         ]);
       });
@@ -1929,6 +1932,7 @@ describe('AuthInfo', () => {
             oauthMethod: 'web',
             isDevHub: false,
             isExpired: 'unknown',
+            isSandbox: false,
           },
         ]);
       });
@@ -1960,6 +1964,7 @@ describe('AuthInfo', () => {
             oauthMethod: 'web',
             isDevHub: false,
             isExpired: 'unknown',
+            isSandbox: false,
           },
         ]);
       });
@@ -1981,6 +1986,7 @@ describe('AuthInfo', () => {
             oauthMethod: 'web',
             isDevHub: false,
             isExpired: false,
+            isSandbox: false,
           },
         ]);
       });

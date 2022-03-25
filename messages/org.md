@@ -45,3 +45,7 @@ Sandbox status is %s; timed out waiting for completion.
 # NotFoundOnDevHub
 
 The scratch org does not belong to the dev hub username %s.
+
+# error.AuthInfoOrgIdUndefined
+
+AuthInfo orgId is undefined.

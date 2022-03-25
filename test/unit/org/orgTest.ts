@@ -28,11 +28,10 @@ import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
-import { SandboxOrgConfig } from '../../../src/config/sandboxOrgConfig';
 import { Global } from '../../../src/global';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
-import { GlobalInfo, OrgAccessor } from '../../../src/globalInfo';
+import { GlobalInfo } from '../../../src/globalInfo';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { Lifecycle } from '../../../src/exported';
 
@@ -311,46 +310,21 @@ describe('Org Tests', () => {
       });
 
       describe('sandbox', () => {
-        it('should calculate sandbox name from production username correctly', async () => {
-          const prodTestData = new MockTestOrgData('1234', { username: 'admin@production.org' });
-          const prod = await createOrgViaAuthInfo(prodTestData.username);
-
-          const orgTestData = new MockTestOrgData('4321', { username: 'admin@production.org.dev1' });
-          const org = await createOrgViaAuthInfo(orgTestData.username);
-
-          stubMethod($$.SANDBOX, org, 'getSandboxOrgConfigField').resolves(prodTestData.username);
-          const prodQuerySpy = stubMethod($$.SANDBOX, prod.getConnection(), 'singleRecordQuery').resolves({
-            SandboxInfoId: orgTestData.orgId,
-          });
-          const prodDelete = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'delete').resolves({ success: true });
-          const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
-
-          await org.deleteFrom(prod);
-
-          expect(prodQuerySpy.calledOnce).to.be.true;
-          expect(prodQuerySpy.firstCall.args[0]).to.equal(
-            "SELECT SandboxInfoId FROM SandboxProcess WHERE SandboxName ='dev1' AND Status NOT IN ('D', 'E')"
-          );
-          expect(prodDelete.calledOnce).to.be.true;
-          expect(prodDelete.firstCall.args).to.deep.equal(['SandboxInfo', orgTestData.orgId]);
-          expect(removeSpy.calledOnce).to.be.true;
-        });
-
         it('should calculate sandbox name from orgId after first query throws', async () => {
           const prodTestData = new MockTestOrgData('1234', { username: 'admin@production.org' });
           const prod = await createOrgViaAuthInfo(prodTestData.username);
 
           const orgTestData = new MockTestOrgData('4321', { username: 'admin@production.org.dev1' });
           const org = await createOrgViaAuthInfo(orgTestData.username);
-
-          stubMethod($$.SANDBOX, org, 'getSandboxOrgConfigField').resolves(prodTestData.username);
-          const prodQuerySpy = stubMethod($$.SANDBOX, prod.getConnection(), 'singleRecordQuery')
+          stubMethod($$.SANDBOX, org, 'getSandboxConfig').resolves({ sandboxName: 'foo' });
+          const prodQuerySpy = stubMethod($$.SANDBOX, org, 'queryProduction')
             .onFirstCall()
             .throws('abc')
             .onSecondCall()
             .resolves({
               SandboxInfoId: orgTestData.orgId,
             });
+          stubMethod($$.SANDBOX, org, 'isSandbox').resolves(true);
           const prodDelete = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'delete').resolves({ success: true });
           const removeSpy = stubMethod($$.SANDBOX, org, 'remove');
           stubMethod($$.SANDBOX, org, 'getOrgId').returns(orgTestData.orgId);
@@ -358,12 +332,6 @@ describe('Org Tests', () => {
           await org.deleteFrom(prod);
 
           expect(prodQuerySpy.calledTwice).to.be.true;
-          expect(prodQuerySpy.firstCall.args[0]).to.equal(
-            "SELECT SandboxInfoId FROM SandboxProcess WHERE SandboxName ='dev1' AND Status NOT IN ('D', 'E')"
-          );
-          expect(prodQuerySpy.secondCall.args[0]).to.equal(
-            "SELECT SandboxInfoId FROM SandboxProcess WHERE SandboxOrganization ='4321' AND Status NOT IN ('D', 'E')"
-          );
           expect(prodDelete.calledOnce).to.be.true;
           expect(prodDelete.firstCall.args).to.deep.equal(['SandboxInfo', orgTestData.orgId]);
           expect(removeSpy.calledOnce).to.be.true;
@@ -376,7 +344,7 @@ describe('Org Tests', () => {
           const orgTestData = new MockTestOrgData('0GR4p000000U8CBGA0');
           const org = await createOrgViaAuthInfo(orgTestData.username);
 
-          stubMethod($$.SANDBOX, org, 'getSandboxOrgConfigField').resolves(prodTestData.username);
+          stubMethod($$.SANDBOX, org, 'isSandbox').resolves(true);
           const prodQuerySpy = stubMethod($$.SANDBOX, prod.getConnection(), 'singleRecordQuery').resolves({
             SandboxInfoId: orgTestData.orgId,
           });
@@ -545,10 +513,6 @@ describe('Org Tests', () => {
 
       expect(deletedPaths).includes(
         pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.json`)
-      );
-
-      expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.sandbox.json`)
       );
     });
 
@@ -1003,58 +967,6 @@ describe('Org Tests', () => {
       expect(await org.determineIfDevHubOrg(true)).to.be.true;
       expect(spy.called).to.be.true;
       expect(org.isDevHubOrg()).to.be.true;
-    });
-  });
-
-  describe('sandbox org config', () => {
-    it('set field', async () => {
-      const org: Org = await Org.create({ aliasOrUsername: testData.username });
-      expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.be.undefined;
-
-      await org.setSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME, 'user@sandbox.org');
-
-      expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.eq('user@sandbox.org');
-    });
-
-    it('Test sandbox config removal.', async () => {
-      // Stub exists so only the auth file and sandbox config file exist. No users config file.
-      stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function () {
-        if (this.path && this.path.endsWith(`${testData.orgId}.json`)) {
-          return Promise.resolve(false);
-        }
-        return Promise.resolve(true);
-      });
-
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'has').callsFake(async function () {
-        if (this.path && this.path.includes(testData.orgId)) {
-          return Promise.resolve(false);
-        }
-        return Promise.resolve(true);
-      });
-
-      // Stub to track the deleted paths.
-      const deletedPaths: string[] = [];
-      stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function (this: ConfigFile<ConfigFile.Options>) {
-        deletedPaths.push(this.getPath());
-        return Promise.resolve({});
-      });
-
-      const unsetSpy = stubMethod($$.SANDBOX, OrgAccessor.prototype, 'unset').returns(null);
-
-      // Create an org and add a sandbox config
-      const org: Org = await Org.create({ aliasOrUsername: testData.username });
-      expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.be.undefined;
-      await org.setSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME, 'user@sandbox.org');
-      expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.eq('user@sandbox.org');
-
-      // Remove the org
-      await org.remove();
-      // Expect the authorization to be removed
-      expect(unsetSpy.firstCall.args).to.deep.equal([testData.username]);
-      // Expect the sandbox config is deleted.
-      expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.sandbox.json`)
-      );
     });
   });
 });
