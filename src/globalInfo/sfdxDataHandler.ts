@@ -294,8 +294,8 @@ export class SandboxesHandler extends BaseHandler<SfInfoKeys.SANDBOXES> {
       const matches = filename.match(SandboxesHandler.sandboxFilenameFilterRegEx);
       const orgId = matches ? matches[1] : '';
       const sandboxConfig = new SandboxOrgConfig(SandboxOrgConfig.getOptions(orgId));
-      const contents = { ...sandboxConfig.getContents(), sandboxOrgId: orgId } as SfSandbox;
       const stat = await sandboxConfig.stat();
+      const contents = { ...(await sandboxConfig.read(true)), sandboxOrgId: orgId } as SfSandbox;
       const sandbox = Object.assign(contents, { timestamp: stat.mtime.toISOString() });
 
       sandboxes.push(sandbox);
