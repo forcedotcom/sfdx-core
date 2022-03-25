@@ -194,6 +194,25 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
+   *
+   * @param sandboxReq SandboxRequest options to create the sandbox with
+   * @param sandboxName
+   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
+   */
+  public async cloneSandbox(
+    sandboxReq: SandboxRequest,
+    sandboxName: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    if (sandboxName) {
+      sandboxReq.SourceId = await this.querySandboxInfoIdBySandboxName(sandboxName);
+      this.logger.debug('Clone sandbox sourceId %s', sandboxReq.SourceId);
+    }
+
+    return this.createSandbox(sandboxReq, options);
+  }
+
+  /**
    * Creates a scratchOrg
    * 'this' needs to be a valid dev-hub
    *
@@ -985,6 +1004,19 @@ export class Org extends AsyncCreatable<Org.Options> {
     return await this.connection.singleRecordQuery(queryStr, {
       tooling: true,
     });
+  }
+
+  /**
+   *
+   * @param sandboxNameIn
+   * @returns sandboxInfoId
+   */
+  private async querySandboxInfoIdBySandboxName(sandboxNameIn: string): Promise<string> {
+    this.logger.debug('QuerySandboxInfoIdBySandboxName called with SandboxName: %s ', sandboxNameIn);
+    const queryStr = `SELECT Id, SandboxName FROM SandboxInfo WHERE SandboxName='${sandboxNameIn}'`;
+    const record = await this.connection.singleRecordQuery<{ Id: string }>(queryStr);
+    this.logger.debug('Return from calling queryToolingApi: %s ', record);
+    return record.Id;
   }
 
   /**
