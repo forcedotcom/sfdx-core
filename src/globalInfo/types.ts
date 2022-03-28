@@ -50,6 +50,8 @@ export type SfSandbox = {
   prodOrgUsername: string;
   sandboxName?: string;
   sandboxUsername?: string;
+  sandboxProcessId?: string;
+  sandboxInfoId?: string;
 } & Timestamp &
   SfEntry;
 

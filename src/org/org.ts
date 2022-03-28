@@ -770,6 +770,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
   private async destroySandbox(org: Org, id: string): Promise<SaveResult> {
     return org.getConnection().tooling.delete('SandboxInfo', id);
+    return org.getConnection().tooling.delete('SandboxInfo', id);
   }
 
   private async destroyScratchOrg(org: Org, id: string): Promise<SaveResult> {
@@ -786,35 +787,38 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const sandbox = await this.getSandboxConfig(this.getOrgId());
     prodOrg ??= await Org.create({
       aggregator: this.configAggregator,
-      aliasOrUsername: sandbox?.sandboxUsername,
+      aliasOrUsername: sandbox?.prodOrgUsername,
     });
-    let result: { SandboxInfoId: string };
-    try {
-      // grab sandboxName from config or try to calculate from the sandbox username
-      const sandboxName = sandbox?.sandboxName || (this.getUsername() || '').split(`${prodOrg.getUsername()}.`)[1];
-      if (!sandboxName) {
-        this.logger.debug('Sandbox name is not available');
-        throw new Error();
-      }
-      this.logger.debug(`attempting to locate sandbox with sandbox ${sandboxName}`);
-      result = await this.queryProduction(prodOrg, 'SandboxName', sandboxName);
-      if (!result) {
-        this.logger.debug(`Failed to find sandbox with sandbox name: ${sandboxName}`);
-        throw new Error();
-      }
-    } catch {
-      // if an error is thrown, don't panic yet. we'll try querying by orgId
-      const trimmedId = sfdc.trimTo15(this.getOrgId()) as string;
-      this.logger.debug(`defaulting to trimming id from ${this.getOrgId()} to ${trimmedId}`);
+    let sandboxInfoId: string | undefined = sandbox?.sandboxInfoId;
+    if (!sandboxInfoId) {
+      let result: { SandboxInfoId: string };
       try {
-        result = await this.queryProduction(prodOrg, 'SandboxOrganization', trimmedId);
+        // grab sandboxName from config or try to calculate from the sandbox username
+        const sandboxName = sandbox?.sandboxName || (this.getUsername() || '').split(`${prodOrg.getUsername()}.`)[1];
+        if (!sandboxName) {
+          this.logger.debug('Sandbox name is not available');
+          throw new Error();
+        }
+        this.logger.debug(`attempting to locate sandbox with sandbox ${sandboxName}`);
+        result = await this.queryProduction(prodOrg, 'SandboxName', sandboxName);
+        if (!result) {
+          this.logger.debug(`Failed to find sandbox with sandbox name: ${sandboxName}`);
+          throw new Error();
+        }
       } catch {
-        throw messages.createError('sandboxNotFound', [trimmedId]);
+        // if an error is thrown, don't panic yet. we'll try querying by orgId
+        const trimmedId = sfdc.trimTo15(this.getOrgId()) as string;
+        this.logger.debug(`defaulting to trimming id from ${this.getOrgId()} to ${trimmedId}`);
+        try {
+          result = await this.queryProduction(prodOrg, 'SandboxOrganization', trimmedId);
+          sandboxInfoId = result.SandboxInfoId;
+        } catch {
+          throw messages.createError('sandboxNotFound', [trimmedId]);
+        }
       }
     }
 
-    // const deleteResult = await prodOrg.connection.tooling.delete('SandboxInfo', result.SandboxInfoId);
-    const deleteResult = await this.destroySandbox(prodOrg, result.SandboxInfoId);
+    const deleteResult = await this.destroySandbox(prodOrg, sandboxInfoId as string);
     this.logger.debug('Return from calling tooling.delete: %o ', deleteResult);
     await this.remove();
 
@@ -993,6 +997,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         sandboxOrgId: authInfo.getFields().orgId || '',
         prodOrgUsername: this.getUsername() || '',
         sandboxName: sandboxProcessObj.SandboxName,
+        sandboxProcessId: sandboxProcessObj.Id,
+        sandboxInfoId: sandboxProcessObj.SandboxInfoId,
         timestamp: new Date().toISOString(),
       } as SfSandbox;
 

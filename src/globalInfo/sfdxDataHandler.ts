@@ -50,8 +50,8 @@ export class SfdxDataHandler {
   public async write(latest: SfInfo = GlobalInfo.emptyDataModel): Promise<void> {
     for (const handler of this.handlers) {
       await handler.write(latest, this.original);
-      this.setOriginal(latest);
     }
+    this.setOriginal(latest);
   }
 
   public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<SfInfo> {
@@ -255,6 +255,46 @@ export class SandboxesHandler extends BaseHandler<SfInfoKeys.SANDBOXES> {
   private static sandboxFilenameFilterRegEx = /^(00D.*?)\.sandbox\.json$/;
   public sfKey: typeof SfInfoKeys.SANDBOXES = SfInfoKeys.SANDBOXES;
 
+  public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<Partial<SfInfo>> {
+    const sfdxData = await this.migrate();
+    const merged = deepCopy<SfInfo>(sfData);
+
+    // Only merge the key this handler is responsible for.
+    const key = this.sfKey;
+
+    const sfKeys = Object.keys(sfData[key] ?? {});
+    const sfdxKeys = Object.keys(sfdxData[key] ?? {});
+
+    // sandbox entries for .sf and .sfdx contain static data. Given there
+    // can be no mutation during the life of the sandbox, having to merge common keys
+    // is unnecessary.
+
+    // Keys that exist in .sfdx but not .sf are added because we assume
+    // that this means the key was created using sfdx.
+    // However, this is not always a valid assumption because it could
+    // also mean that the key was deleted using sf, in which case we
+    // do not want to migrate the sfdx key to sf.
+    // Programmatically differentiating between a new key and a deleted key
+    // would be nearly impossible. Instead, we should ensure that whenever
+    // sf deletes a key it also deletes it in sfdx. This way, we can safely
+    // assume that we should migrate any keys that exist in .sfdx
+    const unhandledSfdxKeys = sfdxKeys.filter((k) => !sfKeys.includes(k));
+    for (const k of unhandledSfdxKeys) {
+      set(merged, `${key}["${k}"]`, sfdxData[key][k]);
+    }
+
+    // Keys that exist in .sf but not .sfdx are deleted because we assume
+    // that this means the key was deleted while using sfdx.
+    // We can make this assumption because keys that are created by sf will
+    // always be migrated back to sfdx
+    const unhandledSfKeys = sfKeys.filter((k) => !sfdxKeys.includes(k));
+    for (const k of unhandledSfKeys) {
+      delete merged[key][k];
+    }
+
+    return merged;
+  }
+
   public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.SANDBOXES>> {
     const oldSandboxes = await this.listAllSandboxes();
     const newSandboxes = oldSandboxes.reduce(
@@ -307,15 +347,13 @@ export class SandboxesHandler extends BaseHandler<SfInfoKeys.SANDBOXES> {
     const latestSandboxes = latest.sandboxes;
     const originalSandboxes = original.sandboxes;
     const changed: SfSandboxes = {};
-    for (const [sandboxUsername, sandbox] of Object.entries(latestSandboxes)) {
-      const originalAuth = originalSandboxes[sandboxUsername] ?? {};
-      if (!isEqual(sandbox, originalAuth)) {
-        changed[sandboxUsername] = sandbox;
+    for (const [sandboxOrgId, sandbox] of Object.entries(latestSandboxes)) {
+      const originalSandbox = originalSandboxes[sandboxOrgId] ?? {};
+      if (!isEqual(sandbox, originalSandbox)) {
+        changed[sandboxOrgId] = sandbox;
       }
     }
-    const deleted: string[] = Object.keys(originalSandboxes).filter(
-      (sandboxUsername) => !latestSandboxes[sandboxUsername]
-    );
+    const deleted: string[] = Object.keys(originalSandboxes).filter((sandboxOrgId) => !latestSandboxes[sandboxOrgId]);
 
     return { changed, deleted };
   }
