@@ -208,9 +208,17 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     this.logger.debug('Return from calling singleRecordQuery with tooling: %s', sandboxCreationProgress);
 
     const isAsync = !!options.async;
-    const retries = options.wait && !isAsync ? options.wait.seconds / Duration.seconds(30).seconds : 0;
+    const wait = options.wait || Duration.seconds(30);
+    let pollInterval = !isAsync ? options.interval || Duration.seconds(30) : Duration.seconds(0);
+    // pollInterval cannot be > wait.
+    pollInterval =
+      pollInterval.seconds === Duration.seconds(0).seconds
+        ? pollInterval
+        : pollInterval.seconds > wait.seconds
+        ? wait
+        : pollInterval;
+    const retries = !isAsync ? wait.seconds / pollInterval.seconds : 0;
     this.logger.debug('pollStatusAndAuth sandboxProcessObj %s, maxPollingRetries %i', sandboxCreationProgress, retries);
-    const pollInterval = !isAsync ? options.interval ?? Duration.seconds(30) : Duration.seconds(0);
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
       retries,

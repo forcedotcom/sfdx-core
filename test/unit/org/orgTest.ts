@@ -397,6 +397,18 @@ describe('Org Tests', () => {
         await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(90) });
         // 90/30 = 3
         expect(pollStatusAndAuthStub.secondCall.args[0].retries).to.equal(3);
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox' },
+          { wait: Duration.seconds(90), interval: Duration.seconds(90) }
+        );
+        // 90/90 = 1
+        expect(pollStatusAndAuthStub.thirdCall.args[0].retries).to.equal(1);
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox' },
+          { wait: Duration.seconds(90), interval: Duration.seconds(91) }
+        );
+        // 90/90 = 1
+        expect(pollStatusAndAuthStub.getCall(3).args[0].retries).to.equal(1);
       });
 
       it('will throw an error if it fails to create SandboxInfo', async () => {
