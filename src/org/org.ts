@@ -636,11 +636,22 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     return this;
   }
 
+  /**
+   * set the sandbox config related to this given org
+   *
+   * @param orgId {string} orgId of the sandbox
+   * @param config {SfSandbox} config of the sandbox
+   */
   public async setSandboxConfig(orgId: string, config: SfSandbox): Promise<Org> {
     (await GlobalInfo.getInstance()).sandboxes.set(orgId, config);
     return this;
   }
 
+  /**
+   * get the sandbox config for the given orgId
+   *
+   * @param orgId {string} orgId of the sandbox
+   */
   public async getSandboxConfig(orgId: string): Promise<Nullable<SfSandbox>> {
     return (await GlobalInfo.getInstance()).sandboxes.get(orgId);
   }
