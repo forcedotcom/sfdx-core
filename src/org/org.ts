@@ -194,7 +194,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async createSandbox(
     sandboxReq: SandboxRequest,
-    options: { wait?: Duration; interval?: Duration }
+    options: { wait?: Duration; interval?: Duration; async?: boolean }
   ): Promise<SandboxProcessObject> {
     this.logger.debug('CreateSandbox called with SandboxRequest: %s ', sandboxReq);
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
@@ -207,13 +207,14 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const sandboxCreationProgress = await this.querySandboxProcess(createResult.id);
     this.logger.debug('Return from calling singleRecordQuery with tooling: %s', sandboxCreationProgress);
 
-    const retries = options.wait ? options.wait.seconds / Duration.seconds(30).seconds : 0;
+    const isAsync = !!options.async;
+    const retries = options.wait && !isAsync ? options.wait.seconds / Duration.seconds(30).seconds : 0;
     this.logger.debug('pollStatusAndAuth sandboxProcessObj %s, maxPollingRetries %i', sandboxCreationProgress, retries);
-    const pollInterval = options.interval ?? Duration.seconds(30);
+    const pollInterval = !isAsync ? options.interval ?? Duration.seconds(30) : Duration.seconds(0);
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
       retries,
-      shouldPoll: retries > 0,
+      async: isAsync,
       pollInterval,
     });
   }
@@ -1023,22 +1024,22 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @param options
    *  sandboxProcessObj: The in-progress sandbox signup request
    *  retries: the number of retries to poll for every 30s
-   *  shouldPoll: wait for polling, or just return
+   *  async: wait for polling, or just return
    *  pollInterval: Duration to sleep between poll events, default 30 seconds
    */
   private async pollStatusAndAuth(options: {
     sandboxProcessObj: SandboxProcessObject;
     retries: number;
-    shouldPoll: boolean;
+    async: boolean;
     pollInterval: Duration;
   }): Promise<SandboxProcessObject> {
-    const { pollInterval } = options;
+    const { pollInterval, async: isAsync } = options;
     let { sandboxProcessObj, retries } = options;
     this.logger.debug('PollStatusAndAuth called with SandboxProcessObject%s, retries %s', sandboxProcessObj, retries);
     const lifecycle = Lifecycle.getInstance();
     let pollFinished = false;
     let waitingOnAuth = false;
-    while (!pollFinished) {
+    do {
       sandboxProcessObj = await this.querySandboxProcess(sandboxProcessObj.SandboxInfoId);
       // check to see if
       const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
@@ -1061,14 +1062,14 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       }
       await this.waitForNextRetry(lifecycle, sandboxProcessObj, pollInterval, retries, waitingOnAuth);
       retries--;
-    }
+      if (!retries && !isAsync) {
+        // timed out on retries
+        throw messages.createError('orgPollingTimeout', [sandboxProcessObj.Status]);
+      }
+    } while (!pollFinished && !isAsync);
 
-    if (!pollFinished) {
-      // timed out on retries
-      throw messages.createError('orgPollingTimeout', [sandboxProcessObj.Status]);
-    } else {
+    if (isAsync) {
       // The user didn't want us to poll, so simply return the status
-      // simply report status and exit
       await lifecycle.emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxProcessObj);
     }
 

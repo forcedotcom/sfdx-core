@@ -482,13 +482,13 @@ describe('Org Tests', () => {
 
         const res = await prod.pollStatusAndAuth({
           pollInterval: Duration.seconds(1),
-          retries: 2,
-          shouldPoll: true,
+          retries: 1,
+          async: true,
           sandboxProcessObj: sandboxInProgress,
         });
         expect(res).to.deep.equal(sandboxInProgress);
-        expect(loggerStub.callCount).to.equal(2);
-        expect(lifecycleStub.callCount).to.equal(3);
+        expect(loggerStub.callCount).to.equal(1);
+        expect(lifecycleStub.callCount).to.equal(2);
       });
     });
 
