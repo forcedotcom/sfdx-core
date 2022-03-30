@@ -206,37 +206,6 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // neither API expects this option
     delete options.rest;
     if (rest) {
-      // this.logger.debug('deploy with REST');
-      // await this.refreshAuth();
-
-      // const form = new FormData();
-
-      // // Add the zip file
-      // // eslint-disable-next-line no-console
-      // console.log('setting zip file to utf8');
-      // form.append('file', zipInput, {
-      //   contentType: 'application/zip',
-      //   filename: 'package.xml',
-      // });
-
-      // // Add the deploy options
-      // form.append('entity_content', JSON.stringify({ deployOptions: options }), {
-      //   contentType: 'application/json',
-      // });
-
-      // const headers: { [key: string]: string } = {
-      //   ...{
-      //     Authorization: this && `OAuth ${this.accessToken}`,
-      //     'Sforce-Call-Options': 'client=sfdx-core',
-      //     'Content-Type': form.getHeaders()['content-type'],
-      //   },
-      //   ...(this.oauth2?.clientId ? { clientId: this.oauth2?.clientId } : {}),
-      // };
-
-      // const url = `${this.baseUrl()}/metadata/deployRequest`;
-
-      // const httpRequest: HttpRequest = { method: 'POST', url, headers, body: form };
-      // return this.request(httpRequest);
       const form = new FormData();
       form.append('file', zipInput, {
         contentType: 'application/zip',
