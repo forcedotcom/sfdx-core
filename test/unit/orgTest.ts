@@ -508,7 +508,7 @@ describe('Org Tests', () => {
           });
         });
 
-        describe.only('cloneSandbox', () => {
+        describe('cloneSandbox', () => {
           let prod;
           let createStub;
           let querySandboxProcessStub;
