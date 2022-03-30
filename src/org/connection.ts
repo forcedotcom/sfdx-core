@@ -192,7 +192,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * TODO: This should be moved into JSForce V2 once ready
    * this is only a temporary solution to support both REST and SOAP APIs
    *
-   * deploy a zipped buffer from the SDRL with REST or SOAP
+   * deploy a zipped buffer from the SDR with REST or SOAP
    *
    * @param zipInput data to deploy
    * @param options JSForce deploy options + a boolean for rest
@@ -206,21 +206,38 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // neither API expects this option
     delete options.rest;
     if (rest) {
-      this.logger.debug('deploy with REST');
-      await this.refreshAuth();
-      const headers: { [key: string]: string } = {
-        Authorization: this && `OAuth ${this.accessToken}`,
-        'Sforce-Call-Options': 'client=sfdx-core',
-      };
-      const client = this.oauth2 && this.oauth2.clientId;
+      // this.logger.debug('deploy with REST');
+      // await this.refreshAuth();
 
-      if (client) {
-        headers.clientId = client;
-      }
+      // const form = new FormData();
 
+      // // Add the zip file
+      // // eslint-disable-next-line no-console
+      // console.log('setting zip file to utf8');
+      // form.append('file', zipInput, {
+      //   contentType: 'application/zip',
+      //   filename: 'package.xml',
+      // });
+
+      // // Add the deploy options
+      // form.append('entity_content', JSON.stringify({ deployOptions: options }), {
+      //   contentType: 'application/json',
+      // });
+
+      // const headers: { [key: string]: string } = {
+      //   ...{
+      //     Authorization: this && `OAuth ${this.accessToken}`,
+      //     'Sforce-Call-Options': 'client=sfdx-core',
+      //     'Content-Type': form.getHeaders()['content-type'],
+      //   },
+      //   ...(this.oauth2?.clientId ? { clientId: this.oauth2?.clientId } : {}),
+      // };
+
+      // const url = `${this.baseUrl()}/metadata/deployRequest`;
+
+      // const httpRequest: HttpRequest = { method: 'POST', url, headers, body: form };
+      // return this.request(httpRequest);
       const form = new FormData();
-
-      // Add the zip file
       form.append('file', zipInput, {
         contentType: 'application/zip',
         filename: 'package.xml',
@@ -231,10 +248,13 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
         contentType: 'application/json',
       });
 
-      const url = `${this.baseUrl()}/metadata/deployRequest`;
-
-      const httpRequest: HttpRequest = { method: 'POST', url, headers, body: form };
-      return this.request(httpRequest);
+      const request: HttpRequest = {
+        url: '/metadata/deployRequest',
+        method: 'POST',
+        headers: { ...form.getHeaders() },
+        body: form.getBuffer(),
+      };
+      return this.request<AsyncResult>(request);
     } else {
       this.logger.debug('deploy with SOAP');
       return this.metadata.deploy(zipInput, options);
