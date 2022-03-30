@@ -40,6 +40,7 @@ const messages = Messages.load('@salesforce/core', 'config', [
   'maxQueryLimit',
   'restDeploy',
   'instanceUrl',
+  'disable-telemetry',
 ]);
 
 const log = Logger.childFromRoot('core:config');
@@ -104,6 +105,24 @@ export interface ConfigPropertyMetaInput {
   failedMessage: string | ((value: ConfigValue) => string);
 }
 
+export enum SfConfigProperties {
+  /**
+   * Disables telemetry reporting
+   */
+  DISABLE_TELEMETRY = 'disable-telemetry',
+}
+
+export const SF_ALLOWED_PROPERTIES = [
+  {
+    key: SfConfigProperties.DISABLE_TELEMETRY,
+    description: messages.getMessage(SfConfigProperties.DISABLE_TELEMETRY),
+    input: {
+      validator: (value: ConfigValue) => value == null || ['true', 'false'].includes(value.toString()),
+      failedMessage: messages.getMessage('invalidBooleanConfigValue'),
+    },
+  },
+];
+
 export enum SfdxPropertyKeys {
   /**
    * Username associated with the default dev hub org.
@@ -123,38 +142,54 @@ export enum SfdxPropertyKeys {
 
   /**
    * The sid for the debugger configuration.
+   *
+   * @deprecated Replaced by OrgConfigProperties.ORG_ISV_DEBUGGER_SID in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   ISV_DEBUGGER_SID = 'isvDebuggerSid',
 
   /**
    * The url for the debugger configuration.
+   *
+   * @deprecated Replaced by OrgConfigProperties.ORG_ISV_DEBUGGER_URL in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   ISV_DEBUGGER_URL = 'isvDebuggerUrl',
 
   /**
    * The api version
+   *
+   * @deprecated Replaced by OrgConfigProperties.ORG_API_VERSION in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   API_VERSION = 'apiVersion',
 
   /**
    * Disables telemetry reporting
+   *
+   * @deprecated Replaced by SfPropertyKeys.DISABLE_TELEMETRY in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   DISABLE_TELEMETRY = 'disableTelemetry',
 
   /**
    * Custom templates repo or local location.
+   *
+   * @deprecated Replaced by OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   CUSTOM_ORG_METADATA_TEMPLATES = 'customOrgMetadataTemplates',
 
   /**
    * allows users to override the 10,000 result query limit
+   *
+   * @deprecated Replaced by OrgConfigProperties.ORG_MAX_QUERY_LIMIT in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
    */
   MAX_QUERY_LIMIT = 'maxQueryLimit',
 
-  /** */
+  /**
+   * @deprecated
+   */
   REST_DEPLOY = 'restDeploy',
 
-  /** */
+  /**
+   * @deprecated Replaced by OrgConfigProperties.ORG_INSTANCE_URL in v3 {@link https://github.com/forcedotcom/sfdx-core/blob/v3/MIGRATING_V2-V3.md#config}
+   */
   INSTANCE_URL = 'instanceUrl',
 }
 
@@ -162,6 +197,8 @@ export const SFDX_ALLOWED_PROPERTIES = [
   {
     key: SfdxPropertyKeys.INSTANCE_URL,
     description: messages.getMessage(SfdxPropertyKeys.INSTANCE_URL),
+    newKey: OrgConfigProperties.ORG_INSTANCE_URL,
+    deprecated: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
       validator: (value: ConfigValue) => {
@@ -179,6 +216,8 @@ export const SFDX_ALLOWED_PROPERTIES = [
   },
   {
     key: SfdxPropertyKeys.API_VERSION,
+    newKey: OrgConfigProperties.ORG_API_VERSION,
+    deprecated: true,
     description: messages.getMessage(SfdxPropertyKeys.API_VERSION),
     hidden: true,
     input: {
@@ -203,6 +242,8 @@ export const SFDX_ALLOWED_PROPERTIES = [
   },
   {
     key: SfdxPropertyKeys.ISV_DEBUGGER_SID,
+    newKey: OrgConfigProperties.ORG_ISV_DEBUGGER_SID,
+    deprecated: true,
     description: messages.getMessage(SfdxPropertyKeys.ISV_DEBUGGER_SID),
     encrypted: true,
     input: {
@@ -213,6 +254,8 @@ export const SFDX_ALLOWED_PROPERTIES = [
   },
   {
     key: SfdxPropertyKeys.ISV_DEBUGGER_URL,
+    newKey: OrgConfigProperties.ORG_ISV_DEBUGGER_URL,
+    deprecated: true,
     description: messages.getMessage(SfdxPropertyKeys.ISV_DEBUGGER_URL),
     input: {
       // If a value is provided validate it otherwise no value is unset.
@@ -222,17 +265,20 @@ export const SFDX_ALLOWED_PROPERTIES = [
   },
   {
     key: SfdxPropertyKeys.DISABLE_TELEMETRY,
+    newKey: SfConfigProperties.DISABLE_TELEMETRY,
+    deprecated: true,
     description: messages.getMessage(SfdxPropertyKeys.DISABLE_TELEMETRY),
     input: {
       validator: (value: ConfigValue) => value == null || ['true', 'false'].includes(value.toString()),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
-  // This should be brought in by a plugin, but there isn't a way to do that right now.
   {
     key: SfdxPropertyKeys.REST_DEPLOY,
     description: messages.getMessage(SfdxPropertyKeys.REST_DEPLOY),
     hidden: true,
+    newKey: 'org-metadata-rest-deploy',
+    deprecated: true,
     input: {
       validator: (value: ConfigValue) => value != null && ['true', 'false'].includes(value.toString()),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
@@ -241,6 +287,8 @@ export const SFDX_ALLOWED_PROPERTIES = [
   {
     key: SfdxPropertyKeys.MAX_QUERY_LIMIT,
     description: messages.getMessage(SfdxPropertyKeys.MAX_QUERY_LIMIT),
+    hidden: true,
+    newKey: OrgConfigProperties.ORG_MAX_QUERY_LIMIT,
     input: {
       // the bit shift will remove the negative bit, and any decimal numbers
       // then the parseFloat will handle converting it to a number from a string
@@ -272,6 +320,7 @@ export type ConfigProperties = { [index: string]: JsonPrimitive };
 export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   private static allowedProperties: ConfigPropertyMeta[] = [
     ...SFDX_ALLOWED_PROPERTIES,
+    ...SF_ALLOWED_PROPERTIES,
     ...ORG_CONFIG_ALLOWED_PROPERTIES,
   ];
 

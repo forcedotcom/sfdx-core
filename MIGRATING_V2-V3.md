@@ -63,7 +63,20 @@ info.aliases.getAll();
 
 - Moved `.sfdx/sfdx-config.json` to `.sf/config.json`
 - Removed `Config.<config key name>`
-- Deprecated `DEFAULT_USERNAME` and `DEFAULT_DEV_HUB_USERNAME`
+- Deprecated the following:
+
+| Deprecated Config Var                            | New Config Var                                      |
+| ------------------------------------------------ | --------------------------------------------------- |
+| `SfdxPropertyKeys.API_VERSION`                   | `OrgConfigProperties.ORG_API_VERSION`               |
+| `SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES` | `OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES` |
+| `SfdxPropertyKeys.DEFAULT_DEV_HUB_USERNAME`      | `OrgConfigProperties.TARGET_DEV_HUB`                |
+| `SfdxPropertyKeys.DEFAULT_USERNAME`              | `OrgConfigProperties.TARGET_ORG`                    |
+| `SfdxPropertyKeys.DISABLE_TELEMETRY`             | `SfConfigProperties.DISABLE_TELEMETRY`              |
+| `SfdxPropertyKeys.INSTANCE_URL`                  | `OrgConfigProperties.ORG_INSTANCE_URL`              |
+| `SfdxPropertyKeys.ISV_DEBUGGER_SID`              | `OrgConfigProperties.ORG_ISV_DEBUGGER_SID`          |
+| `SfdxPropertyKeys.ISV_DEBUGGER_URL`              | `OrgConfigProperties.ORG_ISV_DEBUGGER_URL`          |
+| `SfdxPropertyKeys.MAX_QUERY_LIMIT`               | `OrgConfigProperties.ORG_MAX_QUERY_LIMIT`           |
+| `SfdxPropertyKeys.REST_DEPLOY`                   | REMOVED                                             |
 
 ### Why
 
@@ -79,6 +92,12 @@ Config.update(true, Config.API_VERSION, '49.0');
 
 ```typescript
 Config.update(true, SfdxPropertyKeys.API_VERSION, '49.0');
+```
+
+OR
+
+```typescript
+Config.update(true, OrgConfigProperties.ORG_API_VERSION, '49.0');
 ```
 
 ## ConfigStore, ConfigFile, AuthInfo, and Encrypting Values

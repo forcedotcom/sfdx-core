@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { ensureString, JsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
-import { Config, SfdxPropertyKeys } from '../../../src/config/config';
+import { Config } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
 import { OrgConfigProperties } from '../../../src/exported';
@@ -125,38 +125,38 @@ describe('Config', () => {
     });
 
     describe('InvalidConfigValueError', () => {
-      it('apiVersoin', async () => {
+      it('org-api-version', async () => {
         const config: Config = await Config.create(Config.getDefaultOptions(true));
         try {
-          config.set('apiVersion', '1');
+          config.set('org-api-version', '1');
           assert.fail('Expected an error to be thrown.');
         } catch (err) {
           expect(err).to.have.property('name', 'InvalidConfigValueError');
         }
       });
-      it('isvDebuggerUrl', async () => {
+      it('org-isv-debugger-url', async () => {
         const config: Config = await Config.create(Config.getDefaultOptions(true));
         try {
-          config.set('isvDebuggerUrl', 23);
+          config.set('org-isv-debugger-url', 23);
           assert.fail('Expected an error to be thrown.');
         } catch (err) {
           expect(err).to.have.property('name', 'InvalidConfigValueError');
         }
       });
-      it('isvDebuggerSid', async () => {
+      it('org-isv-debugger-sid', async () => {
         const config: Config = await Config.create(Config.getDefaultOptions(true));
         try {
-          config.set('isvDebuggerSid', 23);
+          config.set('org-isv-debugger-sid', 23);
           assert.fail('Expected an error to be thrown.');
         } catch (err) {
           expect(err).to.have.property('name', 'InvalidConfigValueError');
         }
       });
-      describe('maxQueryLimit', () => {
+      describe('org-max-query-limit', () => {
         it('will throw an error when value is mixed alphanumeric', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('maxQueryLimit', '123abc');
+            config.set('org-max-query-limit', '123abc');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
@@ -165,7 +165,7 @@ describe('Config', () => {
         it('will throw an error when value is not numeric', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('maxQueryLimit', 'abc');
+            config.set('org-max-query-limit', 'abc');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
@@ -175,7 +175,7 @@ describe('Config', () => {
         it('will throw an error when value is negative', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('maxQueryLimit', '-123');
+            config.set('org-max-query-limit', '-123');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
@@ -185,7 +185,7 @@ describe('Config', () => {
         it('will throw an error when value is negative decimal', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('maxQueryLimit', '-123.456');
+            config.set('org-max-query-limit', '-123.456');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
@@ -194,7 +194,7 @@ describe('Config', () => {
         it('will throw an error when value is negative integer', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('maxQueryLimit', '-123');
+            config.set('org-max-query-limit', '-123');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
@@ -203,7 +203,7 @@ describe('Config', () => {
         it('will throw an error when value is 0', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('maxQueryLimit', '0');
+            config.set('org-max-query-limit', '0');
             assert.fail('Expected an error to be thrown.');
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
@@ -211,13 +211,13 @@ describe('Config', () => {
         });
         it('will set config value with stringified number', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
-          const res = config.set('maxQueryLimit', '123');
-          expect(res.maxQueryLimit).to.equal('123');
+          const res = config.set('org-max-query-limit', '123');
+          expect(res['org-max-query-limit']).to.equal('123');
         });
         it('will set config value with as number as it should be', async () => {
           const config: Config = await Config.create(Config.getDefaultOptions(true));
-          const res = config.set('maxQueryLimit', 123);
-          expect(res.maxQueryLimit).to.equal(123);
+          const res = config.set('org-max-query-limit', 123);
+          expect(res['org-max-query-limit']).to.equal(123);
         });
       });
     });
@@ -263,13 +263,13 @@ describe('Config', () => {
 
       const writeStub = stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.write.name).callsFake(
         async function (this: Config) {
-          expect(ensureString(this.get('isvDebuggerSid')).length).to.be.greaterThan(TEST_VAL.length);
-          expect(ensureString(this.get('isvDebuggerSid'))).to.not.equal(TEST_VAL);
+          expect(ensureString(this.get('org-isv-debugger-sid')).length).to.be.greaterThan(TEST_VAL.length);
+          expect(ensureString(this.get('org-isv-debugger-sid'))).to.not.equal(TEST_VAL);
         }
       );
 
       const config: Config = await Config.create(Config.getDefaultOptions(true));
-      config.set(SfdxPropertyKeys.ISV_DEBUGGER_SID, TEST_VAL);
+      config.set(OrgConfigProperties.ORG_ISV_DEBUGGER_SID, TEST_VAL);
       await config.write();
 
       expect(writeStub.called).to.be.true;

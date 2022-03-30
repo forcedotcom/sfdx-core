@@ -75,11 +75,11 @@ In sfdx-project.json, indicate only one package directory (path) as the default.
 
 The sfdx-project.json file must include one, and only one, default package directory (path). Because your sfdx-project.json file contains only one package directory, it must be the default. Remove the `"default": false` key and try again.
 
-# targetOrg
+# target-org
 
 Username or alias of the org that all commands run against by default. (sf only)
 
-# targetDevHub
+# target-dev-hub
 
 Username or alias of your default Dev Hub org. (sf only)
 
@@ -93,28 +93,52 @@ Username or alias of your default Dev Hub org. (sfdx only)
 
 # isvDebuggerSid
 
-ISV debugger SID
+ISV debugger SID (sfdx only)
 
 # isvDebuggerUrl
 
-ISV debugger URL
+ISV debugger URL (sfdx only)
+
+# org-isv-debugger-sid
+
+ISV debugger SID.
+
+# org-isv-debugger-url
+
+ISV debugger URL.
 
 # apiVersion
+
+API version of your project. Default: API version of your Dev Hub org. (sfdx only)
+
+# org-api-version
 
 API version of your project. Default: API version of your Dev Hub org.
 
 # disableTelemetry
 
-Disables the collection of usage and user environment information, etc. Default: true.
+Disables the collection of usage and user environment information, etc. Default: false. (sfdx only)
+
+# disable-telemetry
+
+Disables the collection of usage and user environment information, etc. Default: false.
 
 # maxQueryLimit
+
+Maximum number of Salesforce records returned by a CLI command. Default: 10,000. (sfdx only)
+
+# org-max-query-limit
 
 Maximum number of Salesforce records returned by a CLI command. Default: 10,000.
 
 # restDeploy
 
-Whether deployments use the Metadata REST API (true) or SOAP API (false, default value).
+Whether deployments use the Metadata REST API (true) or SOAP API (false, default value). (sfdx only)
 
 # instanceUrl
+
+URL of the Salesforce instance hosting your org. Default: https://login.salesforce.com. (sfdx only)
+
+# org-instance-url
 
 URL of the Salesforce instance hosting your org. Default: https://login.salesforce.com.
