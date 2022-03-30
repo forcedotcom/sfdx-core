@@ -220,7 +220,11 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       const request: HttpRequest = {
         url: '/metadata/deployRequest',
         method: 'POST',
-        headers: { ...form.getHeaders() },
+        headers: {
+          ...form.getHeaders(),
+          'Sforce-Call-Options': 'client=sfdx-core',
+          ...(this.oauth2?.clientId ? { clientId: this.oauth2?.clientId } : {}),
+        },
         body: form.getBuffer(),
       };
       return this.request<AsyncResult>(request);
