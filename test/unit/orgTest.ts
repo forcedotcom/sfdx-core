@@ -507,6 +507,37 @@ describe('Org Tests', () => {
             expect(lifecycleStub.callCount).to.equal(2);
           });
         });
+
+        describe.only('cloneSandbox', () => {
+          let prod;
+          let createStub;
+          let querySandboxProcessStub;
+          let pollStatusAndAuthStub;
+          let devHubQueryStub;
+          const orgId = '0GQ4p000000U6nFGAS';
+          beforeEach(async () => {
+            const prodTestData = new MockTestOrgData();
+            prod = await createOrgViaAuthInfo(prodTestData.username);
+            createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
+              id: orgId,
+              success: true,
+            });
+            querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves();
+            pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
+            devHubQueryStub = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+              Id: orgId,
+            });
+            await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
+          });
+
+          it('will clone the sandbox given a SandBoxName', async () => {
+            await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+            expect(createStub.calledTwice).to.be.true;
+            expect(querySandboxProcessStub.calledTwice).to.be.true;
+            expect(pollStatusAndAuthStub.calledTwice).to.be.true;
+            expect(devHubQueryStub.calledOnce).to.be.true;
+          });
+        });
       });
     });
 
