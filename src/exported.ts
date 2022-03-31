@@ -29,7 +29,9 @@ export {
   ConfigPropertyMetaInput,
   Config,
   SfdxPropertyKeys,
+  SfConfigProperties,
   SFDX_ALLOWED_PROPERTIES,
+  SF_ALLOWED_PROPERTIES,
 } from './config/config';
 
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
