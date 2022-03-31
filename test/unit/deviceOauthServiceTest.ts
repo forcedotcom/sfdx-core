@@ -7,12 +7,11 @@
 /* eslint-disable camelcase */
 
 import { Transport } from 'jsforce/lib/transport';
-import { stubMethod, StubbedType, stubInterface } from '@salesforce/ts-sinon';
+import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
-import { testSetup, MockTestOrgData } from '../../src/testSetup';
+import { MockTestOrgData, testSetup } from '../../src/testSetup';
 import { DeviceOauthService } from '../../src/deviceOauthService';
-import { AuthFields, AuthInfo, DEFAULT_CONNECTED_APP_INFO } from '../../src/org/authInfo';
-import { SFDX_HTTP_HEADERS } from '../../src/exported';
+import { AuthFields, AuthInfo, DEFAULT_CONNECTED_APP_INFO, SFDX_HTTP_HEADERS } from '../../src/org';
 
 const $$ = testSetup();
 
@@ -185,11 +184,14 @@ describe('DeviceOauthService', () => {
       // @ts-ignore because private method
       const opts = service.getLoginOptions(url);
       expect(opts.url).to.equal(url);
-      expect(opts.headers).to.equal(SFDX_HTTP_HEADERS);
+      expect(opts.headers['content-type']).to.include('multipart/form-data; boundary=');
+      expect(opts.headers['user-agent']).to.equal(SFDX_HTTP_HEADERS['user-agent']);
       expect(opts.method).to.equal('POST');
-      expect(opts.body.toString()).to.equal(
-        'client_id=PlatformCLI&response_type=device_code&scope=refresh_token+web+api'
-      );
+      expect(opts.body.toString()).to.include('client_id');
+      expect(opts.body.toString()).to.include('PlatformCLI');
+      expect(opts.body.toString()).to.include('response_type');
+      expect(opts.body.toString()).to.include('device_code');
+      expect(opts.body.toString()).to.include('refresh_token');
     });
   });
 
@@ -200,9 +202,16 @@ describe('DeviceOauthService', () => {
       // @ts-ignore because private method
       const opts = service.getPollingOptions(url, '12345');
       expect(opts.url).to.equal(url);
-      expect(opts.headers).to.equal(SFDX_HTTP_HEADERS);
+      expect(opts.headers['content-type']).to.include('multipart/form-data; boundary=');
+      expect(opts.headers['user-agent']).to.equal(SFDX_HTTP_HEADERS['user-agent']);
       expect(opts.method).to.equal('POST');
-      expect(opts.body.toString()).to.equal('client_id=PlatformCLI&grant_type=device&code=12345');
+      expect(opts.body.toString()).to.include('client_id');
+      expect(opts.body.toString()).to.include('PlatformCLI');
+      expect(opts.body.toString()).to.include('grant_type');
+      expect(opts.body.toString()).to.include('grant_type');
+      expect(opts.body.toString()).to.include('device');
+      expect(opts.body.toString()).to.include('code');
+      expect(opts.body.toString()).to.include('12345');
     });
   });
 });
