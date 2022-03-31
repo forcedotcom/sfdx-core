@@ -194,7 +194,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async createSandbox(
     sandboxReq: SandboxRequest,
-    options: { wait?: Duration; interval?: Duration; async?: boolean }
+    options: { wait?: Duration; interval?: Duration; async?: boolean } = {
+      wait: Duration.minutes(6),
+      async: false,
+      interval: Duration.seconds(30),
+    }
   ): Promise<SandboxProcessObject> {
     this.logger.debug('CreateSandbox called with SandboxRequest: %s ', sandboxReq);
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
@@ -206,18 +210,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     const sandboxCreationProgress = await this.querySandboxProcess(createResult.id);
     this.logger.debug('Return from calling singleRecordQuery with tooling: %s', sandboxCreationProgress);
-
+    const wait = options.wait ?? Duration.minutes(6);
+    const interval = options.interval ?? Duration.seconds(30);
     const isAsync = !!options.async;
-    const wait = options.wait || Duration.seconds(30);
-    let pollInterval = !isAsync ? options.interval || Duration.seconds(30) : Duration.seconds(0);
+    let pollInterval = options.async ? Duration.seconds(0) : interval;
     // pollInterval cannot be > wait.
-    pollInterval =
-      pollInterval.seconds === Duration.seconds(0).seconds
-        ? pollInterval
-        : pollInterval.seconds > wait.seconds
-        ? wait
-        : pollInterval;
-    const retries = !isAsync ? wait.seconds / pollInterval.seconds : 0;
+    pollInterval = pollInterval.seconds > wait.seconds ? wait : pollInterval;
+    const retries = isAsync ? 0 : wait.seconds / pollInterval.seconds;
     this.logger.debug('pollStatusAndAuth sandboxProcessObj %s, maxPollingRetries %i', sandboxCreationProgress, retries);
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
@@ -790,7 +789,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
   private async destroySandbox(org: Org, id: string): Promise<SaveResult> {
     return org.getConnection().tooling.delete('SandboxInfo', id);
-    return org.getConnection().tooling.delete('SandboxInfo', id);
   }
 
   private async destroyScratchOrg(org: Org, id: string): Promise<SaveResult> {
@@ -817,13 +815,16 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         const sandboxName = sandbox?.sandboxName || (this.getUsername() || '').split(`${prodOrg.getUsername()}.`)[1];
         if (!sandboxName) {
           this.logger.debug('Sandbox name is not available');
+          // jump to query by orgId
           throw new Error();
         }
         this.logger.debug(`attempting to locate sandbox with sandbox ${sandboxName}`);
-        result = await this.queryProduction(prodOrg, 'SandboxName', sandboxName);
-        if (!result) {
+        try {
+          result = await this.queryProduction(prodOrg, 'SandboxName', sandboxName);
+        } catch (err) {
           this.logger.debug(`Failed to find sandbox with sandbox name: ${sandboxName}`);
-          throw new Error();
+          // jump to query by orgId
+          throw err;
         }
       } catch {
         // if an error is thrown, don't panic yet. we'll try querying by orgId
@@ -1014,8 +1015,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       // set the sandbox config value
       const sfSandbox = {
         sandboxUsername: sandboxRes.authUserName,
-        sandboxOrgId: authInfo.getFields().orgId || '',
-        prodOrgUsername: this.getUsername() || '',
+        sandboxOrgId: authInfo.getFields().orgId,
+        prodOrgUsername: this.getUsername(),
         sandboxName: sandboxProcessObj.SandboxName,
         sandboxProcessId: sandboxProcessObj.Id,
         sandboxInfoId: sandboxProcessObj.SandboxInfoId,

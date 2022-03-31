@@ -45,7 +45,7 @@ export class SandboxAccessor {
    * @param sandboxOrgId the sandboxOrgId that corresponds to a sandbox
    */
   public get(sandboxOrgId?: string): Nullable<SfSandbox> {
-    return this.getAll()[sandboxOrgId || 'some value that ensures a miss'] ?? null;
+    return sandboxOrgId ? this.getAll()[sandboxOrgId] ?? null : null;
   }
 
   /**
@@ -54,7 +54,7 @@ export class SandboxAccessor {
    * @param sandboxOrgId the sandboxOrgId that corresponds to a sandbox
    */
   public has(sandboxOrgId?: string): boolean {
-    return !!(this.getAll()[sandboxOrgId || 'some value that ensures a miss'] ?? undefined);
+    return !!(sandboxOrgId ? this.getAll()[sandboxOrgId] ?? null : null);
   }
 
   /**

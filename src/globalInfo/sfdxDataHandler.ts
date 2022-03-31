@@ -297,16 +297,13 @@ export class SandboxesHandler extends BaseHandler<SfInfoKeys.SANDBOXES> {
 
   public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.SANDBOXES>> {
     const oldSandboxes = await this.listAllSandboxes();
-    const newSandboxes = oldSandboxes.reduce(
-      (x, y) => Object.assign(x, { [ensureString(y.sandboxOrgId)]: y }),
-      {} as SfSandboxes
-    );
+    const newSandboxes = Object.fromEntries(oldSandboxes.map((old) => [old.sandboxOrgId, old]));
     return { [this.sfKey]: newSandboxes };
   }
 
   public async write(latest: SfInfo, original: SfInfo): Promise<void> {
     const { changed, deleted } = await this.findChanges(latest, original);
-    for (const [, sandboxData] of Object.entries(changed)) {
+    for (const sandboxData of Object.values(changed)) {
       if (sandboxData) {
         const orgId = sandboxData.sandboxOrgId;
         const sandboxConfig = new SandboxOrgConfig(SandboxOrgConfig.getOptions(orgId));
@@ -327,20 +324,19 @@ export class SandboxesHandler extends BaseHandler<SfInfoKeys.SANDBOXES> {
     const globalFiles = await fs.promises.readdir(Global.SFDX_DIR);
     return globalFiles.filter((file) => file.match(SandboxesHandler.sandboxFilenameFilterRegEx));
   }
-  public async listAllSandboxes(): Promise<SfSandbox[]> {
-    const filenames = await this.listAllSandboxFiles();
-    const sandboxes: SfSandbox[] = [];
-    for (const filename of filenames) {
-      const matches = filename.match(SandboxesHandler.sandboxFilenameFilterRegEx);
-      const orgId = matches ? matches[1] : '';
-      const sandboxConfig = new SandboxOrgConfig(SandboxOrgConfig.getOptions(orgId));
-      const stat = await sandboxConfig.stat();
-      const contents = { ...(await sandboxConfig.read(true)), sandboxOrgId: orgId } as SfSandbox;
-      const sandbox = Object.assign(contents, { timestamp: stat.mtime.toISOString() });
 
-      sandboxes.push(sandbox);
-    }
-    return sandboxes;
+  public async listAllSandboxes(): Promise<SfSandbox[]> {
+    return Promise.all(
+      (await this.listAllSandboxFiles()).map(async (filename) => {
+        const matches = filename.match(SandboxesHandler.sandboxFilenameFilterRegEx);
+        const orgId = matches ? matches[1] : '';
+        const sandboxConfig = new SandboxOrgConfig(SandboxOrgConfig.getOptions(orgId));
+        const stat = await sandboxConfig.stat();
+        const contents = { ...(await sandboxConfig.read(true)), sandboxOrgId: orgId } as SfSandbox;
+        const sandbox = Object.assign(contents, { timestamp: stat.mtime.toISOString() });
+        return sandbox;
+      })
+    );
   }
 
   private async findChanges(latest: SfInfo, original: SfInfo): Promise<Changes<SfSandboxes>> {

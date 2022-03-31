@@ -382,7 +382,7 @@ describe('Org Tests', () => {
       });
 
       it('will create the SandboxInfo sObject correctly', async () => {
-        await prod.createSandbox({ SandboxName: 'testSandbox' }, Duration.seconds(30));
+        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
         expect(createStub.calledOnce).to.be.true;
         expect(querySandboxProcessStub.calledOnce).to.be.true;
         expect(pollStatusAndAuthStub.calledOnce).to.be.true;
@@ -418,7 +418,7 @@ describe('Org Tests', () => {
           success: false,
         });
         try {
-          await prod.createSandbox({ SandboxName: 'testSandbox' }, Duration.seconds(30));
+          await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
           assert.fail('the above should throw a duplicate error');
         } catch (e) {
           expect(createStub.calledOnce).to.be.true;
@@ -434,10 +434,10 @@ describe('Org Tests', () => {
         const sandboxResponse = {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
-        };
+        } as SandboxProcessObject;
         const requestStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'request').resolves();
         const instanceUrl = 'http://instance.123.salesforce.com.services/data/v50.0/tooling/';
-        stubMethod($$.SANDBOX, prod.connection.tooling, '_baseUrl').returns(instanceUrl);
+        stubMethod($$.SANDBOX, prod.getConnection().tooling, '_baseUrl').returns(instanceUrl);
 
         await prod.sandboxSignupComplete(sandboxResponse);
         expect(requestStub.firstCall.args).to.deep.equal([
@@ -457,7 +457,8 @@ describe('Org Tests', () => {
         const sandboxResponse = {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
-        };
+        } as SandboxProcessObject;
+        // @ts-ignore
         stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws({
           name: 'INVALID_STATUS',
         });
