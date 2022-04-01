@@ -176,10 +176,10 @@ workflows:
           sfdx_version: latest
           size: xlarge
           node_version: lts
-          external_project_git_url: 'https://github.com/salesforcecli/plugin-deploy-retrieve'
           matrix:
             parameters:
               os: [linux, windows]
+              external_project_git_url: ['https://github.com/salesforcecli/plugin-deploy-retrieve']
               test_command:
                 [
                   'yarn test:nuts:deploy:metadata:manifest',
