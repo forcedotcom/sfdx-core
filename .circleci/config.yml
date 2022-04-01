@@ -7,6 +7,14 @@ jobs:
     description: Runs NUTs from other (external) repos by cloning them.  Substitutes a dependency for the current pull request.  For example, you're testing a PR to a library and want to test a plugin in another repo that uses the library.
 
     parameters:
+      branch:
+        type: string
+        description: branch on external repo to clone
+        default: 'main'
+      test_command:
+        type: string
+        description: 'command to execute (ex: yarn test:nuts)'
+        default: 'yarn test:nuts'
       node_version:
         description: version of node to run tests against
         type: string
@@ -53,47 +61,53 @@ jobs:
       - release-management/install-sfdx:
           version: <<parameters.sfdx_version>>
           os: <<parameters.os>>
-      - run:
-          name: 'Clone repo'
-          command: |
-            url=$(echo <<parameters.external_project_git_url>> | cut -d "#" -f 1)
-            branch=main
-            if [[ "<<parameters.external_project_git_url>>" == *"#"* ]]; then
-              branch=$(echo <<parameters.external_project_git_url>> | cut -d "#" -f 2)
-            fi
-            echo URL: $url
-            echo BRANCH: $branch
-            git clone -b $branch $url $(pwd)
+      - run: git clone <<parameters.external_project_git_url>> -b <<parameters.branch>>  $(pwd)
       - run:
           name: Install dependencies
           command: yarn
       - run:
           name: swap dependencies
-          command: yarn remove @salesforce/core && yarn add $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME#$CIRCLE_SHA1
-      # install and build in the core module
+          command: yarn remove @salesforce/core
+      # windows/powershell does envs differently so we have to have conditional steps
+      - when:
+          condition:
+            equal: ['windows', <<parameters.os>>]
+          steps:
+            - run: yarn add $env:CIRCLE_PROJECT_USERNAME/$env:CIRCLE_PROJECT_REPONAME#$env:CIRCLE_SHA1
+      - when:
+          condition:
+            equal: ['linux', <<parameters.os>>]
+          steps:
+            - run: yarn add $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME#$CIRCLE_SHA1
       - run:
-          name: install/build core
+          name: install/build this branch of sfdx-core
           command: |
             yarn install
+            npm install shx -g
+            shx rm -rf node_modules/@salesforce/kit
             yarn build
           working_directory: node_modules/@salesforce/core
       - run:
           name: remove sf-plugins-core/core
           # deletes sf-plugins-core/core to prevent ts conflicts
-          command: rm -rf node_modules/\@salesforce/sf-plugins-core/node_modules/\@salesforce/core
+          command: rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core
       - run:
-          name: Build
+          name: build the external project
           command: |
             yarn build
-      - release-management/verify-installed-plugin
-      - run:
-          name: set TESTKIT_ENABLE_ZIP for artifacts on linux
-          command: |
-            echo "export TESTKIT_ENABLE_ZIP=true" >> $BASH_ENV
-      - run:
-          name: Create artifact dir
-          command: |
-            mkdir artifacts
+      - when:
+          condition:
+            equal: ['linux', <<parameters.os>>]
+          steps:
+            - release-management/verify-installed-plugin
+            - run:
+                name: set TESTKIT_ENABLE_ZIP for artifacts on linux
+                command: |
+                  echo "export TESTKIT_ENABLE_ZIP=true" >> $BASH_ENV
+            - run:
+                name: Create artifact dir
+                command: |
+                  mkdir artifacts
       - run:
           name: Nuts
           command: |
@@ -130,13 +144,12 @@ workflows:
           requires:
             - release-management/test-package
           sfdx_version: latest
+          node_version: lts
           matrix:
             parameters:
               os: [linux, windows]
-              node_version: [lts]
               external_project_git_url:
                 [
-                  'https://github.com/salesforcecli/plugin-config#v2',
                   'https://github.com/salesforcecli/plugin-alias',
                   'https://github.com/salesforcecli/plugin-env',
                   'https://github.com/salesforcecli/plugin-login',
@@ -148,12 +161,25 @@ workflows:
           requires:
             - release-management/test-package
           sfdx_version: latest
-          size: xlarge
+          branch: 'v2'
+          node_version: lts
+          external_project_git_url: 'https://github.com/salesforcecli/plugin-config'
           matrix:
             parameters:
               os: [linux, windows]
-              node_version: [lts]
-              external_project_git_url: ['https://github.com/salesforcecli/plugin-deploy-retrieve']
+      - external-nut:
+          filters:
+            branches:
+              ignore: v3
+          requires:
+            - release-management/test-package
+          sfdx_version: latest
+          size: xlarge
+          node_version: lts
+          external_project_git_url: 'https://github.com/salesforcecli/plugin-deploy-retrieve'
+          matrix:
+            parameters:
+              os: [linux, windows]
               test_command:
                 [
                   'yarn test:nuts:deploy:metadata:manifest',
