@@ -163,10 +163,10 @@ workflows:
           sfdx_version: latest
           branch: 'v2'
           node_version: lts
-          external_project_git_url: 'https://github.com/salesforcecli/plugin-config'
           matrix:
             parameters:
               os: [linux, windows]
+              external_project_git_url: ['https://github.com/salesforcecli/plugin-config']
       - external-nut:
           filters:
             branches:
