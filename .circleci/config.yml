@@ -90,7 +90,7 @@ jobs:
       - run:
           name: remove sf-plugins-core/core
           # deletes sf-plugins-core/core to prevent ts conflicts
-          command: rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core
+          command: shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core
       - run:
           name: build the external project
           command: |
