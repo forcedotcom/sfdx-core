@@ -19,7 +19,9 @@ export class SandboxAccessor {
   /**
    * Returns all the sandboxes for a given prod org
    *
-   * @param entity the sandbox entity that you want to get the sandboxes for
+   * @param entity entity as a string should be a production org username
+   * and when entity is a SfSandbox, the prod org entity.prodOrgUsername will
+   * used in the filter.
    */
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   public getAll(entity: string | SfSandbox): SfSandboxes;
@@ -29,7 +31,6 @@ export class SandboxAccessor {
       const e = typeof entity === 'string' ? ({ prodOrgUsername: entity } as Partial<SfSandbox>) : entity;
       return Object.entries(all)
         .filter(([, value]) => value.prodOrgUsername === e.prodOrgUsername)
-        .map((entry) => entry)
         .reduce((a, [b, value]) => {
           return Object.assign(a, { [b]: { ...value } });
         }, {});
