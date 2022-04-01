@@ -148,6 +148,7 @@ workflows:
           requires:
             - release-management/test-package
           sfdx_version: latest
+          size: xlarge
           matrix:
             parameters:
               os: [linux, windows]
