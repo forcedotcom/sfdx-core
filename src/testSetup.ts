@@ -743,8 +743,8 @@ export class MockTestOrgData {
     this.userId = `user_id_${this.testId}`;
     this.orgId = `${this.testId}`;
     this.username = options?.username || `admin_${this.testId}@gb.org`;
-    this.loginUrl = `http://login.${this.testId}.salesforce.com`;
-    this.instanceUrl = `http://instance.${this.testId}.salesforce.com`;
+    this.loginUrl = `https://login.${this.testId}.salesforce.com`;
+    this.instanceUrl = `https://instance.${this.testId}.salesforce.com`;
     this.clientId = `${this.testId}/client_id`;
     this.clientSecret = `${this.testId}/client_secret`;
     this.authcode = `${this.testId}/authcode`;
