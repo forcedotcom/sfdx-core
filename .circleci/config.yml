@@ -124,12 +124,15 @@ workflows:
                 - lts
                 - maintenance
       - external-nut:
+          filters:
+            branches:
+              ignore: v3
           requires:
             - release-management/test-package
           sfdx_version: latest
           matrix:
             parameters:
-              os: [linux]
+              os: [linux, windows]
               node_version: [lts]
               external_project_git_url:
                 [
@@ -137,7 +140,26 @@ workflows:
                   'https://github.com/salesforcecli/plugin-alias',
                   'https://github.com/salesforcecli/plugin-env',
                   'https://github.com/salesforcecli/plugin-login',
-                  'https://github.com/salesforcecli/plugin-deploy-retrieve',
+                ]
+      - external-nut:
+          filters:
+            branches:
+              ignore: v3
+          requires:
+            - release-management/test-package
+          sfdx_version: latest
+          matrix:
+            parameters:
+              os: [linux, windows]
+              node_version: [lts]
+              external_project_git_url: ['https://github.com/salesforcecli/plugin-deploy-retrieve']
+              test_command:
+                [
+                  'yarn test:nuts:deploy:metadata:manifest',
+                  'yarn test:nuts:deploy:metadata:metadata',
+                  'yarn test:nuts:deploy:metadata:source-dir',
+                  'yarn test:nuts:deploy:metadata:test-level',
+                  'yarn test:nuts:static',
                 ]
       - release-management/release-package:
           # TODO: add these back when we're ready to GA v3
@@ -147,7 +169,6 @@ workflows:
           tag: 'v3-beta'
           requires:
             - release-management/test-package
-            - external-nut
           filters:
             branches:
               only: v3
