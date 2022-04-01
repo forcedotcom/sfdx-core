@@ -110,14 +110,14 @@ jobs:
                   mkdir artifacts
       - run:
           name: Nuts
-          command: |
-            echo "Using node: $(node --version)"
-            echo "Environment Variables:"
-            env
-            yarn test:nuts
-          # this is in the command instead of the circle project environment to prevent it from happening on windows
-      - store_artifacts:
-          path: artifacts
+          command: <<parameters.test_command>>
+      - when:
+          condition:
+            equal: ['linux', <<parameters.os>>]
+          steps:
+            # this is in the command instead of the circle project environment to prevent it from happening on windows
+            - store_artifacts:
+                path: artifacts
 
 workflows:
   version: 2
