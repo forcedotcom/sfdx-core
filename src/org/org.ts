@@ -284,7 +284,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (this.getConnection().isUsingAccessToken()) {
       return Promise.resolve();
     }
-    (await GlobalInfo.getInstance()).sandboxes.unset(this.getOrgId() || '');
+    (await GlobalInfo.getInstance()).sandboxes.unset(this.getOrgId());
     await this.removeUsers(throwWhenRemoveFails);
     await this.removeUsersConfig();
     // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's usersname is also
