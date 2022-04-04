@@ -7,7 +7,7 @@
 
 import { join as pathJoin } from 'path';
 import * as fs from 'fs';
-import { AsyncOptionalCreatable, Duration, sleep } from '@salesforce/kit';
+import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import {
   AnyFunction,
   AnyJson,
@@ -36,6 +36,8 @@ import { sfdc } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
 import { GlobalInfo, SfSandbox } from '../globalInfo';
+import { PollingClient } from '../status/pollingClient';
+import { StatusResult } from '../status/types';
 import { Connection, SingleRecordQueryErrors } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
 import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } from './scratchOrgCreate';
@@ -73,7 +75,7 @@ export enum OrgTypes {
 export interface StatusEvent {
   sandboxProcessObj: SandboxProcessObject;
   interval: number;
-  retries: number;
+  remainingWait: number;
   waitingOnAuth: boolean;
 }
 
@@ -102,7 +104,7 @@ export interface SandboxUserAuthResponse {
   loginUrl: string;
 }
 
-export interface SandboxProcessObject {
+export type SandboxProcessObject = {
   Id: string;
   Status: string;
   SandboxName: string;
@@ -115,7 +117,7 @@ export interface SandboxProcessObject {
   Description?: string;
   ApexClassId?: string;
   EndDate?: string;
-}
+} & AnyJson;
 
 export type SandboxRequest = {
   SandboxName: string;
@@ -210,18 +212,28 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     const sandboxCreationProgress = await this.querySandboxProcess(createResult.id);
     this.logger.debug('Return from calling singleRecordQuery with tooling: %s', sandboxCreationProgress);
+
+    const isAsync = !!options.async;
+
+    if (isAsync) {
+      // The user didn't want us to poll, so simply return the status
+      await Lifecycle.getInstance().emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxCreationProgress);
+      return sandboxCreationProgress;
+    }
+
     const wait = options.wait ?? Duration.minutes(6);
     const interval = options.interval ?? Duration.seconds(30);
-    const isAsync = !!options.async;
     let pollInterval = options.async ? Duration.seconds(0) : interval;
     // pollInterval cannot be > wait.
     pollInterval = pollInterval.seconds > wait.seconds ? wait : pollInterval;
-    const retries = isAsync ? 0 : wait.seconds / pollInterval.seconds;
-    this.logger.debug('pollStatusAndAuth sandboxProcessObj %s, maxPollingRetries %i', sandboxCreationProgress, retries);
+    this.logger.debug(
+      'pollStatusAndAuth sandboxProcessObj %s, max wait time of %d minutes',
+      sandboxCreationProgress,
+      wait.minutes
+    );
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
-      retries,
-      async: isAsync,
+      wait,
       pollInterval,
     });
   }
@@ -1037,6 +1049,61 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   }
 
+  private async pollStatusAndAuth(options: {
+    sandboxProcessObj: SandboxProcessObject;
+    wait: Duration;
+    pollInterval: Duration;
+  }): Promise<SandboxProcessObject> {
+    this.logger.debug(
+      'PollStatusAndAuth called with SandboxProcessObject%s, wait of %d minutes, pollInterval of %d seconds',
+      options.sandboxProcessObj,
+      options.wait.minutes,
+      options.pollInterval.seconds
+    );
+    let remainingWait = options.wait;
+    let waitingOnAuth = false;
+    const pollingClient = await PollingClient.create({
+      poll: async (): Promise<StatusResult> => {
+        this.logger.debug('TEMPORARY: Enter Poll');
+        const sandboxProcessObj = await this.querySandboxProcess(options.sandboxProcessObj.SandboxInfoId);
+        // check to see if sandbox can authenticated via sandboxAuth endpoint
+        this.logger.debug(
+          `TEMPORARY: before sandboxSignupComplete sandboxProcessObj.SandboxInfoId: ${sandboxProcessObj.SandboxInfoId}`
+        );
+        const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
+        if (sandboxInfo) {
+          await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
+          try {
+            this.logger.debug('sandbox signup complete with %s', sandboxInfo);
+            await this.writeSandboxAuthFile(sandboxProcessObj, sandboxInfo);
+            return { completed: true, payload: sandboxProcessObj };
+          } catch (err) {
+            const error = err as Error;
+            this.logger.debug('Exception while calling writeSandboxAuthFile %s', err);
+            if (error?.name === 'JwtAuthError' && error?.stack?.includes("user hasn't approved")) {
+              waitingOnAuth = true;
+            } else {
+              throw SfError.wrap(error);
+            }
+          }
+        }
+        this.logger.debug('TEMPORARY: Before emit stastus event');
+
+        remainingWait = Duration.seconds(remainingWait.seconds - options.pollInterval.seconds);
+        await Lifecycle.getInstance().emit(SandboxEvents.EVENT_STATUS, {
+          sandboxProcessObj,
+          remainingWait: remainingWait.seconds,
+          interval: options.pollInterval.seconds,
+          waitingOnAuth,
+        } as StatusEvent);
+        return { completed: false, payload: sandboxProcessObj };
+      },
+      frequency: options.pollInterval,
+      timeout: options.wait,
+    });
+
+    return pollingClient.subscribe<SandboxProcessObject>();
+  }
   /**
    * Polls for the new sandbox to be created - and will write the associated auth files
    *
@@ -1047,72 +1114,67 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    *  async: wait for polling, or just return
    *  pollInterval: Duration to sleep between poll events, default 30 seconds
    */
-  private async pollStatusAndAuth(options: {
-    sandboxProcessObj: SandboxProcessObject;
-    retries: number;
-    async: boolean;
-    pollInterval: Duration;
-  }): Promise<SandboxProcessObject> {
-    const { pollInterval, async: isAsync } = options;
-    let { sandboxProcessObj, retries } = options;
-    this.logger.debug('PollStatusAndAuth called with SandboxProcessObject%s, retries %s', sandboxProcessObj, retries);
-    const lifecycle = Lifecycle.getInstance();
-    let pollFinished = false;
-    let waitingOnAuth = false;
-    do {
-      sandboxProcessObj = await this.querySandboxProcess(sandboxProcessObj.SandboxInfoId);
-      // check to see if
-      const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
-      if (sandboxInfo) {
-        await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
-        try {
-          this.logger.debug('sandbox signup complete with %s', sandboxInfo);
-          await this.writeSandboxAuthFile(sandboxProcessObj, sandboxInfo);
-          pollFinished = true;
-          break;
-        } catch (err) {
-          const error = err as Error;
-          this.logger.debug('Exception while calling writeSandboxAuthFile %s', err);
-          if (error?.name === 'JwtAuthError' && error?.stack?.includes("user hasn't approved")) {
-            waitingOnAuth = true;
-          } else {
-            throw SfError.wrap(error);
-          }
-        }
-      }
-      await this.waitForNextRetry(lifecycle, sandboxProcessObj, pollInterval, retries, waitingOnAuth);
-      retries--;
-      if (!retries && !isAsync) {
-        // timed out on retries
-        throw messages.createError('orgPollingTimeout', [sandboxProcessObj.Status]);
-      }
-    } while (!pollFinished && !isAsync);
-
-    if (isAsync) {
-      // The user didn't want us to poll, so simply return the status
-      await lifecycle.emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxProcessObj);
-    }
-
-    return sandboxProcessObj;
-  }
-
-  private async waitForNextRetry(
-    lifecycle: Lifecycle,
-    sandboxProcessObj: SandboxProcessObject,
-    pollInterval: Duration,
-    retries: number,
-    waitingOnAuth: boolean
-  ) {
-    await Promise.all([
-      await lifecycle.emit(SandboxEvents.EVENT_STATUS, {
-        sandboxProcessObj,
-        interval: pollInterval.seconds,
-        retries,
-        waitingOnAuth,
-      } as StatusEvent),
-      await sleep(pollInterval),
-    ]);
-  }
+  // private async pollStatusAndAuthOld(options: {
+  //   sandboxProcessObj: SandboxProcessObject;
+  //   retries: number;
+  //   async: boolean;
+  //   pollInterval: Duration;
+  // }): Promise<SandboxProcessObject> {
+  //   const { pollInterval, async: isAsync } = options;
+  //   let { sandboxProcessObj, retries } = options;
+  //   this.logger.debug('PollStatusAndAuth called with SandboxProcessObject%s, retries %s', sandboxProcessObj, retries);
+  //   const lifecycle = Lifecycle.getInstance();
+  //   let pollFinished = false;
+  //   let waitingOnAuth = false;
+  //   do {
+  //     sandboxProcessObj = await this.querySandboxProcess(sandboxProcessObj.SandboxInfoId);
+  //     // check to see if
+  //     const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
+  //     if (sandboxInfo) {
+  //       await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
+  //       try {
+  //         this.logger.debug('sandbox signup complete with %s', sandboxInfo);
+  //         await this.writeSandboxAuthFile(sandboxProcessObj, sandboxInfo);
+  //         pollFinished = true;
+  //         break;
+  //       } catch (err) {
+  //         const error = err as Error;
+  //         this.logger.debug('Exception while calling writeSandboxAuthFile %s', err);
+  //         if (error?.name === 'JwtAuthError' && error?.stack?.includes("user hasn't approved")) {
+  //           waitingOnAuth = true;
+  //         } else {
+  //           throw SfError.wrap(error);
+  //         }
+  //       }
+  //     }
+  //     await this.waitForNextRetry(lifecycle, sandboxProcessObj, pollInterval, retries, waitingOnAuth);
+  //     retries--;
+  //     if (!retries && !isAsync) {
+  //       // timed out on retries
+  //       throw messages.createError('orgPollingTimeout', [sandboxProcessObj.Status]);
+  //     }
+  //   } while (!pollFinished && !isAsync);
+  //
+  //   return sandboxProcessObj;
+  // }
+  //
+  // private async waitForNextRetry(
+  //   lifecycle: Lifecycle,
+  //   sandboxProcessObj: SandboxProcessObject,
+  //   pollInterval: Duration,
+  //   retries: number,
+  //   waitingOnAuth: boolean
+  // ) {
+  //   await Promise.all([
+  //     await lifecycle.emit(SandboxEvents.EVENT_STATUS, {
+  //       sandboxProcessObj,
+  //       interval: pollInterval.seconds,
+  //       retries,
+  //       waitingOnAuth,
+  //     } as StatusEvent),
+  //     await sleep(pollInterval),
+  //   ]);
+  // }
 
   /**
    * query SandboxProcess via SandboxInfoId
@@ -1136,7 +1198,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   private async sandboxSignupComplete(
     sandboxProcessObj: SandboxProcessObject
   ): Promise<SandboxUserAuthResponse | undefined> {
-    this.logger.debug('sandboxSignupComplete called with SandboxProcessObject %s', sandboxProcessObj);
+    this.logger.debug('sandboxSignupComplete called with SandboxProcessObject', sandboxProcessObj);
     if (!sandboxProcessObj.EndDate) {
       return;
     }
@@ -1153,7 +1215,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         callbackUrl,
       };
 
-      this.logger.debug('Calling sandboxAuth with SandboxUserAuthRequest %s', sandboxReq);
+      this.logger.debug('Calling sandboxAuth with SandboxUserAuthRequest', sandboxReq);
 
       const url = `${this.connection.tooling._baseUrl()}/sandboxAuth`;
       const params: HttpRequest = {
