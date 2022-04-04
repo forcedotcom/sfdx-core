@@ -23,7 +23,7 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { OAuth2, OAuth2Config as JsforceOAuth2Config, TokenResponse } from 'jsforce';
+import { OAuth2, OAuth2Config as JsforceOAuth2Config, QueryResult, TokenResponse } from 'jsforce';
 import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
@@ -36,6 +36,7 @@ import { Messages } from '../messages';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
+import { Org } from './org';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'core', [
@@ -399,6 +400,71 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     };
   }
 
+  /**
+   * Given a set of decrypted fields and an authInfo, determine if the org belongs to an available
+   * dev hub.
+   *
+   * @param fields
+   * @param orgAuthInfo
+   */
+  public static async identifyPossibleScratchOrgs(fields: AuthFields, orgAuthInfo: AuthInfo): Promise<void> {
+    // fields property is passed in because the consumers of this method have performed the decrypt.
+    // This is so we don't have to call authInfo.getFields(true) and decrypt again OR accidentally save an
+    // authInfo before it is necessary.
+    const logger = await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' });
+
+    // return if we already know the hub org we know it is a devhub or prod-like or no orgId present
+    if (fields.isDevHub || fields.devHubUsername || !fields.orgId) return;
+
+    logger.debug('getting devHubs');
+
+    // TODO: return if url is not sandbox-like to avoid constantly asking about production orgs
+    // TODO: someday we make this easier by asking the org if it is a scratch org
+
+    const hubAuthInfos = await AuthInfo.getDevHubAuthInfos();
+    logger.debug(`found ${hubAuthInfos.length} DevHubs`);
+    if (hubAuthInfos.length === 0) return;
+
+    // ask all those orgs if they know this orgId
+    await Promise.all(
+      hubAuthInfos.map(async (hubAuthInfo) => {
+        try {
+          const data = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
+          if (data.totalSize > 0) {
+            // if any return a result
+            logger.debug(`found orgId ${fields.orgId} in devhub ${hubAuthInfo.username}`);
+            try {
+              await orgAuthInfo.save({ ...fields, devHubUsername: hubAuthInfo.username });
+              logger.debug(`set ${hubAuthInfo.username} as devhub for scratch org ${orgAuthInfo.getUsername()}`);
+            } catch (error) {
+              logger.debug(`error updating auth file for ${orgAuthInfo.getUsername()}`, error);
+            }
+          }
+        } catch (error) {
+          logger.error(`Error connecting to devhub ${hubAuthInfo.username}`, error);
+        }
+      })
+    );
+  }
+
+  /**
+   * Find all dev hubs available in the local environment.
+   */
+  public static async getDevHubAuthInfos(): Promise<OrgAuthorization[]> {
+    return (await AuthInfo.listAllAuthorizations()).filter((possibleHub) => possibleHub?.isDevHub);
+  }
+
+  private static async queryScratchOrg(
+    devHubUsername: string | undefined,
+    scratchOrgId: string
+  ): Promise<QueryResult<QueryResult<{ Id: string }>>> {
+    const devHubOrg = await Org.create({ aliasOrUsername: devHubUsername });
+    const conn = devHubOrg.getConnection();
+    const data = await conn.query<QueryResult<{ Id: string }>>(
+      `select Id from ScratchOrgInfo where ScratchOrg = '${sfdc.trimTo15(scratchOrgId)}'`
+    );
+    return data;
+  }
   /**
    * Get the username.
    */

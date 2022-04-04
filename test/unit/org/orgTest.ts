@@ -33,7 +33,6 @@ import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { GlobalInfo } from '../../../src/globalInfo';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
-import { Lifecycle } from '../../../src/exported';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -388,29 +387,6 @@ describe('Org Tests', () => {
         expect(pollStatusAndAuthStub.calledOnce).to.be.true;
       });
 
-      it('will calculate the amount of retries correctly', async () => {
-        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
-        expect(createStub.calledOnce).to.be.true;
-        expect(querySandboxProcessStub.calledOnce).to.be.true;
-        // Duration.seconds(30)/ Duration.seconds(30) = 1
-        expect(pollStatusAndAuthStub.firstCall.args[0].retries).to.equal(1);
-        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(90) });
-        // 90/30 = 3
-        expect(pollStatusAndAuthStub.secondCall.args[0].retries).to.equal(3);
-        await prod.createSandbox(
-          { SandboxName: 'testSandbox' },
-          { wait: Duration.seconds(90), interval: Duration.seconds(90) }
-        );
-        // 90/90 = 1
-        expect(pollStatusAndAuthStub.thirdCall.args[0].retries).to.equal(1);
-        await prod.createSandbox(
-          { SandboxName: 'testSandbox' },
-          { wait: Duration.seconds(90), interval: Duration.seconds(91) }
-        );
-        // 90/90 = 1
-        expect(pollStatusAndAuthStub.getCall(3).args[0].retries).to.equal(1);
-      });
-
       it('will throw an error if it fails to create SandboxInfo', async () => {
         createStub.restore();
         createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
@@ -467,41 +443,6 @@ describe('Org Tests', () => {
         expect(logStub.callCount).to.equal(3);
         // error swallowed
         expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user %s');
-      });
-
-      it('will pollStatusAndAuth correctly', async () => {
-        const sandboxInProgress: SandboxProcessObject = {
-          Id: '0GR4p000000U8ECXXX',
-          Status: 'Pending',
-          SandboxName: 'test',
-          SandboxInfoId: '0GQ4p000000U6rvXXX',
-          LicenseType: 'DEVELOPER',
-          CreatedDate: '2021-12-06T20:25:46.000+0000',
-          CopyProgress: 28,
-          SandboxOrganization: null,
-          SourceId: null,
-          Description: null,
-          EndDate: null,
-        };
-        pollStatusAndAuthStub.restore();
-        querySandboxProcessStub.restore();
-        querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves(sandboxInProgress);
-
-        stubMethod($$.SANDBOX, prod, 'sandboxSignupComplete').onSecondCall().resolves({ authUserName: 'myname' });
-        stubMethod($$.SANDBOX, prod, 'writeSandboxAuthFile').resolves();
-
-        const lifecycleStub = stubMethod($$.SANDBOX, Lifecycle.prototype, 'emit');
-        const loggerStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
-
-        const res = await prod.pollStatusAndAuth({
-          pollInterval: Duration.seconds(1),
-          retries: 1,
-          async: true,
-          sandboxProcessObj: sandboxInProgress,
-        });
-        expect(res).to.deep.equal(sandboxInProgress);
-        expect(loggerStub.callCount).to.equal(1);
-        expect(lifecycleStub.callCount).to.equal(2);
       });
     });
 
