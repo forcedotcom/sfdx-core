@@ -27,9 +27,10 @@ import { ConfigContents } from '../../../src/config/configStore';
 import { AliasAccessor, GlobalInfo, OrgAccessor } from '../../../src/globalInfo';
 import { Crypto } from '../../../src/crypto/crypto';
 import { SfError } from '../../../src/sfError';
-import { testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { MyDomainResolver, SfdcUrl } from '../../../src/exported';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
+import { OrgAuthorization } from '../../../lib/org';
 
 const TEST_KEY = {
   service: 'sfdx',
@@ -284,6 +285,7 @@ describe('AuthInfo', () => {
       this.setContentsFromObject(contents);
       return this.getContents();
     }
+
     stubMethod($$.SANDBOX, ConfigFile.prototype, 'read').callsFake(read);
     stubMethod($$.SANDBOX, ConfigFile.prototype, 'readSync').callsFake(read);
 
@@ -2182,6 +2184,153 @@ describe('AuthInfo', () => {
       } catch (err) {
         expect(err).to.have.property('message').to.include('Server error occurred');
       }
+    });
+  });
+});
+describe('align srcatch orgs with devhub', () => {
+  let adminTestData: MockTestOrgData;
+  let user1: MockTestOrgData;
+
+  beforeEach(async () => {
+    adminTestData = new MockTestOrgData();
+    user1 = new MockTestOrgData();
+  });
+  describe('getDevHubAuthInfos', () => {
+    it('should not find a dev hub when no authInfos exist', async () => {
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').callsFake(async (): Promise<string[]> => {
+        return Promise.resolve([]);
+      });
+
+      const result: OrgAuthorization[] = await AuthInfo.getDevHubAuthInfos();
+      expect(result).to.have.lengthOf(0);
+    });
+    it('should not find a dev hub when one auth info exists that is not a dev hub', async () => {
+      $$.configStubs.GlobalInfo = {
+        contents: {
+          orgs: {
+            [user1.username]: await user1.getConfig(),
+          },
+        },
+      };
+      const result: OrgAuthorization[] = await AuthInfo.getDevHubAuthInfos();
+      expect(result).to.have.lengthOf(0);
+    });
+    it('should find a dev hub', async () => {
+      adminTestData.makeDevHub();
+      $$.configStubs.GlobalInfo = {
+        contents: {
+          orgs: {
+            [adminTestData.username]: await adminTestData.getConfig(),
+            [user1.username]: await user1.getConfig(),
+          },
+        },
+      };
+
+      const result: OrgAuthorization[] = await AuthInfo.getDevHubAuthInfos();
+      expect(result).to.have.lengthOf(1);
+    });
+  });
+  describe('identifyPossibleScratchOrgs', () => {
+    it('should not update org - no dev hubs', async () => {
+      $$.configStubs.GlobalInfo = {
+        contents: {
+          orgs: {
+            [adminTestData.username]: await adminTestData.getConfig(),
+            [user1.username]: await user1.getConfig(),
+          },
+        },
+      };
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs({ orgId: user1.orgId }, authInfo);
+      expect(getDevHubAuthInfosStub.callCount).to.be.equal(1);
+      expect(queryScratchOrgStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+    it('should not update org - state already known', async () => {
+      adminTestData.makeDevHub();
+      user1.isScratchOrg = true;
+      user1.devHubUsername = adminTestData.username;
+      $$.configStubs.GlobalInfo = {
+        contents: {
+          orgs: {
+            [adminTestData.username]: await adminTestData.getConfig(),
+            [user1.username]: await user1.getConfig(),
+          },
+        },
+      };
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
+      expect(getDevHubAuthInfosStub.callCount).to.be.equal(0);
+      expect(queryScratchOrgStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+    it('should not update org - no fields.orgId', async () => {
+      adminTestData.makeDevHub();
+      user1.isScratchOrg = true;
+      delete user1.orgId;
+      user1.devHubUsername = adminTestData.username;
+
+      $$.configStubs.GlobalInfo = {
+        contents: {
+          orgs: {
+            [adminTestData.username]: await adminTestData.getConfig(),
+            [user1.username]: await user1.getConfig(),
+          },
+        },
+      };
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      const getDevHubAuthInfosSpy = spyMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos');
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
+      expect(getDevHubAuthInfosSpy.callCount).to.be.equal(0);
+      expect(queryScratchOrgStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+    it('should update org', async () => {
+      adminTestData.makeDevHub();
+
+      $$.configStubs.GlobalInfo = {
+        contents: {
+          orgs: {
+            [adminTestData.username]: await adminTestData.getConfig(),
+            [user1.username]: await user1.getConfig(),
+          },
+        },
+      };
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      const getDevHubAuthInfosSpy = spyMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos');
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg').resolves({ totalSize: 1 });
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+      const orgs = (await GlobalInfo.getInstance()).orgs.getAll();
+      expect(Object.keys(orgs)).to.have.lengthOf(2);
+      await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
+      expect(getDevHubAuthInfosSpy.callCount).to.be.equal(1);
+      expect(queryScratchOrgStub.callCount).to.be.equal(1);
+      expect(authInfoSaveStub.callCount).to.be.equal(1);
     });
   });
 });
