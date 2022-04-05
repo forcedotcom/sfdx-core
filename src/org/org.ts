@@ -202,16 +202,16 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       interval: Duration.seconds(30),
     }
   ): Promise<SandboxProcessObject> {
-    this.logger.debug('CreateSandbox called with SandboxRequest: %s ', sandboxReq);
+    this.logger.debug('CreateSandbox called with SandboxRequest:', sandboxReq);
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
-    this.logger.debug('Return from calling tooling.create: %s ', createResult);
+    this.logger.debug('Return from calling tooling.create:', createResult);
 
     if (Array.isArray(createResult) || !createResult.success) {
       throw messages.createError('sandboxInfoCreateFailed', [JSON.stringify(createResult)]);
     }
 
     const sandboxCreationProgress = await this.querySandboxProcess(createResult.id);
-    this.logger.debug('Return from calling singleRecordQuery with tooling: %s', sandboxCreationProgress);
+    this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
 
     const isAsync = !!options.async;
 
@@ -227,9 +227,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     // pollInterval cannot be > wait.
     pollInterval = pollInterval.seconds > wait.seconds ? wait : pollInterval;
     this.logger.debug(
-      'pollStatusAndAuth sandboxProcessObj %s, max wait time of %d minutes',
-      sandboxCreationProgress,
-      wait.minutes
+      `pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
+      sandboxCreationProgress
     );
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
@@ -852,7 +851,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     const deleteResult = await this.destroySandbox(prodOrg, sandboxInfoId as string);
-    this.logger.debug('Return from calling tooling.delete: %o ', deleteResult);
+    this.logger.debug('Return from calling tooling.delete: ', deleteResult);
     await this.remove();
 
     if (Array.isArray(deleteResult) || !deleteResult.success) {
@@ -992,10 +991,14 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   private async writeSandboxAuthFile(sandboxProcessObj: SandboxProcessObject, sandboxRes: SandboxUserAuthResponse) {
-    this.logger.debug('writeSandboxAuthFile sandboxProcessObj: %s, sandboxRes: %s', sandboxProcessObj, sandboxRes);
+    this.logger.debug(
+      `writeSandboxAuthFile sandboxProcessObj: ${JSON.stringify(sandboxProcessObj)}, sandboxRes: ${JSON.stringify(
+        sandboxRes
+      )}`
+    );
     if (sandboxRes.authUserName) {
       const productionAuthFields: AuthFields = this.connection.getAuthInfoFields();
-      this.logger.debug('Result from getAuthInfoFields: AuthFields %s', productionAuthFields);
+      this.logger.debug('Result from getAuthInfoFields: AuthFields', productionAuthFields);
 
       // let's do headless auth via jwt (if we have privateKey) or web auth
       const oauth2Options: AuthFields & {
@@ -1018,6 +1021,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         parentUsername: productionAuthFields.username,
       });
 
+      this.logger.debug(
+        'Creating AuthInfo for sandbox',
+        sandboxRes.authUserName,
+        productionAuthFields.username,
+        oauth2Options
+      );
       // save auth info for new sandbox
       await authInfo.save();
 
@@ -1055,7 +1064,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     pollInterval: Duration;
   }): Promise<SandboxProcessObject> {
     this.logger.debug(
-      'PollStatusAndAuth called with SandboxProcessObject%s, wait of %d minutes, pollInterval of %d seconds',
+      'PollStatusAndAuth called with SandboxProcessObject',
       options.sandboxProcessObj,
       options.wait.minutes,
       options.pollInterval.seconds
@@ -1064,22 +1073,18 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     let waitingOnAuth = false;
     const pollingClient = await PollingClient.create({
       poll: async (): Promise<StatusResult> => {
-        this.logger.debug('TEMPORARY: Enter Poll');
         const sandboxProcessObj = await this.querySandboxProcess(options.sandboxProcessObj.SandboxInfoId);
         // check to see if sandbox can authenticated via sandboxAuth endpoint
-        this.logger.debug(
-          `TEMPORARY: before sandboxSignupComplete sandboxProcessObj.SandboxInfoId: ${sandboxProcessObj.SandboxInfoId}`
-        );
         const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
         if (sandboxInfo) {
           await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
           try {
-            this.logger.debug('sandbox signup complete with %s', sandboxInfo);
+            this.logger.debug('sandbox signup complete with', sandboxInfo);
             await this.writeSandboxAuthFile(sandboxProcessObj, sandboxInfo);
             return { completed: true, payload: sandboxProcessObj };
           } catch (err) {
             const error = err as Error;
-            this.logger.debug('Exception while calling writeSandboxAuthFile %s', err);
+            this.logger.debug('Exception while calling writeSandboxAuthFile', err);
             if (error?.name === 'JwtAuthError' && error?.stack?.includes("user hasn't approved")) {
               waitingOnAuth = true;
             } else {
@@ -1087,7 +1092,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
             }
           }
         }
-        this.logger.debug('TEMPORARY: Before emit stastus event');
 
         remainingWait = Duration.seconds(remainingWait.seconds - options.pollInterval.seconds);
         await Lifecycle.getInstance().emit(SandboxEvents.EVENT_STATUS, {
@@ -1156,14 +1160,14 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
       const result: SandboxUserAuthResponse = await this.connection.tooling.request(params);
 
-      this.logger.debug('Result of calling sandboxAuth %s', result);
+      this.logger.debug('Result of calling sandboxAuth', result);
       return result;
     } catch (err) {
       const error = err as Error;
       // There are cases where the endDate is set before the sandbox has actually completed.
       // In that case, the sandboxAuth call will throw a specific exception.
       if (error?.name === 'INVALID_STATUS') {
-        this.logger.debug('Error while authenticating the user %s', error?.toString());
+        this.logger.debug('Error while authenticating the user', error?.toString());
       } else {
         // If it fails for any unexpected reason, just pass that through
         throw SfError.wrap(error);
