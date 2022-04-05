@@ -117,7 +117,7 @@ export type SandboxProcessObject = {
   Description?: string;
   ApexClassId?: string;
   EndDate?: string;
-} & AnyJson;
+};
 
 export type SandboxRequest = {
   SandboxName: string;
