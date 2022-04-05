@@ -442,7 +442,7 @@ describe('Org Tests', () => {
         await prod.sandboxSignupComplete(sandboxResponse);
         expect(logStub.callCount).to.equal(3);
         // error swallowed
-        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user %s');
+        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user');
       });
     });
 
