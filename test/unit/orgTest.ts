@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual, fail } from 'assert';
 import { constants as fsConstants } from 'fs';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
@@ -536,6 +536,34 @@ describe('Org Tests', () => {
             expect(querySandboxProcessStub.calledTwice).to.be.true;
             expect(pollStatusAndAuthStub.calledTwice).to.be.true;
             expect(devHubQueryStub.calledOnce).to.be.true;
+          });
+
+          it('fails to get sanboxInfo from singleRecordQuery', async () => {
+            devHubQueryStub.restore();
+            devHubQueryStub = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').throws();
+            try {
+              await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+              fail('the above should throw an error');
+            } catch (e) {
+              expect(createStub.calledTwice).to.be.false;
+              expect(querySandboxProcessStub.calledTwice).to.be.false;
+              expect(pollStatusAndAuthStub.calledTwice).to.be.false;
+              expect(devHubQueryStub.calledOnce).to.be.true;
+            }
+          });
+
+          it('when creating sandbox tooling create rejects', async () => {
+            createStub.restore();
+            createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').rejects();
+            try {
+              await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+              fail('the above should throw an error');
+            } catch (e) {
+              expect(createStub.calledTwice).to.be.false;
+              expect(querySandboxProcessStub.calledTwice).to.be.false;
+              expect(pollStatusAndAuthStub.calledTwice).to.be.false;
+              expect(devHubQueryStub.calledOnce).to.be.true;
+            }
           });
         });
       });

@@ -197,7 +197,8 @@ export class Org extends AsyncCreatable<Org.Options> {
    *
    * @param sandboxReq SandboxRequest options to create the sandbox with
    * @param sandboxName
-   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
+   * @param options Wait: The amount of time to wait before timing out, defaults to 0, Interval: The time interval between polling defaults to 30 seconds
+   * @returns {SandboxProcessObject} the newly created sandbox process object
    */
   public async cloneSandbox(
     sandboxReq: SandboxRequest,
