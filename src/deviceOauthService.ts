@@ -7,12 +7,12 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { URLSearchParams } from 'url';
 import Transport from 'jsforce/lib/transport';
 import { AsyncCreatable, Duration, parseJsonMap } from '@salesforce/kit';
 import { OAuth2Config } from 'jsforce/lib/oauth2';
 import { HttpRequest } from 'jsforce';
-import { Nullable, ensureString, JsonMap } from '@salesforce/ts-types';
+import { ensureString, JsonMap, Nullable } from '@salesforce/ts-types';
+import * as FormData from 'form-data';
 import { Logger } from './logger';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
 import { SfError } from './sfError';
@@ -111,8 +111,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
     const deviceFlowRequestUrl = this.getDeviceFlowRequestUrl();
     const pollingOptions = this.getPollingOptions(deviceFlowRequestUrl, loginData.device_code);
     const interval = Duration.seconds(loginData.interval).milliseconds;
-    const response = await this.pollForDeviceApproval(pollingOptions, interval);
-    return response;
+    return await this.pollForDeviceApproval(pollingOptions, interval);
   }
 
   /**
@@ -140,28 +139,28 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
   }
 
   private getLoginOptions(url: string): HttpRequest {
-    const body = new URLSearchParams();
-    body.append('client_id', ensureString(this.options.clientId));
-    body.append('response_type', DeviceOauthService.RESPONSE_TYPE);
-    body.append('scope', DeviceOauthService.SCOPE);
+    const form = new FormData();
+    form.append('client_id', ensureString(this.options.clientId));
+    form.append('response_type', DeviceOauthService.RESPONSE_TYPE);
+    form.append('scope', DeviceOauthService.SCOPE);
     return {
       url,
-      headers: SFDX_HTTP_HEADERS,
+      headers: { ...SFDX_HTTP_HEADERS, ...form.getHeaders() },
       method: 'POST',
-      body,
+      body: form.getBuffer(),
     };
   }
 
   private getPollingOptions(url: string, code: string): HttpRequest {
-    const body = new URLSearchParams();
-    body.append('client_id', ensureString(this.options.clientId));
-    body.append('grant_type', DeviceOauthService.GRANT_TYPE);
-    body.append('code', code);
+    const form = new FormData();
+    form.append('client_id', ensureString(this.options.clientId));
+    form.append('grant_type', DeviceOauthService.GRANT_TYPE);
+    form.append('code', code);
     return {
       url,
-      headers: SFDX_HTTP_HEADERS,
+      headers: { ...SFDX_HTTP_HEADERS, ...form.getHeaders() },
       method: 'POST',
-      body,
+      body: form.getBuffer(),
     };
   }
 
