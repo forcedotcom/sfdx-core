@@ -32,7 +32,7 @@ No ScratchOrgInfo was found. Check that the ID and the DevHub are correct
 
 # ScratchOrgDeletedError
 
-That scratch org has been deleted and you can't connect to it
+That scratch org has been deleted, so you can't connect to it anymore.
 
 # StillInProgressError
 
