@@ -36,8 +36,8 @@ That scratch org has been deleted, so you can't connect to it anymore.
 
 # StillInProgressError
 
-The scratch org is not ready yet (Status = %). 
+The scratch org is not ready yet (Status = %).
 
 # action.StillInProgress
 
-Wait and try the <%= config.bin %> <%= command.id %> command again
+Wait for a few minutes, and then try the <%= config.bin %> <%= command.id %> command again
