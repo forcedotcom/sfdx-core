@@ -18,7 +18,8 @@ import SettingsGenerator from '../../../src/org/scratchOrgSettingsGenerator';
 import {
   requestScratchOrgCreation,
   JsForceError,
-  deploySettingsAndResolveUrl,
+  deploySettings,
+  resolveUrl,
   pollForScratchOrgInfo,
   authorizeScratchOrg,
 } from '../../../src/org/scratchOrgInfoApi';
@@ -209,15 +210,18 @@ describe('requestScratchOrgCreation', () => {
   });
 });
 
-describe('requestScratchOrgCreation', () => {
+describe.only('requestScratchOrgCreation', () => {
   const sandbox = sinon.createSandbox();
   const scratchOrgAuthInfoStub = sinon.createStubInstance(AuthInfo);
   const orgSettingsStub = sinon.createStubInstance(SettingsGenerator);
   const myDomainResolverStub = sinon.createStubInstance(MyDomainResolver);
+  const ConnectionStub = sinon.createStubInstance(Connection);
   const apiVersion = '53.0';
   const scratchOrg = new Org({});
   beforeEach(() => {
     stubMethod(sandbox, MyDomainResolver, 'create').returns(myDomainResolverStub);
+    stubMethod(sandbox, Org.prototype, 'getConnection').returns(ConnectionStub);
+    ConnectionStub.singleRecordQuery.withArgs('SourceMember').returns(Promise.resolve({}));
   });
 
   afterEach(() => {
@@ -232,7 +236,10 @@ describe('requestScratchOrgCreation', () => {
       instanceUrl: 'https://my-org.salesforce.com',
     });
     myDomainResolverStub.resolve.resolves();
-    const authInfo = await deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg);
+    const [authInfo] = await Promise.all([
+      resolveUrl(scratchOrgAuthInfoStub),
+      deploySettings(scratchOrg, orgSettingsStub, apiVersion),
+    ]);
     expect(authInfo).to.equal(scratchOrgAuthInfoStub);
   });
 
@@ -244,7 +251,10 @@ describe('requestScratchOrgCreation', () => {
       instanceUrl: 'https://my-org.salesforce.com',
     });
     myDomainResolverStub.resolve.resolves();
-    const authInfo = await deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg);
+    const [authInfo] = await Promise.all([
+      resolveUrl(scratchOrgAuthInfoStub),
+      deploySettings(scratchOrg, orgSettingsStub, apiVersion),
+    ]);
     expect(authInfo).to.equal(scratchOrgAuthInfoStub);
   });
 
@@ -252,7 +262,7 @@ describe('requestScratchOrgCreation', () => {
     orgSettingsStub.hasSettings.returns(true);
     orgSettingsStub.createDeploy.rejects(new Error('MyError'));
     try {
-      await shouldThrow(deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg));
+      await shouldThrow(deploySettings(scratchOrg, orgSettingsStub, apiVersion));
     } catch (error) {
       expect(error).to.exist;
       expect(error.message).to.include('MyError');
@@ -268,7 +278,7 @@ describe('requestScratchOrgCreation', () => {
     });
     myDomainResolverStub.resolve.rejects(new Error('MyError'));
     try {
-      await shouldThrow(deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg));
+      await shouldThrow(resolveUrl(scratchOrgAuthInfoStub));
     } catch (error) {
       expect(error).to.exist;
       expect(error.message).to.include('MyError');
@@ -289,7 +299,7 @@ describe('requestScratchOrgCreation', () => {
     networkError.name = 'MyDomainResolverTimeoutError';
     myDomainResolverStub.resolve.rejects(networkError);
     try {
-      await shouldThrow(deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg));
+      await shouldThrow(resolveUrl(scratchOrgAuthInfoStub));
     } catch (error) {
       expect(error).to.exist;
       expect(error.data).to.have.keys(['orgId', 'username', 'instanceUrl']);
@@ -305,8 +315,12 @@ describe('requestScratchOrgCreation', () => {
       instanceUrl: undefined,
     });
     myDomainResolverStub.resolve.resolves();
-    const authInfo = await deploySettingsAndResolveUrl(scratchOrgAuthInfoStub, apiVersion, orgSettingsStub, scratchOrg);
-    expect(authInfo).to.equal(undefined);
+    try {
+      await shouldThrow(resolveUrl(scratchOrgAuthInfoStub));
+    } catch (error) {
+      expect(error).to.exist;
+      expect(error.data).to.have.keys(['orgId', 'username', 'instanceUrl']);
+    }
   });
 });
 
@@ -359,7 +373,7 @@ describe('pollForScratchOrgInfo', () => {
     }
   });
 
-  it('pollForScratchOrgInfo keeps pooling untill Active', async () => {
+  it('pollForScratchOrgInfo keeps pooling until Active', async () => {
     const creating = {
       Status: 'Creating',
     };

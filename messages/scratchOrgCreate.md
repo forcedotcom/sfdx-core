@@ -25,3 +25,19 @@ Expected 'retry' to be an integer number.
 # WaitValidationMaxError
 
 Expected 'wait' greater than or equal to %s but received %s.
+
+# NoScratchOrgInfoError
+
+No ScratchOrgInfo was found. Check that the ID and the DevHub are correct
+
+# ScratchOrgDeletedError
+
+That scratch org has been deleted and you can't connect to it
+
+# StillInProgressError
+
+The scratch org is not ready yet (Status = %)
+
+# action.StillInProgress
+
+Wait and try the <%= config.bin %> <%= command.id %> command again
