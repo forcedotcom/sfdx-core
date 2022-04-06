@@ -19,7 +19,7 @@
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "pretest": "sf-compile-test",
-    "test": "yarn test \"./test/**/*.ts\""
+    "test": "sf-test"
   },
   "keywords": [
     "force",
