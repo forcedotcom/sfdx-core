@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AnyJson } from '@salesforce/ts-types';
+import { AnyJson as mockForStandaloneFunctions } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
 import { getString } from '@salesforce/ts-types';
 // @ts-ignore
@@ -328,7 +328,7 @@ export const pollForScratchOrgInfo = async (
           await emit({ stage: 'available', scratchOrgInfo: resultInProgress as unknown as ScratchOrgInfo });
           return {
             completed: true,
-            payload: resultInProgress as unknown as AnyJson,
+            payload: resultInProgress as unknown as mockForStandaloneFunctions,
           };
         }
         await emit({ stage: 'wait for org', scratchOrgInfo: resultInProgress as unknown as ScratchOrgInfo });
@@ -356,9 +356,8 @@ export const pollForScratchOrgInfo = async (
     const resultInProgress = await client.subscribe<ScratchOrgInfo>();
     return checkScratchOrgInfoForErrors(resultInProgress, hubOrg.getUsername(), logger);
   } catch (error) {
-    const err = error as Error;
-    if (err.message) {
-      const sfError = SfError.wrap(err);
+    if (error instanceof Error) {
+      const sfError = SfError.wrap(error);
       sfError.setData({
         username: hubOrg.getUsername(),
         orgId: hubOrg.getOrgId(),
@@ -444,7 +443,7 @@ export const resolveUrl = async (scratchOrgAuthInfo: AuthInfo): Promise<AuthInfo
   }
 };
 
-const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void> => {
+export const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void> => {
   const conn = scratchOrg.getConnection();
   const queryResult = await conn.tooling.sobject('SourceMember').find({ RevisionCounter: { $gt: 0 } }, ['Id']);
   if (queryResult.length === 0) {

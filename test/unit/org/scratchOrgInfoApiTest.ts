@@ -23,6 +23,7 @@ import {
   pollForScratchOrgInfo,
   authorizeScratchOrg,
 } from '../../../src/org/scratchOrgInfoApi';
+import * as mockForStandaloneFunctions from '../../../src/org/scratchOrgInfoApi';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
 import { Messages } from '../../../src/messages';
 import { SfError } from '../../../src/sfError';
@@ -210,18 +211,18 @@ describe('requestScratchOrgCreation', () => {
   });
 });
 
-describe.only('requestScratchOrgCreation', () => {
+describe('requestScratchOrgCreation', () => {
   const sandbox = sinon.createSandbox();
   const scratchOrgAuthInfoStub = sinon.createStubInstance(AuthInfo);
   const orgSettingsStub = sinon.createStubInstance(SettingsGenerator);
   const myDomainResolverStub = sinon.createStubInstance(MyDomainResolver);
-  const ConnectionStub = sinon.createStubInstance(Connection);
   const apiVersion = '53.0';
   const scratchOrg = new Org({});
+
   beforeEach(() => {
     stubMethod(sandbox, MyDomainResolver, 'create').returns(myDomainResolverStub);
-    stubMethod(sandbox, Org.prototype, 'getConnection').returns(ConnectionStub);
-    ConnectionStub.singleRecordQuery.withArgs('SourceMember').returns(Promise.resolve({}));
+    stubMethod(sandbox, Org.prototype, 'getConnection').returns(Connection.prototype);
+    stubMethod(sandbox, mockForStandaloneFunctions, 'updateRevisionCounterToZero').resolves();
   });
 
   afterEach(() => {
@@ -326,15 +327,16 @@ describe.only('requestScratchOrgCreation', () => {
 
 describe('pollForScratchOrgInfo', () => {
   const sandbox = sinon.createSandbox();
-  const hubOrg = new Org({});
   const scratchOrgInfoId = '1234';
   const username = 'PlatformCLI';
+  const hubOrg = new Org({});
   const connectionStub = sinon.createStubInstance(Connection);
-
+  const orgId = '00D123456789012345';
   beforeEach(() => {
     stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
     stubMethod(sandbox, Org.prototype, 'getConnection').returns(connectionStub);
     stubMethod(sandbox, Org.prototype, 'getUsername').returns(username);
+    stubMethod(sandbox, Org.prototype, 'getOrgId').returns(orgId);
   });
 
   afterEach(() => {
@@ -373,7 +375,7 @@ describe('pollForScratchOrgInfo', () => {
     }
   });
 
-  it('pollForScratchOrgInfo keeps pooling until Active', async () => {
+  it('pollForScratchOrgInfo keeps polling until Active', async () => {
     const creating = {
       Status: 'Creating',
     };
