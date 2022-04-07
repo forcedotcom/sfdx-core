@@ -241,7 +241,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   cache.set(scratchOrgInfoId, {
     hubUsername: hubOrg.getUsername(),
     hubBaseUrl: hubOrg.getField(Org.Fields.INSTANCE_URL)?.toString(),
-    definitionjson: { ...(definitionjson ? JSON.parse(definitionjson) : {}), ...settings },
+    definitionjson: { ...(definitionjson ? JSON.parse(definitionjson) : {}), ...orgConfig, ...settings },
     clientSecret,
     alias,
     setDefault,
@@ -259,10 +259,10 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     };
   }
 
-  const scratchOrgInfoResult = await pollForScratchOrgInfo(hubOrg, scratchOrgInfoId, wait);
+  const soi = await pollForScratchOrgInfo(hubOrg, scratchOrgInfoId, wait);
 
   const scratchOrgAuthInfo = await authorizeScratchOrg({
-    scratchOrgInfoComplete: scratchOrgInfoResult,
+    scratchOrgInfoComplete: soi,
     hubOrg,
     clientSecret,
     signupTargetLoginUrlConfig,
@@ -271,12 +271,12 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
 
   // we'll need this scratch org connection later;
   const scratchOrg = await Org.create({
-    aliasOrUsername: scratchOrgInfoResult.Username ?? scratchOrgInfoResult.SignupUsername,
+    aliasOrUsername: soi.Username ?? soi.SignupUsername,
   });
   const username = scratchOrg.getUsername();
   logger.debug(`scratch org username ${username}`);
 
-  await emit({ stage: 'deploy settings', scratchOrgInfo: scratchOrgInfoResult });
+  await emit({ stage: 'deploy settings', scratchOrgInfo: soi });
 
   const [authInfo] = await Promise.all([
     resolveUrl(scratchOrgAuthInfo),
@@ -296,15 +296,11 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   });
   cache.unset(scratchOrgInfoId);
   const authFields = authInfo.getFields();
-  await Promise.all([
-    emit({ stage: 'done', scratchOrgInfo: scratchOrgInfoResult }),
-    cache.write(),
-    emitPostOrgCreate(authFields),
-  ]);
+  await Promise.all([emit({ stage: 'done', scratchOrgInfo: soi }), cache.write(), emitPostOrgCreate(authFields)]);
 
   return {
     username,
-    scratchOrgInfo: scratchOrgInfoResult,
+    scratchOrgInfo: soi,
     authInfo,
     authFields: authInfo?.getFields(),
     warnings,
