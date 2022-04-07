@@ -26,7 +26,7 @@ import { generateScratchOrgInfo, getScratchOrgInfoPayload } from './scratchOrgIn
 import { AuthFields, AuthInfo } from './authInfo';
 import { emit, emitPostOrgCreate } from './scratchOrgLifecycleEvents';
 import { ScratchOrgCache } from './scratchOrgCache';
-import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
+import { validateScratchOrgInfoForResume } from './scratchOrgErrorCodes';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', [
@@ -39,6 +39,7 @@ const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', [
   'NoScratchOrgInfoError',
   'ScratchOrgDeletedError',
   'StillInProgressError',
+  'CacheMissError',
   'action.StillInProgress',
 ]);
 
@@ -111,43 +112,23 @@ const validateRetry = (retry: number): void => {
   }
 };
 
-export const validateScratchOrgInfoForResume = async ({
-  jobId,
-  soi,
-  cache,
-}: {
-  jobId: string;
-  soi: ScratchOrgInfo;
-  cache: ScratchOrgCache;
-}): Promise<void> => {
-  if (!soi || !soi.Id || soi.Status === 'Deleted') {
-    // 1. scratch org info does not exist in that dev hub or has been deleted
-    cache.unset(jobId);
-    await cache.write();
-    throw soi.Status === 'Deleted'
-      ? messages.createError('ScratchOrgDeletedError')
-      : messages.createError('NoScratchOrgInfoError');
-  }
-  if (['New', 'Creating'].includes(soi.Status)) {
-    // 2. SOI exists, still isn't finished.  Stays in cache for future attempts
-    throw messages.createError('StillInProgressError', [soi.Status], ['action.StillInProgress']);
-  }
-};
-
 export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateResult> => {
   const [logger, cache] = await Promise.all([
     Logger.child('scratchOrgResume'),
     ScratchOrgCache.create(),
     emit({ stage: 'send request' }),
   ]);
+  logger.debug(`resuming scratch org creation for jobId: ${jobId}`);
+  if (!cache.has(jobId)) {
+    throw messages.createError('CacheMissError', [jobId]);
+  }
   const { hubUsername, apiVersion, clientSecret, signupTargetLoginUrlConfig, definitionjson, alias, setDefault } =
     cache.get(jobId);
+
   const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
   const soi = await queryScratchOrgInfo(hubOrg, jobId);
 
-  await validateScratchOrgInfoForResume({ jobId, soi, cache });
-  await checkScratchOrgInfoForErrors(soi, hubUsername, logger);
-  await emit({ stage: 'available', scratchOrgInfo: soi });
+  await validateScratchOrgInfoForResume({ jobId, soi, cache, hubUsername });
   // At this point, the scratch org is "good".
 
   // Some hubs have all the usernames set to `null`

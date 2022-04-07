@@ -6,13 +6,11 @@
  */
 import { expect } from 'chai';
 import { assert } from 'sinon';
-import { Logger } from '../../../src/logger';
 import { SfError } from '../../../src/sfError';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
 import { checkScratchOrgInfoForErrors } from '../../../src/org/scratchOrgErrorCodes';
 
 const testUsername = 'foo';
-const logger = Logger.childFromRoot('test');
 const baseOrgInfo: ScratchOrgInfo = {
   SignupEmail: '',
   SignupUsername: '',
@@ -26,10 +24,10 @@ const baseOrgInfo: ScratchOrgInfo = {
   Id: '2SR123456789012345',
 };
 describe('getHumanErrorMessage', () => {
-  it('test get message by regex format W-DDDD', () => {
+  it('test get message by regex format W-DDDD', async () => {
     const ErrorCode = 'T-0002';
     try {
-      checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername, logger);
+      await checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername);
       assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfError);
@@ -41,10 +39,10 @@ describe('getHumanErrorMessage', () => {
     }
   });
 
-  it('test get message by regex format WW-DDDD', () => {
+  it('test get message by regex format WW-DDDD', async () => {
     const ErrorCode = 'SH-0002';
     try {
-      checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername, logger);
+      await checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername);
       assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfError);
@@ -56,10 +54,10 @@ describe('getHumanErrorMessage', () => {
     }
   });
 
-  it('test get default message for unexpected error code.', () => {
+  it('test get default message for unexpected error code.', async () => {
     const ErrorCode = 'B-1717';
     try {
-      checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername, logger);
+      await checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername);
       assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfError);
@@ -69,9 +67,9 @@ describe('getHumanErrorMessage', () => {
     }
   });
 
-  it('test get default message for undefined error code.', () => {
+  it('test get default message for undefined error code.', async () => {
     try {
-      checkScratchOrgInfoForErrors({ ...baseOrgInfo }, testUsername, logger);
+      await checkScratchOrgInfoForErrors({ ...baseOrgInfo }, testUsername);
       assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfError);
@@ -82,9 +80,9 @@ describe('getHumanErrorMessage', () => {
     }
   });
 
-  it('test get default message for undefined error code.', () => {
+  it('test get default message for undefined error code.', async () => {
     try {
-      checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode: null }, testUsername, logger);
+      await checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode: null }, testUsername);
       assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfError);
@@ -95,9 +93,9 @@ describe('getHumanErrorMessage', () => {
     }
   });
 
-  it('Throws generic error for undefined status', () => {
+  it('Throws generic error for undefined status', async () => {
     try {
-      checkScratchOrgInfoForErrors({ ...baseOrgInfo, Status: undefined }, testUsername, logger);
+      await checkScratchOrgInfoForErrors({ ...baseOrgInfo, Status: undefined }, testUsername);
       assert.fail('the above should throw an error');
     } catch (err) {
       expect(err).to.be.an.instanceof(SfError);
@@ -106,8 +104,8 @@ describe('getHumanErrorMessage', () => {
     }
   });
 
-  it('Passes for non errors', () => {
+  it('Passes for non errors', async () => {
     const successOrgInfo: ScratchOrgInfo = { ...baseOrgInfo, Status: 'Active' };
-    expect(checkScratchOrgInfoForErrors(successOrgInfo, testUsername, logger)).to.deep.equal(successOrgInfo);
+    expect(await checkScratchOrgInfoForErrors(successOrgInfo, testUsername)).to.deep.equal(successOrgInfo);
   });
 });

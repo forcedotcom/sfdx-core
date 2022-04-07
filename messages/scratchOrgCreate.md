@@ -34,6 +34,10 @@ No ScratchOrgInfo object found in the Dev Hub you specified. Check that the ID a
 
 That scratch org has been deleted, so you can't connect to it anymore.
 
+# CacheMissError
+
+The ScratchOrgInfoId %s was not found in the cache.
+
 # StillInProgressError
 
 The scratch org is not ready yet (Status = %).

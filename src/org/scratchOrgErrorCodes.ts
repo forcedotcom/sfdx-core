@@ -11,6 +11,7 @@ import { SfError } from '../sfError';
 import { Logger } from '../logger';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgCache } from './scratchOrgCache';
+import { emit } from './scratchOrgLifecycleEvents';
 
 const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 
@@ -39,15 +40,41 @@ const optionalErrorCodeMessage = (errorCode: string, args: string[]): string | u
   }
 };
 
+export const validateScratchOrgInfoForResume = async ({
+  jobId,
+  soi,
+  cache,
+  hubUsername,
+}: {
+  jobId: string;
+  soi: ScratchOrgInfo;
+  cache: ScratchOrgCache;
+  hubUsername: string;
+}): Promise<ScratchOrgInfo> => {
+  if (!soi || !soi.Id || soi.Status === 'Deleted') {
+    // 1. scratch org info does not exist in that dev hub or has been deleted
+    cache.unset(jobId);
+    await cache.write();
+    throw soi.Status === 'Deleted'
+      ? messages.createError('ScratchOrgDeletedError')
+      : messages.createError('NoScratchOrgInfoError');
+  }
+  if (['New', 'Creating'].includes(soi.Status)) {
+    // 2. SOI exists, still isn't finished.  Stays in cache for future attempts
+    throw messages.createError('StillInProgressError', [soi.Status], ['action.StillInProgress']);
+  }
+  return checkScratchOrgInfoForErrors(soi, hubUsername);
+};
+
 export const checkScratchOrgInfoForErrors = async (
   orgInfo: Optional<ScratchOrgInfo>,
-  hubUsername: Optional<string>,
-  logger: Logger
+  hubUsername: Optional<string>
 ): Promise<ScratchOrgInfo> => {
   if (!orgInfo || !orgInfo.Id) {
     throw new SfError('No scratch org info found.', 'ScratchOrgInfoNotFound');
   }
   if (orgInfo.Status === 'Active') {
+    await emit({ stage: 'available', scratchOrgInfo: orgInfo });
     return orgInfo;
   }
 
@@ -63,6 +90,7 @@ export const checkScratchOrgInfoForErrors = async (
   }
   if (orgInfo.Status === 'Error') {
     await ScratchOrgCache.unset(orgInfo.Id);
+    const logger = await Logger.child('ScratchOrgErrorCodes');
     // Maybe the request object can help the user somehow
     logger.error('No error code on signup error! Logging request.');
     logger.error(orgInfo);

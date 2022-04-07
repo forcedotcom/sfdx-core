@@ -334,7 +334,6 @@ export const pollForScratchOrgInfo = async (
         logger.debug(`polling client result: ${JSON.stringify(resultInProgress, null, 4)}`);
         // Once it's "done" we can return it
         if (resultInProgress.Status === 'Active' || resultInProgress.Status === 'Error') {
-          await emit({ stage: 'available', scratchOrgInfo: resultInProgress });
           return {
             completed: true,
             payload: resultInProgress as unknown as AnyJson,
@@ -363,7 +362,7 @@ export const pollForScratchOrgInfo = async (
   const client = await PollingClient.create(pollingOptions);
   try {
     const resultInProgress = await client.subscribe<ScratchOrgInfo>();
-    return checkScratchOrgInfoForErrors(resultInProgress, hubOrg.getUsername(), logger);
+    return checkScratchOrgInfoForErrors(resultInProgress, hubOrg.getUsername());
   } catch (error) {
     if (error instanceof Error) {
       const sfError = SfError.wrap(error);
