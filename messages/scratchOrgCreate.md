@@ -28,7 +28,7 @@ Expected 'wait' greater than or equal to %s but received %s.
 
 # NoScratchOrgInfoError
 
-No ScratchOrgInfo was found. Check that the ID and the DevHub are correct
+No ScratchOrgInfo object found in the Dev Hub you specified. Check that the ID and the Dev Hub are correct.
 
 # ScratchOrgDeletedError
 
