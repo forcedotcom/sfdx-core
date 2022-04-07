@@ -260,5 +260,9 @@ describe('util/sfdcUrl', () => {
       const url = new SfdcUrl('https://domain--sboxname.sandbox.my.salesforce.mil');
       expect(url.isSandboxUrl()).to.be.true;
     });
+    it('cs123', () => {
+      const url = new SfdcUrl('https://cs123.force.com');
+      expect(url.isSandboxUrl()).to.be.true;
+    });
   });
 });
