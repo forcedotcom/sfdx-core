@@ -142,9 +142,10 @@ describe('scratchOrgCreate', () => {
   });
 
   it('resumes', async () => {
-    cacheStub.get.withArgs(scratchOrgInfoId).resolves({
+    cacheStub.get.withArgs(scratchOrgInfoId).returns({
       hubUsername: 'PlatformCLI',
     });
+    cacheStub.has.withArgs(scratchOrgInfoId).returns(true);
     const scratchOrgCreateResult = await scratchOrgResume(scratchOrgInfoId);
     // resume has all the data it originally would have
     expect(scratchOrgCreateResult).to.deep.equal({
