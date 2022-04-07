@@ -10,6 +10,7 @@ import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { Logger } from '../logger';
 import { ScratchOrgInfo } from './scratchOrgTypes';
+import { ScratchOrgCache } from './scratchOrgCache';
 
 const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 
@@ -38,18 +39,20 @@ const optionalErrorCodeMessage = (errorCode: string, args: string[]): string | u
   }
 };
 
-export const checkScratchOrgInfoForErrors = (
+export const checkScratchOrgInfoForErrors = async (
   orgInfo: Optional<ScratchOrgInfo>,
   hubUsername: Optional<string>,
   logger: Logger
-): ScratchOrgInfo => {
-  if (!orgInfo) {
+): Promise<ScratchOrgInfo> => {
+  if (!orgInfo || !orgInfo.Id) {
     throw new SfError('No scratch org info found.', 'ScratchOrgInfoNotFound');
   }
   if (orgInfo.Status === 'Active') {
     return orgInfo;
   }
+
   if (orgInfo.Status === 'Error' && orgInfo.ErrorCode) {
+    await ScratchOrgCache.unset(orgInfo.Id);
     const message = optionalErrorCodeMessage(orgInfo.ErrorCode, [WORKSPACE_CONFIG_FILENAME]);
     if (message) {
       throw new SfError(message, 'RemoteOrgSignupFailed', [
@@ -59,6 +62,7 @@ export const checkScratchOrgInfoForErrors = (
     throw new SfError(namedMessages.getMessage('SignupFailedError', [orgInfo.ErrorCode]));
   }
   if (orgInfo.Status === 'Error') {
+    await ScratchOrgCache.unset(orgInfo.Id);
     // Maybe the request object can help the user somehow
     logger.error('No error code on signup error! Logging request.');
     logger.error(orgInfo);

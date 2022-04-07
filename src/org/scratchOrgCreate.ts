@@ -18,6 +18,7 @@ import {
   pollForScratchOrgInfo,
   deploySettings,
   resolveUrl,
+  queryScratchOrgInfo,
 } from './scratchOrgInfoApi';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import SettingsGenerator from './scratchOrgSettingsGenerator';
@@ -67,9 +68,17 @@ export interface ScratchOrgCreateOptions {
   retry?: number;
   /** target server instance API version */
   apiversion?: string;
-  /** org definition in JSON format, stringified */
+  /**
+   * org definition in JSON format, stringified
+   *
+   * @deprecated use orgConfig
+   */
   definitionjson?: string;
-  /** path to an org definition file */
+  /**
+   * path to an org definition file
+   *
+   * @deprecated use orgConfig
+   * */
   definitionfile?: string;
   /** overrides definitionjson */
   orgConfig?: Record<string, unknown>;
@@ -102,6 +111,29 @@ const validateRetry = (retry: number): void => {
   }
 };
 
+export const validateScratchOrgInfoForResume = async ({
+  jobId,
+  soi,
+  cache,
+}: {
+  jobId: string;
+  soi: ScratchOrgInfo;
+  cache: ScratchOrgCache;
+}): Promise<void> => {
+  if (!soi || !soi.Id || soi.Status === 'Deleted') {
+    // 1. scratch org info does not exist in that dev hub or has been deleted
+    cache.unset(jobId);
+    await cache.write();
+    throw soi.Status === 'Deleted'
+      ? messages.createError('ScratchOrgDeletedError')
+      : messages.createError('NoScratchOrgInfoError');
+  }
+  if (['New', 'Creating'].includes(soi.Status)) {
+    // 2. SOI exists, still isn't finished.  Stays in cache for future attempts
+    throw messages.createError('StillInProgressError', [soi.Status], ['action.StillInProgress']);
+  }
+};
+
 export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateResult> => {
   const [logger, cache] = await Promise.all([
     Logger.child('scratchOrgResume'),
@@ -111,26 +143,10 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
   const { hubUsername, apiVersion, clientSecret, signupTargetLoginUrlConfig, definitionjson, alias, setDefault } =
     cache.get(jobId);
   const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
-  const soi = (await hubOrg.getConnection().sobject('ScratchOrgInfo').retrieve(jobId)) as unknown as ScratchOrgInfo;
-  if (!soi || !soi.Id) {
-    // 1. scratch org info does not exist in that dev hub
-    cache.unset(jobId);
-    await cache.write();
-    throw messages.createError('NoScratchOrgInfoError');
-  }
-  if (['New', 'Creating'].includes(soi.Status)) {
-    // 2. SOI exists, still isn't finished.  Stays in cache for future attempts
-    throw messages.createError('StillInProgressError', [soi.Status], ['action.StillInProgress']);
-  }
-  if (soi.Status === 'Deleted') {
-    // 3. SOI is deleted
-    cache.unset(jobId);
-    await cache.write();
-    throw messages.createError('ScratchOrgDeletedError');
-  }
-  // 4. SOI might have errors: throw nice errors from sfdx-core with all the status code mappings.
-  // if this passes, it returns an Active, error free SOI
-  checkScratchOrgInfoForErrors(soi, hubOrg.getUsername(), logger);
+  const soi = await queryScratchOrgInfo(hubOrg, jobId);
+
+  await validateScratchOrgInfoForResume({ jobId, soi, cache });
+  await checkScratchOrgInfoForErrors(soi, hubUsername, logger);
   await emit({ stage: 'available', scratchOrgInfo: soi });
   // At this point, the scratch org is "good".
 
@@ -172,7 +188,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     setDefault: setDefault ?? false,
     setDefaultDevHub: false,
   });
-  cache.unset(soi.Id);
+  cache.unset(soi.Id ?? jobId);
   const authFields = authInfo.getFields();
 
   await Promise.all([emit({ stage: 'done', scratchOrgInfo: soi }), cache.write(), emitPostOrgCreate(authFields)]);
@@ -254,10 +270,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
 
   // this is where we stop--no polling
   if (wait.minutes === 0) {
-    const soi = (await hubOrg
-      .getConnection()
-      .sobject('ScratchOrgInfo')
-      .retrieve(scratchOrgInfoId)) as unknown as ScratchOrgInfo;
+    const soi = await queryScratchOrgInfo(hubOrg, scratchOrgInfoId);
     return {
       username: soi.SignupUsername,
       warnings: [],

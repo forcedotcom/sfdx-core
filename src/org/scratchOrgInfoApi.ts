@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AnyJson as mockForStandaloneFunctions } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
-import { getString } from '@salesforce/ts-types';
+import { AnyJson, getString } from '@salesforce/ts-types';
 // @ts-ignore
 import { OAuth2Config, OAuth2Options, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
@@ -173,6 +172,16 @@ const getAuthInfo = async (options: {
 };
 
 /**
+ *
+ * @param hubOrg Org
+ * @param id Record ID for the ScratchOrgInfoObject
+ * @returns Promise<ScratchOrgInfo>
+ */
+export const queryScratchOrgInfo = async (hubOrg: Org, id: string): Promise<ScratchOrgInfo> => {
+  return (await hubOrg.getConnection().sobject('ScratchOrgInfo').retrieve(id)) as unknown as ScratchOrgInfo;
+};
+
+/**
  * after we successfully signup an org we need to trade the auth token for access and refresh token.
  *
  * scratchOrgInfoComplete - The completed ScratchOrgInfo which should contain an access token.
@@ -321,17 +330,17 @@ export const pollForScratchOrgInfo = async (
   const pollingOptions: PollingClient.Options = {
     async poll(): Promise<StatusResult> {
       try {
-        const resultInProgress = await hubOrg.getConnection().sobject('ScratchOrgInfo').retrieve(scratchOrgInfoId);
+        const resultInProgress = await queryScratchOrgInfo(hubOrg, scratchOrgInfoId);
         logger.debug(`polling client result: ${JSON.stringify(resultInProgress, null, 4)}`);
         // Once it's "done" we can return it
         if (resultInProgress.Status === 'Active' || resultInProgress.Status === 'Error') {
-          await emit({ stage: 'available', scratchOrgInfo: resultInProgress as unknown as ScratchOrgInfo });
+          await emit({ stage: 'available', scratchOrgInfo: resultInProgress });
           return {
             completed: true,
-            payload: resultInProgress as unknown as mockForStandaloneFunctions,
+            payload: resultInProgress as unknown as AnyJson,
           };
         }
-        await emit({ stage: 'wait for org', scratchOrgInfo: resultInProgress as unknown as ScratchOrgInfo });
+        await emit({ stage: 'wait for org', scratchOrgInfo: resultInProgress });
 
         logger.debug(`Scratch org status is ${resultInProgress.Status}`);
         return {

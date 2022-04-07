@@ -35,6 +35,7 @@ const errorCodesMessages = Messages.load('@salesforce/core', 'scratchOrgErrorCod
   'C-1007',
 ]);
 
+const scratchOrgInfoId = '2SRK0000001QZxF';
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
   LoginUrl: 'https://login.salesforce.com',
   Snapshot: '1234',
@@ -327,7 +328,6 @@ describe('requestScratchOrgCreation', () => {
 
 describe('pollForScratchOrgInfo', () => {
   const sandbox = sinon.createSandbox();
-  const scratchOrgInfoId = '1234';
   const username = 'PlatformCLI';
   const hubOrg = new Org({});
   const connectionStub = sinon.createStubInstance(Connection);
@@ -346,6 +346,7 @@ describe('pollForScratchOrgInfo', () => {
   it('pollForScratchOrgInfo return Status: Active', async () => {
     const retrieve = {
       Status: 'Active',
+      Id: scratchOrgInfoId,
     };
     // @ts-ignore
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
@@ -378,9 +379,11 @@ describe('pollForScratchOrgInfo', () => {
   it('pollForScratchOrgInfo keeps polling until Active', async () => {
     const creating = {
       Status: 'Creating',
+      Id: scratchOrgInfoId,
     };
     const active = {
       Status: 'Active',
+      Id: scratchOrgInfoId,
     };
     // @ts-ignore
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
@@ -406,6 +409,7 @@ describe('pollForScratchOrgInfo', () => {
 
   it('pollForScratchOrgInfo should tolerate network errors', async () => {
     const retrieve = {
+      Id: scratchOrgInfoId,
       Status: 'Active',
     };
     const timeout = Duration.milliseconds(3000);
