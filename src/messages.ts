@@ -152,7 +152,7 @@ function format(message: string, tokens: Tokens): string {
     if (typeof a === 'string') {
       for (const formatter of Object.values(FORMATTERS)) {
         const symbol = `\\${formatter.symbol.split('').join('\\')}`;
-        const regex = new RegExp(`${symbol}(.*?)${symbol}`, 'g');
+        const regex = new RegExp(`\\s${symbol}(.*?)${symbol}`, 'g');
         const matches: string[] = a.match(regex) ?? [];
         for (const match of matches) {
           a = a.replace(match, formatter.format(match.replace(new RegExp(`${symbol}`, 'g'), '')));
