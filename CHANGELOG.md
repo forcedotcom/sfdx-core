@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.12.1](https://github.com/forcedotcom/sfdx-core/compare/v3.12.0...v3.12.1) (2022-04-05)
+
+### Bug Fixes
+
+- more FormData with buffers and headers ([5ebf78f](https://github.com/forcedotcom/sfdx-core/commit/5ebf78fe2b037df395c87197b90ee06a0d34d5d0))
+
 ## [3.12.0](https://github.com/forcedotcom/sfdx-core/compare/v3.11.1...v3.12.0) (2022-04-04)
 
 ### Features
