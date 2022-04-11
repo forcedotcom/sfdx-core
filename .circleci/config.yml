@@ -153,6 +153,7 @@ workflows:
                   'https://github.com/salesforcecli/plugin-alias',
                   'https://github.com/salesforcecli/plugin-auth',
                   'https://github.com/salesforcecli/plugin-config',
+                  'https://github.com/salesforcecli/plugin-info',
                   'https://github.com/salesforcecli/plugin-limits',
                   'https://github.com/salesforcecli/plugin-schema',
                   'https://github.com/salesforcecli/plugin-env',
