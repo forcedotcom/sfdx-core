@@ -51,7 +51,6 @@ const messages = Messages.load('@salesforce/core', 'org', [
   'noDevHubFound',
   'notADevHub',
   'noUsernameFound',
-  'orgPollingTimeout',
   'sandboxDeleteFailed',
   'sandboxInfoCreateFailed',
   'sandboxNotFound',
@@ -95,6 +94,7 @@ export enum SandboxEvents {
   EVENT_ASYNC_RESULT = 'asyncResult',
   EVENT_RESULT = 'result',
   EVENT_AUTH = 'auth',
+  EVENT_RESUME = 'resume',
 }
 
 export interface SandboxUserAuthResponse {
@@ -124,6 +124,10 @@ export type SandboxRequest = {
   LicenseType?: string;
   SourceId?: string;
   Description?: string;
+};
+export type ResumeSandboxRequest = {
+  SandboxName?: string;
+  SandboxProcessObjId?: string;
 };
 
 export type ScratchOrgRequest = Pick<
@@ -210,7 +214,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw messages.createError('sandboxInfoCreateFailed', [JSON.stringify(createResult)]);
     }
 
-    const sandboxCreationProgress = await this.querySandboxProcess(createResult.id);
+    const sandboxCreationProgress = await this.querySandboxProcessBySandboxInfoId(createResult.id);
     this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
 
     const isAsync = !!options.async;
@@ -220,14 +224,53 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       await Lifecycle.getInstance().emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxCreationProgress);
       return sandboxCreationProgress;
     }
-
-    const wait = options.wait ?? Duration.minutes(6);
-    const interval = options.interval ?? Duration.seconds(30);
-    let pollInterval = options.async ? Duration.seconds(0) : interval;
-    // pollInterval cannot be > wait.
-    pollInterval = pollInterval.seconds > wait.seconds ? wait : pollInterval;
+    const [wait, pollInterval] = this.validateWaitOptions(options);
     this.logger.debug(
-      `pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
+      `create - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
+      sandboxCreationProgress
+    );
+    return this.pollStatusAndAuth({
+      sandboxProcessObj: sandboxCreationProgress,
+      wait,
+      pollInterval,
+    });
+  }
+
+  /**
+   * create a sandbox from a production org
+   * 'this' needs to be a production org with sandbox licenses available
+   *
+   * @param resumeSandboxRequest SandboxRequest options to create the sandbox with
+   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
+   */
+  public async resumeSandbox(
+    resumeSandboxRequest: ResumeSandboxRequest,
+    options: { wait?: Duration; interval?: Duration; async?: boolean } = {
+      wait: Duration.minutes(0),
+      async: false,
+      interval: Duration.seconds(30),
+    }
+  ): Promise<SandboxProcessObject> {
+    this.logger.debug('ResumeSandbox called with ResumeSandboxRequest:', resumeSandboxRequest);
+    let sandboxCreationProgress: SandboxProcessObject;
+    // seed the sandboxCreationProgress via the resumeSandboxRequest options
+    if (resumeSandboxRequest.SandboxName) {
+      sandboxCreationProgress = await this.querySandboxProcessBySandboxName(resumeSandboxRequest.SandboxName);
+    } else {
+      sandboxCreationProgress = await this.querySandboxProcessById(resumeSandboxRequest.SandboxProcessObjId!);
+    }
+    this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
+
+    await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESUME, sandboxCreationProgress);
+
+    const [wait, pollInterval] = this.validateWaitOptions(options);
+    // if wait is 0, return the sandboxCreationProgress immediately
+    if (wait.seconds === 0) {
+      await Lifecycle.getInstance().emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxCreationProgress);
+      return sandboxCreationProgress;
+    }
+    this.logger.debug(
+      `resume - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
       sandboxCreationProgress
     );
     return this.pollStatusAndAuth({
@@ -1013,6 +1056,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       if (!productionAuthFields.privateKey) {
         oauth2Options.redirectUri = `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`;
         oauth2Options.authCode = sandboxRes.authCode;
+      } else {
+        oauth2Options.privateKey = productionAuthFields.privateKey;
+        oauth2Options.clientId = productionAuthFields.clientId;
       }
 
       const authInfo = await AuthInfo.create({
@@ -1073,7 +1119,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     let waitingOnAuth = false;
     const pollingClient = await PollingClient.create({
       poll: async (): Promise<StatusResult> => {
-        const sandboxProcessObj = await this.querySandboxProcess(options.sandboxProcessObj.SandboxInfoId);
+        const sandboxProcessObj = await this.querySandboxProcessBySandboxInfoId(
+          options.sandboxProcessObj.SandboxInfoId
+        );
         // check to see if sandbox can authenticated via sandboxAuth endpoint
         const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
         if (sandboxInfo) {
@@ -1093,13 +1141,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
           }
         }
 
-        remainingWait = Duration.seconds(remainingWait.seconds - options.pollInterval.seconds);
         await Lifecycle.getInstance().emit(SandboxEvents.EVENT_STATUS, {
           sandboxProcessObj,
           remainingWait: remainingWait.seconds,
           interval: options.pollInterval.seconds,
           waitingOnAuth,
         } as StatusEvent);
+        remainingWait = Duration.seconds(remainingWait.seconds - options.pollInterval.seconds);
         return { completed: false, payload: sandboxProcessObj };
       },
       frequency: options.pollInterval,
@@ -1115,13 +1163,45 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @param id SandboxInfoId to query for
    * @private
    */
-  private async querySandboxProcess(id: string): Promise<SandboxProcessObject> {
+  private async querySandboxProcessBySandboxInfoId(id: string): Promise<SandboxProcessObject> {
+    return await this.querySandboxProcess(`SandboxInfoId='${id}'`);
     const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxInfoId='${id}' AND Status != 'D'`;
     return await this.connection.singleRecordQuery(queryStr, {
       tooling: true,
     });
   }
+  /**
+   * query SandboxInfoId via sandbox name
+   *
+   * @param name SandboxInfoId to query for
+   * @private
+   */
+  private async querySandboxProcessBySandboxName(name: string): Promise<SandboxProcessObject> {
+    return await this.querySandboxProcess(`SandboxName='${name}'`);
+  }
 
+  /**
+   * query SandboxProcess via sandbox name
+   *
+   * @param name SandboxInfoId to query for
+   * @private
+   */
+  private async querySandboxProcessById(id: string): Promise<SandboxProcessObject> {
+    return await this.querySandboxProcess(`Id='${id}'`);
+  }
+
+  /**
+   * query SandboxProcess via sandbox name
+   *
+   * @param name SandboxInfoId to query for
+   * @private
+   */
+  private async querySandboxProcess(where: string): Promise<SandboxProcessObject> {
+    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE '${where}' AND Status != 'D'`;
+    return await this.connection.singleRecordQuery(queryStr, {
+      tooling: true,
+    });
+  }
   /**
    * determines if the sandbox has successfully been created
    *
@@ -1173,6 +1253,19 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         throw SfError.wrap(error);
       }
     }
+  }
+
+  private validateWaitOptions(options: {
+    wait?: Duration;
+    interval?: Duration;
+    async?: boolean;
+  }): [Duration, Duration] {
+    const wait = options.wait ?? Duration.minutes(6);
+    const interval = options.interval ?? Duration.seconds(30);
+    let pollInterval = options.async ? Duration.seconds(0) : interval;
+    // pollInterval cannot be > wait.
+    pollInterval = pollInterval.seconds > wait.seconds ? wait : pollInterval;
+    return [wait, pollInterval];
   }
 }
 

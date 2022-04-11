@@ -34,6 +34,8 @@ export {
   SF_ALLOWED_PROPERTIES,
 } from './config/config';
 
+export { SandboxRequestCacheEntry, SandboxRequestCache } from './config/sandboxProcessCache';
+
 export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
 export { AuthFields, AuthInfo, AuthSideEffects, OrgAuthorization } from './org/authInfo';
@@ -73,6 +75,7 @@ export {
   SandboxUserAuthResponse,
   SandboxUserAuthRequest,
   SandboxRequest,
+  ResumeSandboxRequest,
   OrgTypes,
   ResultEvent,
   ScratchOrgRequest,
