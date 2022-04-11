@@ -146,6 +146,25 @@ const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): St
   return new Map<string, StoredMessage>(Object.entries(json));
 };
 
+function format(message: string, tokens: Tokens): string {
+  const args = [message, ...tokens];
+  const formatted = args.map((a) => {
+    if (typeof a === 'string') {
+      for (const formatter of Object.values(FORMATTERS)) {
+        const symbol = `\\${formatter.symbol.split('').join('\\')}`;
+        const regex = new RegExp(`${symbol}(.*?)${symbol}`, 'g');
+        const matches: string[] = a.match(regex) ?? [];
+        for (const match of matches) {
+          a = a.replace(match, formatter.format(match.replace(new RegExp(`${symbol}`, 'g'), '')));
+        }
+      }
+    }
+
+    return a;
+  });
+  return util.format(...formatted);
+}
+
 /**
  * The core message framework manages messages and allows them to be accessible by
  * all plugins and consumers of sfdx-core. It is set up to handle localization down
@@ -667,22 +686,7 @@ export class Messages<T extends string> {
     const messages = (isArray(msg) ? msg : [msg]) as string[];
     return messages.map((message) => {
       ensureString(message);
-      const args = [message, ...tokens];
-      const formatted = args.map((a) => {
-        if (typeof a === 'string') {
-          for (const formatter of Object.values(FORMATTERS)) {
-            const symbol = `\\${formatter.symbol.split('').join('\\')}`;
-            const regex = new RegExp(`${symbol}(.*?)${symbol}`, 'g');
-            const matches: string[] = a.match(regex) ?? [];
-            for (const match of matches) {
-              a = a.replace(match, formatter.format(match.replace(new RegExp(`${symbol}`, 'g'), '')));
-            }
-          }
-        }
-
-        return a;
-      });
-      return util.format(...formatted);
+      return format(message, tokens);
     });
   }
 }
