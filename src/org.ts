@@ -667,7 +667,7 @@ export class Org extends AsyncCreatable<Org.Options> {
 
     const queryResult = await tooling.query(queryStr);
     this.logger.debug('Return from calling queryToolingApi: %s ', queryResult);
-    if (queryResult.records && queryResult.records.length === 1) {
+    if (queryResult?.records?.length === 1) {
       return queryResult.records[0] as SandboxProcessObject;
     } else if (queryResult.records && queryResult.records.length > 1) {
       throw SfdxError.create('@salesforce/core', 'org', 'MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
@@ -677,7 +677,7 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
-   * Gets the sandboxProcessObject and then pools for it to complete.
+   * Gets the sandboxProcessObject and then polls for it to complete.
    *
    * @param sandboxProcessName sanbox process name
    * @param options { wait?: Duration; interval?: Duration }
