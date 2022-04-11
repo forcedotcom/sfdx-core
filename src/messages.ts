@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as util from 'util';
+import * as chalk from 'chalk';
 import {
   AnyJson,
   asString,
@@ -21,6 +22,26 @@ import {
 } from '@salesforce/ts-types';
 import { NamedError, upperFirst } from '@salesforce/kit';
 import { SfError } from './sfError';
+
+type Formatter = {
+  symbol: string;
+  format: chalk.Chalk;
+};
+
+const FORMATTERS: Record<string, Formatter> = {
+  italics: {
+    symbol: '_',
+    format: chalk.italic,
+  },
+  bold: {
+    symbol: '**',
+    format: chalk.bold,
+  },
+  code: {
+    symbol: '`',
+    format: chalk.dim,
+  },
+};
 
 export type Tokens = Array<string | boolean | number | null | undefined>;
 
@@ -646,7 +667,22 @@ export class Messages<T extends string> {
     const messages = (isArray(msg) ? msg : [msg]) as string[];
     return messages.map((message) => {
       ensureString(message);
-      return util.format(message, ...tokens);
+      const args = [message, ...tokens];
+      const formatted = args.map((a) => {
+        if (typeof a === 'string') {
+          for (const formatter of Object.values(FORMATTERS)) {
+            const symbol = `\\${formatter.symbol.split('').join('\\')}`;
+            const regex = new RegExp(`${symbol}(.*?)${symbol}`, 'g');
+            const matches: string[] = a.match(regex) ?? [];
+            for (const match of matches) {
+              a = a.replace(match, formatter.format(match.replace(new RegExp(`${symbol}`, 'g'), '')));
+            }
+          }
+        }
+
+        return a;
+      });
+      return util.format(...formatted);
     });
   }
 }
