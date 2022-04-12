@@ -109,6 +109,9 @@ jobs:
                 command: |
                   mkdir artifacts
       - run:
+          name: Why @salesforce/core
+          command: yarn why @salesforce/core
+      - run:
           name: Nuts
           command: <<parameters.test_command>>
       - when:
