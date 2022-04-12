@@ -92,6 +92,9 @@ jobs:
           # deletes sf-plugins-core/core to prevent ts conflicts
           command: shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core
       - run:
+          name: remove command/core
+          command: shx rm -rf node_modules/@salesforce/command/node_modules/@salesforce/core
+      - run:
           name: build the external project
           command: |
             yarn build
@@ -108,9 +111,6 @@ jobs:
                 name: Create artifact dir
                 command: |
                   mkdir artifacts
-      - run:
-          name: Why @salesforce/core
-          command: yarn why @salesforce/core
       - run:
           name: Nuts
           command: <<parameters.test_command>>
