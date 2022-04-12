@@ -259,9 +259,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     } else if (resumeSandboxRequest.SandboxProcessObjId) {
       sandboxCreationProgress = await this.querySandboxProcessById(resumeSandboxRequest.SandboxProcessObjId);
     } else {
-      // TODO: start here
-      throw messages.createError('sandboxInfoCreateFailed', [
-        'SandboxName or SandboxProcessObjId is required to resume a sandbox',
+      throw messages.createError('sandboxNotFound', [
+        resumeSandboxRequest.SandboxName ?? resumeSandboxRequest.SandboxProcessObjId,
       ]);
     }
     this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
@@ -271,8 +270,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const [wait, pollInterval] = this.validateWaitOptions(options);
     // if wait is 0, return the sandboxCreationProgress immediately
     if (wait.seconds === 0) {
-      await Lifecycle.getInstance().emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxCreationProgress);
-      return sandboxCreationProgress;
+      // return if no wait and status is not completed
+      if (sandboxCreationProgress.Status !== 'Completed') {
+        await Lifecycle.getInstance().emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxCreationProgress);
+        return sandboxCreationProgress;
+      }
     }
     this.logger.debug(
       `resume - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,

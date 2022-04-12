@@ -28,7 +28,7 @@ The sandbox org deletion failed with a result of %s.
 
 # sandboxNotFound
 
-We can't find a SandboxProcess for the sandbox org %s.
+We can't find a SandboxProcess for the sandbox %s.
 
 # sandboxInfoCreateFailed
 
