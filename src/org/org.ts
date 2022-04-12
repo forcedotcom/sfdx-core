@@ -891,18 +891,19 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
           result = await this.queryProduction(prodOrg, 'SandboxOrganization', trimmedId);
           sandboxInfoId = result.SandboxInfoId;
         } catch {
-          throw messages.createError('sandboxNotFound', [trimmedId]);
+          // eating exceptions when trying to find sandbox process record by orgId
+          // allows idempotent cleanup of sandbox orgs
+          this.logger.debug(`Failed find a SandboxProcess for the sandbox org: ${this.getOrgId()}`);
         }
       }
     }
 
-    const deleteResult = await this.destroySandbox(prodOrg, sandboxInfoId as string);
-    this.logger.debug('Return from calling tooling.delete: ', deleteResult);
-    await this.remove();
-
-    if (Array.isArray(deleteResult) || !deleteResult.success) {
-      throw messages.createError('sandboxDeleteFailed', [JSON.stringify(deleteResult)]);
+    if (sandboxInfoId) {
+      const deleteResult = await this.destroySandbox(prodOrg, sandboxInfoId);
+      this.logger.debug('Return from calling tooling.delete: ', deleteResult);
     }
+    // cleanup remaining artifacts
+    await this.remove();
   }
 
   /**
