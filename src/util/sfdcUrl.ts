@@ -191,7 +191,7 @@ export class SfdcUrl extends URL {
 
   /**
    * Tests whether this url is a sandbox url
-   * otherwise tryies to resolve dns cnames and then look if any is sandbox url
+   * otherwise tries to resolve dns cnames and then look if any is sandbox url
    *
    * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
    * @returns {Promise<boolean>} true if this domain resolves to sanbox url
