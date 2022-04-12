@@ -256,8 +256,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     // seed the sandboxCreationProgress via the resumeSandboxRequest options
     if (resumeSandboxRequest.SandboxName) {
       sandboxCreationProgress = await this.querySandboxProcessBySandboxName(resumeSandboxRequest.SandboxName);
+    } else if (resumeSandboxRequest.SandboxProcessObjId) {
+      sandboxCreationProgress = await this.querySandboxProcessById(resumeSandboxRequest.SandboxProcessObjId);
     } else {
-      sandboxCreationProgress = await this.querySandboxProcessById(resumeSandboxRequest.SandboxProcessObjId!);
+      // TODO: start here
+      throw messages.createError('sandboxInfoCreateFailed', [
+        'SandboxName or SandboxProcessObjId is required to resume a sandbox',
+      ]);
     }
     this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
 
@@ -326,9 +331,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * Removes the scratch org config file at $HOME/.sfdx/[name].json, any project level org
-   * files, all user auth files for the org, matching default config settings, and any
-   * matching aliases.
+   * Cleans up all org related artifacts including users, sandbox config(if a sandbox and auth file.
    *
    * @param throwWhenRemoveFails Determines if the call should throw an error or fail silently.
    */
@@ -338,7 +341,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (this.getConnection().isUsingAccessToken()) {
       return Promise.resolve();
     }
-    (await GlobalInfo.getInstance()).sandboxes.unset(this.getOrgId());
+    await this.removeSandboxConfig();
     await this.removeUsers(throwWhenRemoveFails);
     await this.removeUsersConfig();
     // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's usersname is also
@@ -1033,6 +1036,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     await globalInfo.write();
   }
 
+  private async removeSandboxConfig(): Promise<void> {
+    const globalInfo = await GlobalInfo.getInstance();
+    globalInfo.sandboxes.unset(this.getOrgId());
+    await globalInfo.write();
+  }
+
   private async writeSandboxAuthFile(sandboxProcessObj: SandboxProcessObject, sandboxRes: SandboxUserAuthResponse) {
     this.logger.debug(
       `writeSandboxAuthFile sandboxProcessObj: ${JSON.stringify(sandboxProcessObj)}, sandboxRes: ${JSON.stringify(
@@ -1197,7 +1206,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @private
    */
   private async querySandboxProcess(where: string): Promise<SandboxProcessObject> {
-    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE '${where}' AND Status != 'D'`;
+    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE ${where} AND Status != 'D'`;
     return await this.connection.singleRecordQuery(queryStr, {
       tooling: true,
     });
@@ -1205,7 +1214,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * determines if the sandbox has successfully been created
    *
-   * @param sandboxProcessObj sandbox signup progeress
+   * @param sandboxProcessObj sandbox signup progress
    * @private
    */
   private async sandboxSignupComplete(
