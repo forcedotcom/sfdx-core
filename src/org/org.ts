@@ -1134,7 +1134,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         const sandboxProcessObj = await this.querySandboxProcessBySandboxInfoId(
           options.sandboxProcessObj.SandboxInfoId
         );
-        // check to see if sandbox can authenticated via sandboxAuth endpoint
+        // check to see if sandbox can authenticate via sandboxAuth endpoint
         const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
         if (sandboxInfo) {
           await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
