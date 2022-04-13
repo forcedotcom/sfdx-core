@@ -56,6 +56,7 @@ const messages = Messages.load('@salesforce/core', 'org', [
   'sandboxNotFound',
   'scratchOrgNotFound',
   'error.AuthInfoOrgIdUndefined',
+  'sandboxCreateNotComplete',
 ]);
 
 export type OrganizationInformation = {
@@ -271,11 +272,24 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     // if wait is 0, return the sandboxCreationProgress immediately
     if (wait.seconds === 0) {
       // return if no wait and status is not completed
-      if (sandboxCreationProgress.Status !== 'Completed') {
-        await Lifecycle.getInstance().emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxCreationProgress);
-        return sandboxCreationProgress;
+      if (sandboxCreationProgress.Status === 'Completed') {
+        // check to see if sandbox can authenticate via sandboxAuth endpoint
+        const sandboxInfo = await this.sandboxSignupComplete(sandboxCreationProgress);
+        if (sandboxInfo) {
+          await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
+          try {
+            this.logger.debug('sandbox signup complete with', sandboxInfo);
+            await this.writeSandboxAuthFile(sandboxCreationProgress, sandboxInfo);
+            return sandboxCreationProgress;
+          } catch (err) {
+            // eat the error, we don't want to throw an error if we can't write the file
+          }
+        }
       }
+      await Lifecycle.getInstance().emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxCreationProgress);
+      throw messages.createError('sandboxCreateNotComplete');
     }
+
     this.logger.debug(
       `resume - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
       sandboxCreationProgress

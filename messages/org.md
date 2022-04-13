@@ -49,3 +49,7 @@ The scratch org does not belong to the dev hub username %s.
 # error.AuthInfoOrgIdUndefined
 
 AuthInfo orgId is undefined.
+
+# sandboxCreateNotComplete
+
+The sandbox creation has not completed.
