@@ -55,7 +55,7 @@ const messages = Messages.load('@salesforce/core', 'org', [
   'sandboxInfoCreateFailed',
   'sandboxNotFound',
   'scratchOrgNotFound',
-  'error.AuthInfoOrgIdUndefined',
+  'AuthInfoOrgIdUndefined',
   'sandboxCreateNotComplete',
 ]);
 
@@ -1103,7 +1103,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       await authInfo.save();
 
       if (!authInfo.getFields().orgId) {
-        throw messages.createError('error.AuthInfoOrgIdUndefined');
+        throw messages.createError('AuthInfoOrgIdUndefined');
       }
       // set the sandbox config value
       const sfSandbox = {
