@@ -92,6 +92,9 @@ jobs:
           # deletes sf-plugins-core/core to prevent ts conflicts
           command: shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core
       - run:
+          name: remove command/core
+          command: shx rm -rf node_modules/@salesforce/command/node_modules/@salesforce/core
+      - run:
           name: build the external project
           command: |
             yarn build
@@ -151,6 +154,10 @@ workflows:
               external_project_git_url:
                 [
                   'https://github.com/salesforcecli/plugin-alias',
+                  'https://github.com/salesforcecli/plugin-auth',
+                  'https://github.com/salesforcecli/plugin-config',
+                  'https://github.com/salesforcecli/plugin-limits',
+                  'https://github.com/salesforcecli/plugin-schema',
                   'https://github.com/salesforcecli/plugin-env',
                   'https://github.com/salesforcecli/plugin-login',
                 ]
