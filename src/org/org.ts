@@ -271,7 +271,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const [wait, pollInterval] = this.validateWaitOptions(options);
     // if wait is 0, return the sandboxCreationProgress immediately
     if (wait.seconds === 0) {
-      // return if no wait and status is not completed
       if (sandboxCreationProgress.Status === 'Completed') {
         // check to see if sandbox can authenticate via sandboxAuth endpoint
         const sandboxInfo = await this.sandboxSignupComplete(sandboxCreationProgress);
