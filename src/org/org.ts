@@ -814,6 +814,40 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
+   * query SandboxProcess via sandbox name
+   *
+   * @param name SandboxName to query for
+   * @private
+   */
+  public async querySandboxProcessBySandboxName(name: string): Promise<SandboxProcessObject> {
+    return await this.querySandboxProcess(`SandboxName='${name}'`);
+  }
+
+  /**
+   * query SandboxProcess via SandboxInfoId
+   *
+   * @param id SandboxInfoId to query for
+   * @private
+   */
+  public async querySandboxProcessBySandboxInfoId(id: string): Promise<SandboxProcessObject> {
+    return await this.querySandboxProcess(`SandboxInfoId='${id}'`);
+    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxInfoId='${id}' AND Status != 'D'`;
+    return await this.connection.singleRecordQuery(queryStr, {
+      tooling: true,
+    });
+  }
+
+  /**
+   * query SandboxProcess via Id
+   *
+   * @param id SandboxProcessId to query for
+   * @private
+   */
+  public async querySandboxProcessById(id: string): Promise<SandboxProcessObject> {
+    return await this.querySandboxProcess(`Id='${id}'`);
+  }
+
+  /**
    * Initialize async components.
    */
   protected async init(): Promise<void> {
@@ -1183,42 +1217,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * query SandboxProcess via SandboxInfoId
+   * query SandboxProcess using supplied where clause
    *
-   * @param id SandboxInfoId to query for
-   * @private
-   */
-  private async querySandboxProcessBySandboxInfoId(id: string): Promise<SandboxProcessObject> {
-    return await this.querySandboxProcess(`SandboxInfoId='${id}'`);
-    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxInfoId='${id}' AND Status != 'D'`;
-    return await this.connection.singleRecordQuery(queryStr, {
-      tooling: true,
-    });
-  }
-  /**
-   * query SandboxInfoId via sandbox name
-   *
-   * @param name SandboxInfoId to query for
-   * @private
-   */
-  private async querySandboxProcessBySandboxName(name: string): Promise<SandboxProcessObject> {
-    return await this.querySandboxProcess(`SandboxName='${name}'`);
-  }
-
-  /**
-   * query SandboxProcess via sandbox name
-   *
-   * @param name SandboxInfoId to query for
-   * @private
-   */
-  private async querySandboxProcessById(id: string): Promise<SandboxProcessObject> {
-    return await this.querySandboxProcess(`Id='${id}'`);
-  }
-
-  /**
-   * query SandboxProcess via sandbox name
-   *
-   * @param name SandboxInfoId to query for
+   * @param where clause to query for
    * @private
    */
   private async querySandboxProcess(where: string): Promise<SandboxProcessObject> {
