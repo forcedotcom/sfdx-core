@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.12.2](https://github.com/forcedotcom/sfdx-core/compare/v3.12.1...v3.12.2) (2022-04-14)
+
+### Bug Fixes
+
+- sandbox cname recognition ([#556](https://github.com/forcedotcom/sfdx-core/issues/556)) ([2f85709](https://github.com/forcedotcom/sfdx-core/commit/2f8570912cae38fb0ddeaa37836395444c47611a))
+
 ### [3.12.1](https://github.com/forcedotcom/sfdx-core/compare/v3.12.0...v3.12.1) (2022-04-05)
 
 ### Bug Fixes
