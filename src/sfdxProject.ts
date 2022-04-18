@@ -157,7 +157,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       try {
         const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
         const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
-        await validator.load();
+        // await validator.load();
         await validator.validate(this.getContents());
       } catch (err) {
         // Don't throw errors if the global isn't valid, but still warn the user.

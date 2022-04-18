@@ -113,6 +113,7 @@ describe('SfdxProject', () => {
       await SfdxProjectJson.create({});
       expect(loggerSpy.called).to.be.false;
     });
+
     it('schemaValidate throws when SFDX_PROJECT_JSON_VALIDATION=true and invalid file', async () => {
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
@@ -130,6 +131,7 @@ describe('SfdxProject', () => {
         expect(e.message).to.equal(expectedError);
       }
     });
+
     it('schemaValidate warns when SFDX_PROJECT_JSON_VALIDATION=false and invalid file', async () => {
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
