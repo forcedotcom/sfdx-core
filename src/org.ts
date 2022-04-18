@@ -205,11 +205,8 @@ export class Org extends AsyncCreatable<Org.Options> {
     sandboxName: string,
     options: { wait?: Duration; interval?: Duration }
   ): Promise<SandboxProcessObject> {
-    if (sandboxName) {
-      sandboxReq.SourceId = await this.querySandboxInfoIdBySandboxName(sandboxName);
-      this.logger.debug('Clone sandbox sourceId %s', sandboxReq.SourceId);
-    }
-
+    sandboxReq.SourceId = await this.querySandboxInfoIdBySandboxName(sandboxName);
+    this.logger.debug('Clone sandbox sourceId %s', sandboxReq.SourceId);
     return this.createSandbox(sandboxReq, options);
   }
 
