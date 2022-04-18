@@ -243,6 +243,7 @@ describe('ConfigStore', () => {
       const config = await TestConfig.create();
       config.set('1', 'a');
       expect(config.getChangesForWrite().updated.size).to.equal(1);
+      expect(config.getChangesForWrite().updated).to.deep.equal(new Map([['1', 'a']]));
 
       config.set('1', 'b');
       expect(config.getChangesForWrite().updated.size).to.equal(1);
@@ -272,7 +273,7 @@ describe('ConfigStore', () => {
 
     describe('tracking for setContents', () => {
       let config: TestConfig<any>;
-      before(async () => {
+      beforeEach(async () => {
         config = await TestConfig.create();
       });
 
@@ -282,18 +283,49 @@ describe('ConfigStore', () => {
         expect(config.getChangesForWrite().deleted.size).to.equal(0);
       });
 
-      it('setContents removing a key shows in deleted', () => {
+      it('setContents removing a key', () => {
         config.set('a', 1);
         config.set('b', 2);
 
-        expect(config.getChangesForWrite().updated.entries()).to.deep.equal([
-          ['a', 1],
-          ['b', 2],
-        ]);
+        expect(config.getChangesForWrite().updated).to.deep.equal(
+          new Map([
+            ['a', 1],
+            ['b', 2],
+          ])
+        );
 
         config.setContents({ a: 1 });
-        expect(config.getChangesForWrite().deleted.values()).to.deep.equal(['b']);
-        expect(config.getChangesForWrite().updated).to.deep.equal({ a: 1 });
+        expect(config.getChangesForWrite().deleted).to.deep.equal(new Set(['b']));
+        expect(config.getChangesForWrite().updated).to.deep.equal(new Map([['a', 1]]));
+      });
+
+      it('setContents removing a key by setting it to undefined', () => {
+        config.set('a', 1);
+        config.set('b', 2);
+
+        config.setContents({ a: 1, b: undefined });
+        expect(config.getChangesForWrite().deleted).to.deep.equal(new Set(['b']));
+        expect(config.getChangesForWrite().updated).to.deep.equal(new Map([['a', 1]]));
+      });
+
+      it('setContents adding a key', () => {
+        config.setContents({ a: 1 });
+        expect(config.getChangesForWrite().deleted).to.deep.equal(new Set());
+        expect(config.getChangesForWrite().updated).to.deep.equal(new Map([['a', 1]]));
+      });
+
+      it('setContents adding a key that was previously deleted', () => {
+        config.set('a', 1);
+        config.set('b', 2);
+        config.unset('b');
+        config.setContents({ a: 1, b: 3 });
+        expect(config.getChangesForWrite().deleted).to.deep.equal(new Set());
+        expect(config.getChangesForWrite().updated).to.deep.equal(
+          new Map([
+            ['a', 1],
+            ['b', 3],
+          ])
+        );
       });
     });
 
