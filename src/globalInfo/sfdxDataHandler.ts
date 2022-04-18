@@ -88,7 +88,7 @@ abstract class BaseHandler<T extends SfInfoKeys> implements Handler<T> {
       set(merged, `${key}["${k}"]`, Object.assign({}, older, newer));
     }
 
-    // Keys that exist in .sfdx but not .sf are added becase we assume
+    // Keys that exist in .sfdx but not .sf are added because we assume
     // that this means the key was created using sfdx.
     // However, this is not always a valid assumption because it could
     // also mean that the key was deleted using sf, in which case we
