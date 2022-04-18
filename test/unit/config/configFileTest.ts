@@ -198,6 +198,8 @@ describe('Config', () => {
   describe('write', () => {
     beforeEach(() => {
       $$.SANDBOXES.CONFIG.restore();
+      $$.SANDBOX.stub(fs.promises, 'readFile').resolves(JSON.stringify({}));
+      $$.SANDBOX.stub(fs, 'readFileSync').returns(JSON.stringify({}));
     });
     it('uses passed in contents', async () => {
       // const mkdirpStub = $$.SANDBOX.stub(mkdirp, 'native');

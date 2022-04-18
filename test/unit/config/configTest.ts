@@ -98,13 +98,14 @@ describe('Config', () => {
     });
 
     it('calls Config.write with deleted file contents', async () => {
+      stubMethod($$.SANDBOX, fs.promises, 'readFile').resolves(configFileContentsString);
+
       const expectedFileContents = clone(configFileContentsJson);
       const newUsername = 'updated_val';
       expectedFileContents['target-org'] = newUsername;
 
       await Config.update(false, 'target-org', newUsername);
 
-      stubMethod($$.SANDBOX, fs.promises, 'readFile').resolves(configFileContentsString);
       const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
       const targetDevhub = configFileContentsJson['target-dev-hub'];
 

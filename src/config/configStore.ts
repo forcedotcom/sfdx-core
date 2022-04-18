@@ -86,6 +86,8 @@ export abstract class BaseConfigStore<
   // Initialized in setContents
   private contents!: P;
   private statics = this.constructor as typeof BaseConfigStore;
+  private updatedKeys = new Map<string, ConfigValue>();
+  private deletedKeys = new Set<string>();
 
   /**
    * Constructor.
@@ -174,6 +176,10 @@ export abstract class BaseConfigStore<
       }
     }
     this.setMethod(this.contents, key as string, value);
+    if (value) {
+      this.updatedKeys.set(key, value);
+      this.deletedKeys.delete(key);
+    }
   }
 
   /**
@@ -202,6 +208,8 @@ export abstract class BaseConfigStore<
   public unset(key: string): boolean {
     if (this.has(key)) {
       if (this.contents[key]) {
+        this.updatedKeys.delete(key);
+        this.deletedKeys.add(key);
         delete this.contents[key];
       } else {
         // It is a query key, so just set it to undefined
@@ -219,6 +227,11 @@ export abstract class BaseConfigStore<
    * @param keys The keys. Supports query keys like `a.b[0]`.
    */
   public unsetAll(keys: string[]): boolean {
+    keys.forEach((key) => {
+      this.updatedKeys.delete(key);
+      this.deletedKeys.add(key);
+    });
+
     return keys.reduce((val: boolean, key) => val && this.unset(key), true);
   }
 
@@ -226,6 +239,8 @@ export abstract class BaseConfigStore<
    * Removes all key/value pairs from the config object.
    */
   public clear(): void {
+    this.updatedKeys.clear();
+    Object.keys(this.contents).forEach((key) => this.deletedKeys.add(key));
     this.contents = {} as P;
   }
 
@@ -265,6 +280,22 @@ export abstract class BaseConfigStore<
     if (this.hasEncryption()) {
       contents = this.recursiveEncrypt(contents);
     }
+    // check for keys that are removed, and put them in deletedKeys
+    this.updatedKeys.forEach((value, key) => {
+      if (!contents[key]) {
+        this.deletedKeys.add(key);
+      }
+    });
+    // updated keys should exactly equal contents
+    this.updatedKeys.clear();
+    Object.entries(contents).forEach(([key, value]) => {
+      if (value) {
+        this.deletedKeys.delete(key);
+        this.updatedKeys.set(key, value);
+      } else {
+        this.deletedKeys.add(key);
+      }
+    });
     this.contents = contents;
   }
 
@@ -315,6 +346,18 @@ export abstract class BaseConfigStore<
     });
   }
 
+  public clearTracking(): void {
+    this.updatedKeys.clear();
+    this.deletedKeys.clear();
+  }
+
+  public getChangesForWrite(): { updated: Map<string, ConfigValue>; deleted: Set<string> } {
+    return {
+      updated: this.updatedKeys,
+      deleted: this.deletedKeys,
+    };
+  }
+
   protected getEncryptedKeys(): Array<string | RegExp> {
     return [...(this.options?.encryptedKeys || []), ...(this.statics?.encryptedKeys || [])];
   }
@@ -328,7 +371,7 @@ export abstract class BaseConfigStore<
     return this.getEncryptedKeys().length > 0;
   }
 
-  // Allows extended classes the ability to override the set method. i.e. maybe they want
+  // Allows extended classes the ability to override the set method. i.e. maybe they don't want
   // nested object set from kit.
   protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
     set(contents, key, value);

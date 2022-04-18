@@ -228,4 +228,87 @@ describe('ConfigStore', () => {
       expect(config.get('owner.creditCardNumber', true)).to.equal(expected);
     });
   });
+
+  describe('change tracking', () => {
+    it('set adds to updated', async () => {
+      const config = await TestConfig.create();
+      config.set('1', 'a');
+      expect(config.getChangesForWrite().updated.size).to.equal(1);
+
+      config.set('2', 'b');
+      expect(config.getChangesForWrite().updated.size).to.equal(2);
+      expect(config.getChangesForWrite().deleted).to.be.empty;
+    });
+    it('set is idempotent', async () => {
+      const config = await TestConfig.create();
+      config.set('1', 'a');
+      expect(config.getChangesForWrite().updated.size).to.equal(1);
+
+      config.set('1', 'b');
+      expect(config.getChangesForWrite().updated.size).to.equal(1);
+      expect(config.getChangesForWrite().deleted).to.be.empty;
+    });
+    it('delete adds to deleted and removes from updated', async () => {
+      const config = await TestConfig.create();
+      config.set('1', 'a');
+      expect(config.getChangesForWrite().updated.size).to.equal(1);
+
+      config.unset('1');
+      expect(config.getChangesForWrite().updated.size).to.equal(0);
+      expect(config.getChangesForWrite().deleted.size).to.equal(1);
+    });
+    it('delete is idempotent', async () => {
+      const config = await TestConfig.create();
+      config.set('1', 'a');
+      expect(config.getChangesForWrite().updated.size).to.equal(1);
+
+      config.unset('1');
+      expect(config.getChangesForWrite().updated.size).to.equal(0);
+      expect(config.getChangesForWrite().deleted.size).to.equal(1);
+      config.unset('1');
+      expect(config.getChangesForWrite().updated.size).to.equal(0);
+      expect(config.getChangesForWrite().deleted.size).to.equal(1);
+    });
+
+    describe('tracking for setContents', () => {
+      let config: TestConfig<any>;
+      before(async () => {
+        config = await TestConfig.create();
+      });
+
+      it('setContents from blank', () => {
+        config.setContents({});
+        expect(config.getChangesForWrite().updated.size).to.equal(0);
+        expect(config.getChangesForWrite().deleted.size).to.equal(0);
+      });
+
+      it('setContents removing a key shows in deleted', () => {
+        config.set('a', 1);
+        config.set('b', 2);
+
+        expect(config.getChangesForWrite().updated.entries()).to.deep.equal([
+          ['a', 1],
+          ['b', 2],
+        ]);
+
+        config.setContents({ a: 1 });
+        expect(config.getChangesForWrite().deleted.values()).to.deep.equal(['b']);
+        expect(config.getChangesForWrite().updated).to.deep.equal({ a: 1 });
+      });
+    });
+
+    it('tracking can clear', async () => {
+      const config = await TestConfig.create();
+      config.set('1', 'a');
+      config.set('2', 'a');
+      expect(config.getChangesForWrite().updated.size).to.equal(2);
+
+      config.unset('1');
+      expect(config.getChangesForWrite().updated.size).to.equal(1);
+      expect(config.getChangesForWrite().deleted.size).to.equal(1);
+      config.clearTracking();
+      expect(config.getChangesForWrite().updated.size).to.equal(0);
+      expect(config.getChangesForWrite().deleted.size).to.equal(0);
+    });
+  });
 });

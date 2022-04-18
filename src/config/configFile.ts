@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
-import { isBoolean, isPlainObject } from '@salesforce/ts-types';
+import { isBoolean, isPlainObject, JsonMap } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
 import * as mkdirp from 'mkdirp';
 import { Global } from '../global';
@@ -164,6 +164,7 @@ export class ConfigFile<
         this.logger.info(`Reading config file: ${this.getPath()}`);
         const obj = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'));
         this.setContentsFromObject(obj);
+        this.clearTracking();
       }
       return this.getContents();
     } catch (err) {
@@ -198,6 +199,7 @@ export class ConfigFile<
         this.logger.info(`Reading config file: ${this.getPath()}`);
         const obj = parseJsonMap(fs.readFileSync(this.getPath(), 'utf8'));
         this.setContentsFromObject(obj);
+        this.clearTracking();
       }
       return this.getContents();
     } catch (err) {
@@ -229,8 +231,13 @@ export class ConfigFile<
     await mkdirp(pathDirname(this.getPath()));
 
     this.logger.info(`Writing to config file: ${this.getPath()}`);
-    await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+    // read the file again so we update the latest
+    const fileJson = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'));
+    const fromFile = this.mergeForWrite(fileJson);
 
+    await fs.promises.writeFile(this.getPath(), JSON.stringify(fromFile, null, 2));
+
+    this.clearTracking();
     return this.getContents();
   }
 
@@ -246,10 +253,13 @@ export class ConfigFile<
     }
 
     mkdirp.sync(pathDirname(this.getPath()));
+    const fileJson = parseJsonMap(fs.readFileSync(this.getPath(), 'utf8'));
+    const fromFile = this.mergeForWrite(fileJson);
 
     this.logger.info(`Writing to config file: ${this.getPath()}`);
-    fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+    fs.writeFileSync(this.getPath(), JSON.stringify(fromFile, null, 2));
 
+    this.clearTracking();
     return this.getContents();
   }
 
@@ -361,6 +371,24 @@ export class ConfigFile<
 
     // Read the file, which also sets the path and throws any errors around project paths.
     await this.read(this.options.throwOnNotFound);
+  }
+
+  private mergeForWrite(fileContents: JsonMap): ConfigContents {
+    const { updated, deleted } = this.getChangesForWrite();
+    const fromFile: ConfigContents = {};
+
+    Object.entries(fileContents).forEach(([key, value]) => {
+      this.setMethod(fromFile, key, value);
+    });
+
+    deleted.forEach((key) => {
+      delete fromFile[key];
+    });
+    updated.forEach((value, key) => {
+      this.setMethod(fromFile, key, value);
+    });
+
+    return fromFile;
   }
 }
 
