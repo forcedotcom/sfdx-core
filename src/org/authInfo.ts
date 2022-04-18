@@ -813,6 +813,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         }
       }
 
+      authConfig.isDevHub = await this.determineIfDevHub(
+        ensureString(authConfig.instanceUrl),
+        ensureString(authConfig.accessToken)
+      );
+
       // Update the auth fields WITH encryption
       this.update(authConfig);
     }
@@ -1064,6 +1069,30 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       errorMsg = `${bodyAsString}`;
     }
     throw new SfError(errorMsg);
+  }
+
+  /**
+   * Returns `true` if the org is a Dev Hub.
+   *
+   * Check access to the ScratchOrgInfo object to determine if the org is a dev hub.
+   */
+  private async determineIfDevHub(instanceUrl: string, accessToken: string): Promise<boolean> {
+    // Make a REST call for the SratchOrgInfo obj directly.  Normally this is done via a connection
+    // but we don't want to create circular dependencies or lots of snowflakes
+    // within this file to support it.
+    const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
+    const instance = ensure(instanceUrl);
+    const baseUrl = new SfdcUrl(instance);
+    const scratchOrgInfoUrl = `${baseUrl}/services/data/${apiVersion}/query?q=SELECT%20Id%20FROM%20ScratchOrgInfo%20limit%201`;
+    const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
+
+    try {
+      await new Transport().httpRequest({ url: scratchOrgInfoUrl, method: 'GET', headers });
+      return true;
+    } catch (err) {
+      /* Not a dev hub */
+      return false;
+    }
   }
 }
 
