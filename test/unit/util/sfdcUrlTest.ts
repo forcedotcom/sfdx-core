@@ -252,12 +252,24 @@ describe('util/sfdcUrl', () => {
   });
 
   describe('isSandboxUrl', () => {
+    it('regular sandboxes with -- in domain but not the word "sandbox" ', () => {
+      const url = new SfdcUrl('https://some--thing.my.salesforce.com');
+      expect(url.isSandboxUrl()).to.be.true;
+    });
+    it('false for "normal" myDomains', () => {
+      const url = new SfdcUrl('https://something.my.salesforce.com');
+      expect(url.isSandboxUrl()).to.be.false;
+    });
     it('.mil sandboxes with trailing slash', () => {
       const url = new SfdcUrl('https://domain--sboxname.sandbox.my.salesforce.mil/');
       expect(url.isSandboxUrl()).to.be.true;
     });
     it('.mil sandboxes without trailing slash', () => {
       const url = new SfdcUrl('https://domain--sboxname.sandbox.my.salesforce.mil');
+      expect(url.isSandboxUrl()).to.be.true;
+    });
+    it('cs123', () => {
+      const url = new SfdcUrl('https://cs123.force.com');
       expect(url.isSandboxUrl()).to.be.true;
     });
   });
