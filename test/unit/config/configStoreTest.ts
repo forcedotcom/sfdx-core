@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AnyJson } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { BaseConfigStore, ConfigContents } from '../../../src/config/configStore';
 
@@ -247,6 +248,27 @@ describe('ConfigStore', () => {
 
       config.set('1', 'b');
       expect(config.getChangesForWrite().updated.size).to.equal(1);
+      expect(config.getChangesForWrite().deleted).to.be.empty;
+    });
+    it('update nested property', async () => {
+      const config = await TestConfig.create();
+      config.set('1', { a: 'a' });
+      config.set('1.a', 'b');
+      expect(config.getChangesForWrite().updated.size).to.equal(2);
+      expect(
+        config.getChangesForWrite().updated,
+        Array.from(config.getChangesForWrite().updated.entries())
+          .map(([key, value]) => [key, JSON.stringify(value)])
+          .join(',')
+      ).to.deep.equal(
+        new Map<string, AnyJson>([
+          ['1', { a: 'b' }],
+          ['1.a', 'b'],
+        ])
+      );
+
+      config.set('1.a', 'c');
+      expect(config.getChangesForWrite().updated.size).to.equal(2);
       expect(config.getChangesForWrite().deleted).to.be.empty;
     });
     it('delete adds to deleted and removes from updated', async () => {

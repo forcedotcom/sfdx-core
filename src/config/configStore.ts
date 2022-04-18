@@ -179,6 +179,9 @@ export abstract class BaseConfigStore<
     if (value) {
       this.updatedKeys.set(key, value);
       this.deletedKeys.delete(key);
+    } else {
+      this.updatedKeys.delete(key);
+      this.deletedKeys.add(key);
     }
   }
 
