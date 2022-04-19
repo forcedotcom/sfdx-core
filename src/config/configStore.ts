@@ -210,9 +210,9 @@ export abstract class BaseConfigStore<
    */
   public unset(key: string): boolean {
     if (this.has(key)) {
+      this.deletedKeys.add(key);
+      this.updatedKeys.delete(key);
       if (this.contents[key]) {
-        this.updatedKeys.delete(key);
-        this.deletedKeys.add(key);
         delete this.contents[key];
       } else {
         // It is a query key, so just set it to undefined
@@ -230,11 +230,6 @@ export abstract class BaseConfigStore<
    * @param keys The keys. Supports query keys like `a.b[0]`.
    */
   public unsetAll(keys: string[]): boolean {
-    keys.forEach((key) => {
-      this.updatedKeys.delete(key);
-      this.deletedKeys.add(key);
-    });
-
     return keys.reduce((val: boolean, key) => val && this.unset(key), true);
   }
 
