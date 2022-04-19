@@ -340,9 +340,13 @@ export abstract class BaseConfigStore<
    */
   // eslint-disable-next-line @typescript-eslint/ban-types
   public setContentsFromObject<U extends object>(obj: U): void {
+    // all keys could be deleted
+    this.deletedKeys = new Set([...this.deletedKeys, ...Object.keys(obj)]);
     this.contents = {} as P;
     Object.entries(obj).forEach(([key, value]) => {
       this.setMethod(this.contents, key, value);
+      this.updatedKeys.set(key, value);
+      this.deletedKeys.delete(key);
     });
   }
 

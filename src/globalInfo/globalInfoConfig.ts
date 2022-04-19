@@ -94,6 +94,7 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     await this.initCrypto();
     const contents = Global.SFDX_INTEROPERABILITY ? await this.mergeWithSfdxData() : await this.loadSfData();
     this.setContents(contents);
+    this.clearTracking();
   }
 
   private timestamp<T extends JsonMap>(data: T): T {

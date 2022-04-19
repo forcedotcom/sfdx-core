@@ -235,10 +235,11 @@ export class ConfigFile<
     const fileJson = fs.existsSync(this.getPath())
       ? parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'))
       : {};
-    const fromFile = this.mergeForWrite(fileJson);
+    const fromFile = this.mergeForWrite(fileJson) as P;
 
     await fs.promises.writeFile(this.getPath(), JSON.stringify(fromFile, null, 2));
-
+    // make the contents equal what just got written, then reset those changes
+    this.setContents(fromFile);
     this.clearTracking();
     return this.getContents();
   }
@@ -256,11 +257,12 @@ export class ConfigFile<
 
     mkdirp.sync(pathDirname(this.getPath()));
     const fileJson = fs.existsSync(this.getPath()) ? parseJsonMap(fs.readFileSync(this.getPath(), 'utf8')) : {};
-    const fromFile = this.mergeForWrite(fileJson);
+    const fromFile = this.mergeForWrite(fileJson) as P;
 
     this.logger.info(`Writing to config file: ${this.getPath()}`);
     fs.writeFileSync(this.getPath(), JSON.stringify(fromFile, null, 2));
-
+    // make the contents equal what just got written, then reset those changes
+    this.setContents(fromFile);
     this.clearTracking();
     return this.getContents();
   }
