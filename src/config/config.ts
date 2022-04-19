@@ -16,7 +16,6 @@ import { SfdcUrl } from '../util/sfdcUrl';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
-const log = Logger.childFromRoot('core:config');
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
 /**
@@ -212,6 +211,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   ];
 
   private static messages: Messages;
+  private static logger: Logger;
   private crypto?: Crypto;
 
   public constructor(options?: ConfigFile.Options) {
@@ -220,6 +220,8 @@ export class Config extends ConfigFile<ConfigFile.Options> {
     if (!Config.messages) {
       Config.messages = Messages.loadMessages('@salesforce/core', 'config');
     }
+
+    Config.logger = Logger.childFromRoot('core:config');
 
     // Resolve the config path on creation.
     this.getPath();
@@ -251,7 +253,7 @@ export class Config extends ConfigFile<ConfigFile.Options> {
 
     metas.forEach((meta) => {
       if (currentMetaKeys.includes(meta.key)) {
-        log.info(`Key ${meta.key} already exists in allowedProperties, skipping.`);
+        Config.logger.info(`Key ${meta.key} already exists in allowedProperties, skipping.`);
         return;
       }
 
