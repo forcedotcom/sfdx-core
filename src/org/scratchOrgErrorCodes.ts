@@ -42,7 +42,7 @@ const optionalErrorCodeMessage = (errorCode: string, args: string[]): string | u
 
 export const validateScratchOrgInfoForResume = async ({
   jobId,
-  soi,
+  scratchOrgInfo,
   cache,
   hubUsername,
 }: {
