@@ -55,7 +55,7 @@ export const validateScratchOrgInfoForResume = async ({
     // 1. scratch org info does not exist in that dev hub or has been deleted
     cache.unset(jobId);
     await cache.write();
-    throw soi.Status === 'Deleted'
+    throw scratchOrgInfo.Status === 'Deleted'
       ? messages.createError('ScratchOrgDeletedError')
       : messages.createError('NoScratchOrgInfoError');
   }
