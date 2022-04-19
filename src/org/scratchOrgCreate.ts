@@ -183,7 +183,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   const authInfo = await deploySettingsAndResolveUrl(
     scratchOrgAuthInfo,
     apiversion ??
-      (configAggregator.getPropertyValue('apiVersion') as string) ??
+      (configAggregator.getPropertyValue('org-api-version') as string) ??
       (await scratchOrg.retrieveMaxApiVersion()),
     settingsGenerator,
     scratchOrg

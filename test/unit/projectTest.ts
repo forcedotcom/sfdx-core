@@ -353,16 +353,18 @@ describe('SfProject', () => {
       const config = await project.resolveProjectConfig();
       expect(config['signupTargetLoginUrl']).to.equal('envarUrl');
     });
-    it('gets config instanceUrl sets sfdcLoginUrl when there is none elsewhere', async () => {
+    it('gets config org-instance-url sets sfdcLoginUrl when there is none elsewhere', async () => {
       const read = async function () {
         if (this.isGlobal()) {
-          return { apiVersion: 38.0 };
+          return { 'org-api-version': 38.0 };
         } else {
-          return { apiVersion: 39.0 };
+          return { 'org-api-version': 39.0 };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
-      $$.configStubs.Config = { contents: { apiVersion: 40.0, instanceUrl: 'https://usethis.my.salesforce.com' } };
+      $$.configStubs.Config = {
+        contents: { 'org-api-version': 40.0, 'org-instance-url': 'https://usethis.my.salesforce.com' },
+      };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
       expect(config['sfdcLoginUrl']).to.equal('https://usethis.my.salesforce.com');
@@ -370,13 +372,15 @@ describe('SfProject', () => {
     it('config instanceUrl defers to sfdcLoginUrl in files', async () => {
       const read = async function () {
         if (this.isGlobal()) {
-          return { apiVersion: 38.0, sfdcLoginUrl: 'https://fromfiles.com' };
+          return { 'org-api-version': 38.0, sfdcLoginUrl: 'https://fromfiles.com' };
         } else {
-          return { apiVersion: 39.0, sfdcLoginUrl: 'https://fromfiles.com' };
+          return { 'org-api-version': 39.0, sfdcLoginUrl: 'https://fromfiles.com' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
-      $$.configStubs.Config = { contents: { apiVersion: 40.0, instanceUrl: 'https://dontusethis.my.salesforce.com' } };
+      $$.configStubs.Config = {
+        contents: { 'org-api-version': 40.0, 'org-instance-url': 'https://dontusethis.my.salesforce.com' },
+      };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
       expect(config['sfdcLoginUrl']).to.equal('https://fromfiles.com');
@@ -384,16 +388,16 @@ describe('SfProject', () => {
     it('gets config overrides local', async () => {
       const read = async function () {
         if (this.isGlobal()) {
-          return { apiVersion: 38.0 };
+          return { 'org-api-version': 38.0 };
         } else {
-          return { apiVersion: 39.0 };
+          return { 'org-api-version': 39.0 };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
-      $$.configStubs.Config = { contents: { apiVersion: 40.0 } };
+      $$.configStubs.Config = { contents: { 'org-api-version': 40.0 } };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['apiVersion']).to.equal(40.0);
+      expect(config['org-api-version']).to.equal(40.0);
     });
   });
 

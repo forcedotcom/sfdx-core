@@ -271,11 +271,11 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_TARGET_ORG]: {
     description: getMessage(EnvironmentVariable.SF_TARGET_ORG),
-    synonymOf: null,
+    synonymOf: EnvironmentVariable.SFDX_DEFAULTUSERNAME,
   },
   [EnvironmentVariable.SF_TARGET_DEV_HUB]: {
     description: getMessage(EnvironmentVariable.SF_TARGET_DEV_HUB),
-    synonymOf: null,
+    synonymOf: EnvironmentVariable.SFDX_DEFAULTDEVHUBUSERNAME,
   },
   // sf vars
   [EnvironmentVariable.SF_ACCESS_TOKEN]: {
@@ -284,7 +284,7 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_ORG_API_VERSION]: {
     description: getMessage(EnvironmentVariable.SF_ORG_API_VERSION),
-    synonymOf: null,
+    synonymOf: EnvironmentVariable.SFDX_API_VERSION,
   },
   [EnvironmentVariable.SF_AUDIENCE_URL]: {
     description: getMessage(EnvironmentVariable.SF_AUDIENCE_URL),

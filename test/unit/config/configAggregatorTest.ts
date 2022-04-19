@@ -6,7 +6,7 @@
  */
 import * as fs from 'fs';
 import { assert, expect } from 'chai';
-import { Config, ConfigProperties, SfdxPropertyKeys } from '../../../src/config/config';
+import { Config, ConfigProperties } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgConfigProperties } from '../../../src/exported';
@@ -51,6 +51,7 @@ describe('ConfigAggregator', () => {
     });
 
     it('constructor creates local and global config', async () => {
+      // @ts-expect-error because private method
       const aggregator: ConfigAggregator = ConfigAggregator.getInstance();
       expect(aggregator.getLocalConfig()).to.be.exist;
       expect(aggregator.getGlobalConfig()).to.be.exist;
@@ -70,25 +71,27 @@ describe('ConfigAggregator', () => {
 
   it('static getter', async () => {
     const expected = '49.0';
-    $$.SANDBOX.stub(Config.prototype, 'readSync').returns({ apiVersion: expected });
-    expect(ConfigAggregator.getValue(SfdxPropertyKeys.API_VERSION).value, expected);
+    $$.SANDBOX.stub(Config.prototype, 'readSync').returns({ 'org-api-version': expected });
+    expect(ConfigAggregator.getValue(OrgConfigProperties.ORG_API_VERSION).value, expected);
   });
 
   it('reload decrypts config values', async () => {
     // readSync doesn't decrypt values
     $$.SANDBOX.stub(Config.prototype, 'readSync').callsFake(function () {
-      this.setContents({ isvDebuggerSid: 'encrypted' });
+      this.setContents({ 'org-isv-debugger-sid': 'encrypted' });
       return this.getContents();
     });
     // read decrypts values
     $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function () {
-      this.setContents({ isvDebuggerSid: 'decrypted' });
+      this.setContents({ 'org-isv-debugger-sid': 'decrypted' });
       return this.getContents();
     });
+
+    // @ts-expect-error because private method
     const aggregator: ConfigAggregator = ConfigAggregator.getInstance();
-    expect(aggregator.getInfo('isvDebuggerSid').value).to.equal('encrypted');
+    expect(aggregator.getInfo('org-isv-debugger-sid').value).to.equal('encrypted');
     await aggregator.reload();
-    expect(aggregator.getInfo('isvDebuggerSid').value).to.equal('decrypted');
+    expect(aggregator.getInfo('org-isv-debugger-sid').value).to.equal('decrypted');
   });
 
   describe('initialization', () => {
@@ -173,11 +176,11 @@ describe('ConfigAggregator', () => {
     });
 
     it('configInfo ignores invalid entries', async () => {
-      $$.SANDBOX.stub(fs.promises, 'readFile').resolves('{ "invalid": "entry", "apiVersion": 49.0 }');
+      $$.SANDBOX.stub(fs.promises, 'readFile').resolves('{ "invalid": "entry", "org-api-version": 49.0 }');
 
       const aggregator: ConfigAggregator = await ConfigAggregator.create();
       const info = aggregator.getConfigInfo()[0];
-      expect(info.key).to.equal('apiVersion');
+      expect(info.key).to.equal('org-api-version');
       expect(info.value).to.equal(49.0);
       expect(info.location).to.equal('Local');
     });
