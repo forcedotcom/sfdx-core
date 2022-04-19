@@ -42,28 +42,28 @@ const optionalErrorCodeMessage = (errorCode: string, args: string[]): string | u
 
 export const validateScratchOrgInfoForResume = async ({
   jobId,
-  soi,
+  scratchOrgInfo,
   cache,
   hubUsername,
 }: {
   jobId: string;
-  soi: ScratchOrgInfo;
+  scratchOrgInfo: ScratchOrgInfo;
   cache: ScratchOrgCache;
   hubUsername: string;
 }): Promise<ScratchOrgInfo> => {
-  if (!soi || !soi.Id || soi.Status === 'Deleted') {
+  if (!scratchOrgInfo || !scratchOrgInfo.Id || scratchOrgInfo.Status === 'Deleted') {
     // 1. scratch org info does not exist in that dev hub or has been deleted
     cache.unset(jobId);
     await cache.write();
-    throw soi.Status === 'Deleted'
+    throw scratchOrgInfo.Status === 'Deleted'
       ? messages.createError('ScratchOrgDeletedError')
       : messages.createError('NoScratchOrgInfoError');
   }
-  if (['New', 'Creating'].includes(soi.Status)) {
-    // 2. SOI exists, still isn't finished.  Stays in cache for future attempts
-    throw messages.createError('StillInProgressError', [soi.Status], ['action.StillInProgress']);
+  if (['New', 'Creating'].includes(scratchOrgInfo.Status)) {
+    // 2. scratchOrgInfo exists, still isn't finished.  Stays in cache for future attempts
+    throw messages.createError('StillInProgressError', [scratchOrgInfo.Status], ['action.StillInProgress']);
   }
-  return checkScratchOrgInfoForErrors(soi, hubUsername);
+  return checkScratchOrgInfoForErrors(scratchOrgInfo, hubUsername);
 };
 
 export const checkScratchOrgInfoForErrors = async (
