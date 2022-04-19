@@ -24,7 +24,7 @@ export class SandboxRequestCache extends TTLConfig<TTLConfig.Options, SandboxReq
       isState: true,
       filename: SandboxRequestCache.getFileName(),
       stateFolder: Global.SF_STATE_FOLDER,
-      ttl: Duration.days(3),
+      ttl: Duration.days(14),
     };
   }
 
