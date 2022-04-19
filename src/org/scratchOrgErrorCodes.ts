@@ -47,7 +47,7 @@ export const validateScratchOrgInfoForResume = async ({
   hubUsername,
 }: {
   jobId: string;
-  soi: ScratchOrgInfo;
+  scratchOrgInfo: ScratchOrgInfo;
   cache: ScratchOrgCache;
   hubUsername: string;
 }): Promise<ScratchOrgInfo> => {
