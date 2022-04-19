@@ -196,7 +196,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     noancestors,
     wait = Duration.minutes(DEFAULT_STREAM_TIMEOUT_MINUTES),
     retry = 0,
-    apiversion: apiversion,
+    apiversion,
     definitionjson,
     definitionfile,
     orgConfig,
