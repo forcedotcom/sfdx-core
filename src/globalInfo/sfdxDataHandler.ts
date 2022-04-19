@@ -8,11 +8,11 @@
 import { basename, extname, join } from 'path';
 import * as fs from 'fs';
 import { parseJson, set } from '@salesforce/kit';
-import { ensureString, isPlainObject } from '@salesforce/ts-types';
+import { isPlainObject } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { ConfigFile } from '../config/configFile';
 import { deepCopy, GlobalInfo } from './globalInfoConfig';
-import { SfInfo, SfInfoKeys, SfOrg, SfOrgs } from './types';
+import { SfInfo, SfInfoKeys, SfOrg, SfOrgs, Timestamp } from './types';
 
 function isEqual(object1: Record<string, unknown>, object2: Record<string, unknown>): boolean {
   const keys1 = Object.keys(object1).filter((k) => k !== 'timestamp');
@@ -126,7 +126,9 @@ export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
 
   public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.ORGS>> {
     const oldAuths = await this.listAllAuthorizations();
-    const newAuths = oldAuths.reduce((x, y) => Object.assign(x, { [ensureString(y.username)]: y }), {} as SfOrgs);
+    const newAuths = Object.fromEntries(
+      oldAuths.filter((auth) => typeof auth.username === 'string').map((auth) => [auth.username, auth])
+    );
     return { [this.sfKey]: newAuths };
   }
 
@@ -178,18 +180,20 @@ export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
     return globalFiles.filter((file) => file.match(AuthHandler.authFilenameFilterRegEx));
   }
 
-  public async listAllAuthorizations(): Promise<SfOrg[]> {
+  public async listAllAuthorizations(): Promise<Array<SfOrg & Timestamp>> {
     const filenames = await this.listAllAuthFiles();
-    const auths: SfOrg[] = [];
-    for (const filename of filenames) {
-      const username = basename(filename, extname(filename));
-      const configFile = await this.createAuthFileConfig(username);
-      const contents = configFile.getContents() as SfOrg;
-      const stat = await configFile.stat();
-      const auth = Object.assign(contents, { timestamp: stat.mtime.toISOString() });
-      auths.push(auth);
-    }
-    return auths;
+    return Promise.all(
+      filenames
+        .map((f) => basename(f, extname(f)))
+        .map(async (username) => {
+          const configFile = await this.createAuthFileConfig(username);
+          const stat = await configFile.stat();
+          return {
+            ...(configFile.getContents() as SfOrg),
+            timestamp: stat.mtime.toISOString(),
+          };
+        })
+    );
   }
 }
 
