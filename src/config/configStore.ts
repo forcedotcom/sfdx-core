@@ -283,14 +283,16 @@ export abstract class BaseConfigStore<
     if (this.hasEncryption()) {
       contents = this.recursiveEncrypt(contents);
     }
-    // check for keys that are removed, and put them in deletedKeys
-    this.updatedKeys.forEach((value, key) => {
-      if (!contents[key]) {
-        this.deletedKeys.add(key);
-      }
-    });
+    if (this.updatedKeys) {
+      // check for keys that are removed, and put them in deletedKeys
+      this.updatedKeys.forEach((value, key) => {
+        if (!contents[key]) {
+          this.deletedKeys.add(key);
+        }
+      });
+      this.updatedKeys.clear();
+    }
     // updated keys should exactly equal contents
-    this.updatedKeys.clear();
     Object.entries(contents).forEach(([key, value]) => {
       if (value) {
         this.deletedKeys.delete(key);
