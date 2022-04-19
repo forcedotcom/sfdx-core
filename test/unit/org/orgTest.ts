@@ -672,6 +672,8 @@ describe('Org Tests', () => {
         return Promise.resolve(responseBody);
       });
 
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+
       for (const user of users) {
         userAuthResponse = {
           // eslint-disable-next-line camelcase

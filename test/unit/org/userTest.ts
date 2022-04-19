@@ -70,8 +70,13 @@ describe('User Tests', () => {
     });
 
     stubMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig').callsFake(() => {
-      return {};
+      return {
+        instanceUrl: '',
+        accessToken: '',
+      };
     });
+
+    stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
 
     refreshSpy = stubMethod($$.SANDBOX, Org.prototype, 'refreshAuth').resolves({});
   });
