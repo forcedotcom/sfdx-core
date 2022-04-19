@@ -51,7 +51,7 @@ export const validateScratchOrgInfoForResume = async ({
   cache: ScratchOrgCache;
   hubUsername: string;
 }): Promise<ScratchOrgInfo> => {
-  if (!soi || !soi.Id || soi.Status === 'Deleted') {
+  if (!scratchOrgInfo || !scratchOrgInfo.Id || scratchOrgInfo.Status === 'Deleted') {
     // 1. scratch org info does not exist in that dev hub or has been deleted
     cache.unset(jobId);
     await cache.write();
