@@ -59,11 +59,11 @@ export const validateScratchOrgInfoForResume = async ({
       ? messages.createError('ScratchOrgDeletedError')
       : messages.createError('NoScratchOrgInfoError');
   }
-  if (['New', 'Creating'].includes(soi.Status)) {
-    // 2. SOI exists, still isn't finished.  Stays in cache for future attempts
-    throw messages.createError('StillInProgressError', [soi.Status], ['action.StillInProgress']);
+  if (['New', 'Creating'].includes(scratchOrgInfo.Status)) {
+    // 2. scratchOrgInfo exists, still isn't finished.  Stays in cache for future attempts
+    throw messages.createError('StillInProgressError', [scratchOrgInfo.Status], ['action.StillInProgress']);
   }
-  return checkScratchOrgInfoForErrors(soi, hubUsername);
+  return checkScratchOrgInfoForErrors(scratchOrgInfo, hubUsername);
 };
 
 export const checkScratchOrgInfoForErrors = async (
