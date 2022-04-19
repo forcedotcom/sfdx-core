@@ -232,7 +232,9 @@ export class ConfigFile<
 
     this.logger.info(`Writing to config file: ${this.getPath()}`);
     // read the file again so we update the latest
-    const fileJson = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'));
+    const fileJson = fs.existsSync(this.getPath())
+      ? parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'))
+      : {};
     const fromFile = this.mergeForWrite(fileJson);
 
     await fs.promises.writeFile(this.getPath(), JSON.stringify(fromFile, null, 2));
@@ -253,7 +255,7 @@ export class ConfigFile<
     }
 
     mkdirp.sync(pathDirname(this.getPath()));
-    const fileJson = parseJsonMap(fs.readFileSync(this.getPath(), 'utf8'));
+    const fileJson = fs.existsSync(this.getPath()) ? parseJsonMap(fs.readFileSync(this.getPath(), 'utf8')) : {};
     const fromFile = this.mergeForWrite(fileJson);
 
     this.logger.info(`Writing to config file: ${this.getPath()}`);
