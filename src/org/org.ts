@@ -238,11 +238,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * create a sandbox from a production org
+   * resume a sandbox creation from a production org
    * 'this' needs to be a production org with sandbox licenses available
    *
    * @param resumeSandboxRequest SandboxRequest options to create the sandbox with
-   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
+   * @param options Wait: The amount of time to wait (default: 30 minutes) before timing out,
+   * Interval: The time interval (default: 30 seconds) between polling
    */
   public async resumeSandbox(
     resumeSandboxRequest: ResumeSandboxRequest,
@@ -1286,7 +1287,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     interval?: Duration;
     async?: boolean;
   }): [Duration, Duration] {
-    const wait = options.wait ?? Duration.minutes(6);
+    const wait = options.wait ?? Duration.minutes(30);
     const interval = options.interval ?? Duration.seconds(30);
     let pollInterval = options.async ? Duration.seconds(0) : interval;
     // pollInterval cannot be > wait.
