@@ -47,9 +47,7 @@ export class SfdxDataHandler {
   private original!: SfInfo;
 
   public async write(latest: SfInfo = GlobalInfo.emptyDataModel): Promise<void> {
-    for (const handler of this.handlers) {
-      await handler.write(latest, this.original);
-    }
+    await Promise.all(this.handlers.map((handler) => handler.write(latest, this.original)));
     this.setOriginal(latest);
   }
 
@@ -134,18 +132,22 @@ export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
 
   public async write(latest: SfInfo, original: SfInfo): Promise<void> {
     const { changed, deleted } = await this.findChanges(latest, original);
-    for (const [username, authData] of Object.entries(changed)) {
-      if (authData) {
-        const config = await this.createAuthFileConfig(username);
-        config.setContentsFromObject(authData);
-        await config.write();
-      }
-    }
+    await Promise.all(
+      Object.entries(changed)
+        .filter(([, authData]) => authData)
+        .map(async ([username, authData]) => {
+          const config = await this.createAuthFileConfig(username);
+          config.setContentsFromObject(authData);
+          return config.write();
+        })
+    );
 
-    for (const username of deleted) {
-      const config = await this.createAuthFileConfig(username);
-      await config.unlink();
-    }
+    await Promise.all(
+      deleted.map(async (username) => {
+        const config = await this.createAuthFileConfig(username);
+        return config.unlink();
+      })
+    );
   }
 
   public async findChanges(latest: SfInfo, original: SfInfo): Promise<Changes<SfOrgs>> {
@@ -187,11 +189,9 @@ export class AuthHandler extends BaseHandler<SfInfoKeys.ORGS> {
         .map((f) => basename(f, extname(f)))
         .map(async (username) => {
           const configFile = await this.createAuthFileConfig(username);
+          const contents = configFile.getContents() as SfOrg;
           const stat = await configFile.stat();
-          return {
-            ...(configFile.getContents() as SfOrg),
-            timestamp: stat.mtime.toISOString(),
-          };
+          return { ...contents, timestamp: stat.mtime.toISOString() };
         })
     );
   }
