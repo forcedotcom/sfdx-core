@@ -605,7 +605,7 @@ export class SfdxConfig {
    * If Global.SFDX_INTEROPERABILITY is enabled, merge the sfdx config into the sf config
    */
   public merge(config: ConfigProperties): ConfigProperties | undefined {
-    if (this.interoperabilityDisabled()) return config;
+    if (!Global.SFDX_INTEROPERABILITY) return config;
     const sfdxConfig = this.readSync();
 
     const sfdxPropKeys = Object.values(SfdxPropertyKeys) as string[];
@@ -642,10 +642,6 @@ export class SfdxConfig {
       /* Do nothing */
       return {};
     }
-  }
-
-  private interoperabilityDisabled(): boolean {
-    return !Global.SFDX_INTEROPERABILITY;
   }
 
   private _readSync(): ConfigProperties {
