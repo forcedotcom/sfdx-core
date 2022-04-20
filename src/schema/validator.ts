@@ -88,7 +88,6 @@ export class SchemaValidator {
       allErrors: true,
       schemas: externalSchemas,
       useDefaults: true,
-      strict: false, // TODO: REMOVE THIS AND FIX ISSUES
     });
 
     // JSEN to AJV migration note - regarding the following "TODO":
