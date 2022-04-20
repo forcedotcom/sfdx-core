@@ -488,6 +488,7 @@ describe('AuthInfo', () => {
         refreshToken: testMetadata.refreshToken,
         clientId: testMetadata.clientId,
         clientSecret: testMetadata.clientSecret,
+        isDevHub: false,
       };
       expect(authInfoUpdate.secondCall.args[0]).to.deep.equal(expectedAuthConfig);
     });
@@ -603,6 +604,7 @@ describe('AuthInfo', () => {
           orgId: authResponse.id.split('/')[0],
           loginUrl: jwtConfig.loginUrl,
           privateKey: jwtConfig.privateKey,
+          isDevHub: false,
         };
         expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
       });
@@ -790,6 +792,7 @@ describe('AuthInfo', () => {
         refreshToken: refreshTokenConfig.refreshToken,
         clientId: testMetadata.defaultConnectedAppInfo.clientId,
         clientSecret: testMetadata.defaultConnectedAppInfo.clientSecret,
+        isDevHub: false,
         username,
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
@@ -854,6 +857,7 @@ describe('AuthInfo', () => {
         refreshToken: refreshTokenConfig.refreshToken,
         clientId: testMetadata.defaultConnectedAppInfo.clientId,
         clientSecret: testMetadata.defaultConnectedAppInfo.clientSecret,
+        isDevHub: false,
         username,
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
@@ -918,6 +922,7 @@ describe('AuthInfo', () => {
         refreshToken: refreshTokenConfig.refreshToken,
         clientId: refreshTokenConfig.clientId,
         clientSecret: refreshTokenConfig.clientSecret,
+        isDevHub: false,
         username,
       };
       expect(authInfoUpdate.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
@@ -974,7 +979,9 @@ describe('AuthInfo', () => {
         .onFirstCall()
         .returns(Promise.resolve(userInfoResponseBody))
         .onSecondCall()
-        .returns(Promise.resolve(userResponseBody));
+        .returns(Promise.resolve(userResponseBody))
+        .onThirdCall()
+        .throws();
 
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({ oauth2Options: authCodeConfig });
@@ -1018,6 +1025,7 @@ describe('AuthInfo', () => {
         orgId: authResponse.id.split('/')[0],
         loginUrl: authCodeConfig.loginUrl,
         refreshToken: authResponse.refresh_token,
+        isDevHub: false,
         // These need to be passed in by the consumer. Since they are not, they will show up as undefined.
         // In a non-test environment, the exchange will fail because no clientId is supplied.
         clientId: undefined,
@@ -1277,6 +1285,7 @@ describe('AuthInfo', () => {
         orgId: authResponse.id.split('/')[0],
         loginUrl: refreshTokenConfig.loginUrl,
         refreshToken: refreshTokenConfig.refreshToken,
+        isDevHub: false,
         // clientId and clientSecret are now stored in the file, even the defaults.
         // We just hard code the legacy values here to ensure old auth files will still work.
         clientId: 'SalesforceDevelopmentExperience',
@@ -1348,18 +1357,24 @@ describe('AuthInfo', () => {
 
     it('should path.resolve jwtkeyfilepath', async () => {
       const pathSpy = $$.SANDBOX.spy(pathImport, 'resolve');
-      const context = {
-        update: () => {},
-        buildJwtConfig: () => {},
-        isTokenOptions: () => false,
-        getUsername: () => '',
-        privateKeyFile: 'authInfoTest/jwt/server.key',
-        options: {},
-      };
 
-      await AuthInfo.prototype['initAuthOptions'].call(context, context);
+      authInfoBuildJwtConfig.restore();
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'buildJwtConfig').resolves({
+        instanceUrl: '',
+        accessToken: '',
+      });
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+
+      await AuthInfo.create({
+        username: 'cristiand391',
+        oauth2Options: {
+          clientId: '1234',
+          privateKeyFile: 'authInfoTest/jwt/server.key',
+        },
+      });
 
       expect(pathSpy.calledOnce).to.be.true;
+      expect(pathSpy.args[0][0]).to.equal('authInfoTest/jwt/server.key');
     });
 
     it('should call the callback with OrgDataNotAvailableError when AuthInfo.init() fails', async () => {
