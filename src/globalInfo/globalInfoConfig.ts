@@ -79,9 +79,10 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
 
   public set(key: string, value: ConfigValue): void {
     if (isPlainObject(value)) {
-      value = this.timestamp(value as JsonMap);
+      super.set(key, this.timestamp(value as JsonMap));
+    } else {
+      super.set(key, value);
     }
-    super.set(key, value);
   }
 
   public async write(newContents?: SfInfo): Promise<SfInfo> {

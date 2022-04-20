@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AnyJson } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { BaseConfigStore, ConfigContents } from '../../../src/config/configStore';
 
@@ -244,7 +243,7 @@ describe('ConfigStore', () => {
       const config = await TestConfig.create();
       config.set('1', 'a');
       expect(config.getChangesForWrite().updated.size).to.equal(1);
-      expect(config.getChangesForWrite().updated).to.deep.equal(new Map([['1', 'a']]));
+      expect(Array.from(config.getChangesForWrite().updated.values())).to.deep.equal(['1']);
 
       config.set('1', 'b');
       expect(config.getChangesForWrite().updated.size).to.equal(1);
@@ -255,17 +254,7 @@ describe('ConfigStore', () => {
       config.set('1', { a: 'a' });
       config.set('1.a', 'b');
       expect(config.getChangesForWrite().updated.size).to.equal(2);
-      expect(
-        config.getChangesForWrite().updated,
-        Array.from(config.getChangesForWrite().updated.entries())
-          .map(([key, value]) => [key, JSON.stringify(value)])
-          .join(',')
-      ).to.deep.equal(
-        new Map<string, AnyJson>([
-          ['1', { a: 'b' }],
-          ['1.a', 'b'],
-        ])
-      );
+      expect(Array.from(config.getChangesForWrite().updated.values())).to.deep.equal(['1', '1.a']);
 
       config.set('1.a', 'c');
       expect(config.getChangesForWrite().updated.size).to.equal(2);
@@ -308,17 +297,11 @@ describe('ConfigStore', () => {
       it('setContents removing a key', () => {
         config.set('a', 1);
         config.set('b', 2);
-
-        expect(config.getChangesForWrite().updated).to.deep.equal(
-          new Map([
-            ['a', 1],
-            ['b', 2],
-          ])
-        );
+        expect(Array.from(config.getChangesForWrite().updated.values())).to.deep.equal(['a', 'b']);
 
         config.setContents({ a: 1 });
-        expect(config.getChangesForWrite().deleted).to.deep.equal(new Set(['b']));
-        expect(config.getChangesForWrite().updated).to.deep.equal(new Map([['a', 1]]));
+        expect(Array.from(config.getChangesForWrite().updated.values())).to.deep.equal(['a']);
+        expect(Array.from(config.getChangesForWrite().deleted.values())).to.deep.equal(['b']);
       });
 
       it('setContents removing a key by setting it to undefined', () => {
@@ -326,14 +309,14 @@ describe('ConfigStore', () => {
         config.set('b', 2);
 
         config.setContents({ a: 1, b: undefined });
-        expect(config.getChangesForWrite().deleted).to.deep.equal(new Set(['b']));
-        expect(config.getChangesForWrite().updated).to.deep.equal(new Map([['a', 1]]));
+        expect(Array.from(config.getChangesForWrite().updated.values())).to.deep.equal(['a']);
+        expect(Array.from(config.getChangesForWrite().deleted.values())).to.deep.equal(['b']);
       });
 
       it('setContents adding a key', () => {
         config.setContents({ a: 1 });
-        expect(config.getChangesForWrite().deleted).to.deep.equal(new Set());
-        expect(config.getChangesForWrite().updated).to.deep.equal(new Map([['a', 1]]));
+        expect(Array.from(config.getChangesForWrite().updated.values())).to.deep.equal(['a']);
+        expect(Array.from(config.getChangesForWrite().deleted.values())).to.deep.equal([]);
       });
 
       it('setContents adding a key that was previously deleted', () => {
@@ -341,13 +324,8 @@ describe('ConfigStore', () => {
         config.set('b', 2);
         config.unset('b');
         config.setContents({ a: 1, b: 3 });
-        expect(config.getChangesForWrite().deleted).to.deep.equal(new Set());
-        expect(config.getChangesForWrite().updated).to.deep.equal(
-          new Map([
-            ['a', 1],
-            ['b', 3],
-          ])
-        );
+        expect(Array.from(config.getChangesForWrite().deleted.values())).to.deep.equal([]);
+        expect(Array.from(config.getChangesForWrite().updated.values())).to.deep.equal(['a', 'b']);
       });
     });
 

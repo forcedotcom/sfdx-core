@@ -86,7 +86,7 @@ export abstract class BaseConfigStore<
   // Initialized in setContents
   private contents!: P;
   private statics = this.constructor as typeof BaseConfigStore;
-  private updatedKeys = new Map<string, ConfigValue>();
+  private updatedKeys = new Set<string>();
   private deletedKeys = new Set<string>();
 
   /**
@@ -177,11 +177,9 @@ export abstract class BaseConfigStore<
     }
     this.setMethod(this.contents, key as string, value);
     if (value) {
-      this.updatedKeys.set(key, value);
-      this.deletedKeys.delete(key);
+      this.markKeyUpdated(key);
     } else {
-      this.updatedKeys.delete(key);
-      this.deletedKeys.add(key);
+      this.markKeyDeleted(key);
     }
   }
 
@@ -196,10 +194,7 @@ export abstract class BaseConfigStore<
   public update<T = ConfigValue>(key: string, value: Partial<T>): void;
   public update<K extends Key<P>>(key: K | string, value: Partial<P[K]> | Partial<ConfigValue>): void {
     const existingValue = this.get(key, true);
-    if (isPlainObject(existingValue) && isPlainObject(value)) {
-      value = Object.assign({}, existingValue, value);
-    }
-    this.set(key, value);
+    this.set(key, isPlainObject(existingValue) && isPlainObject(value) ? { ...existingValue, ...value } : value);
   }
 
   /**
@@ -210,14 +205,8 @@ export abstract class BaseConfigStore<
    */
   public unset(key: string): boolean {
     if (this.has(key)) {
-      this.deletedKeys.add(key);
-      this.updatedKeys.delete(key);
-      if (this.contents[key]) {
-        delete this.contents[key];
-      } else {
-        // It is a query key, so just set it to undefined
-        this.setMethod(this.contents, key, undefined);
-      }
+      this.markKeyDeleted(key);
+      this.setMethod(this.contents, key, undefined);
       return true;
     }
     return false;
@@ -230,15 +219,14 @@ export abstract class BaseConfigStore<
    * @param keys The keys. Supports query keys like `a.b[0]`.
    */
   public unsetAll(keys: string[]): boolean {
-    return keys.reduce((val: boolean, key) => val && this.unset(key), true);
+    return keys.map((k) => this.unset(k)).some((v) => v);
   }
 
   /**
    * Removes all key/value pairs from the config object.
    */
   public clear(): void {
-    this.updatedKeys.clear();
-    Object.keys(this.contents).forEach((key) => this.deletedKeys.add(key));
+    Object.keys(this.contents).forEach((key) => this.markKeyDeleted(key));
     this.contents = {} as P;
   }
 
@@ -280,20 +268,19 @@ export abstract class BaseConfigStore<
     }
     if (this.updatedKeys) {
       // check for keys that are removed, and put them in deletedKeys
-      this.updatedKeys.forEach((value, key) => {
-        if (!contents[key]) {
-          this.deletedKeys.add(key);
+      this.updatedKeys.forEach((key) => {
+        if (contents[key] === undefined) {
+          this.markKeyDeleted(key);
         }
       });
       this.updatedKeys.clear();
     }
     // updated keys should exactly equal contents
     Object.entries(contents).forEach(([key, value]) => {
-      if (value) {
-        this.deletedKeys.delete(key);
-        this.updatedKeys.set(key, value);
+      if (value !== undefined) {
+        this.markKeyUpdated(key);
       } else {
-        this.deletedKeys.add(key);
+        this.markKeyDeleted(key);
       }
     });
     this.contents = contents;
@@ -345,8 +332,7 @@ export abstract class BaseConfigStore<
     this.contents = {} as P;
     Object.entries(obj).forEach(([key, value]) => {
       this.setMethod(this.contents, key, value);
-      this.updatedKeys.set(key, value);
-      this.deletedKeys.delete(key);
+      this.markKeyUpdated(key);
     });
   }
 
@@ -355,7 +341,7 @@ export abstract class BaseConfigStore<
     this.deletedKeys.clear();
   }
 
-  public getChangesForWrite(): { updated: Map<string, ConfigValue>; deleted: Set<string> } {
+  public getChangesForWrite(): { updated: Set<string>; deleted: Set<string> } {
     return {
       updated: this.updatedKeys,
       deleted: this.deletedKeys,
@@ -490,6 +476,15 @@ export abstract class BaseConfigStore<
     return data;
   }
 
+  private markKeyDeleted(key: string): void {
+    this.updatedKeys.delete(key);
+    this.deletedKeys.add(key);
+  }
+
+  private markKeyUpdated(key: string): void {
+    this.updatedKeys.add(key);
+    this.deletedKeys.delete(key);
+  }
   /**
    * Encrypt/Decrypt all values in a nested JsonMap.
    *

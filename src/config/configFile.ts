@@ -171,6 +171,7 @@ export class ConfigFile<
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
+          this.clearTracking();
           return this.getContents();
         }
       }
@@ -206,6 +207,7 @@ export class ConfigFile<
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
+          this.clearTracking();
           return this.getContents();
         }
       }
@@ -381,15 +383,23 @@ export class ConfigFile<
     const { updated, deleted } = this.getChangesForWrite();
     const fromFile: ConfigContents = {};
 
+    // ConfigStore supports overriding the set method, so we use instead of writing the contents directly.
     Object.entries(fileContents).forEach(([key, value]) => {
       this.setMethod(fromFile, key, value);
     });
 
     deleted.forEach((key) => {
-      delete fromFile[key];
+      this.setMethod(fromFile, key, undefined);
     });
-    updated.forEach((value, key) => {
-      this.setMethod(fromFile, key, value);
+
+    /**
+     * if the key is in the set of updated keys, we really want to set it.
+     * We'll use the set method and get from configStore so that is
+     * 1. supports any override of the set method
+     * 2. supports deep properties
+     */
+    updated.forEach((key) => {
+      this.setMethod(fromFile, key, this.get(key));
     });
 
     return fromFile;

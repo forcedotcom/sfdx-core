@@ -24,7 +24,7 @@ export class OrgAccessor {
   }
 
   public has(username: string): boolean {
-    return !!this.getAll()[username];
+    return this.globalInfo.has(`${SfInfoKeys.ORGS}["${username}"]`);
   }
 
   public set(username: string, org: SfOrg): void {

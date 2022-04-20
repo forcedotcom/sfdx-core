@@ -15,9 +15,11 @@ import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optiona
 import { assert, expect } from 'chai';
 import { OAuth2 } from 'jsforce';
 import { Transport } from 'jsforce/lib/transport';
+import { SinonStub } from 'sinon';
 import {
   AuthFields,
   AuthInfo,
+  AuthRemover,
   Connection,
   Org,
   SandboxProcessObject,
@@ -42,6 +44,7 @@ const $$ = testSetup();
 describe('Org Tests', () => {
   let testData: MockTestOrgData;
   let createOrgViaAuthInfo: (username?: string, org?: MockTestOrgData) => Promise<Org>;
+  let authRemoverStub: SinonStub;
 
   beforeEach(async () => {
     testData = new MockTestOrgData();
@@ -54,7 +57,7 @@ describe('Org Tests', () => {
       },
     };
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves('1.1.1.1');
-
+    authRemoverStub = stubMethod($$.SANDBOX, AuthRemover.prototype, 'removeAuth').resolves();
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
 
     createOrgViaAuthInfo = async (username = testData.username, org?: MockTestOrgData) => {
@@ -543,13 +546,8 @@ describe('Org Tests', () => {
 
       await org.remove();
 
-      expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.json`)
-      );
-
-      expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.sandbox.json`)
-      );
+      expect(authRemoverStub.calledOnce).to.be.true;
+      expect(authRemoverStub.firstCall.args[0]).to.equal(org.getUsername());
     });
 
     it('should not fail when no scratch org has been written', async () => {
@@ -596,10 +594,7 @@ describe('Org Tests', () => {
       expect(configAggregator.getInfo(OrgConfigProperties.TARGET_ORG)).has.property('value', testData.username);
 
       await org.remove();
-      await configAggregator.reload();
-
-      const targetOrg = configAggregator.getInfo(OrgConfigProperties.TARGET_ORG);
-      expect(targetOrg.value).eq(undefined);
+      expect(authRemoverStub.calledOnceWith(testData.username));
     });
 
     it('should remove the alias', async () => {
@@ -645,6 +640,7 @@ describe('Org Tests', () => {
 
   describe('with multiple scratch org users', () => {
     let orgs: Org[];
+
     beforeEach(async () => {
       orgs = [];
 
@@ -743,11 +739,7 @@ describe('Org Tests', () => {
 
       await orgs[0].remove();
 
-      await configAggregator.reload();
-      expect(configAggregator.getInfo(OrgConfigProperties.TARGET_ORG)).has.property('value', undefined);
-
-      const alias = globalInfo.aliases.get(user);
-      expect(alias).eq(null);
+      expect(authRemoverStub.calledOnceWith(orgs[0].getUsername()));
     });
 
     it('should not try to delete auth files when deleting an org via access token', async () => {
@@ -1032,15 +1024,6 @@ describe('Org Tests', () => {
         return Promise.resolve(true);
       });
 
-      // Stub to track the deleted paths.
-      const deletedPaths: string[] = [];
-      stubMethod($$.SANDBOX, ConfigFile.prototype, 'unlink').callsFake(function (this: ConfigFile<ConfigFile.Options>) {
-        deletedPaths.push(this.getPath());
-        return Promise.resolve({});
-      });
-
-      const unsetSpy = stubMethod($$.SANDBOX, OrgAccessor.prototype, 'unset').returns(null);
-
       // Create an org and add a sandbox config
       const org: Org = await Org.create({ aliasOrUsername: testData.username });
       expect(await org.getSandboxOrgConfigField(SandboxOrgConfig.Fields.PROD_ORG_USERNAME)).to.be.undefined;
@@ -1049,12 +1032,7 @@ describe('Org Tests', () => {
 
       // Remove the org
       await org.remove();
-      // Expect the authorization to be removed
-      expect(unsetSpy.firstCall.args).to.deep.equal([testData.username]);
-      // Expect the sandbox config is deleted.
-      expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.sandbox.json`)
-      );
+      expect(authRemoverStub.calledOnceWith(testData.username));
     });
   });
 });
