@@ -883,6 +883,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       this.logger.debug(`Removing auth for user: ${username}`);
       this.logger.debug(`Clearing auth cache for user: ${username}`);
       config.orgs.unset(username);
+      // now unset any aliases
+      Object.entries(config.aliases.getAll())
+        .filter(([, u]) => u === username)
+        .forEach(([a]) => {
+          config.aliases.unset(a);
+        });
     }
   }
 

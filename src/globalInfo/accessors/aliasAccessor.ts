@@ -115,7 +115,7 @@ export class AliasAccessor {
   }
 
   public unset(alias: string): void {
-    delete this.globalInfo.get(SfInfoKeys.ALIASES)[alias];
+    this.globalInfo.unset(`${SfInfoKeys.ALIASES}["${alias}"]`);
   }
 
   /**
