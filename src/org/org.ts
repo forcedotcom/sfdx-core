@@ -24,7 +24,7 @@ import {
 } from '@salesforce/ts-types';
 import { HttpRequest, SaveResult } from 'jsforce';
 import { Config } from '../config/config';
-import { ConfigAggregator, ConfigInfo } from '../config/configAggregator';
+import { ConfigAggregator } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStore';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
 import { SandboxOrgConfig } from '../config/sandboxOrgConfig';
@@ -40,6 +40,7 @@ import { Connection, SingleRecordQueryErrors } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
 import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } from './scratchOrgCreate';
 import { OrgConfigProperties } from './orgConfigProperties';
+import { AuthRemover } from './authRemover';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'org', [
@@ -276,13 +277,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       return Promise.resolve();
     }
     await this.removeSandboxConfig(throwWhenRemoveFails);
-    await this.removeUsers(throwWhenRemoveFails);
-    await this.removeUsersConfig();
-    // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's usersname is also
-    // included in the OrgUser config file.
-    //
-    // So, just in case no users are added to this org we will try the remove again.
-    await this.removeAuth();
+    const username = this.getUsername();
+    if (typeof username === 'string') {
+      const remover = await AuthRemover.create();
+      return remover.removeAuth(username);
+    }
   }
 
   /**
@@ -893,17 +892,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * Deletes the users config file
-   */
-  private async removeUsersConfig(): Promise<void> {
-    const config = await this.retrieveOrgUsersConfig();
-    if (await config.exists()) {
-      this.logger.debug(`Removing org users config at: ${config.getPath()}`);
-      await config.unlink();
-    }
-  }
-
-  /**
    * @ignore
    */
   private async retrieveSandboxOrgConfig(): Promise<SandboxOrgConfig> {
@@ -923,49 +911,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         return;
       }
     });
-  }
-
-  /**
-   * Remove the org users auth file.
-   *
-   * @param throwWhenRemoveFails true if manageDelete should throw or not if the deleted fails.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async removeUsers(throwWhenRemoveFails: boolean): Promise<void> {
-    const globalInfo = await GlobalInfo.getInstance();
-    this.logger.debug(`Removing users associate with org: ${this.getOrgId()}`);
-    const config = await this.retrieveOrgUsersConfig();
-    this.logger.debug(`using path for org users: ${config.getPath()}`);
-    const authInfos: AuthInfo[] = await this.readUserAuthFiles();
-
-    await Promise.all(
-      authInfos
-        .map((auth) => auth.getFields().username)
-        .map(async (username) => {
-          const aliasKeys = (username && globalInfo.aliases.getAll(username)) || [];
-          globalInfo.aliases.unsetAll(username as string);
-
-          const orgForUser =
-            username === this.getUsername()
-              ? this
-              : await Org.create({
-                  connection: await Connection.create({ authInfo: await AuthInfo.create({ username }) }),
-                });
-
-          const orgType = this.isDevHubOrg() ? OrgConfigProperties.TARGET_DEV_HUB : OrgConfigProperties.TARGET_ORG;
-          const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
-          const needsConfigUpdate =
-            (configInfo.isGlobal() || configInfo.isLocal()) &&
-            (configInfo.value === username || aliasKeys.includes(configInfo.value as string));
-
-          return [
-            orgForUser.removeAuth(),
-            needsConfigUpdate ? Config.update(configInfo.isGlobal(), orgType, undefined) : undefined,
-          ].filter(Boolean);
-        })
-    );
-
-    await globalInfo.write();
   }
 
   /**

@@ -40,6 +40,6 @@ export class OrgAccessor {
   }
 
   public unset(username: string): void {
-    delete this.globalInfo.get(SfInfoKeys.ORGS)[username];
+    this.globalInfo.unset(`${SfInfoKeys.ORGS}["${username}"]`);
   }
 }
