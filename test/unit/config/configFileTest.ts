@@ -209,8 +209,8 @@ describe('Config', () => {
 
       const expected = { test: 'test' };
       const actual = await config.write(expected);
-      expect(expected).to.equal(actual);
-      expect(expected).to.equal(config.getContents());
+      expect(expected).to.deep.equal(actual);
+      expect(expected).to.deep.equal(config.getContents());
       // expect(mkdirpStub.called).to.be.true;
       expect(writeJson.called).to.be.true;
     });
@@ -222,8 +222,8 @@ describe('Config', () => {
 
       const expected = { test: 'test' };
       const actual = config.writeSync(expected);
-      expect(expected).to.equal(actual);
-      expect(expected).to.equal(config.getContents());
+      expect(expected).to.deep.equal(actual);
+      expect(expected).to.deep.equal(config.getContents());
       expect(mkdirpStub.called).to.be.true;
       expect(writeJson.called).to.be.true;
     });
