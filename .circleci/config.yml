@@ -162,8 +162,8 @@ workflows:
                   'https://github.com/salesforcecli/plugin-login',
                 ]
           context:
-            - saleforce-cli-na40-jwt
-            - saleforce-cli-na40-auth-url
+            - salesforce-cli-na40-jwt
+            - salesforce-cli-na40-auth-url
       - external-nut:
           filters:
             branches:
@@ -178,8 +178,8 @@ workflows:
               os: [linux, windows]
               external_project_git_url: ['https://github.com/salesforcecli/plugin-config']
           context:
-            - saleforce-cli-na40-jwt
-            - saleforce-cli-na40-auth-url
+            - salesforce-cli-na40-jwt
+            - salesforce-cli-na40-auth-url
       - external-nut:
           filters:
             branches:
@@ -202,8 +202,8 @@ workflows:
                   'yarn test:nuts:static',
                 ]
           context:
-            - saleforce-cli-na40-jwt
-            - saleforce-cli-na40-auth-url
+            - salesforce-cli-na40-jwt
+            - salesforce-cli-na40-auth-url
       - release-management/release-package:
           # TODO: add these back when we're ready to GA v3
           # github-release: true
