@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.13.0](https://github.com/forcedotcom/sfdx-core/compare/v3.12.2...v3.13.0) (2022-04-20)
+
+### Features
+
+- detect if org is a devhub at auth time ([#560](https://github.com/forcedotcom/sfdx-core/issues/560)) ([958e2e7](https://github.com/forcedotcom/sfdx-core/commit/958e2e7317e670b738b3e7c82260ef741e1416d2))
+
 ### [3.12.2](https://github.com/forcedotcom/sfdx-core/compare/v3.12.1...v3.12.2) (2022-04-14)
 
 ### Bug Fixes
