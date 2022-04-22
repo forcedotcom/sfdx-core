@@ -9,9 +9,18 @@ import { set } from '@salesforce/kit';
 import { PartialDeep } from '@salesforce/kit/lib/nodash/support';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { AliasesHandler, AuthHandler, GlobalInfo, SfdxDataHandler, SfInfo, SfInfoKeys } from '../../../src/globalInfo';
+import {
+  AliasesHandler,
+  AuthHandler,
+  GlobalInfo,
+  SfdxDataHandler,
+  SfInfo,
+  SfInfoKeys,
+  SandboxesHandler,
+  SfOrg,
+} from '../../../src/globalInfo';
 import { ConfigFile } from '../../../src/config/configFile';
-import { SfOrg } from '../../../lib/globalInfo';
+import { SfSandbox } from '../../../lib/globalInfo';
 
 describe('SfdxDataHandler', () => {
   let sandbox: sinon.SinonSandbox;
@@ -51,6 +60,15 @@ describe('SfdxDataHandler', () => {
           aliases: ['myOrg'],
         },
       };
+      base.sandboxes = {
+        '12345_SF': {
+          prodOrgUsername: 'admin@prod.org',
+          sandboxUsername: username,
+          timestamp,
+          sandboxName: '',
+          sandboxOrgId: '1234_SF',
+        },
+      };
       const merged: SfInfo = GlobalInfo.emptyDataModel;
       for (const [key, value] of Object.entries(partial).concat(Object.entries(base))) {
         for (const [k, v] of Object.entries(value)) {
@@ -77,6 +95,7 @@ describe('SfdxDataHandler', () => {
       });
       sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
       sandbox.stub(AliasesHandler.prototype, 'migrate').resolves({ aliases: {} });
+      sandbox.stub(SandboxesHandler.prototype, 'migrate').resolves(sfdxData);
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
       expect(merged).to.deep.equal(sfdxData);
@@ -89,17 +108,24 @@ describe('SfdxDataHandler', () => {
             orgId: '12345_SF',
           },
         },
+        sandboxes: {
+          '12345_SF': { prodOrgUsername: 'admin@prod.org', timestamp: new Date().toISOString() },
+        },
       });
       const sfdxData = createData({
         orgs: {
           [username]: {
             timestamp: new Date('2000-01-01').toISOString(),
-            orgId: '12345_SFDX',
+            orgId: '12345_SF',
           },
+        },
+        sandboxes: {
+          '12345_SF': { prodOrgUsername: 'admin@prod.org', timestamp: new Date('2000-01-01').toISOString() },
         },
       });
       sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
       sandbox.stub(AliasesHandler.prototype, 'migrate').resolves({ aliases: {} });
+      sandbox.stub(SandboxesHandler.prototype, 'migrate').resolves(sfdxData);
 
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
@@ -118,10 +144,19 @@ describe('SfdxDataHandler', () => {
             aliases: ['newUser'],
           },
         },
+        sandboxes: {
+          '12345_NEW_SFDX': {
+            prodOrgUsername: 'admin@prod.org',
+            sandboxUsername: newSfdxAuthUsername,
+            sandboxOrgId: '12345_NEW_SFDX',
+            sandboxName: '',
+          },
+        },
       });
 
       sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
       sandbox.stub(AliasesHandler.prototype, 'migrate').resolves({ aliases: {} });
+      sandbox.stub(SandboxesHandler.prototype, 'migrate').resolves(sfdxData);
 
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
@@ -129,6 +164,10 @@ describe('SfdxDataHandler', () => {
       expected.orgs = {
         [username]: sfData.orgs[username],
         [newSfdxAuthUsername]: sfdxData.orgs[newSfdxAuthUsername],
+      };
+      expected.sandboxes = {
+        '12345_SF': sfData.sandboxes['12345_SF'],
+        '12345_NEW_SFDX': sfdxData.sandboxes['12345_NEW_SFDX'],
       };
       expect(merged).to.deep.equal(expected);
     });
@@ -149,6 +188,7 @@ describe('SfdxDataHandler', () => {
 
       sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
       sandbox.stub(AliasesHandler.prototype, 'migrate').resolves({ aliases: {} });
+      sandbox.stub(SandboxesHandler.prototype, 'migrate').resolves({ sandboxes: {} });
 
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
@@ -187,6 +227,7 @@ describe('SfdxDataHandler', () => {
 
       sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
       sandbox.stub(AliasesHandler.prototype, 'migrate').resolves({ aliases: {} });
+      sandbox.stub(SandboxesHandler.prototype, 'migrate').resolves(sfdxData);
 
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
@@ -200,6 +241,9 @@ describe('SfdxDataHandler', () => {
       const migrateStubs = sfdxDataHandler.handlers.map((handler) => {
         if (handler.sfKey === SfInfoKeys.ALIASES) {
           return sandbox.stub(handler, 'migrate').resolves({ [SfInfoKeys.ALIASES]: {} });
+        }
+        if (handler.sfKey === SfInfoKeys.SANDBOXES) {
+          return sandbox.stub(handler, 'migrate').resolves({ [SfInfoKeys.SANDBOXES]: {} });
         }
         return sandbox.stub(handler, 'migrate').resolves({ [handler.sfKey]: {} });
       });
@@ -343,6 +387,7 @@ describe('AliasesHandler', () => {
         [SfInfoKeys.ORGS]: { [username]: { ...auth, timestamp } },
         [SfInfoKeys.TOKENS]: {},
         [SfInfoKeys.ALIASES]: { someOtherAlias: 'someOtherAliasValue' },
+        [SfInfoKeys.SANDBOXES]: {},
       } as SfInfo;
       const aliasesHandler = new AliasesHandler();
       const merged = await aliasesHandler.merge(sfInfo);
@@ -356,10 +401,116 @@ describe('AliasesHandler', () => {
         [SfInfoKeys.ORGS]: { [username]: { ...auth, timestamp } },
         [SfInfoKeys.TOKENS]: {},
         [SfInfoKeys.ALIASES]: { ['myorg']: username, someOtherAlias: 'someOtherAliasValue' },
+        [SfInfoKeys.SANDBOXES]: {},
       } as SfInfo;
       const aliasesHandler = new AliasesHandler();
       const merged = await aliasesHandler.merge(sfInfo);
       expect(merged.aliases).to.deep.equal({ ['myorg']: username });
+    });
+  });
+});
+
+describe('SandboxesHandler', () => {
+  let sinonSandbox: sinon.SinonSandbox;
+  const sandboxUsername = 'myAccount@salesforce.com';
+  const sandboxOrgId = '00D123456789XXX';
+  const prodOrgUsername = 'admin@prod.org';
+  const sandboxName = 'foo';
+  const timestamp = new Date().toISOString();
+  const sfSandbox = {
+    sandboxOrgId,
+    sandboxUsername,
+    prodOrgUsername,
+    sandboxName,
+  } as SfSandbox;
+
+  const sfdxSandbox = {
+    prodOrgUsername,
+  };
+
+  const partialSfSandbox = {
+    prodOrgUsername,
+    sandboxOrgId,
+  };
+
+  beforeEach(() => {
+    sinonSandbox = sinon.createSandbox();
+  });
+
+  afterEach(() => {
+    sinonSandbox.restore();
+  });
+
+  describe('migrate', () => {
+    it('should migrate sandbox files files into new sandbox format', async () => {
+      const migratedSandbox = Object.assign({}, sfSandbox, { timestamp });
+      sinonSandbox.stub(SandboxesHandler.prototype, 'listAllSandboxes').resolves([migratedSandbox]);
+      const handler = new SandboxesHandler();
+      const migrated = await handler.migrate();
+      expect(migrated).to.deep.equal({ sandboxes: { [sandboxOrgId]: migratedSandbox } });
+    });
+  });
+
+  describe('write', () => {
+    it('should write sandbox files for any changed sandboxes', async () => {
+      const writeStub = sinon.stub().returns(null);
+      const unlinkStub = sinon.stub().returns(null);
+      sinonSandbox.replace(ConfigFile.prototype, 'write', writeStub);
+      sinonSandbox.replace(ConfigFile.prototype, 'unlink', unlinkStub);
+
+      const latest = GlobalInfo.emptyDataModel;
+      latest.sandboxes = {
+        [sandboxOrgId]: Object.assign({}, sfSandbox, { timestamp, sandboxName: 'bar' }),
+      };
+      const original = GlobalInfo.emptyDataModel;
+      original.sandboxes = {
+        [sandboxOrgId]: Object.assign({}, sfSandbox),
+      };
+      const handler = new SandboxesHandler();
+      await handler.write(latest, original);
+      expect(writeStub.callCount).to.equal(1);
+      expect(unlinkStub.callCount).to.equal(0);
+    });
+
+    it('should delete sfdx sandbox files for any deleted sandboxes', async () => {
+      const writeStub = sinon.stub().returns(null);
+      const unlinkStub = sinon.stub().returns(null);
+      sinonSandbox.replace(ConfigFile.prototype, 'write', writeStub);
+      sinonSandbox.replace(ConfigFile.prototype, 'unlink', unlinkStub);
+
+      const latest = GlobalInfo.emptyDataModel;
+      const original = GlobalInfo.emptyDataModel;
+      original.sandboxes = {
+        [sandboxOrgId]: Object.assign({}, sfSandbox),
+      };
+      const handler = new SandboxesHandler();
+      await handler.write(latest, original);
+      expect(writeStub.callCount).to.equal(0);
+      expect(unlinkStub.callCount).to.equal(1);
+    });
+  });
+
+  describe('listAllSandboxFiles', () => {
+    it('should return all auth files under .sfdx directory', async () => {
+      // @ts-ignore
+      sinonSandbox.stub(fs.promises, 'readdir').resolves([`${sandboxOrgId}.sandbox.json`, `${sandboxUsername}.json`]);
+      const handler = new SandboxesHandler();
+      const sandboxFiles = await handler.listAllSandboxFiles();
+      expect(sandboxFiles).to.deep.equal([`${sandboxOrgId}.sandbox.json`]);
+    });
+  });
+
+  describe('listAllSandboxes', () => {
+    it('should return all sandboxes from .sfdx directory', async () => {
+      sinonSandbox.stub(SandboxesHandler.prototype, 'listAllSandboxFiles').resolves([`${sandboxOrgId}.sandbox.json`]);
+      const getContentsStub = sinon.stub().returns(sfdxSandbox);
+      sinonSandbox.replace(ConfigFile.prototype, 'getContents', getContentsStub);
+      const mtime = new Date();
+      const statStub = sinon.stub().resolves({ mtime });
+      sinonSandbox.replace(ConfigFile.prototype, 'stat', statStub);
+      const handler = new SandboxesHandler();
+      const sandboxes = await handler.listAllSandboxes();
+      expect(sandboxes).to.deep.equal([Object.assign({}, partialSfSandbox, { timestamp: mtime.toISOString() })]);
     });
   });
 });

@@ -10,6 +10,7 @@ export enum SfInfoKeys {
   ORGS = 'orgs',
   TOKENS = 'tokens',
   ALIASES = 'aliases',
+  SANDBOXES = 'sandboxes',
 }
 
 export type Timestamp = { timestamp: string };
@@ -44,8 +45,28 @@ export interface SfAliases {
   [alias: string]: string;
 }
 
+export type SfSandbox = {
+  sandboxOrgId: string;
+  prodOrgUsername: string;
+  sandboxName?: string;
+  sandboxUsername?: string;
+  sandboxProcessId?: string;
+  sandboxInfoId?: string;
+} & Timestamp &
+  SfEntry;
+
+/**
+ * The key will always be the sandbox username and the value will always be the
+ * production org username
+ * { "user@salesforce.com.mysandbox": "user@salesforce.com" }
+ */
+export interface SfSandboxes {
+  [sandboxOrgId: string]: SfSandbox;
+}
+
 export type SfInfo = {
   [SfInfoKeys.ORGS]: SfOrgs;
   [SfInfoKeys.TOKENS]: SfTokens;
   [SfInfoKeys.ALIASES]: SfAliases;
+  [SfInfoKeys.SANDBOXES]: SfSandboxes;
 };

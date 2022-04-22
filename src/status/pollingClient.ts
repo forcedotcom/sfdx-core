@@ -92,7 +92,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
       if (errorInPollingFunction) {
         throw errorInPollingFunction;
       }
-
+      await Lifecycle.getInstance().emit('POLLING_TIME_OUT', error);
       this.logger.debug('Polling timed out');
       throw new SfError('The client has timed out.', this.options.timeoutErrorName ?? 'PollingClientTimeout');
     }
