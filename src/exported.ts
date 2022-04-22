@@ -106,7 +106,12 @@ export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './org/user
 
 export { PermissionSetAssignment, PermissionSetAssignmentFields } from './org/permissionSetAssignment';
 
-export { ScratchOrgCreateOptions, ScratchOrgCreateResult, scratchOrgCreate } from './org/scratchOrgCreate';
+export {
+  ScratchOrgCreateOptions,
+  ScratchOrgCreateResult,
+  scratchOrgCreate,
+  scratchOrgResume,
+} from './org/scratchOrgCreate';
 
 export { ScratchOrgInfo } from './org/scratchOrgTypes';
 export {
@@ -114,7 +119,7 @@ export {
   scratchOrgLifecycleEventName,
   scratchOrgLifecycleStages,
 } from './org/scratchOrgLifecycleEvents';
-
+export { ScratchOrgCache } from './org/scratchOrgCache';
 // Utility sub-modules
 export * from './util/sfdc';
 export * from './util/sfdcUrl';

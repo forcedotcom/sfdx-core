@@ -115,7 +115,7 @@ export interface AccessTokenOptions {
 }
 
 export type AuthSideEffects = {
-  alias: string;
+  alias?: string;
   setDefault: boolean;
   setDefaultDevHub: boolean;
 };

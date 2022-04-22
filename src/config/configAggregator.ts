@@ -170,10 +170,15 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * @param key The key of the property.
    */
   public getPropertyValue<T extends AnyJson>(key: string): Optional<T> {
-    if (this.getAllowedProperties().some((element) => key === element.key)) {
-      return this.getConfig()[key] as T;
-    } else {
+    if (!this.getAllowedProperties().some((element) => key === element.key)) {
       throw messages.createError('unknownConfigKey', [key]);
+    }
+    if (this.getConfig()[key]) {
+      return this.getConfig()[key] as T;
+    }
+    const newKey = this.getPropertyMeta(key).newKey;
+    if (newKey) {
+      return this.getConfig()[newKey] as T;
     }
   }
 
@@ -237,6 +242,20 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     if (this.globalConfig && this.globalConfig.get(key)) {
       return ConfigAggregator.Location.GLOBAL;
     }
+    // no location found for the key.  Try it under the new key name for backwards compatibility.
+    const newKey = this.getPropertyMeta(key).newKey;
+    if (!newKey) {
+      return;
+    }
+    if (this.getEnvVars().get(newKey) != null) {
+      return ConfigAggregator.Location.ENVIRONMENT;
+    }
+    if (this.localConfig && this.localConfig.get(newKey)) {
+      return ConfigAggregator.Location.LOCAL;
+    }
+    if (this.globalConfig && this.globalConfig.get(newKey)) {
+      return ConfigAggregator.Location.GLOBAL;
+    }
   }
 
   /**
@@ -261,6 +280,20 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
       return this.localConfig.getPath();
     }
     if (this.globalConfig.getContents()[key] != null) {
+      return this.globalConfig.getPath();
+    }
+    // no path found for the key.  Try it under the new key name for backwards compatibility.
+    const newKey = this.getPropertyMeta(key).newKey;
+    if (!newKey) {
+      return;
+    }
+    if (this.envVars.getString(newKey) != null) {
+      return `$${propertyToEnvName(newKey)}`;
+    }
+    if (this.localConfig && this.localConfig.getContents()[newKey] != null) {
+      return this.localConfig.getPath();
+    }
+    if (this.globalConfig.getContents()[newKey] != null) {
       return this.globalConfig.getPath();
     }
   }

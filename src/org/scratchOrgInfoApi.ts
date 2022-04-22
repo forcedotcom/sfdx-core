@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AnyJson, Optional } from '@salesforce/ts-types';
 import { env, Duration, upperFirst } from '@salesforce/kit';
-import { getString } from '@salesforce/ts-types';
+import { AnyJson, getString } from '@salesforce/ts-types';
 // @ts-ignore
 import { OAuth2Config, OAuth2Options, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
@@ -19,6 +18,7 @@ import { SfdcUrl } from '../util/sfdcUrl';
 import { StatusResult } from '../status/types';
 import { PollingClient } from '../status/pollingClient';
 import { MyDomainResolver } from '../status/myDomainResolver';
+import { Lifecycle } from '../lifecycleEvents';
 import { AuthInfo } from './authInfo';
 import { Org } from './org';
 import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
@@ -172,6 +172,16 @@ const getAuthInfo = async (options: {
 };
 
 /**
+ *
+ * @param hubOrg Org
+ * @param id Record ID for the ScratchOrgInfoObject
+ * @returns Promise<ScratchOrgInfo>
+ */
+export const queryScratchOrgInfo = async (hubOrg: Org, id: string): Promise<ScratchOrgInfo> => {
+  return (await hubOrg.getConnection().sobject('ScratchOrgInfo').retrieve(id)) as unknown as ScratchOrgInfo;
+};
+
+/**
  * after we successfully signup an org we need to trade the auth token for access and refresh token.
  *
  * scratchOrgInfoComplete - The completed ScratchOrgInfo which should contain an access token.
@@ -189,7 +199,7 @@ export const authorizeScratchOrg = async (options: {
   signupTargetLoginUrlConfig?: string;
   retry?: number;
 }): Promise<AuthInfo> => {
-  const { scratchOrgInfoComplete, hubOrg, clientSecret, signupTargetLoginUrlConfig, retry: maxRetries } = options;
+  const { scratchOrgInfoComplete, hubOrg, clientSecret, signupTargetLoginUrlConfig, retry } = options;
   await emit({ stage: 'authenticate', scratchOrgInfo: scratchOrgInfoComplete });
   const logger = await Logger.child('authorizeScratchOrg');
   logger.debug(`scratchOrgInfoComplete: ${JSON.stringify(scratchOrgInfoComplete, null, 4)}`);
@@ -203,7 +213,7 @@ export const authorizeScratchOrg = async (options: {
     hubOrg,
     clientSecret,
     scratchOrgInfoComplete,
-    retry: maxRetries,
+    retry,
     signupTargetLoginUrlConfig,
   });
 
@@ -320,17 +330,16 @@ export const pollForScratchOrgInfo = async (
   const pollingOptions: PollingClient.Options = {
     async poll(): Promise<StatusResult> {
       try {
-        const resultInProgress = await hubOrg.getConnection().sobject('ScratchOrgInfo').retrieve(scratchOrgInfoId);
+        const resultInProgress = await queryScratchOrgInfo(hubOrg, scratchOrgInfoId);
         logger.debug(`polling client result: ${JSON.stringify(resultInProgress, null, 4)}`);
         // Once it's "done" we can return it
         if (resultInProgress.Status === 'Active' || resultInProgress.Status === 'Error') {
-          await emit({ stage: 'available', scratchOrgInfo: resultInProgress as unknown as ScratchOrgInfo });
           return {
             completed: true,
             payload: resultInProgress as unknown as AnyJson,
           };
         }
-        await emit({ stage: 'wait for org', scratchOrgInfo: resultInProgress as unknown as ScratchOrgInfo });
+        await emit({ stage: 'wait for org', scratchOrgInfo: resultInProgress });
 
         logger.debug(`Scratch org status is ${resultInProgress.Status}`);
         return {
@@ -353,11 +362,16 @@ export const pollForScratchOrgInfo = async (
   const client = await PollingClient.create(pollingOptions);
   try {
     const resultInProgress = await client.subscribe<ScratchOrgInfo>();
-    return checkScratchOrgInfoForErrors(resultInProgress, hubOrg.getUsername(), logger);
+    return checkScratchOrgInfoForErrors(resultInProgress, hubOrg.getUsername());
   } catch (error) {
-    const err = error as Error;
-    if (err.message) {
-      throw SfError.wrap(err);
+    if (error instanceof Error) {
+      const sfError = SfError.wrap(error);
+      sfError.setData({
+        username: hubOrg.getUsername(),
+        orgId: hubOrg.getOrgId(),
+        scratchOrgInfoId,
+      });
+      throw sfError;
     }
     throw new SfError(`The scratch org did not complete within ${timeout.minutes} minutes`, 'orgCreationTimeout', [
       'Try your force:org:create command again with a longer --wait value',
@@ -366,22 +380,18 @@ export const pollForScratchOrgInfo = async (
 };
 
 /**
- * This authenticates into the newly created org and sets org preferences
+ * Deploy settings to the newly created scratch org
  *
- * @param scratchOrgAuthInfo - an object containing the AuthInfo of the ScratchOrg
- * @param apiVersion - the target api version
- * @param orgSettings - The ScratchOrg settings
- * @param scratchOrg - The scratchOrg Org info
- * @returns {Promise<Optional<AuthInfo>>}
+ * @param scratchOrg an instance of the Org class
+ * @param orgSettings an instance of the SettingsGenerator class
+ * @param apiVersion the api version (used when created the package.xml)
  */
-export const deploySettingsAndResolveUrl = async (
-  scratchOrgAuthInfo: AuthInfo,
-  apiVersion: string,
+export const deploySettings = async (
+  scratchOrg: Org,
   orgSettings: SettingsGenerator,
-  scratchOrg: Org
-): Promise<Optional<AuthInfo>> => {
-  const logger = await Logger.child('scratchOrgInfoApi-deploySettingsAndResolveUrl');
-
+  apiVersion: string
+): Promise<void> => {
+  const logger = await Logger.child('scratchOrgInfoApi-deploySettings');
   if (orgSettings.hasSettings()) {
     // deploy the settings to the newly created scratch org
     logger.debug(`deploying scratch org settings with apiVersion ${apiVersion}`);
@@ -389,36 +399,71 @@ export const deploySettingsAndResolveUrl = async (
     try {
       await orgSettings.createDeploy();
       await orgSettings.deploySettingsViaFolder(scratchOrg, apiVersion);
+      // updating the revision num to zero during org:creation if source members are created during org:create.
+      // This only happens for some specific scratch org definition file.
+      await updateRevisionCounterToZero(scratchOrg);
+      logger.trace('Settings deployed to org');
     } catch (error) {
       throw SfError.wrap(error as Error);
     }
   }
+};
 
+/**
+ *
+ * @param scratchOrgAuthInfo an AuthInfo class from the scratch org
+ * @returns AuthInfo
+ */
+export const resolveUrl = async (scratchOrgAuthInfo: AuthInfo): Promise<AuthInfo> => {
+  const logger = await Logger.child('scratchOrgInfoApi-resolveUrl');
   const { instanceUrl } = scratchOrgAuthInfo.getFields();
-  if (instanceUrl) {
-    logger.debug(`processScratchOrgInfoResult - resultData.instanceUrl: ${instanceUrl}`);
-    const options = {
-      timeout: Duration.minutes(3),
-      frequency: Duration.seconds(10),
-      url: new SfdcUrl(instanceUrl),
-    };
-    try {
-      const resolver = await MyDomainResolver.create(options);
-      await resolver.resolve();
-    } catch (error) {
-      const sfError = SfError.wrap(error as Error);
-      logger.debug('processScratchOrgInfoResult - err: %s', error);
-      if (sfError.name === 'MyDomainResolverTimeoutError') {
-        sfError.setData({
-          orgId: scratchOrgAuthInfo.getFields().orgId,
-          username: scratchOrgAuthInfo.getFields().username,
-          instanceUrl,
-        });
-        logger.debug('processScratchOrgInfoResult - err data: %s', sfError.data);
-      }
-      throw sfError;
-    }
-
+  if (!instanceUrl) {
+    const sfError = new SfError('Org does not have instanceUrl');
+    sfError.setData({
+      orgId: scratchOrgAuthInfo.getFields().orgId,
+      username: scratchOrgAuthInfo.getFields().username,
+      instanceUrl,
+    });
+    throw sfError;
+  }
+  logger.debug(`processScratchOrgInfoResult - resultData.instanceUrl: ${instanceUrl}`);
+  const options = {
+    timeout: Duration.minutes(3),
+    frequency: Duration.seconds(10),
+    url: new SfdcUrl(instanceUrl),
+  };
+  try {
+    const resolver = await MyDomainResolver.create(options);
+    await resolver.resolve();
     return scratchOrgAuthInfo;
+  } catch (error) {
+    const sfError = SfError.wrap(error as Error);
+    logger.debug('processScratchOrgInfoResult - err: %s', error);
+    if (sfError.name === 'MyDomainResolverTimeoutError') {
+      sfError.setData({
+        orgId: scratchOrgAuthInfo.getFields().orgId,
+        username: scratchOrgAuthInfo.getFields().username,
+        instanceUrl,
+      });
+      logger.debug('processScratchOrgInfoResult - err data: %s', sfError.data);
+    }
+    throw sfError;
+  }
+};
+
+export const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void> => {
+  const conn = scratchOrg.getConnection();
+  const queryResult = await conn.tooling.sobject('SourceMember').find({ RevisionCounter: { $gt: 0 } }, ['Id']);
+  if (queryResult.length === 0) {
+    return;
+  }
+  try {
+    await conn.tooling
+      .sobject('SourceMember')
+      .update(queryResult.map((record) => ({ Id: record.Id, RevisionCounter: 0 })));
+  } catch (err) {
+    await Lifecycle.getInstance().emitWarning(
+      messages.getMessage('SourceStatusResetFailureError', [scratchOrg.getOrgId(), scratchOrg.getUsername()])
+    );
   }
 };
