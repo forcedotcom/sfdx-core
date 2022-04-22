@@ -100,7 +100,11 @@ export class SchemaValidator {
     // to specify "removeAdditional: false" in every object.
     const validate = ajv.compile(schema);
 
-    const valid = validate(json);
+    // AJV will modify the original json object. We need to make a clone of the
+    // json to keep this backwards compatible with JSEN functionality
+    const jsonClone: AnyJson = JSON.parse(JSON.stringify(json));
+
+    const valid = validate(jsonClone);
 
     if (!valid) {
       if (validate.errors) {
@@ -111,9 +115,8 @@ export class SchemaValidator {
       }
     }
 
-    return json;
+    return jsonClone;
   }
-
   /**
    * Loads local, external schemas from URIs in the same directory as the local schema file.
    * Does not support loading from remote URIs.

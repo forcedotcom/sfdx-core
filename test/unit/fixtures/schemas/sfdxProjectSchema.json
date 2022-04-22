@@ -13,7 +13,6 @@
       "description": "Package directories indicate which directories to target when syncing source to and from the scratch org. These directories can contain source from your managed package, unmanaged package, or unpackaged source, for example, ant tool or change set.",
       "$comment": "The properties ancestorId & ancestorVersion cannot be included together, but this schema optimizes for VS Code code completion rather than pure validation.",
       "minItems": 1,
-      "additionalItems": false,
       "items": {
         "type": "object",
         "dependencies": {

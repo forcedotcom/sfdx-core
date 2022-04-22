@@ -11,7 +11,6 @@ import { env } from '@salesforce/kit';
 import { SfdxError } from '../../src/exported';
 import { SfdxProject, SfdxProjectJson } from '../../src/sfdxProject';
 import { shouldThrow, testSetup } from '../../src/testSetup';
-
 // Setup the test environment.
 const $$ = testSetup();
 
@@ -122,7 +121,7 @@ describe('SfdxProject', () => {
         },
       });
       $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
-      const expectedError = "Validation errors:\n should NOT have additional properties 'foo'";
+      const expectedError = "Validation errors:\n#/additionalProperties: must NOT have additional properties 'foo'";
       try {
         // create() calls read() which calls schemaValidate()
         await shouldThrow(SfdxProjectJson.create({}));
@@ -172,7 +171,7 @@ describe('SfdxProject', () => {
         },
       });
       $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
-      const expectedError = "Validation errors:\n should NOT have additional properties 'foo'";
+      const expectedError = "Validation errors:\n#/additionalProperties: must NOT have additional properties 'foo'";
       try {
         const project = new SfdxProjectJson({});
         await project.schemaValidate();
