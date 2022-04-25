@@ -628,7 +628,9 @@ export class SfdxConfig {
   public async write(config = this.config.toObject()) {
     try {
       const translated = this.translate(config as ConfigProperties, 'toOld');
-      await this._write(translated);
+      const sfdxPath = this.getSfdxPath();
+      await mkdirp(pathDirname(sfdxPath));
+      await fs.promises.writeFile(sfdxPath, JSON.stringify(translated, null, 2));
     } catch (error) {
       /* Do nothing */
     }
@@ -636,22 +638,12 @@ export class SfdxConfig {
 
   private readSync(): ConfigProperties {
     try {
-      const contents = this._readSync();
+      const contents = parseJsonMap<ConfigProperties>(fs.readFileSync(this.getSfdxPath(), 'utf8'));
       return this.translate(contents, 'toNew');
     } catch (error) {
       /* Do nothing */
       return {};
     }
-  }
-
-  private _readSync(): ConfigProperties {
-    return parseJsonMap<ConfigProperties>(fs.readFileSync(this.getSfdxPath(), 'utf8'));
-  }
-
-  private async _write(contents: ConfigProperties) {
-    const sfdxPath = this.getSfdxPath();
-    await mkdirp(pathDirname(sfdxPath));
-    await fs.promises.writeFile(sfdxPath, JSON.stringify(contents, null, 2));
   }
 
   private getSfdxPath(): string {
