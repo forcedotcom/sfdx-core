@@ -155,7 +155,7 @@ workflows:
                 [
                   'https://github.com/salesforcecli/plugin-alias',
                   'https://github.com/salesforcecli/plugin-auth',
-                  'https://github.com/salesforcecli/plugin-config',
+                  # 'https://github.com/salesforcecli/plugin-config',
                   'https://github.com/salesforcecli/plugin-limits',
                   'https://github.com/salesforcecli/plugin-schema',
                   'https://github.com/salesforcecli/plugin-env',
@@ -172,6 +172,22 @@ workflows:
             - release-management/test-package
           sfdx_version: latest
           branch: 'v2'
+          node_version: lts
+          matrix:
+            parameters:
+              os: [linux, windows]
+              external_project_git_url: ['https://github.com/salesforcecli/plugin-config']
+          context:
+            - salesforce-cli-na40-jwt
+            - salesforce-cli-na40-auth-url
+      - external-nut:
+          filters:
+            branches:
+              ignore: v3
+          requires:
+            - release-management/test-package
+          sfdx_version: latest
+          branch: 'mdonnalley/fix-config'
           node_version: lts
           matrix:
             parameters:
