@@ -265,7 +265,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @returns {string}
    */
   public static getDefaultInstanceUrl(): string {
-    const configuredInstanceUrl = ConfigAggregator.getValue('instanceUrl').value as string;
+    const configuredInstanceUrl = ConfigAggregator.getValue(OrgConfigProperties.ORG_INSTANCE_URL).value as string;
     return configuredInstanceUrl || SfdcUrl.PRODUCTION;
   }
 

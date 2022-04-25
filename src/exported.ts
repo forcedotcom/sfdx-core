@@ -34,7 +34,7 @@ export {
   SF_ALLOWED_PROPERTIES,
 } from './config/config';
 
-export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
+export { ConfigInfo, ConfigAggregator, SfdxConfigAggregator } from './config/configAggregator';
 
 export { AuthFields, AuthInfo, AuthSideEffects, OrgAuthorization } from './org/authInfo';
 

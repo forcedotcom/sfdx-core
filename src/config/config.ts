@@ -8,7 +8,7 @@
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import * as fs from 'fs';
 import { keyBy, parseJsonMap, set } from '@salesforce/kit';
-import { Dictionary, ensure, isBoolean, isString, JsonPrimitive } from '@salesforce/ts-types';
+import { Dictionary, ensure, isBoolean, isString, JsonPrimitive, Nullable } from '@salesforce/ts-types';
 import * as mkdirp from 'mkdirp';
 import { Global } from '../global';
 import { Logger } from '../logger';
@@ -419,6 +419,15 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     await localConfig.write();
   }
 
+  public static getPropertyConfigMeta(propertyName: string): Nullable<ConfigPropertyMeta> {
+    const prop = Config.propertyConfigMap()[propertyName];
+    if (prop?.deprecated && prop?.newKey) {
+      return Config.propertyConfigMap()[prop.newKey];
+    }
+
+    return prop;
+  }
+
   private static propertyConfigMap(): Dictionary<ConfigPropertyMeta> {
     return keyBy(Config.allowedProperties, 'key');
   }
@@ -460,7 +469,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     await this.cryptProperties(true);
 
     await super.write();
-    if (Global.SFDX_INTEROPERABILITY) await this.sfdxConfig.writeSync();
+    if (Global.SFDX_INTEROPERABILITY) await this.sfdxConfig.write();
 
     await this.cryptProperties(false);
 
@@ -586,7 +595,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   }
 }
 
-class SfdxConfig {
+export class SfdxConfig {
   private sfdxPath: string;
   public constructor(private options: ConfigFile.Options = {}, private config: Config) {
     this.sfdxPath = this.getSfdxPath();
@@ -597,7 +606,6 @@ class SfdxConfig {
    */
   public merge(config: ConfigProperties): ConfigProperties | undefined {
     if (!Global.SFDX_INTEROPERABILITY) return config;
-
     const sfdxConfig = this.readSync();
 
     const sfdxPropKeys = Object.values(SfdxPropertyKeys) as string[];
@@ -617,24 +625,24 @@ class SfdxConfig {
     return Object.assign(config, sfdxConfig);
   }
 
-  public readSync(): ConfigProperties {
+  public async write(config = this.config.toObject()) {
     try {
-      const contents = parseJsonMap(fs.readFileSync(this.getSfdxPath(), 'utf8'));
-      return this.normalize(contents as ConfigProperties, 'toNew');
+      const translated = this.translate(config as ConfigProperties, 'toOld');
+      const sfdxPath = this.getSfdxPath();
+      await mkdirp(pathDirname(sfdxPath));
+      await fs.promises.writeFile(sfdxPath, JSON.stringify(translated, null, 2));
     } catch (error) {
       /* Do nothing */
-      return {};
     }
   }
 
-  public async writeSync(config = this.config.toObject()) {
+  private readSync(): ConfigProperties {
     try {
-      const sfdxPath = this.getSfdxPath();
-      await mkdirp(pathDirname(sfdxPath));
-      const mapped = this.normalize(config as ConfigProperties, 'toOld');
-      await fs.promises.writeFile(sfdxPath, JSON.stringify(mapped, null, 2));
+      const contents = parseJsonMap<ConfigProperties>(fs.readFileSync(this.getSfdxPath(), 'utf8'));
+      return this.translate(contents, 'toNew');
     } catch (error) {
       /* Do nothing */
+      return {};
     }
   }
 
@@ -667,8 +675,8 @@ class SfdxConfig {
    * If toOld is specified: migrate all deprecated configs back to their original key.
    * - For example, target-org will be renamed to defaultusername.
    */
-  private normalize(contents: ConfigProperties, direction: 'toNew' | 'toOld'): ConfigProperties {
-    const mapped = {} as ConfigProperties;
+  private translate(contents: ConfigProperties, direction: 'toNew' | 'toOld'): ConfigProperties {
+    const translated = {} as ConfigProperties;
     for (const [key, value] of Object.entries(contents)) {
       const propConfig =
         direction === 'toNew'
@@ -676,11 +684,11 @@ class SfdxConfig {
           : Config.getAllowedProperties().find((c) => c.newKey === key) ?? ({} as ConfigPropertyMeta);
       if (propConfig.deprecated && propConfig.newKey) {
         const normalizedKey = direction === 'toNew' ? propConfig.newKey : propConfig.key;
-        mapped[normalizedKey] = value;
+        translated[normalizedKey] = value;
       } else {
-        mapped[key] = value;
+        translated[key] = value;
       }
     }
-    return mapped;
+    return translated;
   }
 }
