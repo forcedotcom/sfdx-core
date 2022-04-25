@@ -339,8 +339,6 @@ export const instantiateContext = (sinon?: any): TestContext => {
 export const stubContext = (testContext: TestContext) => {
   // Turn off the interoperability feature so that we don't have to mock
   // the old .sfdx config files
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   Global.SFDX_INTEROPERABILITY = false;
 
   // Most core files create a child logger so stub this to return our test logger.

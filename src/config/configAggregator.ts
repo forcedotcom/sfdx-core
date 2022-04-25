@@ -7,16 +7,12 @@
 
 import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
 import { AnyJson, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
-import { snakeCase } from 'change-case';
 import { Messages } from '../messages';
 import { EnvVars } from './envVars';
 import { Config, ConfigPropertyMeta } from './config';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'config', ['unknownConfigKey', 'deprecatedConfigKey']);
-
-const propertyToEnvName = (property: string, prefix = 'SFDX_'): string =>
-  `${prefix || ''}${snakeCase(property).toUpperCase()}`;
 
 /**
  * Information about a config property.
@@ -64,11 +60,11 @@ export interface ConfigInfo {
 
 /**
  * Aggregate global and local project config files, as well as environment variables for
- * `sfdx-config.json`. The resolution happens in the following bottom-up order:
+ * `config.json`. The resolution happens in the following bottom-up order:
  *
- * 1. Environment variables  (`SFDX_LOG_LEVEL`)
- * 1. Workspace settings  (`<workspace-root>/.sfdx/sfdx-config.json`)
- * 1. Global settings  (`$HOME/.sfdx/sfdx-config.json`)
+ * 1. Environment variables  (`SF_LOG_LEVEL`)
+ * 1. Workspace settings  (`<workspace-root>/.sf/config.json`)
+ * 1. Global settings  (`$HOME/.sf/config.json`)
  *
  * Use {@link ConfigAggregator.create} to instantiate the aggregator.
  *
@@ -113,20 +109,6 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
 
     this.setAllowedProperties(Config.getAllowedProperties());
   }
-  /**
-   * Get the static ConfigAggregator instance. If one doesn't exist, one will be created with
-   * the **encrypted** config values. Encrypted config values need to be resolved
-   * asynchronously by calling {@link ConfigAggregator.reload}
-   */
-  // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
-  // We really don't want ConfigAggregator extended but typescript doesn't support a final.
-  public static getInstance<P, T extends AsyncOptionalCreatable<P>>(this: new () => T): T {
-    if (!ConfigAggregator.instance) {
-      ConfigAggregator.instance = new this();
-      (ConfigAggregator.instance as ConfigAggregator).loadPropertiesSync();
-    }
-    return ConfigAggregator.instance as T;
-  }
 
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
@@ -156,6 +138,21 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   }
 
   /**
+   * Get the static ConfigAggregator instance. If one doesn't exist, one will be created with
+   * the **encrypted** config values. Encrypted config values need to be resolved
+   * asynchronously by calling {@link ConfigAggregator.reload}
+   */
+  // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
+  // We really don't want ConfigAggregator extended but typescript doesn't support a final.
+  private static getInstance<P, T extends AsyncOptionalCreatable<P>>(this: new () => T): T {
+    if (!ConfigAggregator.instance) {
+      ConfigAggregator.instance = new this();
+      (ConfigAggregator.instance as ConfigAggregator).loadPropertiesSync();
+    }
+    return ConfigAggregator.instance as T;
+  }
+
+  /**
    * Initialize this instances async dependencies.
    */
   public async init(): Promise<void> {
@@ -170,15 +167,10 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * @param key The key of the property.
    */
   public getPropertyValue<T extends AnyJson>(key: string): Optional<T> {
-    if (!this.getAllowedProperties().some((element) => key === element.key)) {
+    if (this.getAllowedProperties().some((element) => key === element.key)) {
+      return (this.getConfig()[key] as T) || (this.getEnvVars().get(key) as T);
+    } else {
       throw messages.createError('unknownConfigKey', [key]);
-    }
-    if (this.getConfig()[key]) {
-      return this.getConfig()[key] as T;
-    }
-    const newKey = this.getPropertyMeta(key).newKey;
-    if (newKey) {
-      return this.getConfig()[newKey] as T;
     }
   }
 
@@ -206,6 +198,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   public getInfo(key: string, throwOnDeprecation = false): ConfigInfo {
     const meta = this.getPropertyMeta(key);
+
     if (throwOnDeprecation && meta.deprecated && meta.newKey) {
       throw messages.createError('deprecatedConfigKey', [key, meta.newKey]);
     }
@@ -242,29 +235,15 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     if (this.globalConfig && this.globalConfig.get(key)) {
       return ConfigAggregator.Location.GLOBAL;
     }
-    // no location found for the key.  Try it under the new key name for backwards compatibility.
-    const newKey = this.getPropertyMeta(key).newKey;
-    if (!newKey) {
-      return;
-    }
-    if (this.getEnvVars().get(newKey) != null) {
-      return ConfigAggregator.Location.ENVIRONMENT;
-    }
-    if (this.localConfig && this.localConfig.get(newKey)) {
-      return ConfigAggregator.Location.LOCAL;
-    }
-    if (this.globalConfig && this.globalConfig.get(newKey)) {
-      return ConfigAggregator.Location.GLOBAL;
-    }
   }
 
   /**
    * Get a resolved file path or environment variable name of the property.
    *
    * For example, `getPath('logLevel')` will return:
-   * 1. `$SFDX_LOG_LEVEL` if resolved to an environment variable.
-   * 1. `./.sfdx/sfdx-config.json` if resolved to the local config.
-   * 1. `~/.sfdx/sfdx-config.json` if resolved to the global config.
+   * 1. `$SF_LOG_LEVEL` if resolved to an environment variable.
+   * 1. `./.sf/config.json` if resolved to the local config.
+   * 1. `~/.sf/config.json` if resolved to the global config.
    * 1. `undefined`, if not resolved.
    *
    * **Note:** that the path returned may be the absolute path instead of
@@ -274,26 +253,12 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   public getPath(key: string): Optional<string> {
     if (this.envVars.getString(key) != null) {
-      return `$${propertyToEnvName(key)}`;
+      return `$${this.envVars.propertyToEnvName(key)}`;
     }
     if (this.localConfig && this.localConfig.getContents()[key] != null) {
       return this.localConfig.getPath();
     }
     if (this.globalConfig.getContents()[key] != null) {
-      return this.globalConfig.getPath();
-    }
-    // no path found for the key.  Try it under the new key name for backwards compatibility.
-    const newKey = this.getPropertyMeta(key).newKey;
-    if (!newKey) {
-      return;
-    }
-    if (this.envVars.getString(newKey) != null) {
-      return `$${propertyToEnvName(newKey)}`;
-    }
-    if (this.localConfig && this.localConfig.getContents()[newKey] != null) {
-      return this.localConfig.getPath();
-    }
-    if (this.globalConfig.getContents()[newKey] != null) {
       return this.globalConfig.getPath();
     }
   }
@@ -304,7 +269,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * ```
    * > console.log(aggregator.getConfigInfo());
    * [
-   *     { key: 'logLevel', val: 'INFO', location: 'Environment', path: '$SFDX_LOG_LEVEL'}
+   *     { key: 'logLevel', val: 'INFO', location: 'Environment', path: '$SF_LOG_LEVEL'}
    *     { key: 'target-org', val: '<username>', location: 'Local', path: './.sf/config.json'}
    * ]
    * ```
@@ -365,6 +330,22 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   }
 
   /**
+   * Set the allowed properties.
+   *
+   * @param properties The properties to set.
+   */
+  protected setAllowedProperties(properties: ConfigPropertyMeta[]) {
+    this.allowedProperties = properties;
+  }
+
+  /**
+   * Get the allowed properties.
+   */
+  protected getAllowedProperties(): ConfigPropertyMeta[] {
+    return this.allowedProperties;
+  }
+
+  /**
    * Loads all the properties and aggregates them according to location.
    */
   private async loadProperties(): Promise<void> {
@@ -402,22 +383,6 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     const reduced = configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
     return reduced;
   }
-
-  /**
-   * Get the allowed properties.
-   */
-  private getAllowedProperties(): ConfigPropertyMeta[] {
-    return this.allowedProperties;
-  }
-
-  /**
-   * Set the allowed properties.
-   *
-   * @param properties The properties to set.
-   */
-  private setAllowedProperties(properties: ConfigPropertyMeta[]) {
-    this.allowedProperties = properties;
-  }
 }
 
 export namespace ConfigAggregator {
@@ -439,5 +404,53 @@ export namespace ConfigAggregator {
      * Represents environment variables.
      */
     ENVIRONMENT = 'Environment',
+  }
+}
+
+/**
+ * A ConfigAggregator that will work with deprecated config vars (e.g. defaultusername, apiVersion).
+ * We do NOT recommend using this class unless you absolutelty have to.
+ */
+export class SfdxConfigAggregator extends ConfigAggregator {
+  public getPropertyMeta(key: string): ConfigPropertyMeta {
+    const match = this.getAllowedProperties().find((element) => key === element.key);
+    if (match?.deprecated && match?.newKey) {
+      return this.getPropertyMeta(match.newKey);
+    } else if (match) {
+      return match;
+    } else {
+      throw messages.createError('unknownConfigKey', [key]);
+    }
+  }
+
+  public getPropertyValue<T extends AnyJson>(key: string): Optional<T> {
+    return super.getPropertyValue(this.translate(key));
+  }
+
+  public getInfo(key: string): ConfigInfo {
+    return super.getInfo(this.translate(key));
+  }
+
+  public getLocation(key: string): Optional<ConfigAggregator.Location> {
+    return super.getLocation(this.translate(key));
+  }
+
+  public getPath(key: string): Optional<string> {
+    return super.getPath(this.translate(key));
+  }
+
+  public getConfigInfo(): ConfigInfo[] {
+    return super.getConfigInfo().map((c) => {
+      c.key = this.translate(c.key, 'toOld');
+      return c;
+    });
+  }
+
+  private translate(key: string, direction: 'toNew' | 'toOld' = 'toNew'): string {
+    const propConfig =
+      direction === 'toNew'
+        ? this.getPropertyMeta(key)
+        : Config.getAllowedProperties().find((c) => c.newKey === key) ?? ({} as ConfigPropertyMeta);
+    return propConfig.key || key;
   }
 }

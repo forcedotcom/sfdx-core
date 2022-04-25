@@ -144,7 +144,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     if (!baseOptions.version) {
       // Set the API version obtained from the config aggregator.
       const configAggregator = options.configAggregator || (await ConfigAggregator.create());
-      baseOptions.version = asString(configAggregator.getInfo('apiVersion').value);
+      baseOptions.version = asString(configAggregator.getInfo('org-api-version').value);
     }
 
     const providedOptions = options.authInfo.getConnectionOptions();
@@ -164,7 +164,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
         }
       } else {
         conn.logger.debug(
-          `The apiVersion ${baseOptions.version} was found from ${
+          `The org-api-version ${baseOptions.version} was found from ${
             options.connectionOptions?.version ? 'passed in options' : 'config'
           }`
         );
@@ -422,7 +422,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   ): Promise<QueryResult<T>> {
     const config: ConfigAggregator = await ConfigAggregator.create();
     // take the limit from the calling function, then the config, then default 10,000
-    const maxFetch: number = (config.getInfo('maxQueryLimit').value as number) || queryOptions.maxFetch || 10000;
+    const maxFetch: number = (config.getInfo('org-max-query-limit').value as number) || queryOptions.maxFetch || 10000;
 
     const options: Partial<QueryOptions> = Object.assign(queryOptions, {
       autoFetch: true,
@@ -532,7 +532,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       // so get the latest.
       await useLatest();
     }
-    this.logger.debug(`Loaded latest apiVersion ${version}`);
+    this.logger.debug(`Loaded latest org-api-version ${version}`);
     return version;
   }
 }

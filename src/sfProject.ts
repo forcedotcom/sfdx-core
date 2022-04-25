@@ -639,7 +639,7 @@ export class SfProject {
 
       // we don't have a login url yet, so use instanceUrl from config or default
       if (!this.projectConfig.sfdcLoginUrl) {
-        this.projectConfig.sfdcLoginUrl = configAggregator.getConfig().instanceUrl ?? SfdcUrl.PRODUCTION;
+        this.projectConfig.sfdcLoginUrl = configAggregator.getConfig()['org-instance-url'] ?? SfdcUrl.PRODUCTION;
       }
       // LEGACY - Allow override of sfdcLoginUrl via env var FORCE_SFDC_LOGIN_URL
       if (process.env.FORCE_SFDC_LOGIN_URL) {

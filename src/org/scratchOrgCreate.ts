@@ -284,7 +284,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
       scratchOrg,
       settingsGenerator,
       apiversion ??
-        (new ConfigAggregator().getPropertyValue('apiVersion') as string) ??
+        (new ConfigAggregator().getPropertyValue('org-api-version') as string) ??
         (await scratchOrg.retrieveMaxApiVersion())
     ),
   ]);
