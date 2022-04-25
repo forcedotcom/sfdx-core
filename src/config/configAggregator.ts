@@ -407,6 +407,10 @@ export namespace ConfigAggregator {
   }
 }
 
+/**
+ * A ConfigAggregator that will work with deprecated config vars (e.g. defaultusername, apiVersion).
+ * We do NOT recommend using this class unless you absolutelty have to.
+ */
 export class SfdxConfigAggregator extends ConfigAggregator {
   public getPropertyMeta(key: string): ConfigPropertyMeta {
     const match = this.getAllowedProperties().find((element) => key === element.key);
