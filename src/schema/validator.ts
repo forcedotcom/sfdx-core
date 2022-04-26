@@ -88,6 +88,10 @@ export class SchemaValidator {
       allErrors: true,
       schemas: externalSchemas,
       useDefaults: true,
+      // TODO: We may someday want to enable strictSchema. This is disabled for now
+      // because the CLI team does not "own" the @salesforce/schemas repository.
+      // Invalid schema would cause errors wherever SchemaValidator is used.
+      strictSchema: false,
     });
 
     // JSEN to AJV migration note - regarding the following "TODO":
@@ -115,6 +119,8 @@ export class SchemaValidator {
       }
     }
 
+    // We return the cloned JSON because it will have defaults included
+    // This is configured with the 'useDefaults' option above.
     return jsonClone;
   }
   /**
@@ -126,8 +132,6 @@ export class SchemaValidator {
    * @returns An array of found referenced schemas.
    */
   private loadExternalSchemas(schema: JsonMap): JsonMap[] {
-    // Unlike JSEN, AJV will accept an array of schemas ($id required in schema)
-    // There is no need to build an object, we can just return the array
     return getJsonValuesByName<string>(schema, '$ref')
       .map((ref) => ref && RegExp(/([\w\.]+)#/).exec(ref)) // eslint-disable-line no-useless-escape
       .map((match) => match && match[1])

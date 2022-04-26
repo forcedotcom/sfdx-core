@@ -43,8 +43,6 @@ describe('schemaValidator', () => {
     };
 
     // We want all validation errors, not just the first error encountered (default)
-    // JSEN used the option `greedy: true`
-    // AJV uses { allErrors: true }
     it('should display multiple errors', async () => {
       const schema = {
         type: 'object',
@@ -262,8 +260,6 @@ describe('schemaValidator', () => {
     });
 
     it('response should include default values', async () => {
-      // JSEN used the `build()` function
-      // AJV uses { useDefaults: true } option
       const schema = {
         type: 'object',
         additionalProperties: false,
