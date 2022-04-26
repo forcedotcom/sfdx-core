@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.15.0](https://github.com/forcedotcom/sfdx-core/compare/v3.14.0...v3.15.0) (2022-04-26)
+
+### Features
+
+- core changes to support create scratch and sandboxes ([#570](https://github.com/forcedotcom/sfdx-core/issues/570)) ([916eeb1](https://github.com/forcedotcom/sfdx-core/commit/916eeb1f96bebd5dce255f13c838ac0b10bf5b96))
+
 ## [3.14.0](https://github.com/forcedotcom/sfdx-core/compare/v3.13.1...v3.14.0) (2022-04-25)
 
 ### Features
