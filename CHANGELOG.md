@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.36.3](https://github.com/forcedotcom/sfdx-core/compare/v2.36.2...v2.36.3) (2022-04-21)
+
+### Bug Fixes
+
+- log rotation errors ([#562](https://github.com/forcedotcom/sfdx-core/issues/562)) ([16a5423](https://github.com/forcedotcom/sfdx-core/commit/16a5423079daad37e1ada6d47767923ec0b7cc94))
+
+### [2.36.2](https://github.com/forcedotcom/sfdx-core/compare/v2.36.1...v2.36.2) (2022-04-20)
+
+### [2.36.1](https://github.com/forcedotcom/sfdx-core/compare/v2.36.0...v2.36.1) (2022-04-14)
+
+### Bug Fixes
+
+- sandbox cname recognition ([#555](https://github.com/forcedotcom/sfdx-core/issues/555)) ([105bc9a](https://github.com/forcedotcom/sfdx-core/commit/105bc9a043b3c984846e060e5176b290fe49b5bc))
+
 ## [2.36.0](https://github.com/forcedotcom/sfdx-core/compare/v2.35.3...v2.36.0) (2022-03-23)
 
 ### Features

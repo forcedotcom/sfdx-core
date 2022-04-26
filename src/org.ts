@@ -206,6 +206,20 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
+   * Reports sandbox org creation status. If the org is ready, authenticates to the org.
+   *
+   * @param {sandboxname} string the sandbox name
+   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
+   * @returns {SandboxProcessObject} the sandbox process object
+   */
+  public async sandboxStatus(
+    sandboxname: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    return this.authWithRetriesByName(sandboxname, options);
+  }
+
+  /**
    * Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.
    *
    * @param orgDataPath A relative path other than "orgs/".
@@ -638,6 +652,64 @@ export class Org extends AsyncCreatable<Org.Options> {
    */
   protected getDefaultOptions(): Org.Options {
     throw new SfdxError('Not Supported');
+  }
+
+  /**
+   * Query the sandbox for the SandboxProcessObject by sandbox name
+   *
+   * @param sandboxName The name of the sandbox to query
+   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
+   */
+  private async queryLatestSandboxProcessBySandboxName(sandboxNameIn: string): Promise<SandboxProcessObject> {
+    const { tooling } = this.getConnection();
+    this.logger.debug('QueryLatestSandboxProcessBySandboxName called with SandboxName: %s ', sandboxNameIn);
+    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
+
+    const queryResult = await tooling.query(queryStr);
+    this.logger.debug('Return from calling queryToolingApi: %s ', queryResult);
+    if (queryResult?.records?.length === 1) {
+      return queryResult.records[0] as SandboxProcessObject;
+    } else if (queryResult.records && queryResult.records.length > 1) {
+      throw SfdxError.create('@salesforce/core', 'org', 'MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
+    } else {
+      throw SfdxError.create('@salesforce/core', 'org', 'SandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
+    }
+  }
+
+  /**
+   * Gets the sandboxProcessObject and then polls for it to complete.
+   *
+   * @param sandboxProcessName sanbox process name
+   * @param options { wait?: Duration; interval?: Duration }
+   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
+   */
+  private async authWithRetriesByName(
+    sandboxProcessName: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    return this.authWithRetries(await this.queryLatestSandboxProcessBySandboxName(sandboxProcessName), options);
+  }
+
+  /**
+   * Polls the sandbox org for the sandboxProcessObject.
+   *
+   * @param sandboxProcessObj: The in-progress sandbox signup request
+   * @param options { wait?: Duration; interval?: Duration }
+   * @returns {SandboxProcessObject}
+   */
+  private async authWithRetries(
+    sandboxProcessObj: SandboxProcessObject,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    const retries = options.wait ? options.wait.seconds / Duration.seconds(30).seconds : 0;
+    const pollInterval = options.interval ?? Duration.seconds(30);
+    this.logger.debug('AuthWithRetries sandboxProcessObj %s, retries %i', sandboxProcessObj, retries);
+    return this.pollStatusAndAuth({
+      sandboxProcessObj,
+      retries,
+      shouldPoll: retries > 0,
+      pollInterval,
+    });
   }
 
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {

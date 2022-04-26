@@ -122,6 +122,9 @@ workflows:
           requires:
             - release-management/test-package
           sfdx_version: latest
+          context:
+            - salesforce-cli-na40-auth-url
+            - salesforce-cli-na40-jwt
           matrix:
             parameters:
               os: [linux]
@@ -145,4 +148,6 @@ workflows:
           filters:
             branches:
               only: main
-          context: CLI_CTC
+          context:
+            - CLI_CTC
+            - salesforce-cli

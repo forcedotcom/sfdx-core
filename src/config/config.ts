@@ -16,7 +16,6 @@ import { SfdcUrl } from '../util/sfdcUrl';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
-const log = Logger.childFromRoot('core:config');
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 
 /**
@@ -249,9 +248,13 @@ export class Config extends ConfigFile<ConfigFile.Options> {
   public static addAllowedProperties(metas: ConfigPropertyMeta[]): void {
     const currentMetaKeys = Object.keys(Config.propertyConfigMap);
 
+    // If logger is needed elsewhere in this file, do not move this outside of the Config class.
+    // It was causing issues with Bunyan log rotation. See https://github.com/forcedotcom/sfdx-core/pull/562
+    const logger = Logger.childFromRoot('core:config');
+
     metas.forEach((meta) => {
       if (currentMetaKeys.includes(meta.key)) {
-        log.info(`Key ${meta.key} already exists in allowedProperties, skipping.`);
+        logger.info(`Key ${meta.key} already exists in allowedProperties, skipping.`);
         return;
       }
 
