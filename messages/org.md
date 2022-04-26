@@ -28,7 +28,7 @@ The sandbox org deletion failed with a result of %s.
 
 # sandboxNotFound
 
-We can't find a SandboxProcess for the sandbox org %s.
+We can't find a SandboxProcess for the sandbox %s.
 
 # sandboxInfoCreateFailed
 
@@ -45,3 +45,11 @@ Sandbox status is %s; timed out waiting for completion.
 # NotFoundOnDevHub
 
 The scratch org does not belong to the dev hub username %s.
+
+# AuthInfoOrgIdUndefined
+
+AuthInfo orgId is undefined.
+
+# sandboxCreateNotComplete
+
+The sandbox creation has not completed.

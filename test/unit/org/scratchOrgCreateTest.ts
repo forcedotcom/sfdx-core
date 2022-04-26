@@ -6,10 +6,12 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+import { Duration } from '@salesforce/kit';
 import { Connection } from 'jsforce'; // RecordResult
 import { AuthInfo, Org } from '../../../src/org';
 import { SfProjectJson, SfProject } from '../../../src/sfProject';
-import { scratchOrgCreate, ScratchOrgCreateOptions } from '../../../src/org/scratchOrgCreate';
+import { scratchOrgCreate, ScratchOrgCreateOptions, scratchOrgResume } from '../../../src/org/scratchOrgCreate';
+import { ScratchOrgCache } from '../../../src/org/scratchOrgCache';
 
 const packageId = '05iB0000000cWwnIAE';
 const packageVersionSubscriberId = '04tB0000000cWwnIAE';
@@ -20,16 +22,20 @@ describe('scratchOrgCreate', () => {
   const hubOrgStub = sinon.createStubInstance(Org);
   const authInfoStub = sinon.createStubInstance(AuthInfo);
   const sfProjectJsonStub = sinon.createStubInstance(SfProjectJson);
-  const scratchOrgInfoId = '1234';
+  const cacheStub = sinon.createStubInstance(ScratchOrgCache);
+  const scratchOrgInfoId = '2SR3u0000008gBEGAY';
   const username = 'PlatformCLI';
   const retrieve = {
     Status: 'Active',
+    SignupUsername: username,
+    Id: scratchOrgInfoId,
   };
   const authFields = {
     instanceUrl: 'https://salesforce.com',
-    orgId: '12345',
+    orgId: '00D0R000000eJDy',
   };
   beforeEach(() => {
+    sandbox.stub(ScratchOrgCache, 'create').resolves(cacheStub);
     sandbox.stub(Org, 'create').resolves(hubOrgStub);
     sandbox.stub(AuthInfo, 'create').resolves(authInfoStub);
     sfProjectJsonStub.getPackageDirectories.resolves([
@@ -101,17 +107,52 @@ describe('scratchOrgCreate', () => {
     expect(scratchOrgCreateResult).to.deep.equal({
       authFields: {
         instanceUrl: 'https://salesforce.com',
-        orgId: '12345',
+        orgId: '00D0R000000eJDy',
       },
       authInfo: {},
       scratchOrgInfo: retrieve,
       username,
       warnings: [],
     });
-    expect(scratchOrgCreateResult).to.have.keys(['username', 'scratchOrgInfo', 'authInfo', 'authFields', 'warnings']);
     expect(scratchOrgCreateResult).to.deep.equal({
       username,
       scratchOrgInfo: {
+        Id: scratchOrgInfoId,
+        SignupUsername: 'PlatformCLI',
+        Status: 'Active',
+      },
+      authInfo: {},
+      authFields,
+      warnings: [],
+    });
+  });
+
+  it('exits early for wait 0', async () => {
+    const scratchOrgCreateOptions = {
+      hubOrg: hubOrgStub,
+      wait: Duration.minutes(0),
+    } as ScratchOrgCreateOptions;
+    const scratchOrgCreateResult = await scratchOrgCreate(scratchOrgCreateOptions);
+    // early return does not have the optional auth stuff
+    expect(scratchOrgCreateResult).to.deep.equal({
+      scratchOrgInfo: retrieve,
+      username,
+      warnings: [],
+    });
+  });
+
+  it('resumes', async () => {
+    cacheStub.get.withArgs(scratchOrgInfoId).returns({
+      hubUsername: 'PlatformCLI',
+    });
+    cacheStub.has.withArgs(scratchOrgInfoId).returns(true);
+    const scratchOrgCreateResult = await scratchOrgResume(scratchOrgInfoId);
+    // resume has all the data it originally would have
+    expect(scratchOrgCreateResult).to.deep.equal({
+      username,
+      scratchOrgInfo: {
+        Id: scratchOrgInfoId,
+        SignupUsername: 'PlatformCLI',
         Status: 'Active',
       },
       authInfo: {},

@@ -10,6 +10,8 @@ import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { Logger } from '../logger';
 import { ScratchOrgInfo } from './scratchOrgTypes';
+import { ScratchOrgCache } from './scratchOrgCache';
+import { emit } from './scratchOrgLifecycleEvents';
 
 const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 
@@ -38,18 +40,46 @@ const optionalErrorCodeMessage = (errorCode: string, args: string[]): string | u
   }
 };
 
-export const checkScratchOrgInfoForErrors = (
+export const validateScratchOrgInfoForResume = async ({
+  jobId,
+  scratchOrgInfo,
+  cache,
+  hubUsername,
+}: {
+  jobId: string;
+  scratchOrgInfo: ScratchOrgInfo;
+  cache: ScratchOrgCache;
+  hubUsername: string;
+}): Promise<ScratchOrgInfo> => {
+  if (!scratchOrgInfo || !scratchOrgInfo.Id || scratchOrgInfo.Status === 'Deleted') {
+    // 1. scratch org info does not exist in that dev hub or has been deleted
+    cache.unset(jobId);
+    await cache.write();
+    throw scratchOrgInfo.Status === 'Deleted'
+      ? messages.createError('ScratchOrgDeletedError')
+      : messages.createError('NoScratchOrgInfoError');
+  }
+  if (['New', 'Creating'].includes(scratchOrgInfo.Status)) {
+    // 2. scratchOrgInfo exists, still isn't finished.  Stays in cache for future attempts
+    throw messages.createError('StillInProgressError', [scratchOrgInfo.Status], ['action.StillInProgress']);
+  }
+  return checkScratchOrgInfoForErrors(scratchOrgInfo, hubUsername);
+};
+
+export const checkScratchOrgInfoForErrors = async (
   orgInfo: Optional<ScratchOrgInfo>,
-  hubUsername: Optional<string>,
-  logger: Logger
-): ScratchOrgInfo => {
-  if (!orgInfo) {
+  hubUsername: Optional<string>
+): Promise<ScratchOrgInfo> => {
+  if (!orgInfo || !orgInfo.Id) {
     throw new SfError('No scratch org info found.', 'ScratchOrgInfoNotFound');
   }
   if (orgInfo.Status === 'Active') {
+    await emit({ stage: 'available', scratchOrgInfo: orgInfo });
     return orgInfo;
   }
+
   if (orgInfo.Status === 'Error' && orgInfo.ErrorCode) {
+    await ScratchOrgCache.unset(orgInfo.Id);
     const message = optionalErrorCodeMessage(orgInfo.ErrorCode, [WORKSPACE_CONFIG_FILENAME]);
     if (message) {
       throw new SfError(message, 'RemoteOrgSignupFailed', [
@@ -59,6 +89,8 @@ export const checkScratchOrgInfoForErrors = (
     throw new SfError(namedMessages.getMessage('SignupFailedError', [orgInfo.ErrorCode]));
   }
   if (orgInfo.Status === 'Error') {
+    await ScratchOrgCache.unset(orgInfo.Id);
+    const logger = await Logger.child('ScratchOrgErrorCodes');
     // Maybe the request object can help the user somehow
     logger.error('No error code on signup error! Logging request.');
     logger.error(orgInfo);

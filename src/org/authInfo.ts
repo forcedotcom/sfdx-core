@@ -99,6 +99,7 @@ export type OrgAuthorization = {
   configs: Nullable<string[]>;
   isScratchOrg?: boolean;
   isDevHub?: boolean;
+  isSandbox?: boolean;
   instanceUrl?: string;
   accessToken?: string;
   error?: string;
@@ -115,7 +116,7 @@ export interface AccessTokenOptions {
 }
 
 export type AuthSideEffects = {
-  alias: string;
+  alias?: string;
   setDefault: boolean;
   setDefaultDevHub: boolean;
 };
@@ -303,6 +304,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           instanceUrl,
           isScratchOrg: Boolean(devHubUsername),
           isDevHub: isDevHub || false,
+          isSandbox: globalInfo.sandboxes.has(orgId),
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',

@@ -67,11 +67,15 @@ export default class SettingsGenerator {
   }
 
   /** extract the settings from the scratch def file, if they are present. */
-  public async extract(scratchDef: ScratchOrgInfo): Promise<void> {
+  public async extract(scratchDef: ScratchOrgInfo): Promise<{
+    settings: Record<string, unknown> | undefined;
+    objectSettings: { [objectName: string]: ObjectSetting } | undefined;
+  }> {
     this.logger.debug('extracting settings from scratch definition file');
     this.settingData = scratchDef.settings;
     this.objectSettingsData = scratchDef.objectSettings;
     this.logger.debug('settings are', this.settingData);
+    return { settings: this.settingData, objectSettings: this.objectSettingsData };
   }
 
   /** True if we are currently tracking setting or object setting data. */

@@ -11,8 +11,9 @@ import { parseJson, set } from '@salesforce/kit';
 import { ensureString, isPlainObject } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { ConfigFile } from '../config/configFile';
+import { SandboxOrgConfig } from '../config/sandboxOrgConfig';
 import { deepCopy, GlobalInfo } from './globalInfoConfig';
-import { SfInfo, SfInfoKeys, SfOrg, SfOrgs } from './types';
+import { SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfSandbox, SfSandboxes } from './types';
 
 function isEqual(object1: Record<string, unknown>, object2: Record<string, unknown>): boolean {
   const keys1 = Object.keys(object1).filter((k) => k !== 'timestamp');
@@ -43,7 +44,7 @@ interface Changes<T> {
 }
 
 export class SfdxDataHandler {
-  public handlers = [new AuthHandler(), new AliasesHandler()];
+  public handlers = [new AuthHandler(), new AliasesHandler(), new SandboxesHandler()];
   private original!: SfInfo;
 
   public async write(latest: SfInfo = GlobalInfo.emptyDataModel): Promise<void> {
@@ -86,13 +87,13 @@ abstract class BaseHandler<T extends SfInfoKeys> implements Handler<T> {
       set(merged, `${key}["${k}"]`, Object.assign({}, older, newer));
     }
 
-    // Keys that exist in .sfdx but not .sf are added becase we assume
+    // Keys that exist in .sfdx but not .sf are added because we assume
     // that this means the key was created using sfdx.
     // However, this is not always a valid assumption because it could
     // also mean that the key was deleted using sf, in which case we
     // do not want to migrate the sfdx key to sf.
     // Programmatically differentiating between a new key and a deleted key
-    // would be nearly impossible. Instead we should ensure that whenever
+    // would be nearly impossible. Instead, we should ensure that whenever
     // sf deletes a key it also deletes it in sfdx. This way, we can safely
     // assume that we should migrate any keys that exist in in .sfdx
     const unhandledSfdxKeys = sfdxKeys.filter((k) => !sfKeys.includes(k));
@@ -248,5 +249,110 @@ export class AliasesHandler extends BaseHandler<SfInfoKeys.ALIASES> {
   public async write(latest: SfInfo): Promise<void> {
     const aliasesFilePath = join(Global.SFDX_DIR, AliasesHandler.SFDX_ALIASES_FILENAME);
     await fs.promises.writeFile(aliasesFilePath, JSON.stringify({ orgs: latest[SfInfoKeys.ALIASES] }, null, 2));
+  }
+}
+
+export class SandboxesHandler extends BaseHandler<SfInfoKeys.SANDBOXES> {
+  // The regular expression that filters files stored in $HOME/.sfdx
+  private static sandboxFilenameFilterRegEx = /^(00D.*?)\.sandbox\.json$/;
+  public sfKey: typeof SfInfoKeys.SANDBOXES = SfInfoKeys.SANDBOXES;
+
+  public async merge(sfData: SfInfo = GlobalInfo.emptyDataModel): Promise<Partial<SfInfo>> {
+    const sfdxData = await this.migrate();
+    const merged = deepCopy<SfInfo>(sfData);
+
+    // Only merge the key this handler is responsible for.
+    const key = this.sfKey;
+
+    const sfKeys = Object.keys(sfData[key] ?? {});
+    const sfdxKeys = Object.keys(sfdxData[key] ?? {});
+
+    // sandbox entries for .sf and .sfdx contain static data. Given there
+    // can be no mutation during the life of the sandbox, having to merge common keys
+    // is unnecessary.
+
+    // Keys that exist in .sfdx but not .sf are added because we assume
+    // that this means the key was created using sfdx.
+    // However, this is not always a valid assumption because it could
+    // also mean that the key was deleted using sf, in which case we
+    // do not want to migrate the sfdx key to sf.
+    // Programmatically differentiating between a new key and a deleted key
+    // would be nearly impossible. Instead, we should ensure that whenever
+    // sf deletes a key it also deletes it in sfdx. This way, we can safely
+    // assume that we should migrate any keys that exist in .sfdx
+    const unhandledSfdxKeys = sfdxKeys.filter((k) => !sfKeys.includes(k));
+    for (const k of unhandledSfdxKeys) {
+      set(merged, `${key}["${k}"]`, sfdxData[key][k]);
+    }
+
+    // Keys that exist in .sf but not .sfdx are deleted because we assume
+    // that this means the key was deleted while using sfdx.
+    // We can make this assumption because keys that are created by sf will
+    // always be migrated back to sfdx
+    const unhandledSfKeys = sfKeys.filter((k) => !sfdxKeys.includes(k));
+    for (const k of unhandledSfKeys) {
+      delete merged[key][k];
+    }
+
+    return merged;
+  }
+
+  public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.SANDBOXES>> {
+    const oldSandboxes = await this.listAllSandboxes();
+    const newSandboxes = Object.fromEntries(oldSandboxes.map((old) => [old.sandboxOrgId, old]));
+    return { [this.sfKey]: newSandboxes };
+  }
+
+  public async write(latest: SfInfo, original: SfInfo): Promise<void> {
+    const { changed, deleted } = await this.findChanges(latest, original);
+    for (const sandboxData of Object.values(changed)) {
+      if (sandboxData) {
+        const orgId = sandboxData.sandboxOrgId;
+        const sandboxConfig = new SandboxOrgConfig(SandboxOrgConfig.getOptions(orgId));
+        sandboxConfig.set(SandboxOrgConfig.Fields.PROD_ORG_USERNAME, sandboxData.prodOrgUsername);
+        await sandboxConfig.write();
+      }
+    }
+
+    for (const username of deleted) {
+      const originalSandbox = original.sandboxes[username];
+      const orgId = originalSandbox.sandboxOrgId;
+      const sandboxConfig = new SandboxOrgConfig(SandboxOrgConfig.getOptions(orgId));
+      await sandboxConfig.unlink();
+    }
+  }
+
+  public async listAllSandboxFiles(): Promise<string[]> {
+    const globalFiles = await fs.promises.readdir(Global.SFDX_DIR);
+    return globalFiles.filter((file) => file.match(SandboxesHandler.sandboxFilenameFilterRegEx));
+  }
+
+  public async listAllSandboxes(): Promise<SfSandbox[]> {
+    return Promise.all(
+      (await this.listAllSandboxFiles()).map(async (filename) => {
+        const matches = filename.match(SandboxesHandler.sandboxFilenameFilterRegEx);
+        const orgId = matches ? matches[1] : '';
+        const sandboxConfig = new SandboxOrgConfig(SandboxOrgConfig.getOptions(orgId));
+        const stat = await sandboxConfig.stat();
+        const contents = { ...(await sandboxConfig.read(true)), sandboxOrgId: orgId } as SfSandbox;
+        const sandbox = Object.assign(contents, { timestamp: stat.mtime.toISOString() });
+        return sandbox;
+      })
+    );
+  }
+
+  private async findChanges(latest: SfInfo, original: SfInfo): Promise<Changes<SfSandboxes>> {
+    const latestSandboxes = latest.sandboxes;
+    const originalSandboxes = original.sandboxes;
+    const changed: SfSandboxes = {};
+    for (const [sandboxOrgId, sandbox] of Object.entries(latestSandboxes)) {
+      const originalSandbox = originalSandboxes[sandboxOrgId] ?? {};
+      if (!isEqual(sandbox, originalSandbox)) {
+        changed[sandboxOrgId] = sandbox;
+      }
+    }
+    const deleted: string[] = Object.keys(originalSandboxes).filter((sandboxOrgId) => !latestSandboxes[sandboxOrgId]);
+
+    return { changed, deleted };
   }
 }
