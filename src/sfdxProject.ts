@@ -147,7 +147,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
    * Set the `SFDX_PROJECT_JSON_VALIDATION` environment variable to `true` to throw an error when schema validation fails.
    * A warning is logged by default when the file is invalid.
    *
-   * ***See*** [sfdx-project.schema.json] (https://raw.githubusercontent.com/forcedotcom/schemas/master/schemas/sfdx-project.schema.json)
+   * ***See*** [sfdx-project.schema.json] (https://github.com/forcedotcom/schemas/blob/main/sfdx-project.schema.json)
    */
   public async schemaValidate(): Promise<void> {
     if (!this.hasRead) {
@@ -157,7 +157,6 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       try {
         const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
         const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
-        await validator.load();
         await validator.validate(this.getContents());
       } catch (err) {
         // Don't throw errors if the global isn't valid, but still warn the user.
@@ -188,7 +187,7 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
    * Set the `SFDX_PROJECT_JSON_VALIDATION` environment variable to `true` to throw an error when schema validation fails.
    * A warning is logged by default when the file is invalid.
    *
-   * ***See*** [sfdx-project.schema.json] (https://raw.githubusercontent.com/forcedotcom/schemas/master/schemas/sfdx-project.schema.json)
+   * ***See*** [sfdx-project.schema.json] (https://github.com/forcedotcom/schemas/blob/main/sfdx-project.schema.json)
    */
   public schemaValidateSync(): void {
     if (!this.hasRead) {
@@ -198,7 +197,6 @@ export class SfdxProjectJson extends ConfigFile<ConfigFile.Options> {
       try {
         const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
         const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
-        validator.loadSync();
         validator.validateSync(this.getContents());
       } catch (err) {
         // Don't throw errors if the global isn't valid, but still warn the user.

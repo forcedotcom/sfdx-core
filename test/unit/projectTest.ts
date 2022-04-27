@@ -11,7 +11,6 @@ import { env } from '@salesforce/kit';
 import { SfdxError } from '../../src/exported';
 import { SfdxProject, SfdxProjectJson } from '../../src/sfdxProject';
 import { shouldThrow, testSetup } from '../../src/testSetup';
-
 // Setup the test environment.
 const $$ = testSetup();
 
@@ -113,6 +112,7 @@ describe('SfdxProject', () => {
       await SfdxProjectJson.create({});
       expect(loggerSpy.called).to.be.false;
     });
+
     it('schemaValidate throws when SFDX_PROJECT_JSON_VALIDATION=true and invalid file', async () => {
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
@@ -121,7 +121,7 @@ describe('SfdxProject', () => {
         },
       });
       $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
-      const expectedError = "Validation errors:\n should NOT have additional properties 'foo'";
+      const expectedError = "Validation errors:\n#/additionalProperties: must NOT have additional properties 'foo'";
       try {
         // create() calls read() which calls schemaValidate()
         await shouldThrow(SfdxProjectJson.create({}));
@@ -130,6 +130,7 @@ describe('SfdxProject', () => {
         expect(e.message).to.equal(expectedError);
       }
     });
+
     it('schemaValidate warns when SFDX_PROJECT_JSON_VALIDATION=false and invalid file', async () => {
       $$.setConfigStubContents('SfdxProjectJson', {
         contents: {
@@ -170,7 +171,7 @@ describe('SfdxProject', () => {
         },
       });
       $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
-      const expectedError = "Validation errors:\n should NOT have additional properties 'foo'";
+      const expectedError = "Validation errors:\n#/additionalProperties: must NOT have additional properties 'foo'";
       try {
         const project = new SfdxProjectJson({});
         await project.schemaValidate();

@@ -42,17 +42,81 @@ describe('schemaValidator', () => {
       }
     };
 
-    it('should show additional property', async () => {
+    // We want all validation errors, not just the first error encountered (default)
+    it('should display multiple errors', async () => {
       const schema = {
         type: 'object',
         additionalProperties: false,
         properties: {},
       };
-      const data = { notValid: true };
-      await checkError(schema, data, 'ValidationSchemaFieldErrors', 'notValid');
+
+      const data = {
+        myNotValid: true,
+        myAlsoNotValid: true,
+      };
+
+      await checkError(schema, data, 'ValidationSchemaFieldErrors', 'myNotValid');
+      await checkError(schema, data, 'ValidationSchemaFieldErrors', 'myAlsoNotValid');
     });
 
-    it('should show enum values', async () => {
+    it('shows correct error message for additional property', async () => {
+      const schema = {
+        type: 'object',
+        additionalProperties: false,
+        properties: {},
+      };
+
+      const data = { thisAdditionalPropWillFail: 'foo' };
+
+      await checkError(
+        schema,
+        data,
+        'ValidationSchemaFieldErrors',
+        "#/additionalProperties: must NOT have additional properties 'thisAdditionalPropWillFail'"
+      );
+    });
+
+    it('shows correct error message for missing required values', async () => {
+      const schema = {
+        type: 'object',
+        properties: {
+          myRequiredProperty: {
+            type: 'string',
+          },
+        },
+        required: ['myRequiredProperty'],
+      };
+
+      const data = { notPassingRequired: 'foo' };
+
+      await checkError(
+        schema,
+        data,
+        'ValidationSchemaFieldErrors',
+        "#/required: must have required property 'myRequiredProperty'"
+      );
+    });
+
+    it('shows correct error message for oneOf error', async () => {
+      const schema = {
+        type: 'object',
+        properties: {
+          dateOfBirth: {
+            type: 'string',
+          },
+          lastFourOfSocial: {
+            type: 'string',
+          },
+        },
+        oneOf: [{ required: ['dateOfBirth'] }, { required: ['lastFourOfSocial'] }],
+      };
+
+      const data = { neitherOneOf: 'foo' };
+
+      await checkError(schema, data, 'ValidationSchemaFieldErrors', '#/oneOf: must match exactly one schema in oneOf');
+    });
+
+    it('shows correct error message for invalid enum values', async () => {
       const schema = {
         type: 'object',
         properties: {
@@ -61,11 +125,18 @@ describe('schemaValidator', () => {
           },
         },
       };
+
       const data = { myEnum: 'invalid' };
-      await checkError(schema, data, 'ValidationSchemaFieldErrors', 'a, b, c');
+
+      await checkError(
+        schema,
+        data,
+        'ValidationSchemaFieldErrors',
+        "#/properties/myEnum/enum: must be equal to one of the allowed values 'a, b, c'"
+      );
     });
 
-    it('should show type value', async () => {
+    it('shows correct error message for invalid top level type value', async () => {
       const schema = {
         type: 'array',
         items: {
@@ -73,13 +144,22 @@ describe('schemaValidator', () => {
           properties: {},
         },
       };
-      const data = { myEnum: 'invalid' };
-      await checkError(
-        schema,
-        data,
-        'ValidationSchemaFieldErrors',
-        'Root of JSON object is an invalid type.  Expected type [array]'
-      );
+      const data = { doesntMatter: 'invalid' };
+      await checkError(schema, data, 'ValidationSchemaFieldErrors', '#/type: must be array');
+    });
+
+    it('shows correct error message for invalid property type value', async () => {
+      const schema = {
+        type: 'object',
+        properties: {
+          foo: {
+            type: 'string',
+          },
+        },
+      };
+      const data = { foo: 42 };
+
+      await checkError(schema, data, 'ValidationSchemaFieldErrors', '#/properties/foo/type: must be string');
     });
 
     // NOTE: The "should not have `not found` errors" test will fail
@@ -91,7 +171,7 @@ describe('schemaValidator', () => {
       const schema = {
         $ref: 'unknown#/unknown',
       };
-      await checkError(schema, {}, 'ValidationSchemaNotFound', 'not found');
+      await checkError(schema, {}, 'ValidationSchemaNotFound', 'Schema not found');
     });
   });
 
@@ -116,7 +196,31 @@ describe('schemaValidator', () => {
     expect(validatedData.ref.Email).to.equal('myEmail');
   });
 
-  // TODO JSEN does not seem to support referencing after an external schema name
+  it('throws error when loading external schema that does not have an $id', async () => {
+    const schema = {
+      type: 'object',
+      properties: {
+        ref: {
+          $ref: 'schemaWithoutAnId#',
+        },
+      },
+    };
+    const data = {
+      ref: {
+        Company: 'Acme',
+      },
+    };
+
+    try {
+      await validate(schema, data);
+    } catch (error) {
+      expect(error.message).to.include("can't resolve reference schemaWithoutAnId# from id #");
+    }
+
+    // expect(validatedData.ref.Email).to.equal('myEmail');
+  });
+
+  // TODO JSEN (apparently not AJV either?) does not seem to support referencing after an external schema name
   it.skip('loads external schemas without .json with references', async () => {
     const schema = {
       type: 'object',
@@ -152,6 +256,30 @@ describe('schemaValidator', () => {
             throw err;
           }
         });
+      });
+    });
+
+    it('response should include default values', async () => {
+      const schema = {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          foo: {
+            type: 'string',
+            default: 'bar',
+          },
+          cat: {
+            type: 'string',
+          },
+        },
+      };
+
+      const data = { cat: 'meow' };
+
+      const validatedData = await validate(schema, data);
+      expect(validatedData).to.deep.equal({
+        foo: 'bar',
+        cat: 'meow',
       });
     });
   });
