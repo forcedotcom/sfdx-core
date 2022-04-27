@@ -30,7 +30,7 @@ import { SfError } from '../../../src/sfError';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { MyDomainResolver, SfdcUrl } from '../../../src/exported';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
-import { OrgAuthorization } from '../../../lib/org';
+import { OrgAuthorization } from '../../../src/org/authInfo';
 
 const TEST_KEY = {
   service: 'sfdx',

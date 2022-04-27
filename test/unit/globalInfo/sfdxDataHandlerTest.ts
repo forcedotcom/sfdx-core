@@ -20,7 +20,7 @@ import {
   SfOrg,
 } from '../../../src/globalInfo';
 import { ConfigFile } from '../../../src/config/configFile';
-import { SfSandbox } from '../../../lib/globalInfo';
+import { SfSandbox } from '../../../src/globalInfo';
 
 describe('SfdxDataHandler', () => {
   let sandbox: sinon.SinonSandbox;
