@@ -8,7 +8,11 @@ The ancestor versionNumber must be in the format major.minor.patch but the value
 
 # NoMatchingAncestorError
 
-The ancestorId for ancestorVersion %s can't be found. Package ID %s.",
+The ancestor for ancestorVersion %s can't be found. Package ID %s.",
+
+# NoMatchingAncestorIdError
+
+The ancestor for ancestorId [%s] can't be found. Package ID %s."
 
 # AncestorNotReleasedError
 
