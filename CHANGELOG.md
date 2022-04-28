@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.36.4](https://github.com/forcedotcom/sfdx-core/compare/v2.36.3...v2.36.4) (2022-04-28)
+
+### Bug Fixes
+
+- disable strictSchema ([2f44345](https://github.com/forcedotcom/sfdx-core/commit/2f44345d6dc11673b921b6c65cd548b7f31a0dad))
+- replace JSEN with AJV (wip) ([87ca60c](https://github.com/forcedotcom/sfdx-core/commit/87ca60c48a82618008d761bdd6086727f712aeff))
+- schema comment ([a0868d1](https://github.com/forcedotcom/sfdx-core/commit/a0868d157fbc8757cdbd28472aecfbf597c0f9d2))
+- test failures and cleanup ([95c0710](https://github.com/forcedotcom/sfdx-core/commit/95c0710938b399c858cddfdf5100892ee2e7cf90))
+
 ### [2.36.3](https://github.com/forcedotcom/sfdx-core/compare/v2.36.2...v2.36.3) (2022-04-21)
 
 ### Bug Fixes
