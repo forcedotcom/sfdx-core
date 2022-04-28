@@ -121,7 +121,7 @@ describe('SfProject', () => {
         },
       });
       $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
-      const expectedError = "Validation errors:\n should NOT have additional properties 'foo'";
+      const expectedError = "Validation errors:\n#/additionalProperties: must NOT have additional properties 'foo'";
       try {
         // create() calls read() which calls schemaValidate()
         await shouldThrow(SfProjectJson.create());
@@ -170,7 +170,7 @@ describe('SfProject', () => {
         },
       });
       $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
-      const expectedError = "Validation errors:\n should NOT have additional properties 'foo'";
+      const expectedError = "Validation errors:\n#/additionalProperties: must NOT have additional properties 'foo'";
       try {
         const project = new SfProjectJson({});
         await project.schemaValidate();
