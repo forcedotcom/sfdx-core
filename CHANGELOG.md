@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.15.1](https://github.com/forcedotcom/sfdx-core/compare/v3.15.0...v3.15.1) (2022-04-28)
+
+### Bug Fixes
+
+- replace jsen ([664da58](https://github.com/forcedotcom/sfdx-core/commit/664da58cbe06019465ccf70ed17dfafb2425e06b))
+
 ## [3.15.0](https://github.com/forcedotcom/sfdx-core/compare/v3.14.0...v3.15.0) (2022-04-26)
 
 ### Features
