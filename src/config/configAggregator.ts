@@ -448,7 +448,9 @@ export class SfdxConfigAggregator extends ConfigAggregator {
   }
 
   public getInfo(key: string): ConfigInfo {
-    return super.getInfo(this.translate(key));
+    const info = super.getInfo(this.translate(key));
+    info.key = this.translate(info.key, 'toOld');
+    return info;
   }
 
   public getLocation(key: string): Optional<ConfigAggregator.Location> {
