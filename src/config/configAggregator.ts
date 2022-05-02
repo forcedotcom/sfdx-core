@@ -73,7 +73,7 @@ export interface ConfigInfo {
  * console.log(aggregator.getPropertyValue('target-org'));
  * ```
  */
-export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
+export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Options> {
   private static instance: AsyncOptionalCreatable;
   private static encrypted = true;
 
@@ -92,8 +92,12 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    *
    * @ignore
    */
-  public constructor(options?: JsonMap) {
+  public constructor(options?: ConfigAggregator.Options) {
     super(options || {});
+
+    if (options?.customConfigMeta) {
+      Config.addAllowedProperties(options.customConfigMeta);
+    }
 
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
@@ -405,13 +409,29 @@ export namespace ConfigAggregator {
      */
     ENVIRONMENT = 'Environment',
   }
+
+  export type Options = {
+    customConfigMeta?: ConfigPropertyMeta[];
+  };
 }
 
 /**
  * A ConfigAggregator that will work with deprecated config vars (e.g. defaultusername, apiVersion).
  * We do NOT recommend using this class unless you absolutelty have to.
+ *
+ * @deprecated
  */
 export class SfdxConfigAggregator extends ConfigAggregator {
+  // org-metadata-rest-deploy has been moved to plugin-deploy-retrieve but we need to have a placeholder
+  // for it here since sfdx needs to know how to set the deprecated restDeploy config var.
+  private static CUSTOM_CONFIG_VARS = [{ key: 'org-metadata-rest-deploy', hidden: true }] as ConfigPropertyMeta[];
+
+  public constructor(options: ConfigAggregator.Options = {}) {
+    const customConfigMeta = options.customConfigMeta || [];
+    options.customConfigMeta = [...customConfigMeta, ...SfdxConfigAggregator.CUSTOM_CONFIG_VARS];
+    super(options || {});
+  }
+
   public getPropertyMeta(key: string): ConfigPropertyMeta {
     const match = this.getAllowedProperties().find((element) => key === element.key);
     if (match?.deprecated && match?.newKey) {
