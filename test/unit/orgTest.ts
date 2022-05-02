@@ -527,7 +527,7 @@ describe('Org Tests', () => {
             });
             querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves();
             pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
-            devHubQueryStub = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+            devHubQueryStub = stubMethod($$.SANDBOX, Connection.prototype.tooling, 'query').resolves({
               Id: orgId,
             });
             await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
@@ -541,9 +541,9 @@ describe('Org Tests', () => {
             expect(devHubQueryStub.calledOnce).to.be.true;
           });
 
-          it('fails to get sanboxInfo from singleRecordQuery', async () => {
+          it('fails to get sanboxInfo from tooling.query', async () => {
             devHubQueryStub.restore();
-            devHubQueryStub = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').throws();
+            devHubQueryStub = stubMethod($$.SANDBOX, Connection.prototype.tooling, 'query').throws();
             try {
               await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
               fail('the above should throw an error');

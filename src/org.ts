@@ -1084,9 +1084,15 @@ export class Org extends AsyncCreatable<Org.Options> {
   private async querySandboxInfoIdBySandboxName(sandboxNameIn: string): Promise<string> {
     this.logger.debug('QuerySandboxInfoIdBySandboxName called with SandboxName: %s ', sandboxNameIn);
     const queryStr = `SELECT Id, SandboxName FROM SandboxInfo WHERE SandboxName='${sandboxNameIn}'`;
-    const record = await this.connection.singleRecordQuery<{ Id: string }>(queryStr);
-    this.logger.debug('Return from calling queryToolingApi: %s ', record);
-    return record.Id;
+    const queryResult = await this.connection.tooling.query(queryStr);
+    this.logger.debug('Return from calling queryToolingApi: %s ', JSON.stringify(queryResult));
+    if (queryResult?.records?.length === 1) {
+      return (queryResult?.records[0] as { Id: string }).Id;
+    } else if (queryResult.records && queryResult.records.length > 1) {
+      throw SfdxError.create('@salesforce/core', 'org', 'MultiSandboxInfoNotFoundBySandboxName', [sandboxNameIn]);
+    } else {
+      throw SfdxError.create('@salesforce/core', 'org', 'SandboxInfoNotFoundBySandboxName', [sandboxNameIn]);
+    }
   }
 
   /**
