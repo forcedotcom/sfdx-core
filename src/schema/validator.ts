@@ -92,6 +92,7 @@ export class SchemaValidator {
       // because the CLI team does not "own" the @salesforce/schemas repository.
       // Invalid schema would cause errors wherever SchemaValidator is used.
       strictSchema: false,
+      validateSchema: false,
     });
 
     // JSEN to AJV migration note - regarding the following "TODO":
