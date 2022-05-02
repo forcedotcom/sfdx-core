@@ -73,7 +73,7 @@ export interface ConfigInfo {
  * console.log(aggregator.getPropertyValue('target-org'));
  * ```
  */
-export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
+export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Options> {
   private static instance: AsyncOptionalCreatable;
   private static encrypted = true;
 
@@ -92,8 +92,12 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    *
    * @ignore
    */
-  public constructor(options?: JsonMap) {
+  public constructor(options?: ConfigAggregator.Options) {
     super(options || {});
+
+    if (options?.customConfigMeta) {
+      Config.addAllowedProperties(options.customConfigMeta);
+    }
 
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
@@ -405,6 +409,10 @@ export namespace ConfigAggregator {
      */
     ENVIRONMENT = 'Environment',
   }
+
+  export type Options = {
+    customConfigMeta?: ConfigPropertyMeta[];
+  };
 }
 
 /**
