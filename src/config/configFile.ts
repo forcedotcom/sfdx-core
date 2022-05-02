@@ -9,15 +9,34 @@ import * as fs from 'fs';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
+import { promisify } from 'util';
 import { isBoolean, isPlainObject } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
 import * as mkdirp from 'mkdirp';
+import * as lockfile from 'lockfile';
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
+import { Messages } from '../messages';
 import { BaseConfigStore, ConfigContents } from './configStore';
 
+const lockSync = lockfile.lock;
+const unlockSync = lockfile.unlock;
+const lock = promisify((filePath: string, opts: lockfile.Options, cb: (err: Error | null) => void) =>
+  lockfile.lock(filePath, opts, cb)
+);
+const unlock = promisify(lockfile.unlock);
+
+const lockFileOpts = {
+  wait: 30_000,
+  retries: 1_200,
+  retryWait: 25,
+  stale: 1000,
+};
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.load('@salesforce/core', 'config', ['couldNotObtainLock', 'couldUnlockFile']);
 /**
  * Represents a json config file used to manage settings and state. Global config
  * files are stored in the home directory hidden state folder (.sfdx) and local config
@@ -72,6 +91,7 @@ export class ConfigFile<
     // Merge default and passed in options
     this.options = Object.assign(defaultOptions, this.options);
   }
+
   /**
    * Returns the config's filename.
    */
@@ -157,28 +177,44 @@ export class ConfigFile<
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
    */
   public async read(throwOnNotFound = false, force = false): Promise<P> {
-    try {
-      // Only need to read config files once.  They are kept up to date
-      // internally and updated persistently via write().
-      if (!this.hasRead || force) {
-        this.logger.info(`Reading config file: ${this.getPath()}`);
-        const obj = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'));
-        this.setContentsFromObject(obj);
-      }
-      return this.getContents();
-    } catch (err) {
-      if ((err as SfError).code === 'ENOENT') {
-        if (!throwOnNotFound) {
-          this.setContents();
-          return this.getContents();
+    const start = Date.now();
+    return await lock(this.getLockFilePath(), lockFileOpts)
+      .then(async () => {
+        try {
+          // Only need to read config files once.  They are kept up to date
+          // internally and updated persistently via write().
+          if (!this.hasRead || force) {
+            this.logger.info(`Reading config file: ${this.getPath()}`);
+            const obj = await this.loadFromFile(throwOnNotFound);
+            this.setContentsFromObject(obj);
+          }
+          await unlock(this.getLockFilePath()).catch((reason) => {
+            throw messages.createError('couldUnlockFile', [this.getPath(), 'read'], [], reason);
+          });
+        } catch (err) {
+          if ((err as SfError).code === 'ENOENT') {
+            if (!throwOnNotFound) {
+              this.setContents();
+            }
+          }
+          await unlock(this.getLockFilePath()).catch((reason) => {
+            throw messages.createError('couldUnlockFile', [this.getPath(), 'read'], [], reason);
+          });
+          throw err;
+        } finally {
+          // Necessarily set this even when an error happens to avoid infinite re-reading.
+          // To attempt another read, pass `force=true`.
+          this.hasRead = true;
         }
-      }
-      throw err;
-    } finally {
-      // Necessarily set this even when an error happens to avoid infinite re-reading.
-      // To attempt another read, pass `force=true`.
-      this.hasRead = true;
-    }
+        // eslint-disable-next-line no-console
+        console.log(`time in read: ${Date.now() - start}`);
+        return this.getContents();
+      })
+      .catch(async (reason) => {
+        // eslint-disable-next-line no-console
+        console.log(`lock acquire failed - time in read: ${Date.now() - start}`);
+        throw messages.createError('couldNotObtainLock', ['read', this.getPath()], [], reason);
+      });
   }
 
   /**
@@ -191,46 +227,37 @@ export class ConfigFile<
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
    */
   public readSync(throwOnNotFound = false, force = false): P {
-    try {
-      // Only need to read config files once.  They are kept up to date
-      // internally and updated persistently via write().
-      if (!this.hasRead || force) {
-        this.logger.info(`Reading config file: ${this.getPath()}`);
-        const obj = parseJsonMap(fs.readFileSync(this.getPath(), 'utf8'));
-        this.setContentsFromObject(obj);
+    lockSync(this.getLockFilePath(), lockFileOpts, (err) => {
+      if (err) {
+        throw messages.createError('couldNotObtainLock', ['readSync', this.getPath()], undefined, err);
       }
-      return this.getContents();
-    } catch (err) {
-      if ((err as SfError).code === 'ENOENT') {
-        if (!throwOnNotFound) {
-          this.setContents();
-          return this.getContents();
+
+      try {
+        // Only need to read config files once.  They are kept up to date
+        // internally and updated persistently via write().
+        if (!this.hasRead || force) {
+          this.logger.info(`Reading config file: ${this.getPath()}`);
+          const obj = this.loadFromFileSync();
+          this.setContentsFromObject(obj);
         }
+      } catch (err) {
+        if ((err as SfError).code === 'ENOENT') {
+          if (!throwOnNotFound) {
+            this.setContents();
+          }
+        }
+        throw err;
+      } finally {
+        // Necessarily set this even when an error happens to avoid infinite re-reading.
+        // To attempt another read, pass `force=true`.
+        this.hasRead = true;
       }
-      throw err;
-    } finally {
-      // Necessarily set this even when an error happens to avoid infinite re-reading.
-      // To attempt another read, pass `force=true`.
-      this.hasRead = true;
-    }
-  }
-
-  /**
-   * Write the config file with new contents. If no new contents are provided it will write the existing config
-   * contents that were set from {@link ConfigFile.read}, or an empty file if {@link ConfigFile.read} was not called.
-   *
-   * @param newContents The new contents of the file.
-   */
-  public async write(newContents?: P): Promise<P> {
-    if (newContents) {
-      this.setContents(newContents);
-    }
-
-    await mkdirp(pathDirname(this.getPath()));
-
-    this.logger.info(`Writing to config file: ${this.getPath()}`);
-    await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
-
+    });
+    unlockSync(this.getLockFilePath(), (err) => {
+      if (err) {
+        throw messages.createError('couldUnlockFile', [this.getPath(), 'readSync'], undefined, err);
+      }
+    });
     return this.getContents();
   }
 
@@ -240,16 +267,66 @@ export class ConfigFile<
    *
    * @param newContents The new contents of the file.
    */
+  public async write(newContents?: P): Promise<P> {
+    const start = Date.now();
+    return await lock(this.getLockFilePath(), lockFileOpts)
+      .then(async () => {
+        if (newContents) {
+          this.setContents(newContents);
+        }
+
+        const fileContents = await this.loadFromFile(false);
+
+        this.diffAndPatchContents(fileContents);
+
+        await mkdirp(pathDirname(this.getPath()));
+
+        this.logger.info(`Writing to config file: ${this.getPath()}`);
+        await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+        await unlock(this.getLockFilePath()).catch((reason) => {
+          throw messages.createError('couldUnlockFile', [this.getPath(), 'write'], reason);
+        });
+        this.valuesState.clear();
+        // TODO: remove console before creating a PR
+        // eslint-disable-next-line no-console
+        console.log(`time in write: ${Date.now() - start}`);
+        return this.getContents();
+      })
+      .catch(async (reason) => {
+        throw messages.createError('couldNotObtainLock', ['write', this.getPath()], undefined, reason);
+      });
+  }
+  /**
+   * Write the config file with new contents. If no new contents are provided it will write the existing config
+   * contents that were set from {@link ConfigFile.read}, or an empty file if {@link ConfigFile.read} was not called.
+   *
+   * @param newContents The new contents of the file.
+   */
   public writeSync(newContents?: P): P {
-    if (isPlainObject(newContents)) {
-      this.setContents(newContents);
-    }
+    lockSync(this.getLockFilePath(), lockFileOpts, (err) => {
+      if (err) {
+        throw messages.createError('couldNotObtainLock', ['writeSync', this.getPath()], undefined, err);
+      }
+      if (isPlainObject(newContents)) {
+        this.setContents(newContents);
+      }
 
-    mkdirp.sync(pathDirname(this.getPath()));
+      const oldContents = this.loadFromFileSync(false);
 
-    this.logger.info(`Writing to config file: ${this.getPath()}`);
-    fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+      this.diffAndPatchContents(oldContents);
 
+      mkdirp.sync(pathDirname(this.getPath()));
+
+      this.logger.info(`Writing to config file: ${this.getPath()}`);
+      fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+      unlockSync(this.getLockFilePath(), (err) => {
+        if (err) {
+          throw messages.createError('couldUnlockFile', [this.getPath(), 'writeSync'], undefined, err);
+        }
+      });
+    });
+
+    this.valuesState.clear();
     return this.getContents();
   }
 
@@ -361,6 +438,32 @@ export class ConfigFile<
 
     // Read the file, which also sets the path and throws any errors around project paths.
     await this.read(this.options.throwOnNotFound);
+  }
+
+  private getLockFilePath(): string {
+    return pathJoin(`${this.getPath()}.lock`);
+  }
+  private loadFromFileSync(throwOnError = true): P {
+    try {
+      return parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'));
+    } catch (err) {
+      if (throwOnError) {
+        throw err;
+      }
+      return {} as P;
+    }
+  }
+
+  private async loadFromFile(throwOnError = true): Promise<P> {
+    try {
+      const contents = await fs.promises.readFile(this.getPath(), 'utf8');
+      return parseJsonMap<P>(contents);
+    } catch (err) {
+      if (throwOnError) {
+        throw err;
+      }
+      return {} as P;
+    }
   }
 }
 

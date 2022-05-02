@@ -11,6 +11,7 @@ import { parseJson, set } from '@salesforce/kit';
 import { ensureString, isPlainObject } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { ConfigFile } from '../config/configFile';
+import { deepCopy } from '../util/utils';
 import { SandboxOrgConfig } from '../config/sandboxOrgConfig';
 import { deepCopy, GlobalInfo } from './globalInfoConfig';
 import { SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfSandbox, SfSandboxes } from './types';

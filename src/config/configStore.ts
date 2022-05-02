@@ -18,8 +18,22 @@ import {
   JsonMap,
   Optional,
 } from '@salesforce/ts-types';
+import * as jsondiffpatch from 'jsondiffpatch';
 import { Crypto } from '../crypto/crypto';
 import { SfError } from '../sfError';
+import { deepCopy } from '../util/utils';
+
+/**
+ * ConfigValue state
+ */
+
+export enum ConfigValueState {
+  unchanged = 'unchanged',
+  added = 'added',
+  deleted = 'deleted',
+  changed = 'changed',
+  addedAndChanged = 'addedAndChanged',
+}
 
 /**
  * The allowed types stored in a config store.
@@ -46,7 +60,8 @@ export interface ConfigStore<P extends ConfigContents = ConfigContents> {
   entries(): ConfigEntry[];
   get<K extends Key<P>>(key: K, decrypt: boolean): P[K];
   get<T extends ConfigValue>(key: string, decrypt: boolean): T;
-  getKeysByValue(value: ConfigValue): Array<Key<P>>;
+
+  getKeysByValue(value: ConfigValue, includeDeleted: boolean): Array<Key<P>>;
   has(key: string): boolean;
   keys(): Array<Key<P>>;
   set<K extends Key<P>>(key: K, value: P[K]): void;
@@ -63,7 +78,36 @@ export interface ConfigStore<P extends ConfigContents = ConfigContents> {
 
   // Content methods
   getContents(): P;
+  getOriginalContents(): P;
   setContents(contents?: P): void;
+}
+
+type SetUnset = 'set' | 'unset';
+
+class ValuesState extends Map<string, SetUnset> {
+  public setState(key: string, operation: SetUnset, value: ConfigValue | undefined) {
+    // If the value is undefined and key is the root key, we treat it as an unset operation.
+    if (this.getRootKey(key) === key && !value) {
+      return super.set(this.getRootKey(key), 'unset');
+    }
+    return super.set(this.getRootKey(key), operation);
+  }
+
+  public get(key: string): SetUnset | undefined {
+    return super.get(this.getRootKey(key));
+  }
+
+  public has(key: string): boolean {
+    return super.has(this.getRootKey(key));
+  }
+
+  public getKeysByValue(value: SetUnset | 'all' = 'all'): string[] {
+    return [...this.entries()].filter(([, v]) => value === 'all' || v === value).map(([k]) => k);
+  }
+
+  private getRootKey(key: string): string {
+    return key.split('.')[0];
+  }
 }
 
 /**
@@ -82,9 +126,11 @@ export abstract class BaseConfigStore<
   protected static encryptedKeys: Array<string | RegExp> = [];
   protected options: T;
   protected crypto?: Crypto;
+  protected valuesState = new ValuesState();
 
   // Initialized in setContents
   private contents!: P;
+  private originalContents!: P;
   private statics = this.constructor as typeof BaseConfigStore;
 
   /**
@@ -202,6 +248,7 @@ export abstract class BaseConfigStore<
   public unset(key: string): boolean {
     if (this.has(key)) {
       if (this.contents[key]) {
+        this.valuesState.setState(key, 'unset', undefined);
         delete this.contents[key];
       } else {
         // It is a query key, so just set it to undefined
@@ -226,7 +273,7 @@ export abstract class BaseConfigStore<
    * Removes all key/value pairs from the config object.
    */
   public clear(): void {
-    this.contents = {} as P;
+    this.setContents({} as P);
   }
 
   /**
@@ -257,6 +304,26 @@ export abstract class BaseConfigStore<
   }
 
   /**
+   * Returns the entire config contents in the state from when the config was set with setContents.
+   *
+   * *NOTE:* Data will still be encrypted unless decrypt is passed in. A clone of
+   * the data will be returned to prevent storing un-encrypted data in memory and
+   * potentially saving to the file system.
+   *
+   * @param decrypt: decrypt all data in the config. A clone of the data will be returned.
+   *
+   */
+  public getOriginalContents(decrypt = false): P {
+    if (!this.contents) {
+      this.setContents();
+    }
+    if (this.hasEncryption() && decrypt) {
+      return this.recursiveDecrypt(cloneJson(this.originalContents)) as P;
+    }
+    return this.originalContents;
+  }
+
+  /**
    * Sets the entire config contents.
    *
    * @param contents The contents.
@@ -266,6 +333,7 @@ export abstract class BaseConfigStore<
       contents = this.recursiveEncrypt(contents);
     }
     this.contents = contents;
+    this.valuesState.clear();
   }
 
   /**
@@ -274,6 +342,7 @@ export abstract class BaseConfigStore<
    * @param {function} actionFn The function `(key: string, value: ConfigValue) => void` to be called for each element.
    */
   public forEach(actionFn: (key: string, value: ConfigValue) => void): void {
+    // TODO: how to capture changes to the config object?
     const entries = this.entries();
     for (const entry of entries) {
       actionFn(entry[0], entry[1]);
@@ -288,6 +357,7 @@ export abstract class BaseConfigStore<
    * @returns {Promise<void>}
    */
   public async awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
+    // TODO: how to capture changes to the config object?
     const entries = this.entries();
     for (const entry of entries) {
       await actionFn(entry[0], entry[1]);
@@ -309,9 +379,62 @@ export abstract class BaseConfigStore<
    */
   // eslint-disable-next-line @typescript-eslint/ban-types
   public setContentsFromObject<U extends object>(obj: U): void {
-    this.contents = {} as P;
-    Object.entries(obj).forEach(([key, value]) => {
-      this.setMethod(this.contents, key, value);
+    this.setContents(this.getContentsFromObject(obj));
+  }
+
+  protected setOriginalContents(contents: P | undefined): void {
+    const c = contents || this.getContents();
+    this.originalContents = deepCopy(c);
+  }
+
+  protected diffAndPatchContents(someOtherContents: P): void {
+    // find keys in common between old and new
+    const oldKeys = Object.keys(someOtherContents);
+    const currentKeys = Object.keys(this.getContents());
+    const commonKeys = oldKeys.filter((key) => currentKeys.includes(key));
+
+    // get keys that are new.
+    const newKeys = this.valuesState.getKeysByValue('set').filter((key) => !commonKeys.includes(key));
+    // get keys that are deleted.
+    const deletedKeys = this.valuesState.getKeysByValue('unset');
+
+    // apply changes to common entries
+    if (commonKeys.length) {
+      const oContents: { [key: string]: T } = {};
+      const nContents: { [key: string]: T } = {};
+      commonKeys.forEach((key) => {
+        oContents[key] = someOtherContents[key] as unknown as T;
+        nContents[key] = this.get(key);
+      });
+
+      const otherDiff = jsondiffpatch.diff(someOtherContents, oContents);
+      const newDiff = jsondiffpatch.diff(someOtherContents, nContents);
+      if (!otherDiff && !newDiff) {
+        return;
+      }
+
+      let patch = someOtherContents;
+      if (otherDiff) {
+        patch = jsondiffpatch.patch(someOtherContents, otherDiff);
+      }
+      if (newDiff) {
+        patch = jsondiffpatch.patch(patch, newDiff);
+      }
+
+      Object.entries(patch).forEach(([key, value]) => {
+        this.set(key, value);
+      });
+    }
+
+    const deletedInOther = currentKeys.filter(
+      (key) => !oldKeys.includes(key) && !newKeys.includes(key) && !deletedKeys.includes(key)
+    );
+    const createdInOther = oldKeys.filter((key) => !currentKeys.includes(key) && !deletedKeys.includes(key));
+    deletedInOther.forEach((key) => {
+      this.unset(key);
+    });
+    createdInOther.forEach((key) => {
+      this.set(key, someOtherContents[key] as unknown as T);
     });
   }
 
@@ -331,6 +454,7 @@ export abstract class BaseConfigStore<
   // Allows extended classes the ability to override the set method. i.e. maybe they want
   // nested object set from kit.
   protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
+    this.valuesState.setState(key, 'set', value);
     set(contents, key, value);
   }
 
@@ -443,9 +567,19 @@ export abstract class BaseConfigStore<
     return data;
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  protected getContentsFromObject<U extends object>(obj: U): P {
+    const contents = {} as P;
+    Object.entries(obj).forEach(([key, value]) => {
+      this.setMethod(contents, key, value);
+    });
+    return contents;
+  }
+
   /**
    * Encrypt/Decrypt all values in a nested JsonMap.
    *
+   * @param method The method to use to encrypt.
    * @param keyPaths: The complete path of the (nested) data
    * @param data: The current (nested) data being worked on.
    */

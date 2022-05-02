@@ -4,20 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AnyJson, isPlainObject, JsonMap, Optional } from '@salesforce/ts-types';
+import { isPlainObject, JsonMap, Optional } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { ConfigFile } from '../config/configFile';
 import { ConfigValue } from '../config/configStore';
+import { deepCopy } from '../util/utils';
 import { SfdxDataHandler } from './sfdxDataHandler';
 import { OrgAccessor } from './accessors/orgAccessor';
 import { TokenAccessor } from './accessors/tokenAccessor';
 import { AliasAccessor } from './accessors/aliasAccessor';
 import { SfInfo, SfInfoKeys } from './types';
 import { SandboxAccessor } from './accessors/sandboxAccessor';
-
-export function deepCopy<T extends AnyJson>(data: T): T {
-  return JSON.parse(JSON.stringify(data)) as T;
-}
 
 export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   protected static encryptedKeys = [/token/gi, /password/gi, /secret/gi];

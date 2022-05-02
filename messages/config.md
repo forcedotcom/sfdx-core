@@ -142,3 +142,11 @@ URL of the Salesforce instance hosting your org. Default: https://login.salesfor
 # org-instance-url
 
 URL of the Salesforce instance hosting your org. Default: https://login.salesforce.com.
+
+# couldNotObtainLock
+
+Couldn't obtain lock in %s on file %s.
+
+# couldUnlockFile
+
+Couldn't unlock file %s in %s.

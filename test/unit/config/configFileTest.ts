@@ -6,10 +6,12 @@
  */
 import * as Path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';
 import * as mkdirp from 'mkdirp';
+import { sleep } from '@salesforce/kit';
 import { ConfigFile } from '../../../src/config/configFile';
 import { SfError } from '../../../src/exported';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
@@ -207,8 +209,8 @@ describe('Config', () => {
 
       const expected = { test: 'test' };
       const actual = await config.write(expected);
-      expect(expected).to.equal(actual);
-      expect(expected).to.equal(config.getContents());
+      expect(expected).to.deep.equal(actual);
+      expect(expected).to.deep.equal(config.getContents());
       // expect(mkdirpStub.called).to.be.true;
       expect(writeJson.called).to.be.true;
     });
@@ -220,8 +222,8 @@ describe('Config', () => {
 
       const expected = { test: 'test' };
       const actual = config.writeSync(expected);
-      expect(expected).to.equal(actual);
-      expect(expected).to.equal(config.getContents());
+      expect(expected).to.deep.equal(actual);
+      expect(expected).to.deep.equal(config.getContents());
       expect(mkdirpStub.called).to.be.true;
       expect(writeJson.called).to.be.true;
     });
@@ -391,5 +393,103 @@ describe('Config', () => {
       expect(readFileStub.calledTwice).to.be.true;
       expect(contents2).to.deep.equal(testFileContentsJson);
     });
+  });
+});
+describe('race condition', () => {
+  class TestConfig extends ConfigFile {
+    private static testId = 'testId';
+
+    public static getOptions(
+      filename?: string,
+      isGlobal?: boolean,
+      isState?: boolean,
+      filePath?: string
+    ): ConfigFile.Options {
+      return {
+        rootFolder: `${os.tmpdir()}${Path.sep}${TestConfig.testId}`,
+        filename: 'testFileName',
+        isGlobal: true,
+        isState: true,
+      };
+    }
+
+    public static getFileName() {
+      return 'testFileName';
+    }
+  }
+  let tc1: TestConfig;
+  const numberOfProcesses = 50;
+  beforeEach(async () => {
+    $$.SANDBOXES.CONFIG.restore();
+    tc1 = await TestConfig.create(TestConfig.getOptions());
+  });
+  afterEach(async () => {
+    tc1 = await TestConfig.create(TestConfig.getOptions());
+    try {
+      await tc1.read(true, true);
+      await tc1.unlink();
+    } catch {
+      //
+    }
+  });
+  it('should not change original', async () => {
+    const baseTc = await TestConfig.create(TestConfig.getOptions());
+    baseTc.set('foo', 'bar');
+    await baseTc.write();
+    expect(baseTc.get('foo')).to.be.equal('bar');
+    const tcs = await Promise.all(
+      [...Array(numberOfProcesses).keys()].map(() => TestConfig.create(TestConfig.getOptions()))
+    );
+    await Promise.all(
+      tcs.map(async (tc) => {
+        await sleep(10);
+        return await tc.write();
+      })
+    );
+    await baseTc.read();
+    expect(baseTc.get('foo')).to.be.equal('bar');
+  });
+  it('should add all keys/values', async () => {
+    const baseTc = await TestConfig.create(TestConfig.getOptions());
+    await baseTc.write();
+    const keys = [...Array(numberOfProcesses).keys()].map((key) => key.toString().padStart(3, '0'));
+    const tcs = await Promise.all(keys.map(() => TestConfig.create(TestConfig.getOptions())));
+    await Promise.all(
+      tcs.map(async (tc, i) => {
+        await sleep(10);
+        await tc.read();
+        tc.set(keys[i], 'bar');
+        return await tc.write();
+      })
+    );
+    await baseTc.read(true, true);
+    const contents = baseTc.getContents();
+    const contentsKeys = Object.keys(contents).sort();
+    expect(contentsKeys).to.deep.equal(keys);
+  });
+  it('should remove all keys/values', async () => {
+    const baseTc = await TestConfig.create(TestConfig.getOptions());
+    await baseTc.write();
+    const keys = [...Array(numberOfProcesses).keys()].map((key) => key.toString().padStart(3, '0'));
+    const tcs = await Promise.all(keys.map(() => TestConfig.create(TestConfig.getOptions())));
+    await Promise.all(
+      tcs.map(async (tc, i) => {
+        await sleep(10);
+        await tc.read();
+        tc.set(keys[i], 'bar');
+        return await tc.write();
+      })
+    );
+    await Promise.all(
+      tcs.map(async (tc, i) => {
+        await sleep(10);
+        await tc.read(true, true);
+        tc.unset(keys[i]);
+        return await tc.write();
+      })
+    );
+    await baseTc.read(true, true);
+    const contents = baseTc.getContents();
+    expect(Object.keys(contents)).to.have.lengthOf(0);
   });
 });
