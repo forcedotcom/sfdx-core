@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.15.5](https://github.com/forcedotcom/sfdx-core/compare/v3.15.4...v3.15.5) (2022-05-03)
+
+### Bug Fixes
+
+- SfdxConfigAggregator ([238ad07](https://github.com/forcedotcom/sfdx-core/commit/238ad0757cc332ecc1897bd7230140a31a559332))
+
 ### [3.15.4](https://github.com/forcedotcom/sfdx-core/compare/v3.15.3...v3.15.4) (2022-05-03)
 
 ### Bug Fixes
