@@ -422,14 +422,17 @@ export namespace ConfigAggregator {
  * @deprecated
  */
 export class SfdxConfigAggregator extends ConfigAggregator {
-  public constructor(options: ConfigAggregator.Options = {}) {
+  public static async create<P, T extends AsyncOptionalCreatable<P>>(
+    this: new (options?: ConfigAggregator.Options) => T,
+    options: ConfigAggregator.Options = {}
+  ): Promise<T> {
     const customConfigMeta = options.customConfigMeta || [];
     // org-metadata-rest-deploy has been moved to plugin-deploy-retrieve but we need to have a placeholder
     // for it here since sfdx needs to know how to set the deprecated restDeploy config var.
     const restDeploy = SFDX_ALLOWED_PROPERTIES.find((p) => p.key === SfdxPropertyKeys.REST_DEPLOY);
     const orgRestDeploy = Object.assign({}, restDeploy, { key: 'org-metadata-rest-deploy', deprecated: false });
     options.customConfigMeta = [...customConfigMeta, orgRestDeploy];
-    super(options);
+    return super.create(options) as unknown as T;
   }
 
   public getPropertyMeta(key: string): ConfigPropertyMeta {
