@@ -517,6 +517,7 @@ describe('Org Tests', () => {
           let querySandboxProcessStub;
           let pollStatusAndAuthStub;
           let devHubQueryStub;
+          // let queryStub;
           const orgId = '0GQ4p000000U6nFGAS';
           beforeEach(async () => {
             const prodTestData = new MockTestOrgData();
@@ -527,8 +528,12 @@ describe('Org Tests', () => {
             });
             querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves();
             pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
-            devHubQueryStub = stubMethod($$.SANDBOX, Connection.prototype.tooling, 'query').resolves({
-              Id: orgId,
+            devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves({
+              records: [
+                {
+                  Id: orgId,
+                },
+              ],
             });
             await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
           });
@@ -543,7 +548,7 @@ describe('Org Tests', () => {
 
           it('fails to get sanboxInfo from tooling.query', async () => {
             devHubQueryStub.restore();
-            devHubQueryStub = stubMethod($$.SANDBOX, Connection.prototype.tooling, 'query').throws();
+            devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').throws();
             try {
               await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
               fail('the above should throw an error');
