@@ -95,10 +95,6 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   public constructor(options?: ConfigAggregator.Options) {
     super(options || {});
 
-    if (options?.customConfigMeta) {
-      Config.addAllowedProperties(options.customConfigMeta);
-    }
-
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
     try {
@@ -117,8 +113,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
   public static async create<P, T extends AsyncOptionalCreatable<P>>(
-    this: new (options?: P) => T,
-    options?: P
+    this: new (options?: ConfigAggregator.Options) => T,
+    options?: ConfigAggregator.Options
   ): Promise<T> {
     let config: ConfigAggregator = ConfigAggregator.instance as ConfigAggregator;
     if (!config) {
@@ -127,6 +123,10 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     }
     if (ConfigAggregator.encrypted) {
       await config.loadProperties();
+    }
+
+    if (options?.customConfigMeta) {
+      Config.addAllowedProperties(options.customConfigMeta);
     }
     return ConfigAggregator.instance as T;
   }
