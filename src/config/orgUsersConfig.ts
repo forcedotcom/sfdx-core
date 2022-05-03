@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '../global';
 import { ConfigFile } from './configFile';
 
 /**
@@ -33,6 +34,7 @@ export class OrgUsersConfig extends ConfigFile<OrgUsersConfig.Options> {
       isState: true,
       filename: `${orgId}.json`,
       orgId,
+      stateFolder: Global.SFDX_STATE_FOLDER,
     };
   }
 }

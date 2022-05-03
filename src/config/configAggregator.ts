@@ -9,7 +9,7 @@ import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
 import { AnyJson, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { EnvVars } from './envVars';
-import { Config, ConfigPropertyMeta } from './config';
+import { Config, ConfigPropertyMeta, SfdxPropertyKeys, SFDX_ALLOWED_PROPERTIES } from './config';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'config', ['unknownConfigKey', 'deprecatedConfigKey']);
@@ -95,10 +95,6 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   public constructor(options?: ConfigAggregator.Options) {
     super(options || {});
 
-    if (options?.customConfigMeta) {
-      Config.addAllowedProperties(options.customConfigMeta);
-    }
-
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
     try {
@@ -117,8 +113,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
   public static async create<P, T extends AsyncOptionalCreatable<P>>(
-    this: new (options?: P) => T,
-    options?: P
+    this: new (options?: ConfigAggregator.Options) => T,
+    options?: ConfigAggregator.Options
   ): Promise<T> {
     let config: ConfigAggregator = ConfigAggregator.instance as ConfigAggregator;
     if (!config) {
@@ -127,6 +123,10 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     }
     if (ConfigAggregator.encrypted) {
       await config.loadProperties();
+    }
+
+    if (options?.customConfigMeta) {
+      Config.addAllowedProperties(options.customConfigMeta);
     }
     return ConfigAggregator.instance as T;
   }
@@ -422,14 +422,14 @@ export namespace ConfigAggregator {
  * @deprecated
  */
 export class SfdxConfigAggregator extends ConfigAggregator {
-  // org-metadata-rest-deploy has been moved to plugin-deploy-retrieve but we need to have a placeholder
-  // for it here since sfdx needs to know how to set the deprecated restDeploy config var.
-  private static CUSTOM_CONFIG_VARS = [{ key: 'org-metadata-rest-deploy', hidden: true }] as ConfigPropertyMeta[];
-
   public constructor(options: ConfigAggregator.Options = {}) {
     const customConfigMeta = options.customConfigMeta || [];
-    options.customConfigMeta = [...customConfigMeta, ...SfdxConfigAggregator.CUSTOM_CONFIG_VARS];
-    super(options || {});
+    // org-metadata-rest-deploy has been moved to plugin-deploy-retrieve but we need to have a placeholder
+    // for it here since sfdx needs to know how to set the deprecated restDeploy config var.
+    const restDeploy = SFDX_ALLOWED_PROPERTIES.find((p) => p.key === SfdxPropertyKeys.REST_DEPLOY);
+    const orgRestDeploy = Object.assign({}, restDeploy, { key: 'org-metadata-rest-deploy', deprecated: false });
+    options.customConfigMeta = [...customConfigMeta, orgRestDeploy];
+    super(options);
   }
 
   public getPropertyMeta(key: string): ConfigPropertyMeta {

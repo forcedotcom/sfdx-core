@@ -466,7 +466,7 @@ describe('Org Tests', () => {
       await org.remove();
 
       expect(deletedPaths).includes(
-        pathJoin(await $$.globalPathRetriever($$.id), Global.SF_STATE_FOLDER, `${testData.orgId}.json`)
+        pathJoin(await $$.globalPathRetriever($$.id), Global.SFDX_STATE_FOLDER, `${testData.orgId}.json`)
       );
     });
 
