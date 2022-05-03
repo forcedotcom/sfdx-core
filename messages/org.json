@@ -11,5 +11,7 @@
   "MissingAuthUsername": "The sandbox %s does not have an authorized username.",
   "OrgPollingTimeout": "Sandbox status is %s; timed out waiting for completion.",
   "SandboxProcessNotFoundBySandboxName": "We can't find a SandboxProcess with the SandboxName %s.",
-  "MultiSandboxProcessNotFoundBySandboxName": "We found more than one SandboxProcess with the SandboxName %s."
+  "SandboxInfoNotFoundBySandboxName": "We can't find a SandboxInfo with the SandboxName %s.",
+  "MultiSandboxProcessNotFoundBySandboxName": "We found more than one SandboxProcess with the SandboxName %s.",
+  "MultiSandboxInfoNotFoundBySandboxName": "We found more than one SandboxInfo with the SandboxName %s."
 }

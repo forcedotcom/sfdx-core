@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual, fail } from 'assert';
 import { constants as fsConstants } from 'fs';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin } from 'path';
@@ -508,6 +508,70 @@ describe('Org Tests', () => {
             expect(res).to.deep.equal(sandboxInProgress);
             expect(loggerStub.callCount).to.equal(3);
             expect(lifecycleStub.callCount).to.equal(2);
+          });
+        });
+
+        describe('cloneSandbox', () => {
+          let prod;
+          let createStub;
+          let querySandboxProcessStub;
+          let pollStatusAndAuthStub;
+          let devHubQueryStub;
+          // let queryStub;
+          const orgId = '0GQ4p000000U6nFGAS';
+          beforeEach(async () => {
+            const prodTestData = new MockTestOrgData();
+            prod = await createOrgViaAuthInfo(prodTestData.username);
+            createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
+              id: orgId,
+              success: true,
+            });
+            querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves();
+            pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
+            devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves({
+              records: [
+                {
+                  Id: orgId,
+                },
+              ],
+            });
+            await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
+          });
+
+          it('will clone the sandbox given a SandBoxName', async () => {
+            await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+            expect(createStub.calledTwice).to.be.true;
+            expect(querySandboxProcessStub.calledTwice).to.be.true;
+            expect(pollStatusAndAuthStub.calledTwice).to.be.true;
+            expect(devHubQueryStub.calledOnce).to.be.true;
+          });
+
+          it('fails to get sanboxInfo from tooling.query', async () => {
+            devHubQueryStub.restore();
+            devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').throws();
+            try {
+              await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+              fail('the above should throw an error');
+            } catch (e) {
+              expect(createStub.calledTwice).to.be.false;
+              expect(querySandboxProcessStub.calledTwice).to.be.false;
+              expect(pollStatusAndAuthStub.calledTwice).to.be.false;
+              expect(devHubQueryStub.calledOnce).to.be.true;
+            }
+          });
+
+          it('when creating sandbox tooling create rejects', async () => {
+            createStub.restore();
+            createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').rejects();
+            try {
+              await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+              fail('the above should throw an error');
+            } catch (e) {
+              expect(createStub.calledTwice).to.be.false;
+              expect(querySandboxProcessStub.calledTwice).to.be.false;
+              expect(pollStatusAndAuthStub.calledTwice).to.be.false;
+              expect(devHubQueryStub.calledOnce).to.be.true;
+            }
           });
         });
       });

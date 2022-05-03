@@ -194,6 +194,23 @@ export class Org extends AsyncCreatable<Org.Options> {
   }
 
   /**
+   *
+   * @param sandboxReq SandboxRequest options to create the sandbox with
+   * @param sandboxName
+   * @param options Wait: The amount of time to wait before timing out, defaults to 0, Interval: The time interval between polling defaults to 30 seconds
+   * @returns {SandboxProcessObject} the newly created sandbox process object
+   */
+  public async cloneSandbox(
+    sandboxReq: SandboxRequest,
+    sandboxName: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    sandboxReq.SourceId = await this.querySandboxInfoIdBySandboxName(sandboxName);
+    this.logger.debug('Clone sandbox sourceId %s', sandboxReq.SourceId);
+    return this.createSandbox(sandboxReq, options);
+  }
+
+  /**
    * Creates a scratchOrg
    * 'this' needs to be a valid dev-hub
    *
@@ -1057,6 +1074,25 @@ export class Org extends AsyncCreatable<Org.Options> {
     return await this.connection.singleRecordQuery(queryStr, {
       tooling: true,
     });
+  }
+
+  /**
+   *
+   * @param sandboxNameIn
+   * @returns sandboxInfoId
+   */
+  private async querySandboxInfoIdBySandboxName(sandboxNameIn: string): Promise<string> {
+    this.logger.debug('QuerySandboxInfoIdBySandboxName called with SandboxName: %s ', sandboxNameIn);
+    const queryStr = `SELECT Id, SandboxName FROM SandboxInfo WHERE SandboxName='${sandboxNameIn}'`;
+    const queryResult = await this.connection.tooling.query(queryStr);
+    this.logger.debug('Return from calling queryToolingApi: %s ', JSON.stringify(queryResult));
+    if (queryResult?.records?.length === 1) {
+      return (queryResult?.records[0] as { Id: string }).Id;
+    } else if (queryResult.records && queryResult.records.length > 1) {
+      throw SfdxError.create('@salesforce/core', 'org', 'MultiSandboxInfoNotFoundBySandboxName', [sandboxNameIn]);
+    } else {
+      throw SfdxError.create('@salesforce/core', 'org', 'SandboxInfoNotFoundBySandboxName', [sandboxNameIn]);
+    }
   }
 
   /**
