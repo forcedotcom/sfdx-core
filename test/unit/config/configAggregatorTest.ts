@@ -9,7 +9,7 @@ import { assert, expect } from 'chai';
 import { Config, ConfigProperties } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
-import { envVars, OrgConfigProperties } from '../../../src/exported';
+import { OrgConfigProperties } from '../../../src/exported';
 import { testSetup } from '../../../src/testSetup';
 import { Cache } from '../../../src/util/cache';
 
@@ -18,9 +18,6 @@ const $$ = testSetup();
 
 describe('ConfigAggregator', () => {
   let id: string;
-  before(() => {
-    envVars.setBoolean('SF_DISABLE_LOCKING', false);
-  });
   beforeEach(() => {
     Cache.instance().clear();
     // Testing config functionality, so restore global stubs.
@@ -40,9 +37,6 @@ describe('ConfigAggregator', () => {
     delete process.env['target-org'];
   });
 
-  after(() => {
-    envVars.unset('SF_DISABLE_LOCKING');
-  });
   describe('instantiation', () => {
     it('creates local and global config', async () => {
       const aggregator: ConfigAggregator = await ConfigAggregator.create();

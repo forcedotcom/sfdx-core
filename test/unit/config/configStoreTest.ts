@@ -289,7 +289,44 @@ describe('diff and patch', () => {
     config.unset('baz.rating');
     config.diffAndPatchContents(deepCopy(baseData));
     const expected = { foo: { ...baseData.foo }, baz: { ...baseData.baz } };
-    expected.baz.rating = undefined;
+    delete expected.baz.rating;
     expect(config.getContents()).to.deep.equal(expected);
+  });
+});
+// given a config with base keys, can diff and patch isolate changes to a base key
+describe('diff and patch store with base keys', () => {
+  const baseData = {
+    a: {
+      foo: { name: 'bar', color: 'red', rating: 5 },
+      baz: { name: 'qux', color: 'blue', rating: 10 },
+    },
+    b: {
+      foo: { name: 'bar', color: 'red', rating: 5 },
+      baz: { name: 'qux', color: 'blue', rating: 10 },
+    },
+  };
+  it('should delete all config entries when as-is is empty and no local changes using base keys', async () => {
+    const config = await TestConfig.create({ baseKeys: ['a', 'b'] });
+    config.setContents(deepCopy(baseData));
+    config.setOriginalContents(deepCopy(baseData));
+    config.diffAndPatchContents({});
+    expect(config.getContents()).to.deep.equal({});
+  });
+  it('should delete unchanged config entries when as-is is empty and some local changes', async () => {
+    const config = await TestConfig.create({ baseKeys: ['a', 'b'] });
+    config.setContents(deepCopy(baseData));
+    config.setOriginalContents(deepCopy(baseData));
+    config.set('a.baz.rating', 0);
+    config.diffAndPatchContents({});
+    expect(config.getContents()).to.deep.equal({
+      a: {
+        baz: {
+          color: 'blue',
+          name: 'qux',
+          rating: 0,
+        },
+      },
+      b: {},
+    });
   });
 });

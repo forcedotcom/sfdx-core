@@ -15,7 +15,6 @@ import { sleep } from '@salesforce/kit';
 import { ConfigFile } from '../../../src/config/configFile';
 import { SfError } from '../../../src/exported';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
-import { envVars } from '../../../src/config/envVars';
 import { deepCopy } from '../../../lib/util/utils';
 
 const $$ = testSetup();
@@ -39,6 +38,7 @@ class TestConfig extends ConfigFile<ConfigFile.Options> {
       isGlobal,
       isState,
       filePath,
+      useFileLock: false,
     };
   }
 
@@ -48,9 +48,6 @@ class TestConfig extends ConfigFile<ConfigFile.Options> {
 }
 
 describe('Config', () => {
-  before(() => {
-    envVars.setBoolean('SF_DISABLE_LOCKING', true);
-  });
   describe('instantiation', () => {
     it('not using global has project dir', () => {
       const config = new TestConfig(TestConfig.getOptions('test', false));
@@ -207,7 +204,7 @@ describe('Config', () => {
       $$.SANDBOXES.CONFIG.restore();
     });
     it('uses passed in contents', async () => {
-      // const mkdirpStub = $$.SANDBOX.stub(mkdirp, 'native');
+      const mkdirpStub = $$.SANDBOX.stub(mkdirp, 'native');
       const writeJson = $$.SANDBOX.stub(fs.promises, 'writeFile');
 
       const config = await TestConfig.create({ isGlobal: true });
@@ -216,7 +213,7 @@ describe('Config', () => {
       const actual = await config.write(expected);
       expect(expected).to.deep.equal(actual);
       expect(expected).to.deep.equal(config.getContents());
-      // expect(mkdirpStub.called).to.be.true;
+      expect(mkdirpStub.called).to.be.true;
       expect(writeJson.called).to.be.true;
     });
     it('sync uses passed in contents', async () => {
@@ -424,13 +421,9 @@ describe('race condition', () => {
   }
   let tc1: TestConfig;
   const numberOfProcesses = 10;
-  before(() => {
-    envVars.setBoolean('SF_DISABLE_LOCKING', false);
-  });
-
   beforeEach(async () => {
     $$.SANDBOXES.CONFIG.restore();
-    tc1 = await TestConfig.create(TestConfig.getOptions());
+    tc1 = await TestConfig.create({ ...TestConfig.getOptions(), useFileLock: true });
   });
   afterEach(async () => {
     tc1 = await TestConfig.create(TestConfig.getOptions());

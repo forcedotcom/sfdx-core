@@ -98,14 +98,14 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
     try {
-      this.localConfig = new Config(Config.getDefaultOptions(false));
+      this.localConfig = new Config({ ...Config.getDefaultOptions(false), useFileLock: options?.useFileLock ?? true });
     } catch (err) {
       if ((err as Error).name !== 'InvalidProjectWorkspaceError') {
         throw err;
       }
     }
 
-    this.globalConfig = new Config(Config.getDefaultOptions(true));
+    this.globalConfig = new Config({ ...Config.getDefaultOptions(true), useFileLock: options?.useFileLock ?? true });
 
     this.setAllowedProperties(Config.getAllowedProperties());
   }
@@ -412,6 +412,7 @@ export namespace ConfigAggregator {
 
   export type Options = {
     customConfigMeta?: ConfigPropertyMeta[];
+    useFileLock?: boolean;
   };
 }
 

@@ -20,7 +20,6 @@ import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
 import { Messages } from '../messages';
 import { BaseConfigStore, ConfigContents } from './configStore';
-import { envVars } from './envVars';
 
 const lockSync = lockfile.lock;
 const unlockSync = lockfile.unlock;
@@ -113,6 +112,7 @@ export class ConfigFile<
       isState: true,
       filename: filename || this.getFileName(),
       stateFolder: Global.SF_STATE_FOLDER,
+      useFileLock: true,
     };
   }
 
@@ -179,7 +179,7 @@ export class ConfigFile<
    */
   public async read(throwOnNotFound = false, force = false): Promise<P> {
     const start = Date.now();
-    if (envVars.getBoolean('SF_DISABLE_LOCKING')) {
+    if (!this.options.useFileLock) {
       await this._read(throwOnNotFound, force);
       return this.getContents();
     } else {
@@ -216,7 +216,7 @@ export class ConfigFile<
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
    */
   public readSync(throwOnNotFound = false, force = false): P {
-    if (envVars.getBoolean('SF_DISABLE_LOCKING')) {
+    if (!this.options.useFileLock) {
       this._readSync(throwOnNotFound, force);
       return this.getContents();
     } else {
@@ -255,7 +255,7 @@ export class ConfigFile<
    */
   public async write(newContents?: P): Promise<P> {
     const start = Date.now();
-    if (envVars.getBoolean('SF_DISABLE_LOCKING')) {
+    if (!this.options.useFileLock) {
       await this._write(newContents);
       return this.getContents();
     } else {
@@ -283,7 +283,7 @@ export class ConfigFile<
    * @param newContents The new contents of the file.
    */
   public writeSync(newContents?: P): P {
-    if (envVars.getBoolean('SF_DISABLE_LOCKING')) {
+    if (!this.options.useFileLock) {
       this._writeSync(newContents);
     } else {
       lockSync(this.getLockFilePath(), lockFileOpts, (err) => {
@@ -505,6 +505,7 @@ export class ConfigFile<
   }
 
   private getLockFilePath(): string {
+    this.createLockFilePath();
     return pathJoin(`${this.getPath()}.lock`);
   }
   private loadFromFileSync(throwOnError = true): P {
@@ -527,6 +528,13 @@ export class ConfigFile<
         throw err;
       }
       return {} as P;
+    }
+  }
+
+  private createLockFilePath() {
+    const parentDir = pathDirname(this.getPath());
+    if (!fs.existsSync(parentDir)) {
+      mkdirp.sync(parentDir);
     }
   }
 }
@@ -564,5 +572,9 @@ export namespace ConfigFile {
      * Indicates if init should throw if the corresponding config file is not found.
      */
     throwOnNotFound?: boolean;
+    /**
+     * Indicates file locking should be used for this config file.
+     */
+    useFileLock?: boolean;
   }
 }

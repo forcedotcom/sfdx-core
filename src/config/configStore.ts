@@ -391,9 +391,9 @@ export abstract class BaseConfigStore<
    * @param obj The object.
    */
   public diffAndPatchContents(asIsContents: P): void {
-    const asIsKeys = oKeys(asIsContents);
-    const currentKeys = oKeys(this.getContents());
-    const originalKeys = oKeys(this.getOriginalContents());
+    const asIsKeys = this.getRootKeys(asIsContents);
+    const currentKeys = this.getRootKeys(this.getContents());
+    const originalKeys = this.getRootKeys(this.getOriginalContents());
     const currentModifiedKeys = this.valuesState.getKeysByValue('set');
 
     // other, original and current are all empty, so nothing to diff - current is source of truth
@@ -461,6 +461,7 @@ export abstract class BaseConfigStore<
         this.unset(key);
       }
     });
+    this.pruneUndefinedEntries(this.getContents());
   }
 
   protected getEncryptedKeys(): Array<string | RegExp> {
@@ -631,18 +632,28 @@ export abstract class BaseConfigStore<
     });
   }
 
-  // private getDeletedKeys(leftKeys: string[], rightKeys: string[]) {
-  //   return this.getDeletedKeysFromDiff(jsondiffpatch.diff(leftKeys, rightKeys) ?? {});
-  // }
-  //
-  // private getDeletedKeysFromDiff(diff: Delta | undefined): string[] {
-  //   if (!diff) return [];
-  //   return Object.entries(diff)
-  //     .filter(([key]) => /_[0-9]+$/.test(key))
-  //     .flat()
-  //     .filter((value) => isArray(value) && value.length === 3 && value[1] === 0 && value[2] === 0)
-  //     .map((entry) => entry[0]);
-  // }
+  private getRootKeys(contents: P): string[] {
+    if (!this.options.baseKeys || this.options.baseKeys.length === 0) return oKeys(contents);
+    return (this.options.baseKeys ?? [])
+      .map((key) => {
+        if (!contents[key]) return [];
+        const subKeys = oKeys(contents[key] ?? {});
+        if (subKeys.length === 0) return [];
+        return subKeys.map((subKey) => `${key}.${subKey}`);
+      })
+      .flat(3);
+  }
+
+  private pruneUndefinedEntries(obj: P) {
+    Object.entries(obj).forEach(([key, value]) => {
+      if (value === undefined) {
+        delete obj[key];
+      }
+      if (typeof value === 'object') {
+        this.pruneUndefinedEntries(value as P);
+      }
+    });
+  }
 }
 
 /**
