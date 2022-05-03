@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.37.0](https://github.com/forcedotcom/sfdx-core/compare/v2.36.4...v2.37.0) (2022-05-03)
+
+### Features
+
+- new cloneSandbox method ([69073dd](https://github.com/forcedotcom/sfdx-core/commit/69073dd71ee7372d13c86aaf052c798a4bea5176))
+
+### Bug Fixes
+
+- use tooling api ([c32f19d](https://github.com/forcedotcom/sfdx-core/commit/c32f19d8de6a953f8390fd853d3be023db01d890))
+
 ### [2.36.4](https://github.com/forcedotcom/sfdx-core/compare/v2.36.3...v2.36.4) (2022-04-28)
 
 ### Bug Fixes
