@@ -207,7 +207,7 @@ describe('Config', () => {
       const mkdirpStub = $$.SANDBOX.stub(mkdirp, 'native');
       const writeJson = $$.SANDBOX.stub(fs.promises, 'writeFile');
 
-      const config = await TestConfig.create({ isGlobal: true });
+      const config = await TestConfig.create({ isGlobal: true, useFileLock: false });
 
       const expected = { test: 'test' };
       const actual = await config.write(expected);
@@ -282,6 +282,7 @@ describe('Config', () => {
         filename: 'test',
         isGlobal: true,
         throwOnNotFound: true,
+        useFileLock: false,
       };
 
       try {
@@ -369,6 +370,7 @@ describe('Config', () => {
         filename: 'test',
         isGlobal: true,
         throwOnNotFound: false,
+        useFileLock: false,
       };
 
       try {
