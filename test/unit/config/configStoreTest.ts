@@ -6,6 +6,7 @@
  */
 import { expect } from 'chai';
 import { BaseConfigStore, ConfigContents } from '../../../src/config/configStore';
+import { deepCopy } from '../../../src/util/utils';
 
 const specialKey = 'spe@cial.property';
 
@@ -227,5 +228,68 @@ describe('ConfigStore', () => {
       expect(config.get('owner.name')).to.equal(owner.name);
       expect(config.get('owner.creditCardNumber', true)).to.equal(expected);
     });
+  });
+});
+describe('diff and patch', () => {
+  const baseData = {
+    foo: { name: 'bar', color: 'red', rating: 5 },
+    baz: { name: 'qux', color: 'blue', rating: 10 },
+  };
+
+  it('should handle all empty stores', async () => {
+    const config = await TestConfig.create();
+    config.setContents(deepCopy({}));
+    config.setOriginalContents(deepCopy({}));
+    config.diffAndPatchContents({});
+    expect(config.getContents()).to.deep.equal({});
+  });
+  it('should delete all config entries when as-is is empty and no local changes', async () => {
+    const config = await TestConfig.create();
+    config.setContents(deepCopy(baseData));
+    config.setOriginalContents(deepCopy(baseData));
+    config.diffAndPatchContents({});
+    expect(config.getContents()).to.deep.equal({});
+  });
+  it('should delete unchanged config entries when as-is is empty and some local changes', async () => {
+    const config = await TestConfig.create();
+    config.setContents(deepCopy(baseData));
+    config.setOriginalContents(deepCopy(baseData));
+    config.set('baz.rating', 0);
+    config.diffAndPatchContents({});
+    expect(config.getContents()).to.deep.equal({ baz: { ...baseData.baz, rating: 0 } });
+  });
+  it('should merge changes within the same config entry', async () => {
+    const config = await TestConfig.create();
+    config.setContents(deepCopy(baseData));
+    config.setOriginalContents(deepCopy(baseData));
+    config.set('baz.rating', 0);
+    config.diffAndPatchContents(deepCopy(baseData));
+    expect(config.getContents()).to.deep.equal({ foo: { ...baseData.foo }, baz: { ...baseData.baz, rating: 0 } });
+  });
+  it('should save entries when as-is and original are empty', async () => {
+    const config = await TestConfig.create();
+    config.setContents(deepCopy(baseData));
+    config.setOriginalContents(deepCopy({}));
+    config.set('baz.rating', 0);
+    config.diffAndPatchContents({});
+    expect(config.getContents()).to.deep.equal({ foo: { ...baseData.foo }, baz: { ...baseData.baz, rating: 0 } });
+  });
+  it('should remove all locally deleted root entries', async () => {
+    const config = await TestConfig.create();
+    config.setContents(deepCopy(baseData));
+    config.setOriginalContents(deepCopy(baseData));
+    config.unset('baz');
+    config.diffAndPatchContents(deepCopy(baseData));
+    expect(config.getContents()).to.deep.equal({ foo: { ...baseData.foo } });
+  });
+  it('should remove only nested values that are unset', async () => {
+    const config = await TestConfig.create();
+    config.setContents(deepCopy(baseData));
+    config.setOriginalContents(deepCopy(baseData));
+    config.unset('baz.rating');
+    config.diffAndPatchContents(deepCopy(baseData));
+    const expected = { foo: { ...baseData.foo }, baz: { ...baseData.baz } };
+    expected.baz.rating = undefined;
+    expect(config.getContents()).to.deep.equal(expected);
   });
 });

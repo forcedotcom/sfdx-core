@@ -18,23 +18,12 @@ import {
   JsonMap,
   Optional,
 } from '@salesforce/ts-types';
-import * as jsondiffpatch from 'jsondiffpatch';
+import * as diffPatch from 'jsondiffpatch';
 import { Crypto } from '../crypto/crypto';
 import { SfError } from '../sfError';
 import { deepCopy } from '../util/utils';
 
-/**
- * ConfigValue state
- */
-
-export enum ConfigValueState {
-  unchanged = 'unchanged',
-  added = 'added',
-  deleted = 'deleted',
-  changed = 'changed',
-  addedAndChanged = 'addedAndChanged',
-}
-
+const oKeys = Object.keys;
 /**
  * The allowed types stored in a config store.
  */
@@ -80,11 +69,17 @@ export interface ConfigStore<P extends ConfigContents = ConfigContents> {
   getContents(): P;
   getOriginalContents(): P;
   setContents(contents?: P): void;
+  setOriginalContents(contents?: P): void;
 }
 
 type SetUnset = 'set' | 'unset';
 
 class ValuesState extends Map<string, SetUnset> {
+  private baseKeys: string[];
+  public constructor(baseKeys: string[]) {
+    super();
+    this.baseKeys = baseKeys;
+  }
   public setState(key: string, operation: SetUnset, value: ConfigValue | undefined) {
     // If the value is undefined and key is the root key, we treat it as an unset operation.
     if (this.getRootKey(key) === key && !value) {
@@ -106,7 +101,8 @@ class ValuesState extends Map<string, SetUnset> {
   }
 
   private getRootKey(key: string): string {
-    return key.split('.')[0];
+    const keyParts = key.split('.');
+    return this.baseKeys.includes(keyParts[0]) ? keyParts.slice(0, 2).join('.') : keyParts[0];
   }
 }
 
@@ -126,7 +122,7 @@ export abstract class BaseConfigStore<
   protected static encryptedKeys: Array<string | RegExp> = [];
   protected options: T;
   protected crypto?: Crypto;
-  protected valuesState = new ValuesState();
+  protected valuesState: ValuesState;
 
   // Initialized in setContents
   private contents!: P;
@@ -142,7 +138,9 @@ export abstract class BaseConfigStore<
   public constructor(options?: T) {
     super(options);
     this.options = options || ({} as T);
+    this.valuesState = new ValuesState(this.options.baseKeys || []);
     this.setContents(this.initialContents());
+    this.setOriginalContents(this.getContents());
   }
 
   /**
@@ -199,7 +197,7 @@ export abstract class BaseConfigStore<
    * Returns an array that contains the keys for each element in the config object.
    */
   public keys(): Array<Key<P>> {
-    return Object.keys(this.contents) as Array<Key<P>>;
+    return oKeys(this.contents) as Array<Key<P>>;
   }
 
   /**
@@ -306,21 +304,13 @@ export abstract class BaseConfigStore<
   /**
    * Returns the entire config contents in the state from when the config was set with setContents.
    *
-   * *NOTE:* Data will still be encrypted unless decrypt is passed in. A clone of
-   * the data will be returned to prevent storing un-encrypted data in memory and
-   * potentially saving to the file system.
-   *
-   * @param decrypt: decrypt all data in the config. A clone of the data will be returned.
-   *
    */
-  public getOriginalContents(decrypt = false): P {
-    if (!this.contents) {
-      this.setContents();
-    }
-    if (this.hasEncryption() && decrypt) {
-      return this.recursiveDecrypt(cloneJson(this.originalContents)) as P;
-    }
+  public getOriginalContents(): P {
     return this.originalContents;
+  }
+
+  public setOriginalContents(contents: P = {} as P): void {
+    this.originalContents = deepCopy(contents);
   }
 
   /**
@@ -382,59 +372,94 @@ export abstract class BaseConfigStore<
     this.setContents(this.getContentsFromObject(obj));
   }
 
-  protected setOriginalContents(contents: P | undefined): void {
-    const c = contents || this.getContents();
-    this.originalContents = deepCopy(c);
-  }
+  /**
+   * Produce the differences between the as-is config (typically loaded during write),
+   * the original config (typically loaded duriong read) and the current config as changed by calls to set and unset.
+   *
+   * Given the as-is config, determine what modifications are needed against the current config that account for the
+   * changes made to the as-is config, the original config and the current config.
+   * Assumptions:
+   * - The as-is config is the config as it was loaded from the file system, right before this function is called.
+   * - The original config is the config as it was loaded from the file system, right before the user started making changes.
+   * - The current config is the config as it is currently.
+   * - When no changes are detected, the current config is source of truth.
+   * - When are entries in as-is or in original or in current config, common root keys in original and current config are compared.
+   * -- If there are no changes and as=is and there are no modifications or deleteions to current, the current contents are set to as-is.
+   * - The fully qualified keys are used to determine the differences and then those differences are applied to the current config.
+   * - Any keys that are no longer present in as-is and have not been modified in current are deleted from the current config.
+   *
+   * @param obj The object.
+   */
+  public diffAndPatchContents(asIsContents: P): void {
+    const asIsKeys = oKeys(asIsContents);
+    const currentKeys = oKeys(this.getContents());
+    const originalKeys = oKeys(this.getOriginalContents());
+    const currentModifiedKeys = this.valuesState.getKeysByValue('set');
 
-  protected diffAndPatchContents(someOtherContents: P): void {
-    // find keys in common between old and new
-    const oldKeys = Object.keys(someOtherContents);
-    const currentKeys = Object.keys(this.getContents());
-    const commonKeys = oldKeys.filter((key) => currentKeys.includes(key));
-
-    // get keys that are new.
-    const newKeys = this.valuesState.getKeysByValue('set').filter((key) => !commonKeys.includes(key));
-    // get keys that are deleted.
-    const deletedKeys = this.valuesState.getKeysByValue('unset');
-
-    // apply changes to common entries
-    if (commonKeys.length) {
-      const oContents: { [key: string]: T } = {};
-      const nContents: { [key: string]: T } = {};
-      commonKeys.forEach((key) => {
-        oContents[key] = someOtherContents[key] as unknown as T;
-        nContents[key] = this.get(key);
-      });
-
-      const otherDiff = jsondiffpatch.diff(someOtherContents, oContents);
-      const newDiff = jsondiffpatch.diff(someOtherContents, nContents);
-      if (!otherDiff && !newDiff) {
-        return;
-      }
-
-      let patch = someOtherContents;
-      if (otherDiff) {
-        patch = jsondiffpatch.patch(someOtherContents, otherDiff);
-      }
-      if (newDiff) {
-        patch = jsondiffpatch.patch(patch, newDiff);
-      }
-
-      Object.entries(patch).forEach(([key, value]) => {
-        this.set(key, value);
-      });
+    // other, original and current are all empty, so nothing to diff - current is source of truth
+    if (asIsKeys.length === 0 && originalKeys.length === 0 && this.valuesState.size === 0) {
+      return;
     }
 
-    const deletedInOther = currentKeys.filter(
-      (key) => !oldKeys.includes(key) && !newKeys.includes(key) && !deletedKeys.includes(key)
+    // gross change analysis
+    const commonKeysBetweenOriginalAndCurrent = originalKeys.filter((key) => currentKeys.includes(key));
+    const anyLocalChanges = diffPatch.diff(
+      Object.fromEntries(
+        Object.entries(this.getOriginalContents()).filter(([key]) => commonKeysBetweenOriginalAndCurrent.includes(key))
+      ),
+      Object.fromEntries(
+        Object.entries(this.getContents()).filter(([key]) => commonKeysBetweenOriginalAndCurrent.includes(key))
+      )
     );
-    const createdInOther = oldKeys.filter((key) => !currentKeys.includes(key) && !deletedKeys.includes(key));
-    deletedInOther.forEach((key) => {
-      this.unset(key);
+
+    // nothing has changed between original and current, use other as source of truth
+    if (!anyLocalChanges) {
+      if (
+        asIsKeys.length === 0 &&
+        currentModifiedKeys.length === 0 &&
+        this.valuesState.getKeysByValue('unset').length === 0
+      ) {
+        this.setContents(asIsContents);
+        return;
+      }
+    }
+
+    // create new map of values where keys are fully qualified paths using dot notation
+    const currentKeyPaths: AnyJson = {};
+    this.buildKeyDotPaths(currentKeyPaths, this.getContents(), []);
+    const asIsKeyPaths: AnyJson = {};
+    this.buildKeyDotPaths(asIsKeyPaths, asIsContents, []);
+    const originalKeyPaths: AnyJson = {};
+    this.buildKeyDotPaths(originalKeyPaths, this.getOriginalContents(), []);
+
+    // diff current and other contents against original contents
+    const asIsDiff = diffPatch.diff(originalKeyPaths, asIsKeyPaths);
+    const currentDiff = diffPatch.diff(originalKeyPaths, currentKeyPaths);
+    if (!asIsDiff && !currentDiff) {
+      return;
+    }
+
+    // apply changes to contents
+    let patch = originalKeyPaths;
+    if (asIsDiff) {
+      patch = diffPatch.patch(patch, asIsDiff);
+    }
+    if (currentDiff) {
+      patch = diffPatch.patch(patch, currentDiff);
+    }
+
+    // apply patched contents to current contents
+    Object.entries(patch).forEach(([key, value]) => {
+      this.set(key, value);
     });
-    createdInOther.forEach((key) => {
-      this.set(key, someOtherContents[key] as unknown as T);
+
+    // calculate keys to delete from current
+    // using original keys find those that are not in as-is and not in modified
+    const keysToDelete = originalKeys.filter((key) => !asIsKeys.includes(key) && !currentModifiedKeys.includes(key));
+    keysToDelete.forEach((key) => {
+      if (originalKeys.includes(key)) {
+        this.unset(key);
+      }
     });
   }
 
@@ -544,7 +569,7 @@ export abstract class BaseConfigStore<
   /**
    * Encrypt all values in a nested JsonMap.
    *
-   * @param keyPaths: The complete path of the (nested) data
+   * @param parentKey: The complete path of the (nested) data
    * @param data: The current (nested) data being worked on.
    */
   protected recursiveEncrypt<T extends JsonMap>(data: T, parentKey?: string): T {
@@ -557,7 +582,7 @@ export abstract class BaseConfigStore<
   /**
    * Decrypt all values in a nested JsonMap.
    *
-   * @param keyPaths: The complete path of the (nested) data
+   * @param parentKey: The complete path of the (nested) data
    * @param data: The current (nested) data being worked on.
    */
   protected recursiveDecrypt(data: JsonMap, parentKey?: string): JsonMap {
@@ -596,6 +621,28 @@ export abstract class BaseConfigStore<
       }
     }
   }
+  private buildKeyDotPaths(keyPaths: AnyJson, obj: AnyJson | undefined, keys: string[]): AnyJson {
+    if (typeof obj !== 'object' || obj === null) {
+      keyPaths = Object.assign(keyPaths, { [keys.join('.')]: obj });
+      return [keys, obj as AnyJson];
+    }
+    return Object.entries(obj).map(([key, value]) => {
+      return this.buildKeyDotPaths(keyPaths, value, [...keys, key]);
+    });
+  }
+
+  // private getDeletedKeys(leftKeys: string[], rightKeys: string[]) {
+  //   return this.getDeletedKeysFromDiff(jsondiffpatch.diff(leftKeys, rightKeys) ?? {});
+  // }
+  //
+  // private getDeletedKeysFromDiff(diff: Delta | undefined): string[] {
+  //   if (!diff) return [];
+  //   return Object.entries(diff)
+  //     .filter(([key]) => /_[0-9]+$/.test(key))
+  //     .flat()
+  //     .filter((value) => isArray(value) && value.length === 3 && value[1] === 0 && value[2] === 0)
+  //     .map((entry) => entry[0]);
+  // }
 }
 
 /**
@@ -615,5 +662,6 @@ export namespace BaseConfigStore {
      * defining a new class.
      */
     encryptedKeys?: Array<string | RegExp>;
+    baseKeys?: string[];
   }
 }

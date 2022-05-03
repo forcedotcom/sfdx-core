@@ -13,7 +13,7 @@ import { Global } from '../global';
 import { ConfigFile } from '../config/configFile';
 import { deepCopy } from '../util/utils';
 import { SandboxOrgConfig } from '../config/sandboxOrgConfig';
-import { deepCopy, GlobalInfo } from './globalInfoConfig';
+import { GlobalInfo } from './globalInfoConfig';
 import { SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfSandbox, SfSandboxes } from './types';
 
 function isEqual(object1: Record<string, unknown>, object2: Record<string, unknown>): boolean {

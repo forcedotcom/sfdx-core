@@ -15,6 +15,8 @@ import { sleep } from '@salesforce/kit';
 import { ConfigFile } from '../../../src/config/configFile';
 import { SfError } from '../../../src/exported';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
+import { envVars } from '../../../src/config/envVars';
+import { deepCopy } from '../../../lib/util/utils';
 
 const $$ = testSetup();
 
@@ -46,6 +48,9 @@ class TestConfig extends ConfigFile<ConfigFile.Options> {
 }
 
 describe('Config', () => {
+  before(() => {
+    envVars.setBoolean('SF_DISABLE_LOCKING', true);
+  });
   describe('instantiation', () => {
     it('not using global has project dir', () => {
       const config = new TestConfig(TestConfig.getOptions('test', false));
@@ -418,19 +423,18 @@ describe('race condition', () => {
     }
   }
   let tc1: TestConfig;
-  const numberOfProcesses = 50;
+  const numberOfProcesses = 10;
+  before(() => {
+    envVars.setBoolean('SF_DISABLE_LOCKING', false);
+  });
+
   beforeEach(async () => {
     $$.SANDBOXES.CONFIG.restore();
     tc1 = await TestConfig.create(TestConfig.getOptions());
   });
   afterEach(async () => {
     tc1 = await TestConfig.create(TestConfig.getOptions());
-    try {
-      await tc1.read(true, true);
-      await tc1.unlink();
-    } catch {
-      //
-    }
+    fs.unlinkSync(tc1.getPath());
   });
   it('should not change original', async () => {
     const baseTc = await TestConfig.create(TestConfig.getOptions());
@@ -442,7 +446,7 @@ describe('race condition', () => {
     );
     await Promise.all(
       tcs.map(async (tc) => {
-        await sleep(10);
+        await sleep(Math.floor(Math.random() * 100));
         return await tc.write();
       })
     );
@@ -456,7 +460,7 @@ describe('race condition', () => {
     const tcs = await Promise.all(keys.map(() => TestConfig.create(TestConfig.getOptions())));
     await Promise.all(
       tcs.map(async (tc, i) => {
-        await sleep(10);
+        await sleep(Math.floor(Math.random() * 100));
         await tc.read();
         tc.set(keys[i], 'bar');
         return await tc.write();
@@ -474,7 +478,7 @@ describe('race condition', () => {
     const tcs = await Promise.all(keys.map(() => TestConfig.create(TestConfig.getOptions())));
     await Promise.all(
       tcs.map(async (tc, i) => {
-        await sleep(10);
+        await sleep(Math.floor(Math.random() * 100));
         await tc.read();
         tc.set(keys[i], 'bar');
         return await tc.write();
@@ -491,5 +495,33 @@ describe('race condition', () => {
     await baseTc.read(true, true);
     const contents = baseTc.getContents();
     expect(Object.keys(contents)).to.have.lengthOf(0);
+  });
+  it('should merge changes across writes', async () => {
+    const baseTc = await TestConfig.create(TestConfig.getOptions());
+    const baseData = {
+      foo: { name: 'bar', color: 'red', rating: 5 },
+      baz: { name: 'qux', color: 'blue', rating: 10 },
+    };
+    baseTc.setContents(deepCopy(baseData));
+    await baseTc.write();
+    const keys = [...Array(2).keys()];
+    await Promise.all(
+      keys.map(async (key, i) => {
+        const tc = await TestConfig.create(TestConfig.getOptions());
+        if (i === 0) {
+          tc.set('foo.color', 'orange');
+          return await tc.write();
+        } else {
+          tc.set('baz.rating', 0);
+          return await tc.write();
+        }
+      })
+    );
+    await baseTc.read(true, true);
+    const contents = baseTc.getContents();
+    expect(contents).to.deep.equal({
+      foo: { name: 'bar', color: 'orange', rating: 5 },
+      baz: { name: 'qux', color: 'blue', rating: 0 },
+    });
   });
 });

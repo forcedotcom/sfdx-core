@@ -147,6 +147,6 @@ URL of the Salesforce instance hosting your org. Default: https://login.salesfor
 
 Couldn't obtain lock in %s on file %s.
 
-# couldUnlockFile
+# couldNotUnlockFile
 
 Couldn't unlock file %s in %s.

@@ -20,6 +20,7 @@ import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
 import { Messages } from '../messages';
 import { BaseConfigStore, ConfigContents } from './configStore';
+import { envVars } from './envVars';
 
 const lockSync = lockfile.lock;
 const unlockSync = lockfile.unlock;
@@ -30,13 +31,13 @@ const unlock = promisify(lockfile.unlock);
 
 const lockFileOpts = {
   wait: 30_000,
-  retries: 1_200,
-  retryWait: 25,
-  stale: 1000,
+  retries: 300,
+  retryWait: 100,
+  stale: 10_000,
 };
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'config', ['couldNotObtainLock', 'couldUnlockFile']);
+const messages = Messages.load('@salesforce/core', 'config', ['couldNotObtainLock', 'couldNotUnlockFile']);
 /**
  * Represents a json config file used to manage settings and state. Global config
  * files are stored in the home directory hidden state folder (.sfdx) and local config
@@ -178,43 +179,31 @@ export class ConfigFile<
    */
   public async read(throwOnNotFound = false, force = false): Promise<P> {
     const start = Date.now();
-    return await lock(this.getLockFilePath(), lockFileOpts)
-      .then(async () => {
-        try {
-          // Only need to read config files once.  They are kept up to date
-          // internally and updated persistently via write().
-          if (!this.hasRead || force) {
-            this.logger.info(`Reading config file: ${this.getPath()}`);
-            const obj = await this.loadFromFile(throwOnNotFound);
-            this.setContentsFromObject(obj);
+    if (envVars.getBoolean('SF_DISABLE_LOCKING')) {
+      await this._read(throwOnNotFound, force);
+      return this.getContents();
+    } else {
+      return lock(this.getLockFilePath(), lockFileOpts)
+        .then(async () => {
+          try {
+            await this._read(throwOnNotFound, force);
+            await unlock(this.getLockFilePath()).catch((reason) => {
+              throw messages.createError('couldNotUnlockFile', [this.getPath(), 'read'], [], reason);
+            });
+          } catch (err) {
+            await unlock(this.getLockFilePath()).catch((reason) => {
+              throw messages.createError('couldNotUnlockFile', [this.getPath(), 'read'], [], reason);
+            });
+            throw err;
           }
-          await unlock(this.getLockFilePath()).catch((reason) => {
-            throw messages.createError('couldUnlockFile', [this.getPath(), 'read'], [], reason);
-          });
-        } catch (err) {
-          if ((err as SfError).code === 'ENOENT') {
-            if (!throwOnNotFound) {
-              this.setContents();
-            }
-          }
-          await unlock(this.getLockFilePath()).catch((reason) => {
-            throw messages.createError('couldUnlockFile', [this.getPath(), 'read'], [], reason);
-          });
-          throw err;
-        } finally {
-          // Necessarily set this even when an error happens to avoid infinite re-reading.
-          // To attempt another read, pass `force=true`.
-          this.hasRead = true;
-        }
-        // eslint-disable-next-line no-console
-        console.log(`time in read: ${Date.now() - start}`);
-        return this.getContents();
-      })
-      .catch(async (reason) => {
-        // eslint-disable-next-line no-console
-        console.log(`lock acquire failed - time in read: ${Date.now() - start}`);
-        throw messages.createError('couldNotObtainLock', ['read', this.getPath()], [], reason);
-      });
+          this.logger.debug(`time in read: ${Date.now() - start}`);
+          return this.getContents();
+        })
+        .catch(async (reason) => {
+          this.logger.error(messages.getMessage('couldNotObtainLock', ['read', this.getPath()]), reason);
+          throw messages.createError('couldNotObtainLock', ['read', this.getPath()], [], reason);
+        });
+    }
   }
 
   /**
@@ -227,37 +216,34 @@ export class ConfigFile<
    * @param [force = false] Optionally force the file to be read from disk even when already read within the process.
    */
   public readSync(throwOnNotFound = false, force = false): P {
-    lockSync(this.getLockFilePath(), lockFileOpts, (err) => {
-      if (err) {
-        throw messages.createError('couldNotObtainLock', ['readSync', this.getPath()], undefined, err);
-      }
+    if (envVars.getBoolean('SF_DISABLE_LOCKING')) {
+      this._readSync(throwOnNotFound, force);
+      return this.getContents();
+    } else {
+      lockSync(this.getLockFilePath(), lockFileOpts, (err) => {
+        if (err) {
+          this.logger.error(messages.getMessage('couldNotObtainLock', ['readSync', this.getPath()]), err);
+          throw messages.createError('couldNotObtainLock', ['readSync', this.getPath()], undefined, err);
+        }
 
-      try {
-        // Only need to read config files once.  They are kept up to date
-        // internally and updated persistently via write().
-        if (!this.hasRead || force) {
-          this.logger.info(`Reading config file: ${this.getPath()}`);
-          const obj = this.loadFromFileSync();
-          this.setContentsFromObject(obj);
+        try {
+          this._readSync(force);
+          unlockSync(this.getLockFilePath(), (err) => {
+            if (err) {
+              this.logger.error(messages.getMessage('couldNotUnlockFile', [this.getPath(), 'readSync']), err);
+              throw messages.createError('couldNotUnlockFile', [this.getPath(), 'readSync'], undefined, err);
+            }
+          });
+        } catch (err) {
+          unlockSync(this.getLockFilePath(), (err) => {
+            if (err) {
+              this.logger.error(messages.getMessage('couldNotUnlockFile', [this.getPath(), 'readSync']), err);
+              throw messages.createError('couldNotUnlockFile', [this.getPath(), 'readSync'], undefined, err);
+            }
+          });
         }
-      } catch (err) {
-        if ((err as SfError).code === 'ENOENT') {
-          if (!throwOnNotFound) {
-            this.setContents();
-          }
-        }
-        throw err;
-      } finally {
-        // Necessarily set this even when an error happens to avoid infinite re-reading.
-        // To attempt another read, pass `force=true`.
-        this.hasRead = true;
-      }
-    });
-    unlockSync(this.getLockFilePath(), (err) => {
-      if (err) {
-        throw messages.createError('couldUnlockFile', [this.getPath(), 'readSync'], undefined, err);
-      }
-    });
+      });
+    }
     return this.getContents();
   }
 
@@ -269,33 +255,27 @@ export class ConfigFile<
    */
   public async write(newContents?: P): Promise<P> {
     const start = Date.now();
-    return await lock(this.getLockFilePath(), lockFileOpts)
-      .then(async () => {
-        if (newContents) {
-          this.setContents(newContents);
-        }
-
-        const fileContents = await this.loadFromFile(false);
-
-        this.diffAndPatchContents(fileContents);
-
-        await mkdirp(pathDirname(this.getPath()));
-
-        this.logger.info(`Writing to config file: ${this.getPath()}`);
-        await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
-        await unlock(this.getLockFilePath()).catch((reason) => {
-          throw messages.createError('couldUnlockFile', [this.getPath(), 'write'], reason);
+    if (envVars.getBoolean('SF_DISABLE_LOCKING')) {
+      await this._write(newContents);
+      return this.getContents();
+    } else {
+      return lock(this.getLockFilePath(), lockFileOpts)
+        .then(async () => {
+          await this._write(newContents);
+          await unlock(this.getLockFilePath()).catch((reason) => {
+            this.logger.error(messages.getMessage('couldNotUnlockFile', [this.getPath(), 'write']), reason);
+            throw messages.createError('couldNotUnlockFile', [this.getPath(), 'write'], undefined, reason);
+          });
+          this.logger.debug(`time in write: ${Date.now() - start}`);
+          return this.getContents();
+        })
+        .catch(async (reason) => {
+          this.logger.error(messages.getMessage('couldNotObtainLock', ['write', this.getPath()]), reason);
+          throw messages.createError('couldNotObtainLock', ['write', this.getPath()], undefined, reason);
         });
-        this.valuesState.clear();
-        // TODO: remove console before creating a PR
-        // eslint-disable-next-line no-console
-        console.log(`time in write: ${Date.now() - start}`);
-        return this.getContents();
-      })
-      .catch(async (reason) => {
-        throw messages.createError('couldNotObtainLock', ['write', this.getPath()], undefined, reason);
-      });
+    }
   }
+
   /**
    * Write the config file with new contents. If no new contents are provided it will write the existing config
    * contents that were set from {@link ConfigFile.read}, or an empty file if {@link ConfigFile.read} was not called.
@@ -303,30 +283,33 @@ export class ConfigFile<
    * @param newContents The new contents of the file.
    */
   public writeSync(newContents?: P): P {
-    lockSync(this.getLockFilePath(), lockFileOpts, (err) => {
-      if (err) {
-        throw messages.createError('couldNotObtainLock', ['writeSync', this.getPath()], undefined, err);
-      }
-      if (isPlainObject(newContents)) {
-        this.setContents(newContents);
-      }
-
-      const oldContents = this.loadFromFileSync(false);
-
-      this.diffAndPatchContents(oldContents);
-
-      mkdirp.sync(pathDirname(this.getPath()));
-
-      this.logger.info(`Writing to config file: ${this.getPath()}`);
-      fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
-      unlockSync(this.getLockFilePath(), (err) => {
+    if (envVars.getBoolean('SF_DISABLE_LOCKING')) {
+      this._writeSync(newContents);
+    } else {
+      lockSync(this.getLockFilePath(), lockFileOpts, (err) => {
         if (err) {
-          throw messages.createError('couldUnlockFile', [this.getPath(), 'writeSync'], undefined, err);
+          this.logger.error(messages.getMessage('couldNotObtainLock', ['writeSync', this.getPath()]), err);
+          throw messages.createError('couldNotObtainLock', ['writeSync', this.getPath()], undefined, err);
+        }
+        try {
+          this._writeSync(newContents);
+          unlockSync(this.getLockFilePath(), (err) => {
+            if (err) {
+              this.logger.error(messages.getMessage('couldNotUnlockFile', [this.getPath(), 'writeSync']), err);
+              throw messages.createError('couldNotUnlockFile', [this.getPath(), 'writeSync'], undefined, err);
+            }
+          });
+        } catch {
+          unlockSync(this.getLockFilePath(), (err) => {
+            if (err) {
+              this.logger.error(messages.getMessage('couldNotUnlockFile', [this.getPath(), 'writeSync']), err);
+              throw messages.createError('couldNotUnlockFile', [this.getPath(), 'writeSync'], undefined, err);
+            }
+          });
         }
       });
-    });
+    }
 
-    this.valuesState.clear();
     return this.getContents();
   }
 
@@ -435,9 +418,90 @@ export class ConfigFile<
    */
   protected async init(): Promise<void> {
     await super.init();
-
     // Read the file, which also sets the path and throws any errors around project paths.
     await this.read(this.options.throwOnNotFound);
+  }
+
+  private async _read(throwOnNotFound = false, force = false): Promise<P> {
+    // Only need to read config files once.  They are kept up to date
+    // internally and updated persistently via write().
+    try {
+      if (!this.hasRead || force) {
+        this.logger.info(`Reading config file: ${this.getPath()}`);
+        const obj = await this.loadFromFile(throwOnNotFound);
+        this.setContentsFromObject(obj);
+        this.setOriginalContents(this.getContents());
+      }
+    } catch (err) {
+      if ((err as SfError).code === 'ENOENT') {
+        if (!throwOnNotFound) {
+          this.setContents();
+          this.setOriginalContents(this.getContents());
+        } else {
+          throw err;
+        }
+      }
+    } finally {
+      this.hasRead = true;
+    }
+    return this.getContents();
+  }
+
+  private _readSync(throwOnNotFound = false, force = false): P {
+    // Only need to read config files once.  They are kept up to date
+    // internally and updated persistently via write().
+    try {
+      if (!this.hasRead || force) {
+        this.logger.info(`Reading config file: ${this.getPath()}`);
+        const obj = this.loadFromFileSync();
+        this.setContentsFromObject(obj);
+        this.setOriginalContents(this.getContents());
+      }
+    } catch (err) {
+      if ((err as SfError).code === 'ENOENT') {
+        if (!throwOnNotFound) {
+          this.setContents();
+          this.setOriginalContents(this.getContents());
+        } else {
+          throw err;
+        }
+      }
+    } finally {
+      this.hasRead = true;
+    }
+    return this.getContents();
+  }
+
+  private async _write(newContents: P | undefined): Promise<void> {
+    if (newContents) {
+      this.setContents(newContents);
+    }
+
+    const fileContents = await this.loadFromFile(false);
+
+    this.diffAndPatchContents(fileContents);
+
+    await mkdirp(pathDirname(this.getPath()));
+
+    this.logger.info(`Writing to config file: ${this.getPath()}`);
+    await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+    this.setOriginalContents(this.getContents());
+  }
+
+  private _writeSync(newContents: P | undefined): void {
+    if (isPlainObject(newContents)) {
+      this.setContents(newContents);
+    }
+
+    const oldContents = this.loadFromFileSync(false);
+
+    this.diffAndPatchContents(oldContents);
+
+    mkdirp.sync(pathDirname(this.getPath()));
+
+    this.logger.info(`Writing to config file: ${this.getPath()}`);
+    fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+    this.setOriginalContents(this.getContents());
   }
 
   private getLockFilePath(): string {
