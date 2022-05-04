@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.16.0](https://github.com/forcedotcom/sfdx-core/compare/v3.15.5...v3.16.0) (2022-05-04)
+
+### Features
+
+- force v3 release ([05620c8](https://github.com/forcedotcom/sfdx-core/commit/05620c80256052a1b814b631e9afd951d63bea9e))
+
+### Bug Fixes
+
+- disable schemaValidation ([#578](https://github.com/forcedotcom/sfdx-core/issues/578)) ([9b60cb4](https://github.com/forcedotcom/sfdx-core/commit/9b60cb4dd3181f0bfbafadb72bcd0904e851084f))
+
 ### [3.15.5](https://github.com/forcedotcom/sfdx-core/compare/v3.15.4...v3.15.5) (2022-05-03)
 
 ### Bug Fixes
