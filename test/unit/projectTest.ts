@@ -11,6 +11,7 @@ import { env } from '@salesforce/kit';
 import { Messages } from '../../src/exported';
 import { SfProject, SfProjectJson } from '../../src/sfProject';
 import { shouldThrow, testSetup } from '../../src/testSetup';
+import { ProjectJson } from '../../lib/sfProject';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -27,7 +28,7 @@ describe('SfProject', () => {
   describe('json', () => {
     it('allows uppercase packaging aliases on write', async () => {
       const json = await SfProjectJson.create();
-      await json.write({ packageAliases: { MyName: 'somePackage' } });
+      await json.write({ packageAliases: { MyName: 'somePackage' } } as unknown as ProjectJson);
       expect($$.getConfigStubContents('SfProjectJson').packageAliases['MyName']).to.equal('somePackage');
     });
     it('allows uppercase packaging aliases on read', async () => {

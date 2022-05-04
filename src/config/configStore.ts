@@ -140,7 +140,6 @@ export abstract class BaseConfigStore<
     this.options = options || ({} as T);
     this.valuesState = new ValuesState(this.options.baseKeys || []);
     this.setContents(this.initialContents());
-    this.setOriginalContents(this.getContents());
   }
 
   /**
@@ -246,7 +245,7 @@ export abstract class BaseConfigStore<
   public unset(key: string): boolean {
     if (this.has(key)) {
       if (this.contents[key]) {
-        this.valuesState.setState(key, 'unset', undefined);
+        this.getValuesState().setState(key, 'unset', undefined);
         delete this.contents[key];
       } else {
         // It is a query key, so just set it to undefined
@@ -323,7 +322,8 @@ export abstract class BaseConfigStore<
       contents = this.recursiveEncrypt(contents);
     }
     this.contents = contents;
-    this.valuesState.clear();
+    this.setOriginalContents(contents);
+    this.getValuesState().clear();
   }
 
   /**
@@ -374,7 +374,7 @@ export abstract class BaseConfigStore<
 
   /**
    * Produce the differences between the as-is config (typically loaded during write),
-   * the original config (typically loaded duriong read) and the current config as changed by calls to set and unset.
+   * the original config (typically loaded during read) and the current config as changed by calls to set and unset.
    *
    * Given the as-is config, determine what modifications are needed against the current config that account for the
    * changes made to the as-is config, the original config and the current config.
@@ -394,11 +394,18 @@ export abstract class BaseConfigStore<
     const asIsKeys = this.getRootKeys(asIsContents);
     const currentKeys = this.getRootKeys(this.getContents());
     const originalKeys = this.getRootKeys(this.getOriginalContents());
-    const currentModifiedKeys = this.valuesState.getKeysByValue('set');
+    const currentModifiedKeys = this.getValuesState().getKeysByValue('set');
 
-    // other, original and current are all empty, so nothing to diff - current is source of truth
-    if (asIsKeys.length === 0 && originalKeys.length === 0 && this.valuesState.size === 0) {
+    // as-is, original and current are all empty, so nothing to diff - current is source of truth
+    if (asIsKeys.length === 0 && originalKeys.length === 0 && currentKeys.length === 0) {
       return;
+    }
+
+    // if as-is is empty and original is not, then all entries were deleted by as-is, so retain only
+    // those entries in current that were modified by the user
+
+    if (asIsKeys.length === 0 && originalKeys.length > 0) {
+      const keysToDelete = originalKeys.filter((key) => !currentModifiedKeys.includes(key));
     }
 
     // gross change analysis
@@ -412,14 +419,13 @@ export abstract class BaseConfigStore<
       )
     );
 
-    // nothing has changed between original and current, use other as source of truth
+    // nothing has changed between original and current, use current as source of truth
     if (!anyLocalChanges) {
       if (
         asIsKeys.length === 0 &&
         currentModifiedKeys.length === 0 &&
-        this.valuesState.getKeysByValue('unset').length === 0
+        this.getValuesState().getKeysByValue('unset').length === 0
       ) {
-        this.setContents(asIsContents);
         return;
       }
     }
@@ -453,6 +459,21 @@ export abstract class BaseConfigStore<
       this.set(key, value);
     });
 
+    let keysToDelete: string[] = [];
+    // if as-is is empty and original is not, then all entries were deleted by as-is, so delete all entries
+    // in original that are in current except for the ones that are modified in current
+
+    if (asIsKeys.length === 0 && originalKeys.length > 0) {
+      keysToDelete = originalKeys.filter((key) => !currentModifiedKeys.includes(key));
+    }
+
+    // if as-is is not empty and original is empty, then all entries were added by as-is, so retain as-is and current
+    // except for the ones that are deleted in current
+
+    if (asIsKeys.length > 0 && originalKeys.length === 0) {
+      keysToDelete = currentKeys.filter((key) => !asIsKeys.includes(key));
+    }
+
     // calculate keys to delete from current
     // using original keys find those that are not in as-is and not in modified
     const keysToDelete = originalKeys.filter((key) => !asIsKeys.includes(key) && !currentModifiedKeys.includes(key));
@@ -480,7 +501,7 @@ export abstract class BaseConfigStore<
   // Allows extended classes the ability to override the set method. i.e. maybe they want
   // nested object set from kit.
   protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
-    this.valuesState.setState(key, 'set', value);
+    this.getValuesState().setState(key, 'set', value);
     set(contents, key, value);
   }
 
@@ -653,6 +674,13 @@ export abstract class BaseConfigStore<
         this.pruneUndefinedEntries(value as P);
       }
     });
+  }
+
+  private getValuesState(): ValuesState {
+    if (!this.valuesState) {
+      this.valuesState = new ValuesState(this.options?.baseKeys || []);
+    }
+    return this.valuesState;
   }
 }
 

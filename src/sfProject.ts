@@ -95,8 +95,12 @@ export type ProjectJson = ConfigContents & {
  *
  * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
  */
-export class SfProjectJson extends ConfigFile {
+export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   public static BLOCKLIST = ['packageAliases'];
+
+  public constructor(options?: ConfigFile.Options) {
+    super(options);
+  }
 
   public static getFileName(): string {
     return SFDX_PROJECT_JSON;
@@ -108,28 +112,28 @@ export class SfProjectJson extends ConfigFile {
     return options;
   }
 
-  public async read(): Promise<ConfigContents> {
+  public async read(): Promise<ProjectJson> {
     const contents = await super.read();
     this.validateKeys();
     await this.schemaValidate();
     return contents;
   }
 
-  public readSync(): ConfigContents {
+  public readSync(): ProjectJson {
     const contents = super.readSync();
     this.validateKeys();
     this.schemaValidateSync();
     return contents;
   }
 
-  public async write(newContents?: ConfigContents): Promise<ConfigContents> {
+  public async write(newContents?: ProjectJson): Promise<ProjectJson> {
     this.setContents(newContents);
     this.validateKeys();
     await this.schemaValidate();
     return super.write();
   }
 
-  public writeSync(newContents?: ConfigContents): ConfigContents {
+  public writeSync(newContents?: ProjectJson): ProjectJson {
     this.setContents(newContents);
     this.validateKeys();
     this.schemaValidateSync();
@@ -137,7 +141,7 @@ export class SfProjectJson extends ConfigFile {
   }
 
   public getContents(): ProjectJson {
-    return super.getContents() as ProjectJson;
+    return super.getContents();
   }
 
   public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
@@ -313,6 +317,10 @@ export class SfProjectJson extends ConfigFile {
    */
   public hasMultiplePackages(): boolean {
     return this.getContents().packageDirectories && this.getContents().packageDirectories.length > 1;
+  }
+
+  protected async init(): Promise<void> {
+    await super.init();
   }
 
   private doesPackageExist(packagePath: string) {

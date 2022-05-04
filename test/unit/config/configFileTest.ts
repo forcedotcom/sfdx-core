@@ -10,7 +10,6 @@ import * as os from 'os';
 import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';
-import * as mkdirp from 'mkdirp';
 import { sleep } from '@salesforce/kit';
 import { ConfigFile } from '../../../src/config/configFile';
 import { SfError } from '../../../src/exported';
@@ -204,30 +203,31 @@ describe('Config', () => {
       $$.SANDBOXES.CONFIG.restore();
     });
     it('uses passed in contents', async () => {
-      const mkdirpStub = $$.SANDBOX.stub(mkdirp, 'native');
-      const writeJson = $$.SANDBOX.stub(fs.promises, 'writeFile');
+      // const mkdirpStub = $$.SANDBOX.stub(mkdirp, 'native');
+      // const writeJson = $$.SANDBOX.stub(fs.promises, 'writeFile');
 
-      const config = await TestConfig.create({ isGlobal: true, useFileLock: false });
+      const config = await TestConfig.create({
+        ...TestConfig.getOptions('testConfig', true),
+        useFileLock: false,
+      });
 
       const expected = { test: 'test' };
       const actual = await config.write(expected);
       expect(expected).to.deep.equal(actual);
       expect(expected).to.deep.equal(config.getContents());
-      expect(mkdirpStub.called).to.be.true;
-      expect(writeJson.called).to.be.true;
+      // expect(mkdirpStub.called).to.be.true;
+      // expect(writeJson.called).to.be.true;
     });
     it('sync uses passed in contents', async () => {
-      const mkdirpStub = $$.SANDBOX.stub(mkdirp, 'sync');
-      const writeJson = $$.SANDBOX.stub(fs, 'writeFileSync');
-
-      const config = await TestConfig.create({ isGlobal: true });
+      const config = await TestConfig.create({
+        ...TestConfig.getOptions('testConfig', true),
+        useFileLock: false,
+      });
 
       const expected = { test: 'test' };
       const actual = config.writeSync(expected);
       expect(expected).to.deep.equal(actual);
       expect(expected).to.deep.equal(config.getContents());
-      expect(mkdirpStub.called).to.be.true;
-      expect(writeJson.called).to.be.true;
     });
   });
   const testFileContentsString = '{"foo":"bar"}';

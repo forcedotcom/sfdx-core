@@ -243,12 +243,12 @@ describe('diff and patch', () => {
     config.diffAndPatchContents({});
     expect(config.getContents()).to.deep.equal({});
   });
-  it('should delete all config entries when as-is is empty and no local changes', async () => {
+  it('should keep all config entries when as-is is empty and no local changes', async () => {
     const config = await TestConfig.create();
     config.setContents(deepCopy(baseData));
     config.setOriginalContents(deepCopy(baseData));
     config.diffAndPatchContents({});
-    expect(config.getContents()).to.deep.equal({});
+    expect(config.getContents()).to.deep.equal(baseData);
   });
   it('should delete unchanged config entries when as-is is empty and some local changes', async () => {
     const config = await TestConfig.create();
@@ -310,7 +310,7 @@ describe('diff and patch store with base keys', () => {
     config.setContents(deepCopy(baseData));
     config.setOriginalContents(deepCopy(baseData));
     config.diffAndPatchContents({});
-    expect(config.getContents()).to.deep.equal({});
+    expect(config.getContents()).to.deep.equal(baseData);
   });
   it('should delete unchanged config entries when as-is is empty and some local changes', async () => {
     const config = await TestConfig.create({ baseKeys: ['a', 'b'] });

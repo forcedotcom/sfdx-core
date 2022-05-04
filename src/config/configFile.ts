@@ -430,13 +430,11 @@ export class ConfigFile<
         this.logger.info(`Reading config file: ${this.getPath()}`);
         const obj = await this.loadFromFile(throwOnNotFound);
         this.setContentsFromObject(obj);
-        this.setOriginalContents(this.getContents());
       }
     } catch (err) {
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
-          this.setOriginalContents(this.getContents());
         } else {
           throw err;
         }
@@ -455,13 +453,11 @@ export class ConfigFile<
         this.logger.info(`Reading config file: ${this.getPath()}`);
         const obj = this.loadFromFileSync();
         this.setContentsFromObject(obj);
-        this.setOriginalContents(this.getContents());
       }
     } catch (err) {
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
-          this.setOriginalContents(this.getContents());
         } else {
           throw err;
         }

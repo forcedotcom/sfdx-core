@@ -188,6 +188,8 @@ export const generateScratchOrgInfo = async ({
     sfProject = await SfProjectJson.create({});
   } catch (e) {
     // project is not required
+    // eslint-disable-next-line no-console
+    console.log(e);
   }
   scratchOrgInfoPayload.orgName = scratchOrgInfoPayload.orgName ?? 'Company';
 

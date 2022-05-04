@@ -397,10 +397,11 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 
     const content = await config.read();
 
-    if (value == null) {
-      delete content[propertyName];
+    config.setContents(content);
+    if (!value) {
+      config.unset(propertyName);
     } else {
-      set(content, propertyName, value);
+      set(config.getContents(), propertyName, value);
     }
 
     return config.write(content);
