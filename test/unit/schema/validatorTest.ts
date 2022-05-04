@@ -282,5 +282,28 @@ describe('schemaValidator', () => {
         cat: 'meow',
       });
     });
+
+    // If you change `validateSchema` to `true` in the AJV options, this will fail
+    // because the schema is invalid for Draft 7
+    // https://github.com/forcedotcom/cli/issues/1493
+    it('should not error on invalid schema', async () => {
+      const schema = {
+        type: 'object',
+        properties: {
+          ref: {
+            $ref: 'invalidSchema#',
+          },
+        },
+      };
+
+      const data = {
+        Company: 'Acme',
+      };
+
+      const validatedData = await validate(schema, data);
+      expect(validatedData).to.deep.equal({
+        Company: 'Acme',
+      });
+    });
   });
 });
