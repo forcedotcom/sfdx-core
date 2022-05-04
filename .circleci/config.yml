@@ -140,6 +140,11 @@ workflows:
                 - latest
                 - lts
                 - maintenance
+            exclude:
+              - os: windows
+                node_version: latest
+              - os: windows
+                node_version: maintenance
       - external-nut:
           filters:
             branches:
