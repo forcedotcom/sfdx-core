@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "invalidSchema",
+  "type": "object",
+  "title": "Testing external schema without $id",
+  "properties": {
+    "Company": {
+      "type": "string",
+      "title": "Company",
+      "description": "The org's company name"
+    }
+  },
+  "additionalProperties": false
+}

@@ -92,6 +92,9 @@ export class SchemaValidator {
       // because the CLI team does not "own" the @salesforce/schemas repository.
       // Invalid schema would cause errors wherever SchemaValidator is used.
       strictSchema: false,
+      // If we end up getting an npm-shrinkwrap working in the future we could turn this back off.
+      // https://github.com/forcedotcom/cli/issues/1493
+      validateSchema: false,
     });
 
     // JSEN to AJV migration note - regarding the following "TODO":
