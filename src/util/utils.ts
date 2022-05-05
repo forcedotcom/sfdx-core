@@ -21,14 +21,3 @@ export function getRootKey(key: string, baseKeys: string[] = []): string {
     .map((x) => `["${x}"]`);
   return baseKeys.find((baseKey) => newKey[0].includes(baseKey)) ? newKey.slice(0, 2).join('') : newKey[0];
 }
-
-export function xxxxxx(key: string, baseKeys: string[] = []): string[] {
-  const matchesWithQuotedEntries = key.match(/("\S+?")/g);
-  const newKey = key.replace(/\[|\]/g, '.').replace(/^\./, '').replace(/\.$/, '').replace(/"/g, '').split('..');
-  return newKey
-    .map((x) =>
-      x.includes('.') && matchesWithQuotedEntries?.find((y) => x === y.replace(/"/g, '')) ? [x] : x.split('.')
-    )
-    .flat()
-    .map((x) => `["${x}"]`);
-}
