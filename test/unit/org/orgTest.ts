@@ -642,7 +642,7 @@ describe('Org Tests', () => {
     });
 
     it('should remove aliases and config settings', async () => {
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      const config: Config = await Config.create({ ...Config.getDefaultOptions(true), useFileLock: false });
 
       const org0Username = orgs[0].getUsername();
       config.set(OrgConfigProperties.TARGET_ORG, ensureString(org0Username));

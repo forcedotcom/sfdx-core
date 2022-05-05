@@ -374,7 +374,7 @@ export abstract class BaseConfigStore<
     const currentSetsFqnKeys = currentFqnKeys.filter(
       (key) => originalFqnKeys.includes(key) && originalFqn[key] !== currentFqn[key]
     );
-    const currentDeletedFqnKeys = currentFqnKeys.filter((key) => !originalFqnKeys.includes(key));
+    const currentDeletedFqnKeys = originalFqnKeys.filter((key) => !currentFqnKeys.includes(key));
 
     // This next section deals with wholesale content changes based on presence of keys in as-is, original or current config.
     // Assumptions
@@ -448,7 +448,8 @@ export abstract class BaseConfigStore<
     // using original keys find those that are not in as-is and not in modified
     const keysToDelete = originalKeys.filter(
       (key) =>
-        !asIsKeys.includes(key) && !currentSetsFqnKeys.some((k) => k.startsWith(getRootKey(key, this.options.baseKeys)))
+        !asIsKeys.includes(key) ||
+        currentDeletedFqnKeys.some((k) => k.startsWith(getRootKey(key, this.options.baseKeys)))
     );
     keysToDelete.forEach((key) => {
       if (originalKeys.includes(key)) {
