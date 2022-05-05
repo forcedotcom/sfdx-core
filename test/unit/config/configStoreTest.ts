@@ -243,12 +243,12 @@ describe('diff and patch', () => {
     config.diffAndPatchContents({});
     expect(config.getContents()).to.deep.equal({});
   });
-  it('should keep all config entries when as-is is empty and no local changes', async () => {
+  it('should delete all config entries when as-is is empty and no local changes', async () => {
     const config = await TestConfig.create();
     config.setContents(deepCopy(baseData));
     config.setOriginalContents(deepCopy(baseData));
     config.diffAndPatchContents({});
-    expect(config.getContents()).to.deep.equal(baseData);
+    expect(config.getContents()).to.deep.equal({});
   });
   it('should delete unchanged config entries when as-is is empty and some local changes', async () => {
     const config = await TestConfig.create();
@@ -258,13 +258,18 @@ describe('diff and patch', () => {
     config.diffAndPatchContents({});
     expect(config.getContents()).to.deep.equal({ baz: { ...baseData.baz, rating: 0 } });
   });
-  it('should merge changes within the same config entry', async () => {
+  it('should merge changes from as-is and current within the same config entry', async () => {
     const config = await TestConfig.create();
     config.setContents(deepCopy(baseData));
     config.setOriginalContents(deepCopy(baseData));
     config.set('baz.rating', 0);
-    config.diffAndPatchContents(deepCopy(baseData));
-    expect(config.getContents()).to.deep.equal({ foo: { ...baseData.foo }, baz: { ...baseData.baz, rating: 0 } });
+    const asIs = deepCopy(baseData);
+    asIs.baz.name = 'asIsqux';
+    delete asIs.foo.name;
+    config.diffAndPatchContents(asIs);
+    const expected = { foo: { ...baseData.foo }, baz: { ...baseData.baz, rating: 0 } };
+    delete expected.foo.name;
+    expect(config.getContents()).to.deep.equal(expected);
   });
   it('should save entries when as-is and original are empty', async () => {
     const config = await TestConfig.create();
@@ -292,6 +297,24 @@ describe('diff and patch', () => {
     delete expected.baz.rating;
     expect(config.getContents()).to.deep.equal(expected);
   });
+  it('should remove deleted as-is entry and all locally deleted root entries', async () => {
+    const config = await TestConfig.create();
+    config.setContents(deepCopy(baseData));
+    config.setOriginalContents(deepCopy(baseData));
+    config.set('bingo', deepCopy(baseData.foo));
+    config.unset('baz');
+    const asIs = deepCopy(baseData);
+    delete asIs.foo;
+    config.diffAndPatchContents(asIs);
+    expect(config.getContents()).to.deep.equal({ bingo: { ...baseData.foo } });
+  });
+  it('should retain as-is, when as-is is not empty and original is empty and no local changes', async () => {
+    const config = await TestConfig.create();
+    config.setContents({});
+    config.setOriginalContents({});
+    config.diffAndPatchContents(deepCopy(baseData));
+    expect(config.getContents()).to.deep.equal(baseData);
+  });
 });
 // given a config with base keys, can diff and patch isolate changes to a base key
 describe('diff and patch store with base keys', () => {
@@ -310,23 +333,22 @@ describe('diff and patch store with base keys', () => {
     config.setContents(deepCopy(baseData));
     config.setOriginalContents(deepCopy(baseData));
     config.diffAndPatchContents({});
-    expect(config.getContents()).to.deep.equal(baseData);
+    expect(config.getContents()).to.deep.equal({});
   });
   it('should delete unchanged config entries when as-is is empty and some local changes', async () => {
     const config = await TestConfig.create({ baseKeys: ['a', 'b'] });
     config.setContents(deepCopy(baseData));
     config.setOriginalContents(deepCopy(baseData));
     config.set('a.baz.rating', 0);
+    config.set('a.baz.name', undefined);
     config.diffAndPatchContents({});
     expect(config.getContents()).to.deep.equal({
       a: {
         baz: {
           color: 'blue',
-          name: 'qux',
           rating: 0,
         },
       },
-      b: {},
     });
   });
 });

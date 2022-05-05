@@ -414,6 +414,7 @@ describe('race condition', () => {
         filename: 'testFileName',
         isGlobal: true,
         isState: true,
+        useFileLock: true,
       };
     }
 
@@ -455,9 +456,9 @@ describe('race condition', () => {
     const tcs = await Promise.all(keys.map(() => TestConfig.create(TestConfig.getOptions())));
     await Promise.all(
       tcs.map(async (tc, i) => {
-        await sleep(Math.floor(Math.random() * 100));
-        await tc.read();
+        // await tc.read();
         tc.set(keys[i], 'bar');
+        await sleep(Math.floor(Math.random() * 100));
         return await tc.write();
       })
     );
@@ -497,12 +498,12 @@ describe('race condition', () => {
       foo: { name: 'bar', color: 'red', rating: 5 },
       baz: { name: 'qux', color: 'blue', rating: 10 },
     };
-    baseTc.setContents(deepCopy(baseData));
-    await baseTc.write();
+    await baseTc.write(deepCopy(baseData));
     const keys = [...Array(2).keys()];
     await Promise.all(
       keys.map(async (key, i) => {
         const tc = await TestConfig.create(TestConfig.getOptions());
+        // eslint-disable-next-line no-console
         if (i === 0) {
           tc.set('foo.color', 'orange');
           return await tc.write();

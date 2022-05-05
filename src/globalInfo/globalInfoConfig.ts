@@ -61,6 +61,8 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
       isState: true,
       filename: GlobalInfo.getFileName(),
       stateFolder: Global.SF_STATE_FOLDER,
+      useFileLock: true,
+      baseKeys: [SfInfoKeys.ORGS, SfInfoKeys.TOKENS, SfInfoKeys.ALIASES, SfInfoKeys.SANDBOXES],
     };
   }
 

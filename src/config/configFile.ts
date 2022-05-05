@@ -469,13 +469,13 @@ export class ConfigFile<
   }
 
   private async _write(newContents: P | undefined): Promise<void> {
+    // if newContents is not undefined, then assume no diff is needed.
     if (newContents) {
       this.setContents(newContents);
+    } else {
+      const fileContents = await this.loadFromFile(false);
+      this.diffAndPatchContents(fileContents);
     }
-
-    const fileContents = await this.loadFromFile(false);
-
-    this.diffAndPatchContents(fileContents);
 
     await mkdirp(pathDirname(this.getPath()));
 
@@ -485,13 +485,13 @@ export class ConfigFile<
   }
 
   private _writeSync(newContents: P | undefined): void {
+    // if newContents is not undefined, then assume no diff is needed.
     if (isPlainObject(newContents)) {
       this.setContents(newContents);
+    } else {
+      const fileContents = this.loadFromFileSync(false);
+      this.diffAndPatchContents(fileContents);
     }
-
-    const oldContents = this.loadFromFileSync(false);
-
-    this.diffAndPatchContents(oldContents);
 
     mkdirp.sync(pathDirname(this.getPath()));
 

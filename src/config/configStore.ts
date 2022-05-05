@@ -21,7 +21,7 @@ import {
 import * as diffPatch from 'jsondiffpatch';
 import { Crypto } from '../crypto/crypto';
 import { SfError } from '../sfError';
-import { deepCopy } from '../util/utils';
+import { deepCopy, getRootKey } from '../util/utils';
 
 const oKeys = Object.keys;
 /**
@@ -72,40 +72,6 @@ export interface ConfigStore<P extends ConfigContents = ConfigContents> {
   setOriginalContents(contents?: P): void;
 }
 
-type SetUnset = 'set' | 'unset';
-
-class ValuesState extends Map<string, SetUnset> {
-  private baseKeys: string[];
-  public constructor(baseKeys: string[]) {
-    super();
-    this.baseKeys = baseKeys;
-  }
-  public setState(key: string, operation: SetUnset, value: ConfigValue | undefined) {
-    // If the value is undefined and key is the root key, we treat it as an unset operation.
-    if (this.getRootKey(key) === key && !value) {
-      return super.set(this.getRootKey(key), 'unset');
-    }
-    return super.set(this.getRootKey(key), operation);
-  }
-
-  public get(key: string): SetUnset | undefined {
-    return super.get(this.getRootKey(key));
-  }
-
-  public has(key: string): boolean {
-    return super.has(this.getRootKey(key));
-  }
-
-  public getKeysByValue(value: SetUnset | 'all' = 'all'): string[] {
-    return [...this.entries()].filter(([, v]) => value === 'all' || v === value).map(([k]) => k);
-  }
-
-  private getRootKey(key: string): string {
-    const keyParts = key.split('.');
-    return this.baseKeys.includes(keyParts[0]) ? keyParts.slice(0, 2).join('.') : keyParts[0];
-  }
-}
-
 /**
  * An abstract class that implements all the config management functions but
  * none of the storage functions.
@@ -122,7 +88,6 @@ export abstract class BaseConfigStore<
   protected static encryptedKeys: Array<string | RegExp> = [];
   protected options: T;
   protected crypto?: Crypto;
-  protected valuesState: ValuesState;
 
   // Initialized in setContents
   private contents!: P;
@@ -138,7 +103,6 @@ export abstract class BaseConfigStore<
   public constructor(options?: T) {
     super(options);
     this.options = options || ({} as T);
-    this.valuesState = new ValuesState(this.options.baseKeys || []);
     this.setContents(this.initialContents());
   }
 
@@ -245,7 +209,6 @@ export abstract class BaseConfigStore<
   public unset(key: string): boolean {
     if (this.has(key)) {
       if (this.contents[key]) {
-        this.getValuesState().setState(key, 'unset', undefined);
         delete this.contents[key];
       } else {
         // It is a query key, so just set it to undefined
@@ -323,7 +286,6 @@ export abstract class BaseConfigStore<
     }
     this.contents = contents;
     this.setOriginalContents(contents);
-    this.getValuesState().clear();
   }
 
   /**
@@ -391,65 +353,79 @@ export abstract class BaseConfigStore<
    * @param obj The object.
    */
   public diffAndPatchContents(asIsContents: P): void {
-    const asIsKeys = this.getRootKeys(asIsContents);
-    const currentKeys = this.getRootKeys(this.getContents());
-    const originalKeys = this.getRootKeys(this.getOriginalContents());
-    const currentModifiedKeys = this.getValuesState().getKeysByValue('set');
+    const asIsKeys = this.buildRootKeys(asIsContents);
+    const currentKeys = this.buildRootKeys(this.getContents());
+    const originalKeys = this.buildRootKeys(this.getOriginalContents());
 
-    // as-is, original and current are all empty, so nothing to diff - current is source of truth
-    if (asIsKeys.length === 0 && originalKeys.length === 0 && currentKeys.length === 0) {
+    // create new map of values where keys are fully qualified paths using index notation
+    const currentFqn: AnyJson = {};
+    this.buildKeyDotPaths(currentFqn, this.getContents(), []);
+    const currentFqnKeys = Object.keys(currentFqn);
+    const asIsFqn: AnyJson = {};
+    this.buildKeyDotPaths(asIsFqn, asIsContents, []);
+    const asIsFqnKeys = Object.keys(asIsFqn);
+    const originalFqn: AnyJson = {};
+    this.buildKeyDotPaths(originalFqn, this.getOriginalContents(), []);
+    const originalFqnKeys = Object.keys(originalFqn);
+
+    // determine changes
+    const asIsUnsetsFqnKeys = originalFqnKeys.filter((key) => !asIsFqnKeys.includes(key));
+    const asIsSetsFqnKeys = asIsFqnKeys.filter((key) => !originalFqnKeys.includes(key));
+    const currentSetsFqnKeys = currentFqnKeys.filter(
+      (key) => originalFqnKeys.includes(key) && originalFqn[key] !== currentFqn[key]
+    );
+    const currentDeletedFqnKeys = currentFqnKeys.filter((key) => !originalFqnKeys.includes(key));
+
+    // This next section deals with wholesale content changes based on presence of keys in as-is, original or current config.
+    // Assumptions
+    // - If as-is and original are empty, then any changes made to current are accepted as source of truth.
+    // - If as-is is empty and original is not, then all entries in original are to be deleted from current, except for those that are modified in current.
+    // - If as-is is not empty and original is empty, so entries in as-is are assumed to have been added, then all entries in as-is are to be added to current.
+
+    // as-is and original are empty - don't care what was done in current - current is source of truth
+    if (asIsKeys.length === 0 && originalKeys.length === 0) {
       return;
     }
 
-    // if as-is is empty and original is not, then all entries were deleted by as-is, so retain only
+    // if as-is is empty and original is not, then assume all entries were deleted by as-is, so retain only
     // those entries in current that were modified by the user
-
     if (asIsKeys.length === 0 && originalKeys.length > 0) {
-      const keysToDelete = originalKeys.filter((key) => !currentModifiedKeys.includes(key));
+      const keepKeys = currentKeys.filter((key) =>
+        currentSetsFqnKeys.some((modifiedKey) => modifiedKey.startsWith(getRootKey(key, this.options.baseKeys)))
+      );
+      const newContents = this.buildContents(keepKeys, [this.getContents()]);
+      this.setContents(newContents);
+      this.pruneUndefinedEntries(this.getContents());
+      return;
     }
 
-    // gross change analysis
-    const commonKeysBetweenOriginalAndCurrent = originalKeys.filter((key) => currentKeys.includes(key));
-    const anyLocalChanges = diffPatch.diff(
-      Object.fromEntries(
-        Object.entries(this.getOriginalContents()).filter(([key]) => commonKeysBetweenOriginalAndCurrent.includes(key))
-      ),
-      Object.fromEntries(
-        Object.entries(this.getContents()).filter(([key]) => commonKeysBetweenOriginalAndCurrent.includes(key))
-      )
-    );
+    // if as-is is not empty and original is empty, then all entries were added by as-is, so retain as-is and current
+    if (
+      asIsKeys.length > 0 &&
+      originalKeys.length === 0 &&
+      currentSetsFqnKeys.length === 0 &&
+      currentDeletedFqnKeys.length === 0
+    ) {
+      const newContents = this.buildContents(asIsKeys, [asIsContents]);
+      this.setContents(newContents);
+      this.pruneUndefinedEntries(this.getContents());
+      return;
+    }
 
     // nothing has changed between original and current, use current as source of truth
-    if (!anyLocalChanges) {
-      if (
-        asIsKeys.length === 0 &&
-        currentModifiedKeys.length === 0 &&
-        this.getValuesState().getKeysByValue('unset').length === 0
-      ) {
-        return;
-      }
-    }
-
-    // create new map of values where keys are fully qualified paths using dot notation
-    const currentKeyPaths: AnyJson = {};
-    this.buildKeyDotPaths(currentKeyPaths, this.getContents(), []);
-    const asIsKeyPaths: AnyJson = {};
-    this.buildKeyDotPaths(asIsKeyPaths, asIsContents, []);
-    const originalKeyPaths: AnyJson = {};
-    this.buildKeyDotPaths(originalKeyPaths, this.getOriginalContents(), []);
-
-    // diff current and other contents against original contents
-    const asIsDiff = diffPatch.diff(originalKeyPaths, asIsKeyPaths);
-    const currentDiff = diffPatch.diff(originalKeyPaths, currentKeyPaths);
-    if (!asIsDiff && !currentDiff) {
+    if (currentSetsFqnKeys.length === 0 && currentDeletedFqnKeys.length === 0) {
       return;
     }
 
     // apply changes to contents
-    let patch = originalKeyPaths;
+    let patch = originalFqn;
+
+    const asIsDiff = diffPatch.diff(originalFqn, asIsFqn);
     if (asIsDiff) {
       patch = diffPatch.patch(patch, asIsDiff);
     }
+
+    const currentDiff = diffPatch.diff(patch, currentFqn);
     if (currentDiff) {
       patch = diffPatch.patch(patch, currentDiff);
     }
@@ -459,29 +435,27 @@ export abstract class BaseConfigStore<
       this.set(key, value);
     });
 
-    let keysToDelete: string[] = [];
-    // if as-is is empty and original is not, then all entries were deleted by as-is, so delete all entries
-    // in original that are in current except for the ones that are modified in current
+    // apply as-is unsets
+    asIsUnsetsFqnKeys.forEach((key) => {
+      this.unset(key);
+    });
+    // apply as-is sets
+    asIsSetsFqnKeys.forEach((key) => {
+      this.set(key, asIsFqn[key]);
+    });
 
-    if (asIsKeys.length === 0 && originalKeys.length > 0) {
-      keysToDelete = originalKeys.filter((key) => !currentModifiedKeys.includes(key));
-    }
-
-    // if as-is is not empty and original is empty, then all entries were added by as-is, so retain as-is and current
-    // except for the ones that are deleted in current
-
-    if (asIsKeys.length > 0 && originalKeys.length === 0) {
-      keysToDelete = currentKeys.filter((key) => !asIsKeys.includes(key));
-    }
-
-    // calculate keys to delete from current
+    // calculate top level keys to delete from current
     // using original keys find those that are not in as-is and not in modified
-    const keysToDelete = originalKeys.filter((key) => !asIsKeys.includes(key) && !currentModifiedKeys.includes(key));
+    const keysToDelete = originalKeys.filter(
+      (key) =>
+        !asIsKeys.includes(key) && !currentSetsFqnKeys.some((k) => k.startsWith(getRootKey(key, this.options.baseKeys)))
+    );
     keysToDelete.forEach((key) => {
       if (originalKeys.includes(key)) {
         this.unset(key);
       }
     });
+    //
     this.pruneUndefinedEntries(this.getContents());
   }
 
@@ -501,7 +475,6 @@ export abstract class BaseConfigStore<
   // Allows extended classes the ability to override the set method. i.e. maybe they want
   // nested object set from kit.
   protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
-    this.getValuesState().setState(key, 'set', value);
     set(contents, key, value);
   }
 
@@ -643,28 +616,50 @@ export abstract class BaseConfigStore<
       }
     }
   }
+
+  /**
+   * Build the key dot paths, "a.b.c", from an object that may have nested entries { a: { b: { c: "foo" }}}
+   *
+   * @param keyPaths
+   * @param obj
+   * @param keys
+   * @private
+   */
   private buildKeyDotPaths(keyPaths: AnyJson, obj: AnyJson | undefined, keys: string[]): AnyJson {
     if (typeof obj !== 'object' || obj === null) {
-      keyPaths = Object.assign(keyPaths, { [keys.join('.')]: obj });
+      keyPaths = Object.assign(keyPaths, { [keys.join('')]: obj });
       return [keys, obj as AnyJson];
     }
     return Object.entries(obj).map(([key, value]) => {
-      return this.buildKeyDotPaths(keyPaths, value, [...keys, key]);
+      return this.buildKeyDotPaths(keyPaths, value, [...keys, `["${key}"]`]);
     });
   }
 
-  private getRootKeys(contents: P): string[] {
+  /**
+   * Given contents, calculate the root keys present, considered the base keys that may have been
+   * provided with this config was constructed
+   *
+   * @param contents
+   * @private
+   */
+  private buildRootKeys(contents: P): string[] {
     if (!this.options.baseKeys || this.options.baseKeys.length === 0) return oKeys(contents);
     return (this.options.baseKeys ?? [])
       .map((key) => {
         if (!contents[key]) return [];
         const subKeys = oKeys(contents[key] ?? {});
         if (subKeys.length === 0) return [];
-        return subKeys.map((subKey) => `${key}.${subKey}`);
+        return subKeys.map((subKey) => `["${key}"]["${subKey}"]`);
       })
       .flat(3);
   }
 
+  /**
+   * Recursively prunes entries that are undefined
+   *
+   * @param obj
+   * @private
+   */
   private pruneUndefinedEntries(obj: P) {
     Object.entries(obj).forEach(([key, value]) => {
       if (value === undefined) {
@@ -676,11 +671,25 @@ export abstract class BaseConfigStore<
     });
   }
 
-  private getValuesState(): ValuesState {
-    if (!this.valuesState) {
-      this.valuesState = new ValuesState(this.options?.baseKeys || []);
-    }
-    return this.valuesState;
+  /**
+   * Given as set of root keys to keep, produce as single instance of P that represents
+   * the set of contents of P provided.
+   * Key/value are set in order of the contents array.
+   *
+   * @param keepKeys
+   * @param contents
+   * @private
+   */
+  private buildContents(keepKeys: string[], contents: P[]): P {
+    const newContents = {} as P;
+    contents.forEach((content) => {
+      keepKeys.forEach((key) => {
+        if (get(content, key)) {
+          set(newContents, key, get(content, key));
+        }
+      });
+    });
+    return newContents;
   }
 }
 
