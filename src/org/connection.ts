@@ -59,9 +59,6 @@ export const DNS_ERROR_NAME = 'DomainNotFoundError';
 type recentValidationOptions = { id: string; rest?: boolean };
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
 
-// This interface is so we can add the autoFetchQuery method to both the Connection
-// and Tooling classes and get nice typing info for it within editors.  JSForce is
-// unlikely to accept a PR for this method, but that would be another approach.
 export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _logger: any;
