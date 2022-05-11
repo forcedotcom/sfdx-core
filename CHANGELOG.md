@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.16.1](https://github.com/forcedotcom/sfdx-core/compare/v3.16.0...v3.16.1) (2022-05-11)
+
+### Bug Fixes
+
+- homedir can change after Core loads ([bb1e4f5](https://github.com/forcedotcom/sfdx-core/commit/bb1e4f5b1f59269f6d48a5389b1d76eeee252db0))
+
 ## [3.16.0](https://github.com/forcedotcom/sfdx-core/compare/v3.15.5...v3.16.0) (2022-05-04)
 
 ### Features
