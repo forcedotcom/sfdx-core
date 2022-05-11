@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.16.1](https://github.com/forcedotcom/sfdx-core/compare/v3.16.0...v3.16.1) (2022-05-11)
+
+### Bug Fixes
+
+- homedir can change after Core loads ([bb1e4f5](https://github.com/forcedotcom/sfdx-core/commit/bb1e4f5b1f59269f6d48a5389b1d76eeee252db0))
+
+## [3.16.0](https://github.com/forcedotcom/sfdx-core/compare/v3.15.5...v3.16.0) (2022-05-04)
+
+### Features
+
+- force v3 release ([05620c8](https://github.com/forcedotcom/sfdx-core/commit/05620c80256052a1b814b631e9afd951d63bea9e))
+
+### Bug Fixes
+
+- disable schemaValidation ([#578](https://github.com/forcedotcom/sfdx-core/issues/578)) ([9b60cb4](https://github.com/forcedotcom/sfdx-core/commit/9b60cb4dd3181f0bfbafadb72bcd0904e851084f))
+
+### [3.15.5](https://github.com/forcedotcom/sfdx-core/compare/v3.15.4...v3.15.5) (2022-05-03)
+
+### Bug Fixes
+
+- SfdxConfigAggregator ([238ad07](https://github.com/forcedotcom/sfdx-core/commit/238ad0757cc332ecc1897bd7230140a31a559332))
+
+### [3.15.4](https://github.com/forcedotcom/sfdx-core/compare/v3.15.3...v3.15.4) (2022-05-03)
+
+### Bug Fixes
+
+- SfdxConfigAggregator ([#576](https://github.com/forcedotcom/sfdx-core/issues/576)) ([9a25928](https://github.com/forcedotcom/sfdx-core/commit/9a259282efd3d2d97da42a54fd76c45d7f73df27))
+
+### [3.15.3](https://github.com/forcedotcom/sfdx-core/compare/v3.15.2...v3.15.3) (2022-05-02)
+
+### Bug Fixes
+
+- SfdxConfigAggregator ([6ee1437](https://github.com/forcedotcom/sfdx-core/commit/6ee14378f10df123ac38325853bc3b83d4d953bd))
+
+### [3.15.2](https://github.com/forcedotcom/sfdx-core/compare/v3.15.1...v3.15.2) (2022-05-02)
+
+### Bug Fixes
+
+- allow ConfigAggregator to accept custom config vars ([#575](https://github.com/forcedotcom/sfdx-core/issues/575)) ([2642128](https://github.com/forcedotcom/sfdx-core/commit/264212898cf14d8f34638926841ace89abf7efb0))
+
+### [3.15.1](https://github.com/forcedotcom/sfdx-core/compare/v3.15.0...v3.15.1) (2022-04-28)
+
+### Bug Fixes
+
+- replace jsen ([664da58](https://github.com/forcedotcom/sfdx-core/commit/664da58cbe06019465ccf70ed17dfafb2425e06b))
+
 ## [3.15.0](https://github.com/forcedotcom/sfdx-core/compare/v3.14.0...v3.15.0) (2022-04-26)
 
 ### Features

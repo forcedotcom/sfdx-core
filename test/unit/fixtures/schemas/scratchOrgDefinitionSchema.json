@@ -1,6 +1,6 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "id": "scratchOrgDefinitionSchema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "scratchOrgDefinitionSchema",
   "type": "object",
   "title": "Scratch Org Definition",
   "description": "The properties and shape of the scratch org to be created",

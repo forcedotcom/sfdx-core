@@ -9,7 +9,7 @@ import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
 import { AnyJson, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { EnvVars } from './envVars';
-import { Config, ConfigPropertyMeta } from './config';
+import { Config, ConfigPropertyMeta, SfdxPropertyKeys, SFDX_ALLOWED_PROPERTIES } from './config';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'config', ['unknownConfigKey', 'deprecatedConfigKey']);
@@ -73,7 +73,7 @@ export interface ConfigInfo {
  * console.log(aggregator.getPropertyValue('target-org'));
  * ```
  */
-export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
+export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Options> {
   private static instance: AsyncOptionalCreatable;
   private static encrypted = true;
 
@@ -92,7 +92,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    *
    * @ignore
    */
-  public constructor(options?: JsonMap) {
+  public constructor(options?: ConfigAggregator.Options) {
     super(options || {});
 
     // Don't throw an project error with the aggregator, since it should resolve to global if
@@ -113,8 +113,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
   public static async create<P, T extends AsyncOptionalCreatable<P>>(
-    this: new (options?: P) => T,
-    options?: P
+    this: new (options?: ConfigAggregator.Options) => T,
+    options?: ConfigAggregator.Options
   ): Promise<T> {
     let config: ConfigAggregator = ConfigAggregator.instance as ConfigAggregator;
     if (!config) {
@@ -123,6 +123,10 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
     }
     if (ConfigAggregator.encrypted) {
       await config.loadProperties();
+    }
+
+    if (options?.customConfigMeta) {
+      Config.addAllowedProperties(options.customConfigMeta);
     }
     return ConfigAggregator.instance as T;
   }
@@ -405,13 +409,32 @@ export namespace ConfigAggregator {
      */
     ENVIRONMENT = 'Environment',
   }
+
+  export type Options = {
+    customConfigMeta?: ConfigPropertyMeta[];
+  };
 }
 
 /**
  * A ConfigAggregator that will work with deprecated config vars (e.g. defaultusername, apiVersion).
  * We do NOT recommend using this class unless you absolutelty have to.
+ *
+ * @deprecated
  */
 export class SfdxConfigAggregator extends ConfigAggregator {
+  public static async create<P, T extends AsyncOptionalCreatable<P>>(
+    this: new (options?: ConfigAggregator.Options) => T,
+    options: ConfigAggregator.Options = {}
+  ): Promise<T> {
+    const customConfigMeta = options.customConfigMeta || [];
+    // org-metadata-rest-deploy has been moved to plugin-deploy-retrieve but we need to have a placeholder
+    // for it here since sfdx needs to know how to set the deprecated restDeploy config var.
+    const restDeploy = SFDX_ALLOWED_PROPERTIES.find((p) => p.key === SfdxPropertyKeys.REST_DEPLOY);
+    const orgRestDeploy = Object.assign({}, restDeploy, { key: 'org-metadata-rest-deploy', deprecated: false });
+    options.customConfigMeta = [...customConfigMeta, orgRestDeploy];
+    return super.create(options) as unknown as T;
+  }
+
   public getPropertyMeta(key: string): ConfigPropertyMeta {
     const match = this.getAllowedProperties().find((element) => key === element.key);
     if (match?.deprecated && match?.newKey) {
@@ -428,7 +451,9 @@ export class SfdxConfigAggregator extends ConfigAggregator {
   }
 
   public getInfo(key: string): ConfigInfo {
-    return super.getInfo(this.translate(key));
+    const info = super.getInfo(this.translate(key));
+    info.key = this.translate(info.key, 'toOld');
+    return info;
   }
 
   public getLocation(key: string): Optional<ConfigAggregator.Location> {
