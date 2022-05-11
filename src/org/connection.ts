@@ -59,21 +59,9 @@ export const DNS_ERROR_NAME = 'DomainNotFoundError';
 type recentValidationOptions = { id: string; rest?: boolean };
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
 
-// This interface is so we can add the autoFetchQuery method to both the Connection
-// and Tooling classes and get nice typing info for it within editors.  JSForce is
-// unlikely to accept a PR for this method, but that would be another approach.
 export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _logger: any;
-  /**
-   * Executes a query and auto-fetches (i.e., "queryMore") all results.  This is especially
-   * useful with large query result sizes, such as over 2000 records.  The default maximum
-   * fetch size is 10,000 records.  Modify this via the options argument.
-   *
-   * @param soql The SOQL string.
-   * @param options The query options.  NOTE: the autoFetch option will always be true.
-   */
-  autoFetchQuery<T extends Schema = S>(soql: string, options?: QueryOptions): Promise<QueryResult<T>>;
 }
 
 /**
@@ -116,12 +104,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    */
   public constructor(options: Connection.Options<S>) {
     super(options.connectionOptions || {});
-
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    this.tooling.autoFetchQuery = Connection.prototype.autoFetchQuery;
-
     this.options = options;
-
     this.username = options.authInfo.getUsername();
   }
 
