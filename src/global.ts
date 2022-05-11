@@ -49,14 +49,18 @@ export class Global {
    *
    * **See** {@link Global.SFDX_STATE_FOLDER}
    */
-  public static readonly SFDX_DIR: string = path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
+  public static get SFDX_DIR() {
+    return path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
+  }
 
   /**
    * The full system path to the global sf state folder.
    *
    * **See** {@link Global.SF_STATE_FOLDER}
    */
-  public static readonly SF_DIR: string = path.join(os.homedir(), Global.SF_STATE_FOLDER);
+  public static get SF_DIR() {
+    return path.join(os.homedir(), Global.SF_STATE_FOLDER);
+  }
 
   /**
    * The full system path to the global log file.
