@@ -238,6 +238,23 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
+   *
+   * @param sandboxReq SandboxRequest options to create the sandbox with
+   * @param sandboxName
+   * @param options Wait: The amount of time to wait before timing out, defaults to 0, Interval: The time interval between polling defaults to 30 seconds
+   * @returns {SandboxProcessObject} the newly created sandbox process object
+   */
+  public async cloneSandbox(
+    sandboxReq: SandboxRequest,
+    sandboxName: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    sandboxReq.SourceId = (await this.querySandboxProcessBySandboxName(sandboxName)).Id;
+    this.logger.debug('Clone sandbox sourceId %s', sandboxReq.SourceId);
+    return this.createSandbox(sandboxReq, options);
+  }
+
+  /**
    * resume a sandbox creation from a production org
    * 'this' needs to be a production org with sandbox licenses available
    *
