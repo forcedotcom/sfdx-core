@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.18.0](https://github.com/forcedotcom/sfdx-core/compare/v3.17.0...v3.18.0) (2022-05-12)
+
+### Features
+
+- bump jsforce for metadata rest api ([#583](https://github.com/forcedotcom/sfdx-core/issues/583)) ([6addcfd](https://github.com/forcedotcom/sfdx-core/commit/6addcfd9b2bd480974f6c965b4d04c610a38f2db))
+
 ## [3.17.0](https://github.com/forcedotcom/sfdx-core/compare/v3.16.2...v3.17.0) (2022-05-12)
 
 ### Features
