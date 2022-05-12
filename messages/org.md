@@ -53,3 +53,11 @@ AuthInfo orgId is undefined.
 # sandboxCreateNotComplete
 
 The sandbox creation has not completed.
+
+# SandboxProcessNotFoundBySandboxName
+
+We can't find a SandboxProcess with the SandboxName %s.
+
+# MultiSandboxProcessNotFoundBySandboxName
+
+We found more than one SandboxProcess with the SandboxName %s.

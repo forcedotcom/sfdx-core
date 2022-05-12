@@ -57,6 +57,8 @@ const messages = Messages.load('@salesforce/core', 'org', [
   'scratchOrgNotFound',
   'AuthInfoOrgIdUndefined',
   'sandboxCreateNotComplete',
+  'SandboxProcessNotFoundBySandboxName',
+  'MultiSandboxProcessNotFoundBySandboxName',
 ]);
 
 export type OrganizationInformation = {
@@ -311,6 +313,20 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
   public async scratchOrgCreate(options: ScratchOrgRequest): Promise<ScratchOrgCreateResult> {
     return scratchOrgCreate({ ...options, hubOrg: this });
+  }
+
+  /**
+   * Reports sandbox org creation status. If the org is ready, authenticates to the org.
+   *
+   * @param {sandboxname} string the sandbox name
+   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
+   * @returns {SandboxProcessObject} the sandbox process object
+   */
+  public async sandboxStatus(
+    sandboxname: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    return this.authWithRetriesByName(sandboxname, options);
   }
 
   /**
@@ -885,6 +901,67 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   protected getDefaultOptions(): Org.Options {
     throw new SfError('Not Supported', 'NotSupportedError');
+  }
+
+  /**
+   * Gets the sandboxProcessObject and then polls for it to complete.
+   *
+   * @param sandboxProcessName sanbox process name
+   * @param options { wait?: Duration; interval?: Duration }
+   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
+   */
+  private async authWithRetriesByName(
+    sandboxProcessName: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    return this.authWithRetries(await this.queryLatestSandboxProcessBySandboxName(sandboxProcessName), options);
+  }
+
+  /**
+   * Polls the sandbox org for the sandboxProcessObject.
+   *
+   * @param sandboxProcessObj: The in-progress sandbox signup request
+   * @param options { wait?: Duration; interval?: Duration }
+   * @returns {SandboxProcessObject}
+   */
+  private async authWithRetries(
+    sandboxProcessObj: SandboxProcessObject,
+    options: { wait?: Duration; interval?: Duration } = {
+      wait: Duration.minutes(0),
+      interval: Duration.seconds(30),
+    }
+  ): Promise<SandboxProcessObject> {
+    const [wait, pollInterval] = this.validateWaitOptions(options);
+    this.logger.debug(
+      `AuthWithRetries sandboxProcessObj ${sandboxProcessObj}, max wait time of ${wait.minutes} minutes`
+    );
+    return this.pollStatusAndAuth({
+      sandboxProcessObj,
+      wait,
+      pollInterval,
+    });
+  }
+
+  /**
+   * Query the sandbox for the SandboxProcessObject by sandbox name
+   *
+   * @param sandboxName The name of the sandbox to query
+   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
+   */
+  private async queryLatestSandboxProcessBySandboxName(sandboxNameIn: string): Promise<SandboxProcessObject> {
+    const { tooling } = this.getConnection();
+    this.logger.debug('QueryLatestSandboxProcessBySandboxName called with SandboxName: %s ', sandboxNameIn);
+    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
+
+    const queryResult = await tooling.query(queryStr);
+    this.logger.debug('Return from calling queryToolingApi: %s ', queryResult);
+    if (queryResult?.records?.length === 1) {
+      return queryResult.records[0] as SandboxProcessObject;
+    } else if (queryResult.records && queryResult.records.length > 1) {
+      throw messages.createError('MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
+    } else {
+      throw messages.createError('SandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
+    }
   }
 
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
