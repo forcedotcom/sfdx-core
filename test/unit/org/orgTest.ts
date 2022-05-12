@@ -33,6 +33,9 @@ import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { GlobalInfo } from '../../../src/globalInfo';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
+import { Messages } from '../../../src/messages';
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.loadMessages('@salesforce/core', 'org');
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -997,6 +1000,73 @@ describe('Org Tests', () => {
       expect(await org.determineIfDevHubOrg(true)).to.be.true;
       expect(spy.called).to.be.true;
       expect(org.isDevHubOrg()).to.be.true;
+    });
+  });
+
+  describe('sandboxStatus', () => {
+    let prod;
+    let queryStub;
+    let pollStatusAndAuthStub;
+    const sandboxNameIn = 'test-sandbox';
+    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
+
+    const statusResult = {
+      records: [
+        {
+          Id: '00D1u000001QQZz',
+          Status: 'Active',
+          SandboxName: 'test-sandbox',
+          SandboxInfoId: '00D1u000001QQZz',
+          LicenseType: 'Developer',
+          CreatedDate: '2022-01-01',
+        },
+      ],
+    };
+    beforeEach(async () => {
+      const prodTestData = new MockTestOrgData();
+      prod = await createOrgViaAuthInfo(prodTestData.username);
+      queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves(statusResult);
+      pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves(statusResult.records[0]);
+    });
+
+    it('should return sandbox status', async () => {
+      const result = await prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) });
+      expect(queryStub.calledOnce).to.be.true;
+      expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
+      expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+      expect(result).to.be.equal(statusResult.records[0]);
+    });
+
+    it('should fail when query returns empty records for the sandbox', async () => {
+      queryStub.restore();
+      queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves({
+        records: [],
+      });
+      try {
+        await prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) });
+        assert.fail('This should have failed');
+      } catch (e) {
+        expect(e.message).to.be.equal(messages.getMessage('SandboxProcessNotFoundBySandboxName', [sandboxNameIn]));
+        expect(queryStub.calledOnce).to.be.true;
+        expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
+        expect(pollStatusAndAuthStub.called).to.be.false;
+      }
+    });
+
+    it('should fail when query returns multiple records for the sandbox', async () => {
+      queryStub.restore();
+      queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves({
+        records: [...statusResult.records, ...statusResult.records],
+      });
+      try {
+        await prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) });
+        assert.fail('This should have failed');
+      } catch (e) {
+        expect(e.message).to.be.equal(messages.getMessage('MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn]));
+        expect(queryStub.calledOnce).to.be.true;
+        expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
+        expect(pollStatusAndAuthStub.called).to.be.false;
+      }
     });
   });
 });
