@@ -647,7 +647,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param sideEffects - instance of AuthSideEffects
    */
   public async handleAliasAndDefaultSettings(sideEffects: AuthSideEffects): Promise<void> {
-    if (sideEffects.alias || sideEffects.setDefault || sideEffects.setDefaultDevHub) {
+    if (
+      sideEffects.alias ||
+      sideEffects.setDefault ||
+      sideEffects.setDefaultDevHub ||
+      typeof sideEffects.setTracking === 'boolean'
+    ) {
       if (sideEffects.alias) await this.setAlias(sideEffects.alias);
       if (sideEffects.setDefault) await this.setAsDefault({ org: true });
       if (sideEffects.setDefaultDevHub) await this.setAsDefault({ devHub: true });

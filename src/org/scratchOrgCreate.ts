@@ -307,9 +307,8 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
       alias,
       setDefault,
       setDefaultDevHub: false,
+      setTracking: tracking === false ? false : true,
     },
-    // scratch orgs will track source unless you tell them not to
-    ...(typeof tracking === 'boolean' ? { setTracking: tracking } : { setTracking: true }),
   });
   cache.unset(scratchOrgInfoId);
   const authFields = authInfo.getFields();
