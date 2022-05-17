@@ -31,7 +31,7 @@ import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
-import { GlobalInfo, SfOrg } from '../globalInfo';
+import { StateAggregator } from '../globalInfo';
 import { Messages } from '../messages';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
@@ -244,7 +244,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   // Initialized in init
   private logger!: Logger;
-  private globalInfo!: GlobalInfo;
+  private stateAggregator!: StateAggregator;
   private username!: string;
 
   private options: AuthInfo.Options;
@@ -282,13 +282,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   public static async listAllAuthorizations(
     orgAuthFilter = (orgAuth: OrgAuthorization): boolean => !!orgAuth
   ): Promise<OrgAuthorization[]> {
-    const globalInfo = await GlobalInfo.getInstance();
+    const stateAggregator = await StateAggregator.getInstance();
     const config = (await ConfigAggregator.create()).getConfigInfo();
-    const orgs = Object.values(globalInfo.orgs.getAll());
+    const orgs = await stateAggregator.orgs.readAll();
     const final: OrgAuthorization[] = [];
     for (const org of orgs) {
       const username = ensureString(org.username);
-      const aliases = globalInfo.aliases.getAll(username) ?? undefined;
+      const aliases = stateAggregator.aliases.getAll(username) ?? undefined;
       // Get a list of configuration values that are set to either the username or one
       // of the aliases
       const configs = config
@@ -304,7 +304,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           instanceUrl,
           isScratchOrg: Boolean(devHubUsername),
           isDevHub: isDevHub || false,
-          isSandbox: globalInfo.sandboxes.has(orgId),
+          // TODO: add this back
+          // isSandbox: globalInfo.sandboxes.has(orgId),
+          isSandbox: false,
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
@@ -318,7 +320,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           aliases,
           configs,
           username,
-          orgId: org.orgId,
+          orgId: org.orgId as string,
           instanceUrl: org.instanceUrl,
           accessToken: undefined,
           oauthMethod: 'unknown',
@@ -336,7 +338,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public static async hasAuthentications(): Promise<boolean> {
     try {
-      const auths = (await GlobalInfo.getInstance()).orgs.getAll();
+      const auths = (await StateAggregator.getInstance()).orgs.list();
       return !isEmpty(auths);
     } catch (err) {
       const error = err as SfError;
@@ -451,7 +453,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * Find all dev hubs available in the local environment.
    */
   public static async getDevHubAuthInfos(): Promise<OrgAuthorization[]> {
-    return (await AuthInfo.listAllAuthorizations()).filter((possibleHub) => possibleHub?.isDevHub);
+    return await AuthInfo.listAllAuthorizations((possibleHub) => possibleHub?.isDevHub ?? false);
   }
 
   private static async queryScratchOrg(
@@ -517,7 +519,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       return this;
     }
 
-    await this.globalInfo.write();
+    await this.stateAggregator.orgs.write(username);
     this.logger.info(`Saved auth info for username: ${username}`);
     return this;
   }
@@ -529,13 +531,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param authData Authorization fields to update.
    */
   public update(authData?: AuthFields): AuthInfo {
-    // todo move into configstore
     if (authData && isPlainObject(authData)) {
+      // eslint-disable-next-line no-console
+      // console.log('UPDATING', authData, authData.username || this.username);
       this.username = authData.username || this.username;
-      const existingFields = this.globalInfo.orgs.get(this.getUsername());
-      const mergedFields = Object.assign({}, existingFields || {}, authData) as SfOrg;
-      this.globalInfo.orgs.set(this.getUsername(), mergedFields);
-      this.logger.info(`Updated auth info for username: ${this.getUsername()}`);
+      // const existingFields = this.stateAggregator.orgs.get(this.username);
+      // const mergedFields = Object.assign({}, existingFields || {}, authData);
+      // this.stateAggregator.orgs.set(this.username, mergedFields);
+      this.stateAggregator.orgs.update(this.username, authData);
+      this.logger.info(`Updated auth info for username: ${this.username}`);
     }
     return this;
   }
@@ -599,7 +603,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param decrypt Decrypt the fields.
    */
   public getFields(decrypt?: boolean): AuthFields {
-    return this.globalInfo.orgs.get(this.username, decrypt) as AuthFields;
+    return this.stateAggregator.orgs.get(this.username, decrypt) ?? {};
   }
 
   /**
@@ -670,7 +674,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     const username = ensureString(this.getUsername());
-    const alias = this.globalInfo.aliases.get(username);
+    const alias = this.stateAggregator.aliases.get(username);
     const value = alias ?? username;
 
     if (options.org) {
@@ -689,15 +693,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param alias alias to set
    */
   public async setAlias(alias: string): Promise<void> {
-    this.globalInfo.aliases.set(alias, this.getUsername());
+    this.stateAggregator.aliases.set(alias, this.getUsername());
   }
 
   /**
    * Initializes an instance of the AuthInfo class.
    */
   public async init(): Promise<void> {
-    // We have to set the global instance here because we need synchronous access to it later
-    this.globalInfo = await GlobalInfo.getInstance();
+    this.stateAggregator = await StateAggregator.getInstance();
 
     const username = this.options.username;
     const authOptions = this.options.oauth2Options || this.options.accessTokenOptions;
@@ -710,8 +713,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // If a username AND oauth options, ensure an authorization for the username doesn't
     // already exist. Throw if it does so we don't overwrite the authorization.
     if (username && authOptions) {
-      const authExists = this.globalInfo.orgs.has(username);
-      if (authExists) {
+      if (await this.stateAggregator.orgs.exists(username)) {
         throw messages.createError('authInfoOverwriteError');
       }
     }
@@ -720,6 +722,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     if (oauthUsername) {
       this.username = oauthUsername;
+      await this.stateAggregator.orgs.read(oauthUsername);
     } // Else it will be set in initAuthOptions below.
 
     // If the username is an access token, use that for auth and don't persist
@@ -727,8 +730,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
       this.logger = await Logger.child('AuthInfo');
 
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      const instanceUrl: string = this.getInstanceUrl(authOptions, aggregator);
+      const aggregator = await ConfigAggregator.create();
+      const instanceUrl = this.getInstanceUrl(authOptions, aggregator);
 
       this.update({
         accessToken: oauthUsername,
@@ -740,7 +743,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.usingAccessToken = true;
     }
     // If a username with NO oauth options, ensure authorization already exist.
-    else if (username && !authOptions && !this.globalInfo.orgs.has(username)) {
+    else if (username && !authOptions && !(await this.stateAggregator.orgs.exists(username))) {
       throw messages.createError('namedOrgNotFound', [username]);
     } else {
       await this.initAuthOptions(authOptions);
@@ -820,6 +823,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         ensureString(authConfig.accessToken)
       );
 
+      if (authConfig.username) await this.stateAggregator.orgs.read(authConfig.username);
+
       // Update the auth fields WITH encryption
       this.update(authConfig);
     }
@@ -829,7 +834,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   private async loadDecryptedAuthFromConfig(username: string): Promise<AuthFields> {
     // Fetch from the persisted auth file
-    const authInfo = this.globalInfo.orgs.get(username, true);
+    const authInfo = this.stateAggregator.orgs.get(username, true);
     if (!authInfo) {
       throw messages.createError('namedOrgNotFound', [username]);
     }

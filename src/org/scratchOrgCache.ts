@@ -32,7 +32,7 @@ export class ScratchOrgCache extends TTLConfig<TTLConfig.Options, CachedOptions>
       isGlobal: true,
       isState: true,
       filename: ScratchOrgCache.getFileName(),
-      stateFolder: Global.SF_STATE_FOLDER,
+      stateFolder: Global.SFDX_STATE_FOLDER,
       ttl: Duration.days(1),
     };
   }

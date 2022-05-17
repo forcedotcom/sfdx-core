@@ -7,7 +7,7 @@
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, isString } from '@salesforce/ts-types';
 import { expect, assert } from 'chai';
-import { OrgAccessor } from '../../../src/globalInfo';
+import { GlobalInfoOrgAccessor } from '../../../src/globalInfo';
 import { SecureBuffer } from '../../../src/crypto/secureBuffer';
 import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
 import {
@@ -286,7 +286,7 @@ describe('User Tests', () => {
         },
       });
 
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'has').returns(true);
+      stubMethod($$.SANDBOX, GlobalInfoOrgAccessor.prototype, 'has').returns(true);
 
       org = await Org.create({
         connection: await Connection.create({

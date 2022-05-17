@@ -34,7 +34,7 @@ import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
-import { GlobalInfo, SfOrg } from './globalInfo';
+import { GlobalInfo, SfOrg, StateAggregator } from './globalInfo';
 import { Global } from './global';
 
 /**
@@ -473,6 +473,7 @@ export const restoreContext = (testContext: TestContext): void => {
   testContext.configStubs = {};
   // Give each test run a clean GlobalInstance
   GlobalInfo.clearInstance();
+  StateAggregator.clearInstance();
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -821,6 +822,7 @@ export class MockTestOrgData {
 
     config.isDevHub = this.isDevHub;
 
+    // TODO: make this AuthFields
     return config as SfOrg;
   }
 }

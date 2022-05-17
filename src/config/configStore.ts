@@ -307,9 +307,8 @@ export abstract class BaseConfigStore<
    *
    * @param obj The object.
    */
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  public setContentsFromObject<U extends object>(obj: U): void {
-    this.contents = {} as P;
+  public setContentsFromObject<U extends JsonMap>(obj: U): void {
+    this.contents = (this.hasEncryption() ? this.recursiveEncrypt(obj) : {}) as P;
     Object.entries(obj).forEach(([key, value]) => {
       this.setMethod(this.contents, key, value);
     });

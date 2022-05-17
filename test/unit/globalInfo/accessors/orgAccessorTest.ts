@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import { GlobalInfo, SfOrg } from '../../../../src/globalInfo';
 import { testSetup } from '../../../../src/testSetup';
 
-describe('OrgAccessor', () => {
+describe('GlobalInfoOrgAccessor', () => {
   const username = 'espresso@coffee.com';
   const alias = 'MyAlias';
   const org = { username, orgId: '12345', aliases: [alias] };

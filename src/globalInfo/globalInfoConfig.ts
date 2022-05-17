@@ -9,9 +9,9 @@ import { Global } from '../global';
 import { ConfigFile } from '../config/configFile';
 import { ConfigValue } from '../config/configStore';
 import { SfdxDataHandler } from './sfdxDataHandler';
-import { OrgAccessor } from './accessors/orgAccessor';
+import { GlobalInfoOrgAccessor } from './accessors/orgAccessor';
 import { TokenAccessor } from './accessors/tokenAccessor';
-import { AliasAccessor } from './accessors/aliasAccessor';
+import { GlobalInfoAliasAccessor } from './accessors/aliasAccessor';
 import { SfInfo, SfInfoKeys } from './types';
 import { SandboxAccessor } from './accessors/sandboxAccessor';
 
@@ -67,16 +67,16 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     };
   }
 
-  public get orgs(): OrgAccessor {
-    return new OrgAccessor(this);
+  public get orgs(): GlobalInfoOrgAccessor {
+    return new GlobalInfoOrgAccessor(this);
   }
 
   public get tokens(): TokenAccessor {
     return new TokenAccessor(this);
   }
 
-  public get aliases(): AliasAccessor {
-    return new AliasAccessor(this);
+  public get aliases(): GlobalInfoAliasAccessor {
+    return new GlobalInfoAliasAccessor(this);
   }
 
   public get sandboxes(): SandboxAccessor {
