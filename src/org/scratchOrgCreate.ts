@@ -89,6 +89,8 @@ export interface ScratchOrgCreateOptions {
   alias?: string;
   /** after complete, set the org as the default */
   setDefault?: boolean;
+  /** do not use source tracking for this org */
+  tracking?: boolean;
 }
 
 const validateDuration = (durationDays: number): void => {
@@ -122,8 +124,16 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
   if (!cache.has(jobId)) {
     throw messages.createError('CacheMissError', [jobId]);
   }
-  const { hubUsername, apiVersion, clientSecret, signupTargetLoginUrlConfig, definitionjson, alias, setDefault } =
-    cache.get(jobId);
+  const {
+    hubUsername,
+    apiVersion,
+    clientSecret,
+    signupTargetLoginUrlConfig,
+    definitionjson,
+    alias,
+    setDefault,
+    tracking,
+  } = cache.get(jobId);
 
   const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
   const soi = await queryScratchOrgInfo(hubOrg, jobId);
@@ -168,6 +178,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     alias,
     setDefault: setDefault ?? false,
     setDefaultDevHub: false,
+    setTracking: tracking ?? true,
   });
   cache.unset(soi.Id ?? jobId);
   const authFields = authInfo.getFields();
@@ -203,6 +214,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     clientSecret = undefined,
     alias,
     setDefault = false,
+    tracking = true,
   } = options;
 
   validateDuration(durationDays);
@@ -245,6 +257,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     clientSecret,
     alias,
     setDefault,
+    tracking,
   });
   await cache.write();
   logger.debug(`scratch org has recordId ${scratchOrgInfoId}`);
@@ -290,9 +303,13 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   ]);
 
   await scratchOrgAuthInfo.handleAliasAndDefaultSettings({
-    alias,
-    setDefault,
-    setDefaultDevHub: false,
+    ...{
+      alias,
+      setDefault,
+      setDefaultDevHub: false,
+    },
+    // scratch orgs will track source unless you tell them not to
+    ...(typeof tracking === 'boolean' ? { setTracking: tracking } : { setTracking: true }),
   });
   cache.unset(scratchOrgInfoId);
   const authFields = authInfo.getFields();
