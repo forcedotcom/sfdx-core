@@ -848,10 +848,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async querySandboxProcessBySandboxInfoId(id: string): Promise<SandboxProcessObject> {
     return await this.querySandboxProcess(`SandboxInfoId='${id}'`);
-    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxInfoId='${id}' AND Status != 'D'`;
-    return await this.connection.singleRecordQuery(queryStr, {
-      tooling: true,
-    });
   }
 
   /**
