@@ -90,7 +90,7 @@ export interface ScratchOrgCreateOptions {
   /** after complete, set the org as the default */
   setDefault?: boolean;
   /** do not use source tracking for this org */
-  tracking?: boolean;
+  tracksSource?: boolean;
 }
 
 const validateDuration = (durationDays: number): void => {
@@ -132,7 +132,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     definitionjson,
     alias,
     setDefault,
-    tracking,
+    tracksSource,
   } = cache.get(jobId);
 
   const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
@@ -178,7 +178,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     alias,
     setDefault: setDefault ?? false,
     setDefaultDevHub: false,
-    setTracking: tracking ?? true,
+    setTracking: tracksSource ?? true,
   });
   cache.unset(soi.Id ?? jobId);
   const authFields = authInfo.getFields();
@@ -214,7 +214,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     clientSecret = undefined,
     alias,
     setDefault = false,
-    tracking = true,
+    tracksSource = true,
   } = options;
 
   validateDuration(durationDays);
@@ -257,7 +257,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     clientSecret,
     alias,
     setDefault,
-    tracking,
+    tracksSource,
   });
   await cache.write();
   logger.debug(`scratch org has recordId ${scratchOrgInfoId}`);
@@ -307,7 +307,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
       alias,
       setDefault,
       setDefaultDevHub: false,
-      setTracking: tracking === false ? false : true,
+      setTracking: tracksSource === false ? false : true,
     },
   });
   cache.unset(scratchOrgInfoId);

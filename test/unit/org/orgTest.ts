@@ -996,15 +996,15 @@ describe('Org Tests', () => {
     });
   });
 
-  describe('tracking', () => {
+  describe('source tracking detection', () => {
     it('orgs with property return the property', async () => {
       $$.configStubs.GlobalInfo.contents = {
         orgs: {
-          [testData.username]: { tracking: false },
+          [testData.username]: { tracksSource: false },
         },
       };
       const org = await Org.create({ aliasOrUsername: testData.username });
-      const usesTracking = await org.usesTracking();
+      const usesTracking = await org.tracksSource();
       expect(usesTracking).to.be.false;
     });
 
@@ -1015,7 +1015,7 @@ describe('Org Tests', () => {
         },
       };
       const org = await Org.create({ aliasOrUsername: testData.username });
-      const usesTracking = await org.usesTracking();
+      const usesTracking = await org.tracksSource();
       expect(usesTracking).to.be.true;
     });
 
@@ -1029,7 +1029,7 @@ describe('Org Tests', () => {
       const org = await Org.create({ aliasOrUsername: testData.username });
       stubMethod($$.SANDBOX, org, 'determineIfSandbox').resolves(false);
       stubMethod($$.SANDBOX, org, 'determineIfScratch').resolves(false);
-      const usesTracking = await org.usesTracking();
+      const usesTracking = await org.tracksSource();
       expect(usesTracking).to.be.false;
     });
 
@@ -1046,7 +1046,7 @@ describe('Org Tests', () => {
         stubMethod($$.SANDBOX, org, 'determineIfSandbox').resolves(true);
         stubMethod($$.SANDBOX, org, 'supportsSourceTracking').resolves(true);
 
-        const usesTracking = await org.usesTracking();
+        const usesTracking = await org.tracksSource();
         expect(usesTracking).to.be.true;
       });
 
@@ -1062,7 +1062,7 @@ describe('Org Tests', () => {
         stubMethod($$.SANDBOX, org, 'determineIfSandbox').resolves(true);
         stubMethod($$.SANDBOX, org, 'supportsSourceTracking').resolves(false);
 
-        const usesTracking = await org.usesTracking();
+        const usesTracking = await org.tracksSource();
         expect(usesTracking).to.be.false;
       });
     });

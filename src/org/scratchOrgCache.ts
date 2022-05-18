@@ -20,7 +20,7 @@ export type CachedOptions = {
   apiVersion?: string;
   alias?: string;
   setDefault?: boolean;
-  tracking?: boolean;
+  tracksSource?: boolean;
 };
 
 export class ScratchOrgCache extends TTLConfig<TTLConfig.Options, CachedOptions> {

@@ -89,7 +89,7 @@ export type AuthFields = {
   usernames?: string[];
   userProfileName?: string;
   expirationDate?: string;
-  tracking?: boolean;
+  tracksSource?: boolean;
 };
 
 export type OrgAuthorization = {
@@ -657,7 +657,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       if (sideEffects.setDefault) await this.setAsDefault({ org: true });
       if (sideEffects.setDefaultDevHub) await this.setAsDefault({ devHub: true });
       if (typeof sideEffects.setTracking === 'boolean') {
-        await this.save({ tracking: sideEffects.setTracking });
+        await this.save({ tracksSource: sideEffects.setTracking });
       } else {
         await this.save();
       }

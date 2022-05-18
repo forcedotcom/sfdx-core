@@ -15,7 +15,7 @@ export type SandboxRequestCacheEntry = {
   prodOrgUsername: string;
   sandboxProcessObject: Partial<SandboxProcessObject>;
   sandboxRequest: Partial<SandboxRequest>;
-  tracking?: boolean;
+  tracksSource?: boolean;
 };
 
 export class SandboxRequestCache extends TTLConfig<TTLConfig.Options, SandboxRequestCacheEntry> {

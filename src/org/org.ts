@@ -546,11 +546,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Returns `true` if the org uses source tracking.
    * Side effect: updates files where the property doesn't currently exist
    */
-  public async usesTracking(): Promise<boolean> {
+  public async tracksSource(): Promise<boolean> {
     // use the property if it exists
-    const tracking = this.getField(Org.Fields.TRACKING);
-    if (isBoolean(tracking)) {
-      return tracking;
+    const tracksSource = this.getField(Org.Fields.TRACKING);
+    if (isBoolean(tracksSource)) {
+      return tracksSource;
     }
     // scratch orgs with no property use tracking by default
     if (await this.determineIfScratch()) {
@@ -576,7 +576,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async setTracking(value: boolean): Promise<void> {
     const originalAuth = await AuthInfo.create({ username: this.getUsername() });
-    originalAuth.save({ tracking: value });
+    originalAuth.handleAliasAndDefaultSettings({ setDefault: false, setDefaultDevHub: false, setTracking: value });
   }
 
   /**
@@ -1505,7 +1505,7 @@ export namespace Org {
      * true: the org supports and wants source tracking
      * false: the org opted out of tracking or can't support it
      */
-    TRACKING = 'tracking',
+    TRACKING = 'tracksSource',
 
     // Should it be on org? Leave it off for now, as it might
     // be confusing to the consumer what this actually is.
