@@ -52,8 +52,6 @@ export class OrgAccessor {
   // The regular expression that filters files stored in $HOME/.sfdx
   private static AUTH_FILE_REGEX = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
 
-  // private orgs: Map<string, Nullable<AuthInfoConfig>> = new Map();
-
   private orgConfigs: Map<string, Nullable<AuthInfoConfig>> = new Map();
   private orgContents: Map<string, AuthFields> = new Map();
 

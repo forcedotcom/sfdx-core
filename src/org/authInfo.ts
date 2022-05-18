@@ -532,12 +532,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public update(authData?: AuthFields): AuthInfo {
     if (authData && isPlainObject(authData)) {
-      // eslint-disable-next-line no-console
-      // console.log('UPDATING', authData, authData.username || this.username);
       this.username = authData.username || this.username;
-      // const existingFields = this.stateAggregator.orgs.get(this.username);
-      // const mergedFields = Object.assign({}, existingFields || {}, authData);
-      // this.stateAggregator.orgs.set(this.username, mergedFields);
       this.stateAggregator.orgs.update(this.username, authData);
       this.logger.info(`Updated auth info for username: ${this.username}`);
     }

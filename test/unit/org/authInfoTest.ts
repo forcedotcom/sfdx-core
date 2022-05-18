@@ -199,7 +199,7 @@ class MetaAuthDataMock {
       this._authInfoLookupCount = this._authInfoLookupCount + 1;
       const configContents = {};
 
-      set(configContents, 'instanceUrl', 'http://mydevhub.localhost.internal.salesforce.com:6109');
+      set(configContents, 'instanceUrl', 'https://mydevhub.localhost.internal.salesforce.com:6109');
       set(configContents, 'accessToken', this.encryptedAccessToken);
       set(configContents, 'privateKey', '123456');
       set(configContents, 'username', this.username);
@@ -274,16 +274,6 @@ describe('AuthInfo', () => {
       .withArgs(match(/.*key.json/))
       .resolves({})
       .rejects();
-
-    // function read(this: GlobalInfo) {
-    //   const authData = testMetadata.fetchConfigInfo(this.getPath());
-    //   const username = (authData.username || testMetadata.username) as string;
-    //   const contents = {
-    //     orgs: { [username]: authData },
-    //   };
-    //   this.setContentsFromObject(contents);
-    //   return this.getContents();
-    // }
 
     function read(this: AuthInfoConfig) {
       this.setContentsFromObject(testMetadata.fetchConfigInfo(this.getPath()));
@@ -2223,7 +2213,7 @@ describe('AuthInfo', () => {
   });
 });
 
-describe.only('align srcatch orgs with devhub', () => {
+describe('align srcatch orgs with devhub', () => {
   let adminTestData: MockTestOrgData;
   let user1: MockTestOrgData;
 
