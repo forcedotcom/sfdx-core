@@ -178,7 +178,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     alias,
     setDefault: setDefault ?? false,
     setDefaultDevHub: false,
-    setTracking: tracksSource ?? true,
+    setTracksSource: tracksSource ?? true,
   });
   cache.unset(soi.Id ?? jobId);
   const authFields = authInfo.getFields();

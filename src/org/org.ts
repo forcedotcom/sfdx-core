@@ -576,7 +576,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async setTracksSource(value: boolean): Promise<void> {
     const originalAuth = await AuthInfo.create({ username: this.getUsername() });
-    originalAuth.handleAliasAndDefaultSettings({ setDefault: false, setDefaultDevHub: false, setTracking: value });
+    originalAuth.handleAliasAndDefaultSettings({ setDefault: false, setDefaultDevHub: false, setTracksSource: value });
   }
 
   /**

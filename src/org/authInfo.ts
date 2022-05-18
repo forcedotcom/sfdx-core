@@ -120,7 +120,7 @@ export type AuthSideEffects = {
   alias?: string;
   setDefault: boolean;
   setDefaultDevHub: boolean;
-  setTracking?: boolean;
+  setTracksSource?: boolean;
 };
 
 type UserInfo = AnyJson & {
@@ -651,13 +651,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       sideEffects.alias ||
       sideEffects.setDefault ||
       sideEffects.setDefaultDevHub ||
-      typeof sideEffects.setTracking === 'boolean'
+      typeof sideEffects.setTracksSource === 'boolean'
     ) {
       if (sideEffects.alias) await this.setAlias(sideEffects.alias);
       if (sideEffects.setDefault) await this.setAsDefault({ org: true });
       if (sideEffects.setDefaultDevHub) await this.setAsDefault({ devHub: true });
-      if (typeof sideEffects.setTracking === 'boolean') {
-        await this.save({ tracksSource: sideEffects.setTracking });
+      if (typeof sideEffects.setTracksSource === 'boolean') {
+        await this.save({ tracksSource: sideEffects.setTracksSource });
       } else {
         await this.save();
       }
