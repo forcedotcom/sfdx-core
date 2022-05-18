@@ -307,7 +307,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
       alias,
       setDefault,
       setDefaultDevHub: false,
-      setTracking: tracksSource === false ? false : true,
+      setTracksSource: tracksSource === false ? false : true,
     },
   });
   cache.unset(scratchOrgInfoId);

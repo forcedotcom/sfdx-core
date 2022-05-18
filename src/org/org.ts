@@ -548,24 +548,24 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async tracksSource(): Promise<boolean> {
     // use the property if it exists
-    const tracksSource = this.getField(Org.Fields.TRACKING);
+    const tracksSource = this.getField(Org.Fields.TRACKS_SOURCE);
     if (isBoolean(tracksSource)) {
       return tracksSource;
     }
     // scratch orgs with no property use tracking by default
     if (await this.determineIfScratch()) {
       // save true for next time to avoid checking again
-      await this.setTracking(true);
+      await this.setTracksSource(true);
       return true;
     }
     if (await this.determineIfSandbox()) {
       // does the sandbox know about the SourceMember object?
       const supportsSourceMembers = await this.supportsSourceTracking();
-      await this.setTracking(supportsSourceMembers);
+      await this.setTracksSource(supportsSourceMembers);
       return supportsSourceMembers;
     }
     // any other non-sandbox, non-scratch orgs won't use tracking
-    await this.setTracking(false);
+    await this.setTracksSource(false);
     return false;
   }
 
@@ -574,7 +574,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    *
    * @param value true or false (whether the org should use source tracking or not)
    */
-  public async setTracking(value: boolean): Promise<void> {
+  public async setTracksSource(value: boolean): Promise<void> {
     const originalAuth = await AuthInfo.create({ username: this.getUsername() });
     originalAuth.handleAliasAndDefaultSettings({ setDefault: false, setDefaultDevHub: false, setTracking: value });
   }
@@ -1505,7 +1505,7 @@ export namespace Org {
      * true: the org supports and wants source tracking
      * false: the org opted out of tracking or can't support it
      */
-    TRACKING = 'tracksSource',
+    TRACKS_SOURCE = 'tracksSource',
 
     // Should it be on org? Leave it off for now, as it might
     // be confusing to the consumer what this actually is.
