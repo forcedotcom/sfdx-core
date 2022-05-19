@@ -27,7 +27,7 @@ import { ConfigContents } from '../../../src/config/configStore';
 import { AliasAccessor, OrgAccessor } from '../../../src/globalInfo';
 import { Crypto } from '../../../src/crypto/crypto';
 import { SfError } from '../../../src/sfError';
-import { MockTestOrgData, testSetup, stubAuths } from '../../../src/testSetup';
+import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { MyDomainResolver, SfdcUrl } from '../../../src/exported';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { AuthInfoConfig } from '../../../src/config/authInfoConfig';
@@ -649,7 +649,7 @@ describe('AuthInfo', () => {
       set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
       testMetadata.fetchConfigInfo = () => jwtData;
 
-      $$.configStubs.AuthInfoConfig = { contents: jwtData };
+      $$.setConfigStubContents('AuthInfoConfig', { contents: jwtData });
       stubMethod($$.SANDBOX, OrgAccessor.prototype, 'hasFile').resolves(true);
       // Create the JWT AuthInfo instance
       try {
@@ -2207,7 +2207,7 @@ describe('AuthInfo', () => {
   });
 });
 
-describe.only('align srcatch orgs with devhub', () => {
+describe('align srcatch orgs with devhub', () => {
   let adminTestData: MockTestOrgData;
   let user1: MockTestOrgData;
 
@@ -2227,14 +2227,14 @@ describe.only('align srcatch orgs with devhub', () => {
     });
 
     it('should not find a dev hub when one auth info exists that is not a dev hub', async () => {
-      await stubAuths($$, user1);
+      await $$.stubAuths(user1);
       const result = await AuthInfo.getDevHubAuthInfos();
       expect(result).to.have.lengthOf(0);
     });
 
     it('should find a dev hub', async () => {
       adminTestData.makeDevHub();
-      await stubAuths($$, adminTestData, user1);
+      await $$.stubAuths(adminTestData, user1);
       const result = await AuthInfo.getDevHubAuthInfos();
       expect(result).to.have.lengthOf(1);
     });
@@ -2242,7 +2242,7 @@ describe.only('align srcatch orgs with devhub', () => {
 
   describe('identifyPossibleScratchOrgs', () => {
     it('should not update org - no dev hubs', async () => {
-      await stubAuths($$, adminTestData, user1);
+      await $$.stubAuths(adminTestData, user1);
 
       const authInfo = await AuthInfo.create({
         username: user1.username,
@@ -2263,7 +2263,7 @@ describe.only('align srcatch orgs with devhub', () => {
       user1.isScratchOrg = true;
       user1.devHubUsername = adminTestData.username;
 
-      await stubAuths($$, adminTestData, user1);
+      await $$.stubAuths(adminTestData, user1);
 
       const authInfo = await AuthInfo.create({
         username: user1.username,
@@ -2285,7 +2285,7 @@ describe.only('align srcatch orgs with devhub', () => {
       delete user1.orgId;
       user1.devHubUsername = adminTestData.username;
 
-      await stubAuths($$, adminTestData, user1);
+      await $$.stubAuths(adminTestData, user1);
       const authInfo = await AuthInfo.create({
         username: user1.username,
       });
@@ -2303,7 +2303,7 @@ describe.only('align srcatch orgs with devhub', () => {
     it('should update org', async () => {
       adminTestData.makeDevHub();
 
-      await stubAuths($$, adminTestData, user1);
+      await $$.stubAuths(adminTestData, user1);
 
       const authInfo = await AuthInfo.create({
         username: user1.username,

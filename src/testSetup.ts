@@ -122,7 +122,12 @@ export interface TestContext {
     GlobalInfo?: ConfigStub;
     SfdxConfig?: ConfigStub;
     SfProjectJson?: ConfigStub;
+    TokensConfig?: ConfigStub;
   };
+  /**
+   * An record of stubs created during instantaion.
+   */
+  stubs?: Record<string, sinonType.SinonStub>;
   /**
    * A function used when resolving the local path. Calls localPathResolverSync by default.
    *
@@ -185,6 +190,7 @@ export interface TestContext {
    */
   setConfigStubContents(name: string, value: ConfigContents): void;
   inProject(inProject: boolean): void;
+  stubAuths(...orgs: MockTestOrgData[]): Promise<void>;
 }
 
 const uniqid = (): string => {
@@ -312,7 +318,24 @@ export const instantiateContext = (sinon?: any): TestContext => {
         );
       }
     },
+    async stubAuths(...orgs: MockTestOrgData[]): Promise<void> {
+      const entries = (await Promise.all(orgs.map(async (org) => [org.username, await org.getConfig()]))) as Array<
+        [string, AuthFields]
+      >;
+      const orgMap = new Map(entries);
+
+      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'getAllFiles').returns(
+        [...orgMap.keys()].map((o) => `${o}.json`)
+      );
+
+      const retrieveContents = async function (this: { path: string }): Promise<AuthFields> {
+        const username = basename(this.path.replace('.json', ''));
+        return Promise.resolve(orgMap.get(username) ?? {});
+      };
+      this.configStubs.AuthInfoConfig = { retrieveContents };
+    },
   };
+
   return testContext;
 };
 
@@ -340,10 +363,12 @@ export const instantiateContext = (sinon?: any): TestContext => {
  * ```
  * @param testContext
  */
-export const stubContext = (testContext: TestContext) => {
+export const stubContext = (testContext: TestContext): Record<string, sinonType.SinonStub> => {
   // Turn off the interoperability feature so that we don't have to mock
   // the old .sfdx config files
   Global.SFDX_INTEROPERABILITY = false;
+
+  const stubs: Record<string, sinonType.SinonStub> = {};
 
   // Most core files create a child logger so stub this to return our test logger.
   stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
@@ -423,9 +448,11 @@ export const stubContext = (testContext: TestContext) => {
     }
   };
 
-  stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'writeSync').callsFake(writeSync);
+  stubs.configWriteSync = stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'writeSync').callsFake(
+    writeSync
+  );
 
-  stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'write').callsFake(write);
+  stubs.configWrite = stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'write').callsFake(write);
 
   stubMethod(testContext.SANDBOXES.CRYPTO, Crypto.prototype, 'getKeyChain').callsFake(() =>
     Promise.resolve({
@@ -448,42 +475,27 @@ export const stubContext = (testContext: TestContext) => {
     return testContext.fakeConnectionRequest.call(this, request, options as AnyJson);
   });
 
-  stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'exists').callsFake(async function (
-    this: OrgAccessor,
-    username: string
-  ): Promise<boolean | undefined> {
-    // @ts-expect-error because private member
-    if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
-    else Promise.resolve(false);
-  });
+  stubs.configExists = stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'exists').callsFake(
+    async function (this: OrgAccessor, username: string): Promise<boolean | undefined> {
+      // @ts-expect-error because private member
+      if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
+      else Promise.resolve(false);
+    }
+  );
 
-  stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'remove').callsFake(async function (
-    this: OrgAccessor,
-    username: string
-  ): Promise<boolean | undefined> {
-    // @ts-expect-error because private member
-    if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
-    else Promise.resolve(false);
-  });
+  stubs.configRemove = stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'remove').callsFake(
+    async function (this: OrgAccessor, username: string): Promise<boolean | undefined> {
+      // @ts-expect-error because private member
+      if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
+      else Promise.resolve(false);
+    }
+  );
 
   // Always start with the default and tests beforeEach or it methods can override it.
   testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
+
+  return stubs;
 };
-
-export async function stubAuths(context: TestContext, ...orgs: MockTestOrgData[]): Promise<void> {
-  const entries = (await Promise.all(orgs.map(async (org) => [org.username, await org.getConfig()]))) as Array<
-    [string, AuthFields]
-  >;
-  const orgMap = new Map(entries);
-
-  stubMethod(context.SANDBOX, OrgAccessor.prototype, 'getAllFiles').returns([...orgMap.keys()].map((o) => `${o}.json`));
-
-  const retrieveContents = async function (this: { path: string }): Promise<AuthFields> {
-    const username = basename(this.path.replace('.json', ''));
-    return Promise.resolve(orgMap.get(username) ?? {});
-  };
-  context.configStubs.AuthInfoConfig = { retrieveContents };
-}
 
 /**
  * Restore a @salesforce/core test context. This is automatically stubbed in the global beforeEach created by
@@ -510,11 +522,12 @@ export const restoreContext = (testContext: TestContext): void => {
   testContext.configStubs = {};
   // Give each test run a clean GlobalInstance
   GlobalInfo.clearInstance();
+  // Give each test run a clean StateAggregator
   StateAggregator.clearInstance();
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const _testSetup = (sinon?: any) => {
+const _testSetup = (sinon?: any): TestContext => {
   const testContext = instantiateContext(sinon);
 
   beforeEach(() => {
@@ -522,7 +535,7 @@ const _testSetup = (sinon?: any) => {
     // @ts-ignore clear for testing.
     delete ConfigAggregator.instance;
 
-    stubContext(testContext);
+    testContext.stubs = stubContext(testContext);
   });
 
   afterEach(() => {

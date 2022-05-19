@@ -6,6 +6,9 @@
  */
 import { JsonMap } from '@salesforce/ts-types';
 
+/**
+ * @deprecated
+ */
 export enum SfInfoKeys {
   ORGS = 'orgs',
   TOKENS = 'tokens',
@@ -16,6 +19,9 @@ export enum SfInfoKeys {
 export type Timestamp = { timestamp: string };
 export type SfEntry = JsonMap;
 
+/**
+ * @deprecated
+ */
 export type SfOrg = {
   username: string;
   orgId: string;
@@ -23,6 +29,9 @@ export type SfOrg = {
   accessToken?: string;
 } & SfEntry;
 
+/**
+ * @deprecated
+ */
 export interface SfOrgs {
   [key: string]: SfOrg & Timestamp;
 }
@@ -33,18 +42,23 @@ export type SfToken = {
   user?: string;
 } & SfEntry;
 
-export interface SfTokens {
+/**
+ */
+export type SfTokens = {
   [key: string]: SfToken & Timestamp;
-}
+};
 
 /**
  * The key will always be the alias and the value will always be the username, e.g.
  * { "MyAlias": "user@salesforce.com" }
  */
-export interface SfAliases {
+export type SfAliases = {
   [alias: string]: string;
-}
+};
 
+/**
+ * @deprecated
+ */
 export type SfSandbox = {
   sandboxOrgId: string;
   prodOrgUsername: string;
@@ -59,11 +73,16 @@ export type SfSandbox = {
  * The key will always be the sandbox username and the value will always be the
  * production org username
  * { "user@salesforce.com.mysandbox": "user@salesforce.com" }
+ *
+ * @deprecated
  */
 export interface SfSandboxes {
   [sandboxOrgId: string]: SfSandbox;
 }
 
+/**
+ * @deprecated
+ */
 export type SfInfo = {
   [SfInfoKeys.ORGS]: SfOrgs;
   [SfInfoKeys.TOKENS]: SfTokens;

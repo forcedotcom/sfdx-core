@@ -10,7 +10,7 @@ import { ConfigFile } from '../config/configFile';
 import { ConfigValue } from '../config/configStore';
 import { SfdxDataHandler } from './sfdxDataHandler';
 import { GlobalInfoOrgAccessor } from './accessors/orgAccessor';
-import { TokenAccessor } from './accessors/tokenAccessor';
+import { GlobaInfoTokenAccessor } from './accessors/tokenAccessor';
 import { GlobalInfoAliasAccessor } from './accessors/aliasAccessor';
 import { SfInfo, SfInfoKeys } from './types';
 import { GlobalInfoSandboxAccessor } from './accessors/sandboxAccessor';
@@ -19,6 +19,9 @@ export function deepCopy<T extends AnyJson>(data: T): T {
   return JSON.parse(JSON.stringify(data)) as T;
 }
 
+/**
+ * @deprecated use StateAggregator instead.
+ */
 export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
   protected static encryptedKeys = [/token/gi, /password/gi, /secret/gi];
   private static EMPTY_DATA_MODEL: SfInfo = {
@@ -71,8 +74,8 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     return new GlobalInfoOrgAccessor(this);
   }
 
-  public get tokens(): TokenAccessor {
-    return new TokenAccessor(this);
+  public get tokens(): GlobaInfoTokenAccessor {
+    return new GlobaInfoTokenAccessor(this);
   }
 
   public get aliases(): GlobalInfoAliasAccessor {

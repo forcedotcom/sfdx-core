@@ -14,6 +14,9 @@ import { SfOrgs, SfOrg, SfInfoKeys } from '../types';
 import { AuthFields } from '../../org';
 import { ConfigContents, ConfigFile } from '../../exported';
 
+/**
+ * @deprecated
+ */
 export class GlobalInfoOrgAccessor {
   public constructor(private globalInfo: GlobalInfo) {}
 

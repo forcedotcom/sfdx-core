@@ -12,6 +12,9 @@ import { GlobalInfo } from '../globalInfoConfig';
 import { SfInfoKeys, SfSandbox, SfSandboxes } from '../types';
 import { BaseOrgAccessor } from './orgAccessor';
 
+/**
+ * @deprecated
+ */
 export class GlobalInfoSandboxAccessor {
   public constructor(private globalInfo: GlobalInfo) {}
 

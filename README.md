@@ -36,14 +36,8 @@ const $$ = testSetup();
 describe('Mocking Auth data', () => {
   it('example', async () => {
     const testData = new MockTestOrgData();
-    $$.setConfigStubContents('GlobalInfo', {
-      contents: {
-        orgs: {
-          [testData.username]: await testData.getConfig(),
-        },
-      },
-    });
-    const auth: AuthInfo = await AuthInfo.create({ username: testData.username });
+    await $$.stubAuths(testData)
+    const auth = await AuthInfo.create({ username: testData.username });
     strictEqual(auth.getUsername(), testData.username);
   });
 });
@@ -65,25 +59,19 @@ describe('Mocking a force server call', () => {
   it('example', async () => {
     const records: AnyJson = { records: ['123456', '234567'] };
     const testData = new MockTestOrgData();
-    $$.setConfigStubContents('GlobalInfo', {
-      contents: {
-        orgs: {
-          [testData.username]: await testData.getConfig(),
-        },
-      },
-    });
+    await $$.stubAuths(testData);
     $$.fakeConnectionRequest = (request: AnyJson): Promise<AnyJson> => {
-      const _request: JsonMap = ensureJsonMap(request);
+      const _request = ensureJsonMap(request);
       if (request && ensureString(_request.url).includes('Account')) {
         return Promise.resolve(records);
       } else {
         return Promise.reject(new SfError(`Unexpected request: ${_request.url}`));
       }
     };
-    const connection: Connection = await Connection.create({
+    const connection = await Connection.create({
       authInfo: await AuthInfo.create({ username: testData.username }),
     });
-    const result: QueryResult<{}> = await connection.query('select Id From Account');
+    const result = await connection.query('select Id From Account');
     deepStrictEqual(result, records);
   });
 });

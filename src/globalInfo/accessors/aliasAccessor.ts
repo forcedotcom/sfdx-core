@@ -14,6 +14,9 @@ import { SfAliases, SfOrg, SfInfoKeys, SfToken } from '../types';
 
 export type Aliasable = string | Partial<SfOrg> | Partial<SfToken>;
 
+/**
+ * @deprecated
+ */
 export class GlobalInfoAliasAccessor {
   public constructor(private globalInfo: GlobalInfo) {}
 

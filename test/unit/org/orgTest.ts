@@ -28,7 +28,7 @@ import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
 import { Global } from '../../../src/global';
-import { MockTestOrgData, stubAuths, testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { StateAggregator } from '../../../src/globalInfo';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
@@ -46,8 +46,7 @@ describe('Org Tests', () => {
   beforeEach(async () => {
     testData = new MockTestOrgData();
 
-    $$.configStubs.AuthInfoConfig = { contents: await testData.getConfig() };
-
+    $$.setConfigStubContents('AuthInfoConfig', { contents: await testData.getConfig() });
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves('1.1.1.1');
 
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
@@ -56,10 +55,7 @@ describe('Org Tests', () => {
       const existing = $$.getConfigStubContents('AuthInfoConfig') ?? {};
       const updated = org ?? (await testData.getConfig());
 
-      $$.configStubs.AuthInfoConfig = {
-        contents: Object.assign(existing, updated),
-      };
-
+      $$.setConfigStubContents('AuthInfoConfig', { contents: Object.assign(existing, updated) });
       return Org.create({
         connection: await Connection.create({
           authInfo: await AuthInfo.create({ username }),
@@ -98,8 +94,8 @@ describe('Org Tests', () => {
       const config = await testData.getConfig();
       delete config.username;
       const alias = 'foo';
-      $$.configStubs.AuthInfoConfig = { contents: config };
-      $$.configStubs.AliasesConfig = { contents: { [alias]: testData.username } };
+      $$.setConfigStubContents('AuthInfoConfig', { contents: config });
+      $$.setConfigStubContents('AliasesConfig', { contents: { [alias]: testData.username } });
       const org = await Org.create({ aliasOrUsername: alias });
       expect(org.getUsername()).to.eq(testData.username);
     });
@@ -669,7 +665,7 @@ describe('Org Tests', () => {
       const devHubConfig = new MockTestOrgData();
       devHubConfig.username = devHub;
 
-      await stubAuths($$, testData, devHubConfig);
+      await $$.stubAuths(testData, devHubConfig);
 
       const configAggregator = await ConfigAggregator.create();
       connection = await Connection.create({
@@ -716,7 +712,7 @@ describe('Org Tests', () => {
     beforeEach(async () => {
       const mockDevHubData: MockTestOrgData = new MockTestOrgData();
       mockDevHubData.username = devHubUser;
-      await stubAuths($$, testData, mockDevHubData);
+      await $$.stubAuths(testData, mockDevHubData);
     });
 
     it.skip('steel thread', async () => {
@@ -767,7 +763,7 @@ describe('Org Tests', () => {
       mock1 = new MockTestOrgData();
       mock2 = new MockTestOrgData();
 
-      await stubAuths($$, mock0, mock1, mock2);
+      await $$.stubAuths(mock0, mock1, mock2);
 
       orgs[0] = await Org.create({
         connection: await Connection.create({
@@ -846,7 +842,7 @@ describe('Org Tests', () => {
     });
     it('should not call server is cached', async () => {
       testData.isDevHub = false;
-      await stubAuths($$, testData);
+      await $$.stubAuths(testData);
       const org = await Org.create({ aliasOrUsername: testData.username });
       const spy = $$.SANDBOX.spy();
       $$.fakeConnectionRequest = spy;
@@ -856,7 +852,7 @@ describe('Org Tests', () => {
     });
     it('should call server is cached but forced', async () => {
       testData.isDevHub = false;
-      await stubAuths($$, testData);
+      await $$.stubAuths(testData);
       const org = await Org.create({ aliasOrUsername: testData.username });
       const spy = $$.SANDBOX.stub().returns(Promise.resolve({ records: [] }));
       $$.fakeConnectionRequest = spy;

@@ -7,14 +7,8 @@ const $$ = testSetup();
 describe('Mocking Auth data', () => {
   it('example', async () => {
     const testData = new MockTestOrgData();
-    $$.setConfigStubContents('GlobalInfo', {
-      contents: {
-        orgs: {
-          [testData.username]: await testData.getConfig(),
-        },
-      },
-    });
-    const auth: AuthInfo = await AuthInfo.create({
+    await $$.stubAuths(testData)
+    const auth = await AuthInfo.create({
       username: testData.username,
     });
     strictEqual(auth.getUsername(), testData.username);

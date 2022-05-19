@@ -1,12 +1,12 @@
-import { Aliases, GlobalInfo } from '@salesforce/core';
+import { Aliases, StateAggregator } from '@salesforce/core';
 import chalk from 'chalk';
 import * as inquirer from 'inquirer';
 import * as _ from 'lodash';
 import * as strip from 'strip-ansi';
 
 export async function run() {
-  const config = await GlobalInfo.getInstance();
-  const orgs = Object.keys(config.getOrgs());
+  const stateAggregator = await StateAggregator.getInstance();
+  const orgs = Object.keys(await stateAggregator.orgs.readAll());
   const orgsWithAliases = {};
   const aliases = await Aliases.create();
 

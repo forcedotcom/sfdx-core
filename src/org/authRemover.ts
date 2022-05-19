@@ -9,8 +9,9 @@ import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
-import { SfOrg, GlobalInfo, SfOrgs } from '../globalInfo';
+import { StateAggregator } from '../globalInfo';
 import { OrgConfigProperties } from './orgConfigProperties';
+import { AuthFields } from '.';
 
 Messages.importMessagesDirectory(__dirname);
 const coreMessages = Messages.load('@salesforce/core', 'core', ['namedOrgNotFound']);
@@ -41,7 +42,7 @@ const messages = Messages.load('@salesforce/core', 'auth', ['targetOrgNotSet']);
  */
 export class AuthRemover extends AsyncOptionalCreatable {
   private config!: ConfigAggregator;
-  private globalInfo!: GlobalInfo;
+  private stateAggregator!: StateAggregator;
   private logger!: Logger;
 
   /**
@@ -54,9 +55,8 @@ export class AuthRemover extends AsyncOptionalCreatable {
     this.logger.debug(`Removing authorization for user ${username}`);
     await this.unsetConfigValues(username);
     await this.unsetAliases(username);
-    this.unsetTokens(username);
-    this.globalInfo.orgs.unset(username);
-    await this.globalInfo.write();
+    await this.unsetTokens(username);
+    await this.stateAggregator.orgs.remove(username);
   }
 
   /**
@@ -78,9 +78,9 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @param usernameOrAlias username or alias of the auth you want to find, defaults to the configured target-org
    * @returns {Promise<SfOrg>}
    */
-  public async findAuth(usernameOrAlias?: string): Promise<SfOrg> {
-    const username = usernameOrAlias ? await this.resolveUsername(usernameOrAlias) : this.getTargetOrg();
-    const auth = this.globalInfo.orgs.get(username);
+  public async findAuth(usernameOrAlias?: string): Promise<AuthFields> {
+    const username = await this.resolveUsername(usernameOrAlias || this.getTargetOrg());
+    const auth = this.stateAggregator.orgs.get(username);
     if (!auth) {
       throw coreMessages.createError('namedOrgNotFound');
     }
@@ -90,16 +90,21 @@ export class AuthRemover extends AsyncOptionalCreatable {
   /**
    * Finds all org authorizations in the global info file (.sf/sf.json)
    *
-   * @returns {SfOrgs}
+   * @returns {Record<string, AuthFields>}
    */
-  public findAllAuths(): SfOrgs {
-    return this.globalInfo.orgs.getAll();
+  public findAllAuths(): Record<string, AuthFields> {
+    const orgs = this.stateAggregator.orgs.getAll();
+    return orgs.reduce((x, y) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return { ...x, [y.username!]: y };
+    }, {} as Record<string, AuthFields>);
   }
 
   protected async init(): Promise<void> {
     this.logger = await Logger.child(this.constructor.name);
     this.config = await ConfigAggregator.create();
-    this.globalInfo = await GlobalInfo.getInstance();
+    this.stateAggregator = await StateAggregator.getInstance();
+    await this.stateAggregator.orgs.readAll();
   }
 
   /**
@@ -109,7 +114,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<string>}
    */
   private async resolveUsername(usernameOrAlias: string): Promise<string> {
-    return this.globalInfo.aliases.resolveUsername(usernameOrAlias);
+    return this.stateAggregator.aliases.resolveUsername(usernameOrAlias);
   }
 
   /**
@@ -130,7 +135,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<string[]>}
    */
   private getAliases(username: string): string[] {
-    return this.globalInfo.aliases.getAll(username);
+    return this.stateAggregator.aliases.getAll(username);
   }
 
   /**
@@ -169,22 +174,24 @@ export class AuthRemover extends AsyncOptionalCreatable {
    *
    * @param username username that you want to remove from aliases
    */
-  private async unsetAliases(username: string) {
+  private async unsetAliases(username: string): Promise<void> {
     this.logger.debug(`Clearing aliases for username: ${username}`);
-    const existingAliases = this.globalInfo.aliases.getAll(username);
+    const existingAliases = this.stateAggregator.aliases.getAll(username);
     if (existingAliases.length === 0) return;
 
     this.logger.debug(`Found these aliases to remove: ${existingAliases}`);
-    existingAliases.forEach((alias) => this.globalInfo.aliases.unset(alias));
+    existingAliases.forEach((alias) => this.stateAggregator.aliases.unset(alias));
+    await this.stateAggregator.aliases.write();
   }
 
-  private unsetTokens(username: string) {
+  private async unsetTokens(username: string): Promise<void> {
     this.logger.debug(`Clearing tokens for username: ${username}`);
-    const tokens = this.globalInfo.tokens.getAll();
+    const tokens = this.stateAggregator.tokens.getAll();
     for (const [key, token] of Object.entries(tokens)) {
       if (token.user === username) {
-        this.globalInfo.tokens.unset(key);
+        this.stateAggregator.tokens.unset(key);
       }
     }
+    await this.stateAggregator.tokens.write();
   }
 }

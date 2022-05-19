@@ -1,4 +1,4 @@
-import { GlobalInfo, Org, StatusResult, StreamingClient } from '@salesforce/core';
+import { StateAggregator, Org, StatusResult, StreamingClient } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import * as inquirer from 'inquirer';
@@ -30,8 +30,8 @@ export async function run() {
     });
   }
 
-  const config = await GlobalInfo.getInstance();
-  const orgs = Object.keys(config.getOrgs());
+  const stateAggregator = await StateAggregator.getInstance();
+  const orgs = Object.keys(await stateAggregator.orgs.readAll());
 
   // Have the user select a user
   const connectionOrg = await select('Select an org to connect to:', orgs);

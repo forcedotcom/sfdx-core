@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import { GlobalInfo } from '../../../../src/globalInfo';
 import { testSetup } from '../../../../src/testSetup';
 
-describe('TokenAccessor', () => {
+describe('GlobalInfoTokenAccessor', () => {
   const username = 'espresso@coffee.com';
   const alias = 'MyAlias';
   const org = { username, orgId: '12345', alias };
