@@ -10,7 +10,7 @@ import { GlobalInfo } from '../../../../src/globalInfo';
 import { testSetup } from '../../../../src/testSetup';
 import { SfSandbox } from '../../../../src/globalInfo';
 
-describe('SandboxAccessor', () => {
+describe('GlobalInfoSandboxAccessor', () => {
   const sandboxUsername = 'espresso@coffee.com.mysandbox';
   const prodOrgUsername = 'espresso@coffee.com';
   const org = { username: sandboxUsername, orgId: '12345' };

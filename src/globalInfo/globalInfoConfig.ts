@@ -13,7 +13,7 @@ import { GlobalInfoOrgAccessor } from './accessors/orgAccessor';
 import { TokenAccessor } from './accessors/tokenAccessor';
 import { GlobalInfoAliasAccessor } from './accessors/aliasAccessor';
 import { SfInfo, SfInfoKeys } from './types';
-import { SandboxAccessor } from './accessors/sandboxAccessor';
+import { GlobalInfoSandboxAccessor } from './accessors/sandboxAccessor';
 
 export function deepCopy<T extends AnyJson>(data: T): T {
   return JSON.parse(JSON.stringify(data)) as T;
@@ -79,8 +79,8 @@ export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
     return new GlobalInfoAliasAccessor(this);
   }
 
-  public get sandboxes(): SandboxAccessor {
-    return new SandboxAccessor(this);
+  public get sandboxes(): GlobalInfoSandboxAccessor {
+    return new GlobalInfoSandboxAccessor(this);
   }
 
   public set(key: string, value: ConfigValue): void {

@@ -9,12 +9,14 @@ import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Optional } from '@salesforce/ts-types';
 import { AliasAccessor } from './accessors/aliasAccessor';
 import { OrgAccessor } from './accessors/orgAccessor';
+import { SandboxAccessor } from './accessors/sandboxAccessor';
 
 export class StateAggregator extends AsyncOptionalCreatable {
   private static instance: Optional<StateAggregator>;
 
   public aliases!: AliasAccessor;
   public orgs!: OrgAccessor;
+  public sandboxes!: SandboxAccessor;
 
   public static async getInstance(): Promise<StateAggregator> {
     if (!StateAggregator.instance) {
@@ -34,6 +36,7 @@ export class StateAggregator extends AsyncOptionalCreatable {
 
   protected async init(): Promise<void> {
     this.orgs = new OrgAccessor();
+    this.sandboxes = new SandboxAccessor();
     this.aliases = await AliasAccessor.create();
   }
 }

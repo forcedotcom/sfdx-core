@@ -8,7 +8,7 @@
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
-import { join as pathJoin } from 'path';
+import { join as pathJoin, basename } from 'path';
 import * as sinonType from 'sinon';
 
 import { once } from '@salesforce/kit';
@@ -34,8 +34,9 @@ import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
-import { GlobalInfo, SfOrg, StateAggregator } from './globalInfo';
+import { GlobalInfo, OrgAccessor, StateAggregator } from './globalInfo';
 import { Global } from './global';
+import { AuthFields } from './org';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -49,6 +50,7 @@ export interface SandboxTypes {
   PROJECT: sinon.SinonSandbox;
   CONNECTION: sinon.SinonSandbox;
   FS: sinonType.SinonSandbox;
+  ORGS: sinonType.SinonSandbox;
 }
 
 /**
@@ -115,10 +117,11 @@ export interface TestContext {
    */
   configStubs: {
     [configName: string]: Optional<ConfigStub>;
+    AliasesConfig?: ConfigStub;
+    AuthInfoConfig?: ConfigStub;
     GlobalInfo?: ConfigStub;
-    Aliases?: ConfigStub;
-    SfProjectJson?: ConfigStub;
     SfdxConfig?: ConfigStub;
+    SfProjectJson?: ConfigStub;
   };
   /**
    * A function used when resolving the local path. Calls localPathResolverSync by default.
@@ -257,6 +260,7 @@ export const instantiateContext = (sinon?: any): TestContext => {
       CRYPTO: sinon.createSandbox(),
       CONNECTION: sinon.createSandbox(),
       FS: sinon.createSandbox(),
+      ORGS: sinon.createSandbox(),
     },
     TEST_LOGGER: new Logger({
       name: 'SFDX_Core_Test_Logger',
@@ -444,9 +448,42 @@ export const stubContext = (testContext: TestContext) => {
     return testContext.fakeConnectionRequest.call(this, request, options as AnyJson);
   });
 
+  stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'exists').callsFake(async function (
+    this: OrgAccessor,
+    username: string
+  ): Promise<boolean | undefined> {
+    // @ts-expect-error because private member
+    if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
+    else Promise.resolve(false);
+  });
+
+  stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'remove').callsFake(async function (
+    this: OrgAccessor,
+    username: string
+  ): Promise<boolean | undefined> {
+    // @ts-expect-error because private member
+    if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
+    else Promise.resolve(false);
+  });
+
   // Always start with the default and tests beforeEach or it methods can override it.
   testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
 };
+
+export async function stubAuths(context: TestContext, ...orgs: MockTestOrgData[]): Promise<void> {
+  const entries = (await Promise.all(orgs.map(async (org) => [org.username, await org.getConfig()]))) as Array<
+    [string, AuthFields]
+  >;
+  const orgMap = new Map(entries);
+
+  stubMethod(context.SANDBOX, OrgAccessor.prototype, 'getAllFiles').returns([...orgMap.keys()].map((o) => `${o}.json`));
+
+  const retrieveContents = async function (this: { path: string }): Promise<AuthFields> {
+    const username = basename(this.path.replace('.json', ''));
+    return Promise.resolve(orgMap.get(username) ?? {});
+  };
+  context.configStubs.AuthInfoConfig = { retrieveContents };
+}
 
 /**
  * Restore a @salesforce/core test context. This is automatically stubbed in the global beforeEach created by
@@ -794,7 +831,7 @@ export class MockTestOrgData {
     };
   }
 
-  public async getConfig(): Promise<SfOrg> {
+  public async getConfig(): Promise<AuthFields> {
     const crypto = await Crypto.create();
     const config: JsonMap = {};
     config.orgId = this.orgId;
@@ -822,7 +859,6 @@ export class MockTestOrgData {
 
     config.isDevHub = this.isDevHub;
 
-    // TODO: make this AuthFields
-    return config as SfOrg;
+    return config as AuthFields;
   }
 }

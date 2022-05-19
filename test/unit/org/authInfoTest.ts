@@ -27,7 +27,7 @@ import { ConfigContents } from '../../../src/config/configStore';
 import { AliasAccessor, OrgAccessor } from '../../../src/globalInfo';
 import { Crypto } from '../../../src/crypto/crypto';
 import { SfError } from '../../../src/sfError';
-import { MockTestOrgData, testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, testSetup, stubAuths } from '../../../src/testSetup';
 import { MyDomainResolver, SfdcUrl } from '../../../src/exported';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { AuthInfoConfig } from '../../../src/config/authInfoConfig';
@@ -432,7 +432,6 @@ describe('AuthInfo', () => {
     it('should return an AuthInfo instance when passed a parent username', async () => {
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'loadProperties').callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigAggregator.prototype, 'getPropertyValue').returns(testMetadata.instanceUrl);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'exists').resolves(false);
       // Stub the http request (OAuth2.refreshToken())
       // This will be called for both, and we want to make sure the clientSecrete is the
       // same for both.
@@ -556,7 +555,6 @@ describe('AuthInfo', () => {
         stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>
           done(null, { address: '1.1.1.1', family: 4 })
         );
-        $$.SANDBOX.stub(OrgAccessor.prototype, 'exists').resolves(false);
 
         // Create the JWT AuthInfo instance
         const authInfo = await AuthInfo.create({
@@ -604,8 +602,6 @@ describe('AuthInfo', () => {
     });
 
     it('should return a JWT AuthInfo instance when passed a username from an auth file', async () => {
-      $$.SANDBOX.stub(OrgAccessor.prototype, 'exists').resolves(true);
-
       const username = 'authInfoTest_username_jwt';
 
       // Make the file read stub return JWT auth data
@@ -653,8 +649,8 @@ describe('AuthInfo', () => {
       set(jwtData, 'privateKey', 'authInfoTest/jwt/server.key');
       testMetadata.fetchConfigInfo = () => jwtData;
 
-      $$.SANDBOX.stub(OrgAccessor.prototype, 'exists').resolves(true);
-
+      $$.configStubs.AuthInfoConfig = { contents: jwtData };
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'hasFile').resolves(true);
       // Create the JWT AuthInfo instance
       try {
         await AuthInfo.create({ username, oauth2Options: jwtConfig });
@@ -1586,7 +1582,6 @@ describe('AuthInfo', () => {
 
     it('should set alias', async () => {
       const aliasAccessorSpy = spyMethod($$.SANDBOX, AliasAccessor.prototype, 'set');
-      $$.SANDBOX.stub(OrgAccessor.prototype, 'exists').resolves(true);
       const authInfo = await AuthInfo.create({ username });
       await authInfo.setAlias(alias);
       expect(aliasAccessorSpy.calledOnce).to.be.true;
@@ -1602,7 +1597,6 @@ describe('AuthInfo', () => {
 
     beforeEach(() => {
       configSpy = spyMethod($$.SANDBOX, Config.prototype, 'set');
-      $$.SANDBOX.stub(OrgAccessor.prototype, 'exists').resolves(true);
     });
 
     it('should set username to target-org', async () => {
@@ -2213,7 +2207,7 @@ describe('AuthInfo', () => {
   });
 });
 
-describe('align srcatch orgs with devhub', () => {
+describe.only('align srcatch orgs with devhub', () => {
   let adminTestData: MockTestOrgData;
   let user1: MockTestOrgData;
 
@@ -2233,26 +2227,14 @@ describe('align srcatch orgs with devhub', () => {
     });
 
     it('should not find a dev hub when one auth info exists that is not a dev hub', async () => {
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'readAll').resolves([await user1.getConfig()]);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'exists').resolves(true);
+      await stubAuths($$, user1);
       const result = await AuthInfo.getDevHubAuthInfos();
       expect(result).to.have.lengthOf(0);
     });
 
     it('should find a dev hub', async () => {
       adminTestData.makeDevHub();
-
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'readAll').resolves([
-        await adminTestData.getConfig(),
-        await user1.getConfig(),
-      ]);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'exists').resolves(true);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get')
-        .withArgs(adminTestData.username)
-        .returns(await adminTestData.getConfig())
-        .withArgs(user1.username)
-        .returns(await user1.getConfig());
-
+      await stubAuths($$, adminTestData, user1);
       const result = await AuthInfo.getDevHubAuthInfos();
       expect(result).to.have.lengthOf(1);
     });
@@ -2260,16 +2242,7 @@ describe('align srcatch orgs with devhub', () => {
 
   describe('identifyPossibleScratchOrgs', () => {
     it('should not update org - no dev hubs', async () => {
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'readAll').resolves([
-        await adminTestData.getConfig(),
-        await user1.getConfig(),
-      ]);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'exists').resolves(true);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get')
-        .withArgs(adminTestData.username)
-        .returns(await adminTestData.getConfig())
-        .withArgs(user1.username)
-        .returns(await user1.getConfig());
+      await stubAuths($$, adminTestData, user1);
 
       const authInfo = await AuthInfo.create({
         username: user1.username,
@@ -2290,16 +2263,7 @@ describe('align srcatch orgs with devhub', () => {
       user1.isScratchOrg = true;
       user1.devHubUsername = adminTestData.username;
 
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'readAll').resolves([
-        await adminTestData.getConfig(),
-        await user1.getConfig(),
-      ]);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'exists').resolves(true);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get')
-        .withArgs(adminTestData.username)
-        .returns(await adminTestData.getConfig())
-        .withArgs(user1.username)
-        .returns(await user1.getConfig());
+      await stubAuths($$, adminTestData, user1);
 
       const authInfo = await AuthInfo.create({
         username: user1.username,
@@ -2321,16 +2285,7 @@ describe('align srcatch orgs with devhub', () => {
       delete user1.orgId;
       user1.devHubUsername = adminTestData.username;
 
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'readAll').resolves([
-        await adminTestData.getConfig(),
-        await user1.getConfig(),
-      ]);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'exists').resolves(true);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get')
-        .withArgs(adminTestData.username)
-        .returns(await adminTestData.getConfig())
-        .withArgs(user1.username)
-        .returns(await user1.getConfig());
+      await stubAuths($$, adminTestData, user1);
       const authInfo = await AuthInfo.create({
         username: user1.username,
       });
@@ -2348,16 +2303,7 @@ describe('align srcatch orgs with devhub', () => {
     it('should update org', async () => {
       adminTestData.makeDevHub();
 
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'readAll').resolves([
-        await adminTestData.getConfig(),
-        await user1.getConfig(),
-      ]);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'exists').resolves(true);
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'get')
-        .withArgs(adminTestData.username)
-        .returns(await adminTestData.getConfig())
-        .withArgs(user1.username)
-        .returns(await user1.getConfig());
+      await stubAuths($$, adminTestData, user1);
 
       const authInfo = await AuthInfo.create({
         username: user1.username,

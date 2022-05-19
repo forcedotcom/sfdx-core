@@ -6,12 +6,13 @@
  */
 
 import * as fs from 'fs';
-import { Nullable, Optional } from '@salesforce/ts-types';
+import { JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { AuthInfoConfig } from '../../config/authInfoConfig';
 import { Global } from '../../global';
 import { GlobalInfo } from '../globalInfoConfig';
 import { SfOrgs, SfOrg, SfInfoKeys } from '../types';
 import { AuthFields } from '../../org';
+import { ConfigContents, ConfigFile } from '../../exported';
 
 export class GlobalInfoOrgAccessor {
   public constructor(private globalInfo: GlobalInfo) {}
@@ -48,105 +49,120 @@ export class GlobalInfoOrgAccessor {
   }
 }
 
-export class OrgAccessor {
-  // The regular expression that filters files stored in $HOME/.sfdx
-  private static AUTH_FILE_REGEX = /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
-
-  private orgConfigs: Map<string, Nullable<AuthInfoConfig>> = new Map();
-  private orgContents: Map<string, AuthFields> = new Map();
+export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigContents> {
+  private configs: Map<string, Nullable<T>> = new Map();
+  private contents: Map<string, P> = new Map();
+  private files: string[];
 
   public constructor() {
-    for (const file of this.getAllAuthFiles()) {
+    this.files = this.getAllFiles();
+    // for (const file of this.files) {
+    //   const username = file.replace('.json', '');
+    //   this.configs.set(username, null);
+    //   this.contents.set(username, {} as P);
+    // }
+  }
+
+  public async read(username: string, decrypt = false, throwOnNotFound = false): Promise<P> {
+    const config = await this.initAuthFile(username, throwOnNotFound);
+    this.configs.set(username, config);
+    return this.get(username, decrypt) as P;
+  }
+
+  public async readAll(decrypt = false): Promise<P[]> {
+    for (const file of this.files) {
       const username = file.replace('.json', '');
-      this.orgConfigs.set(username, null);
-      this.orgContents.set(username, {});
-    }
-  }
-
-  public async read(username: string, decrypt = false, throwOnNotFound = false): Promise<AuthFields> {
-    const config = await AuthInfoConfig.create({
-      ...AuthInfoConfig.getOptions(username),
-      throwOnNotFound,
-    });
-    this.orgConfigs.set(username, config);
-    return this.get(username, decrypt) as AuthFields;
-  }
-
-  public async readAll(decrypt = false): Promise<AuthFields[]> {
-    for (const username of this.list()) {
-      const config = await AuthInfoConfig.create({
-        ...AuthInfoConfig.getOptions(username),
-        throwOnNotFound: false,
-      });
-      this.orgConfigs.set(username, config);
+      const config = await this.initAuthFile(username);
+      this.configs.set(username, config);
     }
     return this.getAll(decrypt);
   }
 
-  public get(username: string, decrypt = false): Nullable<AuthFields> {
-    const config = this.orgConfigs.get(username);
+  public get(username: string, decrypt = false): Nullable<P> {
+    const config = this.configs.get(username);
     if (config) {
-      this.orgContents.set(username, config.getContents(decrypt));
+      this.contents.set(username, config.getContents(decrypt) as P);
     }
 
-    return this.orgContents.get(username);
+    return this.contents.get(username);
   }
 
-  public getAll(decrypt = false): AuthFields[] {
-    return this.list().reduce((orgs, username) => {
+  public getAll(decrypt = false): P[] {
+    return [...this.configs.keys()].reduce((orgs, username) => {
       const org = this.get(username, decrypt);
       return org ? orgs.concat([org]) : orgs;
-    }, [] as AuthFields[]);
+    }, [] as P[]);
   }
 
   public has(username: string): boolean {
-    return this.orgConfigs.has(username);
+    return this.configs.has(username);
   }
 
   public async exists(username: string): Promise<boolean> {
-    const config = this.orgConfigs.get(username);
+    const config = this.configs.get(username);
     return config ? await config.exists() : false;
   }
 
-  public list(): string[] {
-    return [...this.orgConfigs.keys()];
+  public hasFile(username: string): boolean {
+    return Boolean(this.files.find((f) => f.replace('.json', '') === username));
   }
 
-  public set(username: string, org: AuthFields): void {
-    const config = this.orgConfigs.get(username);
+  public list(): string[] {
+    return this.files;
+  }
+
+  public set(username: string, org: P): void {
+    const config = this.configs.get(username);
     if (config) {
       config.setContentsFromObject(org);
-      this.orgContents.set(username, config.getContents());
+      this.contents.set(username, config.getContents() as P);
     } else {
-      this.orgContents.set(username, org);
+      this.contents.set(username, org);
     }
   }
 
-  public update(username: string, org: Partial<AuthFields>): void {
+  public update(username: string, org: Partial<P> & JsonMap): void {
     const existing = this.get(username);
-    const merged = Object.assign({}, existing || {}, org);
+    const merged = Object.assign({}, existing || {}, org) as P;
     return this.set(username, merged);
   }
 
   public async remove(username: string): Promise<void> {
-    return this.orgConfigs.get(username)?.unlink();
+    return this.configs.get(username)?.unlink();
   }
 
-  public async write(username: string): Promise<Nullable<AuthFields>> {
-    const config = this.orgConfigs.get(username);
+  public async write(username: string): Promise<Nullable<P>> {
+    const config = this.configs.get(username);
     if (config) {
-      return config.write();
+      return (await config.write()) as P;
     } else {
       await this.read(username);
-      const contents = this.orgContents.get(username) ?? {};
+      const contents = this.contents.get(username) ?? {};
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const config = this.orgConfigs.get(username)!;
+      const config = this.configs.get(username)!;
       config.setContentsFromObject(contents);
-      return config.write();
+      return (await config.write()) as P;
     }
   }
 
-  private getAllAuthFiles(): string[] {
-    return fs.readdirSync(Global.SFDX_DIR).filter((file) => file.match(OrgAccessor.AUTH_FILE_REGEX));
+  private getAllFiles(): string[] {
+    return fs.readdirSync(Global.SFDX_DIR).filter((file) => file.match(this.getFileRegex()));
+  }
+
+  protected abstract initAuthFile(username: string, throwOnNotFound?: boolean): Promise<T>;
+  protected abstract getFileRegex(): RegExp;
+}
+
+export class OrgAccessor extends BaseOrgAccessor<AuthInfoConfig, AuthFields> {
+  protected async initAuthFile(username: string, throwOnNotFound = false): Promise<AuthInfoConfig> {
+    return AuthInfoConfig.create({
+      ...AuthInfoConfig.getOptions(username),
+      throwOnNotFound,
+    });
+  }
+
+  protected getFileRegex(): RegExp {
+    // The regular expression that filters files stored in $HOME/.sfdx
+    return /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
   }
 }

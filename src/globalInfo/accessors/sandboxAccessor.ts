@@ -6,10 +6,13 @@
  */
 
 import { Nullable } from '@salesforce/ts-types';
+import { SandboxOrgConfig } from '../../config/sandboxOrgConfig';
+import { SandboxFields } from '../../org';
 import { GlobalInfo } from '../globalInfoConfig';
 import { SfInfoKeys, SfSandbox, SfSandboxes } from '../types';
+import { BaseOrgAccessor } from './orgAccessor';
 
-export class SandboxAccessor {
+export class GlobalInfoSandboxAccessor {
   public constructor(private globalInfo: GlobalInfo) {}
 
   /**
@@ -59,5 +62,18 @@ export class SandboxAccessor {
 
   public unset(sandboxOrgId: string): void {
     delete this.globalInfo.get(SfInfoKeys.SANDBOXES)[sandboxOrgId];
+  }
+}
+
+export class SandboxAccessor extends BaseOrgAccessor<SandboxOrgConfig, SandboxFields> {
+  protected async initAuthFile(username: string, throwOnNotFound = false): Promise<SandboxOrgConfig> {
+    return SandboxOrgConfig.create({
+      ...SandboxOrgConfig.getOptions(username),
+      throwOnNotFound,
+    });
+  }
+
+  protected getFileRegex(): RegExp {
+    return /^(00D.*?)\.sandbox\.json$/;
   }
 }
