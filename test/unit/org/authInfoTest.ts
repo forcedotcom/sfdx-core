@@ -46,6 +46,7 @@ describe('AuthInfo No fs mock', () => {
     // Testing crypto functionality, so restore global stubs.
     $$.SANDBOXES.CRYPTO.restore();
     $$.SANDBOXES.CONFIG.restore();
+    $$.SANDBOXES.ORGS.restore();
 
     stubMethod($$.SANDBOX, Crypto.prototype, 'getKeyChain').callsFake(() =>
       Promise.resolve({
