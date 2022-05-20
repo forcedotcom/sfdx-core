@@ -36,7 +36,8 @@ import { SfProject, SfProjectJson } from './sfProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
 import { GlobalInfo, OrgAccessor, StateAggregator } from './globalInfo';
 import { Global } from './global';
-import { AuthFields } from './org';
+import { AuthFields, SandboxFields } from './org';
+import { SandboxAccessor } from './globalInfo/accessors/sandboxAccessor';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -191,9 +192,10 @@ export interface TestContext {
   setConfigStubContents(name: string, value: ConfigContents): void;
   inProject(inProject: boolean): void;
   stubAuths(...orgs: MockTestOrgData[]): Promise<void>;
+  stubSandboxes(...orgs: MockTestSandboxData[]): Promise<void>;
 }
 
-const uniqid = (): string => {
+export const uniqid = (): string => {
   return randomBytes(16).toString('hex');
 };
 
@@ -332,7 +334,25 @@ export const instantiateContext = (sinon?: any): TestContext => {
         const username = basename(this.path.replace('.json', ''));
         return Promise.resolve(orgMap.get(username) ?? {});
       };
+
       this.configStubs.AuthInfoConfig = { retrieveContents };
+    },
+    async stubSandboxes(...sandboxes: MockTestSandboxData[]): Promise<void> {
+      const entries = (await Promise.all(
+        sandboxes.map(async (sanbox) => [sanbox.username, await sanbox.getConfig()])
+      )) as Array<[string, SandboxFields]>;
+      const sandboxMap = new Map(entries);
+
+      stubMethod(testContext.SANDBOX, SandboxAccessor.prototype, 'getAllFiles').returns(
+        [...sandboxMap.keys()].map((o) => `${o}.sandbox.json`)
+      );
+
+      const retrieveContents = async function (this: { path: string }): Promise<SandboxFields> {
+        const username = basename(this.path.replace('.sandbox.json', ''));
+        return Promise.resolve(sandboxMap.get(username) ?? ({} as SandboxFields));
+      };
+
+      this.configStubs.SandboxOrgConfig = { retrieveContents };
     },
   };
 
@@ -873,5 +893,31 @@ export class MockTestOrgData {
     config.isDevHub = this.isDevHub;
 
     return config as AuthFields;
+  }
+}
+
+export class MockTestSandboxData {
+  public sandboxOrgId: string;
+  public prodOrgUsername: string;
+  public sandboxName?: string;
+  public username?: string;
+
+  public constructor(
+    public id: string = uniqid(),
+    options?: Partial<{ prodOrgUsername: string; name: string; username: string }>
+  ) {
+    this.sandboxOrgId = id;
+    this.prodOrgUsername = options?.prodOrgUsername || `admin_${id}@gb.org`;
+    this.sandboxName = options?.name || `sandbox_${id}`;
+    this.username = options?.username || `${this.prodOrgUsername}.sandbox`;
+  }
+
+  public async getConfig(): Promise<SandboxFields> {
+    return {
+      sandboxOrgId: this.sandboxOrgId,
+      prodOrgUsername: this.prodOrgUsername,
+      sandboxName: this.sandboxName,
+      sandboxUsername: this.username,
+    };
   }
 }

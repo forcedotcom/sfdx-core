@@ -76,6 +76,10 @@ export class SandboxAccessor extends BaseOrgAccessor<SandboxOrgConfig, SandboxFi
     });
   }
 
+  protected parseUsername(filename: string): string {
+    return filename.replace('.sandbox.json', '');
+  }
+
   protected getFileRegex(): RegExp {
     return /^(00D.*?)\.sandbox\.json$/;
   }

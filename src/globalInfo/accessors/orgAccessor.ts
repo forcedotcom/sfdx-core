@@ -59,11 +59,6 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
 
   public constructor() {
     this.files = this.getAllFiles();
-    // for (const file of this.files) {
-    //   const username = file.replace('.json', '');
-    //   this.configs.set(username, null);
-    //   this.contents.set(username, {} as P);
-    // }
   }
 
   public async read(username: string, decrypt = false, throwOnNotFound = false): Promise<P> {
@@ -74,7 +69,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
 
   public async readAll(decrypt = false): Promise<P[]> {
     for (const file of this.files) {
-      const username = file.replace('.json', '');
+      const username = this.parseUsername(file);
       const config = await this.initAuthFile(username);
       this.configs.set(username, config);
     }
@@ -107,7 +102,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   }
 
   public hasFile(username: string): boolean {
-    return Boolean(this.files.find((f) => f.replace('.json', '') === username));
+    return Boolean(this.files.find((f) => this.parseUsername(f) === username));
   }
 
   public list(): string[] {
@@ -154,6 +149,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
 
   protected abstract initAuthFile(username: string, throwOnNotFound?: boolean): Promise<T>;
   protected abstract getFileRegex(): RegExp;
+  protected abstract parseUsername(filename: string): string;
 }
 
 export class OrgAccessor extends BaseOrgAccessor<AuthInfoConfig, AuthFields> {
@@ -162,6 +158,10 @@ export class OrgAccessor extends BaseOrgAccessor<AuthInfoConfig, AuthFields> {
       ...AuthInfoConfig.getOptions(username),
       throwOnNotFound,
     });
+  }
+
+  protected parseUsername(filename: string): string {
+    return filename.replace('.json', '');
   }
 
   protected getFileRegex(): RegExp {
