@@ -209,16 +209,16 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       interval: Duration.seconds(30),
     }
   ): Promise<SandboxProcessObject> {
-    this.logger.debug('CreateSandbox called with SandboxRequest:', sandboxReq);
+    this.logger.debug(`CreateSandbox called with SandboxRequest: ${sandboxReq}`);
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
-    this.logger.debug('Return from calling tooling.create:', createResult);
+    this.logger.debug(`Return from calling tooling.create: ${createResult}`);
 
     if (Array.isArray(createResult) || !createResult.success) {
       throw messages.createError('sandboxInfoCreateFailed', [JSON.stringify(createResult)]);
     }
 
     const sandboxCreationProgress = await this.querySandboxProcessBySandboxInfoId(createResult.id);
-    this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
+    this.logger.debug(`Return from calling singleRecordQuery with tooling: ${sandboxCreationProgress}`);
 
     const isAsync = !!options.async;
 
@@ -229,14 +229,30 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
     const [wait, pollInterval] = this.validateWaitOptions(options);
     this.logger.debug(
-      `create - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
-      sandboxCreationProgress
+      `create - pollStatusAndAuth sandboxProcessObj ${sandboxCreationProgress}, max wait time of ${wait.minutes} minutes`
     );
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
       wait,
       pollInterval,
     });
+  }
+
+  /**
+   *
+   * @param sandboxReq SandboxRequest options to create the sandbox with
+   * @param sandboxName
+   * @param options Wait: The amount of time to wait before timing out, defaults to 0, Interval: The time interval between polling defaults to 30 seconds
+   * @returns {SandboxProcessObject} the newly created sandbox process object
+   */
+  public async cloneSandbox(
+    sandboxReq: SandboxRequest,
+    sandboxName: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    sandboxReq.SourceId = (await this.querySandboxProcessBySandboxName(sandboxName)).Id;
+    this.logger.debug('Clone sandbox sourceId %s', sandboxReq.SourceId);
+    return this.createSandbox(sandboxReq, options);
   }
 
   /**
@@ -255,7 +271,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       interval: Duration.seconds(30),
     }
   ): Promise<SandboxProcessObject> {
-    this.logger.debug('ResumeSandbox called with ResumeSandboxRequest:', resumeSandboxRequest);
+    this.logger.debug(`ResumeSandbox called with ResumeSandboxRequest: ${resumeSandboxRequest}`);
     let sandboxCreationProgress: SandboxProcessObject;
     // seed the sandboxCreationProgress via the resumeSandboxRequest options
     if (resumeSandboxRequest.SandboxName) {
@@ -267,7 +283,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         resumeSandboxRequest.SandboxName ?? resumeSandboxRequest.SandboxProcessObjId,
       ]);
     }
-    this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
+    this.logger.debug(`Return from calling singleRecordQuery with tooling: ${sandboxCreationProgress}`);
 
     await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESUME, sandboxCreationProgress);
 
@@ -280,7 +296,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         if (sandboxInfo) {
           await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
           try {
-            this.logger.debug('sandbox signup complete with', sandboxInfo);
+            this.logger.debug(`sandbox signup complete with ${sandboxInfo}`);
             await this.writeSandboxAuthFile(sandboxCreationProgress, sandboxInfo);
             return sandboxCreationProgress;
           } catch (err) {
@@ -293,8 +309,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     this.logger.debug(
-      `resume - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
-      sandboxCreationProgress
+      `resume - pollStatusAndAuth sandboxProcessObj ${sandboxCreationProgress}, max wait time of ${wait.minutes} minutes`
     );
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
