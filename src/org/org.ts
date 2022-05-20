@@ -558,6 +558,43 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
+   * Returns `true` if the org uses source tracking.
+   * Side effect: updates files where the property doesn't currently exist
+   */
+  public async tracksSource(): Promise<boolean> {
+    // use the property if it exists
+    const tracksSource = this.getField(Org.Fields.TRACKS_SOURCE);
+    if (isBoolean(tracksSource)) {
+      return tracksSource;
+    }
+    // scratch orgs with no property use tracking by default
+    if (await this.determineIfScratch()) {
+      // save true for next time to avoid checking again
+      await this.setTracksSource(true);
+      return true;
+    }
+    if (await this.determineIfSandbox()) {
+      // does the sandbox know about the SourceMember object?
+      const supportsSourceMembers = await this.supportsSourceTracking();
+      await this.setTracksSource(supportsSourceMembers);
+      return supportsSourceMembers;
+    }
+    // any other non-sandbox, non-scratch orgs won't use tracking
+    await this.setTracksSource(false);
+    return false;
+  }
+
+  /**
+   * Set the tracking property on the org's auth file
+   *
+   * @param value true or false (whether the org should use source tracking or not)
+   */
+  public async setTracksSource(value: boolean): Promise<void> {
+    const originalAuth = await AuthInfo.create({ username: this.getUsername() });
+    originalAuth.handleAliasAndDefaultSettings({ setDefault: false, setDefaultDevHub: false, setTracksSource: value });
+  }
+
+  /**
    * Returns `true` if the org is a scratch org.
    *
    * Use a cached value. If the cached value is not set, then check
@@ -833,9 +870,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (this.isScratch()) {
       return true;
     }
-    const conn = this.getConnection();
     try {
-      await conn.tooling.sobject('SourceMember').describe();
+      await this.getConnection().tooling.sobject('SourceMember').describe();
       return true;
     } catch (err) {
       if ((err as Error).message.includes('The requested resource does not exist')) {
@@ -1476,6 +1512,11 @@ export namespace Org {
      * The snapshot used to create the scratch org.
      */
     SNAPSHOT = 'snapshot',
+    /**
+     * true: the org supports and wants source tracking
+     * false: the org opted out of tracking or can't support it
+     */
+    TRACKS_SOURCE = 'tracksSource',
 
     // Should it be on org? Leave it off for now, as it might
     // be confusing to the consumer what this actually is.

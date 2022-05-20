@@ -1069,4 +1069,76 @@ describe('Org Tests', () => {
       }
     });
   });
+
+  describe('source tracking detection', () => {
+    it('orgs with property return the property', async () => {
+      $$.configStubs.GlobalInfo.contents = {
+        orgs: {
+          [testData.username]: { tracksSource: false },
+        },
+      };
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      const usesTracking = await org.tracksSource();
+      expect(usesTracking).to.be.false;
+    });
+
+    it('scratch orgs without property return true', async () => {
+      $$.configStubs.GlobalInfo.contents = {
+        orgs: {
+          [testData.username]: { isScratch: true },
+        },
+      };
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      const usesTracking = await org.tracksSource();
+      expect(usesTracking).to.be.true;
+    });
+
+    it('prod orgs without property return false', async () => {
+      $$.configStubs.GlobalInfo.contents = {
+        orgs: {
+          [testData.username]: { isScratch: false },
+        },
+      };
+
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      stubMethod($$.SANDBOX, org, 'determineIfSandbox').resolves(false);
+      stubMethod($$.SANDBOX, org, 'determineIfScratch').resolves(false);
+      const usesTracking = await org.tracksSource();
+      expect(usesTracking).to.be.false;
+    });
+
+    describe('sandboxes without property', () => {
+      it('return true if they support tracking', async () => {
+        $$.configStubs.GlobalInfo.contents = {
+          orgs: {
+            [testData.username]: { isScratch: false },
+          },
+        };
+
+        const org = await Org.create({ aliasOrUsername: testData.username });
+        stubMethod($$.SANDBOX, org, 'determineIfScratch').resolves(false);
+        stubMethod($$.SANDBOX, org, 'determineIfSandbox').resolves(true);
+        stubMethod($$.SANDBOX, org, 'supportsSourceTracking').resolves(true);
+
+        const usesTracking = await org.tracksSource();
+        expect(usesTracking).to.be.true;
+      });
+
+      it("return false if they don't support tracking", async () => {
+        $$.configStubs.GlobalInfo.contents = {
+          orgs: {
+            [testData.username]: { isScratch: false },
+          },
+        };
+
+        const org = await Org.create({ aliasOrUsername: testData.username });
+        stubMethod($$.SANDBOX, org, 'determineIfScratch').resolves(false);
+        stubMethod($$.SANDBOX, org, 'determineIfSandbox').resolves(true);
+        stubMethod($$.SANDBOX, org, 'supportsSourceTracking').resolves(false);
+
+        const usesTracking = await org.tracksSource();
+        expect(usesTracking).to.be.false;
+      });
+    });
+  });
 });
