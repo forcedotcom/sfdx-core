@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.19.0](https://github.com/forcedotcom/sfdx-core/compare/v3.18.3...v3.19.0) (2022-05-20)
+
+### Features
+
+- missing prop and logic correction ([debe97e](https://github.com/forcedotcom/sfdx-core/commit/debe97e08f54bbd55edd2cb5b18e9d14abd3652f))
+- property on org with inteligent defaults and handling of undefined ([e7295d3](https://github.com/forcedotcom/sfdx-core/commit/e7295d38f2b8defdb54a77e61b4ef8862e5398f9))
+- tracking property on AuthFields ([2243d34](https://github.com/forcedotcom/sfdx-core/commit/2243d345c5cc81bd637c889adbe1db6eae6c93fc))
+- tracksSource in TestSetup mock ([7544c60](https://github.com/forcedotcom/sfdx-core/commit/7544c604bd4a32d21d105e8472f41b2d37fbf601))
+
+### [3.18.3](https://github.com/forcedotcom/sfdx-core/compare/v3.18.2...v3.18.3) (2022-05-20)
+
+### [3.18.2](https://github.com/forcedotcom/sfdx-core/compare/v3.18.1...v3.18.2) (2022-05-17)
+
+### Bug Fixes
+
+- remove unreachable code ([#585](https://github.com/forcedotcom/sfdx-core/issues/585)) ([2a6d611](https://github.com/forcedotcom/sfdx-core/commit/2a6d611a9ded7d4a0718864ca4023a0f7f259e8a))
+
+### [3.18.1](https://github.com/forcedotcom/sfdx-core/compare/v3.18.0...v3.18.1) (2022-05-16)
+
 ## [3.18.0](https://github.com/forcedotcom/sfdx-core/compare/v3.17.0...v3.18.0) (2022-05-12)
 
 ### Features

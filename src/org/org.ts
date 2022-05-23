@@ -218,16 +218,16 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       interval: Duration.seconds(30),
     }
   ): Promise<SandboxProcessObject> {
-    this.logger.debug('CreateSandbox called with SandboxRequest:', sandboxReq);
+    this.logger.debug(`CreateSandbox called with SandboxRequest: ${sandboxReq}`);
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
-    this.logger.debug('Return from calling tooling.create:', createResult);
+    this.logger.debug(`Return from calling tooling.create: ${createResult}`);
 
     if (Array.isArray(createResult) || !createResult.success) {
       throw messages.createError('sandboxInfoCreateFailed', [JSON.stringify(createResult)]);
     }
 
     const sandboxCreationProgress = await this.querySandboxProcessBySandboxInfoId(createResult.id);
-    this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
+    this.logger.debug(`Return from calling singleRecordQuery with tooling: ${sandboxCreationProgress}`);
 
     const isAsync = !!options.async;
 
@@ -238,14 +238,30 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
     const [wait, pollInterval] = this.validateWaitOptions(options);
     this.logger.debug(
-      `create - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
-      sandboxCreationProgress
+      `create - pollStatusAndAuth sandboxProcessObj ${sandboxCreationProgress}, max wait time of ${wait.minutes} minutes`
     );
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
       wait,
       pollInterval,
     });
+  }
+
+  /**
+   *
+   * @param sandboxReq SandboxRequest options to create the sandbox with
+   * @param sandboxName
+   * @param options Wait: The amount of time to wait before timing out, defaults to 0, Interval: The time interval between polling defaults to 30 seconds
+   * @returns {SandboxProcessObject} the newly created sandbox process object
+   */
+  public async cloneSandbox(
+    sandboxReq: SandboxRequest,
+    sandboxName: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    sandboxReq.SourceId = (await this.querySandboxProcessBySandboxName(sandboxName)).Id;
+    this.logger.debug('Clone sandbox sourceId %s', sandboxReq.SourceId);
+    return this.createSandbox(sandboxReq, options);
   }
 
   /**
@@ -264,7 +280,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       interval: Duration.seconds(30),
     }
   ): Promise<SandboxProcessObject> {
-    this.logger.debug('ResumeSandbox called with ResumeSandboxRequest:', resumeSandboxRequest);
+    this.logger.debug(`ResumeSandbox called with ResumeSandboxRequest: ${resumeSandboxRequest}`);
     let sandboxCreationProgress: SandboxProcessObject;
     // seed the sandboxCreationProgress via the resumeSandboxRequest options
     if (resumeSandboxRequest.SandboxName) {
@@ -276,7 +292,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         resumeSandboxRequest.SandboxName ?? resumeSandboxRequest.SandboxProcessObjId,
       ]);
     }
-    this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
+    this.logger.debug(`Return from calling singleRecordQuery with tooling: ${sandboxCreationProgress}`);
 
     await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESUME, sandboxCreationProgress);
 
@@ -289,7 +305,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         if (sandboxInfo) {
           await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
           try {
-            this.logger.debug('sandbox signup complete with', sandboxInfo);
+            this.logger.debug(`sandbox signup complete with ${sandboxInfo}`);
             await this.writeSandboxAuthFile(sandboxCreationProgress, sandboxInfo);
             return sandboxCreationProgress;
           } catch (err) {
@@ -302,8 +318,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     this.logger.debug(
-      `resume - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
-      sandboxCreationProgress
+      `resume - pollStatusAndAuth sandboxProcessObj ${sandboxCreationProgress}, max wait time of ${wait.minutes} minutes`
     );
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
@@ -548,6 +563,43 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     } else {
       return false;
     }
+  }
+
+  /**
+   * Returns `true` if the org uses source tracking.
+   * Side effect: updates files where the property doesn't currently exist
+   */
+  public async tracksSource(): Promise<boolean> {
+    // use the property if it exists
+    const tracksSource = this.getField(Org.Fields.TRACKS_SOURCE);
+    if (isBoolean(tracksSource)) {
+      return tracksSource;
+    }
+    // scratch orgs with no property use tracking by default
+    if (await this.determineIfScratch()) {
+      // save true for next time to avoid checking again
+      await this.setTracksSource(true);
+      return true;
+    }
+    if (await this.determineIfSandbox()) {
+      // does the sandbox know about the SourceMember object?
+      const supportsSourceMembers = await this.supportsSourceTracking();
+      await this.setTracksSource(supportsSourceMembers);
+      return supportsSourceMembers;
+    }
+    // any other non-sandbox, non-scratch orgs won't use tracking
+    await this.setTracksSource(false);
+    return false;
+  }
+
+  /**
+   * Set the tracking property on the org's auth file
+   *
+   * @param value true or false (whether the org should use source tracking or not)
+   */
+  public async setTracksSource(value: boolean): Promise<void> {
+    const originalAuth = await AuthInfo.create({ username: this.getUsername() });
+    originalAuth.handleAliasAndDefaultSettings({ setDefault: false, setDefaultDevHub: false, setTracksSource: value });
   }
 
   /**
@@ -825,9 +877,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (this.isScratch()) {
       return true;
     }
-    const conn = this.getConnection();
     try {
-      await conn.tooling.sobject('SourceMember').describe();
+      await this.getConnection().tooling.sobject('SourceMember').describe();
       return true;
     } catch (err) {
       if ((err as Error).message.includes('The requested resource does not exist')) {
@@ -855,10 +906,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async querySandboxProcessBySandboxInfoId(id: string): Promise<SandboxProcessObject> {
     return await this.querySandboxProcess(`SandboxInfoId='${id}'`);
-    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxInfoId='${id}' AND Status != 'D'`;
-    return await this.connection.singleRecordQuery(queryStr, {
-      tooling: true,
-    });
   }
 
   /**
@@ -1475,6 +1522,11 @@ export namespace Org {
      * The snapshot used to create the scratch org.
      */
     SNAPSHOT = 'snapshot',
+    /**
+     * true: the org supports and wants source tracking
+     * false: the org opted out of tracking or can't support it
+     */
+    TRACKS_SOURCE = 'tracksSource',
 
     // Should it be on org? Leave it off for now, as it might
     // be confusing to the consumer what this actually is.

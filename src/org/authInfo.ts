@@ -89,6 +89,7 @@ export type AuthFields = {
   usernames?: string[];
   userProfileName?: string;
   expirationDate?: string;
+  tracksSource?: boolean;
 };
 
 export type OrgAuthorization = {
@@ -119,6 +120,7 @@ export type AuthSideEffects = {
   alias?: string;
   setDefault: boolean;
   setDefaultDevHub: boolean;
+  setTracksSource?: boolean;
 };
 
 type UserInfo = AnyJson & {
@@ -642,11 +644,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param sideEffects - instance of AuthSideEffects
    */
   public async handleAliasAndDefaultSettings(sideEffects: AuthSideEffects): Promise<void> {
-    if (sideEffects.alias || sideEffects.setDefault || sideEffects.setDefaultDevHub) {
+    if (
+      sideEffects.alias ||
+      sideEffects.setDefault ||
+      sideEffects.setDefaultDevHub ||
+      typeof sideEffects.setTracksSource === 'boolean'
+    ) {
       if (sideEffects.alias) await this.setAlias(sideEffects.alias);
       if (sideEffects.setDefault) await this.setAsDefault({ org: true });
       if (sideEffects.setDefaultDevHub) await this.setAsDefault({ devHub: true });
-      await this.save();
+      if (typeof sideEffects.setTracksSource === 'boolean') {
+        await this.save({ tracksSource: sideEffects.setTracksSource });
+      } else {
+        await this.save();
+      }
     }
   }
 

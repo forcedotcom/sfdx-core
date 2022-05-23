@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual, fail } from 'assert';
 import * as fs from 'fs';
 import { constants as fsConstants } from 'fs';
 import { join as pathJoin } from 'path';
@@ -420,6 +420,80 @@ describe('Org Tests', () => {
         expect(logStub.callCount).to.equal(3);
         // error swallowed
         expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user');
+      });
+    });
+
+    describe('cloneSandbox', () => {
+      let prod: Org;
+      let createStub: sinon.SinonStub;
+      let querySandboxProcessStub: sinon.SinonStub;
+      let pollStatusAndAuthStub: sinon.SinonStub;
+      let devHubQueryStub: sinon.SinonStub;
+
+      const orgId = '0GQ4p000000U6nFGAS';
+
+      beforeEach(async () => {
+        const prodTestData = new MockTestOrgData();
+        prod = await createOrgViaAuthInfo(prodTestData.username);
+        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
+          id: orgId,
+          success: true,
+        });
+        querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves({
+          Id: '00D56000000CDsAKJS',
+        });
+        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
+        devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves({
+          records: [
+            {
+              Id: orgId,
+            },
+          ],
+        });
+
+        // SourceSandbox
+        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
+
+        // reset the history of these stubs so we only look at what happens with `cloneSandbox()`
+        createStub.resetHistory();
+        pollStatusAndAuthStub.resetHistory();
+        querySandboxProcessStub.resetHistory();
+        devHubQueryStub.resetHistory();
+      });
+
+      it('will clone the sandbox given a SandBoxName', async () => {
+        await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+        expect(createStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.calledTwice).to.be.true;
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+      });
+
+      it('fails to get sanboxInfo from tooling.query', async () => {
+        querySandboxProcessStub.restore();
+        devHubQueryStub.restore();
+        devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').throws();
+        try {
+          await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+          fail('the above should throw an error');
+        } catch (e) {
+          expect(devHubQueryStub.calledOnce).to.be.true;
+          expect(createStub.called).to.be.false;
+          expect(pollStatusAndAuthStub.called).to.be.false;
+        }
+      });
+
+      it('when creating sandbox tooling create rejects', async () => {
+        createStub.restore();
+        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').rejects();
+        try {
+          await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+          fail('the above should throw an error');
+        } catch (e) {
+          expect(createStub.calledOnce).to.be.true;
+          expect(querySandboxProcessStub.calledOnce).to.be.true;
+          expect(pollStatusAndAuthStub.called).to.be.false;
+          expect(devHubQueryStub.called).to.be.false;
+        }
       });
     });
 
@@ -927,6 +1001,78 @@ describe('Org Tests', () => {
         expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
         expect(pollStatusAndAuthStub.called).to.be.false;
       }
+    });
+  });
+
+  describe('source tracking detection', () => {
+    it('orgs with property return the property', async () => {
+      $$.configStubs.GlobalInfo.contents = {
+        orgs: {
+          [testData.username]: { tracksSource: false },
+        },
+      };
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      const usesTracking = await org.tracksSource();
+      expect(usesTracking).to.be.false;
+    });
+
+    it('scratch orgs without property return true', async () => {
+      $$.configStubs.GlobalInfo.contents = {
+        orgs: {
+          [testData.username]: { isScratch: true },
+        },
+      };
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      const usesTracking = await org.tracksSource();
+      expect(usesTracking).to.be.true;
+    });
+
+    it('prod orgs without property return false', async () => {
+      $$.configStubs.GlobalInfo.contents = {
+        orgs: {
+          [testData.username]: { isScratch: false },
+        },
+      };
+
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      stubMethod($$.SANDBOX, org, 'determineIfSandbox').resolves(false);
+      stubMethod($$.SANDBOX, org, 'determineIfScratch').resolves(false);
+      const usesTracking = await org.tracksSource();
+      expect(usesTracking).to.be.false;
+    });
+
+    describe('sandboxes without property', () => {
+      it('return true if they support tracking', async () => {
+        $$.configStubs.GlobalInfo.contents = {
+          orgs: {
+            [testData.username]: { isScratch: false },
+          },
+        };
+
+        const org = await Org.create({ aliasOrUsername: testData.username });
+        stubMethod($$.SANDBOX, org, 'determineIfScratch').resolves(false);
+        stubMethod($$.SANDBOX, org, 'determineIfSandbox').resolves(true);
+        stubMethod($$.SANDBOX, org, 'supportsSourceTracking').resolves(true);
+
+        const usesTracking = await org.tracksSource();
+        expect(usesTracking).to.be.true;
+      });
+
+      it("return false if they don't support tracking", async () => {
+        $$.configStubs.GlobalInfo.contents = {
+          orgs: {
+            [testData.username]: { isScratch: false },
+          },
+        };
+
+        const org = await Org.create({ aliasOrUsername: testData.username });
+        stubMethod($$.SANDBOX, org, 'determineIfScratch').resolves(false);
+        stubMethod($$.SANDBOX, org, 'determineIfSandbox').resolves(true);
+        stubMethod($$.SANDBOX, org, 'supportsSourceTracking').resolves(false);
+
+        const usesTracking = await org.tracksSource();
+        expect(usesTracking).to.be.false;
+      });
     });
   });
 });

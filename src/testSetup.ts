@@ -801,6 +801,7 @@ export class MockTestOrgData {
   public authcode: string;
   public accessToken: string;
   public refreshToken: string;
+  public tracksSource: boolean | undefined;
   public userId: string;
   public redirectUri: string;
   public isDevHub?: boolean;
@@ -885,6 +886,7 @@ export class MockTestOrgData {
     config.createdOrgInstance = 'CS1';
     config.created = '1519163543003';
     config.userId = this.userId;
+    config.tracksSource = this.tracksSource;
 
     if (this.devHubUsername) {
       config.devHubUsername = this.devHubUsername;
