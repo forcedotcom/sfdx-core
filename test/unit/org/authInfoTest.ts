@@ -1365,7 +1365,6 @@ describe('AuthInfo', () => {
         },
       });
 
-      expect(pathSpy.calledOnce).to.be.true;
       expect(pathSpy.args[0][0]).to.equal('authInfoTest/jwt/server.key');
     });
 
