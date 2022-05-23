@@ -1364,8 +1364,7 @@ describe('AuthInfo', () => {
           privateKeyFile: 'authInfoTest/jwt/server.key',
         },
       });
-
-      expect(pathSpy.args[0][0]).to.equal('authInfoTest/jwt/server.key');
+      expect(pathSpy.lastCall.args[0]).to.equal('authInfoTest/jwt/server.key');
     });
 
     it('should call the callback with OrgDataNotAvailableError when AuthInfo.init() fails', async () => {
