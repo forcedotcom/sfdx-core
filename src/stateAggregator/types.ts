@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { JsonMap } from '@salesforce/ts-types';
+import { AuthFields } from '../org';
 
 /**
  * @deprecated
@@ -22,12 +23,7 @@ export type SfEntry = JsonMap;
 /**
  * @deprecated
  */
-export type SfOrg = {
-  username: string;
-  orgId: string;
-  instanceUrl: string;
-  accessToken?: string;
-} & SfEntry;
+export type SfOrg = AuthFields & SfEntry;
 
 /**
  * @deprecated

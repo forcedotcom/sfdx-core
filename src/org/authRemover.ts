@@ -6,6 +6,7 @@
  */
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
+import { JsonMap } from '@salesforce/ts-types';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -92,12 +93,12 @@ export class AuthRemover extends AsyncOptionalCreatable {
    *
    * @returns {Record<string, AuthFields>}
    */
-  public findAllAuths(): Record<string, AuthFields> {
+  public findAllAuths(): Record<string, AuthFields & JsonMap> {
     const orgs = this.stateAggregator.orgs.getAll();
     return orgs.reduce((x, y) => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return { ...x, [y.username!]: y };
-    }, {} as Record<string, AuthFields>);
+    }, {} as Record<string, AuthFields & JsonMap>);
   }
 
   protected async init(): Promise<void> {
