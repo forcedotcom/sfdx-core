@@ -9,7 +9,7 @@ import { spyMethod } from '@salesforce/ts-sinon';
 import { assert, expect } from 'chai';
 import { AuthRemover } from '../../../src/org/authRemover';
 import { Config } from '../../../src/config/config';
-import { AliasAccessor } from '../../../src/globalInfo';
+import { AliasAccessor } from '../../../src/stateAggregator';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { AuthFields } from '../../../src/org';

@@ -9,7 +9,7 @@ import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
-import { StateAggregator } from '../globalInfo';
+import { StateAggregator } from '../stateAggregator';
 import { OrgConfigProperties } from './orgConfigProperties';
 import { AuthFields } from '.';
 

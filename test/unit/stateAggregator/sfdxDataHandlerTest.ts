@@ -18,9 +18,9 @@ import {
   SfInfoKeys,
   SandboxesHandler,
   SfOrg,
-} from '../../../src/globalInfo';
+} from '../../../src/stateAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
-import { SfSandbox } from '../../../src/globalInfo';
+import { SfSandbox } from '../../../src/stateAggregator';
 
 describe('SfdxDataHandler', () => {
   let sandbox: sinon.SinonSandbox;

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { GlobalInfo, StateAggregator } from '../../../../src/globalInfo';
+import { GlobalInfo, StateAggregator } from '../../../../src/stateAggregator';
 import { MockTestOrgData, testSetup, uniqid } from '../../../../src/testSetup';
 
 const username1 = 'espresso@coffee.com';

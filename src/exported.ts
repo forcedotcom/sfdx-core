@@ -28,7 +28,7 @@ export {
   SfToken,
   SfTokens,
   StateAggregator,
-} from './globalInfo';
+} from './stateAggregator';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
 

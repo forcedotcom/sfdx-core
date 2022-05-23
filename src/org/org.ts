@@ -35,7 +35,7 @@ import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
-import { StateAggregator } from '../globalInfo';
+import { StateAggregator } from '../stateAggregator';
 import { PollingClient } from '../status/pollingClient';
 import { StatusResult } from '../status/types';
 import { Connection, SingleRecordQueryErrors } from './connection';

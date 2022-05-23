@@ -31,7 +31,7 @@ import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
-import { StateAggregator } from '../globalInfo';
+import { StateAggregator } from '../stateAggregator';
 import { Messages } from '../messages';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';

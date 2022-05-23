@@ -10,7 +10,7 @@ import { Messages } from '../messages';
 import { Logger } from '../logger';
 import { ConfigAggregator } from '../config/configAggregator';
 import { SfProject } from '../sfProject';
-import { GlobalInfo } from '../globalInfo';
+import { GlobalInfo } from '../stateAggregator';
 import { Org } from './org';
 import {
   authorizeScratchOrg,

@@ -6,7 +6,7 @@
  */
 
 import { Optional } from '@salesforce/ts-types';
-import { SfTokens } from '../globalInfo';
+import { SfTokens } from '../stateAggregator';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 

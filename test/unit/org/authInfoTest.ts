@@ -24,7 +24,7 @@ import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
-import { AliasAccessor, OrgAccessor } from '../../../src/globalInfo';
+import { AliasAccessor, OrgAccessor } from '../../../src/stateAggregator';
 import { Crypto } from '../../../src/crypto/crypto';
 import { SfError } from '../../../src/sfError';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';

@@ -34,10 +34,10 @@ import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
-import { GlobalInfo, OrgAccessor, StateAggregator } from './globalInfo';
+import { GlobalInfo, OrgAccessor, StateAggregator } from './stateAggregator';
 import { Global } from './global';
 import { AuthFields, SandboxFields } from './org';
-import { SandboxAccessor } from './globalInfo/accessors/sandboxAccessor';
+import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfAliases } from '../globalInfo';
+import { SfAliases } from '../stateAggregator';
 import { ConfigFile } from './configFile';
 
 export class AliasesConfig extends ConfigFile<ConfigFile.Options, SfAliases> {
