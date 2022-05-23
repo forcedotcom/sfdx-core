@@ -93,7 +93,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   }
 
   public has(username: string): boolean {
-    return this.configs.has(username);
+    return this.contents.has(username);
   }
 
   public async exists(username: string): Promise<boolean> {
@@ -113,8 +113,12 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     const config = this.configs.get(username);
     if (config) {
       config.setContentsFromObject(org);
-      this.contents.set(username, config.getContents() as P);
+      const contents = config.getContents();
+      if (!contents.username) contents.username = username;
+      this.contents.set(username, contents as P);
     } else {
+      // @ts-ignore
+      if (!org.username) org.username = username;
       this.contents.set(username, org);
     }
   }

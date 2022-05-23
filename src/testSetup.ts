@@ -499,7 +499,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
     async function (this: OrgAccessor, username: string): Promise<boolean | undefined> {
       // @ts-expect-error because private member
       if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
-      else Promise.resolve(false);
+      else return Promise.resolve(false);
     }
   );
 
@@ -507,7 +507,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
     async function (this: OrgAccessor, username: string): Promise<boolean | undefined> {
       // @ts-expect-error because private member
       if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
-      else Promise.resolve(false);
+      else return Promise.resolve(false);
     }
   );
 
