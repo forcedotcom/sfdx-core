@@ -1812,6 +1812,7 @@ describe('AuthInfo', () => {
     });
 
     it('should return true', async () => {
+      await $$.stubAuths(new MockTestOrgData());
       const result = await AuthInfo.hasAuthentications();
       expect(result).to.be.equal(true);
     });
