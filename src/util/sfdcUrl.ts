@@ -53,15 +53,6 @@ export class SfdcUrl extends URL {
       return envVarVal;
     }
 
-    if (this.isInternalUrl()) {
-      // This is for internal developers when just doing authorize
-      return this.origin;
-    }
-
-    if (await this.resolvesToSandbox(createdOrgInstance)) {
-      return SfdcUrl.SANDBOX;
-    }
-
     if ((createdOrgInstance && /^gs1/gi.test(createdOrgInstance)) || /(gs1.my.salesforce.com)/gi.test(this.origin)) {
       return 'https://gs1.salesforce.com';
     }
@@ -96,7 +87,7 @@ export class SfdcUrl extends URL {
   /**
    * Tests whether this url is an internal Salesforce domain
    *
-   * @returns {boolean} true if this is a internal domain
+   * @returns {boolean} true if this is an internal domain
    */
   public isInternalUrl(): boolean {
     const INTERNAL_URL_PARTS = [
@@ -181,9 +172,11 @@ export class SfdcUrl extends URL {
   /**
    * Tests whether this url is a sandbox url
    *
+   * @Deprecated - identification of a sandbox instance by URL alone is not deterministic
    * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
    * @returns {boolean}
    */
+  // TODO: how to get rid of this?
   public isSandboxUrl(createdOrgInstance?: string): boolean {
     return (
       (createdOrgInstance && /^cs|s$/gi.test(createdOrgInstance)) ||
@@ -204,25 +197,6 @@ export class SfdcUrl extends URL {
    * @returns {boolean} true if this domain is a lightning domain
    */
   public isLightningDomain(): boolean {
-    return /\.lightning\.force\.com/.test(this.origin);
-  }
-
-  /**
-   * Tests whether this url is a sandbox url
-   * otherwise tries to resolve dns cnames and then look if any is sandbox url
-   *
-   * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
-   * @returns {Promise<boolean>} true if this domain resolves to sanbox url
-   */
-  private async resolvesToSandbox(createdOrgInstance?: string): Promise<boolean> {
-    if (this.isSandboxUrl(createdOrgInstance)) {
-      return true;
-    }
-    const myDomainResolver = await MyDomainResolver.create({ url: this });
-    const cnames: string[] = await myDomainResolver.getCnames();
-    return cnames.some((cname) => {
-      const url = new SfdcUrl(`https://${cname}`);
-      return url.isSandboxUrl();
-    });
+    return /\.lightning\.force\.com/.test(this.origin) || /\.lightning\.crmforce\.mil/.test(this.origin);
   }
 }

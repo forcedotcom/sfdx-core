@@ -26,34 +26,10 @@ describe('getJwtAudienceUrl', () => {
     env.unset('SFDX_AUDIENCE_URL');
   });
 
-  it('return the jwt audicence url for sandbox domains', async () => {
-    const options: OAuth2Config = {
-      loginUrl: 'https://organization.my.salesforce.com',
-    };
-    const url = await getJwtAudienceUrl(options);
-    expect(url).to.be.equal('https://test.salesforce.com');
-  });
-
-  it('return the correct jwt audicence for undefined loginUrl', async () => {
+  it('return the correct jwt audience for undefined loginUrl', async () => {
     const options: OAuth2Config = {};
     const url = await getJwtAudienceUrl(options);
     expect(url).to.be.equal(SfdcUrl.PRODUCTION);
-  });
-
-  it('return the jwt audicence url for internal domains (same)', async () => {
-    const options: OAuth2Config = {
-      loginUrl: 'https://organization.stm.salesforce.com',
-    };
-    const url = await getJwtAudienceUrl(options);
-    expect(url).to.be.equal('https://organization.stm.salesforce.com');
-  });
-
-  it('return the jwt audicence url for sandbox domains', async () => {
-    const options: OAuth2Config = {
-      loginUrl: 'https://organization.sandbox.my.salesforce.com',
-    };
-    const url = await getJwtAudienceUrl(options);
-    expect(url).to.be.equal('https://test.salesforce.com');
   });
 
   it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {

@@ -12,11 +12,10 @@ import { shouldThrow, testSetup } from '../../../src/testSetup';
 import { SfdcUrl } from '../../../src/util/sfdcUrl';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 
-const $$ = testSetup();
-const TEST_IP = '1.1.1.1';
-const TEST_CNAMES = ['login.salesforce.com', 'test.salesforce.com'];
-
 describe('util/sfdcUrl', () => {
+  const $$ = testSetup();
+  const TEST_IP = '1.1.1.1';
+  // const TEST_CNAMES = ['login.salesforce.com', 'test.salesforce.com'];
   describe('isValidUrl', () => {
     it('should return true if given a valid url', () => {
       expect(SfdcUrl.isValidUrl('https://www.salesforce.com')).to.be.true;
@@ -171,29 +170,11 @@ describe('util/sfdcUrl', () => {
   describe('getJwtAudienceUrl', () => {
     const env = new Env();
     before(() => {
-      $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
+      // $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
     });
 
     afterEach(() => {
       env.unset('SFDX_AUDIENCE_URL');
-    });
-
-    it('return the jwt audicence url for sandbox domains', async () => {
-      const url = new SfdcUrl('https://organization.my.salesforce.com');
-      const response = await url.getJwtAudienceUrl();
-      expect(response).to.be.equal('https://test.salesforce.com');
-    });
-
-    it('return the jwt audicence url for internal domains (same)', async () => {
-      const url = new SfdcUrl('https://organization.stm.salesforce.com');
-      const response = await url.getJwtAudienceUrl();
-      expect(response).to.be.equal('https://organization.stm.salesforce.com');
-    });
-
-    it('return the jwt audicence url for sandbox domains', async () => {
-      const url = new SfdcUrl('https://organization.sandbox.my.salesforce.com');
-      const response = await url.getJwtAudienceUrl();
-      expect(response).to.be.equal('https://test.salesforce.com');
     });
 
     it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {

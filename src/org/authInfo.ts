@@ -47,6 +47,7 @@ const messages = Messages.load('@salesforce/core', 'core', [
   'orgDataNotAvailableError.actions',
   'refreshTokenAuthError',
   'jwtAuthError',
+  'jwtAuthErrors',
   'authCodeUsernameRetrievalError',
   'authCodeExchangeError',
 ]);
@@ -889,27 +890,22 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const url = new SfdcUrl(loginUrl);
     const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
     const audienceUrl = await url.getJwtAudienceUrl(createdOrgInstance);
-    const jwtToken = jwt.sign(
-      {
-        iss: options.clientId,
-        sub: this.getUsername(),
-        aud: audienceUrl,
-        exp: Date.now() + 300,
-      },
-      privateKeyContents,
-      {
-        algorithm: 'RS256',
+    let authFieldsBuilder: JsonMap | undefined;
+    const authErrors = [];
+    // given that we can no longer depend on instance names or URls to determine audience, let's try them all
+    const audiences = new Set([audienceUrl, loginUrl, SfdcUrl.SANDBOX, SfdcUrl.PRODUCTION]);
+    for (const audience of audiences) {
+      try {
+        authFieldsBuilder = await this.tryJwtAuth(options.clientId, options.loginUrl, audience, privateKeyContents);
+      } catch (err) {
+        const error = err as Error;
+        const message = error.message.includes('audience') ? `${error.message}-${audience}` : error.message;
+        authErrors.push(message);
       }
-    );
-
-    const oauth2 = new JwtOAuth2({ loginUrl: options.loginUrl });
-    let authFieldsBuilder: JsonMap;
-    try {
-      authFieldsBuilder = ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
-    } catch (err) {
-      throw messages.createError('jwtAuthError', [(err as Error).message]);
     }
-
+    if (!authFieldsBuilder) {
+      throw messages.createError('jwtAuthError', [authErrors.join('\n')]);
+    }
     const authFields: AuthFields = {
       accessToken: asString(authFieldsBuilder.access_token),
       orgId: parseIdUrl(ensureString(authFieldsBuilder.id)).orgId,
@@ -932,6 +928,29 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     return authFields;
+  }
+
+  private async tryJwtAuth(
+    clientId: string | undefined,
+    loginUrl: string | undefined,
+    audienceUrl: string,
+    privateKeyContents: string
+  ): Promise<JsonMap> {
+    const jwtToken = jwt.sign(
+      {
+        iss: clientId,
+        sub: this.getUsername(),
+        aud: audienceUrl,
+        exp: Date.now() + 300,
+      },
+      privateKeyContents,
+      {
+        algorithm: 'RS256',
+      }
+    );
+
+    const oauth2 = new JwtOAuth2({ loginUrl });
+    return ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
   }
 
   // Build OAuth config for a refresh token auth flow

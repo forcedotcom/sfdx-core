@@ -30,7 +30,6 @@ import { validateScratchOrgInfoForResume } from './scratchOrgErrorCodes';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', [
-  'SourceStatusResetFailureError',
   'DurationDaysValidationMaxError',
   'DurationDaysValidationMinError',
   'RetryNotIntError',

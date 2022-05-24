@@ -24,6 +24,12 @@ Due to: %s
 
 Error authenticating with JWT config due to: %s
 
+# jwtAuthErrors
+
+Error authenticating with JWT.
+Errors encountered:
+%s
+
 # refreshTokenAuthError
 
 Error authenticating with the refresh token due to: %s

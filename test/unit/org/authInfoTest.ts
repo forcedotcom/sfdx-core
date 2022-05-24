@@ -9,11 +9,10 @@
 
 import * as dns from 'dns';
 import * as pathImport from 'path';
-import { URL } from 'url';
 import * as fs from 'fs';
-import { cloneJson, Duration, env, includes, set } from '@salesforce/kit';
+import { cloneJson, env, includes, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
-import { AnyFunction, AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
+import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { OAuth2, OAuth2Config } from 'jsforce';
 import { match } from 'sinon';
@@ -28,7 +27,6 @@ import { AliasAccessor, GlobalInfo, OrgAccessor } from '../../../src/globalInfo'
 import { Crypto } from '../../../src/crypto/crypto';
 import { SfError } from '../../../src/sfError';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
-import { MyDomainResolver, SfdcUrl } from '../../../src/exported';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { OrgAuthorization } from '../../../src/org';
 
@@ -692,41 +690,6 @@ describe('AuthInfo', () => {
       } catch (err) {
         expect(err.name).to.equal('JwtAuthError');
       }
-    });
-
-    it('should catch a DNS error and set the instanceUrl when DNS lookup fails', async () => {
-      const username = 'authInfoTest_username_jwt_ERROR2';
-      const jwtConfig = {
-        clientId: testMetadata.clientId,
-        loginUrl: testMetadata.loginUrl,
-        privateKey: 'authInfoTest/jwt/server.key',
-      };
-      const authResponse = {
-        access_token: testMetadata.accessToken,
-        instance_url: testMetadata.instanceUrl.replace('.internal', ''),
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-      };
-
-      // Stub file I/O, http requests, and the DNS lookup
-      readFileStub.returns(Promise.resolve('authInfoTest_private_key'));
-      _postParmsStub.returns(Promise.resolve(authResponse));
-      stubMethod($$.SANDBOX, jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-      stubMethod($$.SANDBOX, MyDomainResolver.prototype, 'getTimeout').returns(Duration.milliseconds(10));
-      stubMethod($$.SANDBOX, dns, 'resolveCname').callsFake((host: string, callback: AnyFunction) => {
-        callback(null, []);
-      });
-      stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string | Error, done: (v: Error) => {}) =>
-        done(new Error('authInfoTest_ERROR_MSG'))
-      );
-      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'lookup').throws(new Error('authInfoTest_ERROR_MSG'));
-      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'resolvesToSandbox').resolves(true);
-      // Create the JWT AuthInfo instance
-      const authInfo = await AuthInfo.create({
-        username,
-        oauth2Options: jwtConfig,
-      });
-
-      expect(authInfo.getConnectionOptions()).to.have.property('instanceUrl', jwtConfig.loginUrl);
     });
 
     //
@@ -1638,163 +1601,6 @@ describe('AuthInfo', () => {
       await authInfo.setAsDefault({ devHub: true });
       expect(configSpy.called).to.be.true;
       expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_DEV_HUB, alias]);
-    });
-  });
-
-  describe('audienceUrl', () => {
-    const sfdxAudienceUrlSetting = process.env.SFDX_AUDIENCE_URL;
-
-    beforeEach(() => {
-      process.env.SFDX_AUDIENCE_URL = '';
-    });
-
-    afterEach(() => {
-      process.env.SFDX_AUDIENCE_URL = sfdxAudienceUrlSetting || '';
-    });
-
-    async function runTest(options: JsonMap, expectedUrl: string) {
-      const context = {
-        getUsername: () => testMetadata.jwtUsername,
-        logger: $$.TEST_LOGGER,
-      };
-      const defaults = {
-        clientId: testMetadata.clientId,
-        loginUrl: testMetadata.loginUrl,
-        privateKey: 'fake/pk',
-      };
-
-      const authResponse = {
-        access_token: testMetadata.accessToken,
-        instance_url: testMetadata.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-      };
-
-      // Stub file I/O, http requests, and the DNS lookup
-      readFileStub.returns(Promise.resolve('audienceUrlTest_privateKey'));
-      _postParmsStub.returns(Promise.resolve(authResponse));
-      const signStub: sinon.SinonStub = stubMethod($$.SANDBOX, jwt, 'sign').returns(
-        Promise.resolve('audienceUrlTest_jwtToken')
-      );
-      stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>
-        done(null, { address: '1.1.1.1', family: 4 })
-      );
-
-      await AuthInfo.prototype['buildJwtConfig'].call(context, Object.assign(defaults, options));
-
-      expect(signStub.firstCall.args[0]).to.have.property('aud', expectedUrl);
-    }
-
-    describe('internal urls', () => {
-      it('should use the correct audience URL for an internal URL (.internal)', async () => {
-        await runTest({ loginUrl: testMetadata.instanceUrl }, testMetadata.instanceUrl);
-      });
-
-      it('should use the correct audience URL for an internal URL (.vpod)', async () => {
-        const vpodUrl = 'https://mydevhub.vpod.salesforce.com';
-        await runTest({ loginUrl: vpodUrl }, vpodUrl);
-      });
-
-      it('should use the correct audience URL for an internal URL (.blitz)', async () => {
-        const blitzUrl = 'https://mydevhub.blitz.salesforce.com';
-        await runTest({ loginUrl: blitzUrl }, blitzUrl);
-      });
-
-      it('should use the correct audience URL for an internal URL (.stm)', async () => {
-        const stmUrl = 'https://mydevhub.stm.salesforce.com';
-        await runTest({ loginUrl: stmUrl }, stmUrl);
-      });
-    });
-
-    describe('sandboxes', () => {
-      it('should use the correct audience URL for a sandbox', async () => {
-        await runTest({ loginUrl: 'https://test.salesforce.com/foo/bar' }, 'https://test.salesforce.com');
-      });
-
-      it('should use the correct audience URL for createdOrgInstance beginning with "cs"', async () => {
-        await runTest({ createdOrgInstance: 'cs17' }, 'https://test.salesforce.com');
-      });
-
-      it('should use the correct audience URL for createdOrgInstance beginning with "CS"', async () => {
-        await runTest({ createdOrgInstance: 'CS17' }, 'https://test.salesforce.com');
-      });
-
-      it('should use the correct audience URL for createdOrgInstance ending with "s"', async () => {
-        await runTest({ createdOrgInstance: 'usa2s' }, 'https://test.salesforce.com');
-      });
-
-      it('should use the correct audience URL for createdOrgInstance capitalized and ending with "s"', async () => {
-        await runTest({ createdOrgInstance: 'IND2S' }, 'https://test.salesforce.com');
-      });
-
-      it('should use the correct audience URL for sandbox enhanced domains', async () => {
-        await runTest(
-          { loginUrl: 'https://customdomain--sandboxname.sandbox.my.salesforce.com' },
-          'https://test.salesforce.com'
-        );
-      });
-
-      it('should use the correct audience URL for scratch orgs with domains', async () => {
-        await runTest({ loginUrl: 'https://cs17.my.salesforce.com' }, 'https://test.salesforce.com');
-      });
-
-      it('should use the correct audience URL for scratch orgs with domains (capitalized)', async () => {
-        await runTest({ loginUrl: 'https://CS17.my.salesforce.com' }, 'https://test.salesforce.com');
-      });
-
-      it('should use the correct audience URL for scratch orgs without domains', async () => {
-        await runTest({ loginUrl: 'https://cs17.salesforce.com' }, 'https://test.salesforce.com');
-      });
-
-      it('should use the correct audience URL for a typical scratch org domain', async () => {
-        await runTest(
-          { loginUrl: 'https://computing-nosoftware-9542-dev-ed.cs77.my.salesforce.com' },
-          'https://test.salesforce.com'
-        );
-      });
-      it('should use the correct audience URL for scratch orgs without domains (capitalized)', async () => {
-        await runTest({ loginUrl: 'https://CS17.salesforce.com' }, 'https://test.salesforce.com');
-      });
-    });
-
-    describe('falcon', () => {
-      it('returns sandbox audience for falcon domains', async () => {
-        await runTest({ loginUrl: 'https://usa2s.sfdc-yfeipo.salesforce.com/' }, 'https://test.salesforce.com');
-      });
-
-      it('returns sandbox audience for falcon domains in india', async () => {
-        await runTest({ loginUrl: 'https://ind2s.sfdc-yfeipo.salesforce.com/' }, 'https://test.salesforce.com');
-      });
-
-      it('returns sandbox audience for weirdly uppercased falcon domains', async () => {
-        await runTest({ loginUrl: 'https://USA2S.sfdc-yfeipo.salesforce.com/' }, 'https://test.salesforce.com');
-      });
-
-      it('returns prod audience for falcon domains', async () => {
-        await runTest({ loginUrl: 'https://usa2.sfdc-yfeipo.salesforce.com/' }, 'https://login.salesforce.com');
-      });
-    });
-
-    it('should use the correct audience URL for SFDX_AUDIENCE_URL env var', async () => {
-      process.env.SFDX_AUDIENCE_URL = 'https://authInfoTest/audienceUrl/test';
-      await runTest({}, process.env.SFDX_AUDIENCE_URL);
-    });
-
-    it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
-      await runTest({ createdOrgInstance: 'gs1' }, 'https://gs1.salesforce.com');
-    });
-
-    it('should use the correct audience URL for production enhanced domains', async () => {
-      await runTest({ loginUrl: 'https://customdomain.my.salesforce.com' }, 'https://login.salesforce.com');
-    });
-    it('should use correct audience url derived from cname in salesforce.com', async () => {
-      const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
-      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'resolvesToSandbox').resolves(true);
-      await runTest({ loginUrl: sandboxNondescriptUrl.toString() }, 'https://test.salesforce.com');
-    });
-    it('should use correct audience url derived from cname in force.com', async () => {
-      const sandboxNondescriptUrl = new URL('https://efficiency-flow-2380-dev-ed.my.salesforce.com');
-      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'resolvesToSandbox').resolves(true);
-      await runTest({ loginUrl: sandboxNondescriptUrl.toString() }, 'https://test.salesforce.com');
     });
   });
 
