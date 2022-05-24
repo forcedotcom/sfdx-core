@@ -18,6 +18,7 @@ import {
   SfInfoKeys,
   SandboxesHandler,
   SfOrg,
+  TokensHandler,
 } from '../../../src/stateAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { SfSandbox } from '../../../src/stateAggregator';
@@ -228,6 +229,7 @@ describe('SfdxDataHandler', () => {
       sandbox.stub(AuthHandler.prototype, 'migrate').resolves(sfdxData);
       sandbox.stub(AliasesHandler.prototype, 'migrate').resolves({ aliases: {} });
       sandbox.stub(SandboxesHandler.prototype, 'migrate').resolves(sfdxData);
+      sandbox.stub(TokensHandler.prototype, 'migrate').resolves({ tokens: sfData.tokens });
 
       const sfdxDataHandler = new SfdxDataHandler();
       const merged = await sfdxDataHandler.merge(sfData);
@@ -244,6 +246,9 @@ describe('SfdxDataHandler', () => {
         }
         if (handler.sfKey === SfInfoKeys.SANDBOXES) {
           return sandbox.stub(handler, 'migrate').resolves({ [SfInfoKeys.SANDBOXES]: {} });
+        }
+        if (handler.sfKey === SfInfoKeys.TOKENS) {
+          return sandbox.stub(handler, 'migrate').resolves({ [SfInfoKeys.TOKENS]: {} });
         }
         return sandbox.stub(handler, 'migrate').resolves({ [handler.sfKey]: {} });
       });
@@ -511,6 +516,74 @@ describe('SandboxesHandler', () => {
       const handler = new SandboxesHandler();
       const sandboxes = await handler.listAllSandboxes();
       expect(sandboxes).to.deep.equal([Object.assign({}, partialSfSandbox, { timestamp: mtime.toISOString() })]);
+    });
+  });
+});
+
+describe('TokensHandler', () => {
+  let sandbox: sinon.SinonSandbox;
+  const username = 'myAccount@salesforce.com';
+  const token = {
+    token: '123',
+    url: 'https://example.salesforce.com',
+    user: username,
+  };
+
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  describe('migrate', () => {
+    it('should migrate tokens from sfdx to sf', async () => {
+      sandbox.stub(fs.promises, 'readFile').resolves(`{ "${username}": ${JSON.stringify(token)} }`);
+      const handler = new TokensHandler();
+      const migrated = await handler.migrate();
+      expect(migrated.tokens).to.deep.equal({ [username]: token });
+    });
+  });
+
+  describe('merge', () => {
+    const timestamp = new Date().toISOString();
+    const auth = {
+      orgId: '12345_SF',
+      accessToken: 'token_12345',
+      username,
+      instanceUrl: 'https://login.salesforce.com',
+    } as SfOrg;
+
+    it('should merge sfdx tokens', async () => {
+      sandbox.stub(fs.promises, 'readFile').resolves(`{ "${username}": ${JSON.stringify(token)} }`);
+      const getContentsStub = sinon.stub().returns(auth);
+
+      sandbox.replace(ConfigFile.prototype, 'getContents', getContentsStub);
+      const sfInfo = {
+        [SfInfoKeys.ORGS]: { [username]: { ...auth, timestamp } },
+        [SfInfoKeys.TOKENS]: { [username]: { ...token, timestamp } },
+        [SfInfoKeys.ALIASES]: {},
+        [SfInfoKeys.SANDBOXES]: {},
+      } as SfInfo;
+      const handler = new TokensHandler();
+      const merged = await handler.merge(sfInfo);
+      expect(merged.tokens).to.deep.equal({ [username]: { ...token, timestamp } });
+    });
+
+    it('should remove token when deleted from sfdx tokens', async () => {
+      sandbox.stub(fs.promises, 'readFile').resolves('{}');
+      const getContentsStub = sinon.stub().returns(auth);
+      sandbox.replace(ConfigFile.prototype, 'getContents', getContentsStub);
+      const sfInfo = {
+        [SfInfoKeys.ORGS]: { [username]: { ...auth, timestamp } },
+        [SfInfoKeys.TOKENS]: { [username]: { ...token, timestamp } },
+        [SfInfoKeys.ALIASES]: {},
+        [SfInfoKeys.SANDBOXES]: {},
+      } as SfInfo;
+      const handler = new TokensHandler();
+      const merged = await handler.merge(sfInfo);
+      expect(merged.tokens).to.deep.equal({});
     });
   });
 });
