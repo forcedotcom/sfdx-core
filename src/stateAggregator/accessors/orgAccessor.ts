@@ -130,7 +130,10 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   }
 
   public async remove(username: string): Promise<void> {
-    return this.configs.get(username)?.unlink();
+    await this.configs.get(username)?.unlink();
+    this.configs.delete(username);
+    this.contents.delete(username);
+    this.files = this.getAllFiles();
   }
 
   public async write(username: string): Promise<Nullable<P>> {
@@ -148,7 +151,13 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   }
 
   private getAllFiles(): string[] {
-    return fs.readdirSync(Global.SFDX_DIR).filter((file) => file.match(this.getFileRegex()));
+    let files: string[];
+    try {
+      files = fs.readdirSync(Global.DIR).filter((file) => file.match(this.getFileRegex()));
+    } catch {
+      files = [];
+    }
+    return files;
   }
 
   protected abstract initAuthFile(username: string, throwOnNotFound?: boolean): Promise<T>;

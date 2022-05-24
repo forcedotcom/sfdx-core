@@ -20,12 +20,10 @@ describe('AliasAccessor', () => {
   const $$ = testSetup();
 
   beforeEach(async () => {
-    $$.setConfigStubContents('AliasesConfig', {
-      contents: {
-        [alias1]: username1,
-        [alias2]: username2,
-        [alias3]: username1,
-      },
+    $$.stubAliases({
+      [alias1]: username1,
+      [alias2]: username2,
+      [alias3]: username1,
     });
 
     $$.setConfigStubContents('TokensConfig', {
@@ -107,29 +105,6 @@ describe('AliasAccessor', () => {
     it('should set an alias for a token', async () => {
       const stateAggregator = await StateAggregator.getInstance();
       stateAggregator.aliases.set('foobar', token);
-      const aliases = stateAggregator.aliases.getAll(token.user);
-      expect(aliases).to.include('foobar');
-    });
-  });
-
-  describe('update', () => {
-    it('should update an alias for a username', async () => {
-      const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.update('foobar', username1);
-      const aliases = stateAggregator.aliases.getAll(username1);
-      expect(aliases).to.include('foobar');
-    });
-
-    it('should update an alias for an org', async () => {
-      const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.set('foobar', await org.getConfig());
-      const aliases = stateAggregator.aliases.getAll(org.username);
-      expect(aliases).to.include('foobar');
-    });
-
-    it('should update an alias for a token', async () => {
-      const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.update('foobar', token);
       const aliases = stateAggregator.aliases.getAll(token.user);
       expect(aliases).to.include('foobar');
     });

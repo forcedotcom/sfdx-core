@@ -17,9 +17,7 @@ describe('TokenAccessor', () => {
   const $$ = testSetup();
 
   beforeEach(async () => {
-    $$.setConfigStubContents('AliasesConfig', {
-      contents: { [alias]: username },
-    });
+    $$.stubAliases({ [alias]: username });
 
     $$.setConfigStubContents('TokensConfig', {
       contents: { [username]: token },

@@ -35,9 +35,10 @@ import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
 import { GlobalInfo, OrgAccessor, StateAggregator } from './stateAggregator';
-import { Global } from './global';
 import { AuthFields, SandboxFields } from './org';
 import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
+import { AliasGroup } from './config/aliasesConfig';
+import { Global } from './global';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -120,7 +121,6 @@ export interface TestContext {
     [configName: string]: Optional<ConfigStub>;
     AliasesConfig?: ConfigStub;
     AuthInfoConfig?: ConfigStub;
-    GlobalInfo?: ConfigStub;
     SfdxConfig?: ConfigStub;
     SfProjectJson?: ConfigStub;
     TokensConfig?: ConfigStub;
@@ -193,6 +193,7 @@ export interface TestContext {
   inProject(inProject: boolean): void;
   stubAuths(...orgs: MockTestOrgData[]): Promise<void>;
   stubSandboxes(...orgs: MockTestSandboxData[]): Promise<void>;
+  stubAliases(aliases: Record<string, string>, group?: AliasGroup): void;
 }
 
 export const uniqid = (): string => {
@@ -353,6 +354,9 @@ export const instantiateContext = (sinon?: any): TestContext => {
       };
 
       this.configStubs.SandboxOrgConfig = { retrieveContents };
+    },
+    stubAliases(aliases: Record<string, string>, group = AliasGroup.ORGS): void {
+      this.configStubs.AliasesConfig = { contents: { [group]: aliases } };
     },
   };
 

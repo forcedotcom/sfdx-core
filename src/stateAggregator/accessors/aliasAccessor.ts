@@ -8,6 +8,7 @@
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
 import { AliasesConfig } from '../../config/aliasesConfig';
+import { ConfigContents } from '../../exported';
 import { SfError } from '../../sfError';
 import { GlobalInfo } from '../globalInfoConfig';
 import { SfAliases, SfOrg, SfInfoKeys, SfToken } from '../types';
@@ -152,15 +153,17 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   /**
    * Returns all the aliases for all the values
    */
-  public getAll(): SfAliases;
+  public getAll(): ConfigContents<string>;
   /**
    * Returns all the aliases for a given entity
    *
    * @param entity the aliasable entity that you want to get the aliases of
    */
   public getAll(entity: Aliasable): string[];
-  public getAll(entity?: Aliasable): string[] | SfAliases {
-    const all = this.config.getContents() || {};
+  public getAll(entity?: Aliasable): string[] | ConfigContents<string> {
+    // This will only return aliases under "orgs". This will need to be modified
+    // if/when we want to support more aliases groups.
+    const all = (this.config.getGroup() || {}) as ConfigContents<string>;
     if (entity) {
       const value = this.getNameOf(entity);
       return Object.entries(all)
@@ -236,16 +239,6 @@ export class AliasAccessor extends AsyncOptionalCreatable {
     this.config.set(alias, this.getNameOf(entity));
   }
 
-  /**
-   * Updates the alias for the given aliasable entity
-   *
-   * @param alias the alias you want to set
-   * @param entity the aliasable entity that's being aliased
-   */
-  public update(alias: string, entity: Aliasable): void {
-    this.config.update(alias, this.getNameOf(entity));
-  }
-
   public unset(alias: string): void {
     this.config.unset(alias);
   }
@@ -260,12 +253,12 @@ export class AliasAccessor extends AsyncOptionalCreatable {
     aliases.forEach((alias) => this.unset(alias));
   }
 
-  public async write(): Promise<SfAliases> {
+  public async write(): Promise<ConfigContents> {
     return this.config.write();
   }
 
   protected async init(): Promise<void> {
-    this.config = await AliasesConfig.create();
+    this.config = await AliasesConfig.create(AliasesConfig.getDefaultOptions());
   }
 
   /**

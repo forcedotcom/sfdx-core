@@ -42,7 +42,7 @@ describe('AuthRemover', () => {
 
     it('should return username if given an alias', async () => {
       const alias = 'MyAlias';
-      $$.setConfigStubContents('AliasesConfig', { contents: { [alias]: username } });
+      $$.stubAliases({ [alias]: username });
       const remover = await AuthRemover.create();
 
       // @ts-ignore because private method
@@ -69,7 +69,7 @@ describe('AuthRemover', () => {
 
     it('should return authorization for provided alias', async () => {
       const alias = 'MyAlias';
-      $$.setConfigStubContents('AliasesConfig', { contents: { [alias]: username } });
+      $$.stubAliases({ [alias]: username });
       const remover = await AuthRemover.create();
       const auth = await remover.findAuth(alias);
       expectPartialDeepMatch(auth, await org.getConfig());
@@ -84,7 +84,7 @@ describe('AuthRemover', () => {
 
     it('should return authorization for target-org (set to alias) if no username is provided', async () => {
       const alias = 'MyAlias';
-      $$.setConfigStubContents('AliasesConfig', { contents: { [alias]: username } });
+      $$.stubAliases({ [alias]: username });
       $$.setConfigStubContents('Config', { contents: { [OrgConfigProperties.TARGET_ORG]: alias } });
       const remover = await AuthRemover.create();
       const auth = await remover.findAuth();
@@ -108,7 +108,7 @@ describe('AuthRemover', () => {
       const configUnsetSpy = spyMethod($$.SANDBOX, Config.prototype, 'unset');
 
       const alias = 'MyAlias';
-      $$.setConfigStubContents('AliasesConfig', { contents: { [alias]: username } });
+      $$.stubAliases({ [alias]: username });
       $$.setConfigStubContents('Config', {
         contents: { [OrgConfigProperties.TARGET_ORG]: alias, [OrgConfigProperties.TARGET_DEV_HUB]: alias },
       });
@@ -137,7 +137,8 @@ describe('AuthRemover', () => {
       const aliasesSpy = spyMethod($$.SANDBOX, AliasAccessor.prototype, 'unset');
       const alias1 = 'MyAlias';
       const alias2 = 'MyOtherAlias';
-      $$.setConfigStubContents('AliasesConfig', { contents: { [alias1]: username, [alias2]: username } });
+      $$.stubAliases({ [alias1]: username, [alias2]: username });
+
       const remover = await AuthRemover.create();
       // @ts-ignore because private member
       await remover.unsetAliases(username);

@@ -5,15 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfAliases } from '../stateAggregator';
-import { ConfigFile } from './configFile';
+import { ConfigGroup } from './configGroup';
+import { ConfigContents, ConfigValue } from './configStore';
 
-export class AliasesConfig extends ConfigFile<ConfigFile.Options, SfAliases> {
-  public static getDefaultOptions(): ConfigFile.Options {
-    return {
-      isGlobal: true, // Only allow global auth files
-      isState: true,
-      filename: 'alias.json',
-    };
+/**
+ * Different groups of aliases. Currently only support orgs.
+ */
+export enum AliasGroup {
+  ORGS = 'orgs',
+}
+
+export class AliasesConfig extends ConfigGroup<ConfigGroup.Options> {
+  public static getDefaultOptions(): ConfigGroup.Options {
+    return { ...ConfigGroup.getOptions(AliasGroup.ORGS, 'alias.json'), isGlobal: true, isState: true };
+  }
+
+  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
+    contents[key] = value;
   }
 }

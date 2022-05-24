@@ -63,6 +63,13 @@ export class Global {
   }
 
   /**
+   * The full system path to the peferred global state folder
+   */
+  public static get DIR() {
+    return path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
+  }
+
+  /**
    * The full system path to the global log file.
    */
   public static readonly LOG_FILE_PATH: string = path.join(Global.SF_DIR, 'sf.log');

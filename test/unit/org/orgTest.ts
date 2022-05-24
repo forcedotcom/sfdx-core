@@ -95,7 +95,7 @@ describe('Org Tests', () => {
       delete config.username;
       const alias = 'foo';
       $$.setConfigStubContents('AuthInfoConfig', { contents: config });
-      $$.setConfigStubContents('AliasesConfig', { contents: { [alias]: testData.username } });
+      $$.stubAliases({ [alias]: testData.username });
       const org = await Org.create({ aliasOrUsername: alias });
       expect(org.getUsername()).to.eq(testData.username);
     });

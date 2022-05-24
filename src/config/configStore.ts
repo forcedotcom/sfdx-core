@@ -34,7 +34,7 @@ export type ConfigEntry = [string, ConfigValue];
 /**
  * The type of content a config stores.
  */
-export type ConfigContents = Dictionary<ConfigValue>;
+export type ConfigContents<T = ConfigValue> = Dictionary<T>;
 
 export type Key<P extends ConfigContents> = Extract<keyof P, string>;
 
