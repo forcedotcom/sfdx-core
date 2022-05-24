@@ -124,8 +124,8 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   }
 
   public update(username: string, org: Partial<P> & JsonMap): void {
-    const existing = this.get(username);
-    const merged = Object.assign({}, existing || {}, org) as P;
+    const existing = this.get(username) || {};
+    const merged = Object.assign({}, existing, org) as P;
     return this.set(username, merged);
   }
 
@@ -141,8 +141,8 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     if (config) {
       return (await config.write()) as P;
     } else {
+      const contents = this.contents.get(username) || {};
       await this.read(username);
-      const contents = this.contents.get(username) ?? {};
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const config = this.configs.get(username)!;
       config.setContentsFromObject(contents);
