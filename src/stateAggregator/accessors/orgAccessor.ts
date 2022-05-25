@@ -37,13 +37,13 @@ export class GlobalInfoOrgAccessor {
 
   public set(username: string, org: SfOrg): void {
     // For legacy, and to keep things standard, some things wants the username in auth info.
-    if (!org.username) org.username = username;
+    org.username ??= username;
     this.globalInfo.set(`${SfInfoKeys.ORGS}["${username}"]`, org);
   }
 
   public update(username: string, org: Partial<SfOrg>): void {
     // For legacy, and to keep things standard, some things wants the username in auth info.
-    if (!org.username) org.username = username;
+    org.username ??= username;
     this.globalInfo.update(`${SfInfoKeys.ORGS}["${username}"]`, org);
   }
 
@@ -114,11 +114,11 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     if (config) {
       config.setContentsFromObject(org);
       const contents = config.getContents();
-      if (!contents.username) contents.username = username;
+      contents.username ??= username;
       this.contents.set(username, contents as P);
     } else {
       // @ts-ignore
-      if (!org.username) org.username = username;
+      org.username ??= username;
       this.contents.set(username, org);
     }
   }
@@ -151,13 +151,11 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   }
 
   private getAllFiles(): string[] {
-    let files: string[];
     try {
-      files = fs.readdirSync(Global.DIR).filter((file) => file.match(this.getFileRegex()));
+      return fs.readdirSync(Global.DIR).filter((file) => file.match(this.getFileRegex()));
     } catch {
-      files = [];
+      return [];
     }
-    return files;
   }
 
   protected abstract initAuthFile(username: string, throwOnNotFound?: boolean): Promise<T>;
