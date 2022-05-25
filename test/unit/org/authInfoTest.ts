@@ -297,7 +297,7 @@ describe('AuthInfo', () => {
     // Spies
     authInfoInit = spyMethod($$.SANDBOX, AuthInfo.prototype, 'initAuthOptions');
     authInfoUpdate = spyMethod($$.SANDBOX, AuthInfo.prototype, 'update');
-    authInfoBuildJwtConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildJwtConfig');
+    authInfoBuildJwtConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'authJwt');
     authInfoBuildRefreshTokenConfig = spyMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig');
     authInfoExchangeToken = spyMethod($$.SANDBOX, AuthInfo.prototype, 'exchangeToken');
   });
@@ -592,7 +592,7 @@ describe('AuthInfo', () => {
         ).to.equal(1);
         // expect(readFileStub.called).to.be.true;
 
-        // Verify the jwtConfig object was not mutated by init() or buildJwtConfig()
+        // Verify the jwtConfig object was not mutated by init() or authJwt()
         expect(jwtConfig).to.deep.equal(jwtConfigClone);
 
         const expectedAuthConfig = {
@@ -686,7 +686,7 @@ describe('AuthInfo', () => {
       // Create the JWT AuthInfo instance
       try {
         await AuthInfo.create({ username, oauth2Options: jwtConfig });
-        assert.fail('should have thrown an error within AuthInfo.buildJwtConfig()');
+        assert.fail('should have thrown an error within AuthInfo.authJwt()');
       } catch (err) {
         expect(err.name).to.equal('JwtAuthError');
       }
@@ -1322,7 +1322,7 @@ describe('AuthInfo', () => {
       const pathSpy = $$.SANDBOX.spy(pathImport, 'resolve');
 
       authInfoBuildJwtConfig.restore();
-      stubMethod($$.SANDBOX, AuthInfo.prototype, 'buildJwtConfig').resolves({
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'authJwt').resolves({
         instanceUrl: '',
         accessToken: '',
       });

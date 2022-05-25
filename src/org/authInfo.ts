@@ -47,9 +47,9 @@ const messages = Messages.load('@salesforce/core', 'core', [
   'orgDataNotAvailableError.actions',
   'refreshTokenAuthError',
   'jwtAuthError',
-  'jwtAuthErrors',
   'authCodeUsernameRetrievalError',
   'authCodeExchangeError',
+  'missingClientId',
 ]);
 
 // These should these be brought into jsforce, especially all the jwt stuff.
@@ -813,7 +813,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         }
 
         if (options.privateKey) {
-          authConfig = await this.buildJwtConfig(options);
+          authConfig = await this.authJwt(options);
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
           authConfig = await this.buildRefreshTokenConfig(options);
@@ -884,7 +884,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a JWT auth flow
-  private async buildJwtConfig(options: OAuth2Config): Promise<AuthFields> {
+  private async authJwt(options: OAuth2Config): Promise<AuthFields> {
+    if (!options.clientId) {
+      throw messages.createError('missingClientId');
+    }
     const privateKeyContents = await fs.promises.readFile(ensure(options.privateKey), 'utf8');
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
@@ -896,7 +899,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const audiences = new Set([audienceUrl, loginUrl, SfdcUrl.SANDBOX, SfdcUrl.PRODUCTION]);
     for (const audience of audiences) {
       try {
-        authFieldsBuilder = await this.tryJwtAuth(options.clientId, options.loginUrl, audience, privateKeyContents);
+        authFieldsBuilder = await this.tryJwtAuth(options.clientId, loginUrl, audience, privateKeyContents);
+        break;
       } catch (err) {
         const error = err as Error;
         const message = error.message.includes('audience') ? `${error.message}-${audience}` : error.message;
@@ -931,8 +935,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   private async tryJwtAuth(
-    clientId: string | undefined,
-    loginUrl: string | undefined,
+    clientId: string,
+    loginUrl: string,
     audienceUrl: string,
     privateKeyContents: string
   ): Promise<JsonMap> {
