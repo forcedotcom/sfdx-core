@@ -45,6 +45,11 @@ export class Global {
   public static readonly SF_STATE_FOLDER = '.sf';
 
   /**
+   * The peferred global folder in which state is stored.
+   */
+  public static readonly STATE_FOLDER = Global.SFDX_STATE_FOLDER;
+
+  /**
    * The full system path to the global sfdx state folder.
    *
    * **See** {@link Global.SFDX_STATE_FOLDER}
