@@ -348,7 +348,7 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_ORG_MAX_QUERY_LIMIT]: {
     description: getMessage(EnvironmentVariable.SF_ORG_MAX_QUERY_LIMIT),
-    synonymOf: null,
+    synonymOf: EnvironmentVariable.SFDX_MAX_QUERY_LIMIT,
   },
   [EnvironmentVariable.SF_MDAPI_TEMP_DIR]: {
     description: getMessage(EnvironmentVariable.SF_MDAPI_TEMP_DIR),
