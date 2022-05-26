@@ -41,6 +41,7 @@ import { sfdc } from '../util/sfdc';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
 import { AuthFields, AuthInfo } from './authInfo';
+import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'connection', [
@@ -405,7 +406,8 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   ): Promise<QueryResult<T>> {
     const config: ConfigAggregator = await ConfigAggregator.create();
     // take the limit from the calling function, then the config, then default 10,000
-    const maxFetch: number = (config.getInfo('org-max-query-limit').value as number) || queryOptions.maxFetch || 10000;
+    const maxFetch: number =
+      (config.getInfo(OrgConfigProperties.ORG_MAX_QUERY_LIMIT).value as number) || queryOptions.maxFetch || 10000;
 
     const options: Partial<QueryOptions> = Object.assign(queryOptions, {
       autoFetch: true,

@@ -348,7 +348,7 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_ORG_MAX_QUERY_LIMIT]: {
     description: getMessage(EnvironmentVariable.SF_ORG_MAX_QUERY_LIMIT),
-    synonymOf: null,
+    synonymOf: EnvironmentVariable.SFDX_MAX_QUERY_LIMIT,
   },
   [EnvironmentVariable.SF_MDAPI_TEMP_DIR]: {
     description: getMessage(EnvironmentVariable.SF_MDAPI_TEMP_DIR),
@@ -412,27 +412,20 @@ export class EnvVars extends Env {
     this.resolve();
   }
 
-  private static defaultPrefix(): string | undefined {
+  public static propertyToEnvName(property: string, prefix = EnvVars.defaultPrefix()): string {
+    return `${prefix || ''}${snakeCase(property).toUpperCase()}`;
+  }
+
+  private static defaultPrefix(): string {
     if (process.argv[0].startsWith('sfdx')) return 'SFDX_';
     if (process.argv[0].startsWith('sf')) return 'SF_';
     return 'SFDX_';
   }
 
-  public propertyToEnvName(property: string, prefix = EnvVars.defaultPrefix()): string {
-    return `${prefix || ''}${snakeCase(property).toUpperCase()}`;
-  }
-
-  public setPropertyFromEnv(property: string, prefix = EnvVars.defaultPrefix()): void {
-    const envName = this.propertyToEnvName(property, prefix);
-    const value = this.getString(envName);
-    if (value) {
-      this.setString(property, value);
-    }
-  }
-
-  public getPropertyFromEnv<T>(property: string, prefix = EnvVars.defaultPrefix()): T | undefined {
-    const envName = this.propertyToEnvName(property, prefix);
-    return this.get(envName);
+  public getPropertyFromEnv<T>(property: string, prefix = EnvVars.defaultPrefix()): Nullable<T> {
+    const envName = EnvVars.propertyToEnvName(property, prefix);
+    const synonym = SUPPORTED_ENV_VARS[envName as EnvironmentVariable]?.synonymOf;
+    return this.get(envName) || this.get(synonym as string);
   }
 
   public asDictionary(): Dictionary<unknown> {
