@@ -15,6 +15,7 @@ import {
   asString,
   ensure,
   getString,
+  getNumber,
   isString,
   JsonCollection,
   JsonMap,
@@ -412,19 +413,25 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       maxFetch,
     });
 
-    const query = await this.query<T>(soql, options);
+    const records: T[] = [];
 
-    if (query.records.length && query.totalSize > query.records.length) {
+    const query = await this.query<T>(soql, options).on('record', (rec) => records.push(rec));
+
+    const totalSize = getNumber(query, 'totalSize', 0);
+
+    if (records.length && totalSize > records.length) {
       void Lifecycle.getInstance().emitWarning(
         `The query result is missing ${
-          query.totalSize - query.records.length
-        } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${
-          query.totalSize
-        } or greater than ${maxFetch}.`
+          totalSize - query.records.length
+        } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${totalSize} or greater than ${maxFetch}.`
       );
     }
 
-    return query;
+    return {
+      done: true,
+      totalSize,
+      records,
+    };
   }
 
   /**
