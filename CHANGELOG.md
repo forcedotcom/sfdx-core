@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.19.1](https://github.com/forcedotcom/sfdx-core/compare/v3.19.0...v3.19.1) (2022-05-27)
+
+### Bug Fixes
+
+- env var resolution in ConfigAggregator ([#590](https://github.com/forcedotcom/sfdx-core/issues/590)) ([a65cfbd](https://github.com/forcedotcom/sfdx-core/commit/a65cfbdd0e2a6c3806aa4da3270b237f68b37133))
+
 ## [3.19.0](https://github.com/forcedotcom/sfdx-core/compare/v3.18.3...v3.19.0) (2022-05-20)
 
 ### Features
