@@ -11,15 +11,14 @@ import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgConfigProperties } from '../../../src/exported';
 import { testSetup } from '../../../src/testSetup';
-import { Cache } from '../../../src/util/cache';
 
 // Setup the test environment.
 const $$ = testSetup();
+const testEnvVars = ['SF_TARGET_ORG', 'SFDX_MAX_QUERY_LIMIT'];
 
 describe('ConfigAggregator', () => {
   let id: string;
   beforeEach(() => {
-    Cache.instance().clear();
     // Testing config functionality, so restore global stubs.
     $$.SANDBOXES.CONFIG.restore();
 
@@ -33,26 +32,32 @@ describe('ConfigAggregator', () => {
   });
 
   afterEach(() => {
-    delete process.env.SFDX_TARGET_ORG;
-    delete process.env['target-org'];
+    for (const envVar of testEnvVars) {
+      delete process.env[envVar];
+    }
   });
 
   describe('instantiation', () => {
     it('creates local and global config', async () => {
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      const aggregator = await ConfigAggregator.create();
       expect(aggregator.getLocalConfig()).to.be.exist;
       expect(aggregator.getGlobalConfig()).to.be.exist;
     });
 
     it('converts env vars', async () => {
-      process.env.SFDX_TARGET_ORG = 'test';
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      process.env.SF_TARGET_ORG = 'test';
+      const aggregator = await ConfigAggregator.create();
       expect(aggregator.getPropertyValue(OrgConfigProperties.TARGET_ORG)).to.equal('test');
     });
 
+    it('converts env var synonyms (sfdx -> sf)', async () => {
+      process.env.SFDX_MAX_QUERY_LIMIT = '5';
+      const aggregator = await ConfigAggregator.create();
+      expect(aggregator.getPropertyValue(OrgConfigProperties.ORG_MAX_QUERY_LIMIT)).to.equal('5');
+    });
+
     it('constructor creates local and global config', async () => {
-      // @ts-expect-error because private method
-      const aggregator: ConfigAggregator = ConfigAggregator.getInstance();
+      const aggregator = await ConfigAggregator.create();
       expect(aggregator.getLocalConfig()).to.be.exist;
       expect(aggregator.getGlobalConfig()).to.be.exist;
     });
@@ -88,7 +93,7 @@ describe('ConfigAggregator', () => {
     });
 
     // @ts-expect-error because private method
-    const aggregator: ConfigAggregator = ConfigAggregator.getInstance();
+    const aggregator = ConfigAggregator.getInstance();
     expect(aggregator.getInfo('org-isv-debugger-sid').value).to.equal('encrypted');
     await aggregator.reload();
     expect(aggregator.getInfo('org-isv-debugger-sid').value).to.equal('decrypted');
@@ -103,13 +108,13 @@ describe('ConfigAggregator', () => {
       });
     });
     it('local overrides global', async () => {
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      const aggregator = await ConfigAggregator.create();
       expect(aggregator.getPropertyValue(OrgConfigProperties.TARGET_ORG)).to.equal(1);
     });
 
     it('env overrides local and global', async () => {
-      process.env.SFDX_TARGET_ORG = 'test';
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      process.env.SF_TARGET_ORG = 'test';
+      const aggregator = await ConfigAggregator.create();
       expect(aggregator.getPropertyValue(OrgConfigProperties.TARGET_ORG)).to.equal('test');
     });
   });
@@ -127,7 +132,7 @@ describe('ConfigAggregator', () => {
         }
         return Promise.resolve();
       });
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      const aggregator = await ConfigAggregator.create();
       expect(aggregator.getLocation(OrgConfigProperties.TARGET_ORG)).to.equal('Local');
     });
 
@@ -143,13 +148,13 @@ describe('ConfigAggregator', () => {
         }
         return Promise.resolve();
       });
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      const aggregator = await ConfigAggregator.create();
       expect(aggregator.getLocation(OrgConfigProperties.TARGET_ORG)).to.equal('Global');
     });
 
     it('env', async () => {
-      process.env.SFDX_TARGET_ORG = 'test';
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      process.env.SF_TARGET_ORG = 'test';
+      const aggregator = await ConfigAggregator.create();
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       $$.SANDBOX.stub(fs, 'readFile').callsFake(async (path: string) => {
         if (path) {
@@ -165,10 +170,10 @@ describe('ConfigAggregator', () => {
     });
 
     it('configInfo with env', async () => {
-      process.env.SFDX_TARGET_ORG = 'test';
+      process.env.SF_TARGET_ORG = 'test';
       $$.SANDBOX.stub(fs, 'readFile').resolves({});
 
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      const aggregator = await ConfigAggregator.create();
       const info = aggregator.getConfigInfo()[0];
       expect(info.key).to.equal('target-org');
       expect(info.value).to.equal('test');
@@ -178,7 +183,7 @@ describe('ConfigAggregator', () => {
     it('configInfo ignores invalid entries', async () => {
       $$.SANDBOX.stub(fs.promises, 'readFile').resolves('{ "invalid": "entry", "org-api-version": 49.0 }');
 
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
+      const aggregator = await ConfigAggregator.create();
       const info = aggregator.getConfigInfo()[0];
       expect(info.key).to.equal('org-api-version');
       expect(info.value).to.equal(49.0);
