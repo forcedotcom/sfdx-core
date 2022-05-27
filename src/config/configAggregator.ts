@@ -81,7 +81,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   private allowedProperties!: ConfigPropertyMeta[];
   private localConfig?: Config;
   private globalConfig: Config;
-  private envVars!: EnvVars;
+  private envVars: Dictionary<string> = {};
 
   private get config(): JsonMap {
     return this.resolveProperties(this.globalConfig.getContents(), this.localConfig && this.localConfig.getContents());
@@ -172,7 +172,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    */
   public getPropertyValue<T extends AnyJson>(key: string): Optional<T> {
     if (this.getAllowedProperties().some((element) => key === element.key)) {
-      return (this.getConfig()[key] as T) || (this.getEnvVars().get(key) as T);
+      return this.getConfig()[key] as T;
     } else {
       throw messages.createError('unknownConfigKey', [key]);
     }
@@ -230,7 +230,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * @param key The key of the property.
    */
   public getLocation(key: string): Optional<ConfigAggregator.Location> {
-    if (this.getEnvVars().get(key) != null) {
+    if (this.envVars[key] != null) {
       return ConfigAggregator.Location.ENVIRONMENT;
     }
     if (this.localConfig && this.localConfig.get(key)) {
@@ -256,8 +256,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * @param key The key of the property.
    */
   public getPath(key: string): Optional<string> {
-    if (this.envVars.getString(key) != null) {
-      return `$${this.envVars.propertyToEnvName(key)}`;
+    if (this.envVars[key] != null) {
+      return `$${EnvVars.propertyToEnvName(key)}`;
     }
     if (this.localConfig && this.localConfig.getContents()[key] != null) {
       return this.localConfig.getPath();
@@ -310,8 +310,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   /**
    * Get the config properties that are environment variables.
    */
-  public getEnvVars(): Map<string, string> {
-    return this.envVars.asMap();
+  public getEnvVars(): Dictionary<string> {
+    return this.envVars;
   }
 
   /**
@@ -365,10 +365,11 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   }
 
   private resolveProperties(globalConfig: JsonMap, localConfig?: JsonMap): JsonMap {
-    this.envVars = new EnvVars();
-
+    const envVars = new EnvVars();
     for (const property of this.getAllowedProperties()) {
-      this.envVars.setPropertyFromEnv(property.key);
+      const key = property.newKey ? property.newKey : property.key;
+      const value = envVars.getPropertyFromEnv(property.key);
+      if (value) this.envVars[key] = value as string;
     }
 
     // Global config must be read first so it is on the left hand of the
@@ -381,7 +382,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
       configs.push(localConfig);
     }
 
-    configs.push(this.envVars.asDictionary() as Dictionary<string>);
+    configs.push(this.envVars);
 
     const json: JsonMap = {};
     const reduced = configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
