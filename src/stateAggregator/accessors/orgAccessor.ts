@@ -61,10 +61,14 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     this.files = this.getAllFiles();
   }
 
-  public async read(username: string, decrypt = false, throwOnNotFound = false): Promise<P> {
-    const config = await this.initAuthFile(username, throwOnNotFound);
-    this.configs.set(username, config);
-    return this.get(username, decrypt) as P;
+  public async read(username: string, decrypt = false, throwOnNotFound = true): Promise<P> {
+    try {
+      const config = await this.initAuthFile(username, throwOnNotFound);
+      this.configs.set(username, config);
+      return this.get(username, decrypt) as P;
+    } catch {
+      return {} as P;
+    }
   }
 
   public async readAll(decrypt = false): Promise<P[]> {

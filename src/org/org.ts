@@ -1143,14 +1143,14 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * this Org. You don't want to call this method directly. Instead consider calling Org.remove()
    */
   private async removeAuth(): Promise<void> {
-    const config = await StateAggregator.getInstance();
+    const stateAggregator = await StateAggregator.getInstance();
     const username = this.getUsername();
     // If there is no username, it has already been removed from the globalInfo.
     // We can skip the unset and just ensure that globalInfo is updated.
     if (username) {
       this.logger.debug(`Removing auth for user: ${username}`);
       this.logger.debug(`Clearing auth cache for user: ${username}`);
-      await config.orgs.remove(username);
+      await stateAggregator.orgs.remove(username);
     }
   }
 
