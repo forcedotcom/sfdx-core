@@ -357,7 +357,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * Getter for the AuthInfo fields.
    */
   public getAuthInfoFields(): AuthFields {
-    // If the GlobalInfo.unsetOrg is called, the AuthFields are no longer accessible.
+    // If the StateAggregator.orgs.remove is called, the AuthFields are no longer accessible.
     return this.options.authInfo.getFields() || {};
   }
 

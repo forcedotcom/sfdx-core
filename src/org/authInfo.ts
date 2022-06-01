@@ -306,7 +306,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           instanceUrl,
           isScratchOrg: Boolean(devHubUsername),
           isDevHub: isDevHub || false,
-          isSandbox: stateAggregator.sandboxes.has(orgId as string),
+          isSandbox: stateAggregator.sandboxes.hasFile(orgId as string),
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',

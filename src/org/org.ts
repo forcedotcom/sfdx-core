@@ -411,7 +411,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    *
    */
   public async isSandbox(): Promise<boolean> {
-    return (await StateAggregator.getInstance()).sandboxes.has(this.getOrgId());
+    return (await StateAggregator.getInstance()).sandboxes.hasFile(this.getOrgId());
   }
   /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
@@ -1235,7 +1235,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       )}`
     );
     if (sandboxRes.authUserName) {
-      const productionAuthFields: AuthFields = this.connection.getAuthInfoFields();
+      const productionAuthFields = this.connection.getAuthInfoFields();
       this.logger.debug('Result from getAuthInfoFields: AuthFields', productionAuthFields);
 
       // let's do headless auth via jwt (if we have privateKey) or web auth
@@ -1271,13 +1271,15 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       // save auth info for new sandbox
       await authInfo.save();
 
-      if (!authInfo.getFields().orgId) {
+      const sandboxOrgId = authInfo.getFields().orgId as string;
+
+      if (!sandboxOrgId) {
         throw messages.createError('AuthInfoOrgIdUndefined');
       }
       // set the sandbox config value
       const sfSandbox = {
         sandboxUsername: sandboxRes.authUserName,
-        sandboxOrgId: authInfo.getFields().orgId,
+        sandboxOrgId,
         prodOrgUsername: this.getUsername(),
         sandboxName: sandboxProcessObj.SandboxName,
         sandboxProcessId: sandboxProcessObj.Id,
@@ -1285,8 +1287,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         timestamp: new Date().toISOString(),
       } as SandboxFields;
 
-      await this.setSandboxConfig(authInfo.getFields().orgId as string, sfSandbox);
-      (await StateAggregator.getInstance()).sandboxes.write(this.getUsername() as string);
+      await this.setSandboxConfig(sandboxOrgId, sfSandbox);
+      (await StateAggregator.getInstance()).sandboxes.write(sandboxOrgId);
 
       await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESULT, {
         sandboxProcessObj,

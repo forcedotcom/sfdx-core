@@ -7,6 +7,7 @@
 
 import * as fs from 'fs';
 import { JsonMap, Nullable, Optional } from '@salesforce/ts-types';
+import { isEmpty } from '@salesforce/kit';
 import { AuthInfoConfig } from '../../config/authInfoConfig';
 import { Global } from '../../global';
 import { GlobalInfo } from '../globalInfoConfig';
@@ -66,7 +67,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
       const config = await this.initAuthFile(username, throwOnNotFound);
       this.configs.set(username, config);
       return this.get(username, decrypt) as P;
-    } catch {
+    } catch (err) {
       return {} as P;
     }
   }
@@ -92,7 +93,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   public getAll(decrypt = false): P[] {
     return [...this.configs.keys()].reduce((orgs, username) => {
       const org = this.get(username, decrypt);
-      return org ? orgs.concat([org]) : orgs;
+      return org && !isEmpty(org) ? orgs.concat([org]) : orgs;
     }, [] as P[]);
   }
 
@@ -146,7 +147,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
       return (await config.write()) as P;
     } else {
       const contents = this.contents.get(username) || {};
-      await this.read(username);
+      await this.read(username, false, false);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const config = this.configs.get(username)!;
       config.setContentsFromObject(contents);
