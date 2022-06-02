@@ -134,12 +134,12 @@ describe('OrgAccessor', () => {
   describe('hasFile', () => {
     it('should return true if an auth file exists in the state directory', async () => {
       const stateAggregator = await StateAggregator.getInstance();
-      expect(stateAggregator.orgs.hasFile(username)).to.be.true;
+      expect(await stateAggregator.orgs.hasFile(username)).to.be.true;
     });
 
     it('should return false if an auth file does not exist in the state directory', async () => {
       const stateAggregator = await StateAggregator.getInstance();
-      expect(stateAggregator.orgs.hasFile('DOES_NOT_EXIST')).to.be.false;
+      expect(await stateAggregator.orgs.hasFile('DOES_NOT_EXIST')).to.be.false;
     });
   });
 
@@ -160,7 +160,7 @@ describe('OrgAccessor', () => {
   describe('list', () => {
     it('should return a list of auth file names', async () => {
       const stateAggregator = await StateAggregator.getInstance();
-      expect(stateAggregator.orgs.list()).to.deep.equal([`${username}.json`]);
+      expect(await stateAggregator.orgs.list()).to.deep.equal([`${username}.json`]);
     });
   });
 });

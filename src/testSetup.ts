@@ -331,6 +331,10 @@ export const instantiateContext = (sinon?: any): TestContext => {
         [...orgMap.keys()].map((o) => `${o}.json`)
       );
 
+      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'hasFile').callsFake((username: string) => {
+        return orgMap.has(username);
+      });
+
       const retrieveContents = async function (this: { path: string }): Promise<AuthFields> {
         const username = basename(this.path.replace('.json', ''));
         return Promise.resolve(orgMap.get(username) ?? {});

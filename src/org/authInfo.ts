@@ -306,7 +306,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           instanceUrl,
           isScratchOrg: Boolean(devHubUsername),
           isDevHub: isDevHub || false,
-          isSandbox: stateAggregator.sandboxes.hasFile(orgId as string),
+          isSandbox: await stateAggregator.sandboxes.hasFile(orgId as string),
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
@@ -338,7 +338,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public static async hasAuthentications(): Promise<boolean> {
     try {
-      const auths = (await StateAggregator.getInstance()).orgs.list();
+      const auths = await (await StateAggregator.getInstance()).orgs.list();
       return !isEmpty(auths);
     } catch (err) {
       const error = err as SfError;
@@ -718,7 +718,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // If a username AND oauth options, ensure an authorization for the username doesn't
     // already exist. Throw if it does so we don't overwrite the authorization.
     if (username && authOptions) {
-      if (this.stateAggregator.orgs.hasFile(username)) {
+      if (await this.stateAggregator.orgs.hasFile(username)) {
         throw messages.createError('authInfoOverwriteError');
       }
     }

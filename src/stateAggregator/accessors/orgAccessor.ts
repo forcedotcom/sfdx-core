@@ -56,11 +56,6 @@ export class GlobalInfoOrgAccessor {
 export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigContents> {
   private configs: Map<string, Nullable<T>> = new Map();
   private contents: Map<string, P> = new Map();
-  private files: string[];
-
-  public constructor() {
-    this.files = this.getAllFiles();
-  }
 
   public async read(username: string, decrypt = false, throwOnNotFound = true): Promise<P> {
     try {
@@ -73,7 +68,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   }
 
   public async readAll(decrypt = false): Promise<P[]> {
-    for (const file of this.files) {
+    for (const file of await this.getAllFiles()) {
       const username = this.parseUsername(file);
       const config = await this.initAuthFile(username);
       this.configs.set(username, config);
@@ -106,12 +101,17 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     return config ? await config.exists() : false;
   }
 
-  public hasFile(username: string): boolean {
-    return Boolean(this.files.find((f) => this.parseUsername(f) === username));
+  public async hasFile(username: string): Promise<boolean> {
+    try {
+      await fs.promises.access(this.parseFilename(username));
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  public list(): string[] {
-    return this.files;
+  public async list(): Promise<string[]> {
+    return this.getAllFiles();
   }
 
   public set(username: string, org: P): void {
@@ -138,7 +138,6 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     await this.configs.get(username)?.unlink();
     this.configs.delete(username);
     this.contents.delete(username);
-    this.files = this.getAllFiles();
   }
 
   public async write(username: string): Promise<Nullable<P>> {
@@ -155,17 +154,25 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     }
   }
 
-  private getAllFiles(): string[] {
+  private async getAllFiles(): Promise<string[]> {
     try {
-      return fs.readdirSync(Global.DIR).filter((file) => file.match(this.getFileRegex()));
+      return (await fs.promises.readdir(Global.DIR)).filter((file) => file.match(this.getFileRegex()));
     } catch {
       return [];
     }
   }
 
+  private parseUsername(filename: string): string {
+    return filename.replace(this.getFileExtension(), '');
+  }
+
+  private parseFilename(username: string): string {
+    return `${username}${this.getFileExtension()}`;
+  }
+
   protected abstract initAuthFile(username: string, throwOnNotFound?: boolean): Promise<T>;
   protected abstract getFileRegex(): RegExp;
-  protected abstract parseUsername(filename: string): string;
+  protected abstract getFileExtension(): string;
 }
 
 export class OrgAccessor extends BaseOrgAccessor<AuthInfoConfig, AuthFields> {
@@ -176,12 +183,12 @@ export class OrgAccessor extends BaseOrgAccessor<AuthInfoConfig, AuthFields> {
     });
   }
 
-  protected parseUsername(filename: string): string {
-    return filename.replace('.json', '');
-  }
-
   protected getFileRegex(): RegExp {
     // The regular expression that filters files stored in $HOME/.sfdx
     return /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
+  }
+
+  protected getFileExtension(): string {
+    return '.json';
   }
 }

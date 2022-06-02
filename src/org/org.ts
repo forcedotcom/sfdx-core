@@ -411,7 +411,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    *
    */
   public async isSandbox(): Promise<boolean> {
-    return (await StateAggregator.getInstance()).sandboxes.hasFile(this.getOrgId());
+    return await (await StateAggregator.getInstance()).sandboxes.hasFile(this.getOrgId());
   }
   /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
