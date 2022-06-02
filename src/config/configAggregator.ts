@@ -74,8 +74,8 @@ export interface ConfigInfo {
  * ```
  */
 export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Options> {
-  private static instance: AsyncOptionalCreatable;
-  private static encrypted = true;
+  protected static instance: AsyncOptionalCreatable;
+  protected static encrypted = true;
 
   // Initialized in loadProperties
   private allowedProperties!: ConfigPropertyMeta[];
@@ -116,7 +116,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     this: new (options?: ConfigAggregator.Options) => T,
     options?: ConfigAggregator.Options
   ): Promise<T> {
-    let config: ConfigAggregator = ConfigAggregator.instance as ConfigAggregator;
+    let config = ConfigAggregator.instance as ConfigAggregator;
     if (!config) {
       config = ConfigAggregator.instance = new this(options) as unknown as ConfigAggregator;
       await config.init();
@@ -352,7 +352,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   /**
    * Loads all the properties and aggregates them according to location.
    */
-  private async loadProperties(): Promise<void> {
+  protected async loadProperties(): Promise<void> {
     this.resolveProperties(await this.globalConfig.read(), this.localConfig && (await this.localConfig.read()));
     ConfigAggregator.encrypted = false;
   }
@@ -422,6 +422,9 @@ export namespace ConfigAggregator {
  * @deprecated
  */
 export class SfdxConfigAggregator extends ConfigAggregator {
+  protected static instance: AsyncOptionalCreatable;
+  protected static encrypted = true;
+
   public static async create<P, T extends AsyncOptionalCreatable<P>>(
     this: new (options?: ConfigAggregator.Options) => T,
     options: ConfigAggregator.Options = {}
@@ -432,7 +435,20 @@ export class SfdxConfigAggregator extends ConfigAggregator {
     const restDeploy = SFDX_ALLOWED_PROPERTIES.find((p) => p.key === SfdxPropertyKeys.REST_DEPLOY);
     const orgRestDeploy = Object.assign({}, restDeploy, { key: 'org-metadata-rest-deploy', deprecated: false });
     options.customConfigMeta = [...customConfigMeta, orgRestDeploy];
-    return super.create(options) as unknown as T;
+
+    let config = SfdxConfigAggregator.instance as SfdxConfigAggregator;
+    if (!config) {
+      config = SfdxConfigAggregator.instance = new this(options) as unknown as SfdxConfigAggregator;
+      await config.init();
+    }
+    if (SfdxConfigAggregator.encrypted) {
+      await config.loadProperties();
+    }
+
+    if (options?.customConfigMeta) {
+      Config.addAllowedProperties(options.customConfigMeta);
+    }
+    return SfdxConfigAggregator.instance as T;
   }
 
   public getPropertyMeta(key: string): ConfigPropertyMeta {
