@@ -11,6 +11,36 @@ import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { Logger } from '../logger';
 import { Lifecycle } from '../lifecycleEvents';
+
+export function getLoginAudienceCombos(audienceUrl: string, loginUrl: string) {
+  const filtered = [
+    [loginUrl, loginUrl],
+    [SfdcUrl.SANDBOX, SfdcUrl.SANDBOX],
+    [SfdcUrl.PRODUCTION, SfdcUrl.PRODUCTION],
+    [audienceUrl, audienceUrl],
+    [audienceUrl, SfdcUrl.PRODUCTION],
+    [audienceUrl, SfdcUrl.SANDBOX],
+    [loginUrl, audienceUrl],
+    [loginUrl, SfdcUrl.PRODUCTION],
+    [loginUrl, SfdcUrl.SANDBOX],
+    [SfdcUrl.PRODUCTION, audienceUrl],
+    [SfdcUrl.SANDBOX, audienceUrl],
+  ].filter(
+    ([login, audience]) =>
+      !(
+        (login === SfdcUrl.PRODUCTION && audience === SfdcUrl.SANDBOX) ||
+        (login === SfdcUrl.SANDBOX && audience === SfdcUrl.PRODUCTION)
+      )
+  );
+  const reduced = filtered.reduce((acc, [login, audience]) => {
+    const l = new URL(login);
+    const a = new URL(audience);
+    acc.set(`${l.origin}:${a.origin}`, [login, audience]);
+    return acc;
+  }, new Map<string, [string, string]>());
+  return [...reduced.values()];
+}
+
 export class SfdcUrl extends URL {
   /**
    * Salesforce URLs

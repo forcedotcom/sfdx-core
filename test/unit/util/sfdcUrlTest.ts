@@ -9,7 +9,7 @@ import { SinonSpy, SinonStub } from 'sinon';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { Env } from '@salesforce/kit';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
-import { SfdcUrl } from '../../../src/util/sfdcUrl';
+import { getLoginAudienceCombos, SfdcUrl } from '../../../src/util/sfdcUrl';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 
 describe('util/sfdcUrl', () => {
@@ -276,6 +276,24 @@ describe('util/sfdcUrl', () => {
     it('cs123', () => {
       const url = new SfdcUrl('https://cs123.force.com');
       expect(url.isSandboxUrl()).to.be.true;
+    });
+  });
+  describe('getLoginAudienceCombos', () => {
+    it('should return 11 combos when login and audience URLs are not test/prod and are different', () => {
+      const combos = getLoginAudienceCombos('https://foo.bar.baz', 'https://foo.bar.bat');
+      expect(combos).to.have.lengthOf(11);
+    });
+    it('should return 7 combos when login and audience URLs are not test/prod and are the same', () => {
+      const combos = getLoginAudienceCombos('https://foo.bar.baz', 'https://foo.bar.baz');
+      expect(combos).to.have.lengthOf(7);
+    });
+    it('should return 2 combos when login and audience URLs are prod URL', () => {
+      const combos = getLoginAudienceCombos(SfdcUrl.PRODUCTION, SfdcUrl.PRODUCTION);
+      expect(combos).to.have.lengthOf(2);
+    });
+    it('should return 2 combos when login and audience URLs are sandbox URL', () => {
+      const combos = getLoginAudienceCombos(SfdcUrl.SANDBOX, SfdcUrl.SANDBOX);
+      expect(combos).to.have.lengthOf(2);
     });
   });
 });

@@ -33,7 +33,7 @@ import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
 import { GlobalInfo, SfOrg } from '../globalInfo';
 import { Messages } from '../messages';
-import { SfdcUrl } from '../util/sfdcUrl';
+import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
 import { Org } from './org';
@@ -896,7 +896,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     let authFieldsBuilder: JsonMap | undefined;
     const authErrors = [];
     // given that we can no longer depend on instance names or URls to determine audience, let's try them all
-    const loginAndAudienceUrls = this.getLoginAudienceCombos(audienceUrl, loginUrl);
+    const loginAndAudienceUrls = getLoginAudienceCombos(audienceUrl, loginUrl);
     for (const [login, audience] of loginAndAudienceUrls) {
       try {
         authFieldsBuilder = await this.tryJwtAuth(options.clientId, login, audience, privateKeyContents);
@@ -932,29 +932,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     return authFields;
-  }
-
-  private getLoginAudienceCombos(audienceUrl: string, loginUrl: string) {
-    const loginAndAudienceUrls = [
-      [SfdcUrl.SANDBOX, SfdcUrl.SANDBOX],
-      [SfdcUrl.PRODUCTION, SfdcUrl.PRODUCTION],
-      [audienceUrl, audienceUrl],
-      [audienceUrl, SfdcUrl.PRODUCTION],
-      [audienceUrl, SfdcUrl.SANDBOX],
-      [loginUrl, audienceUrl],
-      [loginUrl, loginUrl],
-      [loginUrl, SfdcUrl.PRODUCTION],
-      [loginUrl, SfdcUrl.SANDBOX],
-      [SfdcUrl.PRODUCTION, audienceUrl],
-      [SfdcUrl.SANDBOX, audienceUrl],
-    ].filter(
-      ([loginUrl, audienceUrl]) =>
-        !(
-          (loginUrl === SfdcUrl.PRODUCTION && audienceUrl === SfdcUrl.SANDBOX) ||
-          (loginUrl === SfdcUrl.SANDBOX && audienceUrl === SfdcUrl.PRODUCTION)
-        )
-    );
-    return loginAndAudienceUrls;
   }
 
   private async tryJwtAuth(
