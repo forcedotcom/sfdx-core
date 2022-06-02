@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.19.2](https://github.com/forcedotcom/sfdx-core/compare/v3.19.1...v3.19.2) (2022-06-02)
+
+### Bug Fixes
+
+- loosen audience url determination ([#588](https://github.com/forcedotcom/sfdx-core/issues/588)) ([a58ab89](https://github.com/forcedotcom/sfdx-core/commit/a58ab89e2ada34fbdb6d8c72d88966a5281db60b))
+
 ### [3.19.1](https://github.com/forcedotcom/sfdx-core/compare/v3.19.0...v3.19.1) (2022-05-27)
 
 ### Bug Fixes
