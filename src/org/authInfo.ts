@@ -896,14 +896,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     let authFieldsBuilder: JsonMap | undefined;
     const authErrors = [];
     // given that we can no longer depend on instance names or URls to determine audience, let's try them all
-    const audiences = new Set([audienceUrl, loginUrl, SfdcUrl.SANDBOX, SfdcUrl.PRODUCTION]);
-    for (const audience of audiences) {
+    const loginAndAudienceUrls = this.getLoginAudienceCombos(audienceUrl, loginUrl);
+    for (const [login, audience] of loginAndAudienceUrls) {
       try {
-        authFieldsBuilder = await this.tryJwtAuth(options.clientId, loginUrl, audience, privateKeyContents);
+        authFieldsBuilder = await this.tryJwtAuth(options.clientId, login, audience, privateKeyContents);
         break;
       } catch (err) {
         const error = err as Error;
-        const message = error.message.includes('audience') ? `${error.message}-${audience}` : error.message;
+        const message = error.message.includes('audience') ? `${error.message}-${login}:${audience}` : error.message;
         authErrors.push(message);
       }
     }
@@ -932,6 +932,29 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     return authFields;
+  }
+
+  private getLoginAudienceCombos(audienceUrl: string, loginUrl: string) {
+    const loginAndAudienceUrls = [
+      [SfdcUrl.SANDBOX, SfdcUrl.SANDBOX],
+      [SfdcUrl.PRODUCTION, SfdcUrl.PRODUCTION],
+      [audienceUrl, audienceUrl],
+      [audienceUrl, SfdcUrl.PRODUCTION],
+      [audienceUrl, SfdcUrl.SANDBOX],
+      [loginUrl, audienceUrl],
+      [loginUrl, loginUrl],
+      [loginUrl, SfdcUrl.PRODUCTION],
+      [loginUrl, SfdcUrl.SANDBOX],
+      [SfdcUrl.PRODUCTION, audienceUrl],
+      [SfdcUrl.SANDBOX, audienceUrl],
+    ].filter(
+      ([loginUrl, audienceUrl]) =>
+        !(
+          (loginUrl === SfdcUrl.PRODUCTION && audienceUrl === SfdcUrl.SANDBOX) ||
+          (loginUrl === SfdcUrl.SANDBOX && audienceUrl === SfdcUrl.PRODUCTION)
+        )
+    );
+    return loginAndAudienceUrls;
   }
 
   private async tryJwtAuth(
