@@ -33,7 +33,7 @@ import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
 import { GlobalInfo, SfOrg } from '../globalInfo';
 import { Messages } from '../messages';
-import { SfdcUrl } from '../util/sfdcUrl';
+import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
 import { Org } from './org';
@@ -49,6 +49,7 @@ const messages = Messages.load('@salesforce/core', 'core', [
   'jwtAuthError',
   'authCodeUsernameRetrievalError',
   'authCodeExchangeError',
+  'missingClientId',
 ]);
 
 // These should these be brought into jsforce, especially all the jwt stuff.
@@ -812,7 +813,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         }
 
         if (options.privateKey) {
-          authConfig = await this.buildJwtConfig(options);
+          authConfig = await this.authJwt(options);
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
           authConfig = await this.buildRefreshTokenConfig(options);
@@ -883,33 +884,32 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a JWT auth flow
-  private async buildJwtConfig(options: OAuth2Config): Promise<AuthFields> {
+  private async authJwt(options: OAuth2Config): Promise<AuthFields> {
+    if (!options.clientId) {
+      throw messages.createError('missingClientId');
+    }
     const privateKeyContents = await fs.promises.readFile(ensure(options.privateKey), 'utf8');
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
     const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
     const audienceUrl = await url.getJwtAudienceUrl(createdOrgInstance);
-    const jwtToken = jwt.sign(
-      {
-        iss: options.clientId,
-        sub: this.getUsername(),
-        aud: audienceUrl,
-        exp: Date.now() + 300,
-      },
-      privateKeyContents,
-      {
-        algorithm: 'RS256',
+    let authFieldsBuilder: JsonMap | undefined;
+    const authErrors = [];
+    // given that we can no longer depend on instance names or URls to determine audience, let's try them all
+    const loginAndAudienceUrls = getLoginAudienceCombos(audienceUrl, loginUrl);
+    for (const [login, audience] of loginAndAudienceUrls) {
+      try {
+        authFieldsBuilder = await this.tryJwtAuth(options.clientId, login, audience, privateKeyContents);
+        break;
+      } catch (err) {
+        const error = err as Error;
+        const message = error.message.includes('audience') ? `${error.message}-${login}:${audience}` : error.message;
+        authErrors.push(message);
       }
-    );
-
-    const oauth2 = new JwtOAuth2({ loginUrl: options.loginUrl });
-    let authFieldsBuilder: JsonMap;
-    try {
-      authFieldsBuilder = ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
-    } catch (err) {
-      throw messages.createError('jwtAuthError', [(err as Error).message]);
     }
-
+    if (!authFieldsBuilder) {
+      throw messages.createError('jwtAuthError', [authErrors.join('\n')]);
+    }
     const authFields: AuthFields = {
       accessToken: asString(authFieldsBuilder.access_token),
       orgId: parseIdUrl(ensureString(authFieldsBuilder.id)).orgId,
@@ -932,6 +932,29 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     return authFields;
+  }
+
+  private async tryJwtAuth(
+    clientId: string,
+    loginUrl: string,
+    audienceUrl: string,
+    privateKeyContents: string
+  ): Promise<JsonMap> {
+    const jwtToken = jwt.sign(
+      {
+        iss: clientId,
+        sub: this.getUsername(),
+        aud: audienceUrl,
+        exp: Date.now() + 300,
+      },
+      privateKeyContents,
+      {
+        algorithm: 'RS256',
+      }
+    );
+
+    const oauth2 = new JwtOAuth2({ loginUrl });
+    return ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
   }
 
   // Build OAuth config for a refresh token auth flow

@@ -24,6 +24,12 @@ Due to: %s
 
 Error authenticating with JWT config due to: %s
 
+# jwtAuthErrors
+
+Error authenticating with JWT.
+Errors encountered:
+%s
+
 # refreshTokenAuthError
 
 Error authenticating with the refresh token due to: %s
@@ -55,3 +61,7 @@ Setting aliases must be in the format <key>=<value> but found: [%s].
 
 All JSON input must have heads down camelcase keys. E.g., `{ sfdcLoginUrl: "https://login.salesforce.com" }`
 Found "%s" at %s
+
+# missingClientId
+
+Client ID is required for JWT authentication.
