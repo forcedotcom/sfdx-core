@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import * as path from 'path';
 import { JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, isEmpty } from '@salesforce/kit';
 import { AuthInfoConfig } from '../../config/authInfoConfig';
@@ -186,7 +187,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   }
 
   private parseFilename(username: string): string {
-    return `${username}${this.getFileExtension()}`;
+    return path.join(Global.DIR, `${username}${this.getFileExtension()}`);
   }
 
   protected abstract initAuthFile(username: string, throwOnNotFound?: boolean): Promise<T>;
