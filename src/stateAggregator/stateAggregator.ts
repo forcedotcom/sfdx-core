@@ -37,8 +37,8 @@ export class StateAggregator extends AsyncOptionalCreatable {
   }
 
   protected async init(): Promise<void> {
-    this.orgs = new OrgAccessor();
-    this.sandboxes = new SandboxAccessor();
+    this.orgs = await OrgAccessor.create();
+    this.sandboxes = await SandboxAccessor.create();
     this.aliases = await AliasAccessor.create();
     this.tokens = await TokenAccessor.create();
   }

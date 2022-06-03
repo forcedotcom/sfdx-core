@@ -7,13 +7,15 @@
 
 import * as fs from 'fs';
 import { JsonMap, Nullable, Optional } from '@salesforce/ts-types';
-import { isEmpty } from '@salesforce/kit';
+import { AsyncOptionalCreatable, isEmpty } from '@salesforce/kit';
 import { AuthInfoConfig } from '../../config/authInfoConfig';
 import { Global } from '../../global';
 import { GlobalInfo } from '../globalInfoConfig';
 import { SfOrgs, SfOrg, SfInfoKeys } from '../types';
 import { AuthFields } from '../../org';
-import { ConfigContents, ConfigFile } from '../../exported';
+import { ConfigFile } from '../../config/configFile';
+import { ConfigContents } from '../../config/configStore';
+import { Logger } from '../../logger';
 
 /**
  * @deprecated
@@ -53,25 +55,36 @@ export class GlobalInfoOrgAccessor {
   }
 }
 
-export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigContents> {
+function chunk<T>(array: T[], chunkSize: number): T[][] {
+  const final = [];
+  for (let i = 0, len = array.length; i < len; i += chunkSize) final.push(array.slice(i, i + chunkSize));
+  return final;
+}
+
+export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigContents> extends AsyncOptionalCreatable {
   private configs: Map<string, Nullable<T>> = new Map();
   private contents: Map<string, P> = new Map();
+  private logger!: Logger;
 
-  public async read(username: string, decrypt = false, throwOnNotFound = true): Promise<P> {
+  public async read(username: string, decrypt = false, throwOnNotFound = true): Promise<Nullable<P>> {
     try {
       const config = await this.initAuthFile(username, throwOnNotFound);
       this.configs.set(username, config);
       return this.get(username, decrypt) as P;
     } catch (err) {
-      return {} as P;
+      return null;
     }
   }
 
   public async readAll(decrypt = false): Promise<P[]> {
-    for (const file of await this.getAllFiles()) {
-      const username = this.parseUsername(file);
-      const config = await this.initAuthFile(username);
-      this.configs.set(username, config);
+    const fileChunks = chunk(await this.getAllFiles(), 50);
+    for (const fileChunk of fileChunks) {
+      const promises = fileChunk.map(async (f) => {
+        const username = this.parseUsername(f);
+        const config = await this.initAuthFile(username);
+        this.configs.set(username, config);
+      });
+      await Promise.all(promises);
     }
     return this.getAll(decrypt);
   }
@@ -106,6 +119,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
       await fs.promises.access(this.parseFilename(username));
       return true;
     } catch {
+      this.logger.debug(`No auth file found for ${username}`);
       return false;
     }
   }
@@ -154,9 +168,14 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     }
   }
 
+  protected async init(): Promise<void> {
+    this.logger = await Logger.child(this.constructor.name);
+  }
+
   private async getAllFiles(): Promise<string[]> {
+    const regex = this.getFileRegex();
     try {
-      return (await fs.promises.readdir(Global.DIR)).filter((file) => file.match(this.getFileRegex()));
+      return (await fs.promises.readdir(Global.DIR)).filter((file) => regex.test(file));
     } catch {
       return [];
     }

@@ -727,7 +727,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     if (oauthUsername) {
       this.username = oauthUsername;
-      await this.stateAggregator.orgs.read(oauthUsername);
+      await this.stateAggregator.orgs.read(oauthUsername, false, false);
     } // Else it will be set in initAuthOptions below.
 
     // If the username is an access token, use that for auth and don't persist
@@ -828,7 +828,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         ensureString(authConfig.accessToken)
       );
 
-      if (authConfig.username) await this.stateAggregator.orgs.read(authConfig.username);
+      if (authConfig.username) await this.stateAggregator.orgs.read(authConfig.username, false, false);
 
       // Update the auth fields WITH encryption
       this.update(authConfig);
