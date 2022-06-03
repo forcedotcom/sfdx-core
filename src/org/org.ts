@@ -808,7 +808,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @param orgId {string} orgId of the sandbox
    */
   public async getSandboxConfig(orgId: string): Promise<Nullable<SandboxFields>> {
-    return (await StateAggregator.getInstance()).sandboxes.get(orgId);
+    return (await StateAggregator.getInstance()).sandboxes.read(orgId);
   }
 
   /**
