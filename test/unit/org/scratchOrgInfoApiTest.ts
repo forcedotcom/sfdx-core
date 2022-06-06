@@ -66,7 +66,7 @@ describe('requestScratchOrgCreation', () => {
 
   it('requestScratchOrgCreation tests basic ScratchOrgInfo object with all fields included', async () => {
     const error = new Error('MyError');
-    error.name = 'NamedOrgNotFound';
+    error.name = 'NamedOrgNotFoundError';
     stubMethod(sandbox, AuthInfo, 'create').rejects(error);
     const hubOrg = new Org({});
     const settings = new SettingsGenerator();
@@ -105,7 +105,7 @@ describe('requestScratchOrgCreation', () => {
 
   it('requestScratchOrgCreation Error AuthInfo.create fails with NamedOrgNotFound and sobject fails too', async () => {
     const err = new Error('MyError');
-    err.name = 'NamedOrgNotFound';
+    err.name = 'NamedOrgNotFoundError';
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
     // @ts-ignore
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
@@ -140,7 +140,7 @@ describe('requestScratchOrgCreation', () => {
 
   it('requestScratchOrgCreation sobject().create fails with REQUIRED_FIELD_MISSING', async () => {
     const err = new Error('MyError');
-    err.name = 'NamedOrgNotFound';
+    err.name = 'NamedOrgNotFoundError';
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
     const jsForceError = {
       ...new Error('JsForce-Error'),

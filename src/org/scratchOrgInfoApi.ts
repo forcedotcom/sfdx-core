@@ -253,7 +253,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
     } catch (error) {
       const sfError = SfError.wrap(error as Error);
       // if an AuthInfo couldn't be created that means no AuthFile exists.
-      if (sfError.name === 'NamedOrgNotFound') {
+      if (sfError.name === 'NamedOrgNotFoundError') {
         return;
       }
       // Something unexpected
