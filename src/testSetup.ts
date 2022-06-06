@@ -8,7 +8,7 @@
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
-import { join as pathJoin } from 'path';
+import { join as pathJoin, basename } from 'path';
 import * as sinonType from 'sinon';
 
 import { once } from '@salesforce/kit';
@@ -34,7 +34,10 @@ import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
-import { GlobalInfo, SfOrg } from './globalInfo';
+import { GlobalInfo, OrgAccessor, StateAggregator } from './stateAggregator';
+import { AuthFields, SandboxFields } from './org';
+import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
+import { AliasGroup } from './config/aliasesConfig';
 import { Global } from './global';
 
 /**
@@ -49,6 +52,7 @@ export interface SandboxTypes {
   PROJECT: sinon.SinonSandbox;
   CONNECTION: sinon.SinonSandbox;
   FS: sinonType.SinonSandbox;
+  ORGS: sinonType.SinonSandbox;
 }
 
 /**
@@ -115,11 +119,16 @@ export interface TestContext {
    */
   configStubs: {
     [configName: string]: Optional<ConfigStub>;
-    GlobalInfo?: ConfigStub;
-    Aliases?: ConfigStub;
-    SfProjectJson?: ConfigStub;
+    AliasesConfig?: ConfigStub;
+    AuthInfoConfig?: ConfigStub;
     SfdxConfig?: ConfigStub;
+    SfProjectJson?: ConfigStub;
+    TokensConfig?: ConfigStub;
   };
+  /**
+   * An record of stubs created during instantaion.
+   */
+  stubs?: Record<string, sinonType.SinonStub>;
   /**
    * A function used when resolving the local path. Calls localPathResolverSync by default.
    *
@@ -182,9 +191,12 @@ export interface TestContext {
    */
   setConfigStubContents(name: string, value: ConfigContents): void;
   inProject(inProject: boolean): void;
+  stubAuths(...orgs: MockTestOrgData[]): Promise<void>;
+  stubSandboxes(...orgs: MockTestSandboxData[]): Promise<void>;
+  stubAliases(aliases: Record<string, string>, group?: AliasGroup): void;
 }
 
-const uniqid = (): string => {
+export const uniqid = (): string => {
   return randomBytes(16).toString('hex');
 };
 
@@ -257,6 +269,7 @@ export const instantiateContext = (sinon?: any): TestContext => {
       CRYPTO: sinon.createSandbox(),
       CONNECTION: sinon.createSandbox(),
       FS: sinon.createSandbox(),
+      ORGS: sinon.createSandbox(),
     },
     TEST_LOGGER: new Logger({
       name: 'SFDX_Core_Test_Logger',
@@ -308,7 +321,49 @@ export const instantiateContext = (sinon?: any): TestContext => {
         );
       }
     },
+    async stubAuths(...orgs: MockTestOrgData[]): Promise<void> {
+      const entries = (await Promise.all(orgs.map(async (org) => [org.username, await org.getConfig()]))) as Array<
+        [string, AuthFields]
+      >;
+      const orgMap = new Map(entries);
+
+      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'getAllFiles').returns(
+        [...orgMap.keys()].map((o) => `${o}.json`)
+      );
+
+      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'hasFile').callsFake((username: string) => {
+        return orgMap.has(username);
+      });
+
+      const retrieveContents = async function (this: { path: string }): Promise<AuthFields> {
+        const username = basename(this.path.replace('.json', ''));
+        return Promise.resolve(orgMap.get(username) ?? {});
+      };
+
+      this.configStubs.AuthInfoConfig = { retrieveContents };
+    },
+    async stubSandboxes(...sandboxes: MockTestSandboxData[]): Promise<void> {
+      const entries = (await Promise.all(
+        sandboxes.map(async (sanbox) => [sanbox.username, await sanbox.getConfig()])
+      )) as Array<[string, SandboxFields]>;
+      const sandboxMap = new Map(entries);
+
+      stubMethod(testContext.SANDBOX, SandboxAccessor.prototype, 'getAllFiles').returns(
+        [...sandboxMap.keys()].map((o) => `${o}.sandbox.json`)
+      );
+
+      const retrieveContents = async function (this: { path: string }): Promise<SandboxFields> {
+        const username = basename(this.path.replace('.sandbox.json', ''));
+        return Promise.resolve(sandboxMap.get(username) ?? ({} as SandboxFields));
+      };
+
+      this.configStubs.SandboxOrgConfig = { retrieveContents };
+    },
+    stubAliases(aliases: Record<string, string>, group = AliasGroup.ORGS): void {
+      this.configStubs.AliasesConfig = { contents: { [group]: aliases } };
+    },
   };
+
   return testContext;
 };
 
@@ -336,10 +391,12 @@ export const instantiateContext = (sinon?: any): TestContext => {
  * ```
  * @param testContext
  */
-export const stubContext = (testContext: TestContext) => {
+export const stubContext = (testContext: TestContext): Record<string, sinonType.SinonStub> => {
   // Turn off the interoperability feature so that we don't have to mock
   // the old .sfdx config files
   Global.SFDX_INTEROPERABILITY = false;
+
+  const stubs: Record<string, sinonType.SinonStub> = {};
 
   // Most core files create a child logger so stub this to return our test logger.
   stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
@@ -419,9 +476,11 @@ export const stubContext = (testContext: TestContext) => {
     }
   };
 
-  stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'writeSync').callsFake(writeSync);
+  stubs.configWriteSync = stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'writeSync').callsFake(
+    writeSync
+  );
 
-  stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'write').callsFake(write);
+  stubs.configWrite = stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'write').callsFake(write);
 
   stubMethod(testContext.SANDBOXES.CRYPTO, Crypto.prototype, 'getKeyChain').callsFake(() =>
     Promise.resolve({
@@ -444,8 +503,26 @@ export const stubContext = (testContext: TestContext) => {
     return testContext.fakeConnectionRequest.call(this, request, options as AnyJson);
   });
 
+  stubs.configExists = stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'exists').callsFake(
+    async function (this: OrgAccessor, username: string): Promise<boolean | undefined> {
+      // @ts-expect-error because private member
+      if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
+      else return Promise.resolve(false);
+    }
+  );
+
+  stubs.configRemove = stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'remove').callsFake(
+    async function (this: OrgAccessor, username: string): Promise<boolean | undefined> {
+      // @ts-expect-error because private member
+      if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
+      else return Promise.resolve(false);
+    }
+  );
+
   // Always start with the default and tests beforeEach or it methods can override it.
   testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
+
+  return stubs;
 };
 
 /**
@@ -473,10 +550,12 @@ export const restoreContext = (testContext: TestContext): void => {
   testContext.configStubs = {};
   // Give each test run a clean GlobalInstance
   GlobalInfo.clearInstance();
+  // Give each test run a clean StateAggregator
+  StateAggregator.clearInstance();
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const _testSetup = (sinon?: any) => {
+const _testSetup = (sinon?: any): TestContext => {
   const testContext = instantiateContext(sinon);
 
   beforeEach(() => {
@@ -484,7 +563,7 @@ const _testSetup = (sinon?: any) => {
     // @ts-ignore clear for testing.
     delete ConfigAggregator.instance;
 
-    stubContext(testContext);
+    testContext.stubs = stubContext(testContext);
   });
 
   afterEach(() => {
@@ -794,7 +873,7 @@ export class MockTestOrgData {
     };
   }
 
-  public async getConfig(): Promise<SfOrg> {
+  public async getConfig(): Promise<AuthFields> {
     const crypto = await Crypto.create();
     const config: JsonMap = {};
     config.orgId = this.orgId;
@@ -823,6 +902,32 @@ export class MockTestOrgData {
 
     config.isDevHub = this.isDevHub;
 
-    return config as SfOrg;
+    return config as AuthFields;
+  }
+}
+
+export class MockTestSandboxData {
+  public sandboxOrgId: string;
+  public prodOrgUsername: string;
+  public sandboxName?: string;
+  public username?: string;
+
+  public constructor(
+    public id: string = uniqid(),
+    options?: Partial<{ prodOrgUsername: string; name: string; username: string }>
+  ) {
+    this.sandboxOrgId = id;
+    this.prodOrgUsername = options?.prodOrgUsername || `admin_${id}@gb.org`;
+    this.sandboxName = options?.name || `sandbox_${id}`;
+    this.username = options?.username || `${this.prodOrgUsername}.sandbox`;
+  }
+
+  public async getConfig(): Promise<SandboxFields> {
+    return {
+      sandboxOrgId: this.sandboxOrgId,
+      prodOrgUsername: this.prodOrgUsername,
+      sandboxName: this.sandboxName,
+      sandboxUsername: this.username,
+    };
   }
 }

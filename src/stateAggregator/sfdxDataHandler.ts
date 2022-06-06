@@ -13,7 +13,7 @@ import { Global } from '../global';
 import { ConfigFile } from '../config/configFile';
 import { SandboxOrgConfig } from '../config/sandboxOrgConfig';
 import { deepCopy, GlobalInfo } from './globalInfoConfig';
-import { SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfSandbox, SfSandboxes } from './types';
+import { SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfSandbox, SfSandboxes, SfTokens } from './types';
 
 function isEqual(object1: Record<string, unknown>, object2: Record<string, unknown>): boolean {
   const keys1 = Object.keys(object1).filter((k) => k !== 'timestamp');
@@ -44,7 +44,7 @@ interface Changes<T> {
 }
 
 export class SfdxDataHandler {
-  public handlers = [new AuthHandler(), new AliasesHandler(), new SandboxesHandler()];
+  public handlers = [new AuthHandler(), new AliasesHandler(), new SandboxesHandler(), new TokensHandler()];
   private original!: SfInfo;
 
   public async write(latest: SfInfo = GlobalInfo.emptyDataModel): Promise<void> {
@@ -354,5 +354,27 @@ export class SandboxesHandler extends BaseHandler<SfInfoKeys.SANDBOXES> {
     const deleted: string[] = Object.keys(originalSandboxes).filter((sandboxOrgId) => !latestSandboxes[sandboxOrgId]);
 
     return { changed, deleted };
+  }
+}
+
+export class TokensHandler extends BaseHandler<SfInfoKeys.TOKENS> {
+  private static SFDX_TOKENS_FILENAME = 'tokens.json';
+
+  public sfKey: typeof SfInfoKeys.TOKENS = SfInfoKeys.TOKENS;
+
+  public async migrate(): Promise<Pick<SfInfo, SfInfoKeys.TOKENS>> {
+    const filePath = join(Global.SFDX_DIR, TokensHandler.SFDX_TOKENS_FILENAME);
+    try {
+      const x = await fs.promises.readFile(filePath, 'utf8');
+      const tokens = parseJson(x) as SfTokens;
+      return { [this.sfKey]: tokens };
+    } catch (e) {
+      return { [this.sfKey]: {} };
+    }
+  }
+
+  public async write(latest: SfInfo): Promise<void> {
+    const filePath = join(Global.SFDX_DIR, TokensHandler.SFDX_TOKENS_FILENAME);
+    await fs.promises.writeFile(filePath, JSON.stringify(latest[SfInfoKeys.TOKENS], null, 2));
   }
 }

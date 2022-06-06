@@ -91,7 +91,7 @@ export class ConfigFile<
       isGlobal,
       isState: true,
       filename: filename || this.getFileName(),
-      stateFolder: Global.SF_STATE_FOLDER,
+      stateFolder: Global.SFDX_STATE_FOLDER,
     };
   }
 
@@ -335,7 +335,7 @@ export class ConfigFile<
         : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
 
       if (_isGlobal || _isState) {
-        configRootFolder = pathJoin(configRootFolder, this.options.stateFolder || Global.SF_STATE_FOLDER);
+        configRootFolder = pathJoin(configRootFolder, this.options.stateFolder || Global.SFDX_STATE_FOLDER);
       }
 
       this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);

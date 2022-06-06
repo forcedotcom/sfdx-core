@@ -8,6 +8,7 @@
 export * from './globalInfoConfig';
 export * from './sfdxDataHandler';
 export * from './types';
-export { OrgAccessor } from './accessors/orgAccessor';
-export { AliasAccessor } from './accessors/aliasAccessor';
-export { TokenAccessor } from './accessors/tokenAccessor';
+export { GlobalInfoOrgAccessor, OrgAccessor } from './accessors/orgAccessor';
+export { GlobalInfoAliasAccessor, AliasAccessor } from './accessors/aliasAccessor';
+export { GlobaInfoTokenAccessor, TokenAccessor } from './accessors/tokenAccessor';
+export * from './stateAggregator';

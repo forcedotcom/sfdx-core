@@ -27,7 +27,7 @@ class TestConfig extends TTLConfig<TTLConfig.Options, JsonMap> {
       isGlobal,
       isState: true,
       filename: filename || TestConfig.getFileName(),
-      stateFolder: Global.SF_STATE_FOLDER,
+      stateFolder: Global.SFDX_STATE_FOLDER,
       ttl: Duration.days(1),
     };
   }

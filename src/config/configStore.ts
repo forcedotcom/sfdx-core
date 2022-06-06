@@ -34,7 +34,7 @@ export type ConfigEntry = [string, ConfigValue];
 /**
  * The type of content a config stores.
  */
-export type ConfigContents = Dictionary<ConfigValue>;
+export type ConfigContents<T = ConfigValue> = Dictionary<T>;
 
 export type Key<P extends ConfigContents> = Extract<keyof P, string>;
 
@@ -307,9 +307,8 @@ export abstract class BaseConfigStore<
    *
    * @param obj The object.
    */
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  public setContentsFromObject<U extends object>(obj: U): void {
-    this.contents = {} as P;
+  public setContentsFromObject<U extends JsonMap>(obj: U): void {
+    this.contents = (this.hasEncryption() ? this.recursiveEncrypt(obj) : {}) as P;
     Object.entries(obj).forEach(([key, value]) => {
       this.setMethod(this.contents, key, value);
     });

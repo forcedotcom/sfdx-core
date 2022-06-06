@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { JsonMap } from '@salesforce/ts-types';
+import { AuthFields } from '../org';
 
+/**
+ * @deprecated
+ */
 export enum SfInfoKeys {
   ORGS = 'orgs',
   TOKENS = 'tokens',
@@ -16,13 +20,14 @@ export enum SfInfoKeys {
 export type Timestamp = { timestamp: string };
 export type SfEntry = JsonMap;
 
-export type SfOrg = {
-  username: string;
-  orgId: string;
-  instanceUrl: string;
-  accessToken?: string;
-} & SfEntry;
+/**
+ * @deprecated
+ */
+export type SfOrg = AuthFields & SfEntry;
 
+/**
+ * @deprecated
+ */
 export interface SfOrgs {
   [key: string]: SfOrg & Timestamp;
 }
@@ -33,18 +38,23 @@ export type SfToken = {
   user?: string;
 } & SfEntry;
 
-export interface SfTokens {
+/**
+ */
+export type SfTokens = {
   [key: string]: SfToken & Timestamp;
-}
+};
 
 /**
  * The key will always be the alias and the value will always be the username, e.g.
  * { "MyAlias": "user@salesforce.com" }
  */
-export interface SfAliases {
+export type SfAliases = {
   [alias: string]: string;
-}
+};
 
+/**
+ * @deprecated
+ */
 export type SfSandbox = {
   sandboxOrgId: string;
   prodOrgUsername: string;
@@ -59,11 +69,16 @@ export type SfSandbox = {
  * The key will always be the sandbox username and the value will always be the
  * production org username
  * { "user@salesforce.com.mysandbox": "user@salesforce.com" }
+ *
+ * @deprecated
  */
 export interface SfSandboxes {
   [sandboxOrgId: string]: SfSandbox;
 }
 
+/**
+ * @deprecated
+ */
 export type SfInfo = {
   [SfInfoKeys.ORGS]: SfOrgs;
   [SfInfoKeys.TOKENS]: SfTokens;

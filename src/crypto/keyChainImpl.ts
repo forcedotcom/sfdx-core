@@ -427,7 +427,7 @@ const _darwinImpl: OsImpl = {
   },
 };
 
-const getSecretFile = () => path.join(Global.SFDX_DIR, 'key.json');
+const getSecretFile = () => path.join(Global.DIR, 'key.json');
 
 enum SecretField {
   SERVICE = 'service',

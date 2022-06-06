@@ -22,19 +22,18 @@ We don’t want to change the name of the folder just for the sake of changing i
 
 Of course, there are some negatives to creating a new folder as well. The main one being this will cause more work for other plugins and tools that also store files in this directory. When they start consuming v3, they will have to explicitly point to `.sfdx` or work on migrating their existing files to the new directory.
 
-## GlobalInfo
+## StateAggregator
 
 ### What
 
-In v2, an auth file would be created for each org that was authenticated. Over time, non-auth data was stored in those file and other files were created to provide additional information, like user mappings. In v3, all this information is stored in a single file, `sf.json`. This file also contains all aliases.
-
-- Removed `AuthInfoConfig`
+- Removed export for `AuthInfoConfig`
+- Removed export for `Aliases`
 - Removed `AuthInfo.listAllAuthFiles`
-- Removed `Aliases`
+- Added `StateAggregator`
 
 ### Why
 
-This simplifies the codebase by preventing a new class for every single new kind of configuration. Instead, it can just be added to GlobalInfo.
+We wanted to introduce a single entry point for all configuration files. This makes it easier for consumers to access information without having to know the nuances of each underlying class.
 
 **v2:**
 
@@ -52,9 +51,9 @@ await AuthInfo.listAllAuthorizations();
 OR
 
 ```typescript
-const info = await GlobalInfo.create();
-info.orgs.getAll();
-info.aliases.getAll();
+const stateAggregator = await StateAggregator.getInstance();
+await stateAggregator.orgs.readAll();
+stateAggregator.aliases.getAll();
 ```
 
 ## Config

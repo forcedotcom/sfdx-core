@@ -11,10 +11,11 @@ import { Duration } from '@salesforce/kit';
 import { get, JsonMap } from '@salesforce/ts-types';
 import { CometClient, StatusResult, StreamingClient } from '../../../src/status/streamingClient';
 import { Connection } from '../../../src/org';
-import { Crypto } from '../../../src/crypto/crypto';
+// import { Crypto } from '../../../src/crypto/crypto';
 import { Org } from '../../../src/org/org';
 import { SfError } from '../../../src/sfError';
 import {
+  MockTestOrgData,
   shouldThrow,
   StreamingMockCometClient,
   StreamingMockSubscriptionCall,
@@ -30,29 +31,16 @@ describe('streaming client tests', () => {
   let username: string;
 
   beforeEach(async () => {
-    const id: string = $$.uniqid();
+    const id = $$.uniqid();
     username = `${id}@test.com`;
+    $$.stubAuths(new MockTestOrgData(id, { username }));
 
-    const crypto = await Crypto.create();
-
-    $$.configStubs.GlobalInfo = {
-      contents: {
-        orgs: {
-          [username]: {
-            orgId: id,
-            username,
-            instanceUrl: 'http://www.example.com',
-            accessToken: crypto.encrypt(id),
-          },
-        },
-      },
-    };
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     stubMethod($$.SANDBOX, Connection.prototype, 'getApiVersion').returns(MOCK_API_VERSION);
   });
 
   it('should set options apiVersion on system topics', async () => {
-    const org: Org = await Org.create({ aliasOrUsername: username });
+    const org = await Org.create({ aliasOrUsername: username });
     const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, '/system/Logging', () => ({
       completed: true,
     }));
@@ -60,9 +48,9 @@ describe('streaming client tests', () => {
   });
 
   it('should complete successfully', async () => {
-    const TEST_STRING: string = $$.uniqid();
+    const TEST_STRING = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: username });
+    const org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
@@ -75,7 +63,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     expect(options.apiVersion).to.equal(MOCK_API_VERSION);
 
@@ -90,7 +78,7 @@ describe('streaming client tests', () => {
       setLogger: () => {},
     };
 
-    const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const asyncStatusClient = await StreamingClient.create(options);
     const value = await asyncStatusClient.subscribe(() => {
       return Promise.resolve();
     });
@@ -106,7 +94,7 @@ describe('streaming client tests', () => {
     };
 
     it('bogus apiVersion', async () => {
-      const org: Org = await Org.create({ aliasOrUsername: username });
+      const org = await Org.create({ aliasOrUsername: username });
 
       $$.SANDBOX.restore();
       $$.SANDBOX.stub(Connection.prototype, 'getApiVersion').returns('$$');
@@ -120,9 +108,9 @@ describe('streaming client tests', () => {
   });
 
   it('streamProcessor should throw an error', async () => {
-    const TEST_STRING: string = $$.uniqid();
+    const TEST_STRING = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: username });
+    const org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
@@ -132,7 +120,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -160,9 +148,9 @@ describe('streaming client tests', () => {
   });
 
   it('subscribe error back', async () => {
-    const TEST_STRING: string = $$.uniqid();
+    const TEST_STRING = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: username });
+    const org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
@@ -175,7 +163,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -205,9 +193,9 @@ describe('streaming client tests', () => {
   });
 
   it('handshake should succeed', async () => {
-    const TEST_STRING: string = $$.uniqid();
+    const TEST_STRING = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: username });
+    const org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (message: JsonMap): StatusResult => {
       if (message.id === TEST_STRING) {
@@ -220,7 +208,7 @@ describe('streaming client tests', () => {
       }
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.streamingImpl = {
       getCometClient: (url: string) => {
@@ -240,15 +228,15 @@ describe('streaming client tests', () => {
   });
 
   it('handshake should timeout', async () => {
-    const TEST_STRING: string = $$.uniqid();
+    const TEST_STRING = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: username });
+    const org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (): StatusResult => {
       return { completed: false };
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.handshakeTimeout = Duration.milliseconds(1);
 
@@ -263,7 +251,7 @@ describe('streaming client tests', () => {
       setLogger: () => {},
     };
 
-    const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const asyncStatusClient = await StreamingClient.create(options);
 
     try {
       await shouldThrow(asyncStatusClient.handshake());
@@ -273,9 +261,9 @@ describe('streaming client tests', () => {
   });
 
   it('subscribe should timeout', async () => {
-    const TEST_STRING: string = $$.uniqid();
+    const TEST_STRING = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: username });
+    const org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (): StatusResult => {
       return {
@@ -283,7 +271,7 @@ describe('streaming client tests', () => {
       };
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.subscribeTimeout = Duration.milliseconds(1);
 
@@ -316,9 +304,9 @@ describe('streaming client tests', () => {
 
     const setTimeoutSpy = spyMethod($$.SANDBOX, global, 'setTimeout');
 
-    const TEST_STRING: string = $$.uniqid();
+    const TEST_STRING = $$.uniqid();
 
-    const org: Org = await Org.create({ aliasOrUsername: username });
+    const org = await Org.create({ aliasOrUsername: username });
 
     const streamProcessor = (): StatusResult => {
       return {
@@ -326,7 +314,7 @@ describe('streaming client tests', () => {
       };
     };
 
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
+    const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.subscribeTimeout = Duration.milliseconds(JENNYS_NUMBER); // Jenny's phone number
     options.handshakeTimeout = Duration.milliseconds(GHOSTBUSTERS_NUMBER); // Ghostbusters phone number
@@ -342,7 +330,7 @@ describe('streaming client tests', () => {
       setLogger: () => {},
     };
 
-    const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
+    const asyncStatusClient = await StreamingClient.create(options);
     await asyncStatusClient.subscribe(() => Promise.resolve());
 
     expect(setTimeoutSpy.called).to.be.true;
@@ -379,7 +367,7 @@ describe('streaming client tests', () => {
     let options: StreamingClient.DefaultOptions;
 
     beforeEach(async () => {
-      const org: Org = await Org.create({ aliasOrUsername: username });
+      const org = await Org.create({ aliasOrUsername: username });
 
       const streamProcessor = (): StatusResult => {
         return { completed: false };
@@ -397,10 +385,10 @@ describe('streaming client tests', () => {
     });
 
     it('setTimeout greater than the default', async () => {
-      const newSubscribeTime: Duration = Duration.milliseconds(
+      const newSubscribeTime = Duration.milliseconds(
         StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds + 1
       );
-      const newHandshakeTime: Duration = Duration.milliseconds(
+      const newHandshakeTime = Duration.milliseconds(
         StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds + 1
       );
       options.setSubscribeTimeout(newSubscribeTime);
@@ -410,10 +398,10 @@ describe('streaming client tests', () => {
     });
 
     it('setTimeout less that the default', async () => {
-      const newSubscribeTime: Duration = Duration.milliseconds(
+      const newSubscribeTime = Duration.milliseconds(
         StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT.milliseconds - 1
       );
-      const newHandshakeTime: Duration = Duration.milliseconds(
+      const newHandshakeTime = Duration.milliseconds(
         StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT.milliseconds - 1
       );
 

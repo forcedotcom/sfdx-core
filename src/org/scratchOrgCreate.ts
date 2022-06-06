@@ -10,7 +10,7 @@ import { Messages } from '../messages';
 import { Logger } from '../logger';
 import { ConfigAggregator } from '../config/configAggregator';
 import { SfProject } from '../sfProject';
-import { GlobalInfo } from '../globalInfo';
+import { StateAggregator } from '../stateAggregator';
 import { Org } from './org';
 import {
   authorizeScratchOrg,
@@ -143,12 +143,10 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
   // Some hubs have all the usernames set to `null`
   const username = soi.Username ?? soi.SignupUsername;
 
-  // re-auth only if the org isn't in GlobalInfo
-  const globalInfo = await GlobalInfo.getInstance();
-  const scratchOrgAuthInfo = globalInfo.orgs.has(username)
-    ? await AuthInfo.create({
-        username,
-      })
+  // re-auth only if the org isn't in StateAggregator
+  const stateAggregator = await StateAggregator.getInstance();
+  const scratchOrgAuthInfo = (await stateAggregator.orgs.exists(username))
+    ? await AuthInfo.create({ username })
     : await authorizeScratchOrg({
         scratchOrgInfoComplete: soi,
         hubOrg,
