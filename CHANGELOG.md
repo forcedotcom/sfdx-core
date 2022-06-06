@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.19.4](https://github.com/forcedotcom/sfdx-core/compare/v3.19.3...v3.19.4) (2022-06-06)
+
+### Bug Fixes
+
+- add stat method to OrgAccessor ([f4e297c](https://github.com/forcedotcom/sfdx-core/commit/f4e297c576647b32be62621377d6e3fc5c8dc5f1))
+
 ### [3.19.3](https://github.com/forcedotcom/sfdx-core/compare/v3.19.2...v3.19.3) (2022-06-06)
 
 ### [3.19.2](https://github.com/forcedotcom/sfdx-core/compare/v3.19.1...v3.19.2) (2022-06-02)
