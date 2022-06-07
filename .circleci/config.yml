@@ -129,7 +129,7 @@ workflows:
       - release-management/validate-pr:
           filters:
             branches:
-              ignore: v3
+              ignore: sm/stateAggTesting
       - release-management/test-package:
           matrix:
             parameters:
@@ -148,7 +148,7 @@ workflows:
       - external-nut:
           filters:
             branches:
-              ignore: v3
+              ignore: sm/stateAggTesting
           requires:
             - release-management/test-package
           sfdx_version: latest
@@ -172,7 +172,7 @@ workflows:
       - external-nut:
           filters:
             branches:
-              ignore: v3
+              ignore: sm/stateAggTesting
           requires:
             - release-management/test-package
           sfdx_version: latest
@@ -188,7 +188,7 @@ workflows:
       - external-nut:
           filters:
             branches:
-              ignore: v3
+              ignore: sm/stateAggTesting
           requires:
             - release-management/test-package
           sfdx_version: latest
@@ -214,12 +214,11 @@ workflows:
           # github-release: true
           # post-job-steps:
           #   - run: yarn ci-docs
-          tag: 'v3-beta'
+          tag: 'v3-dev-sm'
           requires:
             - release-management/test-package
           filters:
             branches:
-              only: v3
+              only: sm/stateAggTesting
           context:
-            - CLI_CTC
             - salesforce-cli
