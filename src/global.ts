@@ -45,7 +45,7 @@ export class Global {
   public static readonly SF_STATE_FOLDER = '.sf';
 
   /**
-   * The peferred global folder in which state is stored.
+   * The preferred global folder in which state is stored.
    */
   public static readonly STATE_FOLDER = Global.SFDX_STATE_FOLDER;
 
@@ -61,14 +61,14 @@ export class Global {
   /**
    * The full system path to the global sf state folder.
    *
-   * **See** {@link Global.SF_STATE_FOLDER}
+   * **See**  {@link Global.SF_STATE_FOLDER}
    */
   public static get SF_DIR() {
     return path.join(os.homedir(), Global.SF_STATE_FOLDER);
   }
 
   /**
-   * The full system path to the peferred global state folder
+   * The  full system path to the preferred global state folder
    */
   public static get DIR() {
     return path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
@@ -80,7 +80,7 @@ export class Global {
   public static readonly LOG_FILE_PATH: string = path.join(Global.SF_DIR, 'sf.log');
 
   /**
-   * Gets the current mode environment variable as a {@link Mode} instance.
+   * Gets the curr ent mode environment variable as a {@link Mode} instance.
    *
    * ```
    * console.log(Global.getEnvironmentMode() === Mode.PRODUCTION);
