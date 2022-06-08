@@ -14,6 +14,7 @@ import { AsyncOptionalCreatable, env } from '@salesforce/kit';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { Cache } from '../util/cache';
+import { Global } from '../global';
 import { retrieveKeychain } from './keyChain';
 import { KeyChain } from './keyChainImpl';
 import { SecureBuffer } from './secureBuffer';
@@ -59,18 +60,19 @@ const keychainPromises = {
    * @param account The keychain account name.
    */
   getPassword(_keychain: KeyChain, service: string, account: string): Promise<CredType> {
-    const sb = Cache.get<SecureBuffer<string>>(`${service}:${account}`);
+    const cacheKey = `${Global.DIR}:${service}:${account}`;
+    const sb = Cache.get<SecureBuffer<string>>(cacheKey);
     if (!sb) {
       return new Promise((resolve, reject): {} => {
         return _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
           if (err) return reject(err);
-          Cache.set(`${service}:${account}`, makeSecureBuffer(password));
+          Cache.set(cacheKey, makeSecureBuffer(password));
           return resolve({ username: account, password: ensure(password) });
         });
       });
     } else {
       const pw = sb.value((buffer) => buffer.toString('utf8'));
-      Cache.set(`${service}:${account}`, makeSecureBuffer(pw));
+      Cache.set(cacheKey, makeSecureBuffer(pw));
       return new Promise((resolve): void => {
         return resolve({ username: account, password: ensure(pw) });
       });

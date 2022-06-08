@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.20.0](https://github.com/forcedotcom/sfdx-core/compare/v3.19.6-dev.0...v3.20.0) (2022-06-08)
+
+### Features
+
+- cache crypto keys by homedir ([dcd493e](https://github.com/forcedotcom/sfdx-core/commit/dcd493e7745bb2717da3a4ed9aff528a51391be6))
+
+### [3.19.6-dev.0](https://github.com/forcedotcom/sfdx-core/compare/v3.19.5...v3.19.6-dev.0) (2022-06-07)
+
+### Features
+
+- stateAggregator by homedir ([6219b41](https://github.com/forcedotcom/sfdx-core/commit/6219b41a4d7bac5759a62663e71e16f4722fdeac))
+
 ### [3.19.5](https://github.com/forcedotcom/sfdx-core/compare/v3.19.4...v3.19.5) (2022-06-06)
 
 ### Bug Fixes
