@@ -22,15 +22,11 @@ import { AuthFields, AuthInfo } from '../../../src/org';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { OrgAccessor } from '../../../src/stateAggregator';
+import { Crypto } from '../../../src/crypto/crypto';
 
 class AuthInfoMockOrg extends MockTestOrgData {
-  // public jwtUsername = 'authInfoTest_username_JWT';
-  // public accessToken = 'authInfoTest_access_token';
-  // public encryptedAccessToken = this.accessToken;
-  // public refreshToken = 'authInfoTest_refresh_token';
-  // public encryptedRefreshToken = this.refreshToken;
   public privateKey = 'authInfoTest/jwt/server.key';
-  public defaultConnectedAppInfo: AuthFields = {
+  public defaultConnectedAppInfo = {
     clientId: 'SalesforceDevelopmentExperience',
     clientSecret: '1384510088588713504',
   };
@@ -51,7 +47,6 @@ describe.only('AuthInfo', () => {
   // Setup the test environment.
   const $$ = testSetup();
 
-  // let testMetadata: MetaAuthDataMock;
   let testOrg: AuthInfoMockOrg;
 
   let postParamsStub: SinonStub;
@@ -289,140 +284,348 @@ describe.only('AuthInfo', () => {
       expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
     });
 
-    //
-    // JWT Tests
-    //
+    describe('JWT', () => {
+      it('should return a JWT AuthInfo instance when passed a username and JWT auth options', async () => {
+        $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });
+        const jwtConfig = {
+          clientId: testOrg.clientId,
+          loginUrl: testOrg.loginUrl,
+          privateKey: testOrg.privateKey,
+        };
+        const jwtConfigClone = cloneJson(jwtConfig);
+        const authResponse = {
+          access_token: testOrg.accessToken,
+          instance_url: testOrg.instanceUrl,
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        };
 
-    it('should return a JWT AuthInfo instance when passed a username and JWT auth options', async () => {
-      $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });
-      const jwtConfig = {
-        clientId: testOrg.clientId,
-        loginUrl: testOrg.loginUrl,
-        privateKey: testOrg.privateKey,
-      };
-      const jwtConfigClone = cloneJson(jwtConfig);
-      const authResponse = {
-        access_token: testOrg.accessToken,
-        instance_url: testOrg.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-      };
+        // Stub file I/O, http requests, and the DNS lookup
+        const readJwtKey = stubMethod($$.SANDBOX, AuthInfo.prototype, 'readJwtKey').resolves(
+          'authInfoTest_private_key'
+        );
+        postParamsStub.resolves(authResponse);
+        stubMethod($$.SANDBOX, jwt, 'sign').resolves('authInfoTest_jwtToken');
+        stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>
+          done(null, { address: '1.1.1.1', family: 4 })
+        );
 
-      // Stub file I/O, http requests, and the DNS lookup
-      const readJwtKey = stubMethod($$.SANDBOX, AuthInfo.prototype, 'readJwtKey').resolves('authInfoTest_private_key');
-      postParamsStub.resolves(authResponse);
-      stubMethod($$.SANDBOX, jwt, 'sign').resolves('authInfoTest_jwtToken');
-      stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>
-        done(null, { address: '1.1.1.1', family: 4 })
-      );
+        // Create the JWT AuthInfo instance
+        const authInfo = await AuthInfo.create({
+          username: testOrg.username,
+          oauth2Options: jwtConfig,
+        });
 
-      // Create the JWT AuthInfo instance
-      const authInfo = await AuthInfo.create({
-        username: testOrg.username,
-        oauth2Options: jwtConfig,
+        // Verify the returned AuthInfo instance
+        const authInfoConnOpts = authInfo.getConnectionOptions();
+        expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
+        expect(authInfoConnOpts).to.have.property('instanceUrl', authResponse.instance_url);
+        expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
+        expect(authInfo.getUsername()).to.equal(testOrg.username);
+        expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
+        expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
+        expect(authInfo.isJwt(), 'authInfo.isJwt() should be true').to.be.true;
+        expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
+
+        // Verify expected methods are called with expected args
+        expect(authInfoStubs.initAuthOptions.called).to.be.true;
+        expect(authInfoStubs.initAuthOptions.firstCall.args[0]).to.equal(jwtConfig);
+        expect(authInfoStubs.update.called).to.be.true;
+        expect(authInfoStubs.authJwt.called).to.be.true;
+        expect(authInfoStubs.authJwt.firstCall.args[0]).to.include(jwtConfig);
+        expect(
+          orgAccessorReadSpy.callCount,
+          'should have read an auth file once to ensure auth data did not already exist'
+        ).to.equal(1);
+        expect(readJwtKey.called).to.be.true;
+
+        // Verify the jwtConfig object was not mutated by init() or authJwt()
+        expect(jwtConfig).to.deep.equal(jwtConfigClone);
+
+        const expectedAuthConfig = {
+          accessToken: authResponse.access_token,
+          clientId: testOrg.clientId,
+          instanceUrl: testOrg.instanceUrl,
+          orgId: authResponse.id.split('/')[0],
+          loginUrl: jwtConfig.loginUrl,
+          privateKey: jwtConfig.privateKey,
+          isDevHub: false,
+        };
+        expect(authInfoStubs.update.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
       });
 
-      // Verify the returned AuthInfo instance
-      const authInfoConnOpts = authInfo.getConnectionOptions();
-      expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
-      expect(authInfoConnOpts).to.have.property('instanceUrl', authResponse.instance_url);
-      expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
-      expect(authInfo.getUsername()).to.equal(testOrg.username);
-      expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
-      expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
-      expect(authInfo.isJwt(), 'authInfo.isJwt() should be true').to.be.true;
-      expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
+      it('should return a JWT AuthInfo instance when passed a username from an auth file', async () => {
+        const jwtData = await testOrg.getConfig();
+        $$.setConfigStubContents('AuthInfoConfig', { contents: jwtData });
 
-      // Verify expected methods are called with expected args
-      expect(authInfoStubs.initAuthOptions.called).to.be.true;
-      expect(authInfoStubs.initAuthOptions.firstCall.args[0]).to.equal(jwtConfig);
-      expect(authInfoStubs.update.called).to.be.true;
-      expect(authInfoStubs.authJwt.called).to.be.true;
-      expect(authInfoStubs.authJwt.firstCall.args[0]).to.include(jwtConfig);
-      expect(
-        orgAccessorReadSpy.callCount,
-        'should have read an auth file once to ensure auth data did not already exist'
-      ).to.equal(1);
-      expect(readJwtKey.called).to.be.true;
+        // Create the JWT AuthInfo instance
+        const authInfo = await AuthInfo.create({ username: testOrg.username });
 
-      // Verify the jwtConfig object was not mutated by init() or authJwt()
-      expect(jwtConfig).to.deep.equal(jwtConfigClone);
+        // Verify the returned AuthInfo instance
+        const authInfoConnOpts = authInfo.getConnectionOptions();
+        expect(authInfoConnOpts).to.have.property('accessToken', testOrg.accessToken);
+        expect(authInfoConnOpts).to.have.property('instanceUrl', testOrg.instanceUrl);
+        expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
+        expect(authInfo.getUsername()).to.equal(testOrg.username);
+        expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
+        expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
+        expect(authInfo.isJwt(), 'authInfo.isJwt() should be true').to.be.true;
+        expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
 
-      const expectedAuthConfig = {
-        accessToken: authResponse.access_token,
-        clientId: testOrg.clientId,
-        instanceUrl: testOrg.instanceUrl,
-        orgId: authResponse.id.split('/')[0],
-        loginUrl: jwtConfig.loginUrl,
-        privateKey: jwtConfig.privateKey,
-        isDevHub: false,
+        // Verify authInfo.fields are encrypted
+        expect(authInfo.getFields().accessToken).equals(jwtData.accessToken);
+      });
+
+      it('should throw an AuthInfoOverwriteError when both username and oauth data passed and auth file exists', async () => {
+        $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });
+        stubMethod($$.SANDBOX, OrgAccessor.prototype, 'hasFile').resolves(true);
+
+        // Create the JWT AuthInfo instance
+        try {
+          await AuthInfo.create({
+            username: testOrg.username,
+            oauth2Options: {
+              clientId: testOrg.clientId,
+              loginUrl: testOrg.loginUrl,
+              privateKey: testOrg.privateKey,
+            },
+          });
+          assert.fail(
+            'Error thrown',
+            'No Error thrown',
+            'Expected AuthInfo.create() to throw an AuthInfoOverwriteError'
+          );
+        } catch (err) {
+          expect(err.name).to.equal('AuthInfoOverwriteError');
+        }
+      });
+
+      it('should throw a JWTAuthError when auth fails via a OAuth2.jwtAuthorize()', async () => {
+        const jwtConfig = {
+          clientId: testOrg.clientId,
+          loginUrl: testOrg.loginUrl,
+          privateKey: testOrg.privateKey,
+        };
+
+        // Stub file I/O, http requests, and the DNS lookup
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'readJwtKey').resolves('authInfoTest_private_key');
+        postParamsStub.throws(new Error('authInfoTest_ERROR_MSG'));
+        stubMethod($$.SANDBOX, jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
+        stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>
+          done(null, { address: '1.1.1.1', family: 4 })
+        );
+
+        // Create the JWT AuthInfo instance
+        try {
+          await AuthInfo.create({ username: testOrg.username, oauth2Options: jwtConfig });
+          assert.fail('should have thrown an error within AuthInfo.authJwt()');
+        } catch (err) {
+          expect(err.name).to.equal('JwtAuthError');
+        }
+      });
+    });
+
+    describe('Refresh Token', () => {
+      const verifyAuthInfo = (
+        authInfo: AuthInfo,
+        authResponse: { access_token: string; instance_url: string },
+        config?: { clientId?: string }
+      ) => {
+        // Verify the returned AuthInfo instance
+        const authInfoConnOpts = authInfo.getConnectionOptions();
+        expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
+        expect(authInfoConnOpts).to.have.property('instanceUrl', authResponse.instance_url);
+        expect(authInfoConnOpts).to.not.have.property('refreshToken');
+        expect(authInfoConnOpts['oauth2']).to.have.property('loginUrl', testOrg.instanceUrl);
+        if (config?.clientId) {
+          expect(authInfoConnOpts['oauth2']).to.have.property('clientId', config?.clientId);
+        } else {
+          expect(authInfoConnOpts['oauth2']).to.have.property('clientId', testOrg.defaultConnectedAppInfo.clientId);
+        }
+
+        expect(authInfoConnOpts['oauth2']).to.have.property('redirectUri', testOrg.redirectUri);
+        expect(authInfo.getUsername()).to.equal(testOrg.username);
+        expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
+        expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
+        expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
+        expect(authInfo.isOauth(), 'authInfo.isOauth() should be true').to.be.true;
       };
-      expect(authInfoStubs.update.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
-    });
 
-    it('should return a JWT AuthInfo instance when passed a username from an auth file', async () => {
-      const jwtData = await testOrg.getConfig();
-      $$.setConfigStubContents('AuthInfoConfig', { contents: jwtData });
+      it('should return a refresh token AuthInfo instance when passed a username and refresh token auth options', async () => {
+        const refreshTokenConfig = {
+          refreshToken: testOrg.refreshToken,
+          loginUrl: testOrg.loginUrl,
+        };
+        const refreshTokenConfigClone = cloneJson(refreshTokenConfig);
+        const authResponse = {
+          access_token: testOrg.accessToken,
+          instance_url: testOrg.instanceUrl,
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        };
 
-      // Create the JWT AuthInfo instance
-      const authInfo = await AuthInfo.create({ username: testOrg.username });
+        // Stub the http request (OAuth2.refreshToken())
+        postParamsStub.returns(Promise.resolve(authResponse));
 
-      // Verify the returned AuthInfo instance
-      const authInfoConnOpts = authInfo.getConnectionOptions();
-      expect(authInfoConnOpts).to.have.property('accessToken', testOrg.accessToken);
-      expect(authInfoConnOpts).to.have.property('instanceUrl', testOrg.instanceUrl);
-      expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
-      expect(authInfo.getUsername()).to.equal(testOrg.username);
-      expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
-      expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
-      expect(authInfo.isJwt(), 'authInfo.isJwt() should be true').to.be.true;
-      expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
-
-      // Verify authInfo.fields are encrypted
-      expect(authInfo.getFields().accessToken).equals(jwtData.accessToken);
-    });
-
-    it('should throw an AuthInfoOverwriteError when both username and oauth data passed and auth file exists', async () => {
-      $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'hasFile').resolves(true);
-
-      // Create the JWT AuthInfo instance
-      try {
-        await AuthInfo.create({
+        // Create the refresh token AuthInfo instance
+        const authInfo = await AuthInfo.create({
           username: testOrg.username,
-          oauth2Options: {
-            clientId: testOrg.clientId,
-            loginUrl: testOrg.loginUrl,
-            privateKey: testOrg.privateKey,
-          },
+          oauth2Options: refreshTokenConfig,
         });
-        assert.fail('Error thrown', 'No Error thrown', 'Expected AuthInfo.create() to throw an AuthInfoOverwriteError');
-      } catch (err) {
-        expect(err.name).to.equal('AuthInfoOverwriteError');
-      }
-    });
 
-    it('should throw a JWTAuthError when auth fails via a OAuth2.jwtAuthorize()', async () => {
-      const jwtConfig = {
-        clientId: testOrg.clientId,
-        loginUrl: testOrg.loginUrl,
-        privateKey: testOrg.privateKey,
-      };
+        verifyAuthInfo(authInfo, authResponse);
 
-      // Stub file I/O, http requests, and the DNS lookup
-      stubMethod($$.SANDBOX, AuthInfo.prototype, 'readJwtKey').resolves('authInfoTest_private_key');
-      postParamsStub.throws(new Error('authInfoTest_ERROR_MSG'));
-      stubMethod($$.SANDBOX, jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
-      stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>
-        done(null, { address: '1.1.1.1', family: 4 })
-      );
+        // Verify authInfo.fields are encrypted
+        const crypto = await Crypto.create();
+        expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
+        expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
 
-      // Create the JWT AuthInfo instance
-      try {
-        await AuthInfo.create({ username: testOrg.username, oauth2Options: jwtConfig });
-        assert.fail('should have thrown an error within AuthInfo.authJwt()');
-      } catch (err) {
-        expect(err.name).to.equal('JwtAuthError');
-      }
+        // Verify expected methods are called with expected args
+        expect(authInfoStubs.initAuthOptions.called).to.be.true;
+        expect(authInfoStubs.initAuthOptions.firstCall.args[0]).to.equal(refreshTokenConfig);
+        expect(authInfoStubs.update.called).to.be.true;
+        expect(authInfoStubs.buildRefreshTokenConfig.called).to.be.true;
+        expect(authInfoStubs.buildRefreshTokenConfig.firstCall.args[0]).to.include(refreshTokenConfig);
+
+        // Verify the refreshTokenConfig object was not mutated by init() or buildRefreshTokenConfig()
+        expect(refreshTokenConfig).to.deep.equal(refreshTokenConfigClone);
+
+        const expectedAuthConfig = {
+          accessToken: authResponse.access_token,
+          instanceUrl: testOrg.instanceUrl,
+          orgId: authResponse.id.split('/')[0],
+          loginUrl: refreshTokenConfig.loginUrl,
+          refreshToken: refreshTokenConfig.refreshToken,
+          clientId: testOrg.defaultConnectedAppInfo.clientId,
+          clientSecret: testOrg.defaultConnectedAppInfo.clientSecret,
+          isDevHub: false,
+          username: testOrg.username,
+        };
+        expect(authInfoStubs.update.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
+      });
+
+      it('should return a refresh token AuthInfo instance with username in auth options', async () => {
+        const refreshTokenConfig = {
+          refreshToken: testOrg.refreshToken,
+          loginUrl: testOrg.loginUrl,
+          username: testOrg.username,
+        };
+        const refreshTokenConfigClone = cloneJson(refreshTokenConfig);
+        const authResponse = {
+          access_token: testOrg.accessToken,
+          instance_url: testOrg.instanceUrl,
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        };
+
+        // Stub the http request (OAuth2.refreshToken())
+        postParamsStub.returns(Promise.resolve(authResponse));
+
+        // Create the refresh token AuthInfo instance
+        const authInfo = await AuthInfo.create({
+          oauth2Options: refreshTokenConfig,
+        });
+
+        verifyAuthInfo(authInfo, authResponse);
+
+        // Verify authInfo.fields are encrypted
+        const crypto = await Crypto.create();
+        expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
+        expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
+
+        // Verify expected methods are called with expected args
+        expect(authInfoStubs.initAuthOptions.called).to.be.true;
+        expect(authInfoStubs.initAuthOptions.firstCall.args[0]).to.equal(refreshTokenConfig);
+        expect(authInfoStubs.update.called).to.be.true;
+        expect(authInfoStubs.buildRefreshTokenConfig.called).to.be.true;
+        expect(authInfoStubs.buildRefreshTokenConfig.firstCall.args[0]).to.include(refreshTokenConfig);
+
+        // Verify the refreshTokenConfig object was not mutated by init() or buildRefreshTokenConfig()
+        expect(refreshTokenConfig).to.deep.equal(refreshTokenConfigClone);
+
+        const expectedAuthConfig = {
+          accessToken: authResponse.access_token,
+          instanceUrl: testOrg.instanceUrl,
+          orgId: authResponse.id.split('/')[0],
+          loginUrl: refreshTokenConfig.loginUrl,
+          refreshToken: refreshTokenConfig.refreshToken,
+          clientId: testOrg.defaultConnectedAppInfo.clientId,
+          clientSecret: testOrg.defaultConnectedAppInfo.clientSecret,
+          isDevHub: false,
+          username: testOrg.username,
+        };
+        expect(authInfoStubs.update.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
+      });
+
+      it('should return a refresh token AuthInfo instance with custom clientId and clientSecret', async () => {
+        const refreshTokenConfig = {
+          clientId: 'authInfoTest_clientId',
+          clientSecret: 'authInfoTest_clientSecret',
+          refreshToken: testOrg.refreshToken,
+          loginUrl: testOrg.loginUrl,
+          redirectUri: 'http://localhost:1717/OauthRedirect',
+        };
+        const authResponse = {
+          access_token: testOrg.accessToken,
+          instance_url: testOrg.instanceUrl,
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        };
+
+        // Stub the http request (OAuth2.refreshToken())
+        postParamsStub.returns(Promise.resolve(authResponse));
+
+        // Create the refresh token AuthInfo instance
+        const authInfo = await AuthInfo.create({
+          username: testOrg.username,
+          oauth2Options: refreshTokenConfig,
+        });
+
+        verifyAuthInfo(authInfo, authResponse, refreshTokenConfig);
+
+        // Verify authInfo.fields are encrypted
+        const crypto = await Crypto.create();
+        expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
+        expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
+        expect(crypto.decrypt(authInfo.getFields().clientSecret)).equals(refreshTokenConfig.clientSecret);
+
+        // Verify expected methods are called with expected args
+        expect(authInfoStubs.initAuthOptions.called).to.be.true;
+        expect(authInfoStubs.initAuthOptions.firstCall.args[0]).to.equal(refreshTokenConfig);
+        expect(authInfoStubs.update.called).to.be.true;
+        expect(authInfoStubs.buildRefreshTokenConfig.called).to.be.true;
+        expect(authInfoStubs.buildRefreshTokenConfig.firstCall.args[0]).to.include(refreshTokenConfig);
+
+        const expectedAuthConfig = {
+          accessToken: authResponse.access_token,
+          instanceUrl: testOrg.instanceUrl,
+          orgId: authResponse.id.split('/')[0],
+          loginUrl: refreshTokenConfig.loginUrl,
+          refreshToken: refreshTokenConfig.refreshToken,
+          clientId: refreshTokenConfig.clientId,
+          clientSecret: refreshTokenConfig.clientSecret,
+          isDevHub: false,
+          username: testOrg.username,
+        };
+        expect(authInfoStubs.update.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
+      });
+
+      it('should throw a RefreshTokenAuthError when auth fails via a refresh token', async () => {
+        const username = 'authInfoTest_username_RefreshToken_ERROR';
+        const refreshTokenConfig = {
+          clientId: 'authInfoTest_clientId',
+          clientSecret: 'authInfoTest_clientSecret',
+          refreshToken: testOrg.refreshToken,
+          loginUrl: testOrg.loginUrl,
+        };
+
+        // Stub the http request (OAuth2.refreshToken())
+        postParamsStub.throws(new Error('authInfoTest_ERROR_MSG'));
+
+        // Create the refresh token AuthInfo instance
+        try {
+          await AuthInfo.create({ username, oauth2Options: refreshTokenConfig });
+          assert.fail('should have thrown an error within AuthInfo.buildRefreshTokenConfig()');
+        } catch (err) {
+          expect(err.name).to.equal('RefreshTokenAuthError');
+        }
+      });
     });
   });
 });

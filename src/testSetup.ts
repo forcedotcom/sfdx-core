@@ -847,7 +847,7 @@ export class MockTestOrgData {
     this.authcode = `${this.testId}/authcode`;
     this.accessToken = `${this.testId}/accessToken`;
     this.refreshToken = `${this.testId}/refreshToken`;
-    this.redirectUri = `http://${this.testId}/localhost:1717/OauthRedirect`;
+    this.redirectUri = 'http://localhost:1717/OauthRedirect';
   }
 
   public createDevHubUsername(username: string): void {
