@@ -121,14 +121,21 @@ export interface TestContext {
     [configName: string]: Optional<ConfigStub>;
     AliasesConfig?: ConfigStub;
     AuthInfoConfig?: ConfigStub;
-    SfdxConfig?: ConfigStub;
+    Config?: ConfigStub;
     SfProjectJson?: ConfigStub;
     TokensConfig?: ConfigStub;
   };
   /**
    * An record of stubs created during instantaion.
    */
-  stubs?: Record<string, sinonType.SinonStub>;
+  stubs: {
+    configRead?: sinonType.SinonStub;
+    configReadSync?: sinonType.SinonStub;
+    configWriteSync?: sinonType.SinonStub;
+    configWrite?: sinonType.SinonStub;
+    configExists?: sinonType.SinonStub;
+    configRemove?: sinonType.SinonStub;
+  };
   /**
    * A function used when resolving the local path. Calls localPathResolverSync by default.
    *
@@ -194,6 +201,8 @@ export interface TestContext {
   stubAuths(...orgs: MockTestOrgData[]): Promise<void>;
   stubSandboxes(...orgs: MockTestSandboxData[]): Promise<void>;
   stubAliases(aliases: Record<string, string>, group?: AliasGroup): void;
+  stubConfig(config: Record<string, string>): void;
+  stubTokens(tokens: Record<string, string>): void;
 }
 
 export const uniqid = (): string => {
@@ -277,6 +286,7 @@ export const instantiateContext = (sinon?: any): TestContext => {
     id: uniqid(),
     uniqid,
     configStubs: {},
+    stubs: {},
     // eslint-disable-next-line @typescript-eslint/require-await
     localPathRetriever: async (uid: string) => getTestLocalPath(uid),
     localPathRetrieverSync: getTestLocalPath,
@@ -362,6 +372,12 @@ export const instantiateContext = (sinon?: any): TestContext => {
     stubAliases(aliases: Record<string, string>, group = AliasGroup.ORGS): void {
       this.configStubs.AliasesConfig = { contents: { [group]: aliases } };
     },
+    stubConfig(config: Record<string, string>): void {
+      this.configStubs.Config = { contents: config };
+    },
+    stubTokens(tokens: Record<string, string>): void {
+      this.configStubs.TokensConfig = { contents: tokens };
+    },
   };
 
   return testContext;
@@ -444,8 +460,8 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
 
   // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
   // @ts-ignore
-  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
-  testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(read);
+  stubs.configRead = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
+  stubs.configReadSync = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(read);
 
   const writeSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): void {
     if (!testContext.configStubs[this.constructor.name]) {
@@ -489,6 +505,9 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
         cb(undefined, '12345678901234567890123456789012'),
     })
   );
+
+  // stubMethod(testContext.SANDBOXES.CRYPTO, KeyFile, 'read').resolves({});
+  // stubMethod(testContext.SANDBOXES.CRYPTO, KeyFile, 'write').resolves();
 
   stubMethod(testContext.SANDBOXES.CONNECTION, Connection.prototype, 'isResolvable').resolves(true);
 

@@ -11,7 +11,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { homedir } from 'os';
 import * as path from 'path';
-import { asString, ensureString, Nullable } from '@salesforce/ts-types';
+import { asString, ensureString, JsonMap, Nullable } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
 import * as mkdirp from 'mkdirp';
 import { Global } from '../global';
@@ -429,6 +429,18 @@ const _darwinImpl: OsImpl = {
 
 const getSecretFile = () => path.join(Global.DIR, 'key.json');
 
+export class KeyFile {
+  public static async read(): Promise<JsonMap> {
+    return parseJsonMap(await fs.promises.readFile(getSecretFile(), 'utf8'));
+  }
+
+  public static async write(contents: ProgramOpts): Promise<void> {
+    const secretFile = getSecretFile();
+    await mkdirp(path.dirname(secretFile));
+    await fs.promises.writeFile(secretFile, JSON.stringify(contents, null, 4), { mode: '600' });
+  }
+}
+
 enum SecretField {
   SERVICE = 'service',
   ACCOUNT = 'account',
@@ -448,10 +460,7 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
       [SecretField.KEY]: opts.password,
       [SecretField.SERVICE]: opts.service,
     };
-    const secretFile = getSecretFile();
-    await mkdirp(path.dirname(secretFile));
-    await fs.promises.writeFile(secretFile, JSON.stringify(contents, null, 4), { mode: '600' });
-
+    await KeyFile.write(contents);
     fn(null, contents);
   } catch (err) {
     fn(err as Error);
@@ -460,7 +469,7 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
 
 async function _readFile(): Promise<ProgramOpts> {
   // The file and access is validated before this method is called
-  const fileContents = parseJsonMap(await fs.promises.readFile(getSecretFile(), 'utf8'));
+  const fileContents = await KeyFile.read();
   return {
     account: ensureString(fileContents[SecretField.ACCOUNT]),
     password: asString(fileContents[SecretField.KEY]),

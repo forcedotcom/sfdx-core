@@ -757,7 +757,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   private getInstanceUrl(options: unknown, aggregator: ConfigAggregator) {
-    const instanceUrl = getString(options, 'instanceUrl') || (aggregator.getPropertyValue('instanceUrl') as string);
+    const instanceUrl =
+      getString(options, 'instanceUrl') ||
+      (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
     return instanceUrl || SfdcUrl.PRODUCTION;
   }
 
@@ -882,12 +884,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
   }
 
+  private async readJwtKey(keyFile: string): Promise<string> {
+    return fs.promises.readFile(keyFile, 'utf8');
+  }
+
   // Build OAuth config for a JWT auth flow
   private async authJwt(options: OAuth2Config): Promise<AuthFields> {
     if (!options.clientId) {
       throw messages.createError('missingClientId');
     }
-    const privateKeyContents = await fs.promises.readFile(ensure(options.privateKey), 'utf8');
+    const privateKeyContents = await this.readJwtKey(ensureString(options.privateKey));
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
     const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
