@@ -68,7 +68,7 @@ export class Global {
   }
 
   /**
-   * The  full system path to the preferred global state folder
+   * The full system path to the preferred global state folder
    */
   public static get DIR() {
     return path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
