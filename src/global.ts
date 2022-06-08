@@ -80,7 +80,7 @@ export class Global {
   public static readonly LOG_FILE_PATH: string = path.join(Global.SF_DIR, 'sf.log');
 
   /**
-   * Gets the curr ent mode environment variable as a {@link Mode} instance.
+   * Gets the current mode environment variable as a {@link Mode} instance.
    *
    * ```
    * console.log(Global.getEnvironmentMode() === Mode.PRODUCTION);
