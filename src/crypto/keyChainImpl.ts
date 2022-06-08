@@ -427,6 +427,8 @@ const _darwinImpl: OsImpl = {
   },
 };
 
+const getSecretFile = () => path.join(Global.DIR, 'key.json');
+
 enum SecretField {
   SERVICE = 'service',
   ACCOUNT = 'account',
@@ -446,7 +448,7 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
       [SecretField.KEY]: opts.password,
       [SecretField.SERVICE]: opts.service,
     };
-    const secretFile = path.join(Global.DIR, 'key.json');
+    const secretFile = getSecretFile();
     await mkdirp(path.dirname(secretFile));
     await fs.promises.writeFile(secretFile, JSON.stringify(contents, null, 4), { mode: '600' });
 
@@ -458,7 +460,7 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
 
 async function _readFile(): Promise<ProgramOpts> {
   // The file and access is validated before this method is called
-  const fileContents = parseJsonMap(await fs.promises.readFile(path.join(Global.DIR, 'key.json'), 'utf8'));
+  const fileContents = parseJsonMap(await fs.promises.readFile(getSecretFile(), 'utf8'));
   return {
     account: ensureString(fileContents[SecretField.ACCOUNT]),
     password: asString(fileContents[SecretField.KEY]),
@@ -485,7 +487,7 @@ export class GenericKeychainAccess implements PasswordStore {
           } else {
             // if the service and account names don't match then maybe someone or something is editing
             // that file. #donotallow
-            fn(messages.createError('genericKeychainServiceError', [path.join(Global.DIR, 'key.json')]));
+            fn(messages.createError('genericKeychainServiceError', [getSecretFile()]));
           }
         } catch (readJsonErr) {
           fn(readJsonErr as Error);
@@ -546,7 +548,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
       if (err != null) {
         await cb(err);
       } else {
-        const secretFile = path.join(Global.DIR, 'key.json');
+        const secretFile = getSecretFile();
         const stats = await fs.promises.stat(secretFile);
         const octalModeStr = (stats.mode & 0o777).toString(8);
         const EXPECTED_OCTAL_PERM_VALUE = '600';
@@ -576,7 +578,7 @@ export class GenericWindowsKeychainAccess extends GenericKeychainAccess {
         await cb(err);
       } else {
         try {
-          await fs.promises.access(path.join(Global.DIR, 'key.json'), fs.constants.R_OK | fs.constants.W_OK);
+          await fs.promises.access(getSecretFile(), fs.constants.R_OK | fs.constants.W_OK);
           await cb(null);
         } catch (e) {
           await cb(e as Error);
