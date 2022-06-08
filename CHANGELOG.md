@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.20.1](https://github.com/forcedotcom/sfdx-core/compare/v3.19.5...v3.20.1) (2022-06-08)
+
+### Features
+
+- cause a publish from previous skip ([069c366](https://github.com/forcedotcom/sfdx-core/commit/069c36646f5dc10a4172868ef7b5f9cd82ef7503))
+- safer caching for nuts ([fa0af41](https://github.com/forcedotcom/sfdx-core/commit/fa0af41451a4363c84e9713685c8ece439acf3bc))
+
 ## [3.20.0](https://github.com/forcedotcom/sfdx-core/compare/v3.19.6-dev.0...v3.20.0) (2022-06-08)
 
 ### Features
