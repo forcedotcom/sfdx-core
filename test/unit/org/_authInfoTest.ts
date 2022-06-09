@@ -22,8 +22,9 @@ import { SinonSpy, SinonStub } from 'sinon';
 import { AuthFields, AuthInfo, OAuth2Config } from '../../../src/org';
 import { MockTestOrgData, testSetup } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
-import { OrgAccessor } from '../../../src/stateAggregator';
+import { AliasAccessor, OrgAccessor } from '../../../src/stateAggregator';
 import { Crypto } from '../../../src/crypto/crypto';
+import { Config } from '../../../src/config/config';
 
 class AuthInfoMockOrg extends MockTestOrgData {
   public privateKey = 'authInfoTest/jwt/server.key';
@@ -1181,6 +1182,60 @@ describe.only('AuthInfo', () => {
       delete authInfo.getFields().instanceUrl;
 
       expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined instanceUrl');
+    });
+  });
+
+  describe('setAlias', () => {
+    const alias = 'MyAlias';
+
+    it('should set alias', async () => {
+      const aliasAccessorSpy = spyMethod($$.SANDBOX, AliasAccessor.prototype, 'set');
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      await authInfo.setAlias(alias);
+      expect(aliasAccessorSpy.calledOnce).to.be.true;
+      expect(aliasAccessorSpy.firstCall.args[0]).to.equal(alias);
+      expect(aliasAccessorSpy.firstCall.args[1]).to.equal(testOrg.username);
+    });
+  });
+
+  describe('setAsDefault', () => {
+    const alias = 'MyAlias';
+    let configSpy: sinon.SinonSpy;
+
+    beforeEach(() => {
+      configSpy = spyMethod($$.SANDBOX, Config.prototype, 'set');
+    });
+
+    it('should set username to target-org', async () => {
+      stubMethod($$.SANDBOX, AliasAccessor.prototype, 'get').returns(null);
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      await authInfo.setAsDefault({ org: true });
+      expect(configSpy.called).to.be.true;
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_ORG, testOrg.username]);
+    });
+
+    it('should set username to target-dev-hub', async () => {
+      stubMethod($$.SANDBOX, AliasAccessor.prototype, 'get').returns(null);
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      await authInfo.setAsDefault({ devHub: true });
+      expect(configSpy.called).to.be.true;
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_DEV_HUB, testOrg.username]);
+    });
+
+    it('should set alias to target-org', async () => {
+      stubMethod($$.SANDBOX, AliasAccessor.prototype, 'get').returns(alias);
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      await authInfo.setAsDefault({ org: true });
+      expect(configSpy.called).to.be.true;
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_ORG, alias]);
+    });
+
+    it('should set alias to target-dev-hub', async () => {
+      stubMethod($$.SANDBOX, AliasAccessor.prototype, 'get').returns(alias);
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      await authInfo.setAsDefault({ devHub: true });
+      expect(configSpy.called).to.be.true;
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_DEV_HUB, alias]);
     });
   });
 });
