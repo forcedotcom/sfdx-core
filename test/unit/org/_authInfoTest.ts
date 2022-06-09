@@ -8,6 +8,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/ban-types */
 
+import * as pathImport from 'path';
 import * as dns from 'dns';
 import * as jwt from 'jsonwebtoken';
 import { cloneJson, includes } from '@salesforce/kit';
@@ -27,6 +28,7 @@ import { Crypto } from '../../../src/crypto/crypto';
 class AuthInfoMockOrg extends MockTestOrgData {
   public privateKey = 'authInfoTest/jwt/server.key';
   public expirationDate = '12-02-20';
+  public encryptedAccessToken = this.accessToken;
   public defaultConnectedAppInfo = {
     clientId: 'SalesforceDevelopmentExperience',
     clientSecret: '1384510088588713504',
@@ -925,6 +927,85 @@ describe.only('AuthInfo', () => {
       $$.stubs.configWrite.rejects(new Error('Should not call save'));
       await authInfo.save();
       // If the test doesn't blow up, it is a success because the write (reject) never happened
+    });
+  });
+
+  describe('refreshFn', () => {
+    it('should call init() and save()', async () => {
+      const context = {
+        getUsername: () => '',
+        getFields: (decrypt = false) => ({
+          loginUrl: testOrg.loginUrl,
+          clientId: testOrg.clientId,
+          privateKey: 'authInfoTest/jwt/server.key',
+          accessToken: decrypt ? testOrg.accessToken : testOrg.encryptedAccessToken,
+        }),
+        initAuthOptions: $$.SANDBOX.stub(),
+        save: $$.SANDBOX.stub(),
+        logger: $$.TEST_LOGGER,
+      };
+      const testCallback = $$.SANDBOX.stub();
+      testCallback.returns(Promise.resolve());
+
+      context.initAuthOptions.returns(Promise.resolve());
+      context.save.returns(Promise.resolve());
+      // @ts-ignore
+      await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
+
+      expect(context.initAuthOptions.called, 'Should have called AuthInfo.initAuthOptions() during refreshFn()').to.be
+        .true;
+      const expectedInitArgs = {
+        loginUrl: context.getFields().loginUrl,
+        clientId: context.getFields().clientId,
+        privateKey: context.getFields().privateKey,
+        accessToken: testOrg.accessToken,
+      };
+      expect(context.initAuthOptions.firstCall.args[0]).to.deep.equal(expectedInitArgs);
+      expect(context.save.called, 'Should have called AuthInfo.save() during refreshFn()').to.be.true;
+      expect(testCallback.called, 'Should have called the callback passed to refreshFn()').to.be.true;
+      expect(testCallback.firstCall.args[1]).to.equal(testOrg.accessToken);
+    });
+
+    it('should path.resolve jwtkeyfilepath', async () => {
+      const resolveSpy = $$.SANDBOX.spy(pathImport, 'resolve');
+
+      authInfoStubs.authJwt.restore();
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'authJwt').resolves({
+        instanceUrl: '',
+        accessToken: '',
+      });
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+
+      await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: {
+          clientId: testOrg.clientId,
+          privateKeyFile: testOrg.privateKey,
+        },
+      });
+      expect(resolveSpy.lastCall.args[0]).to.equal(testOrg.privateKey);
+    });
+
+    it('should call the callback with OrgDataNotAvailableError when AuthInfo.init() fails', async () => {
+      const context = {
+        getUsername: () => '',
+        getFields: () => ({
+          loginUrl: testOrg.loginUrl,
+          clientId: testOrg.clientId,
+          privateKey: testOrg.privateKey,
+          accessToken: testOrg.encryptedAccessToken,
+        }),
+        initAuthOptions: $$.SANDBOX.stub(),
+        save: $$.SANDBOX.stub(),
+        logger: $$.TEST_LOGGER,
+      };
+      const testCallback = $$.SANDBOX.spy();
+      context.initAuthOptions.throws(new Error('Error: Data Not Available'));
+      context.save.returns(Promise.resolve());
+      await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
+      expect(testCallback.called).to.be.true;
+      const sfError = testCallback.firstCall.args[0];
+      expect(sfError.name).to.equal('OrgDataNotAvailableError', sfError.message);
     });
   });
 });
