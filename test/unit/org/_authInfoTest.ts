@@ -905,5 +905,26 @@ describe.only('AuthInfo', () => {
       // and that data is encrypted when saved (because we have to decrypt it to verify here).
       expect(decryptedActualFields).to.deep.equal(expectedFields);
     });
+
+    it('should not save accesstoken files', async () => {
+      // invalid access token
+      const username =
+        '00DB0000000H3bm!AQcAQFpuHljRg_fn_n.0g_3GJTXeCI_sQEucmwq2o5yd3.mwof3ODbsfWrJ4MCro8DOjpaloqoRFzAJ8w8f.TrjRiSaFSpvo';
+
+      // Create the AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username,
+        accessTokenOptions: {
+          accessToken: username,
+          instanceUrl: testOrg.instanceUrl,
+        },
+      });
+
+      expect(authInfo.getUsername()).to.equal(username);
+
+      $$.stubs.configWrite.rejects(new Error('Should not call save'));
+      await authInfo.save();
+      // If the test doesn't blow up, it is a success because the write (reject) never happened
+    });
   });
 });
