@@ -25,6 +25,7 @@ import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { AliasAccessor, OrgAccessor } from '../../../src/stateAggregator';
 import { Crypto } from '../../../src/crypto/crypto';
 import { Config } from '../../../src/config/config';
+import { SfdcUrl } from '../../../src/util/sfdcUrl';
 
 class AuthInfoMockOrg extends MockTestOrgData {
   public privateKey = 'authInfoTest/jwt/server.key';
@@ -43,11 +44,12 @@ class AuthInfoMockOrg extends MockTestOrgData {
       loginUrl: this.loginUrl,
       privateKey: this.privateKey,
       username: this.username,
+      orgId: this.orgId,
     };
   }
 }
 
-describe.only('AuthInfo', () => {
+describe('AuthInfo', () => {
   // Setup the test environment.
   const $$ = testSetup();
 
@@ -136,7 +138,7 @@ describe.only('AuthInfo', () => {
       };
 
       // Stub the http requests (OAuth2.requestToken() and the request for the username)
-      postParamsStub.returns(Promise.resolve(authResponse));
+      postParamsStub.resolves(authResponse);
       stubUserRequest();
       authInfo = await AuthInfo.create({ oauth2Options });
 
@@ -446,7 +448,7 @@ describe.only('AuthInfo', () => {
         // Stub file I/O, http requests, and the DNS lookup
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'readJwtKey').resolves('authInfoTest_private_key');
         postParamsStub.throws(new Error('authInfoTest_ERROR_MSG'));
-        stubMethod($$.SANDBOX, jwt, 'sign').returns(Promise.resolve('authInfoTest_jwtToken'));
+        stubMethod($$.SANDBOX, jwt, 'sign').resolves('authInfoTest_jwtToken');
         stubMethod($$.SANDBOX, dns, 'lookup').callsFake((url: string, done: (v: AnyJson, w: JsonMap) => {}) =>
           done(null, { address: '1.1.1.1', family: 4 })
         );
@@ -458,6 +460,73 @@ describe.only('AuthInfo', () => {
         } catch (err) {
           expect(err.name).to.equal('JwtAuthError');
         }
+      });
+
+      it('should return a JWT AuthInfo instance when passed a username and JWT auth options despite failed DNS lookup', async () => {
+        $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });
+
+        const jwtConfig = {
+          clientId: testOrg.clientId,
+          loginUrl: testOrg.loginUrl,
+          privateKey: testOrg.privateKey,
+        };
+        const jwtConfigClone = cloneJson(jwtConfig);
+        const authResponse = {
+          access_token: testOrg.accessToken,
+          instance_url: testOrg.instanceUrl,
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        };
+
+        // Stub file I/O, http requests, and the DNS lookup
+        const readJwtKey = stubMethod($$.SANDBOX, AuthInfo.prototype, 'readJwtKey').resolves(
+          'authInfoTest_private_key'
+        );
+        postParamsStub.resolves(authResponse);
+        stubMethod($$.SANDBOX, jwt, 'sign').resolves('authInfoTest_jwtToken');
+        stubMethod($$.SANDBOX, SfdcUrl.prototype, 'lookup').throws();
+
+        // Create the JWT AuthInfo instance
+        const authInfo = await AuthInfo.create({
+          username: testOrg.username,
+          oauth2Options: jwtConfig,
+        });
+
+        // Verify the returned AuthInfo instance
+        const authInfoConnOpts = authInfo.getConnectionOptions();
+        expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
+        expect(authInfoConnOpts).to.have.property('instanceUrl', testOrg.loginUrl);
+        expect(authInfoConnOpts).to.have.property('refreshFn').and.is.a('function');
+        expect(authInfo.getUsername()).to.equal(testOrg.username);
+        expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
+        expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
+        expect(authInfo.isJwt(), 'authInfo.isJwt() should be true').to.be.true;
+        expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
+
+        // Verify expected methods are called with expected args
+        expect(authInfoStubs.initAuthOptions.called).to.be.true;
+        expect(authInfoStubs.initAuthOptions.firstCall.args[0]).to.equal(jwtConfig);
+        expect(authInfoStubs.update.called).to.be.true;
+        expect(authInfoStubs.authJwt.called).to.be.true;
+        expect(authInfoStubs.authJwt.firstCall.args[0]).to.include(jwtConfig);
+        expect(
+          orgAccessorReadSpy.callCount,
+          'should have read an auth file once to ensure auth data did not already exist'
+        ).to.equal(1);
+        expect(readJwtKey.called).to.be.true;
+
+        // Verify the jwtConfig object was not mutated by init() or authJwt()
+        expect(jwtConfig).to.deep.equal(jwtConfigClone);
+
+        const expectedAuthConfig = {
+          accessToken: authResponse.access_token,
+          clientId: testOrg.clientId,
+          instanceUrl: testOrg.loginUrl,
+          orgId: authResponse.id.split('/')[0],
+          loginUrl: jwtConfig.loginUrl,
+          privateKey: jwtConfig.privateKey,
+          isDevHub: false,
+        };
+        expect(authInfoStubs.update.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
       });
     });
 
@@ -475,7 +544,7 @@ describe.only('AuthInfo', () => {
         };
 
         // Stub the http request (OAuth2.refreshToken())
-        postParamsStub.returns(Promise.resolve(authResponse));
+        postParamsStub.resolves(authResponse);
 
         // Create the refresh token AuthInfo instance
         const authInfo = await AuthInfo.create({
@@ -528,7 +597,7 @@ describe.only('AuthInfo', () => {
         };
 
         // Stub the http request (OAuth2.refreshToken())
-        postParamsStub.returns(Promise.resolve(authResponse));
+        postParamsStub.resolves(authResponse);
 
         // Create the refresh token AuthInfo instance
         const authInfo = await AuthInfo.create({
@@ -566,6 +635,70 @@ describe.only('AuthInfo', () => {
         expect(authInfoStubs.update.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
       });
 
+      it('should return a refresh token AuthInfo instance without any username', async () => {
+        const refreshTokenConfig = {
+          refreshToken: testOrg.refreshToken,
+          loginUrl: testOrg.loginUrl,
+        };
+        const refreshTokenConfigClone = cloneJson(refreshTokenConfig);
+        const authResponse = {
+          access_token: testOrg.accessToken,
+          instance_url: testOrg.instanceUrl,
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        };
+
+        // Stub the http request (OAuth2.refreshToken())
+        postParamsStub.resolves(authResponse);
+        stubUserRequest();
+
+        // Create the refresh token AuthInfo instance
+        const authInfo = await AuthInfo.create({
+          oauth2Options: refreshTokenConfig,
+        });
+
+        // Verify the returned AuthInfo instance
+        const authInfoConnOpts = authInfo.getConnectionOptions();
+        expect(authInfoConnOpts).to.have.property('accessToken', authResponse.access_token);
+        expect(authInfoConnOpts).to.have.property('instanceUrl', authResponse.instance_url);
+        expect(authInfoConnOpts).to.not.have.property('refreshToken');
+        expect(authInfoConnOpts['oauth2']).to.have.property('loginUrl', testOrg.instanceUrl);
+        expect(authInfoConnOpts['oauth2']).to.have.property('clientId', testOrg.defaultConnectedAppInfo.clientId);
+        expect(authInfoConnOpts['oauth2']).to.have.property('redirectUri', testOrg.redirectUri);
+        expect(authInfo.getUsername()).to.equal(testOrg.username.toUpperCase());
+        expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be false').to.be.false;
+        expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be true').to.be.true;
+        expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
+        expect(authInfo.isOauth(), 'authInfo.isOauth() should be true').to.be.true;
+
+        // Verify authInfo.fields are encrypted
+        const crypto = await Crypto.create();
+        expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
+        expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
+
+        // Verify expected methods are called with expected args
+        expect(authInfoStubs.initAuthOptions.called).to.be.true;
+        expect(authInfoStubs.initAuthOptions.firstCall.args[0]).to.equal(refreshTokenConfig);
+        expect(authInfoStubs.update.called).to.be.true;
+        expect(authInfoStubs.buildRefreshTokenConfig.called).to.be.true;
+        expect(authInfoStubs.buildRefreshTokenConfig.firstCall.args[0]).to.include(refreshTokenConfig);
+
+        // Verify the refreshTokenConfig object was not mutated by init() or buildRefreshTokenConfig()
+        expect(refreshTokenConfig).to.deep.equal(refreshTokenConfigClone);
+
+        const expectedAuthConfig = {
+          accessToken: authResponse.access_token,
+          instanceUrl: testOrg.instanceUrl,
+          orgId: authResponse.id.split('/')[0],
+          loginUrl: refreshTokenConfig.loginUrl,
+          refreshToken: refreshTokenConfig.refreshToken,
+          clientId: testOrg.defaultConnectedAppInfo.clientId,
+          clientSecret: testOrg.defaultConnectedAppInfo.clientSecret,
+          isDevHub: false,
+          username: testOrg.username.toUpperCase(),
+        };
+        expect(authInfoStubs.update.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
+      });
+
       it('should return a refresh token AuthInfo instance with custom clientId and clientSecret', async () => {
         const refreshTokenConfig = {
           clientId: 'authInfoTest_clientId',
@@ -581,7 +714,7 @@ describe.only('AuthInfo', () => {
         };
 
         // Stub the http request (OAuth2.refreshToken())
-        postParamsStub.returns(Promise.resolve(authResponse));
+        postParamsStub.resolves(authResponse);
 
         // Create the refresh token AuthInfo instance
         const authInfo = await AuthInfo.create({
@@ -655,7 +788,7 @@ describe.only('AuthInfo', () => {
         };
 
         // Stub the http requests (OAuth2.requestToken() and the request for the username)
-        postParamsStub.returns(Promise.resolve(authResponse));
+        postParamsStub.resolves(authResponse);
         const stub = stubUserRequest();
 
         // Create the refresh token AuthInfo instance
@@ -738,7 +871,7 @@ describe.only('AuthInfo', () => {
           refresh_token: testOrg.refreshToken,
         };
         // Stub the http requests (OAuth2.requestToken() and the request for the username)
-        postParamsStub.returns(Promise.resolve(authResponse));
+        postParamsStub.resolves(authResponse);
         stubUserRequest();
 
         await AuthInfo.create({ oauth2Options: options, oauth2 });
@@ -778,7 +911,7 @@ describe.only('AuthInfo', () => {
         };
 
         // Stub the http request (OAuth2.requestToken())
-        postParamsStub.returns(Promise.resolve(authResponse));
+        postParamsStub.resolves(authResponse);
         stubUserRequest({
           statusCode: 404,
           body: [
@@ -811,7 +944,7 @@ describe.only('AuthInfo', () => {
         };
 
         // Stub the http request (OAuth2.requestToken())
-        postParamsStub.returns(Promise.resolve(authResponse));
+        postParamsStub.resolves(authResponse);
 
         stubUserRequest(
           { body: { preferred_username: testOrg.username, organization_id: testOrg.orgId }, statusCode: 200 },
@@ -860,7 +993,7 @@ describe.only('AuthInfo', () => {
       };
 
       // Stub the http request (OAuth2.refreshToken())
-      postParamsStub.returns(Promise.resolve(authResponse));
+      postParamsStub.resolves(authResponse);
 
       // Create the AuthInfo instance
       const authInfo = await AuthInfo.create({
@@ -875,8 +1008,6 @@ describe.only('AuthInfo', () => {
 
       // Save new fields
       const changedData = { accessToken: testOrg.accessToken, expirationDate: testOrg.expirationDate };
-
-      // stubMethod($$.SANDBOX, testOrg, 'fetchConfigInfo').returns(Promise.resolve({}));
       await authInfo.save(changedData);
 
       expect(authInfoStubs.update.called).to.be.true;
@@ -946,10 +1077,10 @@ describe.only('AuthInfo', () => {
         logger: $$.TEST_LOGGER,
       };
       const testCallback = $$.SANDBOX.stub();
-      testCallback.returns(Promise.resolve());
+      testCallback.resolves();
 
-      context.initAuthOptions.returns(Promise.resolve());
-      context.save.returns(Promise.resolve());
+      context.initAuthOptions.resolves();
+      context.save.resolves();
       // @ts-ignore
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
 
@@ -1002,7 +1133,7 @@ describe.only('AuthInfo', () => {
       };
       const testCallback = $$.SANDBOX.spy();
       context.initAuthOptions.throws(new Error('Error: Data Not Available'));
-      context.save.returns(Promise.resolve());
+      context.save.resolves();
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
       expect(testCallback.called).to.be.true;
       const sfError = testCallback.firstCall.args[0];
@@ -1089,7 +1220,7 @@ describe.only('AuthInfo', () => {
       };
 
       // Stub the http request (OAuth2.refreshToken())
-      postParamsStub.returns(Promise.resolve(authResponse));
+      postParamsStub.resolves(authResponse);
 
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({
@@ -1115,7 +1246,7 @@ describe.only('AuthInfo', () => {
       };
 
       // Stub the http request (OAuth2.refreshToken())
-      postParamsStub.returns(Promise.resolve(authResponse));
+      postParamsStub.resolves(authResponse);
 
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({
@@ -1142,7 +1273,7 @@ describe.only('AuthInfo', () => {
       };
 
       // Stub the http request (OAuth2.refreshToken())
-      postParamsStub.returns(Promise.resolve(authResponse));
+      postParamsStub.resolves(authResponse);
 
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({
@@ -1167,7 +1298,7 @@ describe.only('AuthInfo', () => {
       };
 
       // Stub the http request (OAuth2.refreshToken())
-      postParamsStub.returns(Promise.resolve(authResponse));
+      postParamsStub.resolves(authResponse);
 
       // Create the refresh token AuthInfo instance
       const authInfo = await AuthInfo.create({
@@ -1236,18 +1367,580 @@ describe.only('AuthInfo', () => {
       expect(configSpy.called).to.be.true;
       expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_DEV_HUB, alias]);
     });
+
+    it('should use global config if local config fails', async () => {
+      stubMethod($$.SANDBOX, AliasAccessor.prototype, 'get').returns(null);
+      stubMethod($$.SANDBOX, Config, 'create')
+        .withArgs({ isGlobal: false })
+        .throws()
+        .withArgs({ isGlobal: true })
+        .callThrough();
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      await authInfo.setAsDefault({ org: true });
+      expect(configSpy.called).to.be.true;
+      expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_ORG, testOrg.username]);
+    });
   });
 
   describe('getDefaultInstanceUrl', () => {
     it('should return the configured instance url if it exists', async () => {
       $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
-      const result = AuthInfo.getDefaultInstanceUrl();
-      expect(result).to.equal(testOrg.instanceUrl);
+      expect(AuthInfo.getDefaultInstanceUrl()).to.equal(testOrg.instanceUrl);
     });
 
     it('should return the default instance url if no configured instance url exists', async () => {
-      const result = AuthInfo.getDefaultInstanceUrl();
-      expect(result).to.equal('https://login.salesforce.com');
+      expect(AuthInfo.getDefaultInstanceUrl()).to.equal('https://login.salesforce.com');
     });
+  });
+
+  describe('hasAuthentications', () => {
+    it('should return false', async () => {
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'list').returns([]);
+      expect(await AuthInfo.hasAuthentications()).to.be.false;
+    });
+
+    it('should return true', async () => {
+      await $$.stubAuths(testOrg);
+      expect(await AuthInfo.hasAuthentications()).to.be.true;
+    });
+  });
+
+  describe('listAllAuthorizations', () => {
+    describe('with no AuthInfo.create errors', () => {
+      beforeEach(async () => {
+        await $$.stubAuths(testOrg);
+      });
+
+      it('should return list of authorizations with web oauthMethod', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'isJwt').returns(false);
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'isOauth').returns(true);
+        const auths = await AuthInfo.listAllAuthorizations(
+          (orgAuth) => orgAuth.oauthMethod !== 'jwt' && !orgAuth.isScratchOrg
+        );
+        expect(auths).to.deep.equal([
+          {
+            aliases: [],
+            configs: [],
+            isScratchOrg: false,
+            username: testOrg.username,
+            orgId: testOrg.orgId,
+            instanceUrl: testOrg.instanceUrl,
+            accessToken: testOrg.accessToken,
+            oauthMethod: 'web',
+            isDevHub: false,
+            isExpired: 'unknown',
+            isSandbox: false,
+          },
+        ]);
+      });
+
+      it('should return list of authorizations with jwt oauthMethod', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'isJwt').returns(true);
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            aliases: [],
+            configs: [],
+            isScratchOrg: false,
+            username: testOrg.username,
+            orgId: testOrg.orgId,
+            instanceUrl: testOrg.instanceUrl,
+            accessToken: testOrg.accessToken,
+            oauthMethod: 'jwt',
+            isDevHub: false,
+            isExpired: 'unknown',
+            isSandbox: false,
+          },
+        ]);
+      });
+
+      it('should return list of authorizations with token oauthMethod', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'isJwt').returns(false);
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'isOauth').returns(false);
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            aliases: [],
+            configs: [],
+            isScratchOrg: false,
+            username: testOrg.username,
+            orgId: testOrg.orgId,
+            instanceUrl: testOrg.instanceUrl,
+            accessToken: testOrg.accessToken,
+            oauthMethod: 'token',
+            isDevHub: false,
+            isExpired: 'unknown',
+            isSandbox: false,
+          },
+        ]);
+      });
+
+      it('should return list of authorizations with aliases', async () => {
+        $$.stubAliases({ MyAlias: testOrg.username });
+        const auths = await AuthInfo.listAllAuthorizations(
+          (orgAuth) => orgAuth.aliases.length === 1 && orgAuth.aliases.includes('MyAlias')
+        );
+        expect(auths).to.deep.equal([
+          {
+            aliases: ['MyAlias'],
+            configs: [],
+            isScratchOrg: false,
+            username: testOrg.username,
+            orgId: testOrg.orgId,
+            instanceUrl: testOrg.instanceUrl,
+            accessToken: testOrg.accessToken,
+            oauthMethod: 'jwt',
+            isDevHub: false,
+            isExpired: 'unknown',
+            isSandbox: false,
+          },
+        ]);
+      });
+
+      it('should return list of authorizations with configs', async () => {
+        $$.stubAliases({ MyAlias: testOrg.username });
+        $$.stubConfig({
+          [OrgConfigProperties.TARGET_ORG]: 'MyAlias',
+          [OrgConfigProperties.TARGET_DEV_HUB]: testOrg.username,
+        });
+        const auths = await AuthInfo.listAllAuthorizations((orgAuth) =>
+          orgAuth.configs.includes(OrgConfigProperties.TARGET_ORG)
+        );
+        expect(auths).to.deep.equal([
+          {
+            aliases: ['MyAlias'],
+            configs: [OrgConfigProperties.TARGET_DEV_HUB, OrgConfigProperties.TARGET_ORG],
+            isScratchOrg: false,
+            username: testOrg.username,
+            orgId: testOrg.orgId,
+            instanceUrl: testOrg.instanceUrl,
+            accessToken: testOrg.accessToken,
+            oauthMethod: 'jwt',
+            isDevHub: false,
+            isExpired: 'unknown',
+            isSandbox: false,
+          },
+        ]);
+      });
+
+      it('should return list of authorizations devhub username', async () => {
+        const expiryDate = new Date(Date.now());
+        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'getFields').returns({
+          ...(await testOrg.getConfig()),
+          devHubUsername: 'foobarusername',
+          expirationDate: expiryDate.toISOString(),
+        });
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            aliases: [],
+            configs: [],
+            isScratchOrg: true,
+            username: testOrg.username,
+            orgId: testOrg.orgId,
+            instanceUrl: testOrg.instanceUrl,
+            accessToken: testOrg.accessToken,
+            oauthMethod: 'jwt',
+            isDevHub: false,
+            isExpired: false,
+            isSandbox: false,
+          },
+        ]);
+      });
+    });
+
+    describe('with AuthInfo.create errors', () => {
+      beforeEach(async () => {
+        await $$.stubAuths(testOrg);
+        stubMethod($$.SANDBOX, AuthInfo, 'create').withArgs({ username: testOrg.username }).throws(new Error('FAIL!'));
+      });
+
+      it('should return list of authorizations with unknown oauthMethod', async () => {
+        const auths = await AuthInfo.listAllAuthorizations((orgAuth) => orgAuth.error === 'FAIL!');
+        expect(auths).to.deep.equal([
+          {
+            aliases: [],
+            configs: [],
+            username: testOrg.username,
+            orgId: testOrg.orgId,
+            instanceUrl: testOrg.instanceUrl,
+            isExpired: 'unknown',
+            accessToken: undefined,
+            oauthMethod: 'unknown',
+            error: 'FAIL!',
+          },
+        ]);
+      });
+
+      it('should return list of authorizations with unknown oauthMethod and alias', async () => {
+        $$.stubAliases({ MyAlias: testOrg.username });
+        const auths = await AuthInfo.listAllAuthorizations();
+        expect(auths).to.deep.equal([
+          {
+            aliases: ['MyAlias'],
+            configs: [],
+            username: testOrg.username,
+            orgId: testOrg.orgId,
+            instanceUrl: testOrg.instanceUrl,
+            isExpired: 'unknown',
+            accessToken: undefined,
+            oauthMethod: 'unknown',
+            error: 'FAIL!',
+          },
+        ]);
+      });
+    });
+  });
+
+  describe('parseSfdxAuthUrl', () => {
+    it('should parse the correct url with no client secret', () => {
+      const options = AuthInfo.parseSfdxAuthUrl(
+        'force://PlatformCLI::5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com'
+      );
+
+      expect(options.refreshToken).to.equal(
+        '5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.'
+      );
+      expect(options.clientId).to.equal('PlatformCLI');
+      expect(options.clientSecret).to.equal('');
+      expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
+    });
+
+    it('should parse the token that includes = for padding', () => {
+      const options = AuthInfo.parseSfdxAuthUrl(
+        'force://PlatformCLI::5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYU==@test.my.salesforce.com'
+      );
+
+      expect(options.refreshToken).to.equal(
+        '5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYU=='
+      );
+      expect(options.clientId).to.equal('PlatformCLI');
+      expect(options.clientSecret).to.equal('');
+      expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
+    });
+
+    it('should parse the correct url with client secret', () => {
+      const options = AuthInfo.parseSfdxAuthUrl(
+        'force://3MVG9SemV5D80oBfPBCgboxuJ9cOMLWNM1DDOZ8zgvJGsz13H3J66coUBCFF3N0zEgLYijlkqeWk4ot_Q2.4o:438437816653243682:5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com'
+      );
+
+      expect(options.refreshToken).to.equal(
+        '5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.'
+      );
+      expect(options.clientId).to.equal(
+        '3MVG9SemV5D80oBfPBCgboxuJ9cOMLWNM1DDOZ8zgvJGsz13H3J66coUBCFF3N0zEgLYijlkqeWk4ot_Q2.4o'
+      );
+      expect(options.clientSecret).to.equal('438437816653243682');
+      expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
+    });
+
+    it('should throw with incorrect url', () => {
+      try {
+        AuthInfo.parseSfdxAuthUrl(
+          'PlatformCLI::5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com'
+        );
+        assert.fail();
+      } catch (e) {
+        expect(e.name).to.equal('INVALID_SFDX_AUTH_URL');
+      }
+    });
+  });
+
+  describe('Handle User HTTP Get Errors', () => {
+    let authCodeConfig: { authCode: string; loginUrl: string };
+
+    beforeEach(() => {
+      authCodeConfig = {
+        authCode: testOrg.authcode,
+        loginUrl: testOrg.loginUrl,
+      };
+
+      // Stub the http requests (OAuth2.requestToken() and the request for the username)
+      postParamsStub.resolves({
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testOrg.refreshToken,
+      });
+    });
+
+    it('user get returns 403 with body of json array', async () => {
+      const responseBody = {
+        statusCode: 403,
+        body: JSON.stringify([
+          {
+            message: 'The REST API is not enabled for this Organization',
+            errorCode: 'RESTAPINOTENABLED',
+          },
+        ]),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves(responseBody);
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
+      }
+    });
+
+    it('user get returns 403 with body of json map', async () => {
+      const responseBody = {
+        statusCode: 403,
+        body: JSON.stringify({
+          message: 'The REST API is not enabled for this Organization',
+          errorCode: 'RESTAPINOTENABLED',
+        }),
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves(responseBody);
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
+      }
+    });
+
+    it('user get returns 403 with string body', async () => {
+      const responseBody = {
+        statusCode: 403,
+        body: 'The REST API is not enabled for this Organization',
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves(responseBody);
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
+      }
+    });
+
+    it('user get returns server error with no body', async () => {
+      const responseBody = { statusCode: 500 };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves(responseBody);
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('UNKNOWN');
+      }
+    });
+
+    it('user get returns server error with html body', async () => {
+      const responseBody = {
+        statusCode: 500,
+        body: '<html lang=""><body>Server error occurred, please contact Salesforce Support if the error persists</body></html>',
+      };
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves(responseBody);
+      try {
+        await AuthInfo.create({ oauth2Options: authCodeConfig });
+        assert(false, 'should throw');
+      } catch (err) {
+        expect(err).to.have.property('message').to.include('Server error occurred');
+      }
+    });
+  });
+
+  describe('getDevHubAuthInfos', () => {
+    let adminTestData: MockTestOrgData;
+    let user1: MockTestOrgData;
+
+    beforeEach(async () => {
+      adminTestData = new MockTestOrgData();
+      user1 = new MockTestOrgData();
+    });
+
+    it('should not find a dev hub when no authInfos exist', async () => {
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([]);
+      const result = await AuthInfo.getDevHubAuthInfos();
+      expect(result).to.have.lengthOf(0);
+    });
+
+    it('should not find a dev hub when one auth info exists that is not a dev hub', async () => {
+      await $$.stubAuths(user1);
+      const result = await AuthInfo.getDevHubAuthInfos();
+      expect(result).to.have.lengthOf(0);
+    });
+
+    it('should find a dev hub', async () => {
+      adminTestData.makeDevHub();
+      await $$.stubAuths(adminTestData, user1);
+      const result = await AuthInfo.getDevHubAuthInfos();
+      expect(result).to.have.lengthOf(1);
+    });
+  });
+
+  describe('identifyPossibleScratchOrgs', () => {
+    let adminTestData: MockTestOrgData;
+    let user1: MockTestOrgData;
+
+    beforeEach(async () => {
+      adminTestData = new MockTestOrgData();
+      user1 = new MockTestOrgData();
+    });
+
+    it('should not update org - no dev hubs', async () => {
+      await $$.stubAuths(adminTestData, user1);
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs({ orgId: user1.orgId }, authInfo);
+      expect(getDevHubAuthInfosStub.callCount).to.be.equal(1);
+      expect(queryScratchOrgStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+
+    it('should not update org - state already known', async () => {
+      adminTestData.makeDevHub();
+      user1.isScratchOrg = true;
+      user1.devHubUsername = adminTestData.username;
+
+      await $$.stubAuths(adminTestData, user1);
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
+      expect(getDevHubAuthInfosStub.callCount).to.be.equal(0);
+      expect(queryScratchOrgStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+
+    it('should not update org - no fields.orgId', async () => {
+      adminTestData.makeDevHub();
+      user1.isScratchOrg = true;
+      delete user1.orgId;
+      user1.devHubUsername = adminTestData.username;
+
+      await $$.stubAuths(adminTestData, user1);
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      const getDevHubAuthInfosSpy = spyMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos');
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
+      expect(getDevHubAuthInfosSpy.callCount).to.be.equal(0);
+      expect(queryScratchOrgStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+
+    it('should update org', async () => {
+      adminTestData.makeDevHub();
+
+      await $$.stubAuths(adminTestData, user1);
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      const getDevHubAuthInfosSpy = spyMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos');
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg').resolves({ totalSize: 1 });
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+      await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
+      expect(getDevHubAuthInfosSpy.callCount).to.be.equal(1);
+      expect(queryScratchOrgStub.callCount).to.be.equal(1);
+      expect(authInfoSaveStub.callCount).to.be.equal(1);
+    });
+  });
+
+  describe('determineIfDevHub', () => {
+    it('should return true if request succeeds', async () => {
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves({
+        statusCode: 200,
+        body: JSON.stringify([]),
+      });
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      // @ts-expect-error because private method
+      expect(await authInfo.determineIfDevHub(testOrg.instanceUrl, testOrg.accessToken)).to.be.true;
+    });
+
+    it('should return false if request returns 400', async () => {
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves({
+        statusCode: 400,
+        body: JSON.stringify([]),
+      });
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      // @ts-expect-error because private method
+      expect(await authInfo.determineIfDevHub(testOrg.instanceUrl, testOrg.accessToken)).to.be.false;
+    });
+
+    it('should return false if request fails', async () => {
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').throws();
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      // @ts-expect-error because private method
+      expect(await authInfo.determineIfDevHub(testOrg.instanceUrl, testOrg.accessToken)).to.be.false;
+    });
+  });
+
+  describe('loadDecryptedAuthFromConfig', () => {
+    const expectedErrorName = 'NamedOrgNotFoundError';
+    it('should throw error if no auth file is found', async () => {
+      try {
+        const authInfo = await AuthInfo.create({ username: testOrg.username });
+        // @ts-expect-error because private method
+        await authInfo.loadDecryptedAuthFromConfig('DOES_NOT_EXIST');
+        assert.fail(`should have thrown error with name: ${expectedErrorName}`);
+      } catch (e) {
+        expect(e).to.have.property('name', expectedErrorName);
+      }
+    });
+  });
+});
+
+describe('AuthInfo No fs mock', () => {
+  const $$ = testSetup();
+  const TEST_KEY = {
+    service: 'sfdx',
+    account: 'local',
+    key: '8e8fd1e6dc06a37bf420898dbc3ee35c',
+  };
+
+  beforeEach(() => {
+    // Testing crypto functionality, so restore global stubs.
+    $$.SANDBOXES.CRYPTO.restore();
+    $$.SANDBOXES.CONFIG.restore();
+    $$.SANDBOXES.ORGS.restore();
+
+    stubMethod($$.SANDBOX, Crypto.prototype, 'getKeyChain').callsFake(() =>
+      Promise.resolve({
+        setPassword: () => Promise.resolve(),
+        getPassword: (data: JsonMap, cb: (val1: AnyJson, key: string) => {}) => cb(null, TEST_KEY.key),
+      })
+    );
+  });
+
+  it('missing config', async () => {
+    const expectedErrorName = 'NamedOrgNotFoundError';
+    try {
+      await AuthInfo.create({ username: 'does_not_exist@gb.com' });
+      assert.fail(`should have thrown error with name: ${expectedErrorName}`);
+    } catch (e) {
+      expect(e).to.have.property('name', expectedErrorName);
+    }
+  });
+
+  it('invalid devhub username', async () => {
+    const expectedErrorName = 'NamedOrgNotFoundError';
+    try {
+      await AuthInfo.create({ username: 'does_not_exist@gb.com', isDevHub: true });
+      assert.fail(`should have thrown error with name: ${expectedErrorName}`);
+    } catch (e) {
+      expect(e).to.have.property('name', expectedErrorName);
+      expect(e).to.have.property('message', 'No authorization information found for does_not_exist@gb.com.');
+    }
   });
 });

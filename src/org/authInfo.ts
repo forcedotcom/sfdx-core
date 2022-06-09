@@ -988,7 +988,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     let username = this.getUsername();
     if (!username) {
-      // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFieldsBuilder.instance_url, authFieldsBuilder.access_token);
       username = ensureString(userInfo?.username);
     }
