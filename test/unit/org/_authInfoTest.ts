@@ -11,7 +11,7 @@
 import * as pathImport from 'path';
 import * as dns from 'dns';
 import * as jwt from 'jsonwebtoken';
-import { cloneJson, includes } from '@salesforce/kit';
+import { cloneJson, env, includes } from '@salesforce/kit';
 import { stubMethod, spyMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
@@ -1006,6 +1006,76 @@ describe.only('AuthInfo', () => {
       expect(testCallback.called).to.be.true;
       const sfError = testCallback.firstCall.args[0];
       expect(sfError.name).to.equal('OrgDataNotAvailableError', sfError.message);
+    });
+  });
+
+  describe('getAuthorizationUrl', () => {
+    let scope: string;
+    beforeEach(() => {
+      scope = env.getString('SFDX_AUTH_SCOPES', '');
+    });
+    afterEach(() => {
+      env.setString('SFDX_AUTH_SCOPES', scope);
+    });
+
+    it('should return the correct url', () => {
+      const options = {
+        clientId: testOrg.clientId,
+        redirectUri: testOrg.redirectUri,
+        loginUrl: testOrg.loginUrl,
+      };
+      const url = AuthInfo.getAuthorizationUrl(options);
+
+      expect(url.startsWith(options.loginUrl), 'authorization URL should start with the loginUrl').to.be.true;
+      expect(url).to.contain('state=');
+      expect(url).to.contain('prompt=login');
+      expect(url).to.contain('scope=refresh_token%20api%20web');
+    });
+
+    it('should return the correct url with modified scope', () => {
+      const options = {
+        clientId: testOrg.clientId,
+        redirectUri: testOrg.redirectUri,
+        loginUrl: testOrg.loginUrl,
+        scope: 'test',
+      };
+      const url = AuthInfo.getAuthorizationUrl(options);
+
+      expect(url.startsWith(options.loginUrl), 'authorization URL should start with the loginUrl').to.be.true;
+      expect(url).to.contain('state=');
+      expect(url).to.contain('prompt=login');
+      expect(url).to.contain('scope=test');
+    });
+
+    it('should return the correct url with env scope', () => {
+      env.setString('SFDX_AUTH_SCOPES', 'from-env');
+      const options = {
+        clientId: testOrg.clientId,
+        redirectUri: testOrg.redirectUri,
+        loginUrl: testOrg.loginUrl,
+      };
+      const url = AuthInfo.getAuthorizationUrl(options);
+
+      expect(url.startsWith(options.loginUrl), 'authorization URL should start with the loginUrl').to.be.true;
+      expect(url).to.contain('state=');
+      expect(url).to.contain('prompt=login');
+      expect(url).to.contain('scope=from-env');
+    });
+
+    it('should return the correct url with option over env', () => {
+      env.setString('SFDX_AUTH_SCOPES', 'from-env');
+      const options = {
+        clientId: testOrg.clientId,
+        redirectUri: testOrg.redirectUri,
+        loginUrl: testOrg.loginUrl,
+        scope: 'from-option',
+      };
+      const url = AuthInfo.getAuthorizationUrl(options);
+
+      expect(url.startsWith(options.loginUrl), 'authorization URL should start with the loginUrl').to.be.true;
+      expect(url).to.contain('state=');
+      expect(url).to.contain('prompt=login');
+      expect(url).to.contain('scope=from-option');
     });
   });
 });
