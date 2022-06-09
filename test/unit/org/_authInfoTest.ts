@@ -1193,8 +1193,7 @@ describe.only('AuthInfo', () => {
       const authInfo = await AuthInfo.create({ username: testOrg.username });
       await authInfo.setAlias(alias);
       expect(aliasAccessorSpy.calledOnce).to.be.true;
-      expect(aliasAccessorSpy.firstCall.args[0]).to.equal(alias);
-      expect(aliasAccessorSpy.firstCall.args[1]).to.equal(testOrg.username);
+      expect(aliasAccessorSpy.firstCall.args).to.deep.equal([alias, testOrg.username]);
     });
   });
 
@@ -1236,6 +1235,19 @@ describe.only('AuthInfo', () => {
       await authInfo.setAsDefault({ devHub: true });
       expect(configSpy.called).to.be.true;
       expect(configSpy.firstCall.args).to.deep.equal([OrgConfigProperties.TARGET_DEV_HUB, alias]);
+    });
+  });
+
+  describe('getDefaultInstanceUrl', () => {
+    it('should return the configured instance url if it exists', async () => {
+      $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
+      const result = AuthInfo.getDefaultInstanceUrl();
+      expect(result).to.equal(testOrg.instanceUrl);
+    });
+
+    it('should return the default instance url if no configured instance url exists', async () => {
+      const result = AuthInfo.getDefaultInstanceUrl();
+      expect(result).to.equal('https://login.salesforce.com');
     });
   });
 });
