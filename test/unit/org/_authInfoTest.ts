@@ -1078,4 +1078,109 @@ describe.only('AuthInfo', () => {
       expect(url).to.contain('scope=from-option');
     });
   });
+
+  describe('getSfdxAuthUrl', () => {
+    it('should return the correct sfdx auth url', async () => {
+      const authResponse = {
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      };
+
+      // Stub the http request (OAuth2.refreshToken())
+      postParamsStub.returns(Promise.resolve(authResponse));
+
+      // Create the refresh token AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: {
+          refreshToken: testOrg.refreshToken,
+          loginUrl: testOrg.loginUrl,
+        },
+      });
+
+      expect(authInfo.getSfdxAuthUrl()).to.contain(
+        `force://SalesforceDevelopmentExperience:1384510088588713504:${
+          testOrg.refreshToken
+        }@${testOrg.instanceUrl.replace('https://', '')}`
+      );
+    });
+
+    it('should handle undefined client secret', async () => {
+      const authResponse = {
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      };
+
+      // Stub the http request (OAuth2.refreshToken())
+      postParamsStub.returns(Promise.resolve(authResponse));
+
+      // Create the refresh token AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: {
+          refreshToken: testOrg.refreshToken,
+          loginUrl: testOrg.loginUrl,
+        },
+      });
+
+      // delete the client secret
+      delete authInfo.getFields().clientSecret;
+      const instanceUrl = testOrg.instanceUrl.replace('https://', '');
+      expect(authInfo.getSfdxAuthUrl()).to.contain(
+        `force://SalesforceDevelopmentExperience::${testOrg.refreshToken}@${instanceUrl}`
+      );
+    });
+
+    it('should handle undefined refresh token', async () => {
+      const authResponse = {
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      };
+
+      // Stub the http request (OAuth2.refreshToken())
+      postParamsStub.returns(Promise.resolve(authResponse));
+
+      // Create the refresh token AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: {
+          refreshToken: testOrg.refreshToken,
+          loginUrl: testOrg.loginUrl,
+        },
+      });
+
+      // delete the refresh token
+      delete authInfo.getFields().refreshToken;
+
+      expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined refreshToken');
+    });
+
+    it('should handle undefined instance url', async () => {
+      const authResponse = {
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      };
+
+      // Stub the http request (OAuth2.refreshToken())
+      postParamsStub.returns(Promise.resolve(authResponse));
+
+      // Create the refresh token AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: {
+          refreshToken: testOrg.refreshToken,
+          loginUrl: testOrg.loginUrl,
+        },
+      });
+
+      // delete the instance url
+      delete authInfo.getFields().instanceUrl;
+
+      expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined instanceUrl');
+    });
+  });
 });
