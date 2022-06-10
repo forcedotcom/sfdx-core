@@ -758,7 +758,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   private getInstanceUrl(options: unknown, aggregator: ConfigAggregator) {
     const instanceUrl =
-      getString(options, OrgConfigProperties.ORG_INSTANCE_URL) ||
+      getString(options, 'instanceUrl') ||
       (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
     return instanceUrl || SfdcUrl.PRODUCTION;
   }
