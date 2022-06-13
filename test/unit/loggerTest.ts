@@ -9,6 +9,7 @@ import { isBoolean, isNumber, isString } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import * as debug from 'debug';
 import * as _ from 'lodash';
+import { SinonStub } from 'sinon';
 import { Logger, LoggerFormat, LoggerLevel, LoggerStream } from '../../src/logger';
 import { testSetup } from '../../src/testSetup';
 
@@ -98,12 +99,14 @@ describe('Logger', () => {
 
   describe('addLogFileStream', () => {
     const testLogFile = 'some/dir/mylogfile.json';
-    let utilAccessStub;
-    let utilWriteFileStub;
+    let utilAccessStub: SinonStub;
+    let utilWriteFileStub: SinonStub;
 
     beforeEach(() => {
       utilAccessStub = $$.SANDBOX.stub(fs.promises, 'access');
       utilWriteFileStub = $$.SANDBOX.stub(fs.promises, 'writeFile');
+      // @ts-expect-error because private method
+      $$.SANDBOX.stub(Logger.prototype, 'mkdirp').resolves();
     });
 
     it('should not create a new log file if it exists already', async () => {
