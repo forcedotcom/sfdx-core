@@ -182,7 +182,7 @@ export class SfdcUrl extends URL {
   }
 
   /**
-   * Method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again untill timeout
+   * Method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again until timeout
    * If SFDX_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
    *
    * @returns the resolved ip address.

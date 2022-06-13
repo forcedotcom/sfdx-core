@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.20.2](https://github.com/forcedotcom/sfdx-core/compare/v3.20.1...v3.20.2) (2022-06-13)
+
+### Bug Fixes
+
+- instanceUrl config now using org-instance-url ([54cb450](https://github.com/forcedotcom/sfdx-core/commit/54cb450c53f3db5352d9f0fdb83d33dce1da728e))
+
+### [3.20.1](https://github.com/forcedotcom/sfdx-core/compare/v3.19.5...v3.20.1) (2022-06-08)
+
+### Features
+
+- cause a publish from previous skip ([069c366](https://github.com/forcedotcom/sfdx-core/commit/069c36646f5dc10a4172868ef7b5f9cd82ef7503))
+- safer caching for nuts ([fa0af41](https://github.com/forcedotcom/sfdx-core/commit/fa0af41451a4363c84e9713685c8ece439acf3bc))
+
+## [3.20.0](https://github.com/forcedotcom/sfdx-core/compare/v3.19.6-dev.0...v3.20.0) (2022-06-08)
+
+### Features
+
+- cache crypto keys by homedir ([dcd493e](https://github.com/forcedotcom/sfdx-core/commit/dcd493e7745bb2717da3a4ed9aff528a51391be6))
+
+### [3.19.6-dev.0](https://github.com/forcedotcom/sfdx-core/compare/v3.19.5...v3.19.6-dev.0) (2022-06-07)
+
+### Features
+
+- stateAggregator by homedir ([6219b41](https://github.com/forcedotcom/sfdx-core/commit/6219b41a4d7bac5759a62663e71e16f4722fdeac))
+
 ### [3.19.5](https://github.com/forcedotcom/sfdx-core/compare/v3.19.4...v3.19.5) (2022-06-06)
 
 ### Bug Fixes
