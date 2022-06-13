@@ -415,7 +415,9 @@ export class Logger {
       await fs.promises.access(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        await this.mkdirp(path.dirname(logFile));
+        await mkdirp(path.dirname(logFile), {
+          mode: '700',
+        });
       } catch (err2) {
         // noop; directory exists already
       }
@@ -455,7 +457,9 @@ export class Logger {
       fs.accessSync(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        this.mkdirpSync(path.dirname(logFile));
+        mkdirp.sync(path.dirname(logFile), {
+          mode: '700',
+        });
       } catch (err2) {
         // noop; directory exists already
       }
@@ -845,20 +849,6 @@ export class Logger {
     });
 
     return Object.assign({}, loggerStream, { stream: logFmtWriteableStream });
-  }
-
-  private async mkdirp(filepath: string): Promise<void> {
-    // eslint-disable-next-line no-console
-    console.log('making', filepath);
-    await mkdirp(path.dirname(filepath), {
-      mode: '700',
-    });
-  }
-
-  private mkdirpSync(filepath: string): void {
-    mkdirp.sync(path.dirname(filepath), {
-      mode: '700',
-    });
   }
 }
 
