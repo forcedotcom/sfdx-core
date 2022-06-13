@@ -11,16 +11,7 @@ import { URL } from 'url';
 import * as FormData from 'form-data';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
 import { Duration, maxBy, env } from '@salesforce/kit';
-import {
-  asString,
-  ensure,
-  getString,
-  isString,
-  JsonCollection,
-  JsonMap,
-  Nullable,
-  Optional,
-} from '@salesforce/ts-types';
+import { asString, ensure, isString, JsonCollection, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionConfig,
@@ -473,7 +464,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   private async loadInstanceApiVersion(): Promise<Nullable<string>> {
     const authFileFields = this.options.authInfo.getFields();
     const lastCheckedDateString = authFileFields.instanceApiVersionLastRetrieved;
-    let version = getString(authFileFields, 'instanceApiVersion');
+    let version = authFileFields.instanceApiVersion;
     let lastChecked: Optional<number>;
 
     try {

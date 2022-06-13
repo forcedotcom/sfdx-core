@@ -7,10 +7,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { AnyJson, isJsonMap, JsonMap } from '@salesforce/ts-types';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { SchemaValidator } from '../../../src/schema/validator';
-import { testSetup } from '../../../src/testSetup';
+import { shouldThrow, testSetup } from '../../../src/testSetup';
 
 const $$ = testSetup();
 
@@ -34,8 +34,7 @@ describe('schemaValidator', () => {
   describe('errors', () => {
     const checkError = async (schema, data, errorName, errorMsg) => {
       try {
-        await validate(schema, data);
-        assert.fail('Data is invalid but schema validated successfully');
+        await shouldThrow(validate(schema, data));
       } catch (err) {
         expect(err.message).to.contain(errorMsg);
         expect(err.name, err.message).to.equal(errorName);

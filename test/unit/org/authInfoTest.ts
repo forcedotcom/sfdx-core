@@ -13,14 +13,14 @@ import * as dns from 'dns';
 import * as jwt from 'jsonwebtoken';
 import { cloneJson, env, includes } from '@salesforce/kit';
 import { stubMethod, spyMethod } from '@salesforce/ts-sinon';
-import { AnyJson, ensureString, getJsonMap, getString, JsonMap, toJsonMap } from '@salesforce/ts-types';
-import { assert, expect } from 'chai';
+import { AnyJson, ensureString, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
+import { expect } from 'chai';
 import { Transport } from 'jsforce/lib/transport';
 
 import { OAuth2 } from 'jsforce';
 import { SinonSpy, SinonStub } from 'sinon';
 import { AuthFields, AuthInfo, OAuth2Config } from '../../../src/org';
-import { MockTestOrgData, testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, shouldThrow, shouldThrowSync, testSetup } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { AliasAccessor, OrgAccessor } from '../../../src/stateAggregator';
 import { Crypto } from '../../../src/crypto/crypto';
@@ -72,7 +72,7 @@ describe('AuthInfo', () => {
 
       // If the key is likely a clientSecret "ish" attribute and the value is a string.
       // reminder:'clientSecretFn' is always legit.
-      if (keyUpper.includes('SECRET') && keyUpper.includes('CLIENT') && getString(obj, key)) {
+      if (keyUpper.includes('SECRET') && keyUpper.includes('CLIENT') && obj[key]) {
         throw new Error('Key indicates client secret.');
       }
 
@@ -418,20 +418,16 @@ describe('AuthInfo', () => {
         $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });
         stubMethod($$.SANDBOX, OrgAccessor.prototype, 'hasFile').resolves(true);
 
-        // Create the JWT AuthInfo instance
         try {
-          await AuthInfo.create({
-            username: testOrg.username,
-            oauth2Options: {
-              clientId: testOrg.clientId,
-              loginUrl: testOrg.loginUrl,
-              privateKey: testOrg.privateKey,
-            },
-          });
-          assert.fail(
-            'Error thrown',
-            'No Error thrown',
-            'Expected AuthInfo.create() to throw an AuthInfoOverwriteError'
+          await shouldThrow(
+            AuthInfo.create({
+              username: testOrg.username,
+              oauth2Options: {
+                clientId: testOrg.clientId,
+                loginUrl: testOrg.loginUrl,
+                privateKey: testOrg.privateKey,
+              },
+            })
           );
         } catch (err) {
           expect(err.name).to.equal('AuthInfoOverwriteError');
@@ -455,8 +451,7 @@ describe('AuthInfo', () => {
 
         // Create the JWT AuthInfo instance
         try {
-          await AuthInfo.create({ username: testOrg.username, oauth2Options: jwtConfig });
-          assert.fail('should have thrown an error within AuthInfo.authJwt()');
+          await shouldThrow(AuthInfo.create({ username: testOrg.username, oauth2Options: jwtConfig }));
         } catch (err) {
           expect(err.name).to.equal('JwtAuthError');
         }
@@ -765,8 +760,7 @@ describe('AuthInfo', () => {
 
         // Create the refresh token AuthInfo instance
         try {
-          await AuthInfo.create({ username, oauth2Options: refreshTokenConfig });
-          assert.fail('should have thrown an error within AuthInfo.buildRefreshTokenConfig()');
+          await shouldThrow(AuthInfo.create({ username, oauth2Options: refreshTokenConfig }));
         } catch (err) {
           expect(err.name).to.equal('RefreshTokenAuthError');
         }
@@ -891,8 +885,7 @@ describe('AuthInfo', () => {
 
         // Create the auth code AuthInfo instance
         try {
-          await AuthInfo.create({ oauth2Options: authCodeConfig });
-          assert.fail('should have thrown an error within AuthInfo.buildWebAuthConfig()');
+          await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
         } catch (err) {
           expect(err.name).to.equal('AuthCodeExchangeError');
         }
@@ -924,8 +917,7 @@ describe('AuthInfo', () => {
 
         // Create the auth code AuthInfo instance
         try {
-          await AuthInfo.create({ oauth2Options: authCodeConfig });
-          assert.fail('should have thrown an error within AuthInfo.buildWebAuthConfig()');
+          await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
         } catch (err) {
           expect(err.name).to.equal('AuthCodeUsernameRetrievalError');
         }
@@ -961,8 +953,7 @@ describe('AuthInfo', () => {
 
         // Create the auth code AuthInfo instance
         try {
-          await AuthInfo.create({ oauth2Options: authCodeConfig });
-          assert.fail('should have thrown an error within AuthInfo.buildWebAuthConfig()');
+          await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
         } catch (err) {
           expect(err.name).to.equal('AuthCodeUsernameRetrievalError');
         }
@@ -970,8 +961,7 @@ describe('AuthInfo', () => {
 
       it('should throw an error when neither username nor options have been passed', async () => {
         try {
-          await AuthInfo.create();
-          assert.fail('Expected AuthInfo.create() to throw an error when no params are passed');
+          await shouldThrow(AuthInfo.create());
         } catch (err) {
           expect(err.name).to.equal('AuthInfoCreationError');
         }
@@ -1637,10 +1627,11 @@ describe('AuthInfo', () => {
 
     it('should throw with incorrect url', () => {
       try {
-        AuthInfo.parseSfdxAuthUrl(
-          'PlatformCLI::5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com'
+        shouldThrowSync(() =>
+          AuthInfo.parseSfdxAuthUrl(
+            'PlatformCLI::5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com'
+          )
         );
-        assert.fail();
       } catch (e) {
         expect(e.name).to.equal('INVALID_SFDX_AUTH_URL');
       }
@@ -1677,8 +1668,7 @@ describe('AuthInfo', () => {
       };
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves(responseBody);
       try {
-        await AuthInfo.create({ oauth2Options: authCodeConfig });
-        assert(false, 'should throw');
+        await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
       } catch (err) {
         expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
       }
@@ -1694,8 +1684,7 @@ describe('AuthInfo', () => {
       };
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves(responseBody);
       try {
-        await AuthInfo.create({ oauth2Options: authCodeConfig });
-        assert(false, 'should throw');
+        await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
       } catch (err) {
         expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
       }
@@ -1708,8 +1697,7 @@ describe('AuthInfo', () => {
       };
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves(responseBody);
       try {
-        await AuthInfo.create({ oauth2Options: authCodeConfig });
-        assert(false, 'should throw');
+        await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
       } catch (err) {
         expect(err).to.have.property('message').to.include('The REST API is not enabled for this Organization');
       }
@@ -1719,8 +1707,7 @@ describe('AuthInfo', () => {
       const responseBody = { statusCode: 500 };
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves(responseBody);
       try {
-        await AuthInfo.create({ oauth2Options: authCodeConfig });
-        assert(false, 'should throw');
+        await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
       } catch (err) {
         expect(err).to.have.property('message').to.include('UNKNOWN');
       }
@@ -1733,8 +1720,7 @@ describe('AuthInfo', () => {
       };
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves(responseBody);
       try {
-        await AuthInfo.create({ oauth2Options: authCodeConfig });
-        assert(false, 'should throw');
+        await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
       } catch (err) {
         expect(err).to.have.property('message').to.include('Server error occurred');
       }
@@ -1892,8 +1878,7 @@ describe('AuthInfo', () => {
       try {
         const authInfo = await AuthInfo.create({ username: testOrg.username });
         // @ts-expect-error because private method
-        await authInfo.loadDecryptedAuthFromConfig('DOES_NOT_EXIST');
-        assert.fail(`should have thrown error with name: ${expectedErrorName}`);
+        await shouldThrow(authInfo.loadDecryptedAuthFromConfig('DOES_NOT_EXIST'));
       } catch (e) {
         expect(e).to.have.property('name', expectedErrorName);
       }
@@ -1926,8 +1911,7 @@ describe('AuthInfo No fs mock', () => {
   it('missing config', async () => {
     const expectedErrorName = 'NamedOrgNotFoundError';
     try {
-      await AuthInfo.create({ username: 'does_not_exist@gb.com' });
-      assert.fail(`should have thrown error with name: ${expectedErrorName}`);
+      await shouldThrow(AuthInfo.create({ username: 'does_not_exist@gb.com' }));
     } catch (e) {
       expect(e).to.have.property('name', expectedErrorName);
     }
@@ -1936,8 +1920,7 @@ describe('AuthInfo No fs mock', () => {
   it('invalid devhub username', async () => {
     const expectedErrorName = 'NamedOrgNotFoundError';
     try {
-      await AuthInfo.create({ username: 'does_not_exist@gb.com', isDevHub: true });
-      assert.fail(`should have thrown error with name: ${expectedErrorName}`);
+      await shouldThrow(AuthInfo.create({ username: 'does_not_exist@gb.com', isDevHub: true }));
     } catch (e) {
       expect(e).to.have.property('name', expectedErrorName);
       expect(e).to.have.property('message', 'No authorization information found for does_not_exist@gb.com.');

@@ -7,12 +7,12 @@
 import * as fs from 'fs';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { ensureString, JsonMap } from '@salesforce/ts-types';
-import { assert, expect } from 'chai';
-import { Config } from '../../../src/config/config';
+import { expect } from 'chai';
+import { Config, ConfigPropertyMeta } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
 import { OrgConfigProperties } from '../../../src/exported';
-import { testSetup } from '../../../src/testSetup';
+import { shouldThrowSync, testSetup } from '../../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -40,25 +40,25 @@ describe('Config', () => {
 
   describe('instantiation', () => {
     it('using partial global', async () => {
-      const config: Config = await Config.create({ isGlobal: true });
+      const config = await Config.create({ isGlobal: true });
       expect(config.getPath()).to.not.contain(await $$.localPathRetriever(id));
       expect(config.getPath()).to.contain('.sf');
       expect(config.getPath()).to.contain('config.json');
     });
     it('using global', async () => {
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      const config = await Config.create(Config.getDefaultOptions(true));
       expect(config.getPath()).to.not.contain(await $$.localPathRetriever(id));
       expect(config.getPath()).to.contain('.sf');
       expect(config.getPath()).to.contain('config.json');
     });
     it('using defaults', async () => {
-      const config: Config = await Config.create();
+      const config = await Config.create();
       expect(config.getPath()).to.contain(await $$.localPathRetriever(id));
       expect(config.getPath()).to.contain('.sf');
       expect(config.getPath()).to.contain('config.json');
     });
     it('not using global', async () => {
-      const config: Config = await Config.create(Config.getDefaultOptions(false));
+      const config = await Config.create(Config.getDefaultOptions(false));
       expect(config.getPath()).to.contain(await $$.localPathRetriever(id));
       expect(config.getPath()).to.contain('.sf');
       expect(config.getPath()).to.contain('config.json');
@@ -67,7 +67,7 @@ describe('Config', () => {
 
   describe('read', () => {
     it('adds content of the config file from this.path to this.contents', async () => {
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      const config = await Config.create(Config.getDefaultOptions(true));
 
       stubMethod($$.SANDBOX, fs.promises, 'readFile').withArgs(config.getPath()).resolves(configFileContentsString);
 
@@ -115,10 +115,9 @@ describe('Config', () => {
 
   describe('set throws', () => {
     it('UnknownConfigKeyError', async () => {
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      const config = await Config.create(Config.getDefaultOptions(true));
       try {
-        config.set('foo', 'bar');
-        assert.fail('Expected an error to be thrown.');
+        shouldThrowSync(() => config.set('foo', 'bar'));
       } catch (err) {
         expect(err).to.have.property('name', 'UnknownConfigKeyError');
       }
@@ -126,96 +125,87 @@ describe('Config', () => {
 
     describe('InvalidConfigValueError', () => {
       it('org-api-version', async () => {
-        const config: Config = await Config.create(Config.getDefaultOptions(true));
+        const config = await Config.create(Config.getDefaultOptions(true));
         try {
-          config.set('org-api-version', '1');
-          assert.fail('Expected an error to be thrown.');
+          shouldThrowSync(() => config.set('org-api-version', '1'));
         } catch (err) {
           expect(err).to.have.property('name', 'InvalidConfigValueError');
         }
       });
       it('org-isv-debugger-url', async () => {
-        const config: Config = await Config.create(Config.getDefaultOptions(true));
+        const config = await Config.create(Config.getDefaultOptions(true));
         try {
-          config.set('org-isv-debugger-url', 23);
-          assert.fail('Expected an error to be thrown.');
+          shouldThrowSync(() => config.set('org-isv-debugger-url', 23));
         } catch (err) {
           expect(err).to.have.property('name', 'InvalidConfigValueError');
         }
       });
       it('org-isv-debugger-sid', async () => {
-        const config: Config = await Config.create(Config.getDefaultOptions(true));
+        const config = await Config.create(Config.getDefaultOptions(true));
         try {
-          config.set('org-isv-debugger-sid', 23);
-          assert.fail('Expected an error to be thrown.');
+          shouldThrowSync(() => config.set('org-isv-debugger-sid', 23));
         } catch (err) {
           expect(err).to.have.property('name', 'InvalidConfigValueError');
         }
       });
       describe('org-max-query-limit', () => {
         it('will throw an error when value is mixed alphanumeric', async () => {
-          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('org-max-query-limit', '123abc');
-            assert.fail('Expected an error to be thrown.');
+            shouldThrowSync(() => config.set('org-max-query-limit', '123abc'));
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
         it('will throw an error when value is not numeric', async () => {
-          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('org-max-query-limit', 'abc');
-            assert.fail('Expected an error to be thrown.');
+            shouldThrowSync(() => config.set('org-max-query-limit', 'abc'));
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
 
         it('will throw an error when value is negative', async () => {
-          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('org-max-query-limit', '-123');
-            assert.fail('Expected an error to be thrown.');
+            shouldThrowSync(() => config.set('org-max-query-limit', '-123'));
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
 
         it('will throw an error when value is negative decimal', async () => {
-          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('org-max-query-limit', '-123.456');
-            assert.fail('Expected an error to be thrown.');
+            shouldThrowSync(() => config.set('org-max-query-limit', '-123.456'));
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
         it('will throw an error when value is negative integer', async () => {
-          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('org-max-query-limit', '-123');
-            assert.fail('Expected an error to be thrown.');
+            shouldThrowSync(() => config.set('org-max-query-limit', '-123'));
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
         it('will throw an error when value is 0', async () => {
-          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const config = await Config.create(Config.getDefaultOptions(true));
           try {
-            config.set('org-max-query-limit', '0');
-            assert.fail('Expected an error to be thrown.');
+            shouldThrowSync(() => config.set('org-max-query-limit', '0'));
           } catch (err) {
             expect(err).to.have.property('name', 'InvalidConfigValueError');
           }
         });
         it('will set config value with stringified number', async () => {
-          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const config = await Config.create(Config.getDefaultOptions(true));
           const res = config.set('org-max-query-limit', '123');
           expect(res['org-max-query-limit']).to.equal('123');
         });
         it('will set config value with as number as it should be', async () => {
-          const config: Config = await Config.create(Config.getDefaultOptions(true));
+          const config = await Config.create(Config.getDefaultOptions(true));
           const res = config.set('org-max-query-limit', 123);
           expect(res['org-max-query-limit']).to.equal(123);
         });
@@ -223,7 +213,7 @@ describe('Config', () => {
     });
 
     it('PropertyInput validation', async () => {
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      const config = await Config.create(Config.getDefaultOptions(true));
       config.set(OrgConfigProperties.TARGET_ORG, 'foo@example.com');
       expect(config.get(OrgConfigProperties.TARGET_ORG)).to.be.equal('foo@example.com');
     });
@@ -247,10 +237,9 @@ describe('Config', () => {
 
   describe('unset throws', () => {
     it('UnknownConfigKeyError', async () => {
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      const config = await Config.create(Config.getDefaultOptions(true));
       try {
-        config.unset('foo');
-        assert.fail('Expected an error to be thrown.');
+        shouldThrowSync(() => config.unset('foo'));
       } catch (err) {
         expect(err).to.have.property('name', 'UnknownConfigKeyError');
       }
@@ -268,7 +257,7 @@ describe('Config', () => {
         }
       );
 
-      const config: Config = await Config.create(Config.getDefaultOptions(true));
+      const config = await Config.create(Config.getDefaultOptions(true));
       config.set(OrgConfigProperties.ORG_ISV_DEBUGGER_SID, TEST_VAL);
       await config.write();
 
@@ -281,7 +270,7 @@ describe('Config', () => {
         this.setContentsFromObject({ unknown: 'unknown config key and value' });
       });
 
-      const config: Config = await Config.create({ isGlobal: true });
+      const config = await Config.create({ isGlobal: true });
       expect(config).to.exist;
     });
   });
@@ -302,7 +291,7 @@ describe('Config', () => {
       expect(originalAllowedProperties.length).to.be.greaterThan(0);
 
       expect(
-        originalAllowedProperties.some((meta) => meta.key === 'instanceUrl'),
+        originalAllowedProperties.some((meta: ConfigPropertyMeta) => meta.key === 'instanceUrl'),
         'it has one of the default allowed properties'
       ).to.be.true;
     });

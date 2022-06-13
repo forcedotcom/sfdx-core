@@ -6,7 +6,7 @@
  */
 
 import * as sinon from 'sinon';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { env, Duration } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { Connection } from '../../../src/org';
@@ -181,7 +181,6 @@ describe('requestScratchOrgCreation', () => {
     await settings.extract(scratchDef);
     try {
       await shouldThrow(requestScratchOrgCreation(hubOrg, scratchDef, settings));
-      assert.fail('Expected an error to be thrown.');
     } catch (error) {
       expect(error).to.exist;
       expect(error).to.have.keys(['cause', 'name', 'actions', 'exitCode']);

@@ -55,7 +55,7 @@ describe('permission set assignment tests', () => {
         };
       });
 
-      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
+      const assignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
       const NS = 'NS';
       await assignment.create('123456', `${NS}__${PERM_SET_NAME}`);
@@ -90,7 +90,7 @@ describe('permission set assignment tests', () => {
         };
       });
 
-      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
+      const assignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
       const NS = 'NS';
       try {

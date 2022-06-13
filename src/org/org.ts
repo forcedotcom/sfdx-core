@@ -14,7 +14,6 @@ import {
   ensure,
   ensureJsonArray,
   ensureString,
-  getNumber,
   isArray,
   isBoolean,
   isString,
@@ -438,7 +437,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     try {
       const results = await devHubConnection.query(DEV_HUB_SOQL);
-      if (getNumber(results, 'records.length') !== 1) {
+      if (results.records.length !== 1) {
         throw new SfError('No results', 'NoResultsError');
       }
     } catch (err) {

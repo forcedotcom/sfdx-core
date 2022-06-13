@@ -7,16 +7,7 @@
 
 import { EOL } from 'os';
 import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
-import {
-  asJsonArray,
-  asNumber,
-  ensure,
-  ensureJsonMap,
-  ensureString,
-  getString,
-  isJsonMap,
-  Many,
-} from '@salesforce/ts-types';
+import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
 import type { QueryResult } from 'jsforce';
 import { HttpApi } from 'jsforce/lib/http-api';
 import type { HttpRequest, HttpResponse, Schema, SObjectUpdateRecord } from 'jsforce/lib/types';
@@ -122,16 +113,16 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
     const results = mapKeys(result.records[0], (value: unknown, key: string) => lowerFirst(key));
 
     const fields: UserFields = {
-      id: ensure(getString(results, REQUIRED_FIELDS.id)),
+      id: ensureString(results[REQUIRED_FIELDS.id]),
       username,
-      alias: ensure(getString(results, REQUIRED_FIELDS.alias)),
-      email: ensure(getString(results, REQUIRED_FIELDS.email)),
-      emailEncodingKey: ensure(getString(results, REQUIRED_FIELDS.emailEncodingKey)),
-      languageLocaleKey: ensure(getString(results, REQUIRED_FIELDS.languageLocaleKey)),
-      localeSidKey: ensure(getString(results, REQUIRED_FIELDS.localeSidKey)),
-      profileId: ensure(getString(results, REQUIRED_FIELDS.profileId)),
-      lastName: ensure(getString(results, REQUIRED_FIELDS.lastName)),
-      timeZoneSidKey: ensure(getString(results, REQUIRED_FIELDS.timeZoneSidKey)),
+      alias: ensureString(results[REQUIRED_FIELDS.alias]),
+      email: ensureString(results[REQUIRED_FIELDS.email]),
+      emailEncodingKey: ensureString(results[REQUIRED_FIELDS.emailEncodingKey]),
+      languageLocaleKey: ensureString(results[REQUIRED_FIELDS.languageLocaleKey]),
+      localeSidKey: ensureString(results[REQUIRED_FIELDS.localeSidKey]),
+      profileId: ensureString(results[REQUIRED_FIELDS.profileId]),
+      lastName: ensureString(results[REQUIRED_FIELDS.lastName]),
+      timeZoneSidKey: ensureString(results[REQUIRED_FIELDS.timeZoneSidKey]),
     };
 
     return fields;

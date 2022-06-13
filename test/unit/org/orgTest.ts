@@ -28,7 +28,7 @@ import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
 import { Global } from '../../../src/global';
-import { MockTestOrgData, testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { StateAggregator } from '../../../src/stateAggregator';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
@@ -194,8 +194,7 @@ describe('Org Tests', () => {
 
       try {
         const org = await createOrgViaAuthInfo();
-        await org.cleanLocalOrgData('INVALID_PATH');
-        assert.fail('This should have failed');
+        await shouldThrow(org.cleanLocalOrgData('INVALID_PATH'));
       } catch (e) {
         expect(e).to.have.property('name', 'UnknownError');
       }
@@ -210,8 +209,7 @@ describe('Org Tests', () => {
           const dev = await createOrgViaAuthInfo();
 
           try {
-            await org.deleteFrom(dev);
-            assert.fail('the above should throw an error');
+            await shouldThrow(org.deleteFrom(dev));
           } catch (e) {
             expect(e.message).to.contain('The Dev Hub org cannot be deleted.');
           }
@@ -252,8 +250,7 @@ describe('Org Tests', () => {
           stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').throws(e);
 
           try {
-            await org.deleteFrom(dev);
-            assert.fail('the above should throw an error');
+            await shouldThrow(org.deleteFrom(dev));
           } catch (err) {
             expect(err.message).to.contain(
               'You do not have the appropriate permissions to delete a scratch org. Please contact your Salesforce admin.'
@@ -273,8 +270,7 @@ describe('Org Tests', () => {
           stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').throws(e);
 
           try {
-            await org.deleteFrom(dev);
-            assert.fail('the above should throw an error');
+            await shouldThrow(org.deleteFrom(dev));
           } catch (err) {
             expect(err.message).to.contain('Attempting to delete an expired or deleted org');
           }
@@ -368,8 +364,7 @@ describe('Org Tests', () => {
           success: false,
         });
         try {
-          await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
-          assert.fail('the above should throw a duplicate error');
+          await shouldThrow(prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) }));
         } catch (e) {
           expect(createStub.calledOnce).to.be.true;
           expect(e.message).to.include('The sandbox org creation failed with a result of');
@@ -763,8 +758,7 @@ describe('Org Tests', () => {
     it('validate is not scratch org', async () => {
       returnResult = { records: [] };
       try {
-        await org.checkScratchOrg();
-        assert.fail('This test is expected to fail.');
+        await shouldThrow(org.checkScratchOrg());
       } catch (err) {
         expect(err).to.have.property('name', 'NoResultsError');
       }
@@ -773,8 +767,7 @@ describe('Org Tests', () => {
     it('validate is not scratch org', async () => {
       returnResult = 'throw';
       try {
-        await org.checkScratchOrg();
-        assert.fail('This test is expected to fail.');
+        await shouldThrow(org.checkScratchOrg());
       } catch (err) {
         expect(err).to.have.property('name', 'NotADevHubError');
       }
@@ -977,8 +970,7 @@ describe('Org Tests', () => {
         records: [],
       });
       try {
-        await prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) });
-        assert.fail('This should have failed');
+        await shouldThrow(prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) }));
       } catch (e) {
         expect(e.message).to.be.equal(messages.getMessage('SandboxProcessNotFoundBySandboxName', [sandboxNameIn]));
         expect(queryStub.calledOnce).to.be.true;
@@ -993,8 +985,7 @@ describe('Org Tests', () => {
         records: [...statusResult.records, ...statusResult.records],
       });
       try {
-        await prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) });
-        assert.fail('This should have failed');
+        await shouldThrow(prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) }));
       } catch (e) {
         expect(e.message).to.be.equal(messages.getMessage('MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn]));
         expect(queryStub.calledOnce).to.be.true;

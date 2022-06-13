@@ -650,9 +650,43 @@ export const unexpectedResult = new SfError('This code was expected to fail', 'U
  *
  * @param f The async function that is expected to throw.
  */
-export async function shouldThrow(f: Promise<unknown>): Promise<never> {
+export async function shouldThrow(f: Promise<unknown>, message?: string): Promise<never> {
   await f;
-  throw unexpectedResult;
+  if (message) {
+    throw new SfError(message, 'UnexpectedResult');
+  } else {
+    throw unexpectedResult;
+  }
+}
+
+/**
+ * Use for this testing pattern:
+ * ```
+ *  try {
+ *      call()
+ *      assert.fail('this should never happen');
+ *  } catch (e) {
+ *  ...
+ *  }
+ *
+ *  Just do this
+ *
+ *  try {
+ *      shouldThrowSync(call); // If this succeeds unexpectedResultError is thrown.
+ *  } catch(e) {
+ *  ...
+ *  }
+ * ```
+ *
+ * @param f The function that is expected to throw.
+ */
+export function shouldThrowSync(f: () => unknown, message?: string): never {
+  f();
+  if (message) {
+    throw new SfError(message, 'UnexpectedResult');
+  } else {
+    throw unexpectedResult;
+  }
 }
 
 /**

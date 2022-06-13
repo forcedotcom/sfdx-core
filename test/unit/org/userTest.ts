@@ -6,9 +6,9 @@
  */
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, isString } from '@salesforce/ts-types';
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import { SecureBuffer } from '../../../src/crypto/secureBuffer';
-import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, shouldThrow, shouldThrowSync, testSetup } from '../../../src/testSetup';
 import { DefaultUserFields, User, PermissionSetAssignment, Org, Connection, AuthInfo } from '../../../src/org';
 
 const $$ = testSetup();
@@ -156,8 +156,7 @@ describe('User Tests', () => {
     it('Should throw an error beacuse of complexity not a valid value', () => {
       try {
         const passwordCondition = { length: 14, complexity: 9 };
-        User.generatePasswordUtf8(passwordCondition);
-        assert.fail('The above code need to throw an error');
+        shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
         expect(err.message).to.equal('Invalid complexity value. Specify a value between 0 and 5, inclusive.');
       }
@@ -166,8 +165,7 @@ describe('User Tests', () => {
     it('Should throw an error beacuse of length not a valid value', () => {
       try {
         const passwordCondition = { length: 7, complexity: 2 };
-        User.generatePasswordUtf8(passwordCondition);
-        assert.fail('The above code need to throw an error');
+        shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
         expect(err.message).to.equal('Invalid length value. Specify a value between 8 and 1000, inclusive.');
       }

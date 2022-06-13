@@ -6,14 +6,14 @@
  */
 import { get } from '@salesforce/ts-types';
 
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { fromStub, stubInterface, StubbedType, stubMethod } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
 import { Connection as JSForceConnection, HttpRequest } from 'jsforce';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME, SingleRecordQueryErrors } from '../../../src/org/connection';
-import { testSetup, shouldThrow } from '../../../src/testSetup';
+import { testSetup, shouldThrow, shouldThrowSync } from '../../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -109,8 +109,7 @@ describe('Connection', () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
 
     try {
-      conn.setApiVersion('v23.0');
-      assert.fail();
+      shouldThrowSync(() => conn.setApiVersion('v23.0'));
     } catch (e) {
       expect(e.message).to.contain('Invalid API version v23.0.');
     }
@@ -220,8 +219,7 @@ describe('Connection', () => {
     });
 
     try {
-      await conn.autoFetchQuery('TEST_SOQL');
-      assert.fail('autoFetch query should have errored.');
+      await shouldThrow(conn.autoFetchQuery('TEST_SOQL'));
     } catch (err) {
       expect(err.message).to.equal(errorMsg);
     }
@@ -271,8 +269,7 @@ describe('Connection', () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
     stubMethod($$.SANDBOX, conn, 'request').resolves({ totalSize: 0, records: [] });
     try {
-      await conn.singleRecordQuery('TEST_SOQL');
-      assert.fail('SingleRecordQuery query should have errored.');
+      await shouldThrow(conn.singleRecordQuery('TEST_SOQL'));
     } catch (err) {
       expect(err.name).to.equal(SingleRecordQueryErrors.NoRecords);
     }
@@ -283,8 +280,7 @@ describe('Connection', () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
     try {
-      await conn.singleRecordQuery('TEST_SOQL');
-      assert.fail('singleRecordQuery should have errored.');
+      await shouldThrow(conn.singleRecordQuery('TEST_SOQL'));
     } catch (err) {
       expect(err.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
     }
@@ -295,8 +291,7 @@ describe('Connection', () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
     try {
-      await conn.singleRecordQuery('TEST_SOQL', { returnChoicesOnMultiple: true, choiceField: 'id' });
-      assert.fail('singleRecordQuery should have errored.');
+      await shouldThrow(conn.singleRecordQuery('TEST_SOQL', { returnChoicesOnMultiple: true, choiceField: 'id' }));
     } catch (err) {
       expect(err.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
       expect(err.message).to.include('1,2');
