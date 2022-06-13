@@ -26,7 +26,8 @@ describe('Logger', () => {
 
   beforeEach(async () => {
     process.env.SFDX_ENV = 'test';
-
+    // @ts-expect-error because private method
+    $$.SANDBOX.stub(Logger.prototype, 'mkdirp').resolves();
     // Must restore the globally stubbed Logger.child method here.  Stubbed in testSetup.
     if (Logger.child['restore']) {
       Logger.child['restore']();
@@ -105,8 +106,6 @@ describe('Logger', () => {
     beforeEach(() => {
       utilAccessStub = $$.SANDBOX.stub(fs.promises, 'access');
       utilWriteFileStub = $$.SANDBOX.stub(fs.promises, 'writeFile');
-      // @ts-expect-error because private method
-      $$.SANDBOX.stub(Logger.prototype, 'mkdirp').resolves();
     });
 
     it('should not create a new log file if it exists already', async () => {
