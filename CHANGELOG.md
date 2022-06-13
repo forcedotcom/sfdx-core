@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.20.2](https://github.com/forcedotcom/sfdx-core/compare/v3.20.1...v3.20.2) (2022-06-13)
+
+### Bug Fixes
+
+- instanceUrl config now using org-instance-url ([54cb450](https://github.com/forcedotcom/sfdx-core/commit/54cb450c53f3db5352d9f0fdb83d33dce1da728e))
+
 ### [3.20.1](https://github.com/forcedotcom/sfdx-core/compare/v3.19.5...v3.20.1) (2022-06-08)
 
 ### Features
