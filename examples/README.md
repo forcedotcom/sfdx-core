@@ -23,8 +23,6 @@ We encourage you to explore our other open source projects to see more complex, 
 
 - [AuthInfo](https://github.com/search?q=org%3Asalesforcecli+AuthInfo&type=code)
 - [AuthRemover](https://github.com/search?q=org%3Asalesforcecli+AuthRemover&type=code)
-- [BaseConfigStore](https://github.com/search?q=org%3Asalesforcecli+BaseConfigStore&type=code)
-- [CometClient](https://github.com/search?q=org%3Asalesforcecli+CometClient&type=code)
 - [Config](https://github.com/search?q=org%3Asalesforcecli+Config&type=code)
 - [ConfigAggregator](https://github.com/search?q=org%3Asalesforcecli+ConfigAggregator&type=code)
 - [ConfigFile](https://github.com/search?q=org%3Asalesforcecli+ConfigFile&type=code)
