@@ -11,7 +11,7 @@ describe('Mocking a force server call', () => {
   it('example', async () => {
     const records: AnyJson = { records: ['123456', '234567'] };
     const testData = new MockTestOrgData();
-    $$.await stubAuths(testData)
+    await $$.stubAuths(testData)
     $$.fakeConnectionRequest = (request: AnyJson): Promise<AnyJson> => {
       const _request: JsonMap = ensureJsonMap(request);
       if (request && ensureString(_request.url).includes('Account')) {
