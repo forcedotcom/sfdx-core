@@ -1,5 +1,5 @@
 {
-  "extends": "@salesforce/dev-config",
+  "extends": "@salesforce/dev-config/tsconfig",
   "compilerOptions": {
     "outDir": "./lib",
     "rootDirs": ["./examples"],

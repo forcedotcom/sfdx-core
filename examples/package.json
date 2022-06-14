@@ -5,7 +5,7 @@
   "main": "index.js",
   "license": "BSD-3-Clause",
   "scripts": {
-    "test": "mocha examples/test/unit/** --opts examples/test/mocha.opts"
+    "test": "mocha test/unit/**/*.ts"
   },
   "keywords": [
     "sfdx",

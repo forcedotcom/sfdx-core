@@ -12,5 +12,12 @@ module.exports = {
   extends: '../.eslintrc.js',
   rules: {
     'no-console': 'off',
-  }
+  },
+  parserOptions: {
+    project: [
+      './examples/tsconfig.json',
+      './examples/test/tsconfig.json',
+    ],
+    sourceType: 'module',
+  },
 };
