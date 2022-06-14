@@ -1,11 +1,18 @@
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { StateAggregator, Org, StatusResult, StreamingClient } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import * as inquirer from 'inquirer';
 
-let org: Org;
-
 export async function run() {
+  let org: Org;
+
   function streamProcessor(message: JsonMap): StatusResult {
     console.log(chalk.blue('Apex Log Found:'), chalk.green(message.sobject['Id']));
     console.log(org.getConnection().request(`/sobjects/ApexLog/${message.sobject['Id']}/Body`));
@@ -13,13 +20,9 @@ export async function run() {
     return { completed: false };
   }
 
-  async function startStream(username) {
-    org = await Org.create(username);
-    const options: StreamingClient.Options = new StreamingClient.DefaultOptions(
-      org,
-      '/systemTopic/Logging',
-      streamProcessor
-    );
+  async function startStream(username: string) {
+    org = await Org.create({ aliasOrUsername: username });
+    const options = new StreamingClient.DefaultOptions(org, '/systemTopic/Logging', streamProcessor);
 
     const asyncStatusClient = await StreamingClient.create(options);
 
@@ -31,14 +34,14 @@ export async function run() {
   }
 
   const stateAggregator = await StateAggregator.getInstance();
-  const orgs = Object.keys(await stateAggregator.orgs.readAll());
+  const usernames = (await stateAggregator.orgs.readAll()).map((org) => org.username);
 
   // Have the user select a user
-  const connectionOrg = await select('Select an org to connect to:', orgs);
+  const username = await select('Select an org to connect to:', usernames);
 
-  console.log(`Connecting to ${connectionOrg} `);
+  console.log(`Connecting to ${username} `);
 
-  await startStream(connectionOrg);
+  await startStream(username);
 }
 
 /**
