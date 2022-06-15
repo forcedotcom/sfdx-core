@@ -197,11 +197,29 @@ export interface TestContext {
    * @param value The actual stub contents. The Mock data.
    */
   setConfigStubContents(name: string, value: ConfigContents): void;
+  /**
+   * Set stubs for working in the context of a SfProject
+   */
   inProject(inProject: boolean): void;
+  /**
+   * Stub salesforce org authorizations.
+   */
   stubAuths(...orgs: MockTestOrgData[]): Promise<void>;
+  /**
+   * Stub salesforce sandbox authorizations.
+   */
   stubSandboxes(...orgs: MockTestSandboxData[]): Promise<void>;
+  /**
+   * Stub the aliases in the global aliases config file.
+   */
   stubAliases(aliases: Record<string, string>, group?: AliasGroup): void;
+  /**
+   * Stub contents in the config file.
+   */
   stubConfig(config: Record<string, string>): void;
+  /**
+   * Stub the tokens in the global token config file.
+   */
   stubTokens(tokens: Record<string, string>): void;
 }
 
@@ -608,10 +626,10 @@ const _testSetup = (sinon?: any): TestContext => {
  *    $$.SANDBOX.stub(MyClass.prototype, 'myMethod').returnsFake(() => {});
  *
  *    // Set the contents that is used when aliases are read. Same for all config files.
- *    $$.configStubs.Aliases = { contents: { 'myTestAlias': 'user@company.com' } };
+ *    $$.stubAliases({ 'myTestAlias': 'user@company.com' });
  *
  *    // Will use the contents set above.
- *    const username = Aliases.fetch('myTestAlias');
+ *    const username = (await StateAggregator.getInstance()).aliases.resolveUseranme('myTestAlias');
  *    expect(username).to.equal('user@company.com');
  *  });
  * });
@@ -843,7 +861,11 @@ export class StreamingMockCometClient extends CometClient {
 }
 
 /**
- * Mock class for OrgData.
+ * Mock class for Salesforce Orgs.
+ *
+ * @example
+ * const testOrg = new MockTestOrgData();
+ * await $$.stubAuths(testOrg)
  */
 export class MockTestOrgData {
   public testId: string;
@@ -881,14 +903,23 @@ export class MockTestOrgData {
     this.redirectUri = 'http://localhost:1717/OauthRedirect';
   }
 
+  /**
+   * Add devhub username to properties.
+   */
   public createDevHubUsername(username: string): void {
     this.devHubUsername = username;
   }
 
+  /**
+   * Mark this org as a devhub.
+   */
   public makeDevHub(): void {
     this.isDevHub = true;
   }
 
+  /**
+   * Returns a MockTestOrgData that represents a user created in the org.
+   */
   public createUser(user: string): MockTestOrgData {
     const userMock = new MockTestOrgData();
     userMock.username = user;
@@ -907,6 +938,9 @@ export class MockTestOrgData {
     return userMock;
   }
 
+  /**
+   * Return mock user information based on this org.
+   */
   public getMockUserInfo(): JsonMap {
     return {
       Id: this.userId,
@@ -923,6 +957,9 @@ export class MockTestOrgData {
     };
   }
 
+  /**
+   * Return the auth config file contents.
+   */
   public async getConfig(): Promise<AuthFields> {
     const crypto = await Crypto.create();
     const config: JsonMap = {};
@@ -955,11 +992,21 @@ export class MockTestOrgData {
     return config as AuthFields;
   }
 
+  /**
+   * Return the Connection for the org.
+   */
   public async getConnection(): Promise<Connection> {
     return (await Org.create({ aliasOrUsername: this.username })).getConnection();
   }
 }
 
+/**
+ * Mock class for Salesforce Sandboxes.
+ *
+ * @example
+ * const testOrg = new MockTestSandboxData();
+ * await $$.stubSandboxes(testOrg)
+ */
 export class MockTestSandboxData {
   public sandboxOrgId: string;
   public prodOrgUsername: string;
@@ -976,6 +1023,9 @@ export class MockTestSandboxData {
     this.username = options?.username || `${this.prodOrgUsername}.sandbox`;
   }
 
+  /**
+   * Return the auth config file contents.
+   */
   public async getConfig(): Promise<SandboxFields> {
     return {
       sandboxOrgId: this.sandboxOrgId,
