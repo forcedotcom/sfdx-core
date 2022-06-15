@@ -506,9 +506,6 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
     })
   );
 
-  // stubMethod(testContext.SANDBOXES.CRYPTO, KeyFile, 'read').resolves({});
-  // stubMethod(testContext.SANDBOXES.CRYPTO, KeyFile, 'write').resolves();
-
   stubMethod(testContext.SANDBOXES.CONNECTION, Connection.prototype, 'isResolvable').resolves(true);
 
   stubMethod(testContext.SANDBOXES.CONNECTION, Connection.prototype, 'request').callsFake(function (
