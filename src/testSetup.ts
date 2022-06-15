@@ -35,7 +35,7 @@ import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
 import { GlobalInfo, OrgAccessor, StateAggregator } from './stateAggregator';
-import { AuthFields, SandboxFields } from './org';
+import { AuthFields, Org, SandboxFields } from './org';
 import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 import { AliasGroup } from './config/aliasesConfig';
 import { Global } from './global';
@@ -953,6 +953,10 @@ export class MockTestOrgData {
     config.isDevHub = this.isDevHub;
 
     return config as AuthFields;
+  }
+
+  public async getConnection(): Promise<Connection> {
+    return (await Org.create({ aliasOrUsername: this.username })).getConnection();
   }
 }
 

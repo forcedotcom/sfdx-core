@@ -288,6 +288,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     description: messages.getMessage(SfdxPropertyKeys.MAX_QUERY_LIMIT),
     hidden: true,
     newKey: OrgConfigProperties.ORG_MAX_QUERY_LIMIT,
+    deprecated: true,
     input: {
       // the bit shift will remove the negative bit, and any decimal numbers
       // then the parseFloat will handle converting it to a number from a string
