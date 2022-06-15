@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.21.0](https://github.com/forcedotcom/sfdx-core/compare/v3.20.3...v3.21.0) (2022-06-15)
+
+### Features
+
+- add getConnection method to MockTestOrgData ([#600](https://github.com/forcedotcom/sfdx-core/issues/600)) ([a642f28](https://github.com/forcedotcom/sfdx-core/commit/a642f28dc1179552ba5c646c96d2d55f5b6f3f61))
+
 ### [3.20.3](https://github.com/forcedotcom/sfdx-core/compare/v3.20.2...v3.20.3) (2022-06-15)
 
 ### Bug Fixes
