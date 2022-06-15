@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.21.1](https://github.com/forcedotcom/sfdx-core/compare/v3.21.0...v3.21.1) (2022-06-15)
+
+### Bug Fixes
+
+- deprecate maxQueryLimit config var ([48105be](https://github.com/forcedotcom/sfdx-core/commit/48105bedf01d69b38a7fa527ad74c78053f7d4ef))
+
 ## [3.21.0](https://github.com/forcedotcom/sfdx-core/compare/v3.20.3...v3.21.0) (2022-06-15)
 
 ### Features
