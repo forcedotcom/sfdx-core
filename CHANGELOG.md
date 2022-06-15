@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.20.3](https://github.com/forcedotcom/sfdx-core/compare/v3.20.2...v3.20.3) (2022-06-15)
+
+### Bug Fixes
+
+- **url:** support sandboxes with enhanced domains enabled ([7c958d1](https://github.com/forcedotcom/sfdx-core/commit/7c958d1f59efc6ef55a7b4c60126603616b21794))
+
 ### [3.20.2](https://github.com/forcedotcom/sfdx-core/compare/v3.20.1...v3.20.2) (2022-06-13)
 
 ### Bug Fixes
