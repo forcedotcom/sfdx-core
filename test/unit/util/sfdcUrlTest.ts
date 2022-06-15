@@ -32,6 +32,11 @@ describe('util/sfdcUrl', () => {
         'https://some-instance.lightning.force.com'
       );
     });
+    it('works for com (sandbox - enhanced domains)', () => {
+      expect(new SfdcUrl('https://some-instance--sboxname.sandbox.my.salesforce.com').toLightningDomain()).to.equal(
+        'https://some-instance--sboxname.sandbox.lightning.force.com'
+      );
+    });
     it('works for mil (prod)', () => {
       expect(new SfdcUrl('https://some-instance.my.salesforce.mil').toLightningDomain()).to.equal(
         'https://some-instance.lightning.crmforce.mil'

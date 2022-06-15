@@ -150,6 +150,11 @@ export class SfdcUrl extends URL {
     if (this.origin.endsWith('.my.salesforce.mil')) {
       return this.origin.replace('.my.salesforce.mil', '.lightning.crmforce.mil');
     }
+    // enhanced domains
+    if (this.origin.endsWith('sandbox.my.salesforce.com')) {
+      return this.origin.replace('sandbox.my.salesforce.com', 'sandbox.lightning.force.com');
+    }
+
     // all non-mil domains
     return `https://${ensureArray(/https?:\/\/([^.]*)/.exec(this.origin))
       .slice(1, 2)
