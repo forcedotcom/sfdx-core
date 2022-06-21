@@ -7,12 +7,11 @@
 
 import * as path from 'path';
 import { isEmpty, env, upperFirst, Duration } from '@salesforce/kit';
-import { ensureObject, getObject, JsonMap, Optional } from '@salesforce/ts-types';
+import { ensureObject, getObject, JsonMap, JsonArray } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
 import { Org } from './org';
 import { Logger } from './logger';
 import { SfdxError } from './sfdxError';
-import { JsonAsXml } from './util/jsonXmlTools';
 import { ZipWriter } from './util/zipWriter';
 import { ScratchOrgInfo } from './scratchOrgInfoApi';
 import { StatusResult } from './status/client';
@@ -35,24 +34,6 @@ export interface ObjectSetting extends JsonMap {
   defaultRecordType?: string;
 }
 
-interface ObjectToBusinessProcessPicklist {
-  [key: string]: {
-    fullName: string;
-    default?: boolean;
-  };
-}
-
-export interface BusinessProcessFileContent extends JsonMap {
-  fullName: string;
-  isActive: boolean;
-  values: [
-    {
-      fullName: string;
-      default?: boolean;
-    }
-  ];
-}
-
 /**
  * Helper class for dealing with the settings that are defined in a scratch definition file.  This class knows how to extract the
  * settings from the definition, how to expand them into a MD directory and how to generate a package.xml.
@@ -62,7 +43,10 @@ export default class SettingsGenerator {
   private objectSettingsData?: { [objectName: string]: ObjectSetting };
   private logger: Logger;
   private writer: ZipWriter;
+  private allRecordTypes: string[] = [];
+  private allbusinessProcesses: string[] = [];
   private shapeDirName = `shape_${Date.now()}`;
+  private packageFilePath = path.join(this.shapeDirName, 'package.xml');
 
   public constructor() {
     this.logger = Logger.childFromRoot('SettingsGenerator');
@@ -90,7 +74,10 @@ export default class SettingsGenerator {
   public async createDeploy(): Promise<void> {
     const settingsDir = path.join(this.shapeDirName, 'settings');
     const objectsDir = path.join(this.shapeDirName, 'objects');
-    await Promise.all([this.writeSettingsIfNeeded(settingsDir), this.writeObjectSettingsIfNeeded(objectsDir)]);
+    await Promise.all([
+      this.writeSettingsIfNeeded(settingsDir),
+      this.writeObjectSettingsIfNeeded(objectsDir, this.allRecordTypes, this.allbusinessProcesses),
+    ]);
   }
 
   /**
@@ -99,7 +86,8 @@ export default class SettingsGenerator {
   public async deploySettingsViaFolder(scratchOrg: Org, apiVersion: string): Promise<void> {
     const username = scratchOrg.getUsername();
     const logger = await Logger.child('deploySettingsViaFolder');
-    this.createPackageXml(apiVersion);
+    // this.createPackageXml(apiVersion);
+    await this.writePackageFile(this.allRecordTypes, this.allbusinessProcesses, this.packageFilePath, apiVersion);
     await this.writer.finalize();
 
     const connection = scratchOrg.getConnection();
@@ -158,42 +146,16 @@ export default class SettingsGenerator {
     }
   }
 
-  private async writeObjectSettingsIfNeeded(objectsDir: string) {
-    if (!this.objectSettingsData || !Object.keys(this.objectSettingsData).length) {
-      return;
-    }
-    for (const objectName of Object.keys(this.objectSettingsData)) {
-      const value = this.objectSettingsData[objectName];
-      // writes the object file in source format
-      const objectDir = path.join(objectsDir, upperFirst(objectName));
-      const customObjectDir = path.join(objectDir, `${upperFirst(objectName)}.object`);
-      const customObjectXml = JsonAsXml({
-        json: this.createObjectFileContent(value),
-        type: 'RecordType',
-      });
-      this.writer.addToZip(customObjectXml, customObjectDir);
-
-      if (value.defaultRecordType) {
-        const recordTypesDir = path.join(objectDir, 'recordTypes', `${upperFirst(value.defaultRecordType)}.recordType`);
-        const recordTypesFileContent = this.createRecordTypeFileContent(objectName, value);
-        const recordTypesXml = JsonAsXml({
-          json: recordTypesFileContent,
-          type: 'RecordType',
-        });
-        this.writer.addToZip(recordTypesXml, recordTypesDir);
-        // for things that required a businessProcess
-        if (recordTypesFileContent.businessProcess) {
-          const businessProcessesDir = path.join(
-            objectDir,
-            'businessProcesses',
-            `${recordTypesFileContent.businessProcess}.businessProcess`
-          );
-          const businessProcessesXml = JsonAsXml({
-            json: this.createBusinessProcessFileContent(objectName, recordTypesFileContent.businessProcess),
-            type: 'BusinessProcess',
-          });
-          this.writer.addToZip(businessProcessesXml, businessProcessesDir);
-        }
+  private async writeObjectSettingsIfNeeded(
+    objectsDir: string,
+    allRecordTypes: string[],
+    allbusinessProcesses: string[]
+  ) {
+    if (this.objectSettingsData) {
+      for (const item of Object.keys(this.objectSettingsData)) {
+        const value: ObjectSetting = this.objectSettingsData[item];
+        const fileContent = this.createObjectFileContent(upperFirst(item), value, allRecordTypes, allbusinessProcesses);
+        this.writer.addToZip(fileContent, path.join(objectsDir, upperFirst(item) + '.object'));
       }
     }
   }
@@ -210,62 +172,162 @@ export default class SettingsGenerator {
     }
   }
 
-  private createPackageXml(apiVersion: string): void {
-    const pkg = `<?xml version="1.0" encoding="UTF-8"?>
-<Package xmlns="http://soap.sforce.com/2006/04/metadata">
-    <types>
-        <members>*</members>
-        <name>Settings</name>
-    </types>
-    <types>
-        <members>*</members>
-        <name>CustomObject</name>
-    </types>
-    <version>${apiVersion}</version>
-</Package>`;
-    this.writer.addToZip(pkg, path.join(this.shapeDirName, 'package.xml'));
-  }
-
-  private createObjectFileContent(json: Record<string, unknown>) {
-    const output: ObjectSetting = {};
-    if (json.sharingModel) {
-      output.sharingModel = upperFirst(json.sharingModel as string);
+  private async writePackageFile(
+    allRecordTypes: string[],
+    allbusinessProcesses: string[],
+    packageFilePath: string,
+    apiVersion: string
+  ) {
+    let output = {
+      '@': {
+        xmlns: 'http://soap.sforce.com/2006/04/metadata',
+      },
+      types: [] as JsonArray,
+    };
+    if (this.settingData) {
+      const settingsMemberReferences = Object.keys(this.settingData).reduce((acc, item) => {
+        const typeName = upperFirst(item).replace('Settings', '');
+        return {
+          ...acc,
+          ...{ members: [...(acc.members ?? []), typeName] },
+        };
+      }, Object.create(null));
+      output = { ...output, ...{ types: [...output.types, { ...settingsMemberReferences, name: 'Settings' }] } };
     }
-    return output;
-  }
-
-  private createRecordTypeFileContent(
-    objectName: string,
-    setting: ObjectSetting
-  ): { fullName: Optional<string>; label: Optional<string>; active: boolean; businessProcess?: Optional<string> } {
-    const defaultRecordType = upperFirst(setting.defaultRecordType);
-    const output = {
-      fullName: defaultRecordType,
-      label: defaultRecordType,
-      active: true,
-    };
-    // all the edge cases
-    if (['Case', 'Lead', 'Opportunity', 'Solution'].includes(upperFirst(objectName))) {
-      return { ...output, businessProcess: `${defaultRecordType}Process` };
+    if (this.objectSettingsData) {
+      const objectMemberReferences = Object.keys(this.objectSettingsData).reduce((acc, item) => {
+        return {
+          ...acc,
+          ...{ members: [...(acc.members ?? []), upperFirst(item)] },
+        };
+      }, Object.create(null));
+      output = { ...output, ...{ types: [output.types, { ...objectMemberReferences, name: 'CustomObject' }] } };
+      output = {
+        ...output,
+        ...{
+          types: [
+            output.types,
+            {
+              ...allRecordTypes.reduce((acc, allRecordType) => {
+                return {
+                  ...acc,
+                  ...{ members: [...(acc.members ?? []), allRecordType] },
+                };
+              }, Object.create(null)),
+              name: 'RecordType',
+            },
+          ],
+        },
+      };
+      output = {
+        ...output,
+        ...{
+          types: [
+            output.types,
+            {
+              ...allbusinessProcesses.reduce((acc, allRecordType) => {
+                return {
+                  ...acc,
+                  ...{ members: [...(acc.members ?? []), allRecordType] },
+                };
+              }, Object.create(null)),
+              name: 'BusinessProcess',
+            },
+          ],
+        },
+      };
     }
-    return output;
+    output = { ...output, ...{ version: apiVersion } };
+    const xml = js2xmlparser.parse('Package', output);
+    this.writer.addToZip(xml, packageFilePath);
   }
 
-  private createBusinessProcessFileContent(
-    objectName: string,
-    businessProcessName: string
-  ): BusinessProcessFileContent {
-    const objectToBusinessProcessPicklist: ObjectToBusinessProcessPicklist = {
-      Opportunity: { fullName: 'Prospecting' },
-      Case: { fullName: 'New', default: true },
-      Lead: { fullName: 'New - Not Contacted', default: true },
-      Solution: { fullName: 'Draft', default: true },
-    };
+  private createObjectFileContent(
+    name: string,
+    json: Record<string, unknown>,
+    allRecordTypes: string[],
+    allbusinessProcesses: string[]
+  ) {
+    let output = {
+      '@': {
+        xmlns: 'http://soap.sforce.com/2006/04/metadata',
+      },
+    } as JsonMap;
+    const sharingModel = json['sharingModel'];
+    if (sharingModel) {
+      output = {
+        ...output,
+        sharingModel: upperFirst(sharingModel as string),
+      };
+    }
 
-    return {
-      fullName: businessProcessName,
-      isActive: true,
-      values: [objectToBusinessProcessPicklist[upperFirst(objectName)]],
-    };
+    const defaultRecordType = json['defaultRecordType'];
+    if (defaultRecordType) {
+      // We need to keep track of these globally for when we generate the package XML.
+      allRecordTypes.push(name + '.' + upperFirst(defaultRecordType as string));
+      let businessProcessesName = null;
+      let businessProcessesPicklistVal = null;
+      // These four objects require any record type to specify a "business process"--
+      // a restricted set of items from a standard picklist on the object.
+      if (['Case', 'Lead', 'Opportunity', 'Solution'].includes(name)) {
+        businessProcessesName = upperFirst(defaultRecordType as string) + 'Process';
+        switch (name) {
+          case 'Case':
+            businessProcessesPicklistVal = 'New';
+            break;
+          case 'Lead':
+            businessProcessesPicklistVal = 'New - Not Contacted';
+            break;
+          case 'Opportunity':
+            businessProcessesPicklistVal = 'Prospecting';
+            break;
+          case 'Solution':
+            businessProcessesPicklistVal = 'Draft';
+        }
+      }
+      // Create the record type
+      const recordTypes = {
+        fullName: upperFirst(defaultRecordType as string),
+        label: upperFirst(defaultRecordType as string),
+        active: true,
+      };
+
+      output = {
+        ...output,
+        recordTypes: {
+          ...recordTypes,
+        },
+      };
+
+      if (businessProcessesName) {
+        // We need to keep track of these globally for the package.xml
+        allbusinessProcesses.push(name + '.' + businessProcessesName);
+        output = {
+          ...output,
+          recordTypes: {
+            ...recordTypes,
+            businessProcess: businessProcessesName,
+          },
+        };
+      }
+
+      // If required, create the business processes they refer to
+      if (businessProcessesName) {
+        output = {
+          ...output,
+          businessProcesses: {
+            fullName: businessProcessesName,
+            isActive: true,
+            values: {
+              fullName: {
+                businessProcessesPicklistVal,
+                default: true,
+              },
+            },
+          },
+        };
+      }
+    }
+    return js2xmlparser.parse('CustomObject', output);
   }
 }
