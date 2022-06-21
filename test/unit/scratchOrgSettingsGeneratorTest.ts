@@ -511,7 +511,7 @@ describe('scratchOrgSettingsGenerator', () => {
     });
   });
 
-  describe('writeObjectSettingsIfNeeded', () => {
+  describe.only('writeObjectSettingsIfNeeded', () => {
     beforeEach(() => {
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -536,23 +536,12 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       await settings.extract(scratchDef);
       await settings.createDeploy();
-      expect(addToZipStub.callCount).to.equal(2);
+      expect(addToZipStub.callCount).to.equal(1);
       expect(addToZipStub.firstCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
         .and.to.include('<sharingModel>My-sharing-model</sharingModel>');
-      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject', 'MyObject.object'));
-      expect(addToZipStub.secondCall.firstArg)
-        .to.be.a('string')
-        .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
-        .and.to.include('<fullName>My-record-type</fullName>')
-        .and.to.include('<label>My-record-type</label>')
-        .and.to.include('<active>true</active>');
-      expect(addToZipStub.secondCall.args[1]).to.include(
-        path.join('objects', 'MyObject', 'recordTypes', 'My-record-type.recordType')
-      );
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject.object'));
     });
 
     it('calls writeObjectSettingsIfNeeded without sharingModel', async () => {
@@ -567,22 +556,9 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       await settings.extract(scratchDef);
       await settings.createDeploy();
-      expect(addToZipStub.callCount).to.equal(2);
-      expect(addToZipStub.firstCall.firstArg)
-        .to.be.a('string')
-        .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType/>');
-      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject', 'MyObject.object'));
-      expect(addToZipStub.secondCall.firstArg)
-        .to.be.a('string')
-        .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
-        .and.to.include('<fullName>My-record-type</fullName>')
-        .and.to.include('<label>My-record-type</label>')
-        .and.to.include('<active>true</active>');
-      expect(addToZipStub.secondCall.args[1]).to.include(
-        path.join('objects', 'MyObject', 'recordTypes', 'My-record-type.recordType')
-      );
+      expect(addToZipStub.callCount).to.equal(1);
+      expect(addToZipStub.firstCall.firstArg).to.be.a('string').and.length.to.be.greaterThan(0);
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject.object'));
     });
 
     it('calls writeObjectSettingsIfNeeded without defaultRecordType', async () => {
@@ -601,9 +577,8 @@ describe('scratchOrgSettingsGenerator', () => {
       expect(addToZipStub.firstCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
         .and.to.include('<sharingModel>My-sharing-model</sharingModel>');
-      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject', 'MyObject.object'));
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject.object'));
     });
 
     it('deploys the object settings to the org with businessProcess', async () => {
@@ -619,33 +594,12 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       await settings.extract(scratchDef);
       await settings.createDeploy();
-      expect(addToZipStub.callCount).to.equal(3);
+      expect(addToZipStub.callCount).to.equal(1);
       expect(addToZipStub.firstCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
         .and.to.include('<sharingModel>My-sharing-model</sharingModel>');
-      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'Opportunity', 'Opportunity.object'));
-      expect(addToZipStub.secondCall.firstArg)
-        .to.be.a('string')
-        .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
-        .and.to.include('<fullName>My-record-type</fullName>')
-        .and.to.include('<label>My-record-type</label>')
-        .and.to.include('<active>true</active>');
-      expect(addToZipStub.secondCall.args[1]).to.include(
-        path.join('objects', 'Opportunity', 'recordTypes', 'My-record-type.recordType')
-      );
-      expect(addToZipStub.thirdCall.firstArg)
-        .to.be.a('string')
-        .and.length.to.be.greaterThan(0)
-        .and.to.include('<BusinessProcess>')
-        .and.to.include('<fullName>My-record-typeProcess</fullName>')
-        .and.to.include('<isActive>true</isActive>')
-        .and.to.include('<fullName>Prospecting</fullName>');
-      expect(addToZipStub.thirdCall.args[1]).to.include(
-        path.join('objects', 'Opportunity', 'businessProcesses', 'My-record-typeProcess.businessProcess')
-      );
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'Opportunity.object'));
     });
   });
 });
