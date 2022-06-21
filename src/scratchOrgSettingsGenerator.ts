@@ -202,40 +202,46 @@ export default class SettingsGenerator {
         };
       }, Object.create(null));
       output = { ...output, ...{ types: [output.types, { ...objectMemberReferences, name: 'CustomObject' }] } };
-      output = {
-        ...output,
-        ...{
-          types: [
-            output.types,
-            {
-              ...allRecordTypes.reduce((acc, allRecordType) => {
-                return {
-                  ...acc,
-                  ...{ members: [...(acc.members ?? []), allRecordType] },
-                };
-              }, Object.create(null)),
-              name: 'RecordType',
-            },
-          ],
-        },
-      };
-      output = {
-        ...output,
-        ...{
-          types: [
-            output.types,
-            {
-              ...allbusinessProcesses.reduce((acc, allRecordType) => {
-                return {
-                  ...acc,
-                  ...{ members: [...(acc.members ?? []), allRecordType] },
-                };
-              }, Object.create(null)),
-              name: 'BusinessProcess',
-            },
-          ],
-        },
-      };
+
+      if (allRecordTypes.length > 0) {
+        output = {
+          ...output,
+          ...{
+            types: [
+              output.types,
+              {
+                ...allRecordTypes.reduce((acc, allRecordType) => {
+                  return {
+                    ...acc,
+                    ...{ members: [...(acc.members ?? []), allRecordType] },
+                  };
+                }, Object.create(null)),
+                name: 'RecordType',
+              },
+            ],
+          },
+        };
+      }
+
+      if (allbusinessProcesses.length > 0) {
+        output = {
+          ...output,
+          ...{
+            types: [
+              output.types,
+              {
+                ...allbusinessProcesses.reduce((acc, allRecordType) => {
+                  return {
+                    ...acc,
+                    ...{ members: [...(acc.members ?? []), allRecordType] },
+                  };
+                }, Object.create(null)),
+                name: 'BusinessProcess',
+              },
+            ],
+          },
+        };
+      }
     }
     output = { ...output, ...{ version: apiVersion } };
     const xml = js2xmlparser.parse('Package', output);
