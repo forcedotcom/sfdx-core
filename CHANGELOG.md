@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.21.4](https://github.com/forcedotcom/sfdx-core/compare/v3.21.3...v3.21.4) (2022-06-22)
+
+### Bug Fixes
+
+- cause release for jsforce again ([0700356](https://github.com/forcedotcom/sfdx-core/commit/0700356759506fce59b426e84fefbe85ae2f247e))
+
 ### [3.21.3](https://github.com/forcedotcom/sfdx-core/compare/v3.21.2...v3.21.3) (2022-06-22)
 
 ### Bug Fixes
