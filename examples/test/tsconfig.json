@@ -1,0 +1,9 @@
+{
+  "extends": "@salesforce/dev-config/tsconfig",
+  "include": ["unit/**/*.ts"],
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  }
+}

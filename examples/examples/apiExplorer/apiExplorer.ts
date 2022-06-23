@@ -1,20 +1,27 @@
 #!/usr/bin/env node
 
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import chalk from 'chalk';
 import * as inquirer from 'inquirer';
 
 export async function run() {
   const stateAggregator = await StateAggregator.getInstance();
-  const orgs = Object.keys(await stateAggregator.orgs.readAll());
+  const usernames = (await stateAggregator.orgs.readAll()).map((org) => org.username);
 
   // Have the user select a user
-  const connectionOrg = await select('Select an org to connect to:', orgs);
+  const username = await select('Select an org to connect to:', usernames);
 
-  console.log(`Connecting to ${connectionOrg} `);
+  console.log(`Connecting to ${username}`);
 
   // Connect to the user
-  const authInfo = await AuthInfo.create(connectionOrg);
+  const authInfo = await AuthInfo.create({ username });
   const connection = await Connection.create({ authInfo });
 
   console.log('Connected!\n');
@@ -24,7 +31,7 @@ export async function run() {
   let options = Object.values(response);
 
   // Keep having the user select a new endpoint url, or the same list if there was an error
-  // noinspection InfiniteLoopJS
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       response = await connection.request(await select('Select endpoint', options));
