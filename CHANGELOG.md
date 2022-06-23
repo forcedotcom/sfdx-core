@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.21.5](https://github.com/forcedotcom/sfdx-core/compare/v3.21.4...v3.21.5) (2022-06-23)
+
+### Bug Fixes
+
+- bump jsforce ([b1e8604](https://github.com/forcedotcom/sfdx-core/commit/b1e8604203b09df7b252fd6520fb73405e287aa4))
+
+### [3.21.4](https://github.com/forcedotcom/sfdx-core/compare/v3.21.3...v3.21.4) (2022-06-22)
+
+### Bug Fixes
+
+- cause release for jsforce again ([0700356](https://github.com/forcedotcom/sfdx-core/commit/0700356759506fce59b426e84fefbe85ae2f247e))
+
+### [3.21.3](https://github.com/forcedotcom/sfdx-core/compare/v3.21.2...v3.21.3) (2022-06-22)
+
+### Bug Fixes
+
+- jsforce autofech fix 2 ([3865af9](https://github.com/forcedotcom/sfdx-core/commit/3865af9c607a8739ce6b04a166b746d7057f064c))
+
+### [3.21.2](https://github.com/forcedotcom/sfdx-core/compare/v3.21.1...v3.21.2) (2022-06-21)
+
+### Bug Fixes
+
+- bump jsforce to latest v2 ([8a05add](https://github.com/forcedotcom/sfdx-core/commit/8a05add08c78f2bc3b6e6c30d4f1763e9fda24b0))
+
+### [3.21.1](https://github.com/forcedotcom/sfdx-core/compare/v3.21.0...v3.21.1) (2022-06-15)
+
+### Bug Fixes
+
+- deprecate maxQueryLimit config var ([48105be](https://github.com/forcedotcom/sfdx-core/commit/48105bedf01d69b38a7fa527ad74c78053f7d4ef))
+
 ## [3.21.0](https://github.com/forcedotcom/sfdx-core/compare/v3.20.3...v3.21.0) (2022-06-15)
 
 ### Features

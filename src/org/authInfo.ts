@@ -761,8 +761,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   private getInstanceUrl(options: AuthOptions, aggregator: ConfigAggregator) {
     const instanceUrl =
-      options?.instanceUrl || (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
-    return instanceUrl || SfdcUrl.PRODUCTION;
+      options?.instanceUrl ?? (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
+    return instanceUrl ?? SfdcUrl.PRODUCTION;
   }
 
   /**
@@ -898,7 +898,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const privateKeyContents = await this.readJwtKey(ensureString(options.privateKey));
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
-    const createdOrgInstance = (this.getFields().createdOrgInstance || '').trim().toLowerCase();
+    const createdOrgInstance = (this.getFields().createdOrgInstance ?? '').trim().toLowerCase();
     const audienceUrl = await url.getJwtAudienceUrl(createdOrgInstance);
     let authFieldsBuilder: JsonMap | undefined;
     const authErrors = [];
@@ -1097,7 +1097,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   private throwUserGetException(response: { body?: string }) {
     let errorMsg = '';
-    const bodyAsString = response.body || JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' });
+    const bodyAsString = response.body ?? JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' });
     try {
       const body = parseJson(bodyAsString) as Many<{ message?: string; errorCode?: string }>;
       if (isArray(body)) {
