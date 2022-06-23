@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.22.0](https://github.com/forcedotcom/sfdx-core/compare/v3.21.6...v3.22.0) (2022-06-23)
+
+### Features
+
+- modify uniqid to accept length and template ([#604](https://github.com/forcedotcom/sfdx-core/issues/604)) ([1fd1b5c](https://github.com/forcedotcom/sfdx-core/commit/1fd1b5c40ab7f9b4d66eada94f3ecfa149b263b7))
+
 ### [3.21.6](https://github.com/forcedotcom/sfdx-core/compare/v3.21.5...v3.21.6) (2022-06-23)
 
 ### [3.21.5](https://github.com/forcedotcom/sfdx-core/compare/v3.21.4...v3.21.5) (2022-06-23)
