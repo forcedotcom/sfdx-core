@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Duration } from '@salesforce/kit';
-import { ensureString, getString } from '@salesforce/ts-types';
+import { ensureString } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { Logger } from '../logger';
 import { ConfigAggregator } from '../config/configAggregator';
@@ -245,7 +245,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     getSignupTargetLoginUrl(),
   ]);
 
-  const scratchOrgInfoId = ensureString(getString(scratchOrgInfoRequestResult, 'id'));
+  const scratchOrgInfoId = ensureString(scratchOrgInfoRequestResult.id);
   const cache = await ScratchOrgCache.create();
   cache.set(scratchOrgInfoId, {
     hubUsername: hubOrg.getUsername(),

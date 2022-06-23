@@ -67,6 +67,13 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   private contents: Map<string, P> = new Map();
   private logger!: Logger;
 
+  /**
+   * Read the auth file for the given useranme. Once the file has been read, it can be reaccessed with the `get` method.
+   *
+   * @param username username to read
+   * @param decrypt if true, decrypt encrypted values
+   * @param throwOnNotFound throw if file is not found for username
+   */
   public async read(username: string, decrypt = false, throwOnNotFound = true): Promise<Nullable<P>> {
     try {
       const config = await this.initAuthFile(username, throwOnNotFound);
@@ -77,6 +84,11 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     }
   }
 
+  /**
+   * Read all the auth files under the global state directory
+   *
+   * @param decrypt if true, decrypt encrypted values
+   */
   public async readAll(decrypt = false): Promise<P[]> {
     const fileChunks = chunk(await this.getAllFiles(), 50);
     for (const fileChunk of fileChunks) {
@@ -90,6 +102,12 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     return this.getAll(decrypt);
   }
 
+  /**
+   * Return the contents of the username's auth file from cache. The `read` or `readAll` methods must be called first in order to populate the cache.
+   *
+   * @param username username to get
+   * @param decrypt if true, decrypt encrypted values
+   */
   public get(username: string, decrypt = false): Nullable<P> {
     const config = this.configs.get(username);
     if (config) {
@@ -99,6 +117,12 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     return this.contents.get(username);
   }
 
+  /**
+   * Return the contents of all the auth files from cache. The `read` or `readAll` methods must be called first in order to populate the cache.
+   *
+   * @param decrypt if true, decrypt encrypted values
+   * @returns
+   */
   public getAll(decrypt = false): P[] {
     return [...this.configs.keys()].reduce((orgs, username) => {
       const org = this.get(username, decrypt);
@@ -106,20 +130,40 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     }, [] as P[]);
   }
 
+  /**
+   * Returns true if the username has been cached.
+   *
+   * @param username
+   */
   public has(username: string): boolean {
     return this.contents.has(username);
   }
 
+  /**
+   * Returns true if there is an auth file for the given username. The `read` or `readAll` methods must be called first in order to populate the cache.
+   *
+   * @param username
+   */
   public async exists(username: string): Promise<boolean> {
     const config = this.configs.get(username);
     return config ? await config.exists() : false;
   }
 
+  /**
+   * Return the file stats for a given userame's auth file.
+   *
+   * @param username
+   */
   public async stat(username: string): Promise<Nullable<fs.Stats>> {
     const config = this.configs.get(username);
     return config ? await config.stat() : null;
   }
 
+  /**
+   * Returns true if there is an auth file for the given username
+   *
+   * @param username
+   */
   public async hasFile(username: string): Promise<boolean> {
     try {
       await fs.promises.access(this.parseFilename(username));
@@ -130,10 +174,19 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     }
   }
 
+  /**
+   * Return all auth files under the global state directory.
+   */
   public async list(): Promise<string[]> {
     return this.getAllFiles();
   }
 
+  /**
+   * Set the contents for a given username.
+   *
+   * @param username
+   * @param org
+   */
   public set(username: string, org: P): void {
     const config = this.configs.get(username);
     if (config) {
@@ -148,18 +201,34 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     }
   }
 
+  /**
+   * Update the contents for a given username.
+   *
+   * @param username
+   * @param org
+   */
   public update(username: string, org: Partial<P> & JsonMap): void {
     const existing = this.get(username) || {};
     const merged = Object.assign({}, existing, org) as P;
     return this.set(username, merged);
   }
 
+  /**
+   * Delete the auth file for a given username.
+   *
+   * @param username
+   */
   public async remove(username: string): Promise<void> {
     await this.configs.get(username)?.unlink();
     this.configs.delete(username);
     this.contents.delete(username);
   }
 
+  /**
+   * Write the contents of the auth file for a given username.
+   *
+   * @param username
+   */
   public async write(username: string): Promise<Nullable<P>> {
     const config = this.configs.get(username);
     if (config) {

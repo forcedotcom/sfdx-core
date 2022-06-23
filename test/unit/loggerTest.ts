@@ -6,11 +6,11 @@
  */
 import * as fs from 'fs';
 import { isBoolean, isNumber, isString } from '@salesforce/ts-types';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import * as debug from 'debug';
 import * as _ from 'lodash';
 import { Logger, LoggerFormat, LoggerLevel, LoggerStream } from '../../src/logger';
-import { testSetup } from '../../src/testSetup';
+import { shouldThrowSync, testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -66,10 +66,12 @@ describe('Logger', () => {
       expect(logger.getLevel()).to.equal(LoggerLevel.WARN);
     });
 
-    it('should throw an error with an invalid logger level string', () => {
+    it('should throw an error with an invalid logger level string', async () => {
       try {
-        Logger.getLevelByName('invalid');
-        assert.fail('should have thrown an error trying to get an invalid level name');
+        shouldThrowSync(
+          () => Logger.getLevelByName('invalid'),
+          'should have thrown an error trying to get an invalid level name'
+        );
       } catch (err) {
         expect(err.name).to.equal('UnrecognizedLoggerLevelNameError');
       }

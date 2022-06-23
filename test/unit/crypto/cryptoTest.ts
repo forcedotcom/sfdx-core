@@ -12,7 +12,7 @@ import { expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
 import { SfError } from '../../../src/sfError';
 import { Messages } from '../../../src/messages';
-import { testSetup } from '../../../src/testSetup';
+import { shouldThrowSync, testSetup } from '../../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -161,9 +161,7 @@ describe('CryptoTest', function () {
         'Failed to decipher auth data. reason: Unsupported state or unable to authenticate data.'
       );
       try {
-        // are there any better ways to assert on the actions of the error?
-        crypto.decrypt('abcdefghijklmnopqrstuvwxyz:123456789');
-        chai.assert.fail('the above must fail');
+        shouldThrowSync(() => crypto.decrypt('abcdefghijklmnopqrstuvwxyz:123456789'));
       } catch (error) {
         expect(error.actions[0]).to.equal(message);
       }

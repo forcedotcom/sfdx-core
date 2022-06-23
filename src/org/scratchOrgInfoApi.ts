@@ -6,12 +6,11 @@
  */
 
 import { env, Duration, upperFirst } from '@salesforce/kit';
-import { AnyJson, getString } from '@salesforce/ts-types';
+import { AnyJson } from '@salesforce/ts-types';
 // @ts-ignore
 import { OAuth2Config, OAuth2Options, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
 import { Logger } from '../logger';
-import mapKeys from '../util/mapKeys';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { SfdcUrl } from '../util/sfdcUrl';
@@ -19,6 +18,7 @@ import { StatusResult } from '../status/types';
 import { PollingClient } from '../status/pollingClient';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { Lifecycle } from '../lifecycleEvents';
+import mapKeys from '../util/mapKeys';
 import { AuthInfo } from './authInfo';
 import { Org } from './org';
 import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
@@ -245,7 +245,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
     return;
   }
 
-  const username = getString(scratchOrgInfo, usernameKey);
+  const username = scratchOrgInfo[usernameKey] as string;
 
   if (username && username.length > 0) {
     try {

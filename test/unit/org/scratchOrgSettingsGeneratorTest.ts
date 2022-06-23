@@ -7,13 +7,13 @@
 
 import * as path from 'path';
 import * as sinon from 'sinon';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { Org, Connection } from '../../../src/org';
 import { sfdc } from '../../../src/util/sfdc';
 import { ZipWriter } from '../../../src/util/zipWriter';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
 import SettingsGenerator from '../../../src/org/scratchOrgSettingsGenerator';
-import { MockTestOrgData } from '../../../src/testSetup';
+import { MockTestOrgData, shouldThrow } from '../../../src/testSetup';
 
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
   LoginUrl: 'https://login.salesforce.com',
@@ -282,8 +282,7 @@ describe('scratchOrgSettingsGenerator', () => {
       await settings.extract(scratchDef);
       await settings.createDeploy();
       try {
-        await settings.deploySettingsViaFolder(scratchOrg, '53.0');
-        assert.fail('Expected an error to be thrown.');
+        await shouldThrow(settings.deploySettingsViaFolder(scratchOrg, '53.0'));
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
         expect(error.message).to.include(
@@ -343,8 +342,7 @@ describe('scratchOrgSettingsGenerator', () => {
       await settings.extract(scratchDef);
       await settings.createDeploy();
       try {
-        await settings.deploySettingsViaFolder(scratchOrg, '53.0');
-        assert.fail('Expected an error to be thrown.');
+        await shouldThrow(settings.deploySettingsViaFolder(scratchOrg, '53.0'));
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
         expect(error.message).to.include(
@@ -502,8 +500,7 @@ describe('scratchOrgSettingsGenerator', () => {
         await clock.nextAsync();
       }
       try {
-        await promise;
-        assert.fail('Expected an error to be thrown.');
+        await shouldThrow(promise);
       } catch (error) {
         expect(error).to.have.property('name', 'DeployingSettingsTimeoutError');
       }

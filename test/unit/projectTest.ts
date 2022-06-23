@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { join, sep } from 'path';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 
 import { env } from '@salesforce/kit';
 import { Messages } from '../../src/exported';
 import { SfProject, SfProjectJson } from '../../src/sfProject';
-import { shouldThrow, testSetup } from '../../src/testSetup';
+import { shouldThrow, shouldThrowSync, testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -173,8 +173,7 @@ describe('SfProject', () => {
       const expectedError = "Validation errors:\n#/additionalProperties: must NOT have additional properties 'foo'";
       try {
         const project = new SfProjectJson({});
-        await project.schemaValidate();
-        assert(false, 'should throw');
+        await shouldThrow(project.schemaValidate());
       } catch (e) {
         expect(e.name).to.equal('SchemaValidationError');
         expect(e.message).to.contain(expectedError);
@@ -215,8 +214,7 @@ describe('SfProject', () => {
       $$.SANDBOXES.PROJECT.restore();
       $$.SANDBOX.stub(SfProject, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspaceError'));
       try {
-        await SfProject.resolve();
-        assert.fail();
+        await shouldThrow(SfProject.resolve());
       } catch (e) {
         expect(e.message).to.equal('InvalidProjectWorkspaceError');
       }
@@ -243,8 +241,7 @@ describe('SfProject', () => {
       $$.SANDBOXES.PROJECT.restore();
       $$.SANDBOX.stub(SfProject, 'resolveProjectPath').throws(new Error('InvalidProjectWorkspaceError'));
       try {
-        await SfProject.resolve();
-        assert.fail();
+        await shouldThrow(SfProject.resolve());
       } catch (e) {
         expect(e.message).to.equal('InvalidProjectWorkspaceError');
       }
@@ -274,8 +271,7 @@ describe('SfProject', () => {
       $$.SANDBOXES.PROJECT.restore();
       $$.SANDBOX.stub(SfProject, 'resolveProjectPathSync').throws(new Error('InvalidProjectWorkspaceError'));
       try {
-        SfProject.getInstance();
-        assert.fail();
+        shouldThrowSync(() => SfProject.getInstance());
       } catch (e) {
         expect(e.message).to.equal('InvalidProjectWorkspaceError');
       }
@@ -488,8 +484,7 @@ describe('SfProject', () => {
       const project = await SfProject.resolve();
 
       try {
-        project.getPackageDirectories();
-        assert.fail('the above should throw an error');
+        shouldThrowSync(() => project.getPackageDirectories());
       } catch (e) {
         expect(e.message).to.equal(
           Messages.load('@salesforce/core', 'config', ['singleNonDefaultPackage']).getMessage('singleNonDefaultPackage')

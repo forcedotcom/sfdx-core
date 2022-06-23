@@ -15,11 +15,11 @@ import {
   ensure,
   ensureJsonMap,
   ensureString,
-  getString,
   isArray,
   isPlainObject,
   isString,
   JsonMap,
+  Many,
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
@@ -60,6 +60,7 @@ export type OAuth2Config = JsforceOAuth2Config & {
   authCode?: string;
   refreshToken?: string;
   loginUrl?: string;
+  username?: string;
 };
 
 /**
@@ -140,6 +141,8 @@ type UserInfoResult = AnyJson & {
 type User = AnyJson & {
   Username: string;
 };
+
+type AuthOptions = OAuth2Config & AccessTokenOptions;
 
 /**
  * A function to update a refresh token when the access token is expired.
@@ -709,7 +712,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     this.stateAggregator = await StateAggregator.getInstance();
 
     const username = this.options.username;
-    const authOptions = this.options.oauth2Options || this.options.accessTokenOptions;
+    const authOptions = (this.options.oauth2Options || this.options.accessTokenOptions) as AuthOptions;
 
     // Must specify either username and/or options
     if (!username && !authOptions) {
@@ -724,7 +727,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
     }
 
-    const oauthUsername = username || getString(authOptions, 'username');
+    const oauthUsername = username || authOptions?.username;
 
     if (oauthUsername) {
       this.username = oauthUsername;
@@ -756,11 +759,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
   }
 
-  private getInstanceUrl(options: unknown, aggregator: ConfigAggregator) {
+  private getInstanceUrl(options: AuthOptions, aggregator: ConfigAggregator) {
     const instanceUrl =
-      getString(options, 'instanceUrl') ||
-      (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
-    return instanceUrl || SfdcUrl.PRODUCTION;
+      options?.instanceUrl ?? (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
+    return instanceUrl ?? SfdcUrl.PRODUCTION;
   }
 
   /**
@@ -884,15 +886,19 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
   }
 
+  private async readJwtKey(keyFile: string): Promise<string> {
+    return fs.promises.readFile(keyFile, 'utf8');
+  }
+
   // Build OAuth config for a JWT auth flow
   private async authJwt(options: OAuth2Config): Promise<AuthFields> {
     if (!options.clientId) {
       throw messages.createError('missingClientId');
     }
-    const privateKeyContents = await fs.promises.readFile(ensure(options.privateKey), 'utf8');
+    const privateKeyContents = await this.readJwtKey(ensureString(options.privateKey));
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
-    const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
+    const createdOrgInstance = (this.getFields().createdOrgInstance ?? '').trim().toLowerCase();
     const audienceUrl = await url.getJwtAudienceUrl(createdOrgInstance);
     let authFieldsBuilder: JsonMap | undefined;
     const authErrors = [];
@@ -984,7 +990,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     let username = this.getUsername();
     if (!username) {
-      // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFieldsBuilder.instance_url, authFieldsBuilder.access_token);
       username = ensureString(userInfo?.username);
     }
@@ -1090,17 +1095,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param response
    * @private
    */
-  private throwUserGetException(response: unknown) {
+  private throwUserGetException(response: { body?: string }) {
     let errorMsg = '';
-    const bodyAsString = getString(response, 'body', JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' }));
+    const bodyAsString = response.body ?? JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' });
     try {
-      const body = parseJson(bodyAsString);
+      const body = parseJson(bodyAsString) as Many<{ message?: string; errorCode?: string }>;
       if (isArray(body)) {
-        errorMsg = body
-          .map((line) => getString(line, 'message') ?? getString(line, 'errorCode', 'UNKNOWN'))
-          .join(os.EOL);
+        errorMsg = body.map((line) => line.message ?? line.errorCode ?? 'UNKNOWN').join(os.EOL);
       } else {
-        errorMsg = getString(body, 'message') ?? getString(body, 'errorCode', 'UNKNOWN');
+        errorMsg = body.message ?? body.errorCode ?? 'UNKNOWN';
       }
     } catch (err) {
       errorMsg = `${bodyAsString}`;

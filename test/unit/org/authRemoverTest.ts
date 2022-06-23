@@ -6,11 +6,11 @@
  */
 
 import { spyMethod } from '@salesforce/ts-sinon';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { AuthRemover } from '../../../src/org/authRemover';
 import { Config } from '../../../src/config/config';
 import { AliasAccessor } from '../../../src/stateAggregator';
-import { MockTestOrgData, testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { AuthFields } from '../../../src/org';
 
@@ -94,8 +94,7 @@ describe('AuthRemover', () => {
     it('should throw an error if no username is provided and target-org is not set', async () => {
       const remover = await AuthRemover.create();
       try {
-        await remover.findAuth();
-        assert.fail();
+        await shouldThrow(remover.findAuth());
       } catch (err) {
         expect(err.name).to.equal('TargetOrgNotSetError');
         expect(err.actions).has.length(3);

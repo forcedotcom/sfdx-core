@@ -8,7 +8,7 @@
 import * as fs from 'fs';
 import { assert, expect } from 'chai';
 import { KeychainAccess, keyChainImpl } from '../../../src/crypto/keyChainImpl';
-import { testSetup } from '../../../src/testSetup';
+import { shouldThrow, testSetup } from '../../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -86,8 +86,7 @@ describe('KeyChainImpl Tests', () => {
         const access = new KeychainAccess(testImpl, fs);
 
         try {
-          await access.getPassword({ account: '', service: '', password: '' }, () => {});
-          assert.fail('should throw');
+          await shouldThrow(access.getPassword({ account: '', service: '', password: '' }, () => {}));
         } catch (error) {
           expect(error.name).to.equal('MissingCredentialProgramError');
         }
@@ -98,8 +97,7 @@ describe('KeyChainImpl Tests', () => {
         const access = new KeychainAccess(testImpl, fs);
 
         try {
-          await access.getPassword({ account: '', service: '', password: '' }, () => {});
-          assert(false, 'should throw');
+          await shouldThrow(access.getPassword({ account: '', service: '', password: '' }, () => {}));
         } catch (error) {
           expect(error.name).to.equal('CredentialProgramAccessError');
         }
@@ -226,8 +224,7 @@ describe('KeyChainImpl Tests', () => {
         () => {}
       );
       try {
-        await onGetCommandCloseFn();
-        assert.fail('onGetCommandClose() should have thrown an error.');
+        await shouldThrow(onGetCommandCloseFn());
       } catch (err) {
         expect(err).to.have.property('retry', true);
       }
