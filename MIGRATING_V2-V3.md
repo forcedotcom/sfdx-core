@@ -39,7 +39,10 @@ We wanted to introduce a single entry point for all configuration files. This ma
 
 ```typescript
 await AuthInfo.listAllAuthFiles();
-await Aliases.create(Aliases.getDefaultOptions());
+const aliases = await Aliases.create(Aliases.getDefaultOptions());
+aliases.set('my-alias', 'my-username');
+aliases.get('my-alias');
+await aliases.write();
 ```
 
 **v3:**
@@ -54,6 +57,13 @@ OR
 const stateAggregator = await StateAggregator.getInstance();
 await stateAggregator.orgs.readAll();
 stateAggregator.aliases.getAll();
+stateAggregator.aliases.set('my-alias', 'my-username');
+stateAggregator.aliases.get('my-alias'); // returns 'my-username'
+stateAggregator.aliases.resolveAlias('my-alias'); // returns 'my-alias'
+stateAggregator.aliases.resolveAlias('my-username'); // returns 'my-alias'
+stateAggregator.aliases.resolveUsername('my-alias'); // returns 'my-username'
+stateAggregator.aliases.resolveUsername('my-username'); // returns 'my-username'
+await stateAggregator.aliases.write();
 ```
 
 ## Config
