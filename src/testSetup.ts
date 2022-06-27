@@ -35,7 +35,7 @@ import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
-import { GlobalInfo, OrgAccessor, StateAggregator } from './stateAggregator';
+import { OrgAccessor, StateAggregator } from './stateAggregator';
 import { AuthFields, Org, SandboxFields } from './org';
 import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 import { AliasGroup } from './config/aliasesConfig';
@@ -601,8 +601,6 @@ export const restoreContext = (testContext: TestContext): void => {
   testContext.SANDBOX.restore();
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
-  // Give each test run a clean GlobalInstance
-  GlobalInfo.clearInstance();
   // Give each test run a clean StateAggregator
   StateAggregator.clearInstance();
 };

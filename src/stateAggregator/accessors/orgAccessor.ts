@@ -7,54 +7,14 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { JsonMap, Nullable, Optional } from '@salesforce/ts-types';
+import { JsonMap, Nullable } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, isEmpty } from '@salesforce/kit';
 import { AuthInfoConfig } from '../../config/authInfoConfig';
 import { Global } from '../../global';
-import { GlobalInfo } from '../globalInfoConfig';
-import { SfOrgs, SfOrg, SfInfoKeys } from '../types';
 import { AuthFields } from '../../org';
 import { ConfigFile } from '../../config/configFile';
 import { ConfigContents } from '../../config/configStore';
 import { Logger } from '../../logger';
-
-/**
- * @deprecated
- */
-export class GlobalInfoOrgAccessor {
-  public constructor(private globalInfo: GlobalInfo) {}
-
-  public getAll(decrypt = false): SfOrgs {
-    return this.globalInfo.get(SfInfoKeys.ORGS, decrypt);
-  }
-
-  public get(username: string, decrypt = false): Optional<SfOrg> {
-    const auth = this.globalInfo.get<SfOrg>(`${SfInfoKeys.ORGS}["${username}"]`, decrypt);
-    // For legacy, some things wants the username in the returned auth info.
-    if (auth && !auth.username) auth.username = username;
-    return auth;
-  }
-
-  public has(username: string): boolean {
-    return !!this.getAll()[username];
-  }
-
-  public set(username: string, org: SfOrg): void {
-    // For legacy, and to keep things standard, some things wants the username in auth info.
-    org.username ??= username;
-    this.globalInfo.set(`${SfInfoKeys.ORGS}["${username}"]`, org);
-  }
-
-  public update(username: string, org: Partial<SfOrg>): void {
-    // For legacy, and to keep things standard, some things wants the username in auth info.
-    org.username ??= username;
-    this.globalInfo.update(`${SfInfoKeys.ORGS}["${username}"]`, org);
-  }
-
-  public unset(username: string): void {
-    delete this.globalInfo.get(SfInfoKeys.ORGS)[username];
-  }
-}
 
 function chunk<T>(array: T[], chunkSize: number): T[][] {
   const final = [];

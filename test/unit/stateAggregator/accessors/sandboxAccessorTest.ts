@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { GlobalInfo, StateAggregator } from '../../../../src/stateAggregator';
+import { StateAggregator } from '../../../../src/stateAggregator';
 import { MockTestOrgData, MockTestSandboxData, testSetup, uniqid } from '../../../../src/testSetup';
 
 const sandboxUsername = 'espresso@coffee.com.mysandbox';
@@ -62,61 +62,6 @@ describe('SandboxAccessor', () => {
         sandboxName: '',
       });
       const sandbox = stateAggregator.sandboxes.get(sandboxUsername);
-      expect(sandbox).to.have.property('prodOrgUsername', prodOrgUsername);
-    });
-  });
-});
-
-describe('GlobalInfoSandboxAccessor', () => {
-  const $$ = testSetup();
-
-  beforeEach(async () => {
-    $$.setConfigStubContents('GlobalInfo', {
-      contents: {
-        orgs: { [sandboxUsername]: await org.getConfig() },
-        sandboxes: { [sandbox.id]: await sandbox.getConfig() },
-      },
-    });
-  });
-
-  describe('getAll', () => {
-    it('should return all the sandboxes if no username is provided', async () => {
-      const globalInfo = await GlobalInfo.create();
-      const actual = globalInfo.sandboxes.getAll();
-      expect(actual).to.deep.equal({ [sandbox.id]: await sandbox.getConfig() });
-    });
-
-    it('should return all the sandboxes for a given production org username', async () => {
-      const globalInfo = await GlobalInfo.create();
-      const sandboxes = globalInfo.sandboxes.getAll(prodOrgUsername);
-      expect(sandboxes[org.orgId]).to.deep.equal(await sandbox.getConfig());
-    });
-  });
-
-  describe('get', () => {
-    it('should return prodOrgUsername', async () => {
-      const globalInfo = await GlobalInfo.create();
-      const sandbox = globalInfo.sandboxes.get(org.orgId);
-      expect(sandbox).to.have.property('prodOrgUsername', prodOrgUsername);
-    });
-    it('should null for unknown sandboxUsername', async () => {
-      const globalInfo = await GlobalInfo.create();
-      const sandbox = globalInfo.sandboxes.get('foobarbaz');
-      expect(sandbox).to.not.be.ok;
-    });
-  });
-
-  describe('set', () => {
-    it('should set a prodOrgUsername for a sandboxUsername', async () => {
-      const globalInfo = await GlobalInfo.create();
-      globalInfo.sandboxes.set(org.orgId, {
-        sandboxUsername: '',
-        sandboxOrgId: '',
-        prodOrgUsername,
-        sandboxName: '',
-        timestamp: '',
-      });
-      const sandbox = globalInfo.sandboxes.get(org.orgId);
       expect(sandbox).to.have.property('prodOrgUsername', prodOrgUsername);
     });
   });

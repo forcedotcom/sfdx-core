@@ -18,7 +18,7 @@ export { envVars, EnvironmentVariable, SUPPORTED_ENV_VARS, EnvVars } from './con
 
 export { ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
 
-export { GlobalInfo, SfInfo, SfInfoKeys, SfOrg, SfOrgs, SfToken, SfTokens, StateAggregator } from './stateAggregator';
+export { SfTokens, StateAggregator } from './stateAggregator';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
 
