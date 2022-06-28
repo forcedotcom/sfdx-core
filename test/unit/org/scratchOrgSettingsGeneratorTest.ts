@@ -12,7 +12,7 @@ import { Org, Connection } from '../../../src/org';
 import { sfdc } from '../../../src/util/sfdc';
 import { ZipWriter } from '../../../src/util/zipWriter';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
-import SettingsGenerator from '../../../src/org/scratchOrgSettingsGenerator';
+import SettingsGenerator, { writePackageFile } from '../../../src/org/scratchOrgSettingsGenerator';
 import { MockTestOrgData, shouldThrow } from '../../../src/testSetup';
 
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
@@ -642,6 +642,172 @@ describe('scratchOrgSettingsGenerator', () => {
       expect(addToZipStub.thirdCall.args[1]).to.include(
         path.join('objects', 'Opportunity', 'businessProcesses', 'My-record-typeProcess.businessProcess')
       );
+    });
+  });
+
+  describe('writePackageFile', () => {
+    const settingData = {
+      accountSettings: {
+        enableRelateContactToMultipleAccounts: true,
+        enableAccountHistoryTracking: true,
+      },
+      emailAdministrationSettings: {
+        enableEnhancedEmailEnabled: true,
+      },
+      experienceBundleSettings: {
+        enableExperienceBundleMetadata: true,
+      },
+      lightningExperienceSettings: {
+        enableS1DesktopEnabled: true,
+      },
+      chatterSettings: {
+        enableChatter: true,
+      },
+      communitiesSettings: {
+        enableNetworksEnabled: true,
+      },
+      industriesSettings: {
+        enableAccessToMasterListOfCoverageTypes: true,
+      },
+    };
+    const objectSettingsData = {
+      account: {
+        defaultRecordType: 'PersonAccount',
+      },
+      opportunity: {
+        sharingModel: 'private',
+      },
+      case: {
+        sharingModel: 'private',
+      },
+    };
+
+    const allRecordTypes = ['Account.PersonAccount', 'Customer.CustomerAccount'];
+    const allbusinessProcesses = ['Account.Process', 'Customer.Process'];
+
+    it('writePackageFile takes no setting or object settings', () => {
+      const packageFile = writePackageFile({ apiVersion: '54' });
+      expect(packageFile).to.deep.equal({
+        '@': {
+          xmlns: 'http://soap.sforce.com/2006/04/metadata',
+        },
+        types: [],
+        version: '54',
+      });
+    });
+    it('writePackageFile writes settings object', () => {
+      const packageFile = writePackageFile({ apiVersion: '54', settingData });
+      expect(packageFile).to.deep.equal({
+        '@': {
+          xmlns: 'http://soap.sforce.com/2006/04/metadata',
+        },
+        types: [
+          {
+            members: [
+              'Account',
+              'EmailAdministration',
+              'ExperienceBundle',
+              'LightningExperience',
+              'Chatter',
+              'Communities',
+              'Industries',
+            ],
+            name: 'Settings',
+          },
+        ],
+        version: '54',
+      });
+    });
+    it('writePackageFile writes object settings object', () => {
+      const packageFile = writePackageFile({ apiVersion: '54', settingData, objectSettingsData });
+      expect(packageFile).to.deep.equal({
+        '@': {
+          xmlns: 'http://soap.sforce.com/2006/04/metadata',
+        },
+        types: [
+          {
+            members: [
+              'Account',
+              'EmailAdministration',
+              'ExperienceBundle',
+              'LightningExperience',
+              'Chatter',
+              'Communities',
+              'Industries',
+            ],
+            name: 'Settings',
+          },
+          {
+            members: ['Account', 'Opportunity', 'Case'],
+            name: 'CustomObject',
+          },
+        ],
+        version: '54',
+      });
+    });
+    it('writePackageFile writes record types', () => {
+      const packageFile = writePackageFile({ apiVersion: '54', allRecordTypes, settingData, objectSettingsData });
+
+      expect(packageFile).to.deep.equal({
+        '@': {
+          xmlns: 'http://soap.sforce.com/2006/04/metadata',
+        },
+        types: [
+          {
+            members: [
+              'Account',
+              'EmailAdministration',
+              'ExperienceBundle',
+              'LightningExperience',
+              'Chatter',
+              'Communities',
+              'Industries',
+            ],
+            name: 'Settings',
+          },
+          {
+            members: ['Account', 'Opportunity', 'Case'],
+            name: 'CustomObject',
+          },
+          {
+            members: ['Account.PersonAccount', 'Customer.CustomerAccount'],
+            name: 'RecordType',
+          },
+        ],
+        version: '54',
+      });
+    });
+    it('writePackageFile writes business process', () => {
+      const packageFile = writePackageFile({ apiVersion: '54', allbusinessProcesses, settingData, objectSettingsData });
+
+      expect(packageFile).to.deep.equal({
+        '@': {
+          xmlns: 'http://soap.sforce.com/2006/04/metadata',
+        },
+        types: [
+          {
+            members: [
+              'Account',
+              'EmailAdministration',
+              'ExperienceBundle',
+              'LightningExperience',
+              'Chatter',
+              'Communities',
+              'Industries',
+            ],
+            name: 'Settings',
+          },
+          {
+            members: ['Account', 'Opportunity', 'Case'],
+            name: 'CustomObject',
+          },
+          {
+            members: ['Account.Process', 'Customer.Process'],
+            name: 'BusinessProcess',
+          },
+        ],
+        version: '54',
+      });
     });
   });
 });
