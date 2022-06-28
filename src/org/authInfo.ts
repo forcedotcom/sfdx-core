@@ -997,9 +997,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       orgId,
       username,
       accessToken: authFieldsBuilder.access_token,
-      // @ts-ignore TODO: need better typings for jsforce
       instanceUrl: authFieldsBuilder.instance_url,
-      // @ts-ignore TODO: need better typings for jsforce
       loginUrl: options.loginUrl || authFieldsBuilder.instance_url,
       refreshToken: options.refreshToken,
       clientId: options.clientId,
@@ -1030,7 +1028,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       throw messages.createError('authCodeExchangeError', [(err as Error).message]);
     }
 
-    // @ts-ignore TODO: need better typings for jsforce
     const { orgId } = parseIdUrl(authFields.id);
 
     let username: Optional<string> = this.getUsername();
@@ -1038,18 +1035,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // Only need to query for the username if it isn't known. For example, a new auth code exchange
     // rather than refreshing a token on an existing connection.
     if (!username) {
-      // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFields.instance_url, authFields.access_token);
       username = userInfo?.username;
     }
 
     return {
       accessToken: authFields.access_token,
-      // @ts-ignore TODO: need better typings for jsforce
       instanceUrl: authFields.instance_url,
       orgId,
       username,
-      // @ts-ignore TODO: need better typings for jsforce
       loginUrl: options.loginUrl || authFields.instance_url,
       refreshToken: authFields.refresh_token,
       clientId: options.clientId,
