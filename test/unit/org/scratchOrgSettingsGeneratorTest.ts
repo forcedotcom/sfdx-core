@@ -12,7 +12,7 @@ import { Org, Connection } from '../../../src/org';
 import { sfdc } from '../../../src/util/sfdc';
 import { ZipWriter } from '../../../src/util/zipWriter';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
-import SettingsGenerator, { writePackageFile } from '../../../src/org/scratchOrgSettingsGenerator';
+import SettingsGenerator, { createObjectFileContent } from '../../../src/org/scratchOrgSettingsGenerator';
 import { MockTestOrgData, shouldThrow } from '../../../src/testSetup';
 
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
@@ -599,7 +599,7 @@ describe('scratchOrgSettingsGenerator', () => {
     });
   });
 
-  describe('writePackageFile', () => {
+  describe('createObjectFileContent', () => {
     const settingData = {
       accountSettings: {
         enableRelateContactToMultipleAccounts: true,
@@ -640,7 +640,7 @@ describe('scratchOrgSettingsGenerator', () => {
     const allbusinessProcesses = ['Account.Process', 'Customer.Process'];
 
     it('writePackageFile takes no setting or object settings', () => {
-      const packageFile = writePackageFile({ apiVersion: '54' });
+      const packageFile = createObjectFileContent({ apiVersion: '54' });
       expect(packageFile).to.deep.equal({
         '@': {
           xmlns: 'http://soap.sforce.com/2006/04/metadata',
@@ -650,7 +650,7 @@ describe('scratchOrgSettingsGenerator', () => {
       });
     });
     it('writePackageFile writes settings object', () => {
-      const packageFile = writePackageFile({ apiVersion: '54', settingData });
+      const packageFile = createObjectFileContent({ apiVersion: '54', settingData });
       expect(packageFile).to.deep.equal({
         '@': {
           xmlns: 'http://soap.sforce.com/2006/04/metadata',
@@ -673,7 +673,7 @@ describe('scratchOrgSettingsGenerator', () => {
       });
     });
     it('writePackageFile writes object settings object', () => {
-      const packageFile = writePackageFile({ apiVersion: '54', settingData, objectSettingsData });
+      const packageFile = createObjectFileContent({ apiVersion: '54', settingData, objectSettingsData });
       expect(packageFile).to.deep.equal({
         '@': {
           xmlns: 'http://soap.sforce.com/2006/04/metadata',
@@ -700,7 +700,12 @@ describe('scratchOrgSettingsGenerator', () => {
       });
     });
     it('writePackageFile writes record types', () => {
-      const packageFile = writePackageFile({ apiVersion: '54', allRecordTypes, settingData, objectSettingsData });
+      const packageFile = createObjectFileContent({
+        apiVersion: '54',
+        allRecordTypes,
+        settingData,
+        objectSettingsData,
+      });
 
       expect(packageFile).to.deep.equal({
         '@': {
@@ -732,7 +737,12 @@ describe('scratchOrgSettingsGenerator', () => {
       });
     });
     it('writePackageFile writes business process', () => {
-      const packageFile = writePackageFile({ apiVersion: '54', allbusinessProcesses, settingData, objectSettingsData });
+      const packageFile = createObjectFileContent({
+        apiVersion: '54',
+        allbusinessProcesses,
+        settingData,
+        objectSettingsData,
+      });
 
       expect(packageFile).to.deep.equal({
         '@': {

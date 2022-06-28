@@ -31,7 +31,7 @@ const breakPolling = ['Succeeded', 'SucceededPartial', 'Failed', 'Canceled'];
 
 export interface SettingType {
   members: string[];
-  name: 'CustomObject' | 'RecordType' | 'BusinessProcess' | 'Settings'
+  name: 'CustomObject' | 'RecordType' | 'BusinessProcess' | 'Settings';
 }
 
 export interface PackageFile {
@@ -42,7 +42,7 @@ export interface PackageFile {
   version: string;
 }
 
-export const writePackageFile = ({
+export const createObjectFileContent = ({
   allRecordTypes = [],
   allbusinessProcesses = [],
   apiVersion,
@@ -78,6 +78,30 @@ export const writePackageFile = ({
     }
   }
   return { ...output, ...{ version: apiVersion } };
+};
+
+const calculateBusinessProcess = (objectName: string, defaultRecordType: string) => {
+  let businessProcessName = null;
+  let businessProcessPicklistVal = null;
+  // These four objects require any record type to specify a "business process"--
+  // a restricted set of items from a standard picklist on the object.
+  if (['Case', 'Lead', 'Opportunity', 'Solution'].includes(objectName)) {
+    businessProcessName = upperFirst(defaultRecordType) + 'Process';
+    switch (objectName) {
+      case 'Case':
+        businessProcessPicklistVal = 'New';
+        break;
+      case 'Lead':
+        businessProcessPicklistVal = 'New - Not Contacted';
+        break;
+      case 'Opportunity':
+        businessProcessPicklistVal = 'Prospecting';
+        break;
+      case 'Solution':
+        businessProcessPicklistVal = 'Draft';
+    }
+  }
+  return [businessProcessName, businessProcessPicklistVal];
 };
 
 /**
@@ -136,7 +160,7 @@ export default class SettingsGenerator {
   public async deploySettingsViaFolder(scratchOrg: Org, apiVersion: string): Promise<void> {
     const username = scratchOrg.getUsername();
     const logger = await Logger.child('deploySettingsViaFolder');
-    const packageObjectProps = writePackageFile({
+    const packageObjectProps = createObjectFileContent({
       allRecordTypes: this.allRecordTypes,
       allbusinessProcesses: this.allbusinessProcesses,
       apiVersion,
@@ -209,8 +233,7 @@ export default class SettingsGenerator {
     allbusinessProcesses: string[]
   ) {
     if (this.objectSettingsData) {
-      for (const item of Object.keys(this.objectSettingsData)) {
-        const value: ObjectSetting = this.objectSettingsData[item];
+      for (const [item, value] of Object.entries(this.objectSettingsData)) {
         const fileContent = this.createObjectFileContent(upperFirst(item), value, allRecordTypes, allbusinessProcesses);
         this.writer.addToZip(fileContent, path.join(objectsDir, upperFirst(item) + '.object'));
       }
@@ -230,7 +253,7 @@ export default class SettingsGenerator {
   }
 
   private createObjectFileContent(
-    name: string,
+    objectName: string,
     json: Record<string, unknown>,
     allRecordTypes: string[],
     allbusinessProcesses: string[]
@@ -240,7 +263,7 @@ export default class SettingsGenerator {
         xmlns: 'http://soap.sforce.com/2006/04/metadata',
       },
     } as JsonMap;
-    const sharingModel = json['sharingModel'];
+    const sharingModel = json.sharingModel;
     if (sharingModel) {
       output = {
         ...output,
@@ -248,30 +271,11 @@ export default class SettingsGenerator {
       };
     }
 
-    const defaultRecordType = json['defaultRecordType'];
+    const defaultRecordType = json.defaultRecordType;
     if (typeof defaultRecordType === 'string') {
       // We need to keep track of these globally for when we generate the package XML.
-      allRecordTypes.push(name + '.' + upperFirst(defaultRecordType));
-      let businessProcessesName = null;
-      let businessProcessesPicklistVal = null;
-      // These four objects require any record type to specify a "business process"--
-      // a restricted set of items from a standard picklist on the object.
-      if (['Case', 'Lead', 'Opportunity', 'Solution'].includes(name)) {
-        businessProcessesName = upperFirst(defaultRecordType) + 'Process';
-        switch (name) {
-          case 'Case':
-            businessProcessesPicklistVal = 'New';
-            break;
-          case 'Lead':
-            businessProcessesPicklistVal = 'New - Not Contacted';
-            break;
-          case 'Opportunity':
-            businessProcessesPicklistVal = 'Prospecting';
-            break;
-          case 'Solution':
-            businessProcessesPicklistVal = 'Draft';
-        }
-      }
+      allRecordTypes.push(`${objectName}.${upperFirst(defaultRecordType)}`);
+      const [businessProcessName, businessProcessPicklistVal] = calculateBusinessProcess(objectName, defaultRecordType);
       // Create the record type
       const recordTypes = {
         fullName: upperFirst(defaultRecordType),
@@ -286,29 +290,22 @@ export default class SettingsGenerator {
         },
       };
 
-      if (businessProcessesName) {
+      if (businessProcessName) {
         // We need to keep track of these globally for the package.xml
-        allbusinessProcesses.push(name + '.' + businessProcessesName);
+        allbusinessProcesses.push(`${objectName}.${businessProcessName}`);
         output = {
           ...output,
           recordTypes: {
             ...recordTypes,
-            businessProcess: businessProcessesName,
-          },
-        };
-      }
-
-      // If required, create the business processes they refer to
-      if (businessProcessesName) {
-        output = {
-          ...output,
-          businessProcesses: {
-            fullName: businessProcessesName,
-            isActive: true,
-            values: {
-              fullName: {
-                businessProcessesPicklistVal,
-                default: true,
+            businessProcess: businessProcessName,
+            businessProcesses: {
+              fullName: businessProcessName,
+              isActive: true,
+              values: {
+                fullName: {
+                  businessProcessPicklistVal,
+                  default: true,
+                },
               },
             },
           },
