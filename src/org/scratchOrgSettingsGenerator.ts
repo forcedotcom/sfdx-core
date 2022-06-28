@@ -144,8 +144,6 @@ export default class SettingsGenerator {
       objectSettingsData: this.objectSettingsData,
     });
     const xml = js2xmlparser.parse('Package', packageObjectProps);
-    // eslint-disable-next-line no-console
-    console.log(xml);
     this.writer.addToZip(xml, this.packageFilePath);
     await this.writer.finalize();
 
