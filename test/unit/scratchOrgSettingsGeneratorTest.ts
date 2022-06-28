@@ -511,7 +511,7 @@ describe('scratchOrgSettingsGenerator', () => {
     });
   });
 
-  describe.only('writeObjectSettingsIfNeeded', () => {
+  describe('writeObjectSettingsIfNeeded', () => {
     beforeEach(() => {
       addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
