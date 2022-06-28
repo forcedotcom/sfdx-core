@@ -234,7 +234,12 @@ export default class SettingsGenerator {
   ) {
     if (this.objectSettingsData) {
       for (const [item, value] of Object.entries(this.objectSettingsData)) {
-        const fileContent = this.createObjectFileContent(upperFirst(item), value, allRecordTypes, allbusinessProcesses);
+        const fileContent = this.createRecordTypeAndBusinessProcessFileContent(
+          upperFirst(item),
+          value,
+          allRecordTypes,
+          allbusinessProcesses
+        );
         this.writer.addToZip(fileContent, path.join(objectsDir, upperFirst(item) + '.object'));
       }
     }
@@ -252,7 +257,7 @@ export default class SettingsGenerator {
     }
   }
 
-  private createObjectFileContent(
+  private createRecordTypeAndBusinessProcessFileContent(
     objectName: string,
     json: Record<string, unknown>,
     allRecordTypes: string[],

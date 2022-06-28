@@ -639,7 +639,7 @@ describe('scratchOrgSettingsGenerator', () => {
     const allRecordTypes = ['Account.PersonAccount', 'Customer.CustomerAccount'];
     const allbusinessProcesses = ['Account.Process', 'Customer.Process'];
 
-    it('writePackageFile takes no setting or object settings', () => {
+    it('createObjectFileContent takes no setting or object settings', () => {
       const packageFile = createObjectFileContent({ apiVersion: '54' });
       expect(packageFile).to.deep.equal({
         '@': {
@@ -649,7 +649,7 @@ describe('scratchOrgSettingsGenerator', () => {
         version: '54',
       });
     });
-    it('writePackageFile writes settings object', () => {
+    it('createObjectFileContent writes settings object', () => {
       const packageFile = createObjectFileContent({ apiVersion: '54', settingData });
       expect(packageFile).to.deep.equal({
         '@': {
@@ -672,7 +672,7 @@ describe('scratchOrgSettingsGenerator', () => {
         version: '54',
       });
     });
-    it('writePackageFile writes object settings object', () => {
+    it('createObjectFileContent writes object settings object', () => {
       const packageFile = createObjectFileContent({ apiVersion: '54', settingData, objectSettingsData });
       expect(packageFile).to.deep.equal({
         '@': {
@@ -699,7 +699,7 @@ describe('scratchOrgSettingsGenerator', () => {
         version: '54',
       });
     });
-    it('writePackageFile writes record types', () => {
+    it('createObjectFileContent writes record types', () => {
       const packageFile = createObjectFileContent({
         apiVersion: '54',
         allRecordTypes,
@@ -736,7 +736,7 @@ describe('scratchOrgSettingsGenerator', () => {
         version: '54',
       });
     });
-    it('writePackageFile writes business process', () => {
+    it('createObjectFileContent writes business process', () => {
       const packageFile = createObjectFileContent({
         apiVersion: '54',
         allbusinessProcesses,
