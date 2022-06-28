@@ -164,7 +164,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   }
 
   /**
-   * TODO: This should be moved into JSForce V2 once ready
+   * TODO: This should be moved into JSForce V2 once ready!
    * this is only a temporary solution to support both REST and SOAP APIs
    *
    * deploy a zipped buffer from the SDRL with REST or SOAP
@@ -264,6 +264,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       const requestOptions = { headers: 'json' };
       return this.request(requestInfo, requestOptions);
     } else {
+      // todo: expose deployRecentValidation in jsforce2 so we don't have to call private soap invoke
       // the _invoke is private in jsforce, we can call the SOAP deployRecentValidation like this
       // @ts-ignore
       return this.metadata['_invoke']('deployRecentValidation', {
@@ -543,6 +544,7 @@ export namespace Connection {
   }
 }
 
+// TODO: test whether this is still needed with jsforcev2
 // jsforce does some interesting proxy loading on lib classes.
 // Setting this in the Connection.tooling getter will not work, it
 // must be set on the prototype.

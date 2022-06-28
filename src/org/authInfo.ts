@@ -52,7 +52,7 @@ const messages = Messages.load('@salesforce/core', 'core', [
   'missingClientId',
 ]);
 
-// These should these be brought into jsforce, especially all the jwt stuff.
+// TODO: These should these be brought into jsforce, especially all the jwt stuff.
 // See https://github.com/jsforce/jsforce/issues/896
 export type OAuth2Config = JsforceOAuth2Config & {
   privateKey?: string;
@@ -1004,6 +1004,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   /**
+   * TODO: put tokenExchange/code challenge in jsforce2
    * Performs an authCode exchange but the Oauth2 feature of jsforce is extended to include a code_challenge
    *
    * @param options The oauth options

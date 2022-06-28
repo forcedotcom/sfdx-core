@@ -8,7 +8,6 @@
 import { EOL } from 'os';
 import { mapKeys, upperFirst } from '@salesforce/kit';
 import { hasArray, Optional } from '@salesforce/ts-types';
-import { QueryResult, Record } from 'jsforce';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
@@ -80,7 +79,7 @@ export class PermissionSetAssignment {
       query += ` AND NamespacePrefix='${nsPrefix}'`;
     }
 
-    const result: QueryResult<Record> = await this.org.getConnection().query<Record>(query);
+    const result = await this.org.getConnection().query<{ Id: string }>(query);
 
     const permissionSetId = result?.records[0]?.Id;
 

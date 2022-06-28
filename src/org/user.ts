@@ -8,7 +8,6 @@
 import { EOL } from 'os';
 import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
 import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
-import type { QueryResult } from 'jsforce';
 import { HttpApi } from 'jsforce/lib/http-api';
 import type { HttpRequest, HttpResponse, Schema, SObjectUpdateRecord } from 'jsforce/lib/types';
 import { Logger } from '../logger';
@@ -105,7 +104,7 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
 
   const fromFields = Object.keys(REQUIRED_FIELDS).map(upperFirst);
   const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
-  const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
+  const result = await connection.query<string[]>(requiredFieldsFromAdminQuery);
 
   logger.debug('Successfully retrieved the admin user for this org.');
 
