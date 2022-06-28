@@ -31,7 +31,7 @@ const breakPolling = ['Succeeded', 'SucceededPartial', 'Failed', 'Canceled'];
 
 export interface SettingType {
   members: string[];
-  name: string;
+  name: 'CustomObject' | 'RecordType' | 'BusinessProcess' | 'Settings'
 }
 
 export interface PackageFile {
