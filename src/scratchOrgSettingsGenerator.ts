@@ -34,6 +34,81 @@ export interface ObjectSetting extends JsonMap {
   defaultRecordType?: string;
 }
 
+export const writePackageFile = (
+  allRecordTypes: string[],
+  allbusinessProcesses: string[],
+  apiVersion: string,
+  settingData?: Record<string, unknown>,
+  objectSettingsData?: { [objectName: string]: ObjectSetting }
+): Record<string, unknown> => {
+  let output = {
+    '@': {
+      xmlns: 'http://soap.sforce.com/2006/04/metadata',
+    },
+    types: [] as JsonArray,
+  };
+  if (settingData) {
+    const settingsMemberReferences = Object.keys(settingData).reduce((acc, item) => {
+      const typeName = upperFirst(item).replace('Settings', '');
+      return {
+        ...acc,
+        ...{ members: [...(acc.members ?? []), typeName] },
+      };
+    }, Object.create(null));
+    output = { ...output, ...{ types: [...output.types, { ...settingsMemberReferences, name: 'Settings' }] } };
+  }
+  if (objectSettingsData) {
+    const objectMemberReferences = Object.keys(objectSettingsData).reduce((acc, item) => {
+      return {
+        ...acc,
+        ...{ members: [...(acc.members ?? []), upperFirst(item)] },
+      };
+    }, Object.create(null));
+    output = { ...output, ...{ types: [output.types, { ...objectMemberReferences, name: 'CustomObject' }] } };
+
+    if (allRecordTypes.length > 0) {
+      output = {
+        ...output,
+        ...{
+          types: [
+            output.types,
+            {
+              ...allRecordTypes.reduce((acc, allRecordType) => {
+                return {
+                  ...acc,
+                  ...{ members: [...(acc.members ?? []), allRecordType] },
+                };
+              }, Object.create(null)),
+              name: 'RecordType',
+            },
+          ],
+        },
+      };
+    }
+
+    if (allbusinessProcesses.length > 0) {
+      output = {
+        ...output,
+        ...{
+          types: [
+            output.types,
+            {
+              ...allbusinessProcesses.reduce((acc, allRecordType) => {
+                return {
+                  ...acc,
+                  ...{ members: [...(acc.members ?? []), allRecordType] },
+                };
+              }, Object.create(null)),
+              name: 'BusinessProcess',
+            },
+          ],
+        },
+      };
+    }
+  }
+  return (output = { ...output, ...{ version: apiVersion } });
+};
+
 /**
  * Helper class for dealing with the settings that are defined in a scratch definition file.  This class knows how to extract the
  * settings from the definition, how to expand them into a MD directory and how to generate a package.xml.
@@ -87,7 +162,16 @@ export default class SettingsGenerator {
     const username = scratchOrg.getUsername();
     const logger = await Logger.child('deploySettingsViaFolder');
     // this.createPackageXml(apiVersion);
-    await this.writePackageFile(this.allRecordTypes, this.allbusinessProcesses, this.packageFilePath, apiVersion);
+    // await this.writePackageFile(this.allRecordTypes, this.allbusinessProcesses, this.packageFilePath, apiVersion);
+    const packageObjectProps = writePackageFile(
+      this.allRecordTypes,
+      this.allbusinessProcesses,
+      apiVersion,
+      this.settingData,
+      this.objectSettingsData
+    );
+    const xml = js2xmlparser.parse('Package', packageObjectProps);
+    this.writer.addToZip(xml, this.packageFilePath);
     await this.writer.finalize();
 
     const connection = scratchOrg.getConnection();
@@ -172,6 +256,7 @@ export default class SettingsGenerator {
     }
   }
 
+  /*
   private async writePackageFile(
     allRecordTypes: string[],
     allbusinessProcesses: string[],
@@ -247,6 +332,7 @@ export default class SettingsGenerator {
     const xml = js2xmlparser.parse('Package', output);
     this.writer.addToZip(xml, packageFilePath);
   }
+  */
 
   private createObjectFileContent(
     name: string,
