@@ -354,7 +354,7 @@ export default class SettingsGenerator {
     }
 
     const defaultRecordType = json['defaultRecordType'];
-    if (defaultRecordType) {
+    if (typeof defaultRecordType === 'string') {
       // We need to keep track of these globally for when we generate the package XML.
       allRecordTypes.push(name + '.' + upperFirst(defaultRecordType as string));
       let businessProcessesName = null;
