@@ -7,7 +7,7 @@
 
 import * as path from 'path';
 import { isEmpty, env, upperFirst, Duration } from '@salesforce/kit';
-import { ensureObject, getObject, JsonMap, JsonArray } from '@salesforce/ts-types';
+import { ensureObject, getObject, JsonMap } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
 import { Org } from './org';
 import { Logger } from './logger';
@@ -34,18 +34,36 @@ export interface ObjectSetting extends JsonMap {
   defaultRecordType?: string;
 }
 
-export const writePackageFile = (
-  allRecordTypes: string[],
-  allbusinessProcesses: string[],
-  apiVersion: string,
-  settingData?: Record<string, unknown>,
-  objectSettingsData?: { [objectName: string]: ObjectSetting }
-): Record<string, unknown> => {
+export interface SettingType {
+  members: string[];
+  name: string;
+}
+export interface PackageFile {
+  '@': {
+    xmlns: string;
+  };
+  types: SettingType[];
+  version: string;
+}
+
+export const writePackageFile = ({
+  allRecordTypes = [],
+  allbusinessProcesses = [],
+  apiVersion,
+  settingData,
+  objectSettingsData,
+}: {
+  allRecordTypes?: string[];
+  allbusinessProcesses?: string[];
+  apiVersion: string;
+  settingData?: Record<string, unknown>;
+  objectSettingsData?: { [objectName: string]: ObjectSetting };
+}): PackageFile => {
   let output = {
     '@': {
       xmlns: 'http://soap.sforce.com/2006/04/metadata',
     },
-    types: [] as JsonArray,
+    types: [] as SettingType[],
   };
   if (settingData) {
     const settingsMemberReferences = Object.keys(settingData).reduce((acc, item) => {
@@ -163,13 +181,13 @@ export default class SettingsGenerator {
     const logger = await Logger.child('deploySettingsViaFolder');
     // this.createPackageXml(apiVersion);
     // await this.writePackageFile(this.allRecordTypes, this.allbusinessProcesses, this.packageFilePath, apiVersion);
-    const packageObjectProps = writePackageFile(
-      this.allRecordTypes,
-      this.allbusinessProcesses,
+    const packageObjectProps = writePackageFile({
+      allRecordTypes: this.allRecordTypes,
+      allbusinessProcesses: this.allbusinessProcesses,
       apiVersion,
-      this.settingData,
-      this.objectSettingsData
-    );
+      settingData: this.settingData,
+      objectSettingsData: this.objectSettingsData,
+    });
     const xml = js2xmlparser.parse('Package', packageObjectProps);
     this.writer.addToZip(xml, this.packageFilePath);
     await this.writer.finalize();
@@ -356,13 +374,13 @@ export default class SettingsGenerator {
     const defaultRecordType = json['defaultRecordType'];
     if (typeof defaultRecordType === 'string') {
       // We need to keep track of these globally for when we generate the package XML.
-      allRecordTypes.push(name + '.' + upperFirst(defaultRecordType as string));
+      allRecordTypes.push(name + '.' + upperFirst(defaultRecordType));
       let businessProcessesName = null;
       let businessProcessesPicklistVal = null;
       // These four objects require any record type to specify a "business process"--
       // a restricted set of items from a standard picklist on the object.
       if (['Case', 'Lead', 'Opportunity', 'Solution'].includes(name)) {
-        businessProcessesName = upperFirst(defaultRecordType as string) + 'Process';
+        businessProcessesName = upperFirst(defaultRecordType) + 'Process';
         switch (name) {
           case 'Case':
             businessProcessesPicklistVal = 'New';
@@ -379,8 +397,8 @@ export default class SettingsGenerator {
       }
       // Create the record type
       const recordTypes = {
-        fullName: upperFirst(defaultRecordType as string),
-        label: upperFirst(defaultRecordType as string),
+        fullName: upperFirst(defaultRecordType),
+        label: upperFirst(defaultRecordType),
         active: true,
       };
 
