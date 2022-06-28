@@ -173,7 +173,6 @@ class JwtOAuth2 extends OAuth2 {
   }
 
   public jwtAuthorize(innerToken: string): Promise<AnyJson> {
-    // @ts-ignore
     return super._postParams({
       // eslint-disable-next-line camelcase
       grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
@@ -985,7 +984,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       throw messages.createError('refreshTokenAuthError', [(err as Error).message]);
     }
 
-    // @ts-ignore
     const { orgId } = parseIdUrl(authFieldsBuilder.id);
 
     let username = this.getUsername();

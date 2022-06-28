@@ -303,7 +303,6 @@ export class User extends AsyncCreatable<User.Options> {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       password.value(async (buffer: Buffer) => {
         try {
-          // @ts-ignore TODO: expose `soap` on Connection however appropriate
           const soap = userConnection.soap;
           await soap.setPassword(ensureString(info.getFields().userId), buffer.toString('utf8'));
           this.logger.debug(`Set password for userId: ${info.getFields().userId}`);
