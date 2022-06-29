@@ -79,6 +79,7 @@ export abstract class BaseConfigStore<
   extends AsyncOptionalCreatable<T>
   implements ConfigStore<P>
 {
+  // If encryptedKeys is an array of RegExps, they should not contain the /g (global) or /y (sticky) flags to avoid stateful issues.
   protected static encryptedKeys: Array<string | RegExp> = [];
   protected options: T;
   protected crypto?: Crypto;
