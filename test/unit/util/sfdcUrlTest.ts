@@ -79,6 +79,12 @@ describe('util/sfdcUrl', () => {
         expect(new SfdcUrl('https://org62.develop.my.salesforce.com').toLightningDomain()).to.equal(
           'https://org62.develop.lightning.force.com'
         );
+        expect(new SfdcUrl('https://org62.scratch.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.scratch.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.demo.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.demo.lightning.force.com'
+        );
         expect(new SfdcUrl('https://org62.patch.my.salesforce.com').toLightningDomain()).to.equal(
           'https://org62.patch.lightning.force.com'
         );
