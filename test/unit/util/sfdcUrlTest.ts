@@ -15,7 +15,6 @@ import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 describe('util/sfdcUrl', () => {
   const $$ = testSetup();
   const TEST_IP = '1.1.1.1';
-  // const TEST_CNAMES = ['login.salesforce.com', 'test.salesforce.com'];
   describe('isValidUrl', () => {
     it('should return true if given a valid url', () => {
       expect(SfdcUrl.isValidUrl('https://www.salesforce.com')).to.be.true;
@@ -27,25 +26,78 @@ describe('util/sfdcUrl', () => {
   });
 
   describe('toLightningdomain', () => {
-    it('works for com', () => {
-      expect(new SfdcUrl('https://some-instance.my.salesforce.com').toLightningDomain()).to.equal(
-        'https://some-instance.lightning.force.com'
-      );
-    });
-    it('works for com (sandbox - enhanced domains)', () => {
-      expect(new SfdcUrl('https://some-instance--sboxname.sandbox.my.salesforce.com').toLightningDomain()).to.equal(
-        'https://some-instance--sboxname.sandbox.lightning.force.com'
-      );
-    });
-    it('works for mil (prod)', () => {
-      expect(new SfdcUrl('https://some-instance.my.salesforce.mil').toLightningDomain()).to.equal(
-        'https://some-instance.lightning.crmforce.mil'
-      );
-    });
-    it('works for mil (sandbox)', () => {
-      expect(new SfdcUrl('https://some-instance--sboxname.sandbox.my.salesforce.mil').toLightningDomain()).to.equal(
-        'https://some-instance--sboxname.sandbox.lightning.crmforce.mil'
-      );
+    describe('official test cases from domains team', () => {
+      describe('SFDC (non-propagated)', () => {
+        expect(new SfdcUrl('https://na44.salesforce.com').toLightningDomain()).to.equal(
+          'https://na44.lightning.force.com'
+        );
+      });
+
+      describe('SFDC/DB/CLOUDFORCE (legacy instanceless domains) ', () => {
+        expect(new SfdcUrl('https://org62.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62--sbox1.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62--sbox1.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.database.com').toLightningDomain()).to.equal(
+          'https://org62.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62--sbox1.database.com').toLightningDomain()).to.equal(
+          'https://org62--sbox1.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.cloudforce.com').toLightningDomain()).to.equal(
+          'https://org62.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62--sbox1.cloudforce.com').toLightningDomain()).to.equal(
+          'https://org62--sbox1.lightning.force.com'
+        );
+      });
+      describe('alternative domains with weird hyphen pattern', () => {
+        expect(new SfdcUrl('https://org62.my-salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.my-lightning.com'
+        );
+        expect(new SfdcUrl('https://sbox1.org62.sandbox.my-salesforce.com').toLightningDomain()).to.equal(
+          'https://sbox1.org62.sandbox.my-lightning.com'
+        );
+      });
+      describe('mil', () => {
+        expect(new SfdcUrl('https://org62.my.salesforce.mil').toLightningDomain()).to.equal(
+          'https://org62.lightning.crmforce.mil'
+        );
+        expect(new SfdcUrl('https://org62--sbox1.sandbox.my.salesforce.mil').toLightningDomain()).to.equal(
+          'https://org62--sbox1.sandbox.lightning.crmforce.mil'
+        );
+      });
+      describe('enhanced domains', () => {
+        expect(new SfdcUrl('https://org62.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62--sbox1.sandbox.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62--sbox1.sandbox.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.develop.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.develop.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.patch.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.patch.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.trailblaze.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.trailblaze.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.free.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.free.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.bt.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.bt.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.sfdctest.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.sfdctest.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.sfdcdot.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.sfdcdot.lightning.force.com'
+        );
+      });
     });
     describe('trailing slashes', () => {
       it('works for com', () => {

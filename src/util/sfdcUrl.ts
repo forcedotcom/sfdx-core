@@ -151,8 +151,13 @@ export class SfdcUrl extends URL {
       return this.origin.replace('.my.salesforce.mil', '.lightning.crmforce.mil');
     }
     // enhanced domains
-    if (this.origin.endsWith('sandbox.my.salesforce.com')) {
-      return this.origin.replace('sandbox.my.salesforce.com', 'sandbox.lightning.force.com');
+    // ex: sandbox.my.salesforce.com, scratch.my.salesforce.com, etc
+    if (this.origin.endsWith('.my.salesforce.com')) {
+      return this.origin.replace('.my.salesforce.com', '.lightning.force.com');
+    }
+    // alternative domains
+    if (this.origin.endsWith('.my-salesforce.com')) {
+      return this.origin.replace('.my-salesforce.com', '.my-lightning.com');
     }
 
     // all non-mil domains
