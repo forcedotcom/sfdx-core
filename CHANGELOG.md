@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.23.1](https://github.com/forcedotcom/sfdx-core/compare/v3.23.0...v3.23.1) (2022-06-30)
+
+### Bug Fixes
+
+- isScratch should be boolean ([ebda782](https://github.com/forcedotcom/sfdx-core/commit/ebda782bfd4f3927bc12ce4e6402673361ac47d6))
+- update AuthFields type ([766efec](https://github.com/forcedotcom/sfdx-core/commit/766efec26f404cc1f0e4d380d82f4f05aa455e95))
+
 ## [3.23.0](https://github.com/forcedotcom/sfdx-core/compare/v3.22.1...v3.23.0) (2022-06-30)
 
 ### Features
