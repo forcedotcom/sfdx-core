@@ -23,7 +23,7 @@ export function deepCopy<T extends AnyJson>(data: T): T {
  * @deprecated use StateAggregator instead.
  */
 export class GlobalInfo extends ConfigFile<ConfigFile.Options, SfInfo> {
-  protected static encryptedKeys = [/token/gi, /password/gi, /secret/gi];
+  protected static encryptedKeys = [/token/i, /password/i, /secret/i];
   private static EMPTY_DATA_MODEL: SfInfo = {
     [SfInfoKeys.ORGS]: {},
     [SfInfoKeys.TOKENS]: {},

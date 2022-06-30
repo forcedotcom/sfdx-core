@@ -11,7 +11,7 @@ import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
 export class TokensConfig extends ConfigFile<ConfigFile.Options, SfTokens> {
-  protected static encryptedKeys = [/token/gi, /password/gi, /secret/gi];
+  protected static encryptedKeys = [/token/i, /password/i, /secret/i];
   public static getDefaultOptions(): ConfigFile.Options {
     return {
       isGlobal: true,
