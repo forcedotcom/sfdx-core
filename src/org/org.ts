@@ -199,7 +199,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public constructor(options?: Org.Options) {
     super(options);
-    this.options = options || {};
+    this.options = options ?? {};
   }
 
   /**
@@ -655,7 +655,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const username = this.getUsername();
     if (username) {
       const organization = await this.retrieveOrganizationInformation();
-      const isScratch = organization.IsSandbox && organization.TrialExpirationDate;
+      const isScratch = organization.IsSandbox && Boolean(organization.TrialExpirationDate);
       const isSandbox = organization.IsSandbox && !organization.TrialExpirationDate;
       const stateAggregator = await StateAggregator.getInstance();
       stateAggregator.orgs.update(username, {
@@ -690,7 +690,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
     const contents: ConfigContents = await config.read();
     const thisUsername = ensure(this.getUsername());
-    const usernames: JsonArray = ensureJsonArray(contents.usernames || [thisUsername]);
+    const usernames: JsonArray = ensureJsonArray(contents.usernames ?? [thisUsername]);
     return Promise.all(
       usernames.map((username) => {
         if (username === thisUsername) {
@@ -734,7 +734,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const contents = await orgConfig.read();
     // TODO: This is kind of screwy because contents values can be `AnyJson | object`...
     // needs config refactoring to improve
-    const usernames = contents.usernames || [];
+    const usernames = contents.usernames ?? [];
 
     if (!isArray(usernames)) {
       throw new SfError('Usernames is not an array', 'UnexpectedDataFormat');
@@ -783,7 +783,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const contents: ConfigContents = await orgConfig.read();
 
     const targetUser = authInfo.getFields().username;
-    const usernames = (contents.usernames || []) as string[];
+    const usernames = (contents.usernames ?? []) as string[];
     contents.usernames = usernames.filter((username) => username !== targetUser);
 
     await orgConfig.write();
@@ -830,7 +830,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Returns the orgId for this org.
    */
   public getOrgId(): string {
-    return this.orgId || this.getField(Org.Fields.ORG_ID);
+    return this.orgId ?? this.getField(Org.Fields.ORG_ID);
   }
 
   /**
@@ -1054,7 +1054,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       let result: { SandboxInfoId: string };
       try {
         // grab sandboxName from config or try to calculate from the sandbox username
-        const sandboxName = sandbox?.sandboxName || (this.getUsername() || '').split(`${prodOrg.getUsername()}.`)[1];
+        const sandboxName = sandbox?.sandboxName ?? (this.getUsername() ?? '').split(`${prodOrg.getUsername()}.`)[1];
         if (!sandboxName) {
           this.logger.debug('Sandbox name is not available');
           // jump to query by orgId
@@ -1196,7 +1196,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       authInfos
         .map((auth) => auth.getFields().username)
         .map(async (username) => {
-          const aliasKeys = (username && stateAggregator.aliases.getAll(username)) || [];
+          const aliasKeys = (username && stateAggregator.aliases.getAll(username)) ?? [];
           stateAggregator.aliases.unsetAll(username as string);
 
           const orgForUser =
