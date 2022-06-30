@@ -12,14 +12,14 @@ import * as pathImport from 'path';
 import * as dns from 'dns';
 import * as jwt from 'jsonwebtoken';
 import { cloneJson, env, includes } from '@salesforce/kit';
-import { stubMethod, spyMethod } from '@salesforce/ts-sinon';
+import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureString, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { Transport } from 'jsforce/lib/transport';
 
-import { OAuth2 } from 'jsforce';
+import { JwtOAuth2Config, OAuth2 } from 'jsforce';
 import { SinonSpy, SinonStub } from 'sinon';
-import { AuthFields, AuthInfo, OAuth2Config } from '../../../src/org';
+import { AuthFields, AuthInfo } from '../../../src/org';
 import { MockTestOrgData, shouldThrow, shouldThrowSync, testSetup } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { AliasAccessor, OrgAccessor } from '../../../src/stateAggregator';
@@ -849,7 +849,7 @@ describe('AuthInfo', () => {
          * This test just makes sure the auth code exchange method is using the same codeVerifier. By creating the
          * codeVerifier instance you can first generate the url then pass it to AuthInfo. Then everything lines up.
          */
-        const options: OAuth2Config & { authCode?: string } = {
+        const options: JwtOAuth2Config & { authCode?: string } = {
           clientId: testOrg.clientId,
           clientSecret: testOrg.clientSecret,
           loginUrl: testOrg.loginUrl,

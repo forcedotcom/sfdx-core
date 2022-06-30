@@ -23,7 +23,8 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { OAuth2, OAuth2Config as JsforceOAuth2Config, QueryResult, TokenResponse } from 'jsforce';
+import { /** JwtOAuth2, **/ JwtOAuth2Config, OAuth2, QueryResult, TokenResponse } from 'jsforce';
+import { JwtOAuth2 } from 'jsforce/lib/jwtOAuth2';
 import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
@@ -51,17 +52,6 @@ const messages = Messages.load('@salesforce/core', 'core', [
   'authCodeExchangeError',
   'missingClientId',
 ]);
-
-// These should these be brought into jsforce, especially all the jwt stuff.
-// See https://github.com/jsforce/jsforce/issues/896
-export type OAuth2Config = JsforceOAuth2Config & {
-  privateKey?: string;
-  privateKeyFile?: string;
-  authCode?: string;
-  refreshToken?: string;
-  loginUrl?: string;
-  username?: string;
-};
 
 /**
  * Fields for authorization, org, and local information.
@@ -142,7 +132,7 @@ type User = AnyJson & {
   Username: string;
 };
 
-type AuthOptions = OAuth2Config & AccessTokenOptions;
+type AuthOptions = JwtOAuth2Config & AccessTokenOptions;
 
 /**
  * A function to update a refresh token when the access token is expired.
@@ -159,28 +149,12 @@ export type ConnectionOptions = AuthFields & {
   /**
    * OAuth options.
    */
-  oauth2?: Partial<OAuth2Config>;
+  oauth2?: Partial<JwtOAuth2Config>;
   /**
    * Refresh token callback.
    */
   refreshFn?: RefreshFn;
 };
-
-// Extend OAuth2 to add JWT Bearer Token Flow support.
-class JwtOAuth2 extends OAuth2 {
-  public constructor(options: OAuth2Config) {
-    super(options);
-  }
-
-  public jwtAuthorize(innerToken: string): Promise<AnyJson> {
-    // @ts-ignore
-    return super._postParams({
-      // eslint-disable-next-line camelcase
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: innerToken,
-    });
-  }
-}
 
 // parses the id field returned from jsForce oauth2 methods to get
 // user ID and org ID.
@@ -358,7 +332,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    *
    * @param options The options to generate the URL.
    */
-  public static getAuthorizationUrl(options: OAuth2Config & { scope?: string }, oauth2?: OAuth2): string {
+  public static getAuthorizationUrl(options: JwtOAuth2Config & { scope?: string }, oauth2?: OAuth2): string {
     // Always use a verifier for enhanced security
     options.useVerifier = true;
     const oauth2Verifier = oauth2 || new OAuth2(options);
@@ -712,7 +686,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     this.stateAggregator = await StateAggregator.getInstance();
 
     const username = this.options.username;
-    const authOptions = (this.options.oauth2Options || this.options.accessTokenOptions) as AuthOptions;
+    const authOptions: AuthOptions = this.options.oauth2Options || (this.options.accessTokenOptions as AuthOptions);
 
     // Must specify either username and/or options
     if (!username && !authOptions) {
@@ -774,7 +748,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * **Throws** *{@link SfError}{ name: 'NamedOrgNotFoundError' }* Org information does not exist.
    * @returns {Promise<AuthInfo>}
    */
-  private async initAuthOptions(options?: OAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
+  private async initAuthOptions(options?: JwtOAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
     this.logger = await Logger.child('AuthInfo');
 
     // If options were passed, use those before checking cache and reading an auth file.
@@ -851,7 +825,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     return authInfo;
   }
 
-  private isTokenOptions(options: OAuth2Config | AccessTokenOptions): options is AccessTokenOptions {
+  private isTokenOptions(options: JwtOAuth2Config | AccessTokenOptions): options is AccessTokenOptions {
     // Although OAuth2Config does not contain refreshToken, privateKey, or privateKeyFile, a JS consumer could still pass those in
     // which WILL have an access token as well, but it should be considered an OAuth2Config at that point.
     return (
@@ -891,7 +865,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a JWT auth flow
-  private async authJwt(options: OAuth2Config): Promise<AuthFields> {
+  private async authJwt(options: JwtOAuth2Config): Promise<AuthFields> {
     if (!options.clientId) {
       throw messages.createError('missingClientId');
     }
@@ -965,7 +939,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a refresh token auth flow
-  private async buildRefreshTokenConfig(options: OAuth2Config): Promise<AuthFields> {
+  private async buildRefreshTokenConfig(options: JwtOAuth2Config): Promise<AuthFields> {
     // Ideally, this would be removed at some point in the distant future when all auth files
     // now have the clientId stored in it.
     if (!options.clientId) {
@@ -1013,7 +987,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param options The oauth options
    * @param oauth2 The oauth2 extension that includes a code_challenge
    */
-  private async exchangeToken(options: OAuth2Config, oauth2: OAuth2 = new OAuth2(options)): Promise<AuthFields> {
+  private async exchangeToken(options: JwtOAuth2Config, oauth2: OAuth2 = new OAuth2(options)): Promise<AuthFields> {
     if (!oauth2.redirectUri) {
       oauth2.redirectUri = this.getRedirectUri();
     }
@@ -1151,7 +1125,7 @@ export namespace AuthInfo {
     /**
      * OAuth options.
      */
-    oauth2Options?: OAuth2Config;
+    oauth2Options?: JwtOAuth2Config;
     /**
      * Options for the access token auth.
      */
