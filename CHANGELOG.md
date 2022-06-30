@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.23.2](https://github.com/forcedotcom/sfdx-core/compare/v3.23.1...v3.23.2) (2022-06-30)
+
+### Bug Fixes
+
+- add getter for shape dir name ([#614](https://github.com/forcedotcom/sfdx-core/issues/614)) ([06282d8](https://github.com/forcedotcom/sfdx-core/commit/06282d868b508b2d8417fcd4de404a7863c74b14))
+
 ### [3.23.1](https://github.com/forcedotcom/sfdx-core/compare/v3.23.0...v3.23.1) (2022-06-30)
 
 ### Bug Fixes
