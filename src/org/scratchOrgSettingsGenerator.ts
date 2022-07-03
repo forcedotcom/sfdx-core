@@ -104,6 +104,73 @@ const calculateBusinessProcess = (objectName: string, defaultRecordType: string)
   return [businessProcessName, businessProcessPicklistVal];
 };
 
+export const createRecordTypeAndBusinessProcessFileContent = (
+  objectName: string,
+  json: Record<string, unknown>,
+  allRecordTypes: string[],
+  allbusinessProcesses: string[]
+) => {
+  let output = {
+    '@': {
+      xmlns: 'http://soap.sforce.com/2006/04/metadata',
+    },
+  } as JsonMap;
+  const name = upperFirst(objectName);
+  const sharingModel = json.sharingModel;
+  if (sharingModel) {
+    output = {
+      ...output,
+      sharingModel: upperFirst(sharingModel as string),
+    };
+  }
+
+  const defaultRecordType = json.defaultRecordType;
+  if (typeof defaultRecordType === 'string') {
+    // We need to keep track of these globally for when we generate the package XML.
+    allRecordTypes.push(`${name}.${upperFirst(defaultRecordType)}`);
+    const [businessProcessName, businessProcessPicklistVal] = calculateBusinessProcess(name, defaultRecordType);
+    // Create the record type
+    const recordTypes = {
+      fullName: upperFirst(defaultRecordType),
+      label: upperFirst(defaultRecordType),
+      active: true,
+    };
+
+    output = {
+      ...output,
+      recordTypes: {
+        ...recordTypes,
+      },
+    };
+
+    if (businessProcessName) {
+      // We need to keep track of these globally for the package.xml
+      const values: { fullName: string | null; default?: boolean } = {
+        fullName: businessProcessPicklistVal,
+      };
+
+      if (name !== 'Opportunity') {
+        values.default = true;
+      }
+
+      allbusinessProcesses.push(`${name}.${businessProcessName}`);
+      output = {
+        ...output,
+        recordTypes: {
+          ...recordTypes,
+          businessProcess: businessProcessName,
+          businessProcesses: {
+            fullName: businessProcessName,
+            isActive: true,
+            values,
+          },
+        },
+      };
+    }
+  }
+  return output;
+};
+
 /**
  * Helper class for dealing with the settings that are defined in a scratch definition file.  This class knows how to extract the
  * settings from the definition, how to expand them into a MD directory and how to generate a package.xml.
@@ -234,13 +301,14 @@ export default class SettingsGenerator {
   ) {
     if (this.objectSettingsData) {
       for (const [item, value] of Object.entries(this.objectSettingsData)) {
-        const fileContent = this.createRecordTypeAndBusinessProcessFileContent(
-          upperFirst(item),
+        const fileContent = createRecordTypeAndBusinessProcessFileContent(
+          item,
           value,
           allRecordTypes,
           allbusinessProcesses
         );
-        this.writer.addToZip(fileContent, path.join(objectsDir, upperFirst(item) + '.object'));
+        const xml = js2xmlparser.parse('CustomObject', fileContent);
+        this.writer.addToZip(xml, path.join(objectsDir, upperFirst(item) + '.object'));
       }
     }
   }
@@ -255,68 +323,5 @@ export default class SettingsGenerator {
         this.writer.addToZip(fileContent, path.join(settingsDir, fname + '.settings'));
       }
     }
-  }
-
-  private createRecordTypeAndBusinessProcessFileContent(
-    objectName: string,
-    json: Record<string, unknown>,
-    allRecordTypes: string[],
-    allbusinessProcesses: string[]
-  ) {
-    let output = {
-      '@': {
-        xmlns: 'http://soap.sforce.com/2006/04/metadata',
-      },
-    } as JsonMap;
-    const sharingModel = json.sharingModel;
-    if (sharingModel) {
-      output = {
-        ...output,
-        sharingModel: upperFirst(sharingModel as string),
-      };
-    }
-
-    const defaultRecordType = json.defaultRecordType;
-    if (typeof defaultRecordType === 'string') {
-      // We need to keep track of these globally for when we generate the package XML.
-      allRecordTypes.push(`${objectName}.${upperFirst(defaultRecordType)}`);
-      const [businessProcessName, businessProcessPicklistVal] = calculateBusinessProcess(objectName, defaultRecordType);
-      // Create the record type
-      const recordTypes = {
-        fullName: upperFirst(defaultRecordType),
-        label: upperFirst(defaultRecordType),
-        active: true,
-      };
-
-      output = {
-        ...output,
-        recordTypes: {
-          ...recordTypes,
-        },
-      };
-
-      if (businessProcessName) {
-        // We need to keep track of these globally for the package.xml
-        allbusinessProcesses.push(`${objectName}.${businessProcessName}`);
-        output = {
-          ...output,
-          recordTypes: {
-            ...recordTypes,
-            businessProcess: businessProcessName,
-            businessProcesses: {
-              fullName: businessProcessName,
-              isActive: true,
-              values: {
-                fullName: {
-                  businessProcessPicklistVal,
-                  default: true,
-                },
-              },
-            },
-          },
-        };
-      }
-    }
-    return js2xmlparser.parse('CustomObject', output);
   }
 }
