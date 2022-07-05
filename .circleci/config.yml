@@ -95,6 +95,12 @@ jobs:
           name: remove command/core
           command: shx rm -rf node_modules/@salesforce/command/node_modules/@salesforce/core
       - run:
+          name: remove stl/core
+          command: shx rm -rf node_modules/@salesforce/source-tracking/node_modules/@salesforce/core
+      - run:
+          name: remove sdr/core
+          command: shx rm -rf node_modules/@salesforce/source-deploy-retrieve/node_modules/@salesforce/core
+      - run:
           name: build the external project
           command: |
             yarn build
