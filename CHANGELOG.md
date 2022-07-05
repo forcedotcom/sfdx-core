@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.23.4](https://github.com/forcedotcom/sfdx-core/compare/v3.23.3...v3.23.4) (2022-07-05)
+
+### Bug Fixes
+
+- force publish ([3eb660d](https://github.com/forcedotcom/sfdx-core/commit/3eb660dd23ee959e085a9ac3dbd65de92e511d74))
+
 ### [3.23.3](https://github.com/forcedotcom/sfdx-core/compare/v3.23.2...v3.23.3) (2022-06-30)
 
 ### Bug Fixes
