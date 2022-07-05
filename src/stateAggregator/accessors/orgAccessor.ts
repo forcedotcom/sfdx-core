@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { JsonMap, Nullable, Optional } from '@salesforce/ts-types';
+import { Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, isEmpty } from '@salesforce/kit';
 import { AuthInfoConfig } from '../../config/authInfoConfig';
 import { Global } from '../../global';
@@ -207,7 +207,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
    * @param username
    * @param org
    */
-  public update(username: string, org: Partial<P> & JsonMap): void {
+  public update(username: string, org: Partial<P>): void {
     const existing = this.get(username) || {};
     const merged = Object.assign({}, existing, org) as P;
     return this.set(username, merged);

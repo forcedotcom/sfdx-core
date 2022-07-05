@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.23.4](https://github.com/forcedotcom/sfdx-core/compare/v3.23.3...v3.23.4) (2022-07-05)
+
+### Bug Fixes
+
+- force publish ([3eb660d](https://github.com/forcedotcom/sfdx-core/commit/3eb660dd23ee959e085a9ac3dbd65de92e511d74))
+
+### [3.23.3](https://github.com/forcedotcom/sfdx-core/compare/v3.23.2...v3.23.3) (2022-06-30)
+
+### Bug Fixes
+
+- force publish ([b767232](https://github.com/forcedotcom/sfdx-core/commit/b767232f2f76a4a00387e37128428ad18221a594))
+
+### [3.23.2](https://github.com/forcedotcom/sfdx-core/compare/v3.23.1...v3.23.2) (2022-06-30)
+
+### Bug Fixes
+
+- add getter for shape dir name ([#614](https://github.com/forcedotcom/sfdx-core/issues/614)) ([06282d8](https://github.com/forcedotcom/sfdx-core/commit/06282d868b508b2d8417fcd4de404a7863c74b14))
+
+### [3.23.1](https://github.com/forcedotcom/sfdx-core/compare/v3.23.0...v3.23.1) (2022-06-30)
+
+### Bug Fixes
+
+- isScratch should be boolean ([ebda782](https://github.com/forcedotcom/sfdx-core/commit/ebda782bfd4f3927bc12ce4e6402673361ac47d6))
+- update AuthFields type ([766efec](https://github.com/forcedotcom/sfdx-core/commit/766efec26f404cc1f0e4d380d82f4f05aa455e95))
+
+## [3.23.0](https://github.com/forcedotcom/sfdx-core/compare/v3.22.1...v3.23.0) (2022-06-30)
+
+### Features
+
+- support more enhanced domains, wider test cases ([f1bac94](https://github.com/forcedotcom/sfdx-core/commit/f1bac945d9b135a9a8165260b95f7de5568ccca6))
+
+### [3.22.1](https://github.com/forcedotcom/sfdx-core/compare/v3.22.0...v3.22.1) (2022-06-28)
+
+### Bug Fixes
+
+- encrypted key regex tests will no longer be stateful ([06b7fa2](https://github.com/forcedotcom/sfdx-core/commit/06b7fa2f41401155b472c84f13cbf5608150a43e))
+- update dev-scripts so yarn build won't change line endings for LICENSE.txt on Windows ([ec5e48e](https://github.com/forcedotcom/sfdx-core/commit/ec5e48ee1dab2b3999f630aa56c53d353baa717e))
+
+## [3.22.0](https://github.com/forcedotcom/sfdx-core/compare/v3.21.6...v3.22.0) (2022-06-23)
+
+### Features
+
+- modify uniqid to accept length and template ([#604](https://github.com/forcedotcom/sfdx-core/issues/604)) ([1fd1b5c](https://github.com/forcedotcom/sfdx-core/commit/1fd1b5c40ab7f9b4d66eada94f3ecfa149b263b7))
+
 ### [3.21.6](https://github.com/forcedotcom/sfdx-core/compare/v3.21.5...v3.21.6) (2022-06-23)
 
 ### [3.21.5](https://github.com/forcedotcom/sfdx-core/compare/v3.21.4...v3.21.5) (2022-06-23)

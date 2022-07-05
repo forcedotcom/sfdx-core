@@ -123,14 +123,18 @@ export class SfProjectJson extends ConfigFile {
   }
 
   public async write(newContents?: ConfigContents): Promise<ConfigContents> {
-    this.setContents(newContents);
+    if (newContents) {
+      this.setContents(newContents);
+    }
     this.validateKeys();
     await this.schemaValidate();
     return super.write();
   }
 
   public writeSync(newContents?: ConfigContents): ConfigContents {
-    this.setContents(newContents);
+    if (newContents) {
+      this.setContents(newContents);
+    }
     this.validateKeys();
     this.schemaValidateSync();
     return super.writeSync();

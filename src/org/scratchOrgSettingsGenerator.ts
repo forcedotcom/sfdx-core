@@ -157,6 +157,10 @@ export default class SettingsGenerator {
     }
   }
 
+  public getShapeDirName(): string {
+    return this.shapeDirName;
+  }
+
   private async writeObjectSettingsIfNeeded(objectsDir: string) {
     if (!this.objectSettingsData || !Object.keys(this.objectSettingsData).length) {
       return;
