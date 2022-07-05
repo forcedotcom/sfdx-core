@@ -294,6 +294,10 @@ export default class SettingsGenerator {
     }
   }
 
+  public getShapeDirName(): string {
+    return this.shapeDirName;
+  }
+
   private async writeObjectSettingsIfNeeded(
     objectsDir: string,
     allRecordTypes: string[],
