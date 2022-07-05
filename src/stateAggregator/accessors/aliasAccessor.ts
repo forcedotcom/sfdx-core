@@ -231,7 +231,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
 
   /**
    * If the provided string is an alias, return it.
-   * If the provided string is not an alias, return the username of the provided ailas
+   * If the provided string is not an alias, return the username of the provided alias
    *
    * This method is helpful when you don't know if the string you have is a username
    * or an alias.
