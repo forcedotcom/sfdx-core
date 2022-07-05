@@ -23,8 +23,7 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { /** JwtOAuth2, **/ JwtOAuth2Config, OAuth2, QueryResult, TokenResponse } from 'jsforce';
-import { JwtOAuth2 } from 'jsforce/lib/jwtOAuth2';
+import { JwtOAuth2, JwtOAuth2Config, OAuth2, QueryResult, TokenResponse } from 'jsforce';
 import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
@@ -971,9 +970,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       orgId,
       username,
       accessToken: authFieldsBuilder.access_token,
-      // @ts-ignore TODO: need better typings for jsforce
       instanceUrl: authFieldsBuilder.instance_url,
-      // @ts-ignore TODO: need better typings for jsforce
       loginUrl: options.loginUrl || authFieldsBuilder.instance_url,
       refreshToken: options.refreshToken,
       clientId: options.clientId,
@@ -1004,7 +1001,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       throw messages.createError('authCodeExchangeError', [(err as Error).message]);
     }
 
-    // @ts-ignore TODO: need better typings for jsforce
     const { orgId } = parseIdUrl(authFields.id);
 
     let username: Optional<string> = this.getUsername();
@@ -1019,11 +1015,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     return {
       accessToken: authFields.access_token,
-      // @ts-ignore TODO: need better typings for jsforce
       instanceUrl: authFields.instance_url,
       orgId,
       username,
-      // @ts-ignore TODO: need better typings for jsforce
       loginUrl: options.loginUrl || authFields.instance_url,
       refreshToken: authFields.refresh_token,
       clientId: options.clientId,

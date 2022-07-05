@@ -8,19 +8,18 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { URL } from 'url';
-import * as FormData from 'form-data';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
-import { Duration, maxBy, env } from '@salesforce/kit';
+import { Duration, env, maxBy } from '@salesforce/kit';
 import { asString, ensure, isString, JsonCollection, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionConfig,
+  HttpMethods,
   HttpRequest,
   QueryOptions,
   QueryResult,
   Record,
   Schema,
-  HttpMethods,
 } from 'jsforce';
 import { Tooling as JSForceTooling } from 'jsforce/lib/api/tooling';
 import { StreamPromise } from 'jsforce/lib/util/promise';
@@ -164,14 +163,10 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   }
 
   /**
-   * TODO: This should be moved into JSForce V2 once ready
-   * this is only a temporary solution to support both REST and SOAP APIs
-   *
    * deploy a zipped buffer from the SDRL with REST or SOAP
    *
    * @param zipInput data to deploy
    * @param options JSForce deploy options + a boolean for rest
-   * @param callback
    */
   public async deploy(
     zipInput: Buffer,
@@ -183,33 +178,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     if (rest) {
       this.logger.debug('deploy with REST');
       await this.refreshAuth();
-      const headers: { [key: string]: string } = {
-        Authorization: this && `OAuth ${this.accessToken}`,
-        'Sforce-Call-Options': 'client=sfdx-core',
-      };
-      const client = this.oauth2 && this.oauth2.clientId;
-
-      if (client) {
-        headers.clientId = client;
-      }
-
-      const form = new FormData();
-
-      // Add the zip file
-      form.append('file', zipInput, {
-        contentType: 'application/zip',
-        filename: 'package.xml',
-      });
-
-      // Add the deploy options
-      form.append('entity_content', JSON.stringify({ deployOptions: options }), {
-        contentType: 'application/json',
-      });
-
-      const url = `${this.baseUrl()}/metadata/deployRequest`;
-
-      const httpRequest: HttpRequest = { method: 'POST', url, headers, body: form };
-      return this.request(httpRequest);
+      return this.metadata.deployRest(zipInput, options);
     } else {
       this.logger.debug('deploy with SOAP');
       return this.metadata.deploy(zipInput, options);
@@ -227,7 +196,6 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     const httpRequest: HttpRequest = isString(request) ? { method: 'GET', url: request } : request;
     httpRequest.headers = Object.assign({}, SFDX_HTTP_HEADERS, httpRequest.headers);
     this.logger.debug(`request: ${JSON.stringify(httpRequest)}`);
-    //  The "as" is a workaround for the jsforce typings.
     return super.request(httpRequest, options);
   }
 
@@ -240,36 +208,15 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   }
 
   /**
-   * TODO: This should be moved into JSForce V2 once ready
-   * this is only a temporary solution to support both REST and SOAP APIs
-   *
-   * Will deploy a recently validated deploy request
+   * Will deploy a recently validated deploy request - directly calling jsforce now that this is supported.
    *
    * @param options.id = the deploy ID that's been validated already from a previous checkOnly deploy request
    * @param options.rest = a boolean whether or not to use the REST API
    */
   public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
-    const rest = options.rest;
-    delete options.rest;
-    if (rest) {
-      const url = `${this.baseUrl()}/metadata/deployRequest`;
-      const messageBody = JSON.stringify({
-        validatedDeployRequestId: options.id,
-      });
-      const requestInfo: HttpRequest = {
-        method: 'POST',
-        url,
-        body: messageBody,
-      };
-      const requestOptions = { headers: 'json' };
-      return this.request(requestInfo, requestOptions);
-    } else {
-      // the _invoke is private in jsforce, we can call the SOAP deployRecentValidation like this
-      // @ts-ignore
-      return this.metadata['_invoke']('deployRecentValidation', {
-        validationId: options.id,
-      }) as JsonCollection;
-    }
+    // REST returns an object with an id property, SOAP returns the id as a string directly. That is now handled
+    // in jsforce, so we have to cast a string as unkown as JsonCollection to support backwards compatibility.
+    return (await this.metadata.deployRecentValidation(options)) as unknown as JsonCollection;
   }
   /**
    * Retrieves the highest api version that is supported by the target server instance.
