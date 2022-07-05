@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.23.0](https://github.com/forcedotcom/sfdx-core/compare/v3.22.1...v3.23.0) (2022-06-30)
+
+### Features
+
+- support more enhanced domains, wider test cases ([f1bac94](https://github.com/forcedotcom/sfdx-core/commit/f1bac945d9b135a9a8165260b95f7de5568ccca6))
+
 ### [3.22.1](https://github.com/forcedotcom/sfdx-core/compare/v3.22.0...v3.22.1) (2022-06-28)
 
 ### Bug Fixes
