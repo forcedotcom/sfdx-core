@@ -58,7 +58,6 @@ const stateAggregator = await StateAggregator.getInstance();
 await stateAggregator.orgs.readAll();
 stateAggregator.aliases.getAll();
 stateAggregator.aliases.set('my-alias', 'my-username');
-stateAggregator.aliases.get('my-alias'); // returns 'my-username'
 stateAggregator.aliases.resolveAlias('my-alias'); // returns 'my-alias'
 stateAggregator.aliases.resolveAlias('my-username'); // returns 'my-alias'
 stateAggregator.aliases.resolveUsername('my-alias'); // returns 'my-username'

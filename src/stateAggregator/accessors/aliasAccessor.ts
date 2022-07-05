@@ -240,15 +240,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    */
   public resolveAlias(usernameOrAlias: string): Nullable<string> {
     if (this.has(usernameOrAlias)) return usernameOrAlias;
-
-    let resolvedAlias: Nullable<string>;
-    for (const [alias, username] of Object.entries(this.getAll())) {
-      if (username === usernameOrAlias) {
-        resolvedAlias = alias;
-        break;
-      }
-    }
-    return resolvedAlias;
+    return Object.entries(this.getAll()).find(([, username]) => username === usernameOrAlias)?.[0];
   }
 
   /**
