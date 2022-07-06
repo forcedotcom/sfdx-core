@@ -458,12 +458,20 @@ export const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void
     return;
   }
   try {
-    await conn.tooling
-      .sobject('SourceMember')
-      .update(queryResult.map((record) => ({ Id: record.Id, RevisionCounter: 0 })));
+    // jsforce has a bug in its `update` code such that tooling#update doesn't work right
+    // https://github.com/jsforce/jsforce/blob/265eba5c734439dd7b77610c05b63bde7d4b1e83/src/connection.ts#L1082
+    // will result in `this._ensureVersion is not a function`
+    // so until that is resolved, we hit the API with singular records
+    await Promise.all(
+      queryResult.map((record) => conn.tooling.sobject('SourceMember').update({ Id: record.Id, RevisionCounter: 0 }))
+    );
   } catch (err) {
     await Lifecycle.getInstance().emitWarning(
-      messages.getMessage('SourceStatusResetFailureError', [scratchOrg.getOrgId(), scratchOrg.getUsername()])
+      messages.getMessage('SourceStatusResetFailureError', [
+        scratchOrg.getOrgId(),
+        scratchOrg.getUsername(),
+        err instanceof Error ? err.message : '',
+      ])
     );
   }
 };
