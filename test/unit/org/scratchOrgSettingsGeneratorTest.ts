@@ -602,7 +602,7 @@ describe('scratchOrgSettingsGenerator', () => {
     });
   });
 
-  describe.only('createRecordTypeAndBusinessProcessFileContent', () => {
+  describe('createRecordTypeAndBusinessProcessFileContent', () => {
     const objectSettingsData = {
       account: {
         defaultRecordType: 'PersonAccount',
