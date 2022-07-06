@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.23.5](https://github.com/forcedotcom/sfdx-core/compare/v3.23.4...v3.23.5) (2022-07-06)
+
+### Bug Fixes
+
+- add resolveAlias ([#605](https://github.com/forcedotcom/sfdx-core/issues/605)) ([ffa9ed6](https://github.com/forcedotcom/sfdx-core/commit/ffa9ed63ea583baa327071db4030ea5346d1128f))
+
 ### [3.23.4](https://github.com/forcedotcom/sfdx-core/compare/v3.23.3...v3.23.4) (2022-07-05)
 
 ### Bug Fixes
