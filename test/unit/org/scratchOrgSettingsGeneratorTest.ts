@@ -602,7 +602,7 @@ describe('scratchOrgSettingsGenerator', () => {
     });
   });
 
-  describe('createRecordTypeAndBusinessProcessFileContent', () => {
+  describe.only('createRecordTypeAndBusinessProcessFileContent', () => {
     const objectSettingsData = {
       account: {
         defaultRecordType: 'PersonAccount',
@@ -651,12 +651,12 @@ describe('scratchOrgSettingsGenerator', () => {
           label: 'Default',
           active: true,
           businessProcess: 'DefaultProcess',
-          businessProcesses: {
-            fullName: 'DefaultProcess',
-            isActive: true,
-            values: {
-              fullName: 'Prospecting',
-            },
+        },
+        businessProcesses: {
+          fullName: 'DefaultProcess',
+          isActive: true,
+          values: {
+            fullName: 'Prospecting',
           },
         },
       });
@@ -681,13 +681,13 @@ describe('scratchOrgSettingsGenerator', () => {
           label: 'Default',
           active: true,
           businessProcess: 'DefaultProcess',
-          businessProcesses: {
-            fullName: 'DefaultProcess',
-            isActive: true,
-            values: {
-              fullName: 'New',
-              default: true,
-            },
+        },
+        businessProcesses: {
+          fullName: 'DefaultProcess',
+          isActive: true,
+          values: {
+            fullName: 'New',
+            default: true,
           },
         },
       });

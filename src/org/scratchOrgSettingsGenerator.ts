@@ -159,11 +159,11 @@ export const createRecordTypeAndBusinessProcessFileContent = (
         recordTypes: {
           ...recordTypes,
           businessProcess: businessProcessName,
-          businessProcesses: {
-            fullName: businessProcessName,
-            isActive: true,
-            values,
-          },
+        },
+        businessProcesses: {
+          fullName: businessProcessName,
+          isActive: true,
+          values,
         },
       };
     }
