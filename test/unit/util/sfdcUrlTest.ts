@@ -9,14 +9,12 @@ import { SinonSpy, SinonStub } from 'sinon';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { Env } from '@salesforce/kit';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
-import { SfdcUrl } from '../../../src/util/sfdcUrl';
+import { getLoginAudienceCombos, SfdcUrl } from '../../../src/util/sfdcUrl';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 
-const $$ = testSetup();
-const TEST_IP = '1.1.1.1';
-const TEST_CNAMES = ['login.salesforce.com', 'test.salesforce.com'];
-
 describe('util/sfdcUrl', () => {
+  const $$ = testSetup();
+  const TEST_IP = '1.1.1.1';
   describe('isValidUrl', () => {
     it('should return true if given a valid url', () => {
       expect(SfdcUrl.isValidUrl('https://www.salesforce.com')).to.be.true;
@@ -28,20 +26,84 @@ describe('util/sfdcUrl', () => {
   });
 
   describe('toLightningdomain', () => {
-    it('works for com', () => {
-      expect(new SfdcUrl('https://some-instance.my.salesforce.com').toLightningDomain()).to.equal(
-        'https://some-instance.lightning.force.com'
-      );
-    });
-    it('works for mil (prod)', () => {
-      expect(new SfdcUrl('https://some-instance.my.salesforce.mil').toLightningDomain()).to.equal(
-        'https://some-instance.lightning.crmforce.mil'
-      );
-    });
-    it('works for mil (sandbox)', () => {
-      expect(new SfdcUrl('https://some-instance--sboxname.sandbox.my.salesforce.mil').toLightningDomain()).to.equal(
-        'https://some-instance--sboxname.sandbox.lightning.crmforce.mil'
-      );
+    describe('official test cases from domains team', () => {
+      describe('SFDC (non-propagated)', () => {
+        expect(new SfdcUrl('https://na44.salesforce.com').toLightningDomain()).to.equal(
+          'https://na44.lightning.force.com'
+        );
+      });
+
+      describe('SFDC/DB/CLOUDFORCE (legacy instanceless domains) ', () => {
+        expect(new SfdcUrl('https://org62.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62--sbox1.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62--sbox1.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.database.com').toLightningDomain()).to.equal(
+          'https://org62.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62--sbox1.database.com').toLightningDomain()).to.equal(
+          'https://org62--sbox1.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.cloudforce.com').toLightningDomain()).to.equal(
+          'https://org62.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62--sbox1.cloudforce.com').toLightningDomain()).to.equal(
+          'https://org62--sbox1.lightning.force.com'
+        );
+      });
+      describe('alternative domains with weird hyphen pattern', () => {
+        expect(new SfdcUrl('https://org62.my-salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.my-lightning.com'
+        );
+        expect(new SfdcUrl('https://sbox1.org62.sandbox.my-salesforce.com').toLightningDomain()).to.equal(
+          'https://sbox1.org62.sandbox.my-lightning.com'
+        );
+      });
+      describe('mil', () => {
+        expect(new SfdcUrl('https://org62.my.salesforce.mil').toLightningDomain()).to.equal(
+          'https://org62.lightning.crmforce.mil'
+        );
+        expect(new SfdcUrl('https://org62--sbox1.sandbox.my.salesforce.mil').toLightningDomain()).to.equal(
+          'https://org62--sbox1.sandbox.lightning.crmforce.mil'
+        );
+      });
+      describe('enhanced domains', () => {
+        expect(new SfdcUrl('https://org62.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62--sbox1.sandbox.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62--sbox1.sandbox.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.develop.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.develop.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.scratch.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.scratch.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.demo.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.demo.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.patch.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.patch.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.trailblaze.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.trailblaze.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.free.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.free.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.bt.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.bt.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.sfdctest.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.sfdctest.lightning.force.com'
+        );
+        expect(new SfdcUrl('https://org62.sfdcdot.my.salesforce.com').toLightningDomain()).to.equal(
+          'https://org62.sfdcdot.lightning.force.com'
+        );
+      });
     });
     describe('trailing slashes', () => {
       it('works for com', () => {
@@ -171,29 +233,11 @@ describe('util/sfdcUrl', () => {
   describe('getJwtAudienceUrl', () => {
     const env = new Env();
     before(() => {
-      $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
+      // $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
     });
 
     afterEach(() => {
       env.unset('SFDX_AUDIENCE_URL');
-    });
-
-    it('return the jwt audicence url for sandbox domains', async () => {
-      const url = new SfdcUrl('https://organization.my.salesforce.com');
-      const response = await url.getJwtAudienceUrl();
-      expect(response).to.be.equal('https://test.salesforce.com');
-    });
-
-    it('return the jwt audicence url for internal domains (same)', async () => {
-      const url = new SfdcUrl('https://organization.stm.salesforce.com');
-      const response = await url.getJwtAudienceUrl();
-      expect(response).to.be.equal('https://organization.stm.salesforce.com');
-    });
-
-    it('return the jwt audicence url for sandbox domains', async () => {
-      const url = new SfdcUrl('https://organization.sandbox.my.salesforce.com');
-      const response = await url.getJwtAudienceUrl();
-      expect(response).to.be.equal('https://test.salesforce.com');
     });
 
     it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
@@ -295,6 +339,24 @@ describe('util/sfdcUrl', () => {
     it('cs123', () => {
       const url = new SfdcUrl('https://cs123.force.com');
       expect(url.isSandboxUrl()).to.be.true;
+    });
+  });
+  describe('getLoginAudienceCombos', () => {
+    it('should return 11 combos when login and audience URLs are not test/prod and are different', () => {
+      const combos = getLoginAudienceCombos('https://foo.bar.baz', 'https://foo.bar.bat');
+      expect(combos).to.have.lengthOf(11);
+    });
+    it('should return 7 combos when login and audience URLs are not test/prod and are the same', () => {
+      const combos = getLoginAudienceCombos('https://foo.bar.baz', 'https://foo.bar.baz');
+      expect(combos).to.have.lengthOf(7);
+    });
+    it('should return 2 combos when login and audience URLs are prod URL', () => {
+      const combos = getLoginAudienceCombos(SfdcUrl.PRODUCTION, SfdcUrl.PRODUCTION);
+      expect(combos).to.have.lengthOf(2);
+    });
+    it('should return 2 combos when login and audience URLs are sandbox URL', () => {
+      const combos = getLoginAudienceCombos(SfdcUrl.SANDBOX, SfdcUrl.SANDBOX);
+      expect(combos).to.have.lengthOf(2);
     });
   });
 });

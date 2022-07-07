@@ -6,12 +6,11 @@
  */
 
 import { env, Duration, upperFirst } from '@salesforce/kit';
-import { AnyJson, getString } from '@salesforce/ts-types';
+import { AnyJson } from '@salesforce/ts-types';
 // @ts-ignore
 import { OAuth2Config, OAuth2Options, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
 import { Logger } from '../logger';
-import mapKeys from '../util/mapKeys';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { SfdcUrl } from '../util/sfdcUrl';
@@ -19,6 +18,7 @@ import { StatusResult } from '../status/types';
 import { PollingClient } from '../status/pollingClient';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { Lifecycle } from '../lifecycleEvents';
+import mapKeys from '../util/mapKeys';
 import { AuthInfo } from './authInfo';
 import { Org } from './org';
 import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
@@ -245,7 +245,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
     return;
   }
 
-  const username = getString(scratchOrgInfo, usernameKey);
+  const username = scratchOrgInfo[usernameKey] as string;
 
   if (username && username.length > 0) {
     try {
@@ -253,7 +253,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
     } catch (error) {
       const sfError = SfError.wrap(error as Error);
       // if an AuthInfo couldn't be created that means no AuthFile exists.
-      if (sfError.name === 'NamedOrgNotFound') {
+      if (sfError.name === 'NamedOrgNotFoundError') {
         return;
       }
       // Something unexpected
@@ -458,12 +458,25 @@ export const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void
     return;
   }
   try {
-    await conn.tooling
-      .sobject('SourceMember')
-      .update(queryResult.map((record) => ({ Id: record.Id, RevisionCounter: 0 })));
+    // jsforce has a bug in its `update` code such that tooling#update doesn't work right
+    // https://github.com/jsforce/jsforce/blob/265eba5c734439dd7b77610c05b63bde7d4b1e83/src/connection.ts#L1082
+    // will result in `this._ensureVersion is not a function`
+    // so until that is resolved, we hit the API with singular records
+
+    // once that's fixed, you can use the following code for a single API call
+    // await conn.tooling
+    //   .sobject('SourceMember')
+    //   .update(queryResult.map((record) => ({ Id: record.Id, RevisionCounter: 0 })));
+    await Promise.all(
+      queryResult.map((record) => conn.tooling.sobject('SourceMember').update({ Id: record.Id, RevisionCounter: 0 }))
+    );
   } catch (err) {
     await Lifecycle.getInstance().emitWarning(
-      messages.getMessage('SourceStatusResetFailureError', [scratchOrg.getOrgId(), scratchOrg.getUsername()])
+      messages.getMessage('SourceStatusResetFailureError', [
+        scratchOrg.getOrgId(),
+        scratchOrg.getUsername(),
+        err instanceof Error ? err.message : '',
+      ])
     );
   }
 };

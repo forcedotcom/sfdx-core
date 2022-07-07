@@ -11,16 +11,7 @@ import { URL } from 'url';
 import * as FormData from 'form-data';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
 import { Duration, maxBy, env } from '@salesforce/kit';
-import {
-  asString,
-  ensure,
-  getString,
-  isString,
-  JsonCollection,
-  JsonMap,
-  Nullable,
-  Optional,
-} from '@salesforce/ts-types';
+import { asString, ensure, isString, JsonCollection, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionConfig,
@@ -41,6 +32,7 @@ import { sfdc } from '../util/sfdc';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
 import { AuthFields, AuthInfo } from './authInfo';
+import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'connection', [
@@ -59,21 +51,9 @@ export const DNS_ERROR_NAME = 'DomainNotFoundError';
 type recentValidationOptions = { id: string; rest?: boolean };
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
 
-// This interface is so we can add the autoFetchQuery method to both the Connection
-// and Tooling classes and get nice typing info for it within editors.  JSForce is
-// unlikely to accept a PR for this method, but that would be another approach.
 export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _logger: any;
-  /**
-   * Executes a query and auto-fetches (i.e., "queryMore") all results.  This is especially
-   * useful with large query result sizes, such as over 2000 records.  The default maximum
-   * fetch size is 10,000 records.  Modify this via the options argument.
-   *
-   * @param soql The SOQL string.
-   * @param options The query options.  NOTE: the autoFetch option will always be true.
-   */
-  autoFetchQuery<T extends Schema = S>(soql: string, options?: QueryOptions): Promise<QueryResult<T>>;
 }
 
 /**
@@ -116,12 +96,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    */
   public constructor(options: Connection.Options<S>) {
     super(options.connectionOptions || {});
-
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    this.tooling.autoFetchQuery = Connection.prototype.autoFetchQuery;
-
     this.options = options;
-
     this.username = options.authInfo.getUsername();
   }
 
@@ -374,7 +349,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * Getter for the AuthInfo fields.
    */
   public getAuthInfoFields(): AuthFields {
-    // If the GlobalInfo.unsetOrg is called, the AuthFields are no longer accessible.
+    // If the StateAggregator.orgs.remove is called, the AuthFields are no longer accessible.
     return this.options.authInfo.getFields() || {};
   }
 
@@ -422,7 +397,8 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   ): Promise<QueryResult<T>> {
     const config: ConfigAggregator = await ConfigAggregator.create();
     // take the limit from the calling function, then the config, then default 10,000
-    const maxFetch: number = (config.getInfo('org-max-query-limit').value as number) || queryOptions.maxFetch || 10000;
+    const maxFetch: number =
+      (config.getInfo(OrgConfigProperties.ORG_MAX_QUERY_LIMIT).value as number) || queryOptions.maxFetch || 10000;
 
     const options: Partial<QueryOptions> = Object.assign(queryOptions, {
       autoFetch: true,
@@ -488,7 +464,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   private async loadInstanceApiVersion(): Promise<Nullable<string>> {
     const authFileFields = this.options.authInfo.getFields();
     const lastCheckedDateString = authFileFields.instanceApiVersionLastRetrieved;
-    let version = getString(authFileFields, 'instanceApiVersion');
+    let version = authFileFields.instanceApiVersion;
     let lastChecked: Optional<number>;
 
     try {

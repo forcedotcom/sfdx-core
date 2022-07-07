@@ -10,8 +10,6 @@ There are several breaking changes from v2 to v3. This doc outlines what those t
 
 All files were stored in the directory `.sfdx` at both the user’s home directory and in the project directory. The folder was named `.sfdx` because of the Salesforce CLI executable. The executable is changing to `sf` for several [reasons](https://github.com/salesforcecli/CLI-Unification-demo/blob/main/STRATEGY.md) so we are updating the directory to be called `.sf`.
 
-_We have to manage interoperability between old and new files regardless of the folder name._
-
 ### Why
 
 We don’t want to change the name of the folder just for the sake of changing it. However, there are several benefits.
@@ -22,25 +20,27 @@ We don’t want to change the name of the folder just for the sake of changing i
 
 Of course, there are some negatives to creating a new folder as well. The main one being this will cause more work for other plugins and tools that also store files in this directory. When they start consuming v3, they will have to explicitly point to `.sfdx` or work on migrating their existing files to the new directory.
 
-## GlobalInfo
+## StateAggregator
 
 ### What
 
-In v2, an auth file would be created for each org that was authenticated. Over time, non-auth data was stored in those file and other files were created to provide additional information, like user mappings. In v3, all this information is stored in a single file, `sf.json`. This file also contains all aliases.
-
-- Removed `AuthInfoConfig`
+- Removed export for `AuthInfoConfig`
+- Removed export for `Aliases`
 - Removed `AuthInfo.listAllAuthFiles`
-- Removed `Aliases`
+- Added `StateAggregator`
 
 ### Why
 
-This simplifies the codebase by preventing a new class for every single new kind of configuration. Instead, it can just be added to GlobalInfo.
+We wanted to introduce a single entry point for all configuration files. This makes it easier for consumers to access information without having to know the nuances of each underlying class.
 
 **v2:**
 
 ```typescript
 await AuthInfo.listAllAuthFiles();
-await Aliases.create(Aliases.getDefaultOptions());
+const aliases = await Aliases.create(Aliases.getDefaultOptions());
+aliases.set('my-alias', 'my-username');
+aliases.get('my-alias');
+await aliases.write();
 ```
 
 **v3:**
@@ -52,12 +52,18 @@ await AuthInfo.listAllAuthorizations();
 OR
 
 ```typescript
-const info = await GlobalInfo.create();
-info.orgs.getAll();
-info.aliases.getAll();
+const stateAggregator = await StateAggregator.getInstance();
+await stateAggregator.orgs.readAll();
+stateAggregator.aliases.getAll();
+stateAggregator.aliases.set('my-alias', 'my-username');
+stateAggregator.aliases.resolveAlias('my-alias'); // returns 'my-alias'
+stateAggregator.aliases.resolveAlias('my-username'); // returns 'my-alias'
+stateAggregator.aliases.resolveUsername('my-alias'); // returns 'my-username'
+stateAggregator.aliases.resolveUsername('my-username'); // returns 'my-username'
+await stateAggregator.aliases.write();
 ```
 
-## Config
+## Config, ConfigAggregator
 
 ### What
 
@@ -78,26 +84,36 @@ info.aliases.getAll();
 | `SfdxPropertyKeys.MAX_QUERY_LIMIT`               | `OrgConfigProperties.ORG_MAX_QUERY_LIMIT`           |
 | `SfdxPropertyKeys.REST_DEPLOY`                   | REMOVED                                             |
 
+- `ConifgAggregator` will not work with any of the deprecated keys. **We strongly suggest that you move to the new keys as part of the migration process.**
+- If you absolutely cannot migrate to the new config keys, then you can use `SfdxConfigAggregator` in the meantime.
+
 ### Why
 
-Config keys need to be a lot more specific to support multiple clouds. For example, what api is `apiVersion` referring to? It should really be called something like `orgApiVersion`. We still have to support these keys moving forward so we don't break existing workflows. All old keys were moved to a `SfdxPropertyKeys` to make it very clear that they are legacy key names.
+Config keys need to be a lot more specific to support multiple clouds. For example, `apiVersion` is ambiguous and does not specify which api it's referring to. We still have to support these keys moving forward so we don't break existing workflows. All old keys were moved to a `SfdxPropertyKeys` to make it very clear that they are legacy key names.
 
 **v2**
 
 ```typescript
 Config.update(true, Config.API_VERSION, '49.0');
+
+const configAggregator = await ConfigAggregator.create();
+configAggregator.getPropertyValue(Config.API_VERSION);
 ```
 
 **v3**
 
 ```typescript
-Config.update(true, SfdxPropertyKeys.API_VERSION, '49.0');
+Config.update(true, OrgConfigProperties.ORG_API_VERSION, '49.0');
+
+const configAggregator = await ConfigAggregator.create();
+configAggregator.getPropertyValue(OrgConfigProperties.ORG_API_VERSION);
 ```
 
 OR
 
 ```typescript
-Config.update(true, OrgConfigProperties.ORG_API_VERSION, '49.0');
+const configAggregator = await SfdxConfigAggregator.create();
+configAggregator.getPropertyValue(SfdxPropertyKeys.API_VERSION);
 ```
 
 ## ConfigStore, ConfigFile, AuthInfo, and Encrypting Values

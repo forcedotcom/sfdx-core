@@ -2,6 +2,236 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.23.6](https://github.com/forcedotcom/sfdx-core/compare/v3.23.5...v3.23.6) (2022-07-06)
+
+### Bug Fixes
+
+- workaround for jsforce update bug ([1776f50](https://github.com/forcedotcom/sfdx-core/commit/1776f505671a5a764c4e966736c2981df2b178a4))
+
+### [3.23.5](https://github.com/forcedotcom/sfdx-core/compare/v3.23.4...v3.23.5) (2022-07-06)
+
+### Bug Fixes
+
+- add resolveAlias ([#605](https://github.com/forcedotcom/sfdx-core/issues/605)) ([ffa9ed6](https://github.com/forcedotcom/sfdx-core/commit/ffa9ed63ea583baa327071db4030ea5346d1128f))
+
+### [3.23.4](https://github.com/forcedotcom/sfdx-core/compare/v3.23.3...v3.23.4) (2022-07-05)
+
+### Bug Fixes
+
+- force publish ([3eb660d](https://github.com/forcedotcom/sfdx-core/commit/3eb660dd23ee959e085a9ac3dbd65de92e511d74))
+
+### [3.23.3](https://github.com/forcedotcom/sfdx-core/compare/v3.23.2...v3.23.3) (2022-06-30)
+
+### Bug Fixes
+
+- force publish ([b767232](https://github.com/forcedotcom/sfdx-core/commit/b767232f2f76a4a00387e37128428ad18221a594))
+
+### [3.23.2](https://github.com/forcedotcom/sfdx-core/compare/v3.23.1...v3.23.2) (2022-06-30)
+
+### Bug Fixes
+
+- add getter for shape dir name ([#614](https://github.com/forcedotcom/sfdx-core/issues/614)) ([06282d8](https://github.com/forcedotcom/sfdx-core/commit/06282d868b508b2d8417fcd4de404a7863c74b14))
+
+### [3.23.1](https://github.com/forcedotcom/sfdx-core/compare/v3.23.0...v3.23.1) (2022-06-30)
+
+### Bug Fixes
+
+- isScratch should be boolean ([ebda782](https://github.com/forcedotcom/sfdx-core/commit/ebda782bfd4f3927bc12ce4e6402673361ac47d6))
+- update AuthFields type ([766efec](https://github.com/forcedotcom/sfdx-core/commit/766efec26f404cc1f0e4d380d82f4f05aa455e95))
+
+## [3.23.0](https://github.com/forcedotcom/sfdx-core/compare/v3.22.1...v3.23.0) (2022-06-30)
+
+### Features
+
+- support more enhanced domains, wider test cases ([f1bac94](https://github.com/forcedotcom/sfdx-core/commit/f1bac945d9b135a9a8165260b95f7de5568ccca6))
+
+### [3.22.1](https://github.com/forcedotcom/sfdx-core/compare/v3.22.0...v3.22.1) (2022-06-28)
+
+### Bug Fixes
+
+- encrypted key regex tests will no longer be stateful ([06b7fa2](https://github.com/forcedotcom/sfdx-core/commit/06b7fa2f41401155b472c84f13cbf5608150a43e))
+- update dev-scripts so yarn build won't change line endings for LICENSE.txt on Windows ([ec5e48e](https://github.com/forcedotcom/sfdx-core/commit/ec5e48ee1dab2b3999f630aa56c53d353baa717e))
+
+## [3.22.0](https://github.com/forcedotcom/sfdx-core/compare/v3.21.6...v3.22.0) (2022-06-23)
+
+### Features
+
+- modify uniqid to accept length and template ([#604](https://github.com/forcedotcom/sfdx-core/issues/604)) ([1fd1b5c](https://github.com/forcedotcom/sfdx-core/commit/1fd1b5c40ab7f9b4d66eada94f3ecfa149b263b7))
+
+### [3.21.6](https://github.com/forcedotcom/sfdx-core/compare/v3.21.5...v3.21.6) (2022-06-23)
+
+### [3.21.5](https://github.com/forcedotcom/sfdx-core/compare/v3.21.4...v3.21.5) (2022-06-23)
+
+### Bug Fixes
+
+- bump jsforce ([b1e8604](https://github.com/forcedotcom/sfdx-core/commit/b1e8604203b09df7b252fd6520fb73405e287aa4))
+
+### [3.21.4](https://github.com/forcedotcom/sfdx-core/compare/v3.21.3...v3.21.4) (2022-06-22)
+
+### Bug Fixes
+
+- cause release for jsforce again ([0700356](https://github.com/forcedotcom/sfdx-core/commit/0700356759506fce59b426e84fefbe85ae2f247e))
+
+### [3.21.3](https://github.com/forcedotcom/sfdx-core/compare/v3.21.2...v3.21.3) (2022-06-22)
+
+### Bug Fixes
+
+- jsforce autofech fix 2 ([3865af9](https://github.com/forcedotcom/sfdx-core/commit/3865af9c607a8739ce6b04a166b746d7057f064c))
+
+### [3.21.2](https://github.com/forcedotcom/sfdx-core/compare/v3.21.1...v3.21.2) (2022-06-21)
+
+### Bug Fixes
+
+- bump jsforce to latest v2 ([8a05add](https://github.com/forcedotcom/sfdx-core/commit/8a05add08c78f2bc3b6e6c30d4f1763e9fda24b0))
+
+### [3.21.1](https://github.com/forcedotcom/sfdx-core/compare/v3.21.0...v3.21.1) (2022-06-15)
+
+### Bug Fixes
+
+- deprecate maxQueryLimit config var ([48105be](https://github.com/forcedotcom/sfdx-core/commit/48105bedf01d69b38a7fa527ad74c78053f7d4ef))
+
+## [3.21.0](https://github.com/forcedotcom/sfdx-core/compare/v3.20.3...v3.21.0) (2022-06-15)
+
+### Features
+
+- add getConnection method to MockTestOrgData ([#600](https://github.com/forcedotcom/sfdx-core/issues/600)) ([a642f28](https://github.com/forcedotcom/sfdx-core/commit/a642f28dc1179552ba5c646c96d2d55f5b6f3f61))
+
+### [3.20.3](https://github.com/forcedotcom/sfdx-core/compare/v3.20.2...v3.20.3) (2022-06-15)
+
+### Bug Fixes
+
+- **url:** support sandboxes with enhanced domains enabled ([7c958d1](https://github.com/forcedotcom/sfdx-core/commit/7c958d1f59efc6ef55a7b4c60126603616b21794))
+
+### [3.20.2](https://github.com/forcedotcom/sfdx-core/compare/v3.20.1...v3.20.2) (2022-06-13)
+
+### Bug Fixes
+
+- instanceUrl config now using org-instance-url ([54cb450](https://github.com/forcedotcom/sfdx-core/commit/54cb450c53f3db5352d9f0fdb83d33dce1da728e))
+
+### [3.20.1](https://github.com/forcedotcom/sfdx-core/compare/v3.19.5...v3.20.1) (2022-06-08)
+
+### Features
+
+- cause a publish from previous skip ([069c366](https://github.com/forcedotcom/sfdx-core/commit/069c36646f5dc10a4172868ef7b5f9cd82ef7503))
+- safer caching for nuts ([fa0af41](https://github.com/forcedotcom/sfdx-core/commit/fa0af41451a4363c84e9713685c8ece439acf3bc))
+
+## [3.20.0](https://github.com/forcedotcom/sfdx-core/compare/v3.19.6-dev.0...v3.20.0) (2022-06-08)
+
+### Features
+
+- cache crypto keys by homedir ([dcd493e](https://github.com/forcedotcom/sfdx-core/commit/dcd493e7745bb2717da3a4ed9aff528a51391be6))
+
+### [3.19.6-dev.0](https://github.com/forcedotcom/sfdx-core/compare/v3.19.5...v3.19.6-dev.0) (2022-06-07)
+
+### Features
+
+- stateAggregator by homedir ([6219b41](https://github.com/forcedotcom/sfdx-core/commit/6219b41a4d7bac5759a62663e71e16f4722fdeac))
+
+### [3.19.5](https://github.com/forcedotcom/sfdx-core/compare/v3.19.4...v3.19.5) (2022-06-06)
+
+### Bug Fixes
+
+- update `NamedOrgNotFound` err name ([6a6a627](https://github.com/forcedotcom/sfdx-core/commit/6a6a62782046858c062ecb24a1d28631ea1f3bbe))
+
+### [3.19.4](https://github.com/forcedotcom/sfdx-core/compare/v3.19.3...v3.19.4) (2022-06-06)
+
+### Bug Fixes
+
+- add stat method to OrgAccessor ([f4e297c](https://github.com/forcedotcom/sfdx-core/commit/f4e297c576647b32be62621377d6e3fc5c8dc5f1))
+
+### [3.19.3](https://github.com/forcedotcom/sfdx-core/compare/v3.19.2...v3.19.3) (2022-06-06)
+
+### [3.19.2](https://github.com/forcedotcom/sfdx-core/compare/v3.19.1...v3.19.2) (2022-06-02)
+
+### Bug Fixes
+
+- loosen audience url determination ([#588](https://github.com/forcedotcom/sfdx-core/issues/588)) ([a58ab89](https://github.com/forcedotcom/sfdx-core/commit/a58ab89e2ada34fbdb6d8c72d88966a5281db60b))
+
+### [3.19.1](https://github.com/forcedotcom/sfdx-core/compare/v3.19.0...v3.19.1) (2022-05-27)
+
+### Bug Fixes
+
+- env var resolution in ConfigAggregator ([#590](https://github.com/forcedotcom/sfdx-core/issues/590)) ([a65cfbd](https://github.com/forcedotcom/sfdx-core/commit/a65cfbdd0e2a6c3806aa4da3270b237f68b37133))
+
+## [3.19.0](https://github.com/forcedotcom/sfdx-core/compare/v3.18.3...v3.19.0) (2022-05-20)
+
+### Features
+
+- missing prop and logic correction ([debe97e](https://github.com/forcedotcom/sfdx-core/commit/debe97e08f54bbd55edd2cb5b18e9d14abd3652f))
+- property on org with inteligent defaults and handling of undefined ([e7295d3](https://github.com/forcedotcom/sfdx-core/commit/e7295d38f2b8defdb54a77e61b4ef8862e5398f9))
+- tracking property on AuthFields ([2243d34](https://github.com/forcedotcom/sfdx-core/commit/2243d345c5cc81bd637c889adbe1db6eae6c93fc))
+- tracksSource in TestSetup mock ([7544c60](https://github.com/forcedotcom/sfdx-core/commit/7544c604bd4a32d21d105e8472f41b2d37fbf601))
+
+### [3.18.3](https://github.com/forcedotcom/sfdx-core/compare/v3.18.2...v3.18.3) (2022-05-20)
+
+### [3.18.2](https://github.com/forcedotcom/sfdx-core/compare/v3.18.1...v3.18.2) (2022-05-17)
+
+### Bug Fixes
+
+- remove unreachable code ([#585](https://github.com/forcedotcom/sfdx-core/issues/585)) ([2a6d611](https://github.com/forcedotcom/sfdx-core/commit/2a6d611a9ded7d4a0718864ca4023a0f7f259e8a))
+
+### [3.18.1](https://github.com/forcedotcom/sfdx-core/compare/v3.18.0...v3.18.1) (2022-05-16)
+
+## [3.18.0](https://github.com/forcedotcom/sfdx-core/compare/v3.17.0...v3.18.0) (2022-05-12)
+
+### Features
+
+- bump jsforce for metadata rest api ([#583](https://github.com/forcedotcom/sfdx-core/issues/583)) ([6addcfd](https://github.com/forcedotcom/sfdx-core/commit/6addcfd9b2bd480974f6c965b4d04c610a38f2db))
+
+## [3.17.0](https://github.com/forcedotcom/sfdx-core/compare/v3.16.2...v3.17.0) (2022-05-12)
+
+### Features
+
+- sandboxStatus for v3 ([#571](https://github.com/forcedotcom/sfdx-core/issues/571)) ([60a004b](https://github.com/forcedotcom/sfdx-core/commit/60a004b663d918ec8b37d6ded7ddf12ce112b7f8))
+
+### [3.16.2](https://github.com/forcedotcom/sfdx-core/compare/v3.16.1...v3.16.2) (2022-05-11)
+
+### [3.16.1](https://github.com/forcedotcom/sfdx-core/compare/v3.16.0...v3.16.1) (2022-05-11)
+
+### Bug Fixes
+
+- homedir can change after Core loads ([bb1e4f5](https://github.com/forcedotcom/sfdx-core/commit/bb1e4f5b1f59269f6d48a5389b1d76eeee252db0))
+
+## [3.16.0](https://github.com/forcedotcom/sfdx-core/compare/v3.15.5...v3.16.0) (2022-05-04)
+
+### Features
+
+- force v3 release ([05620c8](https://github.com/forcedotcom/sfdx-core/commit/05620c80256052a1b814b631e9afd951d63bea9e))
+
+### Bug Fixes
+
+- disable schemaValidation ([#578](https://github.com/forcedotcom/sfdx-core/issues/578)) ([9b60cb4](https://github.com/forcedotcom/sfdx-core/commit/9b60cb4dd3181f0bfbafadb72bcd0904e851084f))
+
+### [3.15.5](https://github.com/forcedotcom/sfdx-core/compare/v3.15.4...v3.15.5) (2022-05-03)
+
+### Bug Fixes
+
+- SfdxConfigAggregator ([238ad07](https://github.com/forcedotcom/sfdx-core/commit/238ad0757cc332ecc1897bd7230140a31a559332))
+
+### [3.15.4](https://github.com/forcedotcom/sfdx-core/compare/v3.15.3...v3.15.4) (2022-05-03)
+
+### Bug Fixes
+
+- SfdxConfigAggregator ([#576](https://github.com/forcedotcom/sfdx-core/issues/576)) ([9a25928](https://github.com/forcedotcom/sfdx-core/commit/9a259282efd3d2d97da42a54fd76c45d7f73df27))
+
+### [3.15.3](https://github.com/forcedotcom/sfdx-core/compare/v3.15.2...v3.15.3) (2022-05-02)
+
+### Bug Fixes
+
+- SfdxConfigAggregator ([6ee1437](https://github.com/forcedotcom/sfdx-core/commit/6ee14378f10df123ac38325853bc3b83d4d953bd))
+
+### [3.15.2](https://github.com/forcedotcom/sfdx-core/compare/v3.15.1...v3.15.2) (2022-05-02)
+
+### Bug Fixes
+
+- allow ConfigAggregator to accept custom config vars ([#575](https://github.com/forcedotcom/sfdx-core/issues/575)) ([2642128](https://github.com/forcedotcom/sfdx-core/commit/264212898cf14d8f34638926841ace89abf7efb0))
+
+### [3.15.1](https://github.com/forcedotcom/sfdx-core/compare/v3.15.0...v3.15.1) (2022-04-28)
+
+### Bug Fixes
+
+- replace jsen ([664da58](https://github.com/forcedotcom/sfdx-core/commit/664da58cbe06019465ccf70ed17dfafb2425e06b))
+
 ## [3.15.0](https://github.com/forcedotcom/sfdx-core/compare/v3.14.0...v3.15.0) (2022-04-26)
 
 ### Features

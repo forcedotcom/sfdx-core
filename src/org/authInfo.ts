@@ -15,11 +15,11 @@ import {
   ensure,
   ensureJsonMap,
   ensureString,
-  getString,
   isArray,
   isPlainObject,
   isString,
   JsonMap,
+  Many,
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
@@ -31,9 +31,9 @@ import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
-import { GlobalInfo, SfOrg } from '../globalInfo';
+import { StateAggregator } from '../stateAggregator';
 import { Messages } from '../messages';
-import { SfdcUrl } from '../util/sfdcUrl';
+import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
 import { Org } from './org';
@@ -49,6 +49,7 @@ const messages = Messages.load('@salesforce/core', 'core', [
   'jwtAuthError',
   'authCodeUsernameRetrievalError',
   'authCodeExchangeError',
+  'missingClientId',
 ]);
 
 // These should these be brought into jsforce, especially all the jwt stuff.
@@ -59,6 +60,7 @@ export type OAuth2Config = JsforceOAuth2Config & {
   authCode?: string;
   refreshToken?: string;
   loginUrl?: string;
+  username?: string;
 };
 
 /**
@@ -89,6 +91,13 @@ export type AuthFields = {
   usernames?: string[];
   userProfileName?: string;
   expirationDate?: string;
+  tracksSource?: boolean;
+  [Org.Fields.NAME]?: string;
+  [Org.Fields.INSTANCE_NAME]?: string;
+  [Org.Fields.NAMESPACE_PREFIX]?: Nullable<string>;
+  [Org.Fields.IS_SANDBOX]?: boolean;
+  [Org.Fields.IS_SCRATCH]?: boolean;
+  [Org.Fields.TRIAL_EXPIRATION_DATE]?: Nullable<string>;
 };
 
 export type OrgAuthorization = {
@@ -119,6 +128,7 @@ export type AuthSideEffects = {
   alias?: string;
   setDefault: boolean;
   setDefaultDevHub: boolean;
+  setTracksSource?: boolean;
 };
 
 type UserInfo = AnyJson & {
@@ -137,6 +147,8 @@ type UserInfoResult = AnyJson & {
 type User = AnyJson & {
   Username: string;
 };
+
+type AuthOptions = OAuth2Config & AccessTokenOptions;
 
 /**
  * A function to update a refresh token when the access token is expired.
@@ -244,7 +256,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   // Initialized in init
   private logger!: Logger;
-  private globalInfo!: GlobalInfo;
+  private stateAggregator!: StateAggregator;
   private username!: string;
 
   private options: AuthInfo.Options;
@@ -282,13 +294,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   public static async listAllAuthorizations(
     orgAuthFilter = (orgAuth: OrgAuthorization): boolean => !!orgAuth
   ): Promise<OrgAuthorization[]> {
-    const globalInfo = await GlobalInfo.getInstance();
+    const stateAggregator = await StateAggregator.getInstance();
     const config = (await ConfigAggregator.create()).getConfigInfo();
-    const orgs = Object.values(globalInfo.orgs.getAll());
+    const orgs = await stateAggregator.orgs.readAll();
     const final: OrgAuthorization[] = [];
     for (const org of orgs) {
       const username = ensureString(org.username);
-      const aliases = globalInfo.aliases.getAll(username) ?? undefined;
+      const aliases = stateAggregator.aliases.getAll(username) ?? undefined;
       // Get a list of configuration values that are set to either the username or one
       // of the aliases
       const configs = config
@@ -304,7 +316,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           instanceUrl,
           isScratchOrg: Boolean(devHubUsername),
           isDevHub: isDevHub || false,
-          isSandbox: globalInfo.sandboxes.has(orgId),
+          isSandbox: await stateAggregator.sandboxes.hasFile(orgId as string),
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
@@ -318,7 +330,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           aliases,
           configs,
           username,
-          orgId: org.orgId,
+          orgId: org.orgId as string,
           instanceUrl: org.instanceUrl,
           accessToken: undefined,
           oauthMethod: 'unknown',
@@ -336,7 +348,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public static async hasAuthentications(): Promise<boolean> {
     try {
-      const auths = (await GlobalInfo.getInstance()).orgs.getAll();
+      const auths = await (await StateAggregator.getInstance()).orgs.list();
       return !isEmpty(auths);
     } catch (err) {
       const error = err as SfError;
@@ -451,7 +463,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * Find all dev hubs available in the local environment.
    */
   public static async getDevHubAuthInfos(): Promise<OrgAuthorization[]> {
-    return (await AuthInfo.listAllAuthorizations()).filter((possibleHub) => possibleHub?.isDevHub);
+    return await AuthInfo.listAllAuthorizations((possibleHub) => possibleHub?.isDevHub ?? false);
   }
 
   private static async queryScratchOrg(
@@ -517,7 +529,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       return this;
     }
 
-    await this.globalInfo.write();
+    await this.stateAggregator.orgs.write(username);
     this.logger.info(`Saved auth info for username: ${username}`);
     return this;
   }
@@ -529,13 +541,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param authData Authorization fields to update.
    */
   public update(authData?: AuthFields): AuthInfo {
-    // todo move into configstore
     if (authData && isPlainObject(authData)) {
       this.username = authData.username || this.username;
-      const existingFields = this.globalInfo.orgs.get(this.getUsername());
-      const mergedFields = Object.assign({}, existingFields || {}, authData) as SfOrg;
-      this.globalInfo.orgs.set(this.getUsername(), mergedFields);
-      this.logger.info(`Updated auth info for username: ${this.getUsername()}`);
+      this.stateAggregator.orgs.update(this.username, authData);
+      this.logger.info(`Updated auth info for username: ${this.username}`);
     }
     return this;
   }
@@ -599,7 +608,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param decrypt Decrypt the fields.
    */
   public getFields(decrypt?: boolean): AuthFields {
-    return this.globalInfo.orgs.get(this.username, decrypt) as AuthFields;
+    return this.stateAggregator.orgs.get(this.username, decrypt) ?? {};
   }
 
   /**
@@ -645,11 +654,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param sideEffects - instance of AuthSideEffects
    */
   public async handleAliasAndDefaultSettings(sideEffects: AuthSideEffects): Promise<void> {
-    if (sideEffects.alias || sideEffects.setDefault || sideEffects.setDefaultDevHub) {
+    if (
+      sideEffects.alias ||
+      sideEffects.setDefault ||
+      sideEffects.setDefaultDevHub ||
+      typeof sideEffects.setTracksSource === 'boolean'
+    ) {
       if (sideEffects.alias) await this.setAlias(sideEffects.alias);
       if (sideEffects.setDefault) await this.setAsDefault({ org: true });
       if (sideEffects.setDefaultDevHub) await this.setAsDefault({ devHub: true });
-      await this.save();
+      if (typeof sideEffects.setTracksSource === 'boolean') {
+        await this.save({ tracksSource: sideEffects.setTracksSource });
+      } else {
+        await this.save();
+      }
     }
   }
 
@@ -670,7 +688,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     const username = ensureString(this.getUsername());
-    const alias = this.globalInfo.aliases.get(username);
+    const alias = this.stateAggregator.aliases.get(username);
     const value = alias ?? username;
 
     if (options.org) {
@@ -689,18 +707,18 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param alias alias to set
    */
   public async setAlias(alias: string): Promise<void> {
-    this.globalInfo.aliases.set(alias, this.getUsername());
+    this.stateAggregator.aliases.set(alias, this.getUsername());
+    await this.stateAggregator.aliases.write();
   }
 
   /**
    * Initializes an instance of the AuthInfo class.
    */
   public async init(): Promise<void> {
-    // We have to set the global instance here because we need synchronous access to it later
-    this.globalInfo = await GlobalInfo.getInstance();
+    this.stateAggregator = await StateAggregator.getInstance();
 
     const username = this.options.username;
-    const authOptions = this.options.oauth2Options || this.options.accessTokenOptions;
+    const authOptions = (this.options.oauth2Options || this.options.accessTokenOptions) as AuthOptions;
 
     // Must specify either username and/or options
     if (!username && !authOptions) {
@@ -710,16 +728,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // If a username AND oauth options, ensure an authorization for the username doesn't
     // already exist. Throw if it does so we don't overwrite the authorization.
     if (username && authOptions) {
-      const authExists = this.globalInfo.orgs.has(username);
-      if (authExists) {
+      if (await this.stateAggregator.orgs.hasFile(username)) {
         throw messages.createError('authInfoOverwriteError');
       }
     }
 
-    const oauthUsername = username || getString(authOptions, 'username');
+    const oauthUsername = username || authOptions?.username;
 
     if (oauthUsername) {
       this.username = oauthUsername;
+      await this.stateAggregator.orgs.read(oauthUsername, false, false);
     } // Else it will be set in initAuthOptions below.
 
     // If the username is an access token, use that for auth and don't persist
@@ -727,8 +745,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
       this.logger = await Logger.child('AuthInfo');
 
-      const aggregator: ConfigAggregator = await ConfigAggregator.create();
-      const instanceUrl: string = this.getInstanceUrl(authOptions, aggregator);
+      const aggregator = await ConfigAggregator.create();
+      const instanceUrl = this.getInstanceUrl(authOptions, aggregator);
 
       this.update({
         accessToken: oauthUsername,
@@ -740,16 +758,17 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.usingAccessToken = true;
     }
     // If a username with NO oauth options, ensure authorization already exist.
-    else if (username && !authOptions && !this.globalInfo.orgs.has(username)) {
+    else if (username && !authOptions && !(await this.stateAggregator.orgs.exists(username))) {
       throw messages.createError('namedOrgNotFound', [username]);
     } else {
       await this.initAuthOptions(authOptions);
     }
   }
 
-  private getInstanceUrl(options: unknown, aggregator: ConfigAggregator) {
-    const instanceUrl = getString(options, 'instanceUrl') || (aggregator.getPropertyValue('instanceUrl') as string);
-    return instanceUrl || SfdcUrl.PRODUCTION;
+  private getInstanceUrl(options: AuthOptions, aggregator: ConfigAggregator) {
+    const instanceUrl =
+      options?.instanceUrl ?? (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
+    return instanceUrl ?? SfdcUrl.PRODUCTION;
   }
 
   /**
@@ -801,7 +820,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         }
 
         if (options.privateKey) {
-          authConfig = await this.buildJwtConfig(options);
+          authConfig = await this.authJwt(options);
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
           authConfig = await this.buildRefreshTokenConfig(options);
@@ -820,6 +839,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         ensureString(authConfig.accessToken)
       );
 
+      if (authConfig.username) await this.stateAggregator.orgs.read(authConfig.username, false, false);
+
       // Update the auth fields WITH encryption
       this.update(authConfig);
     }
@@ -829,7 +850,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   private async loadDecryptedAuthFromConfig(username: string): Promise<AuthFields> {
     // Fetch from the persisted auth file
-    const authInfo = this.globalInfo.orgs.get(username, true);
+    const authInfo = this.stateAggregator.orgs.get(username, true);
     if (!authInfo) {
       throw messages.createError('namedOrgNotFound', [username]);
     }
@@ -871,34 +892,37 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
   }
 
+  private async readJwtKey(keyFile: string): Promise<string> {
+    return fs.promises.readFile(keyFile, 'utf8');
+  }
+
   // Build OAuth config for a JWT auth flow
-  private async buildJwtConfig(options: OAuth2Config): Promise<AuthFields> {
-    const privateKeyContents = await fs.promises.readFile(ensure(options.privateKey), 'utf8');
+  private async authJwt(options: OAuth2Config): Promise<AuthFields> {
+    if (!options.clientId) {
+      throw messages.createError('missingClientId');
+    }
+    const privateKeyContents = await this.readJwtKey(ensureString(options.privateKey));
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
-    const createdOrgInstance = getString(options, 'createdOrgInstance', '').trim().toLowerCase();
+    const createdOrgInstance = (this.getFields().createdOrgInstance ?? '').trim().toLowerCase();
     const audienceUrl = await url.getJwtAudienceUrl(createdOrgInstance);
-    const jwtToken = jwt.sign(
-      {
-        iss: options.clientId,
-        sub: this.getUsername(),
-        aud: audienceUrl,
-        exp: Date.now() + 300,
-      },
-      privateKeyContents,
-      {
-        algorithm: 'RS256',
+    let authFieldsBuilder: JsonMap | undefined;
+    const authErrors = [];
+    // given that we can no longer depend on instance names or URls to determine audience, let's try them all
+    const loginAndAudienceUrls = getLoginAudienceCombos(audienceUrl, loginUrl);
+    for (const [login, audience] of loginAndAudienceUrls) {
+      try {
+        authFieldsBuilder = await this.tryJwtAuth(options.clientId, login, audience, privateKeyContents);
+        break;
+      } catch (err) {
+        const error = err as Error;
+        const message = error.message.includes('audience') ? `${error.message}-${login}:${audience}` : error.message;
+        authErrors.push(message);
       }
-    );
-
-    const oauth2 = new JwtOAuth2({ loginUrl: options.loginUrl });
-    let authFieldsBuilder: JsonMap;
-    try {
-      authFieldsBuilder = ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
-    } catch (err) {
-      throw messages.createError('jwtAuthError', [(err as Error).message]);
     }
-
+    if (!authFieldsBuilder) {
+      throw messages.createError('jwtAuthError', [authErrors.join('\n')]);
+    }
     const authFields: AuthFields = {
       accessToken: asString(authFieldsBuilder.access_token),
       orgId: parseIdUrl(ensureString(authFieldsBuilder.id)).orgId,
@@ -921,6 +945,29 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     return authFields;
+  }
+
+  private async tryJwtAuth(
+    clientId: string,
+    loginUrl: string,
+    audienceUrl: string,
+    privateKeyContents: string
+  ): Promise<JsonMap> {
+    const jwtToken = jwt.sign(
+      {
+        iss: clientId,
+        sub: this.getUsername(),
+        aud: audienceUrl,
+        exp: Date.now() + 300,
+      },
+      privateKeyContents,
+      {
+        algorithm: 'RS256',
+      }
+    );
+
+    const oauth2 = new JwtOAuth2({ loginUrl });
+    return ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
   }
 
   // Build OAuth config for a refresh token auth flow
@@ -949,7 +996,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     let username = this.getUsername();
     if (!username) {
-      // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFieldsBuilder.instance_url, authFieldsBuilder.access_token);
       username = ensureString(userInfo?.username);
     }
@@ -1055,17 +1101,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param response
    * @private
    */
-  private throwUserGetException(response: unknown) {
+  private throwUserGetException(response: { body?: string }) {
     let errorMsg = '';
-    const bodyAsString = getString(response, 'body', JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' }));
+    const bodyAsString = response.body ?? JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' });
     try {
-      const body = parseJson(bodyAsString);
+      const body = parseJson(bodyAsString) as Many<{ message?: string; errorCode?: string }>;
       if (isArray(body)) {
-        errorMsg = body
-          .map((line) => getString(line, 'message') ?? getString(line, 'errorCode', 'UNKNOWN'))
-          .join(os.EOL);
+        errorMsg = body.map((line) => line.message ?? line.errorCode ?? 'UNKNOWN').join(os.EOL);
       } else {
-        errorMsg = getString(body, 'message') ?? getString(body, 'errorCode', 'UNKNOWN');
+        errorMsg = body.message ?? body.errorCode ?? 'UNKNOWN';
       }
     } catch (err) {
       errorMsg = `${bodyAsString}`;

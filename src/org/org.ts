@@ -14,7 +14,6 @@ import {
   ensure,
   ensureJsonArray,
   ensureString,
-  getNumber,
   isArray,
   isBoolean,
   isString,
@@ -25,7 +24,7 @@ import {
 } from '@salesforce/ts-types';
 import { HttpRequest, SaveResult } from 'jsforce';
 import { Config } from '../config/config';
-import { ConfigAggregator, ConfigInfo } from '../config/configAggregator';
+import { ConfigAggregator } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStore';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
 import { Global } from '../global';
@@ -35,7 +34,7 @@ import { SfError } from '../sfError';
 import { sfdc } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
-import { GlobalInfo, SfSandbox } from '../globalInfo';
+import { StateAggregator } from '../stateAggregator';
 import { PollingClient } from '../status/pollingClient';
 import { StatusResult } from '../status/types';
 import { Connection, SingleRecordQueryErrors } from './connection';
@@ -57,6 +56,8 @@ const messages = Messages.load('@salesforce/core', 'org', [
   'scratchOrgNotFound',
   'AuthInfoOrgIdUndefined',
   'sandboxCreateNotComplete',
+  'SandboxProcessNotFoundBySandboxName',
+  'MultiSandboxProcessNotFoundBySandboxName',
 ]);
 
 export type OrganizationInformation = {
@@ -146,6 +147,15 @@ export type ScratchOrgRequest = Pick<
   | 'clientSecret'
 >;
 
+export type SandboxFields = {
+  sandboxOrgId: string;
+  prodOrgUsername: string;
+  sandboxName?: string;
+  sandboxUsername?: string;
+  sandboxProcessId?: string;
+  sandboxInfoId?: string;
+};
+
 /**
  * Provides a way to manage a locally authenticated Org.
  *
@@ -189,7 +199,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public constructor(options?: Org.Options) {
     super(options);
-    this.options = options || {};
+    this.options = options ?? {};
   }
 
   /**
@@ -207,16 +217,16 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       interval: Duration.seconds(30),
     }
   ): Promise<SandboxProcessObject> {
-    this.logger.debug('CreateSandbox called with SandboxRequest:', sandboxReq);
+    this.logger.debug(`CreateSandbox called with SandboxRequest: ${sandboxReq}`);
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
-    this.logger.debug('Return from calling tooling.create:', createResult);
+    this.logger.debug(`Return from calling tooling.create: ${createResult}`);
 
     if (Array.isArray(createResult) || !createResult.success) {
       throw messages.createError('sandboxInfoCreateFailed', [JSON.stringify(createResult)]);
     }
 
     const sandboxCreationProgress = await this.querySandboxProcessBySandboxInfoId(createResult.id);
-    this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
+    this.logger.debug(`Return from calling singleRecordQuery with tooling: ${sandboxCreationProgress}`);
 
     const isAsync = !!options.async;
 
@@ -227,14 +237,30 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
     const [wait, pollInterval] = this.validateWaitOptions(options);
     this.logger.debug(
-      `create - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
-      sandboxCreationProgress
+      `create - pollStatusAndAuth sandboxProcessObj ${sandboxCreationProgress}, max wait time of ${wait.minutes} minutes`
     );
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
       wait,
       pollInterval,
     });
+  }
+
+  /**
+   *
+   * @param sandboxReq SandboxRequest options to create the sandbox with
+   * @param sandboxName
+   * @param options Wait: The amount of time to wait before timing out, defaults to 0, Interval: The time interval between polling defaults to 30 seconds
+   * @returns {SandboxProcessObject} the newly created sandbox process object
+   */
+  public async cloneSandbox(
+    sandboxReq: SandboxRequest,
+    sandboxName: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    sandboxReq.SourceId = (await this.querySandboxProcessBySandboxName(sandboxName)).Id;
+    this.logger.debug('Clone sandbox sourceId %s', sandboxReq.SourceId);
+    return this.createSandbox(sandboxReq, options);
   }
 
   /**
@@ -253,7 +279,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       interval: Duration.seconds(30),
     }
   ): Promise<SandboxProcessObject> {
-    this.logger.debug('ResumeSandbox called with ResumeSandboxRequest:', resumeSandboxRequest);
+    this.logger.debug(`ResumeSandbox called with ResumeSandboxRequest: ${resumeSandboxRequest}`);
     let sandboxCreationProgress: SandboxProcessObject;
     // seed the sandboxCreationProgress via the resumeSandboxRequest options
     if (resumeSandboxRequest.SandboxName) {
@@ -265,7 +291,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         resumeSandboxRequest.SandboxName ?? resumeSandboxRequest.SandboxProcessObjId,
       ]);
     }
-    this.logger.debug('Return from calling singleRecordQuery with tooling:', sandboxCreationProgress);
+    this.logger.debug(`Return from calling singleRecordQuery with tooling: ${sandboxCreationProgress}`);
 
     await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESUME, sandboxCreationProgress);
 
@@ -278,7 +304,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         if (sandboxInfo) {
           await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
           try {
-            this.logger.debug('sandbox signup complete with', sandboxInfo);
+            this.logger.debug(`sandbox signup complete with ${sandboxInfo}`);
             await this.writeSandboxAuthFile(sandboxCreationProgress, sandboxInfo);
             return sandboxCreationProgress;
           } catch (err) {
@@ -291,8 +317,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     this.logger.debug(
-      `resume - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`,
-      sandboxCreationProgress
+      `resume - pollStatusAndAuth sandboxProcessObj ${sandboxCreationProgress}, max wait time of ${wait.minutes} minutes`
     );
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
@@ -314,6 +339,20 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
+   * Reports sandbox org creation status. If the org is ready, authenticates to the org.
+   *
+   * @param {sandboxname} string the sandbox name
+   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
+   * @returns {SandboxProcessObject} the sandbox process object
+   */
+  public async sandboxStatus(
+    sandboxname: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    return this.authWithRetriesByName(sandboxname, options);
+  }
+
+  /**
    * Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.
    *
    * @param orgDataPath A relative path other than "orgs/".
@@ -323,8 +362,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   public async cleanLocalOrgData(orgDataPath?: string, throwWhenRemoveFails = false): Promise<void> {
     let dataPath: string;
     try {
-      const rootFolder: string = await Config.resolveRootFolder(false);
-      dataPath = pathJoin(rootFolder, Global.SFDX_STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
+      dataPath = await this.getLocalDataDir(orgDataPath);
       this.logger.debug(`cleaning data for path: ${dataPath}`);
     } catch (err) {
       if (err instanceof Error && err.name === 'InvalidProjectWorkspaceError') {
@@ -372,7 +410,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    *
    */
   public async isSandbox(): Promise<boolean> {
-    return (await GlobalInfo.getInstance()).sandboxes.has(this.getOrgId());
+    return await (await StateAggregator.getInstance()).sandboxes.hasFile(this.getOrgId());
   }
   /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
@@ -399,7 +437,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     try {
       const results = await devHubConnection.query(DEV_HUB_SOQL);
-      if (getNumber(results, 'records.length') !== 1) {
+      if (results.records.length !== 1) {
         throw new SfError('No results', 'NoResultsError');
       }
     } catch (err) {
@@ -527,6 +565,43 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
+   * Returns `true` if the org uses source tracking.
+   * Side effect: updates files where the property doesn't currently exist
+   */
+  public async tracksSource(): Promise<boolean> {
+    // use the property if it exists
+    const tracksSource = this.getField(Org.Fields.TRACKS_SOURCE);
+    if (isBoolean(tracksSource)) {
+      return tracksSource;
+    }
+    // scratch orgs with no property use tracking by default
+    if (await this.determineIfScratch()) {
+      // save true for next time to avoid checking again
+      await this.setTracksSource(true);
+      return true;
+    }
+    if (await this.determineIfSandbox()) {
+      // does the sandbox know about the SourceMember object?
+      const supportsSourceMembers = await this.supportsSourceTracking();
+      await this.setTracksSource(supportsSourceMembers);
+      return supportsSourceMembers;
+    }
+    // any other non-sandbox, non-scratch orgs won't use tracking
+    await this.setTracksSource(false);
+    return false;
+  }
+
+  /**
+   * Set the tracking property on the org's auth file
+   *
+   * @param value true or false (whether the org should use source tracking or not)
+   */
+  public async setTracksSource(value: boolean): Promise<void> {
+    const originalAuth = await AuthInfo.create({ username: this.getUsername() });
+    originalAuth.handleAliasAndDefaultSettings({ setDefault: false, setDefaultDevHub: false, setTracksSource: value });
+  }
+
+  /**
    * Returns `true` if the org is a scratch org.
    *
    * Use a cached value. If the cached value is not set, then check
@@ -580,11 +655,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const username = this.getUsername();
     if (username) {
       const organization = await this.retrieveOrganizationInformation();
-      const isScratch = organization.IsSandbox && organization.TrialExpirationDate;
+      const isScratch = organization.IsSandbox && Boolean(organization.TrialExpirationDate);
       const isSandbox = organization.IsSandbox && !organization.TrialExpirationDate;
-      const info = await GlobalInfo.getInstance();
-
-      info.orgs.update(username, {
+      const stateAggregator = await StateAggregator.getInstance();
+      stateAggregator.orgs.update(username, {
         [Org.Fields.NAME]: organization.Name,
         [Org.Fields.INSTANCE_NAME]: organization.InstanceName,
         [Org.Fields.NAMESPACE_PREFIX]: organization.NamespacePrefix,
@@ -592,7 +666,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         [Org.Fields.IS_SCRATCH]: isScratch,
         [Org.Fields.TRIAL_EXPIRATION_DATE]: organization.TrialExpirationDate,
       });
-      await info.write();
+      await stateAggregator.orgs.write(username);
     }
   }
 
@@ -616,7 +690,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const config: OrgUsersConfig = await this.retrieveOrgUsersConfig();
     const contents: ConfigContents = await config.read();
     const thisUsername = ensure(this.getUsername());
-    const usernames: JsonArray = ensureJsonArray(contents.usernames || [thisUsername]);
+    const usernames: JsonArray = ensureJsonArray(contents.usernames ?? [thisUsername]);
     return Promise.all(
       usernames.map((username) => {
         if (username === thisUsername) {
@@ -660,7 +734,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const contents = await orgConfig.read();
     // TODO: This is kind of screwy because contents values can be `AnyJson | object`...
     // needs config refactoring to improve
-    const usernames = contents.usernames || [];
+    const usernames = contents.usernames ?? [];
 
     if (!isArray(usernames)) {
       throw new SfError('Usernames is not an array', 'UnexpectedDataFormat');
@@ -709,7 +783,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const contents: ConfigContents = await orgConfig.read();
 
     const targetUser = authInfo.getFields().username;
-    const usernames = (contents.usernames || []) as string[];
+    const usernames = (contents.usernames ?? []) as string[];
     contents.usernames = usernames.filter((username) => username !== targetUser);
 
     await orgConfig.write();
@@ -720,10 +794,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * set the sandbox config related to this given org
    *
    * @param orgId {string} orgId of the sandbox
-   * @param config {SfSandbox} config of the sandbox
+   * @param config {SandboxFields} config of the sandbox
    */
-  public async setSandboxConfig(orgId: string, config: SfSandbox): Promise<Org> {
-    (await GlobalInfo.getInstance()).sandboxes.set(orgId, config);
+  public async setSandboxConfig(orgId: string, config: SandboxFields): Promise<Org> {
+    (await StateAggregator.getInstance()).sandboxes.set(orgId, config);
     return this;
   }
 
@@ -732,8 +806,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    *
    * @param orgId {string} orgId of the sandbox
    */
-  public async getSandboxConfig(orgId: string): Promise<Nullable<SfSandbox>> {
-    return (await GlobalInfo.getInstance()).sandboxes.get(orgId);
+  public async getSandboxConfig(orgId: string): Promise<Nullable<SandboxFields>> {
+    return (await StateAggregator.getInstance()).sandboxes.read(orgId);
   }
 
   /**
@@ -756,7 +830,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Returns the orgId for this org.
    */
   public getOrgId(): string {
-    return this.orgId || this.getField(Org.Fields.ORG_ID);
+    return this.orgId ?? this.getField(Org.Fields.ORG_ID);
   }
 
   /**
@@ -802,9 +876,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (this.isScratch()) {
       return true;
     }
-    const conn = this.getConnection();
     try {
-      await conn.tooling.sobject('SourceMember').describe();
+      await this.getConnection().tooling.sobject('SourceMember').describe();
       return true;
     } catch (err) {
       if ((err as Error).message.includes('The requested resource does not exist')) {
@@ -832,10 +905,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async querySandboxProcessBySandboxInfoId(id: string): Promise<SandboxProcessObject> {
     return await this.querySandboxProcess(`SandboxInfoId='${id}'`);
-    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxInfoId='${id}' AND Status != 'D'`;
-    return await this.connection.singleRecordQuery(queryStr, {
-      tooling: true,
-    });
   }
 
   /**
@@ -852,7 +921,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Initialize async components.
    */
   protected async init(): Promise<void> {
-    const globalInfo = await GlobalInfo.getInstance();
+    const stateAggregator = await StateAggregator.getInstance();
     this.logger = await Logger.child('Org');
 
     this.configAggregator = this.options.aggregator ? this.options.aggregator : await ConfigAggregator.create();
@@ -866,7 +935,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         this.options.aliasOrUsername = aliasOrUsername || undefined;
       }
 
-      const username = globalInfo.aliases.resolveUsername(this.options.aliasOrUsername as string);
+      const username = stateAggregator.aliases.resolveUsername(this.options.aliasOrUsername as string);
       if (!username) {
         throw messages.createError('noUsernameFound');
       }
@@ -885,6 +954,72 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   protected getDefaultOptions(): Org.Options {
     throw new SfError('Not Supported', 'NotSupportedError');
+  }
+
+  private async getLocalDataDir(orgDataPath: Nullable<string>): Promise<string> {
+    const rootFolder: string = await Config.resolveRootFolder(false);
+    return pathJoin(rootFolder, Global.SFDX_STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
+  }
+
+  /**
+   * Gets the sandboxProcessObject and then polls for it to complete.
+   *
+   * @param sandboxProcessName sanbox process name
+   * @param options { wait?: Duration; interval?: Duration }
+   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
+   */
+  private async authWithRetriesByName(
+    sandboxProcessName: string,
+    options: { wait?: Duration; interval?: Duration }
+  ): Promise<SandboxProcessObject> {
+    return this.authWithRetries(await this.queryLatestSandboxProcessBySandboxName(sandboxProcessName), options);
+  }
+
+  /**
+   * Polls the sandbox org for the sandboxProcessObject.
+   *
+   * @param sandboxProcessObj: The in-progress sandbox signup request
+   * @param options { wait?: Duration; interval?: Duration }
+   * @returns {SandboxProcessObject}
+   */
+  private async authWithRetries(
+    sandboxProcessObj: SandboxProcessObject,
+    options: { wait?: Duration; interval?: Duration } = {
+      wait: Duration.minutes(0),
+      interval: Duration.seconds(30),
+    }
+  ): Promise<SandboxProcessObject> {
+    const [wait, pollInterval] = this.validateWaitOptions(options);
+    this.logger.debug(
+      `AuthWithRetries sandboxProcessObj ${sandboxProcessObj}, max wait time of ${wait.minutes} minutes`
+    );
+    return this.pollStatusAndAuth({
+      sandboxProcessObj,
+      wait,
+      pollInterval,
+    });
+  }
+
+  /**
+   * Query the sandbox for the SandboxProcessObject by sandbox name
+   *
+   * @param sandboxName The name of the sandbox to query
+   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
+   */
+  private async queryLatestSandboxProcessBySandboxName(sandboxNameIn: string): Promise<SandboxProcessObject> {
+    const { tooling } = this.getConnection();
+    this.logger.debug('QueryLatestSandboxProcessBySandboxName called with SandboxName: %s ', sandboxNameIn);
+    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
+
+    const queryResult = await tooling.query(queryStr);
+    this.logger.debug('Return from calling queryToolingApi: %s ', queryResult);
+    if (queryResult?.records?.length === 1) {
+      return queryResult.records[0] as SandboxProcessObject;
+    } else if (queryResult.records && queryResult.records.length > 1) {
+      throw messages.createError('MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
+    } else {
+      throw messages.createError('SandboxProcessNotFoundBySandboxName', [sandboxNameIn]);
+    }
   }
 
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
@@ -919,7 +1054,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       let result: { SandboxInfoId: string };
       try {
         // grab sandboxName from config or try to calculate from the sandbox username
-        const sandboxName = sandbox?.sandboxName || (this.getUsername() || '').split(`${prodOrg.getUsername()}.`)[1];
+        const sandboxName = sandbox?.sandboxName ?? (this.getUsername() ?? '').split(`${prodOrg.getUsername()}.`)[1];
         if (!sandboxName) {
           this.logger.debug('Sandbox name is not available');
           // jump to query by orgId
@@ -1007,14 +1142,14 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * this Org. You don't want to call this method directly. Instead consider calling Org.remove()
    */
   private async removeAuth(): Promise<void> {
-    const config = await GlobalInfo.getInstance();
+    const stateAggregator = await StateAggregator.getInstance();
     const username = this.getUsername();
     // If there is no username, it has already been removed from the globalInfo.
     // We can skip the unset and just ensure that globalInfo is updated.
     if (username) {
       this.logger.debug(`Removing auth for user: ${username}`);
       this.logger.debug(`Clearing auth cache for user: ${username}`);
-      config.orgs.unset(username);
+      await stateAggregator.orgs.remove(username);
     }
   }
 
@@ -1051,7 +1186,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async removeUsers(throwWhenRemoveFails: boolean): Promise<void> {
-    const globalInfo = await GlobalInfo.getInstance();
+    const stateAggregator = await StateAggregator.getInstance();
     this.logger.debug(`Removing users associate with org: ${this.getOrgId()}`);
     const config = await this.retrieveOrgUsersConfig();
     this.logger.debug(`using path for org users: ${config.getPath()}`);
@@ -1061,8 +1196,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       authInfos
         .map((auth) => auth.getFields().username)
         .map(async (username) => {
-          const aliasKeys = (username && globalInfo.aliases.getAll(username)) || [];
-          globalInfo.aliases.unsetAll(username as string);
+          const aliasKeys = (username && stateAggregator.aliases.getAll(username)) ?? [];
+          stateAggregator.aliases.unsetAll(username as string);
 
           const orgForUser =
             username === this.getUsername()
@@ -1072,7 +1207,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
                 });
 
           const orgType = this.isDevHubOrg() ? OrgConfigProperties.TARGET_DEV_HUB : OrgConfigProperties.TARGET_ORG;
-          const configInfo: ConfigInfo = orgForUser.configAggregator.getInfo(orgType);
+          const configInfo = orgForUser.configAggregator.getInfo(orgType);
           const needsConfigUpdate =
             (configInfo.isGlobal() || configInfo.isLocal()) &&
             (configInfo.value === username || aliasKeys.includes(configInfo.value as string));
@@ -1084,13 +1219,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         })
     );
 
-    await globalInfo.write();
+    await stateAggregator.aliases.write();
   }
 
   private async removeSandboxConfig(): Promise<void> {
-    const globalInfo = await GlobalInfo.getInstance();
-    globalInfo.sandboxes.unset(this.getOrgId());
-    await globalInfo.write();
+    const stateAggregator = await StateAggregator.getInstance();
+    await stateAggregator.sandboxes.remove(this.getOrgId());
   }
 
   private async writeSandboxAuthFile(sandboxProcessObj: SandboxProcessObject, sandboxRes: SandboxUserAuthResponse) {
@@ -1100,7 +1234,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       )}`
     );
     if (sandboxRes.authUserName) {
-      const productionAuthFields: AuthFields = this.connection.getAuthInfoFields();
+      const productionAuthFields = this.connection.getAuthInfoFields();
       this.logger.debug('Result from getAuthInfoFields: AuthFields', productionAuthFields);
 
       // let's do headless auth via jwt (if we have privateKey) or web auth
@@ -1136,23 +1270,24 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       // save auth info for new sandbox
       await authInfo.save();
 
-      if (!authInfo.getFields().orgId) {
+      const sandboxOrgId = authInfo.getFields().orgId as string;
+
+      if (!sandboxOrgId) {
         throw messages.createError('AuthInfoOrgIdUndefined');
       }
       // set the sandbox config value
       const sfSandbox = {
         sandboxUsername: sandboxRes.authUserName,
-        sandboxOrgId: authInfo.getFields().orgId,
+        sandboxOrgId,
         prodOrgUsername: this.getUsername(),
         sandboxName: sandboxProcessObj.SandboxName,
         sandboxProcessId: sandboxProcessObj.Id,
         sandboxInfoId: sandboxProcessObj.SandboxInfoId,
         timestamp: new Date().toISOString(),
-      } as SfSandbox;
+      } as SandboxFields;
 
-      await this.setSandboxConfig(authInfo.getFields().orgId as string, sfSandbox);
-      const globalInfo = await GlobalInfo.getInstance();
-      await globalInfo.write();
+      await this.setSandboxConfig(sandboxOrgId, sfSandbox);
+      (await StateAggregator.getInstance()).sandboxes.write(sandboxOrgId);
 
       await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESULT, {
         sandboxProcessObj,
@@ -1388,6 +1523,11 @@ export namespace Org {
      * The snapshot used to create the scratch org.
      */
     SNAPSHOT = 'snapshot',
+    /**
+     * true: the org supports and wants source tracking
+     * false: the org opted out of tracking or can't support it
+     */
+    TRACKS_SOURCE = 'tracksSource',
 
     // Should it be on org? Leave it off for now, as it might
     // be confusing to the consumer what this actually is.

@@ -1,9 +1,19 @@
 [![NPM](https://img.shields.io/npm/v/@salesforce/core.svg)](https://www.npmjs.com/package/@salesforce/core)
 [![CircleCI](https://circleci.com/gh/forcedotcom/sfdx-core.svg?style=svg&circle-token=2377ca31221869e9d13448313620486da80e595f)](https://circleci.com/gh/forcedotcom/sfdx-core)
 
+- [Description](#description)
+- [Usage](#usage)
+  - [Contributing](#contributing)
+- [Using TestSetup](#using-testsetup)
+  - [Mocking Authorizations](#mocking-authorizations)
+  - [Mocking Config Files](#mocking-config-files)
+  - [Using the Built-in Sinon Sandboxes](#using-the-built-in-sinon-sandboxes)
+  - [Testing Expected Failures](#testing-expected-failures)
+  - [Testing Log Lines](#testing-log-lines)
+
 # Description
 
-The @salesforce/core library provides client-side management of Salesforce DX projects, org authentication, connections to Salesforce APIs, and other utilities. Much of the core functionality that powers the Salesforcedx plug-ins comes from this library. You can use this functionality in your plug-ins too.
+The @salesforce/core library provides client-side management of Salesforce DX projects, org authentication, connections to Salesforce APIs, and other utilities. Much of the core functionality that powers the Salesforce CLI plugins comes from this library. You can use this functionality in your plugins too.
 
 # Usage
 
@@ -13,16 +23,11 @@ See the [API documentation](https://forcedotcom.github.io/sfdx-core/).
 
 If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
 
-# Related Docs and Repositories
-
-- [@salesforce/command](https://github.com/forcedotcom/cli-packages/tree/main/packages/command) - Contains base Salesforce CLI command, `SfdxCommand`.
-- [@salesforce/plugin-generator](https://github.com/forcedotcom/sfdx-plugin-generate) - The generator plug-in for building plug-ins for Salesforce CLI.
-
 # Using TestSetup
 
 The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components. This feature allows unit tests to execute without needing to make API calls to salesforce.com.
 
-## Mocking AuthInfo
+## Mocking Authorizations
 
 Here you can mock authorization for a Salesforce scratch org.
 
@@ -36,14 +41,8 @@ const $$ = testSetup();
 describe('Mocking Auth data', () => {
   it('example', async () => {
     const testData = new MockTestOrgData();
-    $$.setConfigStubContents('GlobalInfo', {
-      contents: {
-        orgs: {
-          [testData.username]: await testData.getConfig(),
-        },
-      },
-    });
-    const auth: AuthInfo = await AuthInfo.create({ username: testData.username });
+    await $$.stubAuths(testData)
+    const auth = await AuthInfo.create({ username: testData.username });
     strictEqual(auth.getUsername(), testData.username);
   });
 });
@@ -65,26 +64,57 @@ describe('Mocking a force server call', () => {
   it('example', async () => {
     const records: AnyJson = { records: ['123456', '234567'] };
     const testData = new MockTestOrgData();
-    $$.setConfigStubContents('GlobalInfo', {
-      contents: {
-        orgs: {
-          [testData.username]: await testData.getConfig(),
-        },
-      },
-    });
+    await $$.stubAuths(testData);
     $$.fakeConnectionRequest = (request: AnyJson): Promise<AnyJson> => {
-      const _request: JsonMap = ensureJsonMap(request);
+      const _request = ensureJsonMap(request);
       if (request && ensureString(_request.url).includes('Account')) {
         return Promise.resolve(records);
       } else {
         return Promise.reject(new SfError(`Unexpected request: ${_request.url}`));
       }
     };
-    const connection: Connection = await Connection.create({
+    const connection = await Connection.create({
       authInfo: await AuthInfo.create({ username: testData.username }),
     });
-    const result: QueryResult<{}> = await connection.query('select Id From Account');
+    const result = await connection.query('select Id From Account');
     deepStrictEqual(result, records);
+  });
+});
+```
+
+## Mocking Config Files
+
+You can mock the contents of various config files
+
+```typescript
+import { strictEqual } from 'assert';
+import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { StateAggregator, OrgConfigProperties } from '@salesforce/core';
+
+const $$ = testSetup();
+
+describe('Mocking Aliases', () => {
+  it('example', async () => {
+    const testData = new MockTestOrgData();
+    await $$.stubAliases({ myAlias: testData.username });
+    const alias = (await StateAggregator.getInstance()).aliases.get(testData.username);
+    strictEqual(alias, 'myAlais');
+  });
+});
+
+describe('Mocking Config', () => {
+  it('example', async () => {
+    const testData = new MockTestOrgData();
+    await $$.stubConfig({ [OrgConfigProperties.TARGET_ORG]: testData.username });
+    const {value} = (await ConfigAggregator.create()).getInfo(OrgConfigProperties.TARGET_ORG);
+    strictEqual(value, testData.username);
+  });
+});
+
+describe('Mocking Arbitrary Config Files', () => {
+  it('example', async () => {
+    // MyConfigFile must extend the ConfigFile class in order for this to work properly.
+    $$.setConfigStubContents('MyConfigFile', { contents: { foo: 'bar' } });
   });
 });
 ```
@@ -138,6 +168,30 @@ describe('Testing for expected errors', () => {
 });
 ```
 
+You can also use `shouldThrowSync` for syncrhonous functions you expect to fail
+
+```typescript
+import { SfError } from '@salesforce/core';
+import { shouldThrowSync } from '@salesforce/core/lib/testSetup';
+import { strictEqual } from 'assert';
+
+class TestObject {
+  public static method() {
+    throw new SfError('Error', 'ExpectedError');
+  }
+}
+
+describe('Testing for expected errors', () => {
+  it('example', async () => {
+    try {
+      shouldThrowSync(() => TestObject.method());
+    } catch (e) {
+      strictEqual(e.name, 'ExpectedError');
+    }
+  });
+});
+```
+
 ## Testing Log Lines
 
 It's also useful to check expected values and content from log lines. TestSetup configures the sfdx-core logger to use an in memory LogLine storage structure. These can be easily accessed from tests.
@@ -163,9 +217,9 @@ class TestObject {
 
 describe('Testing log lines', () => {
   it('example', async () => {
-    const obj: TestObject = new TestObject($$.TEST_LOGGER);
+    const obj = new TestObject($$.TEST_LOGGER);
     obj.method();
-    const records: LogLine[] = $$.TEST_LOGGER.getBufferedRecords();
+    const records = $$.TEST_LOGGER.getBufferedRecords();
     strictEqual(records.length, 1);
     strictEqual(records[0].msg, TEST_STRING);
   });

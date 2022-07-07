@@ -23,11 +23,7 @@ describe('permission set assignment tests', () => {
   describe('create tests', () => {
     let org: Org;
     beforeEach(async () => {
-      $$.configStubs.GlobalInfo = {
-        contents: {
-          orgs: { [userTestdata.username]: await userTestdata.getConfig() },
-        },
-      };
+      $$.stubAuths(userTestdata);
       org = await Org.create({
         connection: await Connection.create({
           authInfo: await AuthInfo.create({ username: userTestdata.username }),
@@ -59,7 +55,7 @@ describe('permission set assignment tests', () => {
         };
       });
 
-      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
+      const assignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
       const NS = 'NS';
       await assignment.create('123456', `${NS}__${PERM_SET_NAME}`);
@@ -94,7 +90,7 @@ describe('permission set assignment tests', () => {
         };
       });
 
-      const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
+      const assignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
       const NS = 'NS';
       try {

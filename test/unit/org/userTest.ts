@@ -6,19 +6,10 @@
  */
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, isString } from '@salesforce/ts-types';
-import { expect, assert } from 'chai';
-import { OrgAccessor } from '../../../src/globalInfo';
+import { expect } from 'chai';
 import { SecureBuffer } from '../../../src/crypto/secureBuffer';
-import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
-import {
-  DefaultUserFields,
-  User,
-  UserFields,
-  PermissionSetAssignment,
-  Org,
-  Connection,
-  AuthInfo,
-} from '../../../src/org';
+import { MockTestOrgData, shouldThrow, shouldThrowSync, testSetup } from '../../../src/testSetup';
+import { DefaultUserFields, User, PermissionSetAssignment, Org, Connection, AuthInfo } from '../../../src/org';
 
 const $$ = testSetup();
 
@@ -31,14 +22,7 @@ describe('User Tests', () => {
     adminTestData = new MockTestOrgData();
     user1 = new MockTestOrgData();
 
-    $$.configStubs.GlobalInfo = {
-      contents: {
-        orgs: {
-          [adminTestData.username]: await adminTestData.getConfig(),
-          [user1.username]: await user1.getConfig(),
-        },
-      },
-    };
+    $$.stubAuths(adminTestData, user1);
 
     $$.fakeConnectionRequest = (request): Promise<AnyJson> => {
       if (isString(request) && request.endsWith('sobjects/User/describe')) {
@@ -172,8 +156,7 @@ describe('User Tests', () => {
     it('Should throw an error beacuse of complexity not a valid value', () => {
       try {
         const passwordCondition = { length: 14, complexity: 9 };
-        User.generatePasswordUtf8(passwordCondition);
-        assert.fail('The above code need to throw an error');
+        shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
         expect(err.message).to.equal('Invalid complexity value. Specify a value between 0 and 5, inclusive.');
       }
@@ -182,8 +165,7 @@ describe('User Tests', () => {
     it('Should throw an error beacuse of length not a valid value', () => {
       try {
         const passwordCondition = { length: 7, complexity: 2 };
-        User.generatePasswordUtf8(passwordCondition);
-        assert.fail('The above code need to throw an error');
+        shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
         expect(err.message).to.equal('Invalid length value. Specify a value between 8 and 1000, inclusive.');
       }
@@ -205,13 +187,13 @@ describe('User Tests', () => {
           authInfo: await AuthInfo.create({ username: adminTestData.username }),
         }),
       });
-      const user: User = await User.create({ org });
+      const user = await User.create({ org });
 
       const options: DefaultUserFields.Options = {
         templateUser: org.getUsername() || '',
       };
       const fields = (await DefaultUserFields.create(options)).getFields();
-      const info: AuthInfo = await user.createUser(fields);
+      const info = await user.createUser(fields);
 
       expect(info.getUsername()).to.equal(fields.username);
     });
@@ -246,24 +228,21 @@ describe('User Tests', () => {
           },
         };
       });
-      $$.configStubs.GlobalInfo = {
-        contents: {
-          orgs: { [user1.username]: await user1.getConfig() },
-        },
-      };
-      const connection: Connection = await Connection.create({
+
+      $$.stubAuths(user1);
+      const connection = await Connection.create({
         authInfo: await AuthInfo.create({ username: user1.username }),
       });
       org = await Org.create({ connection });
     });
 
     it('should set password', async () => {
-      const user: User = await User.create({ org });
-      const fields: UserFields = await user.retrieve(user1.username);
+      const user = await User.create({ org });
+      const fields = await user.retrieve(user1.username);
 
       const TEST_PASSWORD = 'test123456';
 
-      const buffer: SecureBuffer<void> = new SecureBuffer<void>();
+      const buffer = new SecureBuffer<void>();
       buffer.consume(Buffer.from(TEST_PASSWORD));
 
       const userAuthInfo = await AuthInfo.create({ username: fields.username });
@@ -286,8 +265,6 @@ describe('User Tests', () => {
         },
       });
 
-      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'has').returns(true);
-
       org = await Org.create({
         connection: await Connection.create({
           authInfo: await AuthInfo.create({ username: adminTestData.username }),
@@ -300,8 +277,8 @@ describe('User Tests', () => {
         Promise.resolve({})
       );
 
-      const user: User = await User.create({ org });
-      const fields: UserFields = await user.retrieve(user1.username);
+      const user = await User.create({ org });
+      const fields = await user.retrieve(user1.username);
 
       await user.assignPermissionSets(fields.id, ['TestPermSet']);
       expect(permSetAssignSpy.calledOnce).to.equal(true);

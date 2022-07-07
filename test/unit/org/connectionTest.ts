@@ -6,15 +6,14 @@
  */
 import { get } from '@salesforce/ts-types';
 
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { fromStub, stubInterface, StubbedType, stubMethod } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
 import { Connection as JSForceConnection, HttpRequest } from 'jsforce';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
-import { ConfigAggregator, ConfigInfo } from '../../../src/config/configAggregator';
 import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME, SingleRecordQueryErrors } from '../../../src/org/connection';
-import { testSetup, shouldThrow } from '../../../src/testSetup';
+import { testSetup, shouldThrow, shouldThrowSync } from '../../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -22,7 +21,6 @@ const TEST_IP = '1.1.1.1';
 
 describe('Connection', () => {
   const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
-  let warningStub: sinon.SinonStub;
   let requestMock: sinon.SinonStub;
 
   let testAuthInfo: StubbedType<AuthInfo>;
@@ -30,7 +28,6 @@ describe('Connection', () => {
 
   beforeEach(() => {
     $$.SANDBOXES.CONNECTION.restore();
-    warningStub = $$.SANDBOX.stub(process, 'emitWarning');
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
 
     requestMock = $$.SANDBOX.stub(JSForceConnection.prototype, 'request')
@@ -112,8 +109,7 @@ describe('Connection', () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
 
     try {
-      conn.setApiVersion('v23.0');
-      assert.fail();
+      shouldThrowSync(() => conn.setApiVersion('v23.0'));
     } catch (e) {
       expect(e.message).to.contain('Invalid API version v23.0.');
     }
@@ -215,84 +211,6 @@ describe('Connection', () => {
     expect(querySpy.firstCall.args[1]).to.have.property('autoFetch', true);
   });
 
-  it('tooling.autoFetchQuery() should call this.query with proper args', async () => {
-    const records = [{ id: 7 }, { id: 8 }, { id: 9 }, { id: 10 }, { id: 11 }, { id: 12 }];
-    const queryResponse = { totalSize: records.length, done: true, records };
-    const soql = 'TEST_SOQL';
-
-    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
-    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
-    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
-    const queryResults = await conn.tooling.autoFetchQuery(soql);
-
-    expect(queryResults).to.deep.equal({
-      done: true,
-      totalSize: 6,
-      records: [...records],
-    });
-    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
-    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
-  });
-
-  it('tooling.autoFetchQuery() should respect the maxQueryLimit config variable', async () => {
-    const soql = 'TEST_SOQL';
-
-    const records = [{ id: 7 }, { id: 8 }, { id: 10 }, { id: 11 }, { id: 12 }];
-    const queryResponse = { totalSize: 50000, done: true, records };
-    requestMock.resolves(queryResponse);
-
-    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
-    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
-    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
-    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 50000 } as ConfigInfo);
-    await conn.tooling.autoFetchQuery(soql);
-
-    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
-    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
-    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 50000);
-  });
-
-  it('tooling.autoFetchQuery() should not throw a warning when records is empty', async () => {
-    const soql = 'TEST_SOQL';
-
-    const queryResponse = { totalSize: 5, done: true, records: [] };
-
-    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
-
-    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
-    stubMethod($$.SANDBOX, conn.tooling, 'request').resolves(queryResponse);
-    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
-
-    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
-    await conn.tooling.autoFetchQuery(soql);
-
-    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
-    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
-    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
-    expect(warningStub.callCount).to.equal(0);
-  });
-
-  it('tooling.autoFetchQuery() should throw a warning when more than 10k records returned without the config', async () => {
-    const soql = 'TEST_SOQL';
-
-    const records = [{ id: 7 }, { id: 8 }, { id: 10 }, { id: 11 }, { id: 12 }];
-    const queryResponse = { totalSize: 5, done: true, records };
-
-    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
-
-    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
-    stubMethod($$.SANDBOX, conn.tooling, 'request').resolves(queryResponse);
-    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
-
-    $$.SANDBOX.stub(ConfigAggregator.prototype, 'getInfo').returns({ value: 3 } as ConfigInfo);
-    await conn.tooling.autoFetchQuery(soql);
-
-    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
-    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('autoFetch', true);
-    expect(toolingQuerySpy.firstCall.args[1]).to.have.property('maxFetch', 3);
-    expect(warningStub.callCount).to.equal(0);
-  });
-
   it('autoFetch() should reject the promise upon query error', async () => {
     const errorMsg = 'QueryFailed';
     requestMock.onSecondCall().throws(new Error(errorMsg));
@@ -301,8 +219,7 @@ describe('Connection', () => {
     });
 
     try {
-      await conn.autoFetchQuery('TEST_SOQL');
-      assert.fail('autoFetch query should have errored.');
+      await shouldThrow(conn.autoFetchQuery('TEST_SOQL'));
     } catch (err) {
       expect(err.message).to.equal(errorMsg);
     }
@@ -352,8 +269,7 @@ describe('Connection', () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
     stubMethod($$.SANDBOX, conn, 'request').resolves({ totalSize: 0, records: [] });
     try {
-      await conn.singleRecordQuery('TEST_SOQL');
-      assert.fail('SingleRecordQuery query should have errored.');
+      await shouldThrow(conn.singleRecordQuery('TEST_SOQL'));
     } catch (err) {
       expect(err.name).to.equal(SingleRecordQueryErrors.NoRecords);
     }
@@ -364,8 +280,7 @@ describe('Connection', () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
     try {
-      await conn.singleRecordQuery('TEST_SOQL');
-      assert.fail('singleRecordQuery should have errored.');
+      await shouldThrow(conn.singleRecordQuery('TEST_SOQL'));
     } catch (err) {
       expect(err.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
     }
@@ -376,8 +291,7 @@ describe('Connection', () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
     try {
-      await conn.singleRecordQuery('TEST_SOQL', { returnChoicesOnMultiple: true, choiceField: 'id' });
-      assert.fail('singleRecordQuery should have errored.');
+      await shouldThrow(conn.singleRecordQuery('TEST_SOQL', { returnChoicesOnMultiple: true, choiceField: 'id' }));
     } catch (err) {
       expect(err.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
       expect(err.message).to.include('1,2');

@@ -8,10 +8,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { EOL } from 'os';
 import { cloneJson } from '@salesforce/kit';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { Messages } from '../../src/messages';
 import { SfError } from '../../src/sfError';
-import { testSetup } from '../../src/testSetup';
+import { shouldThrowSync, testSetup } from '../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -48,8 +48,7 @@ describe('Messages', () => {
 
     it('should throw an error if the message is not found', () => {
       try {
-        messages.getMessage('msg4');
-        assert.fail('should have thrown an error that the message was not found');
+        shouldThrowSync(() => messages.getMessage('msg4'));
       } catch (err) {
         expect(err.message).to.equal('Missing message myBundle:msg4 for locale en_US.');
       }
@@ -58,7 +57,7 @@ describe('Messages', () => {
     it('should throw an error if the nested message is not found', () => {
       try {
         messages.getMessage('msg3.msg4');
-        assert.fail('should have thrown an error that the message was not found');
+        shouldThrowSync(() => messages.getMessage('msg3.msg4'));
       } catch (err) {
         expect(err.message).to.equal('Missing message myBundle:msg4 for locale en_US.');
       }
@@ -82,8 +81,7 @@ describe('Messages', () => {
   describe('importMessageFile', () => {
     it('should throw when file extension is not json', () => {
       try {
-        Messages.importMessageFile('package name', 'myPluginMessages.txt');
-        assert.fail('should have thrown an error that only json files are allowed.');
+        shouldThrowSync(() => Messages.importMessageFile('package name', 'myPluginMessages.txt'));
       } catch (err) {
         expect(err.message).to.contain('Only json, js and md message files are allowed, not .txt');
       }
@@ -183,8 +181,7 @@ describe('Messages', () => {
 
     it('should throw on relative paths', () => {
       try {
-        Messages.importMessagesDirectory('./');
-        assert.fail();
+        shouldThrowSync(() => Messages.importMessagesDirectory('./'));
       } catch (e) {
         expect(e.message).to.contain('Invalid module path.');
       }
@@ -196,8 +193,7 @@ describe('Messages', () => {
       const loaderFn = Messages.generateFileLoaderFunction('myPluginMessages', 'myPluginMessages.json');
 
       try {
-        loaderFn(Messages.getLocale());
-        assert.fail('should have thrown an error that the message file was not found.');
+        shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
         expect(err.message).to.contain('Cannot find module');
         expect(err.message).to.contain('myPluginMessages.json');
@@ -209,8 +205,7 @@ describe('Messages', () => {
       $$.SANDBOX.stub(Messages, 'readFile').returns('');
 
       try {
-        loaderFn(Messages.getLocale());
-        assert.fail('should have thrown an error that the file was empty.');
+        shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
         expect(err.name).to.equal('SfError');
         expect(err.message).to.equal('Invalid message file: myPluginMessages.json. No content.');
@@ -222,8 +217,7 @@ describe('Messages', () => {
       $$.SANDBOX.stub(Messages, 'readFile').returns('key1=value1,key2=value2');
 
       try {
-        loaderFn(Messages.getLocale());
-        assert.fail('should have thrown an error that the file not valid JSON.');
+        shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
         expect(err.name).to.equal('Error');
         expect(err.message).to.equal(
@@ -281,8 +275,7 @@ describe('Messages', () => {
       $$.SANDBOX.stub(fs, 'readFileSync').returns('# myKey\n# secondKey\nmyValue');
 
       try {
-        loaderFn(Messages.getLocale());
-        assert.fail('should have thrown an error that the file not valid JSON.');
+        shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
         expect(err.name).to.equal('Error');
         expect(err.message).to.equal(
@@ -322,8 +315,7 @@ describe('Messages', () => {
 
     it('should throw an error if the bundle is not found', async () => {
       try {
-        Messages.load('pname', 'notfound', ['']);
-        assert.fail('should have thrown an error that the bundle was not found.');
+        shouldThrowSync(() => Messages.load('pname', 'notfound', ['']));
       } catch (err) {
         expect(err.message).to.equal('Missing bundle pname:notfound for locale en_US.');
       }

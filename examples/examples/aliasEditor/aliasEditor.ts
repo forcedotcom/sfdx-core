@@ -1,38 +1,36 @@
-import { Aliases, GlobalInfo } from '@salesforce/core';
-import chalk from 'chalk';
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { StateAggregator } from '@salesforce/core';
+import { green, red } from 'chalk';
 import * as inquirer from 'inquirer';
-import * as _ from 'lodash';
-import * as strip from 'strip-ansi';
+import _ from 'lodash';
+import strip from 'strip-ansi';
 
 export async function run() {
-  const config = await GlobalInfo.getInstance();
-  const orgs = Object.keys(config.getOrgs());
-  const orgsWithAliases = {};
-  const aliases = await Aliases.create();
-
-  // Map the aliases onto the orgs
-  for (const org of orgs) {
-    const aliasKeys = aliases.getKeysByValue(org);
-    orgsWithAliases[org] = _.get(aliasKeys, 0);
-  }
+  const stateAggregator = await StateAggregator.getInstance();
+  const orgs = await stateAggregator.orgs.readAll();
 
   // Buffer length for displaying to the user
-  const len = (_.max(_.map(_.values(orgsWithAliases), (element) => element || 0)) as string).length + 4;
+  const len = (_.max(_.map(_.values(orgs), (element) => element || 0)) as string).length + 4;
 
   // Have the user select a user to add or remove alias
   const answer = await select(
     "Select a user's alias to edit:",
-    Object.keys(orgsWithAliases).map((org) => {
-      const _alias = orgsWithAliases[org];
+    orgs.map(({ username }) => {
+      const alias = stateAggregator.aliases.get(username);
       let aliasText = '';
 
-      if (_alias) {
-        aliasText = chalk.green.bold(_.padEnd(_alias, len));
+      if (alias) {
+        aliasText = green.bold(_.padEnd(alias, len));
       } else {
-        aliasText = chalk.red(_.padEnd('N/A', len));
+        aliasText = red(_.padEnd('N/A', len));
       }
 
-      return `${aliasText}: ${org}`;
+      return `${aliasText}: ${username}`;
     })
   );
 
@@ -43,15 +41,15 @@ export async function run() {
 
   if (alias !== 'N/A') {
     // Remove the old one
-    aliases.unset(alias);
-    console.log(`Unset alias ${chalk.red(alias)}`);
+    stateAggregator.aliases.unset(alias);
+    console.log(`Unset alias ${red(alias)}`);
   }
 
   if (newAlias) {
-    aliases.set(newAlias, username);
-    console.log(`Set alias ${chalk.green(newAlias)} to username ${chalk.green(username)}`);
+    stateAggregator.aliases.set(newAlias, username);
+    console.log(`Set alias ${green(newAlias)} to username ${green(username)}`);
   }
-  await aliases.write();
+  await stateAggregator.aliases.write();
 }
 
 /**

@@ -11,6 +11,36 @@ import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { Logger } from '../logger';
 import { Lifecycle } from '../lifecycleEvents';
+
+export function getLoginAudienceCombos(audienceUrl: string, loginUrl: string) {
+  const filtered = [
+    [loginUrl, loginUrl],
+    [SfdcUrl.SANDBOX, SfdcUrl.SANDBOX],
+    [SfdcUrl.PRODUCTION, SfdcUrl.PRODUCTION],
+    [audienceUrl, audienceUrl],
+    [audienceUrl, SfdcUrl.PRODUCTION],
+    [audienceUrl, SfdcUrl.SANDBOX],
+    [loginUrl, audienceUrl],
+    [loginUrl, SfdcUrl.PRODUCTION],
+    [loginUrl, SfdcUrl.SANDBOX],
+    [SfdcUrl.PRODUCTION, audienceUrl],
+    [SfdcUrl.SANDBOX, audienceUrl],
+  ].filter(
+    ([login, audience]) =>
+      !(
+        (login === SfdcUrl.PRODUCTION && audience === SfdcUrl.SANDBOX) ||
+        (login === SfdcUrl.SANDBOX && audience === SfdcUrl.PRODUCTION)
+      )
+  );
+  const reduced = filtered.reduce((acc, [login, audience]) => {
+    const l = new URL(login);
+    const a = new URL(audience);
+    acc.set(`${l.origin}:${a.origin}`, [login, audience]);
+    return acc;
+  }, new Map<string, [string, string]>());
+  return [...reduced.values()];
+}
+
 export class SfdcUrl extends URL {
   /**
    * Salesforce URLs
@@ -53,15 +83,6 @@ export class SfdcUrl extends URL {
       return envVarVal;
     }
 
-    if (this.isInternalUrl()) {
-      // This is for internal developers when just doing authorize
-      return this.origin;
-    }
-
-    if (await this.resolvesToSandbox(createdOrgInstance)) {
-      return SfdcUrl.SANDBOX;
-    }
-
     if ((createdOrgInstance && /^gs1/gi.test(createdOrgInstance)) || /(gs1.my.salesforce.com)/gi.test(this.origin)) {
       return 'https://gs1.salesforce.com';
     }
@@ -96,7 +117,7 @@ export class SfdcUrl extends URL {
   /**
    * Tests whether this url is an internal Salesforce domain
    *
-   * @returns {boolean} true if this is a internal domain
+   * @returns {boolean} true if this is an internal domain
    */
   public isInternalUrl(): boolean {
     const INTERNAL_URL_PARTS = [
@@ -129,6 +150,16 @@ export class SfdcUrl extends URL {
     if (this.origin.endsWith('.my.salesforce.mil')) {
       return this.origin.replace('.my.salesforce.mil', '.lightning.crmforce.mil');
     }
+    // enhanced domains
+    // ex: sandbox.my.salesforce.com, scratch.my.salesforce.com, etc
+    if (this.origin.endsWith('.my.salesforce.com')) {
+      return this.origin.replace('.my.salesforce.com', '.lightning.force.com');
+    }
+    // alternative domains
+    if (this.origin.endsWith('.my-salesforce.com')) {
+      return this.origin.replace('.my-salesforce.com', '.my-lightning.com');
+    }
+
     // all non-mil domains
     return `https://${ensureArray(/https?:\/\/([^.]*)/.exec(this.origin))
       .slice(1, 2)
@@ -161,7 +192,7 @@ export class SfdcUrl extends URL {
   }
 
   /**
-   * Method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again untill timeout
+   * Method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again until timeout
    * If SFDX_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
    *
    * @returns the resolved ip address.
@@ -181,9 +212,11 @@ export class SfdcUrl extends URL {
   /**
    * Tests whether this url is a sandbox url
    *
+   * @Deprecated - identification of a sandbox instance by URL alone is not deterministic
    * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
    * @returns {boolean}
    */
+  // TODO: how to get rid of this?
   public isSandboxUrl(createdOrgInstance?: string): boolean {
     return (
       (createdOrgInstance && /^cs|s$/gi.test(createdOrgInstance)) ||
@@ -204,25 +237,6 @@ export class SfdcUrl extends URL {
    * @returns {boolean} true if this domain is a lightning domain
    */
   public isLightningDomain(): boolean {
-    return /\.lightning\.force\.com/.test(this.origin);
-  }
-
-  /**
-   * Tests whether this url is a sandbox url
-   * otherwise tries to resolve dns cnames and then look if any is sandbox url
-   *
-   * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
-   * @returns {Promise<boolean>} true if this domain resolves to sanbox url
-   */
-  private async resolvesToSandbox(createdOrgInstance?: string): Promise<boolean> {
-    if (this.isSandboxUrl(createdOrgInstance)) {
-      return true;
-    }
-    const myDomainResolver = await MyDomainResolver.create({ url: this });
-    const cnames: string[] = await myDomainResolver.getCnames();
-    return cnames.some((cname) => {
-      const url = new SfdcUrl(`https://${cname}`);
-      return url.isSandboxUrl();
-    });
+    return /\.lightning\.force\.com/.test(this.origin) || /\.lightning\.crmforce\.mil/.test(this.origin);
   }
 }

@@ -8,10 +8,11 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as stream from 'stream';
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as ZipArchiver from 'archiver';
 import { ZipWriter } from '../../../src/util/zipWriter';
+import { shouldThrow } from '../../../src/testSetup';
 
 class WritableFileStream extends fs.WriteStream {}
 class ReadableFileStream extends fs.ReadStream {}
@@ -180,8 +181,7 @@ describe('ZipWriter write to file', () => {
     const zipWriter = new ZipWriter(rootDestination);
     zipWriter.addToZip(contents, filename);
     try {
-      await zipWriter.finalize();
-      assert.fail();
+      await shouldThrow(zipWriter.finalize());
     } catch (error) {
       expect(error).to.exist;
     }

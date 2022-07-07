@@ -8,9 +8,9 @@ import * as childProcess from 'child_process';
 import * as _crypto from 'crypto';
 import * as os from 'os';
 import { AnyJson } from '@salesforce/ts-types';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
-import { testSetup } from '../../../src/testSetup';
+import { shouldThrow, testSetup } from '../../../src/testSetup';
 import { Cache } from '../../../src/util/cache';
 
 // Setup the test environment.
@@ -73,8 +73,7 @@ if (os.platform() === 'darwin') {
       spawnStub.withArgs(programArg, setOptionsArg).returns(spawnReturnFake);
 
       try {
-        await Crypto.create();
-        assert.fail('Should have thrown an SetCredentialError for Crypto.init()');
+        await shouldThrow(Crypto.create(), 'Should have thrown an SetCredentialError for Crypto.init()');
       } catch (err) {
         expect(err.name).to.equal('SetCredentialError');
         expect(err.message).to.equal(
@@ -98,8 +97,10 @@ if (os.platform() === 'darwin') {
       $$.SANDBOX.stub(childProcess, 'spawn').withArgs(programArg, optionsArg).returns(spawnReturnFake);
 
       try {
-        await Crypto.create({ retryStatus: 'KEY_SET' });
-        assert.fail('Should have thrown an PasswordNotFoundError for Crypto.init()');
+        await shouldThrow(
+          Crypto.create({ retryStatus: 'KEY_SET' }),
+          'Should have thrown an PasswordNotFoundError for Crypto.init()'
+        );
       } catch (err) {
         expect(err.name).to.equal('PasswordNotFoundError');
         expect(err.message).to.equal('Could not find password.\nstdout test data - stdout test data');
@@ -115,8 +116,7 @@ if (os.platform() === 'darwin') {
       $$.SANDBOX.stub(os, 'platform').returns(unsupportedOS);
 
       try {
-        await Crypto.create();
-        assert.fail('Should have thrown an UnsupportedOperatingSystemError for Crypto.init()');
+        await shouldThrow(Crypto.create(), 'Should have thrown an UnsupportedOperatingSystemError for Crypto.init()');
       } catch (err) {
         expect(err.name).to.equal('UnsupportedOperatingSystemError');
         expect(err.message).to.equal(`Unsupported Operating System: ${unsupportedOS}`);

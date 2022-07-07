@@ -7,21 +7,9 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
+import Ajv, { DefinedError } from 'ajv';
+import { AnyJson, JsonMap } from '@salesforce/ts-types';
 import { getJsonValuesByName, parseJsonMap } from '@salesforce/kit';
-import {
-  AnyJson,
-  asJsonArray,
-  asJsonMap,
-  Dictionary,
-  get,
-  getJsonArray,
-  isJsonMap,
-  isString,
-  JsonMap,
-  Optional,
-} from '@salesforce/ts-types';
-import * as validator from 'jsen';
-import { JsenValidateError } from 'jsen';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
 
@@ -96,51 +84,62 @@ export class SchemaValidator {
     const schema = this.loadSync();
     const externalSchemas = this.loadExternalSchemas(schema);
 
+    const ajv = new Ajv({
+      allErrors: true,
+      schemas: externalSchemas,
+      useDefaults: true,
+      // TODO: We may someday want to enable strictSchema. This is disabled for now
+      // because the CLI team does not "own" the @salesforce/schemas repository.
+      // Invalid schema would cause errors wherever SchemaValidator is used.
+      strictSchema: false,
+      // If we end up getting an npm-shrinkwrap working in the future we could turn this back off.
+      // https://github.com/forcedotcom/cli/issues/1493
+      validateSchema: false,
+    });
+
+    // JSEN to AJV migration note - regarding the following "TODO":
+    // I don't think that AJV has a way to throw an error if an additional property exists in the data
+    // It does however have a top level option for `removeAdditional` https://ajv.js.org/options.html#removeadditional
+    // Regardless, this would be a breaking changes and I do not think it should be implemented.
+
     // TODO: We should default to throw an error when a property is specified
     // that is not in the schema, but the only option to do this right now is
     // to specify "removeAdditional: false" in every object.
-    const validate = validator(schema, {
-      greedy: true,
-      schemas: externalSchemas,
-    });
+    const validate = ajv.compile(schema);
 
-    if (!validate(json)) {
+    // AJV will modify the original json object. We need to make a clone of the
+    // json to keep this backwards compatible with JSEN functionality
+    const jsonClone: AnyJson = JSON.parse(JSON.stringify(json));
+
+    const valid = validate(jsonClone);
+
+    if (!valid) {
       if (validate.errors) {
-        const errors = this.getErrorsText(validate.errors, schema);
+        const errors = this.getErrorsText(validate.errors as DefinedError[]);
         throw new SfError(`Validation errors:\n${errors}`, 'ValidationSchemaFieldError');
       } else {
         throw new SfError('Unknown schema validation error', 'ValidationSchemaUnknownError');
       }
     }
 
-    return validate.build(json);
+    // We return the cloned JSON because it will have defaults included
+    // This is configured with the 'useDefaults' option above.
+    return jsonClone;
   }
-
   /**
-   * Loads local, external schemas from URIs relative to the local schema file.  Does not support loading from
-   * remote URIs. Returns a map of external schema local URIs to loaded schema JSON objects.
+   * Loads local, external schemas from URIs in the same directory as the local schema file.
+   * Does not support loading from remote URIs.
+   * Returns a map of external schema local URIs to loaded schema JSON objects.
    *
-   * @param schema The main schema to validate against.
+   * @param schema The main schema to look up references ($ref) in.
+   * @returns An array of found referenced schemas.
    */
-  private loadExternalSchemas(schema: JsonMap): Dictionary<JsonMap> {
-    const externalSchemas: Dictionary<JsonMap> = {};
-    const schemas = getJsonValuesByName<string>(schema, '$ref')
-      // eslint-disable-next-line no-useless-escape
-      .map((ref) => ref && RegExp(/([\w\.]+)#/).exec(ref))
+  private loadExternalSchemas(schema: JsonMap): JsonMap[] {
+    return getJsonValuesByName<string>(schema, '$ref')
+      .map((ref) => ref && RegExp(/([\w\.]+)#/).exec(ref)) // eslint-disable-line no-useless-escape
       .map((match) => match && match[1])
       .filter((uri): uri is string => !!uri)
       .map((uri) => this.loadExternalSchema(uri));
-    schemas.forEach((externalSchema) => {
-      if (isString(externalSchema.id)) {
-        externalSchemas[externalSchema.id] = externalSchema;
-      } else {
-        throw new SfError(
-          `Unexpected external schema id type: ${typeof externalSchema.id}`,
-          'ValidationSchemaTypeError'
-        );
-      }
-    });
-    return externalSchemas;
   }
 
   /**
@@ -162,52 +161,22 @@ export class SchemaValidator {
 
   /**
    * Get a string representation of the schema validation errors.
+   * Adds additional (human friendly) information to certain errors.
    *
-   * @param errors An array of JsenValidateError objects.
-   * @param schema The validation schema.
+   * @param errors An array of AJV (DefinedError) objects.
    */
-  private getErrorsText(errors: JsenValidateError[], schema: JsonMap): string {
+  private getErrorsText(errors: DefinedError[]): string {
     return errors
       .map((error) => {
-        // eslint-disable-next-line no-useless-escape
-        const property = RegExp(/^([a-zA-Z0-9\.]+)\.([a-zA-Z0-9]+)$/).exec(error.path);
-
-        const getPropValue = (prop: string): Optional<AnyJson> => {
-          const reducer = (obj: Optional<AnyJson>, name: string): Optional<AnyJson> => {
-            if (!isJsonMap(obj)) return;
-            if (isJsonMap(obj.properties)) return obj.properties[name];
-            if (name === '0') return asJsonArray(obj.items);
-            return obj[name] || obj[prop];
-          };
-          return error.path.split('.').reduce(reducer, schema);
-        };
-
-        const getEnumValues = (): string => {
-          const enumSchema = asJsonMap(getPropValue('enum'));
-          return (enumSchema && getJsonArray(enumSchema, 'enum', []).join(', ')) || '';
-        };
+        const msg = `${error.schemaPath}: ${error.message}`;
 
         switch (error.keyword) {
           case 'additionalProperties':
-            // Missing Typing
-            // eslint-disable-next-line no-case-declarations
-            const additionalProperties = get(error, 'additionalProperties');
-            return `${error.path} should NOT have additional properties '${additionalProperties}'`;
-          case 'required':
-            if (property) {
-              return `${property[1]} should have required property ${property[2]}`;
-            }
-            return `should have required property '${error.path}'`;
-          case 'oneOf':
-            return `${error.path} should match exactly one schema in oneOf`;
+            return `${msg} '${error.params.additionalProperty}'`;
           case 'enum':
-            return `${error.path} should be equal to one of the allowed values ${getEnumValues()}`;
-          case 'type': {
-            const _path = error.path === '' ? 'Root of JSON object' : error.path;
-            return `${_path} is an invalid type.  Expected type [${getPropValue('type')}]`;
-          }
+            return `${msg} '${error.params.allowedValues.join(', ')}'`;
           default:
-            return `${error.path} invalid ${error.keyword}`;
+            return msg;
         }
       })
       .join('\n');

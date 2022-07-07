@@ -9,7 +9,7 @@ import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
 import { AnyJson, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { EnvVars } from './envVars';
-import { Config, ConfigPropertyMeta } from './config';
+import { Config, ConfigPropertyMeta, SfdxPropertyKeys, SFDX_ALLOWED_PROPERTIES } from './config';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'config', ['unknownConfigKey', 'deprecatedConfigKey']);
@@ -73,15 +73,15 @@ export interface ConfigInfo {
  * console.log(aggregator.getPropertyValue('target-org'));
  * ```
  */
-export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
-  private static instance: AsyncOptionalCreatable;
-  private static encrypted = true;
+export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Options> {
+  protected static instance: AsyncOptionalCreatable;
+  protected static encrypted = true;
 
   // Initialized in loadProperties
   private allowedProperties!: ConfigPropertyMeta[];
   private localConfig?: Config;
   private globalConfig: Config;
-  private envVars!: EnvVars;
+  private envVars: Dictionary<string> = {};
 
   private get config(): JsonMap {
     return this.resolveProperties(this.globalConfig.getContents(), this.localConfig && this.localConfig.getContents());
@@ -92,7 +92,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    *
    * @ignore
    */
-  public constructor(options?: JsonMap) {
+  public constructor(options?: ConfigAggregator.Options) {
     super(options || {});
 
     // Don't throw an project error with the aggregator, since it should resolve to global if
@@ -113,16 +113,20 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
   public static async create<P, T extends AsyncOptionalCreatable<P>>(
-    this: new (options?: P) => T,
-    options?: P
+    this: new (options?: ConfigAggregator.Options) => T,
+    options?: ConfigAggregator.Options
   ): Promise<T> {
-    let config: ConfigAggregator = ConfigAggregator.instance as ConfigAggregator;
+    let config = ConfigAggregator.instance as ConfigAggregator;
     if (!config) {
       config = ConfigAggregator.instance = new this(options) as unknown as ConfigAggregator;
       await config.init();
     }
     if (ConfigAggregator.encrypted) {
       await config.loadProperties();
+    }
+
+    if (options?.customConfigMeta) {
+      Config.addAllowedProperties(options.customConfigMeta);
     }
     return ConfigAggregator.instance as T;
   }
@@ -168,7 +172,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    */
   public getPropertyValue<T extends AnyJson>(key: string): Optional<T> {
     if (this.getAllowedProperties().some((element) => key === element.key)) {
-      return (this.getConfig()[key] as T) || (this.getEnvVars().get(key) as T);
+      return this.getConfig()[key] as T;
     } else {
       throw messages.createError('unknownConfigKey', [key]);
     }
@@ -226,7 +230,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * @param key The key of the property.
    */
   public getLocation(key: string): Optional<ConfigAggregator.Location> {
-    if (this.getEnvVars().get(key) != null) {
+    if (this.envVars[key] != null) {
       return ConfigAggregator.Location.ENVIRONMENT;
     }
     if (this.localConfig && this.localConfig.get(key)) {
@@ -252,8 +256,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
    * @param key The key of the property.
    */
   public getPath(key: string): Optional<string> {
-    if (this.envVars.getString(key) != null) {
-      return `$${this.envVars.propertyToEnvName(key)}`;
+    if (this.envVars[key] != null) {
+      return `$${EnvVars.propertyToEnvName(key)}`;
     }
     if (this.localConfig && this.localConfig.getContents()[key] != null) {
       return this.localConfig.getPath();
@@ -306,8 +310,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   /**
    * Get the config properties that are environment variables.
    */
-  public getEnvVars(): Map<string, string> {
-    return this.envVars.asMap();
+  public getEnvVars(): Dictionary<string> {
+    return this.envVars;
   }
 
   /**
@@ -348,7 +352,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   /**
    * Loads all the properties and aggregates them according to location.
    */
-  private async loadProperties(): Promise<void> {
+  protected async loadProperties(): Promise<void> {
     this.resolveProperties(await this.globalConfig.read(), this.localConfig && (await this.localConfig.read()));
     ConfigAggregator.encrypted = false;
   }
@@ -361,10 +365,11 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
   }
 
   private resolveProperties(globalConfig: JsonMap, localConfig?: JsonMap): JsonMap {
-    this.envVars = new EnvVars();
-
+    const envVars = new EnvVars();
     for (const property of this.getAllowedProperties()) {
-      this.envVars.setPropertyFromEnv(property.key);
+      const key = property.newKey ? property.newKey : property.key;
+      const value = envVars.getPropertyFromEnv(property.key);
+      if (value) this.envVars[key] = value as string;
     }
 
     // Global config must be read first so it is on the left hand of the
@@ -377,7 +382,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<JsonMap> {
       configs.push(localConfig);
     }
 
-    configs.push(this.envVars.asDictionary() as Dictionary<string>);
+    configs.push(this.envVars);
 
     const json: JsonMap = {};
     const reduced = configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
@@ -405,13 +410,48 @@ export namespace ConfigAggregator {
      */
     ENVIRONMENT = 'Environment',
   }
+
+  export type Options = {
+    customConfigMeta?: ConfigPropertyMeta[];
+  };
 }
 
 /**
  * A ConfigAggregator that will work with deprecated config vars (e.g. defaultusername, apiVersion).
  * We do NOT recommend using this class unless you absolutelty have to.
+ *
+ * @deprecated
  */
 export class SfdxConfigAggregator extends ConfigAggregator {
+  protected static instance: AsyncOptionalCreatable;
+  protected static encrypted = true;
+
+  public static async create<P, T extends AsyncOptionalCreatable<P>>(
+    this: new (options?: ConfigAggregator.Options) => T,
+    options: ConfigAggregator.Options = {}
+  ): Promise<T> {
+    const customConfigMeta = options.customConfigMeta || [];
+    // org-metadata-rest-deploy has been moved to plugin-deploy-retrieve but we need to have a placeholder
+    // for it here since sfdx needs to know how to set the deprecated restDeploy config var.
+    const restDeploy = SFDX_ALLOWED_PROPERTIES.find((p) => p.key === SfdxPropertyKeys.REST_DEPLOY);
+    const orgRestDeploy = Object.assign({}, restDeploy, { key: 'org-metadata-rest-deploy', deprecated: false });
+    options.customConfigMeta = [...customConfigMeta, orgRestDeploy];
+
+    let config = SfdxConfigAggregator.instance as SfdxConfigAggregator;
+    if (!config) {
+      config = SfdxConfigAggregator.instance = new this(options) as unknown as SfdxConfigAggregator;
+      await config.init();
+    }
+    if (SfdxConfigAggregator.encrypted) {
+      await config.loadProperties();
+    }
+
+    if (options?.customConfigMeta) {
+      Config.addAllowedProperties(options.customConfigMeta);
+    }
+    return SfdxConfigAggregator.instance as T;
+  }
+
   public getPropertyMeta(key: string): ConfigPropertyMeta {
     const match = this.getAllowedProperties().find((element) => key === element.key);
     if (match?.deprecated && match?.newKey) {
@@ -428,7 +468,9 @@ export class SfdxConfigAggregator extends ConfigAggregator {
   }
 
   public getInfo(key: string): ConfigInfo {
-    return super.getInfo(this.translate(key));
+    const info = super.getInfo(this.translate(key));
+    info.key = this.translate(info.key, 'toOld');
+    return info;
   }
 
   public getLocation(key: string): Optional<ConfigAggregator.Location> {

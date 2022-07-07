@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Duration } from '@salesforce/kit';
-import { ensureString, getString } from '@salesforce/ts-types';
+import { ensureString } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { Logger } from '../logger';
 import { ConfigAggregator } from '../config/configAggregator';
 import { SfProject } from '../sfProject';
-import { GlobalInfo } from '../globalInfo';
+import { StateAggregator } from '../stateAggregator';
 import { Org } from './org';
 import {
   authorizeScratchOrg,
@@ -30,7 +30,6 @@ import { validateScratchOrgInfoForResume } from './scratchOrgErrorCodes';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', [
-  'SourceStatusResetFailureError',
   'DurationDaysValidationMaxError',
   'DurationDaysValidationMinError',
   'RetryNotIntError',
@@ -89,6 +88,8 @@ export interface ScratchOrgCreateOptions {
   alias?: string;
   /** after complete, set the org as the default */
   setDefault?: boolean;
+  /** do not use source tracking for this org */
+  tracksSource?: boolean;
 }
 
 const validateDuration = (durationDays: number): void => {
@@ -122,8 +123,16 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
   if (!cache.has(jobId)) {
     throw messages.createError('CacheMissError', [jobId]);
   }
-  const { hubUsername, apiVersion, clientSecret, signupTargetLoginUrlConfig, definitionjson, alias, setDefault } =
-    cache.get(jobId);
+  const {
+    hubUsername,
+    apiVersion,
+    clientSecret,
+    signupTargetLoginUrlConfig,
+    definitionjson,
+    alias,
+    setDefault,
+    tracksSource,
+  } = cache.get(jobId);
 
   const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
   const soi = await queryScratchOrgInfo(hubOrg, jobId);
@@ -134,12 +143,10 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
   // Some hubs have all the usernames set to `null`
   const username = soi.Username ?? soi.SignupUsername;
 
-  // re-auth only if the org isn't in GlobalInfo
-  const globalInfo = await GlobalInfo.getInstance();
-  const scratchOrgAuthInfo = globalInfo.orgs.has(username)
-    ? await AuthInfo.create({
-        username,
-      })
+  // re-auth only if the org isn't in StateAggregator
+  const stateAggregator = await StateAggregator.getInstance();
+  const scratchOrgAuthInfo = (await stateAggregator.orgs.exists(username))
+    ? await AuthInfo.create({ username })
     : await authorizeScratchOrg({
         scratchOrgInfoComplete: soi,
         hubOrg,
@@ -168,6 +175,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     alias,
     setDefault: setDefault ?? false,
     setDefaultDevHub: false,
+    setTracksSource: tracksSource ?? true,
   });
   cache.unset(soi.Id ?? jobId);
   const authFields = authInfo.getFields();
@@ -203,6 +211,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     clientSecret = undefined,
     alias,
     setDefault = false,
+    tracksSource = true,
   } = options;
 
   validateDuration(durationDays);
@@ -236,7 +245,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     getSignupTargetLoginUrl(),
   ]);
 
-  const scratchOrgInfoId = ensureString(getString(scratchOrgInfoRequestResult, 'id'));
+  const scratchOrgInfoId = ensureString(scratchOrgInfoRequestResult.id);
   const cache = await ScratchOrgCache.create();
   cache.set(scratchOrgInfoId, {
     hubUsername: hubOrg.getUsername(),
@@ -245,6 +254,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     clientSecret,
     alias,
     setDefault,
+    tracksSource,
   });
   await cache.write();
   logger.debug(`scratch org has recordId ${scratchOrgInfoId}`);
@@ -290,9 +300,12 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   ]);
 
   await scratchOrgAuthInfo.handleAliasAndDefaultSettings({
-    alias,
-    setDefault,
-    setDefaultDevHub: false,
+    ...{
+      alias,
+      setDefault,
+      setDefaultDevHub: false,
+      setTracksSource: tracksSource === false ? false : true,
+    },
   });
   cache.unset(scratchOrgInfoId);
   const authFields = authInfo.getFields();

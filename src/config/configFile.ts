@@ -91,7 +91,7 @@ export class ConfigFile<
       isGlobal,
       isState: true,
       filename: filename || this.getFileName(),
-      stateFolder: Global.SF_STATE_FOLDER,
+      stateFolder: Global.SFDX_STATE_FOLDER,
     };
   }
 

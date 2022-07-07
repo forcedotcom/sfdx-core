@@ -1,5 +1,12 @@
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import * as sfdxCore from '@salesforce/core';
-import * as _ from 'lodash';
 
 console.log('\n*** Exported Sfdx-Core Modules ***');
-_.forEach(sfdxCore, (v, k) => console.log(`sfdx-core: ${k}`));
+Object.keys(sfdxCore)
+  .sort()
+  .forEach((module) => console.log(`sfdx-core: ${module}`));
