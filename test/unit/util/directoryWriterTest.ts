@@ -7,51 +7,68 @@
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as stream from 'stream';
-import { expect } from 'chai';
+import { Readable } from 'stream';
+import * as chai from 'chai';
+import * as chaiString from 'chai-string';
 import * as sinon from 'sinon';
 import * as ZipArchiver from 'archiver';
 import { ZipWriter } from '../../../src/util/zipWriter';
 import { shouldThrow } from '../../../src/testSetup';
+import { DirectoryWriter } from '../../../lib/util/directoryWriter';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { expect } = chai;
+chai.use(chaiString);
 
 class WritableFileStream extends fs.WriteStream {}
 class ReadableFileStream extends fs.ReadStream {}
 
-describe('ZipWriter', () => {
-  const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-  const appendStub = sandbox
-    .stub()
-    .callsFake(
-      (
-        source: string | stream.Readable | Buffer,
-        data?: ZipArchiver.EntryData | ZipArchiver.ZipEntryData | undefined
-      ) => {
-        expect(source).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(data).to.be.a('object').and.to.have.property('name');
-      }
-    );
-  const createMock = {
-    append: appendStub,
-  } as unknown as ZipArchiver.Archiver;
+function expectFileContents(filePath: string, expectedContents: string): void {
+  const fileContents = fs.readFileSync(filePath, 'utf8');
+  expect(fileContents).to.equal(expectedContents);
+}
 
-  beforeEach(() => {
-    sandbox.stub(ZipArchiver, 'create').returns(createMock);
-  });
+describe('DirectoryWriter', () => {
+  const sandbox: sinon.SinonSandbox = sinon.createSandbox();
+
+  beforeEach(() => {});
 
   afterEach(() => {
     sandbox.restore();
   });
 
-  it('addToStore', () => {
+  it('addToStore - string', async () => {
     const contents = 'my-contents';
     const filename = 'path/to/my-file.xml';
-    const zipWriter = new ZipWriter();
-    zipWriter.addToStore(contents, filename);
-    expect(appendStub.callCount).to.equal(1);
-    expect(appendStub.firstCall.args[0]).to.equal(contents);
-    expect(appendStub.firstCall.args[1]).to.deep.equal({
-      name: filename,
-    });
+    const directoryWriter = new DirectoryWriter();
+    const directoryPath = directoryWriter.getDestinationPath();
+    expect(directoryPath).to.startWith(os.tmpdir());
+    directoryWriter.addToStore(contents, filename);
+    await directoryWriter.finalize();
+    expect(fs.existsSync(path.join(directoryPath, filename))).to.be.true;
+    expectFileContents(path.join(directoryPath, filename), contents);
+  });
+  it('addToStore - Buffer', async () => {
+    const contents = new Buffer('my-contents');
+    const filename = 'path/to/my-file.xml';
+    const directoryWriter = new DirectoryWriter();
+    const directoryPath = directoryWriter.getDestinationPath();
+    expect(directoryPath).to.startWith(os.tmpdir());
+    directoryWriter.addToStore(contents, filename);
+    await directoryWriter.finalize();
+    expect(fs.existsSync(path.join(directoryPath, filename))).to.be.true;
+    expectFileContents(path.join(directoryPath, filename), contents.toString());
+  });
+  it('addToStore - Readable', async () => {
+    const contents = Readable.from('my-contents', { objectMode: false });
+    const filename = 'path/to/my-file.xml';
+    const directoryWriter = new DirectoryWriter();
+    const directoryPath = directoryWriter.getDestinationPath();
+    expect(directoryPath).to.startWith(os.tmpdir());
+    directoryWriter.addToStore(contents, filename);
+    await directoryWriter.finalize();
+    expect(fs.existsSync(path.join(directoryPath, filename))).to.be.true;
+    expectFileContents(path.join(directoryPath, filename), 'my-contents');
   });
 });
 

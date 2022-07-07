@@ -9,28 +9,33 @@ import { createWriteStream, createReadStream } from 'fs';
 import { pipeline as cbPipeline, Readable, Writable } from 'stream';
 import { promisify } from 'util';
 import { Archiver, create as createArchive } from 'archiver';
+import { StructuredWriter } from './structuredWriter';
 
-export const pipeline = promisify(cbPipeline);
+const pipeline = promisify(cbPipeline);
 
-export class ZipWriter extends Writable {
+export class ZipWriter extends Writable implements StructuredWriter {
   // compression-/speed+ (0)<---(3)---------->(9) compression+/speed-
   // 3 appears to be a decent balance of compression and speed. It felt like
   // higher values = diminishing returns on compression and made conversion slower
   private zip: Archiver = createArchive('zip', { zlib: { level: 3 } });
   private buffers: Buffer[] = [];
 
-  public constructor(private rootDestination?: string) {
+  public constructor(private readonly rootDestination?: string) {
     super({ objectMode: true });
     void pipeline(this.zip, this.getOutputStream());
   }
 
-  public addToZip(contents: string | Readable | Buffer, path: string): void {
+  public addToStore(contents: string | Readable | Buffer, path: string): void {
     this.zip.append(contents, { name: path });
   }
 
   public async finalize(): Promise<void> {
     await this.zip.finalize();
     await this.getInputBuffer();
+  }
+
+  public getDestinationPath(): string | 'memory' | undefined {
+    return this.rootDestination || 'memory';
   }
 
   private getOutputStream(): Writable {

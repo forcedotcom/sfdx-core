@@ -97,7 +97,7 @@ const deployId = '12345';
 
 function createStubs() {
   adminTestData = new MockTestOrgData();
-  addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
+  addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
     expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
     expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
   });
@@ -159,7 +159,7 @@ describe('scratchOrgSettingsGenerator', () => {
 
   describe('createDeploy', () => {
     beforeEach(() => {
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
         expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
@@ -248,7 +248,7 @@ describe('scratchOrgSettingsGenerator', () => {
   describe('deploySettingsViaFolder succeeded partial', () => {
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
         expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
@@ -308,7 +308,7 @@ describe('scratchOrgSettingsGenerator', () => {
   describe('deploySettingsViaFolder fails', () => {
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
         expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
@@ -368,7 +368,7 @@ describe('scratchOrgSettingsGenerator', () => {
   describe('deploySettingsViaFolder pools', () => {
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
         expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
@@ -472,7 +472,7 @@ describe('scratchOrgSettingsGenerator', () => {
     beforeEach(async () => {
       clock = sandbox.useFakeTimers();
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
         expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
@@ -512,7 +512,7 @@ describe('scratchOrgSettingsGenerator', () => {
 
   describe('writeObjectSettingsIfNeeded', () => {
     beforeEach(() => {
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
+      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
         expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
         expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
       });
@@ -836,7 +836,7 @@ describe('scratchOrgSettingsGenerator', () => {
     it('createObjectFileContent writes business process', () => {
       const packageFile = createObjectFileContent({
         apiVersion: '54',
-        allbusinessProcesses,
+        allBusinessProcesses: allbusinessProcesses,
         settingData,
         objectSettingsData,
       });
