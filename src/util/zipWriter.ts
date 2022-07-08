@@ -25,8 +25,9 @@ export class ZipWriter extends Writable implements StructuredWriter {
     void pipeline(this.zip, this.getOutputStream());
   }
 
-  public addToStore(contents: string | Readable | Buffer, path: string): void {
+  public async addToStore(contents: string | Readable | Buffer, path: string): Promise<void> {
     this.zip.append(contents, { name: path });
+    return Promise.resolve();
   }
 
   public async finalize(): Promise<void> {

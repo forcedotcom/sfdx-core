@@ -97,10 +97,13 @@ const deployId = '12345';
 
 function createStubs() {
   adminTestData = new MockTestOrgData();
-  addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
-    expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-    expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-  });
+  addToZipStub = sandbox
+    .stub(ZipWriter.prototype, 'addToStore')
+    .callsFake((contents: string, filepath: string): Promise<void> => {
+      expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+      expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+      return;
+    });
   finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
   sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
     return Promise.resolve({
@@ -159,10 +162,13 @@ describe('scratchOrgSettingsGenerator', () => {
 
   describe('createDeploy', () => {
     beforeEach(() => {
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
     });
 
     afterEach(() => {
@@ -248,10 +254,13 @@ describe('scratchOrgSettingsGenerator', () => {
   describe('deploySettingsViaFolder succeeded partial', () => {
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
         return Promise.resolve({
@@ -308,10 +317,13 @@ describe('scratchOrgSettingsGenerator', () => {
   describe('deploySettingsViaFolder fails', () => {
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
         return Promise.resolve({
@@ -368,10 +380,13 @@ describe('scratchOrgSettingsGenerator', () => {
   describe('deploySettingsViaFolder pools', () => {
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
         return Promise.resolve({
@@ -472,10 +487,13 @@ describe('scratchOrgSettingsGenerator', () => {
     beforeEach(async () => {
       clock = sandbox.useFakeTimers();
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
         return Promise.resolve({
@@ -512,10 +530,13 @@ describe('scratchOrgSettingsGenerator', () => {
 
   describe('writeObjectSettingsIfNeeded', () => {
     beforeEach(() => {
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToStore').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
     });
 
     afterEach(() => {

@@ -306,7 +306,7 @@ export default class SettingsGenerator {
       objectSettingsData: this.objectSettingsData,
     });
     const xml = js2xmlparser.parse('Package', packageObjectProps);
-    this.writer.addToStore(xml, this.packageFilePath);
+    await this.writer.addToStore(xml, this.packageFilePath);
     await this.writer.finalize();
   }
 
@@ -332,7 +332,7 @@ export default class SettingsGenerator {
           allbusinessProcesses
         );
         const xml = js2xmlparser.parse('CustomObject', fileContent);
-        this.writer.addToStore(xml, path.join(objectsDir, upperFirst(item) + '.object'));
+        await this.writer.addToStore(xml, path.join(objectsDir, upperFirst(item) + '.object'));
       }
     }
   }
@@ -344,7 +344,7 @@ export default class SettingsGenerator {
         const typeName = upperFirst(item);
         const fname = typeName.replace('Settings', '');
         const fileContent = js2xmlparser.parse(typeName, value);
-        this.writer.addToStore(fileContent, path.join(settingsDir, fname + '.settings'));
+        await this.writer.addToStore(fileContent, path.join(settingsDir, fname + '.settings'));
       }
     }
   }

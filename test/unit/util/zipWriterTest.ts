@@ -179,7 +179,8 @@ describe('ZipWriter write to file', () => {
     const contents = 'my-contents';
     const filename = 'my-file.xml';
     const zipWriter = new ZipWriter(rootDestination);
-    zipWriter.addToStore(contents, filename);
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await zipWriter.addToStore(contents, filename);
     try {
       await shouldThrow(zipWriter.finalize());
     } catch (error) {

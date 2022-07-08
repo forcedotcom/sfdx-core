@@ -7,7 +7,7 @@
 import { Readable } from 'stream';
 
 export interface StructuredWriter {
-  addToStore(contents: string | Readable | Buffer, path: string): void;
+  addToStore(contents: string | Readable | Buffer, path: string): Promise<void>;
   finalize(): Promise<void>;
   getDestinationPath(): string | 'memory' | undefined;
   get buffer(): Buffer;
