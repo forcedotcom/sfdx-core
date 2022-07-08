@@ -178,7 +178,6 @@ export const createRecordTypeAndBusinessProcessFileContent = (
  * settings from the definition, how to expand them into a MD directory and how to generate a package.xml.
  */
 export default class SettingsGenerator {
-  private readonly storePath: string | undefined;
   private settingData?: Record<string, unknown>;
   private objectSettingsData?: { [objectName: string]: ObjectSetting };
   private logger: Logger;
@@ -194,12 +193,13 @@ export default class SettingsGenerator {
     const mdApiTmpDir = options?.mdApiTmpDir || env.getString('SFDX_MDAPI_TEMP_DIR');
     this.shapeDirName = options?.shapeDirName || `shape_${Date.now()}`;
     this.packageFilePath = path.join(this.shapeDirName, 'package.xml');
+    let storePath;
     if (!options?.asDirectory) {
-      this.storePath = mdApiTmpDir ? path.join(mdApiTmpDir, `${this.shapeDirName}.zip`) : undefined;
-      this.writer = new ZipWriter(this.storePath);
+      storePath = mdApiTmpDir ? path.join(mdApiTmpDir, `${this.shapeDirName}.zip`) : undefined;
+      this.writer = new ZipWriter(storePath);
     } else {
-      this.storePath = mdApiTmpDir ? path.join(mdApiTmpDir, this.shapeDirName) : undefined;
-      this.writer = new DirectoryWriter(this.storePath);
+      storePath = mdApiTmpDir ? path.join(mdApiTmpDir, this.shapeDirName) : undefined;
+      this.writer = new DirectoryWriter(storePath);
     }
   }
 
@@ -314,8 +314,12 @@ export default class SettingsGenerator {
     return this.shapeDirName;
   }
 
-  public getZipFilePath(): string | undefined {
-    return this.storePath;
+  /**
+   * Returns the destination where the writer placed the settings content.
+   *
+   */
+  public getDestinationPath(): string | undefined {
+    return this.writer.getDestinationPath();
   }
 
   private async writeObjectSettingsIfNeeded(

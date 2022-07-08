@@ -35,8 +35,8 @@ export class ZipWriter extends Writable implements StructuredWriter {
     await this.getInputBuffer();
   }
 
-  public getDestinationPath(): string | 'memory' | undefined {
-    return this.rootDestination || 'memory';
+  public getDestinationPath(): string | undefined {
+    return this.rootDestination;
   }
 
   private getOutputStream(): Writable {
