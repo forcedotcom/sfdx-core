@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.23.7](https://github.com/forcedotcom/sfdx-core/compare/v3.23.6...v3.23.7) (2022-07-08)
+
+### Bug Fixes
+
+- add structure writer interface and refactor ([daef19c](https://github.com/forcedotcom/sfdx-core/commit/daef19cb3a4d145ebb22c4f721a1bd47ffddce40))
+
 ### [3.23.6](https://github.com/forcedotcom/sfdx-core/compare/v3.23.5...v3.23.6) (2022-07-06)
 
 ### Bug Fixes
