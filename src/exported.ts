@@ -6,7 +6,7 @@
  */
 
 import { Messages } from './messages';
-Messages.importMessagesDirectory(__dirname);
+Messages.importMessagesDirectory(__dirname, true, '@salesforce/core');
 
 export { OAuth2Options } from 'jsforce';
 

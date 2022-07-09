@@ -220,12 +220,13 @@ export class Messages {
    * @param truncateToProjectPath Will look for the messages directory in the project root (where the package.json file is located).
    * i.e., the module is typescript and the messages folder is in the top level of the module directory.
    * @param packageName The npm package name. Figured out from the root directory's package.json.
+   * @returns {boolean} true if message directory was found
    */
   public static importMessagesDirectory(
     moduleDirectoryPath: string,
     truncateToProjectPath = true,
     packageName?: string
-  ): void {
+  ): boolean {
     let moduleMessagesDirPath = moduleDirectoryPath;
     let projectRoot = moduleDirectoryPath;
 
@@ -261,19 +262,23 @@ export class Messages {
 
     moduleMessagesDirPath += `${path.sep}messages`;
 
-    for (const file of fs.readdirSync(moduleMessagesDirPath)) {
-      const filePath = path.join(moduleMessagesDirPath, file);
-      const stat = fs.statSync(filePath);
+    if (fs.existsSync(moduleMessagesDirPath)) {
+      for (const file of fs.readdirSync(moduleMessagesDirPath)) {
+        const filePath = path.join(moduleMessagesDirPath, file);
+        const stat = fs.statSync(filePath);
 
-      if (stat) {
-        if (stat.isDirectory()) {
-          // When we support other locales, load them from /messages/<local>/<bundleName>.json
-          // Change generateFileLoaderFunction to handle loading locales.
-        } else if (stat.isFile()) {
-          this.importMessageFile(packageName, filePath);
+        if (stat) {
+          if (stat.isDirectory()) {
+            // When we support other locales, load them from /messages/<local>/<bundleName>.json
+            // Change generateFileLoaderFunction to handle loading locales.
+          } else if (stat.isFile()) {
+            this.importMessageFile(packageName, filePath);
+          }
         }
       }
+      return true;
     }
+    return false;
   }
 
   /**
