@@ -26,8 +26,6 @@ const defaultConnectedAppInfo = {
   legacyClientId: 'SalesforceDevelopmentExperience',
   legacyClientSecret: '1384510088588713504',
 };
-Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
 
 type PartialScratchOrgInfo = Pick<
   ScratchOrgInfo,
@@ -76,6 +74,7 @@ const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unk
     );
 
     if (foundInvalidFields.length > 0) {
+      const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
       throw new SfdxError(
         messages.getMessage('unsupportedSnapshotOrgCreateOptions', [foundInvalidFields.join(', ')]),
         'orgSnapshot'
@@ -96,6 +95,8 @@ export const getAncestorIds = async (
   projectJson: SfdxProjectJson,
   hubOrg: Org
 ): Promise<string> => {
+  const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
+
   if (Reflect.has(scratchOrgInfo, 'package2AncestorIds')) {
     throw new SfdxError(messages.getMessage('errorpackage2AncestorIdsKeyNotSupported'), 'DeprecationError');
   }

@@ -17,8 +17,6 @@ import { fs } from '../util/fs';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
 import { BaseConfigStore, ConfigContents } from './configStore';
 
-Messages.importMessagesDirectory(pathJoin(__dirname));
-
 /**
  * Represents a json config file used to manage settings and state. Global config
  * files are stored in the home directory hidden state folder (.sfdx) and local config

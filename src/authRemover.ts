@@ -17,9 +17,6 @@ import { Logger } from './logger';
 import { Messages } from './messages';
 import { SfdxError } from './sfdxError';
 
-Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'auth');
-
 export type AuthConfigs = Map<string, AuthInfoConfig>;
 
 /**
@@ -54,6 +51,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
   private localConfig: Nullable<Config>;
   private logger!: Logger;
   private aliases!: Aliases;
+  private messages = Messages.loadMessages('@salesforce/core', 'auth');
 
   /**
    * Removes the authentication and any configs or aliases associated with it
@@ -161,8 +159,8 @@ export class AuthRemover extends AsyncOptionalCreatable {
     const configAggregator = await ConfigAggregator.create();
     const defaultUsername = configAggregator.getInfo(Config.DEFAULT_USERNAME).value;
     if (!defaultUsername) {
-      const message = messages.getMessage('defaultOrgNotFound', ['defaultusername']);
-      const action = messages.getMessage('defaultOrgNotFoundActions');
+      const message = this.messages.getMessage('defaultOrgNotFound', ['defaultusername']);
+      const action = this.messages.getMessage('defaultOrgNotFoundActions');
       throw new SfdxError(message, 'NoOrgFound', [action]);
     } else {
       const authFileName = `${await this.resolveUsername(defaultUsername as string)}.json`;

@@ -14,8 +14,6 @@ import { isString } from '@salesforce/ts-types';
 
 // Local
 import { Messages } from './messages';
-Messages.importMessagesDirectory(__dirname);
-const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgFeatureDeprecation');
 
 const FEATURE_TYPES = {
   // simpleFeatureMapping holds a set of direct replacement values for features.
@@ -45,6 +43,7 @@ interface FeatureTypes {
 
 export class ScratchOrgFeatureDeprecation {
   private featureTypes: FeatureTypes;
+  private messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgFeatureDeprecation');
   // Allow override for testing.
   public constructor(options: FeatureTypes = FEATURE_TYPES) {
     this.featureTypes = options;
@@ -74,7 +73,7 @@ export class ScratchOrgFeatureDeprecation {
     Object.keys(this.featureTypes.quantifiedFeatureMapping).forEach((key) => {
       if (new RegExp(`${key};|${key},|${key}$`, 'i').test(requestedFeatures)) {
         featureWarningMessages.push(
-          messages.getMessage('quantifiedFeatureWithoutQuantityWarning', [
+          this.messages.getMessage('quantifiedFeatureWithoutQuantityWarning', [
             key,
             this.featureTypes.quantifiedFeatureMapping[key],
           ])
@@ -85,13 +84,13 @@ export class ScratchOrgFeatureDeprecation {
     Object.keys(this.featureTypes.simpleFeatureMapping).forEach((key) => {
       if (new RegExp(`${key};|${key},|${key}$`, 'i').test(requestedFeatures)) {
         const tokens = '[' + this.featureTypes.simpleFeatureMapping[key].map((v) => "'" + v + "'").join(',') + ']';
-        featureWarningMessages.push(messages.getMessage('mappedFeatureWarning', [key, tokens]));
+        featureWarningMessages.push(this.messages.getMessage('mappedFeatureWarning', [key, tokens]));
       }
     });
     /* If a deprecated feature is identified as deprecated, throw a warning.*/
     this.featureTypes.deprecatedFeatures.forEach((deprecatedFeature) => {
       if (requestedFeatures.includes(deprecatedFeature)) {
-        featureWarningMessages.push(messages.getMessage('deprecatedFeatureWarning', [deprecatedFeature]));
+        featureWarningMessages.push(this.messages.getMessage('deprecatedFeatureWarning', [deprecatedFeature]));
       }
     });
     return featureWarningMessages;

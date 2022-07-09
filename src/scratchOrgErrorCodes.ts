@@ -13,14 +13,12 @@ import { ScratchOrgInfo } from './scratchOrgInfoApi';
 
 const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 
-Messages.importMessagesDirectory(__dirname);
-const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
-
 // getMessage will throw when the code isn't found
 // and we don't know whether a given code takes arguments or not
 const optionalErrorCodeMessage = (errorCode: string, args: string[]): string | undefined => {
   try {
     // only apply args if message requires them
+    const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
     let message = messages.getMessage(errorCode);
     if (message.includes('%s')) {
       message = messages.getMessage(errorCode, args);
@@ -37,6 +35,8 @@ export const checkScratchOrgInfoForErrors = (
   hubUsername: Optional<string>,
   logger: Logger
 ): ScratchOrgInfo => {
+  const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
+
   if (!orgInfo) {
     throw new SfdxError('No scratch org info found.', 'ScratchOrgInfoNotFound');
   }

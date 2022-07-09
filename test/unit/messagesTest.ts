@@ -112,6 +112,7 @@ describe('Messages', () => {
 
   describe('importMessagesDirectory', () => {
     let importMessageFileStub;
+    let existsSyncStub;
     let readdirSyncStub;
     let statSyncStub;
 
@@ -124,6 +125,8 @@ describe('Messages', () => {
 
     beforeEach(() => {
       importMessageFileStub = $$.SANDBOX.stub(Messages, 'importMessageFile');
+      existsSyncStub = $$.SANDBOX.stub(fs, 'existsSync');
+      existsSyncStub.returns(true);
       readdirSyncStub = $$.SANDBOX.stub(fs, 'readdirSync');
       readdirSyncStub.returns(msgFiles);
       statSyncStub = $$.SANDBOX.stub(fs, 'statSync');

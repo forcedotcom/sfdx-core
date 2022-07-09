@@ -8,7 +8,6 @@
 
 import * as crypto from 'crypto';
 import * as os from 'os';
-import { join as pathJoin } from 'path';
 import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, env } from '@salesforce/kit';
 import { retrieveKeychain } from './keyChain';
@@ -24,8 +23,6 @@ const ALGO = 'aes-256-gcm';
 
 const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
-
-Messages.importMessagesDirectory(pathJoin(__dirname));
 
 interface CredType {
   username: string;

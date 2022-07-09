@@ -28,9 +28,6 @@ import {
 import SettingsGenerator from './scratchOrgSettingsGenerator';
 import { generateScratchOrgInfo, getScratchOrgInfoPayload } from './scratchOrgInfoGenerator';
 
-Messages.importMessagesDirectory(__dirname);
-const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreate');
-
 export const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
 
 export interface ScratchOrgCreateResult {
@@ -221,6 +218,7 @@ const updateRevisionCounterToZero = async (scratchOrg: Org): Promise<void> => {
       .sobject('SourceMember')
       .update(queryResult.map((record) => ({ Id: record.Id, RevisionCounter: 0 })));
   } catch (err) {
+    const messages: Messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreate');
     const message = messages.getMessage('SourceStatusResetFailure', [scratchOrg.getOrgId(), scratchOrg.getUsername()]);
     throw new SfdxError(message, 'SourceStatusResetFailure');
   }

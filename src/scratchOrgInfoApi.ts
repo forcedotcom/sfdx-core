@@ -70,9 +70,6 @@ export interface JsForceError extends Error {
   fields: string[];
 }
 
-Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
-
 /**
  * Returns the url to be used to authorize into the new scratch org
  *
@@ -307,6 +304,8 @@ export const requestScratchOrgCreation = async (
   scratchOrgRequest: ScratchOrgInfo,
   settings: SettingsGenerator
 ): Promise<RecordResult> => {
+  const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
+
   // If these were present, they were already used to initialize the scratchOrgSettingsGenerator.
   // They shouldn't be submitted as part of the scratchOrgInfo.
   delete scratchOrgRequest.settings;
