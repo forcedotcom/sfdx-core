@@ -19,8 +19,6 @@ import { SfdxError } from './sfdxError';
 import { Messages } from './messages';
 import { SfdxProjectJson } from './sfdxProject';
 
-const messages = Messages.loadMessages('@salesforce/core', 'auth');
-
 /**
  * Handles the creation of a web server for web based login flows.
  *
@@ -250,6 +248,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
   public server!: http.Server;
   public port = WebOAuthServer.DEFAULT_PORT;
   public host = 'localhost';
+  private messages = Messages.loadMessages('@salesforce/core', 'auth');
   private logger!: Logger;
   private sockets: Socket[] = [];
 
@@ -277,7 +276,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
     } catch (err) {
       if (err.name === 'EADDRINUSE') {
         const error = SfdxError.create('@salesforce/core', 'auth', 'PortInUse', ['PortInUseAction']);
-        error.actions = [messages.getMessage('PortInUseAction', [this.port])];
+        error.actions = [this.messages.getMessage('PortInUseAction', [this.port])];
         throw error;
       } else {
         throw err;
@@ -337,7 +336,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
    */
   public reportError(error: Error, response: http.ServerResponse): void {
     response.setHeader('Content-Type', 'text/html');
-    const body = messages.getMessage('serverErrorHTMLResponse', [error.message]);
+    const body = this.messages.getMessage('serverErrorHTMLResponse', [error.message]);
     response.setHeader('Content-Length', Buffer.byteLength(body));
     response.end(body);
   }
