@@ -60,12 +60,12 @@ export const validateScratchOrgInfoForResume = async ({
     cache.unset(jobId);
     await cache.write();
     throw scratchOrgInfo.Status === 'Deleted'
-      ? messages.createError('ScratchOrgDeletedError')
-      : messages.createError('NoScratchOrgInfoError');
+      ? namedMessages.createError('ScratchOrgDeletedError')
+      : namedMessages.createError('NoScratchOrgInfoError');
   }
   if (['New', 'Creating'].includes(scratchOrgInfo.Status)) {
     // 2. scratchOrgInfo exists, still isn't finished.  Stays in cache for future attempts
-    throw messages.createError('StillInProgressError', [scratchOrgInfo.Status], ['action.StillInProgress']);
+    throw namedMessages.createError('StillInProgressError', [scratchOrgInfo.Status], ['action.StillInProgress']);
   }
   return checkScratchOrgInfoForErrors(scratchOrgInfo, hubUsername);
 };
