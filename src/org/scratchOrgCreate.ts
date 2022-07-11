@@ -33,13 +33,8 @@ const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', [
   'DurationDaysValidationMaxError',
   'DurationDaysValidationMinError',
   'RetryNotIntError',
-  'WaitValidationMaxError',
   'DurationDaysNotIntError',
-  'NoScratchOrgInfoError',
-  'ScratchOrgDeletedError',
-  'StillInProgressError',
   'CacheMissError',
-  'action.StillInProgress',
 ]);
 
 export const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
