@@ -22,6 +22,10 @@ const namedMessages = Messages.load('@salesforce/core', 'scratchOrgErrorCodes', 
   'SignupFailedUnknownError',
   'SignupFailedError',
   'SignupUnexpectedError',
+  'StillInProgressError',
+  'action.StillInProgress',
+  'ScratchOrgDeletedError',
+  'NoScratchOrgInfoError',
 ]);
 
 // getMessage will throw when the code isn't found
