@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import * as sinon from 'sinon';
+import { AuthInfoConfig } from '../../../src/config/authInfoConfig';
 import { BaseConfigStore, ConfigContents } from '../../../src/config/configStore';
+import { AuthFields } from '../../../src/org/authInfo';
 
 const specialKey = 'spe@cial.property';
 
@@ -76,6 +79,12 @@ describe('ConfigStore', () => {
   });
 
   describe('encryption', () => {
+    const sandbox = sinon.createSandbox();
+
+    afterEach(() => {
+      sandbox.restore();
+    });
+
     it('throws if crypto is not initialized', () => {
       const config = new CarConfig({});
       expect(() => config.set('owner.creditCardNumber', 'n/a'))
@@ -201,6 +210,21 @@ describe('ConfigStore', () => {
       expect(config.get('owner').creditCardNumber).to.not.equal('invalid');
       expect(config.get('owner', true).creditCardNumber).to.equal(expected);
       expect(config.get('owner.creditCardNumber', true)).to.equal(expected);
+    });
+
+    // Ensures accessToken and refreshToken are both decrypted upon config.get()
+    it('decrypts multiple regex matches per AuthInfoConfig encryptedKeys', async () => {
+      sandbox.stub(AuthInfoConfig.prototype, 'read');
+      const accessToken = '1234';
+      const refreshToken = '5678';
+      const config = await AuthInfoConfig.create({});
+      const auth = { accessToken, refreshToken };
+      config.set('auth', auth);
+
+      expect(config.get<AuthFields>('auth').accessToken).to.not.equal(accessToken);
+      expect(config.get<AuthFields>('auth').refreshToken).to.not.equal(refreshToken);
+      expect(config.get<AuthFields>('auth', true).accessToken).to.equal(accessToken);
+      expect(config.get<AuthFields>('auth', true).refreshToken).to.equal(refreshToken);
     });
 
     it('does not fail when saving an already encrypted object', async () => {
