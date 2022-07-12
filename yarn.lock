@@ -3631,10 +3631,10 @@ jsesc@^2.5.1:
   resolved "https://registry.npmjs.org/jsesc/-/jsesc-2.5.2.tgz"
   integrity sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==
 
-jsforce@2.0.0-beta.14:
-  version "2.0.0-beta.14"
-  resolved "https://registry.yarnpkg.com/jsforce/-/jsforce-2.0.0-beta.14.tgz#237753bdabb7e80447b5b266eaefc4abf8b6c951"
-  integrity sha512-j66PaKroshB4VZbfKBAx9+lJy8etFfGG1hGFsI7ufwxvacXxLTAxZwOEZPkYPMigiHrPlEMtIwh5NqwBsIn9HA==
+jsforce@beta:
+  version "2.0.0-beta.15"
+  resolved "https://registry.yarnpkg.com/jsforce/-/jsforce-2.0.0-beta.15.tgz#05255f3b54a001421c973b1a7b4dbb4468ded2a3"
+  integrity sha512-AfwIxG+y+WOsqSGKlezyL3G+4ItmR/zfcvg38x4CDa3eizDD0wWZBAOnJbOQ8U76zAQqrMsyWs+s3ozJzSLtZA==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@babel/runtime-corejs3" "^7.12.5"

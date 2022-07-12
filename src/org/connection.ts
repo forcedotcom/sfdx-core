@@ -209,9 +209,11 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
 
   /**
    * Will deploy a recently validated deploy request - directly calling jsforce now that this is supported.
+   * WARNING: will always return a string from jsforce, the type is JsonCollection to support backwards compatibility
    *
    * @param options.id = the deploy ID that's been validated already from a previous checkOnly deploy request
    * @param options.rest = a boolean whether or not to use the REST API
+   * @deprecated use {@link Connection.metadata#deployRecentValidation} instead - the jsforce implementation, instead of this wrapper
    */
   public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
     // REST returns an object with an id property, SOAP returns the id as a string directly. That is now handled
