@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import * as sinon from 'sinon';
 import { AuthInfoConfig } from '../../../src/config/authInfoConfig';
 import { BaseConfigStore, ConfigContents } from '../../../src/config/configStore';
 import { AuthFields } from '../../../src/org/authInfo';
+import { testSetup } from '../../../src/testSetup';
+
+const $$ = testSetup();
 
 const specialKey = 'spe@cial.property';
 
@@ -79,10 +81,9 @@ describe('ConfigStore', () => {
   });
 
   describe('encryption', () => {
-    const sandbox = sinon.createSandbox();
-
-    afterEach(() => {
-      sandbox.restore();
+    beforeEach(() => {
+      $$.SANDBOXES.CONFIG.restore();
+      $$.SANDBOX.restore();
     });
 
     it('throws if crypto is not initialized', () => {
@@ -214,7 +215,7 @@ describe('ConfigStore', () => {
 
     // Ensures accessToken and refreshToken are both decrypted upon config.get()
     it('decrypts multiple regex matches per AuthInfoConfig encryptedKeys', async () => {
-      sandbox.stub(AuthInfoConfig.prototype, 'read');
+      $$.SANDBOX.stub(AuthInfoConfig.prototype, 'read');
       const accessToken = '1234';
       const refreshToken = '5678';
       const config = await AuthInfoConfig.create({});
