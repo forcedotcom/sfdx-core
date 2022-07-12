@@ -81,6 +81,12 @@ export type AuthFields = {
   userProfileName?: string;
   expirationDate?: string;
   tracksSource?: boolean;
+  [Org.Fields.NAME]?: string;
+  [Org.Fields.INSTANCE_NAME]?: string;
+  [Org.Fields.NAMESPACE_PREFIX]?: Nullable<string>;
+  [Org.Fields.IS_SANDBOX]?: boolean;
+  [Org.Fields.IS_SCRATCH]?: boolean;
+  [Org.Fields.TRIAL_EXPIRATION_DATE]?: Nullable<string>;
 };
 
 export type OrgAuthorization = {

@@ -82,8 +82,22 @@ describe('AliasAccessor', () => {
 
     it('should return a username if an alias was provided', async () => {
       const stateAggregator = await StateAggregator.getInstance();
-      const username = stateAggregator.aliases.getUsername(alias1);
+      const username = stateAggregator.aliases.resolveUsername(alias1);
       expect(username).to.equal(username1);
+    });
+  });
+
+  describe('resolveAlias', () => {
+    it('should return an alias if an alias was provided', async () => {
+      const stateAggregator = await StateAggregator.getInstance();
+      const alias = stateAggregator.aliases.resolveAlias(alias1);
+      expect(alias).to.equal(alias1);
+    });
+
+    it('should return an alias if a username was provided', async () => {
+      const stateAggregator = await StateAggregator.getInstance();
+      const alias = stateAggregator.aliases.resolveAlias(username1);
+      expect(alias).to.equal(alias1);
     });
   });
 
@@ -116,6 +130,18 @@ describe('AliasAccessor', () => {
       stateAggregator.aliases.unsetAll(username1);
       const aliases = stateAggregator.aliases.getAll(username1);
       expect(aliases).to.deep.equal([]);
+    });
+  });
+
+  describe('has', () => {
+    it('should return true if the alias exists', async () => {
+      const stateAggregator = await StateAggregator.getInstance();
+      expect(stateAggregator.aliases.has(alias1)).to.be.true;
+    });
+
+    it('should return false if the alias exists', async () => {
+      const stateAggregator = await StateAggregator.getInstance();
+      expect(stateAggregator.aliases.has('DOES_NOT_EXIST')).to.be.false;
     });
   });
 });
