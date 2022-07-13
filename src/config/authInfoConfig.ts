@@ -17,7 +17,7 @@ import { ConfigFile } from './configFile';
  * ```
  */
 export class AuthInfoConfig extends ConfigFile<ConfigFile.Options, AuthFields> {
-  protected static encryptedKeys = [/token/gi, /password/gi, /secret/gi];
+  protected static encryptedKeys = [/token/i, /password/i, /secret/i];
   /**
    * Gets the config options for a given org ID.
    *

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.23.8](https://github.com/forcedotcom/sfdx-core/compare/v3.23.7...v3.23.8) (2022-07-13)
+
+### Bug Fixes
+
+- remove greedy matching for AuthInfo encryptedKeys ([12c6dcc](https://github.com/forcedotcom/sfdx-core/commit/12c6dcc5137a48d59e0da4a20426d8fa2cf747d9))
+
 ### [3.23.7](https://github.com/forcedotcom/sfdx-core/compare/v3.23.6...v3.23.7) (2022-07-08)
 
 ### Bug Fixes
