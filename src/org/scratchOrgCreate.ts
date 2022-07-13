@@ -83,7 +83,7 @@ export interface ScratchOrgCreateOptions {
   alias?: string;
   /** after complete, set the org as the default */
   setDefault?: boolean;
-  /** do not use source tracking for this org */
+  /** if false, do not use source tracking for this scratch org */
   tracksSource?: boolean;
 }
 

@@ -132,20 +132,7 @@ export type ResumeSandboxRequest = {
   SandboxProcessObjId?: string;
 };
 
-export type ScratchOrgRequest = Pick<
-  ScratchOrgCreateOptions,
-  | 'connectedAppConsumerKey'
-  | 'durationDays'
-  | 'nonamespace'
-  | 'noancestors'
-  | 'wait'
-  | 'retry'
-  | 'apiversion'
-  | 'definitionjson'
-  | 'definitionfile'
-  | 'orgConfig'
-  | 'clientSecret'
->;
+export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
 
 export type SandboxFields = {
   sandboxOrgId: string;
