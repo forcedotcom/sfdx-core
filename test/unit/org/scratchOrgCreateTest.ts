@@ -7,9 +7,9 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { Duration } from '@salesforce/kit';
-import { Connection } from 'jsforce'; // RecordResult
+import { Connection } from 'jsforce';
 import { AuthInfo, Org } from '../../../src/org';
-import { SfProjectJson, SfProject } from '../../../src/sfProject';
+import { SfProject, SfProjectJson } from '../../../src/sfProject';
 import { scratchOrgCreate, ScratchOrgCreateOptions, scratchOrgResume } from '../../../src/org/scratchOrgCreate';
 import { ScratchOrgCache } from '../../../src/org/scratchOrgCache';
 

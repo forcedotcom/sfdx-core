@@ -9,12 +9,11 @@ import * as http from 'http';
 import { parse as parseQueryString } from 'querystring';
 import { parse as parseUrl } from 'url';
 import { Socket } from 'net';
-
-import { AsyncCreatable, set, toNumber, Env } from '@salesforce/kit';
-import { Nullable, get, asString } from '@salesforce/ts-types';
-import { OAuth2 } from 'jsforce';
+import { JwtOAuth2Config, OAuth2 } from 'jsforce';
+import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
+import { asString, get, Nullable } from '@salesforce/ts-types';
 import { Logger } from './logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, OAuth2Config } from './org/authInfo';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org';
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { SfProjectJson } from './sfProject';
@@ -51,7 +50,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private logger!: Logger;
   private webServer!: WebServer;
   private oauth2!: OAuth2;
-  private oauthConfig: OAuth2Config;
+  private oauthConfig: JwtOAuth2Config;
 
   public constructor(options: WebOAuthServer.Options) {
     super(options);
@@ -248,7 +247,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 
 export namespace WebOAuthServer {
   export interface Options {
-    oauthConfig: OAuth2Config;
+    oauthConfig: JwtOAuth2Config;
   }
 
   export type Request = http.IncomingMessage & { query: { code: string; state: string } };

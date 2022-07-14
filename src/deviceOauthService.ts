@@ -9,14 +9,12 @@
 
 import Transport from 'jsforce/lib/transport';
 import { AsyncCreatable, Duration, parseJsonMap } from '@salesforce/kit';
-import { OAuth2Config } from 'jsforce/lib/oauth2';
-import { HttpRequest } from 'jsforce';
+import { HttpRequest, OAuth2Config } from 'jsforce';
 import { ensureString, JsonMap, Nullable } from '@salesforce/ts-types';
 import * as FormData from 'form-data';
 import { Logger } from './logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, SFDX_HTTP_HEADERS } from './org';
 import { SfError } from './sfError';
-import { SFDX_HTTP_HEADERS } from './org/connection';
 import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
