@@ -7,13 +7,13 @@
 import { get } from '@salesforce/ts-types';
 
 import { expect } from 'chai';
-import { fromStub, stubInterface, StubbedType, stubMethod } from '@salesforce/ts-sinon';
+import { fromStub, StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
 import { Connection as JSForceConnection, HttpRequest } from 'jsforce';
-import { AuthInfo } from '../../../src/org/authInfo';
+import { AuthInfo } from '../../../src/org';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
-import { Connection, SFDX_HTTP_HEADERS, DNS_ERROR_NAME, SingleRecordQueryErrors } from '../../../src/org/connection';
-import { testSetup, shouldThrow, shouldThrowSync } from '../../../src/testSetup';
+import { Connection, DNS_ERROR_NAME, SFDX_HTTP_HEADERS, SingleRecordQueryErrors } from '../../../src/org/connection';
+import { shouldThrow, shouldThrowSync, testSetup } from '../../../src/testSetup';
 
 // Setup the test environment.
 const $$ = testSetup();
@@ -223,28 +223,6 @@ describe('Connection', () => {
     } catch (err) {
       expect(err.message).to.equal(errorMsg);
     }
-  });
-
-  describe('deployRecentValidation', () => {
-    it('deployRecentValidation() should call request directly for REST', async () => {
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
-      conn.instanceUrl = 'myNewInstance@salesforce.com';
-      const requestStub = $$.SANDBOX.stub(conn, 'request');
-
-      await conn.deployRecentValidation({ id: '0Afxx00000000lWCAQ', rest: true });
-      expect(requestStub.callCount).to.equal(1);
-    });
-
-    it('deployRecentValidation() should call jsforce for SOAP', async () => {
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
-      conn.instanceUrl = 'myNewInstance@salesforce.com';
-      // @ts-ignore private method
-      const requestStub = $$.SANDBOX.stub(conn.metadata, '_invoke');
-
-      await conn.deployRecentValidation({ id: '0Afxx00000000lWCAQ' });
-      expect(requestStub.callCount).to.equal(1);
-      expect(requestStub.args[0][0]).to.equal('deployRecentValidation');
-    });
   });
 
   it('singleRecordQuery returns single-record result properly', async () => {
