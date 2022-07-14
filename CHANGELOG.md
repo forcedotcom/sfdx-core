@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.23.8](https://github.com/forcedotcom/sfdx-core/compare/v3.23.7...v3.23.8) (2022-07-13)
+
+### Bug Fixes
+
+- remove greedy matching for AuthInfo encryptedKeys ([12c6dcc](https://github.com/forcedotcom/sfdx-core/commit/12c6dcc5137a48d59e0da4a20426d8fa2cf747d9))
+
+### [3.23.7](https://github.com/forcedotcom/sfdx-core/compare/v3.23.6...v3.23.7) (2022-07-08)
+
+### Bug Fixes
+
+- add structure writer interface and refactor ([daef19c](https://github.com/forcedotcom/sfdx-core/commit/daef19cb3a4d145ebb22c4f721a1bd47ffddce40))
+
+### [3.23.6](https://github.com/forcedotcom/sfdx-core/compare/v3.23.5...v3.23.6) (2022-07-06)
+
+### Bug Fixes
+
+- workaround for jsforce update bug ([1776f50](https://github.com/forcedotcom/sfdx-core/commit/1776f505671a5a764c4e966736c2981df2b178a4))
+
+### [3.23.5](https://github.com/forcedotcom/sfdx-core/compare/v3.23.4...v3.23.5) (2022-07-06)
+
+### Bug Fixes
+
+- add resolveAlias ([#605](https://github.com/forcedotcom/sfdx-core/issues/605)) ([ffa9ed6](https://github.com/forcedotcom/sfdx-core/commit/ffa9ed63ea583baa327071db4030ea5346d1128f))
+
 ### [3.23.4](https://github.com/forcedotcom/sfdx-core/compare/v3.23.3...v3.23.4) (2022-07-05)
 
 ### Bug Fixes

@@ -12,7 +12,10 @@ import { Org, Connection } from '../../../src/org';
 import { sfdc } from '../../../src/util/sfdc';
 import { ZipWriter } from '../../../src/util/zipWriter';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
-import SettingsGenerator from '../../../src/org/scratchOrgSettingsGenerator';
+import SettingsGenerator, {
+  createObjectFileContent,
+  createRecordTypeAndBusinessProcessFileContent,
+} from '../../../src/org/scratchOrgSettingsGenerator';
 import { MockTestOrgData, shouldThrow } from '../../../src/testSetup';
 
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
@@ -94,10 +97,13 @@ const deployId = '12345';
 
 function createStubs() {
   adminTestData = new MockTestOrgData();
-  addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
-    expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-    expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-  });
+  addToZipStub = sandbox
+    .stub(ZipWriter.prototype, 'addToStore')
+    .callsFake((contents: string, filepath: string): Promise<void> => {
+      expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+      expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+      return;
+    });
   finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
   sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
     return Promise.resolve({
@@ -156,10 +162,13 @@ describe('scratchOrgSettingsGenerator', () => {
 
   describe('createDeploy', () => {
     beforeEach(() => {
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
     });
 
     afterEach(() => {
@@ -245,10 +254,13 @@ describe('scratchOrgSettingsGenerator', () => {
   describe('deploySettingsViaFolder succeeded partial', () => {
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
         return Promise.resolve({
@@ -305,10 +317,13 @@ describe('scratchOrgSettingsGenerator', () => {
   describe('deploySettingsViaFolder fails', () => {
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
         return Promise.resolve({
@@ -365,10 +380,13 @@ describe('scratchOrgSettingsGenerator', () => {
   describe('deploySettingsViaFolder pools', () => {
     beforeEach(async () => {
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
         return Promise.resolve({
@@ -469,10 +487,13 @@ describe('scratchOrgSettingsGenerator', () => {
     beforeEach(async () => {
       clock = sandbox.useFakeTimers();
       adminTestData = new MockTestOrgData();
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
         return Promise.resolve({
@@ -509,10 +530,13 @@ describe('scratchOrgSettingsGenerator', () => {
 
   describe('writeObjectSettingsIfNeeded', () => {
     beforeEach(() => {
-      addToZipStub = sandbox.stub(ZipWriter.prototype, 'addToZip').callsFake((contents: string, filepath: string) => {
-        expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      });
+      addToZipStub = sandbox
+        .stub(ZipWriter.prototype, 'addToStore')
+        .callsFake((contents: string, filepath: string): Promise<void> => {
+          expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
+          expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
+          return;
+        });
     });
 
     afterEach(() => {
@@ -532,23 +556,12 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       await settings.extract(scratchDef);
       await settings.createDeploy();
-      expect(addToZipStub.callCount).to.equal(2);
+      expect(addToZipStub.callCount).to.equal(1);
       expect(addToZipStub.firstCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
         .and.to.include('<sharingModel>My-sharing-model</sharingModel>');
-      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject', 'MyObject.object'));
-      expect(addToZipStub.secondCall.firstArg)
-        .to.be.a('string')
-        .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
-        .and.to.include('<fullName>My-record-type</fullName>')
-        .and.to.include('<label>My-record-type</label>')
-        .and.to.include('<active>true</active>');
-      expect(addToZipStub.secondCall.args[1]).to.include(
-        path.join('objects', 'MyObject', 'recordTypes', 'My-record-type.recordType')
-      );
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject.object'));
     });
 
     it('calls writeObjectSettingsIfNeeded without sharingModel', async () => {
@@ -563,22 +576,9 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       await settings.extract(scratchDef);
       await settings.createDeploy();
-      expect(addToZipStub.callCount).to.equal(2);
-      expect(addToZipStub.firstCall.firstArg)
-        .to.be.a('string')
-        .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType/>');
-      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject', 'MyObject.object'));
-      expect(addToZipStub.secondCall.firstArg)
-        .to.be.a('string')
-        .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
-        .and.to.include('<fullName>My-record-type</fullName>')
-        .and.to.include('<label>My-record-type</label>')
-        .and.to.include('<active>true</active>');
-      expect(addToZipStub.secondCall.args[1]).to.include(
-        path.join('objects', 'MyObject', 'recordTypes', 'My-record-type.recordType')
-      );
+      expect(addToZipStub.callCount).to.equal(1);
+      expect(addToZipStub.firstCall.firstArg).to.be.a('string').and.length.to.be.greaterThan(0);
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject.object'));
     });
 
     it('calls writeObjectSettingsIfNeeded without defaultRecordType', async () => {
@@ -597,9 +597,8 @@ describe('scratchOrgSettingsGenerator', () => {
       expect(addToZipStub.firstCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
         .and.to.include('<sharingModel>My-sharing-model</sharingModel>');
-      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject', 'MyObject.object'));
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'MyObject.object'));
     });
 
     it('deploys the object settings to the org with businessProcess', async () => {
@@ -615,33 +614,282 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       await settings.extract(scratchDef);
       await settings.createDeploy();
-      expect(addToZipStub.callCount).to.equal(3);
+      expect(addToZipStub.callCount).to.equal(1);
       expect(addToZipStub.firstCall.firstArg)
         .to.be.a('string')
         .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
         .and.to.include('<sharingModel>My-sharing-model</sharingModel>');
-      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'Opportunity', 'Opportunity.object'));
-      expect(addToZipStub.secondCall.firstArg)
-        .to.be.a('string')
-        .and.length.to.be.greaterThan(0)
-        .and.to.include('<RecordType>')
-        .and.to.include('<fullName>My-record-type</fullName>')
-        .and.to.include('<label>My-record-type</label>')
-        .and.to.include('<active>true</active>');
-      expect(addToZipStub.secondCall.args[1]).to.include(
-        path.join('objects', 'Opportunity', 'recordTypes', 'My-record-type.recordType')
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('objects', 'Opportunity.object'));
+    });
+  });
+
+  describe('createRecordTypeAndBusinessProcessFileContent', () => {
+    const objectSettingsData = {
+      account: {
+        defaultRecordType: 'PersonAccount',
+      },
+      opportunity: {
+        defaultRecordType: 'default',
+        sharingModel: 'private',
+      },
+      case: {
+        defaultRecordType: 'default',
+        sharingModel: 'private',
+      },
+    };
+
+    it('createRecordTypeAndBusinessProcessFileContent with account type', () => {
+      const allRecordTypes = [];
+      const allbusinessProcesses = [];
+      const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
+        'account',
+        objectSettingsData.account,
+        allRecordTypes,
+        allbusinessProcesses
       );
-      expect(addToZipStub.thirdCall.firstArg)
-        .to.be.a('string')
-        .and.length.to.be.greaterThan(0)
-        .and.to.include('<BusinessProcess>')
-        .and.to.include('<fullName>My-record-typeProcess</fullName>')
-        .and.to.include('<isActive>true</isActive>')
-        .and.to.include('<fullName>Prospecting</fullName>');
-      expect(addToZipStub.thirdCall.args[1]).to.include(
-        path.join('objects', 'Opportunity', 'businessProcesses', 'My-record-typeProcess.businessProcess')
+      expect(recordTypeAndBusinessProcessFileContent).to.deep.equal({
+        '@': { xmlns: 'http://soap.sforce.com/2006/04/metadata' },
+        recordTypes: { fullName: 'PersonAccount', label: 'PersonAccount', active: true },
+      });
+      expect(allRecordTypes).to.deep.equal(['Account.PersonAccount']);
+      expect(allbusinessProcesses).to.deep.equal([]);
+    });
+
+    it('createRecordTypeAndBusinessProcessFileContent with opportunity values', () => {
+      const allRecordTypes = [];
+      const allbusinessProcesses = [];
+      const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
+        'opportunity',
+        objectSettingsData.opportunity,
+        allRecordTypes,
+        allbusinessProcesses
       );
+      expect(recordTypeAndBusinessProcessFileContent).to.deep.equal({
+        '@': { xmlns: 'http://soap.sforce.com/2006/04/metadata' },
+        sharingModel: 'Private',
+        recordTypes: {
+          fullName: 'Default',
+          label: 'Default',
+          active: true,
+          businessProcess: 'DefaultProcess',
+        },
+        businessProcesses: {
+          fullName: 'DefaultProcess',
+          isActive: true,
+          values: {
+            fullName: 'Prospecting',
+          },
+        },
+      });
+      expect(allRecordTypes).to.deep.equal(['Opportunity.Default']);
+      expect(allbusinessProcesses).to.deep.equal(['Opportunity.DefaultProcess']);
+    });
+
+    it('createRecordTypeAndBusinessProcessFileContent with case values', () => {
+      const allRecordTypes = [];
+      const allbusinessProcesses = [];
+      const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
+        'case',
+        objectSettingsData.case,
+        allRecordTypes,
+        allbusinessProcesses
+      );
+      expect(recordTypeAndBusinessProcessFileContent).to.deep.equal({
+        '@': { xmlns: 'http://soap.sforce.com/2006/04/metadata' },
+        sharingModel: 'Private',
+        recordTypes: {
+          fullName: 'Default',
+          label: 'Default',
+          active: true,
+          businessProcess: 'DefaultProcess',
+        },
+        businessProcesses: {
+          fullName: 'DefaultProcess',
+          isActive: true,
+          values: {
+            fullName: 'New',
+            default: true,
+          },
+        },
+      });
+      expect(allRecordTypes).to.deep.equal(['Case.Default']);
+      expect(allbusinessProcesses).to.deep.equal(['Case.DefaultProcess']);
+    });
+  });
+
+  describe('createObjectFileContent', () => {
+    const settingData = {
+      accountSettings: {
+        enableRelateContactToMultipleAccounts: true,
+        enableAccountHistoryTracking: true,
+      },
+      emailAdministrationSettings: {
+        enableEnhancedEmailEnabled: true,
+      },
+      experienceBundleSettings: {
+        enableExperienceBundleMetadata: true,
+      },
+      lightningExperienceSettings: {
+        enableS1DesktopEnabled: true,
+      },
+      chatterSettings: {
+        enableChatter: true,
+      },
+      communitiesSettings: {
+        enableNetworksEnabled: true,
+      },
+      industriesSettings: {
+        enableAccessToMasterListOfCoverageTypes: true,
+      },
+    };
+    const objectSettingsData = {
+      account: {
+        defaultRecordType: 'PersonAccount',
+      },
+      opportunity: {
+        sharingModel: 'private',
+      },
+      case: {
+        sharingModel: 'private',
+      },
+    };
+
+    const allRecordTypes = ['Account.PersonAccount', 'Customer.CustomerAccount'];
+    const allbusinessProcesses = ['Account.Process', 'Customer.Process'];
+
+    it('createObjectFileContent takes no setting or object settings', () => {
+      const packageFile = createObjectFileContent({ apiVersion: '54' });
+      expect(packageFile).to.deep.equal({
+        '@': {
+          xmlns: 'http://soap.sforce.com/2006/04/metadata',
+        },
+        types: [],
+        version: '54',
+      });
+    });
+    it('createObjectFileContent writes settings object', () => {
+      const packageFile = createObjectFileContent({ apiVersion: '54', settingData });
+      expect(packageFile).to.deep.equal({
+        '@': {
+          xmlns: 'http://soap.sforce.com/2006/04/metadata',
+        },
+        types: [
+          {
+            members: [
+              'Account',
+              'EmailAdministration',
+              'ExperienceBundle',
+              'LightningExperience',
+              'Chatter',
+              'Communities',
+              'Industries',
+            ],
+            name: 'Settings',
+          },
+        ],
+        version: '54',
+      });
+    });
+    it('createObjectFileContent writes object settings object', () => {
+      const packageFile = createObjectFileContent({ apiVersion: '54', settingData, objectSettingsData });
+      expect(packageFile).to.deep.equal({
+        '@': {
+          xmlns: 'http://soap.sforce.com/2006/04/metadata',
+        },
+        types: [
+          {
+            members: [
+              'Account',
+              'EmailAdministration',
+              'ExperienceBundle',
+              'LightningExperience',
+              'Chatter',
+              'Communities',
+              'Industries',
+            ],
+            name: 'Settings',
+          },
+          {
+            members: ['Account', 'Opportunity', 'Case'],
+            name: 'CustomObject',
+          },
+        ],
+        version: '54',
+      });
+    });
+    it('createObjectFileContent writes record types', () => {
+      const packageFile = createObjectFileContent({
+        apiVersion: '54',
+        allRecordTypes,
+        settingData,
+        objectSettingsData,
+      });
+
+      expect(packageFile).to.deep.equal({
+        '@': {
+          xmlns: 'http://soap.sforce.com/2006/04/metadata',
+        },
+        types: [
+          {
+            members: [
+              'Account',
+              'EmailAdministration',
+              'ExperienceBundle',
+              'LightningExperience',
+              'Chatter',
+              'Communities',
+              'Industries',
+            ],
+            name: 'Settings',
+          },
+          {
+            members: ['Account', 'Opportunity', 'Case'],
+            name: 'CustomObject',
+          },
+          {
+            members: ['Account.PersonAccount', 'Customer.CustomerAccount'],
+            name: 'RecordType',
+          },
+        ],
+        version: '54',
+      });
+    });
+    it('createObjectFileContent writes business process', () => {
+      const packageFile = createObjectFileContent({
+        apiVersion: '54',
+        allBusinessProcesses: allbusinessProcesses,
+        settingData,
+        objectSettingsData,
+      });
+
+      expect(packageFile).to.deep.equal({
+        '@': {
+          xmlns: 'http://soap.sforce.com/2006/04/metadata',
+        },
+        types: [
+          {
+            members: [
+              'Account',
+              'EmailAdministration',
+              'ExperienceBundle',
+              'LightningExperience',
+              'Chatter',
+              'Communities',
+              'Industries',
+            ],
+            name: 'Settings',
+          },
+          {
+            members: ['Account', 'Opportunity', 'Case'],
+            name: 'CustomObject',
+          },
+          {
+            members: ['Account.Process', 'Customer.Process'],
+            name: 'BusinessProcess',
+          },
+        ],
+        version: '54',
+      });
     });
   });
 });

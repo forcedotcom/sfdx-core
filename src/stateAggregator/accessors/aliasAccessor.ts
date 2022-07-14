@@ -97,6 +97,20 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   }
 
   /**
+   * If the provided string is an alias, return it.
+   * If the provided string is not an alias, return the username of the provided alias
+   *
+   * This method is helpful when you don't know if the string you have is a username
+   * or an alias.
+   *
+   * @param usernameOrAlias a string that might be a username or might be an alias
+   */
+  public resolveAlias(usernameOrAlias: string): Nullable<string> {
+    if (this.has(usernameOrAlias)) return usernameOrAlias;
+    return Object.entries(this.getAll()).find(([, username]) => username === usernameOrAlias)?.[0];
+  }
+
+  /**
    * Set an alias for the given aliasable entity
    *
    * @param alias the alias you want to set
@@ -106,12 +120,16 @@ export class AliasAccessor extends AsyncOptionalCreatable {
     this.config.set(alias, this.getNameOf(entity));
   }
 
+  /**
+   * Unset the given alias.
+   *
+   */
   public unset(alias: string): void {
     this.config.unset(alias);
   }
 
   /**
-   * This method unsets all the aliases for the given entity.
+   * Unsets all the aliases for the given entity.
    *
    * @param entity the aliasable entity for which you want to unset all aliases
    */
@@ -122,6 +140,15 @@ export class AliasAccessor extends AsyncOptionalCreatable {
 
   public async write(): Promise<ConfigContents> {
     return this.config.write();
+  }
+
+  /**
+   * Returns true if the provided alias exists
+   *
+   * @param alias the alias you want to check
+   */
+  public has(alias: string): boolean {
+    return this.config.has(alias);
   }
 
   protected async init(): Promise<void> {
