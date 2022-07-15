@@ -11,11 +11,11 @@ export type Message = JsonMap;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Callback<T = unknown> = (...args: any[]) => T;
 
-export interface StatusResult {
+export interface StatusResult<PayloadType = AnyJson> {
   /**
    * If the result of the streaming or polling client is expected to return a result
    */
-  payload?: AnyJson;
+  payload?: PayloadType;
   /**
    * Indicates to the streaming or polling client that the subscriber has what its needs. If `true` the client will end
    * the messaging exchanges with the endpoint.
