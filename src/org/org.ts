@@ -237,16 +237,16 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    *
    * @param sandboxReq SandboxRequest options to create the sandbox with
-   * @param sandboxName
+   * @param sourceSandboxName the name of the sandbox that your new sandbox will be based on
    * @param options Wait: The amount of time to wait before timing out, defaults to 0, Interval: The time interval between polling defaults to 30 seconds
    * @returns {SandboxProcessObject} the newly created sandbox process object
    */
   public async cloneSandbox(
     sandboxReq: SandboxRequest,
-    sandboxName: string,
+    sourceSandboxName: string,
     options: { wait?: Duration; interval?: Duration }
   ): Promise<SandboxProcessObject> {
-    sandboxReq.SourceId = (await this.querySandboxProcessBySandboxName(sandboxName)).SandboxInfoId;
+    sandboxReq.SourceId = (await this.querySandboxProcessBySandboxName(sourceSandboxName)).SandboxInfoId;
     this.logger.debug('Clone sandbox sourceId %s', sandboxReq.SourceId);
     return this.createSandbox(sandboxReq, options);
   }
@@ -369,7 +369,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @ignore
    */
   public async retrieveOrgUsersConfig(): Promise<OrgUsersConfig> {
-    return await OrgUsersConfig.create(OrgUsersConfig.getOptions(this.getOrgId()));
+    return OrgUsersConfig.create(OrgUsersConfig.getOptions(this.getOrgId()));
   }
 
   /**
@@ -398,7 +398,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    *
    */
   public async isSandbox(): Promise<boolean> {
-    return await (await StateAggregator.getInstance()).sandboxes.hasFile(this.getOrgId());
+    return (await StateAggregator.getInstance()).sandboxes.hasFile(this.getOrgId());
   }
   /**
    * Check that this org is a scratch org by asking the dev hub if it knows about it.
@@ -804,7 +804,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * results in a warning.
    */
   public async retrieveMaxApiVersion(): Promise<string> {
-    return await this.getConnection().retrieveMaxApiVersion();
+    return this.getConnection().retrieveMaxApiVersion();
   }
 
   /**
@@ -882,7 +882,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @private
    */
   public async querySandboxProcessBySandboxName(name: string): Promise<SandboxProcessObject> {
-    return await this.querySandboxProcess(`SandboxName='${name}'`);
+    return this.querySandboxProcess(`SandboxName='${name}'`);
   }
 
   /**
@@ -892,7 +892,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @private
    */
   public async querySandboxProcessBySandboxInfoId(id: string): Promise<SandboxProcessObject> {
-    return await this.querySandboxProcess(`SandboxInfoId='${id}'`);
+    return this.querySandboxProcess(`SandboxInfoId='${id}'`);
   }
 
   /**
@@ -902,7 +902,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @private
    */
   public async querySandboxProcessById(id: string): Promise<SandboxProcessObject> {
-    return await this.querySandboxProcess(`Id='${id}'`);
+    return this.querySandboxProcess(`Id='${id}'`);
   }
 
   /**
@@ -1348,7 +1348,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   private async querySandboxProcess(where: string): Promise<SandboxProcessObject> {
     const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE ${where} AND Status != 'D'`;
-    return await this.connection.singleRecordQuery(queryStr, {
+    return this.connection.singleRecordQuery(queryStr, {
       tooling: true,
     });
   }
