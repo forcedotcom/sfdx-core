@@ -124,6 +124,7 @@ export type SandboxProcessObject = {
 export type SandboxRequest = {
   SandboxName: string;
   LicenseType?: string;
+  /** Should match a SandboxInfoId, not a SandboxProcessId */
   SourceId?: string;
   Description?: string;
 };
@@ -245,7 +246,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     sandboxName: string,
     options: { wait?: Duration; interval?: Duration }
   ): Promise<SandboxProcessObject> {
-    sandboxReq.SourceId = (await this.querySandboxProcessBySandboxName(sandboxName)).Id;
+    sandboxReq.SourceId = (await this.querySandboxProcessBySandboxName(sandboxName)).SandboxInfoId;
     this.logger.debug('Clone sandbox sourceId %s', sandboxReq.SourceId);
     return this.createSandbox(sandboxReq, options);
   }
