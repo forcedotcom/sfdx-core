@@ -27,7 +27,6 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import * as Debug from 'debug';
-import * as mkdirp from 'mkdirp';
 import { Global, Mode } from './global';
 import { SfError } from './sfError';
 
@@ -415,9 +414,8 @@ export class Logger {
       await fs.promises.access(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        await mkdirp(path.dirname(logFile), {
-          mode: '700',
-        });
+        await fs.promises.mkdir(path.dirname(logFile), { recursive: true });
+        await fs.promises.chmod(path.dirname(logFile), '7000');
       } catch (err2) {
         // noop; directory exists already
       }
@@ -457,9 +455,8 @@ export class Logger {
       fs.accessSync(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        mkdirp.sync(path.dirname(logFile), {
-          mode: '700',
-        });
+        fs.mkdirSync(path.dirname(logFile));
+        fs.chmodSync(path.dirname(logFile), '700');
       } catch (err2) {
         // noop; directory exists already
       }

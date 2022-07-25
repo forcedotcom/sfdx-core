@@ -11,7 +11,6 @@ import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import { isBoolean, isPlainObject } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
-import * as mkdirp from 'mkdirp';
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
@@ -226,7 +225,11 @@ export class ConfigFile<
       this.setContents(newContents);
     }
 
-    await mkdirp(pathDirname(this.getPath()));
+    try {
+      await fs.promises.mkdir(pathDirname(this.getPath()), { recursive: true });
+    } catch (err) {
+      throw SfError.wrap(err as Error);
+    }
 
     this.logger.info(`Writing to config file: ${this.getPath()}`);
     await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
@@ -245,7 +248,11 @@ export class ConfigFile<
       this.setContents(newContents);
     }
 
-    mkdirp.sync(pathDirname(this.getPath()));
+    try {
+      fs.mkdirSync(pathDirname(this.getPath()), { recursive: true });
+    } catch (err) {
+      throw SfError.wrap(err as Error);
+    }
 
     this.logger.info(`Writing to config file: ${this.getPath()}`);
     fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
