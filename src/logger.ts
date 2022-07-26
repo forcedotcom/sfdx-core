@@ -415,7 +415,7 @@ export class Logger {
     } catch (err1) {
       try {
         await fs.promises.mkdir(path.dirname(logFile), { recursive: true });
-        await fs.promises.chmod(path.dirname(logFile), '7000');
+        await fs.promises.chmod(path.dirname(logFile), 0o700);
       } catch (err2) {
         // noop; directory exists already
       }
@@ -456,7 +456,7 @@ export class Logger {
     } catch (err1) {
       try {
         fs.mkdirSync(path.dirname(logFile));
-        fs.chmodSync(path.dirname(logFile), '700');
+        fs.chmodSync(path.dirname(logFile), 0o700);
       } catch (err2) {
         // noop; directory exists already
       }

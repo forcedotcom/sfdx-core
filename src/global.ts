@@ -101,7 +101,7 @@ export class Global {
     dirPath = dirPath ? path.join(Global.SFDX_DIR, dirPath) : Global.SFDX_DIR;
     try {
       await fs.promises.mkdir(dirPath, { recursive: true });
-      await fs.promises.chmod(dirPath, '700');
+      await fs.promises.chmod(dirPath, 0o700);
     } catch (error) {
       throw new SfError(`Failed to create directory or set permissions for: ${dirPath}`);
     }
