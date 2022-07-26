@@ -8,9 +8,8 @@
 import { EOL } from 'os';
 import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
 import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
-import type { QueryResult } from 'jsforce';
+import type { HttpRequest, HttpResponse, QueryResult, Schema, SObjectUpdateRecord } from 'jsforce';
 import { HttpApi } from 'jsforce/lib/http-api';
-import type { HttpRequest, HttpResponse, Schema, SObjectUpdateRecord } from 'jsforce/lib/types';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
@@ -300,10 +299,10 @@ export class User extends AsyncCreatable<User.Options> {
     const userConnection = await Connection.create({ authInfo: info });
 
     return new Promise((resolve, reject) => {
+      // no promises in async method
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       password.value(async (buffer: Buffer) => {
         try {
-          // @ts-ignore TODO: expose `soap` on Connection however appropriate
           const soap = userConnection.soap;
           await soap.setPassword(ensureString(info.getFields().userId), buffer.toString('utf8'));
           this.logger.debug(`Set password for userId: ${info.getFields().userId}`);

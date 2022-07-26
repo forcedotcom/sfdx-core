@@ -11,9 +11,11 @@ import { ensureObject, getObject, JsonMap } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
-import { ZipWriter } from '../util/zipWriter';
+import { StructuredWriter } from '../util/structuredWriter';
 import { StatusResult } from '../status/types';
 import { PollingClient } from '../status/pollingClient';
+import { ZipWriter } from '../util/zipWriter';
+import { DirectoryWriter } from '../util/directoryWriter';
 import { ScratchOrgInfo, ObjectSetting } from './scratchOrgTypes';
 import { Org } from './org';
 
@@ -44,13 +46,13 @@ export interface PackageFile {
 
 export const createObjectFileContent = ({
   allRecordTypes = [],
-  allbusinessProcesses = [],
+  allBusinessProcesses = [],
   apiVersion,
   settingData,
   objectSettingsData,
 }: {
   allRecordTypes?: string[];
-  allbusinessProcesses?: string[];
+  allBusinessProcesses?: string[];
   apiVersion: string;
   settingData?: Record<string, unknown>;
   objectSettingsData?: { [objectName: string]: ObjectSetting };
@@ -73,8 +75,8 @@ export const createObjectFileContent = ({
       output.types.push({ members: allRecordTypes, name: 'RecordType' });
     }
 
-    if (allbusinessProcesses.length > 0) {
-      output.types.push({ members: allbusinessProcesses, name: 'BusinessProcess' });
+    if (allBusinessProcesses.length > 0) {
+      output.types.push({ members: allBusinessProcesses, name: 'BusinessProcess' });
     }
   }
   return { ...output, ...{ version: apiVersion } };
@@ -108,8 +110,8 @@ export const createRecordTypeAndBusinessProcessFileContent = (
   objectName: string,
   json: Record<string, unknown>,
   allRecordTypes: string[],
-  allbusinessProcesses: string[]
-) => {
+  allBusinessProcesses: string[]
+): JsonMap => {
   let output = {
     '@': {
       xmlns: 'http://soap.sforce.com/2006/04/metadata',
@@ -153,7 +155,7 @@ export const createRecordTypeAndBusinessProcessFileContent = (
         values.default = true;
       }
 
-      allbusinessProcesses.push(`${name}.${businessProcessName}`);
+      allBusinessProcesses.push(`${name}.${businessProcessName}`);
       output = {
         ...output,
         recordTypes: {
@@ -179,17 +181,26 @@ export default class SettingsGenerator {
   private settingData?: Record<string, unknown>;
   private objectSettingsData?: { [objectName: string]: ObjectSetting };
   private logger: Logger;
-  private writer: ZipWriter;
+  private writer: StructuredWriter;
   private allRecordTypes: string[] = [];
-  private allbusinessProcesses: string[] = [];
-  private shapeDirName = `shape_${Date.now()}`;
-  private packageFilePath = path.join(this.shapeDirName, 'package.xml');
+  private allBusinessProcesses: string[] = [];
+  private readonly shapeDirName: string;
+  private readonly packageFilePath: string;
 
-  public constructor() {
+  public constructor(options?: { mdApiTmpDir?: string; shapeDirName?: string; asDirectory?: boolean }) {
     this.logger = Logger.childFromRoot('SettingsGenerator');
     // If SFDX_MDAPI_TEMP_DIR is set, copy settings to that dir for people to inspect.
-    const mdapiTmpDir = env.getString('SFDX_MDAPI_TEMP_DIR');
-    this.writer = new ZipWriter(mdapiTmpDir);
+    const mdApiTmpDir = options?.mdApiTmpDir || env.getString('SFDX_MDAPI_TEMP_DIR');
+    this.shapeDirName = options?.shapeDirName || `shape_${Date.now()}`;
+    this.packageFilePath = path.join(this.shapeDirName, 'package.xml');
+    let storePath;
+    if (!options?.asDirectory) {
+      storePath = mdApiTmpDir ? path.join(mdApiTmpDir, `${this.shapeDirName}.zip`) : undefined;
+      this.writer = new ZipWriter(storePath);
+    } else {
+      storePath = mdApiTmpDir ? path.join(mdApiTmpDir, this.shapeDirName) : undefined;
+      this.writer = new DirectoryWriter(storePath);
+    }
   }
 
   /** extract the settings from the scratch def file, if they are present. */
@@ -217,7 +228,7 @@ export default class SettingsGenerator {
     const objectsDir = path.join(this.shapeDirName, 'objects');
     await Promise.all([
       this.writeSettingsIfNeeded(settingsDir),
-      this.writeObjectSettingsIfNeeded(objectsDir, this.allRecordTypes, this.allbusinessProcesses),
+      this.writeObjectSettingsIfNeeded(objectsDir, this.allRecordTypes, this.allBusinessProcesses),
     ]);
   }
 
@@ -227,16 +238,8 @@ export default class SettingsGenerator {
   public async deploySettingsViaFolder(scratchOrg: Org, apiVersion: string): Promise<void> {
     const username = scratchOrg.getUsername();
     const logger = await Logger.child('deploySettingsViaFolder');
-    const packageObjectProps = createObjectFileContent({
-      allRecordTypes: this.allRecordTypes,
-      allbusinessProcesses: this.allbusinessProcesses,
-      apiVersion,
-      settingData: this.settingData,
-      objectSettingsData: this.objectSettingsData,
-    });
-    const xml = js2xmlparser.parse('Package', packageObjectProps);
-    this.writer.addToZip(xml, this.packageFilePath);
-    await this.writer.finalize();
+
+    await this.createDeployPackageContents(apiVersion);
 
     const connection = scratchOrg.getConnection();
     logger.debug(`deploying to apiVersion: ${apiVersion}`);
@@ -294,8 +297,29 @@ export default class SettingsGenerator {
     }
   }
 
+  public async createDeployPackageContents(apiVersion: string) {
+    const packageObjectProps = createObjectFileContent({
+      allRecordTypes: this.allRecordTypes,
+      allBusinessProcesses: this.allBusinessProcesses,
+      apiVersion,
+      settingData: this.settingData,
+      objectSettingsData: this.objectSettingsData,
+    });
+    const xml = js2xmlparser.parse('Package', packageObjectProps);
+    await this.writer.addToStore(xml, this.packageFilePath);
+    await this.writer.finalize();
+  }
+
   public getShapeDirName(): string {
     return this.shapeDirName;
+  }
+
+  /**
+   * Returns the destination where the writer placed the settings content.
+   *
+   */
+  public getDestinationPath(): string | undefined {
+    return this.writer.getDestinationPath();
   }
 
   private async writeObjectSettingsIfNeeded(
@@ -312,7 +336,7 @@ export default class SettingsGenerator {
           allbusinessProcesses
         );
         const xml = js2xmlparser.parse('CustomObject', fileContent);
-        this.writer.addToZip(xml, path.join(objectsDir, upperFirst(item) + '.object'));
+        await this.writer.addToStore(xml, path.join(objectsDir, upperFirst(item) + '.object'));
       }
     }
   }
@@ -324,7 +348,7 @@ export default class SettingsGenerator {
         const typeName = upperFirst(item);
         const fname = typeName.replace('Settings', '');
         const fileContent = js2xmlparser.parse(typeName, value);
-        this.writer.addToZip(fileContent, path.join(settingsDir, fname + '.settings'));
+        await this.writer.addToStore(fileContent, path.join(settingsDir, fname + '.settings'));
       }
     }
   }

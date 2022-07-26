@@ -42,11 +42,11 @@ describe('ZipWriter', () => {
     sandbox.restore();
   });
 
-  it('addToZip', () => {
+  it('addToStore', () => {
     const contents = 'my-contents';
     const filename = 'path/to/my-file.xml';
     const zipWriter = new ZipWriter();
-    zipWriter.addToZip(contents, filename);
+    zipWriter.addToStore(contents, filename);
     expect(appendStub.callCount).to.equal(1);
     expect(appendStub.firstCall.args[0]).to.equal(contents);
     expect(appendStub.firstCall.args[1]).to.deep.equal({
@@ -70,7 +70,7 @@ describe('ZipWriter write to buffer', () => {
     const contents = 'my-contents';
     const filename = 'path/to/my-file.xml';
     const zipWriter = new ZipWriter();
-    zipWriter.addToZip(contents, filename);
+    zipWriter.addToStore(contents, filename);
     await zipWriter.finalize();
     const result = JSON.parse(zipWriter.buffer.toString()).pop();
     expect(result)
@@ -132,7 +132,7 @@ describe('ZipWriter write to file and throws', () => {
     const contents = 'my-contents';
     const filename = 'my-file.xml';
     const zipWriter = new ZipWriter(rootDestination);
-    zipWriter.addToZip(contents, filename);
+    zipWriter.addToStore(contents, filename);
     await zipWriter.finalize();
     expect(createWriteStreamStub.firstCall.firstArg).to.equal(rootDestination);
     expect(createReadStreamStub.firstCall.firstArg).to.equal(rootDestination);
@@ -179,7 +179,8 @@ describe('ZipWriter write to file', () => {
     const contents = 'my-contents';
     const filename = 'my-file.xml';
     const zipWriter = new ZipWriter(rootDestination);
-    zipWriter.addToZip(contents, filename);
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await zipWriter.addToStore(contents, filename);
     try {
       await shouldThrow(zipWriter.finalize());
     } catch (error) {

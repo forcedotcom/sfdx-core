@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.24.2](https://github.com/forcedotcom/sfdx-core/compare/v3.24.1...v3.24.2) (2022-07-26)
+
+### Bug Fixes
+
+- use correct field for clone requests ([#623](https://github.com/forcedotcom/sfdx-core/issues/623)) ([2372f03](https://github.com/forcedotcom/sfdx-core/commit/2372f0364b87a7ac498c8d7ef637a9b5fdc725ea))
+
+### [3.24.1](https://github.com/forcedotcom/sfdx-core/compare/v3.24.0...v3.24.1) (2022-07-21)
+
+### Bug Fixes
+
+- bump jsforce ([#622](https://github.com/forcedotcom/sfdx-core/issues/622)) ([c7b53b7](https://github.com/forcedotcom/sfdx-core/commit/c7b53b73977012f81e029a15f39c3fb35bc1041d))
+
+## [3.24.0](https://github.com/forcedotcom/sfdx-core/compare/v3.23.9...v3.24.0) (2022-07-14)
+
+### Features
+
+- org.scratchOrgCreate uses all options except hub ([045a7aa](https://github.com/forcedotcom/sfdx-core/commit/045a7aa56c97323aa8b3191c4879cd1b43f0cfb1))
+
+### Bug Fixes
+
+- align messages/files ([5a5f04d](https://github.com/forcedotcom/sfdx-core/commit/5a5f04d3ea8ffb30fdbbfe2c83824ec56a56ec34))
+- load messages by name ([7c3a2d9](https://github.com/forcedotcom/sfdx-core/commit/7c3a2d9d84f9553bb9cf1bc369b49ca46100484e))
+- use named messages always ([2bb25a9](https://github.com/forcedotcom/sfdx-core/commit/2bb25a9c24fcb7146e363783ea81bc3708060a18))
+
+### [3.23.9](https://github.com/forcedotcom/sfdx-core/compare/v3.23.8...v3.23.9) (2022-07-14)
+
+### [3.23.8](https://github.com/forcedotcom/sfdx-core/compare/v3.23.7...v3.23.8) (2022-07-13)
+
+### Bug Fixes
+
+- remove greedy matching for AuthInfo encryptedKeys ([12c6dcc](https://github.com/forcedotcom/sfdx-core/commit/12c6dcc5137a48d59e0da4a20426d8fa2cf747d9))
+
+### [3.23.7](https://github.com/forcedotcom/sfdx-core/compare/v3.23.6...v3.23.7) (2022-07-08)
+
+### Bug Fixes
+
+- add structure writer interface and refactor ([daef19c](https://github.com/forcedotcom/sfdx-core/commit/daef19cb3a4d145ebb22c4f721a1bd47ffddce40))
+
 ### [3.23.6](https://github.com/forcedotcom/sfdx-core/compare/v3.23.5...v3.23.6) (2022-07-06)
 
 ### Bug Fixes
