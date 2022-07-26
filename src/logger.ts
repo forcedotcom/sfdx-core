@@ -414,8 +414,7 @@ export class Logger {
       await fs.promises.access(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        await fs.promises.mkdir(path.dirname(logFile), { recursive: true });
-        await fs.promises.chmod(path.dirname(logFile), 0o700);
+        await fs.promises.mkdir(path.dirname(logFile), { recursive: true, mode: 0x700 });
       } catch (err2) {
         // noop; directory exists already
       }
@@ -455,8 +454,7 @@ export class Logger {
       fs.accessSync(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        fs.mkdirSync(path.dirname(logFile));
-        fs.chmodSync(path.dirname(logFile), 0o700);
+        fs.mkdirSync(path.dirname(logFile), { mode: 0x700 });
       } catch (err2) {
         // noop; directory exists already
       }
