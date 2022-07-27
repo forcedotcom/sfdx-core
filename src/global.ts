@@ -100,7 +100,7 @@ export class Global {
   public static async createDir(dirPath?: string): Promise<void> {
     dirPath = dirPath ? path.join(Global.SFDX_DIR, dirPath) : Global.SFDX_DIR;
     try {
-      if (process.platform === "win32") {
+      if (process.platform === 'win32') {
         await fs.promises.mkdir(dirPath, { recursive: true });
       } else {
         await fs.promises.mkdir(dirPath, { recursive: true, mode: 0o700 });
