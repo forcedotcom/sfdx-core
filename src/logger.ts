@@ -458,8 +458,11 @@ export class Logger {
       fs.accessSync(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        fs.mkdirSync(path.dirname(logFile));
-        fs.chmodSync(path.dirname(logFile), 0o700);
+        if (process.platform === 'win32') {
+          fs.mkdirSync(path.dirname(logFile));
+        } else {
+          fs.mkdirSync(path.dirname(logFile), { mode: 0x700 });
+        }
       } catch (err2) {
         // noop; directory exists already
       }
