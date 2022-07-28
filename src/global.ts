@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { env } from '@salesforce/kit';
-import * as mkdirp from 'mkdirp';
+import { SfError } from './sfError';
 
 /**
  * Represents an environment mode.  Supports `production`, `development`, `demo`, and `test`
@@ -98,6 +99,14 @@ export class Global {
    */
   public static async createDir(dirPath?: string): Promise<void> {
     dirPath = dirPath ? path.join(Global.SFDX_DIR, dirPath) : Global.SFDX_DIR;
-    await mkdirp(dirPath, '700');
+    try {
+      if (process.platform === 'win32') {
+        await fs.promises.mkdir(dirPath, { recursive: true });
+      } else {
+        await fs.promises.mkdir(dirPath, { recursive: true, mode: 0o700 });
+      }
+    } catch (error) {
+      throw new SfError(`Failed to create directory or set permissions for: ${dirPath}`);
+    }
   }
 }
