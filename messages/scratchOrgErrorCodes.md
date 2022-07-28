@@ -14,6 +14,22 @@ See https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_ob
 
 The request to create a scratch org returned an unexpected status
 
+# StillInProgressError
+
+The scratch org is not ready yet (Status = %).
+
+# action.StillInProgress
+
+Wait for a few minutes, and then try the <%= config.bin %> <%= command.id %> command again
+
+# NoScratchOrgInfoError
+
+No ScratchOrgInfo object found in the Dev Hub you specified. Check that the ID and the Dev Hub are correct.
+
+# ScratchOrgDeletedError
+
+That scratch org has been deleted, so you can't connect to it anymore.
+
 # INVALID_ID_FIELD
 
 Provide a valid template ID, in the format 0TTxxxxxxxxxxxx.

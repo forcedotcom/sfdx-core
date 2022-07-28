@@ -33,13 +33,8 @@ const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', [
   'DurationDaysValidationMaxError',
   'DurationDaysValidationMinError',
   'RetryNotIntError',
-  'WaitValidationMaxError',
   'DurationDaysNotIntError',
-  'NoScratchOrgInfoError',
-  'ScratchOrgDeletedError',
-  'StillInProgressError',
   'CacheMissError',
-  'action.StillInProgress',
 ]);
 
 export const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
@@ -88,7 +83,7 @@ export interface ScratchOrgCreateOptions {
   alias?: string;
   /** after complete, set the org as the default */
   setDefault?: boolean;
-  /** do not use source tracking for this org */
+  /** if false, do not use source tracking for this scratch org */
   tracksSource?: boolean;
 }
 

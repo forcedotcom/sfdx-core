@@ -88,6 +88,9 @@ jobs:
             yarn build
           working_directory: node_modules/@salesforce/core
       - run:
+          name: any top-level jsforce1 modules
+          command: shx rm -rf node_modules/@types/jsforce
+      - run:
           name: remove sf-plugins-core/core
           # deletes sf-plugins-core/core to prevent ts conflicts
           command: shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core
