@@ -27,7 +27,6 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import * as Debug from 'debug';
-import * as mkdirp from 'mkdirp';
 import { Global, Mode } from './global';
 import { SfError } from './sfError';
 
@@ -415,11 +414,13 @@ export class Logger {
       await fs.promises.access(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        await mkdirp(path.dirname(logFile), {
-          mode: '700',
-        });
+        if (process.platform === 'win32') {
+          await fs.promises.mkdir(path.dirname(logFile), { recursive: true });
+        } else {
+          await fs.promises.mkdir(path.dirname(logFile), { recursive: true, mode: 0o700 });
+        }
       } catch (err2) {
-        // noop; directory exists already
+        throw SfError.wrap(err2 as string | Error);
       }
       try {
         await fs.promises.writeFile(logFile, '', { mode: '600' });
@@ -457,9 +458,11 @@ export class Logger {
       fs.accessSync(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        mkdirp.sync(path.dirname(logFile), {
-          mode: '700',
-        });
+        if (process.platform === 'win32') {
+          fs.mkdirSync(path.dirname(logFile));
+        } else {
+          fs.mkdirSync(path.dirname(logFile), { mode: 0x700 });
+        }
       } catch (err2) {
         // noop; directory exists already
       }

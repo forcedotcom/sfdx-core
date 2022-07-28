@@ -9,7 +9,6 @@ import * as fs from 'fs';
 import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';
-import * as mkdirp from 'mkdirp';
 import { ConfigFile } from '../../../src/config/configFile';
 import { SfError } from '../../../src/exported';
 import { shouldThrow, testSetup } from '../../../src/testSetup';
@@ -213,7 +212,7 @@ describe('Config', () => {
       expect(writeJson.called).to.be.true;
     });
     it('sync uses passed in contents', async () => {
-      const mkdirpStub = $$.SANDBOX.stub(mkdirp, 'sync');
+      const mkdirpStub = $$.SANDBOX.stub(fs, 'mkdirSync');
       const writeJson = $$.SANDBOX.stub(fs, 'writeFileSync');
 
       const config = await TestConfig.create({ isGlobal: true });
