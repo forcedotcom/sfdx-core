@@ -104,13 +104,44 @@ export const getAncestorIds = async (
     packagesWithAncestors.map(async (packageDir) => {
       // ancestorID can be 05i, or 04t, alias; OR "ancestorVersion": "4.6.0.1"
       // according to docs, 05i is not ok: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev2gp_config_file.htm
+
+      // package can be an ID, but not according to docs
+      const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
+      const packageId = packageAliases[ensureString(packageDir.package)] ?? packageDir.package;
+
+      // Handle HIGHEST and NONE in ancestor(Version|Id).
+      // Precedence chain: NONE -> HIGHEST -> ancestorVersion & ancestoryId
+      if (packageDir.ancestorVersion === 'NONE' || packageDir.ancestorId === 'NONE') {
+        return '';
+      } else if (packageDir.ancestorVersion === 'HIGHEST' || packageDir.ancestorId === 'HIGHEST') {
+        const query =
+          'SELECT Id FROM Package2Version ' +
+          `WHERE Package2Id = '${packageId}' AND IsReleased = True AND IsDeprecated = False AND PatchVersion = 0 ` +
+          'ORDER BY MajorVersion Desc, MinorVersion Desc, PatchVersion Desc, BuildNumber Desc LIMIT 1';
+        try {
+          return (await hubOrg.getConnection().singleRecordQuery<{ Id: string }>(query, { tooling: true })).Id;
+        } catch (err) {
+          if (packageDir.ancestorVersion === 'HIGHEST') {
+            throw new SfError(
+              messages.getMessage('NoMatchingAncestorError', [packageDir.ancestorVersion, packageDir.package]),
+              'NoMatchingAncestorError',
+              [messages.getMessage('AncestorNotReleasedError', [packageDir.ancestorVersion])]
+            );
+          } else {
+            throw new SfError(
+              messages.getMessage('NoMatchingAncestorIdError', [packageDir.ancestorId, packageDir.package]),
+              'NoMatchingAncestorIdError',
+              [messages.getMessage('AncestorNotReleasedError', [packageDir.ancestorId])]
+            );
+          }
+        }
+      }
+
       if (packageDir.ancestorVersion) {
         if (!/^[0-9]+.[0-9]+.[0-9]+(.[0-9]+)?$/.test(packageDir.ancestorVersion)) {
           throw messages.createError('InvalidAncestorVersionFormatError', [packageDir.ancestorVersion]);
         }
-        // package can be an ID, but not according to docs
-        const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
-        const packageId = packageAliases[ensureString(packageDir.package)] ?? packageDir.package;
+
         const [major, minor, patch] = packageDir.ancestorVersion.split('.');
         let releasedAncestor;
         try {
@@ -152,8 +183,7 @@ export const getAncestorIds = async (
             )
         ).Id;
       }
-      // ancestorID can be an alias get it from projectJson
-      const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
+      // ancestorID can be an alias; get it from projectJson
       if (packageDir.ancestorId && packageAliases?.[packageDir.ancestorId]) {
         return packageAliases[packageDir.ancestorId];
       }
@@ -161,7 +191,8 @@ export const getAncestorIds = async (
     })
   );
 
-  return Array.from(new Set(ancestorIds)).join(';');
+  // strip out '' due to NONE
+  return Array.from(new Set(ancestorIds.filter((id) => id !== ''))).join(';');
 };
 
 /**

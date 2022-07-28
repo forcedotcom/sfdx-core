@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.24.3](https://github.com/forcedotcom/sfdx-core/compare/v3.24.2...v3.24.3) (2022-07-28)
+
+### Bug Fixes
+
+- handle ancestor keywords when creating scratch org ([72af55a](https://github.com/forcedotcom/sfdx-core/commit/72af55a53b87f1d81d22dc4e53891b3b0ab2966f))
+
 ### [3.24.2](https://github.com/forcedotcom/sfdx-core/compare/v3.24.1...v3.24.2) (2022-07-26)
 
 ### Bug Fixes

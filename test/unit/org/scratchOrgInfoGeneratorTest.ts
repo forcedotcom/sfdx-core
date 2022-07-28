@@ -44,6 +44,15 @@ describe('scratchOrgInfoGenerator', () => {
             tooling: true,
           }
         )
+        .resolves({ Id: packageId, IsReleased: true })
+        .withArgs(
+          'SELECT Id FROM Package2Version ' +
+            `WHERE Package2Id = '${packageId}' AND IsReleased = True AND IsDeprecated = False AND PatchVersion = 0 ` +
+            'ORDER BY MajorVersion Desc, MinorVersion Desc, PatchVersion Desc, BuildNumber Desc LIMIT 1',
+          {
+            tooling: true,
+          }
+        )
         .resolves({ Id: packageId, IsReleased: true });
     });
     afterEach(() => {
@@ -60,6 +69,11 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
           ],
+          get: (arg) => {
+            if (arg === 'packageAliases') {
+              return { alias: packageId };
+            }
+          },
         });
         expect(
           await getAncestorIds(
@@ -74,6 +88,11 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageVersionSubscriberId },
           ],
+          get: (arg) => {
+            if (arg === 'packageAliases') {
+              return { alias: packageId };
+            }
+          },
         });
         expect(
           await getAncestorIds(
@@ -139,6 +158,11 @@ describe('scratchOrgInfoGenerator', () => {
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
             { path: 'bar', package: 'barPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
           ],
+          get: (arg) => {
+            if (arg === 'packageAliases') {
+              return { alias: packageId };
+            }
+          },
         });
         expect(
           await getAncestorIds(
@@ -156,6 +180,11 @@ describe('scratchOrgInfoGenerator', () => {
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
             { path: 'bar', package: 'barPkgName', versionNumber: '4.7.0.NEXT', ancestorId: otherPackageId },
           ],
+          get: (arg) => {
+            if (arg === 'packageAliases') {
+              return { alias: packageId };
+            }
+          },
         });
         expect(
           await getAncestorIds(
@@ -291,6 +320,11 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorVersion: '5.0' },
           ],
+          get: (arg) => {
+            if (arg === 'packageAliases') {
+              return { alias: packageId };
+            }
+          },
         });
         try {
           await shouldThrow(
@@ -324,6 +358,85 @@ describe('scratchOrgInfoGenerator', () => {
             await Org.create({})
           )
         ).to.equal(packageId);
+      });
+
+      it('Should resolve via HIGHEST ancestorVersion', async () => {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
+          getPackageDirectories: () => [
+            { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorVersion: 'HIGHEST' },
+          ],
+          get: (arg) => {
+            if (arg === 'packageAliases') {
+              return { fooPkgName: packageId };
+            }
+          },
+        });
+        expect(
+          await getAncestorIds(
+            {} as unknown as ScratchOrgInfoPayload,
+            projectJson as unknown as SfProjectJson,
+            await Org.create({})
+          )
+        ).to.equal(packageId);
+      });
+
+      it('Should resolve via NONE ancestorVersion', async () => {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
+          getPackageDirectories: () => [
+            { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorVersion: 'NONE' },
+          ],
+          get: (arg) => {
+            if (arg === 'packageAliases') {
+              return { fooPkgName: packageId };
+            }
+          },
+        });
+        expect(
+          await getAncestorIds(
+            {} as unknown as ScratchOrgInfoPayload,
+            projectJson as unknown as SfProjectJson,
+            await Org.create({})
+          )
+        ).to.equal('');
+      });
+      it('Should resolve via HIGHEST ancestorId', async () => {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
+          getPackageDirectories: () => [
+            { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'HIGHEST' },
+          ],
+          get: (arg) => {
+            if (arg === 'packageAliases') {
+              return { fooPkgName: packageId };
+            }
+          },
+        });
+        expect(
+          await getAncestorIds(
+            {} as unknown as ScratchOrgInfoPayload,
+            projectJson as unknown as SfProjectJson,
+            await Org.create({})
+          )
+        ).to.equal(packageId);
+      });
+
+      it('Should resolve via NONE ancestorId', async () => {
+        const projectJson = stubInterface<SfProjectJson>(sandbox, {
+          getPackageDirectories: () => [
+            { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'NONE' },
+          ],
+          get: (arg) => {
+            if (arg === 'packageAliases') {
+              return { fooPkgName: packageId };
+            }
+          },
+        });
+        expect(
+          await getAncestorIds(
+            {} as unknown as ScratchOrgInfoPayload,
+            projectJson as unknown as SfProjectJson,
+            await Org.create({})
+          )
+        ).to.equal('');
       });
     });
   });
