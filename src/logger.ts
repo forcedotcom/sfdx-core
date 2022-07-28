@@ -461,10 +461,10 @@ export class Logger {
         if (process.platform === 'win32') {
           fs.mkdirSync(path.dirname(logFile));
         } else {
-          fs.mkdirSync(path.dirname(logFile), { mode: 0x700 });
+          fs.mkdirSync(path.dirname(logFile), { mode: 0o700 });
         }
       } catch (err2) {
-        // noop; directory exists already
+        throw SfError.wrap(err2 as Error);
       }
       try {
         fs.writeFileSync(logFile, '', { mode: '600' });
