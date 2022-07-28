@@ -159,7 +159,7 @@ workflows:
               ignore: v3
           requires:
             - release-management/test-package
-          # sfdx_version: latest
+          sfdx_version: ''
           node_version: lts
           matrix:
             parameters:
@@ -183,7 +183,7 @@ workflows:
               ignore: v3
           requires:
             - release-management/test-package
-          # sfdx_version: latest
+          sfdx_version: ''
           branch: 'v2'
           node_version: lts
           matrix:
@@ -199,7 +199,7 @@ workflows:
               ignore: v3
           requires:
             - release-management/test-package
-          # sfdx_version: latest
+          sfdx_version: ''
           size: xlarge
           node_version: lts
           matrix:
