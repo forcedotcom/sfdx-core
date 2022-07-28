@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import { GlobalInfo, SfOrg, StateAggregator } from '../../../../src/stateAggregator';
 import { AuthFields } from '../../../../src/org';
 import { MockTestOrgData, testSetup, uniqid } from '../../../../src/testSetup';
@@ -16,8 +16,8 @@ const token = { token: '123', url: 'https://login.salesforce.com', user: usernam
 
 function expectPartialDeepMatch(actual: AuthFields, expected: AuthFields, ignore = ['refreshToken', 'accessToken']) {
   for (const key of ignore) {
-    delete actual[key];
-    delete expected[key];
+    delete actual?.[key];
+    delete expected?.[key];
   }
   expect(actual).to.deep.equal(expected);
 }
@@ -62,6 +62,29 @@ describe('OrgAccessor', () => {
       await stateAggregator.orgs.read(username);
       const result = stateAggregator.orgs.get(username);
       expectPartialDeepMatch(result, await org.getConfig());
+    });
+
+    describe('invalid usernames', () => {
+      const badUsername = 'me@dx.oops';
+
+      // explanation doc'd in https://salesforce.quip.com/BiusAnH1wdcE
+      it('returns an empty object when not told to throw', async () => {
+        const stateAggregator = await StateAggregator.getInstance();
+        await stateAggregator.orgs.read(badUsername);
+        const result = stateAggregator.orgs.get(badUsername);
+        expect(result).to.deep.equal({});
+      });
+
+      it('throws when no org is found and consumer wants it to throw', async () => {
+        const stateAggregator = await StateAggregator.getInstance();
+        await stateAggregator.orgs.read(badUsername);
+        try {
+          stateAggregator.orgs.get(badUsername, false, true);
+          assert.fail('should have thrown');
+        } catch (e) {
+          expect(e.name).to.equal('NamedOrgNotFoundError');
+        }
+      });
     });
   });
 

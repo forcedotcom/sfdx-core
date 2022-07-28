@@ -15,7 +15,6 @@ import { OrgConfigProperties } from './orgConfigProperties';
 import { AuthFields } from '.';
 
 Messages.importMessagesDirectory(__dirname);
-const coreMessages = Messages.load('@salesforce/core', 'core', ['namedOrgNotFound']);
 const messages = Messages.load('@salesforce/core', 'auth', ['targetOrgNotSet']);
 
 /**
@@ -80,12 +79,8 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @returns {Promise<SfOrg>}
    */
   public async findAuth(usernameOrAlias?: string): Promise<AuthFields> {
-    const username = await this.resolveUsername(usernameOrAlias || this.getTargetOrg());
-    const auth = this.stateAggregator.orgs.get(username);
-    if (!auth) {
-      throw coreMessages.createError('namedOrgNotFound');
-    }
-    return auth;
+    const username = await this.resolveUsername(usernameOrAlias ?? this.getTargetOrg());
+    return this.stateAggregator.orgs.get(username, false, true);
   }
 
   /**

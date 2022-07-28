@@ -17,6 +17,7 @@ import { AuthFields } from '../../org';
 import { ConfigFile } from '../../config/configFile';
 import { ConfigContents } from '../../config/configStore';
 import { Logger } from '../../logger';
+import { Messages } from '../../messages';
 
 /**
  * @deprecated
@@ -68,7 +69,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   private logger!: Logger;
 
   /**
-   * Read the auth file for the given useranme. Once the file has been read, it can be reaccessed with the `get` method.
+   * Read the auth file for the given username. Once the file has been read, it can be re-accessed with the `get` method.
    *
    * @param username username to read
    * @param decrypt if true, decrypt encrypted values
@@ -78,7 +79,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     try {
       const config = await this.initAuthFile(username, throwOnNotFound);
       this.configs.set(username, config);
-      return this.get(username, decrypt) as P;
+      return this.get(username, decrypt);
     } catch (err) {
       return null;
     }
@@ -102,14 +103,24 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     return this.getAll(decrypt);
   }
 
+  public get(username: string, decrypt?: boolean, throwOnNotFound?: true): P;
+
   /**
-   * Return the contents of the username's auth file from cache. The `read` or `readAll` methods must be called first in order to populate the cache.
+   * Return the contents of the username's auth file from cache.
+   * The `read` or `readAll` methods must be called first in order to populate the cache.
+   * If throwOnNotFound is not true, an empty object {} is returned if the org is not found.
    *
    * @param username username to get
    * @param decrypt if true, decrypt encrypted values
+   * @param throwOnNotFound if true, throw if the auth file does not already exist in the cache
    */
-  public get(username: string, decrypt = false): Nullable<P> {
+  public get(username: string, decrypt = false, throwOnNotFound = false): Nullable<P> {
     const config = this.configs.get(username);
+    if (throwOnNotFound && config?.keys().length === 0) {
+      Messages.importMessagesDirectory(__dirname);
+      const messages = Messages.load('@salesforce/core', 'core', ['namedOrgNotFound']);
+      throw messages.createError('namedOrgNotFound', [username]);
+    }
     if (config) {
       this.contents.set(username, config.getContents(decrypt) as P);
     }
@@ -124,10 +135,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
    * @returns
    */
   public getAll(decrypt = false): P[] {
-    return [...this.configs.keys()].reduce((orgs, username) => {
-      const org = this.get(username, decrypt);
-      return org && !isEmpty(org) ? orgs.concat([org]) : orgs;
-    }, [] as P[]);
+    return [...this.configs.keys()].map((username) => this.get(username, decrypt)).filter((org) => !isEmpty(org));
   }
 
   /**
