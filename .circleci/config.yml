@@ -26,7 +26,6 @@ jobs:
         default: 'linux'
       sfdx_version:
         description: 'By default, the latest version of the standalone CLI will be installed. To install via npm, supply a version tag such as "latest" or "6".'
-        default: ''
         type: string
       sfdx_executable_path:
         description: "Path to sfdx executable to be used by NUTs, defaults to ''"
@@ -160,7 +159,7 @@ workflows:
               ignore: v3
           requires:
             - release-management/test-package
-          sfdx_version: latest
+          # sfdx_version: latest
           node_version: lts
           matrix:
             parameters:
@@ -184,7 +183,7 @@ workflows:
               ignore: v3
           requires:
             - release-management/test-package
-          sfdx_version: latest
+          # sfdx_version: latest
           branch: 'v2'
           node_version: lts
           matrix:
@@ -200,7 +199,7 @@ workflows:
               ignore: v3
           requires:
             - release-management/test-package
-          sfdx_version: latest
+          # sfdx_version: latest
           size: xlarge
           node_version: lts
           matrix:
