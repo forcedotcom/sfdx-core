@@ -13,7 +13,6 @@ import { homedir } from 'os';
 import * as path from 'path';
 import { asString, ensureString, Nullable } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
-import * as mkdirp from 'mkdirp';
 import { Global } from '../global';
 import { SfError } from '../sfError';
 import { Messages } from '../messages';
@@ -449,7 +448,7 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
       [SecretField.SERVICE]: opts.service,
     };
     const secretFile = getSecretFile();
-    await mkdirp(path.dirname(secretFile));
+    await fs.promises.mkdir(path.dirname(secretFile), { recursive: true });
     await fs.promises.writeFile(secretFile, JSON.stringify(contents, null, 4), { mode: '600' });
 
     fn(null, contents);

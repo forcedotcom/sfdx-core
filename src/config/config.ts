@@ -9,7 +9,6 @@ import { dirname as pathDirname, join as pathJoin } from 'path';
 import * as fs from 'fs';
 import { keyBy, parseJsonMap, set } from '@salesforce/kit';
 import { Dictionary, ensure, isBoolean, isString, JsonPrimitive, Nullable } from '@salesforce/ts-types';
-import * as mkdirp from 'mkdirp';
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -630,7 +629,7 @@ export class SfdxConfig {
     try {
       const translated = this.translate(config as ConfigProperties, 'toOld');
       const sfdxPath = this.getSfdxPath();
-      await mkdirp(pathDirname(sfdxPath));
+      await fs.promises.mkdir(pathDirname(sfdxPath), { recursive: true });
       await fs.promises.writeFile(sfdxPath, JSON.stringify(translated, null, 2));
     } catch (error) {
       /* Do nothing */
