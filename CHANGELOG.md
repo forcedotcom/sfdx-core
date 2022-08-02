@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.25.0](https://github.com/forcedotcom/sfdx-core/compare/v3.24.5...v3.25.0) (2022-07-29)
+
+### Features
+
+- orgAccessor.get has throwOnNotFound option ([a2ee821](https://github.com/forcedotcom/sfdx-core/commit/a2ee8219adf692de7de17ba254e05f501ef5814c))
+
 ### [3.24.5](https://github.com/forcedotcom/sfdx-core/compare/v3.24.4...v3.24.5) (2022-07-28)
 
 ### Bug Fixes
