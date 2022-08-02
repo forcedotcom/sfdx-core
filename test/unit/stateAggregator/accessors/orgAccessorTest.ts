@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import { StateAggregator } from '../../../../src/stateAggregator';
 import { AuthFields } from '../../../../src/org';
-import { MockTestOrgData, testSetup, uniqid } from '../../../../src/testSetup';
+import { MockTestOrgData, shouldThrowSync, testSetup, uniqid } from '../../../../src/testSetup';
 
 const username = 'espresso@coffee.com';
 const org = new MockTestOrgData(uniqid(), { username });
@@ -77,8 +77,7 @@ describe('OrgAccessor', () => {
         const stateAggregator = await StateAggregator.getInstance();
         await stateAggregator.orgs.read(badUsername);
         try {
-          stateAggregator.orgs.get(badUsername, false, true);
-          assert.fail('should have thrown');
+          shouldThrowSync(() => stateAggregator.orgs.get(badUsername, false, true));
         } catch (e) {
           expect(e.name).to.equal('NamedOrgNotFoundError');
         }

@@ -10,7 +10,7 @@ import * as path from 'path';
 import { Readable } from 'stream';
 import * as chai from 'chai';
 import * as chaiString from 'chai-string';
-import { DirectoryWriter } from '../../../lib/util/directoryWriter';
+import { DirectoryWriter } from '../../../src/util/directoryWriter';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { expect } = chai;
