@@ -27,6 +27,7 @@ const messages = Messages.load('@salesforce/core', 'config', [
   'org-max-query-limit',
   'target-dev-hub',
   'target-org',
+  'org-custom-metadata-templates',
 ]);
 
 export enum OrgConfigProperties {
@@ -65,6 +66,10 @@ export enum OrgConfigProperties {
 }
 
 export const ORG_CONFIG_ALLOWED_PROPERTIES = [
+  {
+    key: OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES,
+    description: messages.getMessage(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES),
+  },
   {
     key: OrgConfigProperties.TARGET_ORG,
     description: messages.getMessage(OrgConfigProperties.TARGET_ORG),
