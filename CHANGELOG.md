@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.26.0](https://github.com/forcedotcom/sfdx-core/compare/v3.25.1...v3.26.0) (2022-08-04)
+
+### Features
+
+- remove GlobalInfo ([57bd0fa](https://github.com/forcedotcom/sfdx-core/commit/57bd0fa50c5fe3cc859ca107fd0a18dc1b871c1f))
+
 ### [3.25.1](https://github.com/forcedotcom/sfdx-core/compare/v3.25.0...v3.25.1) (2022-08-03)
 
 ### Bug Fixes
