@@ -40,6 +40,7 @@ const messages = Messages.load('@salesforce/core', 'config', [
   'restDeploy',
   'instanceUrl',
   'disable-telemetry',
+  'customOrgMetadataTemplates',
 ]);
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
@@ -270,6 +271,12 @@ export const SFDX_ALLOWED_PROPERTIES = [
       validator: (value: ConfigValue) => value == null || ['true', 'false'].includes(value.toString()),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
+  },
+  {
+    key: SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES,
+    newKey: OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES,
+    deprecated: true,
+    description: messages.getMessage(SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES),
   },
   {
     key: SfdxPropertyKeys.REST_DEPLOY,

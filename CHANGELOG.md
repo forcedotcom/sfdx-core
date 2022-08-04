@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.25.1](https://github.com/forcedotcom/sfdx-core/compare/v3.25.0...v3.25.1) (2022-08-03)
+
+### Bug Fixes
+
+- add interop between templates config/env var ([eea3d05](https://github.com/forcedotcom/sfdx-core/commit/eea3d055b75ceb61639e06bc53e309a01f70a8e2))
+
 ## [3.25.0](https://github.com/forcedotcom/sfdx-core/compare/v3.24.5...v3.25.0) (2022-07-29)
 
 ### Features

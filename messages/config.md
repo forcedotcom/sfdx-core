@@ -142,3 +142,11 @@ URL of the Salesforce instance hosting your org. Default: https://login.salesfor
 # org-instance-url
 
 URL of the Salesforce instance hosting your org. Default: https://login.salesforce.com.
+
+# customOrgMetadataTemplates
+
+A valid repository URL or directory for the custom org metadata templates.
+
+# org-custom-metadata-templates
+
+A valid repository URL or directory for the custom org metadata templates.
