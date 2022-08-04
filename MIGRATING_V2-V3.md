@@ -130,7 +130,7 @@ configAggregator.getPropertyValue(SfdxPropertyKeys.API_VERSION);
 
 Originally encryption happened within AuthInfo. Ideally the mechanism that reads and writes secure values also encrypt them. Then helps ensure that decrypted values don't get saved to disk. If you use ConfigFile, you can know set encryption keys rather than dealing with Crypto directly.
 
-Because of that change, it no longer made sense to have a cache on AuthInfo. Instead, getting auth info fields should always be getting it from the true source, which is the config file. In this case, GlobalInfo.
+Because of that change, it no longer made sense to have a cache on AuthInfo. Instead, getting auth info fields should always be getting it from the true source, which is the config file. In this case, StateAggregator.
 
 Most people won't have to worry about these changes unless doing some special test mocking or using the removed `AuthInfo.clearCache` or the encrypt param on `AuthInfo.update`. Everything updated will always be encrypted to prevent any accidents with storying decrypted data.
 

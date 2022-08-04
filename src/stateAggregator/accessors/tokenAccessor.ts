@@ -6,41 +6,19 @@
  */
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
-import { Optional } from '@salesforce/ts-types';
+import { JsonMap, Optional } from '@salesforce/ts-types';
 import { TokensConfig } from '../../config/tokensConfig';
-import { GlobalInfo } from '../globalInfoConfig';
-import { SfTokens, SfToken, Timestamp, SfInfoKeys } from '../types';
 
-/**
- * @deprecated
- */
-export class GlobaInfoTokenAccessor {
-  public constructor(private globalInfo: GlobalInfo) {}
+export type SfToken = {
+  token: string;
+  url: string;
+  user?: string;
+  timestamp: string;
+} & JsonMap;
 
-  public getAll(decrypt = false): SfTokens {
-    return this.globalInfo.get(SfInfoKeys.TOKENS, decrypt) || {};
-  }
-
-  public get(name: string, decrypt = false): Optional<SfToken & Timestamp> {
-    return this.globalInfo.get(`${SfInfoKeys.TOKENS}["${name}"]`, decrypt);
-  }
-
-  public has(name: string): boolean {
-    return !!this.getAll()[name];
-  }
-
-  public set(name: string, token: SfToken): void {
-    this.globalInfo.set(`${SfInfoKeys.TOKENS}["${name}"]`, token);
-  }
-
-  public update(name: string, token: Partial<SfToken>): void {
-    this.globalInfo.update(`${SfInfoKeys.TOKENS}["${name}"]`, token);
-  }
-
-  public unset(name: string): void {
-    delete this.globalInfo.get(SfInfoKeys.TOKENS)[name];
-  }
-}
+export type SfTokens = {
+  [key: string]: SfToken;
+};
 
 export class TokenAccessor extends AsyncOptionalCreatable {
   private config!: TokensConfig;
@@ -60,9 +38,9 @@ export class TokenAccessor extends AsyncOptionalCreatable {
    *
    * @param name
    * @param decrypt
-   * @returns {Optional<SfToken & Timestamp>}
+   * @returns {Optional<SfToken>}
    */
-  public get(name: string, decrypt = false): Optional<SfToken & Timestamp> {
+  public get(name: string, decrypt = false): Optional<SfToken> {
     return this.config.get(name, decrypt);
   }
 
