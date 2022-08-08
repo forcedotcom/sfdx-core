@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import Transport from 'jsforce/lib/transport';
-import { AsyncCreatable, Duration, parseJsonMap } from '@salesforce/kit';
+import { AsyncCreatable, Duration, parseJsonMap, sleep } from '@salesforce/kit';
 import { HttpRequest, OAuth2Config } from 'jsforce';
 import { ensureString, JsonMap, Nullable } from '@salesforce/ts-types';
 import * as FormData from 'form-data';
@@ -36,12 +36,6 @@ export interface DeviceCodePollingResponse extends JsonMap {
   id: string;
   token_type: string;
   issued_at: string;
-}
-
-async function wait(ms = 1000): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
 }
 
 async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> {
@@ -195,7 +189,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
 
   private async pollForDeviceApproval(
     httpRequest: HttpRequest,
-    interval: number
+    interval = 1000
   ): Promise<Nullable<DeviceCodePollingResponse>> {
     this.logger.debug('BEGIN POLLING FOR DEVICE APPROVAL');
     let result: Nullable<DeviceCodePollingResponse>;
@@ -206,7 +200,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
         break;
       } else {
         this.logger.debug(`waiting ${interval} ms...`);
-        await wait(interval);
+        await sleep(interval);
         this.pollingCount += 1;
       }
     }
