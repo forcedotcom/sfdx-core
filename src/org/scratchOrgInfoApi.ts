@@ -282,6 +282,9 @@ export const requestScratchOrgCreation = async (
   delete scratchOrgRequest.settings;
   delete scratchOrgRequest.objectSettings;
 
+  // lowercase the username
+  scratchOrgRequest.Username = scratchOrgRequest.Username.toLowerCase();
+
   // We do not allow you to specify the old and the new way of doing post create settings
   if (scratchOrgRequest.orgPreferences && settings.hasSettings()) {
     // This is not allowed
