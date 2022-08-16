@@ -295,6 +295,10 @@ export const requestScratchOrgCreation = async (
 
   const scratchOrgInfo = mapKeys(scratchOrgRequest, upperFirst, true);
 
+  if (typeof scratchOrgInfo.Username === 'string') {
+    scratchOrgInfo.Username = scratchOrgInfo.Username.toLowerCase();
+  }
+
   await checkOrgDoesntExist(scratchOrgInfo); // throw if it does exist.
   try {
     await emit({ stage: 'send request' });

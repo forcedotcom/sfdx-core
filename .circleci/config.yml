@@ -172,6 +172,7 @@ workflows:
                   'https://github.com/salesforcecli/plugin-limits',
                   'https://github.com/salesforcecli/plugin-schema',
                   'https://github.com/salesforcecli/plugin-env',
+                  'https://github.com/salesforcecli/plugin-org',
                   'https://github.com/salesforcecli/plugin-login',
                 ]
           context:
