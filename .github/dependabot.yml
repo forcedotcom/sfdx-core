@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    versioning-strategy: 'increase'
+    labels:
+      - 'dependencies'
+    open-pull-requests-limit: 100
+    pull-request-branch-name:
+      separator: '-'
+    ignore:
+      - dependency-name: 'typescript'
+      - dependency-name: 'sinon'
+      - dependency-name: 'string-ansi'
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
