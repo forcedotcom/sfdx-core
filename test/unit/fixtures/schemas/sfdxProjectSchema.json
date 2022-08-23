@@ -21,6 +21,7 @@
           "apexTestAccess": ["package", "versionNumber"],
           "definitionFile": ["package", "versionNumber"],
           "dependencies": ["package", "versionNumber"],
+          "functions": ["package", "versionNumber"],
           "package": ["versionNumber"],
           "postInstallScript": ["package", "versionNumber"],
           "postInstallUrl": ["package", "versionNumber"],
@@ -51,6 +52,9 @@
           },
           "dependencies": {
             "$ref": "#/definitions/packageDirectory.dependencies"
+          },
+          "functions": {
+            "$ref": "#/definitions/packageDirectory.functions"
           },
           "includeProfileUserLicenses": {
             "$ref": "#/definitions/packageDirectory.includeProfileUserLicenses"
@@ -198,6 +202,11 @@
           }
         }
       }
+    },
+    "packageDirectory.functions": {
+      "title": "Functions To Package",
+      "type": "array",
+      "description": "Relative path to functions to be packaged."
     },
     "packageDirectory.ancestorId": {
       "title": "Ancestor ID",

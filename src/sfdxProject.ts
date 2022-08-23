@@ -32,6 +32,7 @@ export type PackageDir = {
   default?: boolean;
   definitionFile?: string;
   dependencies?: PackageDirDependency[];
+  functions?: string[];
   includeProfileUserLicenses?: boolean;
   package?: string;
   path: string;
