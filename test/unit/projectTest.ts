@@ -648,5 +648,19 @@ describe('SfdxProject', () => {
         expect(SfdxProject.getInstance().hasMultiplePackages()).to.equal(false);
       });
     });
+
+    describe('functions', () => {
+      it('should return functions', () => {
+        $$.setConfigStubContents('SfdxProjectJson', {
+          contents: {
+            packageDirectories: [
+              { path: 'force-app1', default: true, functions: [ "functions/myfunction", "functions/anotherfunction" ] },
+            ],
+          },
+        });
+
+        expect(SfdxProject.getInstance().getDefaultPackage().functions).to.have.lengthOf(2);
+      });
+    });
   });
 });
