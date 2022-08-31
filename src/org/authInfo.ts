@@ -896,7 +896,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
     }
     if (!authFieldsBuilder) {
-      throw messages.createError('jwtAuthErrors', [authErrors.join('\n')]);
+      // messages.createError expects names to end in `error` and this one says Errors so do it manually.
+      throw new SfError(messages.getMessage('jwtAuthErrors', [authErrors.join('\n')]), 'JwtAuthError');
     }
     const authFields: AuthFields = {
       accessToken: asString(authFieldsBuilder.access_token),
