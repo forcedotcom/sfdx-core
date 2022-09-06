@@ -46,7 +46,7 @@ const messages = Messages.load('@salesforce/core', 'core', [
   'orgDataNotAvailableError',
   'orgDataNotAvailableError.actions',
   'refreshTokenAuthError',
-  'jwtAuthError',
+  'jwtAuthErrors',
   'authCodeUsernameRetrievalError',
   'authCodeExchangeError',
   'missingClientId',
@@ -889,12 +889,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         break;
       } catch (err) {
         const error = err as Error;
-        const message = error.message.includes('audience') ? `${error.message}-${login}:${audience}` : error.message;
+        const message = error.message.includes('audience')
+          ? `${error.message}  [audience=${audience} login=${login}]`
+          : error.message;
         authErrors.push(message);
       }
     }
     if (!authFieldsBuilder) {
-      throw messages.createError('jwtAuthError', [authErrors.join('\n')]);
+      // messages.createError expects names to end in `error` and this one says Errors so do it manually.
+      throw new SfError(messages.getMessage('jwtAuthErrors', [authErrors.join('\n')]), 'JwtAuthError');
     }
     const authFields: AuthFields = {
       accessToken: asString(authFieldsBuilder.access_token),
