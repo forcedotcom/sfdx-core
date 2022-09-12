@@ -1,283 +1,31 @@
-<!doctype html>
-<html class="default no-js">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Global | @salesforce/core</title>
-	<meta name="description" content="Documentation for @salesforce/core">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="../assets/css/main.css">
-</head>
-<body>
-<header>
-	<div class="tsd-page-toolbar">
-		<div class="container">
-			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
-					<div class="field">
-						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
-						<input id="tsd-search-field" type="text" />
-					</div>
-					<ul class="results">
-						<li class="state loading">Preparing search index...</li>
-						<li class="state failure">The search index is not available</li>
-					</ul>
-					<a href="../index.html" class="title">@salesforce/core</a>
-				</div>
-				<div class="table-cell" id="tsd-widgets">
-					<div id="tsd-filter">
-						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
-						<div class="tsd-filter-group">
-							<div class="tsd-select" id="tsd-filter-visibility">
-								<span class="tsd-select-label">All</span>
-								<ul class="tsd-select-list">
-									<li data-value="public">Public</li>
-									<li data-value="protected">Public/Protected</li>
-									<li data-value="private" class="selected">All</li>
-								</ul>
-							</div>
-							<input type="checkbox" id="tsd-filter-inherited" checked />
-							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-						</div>
-					</div>
-					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="tsd-page-title">
-		<div class="container">
-			<ul class="tsd-breadcrumb">
-				<li>
-					<a href="../globals.html">Globals</a>
-				</li>
-				<li>
-					<a href="global.html">Global</a>
-				</li>
-			</ul>
-			<h1>Class Global</h1>
-		</div>
-	</div>
-</header>
-<div class="container container-main">
-	<div class="row">
-		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Global constants, methods, and configuration.</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-hierarchy">
-				<h3>Hierarchy</h3>
-				<ul class="tsd-hierarchy">
-					<li>
-						<span class="target">Global</span>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel-group tsd-index-group">
-				<h2>Index</h2>
-				<section class="tsd-panel tsd-index-panel">
-					<div class="tsd-index-content">
-						<section class="tsd-index-section ">
-							<h3>Properties</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="global.html#dir" class="tsd-kind-icon">DIR</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="global.html#log_file_path" class="tsd-kind-icon">LOG_<wbr>FILE_<wbr>PATH</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="global.html#state_folder" class="tsd-kind-icon">STATE_<wbr>FOLDER</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
-							<h3>Methods</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="global.html#createdir" class="tsd-kind-icon">create<wbr>Dir</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="global.html#getenvironmentmode" class="tsd-kind-icon">get<wbr>Environment<wbr>Mode</a></li>
-							</ul>
-						</section>
-					</div>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
-					<a name="dir" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> DIR</h3>
-					<div class="tsd-signature tsd-kind-icon">DIR<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = path.join(os.homedir(), Global.STATE_FOLDER)</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/246ee333/src/global.ts#L40">src/global.ts:40</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The full system path to the global state folder.</p>
-						</div>
-						<p><strong>See</strong> <a href="global.html#state_folder">Global.STATE_FOLDER</a></p>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
-					<a name="log_file_path" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> LOG_<wbr>FILE_<wbr>PATH</h3>
-					<div class="tsd-signature tsd-kind-icon">LOG_<wbr>FILE_<wbr>PATH<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = path.join(Global.DIR, &#x27;sfdx.log&#x27;)</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/246ee333/src/global.ts#L45">src/global.ts:45</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The full system path to the global log file.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
-					<a name="state_folder" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> STATE_<wbr>FOLDER</h3>
-					<div class="tsd-signature tsd-kind-icon">STATE_<wbr>FOLDER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">".sfdx"</span><span class="tsd-signature-symbol"> = &quot;.sfdx&quot;</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/246ee333/src/global.ts#L33">src/global.ts:33</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The global folder in which state is stored.</p>
-						</div>
-					</div>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Methods</h2>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
-					<a name="createdir" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> create<wbr>Dir</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
-						<li class="tsd-signature tsd-kind-icon">create<wbr>Dir<span class="tsd-signature-symbol">(</span>dirPath<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/246ee333/src/global.ts#L64">src/global.ts:64</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Creates a directory within <a href="global.html#dir">Global.DIR</a>, or <a href="global.html#dir">Global.DIR</a> itself if the <code>dirPath</code> param
-									is not provided. This is resolved or rejected when the directory creation operation has completed.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5><span class="tsd-flag ts-flagOptional">Optional</span> dirPath: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>The directory path to be created within <a href="global.html#dir">Global.DIR</a>.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
-					<a name="getenvironmentmode" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Environment<wbr>Mode</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Environment<wbr>Mode<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../enums/mode.html" class="tsd-signature-type">Mode</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/246ee333/src/global.ts#L54">src/global.ts:54</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Gets the current mode environment variable as a <a href="../enums/mode.html">Mode</a> instance.</p>
-								</div>
-								<pre><code>console.log(<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Global</span>.</span></span>get<span class="hljs-constructor">EnvironmentMode()</span><span class="hljs-operator"> === </span>Mode.PRODUCTION);
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Global | @salesforce/core</title><meta name="description" content="Documentation for @salesforce/core"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script async src="../assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base=".."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">@salesforce/core</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><ul class="tsd-breadcrumb"><li><a href="../modules.html">@salesforce/core</a></li><li><a href="Global.html">Global</a></li></ul><h1>Class Global </h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><section class="tsd-panel tsd-comment"><div class="tsd-comment tsd-typography"><div class="lead">
+<p>Global constants, methods, and configuration.</p>
+</div></div></section><section class="tsd-panel tsd-hierarchy"><h3>Hierarchy</h3><ul class="tsd-hierarchy"><li><span class="target">Global</span></li></ul></section><section class="tsd-panel-group tsd-index-group"><h2>Index</h2><section class="tsd-panel tsd-index-panel"><div class="tsd-index-content"><section class="tsd-index-section "><h3>Constructors</h3><ul class="tsd-index-list"><li class="tsd-kind-constructor tsd-parent-kind-class"><a href="Global.html#constructor" class="tsd-kind-icon">constructor</a></li></ul></section><section class="tsd-index-section "><h3>Properties</h3><ul class="tsd-index-list"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="Global.html#LOG_FILE_PATH" class="tsd-kind-icon">LOG_<wbr/>FILE_<wbr/>PATH</a></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="Global.html#SFDX_INTEROPERABILITY" class="tsd-kind-icon">SFDX_<wbr/>INTEROPERABILITY</a></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="Global.html#SFDX_STATE_FOLDER" class="tsd-kind-icon">SFDX_<wbr/>STATE_<wbr/>FOLDER</a></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="Global.html#SF_STATE_FOLDER" class="tsd-kind-icon">SF_<wbr/>STATE_<wbr/>FOLDER</a></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="Global.html#STATE_FOLDER" class="tsd-kind-icon">STATE_<wbr/>FOLDER</a></li></ul></section><section class="tsd-index-section "><h3>Accessors</h3><ul class="tsd-index-list"><li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="Global.html#DIR" class="tsd-kind-icon">DIR</a></li><li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="Global.html#SFDX_DIR" class="tsd-kind-icon">SFDX_<wbr/>DIR</a></li><li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="Global.html#SF_DIR" class="tsd-kind-icon">SF_<wbr/>DIR</a></li></ul></section><section class="tsd-index-section "><h3>Methods</h3><ul class="tsd-index-list"><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="Global.html#createDir" class="tsd-kind-icon">create<wbr/>Dir</a></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="Global.html#getEnvironmentMode" class="tsd-kind-icon">get<wbr/>Environment<wbr/>Mode</a></li></ul></section></div></section></section><section class="tsd-panel-group tsd-member-group "><h2>Constructors</h2><section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class"><a id="constructor" class="tsd-anchor"></a><h3 class="tsd-anchor-link">constructor<a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class"><li class="tsd-signature tsd-kind-icon">new <wbr/>Global<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="Global.html" class="tsd-signature-type" data-tsd-kind="Class">Global</a></li></ul><ul class="tsd-descriptions"><li class="tsd-description"><h4 class="tsd-returns-title">Returns <a href="Global.html" class="tsd-signature-type" data-tsd-kind="Class">Global</a></h4></li></ul></section></section><section class="tsd-panel-group tsd-member-group "><h2>Properties</h2><section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static"><a id="LOG_FILE_PATH" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> LOG_<wbr/>FILE_<wbr/>PATH<a href="#LOG_FILE_PATH" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><div class="tsd-signature tsd-kind-icon">LOG_<wbr/>FILE_<wbr/>PATH<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources"><ul><li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/859ab3c6/src/global.ts#L81">src/global.ts:81</a></li></ul></aside><div class="tsd-comment tsd-typography"><div class="lead">
+<p>The full system path to the global log file.</p>
+</div></div></section><section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static"><a id="SFDX_INTEROPERABILITY" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><span class="tsd-flag ts-flagStatic">Static</span> SFDX_<wbr/>INTEROPERABILITY<a href="#SFDX_INTEROPERABILITY" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><div class="tsd-signature tsd-kind-icon">SFDX_<wbr/>INTEROPERABILITY<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources"><ul><li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/859ab3c6/src/global.ts#L36">src/global.ts:36</a></li></ul></aside><div class="tsd-comment tsd-typography"><div class="lead">
+<p>Enable interoperability between <code>.sfdx</code> and <code>.sf</code>.</p>
+</div><div><p>When @salesforce/core@v2 is deprecated and no longer used, this can be removed.</p>
+</div></div></section><section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static"><a id="SFDX_STATE_FOLDER" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> SFDX_<wbr/>STATE_<wbr/>FOLDER<a href="#SFDX_STATE_FOLDER" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><div class="tsd-signature tsd-kind-icon">SFDX_<wbr/>STATE_<wbr/>FOLDER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;.sfdx&quot;</span><span class="tsd-signature-symbol"> = &#39;.sfdx&#39;</span></div><aside class="tsd-sources"><ul><li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/859ab3c6/src/global.ts#L41">src/global.ts:41</a></li></ul></aside><div class="tsd-comment tsd-typography"><div class="lead">
+<p>The global folder in which sfdx state is stored.</p>
+</div></div></section><section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static"><a id="SF_STATE_FOLDER" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> SF_<wbr/>STATE_<wbr/>FOLDER<a href="#SF_STATE_FOLDER" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><div class="tsd-signature tsd-kind-icon">SF_<wbr/>STATE_<wbr/>FOLDER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;.sf&quot;</span><span class="tsd-signature-symbol"> = &#39;.sf&#39;</span></div><aside class="tsd-sources"><ul><li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/859ab3c6/src/global.ts#L46">src/global.ts:46</a></li></ul></aside><div class="tsd-comment tsd-typography"><div class="lead">
+<p>The global folder in which sf state is stored.</p>
+</div></div></section><section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static"><a id="STATE_FOLDER" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><span class="tsd-flag ts-flagStatic">Static</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> STATE_<wbr/>FOLDER<a href="#STATE_FOLDER" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><div class="tsd-signature tsd-kind-icon">STATE_<wbr/>FOLDER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;.sfdx&quot;</span><span class="tsd-signature-symbol"> = Global.SFDX_STATE_FOLDER</span></div><aside class="tsd-sources"><ul><li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/859ab3c6/src/global.ts#L51">src/global.ts:51</a></li></ul></aside><div class="tsd-comment tsd-typography"><div class="lead">
+<p>The preferred global folder in which state is stored.</p>
+</div></div></section></section><section class="tsd-panel-group tsd-member-group "><h2>Accessors</h2><section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a id="DIR" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><span class="tsd-flag ts-flagStatic">Static</span> DIR<a href="#DIR" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> DIR<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li></ul><ul class="tsd-descriptions"><li class="tsd-description"><aside class="tsd-sources"><ul><li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/859ab3c6/src/global.ts#L74">src/global.ts:74</a></li></ul></aside><div class="tsd-comment tsd-typography"><div class="lead">
+<p>The full system path to the preferred global state folder</p>
+</div></div><h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4></li></ul></section><section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a id="SFDX_DIR" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><span class="tsd-flag ts-flagStatic">Static</span> SFDX_<wbr/>DIR<a href="#SFDX_DIR" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> SFDX_DIR<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li></ul><ul class="tsd-descriptions"><li class="tsd-description"><aside class="tsd-sources"><ul><li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/859ab3c6/src/global.ts#L58">src/global.ts:58</a></li></ul></aside><div class="tsd-comment tsd-typography"><div class="lead">
+<p>The full system path to the global sfdx state folder.</p>
+</div><div><p><strong>See</strong> <a href="Global.html#SFDX_STATE_FOLDER">Global.SFDX_STATE_FOLDER</a></p>
+</div></div><h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4></li></ul></section><section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a id="SF_DIR" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><span class="tsd-flag ts-flagStatic">Static</span> SF_<wbr/>DIR<a href="#SF_DIR" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> SF_DIR<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li></ul><ul class="tsd-descriptions"><li class="tsd-description"><aside class="tsd-sources"><ul><li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/859ab3c6/src/global.ts#L67">src/global.ts:67</a></li></ul></aside><div class="tsd-comment tsd-typography"><div class="lead">
+<p>The full system path to the global sf state folder.</p>
+</div><div><p><strong>See</strong>  <a href="Global.html#SF_STATE_FOLDER">Global.SF_STATE_FOLDER</a></p>
+</div></div><h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4></li></ul></section></section><section class="tsd-panel-group tsd-member-group "><h2>Methods</h2><section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static"><a id="createDir" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><span class="tsd-flag ts-flagStatic">Static</span> create<wbr/>Dir<a href="#createDir" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static"><li class="tsd-signature tsd-kind-icon">create<wbr/>Dir<span class="tsd-signature-symbol">(</span>dirPath<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li></ul><ul class="tsd-descriptions"><li class="tsd-description"><aside class="tsd-sources"><ul><li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/859ab3c6/src/global.ts#L100">src/global.ts:100</a></li></ul></aside><div class="tsd-comment tsd-typography"><div class="lead">
+<p>Creates a directory within <a href="Global.html#SFDX_DIR">Global.SFDX_DIR</a>, or <a href="Global.html#SFDX_DIR">Global.SFDX_DIR</a> itself if the <code>dirPath</code> param
+is not provided. This is resolved or rejected when the directory creation operation has completed.</p>
+</div></div><h4 class="tsd-parameters-title">Parameters</h4><ul class="tsd-parameters"><li><h5><span class="tsd-flag ts-flagOptional">Optional</span> dirPath: <span class="tsd-signature-type">string</span></h5><div class="tsd-comment tsd-typography"><div class="lead">
+<p>The directory path to be created within <a href="Global.html#SFDX_DIR">Global.SFDX_DIR</a>.</p>
+</div></div></li></ul><h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></section><section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static"><a id="getEnvironmentMode" class="tsd-anchor"></a><h3 class="tsd-anchor-link"><span class="tsd-flag ts-flagStatic">Static</span> get<wbr/>Environment<wbr/>Mode<a href="#getEnvironmentMode" aria-label="Permalink" class="tsd-anchor-icon"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></svg></a></h3><ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static"><li class="tsd-signature tsd-kind-icon">get<wbr/>Environment<wbr/>Mode<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../enums/Mode.html" class="tsd-signature-type" data-tsd-kind="Enumeration">Mode</a></li></ul><ul class="tsd-descriptions"><li class="tsd-description"><aside class="tsd-sources"><ul><li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/859ab3c6/src/global.ts#L90">src/global.ts:90</a></li></ul></aside><div class="tsd-comment tsd-typography"><div class="lead">
+<p>Gets the current mode environment variable as a <a href="../enums/Mode.html">Mode</a> instance.</p>
+</div><div><pre><code><span class="hl-2">console</span><span class="hl-1">.</span><span class="hl-8">log</span><span class="hl-1">(</span><span class="hl-2">Global</span><span class="hl-1">.</span><span class="hl-8">getEnvironmentMode</span><span class="hl-1">() === </span><span class="hl-2">Mode</span><span class="hl-1">.</span><span class="hl-7">PRODUCTION</span><span class="hl-1">);</span>
 </code></pre>
-							</div>
-							<h4 class="tsd-returns-title">Returns <a href="../enums/mode.html" class="tsd-signature-type">Mode</a></h4>
-						</li>
-					</ul>
-				</section>
-			</section>
-		</div>
-		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
-			<nav class="tsd-navigation primary">
-				<ul>
-					<li class="globals  ">
-						<a href="../globals.html"><em>Globals</em></a>
-					</li>
-				</ul>
-			</nav>
-			<nav class="tsd-navigation secondary menu-sticky">
-				<ul class="before-current">
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-class">
-						<a href="global.html" class="tsd-kind-icon">Global</a>
-						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
-								<a href="global.html#dir" class="tsd-kind-icon">DIR</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
-								<a href="global.html#log_file_path" class="tsd-kind-icon">LOG_<wbr>FILE_<wbr>PATH</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
-								<a href="global.html#state_folder" class="tsd-kind-icon">STATE_<wbr>FOLDER</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
-								<a href="global.html#createdir" class="tsd-kind-icon">create<wbr>Dir</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
-								<a href="global.html#getenvironmentmode" class="tsd-kind-icon">get<wbr>Environment<wbr>Mode</a>
-							</li>
-						</ul>
-					</li>
-				</ul>
-				<ul class="after-current">
-				</ul>
-			</nav>
-		</div>
-	</div>
-</div>
-<footer>
-	<div class="container">
-		<h2>Legend</h2>
-		<div class="tsd-legend-group">
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
-			</ul>
-		</div>
-	</div>
-</footer>
-<div class="overlay"></div>
-<script src="../assets/js/main.js"></script>
-</body>
-</html>
+</div></div><h4 class="tsd-returns-title">Returns <a href="../enums/Mode.html" class="tsd-signature-type" data-tsd-kind="Enumeration">Mode</a></h4></li></ul></section></section></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class=""><a href="../modules.html">Exports</a></li><li class=" tsd-kind-namespace"><a href="../modules/AuthInfo.html">Auth<wbr/>Info</a></li><li class=" tsd-kind-namespace"><a href="../modules/ConfigAggregator.html">Config<wbr/>Aggregator</a></li><li class=" tsd-kind-namespace"><a href="../modules/ConfigFile.html">Config<wbr/>File</a></li><li class=" tsd-kind-namespace"><a href="../modules/Connection.html">Connection</a></li><li class=" tsd-kind-namespace"><a href="../modules/DefaultUserFields.html">Default<wbr/>User<wbr/>Fields</a></li><li class=" tsd-kind-namespace"><a href="../modules/MyDomainResolver.html">My<wbr/>Domain<wbr/>Resolver</a></li><li class=" tsd-kind-namespace"><a href="../modules/Org.html">Org</a></li><li class=" tsd-kind-namespace"><a href="../modules/OrgUsersConfig.html">Org<wbr/>Users<wbr/>Config</a></li><li class=" tsd-kind-namespace"><a href="../modules/PollingClient.html">Polling<wbr/>Client</a></li><li class=" tsd-kind-namespace"><a href="../modules/StreamingClient.html">Streaming<wbr/>Client</a></li><li class=" tsd-kind-namespace"><a href="../modules/TTLConfig.html">TTLConfig</a></li><li class=" tsd-kind-namespace"><a href="../modules/User.html">User</a></li><li class=" tsd-kind-namespace"><a href="../modules/WebOAuthServer.html">WebOAuth<wbr/>Server</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="current tsd-kind-class"><a href="Global.html" class="tsd-kind-icon">Global</a><ul><li class="tsd-kind-constructor tsd-parent-kind-class"><a href="Global.html#constructor" class="tsd-kind-icon">constructor</a></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="Global.html#LOG_FILE_PATH" class="tsd-kind-icon">LOG_<wbr/>FILE_<wbr/>PATH</a></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="Global.html#SFDX_INTEROPERABILITY" class="tsd-kind-icon">SFDX_<wbr/>INTEROPERABILITY</a></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="Global.html#SFDX_STATE_FOLDER" class="tsd-kind-icon">SFDX_<wbr/>STATE_<wbr/>FOLDER</a></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="Global.html#SF_STATE_FOLDER" class="tsd-kind-icon">SF_<wbr/>STATE_<wbr/>FOLDER</a></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="Global.html#STATE_FOLDER" class="tsd-kind-icon">STATE_<wbr/>FOLDER</a></li><li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="Global.html#DIR" class="tsd-kind-icon">DIR</a></li><li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="Global.html#SFDX_DIR" class="tsd-kind-icon">SFDX_<wbr/>DIR</a></li><li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="Global.html#SF_DIR" class="tsd-kind-icon">SF_<wbr/>DIR</a></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="Global.html#createDir" class="tsd-kind-icon">create<wbr/>Dir</a></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="Global.html#getEnvironmentMode" class="tsd-kind-icon">get<wbr/>Environment<wbr/>Mode</a></li></ul></li></ul></nav></div></div></div><footer class=""><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li><li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li><li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="overlay"></div><script src="../assets/main.js"></script></body></html>
