@@ -137,7 +137,7 @@ workflows:
       - release-management/validate-pr:
           filters:
             branches:
-              ignore: v3
+              ignore: main
       - release-management/test-package:
           matrix:
             parameters:
@@ -156,7 +156,7 @@ workflows:
       - external-nut:
           filters:
             branches:
-              ignore: v3
+              ignore: main
           requires:
             - release-management/test-package
           sfdx_version: ''
@@ -181,7 +181,7 @@ workflows:
       - external-nut:
           filters:
             branches:
-              ignore: v3
+              ignore: main
           requires:
             - release-management/test-package
           sfdx_version: ''
@@ -197,7 +197,7 @@ workflows:
       - external-nut:
           filters:
             branches:
-              ignore: v3
+              ignore: main
           requires:
             - release-management/test-package
           sfdx_version: ''
@@ -219,16 +219,14 @@ workflows:
             - salesforce-cli-na40-jwt
             - salesforce-cli-na40-auth-url
       - release-management/release-package:
-          # TODO: add these back when we're ready to GA v3
-          # github-release: true
-          # post-job-steps:
-          #   - run: yarn ci-docs
-          tag: 'v3-beta'
+          github-release: true
+          post-job-steps:
+            - run: yarn ci-docs
           requires:
             - release-management/test-package
           filters:
             branches:
-              only: v3
+              only: main
           context:
             - CLI_CTC
             - salesforce-cli
