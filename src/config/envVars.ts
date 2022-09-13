@@ -37,6 +37,7 @@ export enum EnvironmentVariable {
   'SFDX_IMPROVED_CODE_COVERAGE' = 'SFDX_IMPROVED_CODE_COVERAGE',
   'SFDX_INSTANCE_URL' = 'SFDX_INSTANCE_URL',
   'SFDX_JSON_TO_STDOUT' = 'SFDX_JSON_TO_STDOUT',
+  'SFDX_DISABLE_LOG_FILE' = 'SFDX_DISABLE_LOG_FILE',
   'SFDX_LOG_LEVEL' = 'SFDX_LOG_LEVEL',
   'SFDX_LOG_ROTATION_COUNT' = 'SFDX_LOG_ROTATION_COUNT',
   'SFDX_LOG_ROTATION_PERIOD' = 'SFDX_LOG_ROTATION_PERIOD',
@@ -71,6 +72,7 @@ export enum EnvironmentVariable {
   'SF_IMPROVED_CODE_COVERAGE' = 'SF_IMPROVED_CODE_COVERAGE',
   'SF_ORG_INSTANCE_URL' = 'SF_ORG_INSTANCE_URL',
   'SF_JSON_TO_STDOUT' = 'SF_JSON_TO_STDOUT',
+  'SF_DISABLE_LOG_FILE' = 'SF_DISABLE_LOG_FILE',
   'SF_LOG_LEVEL' = 'SF_LOG_LEVEL',
   'SF_LOG_ROTATION_COUNT' = 'SF_LOG_ROTATION_COUNT',
   'SF_LOG_ROTATION_PERIOD' = 'SF_LOG_ROTATION_PERIOD',
@@ -194,6 +196,10 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   [EnvironmentVariable.SFDX_JSON_TO_STDOUT]: {
     description: getMessage(EnvironmentVariable.SFDX_JSON_TO_STDOUT),
     synonymOf: EnvironmentVariable.SF_JSON_TO_STDOUT,
+  },
+  [EnvironmentVariable.SFDX_DISABLE_LOG_FILE]: {
+    description: getMessage(EnvironmentVariable.SFDX_DISABLE_LOG_FILE),
+    synonymOf: EnvironmentVariable.SF_DISABLE_LOG_FILE,
   },
   [EnvironmentVariable.SFDX_LOG_LEVEL]: {
     description: getMessage(EnvironmentVariable.SFDX_LOG_LEVEL),
@@ -333,6 +339,10 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   [EnvironmentVariable.SF_JSON_TO_STDOUT]: {
     description: getMessage(EnvironmentVariable.SF_JSON_TO_STDOUT),
     synonymOf: null,
+  },
+  [EnvironmentVariable.SF_DISABLE_LOG_FILE]: {
+    description: getMessage(EnvironmentVariable.SF_DISABLE_LOG_FILE),
+    synonymOf: EnvironmentVariable.SFDX_DISABLE_LOG_FILE,
   },
   [EnvironmentVariable.SF_LOG_LEVEL]: {
     description: getMessage(EnvironmentVariable.SF_LOG_LEVEL),
