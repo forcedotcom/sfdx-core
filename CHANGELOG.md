@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.26.4](https://github.com/forcedotcom/sfdx-core/compare/v3.26.3...v3.26.4) (2022-09-14)
+
+### Bug Fixes
+
+- **logger:** idempotent mkdir when creating sf dir ([#635](https://github.com/forcedotcom/sfdx-core/issues/635)) ([4594940](https://github.com/forcedotcom/sfdx-core/commit/4594940a16f5473aeea0af37a2705e9f00e2590a))
+
 ### [3.26.3](https://github.com/forcedotcom/sfdx-core/compare/v3.26.2...v3.26.3) (2022-09-06)
 
 ### [3.26.2](https://github.com/forcedotcom/sfdx-core/compare/v3.26.1...v3.26.2) (2022-08-16)

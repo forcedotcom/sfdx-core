@@ -459,9 +459,9 @@ export class Logger {
     } catch (err1) {
       try {
         if (process.platform === 'win32') {
-          fs.mkdirSync(path.dirname(logFile));
+          fs.mkdirSync(path.dirname(logFile), { recursive: true });
         } else {
-          fs.mkdirSync(path.dirname(logFile), { mode: 0o700 });
+          fs.mkdirSync(path.dirname(logFile), { mode: 0o700, recursive: true });
         }
       } catch (err2) {
         throw SfError.wrap(err2 as Error);
