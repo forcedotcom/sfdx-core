@@ -8,7 +8,7 @@ import { join, sep } from 'path';
 import { expect } from 'chai';
 
 import { env } from '@salesforce/kit';
-import { Messages } from '../../src/exported';
+import { Messages, NamedPackageDir } from '../../src/exported';
 import { SfProject, SfProjectJson } from '../../src/sfProject';
 import { shouldThrow, shouldThrowSync, testSetup } from '../../src/testSetup';
 
@@ -646,6 +646,176 @@ describe('SfProject', () => {
         });
 
         expect(SfProject.getInstance().hasMultiplePackages()).to.equal(false);
+      });
+    });
+    describe('addPackageDirectory', () => {
+      it('should add a new package directory when no package dirs exist', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageDirectories: [],
+          },
+        });
+
+        const project = SfProject.getInstance();
+        project
+          .getSfProjectJson()
+          .addPackageDirectory({ path: './force-app', package: 'p1', default: true } as NamedPackageDir);
+
+        expect(SfProject.getInstance().hasMultiplePackages()).to.equal(false);
+      });
+      it('should add a new package directory to existing package dirs', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageDirectories: [{ path: './force-app', package: 'p1', default: true }],
+          },
+        });
+
+        const project = SfProject.getInstance();
+        project
+          .getSfProjectJson()
+          .addPackageDirectory({ path: './force-app', name: 'p2', default: false } as NamedPackageDir);
+
+        expect(SfProject.getInstance().hasMultiplePackages()).to.equal(true);
+      });
+      it('should merge to an existing existing package dir', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageDirectories: [{ path: './force-app', package: 'p1', default: true }],
+          },
+        });
+
+        const project = SfProject.getInstance();
+        project.getSfProjectJson().addPackageDirectory({
+          path: './force-app',
+          package: 'p1',
+          default: true,
+          ancestorId: '04txxxxxxxxxxxxxxx',
+        } as NamedPackageDir);
+
+        expect(project.hasMultiplePackages()).to.equal(false);
+        expect(project.getSfProjectJson().getPackageDirectoriesSync()[0]).to.have.property(
+          'ancestorId',
+          '04txxxxxxxxxxxxxxx'
+        );
+      });
+    });
+  });
+  describe('packageAliases', () => {
+    describe('sfproject aliases', () => {
+      it('should return an undefined object if no aliases are defined', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {},
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getPackageAliases()).to.not.be.ok;
+      });
+      it('should return false no aliases are defined', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {},
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.hasPackageAliases()).to.not.be.false;
+      });
+      it('should return true when at least one alias is defined', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageAliases: {
+              alias1: '04txxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.hasPackageAliases()).to.not.be.true;
+      });
+      it('should return the defined package aliases', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageAliases: {
+              alias1: '04txxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getPackageAliases()).to.deep.equal({
+          alias1: '04txxxxxxxxxxxxxxx',
+        });
+      });
+      it('should not find id of alias by name when name not in aliases collection', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageAliases: {
+              alias1: '04txxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getPackageIdFromAlias('alias1')).to.equal('04txxxxxxxxxxxxxxx');
+      });
+      it('should find id of alias by name', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageAliases: {
+              alias1: '04txxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getPackageIdFromAlias('alias2')).to.not.be.ok;
+      });
+      it('should find alias by id', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageAliases: {
+              alias1: '04txxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getAliasesFromPackageId('04txxxxxxxxxxxxxxx')).to.deep.equal(['alias1']);
+      });
+      it('should not find alias by id using id not in aliases collection', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageAliases: {
+              alias1: '04txxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getAliasesFromPackageId('04tyyyyyyyyyyyy')).to.deep.equal([]);
+      });
+      it('should find alias using 15 char id', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageAliases: {
+              alias1: '04txxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getAliasesFromPackageId('04txxxxxxxxxxxx')).to.deep.equal(['alias1']);
+      });
+      it('should add a new alias', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageAliases: {
+              alias1: '04txxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        project.getSfProjectJson().addPackageAlias('alias2', '04tyyyyyyyyyyyyyyy');
+        expect(project.getAliasesFromPackageId('04tyyyyyyyyyyyyyyy')).to.deep.equal(['alias2']);
       });
     });
   });

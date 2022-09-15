@@ -28,6 +28,7 @@ const messages = Messages.load('@salesforce/core', 'config', [
   'multipleDefaultPaths',
   'invalidPackageDirectory',
   'missingPackageDirectory',
+  'invalidId',
 ]);
 
 const coreMessages = Messages.load('@salesforce/core', 'core', ['invalidJsonCasing']);
@@ -302,21 +303,79 @@ export class SfProjectJson extends ConfigFile {
    * for data other than the names.
    */
   public getUniquePackageNames(): string[] {
-    return this.getUniquePackageDirectories().map((pkgDir) => pkgDir.name);
+    return this.getUniquePackageDirectories().map((pkgDir) => pkgDir.name) || [];
   }
 
   /**
    * Has package directories defined in the project.
    */
   public hasPackages(): boolean {
-    return this.getContents().packageDirectories && this.getContents().packageDirectories.length > 0;
+    return this.getContents()?.packageDirectories?.length > 0;
   }
 
   /**
    * Has multiple package directories (MPD) defined in the project.
    */
   public hasMultiplePackages(): boolean {
-    return this.getContents().packageDirectories && this.getContents().packageDirectories.length > 1;
+    return this.getContents()?.packageDirectories?.length > 1;
+  }
+
+  /**
+   * Has at least one package alias defined in the project.
+   */
+  public async hasPackageAliases() {
+    return Object.keys(this.getContents().packageAliases || {}).length > 0;
+  }
+
+  /**
+   * Get package aliases defined in the project.
+   */
+  public getPackageAliases(): Nullable<Dictionary<string>> {
+    return this.getContents().packageAliases;
+  }
+
+  /**
+   * Add a package alias to the project.
+   * If the alias already exists, it will be overwritten.
+   *
+   * @param alias
+   * @param id
+   */
+  public addPackageAlias(alias: string, id: string) {
+    // TODO: validate id (e.g. 04t, 0Ho)
+    if (!/^.{15,18}$/.test(id)) {
+      throw messages.createError('invalidId', [id]);
+    }
+
+    const contents = this.getContents();
+    if (!contents.packageAliases) {
+      contents.packageAliases = {};
+    }
+    contents.packageAliases[alias] = id;
+    this.setContents(contents);
+  }
+
+  /**
+   * Add a package directory to the project.
+   * If the package directory already exists, the new directory
+   * properties will be merged with the existing properties.
+   *
+   * @param packageDir
+   */
+  public addPackageDirectory(packageDir: PackageDir) {
+    const dirIndex = this.getContents().packageDirectories.findIndex((pkgDir) => {
+      return pkgDir.package === packageDir.package;
+    });
+    const packageDirEntry: PackageDir = Object.assign(
+      {},
+      dirIndex > -1 ? this.getContents().packageDirectories[dirIndex] : packageDir,
+      packageDir
+    );
+    if (dirIndex > -1) {
+      this.getContents().packageDirectories[dirIndex] = packageDirEntry;
+    } else {
+      this.getContents().packageDirectories.push(packageDirEntry);
+    }
   }
 
   private doesPackageExist(packagePath: string) {
@@ -354,6 +413,7 @@ export class SfProject {
 
   private packageDirectories?: NamedPackageDir[];
   private activePackage: Nullable<NamedPackageDir>;
+  private packageAliases: Nullable<Dictionary<string>>;
 
   /**
    * Do not directly construct instances of this class -- use {@link SfProject.resolve} instead.
@@ -545,6 +605,17 @@ export class SfProject {
   }
 
   /**
+   * Returns the package directory that has the given property whose value equals the given value.
+   *
+   * @param property
+   * @param value
+   */
+  public getPackageDirectoryWithProperty(property: string, value: string): Optional<NamedPackageDir> {
+    const packageDirs = this.getPackageDirectories();
+    return packageDirs.find((packageDir) => Reflect.get(packageDir, property) === value);
+  }
+
+  /**
    * Returns the package directory.
    *
    * @param packageName Name of the package directory.  E.g., 'force-app'
@@ -655,6 +726,34 @@ export class SfProject {
     }
 
     return this.projectConfig;
+  }
+
+  public async hasPackageAliases(): Promise<boolean> {
+    return await this.getSfProjectJson().hasPackageAliases();
+  }
+  /**
+   * Returns a read-only list of `packageDirectories` within sfdx-project.json, first reading
+   * and validating the file if necessary. i.e. modifying this array will not affect the
+   * sfdx-project.json file.
+   */
+  public getPackageAliases(): Nullable<Dictionary<string>> {
+    if (!this.packageAliases) {
+      this.packageAliases = this.getSfProjectJson().getPackageAliases();
+    }
+    return this.packageAliases;
+  }
+
+  public getPackageIdFromAlias(alias: string): Optional<string> {
+    const packageAliases = this.getPackageAliases();
+    return packageAliases ? packageAliases[alias] : undefined;
+  }
+  public getAliasesFromPackageId(id: string): string[] {
+    if (!/^.{15,18}$/.test(id)) {
+      throw messages.createError('invalidId', [id]);
+    }
+    return Object.entries(this.getPackageAliases() ?? {})
+      .filter(([, value]) => value?.startsWith(id))
+      .map(([key]) => key);
   }
 }
 

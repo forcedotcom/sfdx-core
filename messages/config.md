@@ -150,3 +150,7 @@ A valid repository URL or directory for the custom org metadata templates.
 # org-custom-metadata-templates
 
 A valid repository URL or directory for the custom org metadata templates.
+
+# invalidId
+
+The given id %s is not a valid 15 or 18 character Salesforce ID.
