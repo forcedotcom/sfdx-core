@@ -729,7 +729,7 @@ export class SfProject {
   }
 
   public async hasPackageAliases(): Promise<boolean> {
-    return await this.getSfProjectJson().hasPackageAliases();
+    return this.getSfProjectJson().hasPackageAliases();
   }
   /**
    * Returns a read-only list of `packageDirectories` within sfdx-project.json, first reading
