@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.30.1](https://github.com/forcedotcom/sfdx-core/compare/v3.30.0...v3.30.1) (2022-09-15)
+
+### Bug Fixes
+
+- await postOrgCreate hook ([#636](https://github.com/forcedotcom/sfdx-core/issues/636)) ([b9934d2](https://github.com/forcedotcom/sfdx-core/commit/b9934d2df6f5ea49b4f8bae44779aa5cab0e897f))
+
 ## [3.30.0](https://github.com/forcedotcom/sfdx-core/compare/v3.26.3...v3.30.0) (2022-09-12)
 
 ### [3.26.3](https://github.com/forcedotcom/sfdx-core/compare/v3.26.2...v3.26.3) (2022-09-06)
