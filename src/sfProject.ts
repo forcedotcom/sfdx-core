@@ -303,7 +303,7 @@ export class SfProjectJson extends ConfigFile {
    * for data other than the names.
    */
   public getUniquePackageNames(): string[] {
-    return this.getUniquePackageDirectories().map((pkgDir) => pkgDir.name) || [];
+    return this.getUniquePackageDirectories().map((pkgDir) => pkgDir.name);
   }
 
   /**
@@ -605,17 +605,6 @@ export class SfProject {
   }
 
   /**
-   * Returns the package directory that has the given property whose value equals the given value.
-   *
-   * @param property
-   * @param value
-   */
-  public getPackageDirectoryWithProperty(property: string, value: string): Optional<NamedPackageDir> {
-    const packageDirs = this.getPackageDirectories();
-    return packageDirs.find((packageDir) => Reflect.get(packageDir, property) === value);
-  }
-
-  /**
    * Returns the package directory.
    *
    * @param packageName Name of the package directory.  E.g., 'force-app'
@@ -662,7 +651,7 @@ export class SfProject {
    * Set the currently activated package on the project. This has no implication on sfdx-project.json
    * but is useful for keeping track of package and source specific options in a process.
    *
-   * @param pkgName The package name to activate. E.g. 'force-app'
+   * @param packageName The package name to activate. E.g. 'force-app'
    */
   public setActivePackage(packageName: Nullable<string>): void {
     if (packageName == null) {
