@@ -49,7 +49,7 @@ const isHookField = (key: string): key is typeof postOrgCreateHookFields[number]
 };
 
 export const emitPostOrgCreate = async (authFields: AuthFields) => {
-  emitter.emit(
+  await emitter.emit(
     'postorgcreate',
     Object.fromEntries(Object.entries(authFields).filter(([key]) => isHookField(key))) as PostOrgCreateHook
   );
