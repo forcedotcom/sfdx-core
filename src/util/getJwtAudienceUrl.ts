@@ -11,7 +11,7 @@ import { SfdcUrl } from './sfdcUrl';
 export async function getJwtAudienceUrl(options: OAuth2Config & { createdOrgInstance?: string }): Promise<string> {
   if (options.loginUrl) {
     const url = new SfdcUrl(options.loginUrl);
-    return await url.getJwtAudienceUrl(options.createdOrgInstance);
+    return url.getJwtAudienceUrl(options.createdOrgInstance);
   }
   return SfdcUrl.PRODUCTION;
 }
