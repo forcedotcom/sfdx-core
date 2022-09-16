@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.30.2](https://github.com/forcedotcom/sfdx-core/compare/v3.30.1...v3.30.2) (2022-09-16)
+
+### Bug Fixes
+
+- **logger:** support `SF_*` env vars ([#637](https://github.com/forcedotcom/sfdx-core/issues/637)) ([53c4296](https://github.com/forcedotcom/sfdx-core/commit/53c4296d0ab0728a798e39626a29168371e1a062))
+
 ### [3.30.1](https://github.com/forcedotcom/sfdx-core/compare/v3.30.0...v3.30.1) (2022-09-15)
 
 ### Bug Fixes
