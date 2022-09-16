@@ -316,7 +316,8 @@ export class Logger {
     const rootLogger = (this.rootLogger = new Logger(Logger.ROOT_NAME).setLevel());
 
     // disable log file writing, if applicable
-    if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && Global.getEnvironmentMode() !== Mode.TEST) {
+    const disableLogFile = new Env().getString('SF_DISABLE_LOG_FILE');
+    if (disableLogFile !== 'true' && Global.getEnvironmentMode() !== Mode.TEST) {
       await rootLogger.addLogFileStream(Global.LOG_FILE_PATH);
     }
 
@@ -528,7 +529,8 @@ export class Logger {
    */
   public setLevel(level?: LoggerLevelValue): Logger {
     if (level == null) {
-      level = process.env.SFDX_LOG_LEVEL ? Logger.getLevelByName(process.env.SFDX_LOG_LEVEL) : Logger.DEFAULT_LEVEL;
+      const logLevelFromEnvVar = new Env().getString('SF_LOG_LEVEL');
+      level = logLevelFromEnvVar ? Logger.getLevelByName(logLevelFromEnvVar) : Logger.DEFAULT_LEVEL;
     }
     this.bunyan.level(level);
     return this;

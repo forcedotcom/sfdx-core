@@ -90,6 +90,10 @@ URL of the Salesforce instance that is hosting your org. Default value is https:
 
 Set to true to send messages resulting from failed Salesforce CLI commands to stdout instead of stderr.
 
+# sfdxDisableLogFile
+
+Set to true to disable log file writing
+
 # sfdxLogLevel
 
 Level of messages that the CLI writes to the log file. Valid values are trace, debug, info, warn, error, fatal. Default value is warn.
@@ -225,6 +229,10 @@ URL of the Salesforce instance that is hosting your org. Default value is https:
 # sfJsonToStdout
 
 Set to true to send messages resulting from failed Salesforce CLI commands to stdout instead of stderr.
+
+# sfDisableLogFile
+
+Set to true to disable log file writing
 
 # sfLogLevel
 
