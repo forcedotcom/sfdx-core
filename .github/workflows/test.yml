@@ -8,7 +8,7 @@ jobs:
   unit-tests:
     uses: salesforcecli/github-workflows/.github/workflows/unitTest.yml@main
   nuts-primer:
-    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@sm/extNutWork
     strategy:
       fail-fast: false
       matrix:
@@ -22,7 +22,7 @@ jobs:
     secrets: inherit
   nuts:
     needs: [unit-tests, nuts-primer]
-    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@sm/extNutWork
     strategy:
       fail-fast: false
       matrix:
@@ -43,7 +43,7 @@ jobs:
     secrets: inherit
   deployRetrieveNuts:
     needs: [unit-tests, nuts-primer]
-    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@sm/extNutWork
     strategy:
       fail-fast: false
       matrix:
