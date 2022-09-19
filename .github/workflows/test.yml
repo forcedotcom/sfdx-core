@@ -7,8 +7,21 @@ on:
 jobs:
   unit-tests:
     uses: salesforcecli/github-workflows/.github/workflows/unitTest.yml@main
+  nuts-primer:
+    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-latest', 'windows-latest']
+    with:
+      packageName: '@salesforce/core'
+      externalProjectGitUrl: https://github.com/salesforcecli/plugin-config
+      command: 'yarn test:nuts'
+      postbuildCommands: 'shx rm -rf node_modules/@types/jsforce; shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core; shx rm -rf node_modules/@salesforce/command/node_modules/@salesforce/core; shx rm -rf node_modules/@salesforce/source-tracking/node_modules/@salesforce/core; shx rm -rf node_modules/@salesforce/source-deploy-retrieve/node_modules/@salesforce/core'
+      os: ${{ matrix.os }}
+    secrets: inherit
   nuts:
-    needs: unit-tests
+    needs: [unit-tests, nuts-primer]
     uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
     strategy:
       fail-fast: false
@@ -17,7 +30,6 @@ jobs:
         externalProjectGitUrl:
           - https://github.com/salesforcecli/plugin-alias
           - https://github.com/salesforcecli/plugin-auth
-          - https://github.com/salesforcecli/plugin-config
           - https://github.com/salesforcecli/plugin-limits
           - https://github.com/salesforcecli/plugin-schema
           - https://github.com/salesforcecli/plugin-env
@@ -27,11 +39,10 @@ jobs:
       packageName: '@salesforce/core'
       externalProjectGitUrl: ${{ matrix.externalProjectGitUrl }}
       command: 'yarn test:nuts'
-      postbuildCommands: 'shx rm -rf node_modules/@types/jsforce; shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core; shx rm -rf node_modules/@salesforce/command/node_modules/@salesforce/core; shx rm -rf node_modules/@salesforce/source-tracking/node_modules/@salesforce/core; shx rm -rf node_modules/@salesforce/source-deploy-retrieve/node_modules/@salesforce/core'
       os: ${{ matrix.os }}
     secrets: inherit
   deployRetrieveNuts:
-    needs: unit-tests
+    needs: [unit-tests, nuts-primer]
     uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
     strategy:
       fail-fast: false
