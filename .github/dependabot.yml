@@ -4,15 +4,18 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+      day: 'saturday'
     versioning-strategy: 'increase'
     labels:
       - 'dependencies'
-    open-pull-requests-limit: 100
+    open-pull-requests-limit: 5
     pull-request-branch-name:
       separator: '-'
+    commit-message:
+      # cause a release for non-dev-deps
+      prefix: fix(deps)
+      # no release for dev-deps
+      prefix-development: chore(dev-deps)
     ignore:
-      - dependency-name: 'typescript'
-      - dependency-name: 'sinon'
-      - dependency-name: 'string-ansi'
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
