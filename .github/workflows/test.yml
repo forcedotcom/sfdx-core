@@ -7,27 +7,15 @@ on:
 jobs:
   unit-tests:
     uses: salesforcecli/github-workflows/.github/workflows/unitTest.yml@main
-  nuts-primer:
-    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ['ubuntu-latest', 'windows-latest']
-    with:
-      packageName: '@salesforce/core'
-      externalProjectGitUrl: https://github.com/salesforcecli/plugin-config
-      command: 'yarn test:nuts'
-      postbuildCommands: 'shx rm -rf node_modules/@types/jsforce; shx rm -rf node_modules/**/node_modules/jsforce; shx rm -rf node_modules/@salesforce/**/node_modules/@salesforce/core;'
-      os: ${{ matrix.os }}
-    secrets: inherit
   nuts:
-    needs: [unit-tests, nuts-primer]
+    needs: unit-tests
     uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
     strategy:
       fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest']
         externalProjectGitUrl:
+          - https://github.com/salesforcecli/plugin-config
           - https://github.com/salesforcecli/plugin-alias
           - https://github.com/salesforcecli/plugin-auth
           - https://github.com/salesforcecli/plugin-limits
@@ -42,7 +30,7 @@ jobs:
       os: ${{ matrix.os }}
     secrets: inherit
   deployRetrieveNuts:
-    needs: [unit-tests, nuts-primer]
+    needs: unit-tests
     uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
     strategy:
       fail-fast: false
