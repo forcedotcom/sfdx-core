@@ -12,7 +12,7 @@ jobs:
 
   # most repos won't use this
   # depends on previous job to avoid git collisions, not for any functionality reason
-  # docs:
-  #   uses: salesforcecli/github-workflows/.github/workflows/publishTypedoc.yml@main
-  #   secrets: inherit
-  #   needs: release
+  docs:
+    uses: salesforcecli/github-workflows/.github/workflows/publishTypedoc.yml@main
+    secrets: inherit
+    needs: release
