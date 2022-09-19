@@ -15,5 +15,6 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
     with:
       tag: latest
+      ctc: true
       githubTag: ${{ github.event.release.tag_name || inputs.tag }}
     secrets: inherit
