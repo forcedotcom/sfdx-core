@@ -45,7 +45,7 @@ jobs:
           - yarn test:nuts:static
     with:
       packageName: '@salesforce/core'
-      external_project_git_url: 'https://github.com/salesforcecli/plugin-deploy-retrieve'
+      externalProjectGitUrl: 'https://github.com/salesforcecli/plugin-deploy-retrieve'
       command: ${{ matrix.command }}
       os: ${{ matrix.os }}
     secrets: inherit
