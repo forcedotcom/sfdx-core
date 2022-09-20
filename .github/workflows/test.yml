@@ -13,21 +13,38 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest']
+        os: ['ubuntu-latest', 'windows-latest']
         externalProjectGitUrl:
+          - https://github.com/salesforcecli/plugin-config
           - https://github.com/salesforcecli/plugin-alias
-          # - https://github.com/salesforcecli/plugin-auth
-          # - https://github.com/salesforcecli/plugin-config
-          # - https://github.com/salesforcecli/plugin-limits
-          # - https://github.com/salesforcecli/plugin-schema
-          # - https://github.com/salesforcecli/plugin-env
-          # - https://github.com/salesforcecli/plugin-org
-          # - https://github.com/salesforcecli/plugin-login
+          - https://github.com/salesforcecli/plugin-auth
+          - https://github.com/salesforcecli/plugin-limits
+          - https://github.com/salesforcecli/plugin-schema
+          - https://github.com/salesforcecli/plugin-env
+          - https://github.com/salesforcecli/plugin-org
+          - https://github.com/salesforcecli/plugin-login
     with:
       packageName: '@salesforce/core'
       externalProjectGitUrl: ${{ matrix.externalProjectGitUrl }}
       command: 'yarn test:nuts'
-      postbuildCommands: 'shx rm -rf node_modules/@types/jsforce; shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core; shx rm -rf node_modules/@salesforce/command/node_modules/@salesforce/core; shx rm -rf node_modules/@salesforce/source-tracking/node_modules/@salesforce/core; shx rm -rf node_modules/@salesforce/source-deploy-retrieve/node_modules/@salesforce/core'
-      preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/source-tracking/node_modules/@salesforce/source-deploy-retrieve'
+      os: ${{ matrix.os }}
+    secrets: inherit
+  deployRetrieveNuts:
+    needs: unit-tests
+    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['windows-latest-16x', 'ubuntu-latest-16x']
+        command:
+          - yarn test:nuts:deploy:metadata:manifest
+          - yarn test:nuts:deploy:metadata:metadata
+          - yarn test:nuts:deploy:metadata:source-dir
+          - yarn test:nuts:deploy:metadata:test-level
+          - yarn test:nuts:static
+    with:
+      packageName: '@salesforce/core'
+      externalProjectGitUrl: 'https://github.com/salesforcecli/plugin-deploy-retrieve'
+      command: ${{ matrix.command }}
       os: ${{ matrix.os }}
     secrets: inherit
