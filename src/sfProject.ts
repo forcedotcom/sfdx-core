@@ -59,6 +59,10 @@ export type PackageDir = {
 
 export type NamedPackageDir = PackageDir & {
   /**
+   * The [normalized](https://nodejs.org/api/path.html#path_path_normalize_path) path used as the package name.
+   */
+  name: string;
+  /**
    * The absolute path of the package.
    */
   fullPath: string;
@@ -337,7 +341,7 @@ export class SfProjectJson extends ConfigFile {
    * @param alias
    * @param id
    */
-  public addPackageAlias(alias: string, id: string) {
+  public addPackageAlias(alias: string, id: string): void {
     // TODO: validate id (e.g. 04t, 0Ho)
     if (!/^.{15,18}$/.test(id)) {
       throw messages.createError('invalidId', [id]);
@@ -358,10 +362,13 @@ export class SfProjectJson extends ConfigFile {
    *
    * @param packageDir
    */
-  public addPackageDirectory(packageDir: PackageDir) {
+  public addPackageDirectory(packageDir: NamedPackageDir): void {
     const dirIndex = this.getContents().packageDirectories.findIndex((pkgDir) => {
       return pkgDir.package === packageDir.package;
     });
+    // trying to remove name property is a breaking change.
+    // default name to package if not provided or path if package is not provided
+    packageDir.name ??= packageDir.package || packageDir.path;
     const packageDirEntry: PackageDir = Object.assign(
       {},
       dirIndex > -1 ? this.getContents().packageDirectories[dirIndex] : packageDir,
