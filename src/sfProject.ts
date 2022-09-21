@@ -59,10 +59,6 @@ export type PackageDir = {
 
 export type NamedPackageDir = PackageDir & {
   /**
-   * The [normalized](https://nodejs.org/api/path.html#path_path_normalize_path) path used as the package name.
-   */
-  name: string;
-  /**
    * The absolute path of the package.
    */
   fullPath: string;
@@ -289,8 +285,8 @@ export class SfProjectJson extends ConfigFile {
 
     // Keep original order defined in sfdx-project.json
     this.getPackageDirectoriesSync().forEach((packageDir) => {
-      if (!visited[packageDir.name]) {
-        visited[packageDir.name] = true;
+      if (!visited[packageDir.path]) {
+        visited[packageDir.path] = true;
         uniqueValues.push(packageDir);
       }
     });
@@ -303,7 +299,7 @@ export class SfProjectJson extends ConfigFile {
    * for data other than the names.
    */
   public getUniquePackageNames(): string[] {
-    return this.getUniquePackageDirectories().map((pkgDir) => pkgDir.name);
+    return this.getUniquePackageDirectories().map((pkgDir) => pkgDir.package || pkgDir.path);
   }
 
   /**
@@ -589,7 +585,7 @@ export class SfProject {
   public getPackageFromPath(path: string): Optional<NamedPackageDir> {
     const packageDirs = this.getPackageDirectories();
     const match = packageDirs.find(
-      (packageDir) => basename(path) === packageDir.name || path.includes(packageDir.fullPath)
+      (packageDir) => basename(path) === packageDir.path || path.includes(packageDir.fullPath)
     );
     return match;
   }
@@ -601,7 +597,7 @@ export class SfProject {
    */
   public getPackageNameFromPath(path: string): Optional<string> {
     const packageDir = this.getPackageFromPath(path);
-    return packageDir ? packageDir.name : undefined;
+    return packageDir ? packageDir.package || packageDir.path : undefined;
   }
 
   /**
@@ -611,7 +607,7 @@ export class SfProject {
    */
   public getPackage(packageName: string): Optional<NamedPackageDir> {
     const packageDirs = this.getPackageDirectories();
-    return packageDirs.find((packageDir) => packageDir.name === packageName);
+    return packageDirs.find((packageDir) => packageDir.package === packageName || packageDir.path === packageName);
   }
 
   /**
@@ -622,7 +618,7 @@ export class SfProject {
    */
   public getPackagePath(packageName: string): Optional<string> {
     const packageDir = this.getPackage(packageName);
-    return packageDir && packageDir.fullPath;
+    return packageDir?.fullPath;
   }
 
   /**
