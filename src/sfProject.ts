@@ -366,9 +366,6 @@ export class SfProjectJson extends ConfigFile {
     const dirIndex = this.getContents().packageDirectories.findIndex((pkgDir) => {
       return pkgDir.package === packageDir.package;
     });
-    // trying to remove name property is a breaking change.
-    // default name to package if not provided or path if package is not provided
-    packageDir.name ??= packageDir.package || packageDir.path;
     const packageDirEntry: PackageDir = Object.assign(
       {},
       dirIndex > -1 ? this.getContents().packageDirectories[dirIndex] : packageDir,
