@@ -620,7 +620,7 @@ describe('SfProject', () => {
 
       it('should set/get an existing package', () => {
         SfProject.getInstance().setActivePackage(expectedPackage);
-        expect(SfProject.getInstance().getActivePackage().path).to.equal(expectedPackage);
+        expect(SfProject.getInstance().getActivePackage().name).to.equal(expectedPackage);
       });
     });
 
@@ -673,7 +673,7 @@ describe('SfProject', () => {
         const project = SfProject.getInstance();
         project
           .getSfProjectJson()
-          .addPackageDirectory({ path: './force-app', package: 'p2', default: false } as NamedPackageDir);
+          .addPackageDirectory({ path: './force-app', name: 'p2', default: false } as NamedPackageDir);
 
         expect(SfProject.getInstance().hasMultiplePackages()).to.equal(true);
       });
