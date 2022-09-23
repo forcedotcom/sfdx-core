@@ -9,6 +9,7 @@ import { ensureString } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { Logger } from '../logger';
 import { ConfigAggregator } from '../config/configAggregator';
+import { OrgConfigProperties } from '../org/orgConfigProperties';
 import { SfProject } from '../sfProject';
 import { StateAggregator } from '../stateAggregator';
 import { Org } from './org';
@@ -152,6 +153,8 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
 
   const scratchOrg = await Org.create({ aliasOrUsername: username });
 
+  const configAggregator = await ConfigAggregator.create();
+
   await emit({ stage: 'deploy settings', scratchOrgInfo: soi });
   const settingsGenerator = new SettingsGenerator();
   settingsGenerator.extract({ ...soi, ...definitionjson });
@@ -161,7 +164,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
       scratchOrg,
       settingsGenerator,
       apiVersion ??
-        (new ConfigAggregator().getPropertyValue('apiVersion') as string) ??
+        configAggregator.getPropertyValue(OrgConfigProperties.ORG_API_VERSION) ??
         (await scratchOrg.retrieveMaxApiVersion())
     ),
   ]);
@@ -283,13 +286,15 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
 
   await emit({ stage: 'deploy settings', scratchOrgInfo: soi });
 
+  const configAggregator = await ConfigAggregator.create();
+
   const [authInfo] = await Promise.all([
     resolveUrl(scratchOrgAuthInfo),
     deploySettings(
       scratchOrg,
       settingsGenerator,
       apiversion ??
-        (new ConfigAggregator().getPropertyValue('org-api-version') as string) ??
+        configAggregator.getPropertyValue(OrgConfigProperties.ORG_API_VERSION) ??
         (await scratchOrg.retrieveMaxApiVersion())
     ),
   ]);
