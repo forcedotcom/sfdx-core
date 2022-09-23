@@ -29,22 +29,23 @@ jobs:
       command: 'yarn test:nuts'
       os: ${{ matrix.os }}
     secrets: inherit
-  deployRetrieveNuts:
-    needs: unit-tests
-    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ['windows-latest-16x', 'ubuntu-latest-16x']
-        command:
-          - yarn test:nuts:deploy:metadata:manifest
-          - yarn test:nuts:deploy:metadata:metadata
-          - yarn test:nuts:deploy:metadata:source-dir
-          - yarn test:nuts:deploy:metadata:test-level
-          - yarn test:nuts:static
-    with:
-      packageName: '@salesforce/core'
-      externalProjectGitUrl: 'https://github.com/salesforcecli/plugin-deploy-retrieve'
-      command: ${{ matrix.command }}
-      os: ${{ matrix.os }}
-    secrets: inherit
+  # hidden until we fix source-testkit to better handle jwt
+  # deployRetrieveNuts:
+  #   needs: unit-tests
+  #   uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: ['windows-latest-16x', 'ubuntu-latest-16x']
+  #       command:
+  #         - yarn test:nuts:deploy:metadata:manifest
+  #         - yarn test:nuts:deploy:metadata:metadata
+  #         - yarn test:nuts:deploy:metadata:source-dir
+  #         - yarn test:nuts:deploy:metadata:test-level
+  #         - yarn test:nuts:static
+  #   with:
+  #     packageName: '@salesforce/core'
+  #     externalProjectGitUrl: 'https://github.com/salesforcecli/plugin-deploy-retrieve'
+  #     command: ${{ matrix.command }}
+  #     os: ${{ matrix.os }}
+  #   secrets: inherit
