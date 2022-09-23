@@ -284,13 +284,13 @@ export class SfProjectJson extends ConfigFile {
    * for packaging operations that want to do something for each package entry.
    */
   public getUniquePackageDirectories(): NamedPackageDir[] {
-    const visited: Dictionary<boolean> = {};
+    const visited: Set<string> = new Set<string>();
     const uniqueValues: NamedPackageDir[] = [];
 
     // Keep original order defined in sfdx-project.json
     this.getPackageDirectoriesSync().forEach((packageDir) => {
-      if (!visited[packageDir.name]) {
-        visited[packageDir.name] = true;
+      if (!visited.has(packageDir.name)) {
+        visited.add(packageDir.name);
         uniqueValues.push(packageDir);
       }
     });
@@ -341,7 +341,7 @@ export class SfProjectJson extends ConfigFile {
    * @param alias
    * @param id
    */
-  public addPackageAlias(alias: string, id: string) {
+  public addPackageAlias(alias: string, id: string): void {
     // TODO: validate id (e.g. 04t, 0Ho)
     if (!/^.{15,18}$/.test(id)) {
       throw messages.createError('invalidId', [id]);
@@ -362,9 +362,13 @@ export class SfProjectJson extends ConfigFile {
    *
    * @param packageDir
    */
-  public addPackageDirectory(packageDir: PackageDir) {
-    const dirIndex = this.getContents().packageDirectories.findIndex((pkgDir) => {
-      return pkgDir.package === packageDir.package;
+  public addPackageDirectory(packageDir: NamedPackageDir): void {
+    const dirIndex = this.getContents().packageDirectories.findIndex((pd) => {
+      const withId = pd as NamedPackageDir & { id: string };
+      return (
+        (withId.path === packageDir.path && !withId.id && !withId.package) ||
+        (!!packageDir.package && packageDir.package === withId.package)
+      );
     });
     const packageDirEntry: PackageDir = Object.assign(
       {},
@@ -589,7 +593,7 @@ export class SfProject {
   public getPackageFromPath(path: string): Optional<NamedPackageDir> {
     const packageDirs = this.getPackageDirectories();
     const match = packageDirs.find(
-      (packageDir) => basename(path) === packageDir.name || path.includes(packageDir.fullPath)
+      (packageDir) => basename(path) === packageDir.path || path.includes(packageDir.fullPath)
     );
     return match;
   }
@@ -601,7 +605,7 @@ export class SfProject {
    */
   public getPackageNameFromPath(path: string): Optional<string> {
     const packageDir = this.getPackageFromPath(path);
-    return packageDir ? packageDir.name : undefined;
+    return packageDir ? packageDir.package || packageDir.path : undefined;
   }
 
   /**
@@ -611,7 +615,15 @@ export class SfProject {
    */
   public getPackage(packageName: string): Optional<NamedPackageDir> {
     const packageDirs = this.getPackageDirectories();
-    return packageDirs.find((packageDir) => packageDir.name === packageName);
+    return packageDirs.find((packageDir) => packageDir.package === packageName || packageDir.name === packageName);
+  }
+  /**
+   * Returns the package directory.
+   *
+   * @param packageName Name of the package directory.  E.g., 'force-app'
+   */
+  public findPackage(predicate: (packageDir: NamedPackageDir) => boolean): Optional<NamedPackageDir> {
+    return this.getPackageDirectories().find(predicate);
   }
 
   /**
@@ -622,7 +634,7 @@ export class SfProject {
    */
   public getPackagePath(packageName: string): Optional<string> {
     const packageDir = this.getPackage(packageName);
-    return packageDir && packageDir.fullPath;
+    return packageDir?.fullPath;
   }
 
   /**
@@ -669,7 +681,7 @@ export class SfProject {
     if (!this.hasPackages()) {
       throw new SfError('The sfdx-project.json does not have any packageDirectories defined.');
     }
-    const defaultPackage = this.getPackageDirectories().find((packageDir) => packageDir.default === true);
+    const defaultPackage = this.findPackage((packageDir) => packageDir.default === true);
     return defaultPackage || this.getPackageDirectories()[0];
   }
 
