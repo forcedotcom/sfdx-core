@@ -615,7 +615,7 @@ export class SfProject {
    */
   public getPackage(packageName: string): Optional<NamedPackageDir> {
     const packageDirs = this.getPackageDirectories();
-    return packageDirs.find((packageDir) => packageDir.package === packageName || packageDir.name === packageName);
+    return packageDirs.find((packageDir) => packageDir.name === packageName);
   }
   /**
    * Returns the package directory.
