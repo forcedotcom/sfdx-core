@@ -363,6 +363,11 @@ export class SfProjectJson extends ConfigFile {
    * @param packageDir
    */
   public addPackageDirectory(packageDir: NamedPackageDir): void {
+    // there is no notion of uniqueness in package directory entries
+    // so an attempt of matching an existing entry is a bit convoluted
+    // an entry w/o a package or id is considered a directory entry for which a package has yet to be created
+    // so first attempt is to find a matching dir entry that where path is the same and id and package are not present
+    // if that fails, then find a matching dir entry package is present and is same as the new entry
     const dirIndex = this.getContents().packageDirectories.findIndex((pd) => {
       const withId = pd as NamedPackageDir & { id: string };
       return (
@@ -370,11 +375,13 @@ export class SfProjectJson extends ConfigFile {
         (!!packageDir.package && packageDir.package === withId.package)
       );
     });
+    // merge new package dir with existing entry, if present
     const packageDirEntry: PackageDir = Object.assign(
       {},
       dirIndex > -1 ? this.getContents().packageDirectories[dirIndex] : packageDir,
       packageDir
     );
+    // update package dir entries
     if (dirIndex > -1) {
       this.getContents().packageDirectories[dirIndex] = packageDirEntry;
     } else {
