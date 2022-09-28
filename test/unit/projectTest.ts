@@ -819,4 +819,56 @@ describe('SfProject', () => {
       });
     });
   });
+  describe('findPackage', () => {
+    it('should find package', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageDirectories: [{ path: 'force-app1', default: true }],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      expect(project.findPackage((pd) => pd.path === 'force-app1')).to.be.ok;
+    });
+    it('should not find package', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageDirectories: [{ path: 'force-app1', default: true }],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      expect(project.findPackage((pd) => pd.path === 'foo')).to.not.be.ok;
+    });
+    it('should find first instance when predicate could match more than one', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageDirectories: [
+            { path: 'force-app1', default: true },
+            { path: 'force-app1', default: false },
+          ],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      const foundPkg = project.findPackage((pd) => pd.path === 'force-app1');
+      expect(foundPkg).to.be.ok;
+      expect(foundPkg.default).to.be.true;
+    });
+    it('should find second instance when predicate is specific to a single entry', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageDirectories: [
+            { path: 'force-app1', default: true },
+            { path: 'force-app1', default: false },
+          ],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      const foundPkg = project.findPackage((pd) => pd.path === 'force-app1' && pd.default === false);
+      expect(foundPkg).to.be.ok;
+      expect(foundPkg.default).to.be.false;
+    });
+  });
 });
