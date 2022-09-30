@@ -210,6 +210,22 @@ describe('Connection', () => {
     expect(querySpy.firstCall.args[0]).to.equal(soql);
     expect(querySpy.firstCall.args[1]).to.have.property('autoFetch', true);
   });
+  it('autoFetchQuery() with tooling enabled should call this.query with proper args', async () => {
+    const records = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }];
+    const queryResponse = { totalSize: records.length, done: true, records };
+    const soql = 'TEST_SOQL';
+
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    stubMethod($$.SANDBOX, conn, 'request').resolves(queryResponse);
+    const toolingQuerySpy = $$.SANDBOX.spy(conn.tooling, 'query');
+    const queryResults = await conn.autoFetchQuery(soql, { tooling: true });
+    expect(queryResults).to.deep.equal({
+      done: true,
+      totalSize: 6,
+      records: [...records],
+    });
+    expect(toolingQuerySpy.firstCall.args[0]).to.equal(soql);
+  });
 
   it('autoFetch() should reject the promise upon query error', async () => {
     const errorMsg = 'QueryFailed';

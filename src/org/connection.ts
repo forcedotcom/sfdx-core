@@ -342,19 +342,21 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    */
   public async autoFetchQuery<T extends Schema = S>(
     soql: string,
-    queryOptions: Partial<QueryOptions> = {}
+    queryOptions: Partial<QueryOptions & { tooling: boolean }> = { tooling: false }
   ): Promise<QueryResult<T>> {
     const config: ConfigAggregator = await ConfigAggregator.create();
     // take the limit from the calling function, then the config, then default 10,000
     const maxFetch: number =
       (config.getInfo(OrgConfigProperties.ORG_MAX_QUERY_LIMIT).value as number) || queryOptions.maxFetch || 10000;
 
+    const tooling = queryOptions?.tooling;
+    delete queryOptions.tooling;
+
     const options: Partial<QueryOptions> = Object.assign(queryOptions, {
       autoFetch: true,
       maxFetch,
     });
-
-    const query = await this.query<T>(soql, options);
+    const query = tooling ? await this.tooling.query<T>(soql, options) : await this.query<T>(soql, options);
 
     if (query.records.length && query.totalSize > query.records.length) {
       void Lifecycle.getInstance().emitWarning(
