@@ -23,7 +23,7 @@ const SHALLOW_LOWECASE_OBJECT = {
   },
 };
 
-const SHALLOW_UPPERECASE_OBJECT = {
+const SHALLOW_UPPERCASE_OBJECT = {
   Name: 'Anna',
   Address: 'Ocean Drive 101',
   Phone: 123456789,
@@ -95,7 +95,7 @@ const NESTED_LOWECASE_OBJECT = {
   },
 };
 
-const NESTED_UPPERECASE_OBJECT = {
+const NESTED_UPPERCASE_OBJECT = {
   Name: 'Anna',
   Address: 'Ocean Drive 101',
   Phone: 123456789,
@@ -156,19 +156,19 @@ const NESTED_UPPERECASE_OBJECT = {
 describe('mapKeys', () => {
   it('map shallow keys w/upperFirst', () => {
     const result = mapKeys(SHALLOW_LOWECASE_OBJECT, upperFirst);
-    expect(result).to.deep.equal(SHALLOW_UPPERECASE_OBJECT);
+    expect(result).to.deep.equal(SHALLOW_UPPERCASE_OBJECT);
   });
   it('map shallow keys w/lowerFirst', () => {
-    const result = mapKeys(SHALLOW_UPPERECASE_OBJECT, lowerFirst);
+    const result = mapKeys(SHALLOW_UPPERCASE_OBJECT, lowerFirst);
     expect(result).to.deep.equal(SHALLOW_LOWECASE_OBJECT);
   });
 
   it('map nested keys w/upperFirst', () => {
     const result = mapKeys(NESTED_LOWECASE_OBJECT, upperFirst, true);
-    expect(result).to.deep.equal(NESTED_UPPERECASE_OBJECT);
+    expect(result).to.deep.equal(NESTED_UPPERCASE_OBJECT);
   });
   it('map nested keys w/lowerFirst', () => {
-    const result = mapKeys(NESTED_UPPERECASE_OBJECT, lowerFirst, true);
+    const result = mapKeys(NESTED_UPPERCASE_OBJECT, lowerFirst, true);
     expect(result).to.deep.equal(NESTED_LOWECASE_OBJECT);
   });
 });

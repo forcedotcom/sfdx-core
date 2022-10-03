@@ -75,7 +75,7 @@ export class TokenAccessor extends AsyncOptionalCreatable {
   }
 
   /**
-   * Unet the token for the provided name.
+   * Unset the token for the provided name.
    *
    * @param name
    */

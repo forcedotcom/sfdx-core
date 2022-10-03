@@ -646,7 +646,7 @@ const _testSetup = (sinon?: any): TestContext => {
  *    $$.stubAliases({ 'myTestAlias': 'user@company.com' });
  *
  *    // Will use the contents set above.
- *    const username = (await StateAggregator.getInstance()).aliases.resolveUseranme('myTestAlias');
+ *    const username = (await StateAggregator.getInstance()).aliases.resolveUsername('myTestAlias');
  *    expect(username).to.equal('user@company.com');
  *  });
  * });

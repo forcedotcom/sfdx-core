@@ -17,16 +17,16 @@ import { Cache } from '../../../src/util/cache';
 const $$ = testSetup();
 
 const spawnReturnFake = {
-  sdtoutData: 'stdout test data',
-  sdterrData: 'stdout test data',
+  stdoutData: 'stdout test data',
+  stderrData: 'stdout test data',
   stdout: {
     on: (action: string, cb: (data: AnyJson) => void) => {
-      cb(spawnReturnFake.sdtoutData);
+      cb(spawnReturnFake.stdoutData);
     },
   },
   stderr: {
     on: (action: string, cb: (data: AnyJson) => void) => {
-      cb(spawnReturnFake.sdterrData);
+      cb(spawnReturnFake.stderrData);
     },
   },
   on: (action: string, cb: (data: AnyJson) => void) => {
@@ -77,7 +77,7 @@ if (os.platform() === 'darwin') {
       } catch (err) {
         expect(err.name).to.equal('SetCredentialError');
         expect(err.message).to.equal(
-          `Command failed with response:\n${spawnReturnFake.sdtoutData} - ${spawnReturnFake.sdterrData}`
+          `Command failed with response:\n${spawnReturnFake.stdoutData} - ${spawnReturnFake.stderrData}`
         );
         expect(err.actions[0]).to.equal(
           `Determine why this command failed to set an encryption key for user ${currentUser}: [${programArg} ${setOptionsArg.join(

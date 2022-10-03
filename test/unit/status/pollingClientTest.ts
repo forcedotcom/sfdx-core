@@ -155,7 +155,7 @@ describe('clientTest', () => {
     expect(callCount).to.be.equal(9 /* errors */ + 1 /* initial poll */ + 11 /* iterations */);
   });
 
-  it('should keep trying when network errors untill timeout', async () => {
+  it('should keep trying when network errors until timeout', async () => {
     const emitWarning = sandbox.spy();
     sandbox.stub(Lifecycle, 'getInstance').returns({ emitWarning } as unknown as Lifecycle);
     let callCount = 0;

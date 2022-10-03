@@ -217,7 +217,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    */
   public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
     // REST returns an object with an id property, SOAP returns the id as a string directly. That is now handled
-    // in jsforce, so we have to cast a string as unkown as JsonCollection to support backwards compatibility.
+    // in jsforce, so we have to cast a string as unknown as JsonCollection to support backwards compatibility.
     return (await this.metadata.deployRecentValidation(options)) as unknown as JsonCollection;
   }
   /**
