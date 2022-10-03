@@ -51,6 +51,21 @@ describe('Connection', () => {
     });
   });
 
+  it('throws error when no valid API version', async () => {
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
+
+    $$.SANDBOX.restore();
+    $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
+    $$.SANDBOX.stub(conn, 'isResolvable').resolves(true);
+    $$.SANDBOX.stub(JSForceConnection.prototype, 'request').resolves('');
+
+    try {
+      await shouldThrow(conn.retrieveMaxApiVersion());
+    } catch (e) {
+      expect(e).to.have.property('name', 'NoApiVersionsError');
+    }
+  });
+
   it('create() should throw on DNS errors', async () => {
     $$.SANDBOX.restore();
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').rejects({ name: DNS_ERROR_NAME });

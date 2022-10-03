@@ -231,7 +231,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // if the server doesn't return a list of versions, it's possibly a instanceUrl issue where the local file is out of date.
     if (!Array.isArray(versions)) {
       this.logger.debug(`server response for retrieveMaxApiVersion: ${versions}`);
-      messages.createError('noApiVersionsError');
+      throw messages.createError('noApiVersionsError');
     }
     this.logger.debug(`response for org versions: ${versions.map((item) => item.version).join(',')}`);
     const max = ensure(maxBy(versions, (version: Versioned) => version.version));
