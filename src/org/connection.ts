@@ -38,6 +38,7 @@ const messages = Messages.load('@salesforce/core', 'connection', [
   'incorrectAPIVersionError',
   'domainNotFoundError',
   'noInstanceUrlError',
+  'noApiVersionsError',
 ]);
 
 const clientId = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
@@ -227,6 +228,11 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     await this.isResolvable();
     type Versioned = { version: string };
     const versions: Versioned[] = await this.request<Versioned[]>(`${this.instanceUrl}/services/data`);
+    // if the server doesn't return a list of versions, it's possibly a instanceUrl issue where the local file is out of date.
+    if (!Array.isArray(versions)) {
+      this.logger.debug(`server response for retrieveMaxApiVersion: ${versions}`);
+      throw messages.createError('noApiVersionsError');
+    }
     this.logger.debug(`response for org versions: ${versions.map((item) => item.version).join(',')}`);
     const max = ensure(maxBy(versions, (version: Versioned) => version.version));
 
