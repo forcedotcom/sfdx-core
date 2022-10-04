@@ -291,6 +291,8 @@ export abstract class BaseConfigStore<
   public async awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
     const entries = this.entries();
     for (const entry of entries) {
+      // prevent ConfigFile collision bug
+      // eslint-disable-next-line no-await-in-loop
       await actionFn(entry[0], entry[1]);
     }
   }
@@ -330,6 +332,7 @@ export abstract class BaseConfigStore<
 
   // Allows extended classes the ability to override the set method. i.e. maybe they want
   // nested object set from kit.
+  // eslint-disable-next-line class-methods-use-this
   protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
     set(contents, key, value);
   }
@@ -337,10 +340,12 @@ export abstract class BaseConfigStore<
   // Allows extended classes the ability to override the get method. i.e. maybe they want
   // nested object get from ts-types.
   // NOTE: Key must stay string to be reliably overwritten.
+  // eslint-disable-next-line class-methods-use-this
   protected getMethod(contents: ConfigContents, key: string): Optional<ConfigValue> {
     return get(contents, key) as ConfigValue;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected initialContents(): P {
     return {} as P;
   }

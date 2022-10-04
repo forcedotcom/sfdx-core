@@ -521,6 +521,7 @@ export class GenericKeychainAccess implements PasswordStore {
     });
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected async isValidFileAccess(cb: (error: Nullable<NodeJS.ErrnoException>) => Promise<void>): Promise<void> {
     try {
       const root = homedir();

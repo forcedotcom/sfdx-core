@@ -98,6 +98,7 @@ export class Lifecycle {
   /**
    * return the package.json version of the sfdx-core library.
    */
+  // eslint-disable-next-line class-methods-use-this
   public version(): string {
     return pjson.version;
   }
@@ -199,6 +200,7 @@ export class Lifecycle {
       );
     } else {
       for (const cb of listeners) {
+        // eslint-disable-next-line no-await-in-loop
         await cb(data);
       }
     }

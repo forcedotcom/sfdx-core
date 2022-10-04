@@ -37,6 +37,7 @@ export class DirectoryWriter implements StructuredWriter {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public finalize(): Promise<void> {
     return Promise.resolve(undefined);
   }
@@ -45,6 +46,7 @@ export class DirectoryWriter implements StructuredWriter {
     return this.rootDestination;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public get buffer(): Buffer {
     throw new Error('Not implemented');
   }

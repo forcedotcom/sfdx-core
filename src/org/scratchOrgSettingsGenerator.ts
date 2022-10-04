@@ -328,28 +328,31 @@ export default class SettingsGenerator {
     allbusinessProcesses: string[]
   ) {
     if (this.objectSettingsData) {
-      for (const [item, value] of Object.entries(this.objectSettingsData)) {
-        const fileContent = createRecordTypeAndBusinessProcessFileContent(
-          item,
-          value,
-          allRecordTypes,
-          allbusinessProcesses
-        );
-        const xml = js2xmlparser.parse('CustomObject', fileContent);
-        await this.writer.addToStore(xml, path.join(objectsDir, upperFirst(item) + '.object'));
-      }
+      await Promise.all(
+        Object.entries(this.objectSettingsData).map(([item, value]) => {
+          const fileContent = createRecordTypeAndBusinessProcessFileContent(
+            item,
+            value,
+            allRecordTypes,
+            allbusinessProcesses
+          );
+          const xml = js2xmlparser.parse('CustomObject', fileContent);
+          return this.writer.addToStore(xml, path.join(objectsDir, upperFirst(item) + '.object'));
+        })
+      );
     }
   }
 
   private async writeSettingsIfNeeded(settingsDir: string) {
     if (this.settingData) {
-      for (const item of Object.keys(this.settingData)) {
-        const value = getObject(this.settingData, item);
-        const typeName = upperFirst(item);
-        const fname = typeName.replace('Settings', '');
-        const fileContent = js2xmlparser.parse(typeName, value);
-        await this.writer.addToStore(fileContent, path.join(settingsDir, fname + '.settings'));
-      }
+      await Promise.all(
+        Object.entries(this.settingData).map(([item, value]) => {
+          const typeName = upperFirst(item);
+          const fname = typeName.replace('Settings', '');
+          const fileContent = js2xmlparser.parse(typeName, value);
+          return this.writer.addToStore(fileContent, path.join(settingsDir, fname + '.settings'));
+        })
+      );
     }
   }
 }

@@ -51,6 +51,7 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
     this.setContents(purged);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private timestamp(value: Partial<TTLConfig.Entry<P>>): TTLConfig.Entry<P> {
     return { ...value, timestamp: new Date().toISOString() } as TTLConfig.Entry<P>;
   }

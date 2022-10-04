@@ -200,12 +200,14 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
     this.logger.debug('BEGIN POLLING FOR DEVICE APPROVAL');
     let result: Nullable<DeviceCodePollingResponse>;
     while (this.shouldContinuePolling()) {
+      // eslint-disable-next-line no-await-in-loop
       result = await this.poll(httpRequest);
       if (result) {
         this.logger.debug('POLLING FOR DEVICE APPROVAL SUCCESS');
         break;
       } else {
         this.logger.debug(`waiting ${interval} ms...`);
+        // eslint-disable-next-line no-await-in-loop
         await wait(interval);
         this.pollingCount += 1;
       }

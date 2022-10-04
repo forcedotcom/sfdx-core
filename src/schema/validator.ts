@@ -165,6 +165,7 @@ export class SchemaValidator {
    *
    * @param errors An array of AJV (DefinedError) objects.
    */
+  // eslint-disable-next-line class-methods-use-this
   private getErrorsText(errors: DefinedError[]): string {
     return errors
       .map((error) => {

@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable class-methods-use-this */
+
 import { randomBytes } from 'crypto';
 import { resolve as pathResolve } from 'path';
 import * as os from 'os';
@@ -280,6 +282,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         .filter((c) => aliases.includes(c.value as string) || c.value === username)
         .map((c) => c.key);
       try {
+        // prevent ConfigFile collision bug
+        // eslint-disable-next-line no-await-in-loop
         const authInfo = await AuthInfo.create({ username });
         const { orgId, instanceUrl, devHubUsername, expirationDate, isDevHub } = authInfo.getFields();
         final.push({
@@ -289,6 +293,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           instanceUrl,
           isScratchOrg: Boolean(devHubUsername),
           isDevHub: isDevHub ?? false,
+          // eslint-disable-next-line no-await-in-loop
           isSandbox: await stateAggregator.sandboxes.hasFile(orgId as string),
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
@@ -883,6 +888,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const loginAndAudienceUrls = getLoginAudienceCombos(audienceUrl, loginUrl);
     for (const [login, audience] of loginAndAudienceUrls) {
       try {
+        // sequentially, in probabilistic order
+        // eslint-disable-next-line no-await-in-loop
         authFieldsBuilder = await this.tryJwtAuth(options.clientId, login, audience, privateKeyContents);
         break;
       } catch (err) {

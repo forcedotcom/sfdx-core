@@ -342,9 +342,7 @@ export class User extends AsyncCreatable<User.Options> {
 
     const assignments: PermissionSetAssignment = await PermissionSetAssignment.init(this.org);
 
-    for (const permsetName of permsetNames) {
-      await assignments.create(id, permsetName);
-    }
+    await Promise.all(permsetNames.map((permsetName) => assignments.create(id, permsetName)));
   }
 
   /**
@@ -521,6 +519,7 @@ export class User extends AsyncCreatable<User.Options> {
     };
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private async rawRequest(conn: Connection, options: HttpRequest): Promise<HttpResponse> {
     return new Promise<HttpResponse>((resolve, reject) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

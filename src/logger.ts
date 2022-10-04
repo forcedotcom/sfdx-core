@@ -826,6 +826,7 @@ export class Logger {
     this.close();
   };
 
+  // eslint-disable-next-line class-methods-use-this
   private createLogFmtFormatterStream(loggerStream: LoggerStream): LoggerStream {
     const logFmtWriteableStream = new Writable({
       write: (chunk, enc, cb) => {

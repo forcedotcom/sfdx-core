@@ -201,6 +201,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
    * @param text The text
    * @returns true if the text is encrypted, false otherwise.
    */
+  // eslint-disable-next-line class-methods-use-this
   public isEncrypted(text?: string): boolean {
     if (text == null) {
       return false;

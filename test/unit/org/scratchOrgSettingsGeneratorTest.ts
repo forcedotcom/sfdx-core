@@ -105,9 +105,11 @@ function createStubs() {
       return;
     });
   finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-  sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => Promise.resolve({
+  sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
+    Promise.resolve({
       id: '1',
-    }));
+    })
+  );
   sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
   getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
 }
@@ -258,9 +260,11 @@ describe('scratchOrgSettingsGenerator', () => {
           return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => Promise.resolve({
+      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
+        Promise.resolve({
           id: '1',
-        }));
+        })
+      );
       sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, 'SucceededPartial');
@@ -317,9 +321,11 @@ describe('scratchOrgSettingsGenerator', () => {
           return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => Promise.resolve({
+      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
+        Promise.resolve({
           id: '1',
-        }));
+        })
+      );
       sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, 'Failed');
@@ -376,9 +382,11 @@ describe('scratchOrgSettingsGenerator', () => {
           return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => Promise.resolve({
+      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
+        Promise.resolve({
           id: '1',
-        }));
+        })
+      );
       sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, ['InProgress', 'Succeeded']);
@@ -479,9 +487,11 @@ describe('scratchOrgSettingsGenerator', () => {
           return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => Promise.resolve({
+      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
+        Promise.resolve({
           id: '1',
-        }));
+        })
+      );
       sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, 'InProgress');
@@ -498,6 +508,7 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       const promise = settings.deploySettingsViaFolder(scratchOrg, '53.0');
       for (let i = 0; i <= timeout / frequency; i++) {
+        // eslint-disable-next-line no-await-in-loop
         await clock.nextAsync();
       }
       try {

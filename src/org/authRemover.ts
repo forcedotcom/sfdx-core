@@ -66,6 +66,8 @@ export class AuthRemover extends AsyncOptionalCreatable {
     const auths = this.findAllAuths();
     const usernames = Object.keys(auths);
     for (const username of usernames) {
+      // prevent ConfigFile collision bug
+      // eslint-disable-next-line no-await-in-loop
       await this.removeAuth(username);
     }
   }
@@ -90,10 +92,12 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   public findAllAuths(): Record<string, AuthFields & JsonMap> {
     const orgs = this.stateAggregator.orgs.getAll();
-    return orgs.reduce<Record<string, AuthFields & JsonMap>>((x, y) => 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-       ({ ...x, [y.username!]: y })
-    , {});
+    return orgs.reduce<Record<string, AuthFields & JsonMap>>(
+      (x, y) =>
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        ({ ...x, [y.username!]: y }),
+      {}
+    );
   }
 
   protected async init(): Promise<void> {
@@ -160,6 +164,8 @@ export class AuthRemover extends AsyncOptionalCreatable {
             this.logger.debug(`Failed to remove ${key}`);
           }
         });
+        // prevent ConfigFile collision bug
+        // eslint-disable-next-line no-await-in-loop
         await config.write();
       }
     }

@@ -491,7 +491,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    *
    * @param newContents Contents to write
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
   public writeSync(newContents?: ConfigProperties): ConfigProperties {
     throw messages.createError('invalidWrite');
   }
@@ -561,6 +561,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    *
    * @param propertyName The name of the property.
    */
+  // eslint-disable-next-line class-methods-use-this
   public getPropertyConfig(propertyName: string): ConfigPropertyMeta {
     const prop = Config.propertyConfigMap()[propertyName];
 

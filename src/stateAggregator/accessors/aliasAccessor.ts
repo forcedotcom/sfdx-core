@@ -158,6 +158,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   /**
    * Returns the username of given aliasable entity
    */
+  // eslint-disable-next-line class-methods-use-this
   private getNameOf(entity: Aliasable): string {
     if (typeof entity === 'string') return entity;
     const aliaseeName = entity.username ?? entity.user;

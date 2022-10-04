@@ -145,6 +145,7 @@ export class SfProjectJson extends ConfigFile {
     return super.getContents() as ProjectJson;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
     const defaultOptions: ConfigFile.Options = {
       isState: false,
@@ -389,6 +390,7 @@ export class SfProjectJson extends ConfigFile {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private doesPackageExist(packagePath: string) {
     return fs.existsSync(packagePath);
   }

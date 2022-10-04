@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable class-methods-use-this */
 
 import { join as pathJoin } from 'path';
 import * as fs from 'fs';
@@ -940,6 +941,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * **Throws** *{@link SfError}{ name: 'NotSupportedError' }* Throws an unsupported error.
    */
+  // eslint-disable-next-line class-methods-use-this
   protected getDefaultOptions(): Org.Options {
     throw new SfError('Not Supported', 'NotSupportedError');
   }
@@ -1010,6 +1012,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
     return org.connection.singleRecordQuery<{ SandboxInfoId: string }>(
       `SELECT SandboxInfoId FROM SandboxProcess WHERE ${field} ='${value}' AND Status NOT IN ('D', 'E')`,
