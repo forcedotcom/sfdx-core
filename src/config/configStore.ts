@@ -96,7 +96,7 @@ export abstract class BaseConfigStore<
    */
   public constructor(options?: T) {
     super(options);
-    this.options = options || ({} as T);
+    this.options = options ?? ({} as T);
     this.setContents(this.initialContents());
   }
 
@@ -316,7 +316,7 @@ export abstract class BaseConfigStore<
   }
 
   protected getEncryptedKeys(): Array<string | RegExp> {
-    return [...(this.options?.encryptedKeys || []), ...(this.statics?.encryptedKeys || [])];
+    return [...(this.options?.encryptedKeys ?? []), ...(this.statics?.encryptedKeys || [])];
   }
 
   /**
@@ -386,7 +386,7 @@ export abstract class BaseConfigStore<
       const dotAccessor = /\.([a-zA-Z0-9@._-]+)$/;
       const singleQuoteAccessor = /\['([a-zA-Z0-9@._-]+)'\]$/;
       const doubleQuoteAccessor = /\["([a-zA-Z0-9@._-]+)"\]$/;
-      const matcher = dotAccessor.exec(key) || singleQuoteAccessor.exec(key) || doubleQuoteAccessor.exec(key);
+      const matcher = dotAccessor.exec(key) ?? singleQuoteAccessor.exec(key) ?? doubleQuoteAccessor.exec(key);
       return matcher ? matcher[1] : key;
     }
 
@@ -456,10 +456,8 @@ export abstract class BaseConfigStore<
       for (const newKey of Object.keys(value)) {
         this.recursiveCrypto(method, [...keyPaths, key, newKey], value);
       }
-    } else {
-      if (this.isCryptoKey(key)) {
-        data[key] = method(value);
-      }
+    } else if (this.isCryptoKey(key)) {
+      data[key] = method(value);
     }
   }
 }

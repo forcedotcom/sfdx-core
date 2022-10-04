@@ -225,7 +225,7 @@ export class Logger {
    * See 'period' docs here: https://github.com/forcedotcom/node-bunyan#stream-type-rotating-file
    */
 
-  public readonly logRotationPeriod = new Env().getString('SF_LOG_ROTATION_PERIOD') || '1d';
+  public readonly logRotationPeriod = new Env().getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
 
   /**
    * The number of backup rotated log files to keep.
@@ -233,7 +233,7 @@ export class Logger {
    * See 'count' docs here: https://github.com/forcedotcom/node-bunyan#stream-type-rotating-file
    */
 
-  public readonly logRotationCount = new Env().getNumber('SF_LOG_ROTATION_COUNT') || 2;
+  public readonly logRotationCount = new Env().getNumber('SF_LOG_ROTATION_COUNT') ?? 2;
 
   /**
    * Whether debug is enabled for this Logger.
@@ -271,7 +271,7 @@ export class Logger {
 
     // Inspect format to know what logging format to use then delete from options to
     // ensure it doesn't conflict with Bunyan.
-    this.format = options.format || LoggerFormat.JSON;
+    this.format = options.format ?? LoggerFormat.JSON;
     delete options.format;
 
     // If the log format is LOGFMT, we need to convert any stream(s) into a LOGFMT type stream.
@@ -873,8 +873,8 @@ const FILTERED_KEYS: FilteredKey[] = [
 ];
 
 // SFDX code and plugins should never show tokens or connect app information in the logs
-const _filter = (...args: unknown[]): unknown => {
-  return args.map((arg) => {
+const _filter = (...args: unknown[]): unknown =>
+  args.map((arg) => {
     if (isArray(arg)) {
       return _filter(...arg);
     }
@@ -928,4 +928,3 @@ const _filter = (...args: unknown[]): unknown => {
       return arg;
     }
   });
-};

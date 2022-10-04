@@ -242,7 +242,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public constructor(options?: AuthInfo.Options) {
     super(options);
-    this.options = options || {};
+    this.options = options ?? {};
   }
 
   /**
@@ -288,7 +288,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           username,
           instanceUrl,
           isScratchOrg: Boolean(devHubUsername),
-          isDevHub: isDevHub || false,
+          isDevHub: isDevHub ?? false,
           isSandbox: await stateAggregator.sandboxes.hasFile(orgId as string),
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
@@ -340,7 +340,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   public static getAuthorizationUrl(options: JwtOAuth2Config & { scope?: string }, oauth2?: OAuth2): string {
     // Always use a verifier for enhanced security
     options.useVerifier = true;
-    const oauth2Verifier = oauth2 || new OAuth2(options);
+    const oauth2Verifier = oauth2 ?? new OAuth2(options);
 
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
@@ -348,7 +348,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       state: randomBytes(Math.ceil(6)).toString('hex'),
       prompt: 'login',
       // Default connected app is 'refresh_token api web'
-      scope: options.scope || env.getString('SFDX_AUTH_SCOPES', 'refresh_token api web'),
+      scope: options.scope ?? env.getString('SFDX_AUTH_SCOPES', 'refresh_token api web'),
     };
 
     return oauth2Verifier.getAuthorizationUrl(params);
@@ -436,7 +436,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * Find all dev hubs available in the local environment.
    */
   public static async getDevHubAuthInfos(): Promise<OrgAuthorization[]> {
-    return await AuthInfo.listAllAuthorizations((possibleHub) => possibleHub?.isDevHub ?? false);
+    return AuthInfo.listAllAuthorizations((possibleHub) => possibleHub?.isDevHub ?? false);
   }
 
   private static async queryScratchOrg(
@@ -515,7 +515,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public update(authData?: AuthFields): AuthInfo {
     if (authData && isPlainObject(authData)) {
-      this.username = authData.username || this.username;
+      this.username = authData.username ?? this.username;
       this.stateAggregator.orgs.update(this.username, authData);
       this.logger.info(`Updated auth info for username: ${this.username}`);
     }
@@ -553,7 +553,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       // Decrypt a user provided client secret or use the default.
       opts = {
         oauth2: {
-          loginUrl: instanceUrl || SfdcUrl.PRODUCTION,
+          loginUrl: instanceUrl ?? SfdcUrl.PRODUCTION,
           clientId: this.getClientId(),
           redirectUri: this.getRedirectUri(),
         },
@@ -568,7 +568,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   public getClientId(): string {
-    return this.getFields()?.clientId || DEFAULT_CONNECTED_APP_INFO.legacyClientId;
+    return this.getFields()?.clientId ?? DEFAULT_CONNECTED_APP_INFO.legacyClientId;
   }
 
   public getRedirectUri(): string {
@@ -612,7 +612,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     let sfdxAuthUrl = 'force://';
 
     if (decryptedFields.clientId) {
-      sfdxAuthUrl += `${decryptedFields.clientId}:${decryptedFields.clientSecret || ''}:`;
+      sfdxAuthUrl += `${decryptedFields.clientId}:${decryptedFields.clientSecret ?? ''}:`;
     }
 
     sfdxAuthUrl += `${ensure(decryptedFields.refreshToken, 'undefined refreshToken')}@${instanceUrl}`;
@@ -691,7 +691,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     this.stateAggregator = await StateAggregator.getInstance();
 
     const username = this.options.username;
-    const authOptions: AuthOptions = this.options.oauth2Options || (this.options.accessTokenOptions as AuthOptions);
+    const authOptions: AuthOptions = this.options.oauth2Options ?? (this.options.accessTokenOptions as AuthOptions);
 
     // Must specify either username and/or options
     if (!username && !authOptions) {
@@ -706,7 +706,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
     }
 
-    const oauthUsername = username || authOptions?.username;
+    const oauthUsername = username ?? authOptions?.username;
 
     if (oauthUsername) {
       this.username = oauthUsername;
@@ -797,13 +797,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
           authConfig = await this.buildRefreshTokenConfig(options);
+        } else if (this.options.oauth2 instanceof OAuth2) {
+          // authcode exchange / web auth flow
+          authConfig = await this.exchangeToken(options, this.options.oauth2);
         } else {
-          if (this.options.oauth2 instanceof OAuth2) {
-            // authcode exchange / web auth flow
-            authConfig = await this.exchangeToken(options, this.options.oauth2);
-          } else {
-            authConfig = await this.exchangeToken(options);
-          }
+          authConfig = await this.exchangeToken(options);
         }
       }
 
@@ -980,7 +978,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       username,
       accessToken: authFieldsBuilder.access_token,
       instanceUrl: authFieldsBuilder.instance_url,
-      loginUrl: options.loginUrl || authFieldsBuilder.instance_url,
+      loginUrl: options.loginUrl ?? authFieldsBuilder.instance_url,
       refreshToken: options.refreshToken,
       clientId: options.clientId,
       clientSecret: options.clientSecret,
@@ -1027,7 +1025,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       instanceUrl: authFields.instance_url,
       orgId,
       username,
-      loginUrl: options.loginUrl || authFields.instance_url,
+      loginUrl: options.loginUrl ?? authFields.instance_url,
       refreshToken: authFields.refresh_token,
       clientId: options.clientId,
       clientSecret: options.clientSecret,

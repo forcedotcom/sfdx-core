@@ -516,10 +516,10 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     }
 
     if (property.input) {
-      if (property.input && property.input.validator(value)) {
+      if (property.input?.validator(value)) {
         super.set(property.key, value);
       } else {
-        let valueError: string = value?.toString() || '';
+        let valueError: string = value?.toString() ?? '';
         if (property.input.failedMessage) {
           valueError = isString(property.input.failedMessage)
             ? property.input.failedMessage
@@ -585,9 +585,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * @param encrypt `true` to encrypt.
    */
   private async cryptProperties(encrypt: boolean): Promise<void> {
-    const hasEncryptedProperties = this.entries().some(([key]) => {
-      return !!Config.propertyConfigMap()[key]?.encrypted;
-    });
+    const hasEncryptedProperties = this.entries().some(([key]) => !!Config.propertyConfigMap()[key]?.encrypted);
 
     if (hasEncryptedProperties) {
       await this.initCrypto();

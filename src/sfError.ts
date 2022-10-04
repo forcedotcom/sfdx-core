@@ -65,7 +65,7 @@ export class SfError extends NamedError {
     cause?: Error
   ) {
     cause = exitCodeOrCause instanceof Error ? exitCodeOrCause : cause;
-    super(name || 'SfError', message || name, cause);
+    super(name ?? 'SfError', message || name, cause);
     this.actions = actions;
     if (typeof exitCodeOrCause === 'number') {
       this.exitCode = exitCodeOrCause;
@@ -99,7 +99,7 @@ export class SfError extends NamedError {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public get code(): string | undefined | any {
-    return this._code || this.name;
+    return this._code ?? this.name;
   }
 
   public set code(code: string) {

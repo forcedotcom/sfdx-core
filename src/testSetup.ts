@@ -335,7 +335,7 @@ export const instantiateContext = (sinon?: any): TestContext => {
     fakeConnectionRequest: defaultFakeConnectionRequest,
     getConfigStubContents(name: string, group?: string): ConfigContents {
       const stub: Optional<ConfigStub> = this.configStubs[name];
-      if (stub && stub.contents) {
+      if (stub?.contents) {
         if (group && stub.contents[group]) {
           return ensureJsonMap(stub.contents[group]);
         } else {
@@ -378,9 +378,9 @@ export const instantiateContext = (sinon?: any): TestContext => {
         [...orgMap.keys()].map((o) => `${o}.json`)
       );
 
-      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'hasFile').callsFake((username: string) => {
-        return orgMap.has(username);
-      });
+      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'hasFile').callsFake((username: string) =>
+        orgMap.has(username)
+      );
 
       const retrieveContents = async function (this: { path: string }): Promise<AuthFields> {
         const username = basename(this.path.replace('.json', ''));
@@ -465,7 +465,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
   stubMethod(testContext.SANDBOXES.PROJECT, SfProjectJson.prototype, 'doesPackageExist').callsFake(() => true);
 
   const initStubForRead = (configFile: ConfigFile<ConfigFile.Options>): ConfigStub => {
-    const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] || {};
+    const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] ?? {};
     // init calls read calls getPath which sets the path on the config file the first time.
     // Since read is now stubbed, make sure to call getPath to initialize it.
     configFile.getPath();
@@ -477,7 +477,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
 
   const readSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: JsonMap): JsonMap {
     const stub = initStubForRead(this);
-    this.setContentsFromObject(newContents || stub.contents || {});
+    this.setContentsFromObject(newContents ?? stub.contents ?? {});
     return this.getContents();
   };
 
@@ -485,7 +485,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
     const stub = initStubForRead(this);
 
     if (stub.readFn) {
-      return await stub.readFn.call(this);
+      return stub.readFn.call(this);
     }
 
     if (stub.retrieveContents) {
@@ -507,7 +507,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
     const stub = testContext.configStubs[this.constructor.name];
     if (!stub) return;
 
-    this.setContents(newContents || this.getContents());
+    this.setContents(newContents ?? this.getContents());
     stub.contents = this.toObject();
   };
 
@@ -519,7 +519,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
     if (!stub) return;
 
     if (stub.writeFn) {
-      return await stub.writeFn.call(this, newContents);
+      return stub.writeFn.call(this, newContents);
     }
 
     if (stub.updateContents) {
@@ -909,7 +909,7 @@ export class MockTestOrgData {
     this.testId = id;
     this.userId = `user_id_${this.testId}`;
     this.orgId = `${this.testId}`;
-    this.username = options?.username || `admin_${this.testId}@gb.org`;
+    this.username = options?.username ?? `admin_${this.testId}@gb.org`;
     this.loginUrl = `https://login.${this.testId}.salesforce.com`;
     this.instanceUrl = `https://instance.${this.testId}.salesforce.com`;
     this.clientId = `${this.testId}/client_id`;
@@ -1035,9 +1035,9 @@ export class MockTestSandboxData {
     options?: Partial<{ prodOrgUsername: string; name: string; username: string }>
   ) {
     this.sandboxOrgId = id;
-    this.prodOrgUsername = options?.prodOrgUsername || `admin_${id}@gb.org`;
-    this.sandboxName = options?.name || `sandbox_${id}`;
-    this.username = options?.username || `${this.prodOrgUsername}.sandbox`;
+    this.prodOrgUsername = options?.prodOrgUsername ?? `admin_${id}@gb.org`;
+    this.sandboxName = options?.name ?? `sandbox_${id}`;
+    this.username = options?.username ?? `${this.prodOrgUsername}.sandbox`;
   }
 
   /**

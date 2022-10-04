@@ -44,9 +44,7 @@ const postOrgCreateHookFields = [
 
 type PostOrgCreateHook = Pick<AuthFields, typeof postOrgCreateHookFields[number]>;
 
-const isHookField = (key: string): key is typeof postOrgCreateHookFields[number] => {
-  return postOrgCreateHookFields.includes(key as typeof postOrgCreateHookFields[number]);
-};
+const isHookField = (key: string): key is typeof postOrgCreateHookFields[number] => postOrgCreateHookFields.includes(key as typeof postOrgCreateHookFields[number]);
 
 export const emitPostOrgCreate = async (authFields: AuthFields) => {
   await emitter.emit(

@@ -426,7 +426,7 @@ export class User extends AsyncCreatable<User.Options> {
    * ```
    */
   public async retrieve(username: string): Promise<UserFields> {
-    return await retrieveUserFields(this.logger, username);
+    return retrieveUserFields(this.logger, username);
   }
 
   /**
@@ -441,7 +441,7 @@ export class User extends AsyncCreatable<User.Options> {
 
     const userDescribe = await connection.describe('User');
 
-    if (userDescribe && userDescribe.fields) {
+    if (userDescribe?.fields) {
       await newUserAuthInfo.save();
       return newUserAuthInfo;
     } else {

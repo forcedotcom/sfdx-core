@@ -84,7 +84,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   private envVars: Dictionary<string> = {};
 
   private get config(): JsonMap {
-    return this.resolveProperties(this.globalConfig.getContents(), this.localConfig && this.localConfig.getContents());
+    return this.resolveProperties(this.globalConfig.getContents(), this.localConfig?.getContents());
   }
 
   /**
@@ -93,7 +93,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * @ignore
    */
   public constructor(options?: ConfigAggregator.Options) {
-    super(options || {});
+    super(options ?? {});
 
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
@@ -233,10 +233,10 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     if (this.envVars[key] != null) {
       return ConfigAggregator.Location.ENVIRONMENT;
     }
-    if (this.localConfig && this.localConfig.get(key)) {
+    if (this.localConfig?.get(key)) {
       return ConfigAggregator.Location.LOCAL;
     }
-    if (this.globalConfig && this.globalConfig.get(key)) {
+    if (this.globalConfig?.get(key)) {
       return ConfigAggregator.Location.GLOBAL;
     }
   }
@@ -259,7 +259,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     if (this.envVars[key] != null) {
       return `$${EnvVars.propertyToEnvName(key)}`;
     }
-    if (this.localConfig && this.localConfig.getContents()[key] != null) {
+    if (this.localConfig?.getContents()[key] != null) {
       return this.localConfig.getPath();
     }
     if (this.globalConfig.getContents()[key] != null) {
@@ -361,7 +361,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * Loads all the properties and aggregates them according to location.
    */
   private loadPropertiesSync(): void {
-    this.resolveProperties(this.globalConfig.readSync(), this.localConfig && this.localConfig.readSync());
+    this.resolveProperties(this.globalConfig.readSync(), this.localConfig?.readSync());
   }
 
   private resolveProperties(globalConfig: JsonMap, localConfig?: JsonMap): JsonMap {
@@ -430,7 +430,7 @@ export class SfdxConfigAggregator extends ConfigAggregator {
     this: new (options?: ConfigAggregator.Options) => T,
     options: ConfigAggregator.Options = {}
   ): Promise<T> {
-    const customConfigMeta = options.customConfigMeta || [];
+    const customConfigMeta = options.customConfigMeta ?? [];
     // org-metadata-rest-deploy has been moved to plugin-deploy-retrieve but we need to have a placeholder
     // for it here since sfdx needs to know how to set the deprecated restDeploy config var.
     const restDeploy = SFDX_ALLOWED_PROPERTIES.find((p) => p.key === SfdxPropertyKeys.REST_DEPLOY);

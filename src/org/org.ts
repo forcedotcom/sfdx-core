@@ -362,7 +362,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw err;
     }
 
-    return this.manageDelete(async () => await fs.promises.rmdir(dataPath), dataPath, throwWhenRemoveFails);
+    return this.manageDelete(async () => fs.promises.rmdir(dataPath), dataPath, throwWhenRemoveFails);
   }
 
   /**
@@ -920,7 +920,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         const aliasOrUsername = this.options.isDevHub
           ? this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB)
           : this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
-        this.options.aliasOrUsername = aliasOrUsername || undefined;
+        this.options.aliasOrUsername = aliasOrUsername ?? undefined;
       }
 
       const username = stateAggregator.aliases.resolveUsername(this.options.aliasOrUsername as string);

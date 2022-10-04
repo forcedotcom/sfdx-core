@@ -137,7 +137,7 @@ export class SchemaValidator {
   private loadExternalSchemas(schema: JsonMap): JsonMap[] {
     return getJsonValuesByName<string>(schema, '$ref')
       .map((ref) => ref && RegExp(/([\w\.]+)#/).exec(ref)) // eslint-disable-line no-useless-escape
-      .map((match) => match && match[1])
+      .map((match) => match?.[1])
       .filter((uri): uri is string => !!uri)
       .map((uri) => this.loadExternalSchema(uri));
   }

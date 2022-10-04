@@ -158,7 +158,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         const url = parseUrl(request.url);
         this.logger.debug(`processing request for uri: ${url.pathname as string}`);
         if (request.method === 'GET') {
-          if (url.pathname && url.pathname.startsWith('/OauthRedirect')) {
+          if (url.pathname?.startsWith('/OauthRedirect')) {
             request.query = parseQueryString(url.query as string);
             if (request.query.error) {
               const err = new SfError(request.query.error_description || request.query.error, request.query.error);

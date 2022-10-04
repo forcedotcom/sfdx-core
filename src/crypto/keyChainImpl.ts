@@ -249,7 +249,7 @@ export class KeychainAccess implements PasswordStore {
     credManager.on(
       'close',
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      async (code: number) => await this.osImpl.onSetCommandClose(code, stdout, stderr, opts, fn)
+      async (code: number) => this.osImpl.onSetCommandClose(code, stdout, stderr, opts, fn)
     );
 
     if (credManager.stdin) {
@@ -299,7 +299,7 @@ interface OsImpl {
  */
 const _linuxImpl: OsImpl = {
   getProgram() {
-    return process.env.SFDX_SECRET_TOOL_PATH || path.join(path.sep, 'usr', 'bin', 'secret-tool');
+    return process.env.SFDX_SECRET_TOOL_PATH ?? path.join(path.sep, 'usr', 'bin', 'secret-tool');
   },
 
   getProgramOptions(opts) {
@@ -316,7 +316,7 @@ const _linuxImpl: OsImpl = {
       const error = messages.createError('passwordNotFoundError', [], [command]);
       // This is a workaround for linux.
       // Calling secret-tool too fast can cause it to return an unexpected error. (below)
-      if (stderr != null && stderr.includes('invalid or unencryptable secret')) {
+      if (stderr?.includes('invalid or unencryptable secret')) {
         // @ts-ignore TODO: make an error subclass with this field
         error.retry = true;
 
@@ -491,12 +491,10 @@ export class GenericKeychainAccess implements PasswordStore {
         } catch (readJsonErr) {
           fn(readJsonErr as Error);
         }
+      } else if (fileAccessError.code === 'ENOENT') {
+        fn(messages.createError('passwordNotFoundError'));
       } else {
-        if (fileAccessError.code === 'ENOENT') {
-          fn(messages.createError('passwordNotFoundError'));
-        } else {
-          fn(fileAccessError);
-        }
+        fn(fileAccessError);
       }
     });
   }

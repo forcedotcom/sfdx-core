@@ -117,9 +117,7 @@ describe('DeviceOauthService', () => {
     });
 
     it('should stop polling if unknown error from server', async () => {
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(async () => {
-        return { statusCode: 401, body: JSON.stringify({ error: 'UnknownError' }) };
-      });
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(async () => ({ statusCode: 401, body: JSON.stringify({ error: 'UnknownError' }) }));
       const service = await DeviceOauthService.create({});
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);
@@ -131,15 +129,13 @@ describe('DeviceOauthService', () => {
     });
 
     it('should stop polling if error from server', async () => {
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(async () => {
-        return {
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(async () => ({
           statusCode: 400,
           body: JSON.stringify({
             error: 'Invalid grant type',
             error_description: 'Invalid grant type',
           }),
-        };
-      });
+        }));
       const service = await DeviceOauthService.create({});
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);

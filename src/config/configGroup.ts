@@ -67,7 +67,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   public async updateValues(newEntries: Dictionary<ConfigValue>, group?: string): Promise<Dictionary<ConfigValue>> {
     // Make sure the contents are loaded
     await this.read();
-    Object.entries(newEntries).forEach(([key, val]) => this.setInGroup(key, val, group || this.defaultGroup));
+    Object.entries(newEntries).forEach(([key, val]) => this.setInGroup(key, val, group ?? this.defaultGroup));
     await this.write();
     return newEntries;
   }
@@ -82,7 +82,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
   public async updateValue(key: string, value: ConfigValue, group?: string): Promise<void> {
     // Make sure the content is loaded
     await this.read();
-    this.setInGroup(key, value, group || this.defaultGroup);
+    this.setInGroup(key, value, group ?? this.defaultGroup);
     // Then save it
     await this.write();
   }
@@ -121,14 +121,14 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * Returns an array of the keys from the default group.
    */
   public keys(): string[] {
-    return Object.keys(this.getGroup(this.defaultGroup) || {});
+    return Object.keys(this.getGroup(this.defaultGroup) ?? {});
   }
 
   /**
    * Returns an array of the values from the default group.
    */
   public values(): ConfigValue[] {
-    return definiteValuesOf(this.getGroup(this.defaultGroup) || {});
+    return definiteValuesOf(this.getGroup(this.defaultGroup) ?? {});
   }
 
   /**
@@ -168,7 +168,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * @param {string} [group = 'default'] The group.
    */
   public getGroup(group = this.defaultGroup): Optional<ConfigContents> {
-    return getJsonMap(this.getContents(), group) || undefined;
+    return getJsonMap(this.getContents(), group) ?? undefined;
   }
 
   /**
@@ -216,12 +216,12 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
    * @param group The group. Uses the default group if not specified.
    */
   public setInGroup(key: string, value?: ConfigValue, group?: string): ConfigContents {
-    group = group || this.defaultGroup;
+    group = group ?? this.defaultGroup;
 
     if (!super.has(group)) {
       super.set(group, {});
     }
-    const content = this.getGroup(group) || {};
+    const content = this.getGroup(group) ?? {};
     this.setMethod(content, key, value);
 
     return content;

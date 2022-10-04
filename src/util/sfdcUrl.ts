@@ -109,9 +109,7 @@ export class SfdcUrl extends URL {
 
     const allowlistOfSalesforceHosts: string[] = ['developer.salesforce.com', 'trailhead.salesforce.com'];
 
-    return allowlistOfSalesforceDomainPatterns.some((pattern) => {
-      return this.hostname.endsWith(pattern) || allowlistOfSalesforceHosts.includes(this.hostname);
-    });
+    return allowlistOfSalesforceDomainPatterns.some((pattern) => this.hostname.endsWith(pattern) || allowlistOfSalesforceHosts.includes(this.hostname));
   }
 
   /**
@@ -237,6 +235,6 @@ export class SfdcUrl extends URL {
    * @returns {boolean} true if this domain is a lightning domain
    */
   public isLightningDomain(): boolean {
-    return /\.lightning\.force\.com/.test(this.origin) || /\.lightning\.crmforce\.mil/.test(this.origin);
+    return this.origin.includes('.lightning.force.com') || this.origin.includes('.lightning.crmforce.mil');
   }
 }

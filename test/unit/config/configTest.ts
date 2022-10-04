@@ -265,7 +265,7 @@ describe('Config', () => {
     });
 
     it('calls ConfigFile.read with unknown key and does not throw on crypt', async () => {
-      stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.readSync.name).callsFake(async function () {});
+      stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.readSync.name).callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
         this.setContentsFromObject({ unknown: 'unknown config key and value' });
       });

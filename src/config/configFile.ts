@@ -89,7 +89,7 @@ export class ConfigFile<
     return {
       isGlobal,
       isState: true,
-      filename: filename || this.getFileName(),
+      filename: filename ?? this.getFileName(),
       stateFolder: Global.SFDX_STATE_FOLDER,
     };
   }
@@ -100,7 +100,7 @@ export class ConfigFile<
    * @param isGlobal True if the config should be global. False for local.
    */
   public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
-    return isGlobal ? osHomedir() : await resolveProjectPath();
+    return isGlobal ? osHomedir() : resolveProjectPath();
   }
 
   /**
@@ -264,7 +264,7 @@ export class ConfigFile<
    * Check to see if the config file exists. Returns `true` if the config file exists and has access, false otherwise.
    */
   public async exists(): Promise<boolean> {
-    return await this.access(fsConstants.R_OK);
+    return this.access(fsConstants.R_OK);
   }
 
   /**
@@ -301,7 +301,7 @@ export class ConfigFile<
   public async unlink(): Promise<void> {
     const exists = await this.exists();
     if (exists) {
-      return await fs.promises.unlink(this.getPath());
+      return fs.promises.unlink(this.getPath());
     }
     throw new SfError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
   }
@@ -342,7 +342,7 @@ export class ConfigFile<
         : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
 
       if (_isGlobal || _isState) {
-        configRootFolder = pathJoin(configRootFolder, this.options.stateFolder || Global.SFDX_STATE_FOLDER);
+        configRootFolder = pathJoin(configRootFolder, this.options.stateFolder ?? Global.SFDX_STATE_FOLDER);
       }
 
       this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);

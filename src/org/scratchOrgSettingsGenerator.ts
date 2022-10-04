@@ -190,8 +190,8 @@ export default class SettingsGenerator {
   public constructor(options?: { mdApiTmpDir?: string; shapeDirName?: string; asDirectory?: boolean }) {
     this.logger = Logger.childFromRoot('SettingsGenerator');
     // If SFDX_MDAPI_TEMP_DIR is set, copy settings to that dir for people to inspect.
-    const mdApiTmpDir = options?.mdApiTmpDir || env.getString('SFDX_MDAPI_TEMP_DIR');
-    this.shapeDirName = options?.shapeDirName || `shape_${Date.now()}`;
+    const mdApiTmpDir = options?.mdApiTmpDir ?? env.getString('SFDX_MDAPI_TEMP_DIR');
+    this.shapeDirName = options?.shapeDirName ?? `shape_${Date.now()}`;
     this.packageFilePath = path.join(this.shapeDirName, 'package.xml');
     let storePath;
     if (!options?.asDirectory) {

@@ -208,11 +208,7 @@ class SchemaProperty {
 
     const oneOfs = asJsonArray(this.rawProperty.oneOf);
     if (oneOfs && !this.rawProperty.type) {
-      this.rawProperty.type = oneOfs
-        .map((value) => {
-          return isJsonMap(value) ? value.type || value.$ref : value;
-        })
-        .join('|');
+      this.rawProperty.type = oneOfs.map((value) => (isJsonMap(value) ? value.type ?? value.$ref : value)).join('|');
     }
 
     // Handle items references
@@ -226,15 +222,15 @@ class SchemaProperty {
   }
 
   public renderTitle(): string {
-    return this.propertyRenderer.renderTitle(this.title || '');
+    return this.propertyRenderer.renderTitle(this.title ?? '');
   }
 
   public renderDescription(): string {
-    return this.propertyRenderer.renderDescription(this.description || '');
+    return this.propertyRenderer.renderDescription(this.description ?? '');
   }
 
   public renderType(): string {
-    return this.propertyRenderer.renderType(this.type || '');
+    return this.propertyRenderer.renderType(this.type ?? '');
   }
 
   public renderHeader(): string {
@@ -280,7 +276,7 @@ class SchemaProperty {
 
   public getProperty(key: string): Optional<JsonMap> {
     const properties = this.getProperties();
-    return asJsonMap(properties && properties[key]);
+    return asJsonMap(properties?.[key]);
   }
 
   public getProperties(): Optional<JsonMap> {

@@ -47,13 +47,11 @@ describe('permission set assignment tests', () => {
       });
 
       // @ts-ignore
-      $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
-        return {
+      $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
           create() {
             return Promise.resolve({ success: true });
           },
-        };
-      });
+        }));
 
       const assignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
@@ -82,13 +80,11 @@ describe('permission set assignment tests', () => {
       });
 
       // @ts-ignore
-      $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
-        return {
+      $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
           create() {
             return Promise.resolve({ success: true });
           },
-        };
-      });
+        }));
 
       const assignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
@@ -116,13 +112,11 @@ describe('permission set assignment tests', () => {
       });
 
       // @ts-ignore
-      $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
-        return {
+      $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
           create() {
             return Promise.resolve({ success: true });
           },
-        };
-      });
+        }));
 
       const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
@@ -149,13 +143,11 @@ describe('permission set assignment tests', () => {
       });
 
       // @ts-ignore
-      $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
-        return {
+      $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
           create() {
             return Promise.resolve({ errors: ['error one', 'error two'] });
           },
-        };
-      });
+        }));
 
       const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';
@@ -183,13 +175,11 @@ describe('permission set assignment tests', () => {
       });
 
       // @ts-ignore
-      $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => {
-        return {
+      $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
           create() {
             return Promise.resolve({ errors: [] });
           },
-        };
-      });
+        }));
 
       const assignment: PermissionSetAssignment = await PermissionSetAssignment.init(org);
       const PERM_SET_NAME = 'Foo';

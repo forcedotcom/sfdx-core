@@ -53,12 +53,10 @@ describe('User Tests', () => {
       return {};
     });
 
-    stubMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig').callsFake(() => {
-      return {
+    stubMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig').callsFake(() => ({
         instanceUrl: '',
         accessToken: '',
-      };
-    });
+      }));
 
     stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
 
@@ -204,8 +202,7 @@ describe('User Tests', () => {
     let userId: string;
     let password: string;
     beforeEach(async () => {
-      stubMethod($$.SANDBOX, Connection, 'create').callsFake(() => {
-        return {
+      stubMethod($$.SANDBOX, Connection, 'create').callsFake(() => ({
           getAuthInfoFields() {
             return { orgId: '00DXXX' };
           },
@@ -226,8 +223,7 @@ describe('User Tests', () => {
               };
             }
           },
-        };
-      });
+        }));
 
       $$.stubAuths(user1);
       const connection = await Connection.create({

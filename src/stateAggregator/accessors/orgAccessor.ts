@@ -114,7 +114,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
    */
   public async exists(username: string): Promise<boolean> {
     const config = this.configs.get(username);
-    return config ? await config.exists() : false;
+    return config ? config.exists() : false;
   }
 
   /**
@@ -124,7 +124,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
    */
   public async stat(username: string): Promise<Nullable<fs.Stats>> {
     const config = this.configs.get(username);
-    return config ? await config.stat() : null;
+    return config ? config.stat() : null;
   }
 
   /**

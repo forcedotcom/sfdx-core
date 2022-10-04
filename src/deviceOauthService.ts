@@ -109,7 +109,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
     const deviceFlowRequestUrl = this.getDeviceFlowRequestUrl();
     const pollingOptions = this.getPollingOptions(deviceFlowRequestUrl, loginData.device_code);
     const interval = Duration.seconds(loginData.interval).milliseconds;
-    return await this.pollForDeviceApproval(pollingOptions, interval);
+    return this.pollForDeviceApproval(pollingOptions, interval);
   }
 
   /**

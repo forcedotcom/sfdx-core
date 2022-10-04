@@ -26,14 +26,14 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
 
   public getLatestEntry(): Nullable<[string, TTLConfig.Entry<P>]> {
     const entries = this.entries() as Array<[string, TTLConfig.Entry<P>]>;
-    const sorted = entries.sort(([, valueA], [, valueB]) => {
-      return new Date(valueB.timestamp).getTime() - new Date(valueA.timestamp).getTime();
-    });
+    const sorted = entries.sort(
+      ([, valueA], [, valueB]) => new Date(valueB.timestamp).getTime() - new Date(valueA.timestamp).getTime()
+    );
     return sorted.length > 0 ? sorted[0] : null;
   }
 
   public getLatestKey(): Nullable<string> {
-    const [key] = this.getLatestEntry() || [null];
+    const [key] = this.getLatestEntry() ?? [null];
     return key;
   }
 

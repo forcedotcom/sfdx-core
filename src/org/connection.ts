@@ -41,7 +41,7 @@ const messages = Messages.load('@salesforce/core', 'connection', [
   'noApiVersionsError',
 ]);
 
-const clientId = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS || ''}`;
+const clientId = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS ?? ''}`;
 export const SFDX_HTTP_HEADERS = {
   'content-type': 'application/json',
   'user-agent': clientId,
@@ -95,7 +95,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * @ignore
    */
   public constructor(options: Connection.Options<S>) {
-    super(options.connectionOptions || {});
+    super(options.connectionOptions ?? {});
     this.options = options;
     this.username = options.authInfo.getUsername();
   }
@@ -118,7 +118,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
 
     if (!baseOptions.version) {
       // Set the API version obtained from the config aggregator.
-      const configAggregator = options.configAggregator || (await ConfigAggregator.create());
+      const configAggregator = options.configAggregator ?? (await ConfigAggregator.create());
       baseOptions.version = asString(configAggregator.getInfo('org-api-version').value);
     }
 
@@ -353,7 +353,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     const config: ConfigAggregator = await ConfigAggregator.create();
     // take the limit from the calling function, then the config, then default 10,000
     const maxFetch: number =
-      (config.getInfo(OrgConfigProperties.ORG_MAX_QUERY_LIMIT).value as number) || queryOptions.maxFetch || 10000;
+      ((config.getInfo(OrgConfigProperties.ORG_MAX_QUERY_LIMIT).value as number) || queryOptions.maxFetch) ?? 10000;
 
     const options: Partial<QueryOptions> = Object.assign(queryOptions, {
       autoFetch: true,

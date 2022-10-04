@@ -96,7 +96,7 @@ export const getAncestorIds = async (
   }
   const packagesWithAncestors = (await projectJson.getPackageDirectories())
     // check that the package has any ancestor types (id or version)
-    .filter((packageDir) => packageDir.ancestorId || packageDir.ancestorVersion);
+    .filter((packageDir) => packageDir.ancestorId ?? packageDir.ancestorVersion);
   if (packagesWithAncestors.length === 0) {
     return '';
   }
@@ -328,7 +328,7 @@ export const getScratchOrgInfoPayload = async (options: {
   return {
     scratchOrgInfoPayload,
     // Ignore ancestor ids only when 'nonamespace' or 'noancestors' options are specified
-    ignoreAncestorIds: options.nonamespace || options.noancestors || false,
+    ignoreAncestorIds: options.nonamespace ?? options.noancestors ?? false,
     warnings,
   };
 };

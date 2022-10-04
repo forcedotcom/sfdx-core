@@ -30,7 +30,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   public getAll(entity?: Aliasable): string[] | ConfigContents<string> {
     // This will only return aliases under "orgs". This will need to be modified
     // if/when we want to support more aliases groups.
-    const all = (this.config.getGroup() || {}) as ConfigContents<string>;
+    const all = (this.config.getGroup() ?? {}) as ConfigContents<string>;
     if (entity) {
       const value = this.getNameOf(entity);
       return Object.entries(all)

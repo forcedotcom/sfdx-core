@@ -237,9 +237,7 @@ export class Messages<T extends string> {
    * @param filePath read file target.
    * @ignore
    */
-  public static readFile = (filePath: string): AnyJson => {
-    return require(filePath);
-  };
+  public static readFile = (filePath: string): AnyJson => require(filePath);
 
   /**
    * Get the locale. This will always return 'en_US' but will return the

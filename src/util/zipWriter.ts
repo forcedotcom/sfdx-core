@@ -60,12 +60,8 @@ export class ZipWriter extends Writable implements StructuredWriter {
         inputStream.on('data', (chunk: Buffer) => {
           this.buffers.push(chunk);
         });
-        inputStream.once('end', () => {
-          return resolve();
-        });
-        inputStream.once('error', (error: Error) => {
-          return reject(error);
-        });
+        inputStream.once('end', () => resolve());
+        inputStream.once('error', (error: Error) => reject(error));
       });
     }
   }

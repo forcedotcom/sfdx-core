@@ -254,9 +254,9 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     // This outer promise is to hold the streaming promise chain open until the streaming processor
     // says it's complete.
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    return new Promise((subscribeResolve, subscribeReject) => {
+    return new Promise((subscribeResolve, subscribeReject) =>
       // This is the inner promise chain that's satisfied when the client impl (Faye/Mock) says it's subscribed.
-      return new Promise<void>((subscriptionResolve, subscriptionReject) => {
+      new Promise<void>((subscriptionResolve, subscriptionReject) => {
         timeout = setTimeout(() => {
           const timeoutError = messages.createError('genericTimeout');
           this.doTimeout(timeout, timeoutError);
@@ -270,7 +270,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
             const result: StatusResult = this.options.streamProcessor(message);
 
             // The stream processor says it's complete. Clean up and resolve the outer promise.
-            if (result && result.completed) {
+            if (result?.completed) {
               clearTimeout(timeout);
               this.disconnectClient();
               subscribeResolve(result.payload);
@@ -292,11 +292,11 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
           subscriptionReject(error);
         });
       })
-        .then(() => {
+        .then(() =>
           // Now that we successfully have a subscription started up we are safe to initialize the function that
           // will affect the streaming events. I.E. create an org or run apex tests.
-          return streamInit && streamInit();
-        })
+          streamInit?.()
+        )
         .catch((error) => {
           this.disconnect();
           // Need to catch the subscription rejection or it will result in an unhandled rejection error.
@@ -304,8 +304,8 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
 
           // No subscription so we can reject the out promise as well.
           subscribeReject(error);
-        });
-    });
+        })
+    );
   }
 
   /**
@@ -472,10 +472,9 @@ export namespace StreamingClient {
       this.subscribeTimeout = StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT;
       this.handshakeTimeout = StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT;
       this.streamingImpl = {
-        getCometClient: (url: string): CometClient => {
+        getCometClient: (url: string): CometClient =>
           // @ts-ignore
-          return new Faye.Client(url);
-        },
+          new Faye.Client(url),
         setLogger: (logLine: (message: string) => void): void => {
           // @ts-ignore
           Faye.logger = {};

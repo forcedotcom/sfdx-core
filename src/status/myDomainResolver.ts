@@ -54,15 +54,15 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
    */
   public constructor(options?: MyDomainResolver.Options) {
     super(options);
-    this.options = options || { url: MyDomainResolver.DEFAULT_DOMAIN };
+    this.options = options ?? { url: MyDomainResolver.DEFAULT_DOMAIN };
   }
 
   public getTimeout(): Duration {
-    return this.options.timeout || Duration.seconds(DNS_TIMEOUT);
+    return this.options.timeout ?? Duration.seconds(DNS_TIMEOUT);
   }
 
   public getFrequency(): Duration {
-    return this.options.frequency || Duration.seconds(DNS_RETRY_FREQ);
+    return this.options.frequency ?? Duration.seconds(DNS_RETRY_FREQ);
   }
 
   /**
