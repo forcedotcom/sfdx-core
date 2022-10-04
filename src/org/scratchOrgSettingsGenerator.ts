@@ -7,7 +7,7 @@
 
 import * as path from 'path';
 import { isEmpty, env, upperFirst, Duration } from '@salesforce/kit';
-import { ensureObject, getObject, JsonMap } from '@salesforce/ts-types';
+import { ensureObject, JsonMap } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
