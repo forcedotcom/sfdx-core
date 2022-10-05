@@ -116,7 +116,7 @@ export const SF_ALLOWED_PROPERTIES = [
     key: SfConfigProperties.DISABLE_TELEMETRY,
     description: messages.getMessage(SfConfigProperties.DISABLE_TELEMETRY),
     input: {
-      validator: (value: ConfigValue) => value == null || ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value == null || ['true', 'false'].includes(value.toString()),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -200,7 +200,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     deprecated: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => {
+      validator: (value: ConfigValue): boolean => {
         if (value == null) return true;
         // validate if the value is a string and is a valid url and is either a salesforce domain
         // or an internal url.
@@ -221,7 +221,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     hidden: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
+      validator: (value: ConfigValue): boolean => value == null || (isString(value) && sfdc.validateApiVersion(value)),
       failedMessage: messages.getMessage('invalidApiVersion'),
     },
   },
@@ -247,7 +247,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     encrypted: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || isString(value),
+      validator: (value: ConfigValue): boolean => value == null || isString(value),
       failedMessage: messages.getMessage('invalidIsvDebuggerSid'),
     },
   },
@@ -258,7 +258,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     description: messages.getMessage(SfdxPropertyKeys.ISV_DEBUGGER_URL),
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || isString(value),
+      validator: (value: ConfigValue): boolean => value == null || isString(value),
       failedMessage: messages.getMessage('invalidIsvDebuggerUrl'),
     },
   },
@@ -268,7 +268,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     deprecated: true,
     description: messages.getMessage(SfdxPropertyKeys.DISABLE_TELEMETRY),
     input: {
-      validator: (value: ConfigValue) => value == null || ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value == null || ['true', 'false'].includes(value.toString()),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -285,7 +285,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     newKey: 'org-metadata-rest-deploy',
     deprecated: true,
     input: {
-      validator: (value: ConfigValue) => value != null && ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value != null && ['true', 'false'].includes(value.toString()),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -298,7 +298,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     input: {
       // the bit shift will remove the negative bit, and any decimal numbers
       // then the parseFloat will handle converting it to a number from a string
-      validator: (value: ConfigValue) =>
+      validator: (value: ConfigValue): boolean =>
         (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
       failedMessage: messages.getMessage('invalidNumberConfigValue'),
     },
@@ -631,7 +631,7 @@ export class SfdxConfig {
     return Object.assign(config, sfdxConfig);
   }
 
-  public async write(config = this.config.toObject()) {
+  public async write(config = this.config.toObject()): Promise<void> {
     try {
       const translated = this.translate(config as ConfigProperties, 'toOld');
       const sfdxPath = this.getSfdxPath();
@@ -657,15 +657,15 @@ export class SfdxConfig {
       const stateFolder = Global.SFDX_STATE_FOLDER;
       const fileName = SFDX_CONFIG_FILE_NAME;
 
-      const _isGlobal: boolean = isBoolean(this.options.isGlobal) && this.options.isGlobal;
-      const _isState: boolean = isBoolean(this.options.isState) && this.options.isState;
-
       // Don't let users store config files in homedir without being in the state folder.
       let configRootFolder = this.options.rootFolder
         ? this.options.rootFolder
         : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
 
-      if (_isGlobal || _isState) {
+      if (
+        (isBoolean(this.options.isGlobal) && this.options.isGlobal) ||
+        (isBoolean(this.options.isState) && this.options.isState)
+      ) {
         configRootFolder = pathJoin(configRootFolder, stateFolder);
       }
 

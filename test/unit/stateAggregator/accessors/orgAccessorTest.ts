@@ -79,6 +79,7 @@ describe('OrgAccessor', () => {
         try {
           shouldThrowSync(() => stateAggregator.orgs.get(badUsername, false, true));
         } catch (e) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           expect(e.name).to.equal('NamedOrgNotFoundError');
         }
       });

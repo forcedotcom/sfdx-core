@@ -7,8 +7,7 @@
 
 import { env, Duration, upperFirst } from '@salesforce/kit';
 import { AnyJson } from '@salesforce/ts-types';
-// @ts-ignore
-import { OAuth2Config, OAuth2Options, SaveResult } from 'jsforce';
+import { OAuth2Config, JwtOAuth2Config, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -46,7 +45,7 @@ const getOrgInstanceAuthority = function (
   scratchOrgInfoComplete: ScratchOrgInfo,
   hubOrgLoginUrl: string,
   signupTargetLoginUrlConfig?: string
-) {
+): string {
   const createdOrgInstance = scratchOrgInfoComplete.SignupInstance;
 
   if (createdOrgInstance === 'utf8') {
@@ -84,7 +83,7 @@ const buildOAuth2Options = async (options: {
 }> => {
   const logger = await Logger.child('buildOAuth2Options');
   const isJwtFlow = !!options.hubOrg.getConnection().getAuthInfoFields().privateKey;
-  const oauth2Options: OAuth2Options = {
+  const oauth2Options: JwtOAuth2Config = {
     loginUrl: getOrgInstanceAuthority(
       options.scratchOrgInfoComplete,
       options.hubOrg.getField(Org.Fields.LOGIN_URL),

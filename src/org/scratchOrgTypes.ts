@@ -14,7 +14,7 @@ export interface ScratchOrgInfo {
   ConnectedAppConsumerKey?: string;
   Country?: string;
   Description?: string;
-  DurationDays?: string;
+  DurationDays?: number;
   Edition?: string;
   readonly ErrorCode?: string;
   readonly ExpirationDate?: string;

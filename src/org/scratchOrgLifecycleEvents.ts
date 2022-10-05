@@ -25,9 +25,8 @@ export interface ScratchOrgLifecycleEvent {
   scratchOrgInfo?: ScratchOrgInfo;
 }
 
-export const emit = async (event: ScratchOrgLifecycleEvent) => {
+export const emit = async (event: ScratchOrgLifecycleEvent): Promise<void> =>
   emitter.emit(scratchOrgLifecycleEventName, event);
-};
 
 const postOrgCreateHookFields = [
   'accessToken',
@@ -44,9 +43,10 @@ const postOrgCreateHookFields = [
 
 type PostOrgCreateHook = Pick<AuthFields, typeof postOrgCreateHookFields[number]>;
 
-const isHookField = (key: string): key is typeof postOrgCreateHookFields[number] => postOrgCreateHookFields.includes(key as typeof postOrgCreateHookFields[number]);
+const isHookField = (key: string): key is typeof postOrgCreateHookFields[number] =>
+  postOrgCreateHookFields.includes(key as typeof postOrgCreateHookFields[number]);
 
-export const emitPostOrgCreate = async (authFields: AuthFields) => {
+export const emitPostOrgCreate = async (authFields: AuthFields): Promise<void> => {
   await emitter.emit(
     'postorgcreate',
     Object.fromEntries(Object.entries(authFields).filter(([key]) => isHookField(key))) as PostOrgCreateHook

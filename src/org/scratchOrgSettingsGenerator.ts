@@ -82,7 +82,7 @@ export const createObjectFileContent = ({
   return { ...output, ...{ version: apiVersion } };
 };
 
-const calculateBusinessProcess = (objectName: string, defaultRecordType: string) => {
+const calculateBusinessProcess = (objectName: string, defaultRecordType: string): Array<string | null> => {
   let businessProcessName = null;
   let businessProcessPicklistVal = null;
   // These four objects require any record type to specify a "business process"--
@@ -204,6 +204,7 @@ export default class SettingsGenerator {
   }
 
   /** extract the settings from the scratch def file, if they are present. */
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async extract(scratchDef: ScratchOrgInfo): Promise<{
     settings: Record<string, unknown> | undefined;
     objectSettings: { [objectName: string]: ObjectSetting } | undefined;
@@ -297,7 +298,7 @@ export default class SettingsGenerator {
     }
   }
 
-  public async createDeployPackageContents(apiVersion: string) {
+  public async createDeployPackageContents(apiVersion: string): Promise<void> {
     const packageObjectProps = createObjectFileContent({
       allRecordTypes: this.allRecordTypes,
       allBusinessProcesses: this.allBusinessProcesses,
@@ -326,7 +327,7 @@ export default class SettingsGenerator {
     objectsDir: string,
     allRecordTypes: string[],
     allbusinessProcesses: string[]
-  ) {
+  ): Promise<void> {
     if (this.objectSettingsData) {
       await Promise.all(
         Object.entries(this.objectSettingsData).map(([item, value]) => {
@@ -343,7 +344,7 @@ export default class SettingsGenerator {
     }
   }
 
-  private async writeSettingsIfNeeded(settingsDir: string) {
+  private async writeSettingsIfNeeded(settingsDir: string): Promise<void> {
     if (this.settingData) {
       await Promise.all(
         Object.entries(this.settingData).map(([item, value]) => {

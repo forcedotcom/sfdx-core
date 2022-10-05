@@ -4,6 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import { join, sep } from 'path';
 import { expect } from 'chai';
 
@@ -16,7 +19,7 @@ import { shouldThrow, shouldThrowSync, testSetup } from '../../src/testSetup';
 const $$ = testSetup();
 
 describe('SfProject', () => {
-  let projectPath;
+  let projectPath: string;
 
   beforeEach(async () => {
     projectPath = await $$.localPathRetriever($$.id);
@@ -126,6 +129,9 @@ describe('SfProject', () => {
         // create() calls read() which calls schemaValidate()
         await shouldThrow(SfProjectJson.create());
       } catch (e) {
+        if (!(e instanceof Error)) {
+          expect.fail('Expected error to be an instance of Error');
+        }
         expect(e.name).to.equal('SchemaValidationError');
         expect(e.message).to.contain(expectedError);
       }
@@ -175,6 +181,9 @@ describe('SfProject', () => {
         const project = new SfProjectJson({});
         await shouldThrow(project.schemaValidate());
       } catch (e) {
+        if (!(e instanceof Error)) {
+          expect.fail('Expected error to be an instance of Error');
+        }
         expect(e.name).to.equal('SchemaValidationError');
         expect(e.message).to.contain(expectedError);
       }
@@ -216,6 +225,9 @@ describe('SfProject', () => {
       try {
         await shouldThrow(SfProject.resolve());
       } catch (e) {
+        if (!(e instanceof Error)) {
+          expect.fail('Expected error to be an instance of Error');
+        }
         expect(e.message).to.equal('InvalidProjectWorkspaceError');
       }
     });
@@ -243,6 +255,9 @@ describe('SfProject', () => {
       try {
         await shouldThrow(SfProject.resolve());
       } catch (e) {
+        if (!(e instanceof Error)) {
+          expect.fail('Expected error to be an instance of Error');
+        }
         expect(e.message).to.equal('InvalidProjectWorkspaceError');
       }
     });
@@ -273,6 +288,9 @@ describe('SfProject', () => {
       try {
         shouldThrowSync(() => SfProject.getInstance());
       } catch (e) {
+        if (!(e instanceof Error)) {
+          expect.fail('Expected error to be an instance of Error');
+        }
         expect(e.message).to.equal('InvalidProjectWorkspaceError');
       }
     });

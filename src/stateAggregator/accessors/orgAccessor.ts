@@ -58,6 +58,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
         const config = await this.initAuthFile(username);
         this.configs.set(username, config);
       });
+      // eslint-disable-next-line no-await-in-loop
       await Promise.all(promises);
     }
     return this.getAll(decrypt);
@@ -163,6 +164,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
       contents.username ??= username;
       this.contents.set(username, contents as P);
     } else {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       org.username ??= username;
       this.contents.set(username, org);
@@ -202,12 +204,12 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     if (config) {
       return (await config.write()) as P;
     } else {
-      const contents = this.contents.get(username) || {};
+      const contents = this.contents.get(username) ?? {};
       await this.read(username, false, false);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const config = this.configs.get(username)!;
-      config.setContentsFromObject(contents);
-      return (await config.write()) as P;
+      const readConfig = this.configs.get(username)!;
+      readConfig.setContentsFromObject(contents);
+      return (await readConfig.write()) as P;
     }
   }
 
@@ -238,6 +240,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
 }
 
 export class OrgAccessor extends BaseOrgAccessor<AuthInfoConfig, AuthFields> {
+  // eslint-disable-next-line class-methods-use-this
   protected async initAuthFile(username: string, throwOnNotFound = false): Promise<AuthInfoConfig> {
     return AuthInfoConfig.create({
       ...AuthInfoConfig.getOptions(username),
@@ -245,11 +248,13 @@ export class OrgAccessor extends BaseOrgAccessor<AuthInfoConfig, AuthFields> {
     });
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected getFileRegex(): RegExp {
     // The regular expression that filters files stored in $HOME/.sfdx
     return /^[^.][^@]*@[^.]+(\.[^.\s]+)+\.json$/;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected getFileExtension(): string {
     return '.json';
   }

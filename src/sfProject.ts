@@ -324,6 +324,7 @@ export class SfProjectJson extends ConfigFile {
   /**
    * Has at least one package alias defined in the project.
    */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await
   public async hasPackageAliases() {
     return Object.keys(this.getContents().packageAliases ?? {}).length > 0;
   }
@@ -391,7 +392,7 @@ export class SfProjectJson extends ConfigFile {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private doesPackageExist(packagePath: string) {
+  private doesPackageExist(packagePath: string): boolean {
     return fs.existsSync(packagePath);
   }
 
@@ -721,20 +722,25 @@ export class SfProject {
       Object.assign(this.projectConfig, configAggregator.getConfig());
 
       // we don't have a login url yet, so use instanceUrl from config or default
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!this.projectConfig.sfdcLoginUrl) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this.projectConfig.sfdcLoginUrl = configAggregator.getConfig()['org-instance-url'] ?? SfdcUrl.PRODUCTION;
       }
       // LEGACY - Allow override of sfdcLoginUrl via env var FORCE_SFDC_LOGIN_URL
       if (process.env.FORCE_SFDC_LOGIN_URL) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this.projectConfig.sfdcLoginUrl = process.env.FORCE_SFDC_LOGIN_URL;
       }
 
       // Allow override of signupTargetLoginUrl via env var SFDX_SCRATCH_ORG_CREATION_LOGIN_URL
       if (process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this.projectConfig.signupTargetLoginUrl = process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.projectConfig;
   }
 

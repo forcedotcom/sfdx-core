@@ -349,12 +349,17 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     // unauthenticated connections are being made to salesforce. Let's close the dispatcher if it exists and
     // has no clientId.
     // @ts-ignore
+    // eslint-disable-next-line no-underscore-dangle
     if (this.cometClient._dispatcher) {
       this.log('Closing the faye dispatcher');
       // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-underscore-dangle
       const dispatcher = this.cometClient._dispatcher;
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
       this.log(`dispatcher.clientId: ${dispatcher.clientId}`);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!dispatcher.clientId) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         dispatcher.close();
       } else {
         this.disconnectClient();

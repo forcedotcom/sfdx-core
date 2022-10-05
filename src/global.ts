@@ -55,7 +55,7 @@ export class Global {
    *
    * **See** {@link Global.SFDX_STATE_FOLDER}
    */
-  public static get SFDX_DIR() {
+  public static get SFDX_DIR(): string {
     return path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
   }
 
@@ -64,20 +64,22 @@ export class Global {
    *
    * **See**  {@link Global.SF_STATE_FOLDER}
    */
-  public static get SF_DIR() {
+  public static get SF_DIR(): string {
     return path.join(os.homedir(), Global.SF_STATE_FOLDER);
   }
 
   /**
    * The full system path to the preferred global state folder
    */
-  public static get DIR() {
+  public static get DIR(): string {
     return path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
   }
 
   /**
    * The full system path to the global log file.
    */
+  // member ordering conflicts with the TS use-before-declaration error
+  // eslint-disable-next-line @typescript-eslint/member-ordering
   public static readonly LOG_FILE_PATH: string = path.join(Global.SF_DIR, 'sf.log');
 
   /**

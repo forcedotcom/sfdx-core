@@ -115,7 +115,7 @@ export abstract class BaseConfigStore<
    * If the value is an object, a clone will be returned.
    */
   public get<K extends Key<P>>(key: K, decrypt?: boolean): P[K];
-  public get<T = ConfigValue>(key: string, decrypt?: boolean): T;
+  public get<V = ConfigValue>(key: string, decrypt?: boolean): V;
   public get<K extends Key<P>>(key: K | string, decrypt = false): P[K] | ConfigValue {
     const k = key as string;
     let value = this.getMethod(this.contents, k);
@@ -165,7 +165,7 @@ export abstract class BaseConfigStore<
    * @param value The value.
    */
   public set<K extends Key<P>>(key: K, value: P[K]): void;
-  public set<T = ConfigValue>(key: string, value: T): void;
+  public set<V = ConfigValue>(key: string, value: V): void;
   public set<K extends Key<P>>(key: K | string, value: P[K] | ConfigValue): void {
     if (this.hasEncryption()) {
       if (isJsonMap(value)) {
@@ -185,7 +185,7 @@ export abstract class BaseConfigStore<
    * @param value The value.
    */
   public update<K extends Key<P>>(key: K, value: Partial<P[K]>): void;
-  public update<T = ConfigValue>(key: string, value: Partial<T>): void;
+  public update<V = ConfigValue>(key: string, value: Partial<V>): void;
   public update<K extends Key<P>>(key: K | string, value: Partial<P[K]> | Partial<ConfigValue>): void {
     const existingValue = this.get(key, true);
     if (isPlainObject(existingValue) && isPlainObject(value)) {
@@ -385,7 +385,7 @@ export abstract class BaseConfigStore<
    * @param key The key. Supports query key like `a.b[0]`.
    * @returns Should encrypt/decrypt
    */
-  protected isCryptoKey(key: string) {
+  protected isCryptoKey(key: string): string | RegExp | undefined {
     function resolveProperty(): string {
       // Handle query keys
       const dotAccessor = /\.([a-zA-Z0-9@._-]+)$/;
@@ -410,7 +410,10 @@ export abstract class BaseConfigStore<
     if (!value) return;
     if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))
-      throw new SfError(`can only encrypt strings but found: ${typeof value} : ${value}`, 'InvalidCryptoValueError');
+      throw new SfError(
+        `can only encrypt strings but found: ${typeof value} : ${value.toString()}`,
+        'InvalidCryptoValueError'
+      );
     return this.crypto.isEncrypted(value) ? value : this.crypto.encrypt(value);
   }
 
@@ -418,7 +421,10 @@ export abstract class BaseConfigStore<
     if (!value) return;
     if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))
-      throw new SfError(`can only encrypt strings but found: ${typeof value} : ${value}`, 'InvalidCryptoValueError');
+      throw new SfError(
+        `can only encrypt strings but found: ${typeof value} : ${value.toString()}`,
+        'InvalidCryptoValueError'
+      );
     return this.crypto.isEncrypted(value) ? this.crypto.decrypt(value) : value;
   }
 
@@ -428,7 +434,7 @@ export abstract class BaseConfigStore<
    * @param keyPaths: The complete path of the (nested) data
    * @param data: The current (nested) data being worked on.
    */
-  protected recursiveEncrypt<T extends JsonMap>(data: T, parentKey?: string): T {
+  protected recursiveEncrypt<J extends JsonMap>(data: J, parentKey?: string): J {
     for (const key of Object.keys(data)) {
       this.recursiveCrypto(this.encrypt.bind(this), [...(parentKey ? [parentKey] : []), key], data);
     }
@@ -454,7 +460,7 @@ export abstract class BaseConfigStore<
    * @param keyPaths: The complete path of the (nested) data
    * @param data: The current (nested) data being worked on.
    */
-  private recursiveCrypto(method: (value: unknown) => Optional<string>, keyPaths: string[], data: JsonMap) {
+  private recursiveCrypto(method: (value: unknown) => Optional<string>, keyPaths: string[], data: JsonMap): void {
     const key = keyPaths.pop() as string;
     const value = data[key];
     if (isJsonMap(value)) {

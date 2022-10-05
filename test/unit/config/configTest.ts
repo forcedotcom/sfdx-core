@@ -4,6 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import * as fs from 'fs';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { ensureString, JsonMap } from '@salesforce/ts-types';
@@ -267,6 +272,7 @@ describe('Config', () => {
     it('calls ConfigFile.read with unknown key and does not throw on crypt', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.readSync.name).callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         this.setContentsFromObject({ unknown: 'unknown config key and value' });
       });
 
@@ -291,6 +297,7 @@ describe('Config', () => {
       expect(originalAllowedProperties.length).to.be.greaterThan(0);
 
       expect(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         originalAllowedProperties.some((meta: ConfigPropertyMeta) => meta.key === 'instanceUrl'),
         'it has one of the default allowed properties'
       ).to.be.true;

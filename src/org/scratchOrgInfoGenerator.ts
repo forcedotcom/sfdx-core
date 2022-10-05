@@ -7,7 +7,6 @@
 import { promises as fs } from 'fs';
 import { parseJson } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
-import { sfdc } from '../util/sfdc';
 import { SfProjectJson } from '../sfProject';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
@@ -44,6 +43,7 @@ export interface ScratchOrgInfoPayload extends PartialScratchOrgInfo {
   connectedAppConsumerKey: string;
   namespace: string;
   connectedAppCallbackUrl: string;
+  durationDays: number;
 }
 
 const SNAPSHOT_UNSUPPORTED_OPTIONS = [
@@ -60,7 +60,7 @@ const SNAPSHOT_UNSUPPORTED_OPTIONS = [
 // to a allowlist of valid option settings. Because org:create allows options to be
 // input either key=value pairs or within the definition file, this validator is
 // executed within the ctor and also after parsing/normalization of the definition file.
-const optionsValidator = (key: string, scratchOrgInfoPayload: Record<string, unknown>): void => {
+const optionsValidator = (key: string, scratchOrgInfoPayload: ScratchOrgInfoPayload): void => {
   if (key.toLowerCase() === 'durationdays') {
     throw new SfError('unrecognizedScratchOrgOption', 'durationDays');
   }
@@ -106,7 +106,7 @@ export const getAncestorIds = async (
       // according to docs, 05i is not ok: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev2gp_config_file.htm
 
       // package can be an ID, but not according to docs
-      const packageAliases = projectJson.get('packageAliases') as Record<string, unknown>;
+      const packageAliases = projectJson.get('packageAliases') as Record<string, string>;
       const packageId = packageAliases[ensureString(packageDir.package)] ?? packageDir.package;
 
       // Handle HIGHEST and NONE in ancestor(Version|Id).
@@ -271,33 +271,21 @@ export const getScratchOrgInfoPayload = async (options: {
   warnings: string[];
 }> => {
   let warnings: string[] = [];
-  // orgConfig input overrides definitionjson (-j option; hidden/deprecated)
-  const definitionJson = options.definitionjson ? JSON.parse(options.definitionjson) : {};
-  const orgConfigInput = { ...definitionJson, ...(options.orgConfig ?? {}) };
 
-  let scratchOrgInfoPayload = orgConfigInput;
-
-  // the -f option
-  if (options.definitionfile) {
-    try {
-      const fileData = await fs.readFile(options.definitionfile, 'utf8');
-      const defFileContents = parseJson(fileData) as Record<string, unknown>;
-      // definitionjson and orgConfig override file input
-      scratchOrgInfoPayload = { ...defFileContents, ...orgConfigInput };
-    } catch (err) {
-      const error = err as Error;
-      if (error.name === 'JsonParseError') {
-        throw new SfError(`An error occurred parsing ${options.definitionfile}`);
-      }
-      throw SfError.wrap(error);
-    }
-  }
+  // orgConfig input overrides definitionjson (-j option; hidden/deprecated) overrides definitionfile (-f option)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const scratchOrgInfoPayload: ScratchOrgInfoPayload = {
+    ...(options.definitionfile ? await parseDefinitionFile(options.definitionfile) : {}),
+    ...(options.definitionjson ? JSON.parse(options.definitionjson) : {}),
+    ...(options.orgConfig ?? {}),
+  };
 
   // scratchOrgInfoPayload must be heads down camelcase.
-  const upperCaseKey = sfdc.findUpperCaseKeys(scratchOrgInfoPayload);
-  if (upperCaseKey) {
-    throw new SfError('InvalidJsonCasing', upperCaseKey);
-  }
+  Object.keys(scratchOrgInfoPayload).forEach((key) => {
+    if (key[0].toUpperCase() === key[0]) {
+      throw new SfError('InvalidJsonCasing', key);
+    }
+  });
 
   // Now run the fully resolved user input against the validator
   Object.keys(scratchOrgInfoPayload).forEach((key) => {
@@ -331,4 +319,18 @@ export const getScratchOrgInfoPayload = async (options: {
     ignoreAncestorIds: options.nonamespace ?? options.noancestors ?? false,
     warnings,
   };
+};
+
+const parseDefinitionFile = async (definitionFile: string): Promise<Record<string, unknown>> => {
+  try {
+    const fileData = await fs.readFile(definitionFile, 'utf8');
+    const defFileContents = parseJson(fileData) as Record<string, unknown>;
+    return defFileContents;
+  } catch (err) {
+    const error = err as Error;
+    if (error.name === 'JsonParseError') {
+      throw new SfError(`An error occurred parsing ${definitionFile}`);
+    }
+    throw SfError.wrap(error);
+  }
 };

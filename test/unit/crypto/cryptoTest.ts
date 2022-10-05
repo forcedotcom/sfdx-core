@@ -163,6 +163,7 @@ describe('CryptoTest', function () {
       try {
         shouldThrowSync(() => crypto.decrypt('abcdefghijklmnopqrstuvwxyz:123456789'));
       } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(error.actions[0]).to.equal(message);
       }
     });

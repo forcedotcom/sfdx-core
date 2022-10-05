@@ -41,9 +41,7 @@ const GET_PASSWORD_RETRY_COUNT = 3;
  *
  * @param optionsArray CLI command args.
  */
-function _optionsToString(optionsArray: string[]) {
-  return optionsArray.reduce((accum, element) => `${accum} ${element}`);
-}
+const optionsToString = (optionsArray: string[]): string => optionsArray.join(' ');
 
 /**
  * Helper to determine if a program is executable. Returns `true` if the program is executable for the user. For
@@ -53,7 +51,7 @@ function _optionsToString(optionsArray: string[]) {
  * @param gid Unix group id.
  * @param uid Unix user id.
  */
-const _isExe = (mode: number, gid: number, uid: number) => {
+const isExe = (mode: number, gid: number, uid: number): boolean => {
   if (process.platform === 'win32') {
     return true;
   }
@@ -76,10 +74,12 @@ const _isExe = (mode: number, gid: number, uid: number) => {
  * @param fsIfc The file system interface.
  * @param isExeIfc Executable validation function.
  */
+// eslint-disable-next-line no-underscore-dangle
 const _validateProgram = async (
   programPath: string,
   fsIfc: FsIfc,
   isExeIfc: (mode: number, gid: number, uid: number) => boolean
+  // eslint-disable-next-line @typescript-eslint/require-await
 ): Promise<void> => {
   let noPermission;
   try {
@@ -136,7 +136,7 @@ export class KeychainAccess implements PasswordStore {
    * Validates the os level program is executable.
    */
   public async validateProgram(): Promise<void> {
-    await _validateProgram(this.osImpl.getProgram(), this.fsIfc, _isExe);
+    await _validateProgram(this.osImpl.getProgram(), this.fsIfc, isExe);
   }
 
   /**
@@ -184,6 +184,7 @@ export class KeychainAccess implements PasswordStore {
       try {
         return await this.osImpl.onGetCommandClose(code, stdout, stderr, opts, fn);
       } catch (e) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (e.retry) {
           if (retryCount >= GET_PASSWORD_RETRY_COUNT) {
@@ -227,7 +228,7 @@ export class KeychainAccess implements PasswordStore {
       return;
     }
 
-    await _validateProgram(this.osImpl.getProgram(), this.fsIfc, _isExe);
+    await _validateProgram(this.osImpl.getProgram(), this.fsIfc, isExe);
 
     const credManager = this.osImpl.setCommandFunc(opts, childProcess.spawn);
 
@@ -297,7 +298,7 @@ interface OsImpl {
  *
  * Uses libsecret.
  */
-const _linuxImpl: OsImpl = {
+const linuxImpl: OsImpl = {
   getProgram() {
     return process.env.SFDX_SECRET_TOOL_PATH ?? path.join(path.sep, 'usr', 'bin', 'secret-tool');
   },
@@ -307,16 +308,18 @@ const _linuxImpl: OsImpl = {
   },
 
   getCommandFunc(opts, fn) {
-    return fn(_linuxImpl.getProgram(), _linuxImpl.getProgramOptions(opts));
+    return fn(linuxImpl.getProgram(), linuxImpl.getProgramOptions(opts));
   },
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async onGetCommandClose(code, stdout, stderr, opts, fn) {
     if (code === 1) {
-      const command = `${_linuxImpl.getProgram()} ${_optionsToString(_linuxImpl.getProgramOptions(opts))}`;
+      const command = `${linuxImpl.getProgram()} ${optionsToString(linuxImpl.getProgramOptions(opts))}`;
       const error = messages.createError('passwordNotFoundError', [], [command]);
       // This is a workaround for linux.
       // Calling secret-tool too fast can cause it to return an unexpected error. (below)
       if (stderr?.includes('invalid or unencryptable secret')) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore TODO: make an error subclass with this field
         error.retry = true;
 
@@ -336,16 +339,17 @@ const _linuxImpl: OsImpl = {
   },
 
   setCommandFunc(opts, fn) {
-    const secretTool = fn(_linuxImpl.getProgram(), _linuxImpl.setProgramOptions(opts));
+    const secretTool = fn(linuxImpl.getProgram(), linuxImpl.setProgramOptions(opts));
     if (secretTool.stdin) {
       secretTool.stdin.write(`${opts.password}\n`);
     }
     return secretTool;
   },
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async onSetCommandClose(code, stdout, stderr, opts, fn) {
     if (code !== 0) {
-      const command = `${_linuxImpl.getProgram()} ${_optionsToString(_linuxImpl.setProgramOptions(opts))}`;
+      const command = `${linuxImpl.getProgram()} ${optionsToString(linuxImpl.setProgramOptions(opts))}`;
       fn(messages.createError('setCredentialError', [`${stdout} - ${stderr}`], [os.userInfo().username, command]));
     } else {
       fn(null);
@@ -358,7 +362,7 @@ const _linuxImpl: OsImpl = {
  *
  * /usr/bin/security is a cli front end for OSX keychain.
  */
-const _darwinImpl: OsImpl = {
+const darwinImpl: OsImpl = {
   getProgram() {
     return path.join(path.sep, 'usr', 'bin', 'security');
   },
@@ -368,9 +372,10 @@ const _darwinImpl: OsImpl = {
   },
 
   getCommandFunc(opts, fn) {
-    return fn(_darwinImpl.getProgram(), _darwinImpl.getProgramOptions(opts));
+    return fn(darwinImpl.getProgram(), darwinImpl.getProgramOptions(opts));
   },
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async onGetCommandClose(code, stdout, stderr, opts, fn) {
     let err: SfError;
 
@@ -381,7 +386,7 @@ const _darwinImpl: OsImpl = {
           break;
         }
         default: {
-          const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
+          const command = `${darwinImpl.getProgram()} ${optionsToString(darwinImpl.getProgramOptions(opts))}`;
           err = messages.createError('passwordNotFoundError', [`${stdout} - ${stderr}`], [command]);
         }
       }
@@ -399,7 +404,7 @@ const _darwinImpl: OsImpl = {
         fn(null, match[1]);
       }
     } else {
-      const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.getProgramOptions(opts))}`;
+      const command = `${darwinImpl.getProgram()} ${optionsToString(darwinImpl.getProgramOptions(opts))}`;
       fn(messages.createError('passwordNotFoundError', [`${stdout} - ${stderr}`], [command]));
     }
   },
@@ -413,12 +418,13 @@ const _darwinImpl: OsImpl = {
   },
 
   setCommandFunc(opts, fn) {
-    return fn(_darwinImpl.getProgram(), _darwinImpl.setProgramOptions(opts));
+    return fn(darwinImpl.getProgram(), darwinImpl.setProgramOptions(opts));
   },
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async onSetCommandClose(code, stdout, stderr, opts, fn) {
     if (code !== 0) {
-      const command = `${_darwinImpl.getProgram()} ${_optionsToString(_darwinImpl.setProgramOptions(opts))}`;
+      const command = `${darwinImpl.getProgram()} ${optionsToString(darwinImpl.setProgramOptions(opts))}`;
       fn(messages.createError('setCredentialError', [`${stdout} - ${stderr}`], [os.userInfo().username, command]));
     } else {
       fn(null);
@@ -426,7 +432,7 @@ const _darwinImpl: OsImpl = {
   },
 };
 
-const getSecretFile = () => path.join(Global.DIR, 'key.json');
+const getSecretFile = (): string => path.join(Global.DIR, 'key.json');
 
 enum SecretField {
   SERVICE = 'service',
@@ -440,7 +446,10 @@ type SecretContents = {
   [SecretField.SERVICE]: string;
 };
 
-async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: SecretContents) => void) {
+async function writeFile(
+  opts: ProgramOpts,
+  fn: (error: Nullable<Error>, contents?: SecretContents) => void
+): Promise<void> {
   try {
     const contents = {
       [SecretField.ACCOUNT]: opts.account,
@@ -457,7 +466,7 @@ async function _writeFile(opts: ProgramOpts, fn: (error: Nullable<Error>, conten
   }
 }
 
-async function _readFile(): Promise<ProgramOpts> {
+async function readFile(): Promise<ProgramOpts> {
   // The file and access is validated before this method is called
   const fileContents = parseJsonMap(await fs.promises.readFile(getSecretFile(), 'utf8'));
   return {
@@ -479,7 +488,7 @@ export class GenericKeychainAccess implements PasswordStore {
       if (fileAccessError == null) {
         // read it's contents
         try {
-          const { service, account, password } = await _readFile();
+          const { service, account, password } = await readFile();
           // validate service name and account just because
           if (opts.service === service && opts.account === account) {
             fn(null, password);
@@ -510,13 +519,13 @@ export class GenericKeychainAccess implements PasswordStore {
         // file not found
         if (fileAccessError.code === 'ENOENT') {
           // create the file
-          await _writeFile.call(this, opts, fn);
+          await writeFile.call(this, opts, fn);
         } else {
           fn(fileAccessError);
         }
       } else {
         // the existing file validated. we can write the updated key
-        await _writeFile.call(this, opts, fn);
+        await writeFile.call(this, opts, fn);
       }
     });
   }
@@ -553,6 +562,7 @@ export class GenericUnixKeychainAccess extends GenericKeychainAccess {
         if (octalModeStr === EXPECTED_OCTAL_PERM_VALUE) {
           await cb(null);
         } else {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           cb(
             messages.createError(
               'genericKeychainInvalidPermsError',
@@ -594,8 +604,8 @@ export const keyChainImpl = {
   generic_unix: new GenericUnixKeychainAccess(),
   // eslint-disable-next-line camelcase
   generic_windows: new GenericWindowsKeychainAccess(),
-  darwin: new KeychainAccess(_darwinImpl, nodeFs),
-  linux: new KeychainAccess(_linuxImpl, nodeFs),
+  darwin: new KeychainAccess(darwinImpl, nodeFs),
+  linux: new KeychainAccess(linuxImpl, nodeFs),
   validateProgram: _validateProgram,
 };
 

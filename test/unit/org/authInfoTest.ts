@@ -7,6 +7,7 @@
 
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as pathImport from 'path';
 import * as dns from 'dns';
@@ -1006,7 +1007,10 @@ describe('AuthInfo', () => {
 
       const crypto = await Crypto.create();
       // const decryptedActualFields = configFileWrite.lastCall.thisValue.toObject();
-      const decryptedActualFields = $$.stubs.configWrite.lastCall.thisValue.toObject();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      const decryptedActualFields = $$.stubs.configWrite.lastCall.thisValue.toObject() as AuthFields & {
+        timestamp: string;
+      };
       decryptedActualFields.accessToken = crypto.decrypt(decryptedActualFields.accessToken);
       decryptedActualFields.refreshToken = crypto.decrypt(decryptedActualFields.refreshToken);
       decryptedActualFields.clientSecret = crypto.decrypt(decryptedActualFields.clientSecret);
@@ -1126,8 +1130,9 @@ describe('AuthInfo', () => {
       context.save.resolves();
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
       expect(testCallback.called).to.be.true;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const sfError = testCallback.firstCall.args[0];
-      expect(sfError.name).to.equal('OrgDataNotAvailableError', sfError.message);
+      expect(sfError.name).to.equal('OrgDataNotAvailableError', sfError.message as string);
     });
   });
 

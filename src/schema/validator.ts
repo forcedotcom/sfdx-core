@@ -80,7 +80,7 @@ export class SchemaValidator {
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
    */
-  public validateSync(json: AnyJson): AnyJson {
+  public validateSync<T extends AnyJson>(json: T): T {
     const schema = this.loadSync();
     const externalSchemas = this.loadExternalSchemas(schema);
 
@@ -109,7 +109,7 @@ export class SchemaValidator {
 
     // AJV will modify the original json object. We need to make a clone of the
     // json to keep this backwards compatible with JSEN functionality
-    const jsonClone: AnyJson = JSON.parse(JSON.stringify(json));
+    const jsonClone: T = JSON.parse(JSON.stringify(json)) as T;
 
     const valid = validate(jsonClone);
 

@@ -113,6 +113,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    * @param usernameOrAlias username or alias
    * @returns {Promise<string>}
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async resolveUsername(usernameOrAlias: string): Promise<string> {
     return this.stateAggregator.aliases.resolveUsername(usernameOrAlias);
   }
@@ -143,10 +144,10 @@ export class AuthRemover extends AsyncOptionalCreatable {
    *
    * @param username username that you want to remove from config files
    */
-  private async unsetConfigValues(username: string) {
+  private async unsetConfigValues(username: string): Promise<void> {
     const aliases = this.getAliases(username);
 
-    this.logger.debug(`Clearing config keys for username ${username} and aliases: ${aliases}`);
+    this.logger.debug(`Clearing config keys for username ${username} and aliases: ${aliases.join(',')}`);
     const configs = [this.config.getGlobalConfig(), this.config.getLocalConfig()];
     for (const config of configs) {
       if (config) {
@@ -156,7 +157,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
           .filter((k) => !!k)
           .reduce((x, y) => x.concat(y), []);
         const allKeys = keysWithUsername.concat(keysWithAlias);
-        this.logger.debug(`Found these config keys to remove: ${allKeys}`);
+        this.logger.debug(`Found these config keys to remove: ${allKeys.join(',')}`);
         allKeys.forEach((key) => {
           try {
             config.unset(key);
@@ -181,7 +182,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
     const existingAliases = this.stateAggregator.aliases.getAll(username);
     if (existingAliases.length === 0) return;
 
-    this.logger.debug(`Found these aliases to remove: ${existingAliases}`);
+    this.logger.debug(`Found these aliases to remove: ${existingAliases.join(',')}`);
     existingAliases.forEach((alias) => this.stateAggregator.aliases.unset(alias));
     await this.stateAggregator.aliases.write();
   }

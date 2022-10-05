@@ -6,6 +6,9 @@
  */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable class-methods-use-this */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
@@ -295,7 +298,7 @@ function defaultFakeConnectionRequest(): Promise<AnyJson> {
 export const instantiateContext = (sinon?: any): TestContext => {
   if (!sinon) {
     try {
-      sinon = require('sinon');
+      sinon = import('sinon');
     } catch (e) {
       throw new Error(
         'The package sinon was not found. Add it to your package.json and pass it in to testSetup(sinon.sandbox)'
@@ -371,9 +374,9 @@ export const instantiateContext = (sinon?: any): TestContext => {
       }
     },
     async stubAuths(...orgs: MockTestOrgData[]): Promise<void> {
-      const entries = (await Promise.all(orgs.map(async (org) => [org.username, await org.getConfig()]))) as Array<
-        [string, AuthFields]
-      >;
+      const entries = await Promise.all(
+        orgs.map(async (org): Promise<[string, AuthFields]> => [org.username, await org.getConfig()])
+      );
       const orgMap = new Map(entries);
 
       stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'getAllFiles').returns(
@@ -601,13 +604,14 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
  */
 export const restoreContext = (testContext: TestContext): void => {
   testContext.SANDBOX.restore();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
   // Give each test run a clean StateAggregator
   StateAggregator.clearInstance();
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
 const _testSetup = (sinon?: any): TestContext => {
   const testContext = instantiateContext(sinon);
 
@@ -1045,6 +1049,7 @@ export class MockTestSandboxData {
   /**
    * Return the auth config file contents.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async getConfig(): Promise<SandboxFields> {
     return {
       sandboxOrgId: this.sandboxOrgId,

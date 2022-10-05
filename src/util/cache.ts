@@ -18,6 +18,13 @@ export class Cache extends Map {
     this.#lookups = 0;
   }
 
+  public static get hits(): number {
+    return Cache.instance().#hits;
+  }
+  public static get lookups(): number {
+    return Cache.instance().#lookups;
+  }
+
   public static instance(): Cache {
     if (!Cache.#instance) {
       Cache.#enabled = true;
@@ -26,7 +33,7 @@ export class Cache extends Map {
     return Cache.#instance;
   }
 
-  public static set<V>(key: string, value: V) {
+  public static set<V>(key: string, value: V): void {
     if (Cache.#enabled) {
       Cache.instance().set(key, value);
     }
@@ -47,12 +54,5 @@ export class Cache extends Map {
 
   public static enable(): void {
     Cache.#enabled = true;
-  }
-
-  public static get hits(): number {
-    return Cache.instance().#hits;
-  }
-  public static get lookups(): number {
-    return Cache.instance().#lookups;
   }
 }

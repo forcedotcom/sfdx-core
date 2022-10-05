@@ -333,15 +333,15 @@ export class ConfigFile<
         throw new SfError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
       }
 
-      const _isGlobal: boolean = isBoolean(this.options.isGlobal) && this.options.isGlobal;
-      const _isState: boolean = isBoolean(this.options.isState) && this.options.isState;
-
       // Don't let users store config files in homedir without being in the state folder.
       let configRootFolder = this.options.rootFolder
         ? this.options.rootFolder
         : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
 
-      if (_isGlobal || _isState) {
+      if (
+        (isBoolean(this.options.isGlobal) && this.options.isGlobal) ||
+        (isBoolean(this.options.isState) && this.options.isState)
+      ) {
         configRootFolder = pathJoin(configRootFolder, this.options.stateFolder ?? Global.SFDX_STATE_FOLDER);
       }
 

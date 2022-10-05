@@ -30,6 +30,13 @@ import * as Debug from 'debug';
 import { Global, Mode } from './global';
 import { SfError } from './sfError';
 
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+
 /**
  * A Bunyan `Serializer` function.
  *
@@ -98,7 +105,7 @@ export enum LoggerLevel {
 }
 
 /**
- *  `Logger` format types.
+ * `Logger` format types.
  */
 export enum LoggerFormat {
   JSON,
@@ -209,7 +216,7 @@ export class Logger {
     .filter(isString)
     .map((v: string) => v.toLowerCase());
   // Rollup all instance-specific process event listeners together to prevent global `MaxListenersExceededWarning`s.
-  private static readonly lifecycle = (() => {
+  private static readonly lifecycle = ((): EventEmitter => {
     const events = new EventEmitter();
     events.setMaxListeners(0); // never warn on listener counts
     process.on('uncaughtException', (err) => events.emit('uncaughtException', err));
@@ -599,6 +606,7 @@ export class Logger {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.bunyan.streams.forEach(async (stream: any) => {
         if (stream.type === 'file') {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           content += await fs.promises.readFile(stream.path, 'utf8');
         }
       });
@@ -622,8 +630,7 @@ export class Logger {
   /**
    * Close the logger, including any streams, and remove all listeners.
    *
-   * @param fn A function with signature `(stream: LoggerStream) => void` to call for each stream with
-   *                        the stream as an arg.
+   * @param fn A function with signature `(stream: LoggerStream) => void` to call for each stream with the stream as an arg.
    */
   public close(fn?: (stream: LoggerStream) => void): void {
     if (this.bunyan.streams) {
@@ -686,6 +693,7 @@ export class Logger {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public trace(...args: any[]): Logger {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     this.bunyan.trace(this.applyFilters(LoggerLevel.TRACE, ...args));
     return this;
   }
@@ -775,6 +783,7 @@ export class Logger {
         stream: new Writable({
           write: (chunk, encoding, next) => {
             try {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               const json = parseJsonMap(chunk.toString());
               const logLevel = ensureNumber(json.level);
               if (this.getLevel() <= logLevel) {
@@ -831,7 +840,9 @@ export class Logger {
     const logFmtWriteableStream = new Writable({
       write: (chunk, enc, cb) => {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const parsedJSON = JSON.parse(chunk.toString());
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const keys = Object.keys(parsedJSON);
 
           let logEntry = '';
@@ -874,6 +885,7 @@ const FILTERED_KEYS: FilteredKey[] = [
 ];
 
 // SFDX code and plugins should never show tokens or connect app information in the logs
+// eslint-disable-next-line no-underscore-dangle
 const _filter = (...args: unknown[]): unknown =>
   args.map((arg) => {
     if (isArray(arg)) {
@@ -881,6 +893,7 @@ const _filter = (...args: unknown[]): unknown =>
     }
 
     if (arg) {
+      // eslint-disable-next-line no-underscore-dangle
       let _arg: string;
 
       // Normalize all objects into a string. This include errors.

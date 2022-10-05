@@ -35,6 +35,7 @@ import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { Messages } from '../../../src/messages';
 
 /* eslint-disable no-await-in-loop */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'org');
@@ -532,6 +533,7 @@ describe('Org Tests', () => {
 
     it('should remove config setting', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function () {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
         return this.path?.endsWith(`${testData.orgId}.json`);
       });
 
@@ -561,6 +563,7 @@ describe('Org Tests', () => {
 
     it('should remove the alias', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function () {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
         return this.path?.endsWith(`${testData.orgId}.json`);
       });
 

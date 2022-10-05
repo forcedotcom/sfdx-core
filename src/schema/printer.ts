@@ -22,6 +22,8 @@ import { SfError } from '../sfError';
 /**
  * Renders schema properties.  By default, this is simply an identity transform.  Subclasses may provide more
  * interesting decorations of each values, such as ANSI coloring.
+ *
+ * @deprecated
  */
 export class SchemaPropertyRenderer {
   /**
@@ -63,6 +65,8 @@ export class SchemaPropertyRenderer {
 
 /**
  * Prints a JSON schema in a human-friendly format.
+ *
+ * @deprecated
  *
  * ```
  * import chalk from 'chalk';
@@ -218,35 +222,6 @@ class SchemaProperty {
     }
   }
 
-  public renderName(): string {
-    return this.propertyRenderer.renderName(this.name);
-  }
-
-  public renderTitle(): string {
-    return this.propertyRenderer.renderTitle(this.title ?? '');
-  }
-
-  public renderDescription(): string {
-    return this.propertyRenderer.renderDescription(this.description ?? '');
-  }
-
-  public renderType(): string {
-    return this.propertyRenderer.renderType(this.type ?? '');
-  }
-
-  public renderHeader(): string {
-    return `${this.renderName()}(${this.renderType()}) - ${this.renderTitle()}: ${this.renderDescription()}`;
-  }
-
-  public renderArrayHeader(): string {
-    if (!this.items) {
-      return '';
-    }
-    const minItems = this.minItems ? ` - min ${this.minItems}` : '';
-    const prop = new SchemaProperty(this.logger, this.schema, 'items', this.items, this.propertyRenderer);
-    return `items(${prop.renderType()}${minItems}) - ${prop.renderTitle()}: ${prop.renderDescription()}`;
-  }
-
   public get title(): Optional<string> {
     return asString(this.rawProperty.title);
   }
@@ -282,6 +257,35 @@ class SchemaProperty {
 
   public getProperties(): Optional<JsonMap> {
     return asJsonMap(this.rawProperty.properties);
+  }
+
+  public renderName(): string {
+    return this.propertyRenderer.renderName(this.name);
+  }
+
+  public renderTitle(): string {
+    return this.propertyRenderer.renderTitle(this.title ?? '');
+  }
+
+  public renderDescription(): string {
+    return this.propertyRenderer.renderDescription(this.description ?? '');
+  }
+
+  public renderType(): string {
+    return this.propertyRenderer.renderType(this.type ?? '');
+  }
+
+  public renderHeader(): string {
+    return `${this.renderName()}(${this.renderType()}) - ${this.renderTitle()}: ${this.renderDescription()}`;
+  }
+
+  public renderArrayHeader(): string {
+    if (!this.items) {
+      return '';
+    }
+    const minItems = this.minItems ? ` - min ${this.minItems}` : '';
+    const prop = new SchemaProperty(this.logger, this.schema, 'items', this.items, this.propertyRenderer);
+    return `items(${prop.renderType()}${minItems}) - ${prop.renderTitle()}: ${prop.renderDescription()}`;
   }
 }
 

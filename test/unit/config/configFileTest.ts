@@ -4,6 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import * as Path from 'path';
 import * as fs from 'fs';
 import { expect } from 'chai';
@@ -171,6 +174,9 @@ describe('Config', () => {
         await config.unlink();
         assert(false, 'should throw');
       } catch (e) {
+        if (!(e instanceof Error)) {
+          expect.fail('Expected error to be an instance of Error');
+        }
         expect(e.name).to.equal('TargetFileNotFound');
       }
     });

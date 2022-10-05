@@ -293,6 +293,7 @@ describe('scratchOrgSettingsGenerator', () => {
         await shouldThrow(settings.deploySettingsViaFolder(scratchOrg, '53.0'));
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(error.message).to.include(
           'settings/True.settings is not a valid metadata object. Check the name and casing of the file'
         );
@@ -354,6 +355,7 @@ describe('scratchOrgSettingsGenerator', () => {
         await shouldThrow(settings.deploySettingsViaFolder(scratchOrg, '53.0'));
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(error.message).to.include(
           'settings/True.settings is not a valid metadata object. Check the name and casing of the file'
         );
@@ -630,8 +632,8 @@ describe('scratchOrgSettingsGenerator', () => {
     };
 
     it('createRecordTypeAndBusinessProcessFileContent with account type', () => {
-      const allRecordTypes = [];
-      const allbusinessProcesses = [];
+      const allRecordTypes: string[] = [];
+      const allbusinessProcesses: string[] = [];
       const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
         'account',
         objectSettingsData.account,
@@ -647,8 +649,8 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     it('createRecordTypeAndBusinessProcessFileContent with opportunity values', () => {
-      const allRecordTypes = [];
-      const allbusinessProcesses = [];
+      const allRecordTypes: string[] = [];
+      const allbusinessProcesses: string[] = [];
       const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
         'opportunity',
         objectSettingsData.opportunity,
@@ -677,8 +679,8 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     it('createRecordTypeAndBusinessProcessFileContent with case values', () => {
-      const allRecordTypes = [];
-      const allbusinessProcesses = [];
+      const allRecordTypes: string[] = [];
+      const allbusinessProcesses: string[] = [];
       const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
         'case',
         objectSettingsData.case,

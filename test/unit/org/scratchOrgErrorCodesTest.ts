@@ -29,6 +29,9 @@ describe('getHumanErrorMessage', () => {
     try {
       await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername));
     } catch (err) {
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
       expect(err).to.be.an.instanceof(SfError);
       expect(err.message).to.include('couldn’t find a');
       expect(err.message).to.not.include('%s');
@@ -43,6 +46,9 @@ describe('getHumanErrorMessage', () => {
     try {
       await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername));
     } catch (err) {
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
       expect(err).to.be.an.instanceof(SfError);
       expect(err.message).to.include('create scratch org');
       expect(err.message).to.not.include('%s');
@@ -57,7 +63,9 @@ describe('getHumanErrorMessage', () => {
     try {
       await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername));
     } catch (err) {
-      expect(err).to.be.an.instanceof(SfError);
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
       expect(err.message).to.equal('The request to create a scratch org failed with error code: B-1717.');
       expect(err.message).to.not.include('%s');
       expect(err.actions).to.be.undefined;
@@ -68,7 +76,9 @@ describe('getHumanErrorMessage', () => {
     try {
       await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo }, testUsername));
     } catch (err) {
-      expect(err).to.be.an.instanceof(SfError);
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
       expect(err.message).to.include('An unknown server error occurred');
       expect(err.message).to.include(baseOrgInfo.Id);
       expect(err.message).to.not.include('%s');
@@ -80,7 +90,9 @@ describe('getHumanErrorMessage', () => {
     try {
       await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode: null }, testUsername));
     } catch (err) {
-      expect(err).to.be.an.instanceof(SfError);
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
       expect(err.message).to.include('An unknown server error occurred');
       expect(err.message).to.include(baseOrgInfo.Id);
       expect(err.message).to.not.include('%s');
@@ -92,7 +104,9 @@ describe('getHumanErrorMessage', () => {
     try {
       await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo, Status: undefined }, testUsername));
     } catch (err) {
-      expect(err).to.be.an.instanceof(SfError);
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
       expect(err.message).to.include('unexpected status');
       expect(err.actions).to.be.undefined;
     }

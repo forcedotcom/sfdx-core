@@ -165,7 +165,7 @@ export type ConnectionOptions = AuthFields & {
 
 // parses the id field returned from jsForce oauth2 methods to get
 // user ID and org ID.
-function parseIdUrl(idUrl: string) {
+function parseIdUrl(idUrl: string): { userId: string | undefined; orgId: string | undefined; url: string } {
   const idUrls = idUrl.split('/');
   const userId = idUrls.pop();
   const orgId = idUrls.pop();
@@ -743,7 +743,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
   }
 
-  private getInstanceUrl(options: AuthOptions, aggregator: ConfigAggregator) {
+  private getInstanceUrl(options: AuthOptions, aggregator: ConfigAggregator): string {
     const instanceUrl =
       options?.instanceUrl ?? (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
     return instanceUrl ?? SfdcUrl.PRODUCTION;
@@ -824,6 +824,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async loadDecryptedAuthFromConfig(username: string): Promise<AuthFields> {
     // Fetch from the persisted auth file
     const authInfo = this.stateAggregator.orgs.get(username, true);
@@ -920,6 +921,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       authFields.instanceUrl = instanceUrl;
     } catch (err) {
       this.logger.debug(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `Instance URL [${authFieldsBuilder.instance_url}] is not available.  DNS lookup failed. Using loginUrl [${options.loginUrl}] instead. This may result in a "Destination URL not reset" error.`
       );
       authFields.instanceUrl = options.loginUrl;
@@ -948,6 +950,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     );
 
     const oauth2 = new JwtOAuth2({ loginUrl });
+    // jsforce has it types as any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
   }
 
@@ -972,6 +976,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       throw messages.createError('refreshTokenAuthError', [(err as Error).message]);
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const { orgId } = parseIdUrl(authFieldsBuilder.id);
 
@@ -1022,6 +1027,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // Only need to query for the username if it isn't known. For example, a new auth code exchange
     // rather than refreshing a token on an existing connection.
     if (!username) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFields.instance_url, authFields.access_token);
       username = userInfo?.username;
@@ -1046,7 +1052,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
     const instance = ensure(instanceUrl);
     const baseUrl = new SfdcUrl(instance);
-    const userInfoUrl = `${baseUrl}services/oauth2/userinfo`;
+    const userInfoUrl = `${baseUrl.toString()}services/oauth2/userinfo`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
     try {
       this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${userInfoUrl}`);
@@ -1055,7 +1061,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         this.throwUserGetException(response);
       } else {
         const userInfoJson = parseJsonMap(response.body) as UserInfoResult;
-        const url = `${baseUrl}/services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
+        const url = `${baseUrl.toString()}/services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
         this.logger.info(`Sending request for User SObject after successful auth code exchange to URL: ${url}`);
         response = await new Transport().httpRequest({ url, method: 'GET', headers });
         if (response.statusCode >= 400) {
@@ -1077,7 +1083,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param response
    * @private
    */
-  private throwUserGetException(response: { body?: string }) {
+  private throwUserGetException(response: { body?: string }): void {
     let errorMsg = '';
     const bodyAsString = response.body ?? JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' });
     try {
@@ -1105,7 +1111,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
     const instance = ensure(instanceUrl);
     const baseUrl = new SfdcUrl(instance);
-    const scratchOrgInfoUrl = `${baseUrl}/services/data/${apiVersion}/query?q=SELECT%20Id%20FROM%20ScratchOrgInfo%20limit%201`;
+    const scratchOrgInfoUrl = `${baseUrl.toString()}/services/data/${apiVersion}/query?q=SELECT%20Id%20FROM%20ScratchOrgInfo%20limit%201`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
 
     try {

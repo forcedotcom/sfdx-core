@@ -73,12 +73,7 @@ export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
  */
 export class Connection<S extends Schema = Schema> extends JSForceConnection<S> {
   // The following are all initialized in either this constructor or the super constructor, sometimes conditionally...
-  /**
-   * Tooling api reference.
-   */
-  public get tooling(): Tooling<S> {
-    return super.tooling as Tooling<S>;
-  }
+
   // We want to use 1 logger for this class and the jsForce base classes so override
   // the jsForce connection.tooling.logger and connection.logger.
   private logger!: Logger;
@@ -98,6 +93,13 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     super(options.connectionOptions ?? {});
     this.options = options;
     this.username = options.authInfo.getUsername();
+  }
+
+  /**
+   * Tooling api reference.
+   */
+  public get tooling(): Tooling<S> {
+    return super.tooling as Tooling<S>;
   }
 
   /**
@@ -205,6 +207,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    */
   public baseUrl(): string {
     // essentially the same as pathJoin(super.instanceUrl, 'services', 'data', `v${super.version}`);
+    // eslint-disable-next-line no-underscore-dangle
     return super._baseUrl();
   }
 
@@ -230,7 +233,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     const versions: Versioned[] = await this.request<Versioned[]>(`${this.instanceUrl}/services/data`);
     // if the server doesn't return a list of versions, it's possibly a instanceUrl issue where the local file is out of date.
     if (!Array.isArray(versions)) {
-      this.logger.debug(`server response for retrieveMaxApiVersion: ${versions}`);
+      this.logger.debug(`server response for retrieveMaxApiVersion: ${versions as string}`);
       throw messages.createError('noApiVersionsError');
     }
     this.logger.debug(`response for org versions: ${versions.map((item) => item.version).join(',')}`);
@@ -335,6 +338,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * @param url Partial url.
    */
   public normalizeUrl(url: string): string {
+    // eslint-disable-next-line no-underscore-dangle
     return this._normalizeUrl(url);
   }
 
@@ -395,7 +399,8 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     if (result.totalSize > 1) {
       throw new SfError(
         options.returnChoicesOnMultiple
-          ? `Multiple records found. ${result.records.map((item) => item[options.choiceField as keyof T]).join(',')}`
+          ? // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            `Multiple records found. ${result.records.map((item) => item[options.choiceField as keyof T]).join(',')}`
           : 'The query returned more than 1 record',
         SingleRecordQueryErrors.MultipleRecords
       );
@@ -431,7 +436,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     }
 
     // Grab the latest api version from the server and cache it in the auth file
-    const useLatest = async () => {
+    const useLatest = async (): Promise<void> => {
       // verifies DNS
       await this.useLatestApiVersion();
       version = this.getApiVersion();

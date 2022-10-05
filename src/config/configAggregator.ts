@@ -83,10 +83,6 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   private globalConfig: Config;
   private envVars: Dictionary<string> = {};
 
-  private get config(): JsonMap {
-    return this.resolveProperties(this.globalConfig.getContents(), this.localConfig?.getContents());
-  }
-
   /**
    * **Do not directly construct instances of this class -- use {@link ConfigAggregator.create} instead.**
    *
@@ -110,11 +106,15 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     this.setAllowedProperties(Config.getAllowedProperties());
   }
 
+  private get config(): JsonMap {
+    return this.resolveProperties(this.globalConfig.getContents(), this.localConfig?.getContents());
+  }
+
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
-  public static async create<P, T extends AsyncOptionalCreatable<P>>(
-    this: new (options?: ConfigAggregator.Options) => T,
-    options?: ConfigAggregator.Options
+  public static async create<P extends ConfigAggregator.Options, T extends AsyncOptionalCreatable<P>>(
+    this: new (options?: P) => T,
+    options?: P
   ): Promise<T> {
     let config = ConfigAggregator.instance as ConfigAggregator;
     if (!config) {
@@ -338,7 +338,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    *
    * @param properties The properties to set.
    */
-  protected setAllowedProperties(properties: ConfigPropertyMeta[]) {
+  protected setAllowedProperties(properties: ConfigPropertyMeta[]): void {
     this.allowedProperties = properties;
   }
 
@@ -418,7 +418,7 @@ export namespace ConfigAggregator {
 
 /**
  * A ConfigAggregator that will work with deprecated config vars (e.g. defaultusername, apiVersion).
- * We do NOT recommend using this class unless you absolutelty have to.
+ * We do NOT recommend using this class unless you absolutely have to.
  *
  * @deprecated
  */

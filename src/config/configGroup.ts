@@ -202,6 +202,7 @@ export class ConfigGroup<T extends ConfigGroup.Options> extends ConfigFile<T> {
     Array.from(contents.entries()).forEach(([groupKey, groupContents]) => {
       if (groupContents) {
         Object.entries(groupContents).forEach(([contentKey, contentValue]) => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           this.setInGroup(contentKey, contentValue, groupKey);
         });
       }

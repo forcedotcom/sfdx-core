@@ -96,7 +96,9 @@ describe('AuthRemover', () => {
       try {
         await shouldThrow(remover.findAuth());
       } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(err.name).to.equal('TargetOrgNotSetError');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(err.actions).has.length(3);
       }
     });
