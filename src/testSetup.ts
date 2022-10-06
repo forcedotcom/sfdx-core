@@ -416,6 +416,8 @@ export const instantiateContext = (sinon?: any): TestContext => {
     },
     async stubConfig(config: Record<string, string>): Promise<void> {
       this.configStubs.Config = { contents: config };
+      // configAggregator may have already loaded an instance.  We're not sure why this happens.
+      // This seems to solve the problem by forcing a load of the new stubbed config.
       await ConfigAggregator.create();
     },
     stubTokens(tokens: Record<string, string>): void {
