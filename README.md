@@ -41,7 +41,7 @@ const $$ = testSetup();
 describe('Mocking Auth data', () => {
   it('example', async () => {
     const testData = new MockTestOrgData();
-    await $$.stubAuths(testData)
+    await $$.stubAuths(testData);
     const auth = await AuthInfo.create({ username: testData.username });
     strictEqual(auth.getUsername(), testData.username);
   });
@@ -106,7 +106,7 @@ describe('Mocking Config', () => {
   it('example', async () => {
     const testData = new MockTestOrgData();
     await $$.stubConfig({ [OrgConfigProperties.TARGET_ORG]: testData.username });
-    const {value} = (await ConfigAggregator.create()).getInfo(OrgConfigProperties.TARGET_ORG);
+    const { value } = (await ConfigAggregator.create()).getInfo(OrgConfigProperties.TARGET_ORG);
     strictEqual(value, testData.username);
   });
 });
@@ -121,7 +121,7 @@ describe('Mocking Arbitrary Config Files', () => {
 
 ## Using the Built-in Sinon Sandboxes
 
-sfdx-core uses Sinon as its underlying mocking system. If you're unfamiliar with Sinon and it's sandboxing concept you can find more information here:
+sfdx-core uses Sinon as its underlying mocking system. If you're unfamiliar with Sinon and its sandboxing concept you can find more information here:
 https://sinonjs.org/
 Sinon `stub`s and `spy`s must be cleaned up after test invocations. To ease the use of Sinon with sfdx core we've exposed our sandbox in TestSetup. After adding your own `stub`s and/or `spy`s they will automatically be cleaned up after each test using mocha's afterEach method.
 

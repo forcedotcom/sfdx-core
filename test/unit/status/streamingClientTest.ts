@@ -33,8 +33,7 @@ describe('streaming client tests', () => {
   beforeEach(async () => {
     const id = $$.uniqid();
     username = `${id}@test.com`;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    $$.stubAuths(new MockTestOrgData(id, { username }));
+    await $$.stubAuths(new MockTestOrgData(id, { username }));
 
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     stubMethod($$.SANDBOX, Connection.prototype, 'getApiVersion').returns(MOCK_API_VERSION);

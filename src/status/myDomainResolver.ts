@@ -23,7 +23,7 @@ const DNS_TIMEOUT = Math.max(3, new Env().getNumber('SFDX_DNS_TIMEOUT', 3) as nu
 const DNS_RETRY_FREQ = Math.max(1, new Env().getNumber('SFDX_DNS_RETRY_FREQUENCY', 1) as number);
 
 /**
- * A class used to resolve MyDomains. After a ScratchOrg is created it's host name my not be propagated to the
+ * A class used to resolve MyDomains. After a ScratchOrg is created its host name my not be propagated to the
  * Salesforce DNS service. This service is not exclusive to Salesforce My Domain URL and could be used for any hostname.
  *
  * ```

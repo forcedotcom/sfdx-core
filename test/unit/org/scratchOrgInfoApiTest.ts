@@ -577,7 +577,7 @@ describe('authorizeScratchOrg', () => {
         })
       );
     } catch (error) {
-      if (!(error instanceof SfError)) {
+      if (!(error instanceof Error)) {
         expect.fail('should have thrown SfError');
       }
       expect(error).to.exist;
