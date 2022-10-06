@@ -151,7 +151,7 @@ describe('User Tests', () => {
       });
     });
 
-    it('Should throw an error beacuse of complexity not a valid value', () => {
+    it('Should throw an error because of complexity not a valid value', () => {
       try {
         const passwordCondition = { length: 14, complexity: 9 };
         shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
@@ -161,7 +161,7 @@ describe('User Tests', () => {
       }
     });
 
-    it('Should throw an error beacuse of length not a valid value', () => {
+    it('Should throw an error because of length not a valid value', () => {
       try {
         const passwordCondition = { length: 7, complexity: 2 };
         shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
@@ -227,7 +227,6 @@ describe('User Tests', () => {
         },
       }));
 
-      await $$.stubAuths(user1);
       const connection = await Connection.create({
         authInfo: await AuthInfo.create({ username: user1.username }),
       });
