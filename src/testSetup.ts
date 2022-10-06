@@ -298,7 +298,7 @@ function defaultFakeConnectionRequest(): Promise<AnyJson> {
 export const instantiateContext = (sinon?: any): TestContext => {
   if (!sinon) {
     try {
-      sinon = import('sinon');
+      sinon = require('sinon');
     } catch (e) {
       throw new Error(
         'The package sinon was not found. Add it to your package.json and pass it in to testSetup(sinon.sandbox)'
@@ -379,7 +379,7 @@ export const instantiateContext = (sinon?: any): TestContext => {
       );
       const orgMap = new Map(entries);
 
-      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'getAllFiles').returns(
+      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'getAllFiles').resolves(
         [...orgMap.keys()].map((o) => `${o}.json`)
       );
 
@@ -400,7 +400,7 @@ export const instantiateContext = (sinon?: any): TestContext => {
       )) as Array<[string, SandboxFields]>;
       const sandboxMap = new Map(entries);
 
-      stubMethod(testContext.SANDBOX, SandboxAccessor.prototype, 'getAllFiles').returns(
+      stubMethod(testContext.SANDBOX, SandboxAccessor.prototype, 'getAllFiles').resolves(
         [...sandboxMap.keys()].map((o) => `${o}.sandbox.json`)
       );
 
@@ -457,7 +457,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
   const stubs: Record<string, sinonType.SinonStub> = {};
 
   // Most core files create a child logger so stub this to return our test logger.
-  stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
+  stubMethod(testContext.SANDBOX, Logger, 'child').resolves(testContext.TEST_LOGGER);
   stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
   testContext.inProject(true);
   testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
