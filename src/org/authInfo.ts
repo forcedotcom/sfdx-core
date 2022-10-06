@@ -254,7 +254,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public static getDefaultInstanceUrl(): string {
     const configuredInstanceUrl = ConfigAggregator.getValue(OrgConfigProperties.ORG_INSTANCE_URL).value as string;
-    return configuredInstanceUrl || SfdcUrl.PRODUCTION;
+    return configuredInstanceUrl ?? SfdcUrl.PRODUCTION;
   }
 
   /**
@@ -696,7 +696,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     this.stateAggregator = await StateAggregator.getInstance();
 
     const username = this.options.username;
-    const authOptions: AuthOptions = this.options.oauth2Options ?? (this.options.accessTokenOptions as AuthOptions);
+    const authOptions: AuthOptions | undefined = this.options.oauth2Options ?? this.options.accessTokenOptions;
 
     // Must specify either username and/or options
     if (!username && !authOptions) {
@@ -724,7 +724,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger = await Logger.child('AuthInfo');
 
       const aggregator = await ConfigAggregator.create();
-      const instanceUrl = this.getInstanceUrl(authOptions, aggregator);
+      const instanceUrl = this.getInstanceUrl(aggregator, authOptions);
 
       this.update({
         accessToken: oauthUsername,
@@ -743,7 +743,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
   }
 
-  private getInstanceUrl(options: AuthOptions, aggregator: ConfigAggregator): string {
+  private getInstanceUrl(aggregator: ConfigAggregator, options?: AuthOptions): string {
     const instanceUrl =
       options?.instanceUrl ?? (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
     return instanceUrl ?? SfdcUrl.PRODUCTION;
