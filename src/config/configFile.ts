@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
-import { isBoolean, isPlainObject } from '@salesforce/ts-types';
+import { isPlainObject } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
 import { Logger } from '../logger';
@@ -336,12 +336,9 @@ export class ConfigFile<
       // Don't let users store config files in homedir without being in the state folder.
       let configRootFolder = this.options.rootFolder
         ? this.options.rootFolder
-        : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
+        : ConfigFile.resolveRootFolderSync(Boolean(this.options.isGlobal));
 
-      if (
-        (isBoolean(this.options.isGlobal) && this.options.isGlobal) ||
-        (isBoolean(this.options.isState) && this.options.isState)
-      ) {
+      if (this.options.isGlobal === true || this.options.isState === true) {
         configRootFolder = pathJoin(configRootFolder, this.options.stateFolder ?? Global.SFDX_STATE_FOLDER);
       }
 

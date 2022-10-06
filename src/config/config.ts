@@ -8,7 +8,7 @@
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import * as fs from 'fs';
 import { keyBy, parseJsonMap, set } from '@salesforce/kit';
-import { Dictionary, ensure, isBoolean, isString, JsonPrimitive, Nullable } from '@salesforce/ts-types';
+import { Dictionary, ensure, isString, JsonPrimitive, Nullable } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -662,10 +662,7 @@ export class SfdxConfig {
         ? this.options.rootFolder
         : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
 
-      if (
-        (isBoolean(this.options.isGlobal) && this.options.isGlobal) ||
-        (isBoolean(this.options.isState) && this.options.isState)
-      ) {
+      if (this.options.isGlobal === true || this.options.isState === true) {
         configRootFolder = pathJoin(configRootFolder, stateFolder);
       }
 
