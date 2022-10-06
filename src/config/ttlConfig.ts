@@ -13,11 +13,13 @@ import { ConfigFile } from './configFile';
  * A Time To Live configuration file where each entry is timestamped and removed once the TTL has expired.
  *
  * @example
+ * ```
  * import { Duration } from '@salesforce/kit';
  * const config = await TTLConfig.create({
  *   isGlobal: false,
  *   ttl: Duration.days(1)
  * });
+ * ```
  */
 export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends ConfigFile<T, TTLConfig.Contents<P>> {
   public set(key: string, value: Partial<TTLConfig.Entry<P>>): void {

@@ -890,8 +890,10 @@ export class StreamingMockCometClient extends CometClient {
  * Mock class for Salesforce Orgs.
  *
  * @example
+ * ```
  * const testOrg = new MockTestOrgData();
  * await $$.stubAuths(testOrg)
+ * ```
  */
 export class MockTestOrgData {
   public testId: string;
@@ -1030,8 +1032,10 @@ export class MockTestOrgData {
  * Mock class for Salesforce Sandboxes.
  *
  * @example
+ * ```
  * const testOrg = new MockTestSandboxData();
  * await $$.stubSandboxes(testOrg)
+ * ```
  */
 export class MockTestSandboxData {
   public sandboxOrgId: string;
