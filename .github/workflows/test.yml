@@ -28,6 +28,7 @@ jobs:
       externalProjectGitUrl: ${{ matrix.externalProjectGitUrl }}
       command: 'yarn test:nuts'
       os: ${{ matrix.os }}
+      useCache: false
     secrets: inherit
   # hidden until we fix source-testkit to better handle jwt
   # deployRetrieveNuts:
