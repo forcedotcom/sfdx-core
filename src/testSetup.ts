@@ -222,7 +222,7 @@ export interface TestContext {
   /**
    * Stub contents in the config file.
    */
-  stubConfig(config: Record<string, string>): void;
+  stubConfig(config: Record<string, string>): Promise<void>;
   /**
    * Stub the tokens in the global token config file.
    */
@@ -414,8 +414,9 @@ export const instantiateContext = (sinon?: any): TestContext => {
     stubAliases(aliases: Record<string, string>, group = AliasGroup.ORGS): void {
       this.configStubs.AliasesConfig = { contents: { [group]: aliases } };
     },
-    stubConfig(config: Record<string, string>): void {
+    async stubConfig(config: Record<string, string>): Promise<void> {
       this.configStubs.Config = { contents: config };
+      await ConfigAggregator.create();
     },
     stubTokens(tokens: Record<string, string>): void {
       this.configStubs.TokensConfig = { contents: tokens };
