@@ -9,9 +9,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { Writable } from 'stream';
 import * as fs from 'fs';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import * as Bunyan from '@salesforce/bunyan';
+import * as Bunyan from 'bunyan';
 import { Env, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   Dictionary,
@@ -450,7 +448,7 @@ export class Logger {
         path: logFile,
         period: this.logRotationPeriod,
         count: this.logRotationCount,
-        level: this.bunyan.level() as number,
+        level: this.bunyan.level(),
       });
     }
   }
@@ -494,7 +492,7 @@ export class Logger {
         path: logFile,
         period: this.logRotationPeriod,
         count: this.logRotationCount,
-        level: this.bunyan.level() as number,
+        level: this.bunyan.level(),
       });
     }
   }
@@ -546,8 +544,10 @@ export class Logger {
   /**
    * Gets the underlying Bunyan logger.
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  public getBunyanLogger() {
+  // leave this typed as any to keep if from trying to export the type from the untyped bunyan module
+  // this prevents consumers from getting node_modules/@salesforce/core/lib/logger.d.ts:281:24 - error TS2304: Cannot find name 'Bunyan'.
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+  public getBunyanLogger(): any {
     return this.bunyan;
   }
 
