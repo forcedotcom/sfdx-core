@@ -9,7 +9,9 @@ import * as os from 'os';
 import * as path from 'path';
 import { Writable } from 'stream';
 import * as fs from 'fs';
-import * as Bunyan from 'bunyan';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import * as Bunyan from '@salesforce/bunyan';
 import { Env, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   Dictionary,
