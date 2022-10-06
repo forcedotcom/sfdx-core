@@ -13,6 +13,7 @@ import { AliasAccessor } from '../../../src/stateAggregator';
 import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { AuthFields } from '../../../src/org';
+import { SfError } from '../../../src/sfError';
 
 describe('AuthRemover', () => {
   const username = 'espresso@coffee.com';
@@ -95,11 +96,12 @@ describe('AuthRemover', () => {
       const remover = await AuthRemover.create();
       try {
         await shouldThrow(remover.findAuth());
-      } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(err.name).to.equal('TargetOrgNotSetError');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(err.actions).has.length(3);
+      } catch (e) {
+        if (!(e instanceof SfError)) {
+          expect.fail('Expected an SfError');
+        }
+        expect(e.name).to.equal('TargetOrgNotSetError');
+        expect(e.actions).has.length(3);
       }
     });
   });
