@@ -1006,7 +1006,6 @@ describe('AuthInfo', () => {
       // expect(configFileWrite.called).to.be.true;
 
       const crypto = await Crypto.create();
-      // const decryptedActualFields = configFileWrite.lastCall.thisValue.toObject();
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       const decryptedActualFields = $$.stubs.configWrite.lastCall.thisValue.toObject() as AuthFields & {
         timestamp: string;
@@ -1378,12 +1377,18 @@ describe('AuthInfo', () => {
   });
 
   describe('getDefaultInstanceUrl', () => {
-    it('should return the configured instance url if it exists', async () => {
+    it('should return the configured instance url if it exists', () => {
       $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
+      // eslint-disable-next-line no-console
+      console.log($$.getConfigStubContents('Config'));
+      // eslint-disable-next-line no-console
+      console.log(`getDefaultInstanceUrl: ${AuthInfo.getDefaultInstanceUrl()}`);
+      // eslint-disable-next-line no-console
+      console.log(`testOrg: ${testOrg.instanceUrl}`);
       expect(AuthInfo.getDefaultInstanceUrl()).to.equal(testOrg.instanceUrl);
     });
 
-    it('should return the default instance url if no configured instance url exists', async () => {
+    it('should return the default instance url if no configured instance url exists', () => {
       expect(AuthInfo.getDefaultInstanceUrl()).to.equal('https://login.salesforce.com');
     });
   });
@@ -1901,6 +1906,7 @@ describe('AuthInfo No fs mock', () => {
 
   beforeEach(() => {
     // Testing crypto functionality, so restore global stubs.
+    $$.SANDBOX.restore();
     $$.SANDBOXES.CRYPTO.restore();
     $$.SANDBOXES.CONFIG.restore();
     $$.SANDBOXES.ORGS.restore();
