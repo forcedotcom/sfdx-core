@@ -303,7 +303,7 @@ export class Logger {
     }
 
     // all SFDX loggers must filter sensitive data
-    this.addFilter((...args) => _filter(...args));
+    this.addFilter((...args) => filterSecrets(...args));
 
     if (Global.getEnvironmentMode() !== Mode.TEST) {
       Logger.lifecycle.on('uncaughtException', this.uncaughtExceptionHandler);
@@ -620,7 +620,6 @@ export class Logger {
    * @param filter A function with signature `(...args: any[]) => any[]` that transforms log message arguments.
    */
   public addFilter(filter: (...args: unknown[]) => unknown): void {
-    // eslint disable-line @typescript-eslint/no-explicit-any
     if (!this.bunyan.filters) {
       this.bunyan.filters = [];
     }
@@ -885,26 +884,24 @@ const FILTERED_KEYS: FilteredKey[] = [
 ];
 
 // SFDX code and plugins should never show tokens or connect app information in the logs
-// eslint-disable-next-line no-underscore-dangle
-const _filter = (...args: unknown[]): unknown =>
+const filterSecrets = (...args: unknown[]): unknown =>
   args.map((arg) => {
     if (isArray(arg)) {
-      return _filter(...arg);
+      return filterSecrets(...arg);
     }
 
     if (arg) {
-      // eslint-disable-next-line no-underscore-dangle
-      let _arg: string;
+      let mutableArg: string;
 
       // Normalize all objects into a string. This include errors.
       if (arg instanceof Buffer) {
-        _arg = '<Buffer>';
+        mutableArg = '<Buffer>';
       } else if (isObject(arg)) {
-        _arg = JSON.stringify(arg);
+        mutableArg = JSON.stringify(arg);
       } else if (isString(arg)) {
-        _arg = arg;
+        mutableArg = arg;
       } else {
-        _arg = '';
+        mutableArg = '';
       }
 
       const HIDDEN = 'HIDDEN';
@@ -924,20 +921,20 @@ const _filter = (...args: unknown[]): unknown =>
         // Match all json attribute values case insensitive: ex. {" Access*^&(*()^* Token " : " 45143075913458901348905 \n\t" ...}
         const regexTokens = new RegExp(`(['"][^'"]*${expElement}[^'"]*['"]\\s*:\\s*)['"][^'"]*['"]`, 'gi');
 
-        _arg = _arg.replace(regexTokens, `$1${hiddenAttrMessage}`);
+        mutableArg = mutableArg.replace(regexTokens, `$1${hiddenAttrMessage}`);
 
         // Match all key value attribute case insensitive: ex. {" key\t"    : ' access_token  ' , " value " : "  dsafgasr431 " ....}
         const keyRegex = new RegExp(
           `(['"]\\s*key\\s*['"]\\s*:)\\s*['"]\\s*${expElement}\\s*['"]\\s*.\\s*['"]\\s*value\\s*['"]\\s*:\\s*['"]\\s*[^'"]*['"]`,
           'gi'
         );
-        _arg = _arg.replace(keyRegex, `$1${hiddenAttrMessage}`);
+        mutableArg = mutableArg.replace(keyRegex, `$1${hiddenAttrMessage}`);
       });
 
-      _arg = _arg.replace(/(00D\w{12,15})![.\w]*/, `<${HIDDEN}>`);
+      mutableArg = mutableArg.replace(/(00D\w{12,15})![.\w]*/, `<${HIDDEN}>`);
 
       // return an object if an object was logged; otherwise return the filtered string.
-      return isObject(arg) ? parseJson(_arg) : _arg;
+      return isObject(arg) ? parseJson(mutableArg) : mutableArg;
     } else {
       return arg;
     }
