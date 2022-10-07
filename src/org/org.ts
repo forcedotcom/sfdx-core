@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable class-methods-use-this */
 
 import { join as pathJoin } from 'path';
 import * as fs from 'fs';
@@ -205,16 +206,18 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       interval: Duration.seconds(30),
     }
   ): Promise<SandboxProcessObject> {
-    this.logger.debug(`CreateSandbox called with SandboxRequest: ${sandboxReq}`);
+    this.logger.debug(`CreateSandbox called with SandboxRequest: ${JSON.stringify(sandboxReq, undefined, 2)}`);
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
-    this.logger.debug(`Return from calling tooling.create: ${createResult}`);
+    this.logger.debug(`Return from calling tooling.create: ${JSON.stringify(createResult, undefined, 2)}`);
 
     if (Array.isArray(createResult) || !createResult.success) {
       throw messages.createError('sandboxInfoCreateFailed', [JSON.stringify(createResult)]);
     }
 
     const sandboxCreationProgress = await this.querySandboxProcessBySandboxInfoId(createResult.id);
-    this.logger.debug(`Return from calling singleRecordQuery with tooling: ${sandboxCreationProgress}`);
+    this.logger.debug(
+      `Return from calling singleRecordQuery with tooling: ${JSON.stringify(sandboxCreationProgress, undefined, 2)}`
+    );
 
     const isAsync = !!options.async;
 
@@ -225,7 +228,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
     const [wait, pollInterval] = this.validateWaitOptions(options);
     this.logger.debug(
-      `create - pollStatusAndAuth sandboxProcessObj ${sandboxCreationProgress}, max wait time of ${wait.minutes} minutes`
+      `create - pollStatusAndAuth sandboxProcessObj ${JSON.stringify(
+        sandboxCreationProgress,
+        undefined,
+        2
+      )}, max wait time of ${wait.minutes} minutes`
     );
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
@@ -267,7 +274,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       interval: Duration.seconds(30),
     }
   ): Promise<SandboxProcessObject> {
-    this.logger.debug(`ResumeSandbox called with ResumeSandboxRequest: ${resumeSandboxRequest}`);
+    this.logger.debug(
+      `ResumeSandbox called with ResumeSandboxRequest: ${JSON.stringify(resumeSandboxRequest, undefined, 2)}`
+    );
     let sandboxCreationProgress: SandboxProcessObject;
     // seed the sandboxCreationProgress via the resumeSandboxRequest options
     if (resumeSandboxRequest.SandboxName) {
@@ -279,7 +288,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         resumeSandboxRequest.SandboxName ?? resumeSandboxRequest.SandboxProcessObjId,
       ]);
     }
-    this.logger.debug(`Return from calling singleRecordQuery with tooling: ${sandboxCreationProgress}`);
+    this.logger.debug(
+      `Return from calling singleRecordQuery with tooling: ${JSON.stringify(sandboxCreationProgress, undefined, 2)}`
+    );
 
     await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESUME, sandboxCreationProgress);
 
@@ -292,7 +303,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         if (sandboxInfo) {
           await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
           try {
-            this.logger.debug(`sandbox signup complete with ${sandboxInfo}`);
+            this.logger.debug(`sandbox signup complete with ${JSON.stringify(sandboxInfo, undefined, 2)}`);
             await this.writeSandboxAuthFile(sandboxCreationProgress, sandboxInfo);
             return sandboxCreationProgress;
           } catch (err) {
@@ -305,7 +316,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     this.logger.debug(
-      `resume - pollStatusAndAuth sandboxProcessObj ${sandboxCreationProgress}, max wait time of ${wait.minutes} minutes`
+      `resume - pollStatusAndAuth sandboxProcessObj ${JSON.stringify(
+        sandboxCreationProgress,
+        undefined,
+        2
+      )}, max wait time of ${wait.minutes} minutes`
     );
     return this.pollStatusAndAuth({
       sandboxProcessObj: sandboxCreationProgress,
@@ -362,7 +377,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw err;
     }
 
-    return this.manageDelete(async () => await fs.promises.rmdir(dataPath), dataPath, throwWhenRemoveFails);
+    return this.manageDelete(async () => fs.promises.rmdir(dataPath), dataPath, throwWhenRemoveFails);
   }
 
   /**
@@ -586,7 +601,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async setTracksSource(value: boolean): Promise<void> {
     const originalAuth = await AuthInfo.create({ username: this.getUsername() });
-    originalAuth.handleAliasAndDefaultSettings({ setDefault: false, setDefaultDevHub: false, setTracksSource: value });
+    return originalAuth.handleAliasAndDefaultSettings({
+      setDefault: false,
+      setDefaultDevHub: false,
+      setTracksSource: value,
+    });
   }
 
   /**
@@ -832,14 +851,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Returns an org field. Returns undefined if the field is not set or invalid.
    */
   public getField<T = AnyJson>(key: Org.Fields): T {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    /* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
     // @ts-ignore Legacy. We really shouldn't be doing this.
     const ownProp = this[key];
     if (ownProp && typeof ownProp !== 'function') return ownProp;
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return this.getConnection().getAuthInfoFields()[key];
+    /* eslint-enable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
   }
 
   /**
@@ -920,7 +938,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         const aliasOrUsername = this.options.isDevHub
           ? this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB)
           : this.configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
-        this.options.aliasOrUsername = aliasOrUsername || undefined;
+        this.options.aliasOrUsername = aliasOrUsername ?? undefined;
       }
 
       const username = stateAggregator.aliases.resolveUsername(this.options.aliasOrUsername as string);
@@ -940,6 +958,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * **Throws** *{@link SfError}{ name: 'NotSupportedError' }* Throws an unsupported error.
    */
+  // eslint-disable-next-line class-methods-use-this
   protected getDefaultOptions(): Org.Options {
     throw new SfError('Not Supported', 'NotSupportedError');
   }
@@ -979,7 +998,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   ): Promise<SandboxProcessObject> {
     const [wait, pollInterval] = this.validateWaitOptions(options);
     this.logger.debug(
-      `AuthWithRetries sandboxProcessObj ${sandboxProcessObj}, max wait time of ${wait.minutes} minutes`
+      `AuthWithRetries sandboxProcessObj ${JSON.stringify(sandboxProcessObj, undefined, 2)}, max wait time of ${
+        wait.minutes
+      } minutes`
     );
     return this.pollStatusAndAuth({
       sandboxProcessObj,
@@ -1010,6 +1031,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
     return org.connection.singleRecordQuery<{ SandboxInfoId: string }>(
       `SELECT SandboxInfoId FROM SandboxProcess WHERE ${field} ='${value}' AND Status NOT IN ('D', 'E')`,
@@ -1215,7 +1237,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     await stateAggregator.sandboxes.remove(this.getOrgId());
   }
 
-  private async writeSandboxAuthFile(sandboxProcessObj: SandboxProcessObject, sandboxRes: SandboxUserAuthResponse) {
+  private async writeSandboxAuthFile(
+    sandboxProcessObj: SandboxProcessObject,
+    sandboxRes: SandboxUserAuthResponse
+  ): Promise<void> {
     this.logger.debug(
       `writeSandboxAuthFile sandboxProcessObj: ${JSON.stringify(sandboxProcessObj)}, sandboxRes: ${JSON.stringify(
         sandboxRes
@@ -1275,7 +1300,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       } as SandboxFields;
 
       await this.setSandboxConfig(sandboxOrgId, sfSandbox);
-      (await StateAggregator.getInstance()).sandboxes.write(sandboxOrgId);
+      await (await StateAggregator.getInstance()).sandboxes.write(sandboxOrgId);
 
       await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESULT, {
         sandboxProcessObj,
@@ -1380,6 +1405,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
       this.logger.debug('Calling sandboxAuth with SandboxUserAuthRequest', sandboxReq);
 
+      // eslint-disable-next-line no-underscore-dangle
       const url = `${this.connection.tooling._baseUrl()}/sandboxAuth`;
       const params: HttpRequest = {
         method: 'POST',

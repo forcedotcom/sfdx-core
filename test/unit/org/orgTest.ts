@@ -33,6 +33,10 @@ import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { StateAggregator } from '../../../src/stateAggregator';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { Messages } from '../../../src/messages';
+
+/* eslint-disable no-await-in-loop */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'org');
 
@@ -529,7 +533,8 @@ describe('Org Tests', () => {
 
     it('should remove config setting', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function () {
-        return this.path && this.path.endsWith(`${testData.orgId}.json`);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+        return this.path?.endsWith(`${testData.orgId}.json`);
       });
 
       stubMethod($$.SANDBOX, fs.promises, 'unlink').resolves();
@@ -558,7 +563,8 @@ describe('Org Tests', () => {
 
     it('should remove the alias', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function () {
-        return this.path && this.path.endsWith(`${testData.orgId}.json`);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+        return this.path?.endsWith(`${testData.orgId}.json`);
       });
 
       stubMethod($$.SANDBOX, fs.promises, 'unlink').resolves();
@@ -621,9 +627,7 @@ describe('Org Tests', () => {
       stubMethod($$.SANDBOX, OAuth2.prototype, '_postParams').callsFake(() => Promise.resolve(userAuthResponse));
 
       let responseBody: AnyJson = null;
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(() => {
-        return Promise.resolve(responseBody);
-      });
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(() => Promise.resolve(responseBody));
 
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
 
@@ -891,9 +895,7 @@ describe('Org Tests', () => {
   describe('determineDevHub', () => {
     it('should return true and cache if dev hub', async () => {
       const org = await Org.create({ aliasOrUsername: testData.username });
-      $$.fakeConnectionRequest = async () => {
-        return { records: [] };
-      };
+      $$.fakeConnectionRequest = async () => ({ records: [] });
       expect(org.isDevHubOrg()).to.be.false;
       expect(await org.determineIfDevHubOrg()).to.be.true;
       expect(org.isDevHubOrg()).to.be.true;

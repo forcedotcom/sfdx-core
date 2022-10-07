@@ -12,20 +12,20 @@ const sandboxUsername = 'espresso@coffee.com.mysandbox';
 const prodOrgUsername = 'espresso@coffee.com';
 const id = uniqid();
 const org = new MockTestOrgData(id, { username: sandboxUsername });
-const sandbox = new MockTestSandboxData(id, { username: sandboxUsername, prodOrgUsername });
+const sandboxMock = new MockTestSandboxData(id, { username: sandboxUsername, prodOrgUsername });
 
 describe('SandboxAccessor', () => {
   const $$ = testSetup();
   beforeEach(async () => {
     await $$.stubAuths(org);
-    await $$.stubSandboxes(sandbox);
+    await $$.stubSandboxes(sandboxMock);
   });
 
   describe('readAll', () => {
     it('should return all the sandboxes', async () => {
       const stateAggregator = await StateAggregator.getInstance();
       const actual = await stateAggregator.sandboxes.readAll();
-      expect(actual).to.deep.equal([await sandbox.getConfig()]);
+      expect(actual).to.deep.equal([await sandboxMock.getConfig()]);
     });
   });
 
@@ -33,7 +33,7 @@ describe('SandboxAccessor', () => {
     it('should return the sandbox for a given username', async () => {
       const stateAggregator = await StateAggregator.getInstance();
       const actual = await stateAggregator.sandboxes.read(sandboxUsername);
-      expect(actual).to.deep.equal(await sandbox.getConfig());
+      expect(actual).to.deep.equal(await sandboxMock.getConfig());
     });
   });
 

@@ -16,7 +16,7 @@ export const sfdc = {
    * @param id The id to convert.
    */
   trimTo15: (id?: string): Optional<string> => {
-    if (id && id.length && id.length > 15) {
+    if (id?.length && id.length > 15) {
       id = id.substring(0, 15);
     }
     return id;
@@ -27,38 +27,31 @@ export const sfdc = {
    *
    * @param value The API version as a string.
    */
-  validateApiVersion: (value: string): boolean => {
-    return value == null || /^[1-9]\d\.0$/.test(value);
-  },
+  validateApiVersion: (value: string): boolean => value == null || /^[1-9]\d\.0$/.test(value),
 
   /**
    * Tests whether an email matches the format `me@my.org`
    *
    * @param value The email as a string.
    */
-  validateEmail: (value: string): boolean => {
-    return /^[^.][^@]*@[^.]+(\.[^.\s]+)+$/.test(value);
-  },
+  validateEmail: (value: string): boolean => /^[^.][^@]*@[^.]+(\.[^.\s]+)+$/.test(value),
 
   /**
    * Tests whether a Salesforce ID is in the correct format, a 15- or 18-character length string with only letters and numbers
    *
    * @param value The ID as a string.
    */
-  validateSalesforceId: (value: string): boolean => {
-    return /[a-zA-Z0-9]{18}|[a-zA-Z0-9]{15}/.test(value) && (value.length === 15 || value.length === 18);
-  },
+  validateSalesforceId: (value: string): boolean =>
+    /[a-zA-Z0-9]{18}|[a-zA-Z0-9]{15}/.test(value) && (value.length === 15 || value.length === 18),
 
   /**
    * Tests whether a path is in the correct format; the value doesn't include the characters "[", "]", "?", "<", ">", "?", "|"
    *
    * @param value The path as a string.
    */
-  validatePathDoesNotContainInvalidChars: (value: string): boolean => {
+  validatePathDoesNotContainInvalidChars: (value: string): boolean =>
     // eslint-disable-next-line no-useless-escape
-    return !/[\["\?<>\|\]]+/.test(value);
-  },
-
+    !/[\["\?<>\|\]]+/.test(value),
   /**
    * Returns the first key within the object that has an upper case first letter.
    *
@@ -86,9 +79,7 @@ export const sfdc = {
    *
    * @param value
    */
-  matchesAccessToken: (value: string): boolean => {
-    return /^(00D\w{12,15})![.\w]*$/.test(value);
-  },
+  matchesAccessToken: (value: string): boolean => /^(00D\w{12,15})![.\w]*$/.test(value),
 
   /**
    * Tests whether a given url is an internal Salesforce domain

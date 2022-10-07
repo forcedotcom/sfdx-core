@@ -7,7 +7,7 @@
 
 import * as path from 'path';
 import { isEmpty, env, upperFirst, Duration } from '@salesforce/kit';
-import { ensureObject, getObject, JsonMap } from '@salesforce/ts-types';
+import { ensureObject, JsonMap } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
@@ -82,7 +82,7 @@ export const createObjectFileContent = ({
   return { ...output, ...{ version: apiVersion } };
 };
 
-const calculateBusinessProcess = (objectName: string, defaultRecordType: string) => {
+const calculateBusinessProcess = (objectName: string, defaultRecordType: string): Array<string | null> => {
   let businessProcessName = null;
   let businessProcessPicklistVal = null;
   // These four objects require any record type to specify a "business process"--
@@ -190,8 +190,8 @@ export default class SettingsGenerator {
   public constructor(options?: { mdApiTmpDir?: string; shapeDirName?: string; asDirectory?: boolean }) {
     this.logger = Logger.childFromRoot('SettingsGenerator');
     // If SFDX_MDAPI_TEMP_DIR is set, copy settings to that dir for people to inspect.
-    const mdApiTmpDir = options?.mdApiTmpDir || env.getString('SFDX_MDAPI_TEMP_DIR');
-    this.shapeDirName = options?.shapeDirName || `shape_${Date.now()}`;
+    const mdApiTmpDir = options?.mdApiTmpDir ?? env.getString('SFDX_MDAPI_TEMP_DIR');
+    this.shapeDirName = options?.shapeDirName ?? `shape_${Date.now()}`;
     this.packageFilePath = path.join(this.shapeDirName, 'package.xml');
     let storePath;
     if (!options?.asDirectory) {
@@ -204,6 +204,7 @@ export default class SettingsGenerator {
   }
 
   /** extract the settings from the scratch def file, if they are present. */
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async extract(scratchDef: ScratchOrgInfo): Promise<{
     settings: Record<string, unknown> | undefined;
     objectSettings: { [objectName: string]: ObjectSetting } | undefined;
@@ -297,7 +298,7 @@ export default class SettingsGenerator {
     }
   }
 
-  public async createDeployPackageContents(apiVersion: string) {
+  public async createDeployPackageContents(apiVersion: string): Promise<void> {
     const packageObjectProps = createObjectFileContent({
       allRecordTypes: this.allRecordTypes,
       allBusinessProcesses: this.allBusinessProcesses,
@@ -326,30 +327,33 @@ export default class SettingsGenerator {
     objectsDir: string,
     allRecordTypes: string[],
     allbusinessProcesses: string[]
-  ) {
+  ): Promise<void> {
     if (this.objectSettingsData) {
-      for (const [item, value] of Object.entries(this.objectSettingsData)) {
-        const fileContent = createRecordTypeAndBusinessProcessFileContent(
-          item,
-          value,
-          allRecordTypes,
-          allbusinessProcesses
-        );
-        const xml = js2xmlparser.parse('CustomObject', fileContent);
-        await this.writer.addToStore(xml, path.join(objectsDir, upperFirst(item) + '.object'));
-      }
+      await Promise.all(
+        Object.entries(this.objectSettingsData).map(([item, value]) => {
+          const fileContent = createRecordTypeAndBusinessProcessFileContent(
+            item,
+            value,
+            allRecordTypes,
+            allbusinessProcesses
+          );
+          const xml = js2xmlparser.parse('CustomObject', fileContent);
+          return this.writer.addToStore(xml, path.join(objectsDir, upperFirst(item) + '.object'));
+        })
+      );
     }
   }
 
-  private async writeSettingsIfNeeded(settingsDir: string) {
+  private async writeSettingsIfNeeded(settingsDir: string): Promise<void> {
     if (this.settingData) {
-      for (const item of Object.keys(this.settingData)) {
-        const value = getObject(this.settingData, item);
-        const typeName = upperFirst(item);
-        const fname = typeName.replace('Settings', '');
-        const fileContent = js2xmlparser.parse(typeName, value);
-        await this.writer.addToStore(fileContent, path.join(settingsDir, fname + '.settings'));
-      }
+      await Promise.all(
+        Object.entries(this.settingData).map(([item, value]) => {
+          const typeName = upperFirst(item);
+          const fname = typeName.replace('Settings', '');
+          const fileContent = js2xmlparser.parse(typeName, value);
+          return this.writer.addToStore(fileContent, path.join(settingsDir, fname + '.settings'));
+        })
+      );
     }
   }
 }

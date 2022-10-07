@@ -22,7 +22,7 @@ describe('User Tests', () => {
     adminTestData = new MockTestOrgData();
     user1 = new MockTestOrgData();
 
-    $$.stubAuths(adminTestData, user1);
+    await $$.stubAuths(adminTestData, user1);
 
     $$.fakeConnectionRequest = (request): Promise<AnyJson> => {
       if (isString(request) && request.endsWith('sobjects/User/describe')) {
@@ -53,12 +53,10 @@ describe('User Tests', () => {
       return {};
     });
 
-    stubMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig').callsFake(() => {
-      return {
-        instanceUrl: '',
-        accessToken: '',
-      };
-    });
+    stubMethod($$.SANDBOX, AuthInfo.prototype, 'buildRefreshTokenConfig').callsFake(() => ({
+      instanceUrl: '',
+      accessToken: '',
+    }));
 
     stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
 
@@ -153,20 +151,22 @@ describe('User Tests', () => {
       });
     });
 
-    it('Should throw an error beacuse of complexity not a valid value', () => {
+    it('Should throw an error because of complexity not a valid value', () => {
       try {
         const passwordCondition = { length: 14, complexity: 9 };
         shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(err.message).to.equal('Invalid complexity value. Specify a value between 0 and 5, inclusive.');
       }
     });
 
-    it('Should throw an error beacuse of length not a valid value', () => {
+    it('Should throw an error because of length not a valid value', () => {
       try {
         const passwordCondition = { length: 7, complexity: 2 };
         shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(err.message).to.equal('Invalid length value. Specify a value between 8 and 1000, inclusive.');
       }
     });
@@ -204,32 +204,29 @@ describe('User Tests', () => {
     let userId: string;
     let password: string;
     beforeEach(async () => {
-      stubMethod($$.SANDBOX, Connection, 'create').callsFake(() => {
-        return {
-          getAuthInfoFields() {
-            return { orgId: '00DXXX' };
+      stubMethod($$.SANDBOX, Connection, 'create').callsFake(() => ({
+        getAuthInfoFields() {
+          return { orgId: '00DXXX' };
+        },
+        getUsername() {
+          return user1.username;
+        },
+        soap: {
+          setPassword(_userId: string, _password: string) {
+            userId = _userId;
+            password = _password;
           },
-          getUsername() {
-            return user1.username;
-          },
-          soap: {
-            setPassword(_userId: string, _password: string) {
-              userId = _userId;
-              password = _password;
-            },
-          },
-          query(query: string) {
-            if (query.includes(user1.username)) {
-              return {
-                records: [user1.getMockUserInfo()],
-                totalSize: 1,
-              };
-            }
-          },
-        };
-      });
+        },
+        query(query: string) {
+          if (query.includes(user1.username)) {
+            return {
+              records: [user1.getMockUserInfo()],
+              totalSize: 1,
+            };
+          }
+        },
+      }));
 
-      $$.stubAuths(user1);
       const connection = await Connection.create({
         authInfo: await AuthInfo.create({ username: user1.username }),
       });

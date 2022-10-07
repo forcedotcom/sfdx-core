@@ -58,7 +58,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
    */
   public async subscribe<T = AnyJson>(): Promise<T> {
     let errorInPollingFunction; // keep this around for returning in the catch block
-    const doPoll = async () => {
+    const doPoll = async (): Promise<T> => {
       let result;
       try {
         result = await this.options.poll();

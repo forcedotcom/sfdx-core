@@ -60,7 +60,7 @@ const REGEXP_MD_LIST_ITEM = /^[*-]\s+/gm;
 
 const markdownLoader: FileParser = (filePath: string, fileContents: string): StoredMessageMap => {
   const map = new Map<string, StoredMessage>();
-  const hasContent = (lineItem: string) => !REGEXP_NO_CONTENT.exec(lineItem);
+  const hasContent = (lineItem: string): boolean => !REGEXP_NO_CONTENT.exec(lineItem);
 
   // Filter out sections that don't have content
   const sections = fileContents.split(REGEXP_NO_CONTENT_SECTION).filter(hasContent);
@@ -105,7 +105,7 @@ const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): St
   let json;
 
   try {
-    json = JSON.parse(fileContents);
+    json = JSON.parse(fileContents) as unknown;
 
     if (!isObject(json)) {
       // Bubble up
@@ -237,9 +237,8 @@ export class Messages<T extends string> {
    * @param filePath read file target.
    * @ignore
    */
-  public static readFile = (filePath: string): AnyJson => {
-    return require(filePath);
-  };
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  public static readFile = (filePath: string): AnyJson => require(filePath);
 
   /**
    * Get the locale. This will always return 'en_US' but will return the

@@ -96,7 +96,7 @@ export abstract class BaseConfigStore<
    */
   public constructor(options?: T) {
     super(options);
-    this.options = options || ({} as T);
+    this.options = options ?? ({} as T);
     this.setContents(this.initialContents());
   }
 
@@ -115,7 +115,7 @@ export abstract class BaseConfigStore<
    * If the value is an object, a clone will be returned.
    */
   public get<K extends Key<P>>(key: K, decrypt?: boolean): P[K];
-  public get<T = ConfigValue>(key: string, decrypt?: boolean): T;
+  public get<V = ConfigValue>(key: string, decrypt?: boolean): V;
   public get<K extends Key<P>>(key: K | string, decrypt = false): P[K] | ConfigValue {
     const k = key as string;
     let value = this.getMethod(this.contents, k);
@@ -165,7 +165,7 @@ export abstract class BaseConfigStore<
    * @param value The value.
    */
   public set<K extends Key<P>>(key: K, value: P[K]): void;
-  public set<T = ConfigValue>(key: string, value: T): void;
+  public set<V = ConfigValue>(key: string, value: V): void;
   public set<K extends Key<P>>(key: K | string, value: P[K] | ConfigValue): void {
     if (this.hasEncryption()) {
       if (isJsonMap(value)) {
@@ -185,7 +185,7 @@ export abstract class BaseConfigStore<
    * @param value The value.
    */
   public update<K extends Key<P>>(key: K, value: Partial<P[K]>): void;
-  public update<T = ConfigValue>(key: string, value: Partial<T>): void;
+  public update<V = ConfigValue>(key: string, value: Partial<V>): void;
   public update<K extends Key<P>>(key: K | string, value: Partial<P[K]> | Partial<ConfigValue>): void {
     const existingValue = this.get(key, true);
     if (isPlainObject(existingValue) && isPlainObject(value)) {
@@ -291,6 +291,8 @@ export abstract class BaseConfigStore<
   public async awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
     const entries = this.entries();
     for (const entry of entries) {
+      // prevent ConfigFile collision bug
+      // eslint-disable-next-line no-await-in-loop
       await actionFn(entry[0], entry[1]);
     }
   }
@@ -316,7 +318,7 @@ export abstract class BaseConfigStore<
   }
 
   protected getEncryptedKeys(): Array<string | RegExp> {
-    return [...(this.options?.encryptedKeys || []), ...(this.statics?.encryptedKeys || [])];
+    return [...(this.options?.encryptedKeys ?? []), ...(this.statics?.encryptedKeys || [])];
   }
 
   /**
@@ -330,6 +332,7 @@ export abstract class BaseConfigStore<
 
   // Allows extended classes the ability to override the set method. i.e. maybe they want
   // nested object set from kit.
+  // eslint-disable-next-line class-methods-use-this
   protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
     set(contents, key, value);
   }
@@ -337,10 +340,12 @@ export abstract class BaseConfigStore<
   // Allows extended classes the ability to override the get method. i.e. maybe they want
   // nested object get from ts-types.
   // NOTE: Key must stay string to be reliably overwritten.
+  // eslint-disable-next-line class-methods-use-this
   protected getMethod(contents: ConfigContents, key: string): Optional<ConfigValue> {
     return get(contents, key) as ConfigValue;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected initialContents(): P {
     return {} as P;
   }
@@ -380,13 +385,13 @@ export abstract class BaseConfigStore<
    * @param key The key. Supports query key like `a.b[0]`.
    * @returns Should encrypt/decrypt
    */
-  protected isCryptoKey(key: string) {
+  protected isCryptoKey(key: string): string | RegExp | undefined {
     function resolveProperty(): string {
       // Handle query keys
       const dotAccessor = /\.([a-zA-Z0-9@._-]+)$/;
       const singleQuoteAccessor = /\['([a-zA-Z0-9@._-]+)'\]$/;
       const doubleQuoteAccessor = /\["([a-zA-Z0-9@._-]+)"\]$/;
-      const matcher = dotAccessor.exec(key) || singleQuoteAccessor.exec(key) || doubleQuoteAccessor.exec(key);
+      const matcher = dotAccessor.exec(key) ?? singleQuoteAccessor.exec(key) ?? doubleQuoteAccessor.exec(key);
       return matcher ? matcher[1] : key;
     }
 
@@ -405,7 +410,10 @@ export abstract class BaseConfigStore<
     if (!value) return;
     if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))
-      throw new SfError(`can only encrypt strings but found: ${typeof value} : ${value}`, 'InvalidCryptoValueError');
+      throw new SfError(
+        `can only encrypt strings but found: ${typeof value} : ${value.toString()}`,
+        'InvalidCryptoValueError'
+      );
     return this.crypto.isEncrypted(value) ? value : this.crypto.encrypt(value);
   }
 
@@ -413,7 +421,10 @@ export abstract class BaseConfigStore<
     if (!value) return;
     if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))
-      throw new SfError(`can only encrypt strings but found: ${typeof value} : ${value}`, 'InvalidCryptoValueError');
+      throw new SfError(
+        `can only encrypt strings but found: ${typeof value} : ${value.toString()}`,
+        'InvalidCryptoValueError'
+      );
     return this.crypto.isEncrypted(value) ? this.crypto.decrypt(value) : value;
   }
 
@@ -423,7 +434,7 @@ export abstract class BaseConfigStore<
    * @param keyPaths: The complete path of the (nested) data
    * @param data: The current (nested) data being worked on.
    */
-  protected recursiveEncrypt<T extends JsonMap>(data: T, parentKey?: string): T {
+  protected recursiveEncrypt<J extends JsonMap>(data: J, parentKey?: string): J {
     for (const key of Object.keys(data)) {
       this.recursiveCrypto(this.encrypt.bind(this), [...(parentKey ? [parentKey] : []), key], data);
     }
@@ -449,17 +460,15 @@ export abstract class BaseConfigStore<
    * @param keyPaths: The complete path of the (nested) data
    * @param data: The current (nested) data being worked on.
    */
-  private recursiveCrypto(method: (value: unknown) => Optional<string>, keyPaths: string[], data: JsonMap) {
+  private recursiveCrypto(method: (value: unknown) => Optional<string>, keyPaths: string[], data: JsonMap): void {
     const key = keyPaths.pop() as string;
     const value = data[key];
     if (isJsonMap(value)) {
       for (const newKey of Object.keys(value)) {
         this.recursiveCrypto(method, [...keyPaths, key, newKey], value);
       }
-    } else {
-      if (this.isCryptoKey(key)) {
-        data[key] = method(value);
-      }
+    } else if (this.isCryptoKey(key)) {
+      data[key] = method(value);
     }
   }
 }

@@ -105,14 +105,12 @@ function createStubs() {
       return;
     });
   finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-  sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
-    return Promise.resolve({
+  sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
+    Promise.resolve({
       id: '1',
-    });
-  });
-  sandbox.stub(ZipWriter.prototype, 'buffer').get(() => {
-    return 'mybuffer';
-  });
+    })
+  );
+  sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
   getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
 }
 
@@ -262,14 +260,12 @@ describe('scratchOrgSettingsGenerator', () => {
           return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
-        return Promise.resolve({
+      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
+        Promise.resolve({
           id: '1',
-        });
-      });
-      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => {
-        return 'mybuffer';
-      });
+        })
+      );
+      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, 'SucceededPartial');
     });
@@ -297,6 +293,7 @@ describe('scratchOrgSettingsGenerator', () => {
         await shouldThrow(settings.deploySettingsViaFolder(scratchOrg, '53.0'));
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(error.message).to.include(
           'settings/True.settings is not a valid metadata object. Check the name and casing of the file'
         );
@@ -325,14 +322,12 @@ describe('scratchOrgSettingsGenerator', () => {
           return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
-        return Promise.resolve({
+      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
+        Promise.resolve({
           id: '1',
-        });
-      });
-      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => {
-        return 'mybuffer';
-      });
+        })
+      );
+      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, 'Failed');
     });
@@ -360,6 +355,7 @@ describe('scratchOrgSettingsGenerator', () => {
         await shouldThrow(settings.deploySettingsViaFolder(scratchOrg, '53.0'));
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(error.message).to.include(
           'settings/True.settings is not a valid metadata object. Check the name and casing of the file'
         );
@@ -388,14 +384,12 @@ describe('scratchOrgSettingsGenerator', () => {
           return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
-        return Promise.resolve({
+      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
+        Promise.resolve({
           id: '1',
-        });
-      });
-      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => {
-        return 'mybuffer';
-      });
+        })
+      );
+      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, ['InProgress', 'Succeeded']);
     });
@@ -495,14 +489,12 @@ describe('scratchOrgSettingsGenerator', () => {
           return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
-      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any => {
-        return Promise.resolve({
+      sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
+        Promise.resolve({
           id: '1',
-        });
-      });
-      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => {
-        return 'mybuffer';
-      });
+        })
+      );
+      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, 'InProgress');
     });
@@ -518,6 +510,7 @@ describe('scratchOrgSettingsGenerator', () => {
       const settings = new SettingsGenerator();
       const promise = settings.deploySettingsViaFolder(scratchOrg, '53.0');
       for (let i = 0; i <= timeout / frequency; i++) {
+        // eslint-disable-next-line no-await-in-loop
         await clock.nextAsync();
       }
       try {
@@ -639,8 +632,8 @@ describe('scratchOrgSettingsGenerator', () => {
     };
 
     it('createRecordTypeAndBusinessProcessFileContent with account type', () => {
-      const allRecordTypes = [];
-      const allbusinessProcesses = [];
+      const allRecordTypes: string[] = [];
+      const allbusinessProcesses: string[] = [];
       const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
         'account',
         objectSettingsData.account,
@@ -656,8 +649,8 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     it('createRecordTypeAndBusinessProcessFileContent with opportunity values', () => {
-      const allRecordTypes = [];
-      const allbusinessProcesses = [];
+      const allRecordTypes: string[] = [];
+      const allbusinessProcesses: string[] = [];
       const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
         'opportunity',
         objectSettingsData.opportunity,
@@ -686,8 +679,8 @@ describe('scratchOrgSettingsGenerator', () => {
     });
 
     it('createRecordTypeAndBusinessProcessFileContent with case values', () => {
-      const allRecordTypes = [];
-      const allbusinessProcesses = [];
+      const allRecordTypes: string[] = [];
+      const allbusinessProcesses: string[] = [];
       const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
         'case',
         objectSettingsData.case,

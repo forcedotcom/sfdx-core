@@ -7,6 +7,7 @@
 
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as pathImport from 'path';
 import * as dns from 'dns';
@@ -222,7 +223,7 @@ describe('AuthInfo', () => {
     };
 
     it('should return an AuthInfo instance when passed an access token as username', async () => {
-      $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
+      await $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
 
       const username =
         '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
@@ -241,7 +242,7 @@ describe('AuthInfo', () => {
     });
 
     it('should return an AuthInfo instance when passed a parent username', async () => {
-      $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
+      await $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
       // Stub the http request (OAuth2.refreshToken())
       // This will be called for both, and we want to make sure the clientSecret is the
       // same for both.
@@ -296,7 +297,7 @@ describe('AuthInfo', () => {
     });
 
     it('should return an AuthInfo instance when passed an access token and instanceUrl for the access token flow', async () => {
-      $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
+      await $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
 
       stubUserRequest();
 
@@ -1005,8 +1006,10 @@ describe('AuthInfo', () => {
       // expect(configFileWrite.called).to.be.true;
 
       const crypto = await Crypto.create();
-      // const decryptedActualFields = configFileWrite.lastCall.thisValue.toObject();
-      const decryptedActualFields = $$.stubs.configWrite.lastCall.thisValue.toObject();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      const decryptedActualFields = $$.stubs.configWrite.lastCall.thisValue.toObject() as AuthFields & {
+        timestamp: string;
+      };
       decryptedActualFields.accessToken = crypto.decrypt(decryptedActualFields.accessToken);
       decryptedActualFields.refreshToken = crypto.decrypt(decryptedActualFields.refreshToken);
       decryptedActualFields.clientSecret = crypto.decrypt(decryptedActualFields.clientSecret);
@@ -1126,8 +1129,9 @@ describe('AuthInfo', () => {
       context.save.resolves();
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
       expect(testCallback.called).to.be.true;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const sfError = testCallback.firstCall.args[0];
-      expect(sfError.name).to.equal('OrgDataNotAvailableError', sfError.message);
+      expect(sfError.name).to.equal('OrgDataNotAvailableError', sfError.message as string);
     });
   });
 
@@ -1374,11 +1378,11 @@ describe('AuthInfo', () => {
 
   describe('getDefaultInstanceUrl', () => {
     it('should return the configured instance url if it exists', async () => {
-      $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
+      await $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
       expect(AuthInfo.getDefaultInstanceUrl()).to.equal(testOrg.instanceUrl);
     });
 
-    it('should return the default instance url if no configured instance url exists', async () => {
+    it('should return the default instance url if no configured instance url exists', () => {
       expect(AuthInfo.getDefaultInstanceUrl()).to.equal('https://login.salesforce.com');
     });
   });
@@ -1489,7 +1493,7 @@ describe('AuthInfo', () => {
 
       it('should return list of authorizations with configs', async () => {
         $$.stubAliases({ MyAlias: testOrg.username });
-        $$.stubConfig({
+        await $$.stubConfig({
           [OrgConfigProperties.TARGET_ORG]: 'MyAlias',
           [OrgConfigProperties.TARGET_DEV_HUB]: testOrg.username,
         });
@@ -1896,6 +1900,7 @@ describe('AuthInfo No fs mock', () => {
 
   beforeEach(() => {
     // Testing crypto functionality, so restore global stubs.
+    $$.SANDBOX.restore();
     $$.SANDBOXES.CRYPTO.restore();
     $$.SANDBOXES.CONFIG.restore();
     $$.SANDBOXES.ORGS.restore();

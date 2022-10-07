@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as http from 'http';
 import { expect } from 'chai';
@@ -105,7 +106,9 @@ describe('WebOauthServer', () => {
 
     const origOn = webServer.server.on;
     stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       if (event !== 'request') return origOn.call(webServer.server, event, callback);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       callback(
         {
           method: 'GET',

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import * as path from 'path';
 import * as fs from 'fs';
 import { Nullable } from '@salesforce/ts-types';
@@ -53,7 +54,9 @@ describe('keyChain', () => {
     return Promise.all(promiseArray).then((_keychains) => {
       _.forEach(_keychains, (_keychain: any) => {
         expect(_keychain).to.have.property('osImpl');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const program = _keychain['osImpl'].getProgram();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const testArrayMeta = _.find(testArray, (elem: any) => program.includes(elem.validateString));
         expect(testArrayMeta == null).to.be.false;
       });

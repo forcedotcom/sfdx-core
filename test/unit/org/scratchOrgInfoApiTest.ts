@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as sinon from 'sinon';
 import { expect } from 'chai';
@@ -182,6 +183,9 @@ describe('requestScratchOrgCreation', () => {
     try {
       await shouldThrow(requestScratchOrgCreation(hubOrg, scratchDef, settings));
     } catch (error) {
+      if (!(error instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
       expect(error).to.exist;
       expect(error).to.have.keys(['cause', 'name', 'actions', 'exitCode']);
       expect(error.toString()).to.include('SignupDuplicateSettingsSpecifiedError');
@@ -204,6 +208,9 @@ describe('requestScratchOrgCreation', () => {
     try {
       await shouldThrow(requestScratchOrgCreation(hubOrg, scratchDef, settings));
     } catch (error) {
+      if (!(error instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
       expect(error).to.exist;
       expect(error).to.have.keys(['cause', 'name', 'actions', 'exitCode']);
       expect(error.toString()).to.include(messages.getMessage('DeprecatedPrefFormat'));
@@ -570,6 +577,9 @@ describe('authorizeScratchOrg', () => {
         })
       );
     } catch (error) {
+      if (!(error instanceof Error)) {
+        expect.fail('should have thrown SfError');
+      }
       expect(error).to.exist;
       expect(error.toString()).to.include('Timeout');
     }

@@ -83,17 +83,13 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   private globalConfig: Config;
   private envVars: Dictionary<string> = {};
 
-  private get config(): JsonMap {
-    return this.resolveProperties(this.globalConfig.getContents(), this.localConfig && this.localConfig.getContents());
-  }
-
   /**
    * **Do not directly construct instances of this class -- use {@link ConfigAggregator.create} instead.**
    *
    * @ignore
    */
   public constructor(options?: ConfigAggregator.Options) {
-    super(options || {});
+    super(options ?? {});
 
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
@@ -110,11 +106,15 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     this.setAllowedProperties(Config.getAllowedProperties());
   }
 
+  private get config(): JsonMap {
+    return this.resolveProperties(this.globalConfig.getContents(), this.localConfig?.getContents());
+  }
+
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
-  public static async create<P, T extends AsyncOptionalCreatable<P>>(
-    this: new (options?: ConfigAggregator.Options) => T,
-    options?: ConfigAggregator.Options
+  public static async create<P extends ConfigAggregator.Options, T extends AsyncOptionalCreatable<P>>(
+    this: new (options?: P) => T,
+    options?: P
   ): Promise<T> {
     let config = ConfigAggregator.instance as ConfigAggregator;
     if (!config) {
@@ -233,10 +233,10 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     if (this.envVars[key] != null) {
       return ConfigAggregator.Location.ENVIRONMENT;
     }
-    if (this.localConfig && this.localConfig.get(key)) {
+    if (this.localConfig?.get(key)) {
       return ConfigAggregator.Location.LOCAL;
     }
-    if (this.globalConfig && this.globalConfig.get(key)) {
+    if (this.globalConfig?.get(key)) {
       return ConfigAggregator.Location.GLOBAL;
     }
   }
@@ -259,7 +259,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     if (this.envVars[key] != null) {
       return `$${EnvVars.propertyToEnvName(key)}`;
     }
-    if (this.localConfig && this.localConfig.getContents()[key] != null) {
+    if (this.localConfig?.getContents()[key] != null) {
       return this.localConfig.getPath();
     }
     if (this.globalConfig.getContents()[key] != null) {
@@ -338,7 +338,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    *
    * @param properties The properties to set.
    */
-  protected setAllowedProperties(properties: ConfigPropertyMeta[]) {
+  protected setAllowedProperties(properties: ConfigPropertyMeta[]): void {
     this.allowedProperties = properties;
   }
 
@@ -361,7 +361,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * Loads all the properties and aggregates them according to location.
    */
   private loadPropertiesSync(): void {
-    this.resolveProperties(this.globalConfig.readSync(), this.localConfig && this.localConfig.readSync());
+    this.resolveProperties(this.globalConfig.readSync(), this.localConfig?.readSync());
   }
 
   private resolveProperties(globalConfig: JsonMap, localConfig?: JsonMap): JsonMap {
@@ -418,7 +418,7 @@ export namespace ConfigAggregator {
 
 /**
  * A ConfigAggregator that will work with deprecated config vars (e.g. defaultusername, apiVersion).
- * We do NOT recommend using this class unless you absolutelty have to.
+ * We do NOT recommend using this class unless you absolutely have to.
  *
  * @deprecated
  */
@@ -430,7 +430,7 @@ export class SfdxConfigAggregator extends ConfigAggregator {
     this: new (options?: ConfigAggregator.Options) => T,
     options: ConfigAggregator.Options = {}
   ): Promise<T> {
-    const customConfigMeta = options.customConfigMeta || [];
+    const customConfigMeta = options.customConfigMeta ?? [];
     // org-metadata-rest-deploy has been moved to plugin-deploy-retrieve but we need to have a placeholder
     // for it here since sfdx needs to know how to set the deprecated restDeploy config var.
     const restDeploy = SFDX_ALLOWED_PROPERTIES.find((p) => p.key === SfdxPropertyKeys.REST_DEPLOY);

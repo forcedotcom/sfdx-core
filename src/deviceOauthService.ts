@@ -109,7 +109,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
     const deviceFlowRequestUrl = this.getDeviceFlowRequestUrl();
     const pollingOptions = this.getPollingOptions(deviceFlowRequestUrl, loginData.device_code);
     const interval = Duration.seconds(loginData.interval).milliseconds;
-    return await this.pollForDeviceApproval(pollingOptions, interval);
+    return this.pollForDeviceApproval(pollingOptions, interval);
   }
 
   /**
@@ -173,7 +173,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
     try {
       return await makeRequest<DeviceCodePollingResponse>(httpRequest);
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions */
       const err: any = (e as SfError).data;
       if (err.error && err.status === 400 && err.error === 'authorization_pending') {
         // do nothing because we're still waiting
@@ -186,10 +186,11 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
         }
         throw err;
       }
+      /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions */
     }
   }
 
-  private shouldContinuePolling() {
+  private shouldContinuePolling(): boolean {
     return this.pollingCount < DeviceOauthService.POLLING_COUNT_MAX;
   }
 
@@ -200,12 +201,14 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
     this.logger.debug('BEGIN POLLING FOR DEVICE APPROVAL');
     let result: Nullable<DeviceCodePollingResponse>;
     while (this.shouldContinuePolling()) {
+      // eslint-disable-next-line no-await-in-loop
       result = await this.poll(httpRequest);
       if (result) {
         this.logger.debug('POLLING FOR DEVICE APPROVAL SUCCESS');
         break;
       } else {
         this.logger.debug(`waiting ${interval} ms...`);
+        // eslint-disable-next-line no-await-in-loop
         await wait(interval);
         this.pollingCount += 1;
       }

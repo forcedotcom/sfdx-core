@@ -12,7 +12,7 @@ import { MyDomainResolver } from '../status/myDomainResolver';
 import { Logger } from '../logger';
 import { Lifecycle } from '../lifecycleEvents';
 
-export function getLoginAudienceCombos(audienceUrl: string, loginUrl: string) {
+export function getLoginAudienceCombos(audienceUrl: string, loginUrl: string): Array<[string, string]> {
   const filtered = [
     [loginUrl, loginUrl],
     [SfdcUrl.SANDBOX, SfdcUrl.SANDBOX],
@@ -109,9 +109,9 @@ export class SfdcUrl extends URL {
 
     const allowlistOfSalesforceHosts: string[] = ['developer.salesforce.com', 'trailhead.salesforce.com'];
 
-    return allowlistOfSalesforceDomainPatterns.some((pattern) => {
-      return this.hostname.endsWith(pattern) || allowlistOfSalesforceHosts.includes(this.hostname);
-    });
+    return allowlistOfSalesforceDomainPatterns.some(
+      (pattern) => this.hostname.endsWith(pattern) || allowlistOfSalesforceHosts.includes(this.hostname)
+    );
   }
 
   /**
@@ -161,7 +161,7 @@ export class SfdcUrl extends URL {
     }
 
     // all non-mil domains
-    return `https://${ensureArray(/https?:\/\/([^.]*)/.exec(this.origin))
+    return `https://${ensureArray<string>(/https?:\/\/([^.]*)/.exec(this.origin))
       .slice(1, 2)
       .pop()}.lightning.force.com`;
   }
@@ -237,6 +237,6 @@ export class SfdcUrl extends URL {
    * @returns {boolean} true if this domain is a lightning domain
    */
   public isLightningDomain(): boolean {
-    return /\.lightning\.force\.com/.test(this.origin) || /\.lightning\.crmforce\.mil/.test(this.origin);
+    return this.origin.includes('.lightning.force.com') || this.origin.includes('.lightning.crmforce.mil');
   }
 }

@@ -30,6 +30,13 @@ import * as Debug from 'debug';
 import { Global, Mode } from './global';
 import { SfError } from './sfError';
 
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+
 /**
  * A Bunyan `Serializer` function.
  *
@@ -98,7 +105,7 @@ export enum LoggerLevel {
 }
 
 /**
- *  `Logger` format types.
+ * `Logger` format types.
  */
 export enum LoggerFormat {
   JSON,
@@ -209,7 +216,7 @@ export class Logger {
     .filter(isString)
     .map((v: string) => v.toLowerCase());
   // Rollup all instance-specific process event listeners together to prevent global `MaxListenersExceededWarning`s.
-  private static readonly lifecycle = (() => {
+  private static readonly lifecycle = ((): EventEmitter => {
     const events = new EventEmitter();
     events.setMaxListeners(0); // never warn on listener counts
     process.on('uncaughtException', (err) => events.emit('uncaughtException', err));
@@ -225,7 +232,7 @@ export class Logger {
    * See 'period' docs here: https://github.com/forcedotcom/node-bunyan#stream-type-rotating-file
    */
 
-  public readonly logRotationPeriod = new Env().getString('SF_LOG_ROTATION_PERIOD') || '1d';
+  public readonly logRotationPeriod = new Env().getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
 
   /**
    * The number of backup rotated log files to keep.
@@ -233,7 +240,7 @@ export class Logger {
    * See 'count' docs here: https://github.com/forcedotcom/node-bunyan#stream-type-rotating-file
    */
 
-  public readonly logRotationCount = new Env().getNumber('SF_LOG_ROTATION_COUNT') || 2;
+  public readonly logRotationCount = new Env().getNumber('SF_LOG_ROTATION_COUNT') ?? 2;
 
   /**
    * Whether debug is enabled for this Logger.
@@ -271,7 +278,7 @@ export class Logger {
 
     // Inspect format to know what logging format to use then delete from options to
     // ensure it doesn't conflict with Bunyan.
-    this.format = options.format || LoggerFormat.JSON;
+    this.format = options.format ?? LoggerFormat.JSON;
     delete options.format;
 
     // If the log format is LOGFMT, we need to convert any stream(s) into a LOGFMT type stream.
@@ -296,7 +303,7 @@ export class Logger {
     }
 
     // all SFDX loggers must filter sensitive data
-    this.addFilter((...args) => _filter(...args));
+    this.addFilter((...args) => filterSecrets(...args));
 
     if (Global.getEnvironmentMode() !== Mode.TEST) {
       Logger.lifecycle.on('uncaughtException', this.uncaughtExceptionHandler);
@@ -443,7 +450,7 @@ export class Logger {
         path: logFile,
         period: this.logRotationPeriod,
         count: this.logRotationCount,
-        level: this.bunyan.level() as number,
+        level: this.bunyan.level(),
       });
     }
   }
@@ -487,7 +494,7 @@ export class Logger {
         path: logFile,
         period: this.logRotationPeriod,
         count: this.logRotationCount,
-        level: this.bunyan.level() as number,
+        level: this.bunyan.level(),
       });
     }
   }
@@ -539,8 +546,10 @@ export class Logger {
   /**
    * Gets the underlying Bunyan logger.
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  public getBunyanLogger() {
+  // leave this typed as any to keep if from trying to export the type from the untyped bunyan module
+  // this prevents consumers from getting node_modules/@salesforce/core/lib/logger.d.ts:281:24 - error TS2304: Cannot find name 'Bunyan'.
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+  public getBunyanLogger(): any {
     return this.bunyan;
   }
 
@@ -599,6 +608,7 @@ export class Logger {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.bunyan.streams.forEach(async (stream: any) => {
         if (stream.type === 'file') {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           content += await fs.promises.readFile(stream.path, 'utf8');
         }
       });
@@ -612,7 +622,6 @@ export class Logger {
    * @param filter A function with signature `(...args: any[]) => any[]` that transforms log message arguments.
    */
   public addFilter(filter: (...args: unknown[]) => unknown): void {
-    // eslint disable-line @typescript-eslint/no-explicit-any
     if (!this.bunyan.filters) {
       this.bunyan.filters = [];
     }
@@ -622,8 +631,7 @@ export class Logger {
   /**
    * Close the logger, including any streams, and remove all listeners.
    *
-   * @param fn A function with signature `(stream: LoggerStream) => void` to call for each stream with
-   *                        the stream as an arg.
+   * @param fn A function with signature `(stream: LoggerStream) => void` to call for each stream with the stream as an arg.
    */
   public close(fn?: (stream: LoggerStream) => void): void {
     if (this.bunyan.streams) {
@@ -686,6 +694,7 @@ export class Logger {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public trace(...args: any[]): Logger {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     this.bunyan.trace(this.applyFilters(LoggerLevel.TRACE, ...args));
     return this;
   }
@@ -775,6 +784,7 @@ export class Logger {
         stream: new Writable({
           write: (chunk, encoding, next) => {
             try {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               const json = parseJsonMap(chunk.toString());
               const logLevel = ensureNumber(json.level);
               if (this.getLevel() <= logLevel) {
@@ -826,11 +836,14 @@ export class Logger {
     this.close();
   };
 
+  // eslint-disable-next-line class-methods-use-this
   private createLogFmtFormatterStream(loggerStream: LoggerStream): LoggerStream {
     const logFmtWriteableStream = new Writable({
       write: (chunk, enc, cb) => {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const parsedJSON = JSON.parse(chunk.toString());
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const keys = Object.keys(parsedJSON);
 
           let logEntry = '';
@@ -873,24 +886,24 @@ const FILTERED_KEYS: FilteredKey[] = [
 ];
 
 // SFDX code and plugins should never show tokens or connect app information in the logs
-const _filter = (...args: unknown[]): unknown => {
-  return args.map((arg) => {
+const filterSecrets = (...args: unknown[]): unknown =>
+  args.map((arg) => {
     if (isArray(arg)) {
-      return _filter(...arg);
+      return filterSecrets(...arg);
     }
 
     if (arg) {
-      let _arg: string;
+      let mutableArg: string;
 
       // Normalize all objects into a string. This include errors.
       if (arg instanceof Buffer) {
-        _arg = '<Buffer>';
+        mutableArg = '<Buffer>';
       } else if (isObject(arg)) {
-        _arg = JSON.stringify(arg);
+        mutableArg = JSON.stringify(arg);
       } else if (isString(arg)) {
-        _arg = arg;
+        mutableArg = arg;
       } else {
-        _arg = '';
+        mutableArg = '';
       }
 
       const HIDDEN = 'HIDDEN';
@@ -910,22 +923,21 @@ const _filter = (...args: unknown[]): unknown => {
         // Match all json attribute values case insensitive: ex. {" Access*^&(*()^* Token " : " 45143075913458901348905 \n\t" ...}
         const regexTokens = new RegExp(`(['"][^'"]*${expElement}[^'"]*['"]\\s*:\\s*)['"][^'"]*['"]`, 'gi');
 
-        _arg = _arg.replace(regexTokens, `$1${hiddenAttrMessage}`);
+        mutableArg = mutableArg.replace(regexTokens, `$1${hiddenAttrMessage}`);
 
         // Match all key value attribute case insensitive: ex. {" key\t"    : ' access_token  ' , " value " : "  dsafgasr431 " ....}
         const keyRegex = new RegExp(
           `(['"]\\s*key\\s*['"]\\s*:)\\s*['"]\\s*${expElement}\\s*['"]\\s*.\\s*['"]\\s*value\\s*['"]\\s*:\\s*['"]\\s*[^'"]*['"]`,
           'gi'
         );
-        _arg = _arg.replace(keyRegex, `$1${hiddenAttrMessage}`);
+        mutableArg = mutableArg.replace(keyRegex, `$1${hiddenAttrMessage}`);
       });
 
-      _arg = _arg.replace(/(00D\w{12,15})![.\w]*/, `<${HIDDEN}>`);
+      mutableArg = mutableArg.replace(/(00D\w{12,15})![.\w]*/, `<${HIDDEN}>`);
 
       // return an object if an object was logged; otherwise return the filtered string.
-      return isObject(arg) ? parseJson(_arg) : _arg;
+      return isObject(arg) ? parseJson(mutableArg) : mutableArg;
     } else {
       return arg;
     }
   });
-};

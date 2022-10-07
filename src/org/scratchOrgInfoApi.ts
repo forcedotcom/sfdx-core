@@ -7,8 +7,7 @@
 
 import { env, Duration, upperFirst } from '@salesforce/kit';
 import { AnyJson } from '@salesforce/ts-types';
-// @ts-ignore
-import { OAuth2Config, OAuth2Options, SaveResult } from 'jsforce';
+import { OAuth2Config, JwtOAuth2Config, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
@@ -46,7 +45,7 @@ const getOrgInstanceAuthority = function (
   scratchOrgInfoComplete: ScratchOrgInfo,
   hubOrgLoginUrl: string,
   signupTargetLoginUrlConfig?: string
-) {
+): string {
   const createdOrgInstance = scratchOrgInfoComplete.SignupInstance;
 
   if (createdOrgInstance === 'utf8') {
@@ -84,7 +83,7 @@ const buildOAuth2Options = async (options: {
 }> => {
   const logger = await Logger.child('buildOAuth2Options');
   const isJwtFlow = !!options.hubOrg.getConnection().getAuthInfoFields().privateKey;
-  const oauth2Options: OAuth2Options = {
+  const oauth2Options: JwtOAuth2Config = {
     loginUrl: getOrgInstanceAuthority(
       options.scratchOrgInfoComplete,
       options.hubOrg.getField(Org.Fields.LOGIN_URL),
@@ -96,8 +95,8 @@ const buildOAuth2Options = async (options: {
 
   if (isJwtFlow && !process.env.SFDX_CLIENT_SECRET) {
     oauth2Options.privateKeyFile = options.hubOrg.getConnection().getAuthInfoFields().privateKey;
-    const retries = options?.retry || env.getNumber('SFDX_JWT_AUTH_RETRY_ATTEMPTS') || 0;
-    const timeoutInSeconds = env.getNumber('SFDX_JWT_AUTH_RETRY_TIMEOUT') || 300;
+    const retries = options?.retry ?? env.getNumber('SFDX_JWT_AUTH_RETRY_ATTEMPTS') ?? 0;
+    const timeoutInSeconds = env.getNumber('SFDX_JWT_AUTH_RETRY_TIMEOUT') ?? 300;
     const timeout = Duration.seconds(timeoutInSeconds).milliseconds;
     const delay = retries ? timeout / retries : 1000;
     return {
@@ -177,9 +176,8 @@ const getAuthInfo = async (options: {
  * @param id Record ID for the ScratchOrgInfoObject
  * @returns Promise<ScratchOrgInfo>
  */
-export const queryScratchOrgInfo = async (hubOrg: Org, id: string): Promise<ScratchOrgInfo> => {
-  return (await hubOrg.getConnection().sobject('ScratchOrgInfo').retrieve(id)) as unknown as ScratchOrgInfo;
-};
+export const queryScratchOrgInfo = async (hubOrg: Org, id: string): Promise<ScratchOrgInfo> =>
+  (await hubOrg.getConnection().sobject('ScratchOrgInfo').retrieve(id)) as unknown as ScratchOrgInfo;
 
 /**
  * after we successfully signup an org we need to trade the auth token for access and refresh token.
@@ -366,7 +364,7 @@ export const pollForScratchOrgInfo = async (
   const client = await PollingClient.create(pollingOptions);
   try {
     const resultInProgress = await client.subscribe<ScratchOrgInfo>();
-    return checkScratchOrgInfoForErrors(resultInProgress, hubOrg.getUsername());
+    return await checkScratchOrgInfoForErrors(resultInProgress, hubOrg.getUsername());
   } catch (error) {
     if (error instanceof Error) {
       const sfError = SfError.wrap(error);

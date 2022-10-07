@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
-import { isBoolean, isPlainObject } from '@salesforce/ts-types';
+import { isPlainObject } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
 import { Logger } from '../logger';
@@ -89,7 +89,7 @@ export class ConfigFile<
     return {
       isGlobal,
       isState: true,
-      filename: filename || this.getFileName(),
+      filename: filename ?? this.getFileName(),
       stateFolder: Global.SFDX_STATE_FOLDER,
     };
   }
@@ -100,7 +100,7 @@ export class ConfigFile<
    * @param isGlobal True if the config should be global. False for local.
    */
   public static async resolveRootFolder(isGlobal: boolean): Promise<string> {
-    return isGlobal ? osHomedir() : await resolveProjectPath();
+    return isGlobal ? osHomedir() : resolveProjectPath();
   }
 
   /**
@@ -264,7 +264,7 @@ export class ConfigFile<
    * Check to see if the config file exists. Returns `true` if the config file exists and has access, false otherwise.
    */
   public async exists(): Promise<boolean> {
-    return await this.access(fsConstants.R_OK);
+    return this.access(fsConstants.R_OK);
   }
 
   /**
@@ -301,7 +301,7 @@ export class ConfigFile<
   public async unlink(): Promise<void> {
     const exists = await this.exists();
     if (exists) {
-      return await fs.promises.unlink(this.getPath());
+      return fs.promises.unlink(this.getPath());
     }
     throw new SfError(`Target file doesn't exist. path: ${this.getPath()}`, 'TargetFileNotFound');
   }
@@ -333,16 +333,13 @@ export class ConfigFile<
         throw new SfError('The ConfigOptions filename parameter is invalid.', 'InvalidParameter');
       }
 
-      const _isGlobal: boolean = isBoolean(this.options.isGlobal) && this.options.isGlobal;
-      const _isState: boolean = isBoolean(this.options.isState) && this.options.isState;
-
       // Don't let users store config files in homedir without being in the state folder.
       let configRootFolder = this.options.rootFolder
         ? this.options.rootFolder
-        : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
+        : ConfigFile.resolveRootFolderSync(Boolean(this.options.isGlobal));
 
-      if (_isGlobal || _isState) {
-        configRootFolder = pathJoin(configRootFolder, this.options.stateFolder || Global.SFDX_STATE_FOLDER);
+      if (this.options.isGlobal === true || this.options.isState === true) {
+        configRootFolder = pathJoin(configRootFolder, this.options.stateFolder ?? Global.SFDX_STATE_FOLDER);
       }
 
       this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);

@@ -435,14 +435,14 @@ export class EnvVars extends Env {
   public getPropertyFromEnv<T>(property: string, prefix = EnvVars.defaultPrefix()): Nullable<T> {
     const envName = EnvVars.propertyToEnvName(property, prefix);
     const synonym = SUPPORTED_ENV_VARS[envName as EnvironmentVariable]?.synonymOf;
-    return this.get(envName) || this.get(synonym as string);
+    return this.get(envName) ?? this.get(synonym as string);
   }
 
   public asDictionary(): Dictionary<unknown> {
-    return this.entries().reduce((accumulator, [key, value]) => {
+    return this.entries().reduce<Dictionary<unknown>>((accumulator, [key, value]) => {
       accumulator[key] = value;
       return accumulator;
-    }, {} as Dictionary<unknown>);
+    }, {});
   }
 
   public asMap(): Map<string, string> {

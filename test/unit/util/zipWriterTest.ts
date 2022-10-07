@@ -42,11 +42,11 @@ describe('ZipWriter', () => {
     sandbox.restore();
   });
 
-  it('addToStore', () => {
+  it('addToStore', async () => {
     const contents = 'my-contents';
     const filename = 'path/to/my-file.xml';
     const zipWriter = new ZipWriter();
-    zipWriter.addToStore(contents, filename);
+    await zipWriter.addToStore(contents, filename);
     expect(appendStub.callCount).to.equal(1);
     expect(appendStub.firstCall.args[0]).to.equal(contents);
     expect(appendStub.firstCall.args[1]).to.deep.equal({
@@ -70,8 +70,9 @@ describe('ZipWriter write to buffer', () => {
     const contents = 'my-contents';
     const filename = 'path/to/my-file.xml';
     const zipWriter = new ZipWriter();
-    zipWriter.addToStore(contents, filename);
+    await zipWriter.addToStore(contents, filename);
     await zipWriter.finalize();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const result = JSON.parse(zipWriter.buffer.toString()).pop();
     expect(result)
       .to.be.a('object')
@@ -87,6 +88,7 @@ describe('ZipWriter write to buffer', () => {
         'crc32',
         'size',
       ]);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.name).to.be.equal(filename);
   });
 });
@@ -132,7 +134,7 @@ describe('ZipWriter write to file and throws', () => {
     const contents = 'my-contents';
     const filename = 'my-file.xml';
     const zipWriter = new ZipWriter(rootDestination);
-    zipWriter.addToStore(contents, filename);
+    await zipWriter.addToStore(contents, filename);
     await zipWriter.finalize();
     expect(createWriteStreamStub.firstCall.firstArg).to.equal(rootDestination);
     expect(createReadStreamStub.firstCall.firstArg).to.equal(rootDestination);
