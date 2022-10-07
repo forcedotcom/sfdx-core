@@ -277,6 +277,9 @@ export const requestScratchOrgCreation = async (
   scratchOrgRequest: ScratchOrgInfo,
   settings: SettingsGenerator
 ): Promise<SaveResult> => {
+  if (!hubOrg.isDevHubOrg()) {
+    throw messages.createError('hubOrgIsNotDevHub', [hubOrg.getUsername(), hubOrg.getOrgId()]);
+  }
   // If these were present, they were already used to initialize the scratchOrgSettingsGenerator.
   // They shouldn't be submitted as part of the scratchOrgInfo.
   delete scratchOrgRequest.settings;
