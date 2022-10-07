@@ -606,6 +606,8 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
  * @param testContext
  */
 export const restoreContext = (testContext: TestContext): void => {
+  // Restore the default value for this setting on restore.
+  Global.SFDX_INTEROPERABILITY = true;
   testContext.SANDBOX.restore();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
