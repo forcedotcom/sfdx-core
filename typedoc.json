@@ -2,5 +2,6 @@
   "theme": "default",
   "excludePrivate": true,
   "excludeProtected": true,
-  "entryPoints": "src"
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand"
 }
