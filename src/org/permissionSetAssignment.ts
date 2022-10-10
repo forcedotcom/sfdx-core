@@ -109,7 +109,7 @@ export class PermissionSetAssignment {
       if (errors && errors.length > 0) {
         message = `${message}:${EOL}`;
         errors.forEach((_message) => {
-          message = `${message}${_message}${EOL}`;
+          message = `${message}${_message as string}${EOL}`;
         });
         throw new SfError(message, 'errorsEncounteredCreatingAssignment');
       } else {

@@ -83,7 +83,7 @@ export const ORG_CONFIG_ALLOWED_PROPERTIES = [
     description: messages.getMessage(OrgConfigProperties.ORG_INSTANCE_URL),
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => {
+      validator: (value: ConfigValue): boolean => {
         if (value == null) return true;
         // validate if the value is a string and is a valid url and is either a salesforce domain
         // or an internal url.
@@ -102,7 +102,7 @@ export const ORG_CONFIG_ALLOWED_PROPERTIES = [
     hidden: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || (isString(value) && sfdc.validateApiVersion(value)),
+      validator: (value: ConfigValue): boolean => value == null || (isString(value) && sfdc.validateApiVersion(value)),
       failedMessage: messages.getMessage('invalidApiVersion'),
     },
   },
@@ -112,7 +112,7 @@ export const ORG_CONFIG_ALLOWED_PROPERTIES = [
     encrypted: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || isString(value),
+      validator: (value: ConfigValue): boolean => value == null || isString(value),
       failedMessage: messages.getMessage('invalidIsvDebuggerSid'),
     },
   },
@@ -121,7 +121,7 @@ export const ORG_CONFIG_ALLOWED_PROPERTIES = [
     description: messages.getMessage(OrgConfigProperties.ORG_ISV_DEBUGGER_URL),
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue) => value == null || isString(value),
+      validator: (value: ConfigValue): boolean => value == null || isString(value),
       failedMessage: messages.getMessage('invalidIsvDebuggerUrl'),
     },
   },
@@ -131,7 +131,7 @@ export const ORG_CONFIG_ALLOWED_PROPERTIES = [
     input: {
       // the bit shift will remove the negative bit, and any decimal numbers
       // then the parseFloat will handle converting it to a number from a string
-      validator: (value: ConfigValue) =>
+      validator: (value: ConfigValue): boolean =>
         (value as number) >>> 0 === parseFloat(value as string) && (value as number) > 0,
       failedMessage: messages.getMessage('invalidNumberConfigValue'),
     },

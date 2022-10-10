@@ -145,12 +145,13 @@ export class SfProjectJson extends ConfigFile {
     return super.getContents() as ProjectJson;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
     const defaultOptions: ConfigFile.Options = {
       isState: false,
     };
 
-    Object.assign(defaultOptions, options || {});
+    Object.assign(defaultOptions, options ?? {});
     return defaultOptions;
   }
 
@@ -323,8 +324,9 @@ export class SfProjectJson extends ConfigFile {
   /**
    * Has at least one package alias defined in the project.
    */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await
   public async hasPackageAliases() {
-    return Object.keys(this.getContents().packageAliases || {}).length > 0;
+    return Object.keys(this.getContents().packageAliases ?? {}).length > 0;
   }
 
   /**
@@ -389,7 +391,8 @@ export class SfProjectJson extends ConfigFile {
     }
   }
 
-  private doesPackageExist(packagePath: string) {
+  // eslint-disable-next-line class-methods-use-this
+  private doesPackageExist(packagePath: string): boolean {
     return fs.existsSync(packagePath);
   }
 
@@ -441,7 +444,7 @@ export class SfProject {
    * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    */
   public static async resolve(path?: string): Promise<SfProject> {
-    path = await this.resolveProjectPath(path || process.cwd());
+    path = await this.resolveProjectPath(path ?? process.cwd());
     if (!SfProject.instances.has(path)) {
       const project = new SfProject(path);
       SfProject.instances.set(path, project);
@@ -458,7 +461,7 @@ export class SfProject {
    */
   public static getInstance(path?: string): SfProject {
     // Store instance based on the path of the actual project.
-    path = this.resolveProjectPathSync(path || process.cwd());
+    path = this.resolveProjectPathSync(path ?? process.cwd());
 
     if (!SfProject.instances.has(path)) {
       const project = new SfProject(path);
@@ -612,7 +615,7 @@ export class SfProject {
    */
   public getPackageNameFromPath(path: string): Optional<string> {
     const packageDir = this.getPackageFromPath(path);
-    return packageDir ? packageDir.package || packageDir.path : undefined;
+    return packageDir ? packageDir.package ?? packageDir.path : undefined;
   }
 
   /**
@@ -689,7 +692,7 @@ export class SfProject {
       throw new SfError('The sfdx-project.json does not have any packageDirectories defined.');
     }
     const defaultPackage = this.findPackage((packageDir) => packageDir.default === true);
-    return defaultPackage || this.getPackageDirectories()[0];
+    return defaultPackage ?? this.getPackageDirectories()[0];
   }
 
   /**
@@ -719,20 +722,25 @@ export class SfProject {
       Object.assign(this.projectConfig, configAggregator.getConfig());
 
       // we don't have a login url yet, so use instanceUrl from config or default
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!this.projectConfig.sfdcLoginUrl) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this.projectConfig.sfdcLoginUrl = configAggregator.getConfig()['org-instance-url'] ?? SfdcUrl.PRODUCTION;
       }
       // LEGACY - Allow override of sfdcLoginUrl via env var FORCE_SFDC_LOGIN_URL
       if (process.env.FORCE_SFDC_LOGIN_URL) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this.projectConfig.sfdcLoginUrl = process.env.FORCE_SFDC_LOGIN_URL;
       }
 
       // Allow override of signupTargetLoginUrl via env var SFDX_SCRATCH_ORG_CREATION_LOGIN_URL
       if (process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this.projectConfig.signupTargetLoginUrl = process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.projectConfig;
   }
 

@@ -46,7 +46,7 @@ export class SfError extends NamedError {
   /**
    * Some errors support `error.code` instead of `error.name`. This keeps backwards compatability.
    */
-  private _code?: string;
+  #code?: string;
 
   /**
    * Create an SfError.
@@ -65,13 +65,22 @@ export class SfError extends NamedError {
     cause?: Error
   ) {
     cause = exitCodeOrCause instanceof Error ? exitCodeOrCause : cause;
-    super(name || 'SfError', message || name, cause);
+    super(name ?? 'SfError', message || name, cause);
     this.actions = actions;
     if (typeof exitCodeOrCause === 'number') {
       this.exitCode = exitCodeOrCause;
     } else {
       this.exitCode = 1;
     }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public get code(): string | undefined | any {
+    return this.#code ?? this.name;
+  }
+
+  public set code(code: string) {
+    this.#code = code;
   }
 
   /**
@@ -95,15 +104,6 @@ export class SfError extends NamedError {
       sfError.code = err.code;
     }
     return sfError;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public get code(): string | undefined | any {
-    return this._code || this.name;
-  }
-
-  public set code(code: string) {
-    this._code = code;
   }
 
   /**
@@ -142,7 +142,7 @@ export class SfError extends NamedError {
     }
 
     if (this.data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       obj.data = this.data as any;
     }
 

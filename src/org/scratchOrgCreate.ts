@@ -157,7 +157,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
 
   await emit({ stage: 'deploy settings', scratchOrgInfo: soi });
   const settingsGenerator = new SettingsGenerator();
-  settingsGenerator.extract({ ...soi, ...definitionjson });
+  await settingsGenerator.extract({ ...soi, ...definitionjson });
   const [authInfo] = await Promise.all([
     resolveUrl(scratchOrgAuthInfo),
     deploySettings(
@@ -248,6 +248,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   cache.set(scratchOrgInfoId, {
     hubUsername: hubOrg.getUsername(),
     hubBaseUrl: hubOrg.getField(Org.Fields.INSTANCE_URL)?.toString(),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     definitionjson: { ...(definitionjson ? JSON.parse(definitionjson) : {}), ...orgConfig, ...settings },
     clientSecret,
     alias,

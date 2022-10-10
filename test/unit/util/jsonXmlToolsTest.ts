@@ -72,7 +72,9 @@ describe('jsonXmlTools', () => {
         })
       );
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(e.name).to.equal('Error');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(e.message).to.equal('Error');
     }
   });

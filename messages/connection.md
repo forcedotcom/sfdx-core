@@ -20,3 +20,11 @@ Connection has no instanceUrl.
 # noInstanceUrlError.actions
 
 Make sure the instanceUrl is set in your command or config.
+
+# noApiVersionsError
+
+Org failed to respond with its list of API versions. This is usually the result of domain changes like activating MyDomain or Enhanced Domains
+
+# noApiVersionsError.actions
+
+Re-authenticate to the org.

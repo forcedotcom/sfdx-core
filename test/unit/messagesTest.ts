@@ -4,6 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import * as fs from 'fs';
 import * as path from 'path';
 import { EOL } from 'os';
@@ -12,7 +15,6 @@ import { expect } from 'chai';
 import { Messages } from '../../src/messages';
 import { SfError } from '../../src/sfError';
 import { shouldThrowSync, testSetup } from '../../src/testSetup';
-
 // Setup the test environment.
 const $$ = testSetup();
 
@@ -132,9 +134,12 @@ describe('Messages', () => {
     beforeEach(() => {
       importMessageFileStub = $$.SANDBOX.stub(Messages, 'importMessageFile');
       readdirSyncStub = $$.SANDBOX.stub(fs, 'readdirSync');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       readdirSyncStub.returns(msgFiles);
       statSyncStub = $$.SANDBOX.stub(fs, 'statSync');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       statSyncStub.callsFake((statPath) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         if (!statPath.match(/messages/) && statPath !== `${truncatePath}${path.sep}package.json`) {
           throw truncateErr;
         }

@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import { Duration, sleep } from '@salesforce/kit/lib/duration';
 import { spyMethod } from '@salesforce/ts-sinon';
 import * as chai from 'chai';
@@ -14,9 +16,9 @@ const $$ = testSetup();
 
 describe('lifecycleEvents', () => {
   class Foo {
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/ban-types, class-methods-use-this
     public bar(name: string, result: {}) {
-      return result[name];
+      return result[name] as string;
     }
   }
 
@@ -141,6 +143,7 @@ describe('lifecycleEvents', () => {
 
   it('getListeners works', async () => {
     const x = async (result) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       fake.bar('test6', result);
     };
     Lifecycle.getInstance().on('test6', x);

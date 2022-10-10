@@ -20,6 +20,7 @@ export class AliasesConfig extends ConfigGroup<ConfigGroup.Options> {
     return { ...ConfigGroup.getOptions(AliasGroup.ORGS, 'alias.json'), isGlobal: true, isState: true };
   }
 
+  // eslint-disable-next-line class-methods-use-this
   protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
     contents[key] = value;
   }

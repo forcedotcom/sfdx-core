@@ -38,12 +38,10 @@ export const writeJSONasXML = async ({
   options = standardOptions,
 }: WriteJSONasXMLInputs): Promise<void> => {
   const xml = jsToXml.parse(type, fixExistingDollarSign(json), options);
-  return await fs.writeFile(path, xml);
+  return fs.writeFile(path, xml);
 };
 
-export const JsonAsXml = ({ json, type, options = standardOptions }: JSONasXML): string => {
-  return jsToXml.parse(type, fixExistingDollarSign(json), options);
-};
+export const JsonAsXml = ({ json, type, options = standardOptions }: JSONasXML): string => jsToXml.parse(type, fixExistingDollarSign(json), options);
 
 export const fixExistingDollarSign = (existing: WriteJSONasXMLInputs['json']): Record<string, unknown> => {
   const existingCopy = { ...existing } as Record<string, unknown>;

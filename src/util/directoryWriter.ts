@@ -23,6 +23,11 @@ export class DirectoryWriter implements StructuredWriter {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public get buffer(): Buffer {
+    throw new Error('Not implemented');
+  }
+
   public async addToStore(contents: string | Readable | Buffer, targetPath: string): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const destPath = path.join(this.rootDestination!, targetPath);
@@ -37,15 +42,12 @@ export class DirectoryWriter implements StructuredWriter {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public finalize(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
   public getDestinationPath(): string | undefined {
     return this.rootDestination;
-  }
-
-  public get buffer(): Buffer {
-    throw new Error('Not implemented');
   }
 }

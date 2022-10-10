@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import * as fs from 'fs';
 import { assert, expect } from 'chai';
 import { Config, ConfigProperties } from '../../../src/config/config';
@@ -84,11 +86,13 @@ describe('ConfigAggregator', () => {
     // readSync doesn't decrypt values
     $$.SANDBOX.stub(Config.prototype, 'readSync').callsFake(function () {
       this.setContents({ 'org-isv-debugger-sid': 'encrypted' });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return this.getContents();
     });
     // read decrypts values
     $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function () {
       this.setContents({ 'org-isv-debugger-sid': 'decrypted' });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return this.getContents();
     });
 

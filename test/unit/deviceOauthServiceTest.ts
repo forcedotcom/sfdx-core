@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /* eslint-disable camelcase */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { Transport } from 'jsforce/lib/transport';
 import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
@@ -117,9 +118,10 @@ describe('DeviceOauthService', () => {
     });
 
     it('should stop polling if unknown error from server', async () => {
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(async () => {
-        return { statusCode: 401, body: JSON.stringify({ error: 'UnknownError' }) };
-      });
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(async () => ({
+        statusCode: 401,
+        body: JSON.stringify({ error: 'UnknownError' }),
+      }));
       const service = await DeviceOauthService.create({});
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);
@@ -131,15 +133,13 @@ describe('DeviceOauthService', () => {
     });
 
     it('should stop polling if error from server', async () => {
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(async () => {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({
-            error: 'Invalid grant type',
-            error_description: 'Invalid grant type',
-          }),
-        };
-      });
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').callsFake(async () => ({
+        statusCode: 400,
+        body: JSON.stringify({
+          error: 'Invalid grant type',
+          error_description: 'Invalid grant type',
+        }),
+      }));
       const service = await DeviceOauthService.create({});
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);

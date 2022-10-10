@@ -80,7 +80,7 @@ export class SchemaValidator {
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
    */
-  public validateSync(json: AnyJson): AnyJson {
+  public validateSync<T extends AnyJson>(json: T): T {
     const schema = this.loadSync();
     const externalSchemas = this.loadExternalSchemas(schema);
 
@@ -109,7 +109,7 @@ export class SchemaValidator {
 
     // AJV will modify the original json object. We need to make a clone of the
     // json to keep this backwards compatible with JSEN functionality
-    const jsonClone: AnyJson = JSON.parse(JSON.stringify(json));
+    const jsonClone: T = JSON.parse(JSON.stringify(json)) as T;
 
     const valid = validate(jsonClone);
 
@@ -137,7 +137,7 @@ export class SchemaValidator {
   private loadExternalSchemas(schema: JsonMap): JsonMap[] {
     return getJsonValuesByName<string>(schema, '$ref')
       .map((ref) => ref && RegExp(/([\w\.]+)#/).exec(ref)) // eslint-disable-line no-useless-escape
-      .map((match) => match && match[1])
+      .map((match) => match?.[1])
       .filter((uri): uri is string => !!uri)
       .map((uri) => this.loadExternalSchema(uri));
   }
@@ -165,6 +165,7 @@ export class SchemaValidator {
    *
    * @param errors An array of AJV (DefinedError) objects.
    */
+  // eslint-disable-next-line class-methods-use-this
   private getErrorsText(errors: DefinedError[]): string {
     return errors
       .map((error) => {

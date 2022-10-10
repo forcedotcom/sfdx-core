@@ -13,11 +13,13 @@ import { ConfigFile } from './configFile';
  * A Time To Live configuration file where each entry is timestamped and removed once the TTL has expired.
  *
  * @example
+ * ```
  * import { Duration } from '@salesforce/kit';
  * const config = await TTLConfig.create({
  *   isGlobal: false,
  *   ttl: Duration.days(1)
  * });
+ * ```
  */
 export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends ConfigFile<T, TTLConfig.Contents<P>> {
   public set(key: string, value: Partial<TTLConfig.Entry<P>>): void {
@@ -26,14 +28,14 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
 
   public getLatestEntry(): Nullable<[string, TTLConfig.Entry<P>]> {
     const entries = this.entries() as Array<[string, TTLConfig.Entry<P>]>;
-    const sorted = entries.sort(([, valueA], [, valueB]) => {
-      return new Date(valueB.timestamp).getTime() - new Date(valueA.timestamp).getTime();
-    });
+    const sorted = entries.sort(
+      ([, valueA], [, valueB]) => new Date(valueB.timestamp).getTime() - new Date(valueA.timestamp).getTime()
+    );
     return sorted.length > 0 ? sorted[0] : null;
   }
 
   public getLatestKey(): Nullable<string> {
-    const [key] = this.getLatestEntry() || [null];
+    const [key] = this.getLatestEntry() ?? [null];
     return key;
   }
 
@@ -51,6 +53,7 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
     this.setContents(purged);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private timestamp(value: Partial<TTLConfig.Entry<P>>): TTLConfig.Entry<P> {
     return { ...value, timestamp: new Date().toISOString() } as TTLConfig.Entry<P>;
   }

@@ -51,6 +51,21 @@ describe('Connection', () => {
     });
   });
 
+  it('throws error when no valid API version', async () => {
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
+
+    $$.SANDBOX.restore();
+    $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
+    $$.SANDBOX.stub(conn, 'isResolvable').resolves(true);
+    $$.SANDBOX.stub(JSForceConnection.prototype, 'request').resolves('');
+
+    try {
+      await shouldThrow(conn.retrieveMaxApiVersion());
+    } catch (e) {
+      expect(e).to.have.property('name', 'NoApiVersionsError');
+    }
+  });
+
   it('create() should throw on DNS errors', async () => {
     $$.SANDBOX.restore();
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').rejects({ name: DNS_ERROR_NAME });
@@ -69,6 +84,7 @@ describe('Connection', () => {
     expect(conn['oauth2']).to.be.an('object');
     expect(get(conn, 'options.authInfo')).to.exist;
     expect(conn.loginUrl).to.equal(testConnectionOptions.loginUrl);
+    // eslint-disable-next-line no-underscore-dangle
     expect(conn._callOptions.client).to.contain('sfdx toolbelt:');
   });
 
@@ -111,6 +127,9 @@ describe('Connection', () => {
     try {
       shouldThrowSync(() => conn.setApiVersion('v23.0'));
     } catch (e) {
+      if (!(e instanceof Error)) {
+        expect.fail('Expected an error');
+      }
       expect(e.message).to.contain('Invalid API version v23.0.');
     }
   });
@@ -236,8 +255,11 @@ describe('Connection', () => {
 
     try {
       await shouldThrow(conn.autoFetchQuery('TEST_SOQL'));
-    } catch (err) {
-      expect(err.message).to.equal(errorMsg);
+    } catch (e) {
+      if (!(e instanceof Error)) {
+        expect.fail('Expected an error');
+      }
+      expect(e.message).to.equal(errorMsg);
     }
   });
 
@@ -264,8 +286,11 @@ describe('Connection', () => {
     stubMethod($$.SANDBOX, conn, 'request').resolves({ totalSize: 0, records: [] });
     try {
       await shouldThrow(conn.singleRecordQuery('TEST_SOQL'));
-    } catch (err) {
-      expect(err.name).to.equal(SingleRecordQueryErrors.NoRecords);
+    } catch (e) {
+      if (!(e instanceof Error)) {
+        expect.fail('Expected an error');
+      }
+      expect(e.name).to.equal(SingleRecordQueryErrors.NoRecords);
     }
   });
 
@@ -275,8 +300,11 @@ describe('Connection', () => {
 
     try {
       await shouldThrow(conn.singleRecordQuery('TEST_SOQL'));
-    } catch (err) {
-      expect(err.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
+    } catch (e) {
+      if (!(e instanceof Error)) {
+        expect.fail('Expected an error');
+      }
+      expect(e.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
     }
   });
 
@@ -286,9 +314,12 @@ describe('Connection', () => {
 
     try {
       await shouldThrow(conn.singleRecordQuery('TEST_SOQL', { returnChoicesOnMultiple: true, choiceField: 'id' }));
-    } catch (err) {
-      expect(err.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
-      expect(err.message).to.include('1,2');
+    } catch (e) {
+      if (!(e instanceof Error)) {
+        expect.fail('Expected an error');
+      }
+      expect(e.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
+      expect(e.message).to.include('1,2');
     }
   });
 

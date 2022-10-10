@@ -25,6 +25,10 @@ export class ZipWriter extends Writable implements StructuredWriter {
     void pipeline(this.zip, this.getOutputStream());
   }
 
+  public get buffer(): Buffer {
+    return Buffer.concat(this.buffers);
+  }
+
   public async addToStore(contents: string | Readable | Buffer, path: string): Promise<void> {
     this.zip.append(contents, { name: path });
     return Promise.resolve();
@@ -60,17 +64,9 @@ export class ZipWriter extends Writable implements StructuredWriter {
         inputStream.on('data', (chunk: Buffer) => {
           this.buffers.push(chunk);
         });
-        inputStream.once('end', () => {
-          return resolve();
-        });
-        inputStream.once('error', (error: Error) => {
-          return reject(error);
-        });
+        inputStream.once('end', () => resolve());
+        inputStream.once('error', (error: Error) => reject(error));
       });
     }
-  }
-
-  public get buffer(): Buffer {
-    return Buffer.concat(this.buffers);
   }
 }

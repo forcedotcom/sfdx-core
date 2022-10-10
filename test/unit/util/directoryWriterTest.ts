@@ -24,8 +24,8 @@ function validateFileContents(filePath: string, expectedContents: string): void 
 const filename = 'path/to/my-file.txt';
 
 describe('DirectoryWriter', () => {
-  let directoryWriter;
-  let directoryPath;
+  let directoryWriter: DirectoryWriter;
+  let directoryPath: string;
   beforeEach(() => {
     directoryWriter = new DirectoryWriter();
     directoryPath = directoryWriter.getDestinationPath();

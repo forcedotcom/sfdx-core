@@ -33,7 +33,7 @@ describe('streaming client tests', () => {
   beforeEach(async () => {
     const id = $$.uniqid();
     username = `${id}@test.com`;
-    $$.stubAuths(new MockTestOrgData(id, { username }));
+    await $$.stubAuths(new MockTestOrgData(id, { username }));
 
     stubMethod($$.SANDBOX, Connection.prototype, 'useLatestApiVersion').returns(Promise.resolve());
     stubMethod($$.SANDBOX, Connection.prototype, 'getApiVersion').returns(MOCK_API_VERSION);
@@ -68,30 +68,25 @@ describe('streaming client tests', () => {
     expect(options.apiVersion).to.equal(MOCK_API_VERSION);
 
     options.streamingImpl = {
-      getCometClient: (url: string): CometClient => {
-        return new StreamingMockCometClient({
+      getCometClient: (url: string): CometClient =>
+        new StreamingMockCometClient({
           url,
           id: TEST_STRING,
           subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
-        });
-      },
+        }),
       setLogger: () => {},
     };
 
     const asyncStatusClient = await StreamingClient.create(options);
-    const value = await asyncStatusClient.subscribe(() => {
-      return Promise.resolve();
-    });
+    const value = await asyncStatusClient.subscribe(() => Promise.resolve());
 
     expect(value).to.be.equal(TEST_STRING);
   });
 
   describe('Faye options', () => {
-    const streamProcessor = (): StatusResult => {
-      return {
-        completed: true,
-      };
-    };
+    const streamProcessor = (): StatusResult => ({
+      completed: true,
+    });
 
     it('bogus apiVersion', async () => {
       const org = await Org.create({ aliasOrUsername: username });
@@ -123,24 +118,19 @@ describe('streaming client tests', () => {
     const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.streamingImpl = {
-      getCometClient: (url: string) => {
-        return new StreamingMockCometClient({
+      getCometClient: (url: string) =>
+        new StreamingMockCometClient({
           url,
           id: TEST_STRING,
           subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
-        });
-      },
+        }),
       setLogger: () => {},
     };
 
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
     const disconnectSpy = spyMethod($$.SANDBOX, StreamingClient.prototype, 'disconnectClient');
     try {
-      await shouldThrow(
-        asyncStatusClient.subscribe(() => {
-          return Promise.resolve();
-        })
-      );
+      await shouldThrow(asyncStatusClient.subscribe(() => Promise.resolve()));
     } catch (e) {
       expect(e).to.have.property('name', 'TEST_ERROR');
       expect(disconnectSpy.called).to.be.true;
@@ -166,14 +156,13 @@ describe('streaming client tests', () => {
     const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.streamingImpl = {
-      getCometClient: (url: string) => {
-        return new StreamingMockCometClient({
+      getCometClient: (url: string) =>
+        new StreamingMockCometClient({
           url,
           id: TEST_STRING,
           subscriptionCall: StreamingMockSubscriptionCall.ERRORBACK,
           subscriptionErrbackError: new SfError('TEST ERROR', TEST_STRING),
-        });
-      },
+        }),
       setLogger: () => {},
     };
 
@@ -181,11 +170,7 @@ describe('streaming client tests', () => {
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
     expect(disconnectSpy.called).to.be.false;
     try {
-      await shouldThrow(
-        asyncStatusClient.subscribe(() => {
-          return Promise.resolve();
-        })
-      );
+      await shouldThrow(asyncStatusClient.subscribe(() => Promise.resolve()));
     } catch (e) {
       expect(e).to.have.property('name', TEST_STRING);
       expect(disconnectSpy.called).to.be.true;
@@ -211,13 +196,12 @@ describe('streaming client tests', () => {
     const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.streamingImpl = {
-      getCometClient: (url: string) => {
-        return new StreamingMockCometClient({
+      getCometClient: (url: string) =>
+        new StreamingMockCometClient({
           url,
           id: TEST_STRING,
           subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
-        });
-      },
+        }),
       setLogger: () => {},
     };
 
@@ -232,22 +216,19 @@ describe('streaming client tests', () => {
 
     const org = await Org.create({ aliasOrUsername: username });
 
-    const streamProcessor = (): StatusResult => {
-      return { completed: false };
-    };
+    const streamProcessor = (): StatusResult => ({ completed: false });
 
     const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.handshakeTimeout = Duration.milliseconds(1);
 
     options.streamingImpl = {
-      getCometClient: (url: string) => {
-        return new StreamingMockCometClient({
+      getCometClient: (url: string) =>
+        new StreamingMockCometClient({
           url,
           id: TEST_STRING,
           subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
-        });
-      },
+        }),
       setLogger: () => {},
     };
 
@@ -256,6 +237,7 @@ describe('streaming client tests', () => {
     try {
       await shouldThrow(asyncStatusClient.handshake());
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(e.name).to.equal(StreamingClient.TimeoutErrorType.HANDSHAKE);
     }
   });
@@ -265,35 +247,29 @@ describe('streaming client tests', () => {
 
     const org = await Org.create({ aliasOrUsername: username });
 
-    const streamProcessor = (): StatusResult => {
-      return {
-        completed: false,
-      };
-    };
+    const streamProcessor = (): StatusResult => ({
+      completed: false,
+    });
 
     const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
     options.subscribeTimeout = Duration.milliseconds(1);
 
     options.streamingImpl = {
-      getCometClient: (url: string) => {
-        return new StreamingMockCometClient({
+      getCometClient: (url: string) =>
+        new StreamingMockCometClient({
           url,
           id: TEST_STRING,
           subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
-        });
-      },
+        }),
       setLogger: () => {},
     };
 
     const asyncStatusClient: StreamingClient = await StreamingClient.create(options);
     try {
-      await shouldThrow(
-        asyncStatusClient.subscribe(async (): Promise<void> => {
-          return Promise.resolve();
-        })
-      );
+      await shouldThrow(asyncStatusClient.subscribe(async (): Promise<void> => Promise.resolve()));
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(e.name).to.equal(StreamingClient.TimeoutErrorType.SUBSCRIBE);
     }
   });
@@ -308,11 +284,9 @@ describe('streaming client tests', () => {
 
     const org = await Org.create({ aliasOrUsername: username });
 
-    const streamProcessor = (): StatusResult => {
-      return {
-        completed: true,
-      };
-    };
+    const streamProcessor = (): StatusResult => ({
+      completed: true,
+    });
 
     const options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
 
@@ -320,13 +294,12 @@ describe('streaming client tests', () => {
     options.handshakeTimeout = Duration.milliseconds(GHOSTBUSTERS_NUMBER); // Ghostbusters phone number
 
     options.streamingImpl = {
-      getCometClient: (url: string) => {
-        return new StreamingMockCometClient({
+      getCometClient: (url: string) =>
+        new StreamingMockCometClient({
           url,
           id: TEST_STRING,
           subscriptionCall: StreamingMockSubscriptionCall.CALLBACK,
-        });
-      },
+        }),
       setLogger: () => {},
     };
 
@@ -357,6 +330,7 @@ describe('streaming client tests', () => {
     };
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await shouldThrow(StreamingClient.prototype['incoming'].call(context, apiVersionErrorMsg, () => {}));
     } catch (e) {
       expect(e).to.have.property('name', 'HandshakeApiVersionError');
@@ -369,9 +343,7 @@ describe('streaming client tests', () => {
     beforeEach(async () => {
       const org = await Org.create({ aliasOrUsername: username });
 
-      const streamProcessor = (): StatusResult => {
-        return { completed: false };
-      };
+      const streamProcessor = (): StatusResult => ({ completed: false });
 
       options = new StreamingClient.DefaultOptions(org, MOCK_TOPIC, streamProcessor);
     });

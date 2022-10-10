@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable class-methods-use-this */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
@@ -217,7 +222,7 @@ export interface TestContext {
   /**
    * Stub contents in the config file.
    */
-  stubConfig(config: Record<string, string>): void;
+  stubConfig(config: Record<string, string>): Promise<void>;
   /**
    * Stub the tokens in the global token config file.
    */
@@ -335,7 +340,7 @@ export const instantiateContext = (sinon?: any): TestContext => {
     fakeConnectionRequest: defaultFakeConnectionRequest,
     getConfigStubContents(name: string, group?: string): ConfigContents {
       const stub: Optional<ConfigStub> = this.configStubs[name];
-      if (stub && stub.contents) {
+      if (stub?.contents) {
         if (group && stub.contents[group]) {
           return ensureJsonMap(stub.contents[group]);
         } else {
@@ -369,18 +374,18 @@ export const instantiateContext = (sinon?: any): TestContext => {
       }
     },
     async stubAuths(...orgs: MockTestOrgData[]): Promise<void> {
-      const entries = (await Promise.all(orgs.map(async (org) => [org.username, await org.getConfig()]))) as Array<
-        [string, AuthFields]
-      >;
+      const entries = await Promise.all(
+        orgs.map(async (org): Promise<[string, AuthFields]> => [org.username, await org.getConfig()])
+      );
       const orgMap = new Map(entries);
 
-      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'getAllFiles').returns(
+      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'getAllFiles').resolves(
         [...orgMap.keys()].map((o) => `${o}.json`)
       );
 
-      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'hasFile').callsFake((username: string) => {
-        return orgMap.has(username);
-      });
+      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'hasFile').callsFake((username: string) =>
+        orgMap.has(username)
+      );
 
       const retrieveContents = async function (this: { path: string }): Promise<AuthFields> {
         const username = basename(this.path.replace('.json', ''));
@@ -395,7 +400,7 @@ export const instantiateContext = (sinon?: any): TestContext => {
       )) as Array<[string, SandboxFields]>;
       const sandboxMap = new Map(entries);
 
-      stubMethod(testContext.SANDBOX, SandboxAccessor.prototype, 'getAllFiles').returns(
+      stubMethod(testContext.SANDBOX, SandboxAccessor.prototype, 'getAllFiles').resolves(
         [...sandboxMap.keys()].map((o) => `${o}.sandbox.json`)
       );
 
@@ -409,8 +414,11 @@ export const instantiateContext = (sinon?: any): TestContext => {
     stubAliases(aliases: Record<string, string>, group = AliasGroup.ORGS): void {
       this.configStubs.AliasesConfig = { contents: { [group]: aliases } };
     },
-    stubConfig(config: Record<string, string>): void {
+    async stubConfig(config: Record<string, string>): Promise<void> {
       this.configStubs.Config = { contents: config };
+      // configAggregator may have already loaded an instance.  We're not sure why this happens.
+      // This seems to solve the problem by forcing a load of the new stubbed config.
+      await ConfigAggregator.create();
     },
     stubTokens(tokens: Record<string, string>): void {
       this.configStubs.TokensConfig = { contents: tokens };
@@ -452,7 +460,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
   const stubs: Record<string, sinonType.SinonStub> = {};
 
   // Most core files create a child logger so stub this to return our test logger.
-  stubMethod(testContext.SANDBOX, Logger, 'child').returns(Promise.resolve(testContext.TEST_LOGGER));
+  stubMethod(testContext.SANDBOX, Logger, 'child').resolves(testContext.TEST_LOGGER);
   stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
   testContext.inProject(true);
   testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
@@ -465,7 +473,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
   stubMethod(testContext.SANDBOXES.PROJECT, SfProjectJson.prototype, 'doesPackageExist').callsFake(() => true);
 
   const initStubForRead = (configFile: ConfigFile<ConfigFile.Options>): ConfigStub => {
-    const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] || {};
+    const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] ?? {};
     // init calls read calls getPath which sets the path on the config file the first time.
     // Since read is now stubbed, make sure to call getPath to initialize it.
     configFile.getPath();
@@ -477,7 +485,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
 
   const readSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: JsonMap): JsonMap {
     const stub = initStubForRead(this);
-    this.setContentsFromObject(newContents || stub.contents || {});
+    this.setContentsFromObject(newContents ?? stub.contents ?? {});
     return this.getContents();
   };
 
@@ -485,7 +493,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
     const stub = initStubForRead(this);
 
     if (stub.readFn) {
-      return await stub.readFn.call(this);
+      return stub.readFn.call(this);
     }
 
     if (stub.retrieveContents) {
@@ -507,7 +515,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
     const stub = testContext.configStubs[this.constructor.name];
     if (!stub) return;
 
-    this.setContents(newContents || this.getContents());
+    this.setContents(newContents ?? this.getContents());
     stub.contents = this.toObject();
   };
 
@@ -519,7 +527,7 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
     if (!stub) return;
 
     if (stub.writeFn) {
-      return await stub.writeFn.call(this, newContents);
+      return stub.writeFn.call(this, newContents);
     }
 
     if (stub.updateContents) {
@@ -599,13 +607,14 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
  */
 export const restoreContext = (testContext: TestContext): void => {
   testContext.SANDBOX.restore();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
   // Give each test run a clean StateAggregator
   StateAggregator.clearInstance();
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
 const _testSetup = (sinon?: any): TestContext => {
   const testContext = instantiateContext(sinon);
 
@@ -881,8 +890,10 @@ export class StreamingMockCometClient extends CometClient {
  * Mock class for Salesforce Orgs.
  *
  * @example
+ * ```
  * const testOrg = new MockTestOrgData();
  * await $$.stubAuths(testOrg)
+ * ```
  */
 export class MockTestOrgData {
   public testId: string;
@@ -909,7 +920,7 @@ export class MockTestOrgData {
     this.testId = id;
     this.userId = `user_id_${this.testId}`;
     this.orgId = `${this.testId}`;
-    this.username = options?.username || `admin_${this.testId}@gb.org`;
+    this.username = options?.username ?? `admin_${this.testId}@gb.org`;
     this.loginUrl = `https://login.${this.testId}.salesforce.com`;
     this.instanceUrl = `https://instance.${this.testId}.salesforce.com`;
     this.clientId = `${this.testId}/client_id`;
@@ -1021,8 +1032,10 @@ export class MockTestOrgData {
  * Mock class for Salesforce Sandboxes.
  *
  * @example
+ * ```
  * const testOrg = new MockTestSandboxData();
  * await $$.stubSandboxes(testOrg)
+ * ```
  */
 export class MockTestSandboxData {
   public sandboxOrgId: string;
@@ -1035,14 +1048,15 @@ export class MockTestSandboxData {
     options?: Partial<{ prodOrgUsername: string; name: string; username: string }>
   ) {
     this.sandboxOrgId = id;
-    this.prodOrgUsername = options?.prodOrgUsername || `admin_${id}@gb.org`;
-    this.sandboxName = options?.name || `sandbox_${id}`;
-    this.username = options?.username || `${this.prodOrgUsername}.sandbox`;
+    this.prodOrgUsername = options?.prodOrgUsername ?? `admin_${id}@gb.org`;
+    this.sandboxName = options?.name ?? `sandbox_${id}`;
+    this.username = options?.username ?? `${this.prodOrgUsername}.sandbox`;
   }
 
   /**
    * Return the auth config file contents.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async getConfig(): Promise<SandboxFields> {
     return {
       sandboxOrgId: this.sandboxOrgId,

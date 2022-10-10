@@ -103,6 +103,7 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
   }
 
   const fromFields = Object.keys(REQUIRED_FIELDS).map(upperFirst);
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
   const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
 
@@ -342,9 +343,7 @@ export class User extends AsyncCreatable<User.Options> {
 
     const assignments: PermissionSetAssignment = await PermissionSetAssignment.init(this.org);
 
-    for (const permsetName of permsetNames) {
-      await assignments.create(id, permsetName);
-    }
+    await Promise.all(permsetNames.map((permsetName) => assignments.create(id, permsetName)));
   }
 
   /**
@@ -426,7 +425,7 @@ export class User extends AsyncCreatable<User.Options> {
    * ```
    */
   public async retrieve(username: string): Promise<UserFields> {
-    return await retrieveUserFields(this.logger, username);
+    return retrieveUserFields(this.logger, username);
   }
 
   /**
@@ -441,7 +440,7 @@ export class User extends AsyncCreatable<User.Options> {
 
     const userDescribe = await connection.describe('User');
 
-    if (userDescribe && userDescribe.fields) {
+    if (userDescribe?.fields) {
       await newUserAuthInfo.save();
       return newUserAuthInfo;
     } else {
@@ -500,6 +499,7 @@ export class User extends AsyncCreatable<User.Options> {
           message = `${message} causes:${EOL}`;
           errors.forEach((singleMessage) => {
             if (!isJsonMap(singleMessage)) return;
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             message = `${message}${EOL}${singleMessage.description}`;
           });
         }
@@ -521,9 +521,10 @@ export class User extends AsyncCreatable<User.Options> {
     };
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private async rawRequest(conn: Connection, options: HttpRequest): Promise<HttpResponse> {
     return new Promise<HttpResponse>((resolve, reject) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
       const httpApi = new HttpApi(conn as any, options);
       httpApi.on('response', (response: HttpResponse) => resolve(response));
       httpApi.request(options).catch(reject);

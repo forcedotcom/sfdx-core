@@ -4,6 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+
 import * as fs from 'fs';
 import { isBoolean, isNumber, isString } from '@salesforce/ts-types';
 import { expect } from 'chai';
@@ -263,25 +267,15 @@ describe('Logger', () => {
       expect(logRecords[0], `expected to log at level: ${logLevel[0]}`).to.have.property('level', logLevel[1]);
     }
 
-    it('should apply for log level: trace', () => {
-      return runTest(['trace', 10]);
-    });
+    it('should apply for log level: trace', () => runTest(['trace', 10]));
 
-    it('should apply for log level: debug', () => {
-      return runTest(['debug', 20]);
-    });
+    it('should apply for log level: debug', () => runTest(['debug', 20]));
 
-    it('should apply for log level: info', () => {
-      return runTest(['info', 30]);
-    });
+    it('should apply for log level: info', () => runTest(['info', 30]));
 
-    it('should apply for log level: warn', () => {
-      return runTest(['warn', 40]);
-    });
+    it('should apply for log level: warn', () => runTest(['warn', 40]));
 
-    it('should apply for log level: error', () => {
-      return runTest(['error', 50]);
-    });
+    it('should apply for log level: error', () => runTest(['error', 50]));
 
     it('should apply for log level: fatal', async () => {
       // logger.fatal() necessarily writes to stderr so stub it here
@@ -353,9 +347,7 @@ describe('Logger', () => {
     it('should use root in output', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
-        return (output += error);
-      });
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => (output += error));
       const logger = await Logger.root();
       expect(logger.debugEnabled).to.equal(true);
       logger.warn('warn');
@@ -367,9 +359,7 @@ describe('Logger', () => {
     it('should use child name in output', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
-        return (output += error);
-      });
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => (output += error));
       const logger = (await Logger.root()).child('test');
       logger.warn('warn');
       out.restore();
@@ -380,9 +370,7 @@ describe('Logger', () => {
     it('should include higher level', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
-        return (output += error);
-      });
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => (output += error));
       const logger = await Logger.root();
       // Logger is debug by default. Debug is lower than info.
       logger.info('info');
@@ -394,9 +382,7 @@ describe('Logger', () => {
     it('should not include lower level', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => {
-        return (output += error);
-      });
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => (output += error));
       const logger = await Logger.root();
       logger.setLevel(LoggerLevel.FATAL);
       logger.info('info');
@@ -411,9 +397,7 @@ describe('Logger', () => {
       let output = '';
 
       // @ts-ignore
-      const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake((info) => {
-        return (output += info);
-      });
+      const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake((info) => (output += info));
 
       const testStream: LoggerStream = {
         name: 'test stream',
@@ -436,9 +420,7 @@ describe('Logger', () => {
       let output = '';
 
       // @ts-ignore
-      const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake((info) => {
-        return (output += info);
-      });
+      const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake((info) => (output += info));
 
       const testStream: LoggerStream = {
         name: 'test stream',

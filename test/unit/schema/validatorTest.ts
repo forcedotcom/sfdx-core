@@ -34,8 +34,12 @@ describe('schemaValidator', () => {
   describe('errors', () => {
     const checkError = async (schema, data, errorName, errorMsg) => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         await shouldThrow(validate(schema, data));
       } catch (err) {
+        if (!(err instanceof Error)) {
+          expect.fail('should have thrown Error');
+        }
         expect(err.message).to.contain(errorMsg);
         expect(err.name, err.message).to.equal(errorName);
       }
@@ -213,6 +217,9 @@ describe('schemaValidator', () => {
     try {
       await validate(schema, data);
     } catch (error) {
+      if (!(error instanceof Error)) {
+        expect.fail('should have thrown Error');
+      }
       expect(error.message).to.include("can't resolve reference schemaWithoutAnId# from id #");
     }
 
@@ -249,10 +256,13 @@ describe('schemaValidator', () => {
         const validator = new SchemaValidator($$.TEST_LOGGER, schemaPath);
 
         // If the schemas reference an invalid external error, then validation will fail.
-        return validator.validate({}).catch((err) => {
+        return validator.validate({}).catch((error) => {
+          if (!(error instanceof Error)) {
+            expect.fail('should have thrown Error');
+          }
           // We are passing in empty data, so it is OK if we get an actual data field validation error.
-          if (err.name !== 'ValidationSchemaFieldError') {
-            throw err;
+          if (error.name !== 'ValidationSchemaFieldError') {
+            throw error;
           }
         });
       });

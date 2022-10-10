@@ -63,19 +63,17 @@ const keychainPromises = {
     const cacheKey = `${Global.DIR}:${service}:${account}`;
     const sb = Cache.get<SecureBuffer<string>>(cacheKey);
     if (!sb) {
-      return new Promise((resolve, reject): {} => {
-        return _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
+      return new Promise((resolve, reject): {} =>
+        _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
           if (err) return reject(err);
           Cache.set(cacheKey, makeSecureBuffer(password));
           return resolve({ username: account, password: ensure(password) });
-        });
-      });
+        })
+      );
     } else {
       const pw = sb.value((buffer) => buffer.toString('utf8'));
       Cache.set(cacheKey, makeSecureBuffer(pw));
-      return new Promise((resolve): void => {
-        return resolve({ username: account, password: ensure(pw) });
-      });
+      return new Promise((resolve): void => resolve({ username: account, password: ensure(pw) }));
     }
   },
 
@@ -123,7 +121,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
    */
   public constructor(options?: CryptoOptions) {
     super(options);
-    this.options = options || {};
+    this.options = options ?? {};
   }
 
   /**
@@ -203,6 +201,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
    * @param text The text
    * @returns true if the text is encrypted, false otherwise.
    */
+  // eslint-disable-next-line class-methods-use-this
   public isEncrypted(text?: string): boolean {
     if (text == null) {
       return false;

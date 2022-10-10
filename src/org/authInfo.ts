@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable class-methods-use-this */
+
 import { randomBytes } from 'crypto';
 import { resolve as pathResolve } from 'path';
 import * as os from 'os';
@@ -163,7 +165,7 @@ export type ConnectionOptions = AuthFields & {
 
 // parses the id field returned from jsForce oauth2 methods to get
 // user ID and org ID.
-function parseIdUrl(idUrl: string) {
+function parseIdUrl(idUrl: string): { userId: string | undefined; orgId: string | undefined; url: string } {
   const idUrls = idUrl.split('/');
   const userId = idUrls.pop();
   const orgId = idUrls.pop();
@@ -242,7 +244,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public constructor(options?: AuthInfo.Options) {
     super(options);
-    this.options = options || {};
+    this.options = options ?? {};
   }
 
   /**
@@ -252,7 +254,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public static getDefaultInstanceUrl(): string {
     const configuredInstanceUrl = ConfigAggregator.getValue(OrgConfigProperties.ORG_INSTANCE_URL).value as string;
-    return configuredInstanceUrl || SfdcUrl.PRODUCTION;
+    return configuredInstanceUrl ?? SfdcUrl.PRODUCTION;
   }
 
   /**
@@ -280,6 +282,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         .filter((c) => aliases.includes(c.value as string) || c.value === username)
         .map((c) => c.key);
       try {
+        // prevent ConfigFile collision bug
+        // eslint-disable-next-line no-await-in-loop
         const authInfo = await AuthInfo.create({ username });
         const { orgId, instanceUrl, devHubUsername, expirationDate, isDevHub } = authInfo.getFields();
         final.push({
@@ -288,7 +292,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           username,
           instanceUrl,
           isScratchOrg: Boolean(devHubUsername),
-          isDevHub: isDevHub || false,
+          isDevHub: isDevHub ?? false,
+          // eslint-disable-next-line no-await-in-loop
           isSandbox: await stateAggregator.sandboxes.hasFile(orgId as string),
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
@@ -340,7 +345,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   public static getAuthorizationUrl(options: JwtOAuth2Config & { scope?: string }, oauth2?: OAuth2): string {
     // Always use a verifier for enhanced security
     options.useVerifier = true;
-    const oauth2Verifier = oauth2 || new OAuth2(options);
+    const oauth2Verifier = oauth2 ?? new OAuth2(options);
 
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
@@ -348,7 +353,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       state: randomBytes(Math.ceil(6)).toString('hex'),
       prompt: 'login',
       // Default connected app is 'refresh_token api web'
-      scope: options.scope || env.getString('SFDX_AUTH_SCOPES', 'refresh_token api web'),
+      scope: options.scope ?? env.getString('SFDX_AUTH_SCOPES', 'refresh_token api web'),
     };
 
     return oauth2Verifier.getAuthorizationUrl(params);
@@ -436,7 +441,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * Find all dev hubs available in the local environment.
    */
   public static async getDevHubAuthInfos(): Promise<OrgAuthorization[]> {
-    return await AuthInfo.listAllAuthorizations((possibleHub) => possibleHub?.isDevHub ?? false);
+    return AuthInfo.listAllAuthorizations((possibleHub) => possibleHub?.isDevHub ?? false);
   }
 
   private static async queryScratchOrg(
@@ -515,7 +520,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public update(authData?: AuthFields): AuthInfo {
     if (authData && isPlainObject(authData)) {
-      this.username = authData.username || this.username;
+      this.username = authData.username ?? this.username;
       this.stateAggregator.orgs.update(this.username, authData);
       this.logger.info(`Updated auth info for username: ${this.username}`);
     }
@@ -553,7 +558,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       // Decrypt a user provided client secret or use the default.
       opts = {
         oauth2: {
-          loginUrl: instanceUrl || SfdcUrl.PRODUCTION,
+          loginUrl: instanceUrl ?? SfdcUrl.PRODUCTION,
           clientId: this.getClientId(),
           redirectUri: this.getRedirectUri(),
         },
@@ -568,7 +573,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   public getClientId(): string {
-    return this.getFields()?.clientId || DEFAULT_CONNECTED_APP_INFO.legacyClientId;
+    return this.getFields()?.clientId ?? DEFAULT_CONNECTED_APP_INFO.legacyClientId;
   }
 
   public getRedirectUri(): string {
@@ -612,7 +617,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     let sfdxAuthUrl = 'force://';
 
     if (decryptedFields.clientId) {
-      sfdxAuthUrl += `${decryptedFields.clientId}:${decryptedFields.clientSecret || ''}:`;
+      sfdxAuthUrl += `${decryptedFields.clientId}:${decryptedFields.clientSecret ?? ''}:`;
     }
 
     sfdxAuthUrl += `${ensure(decryptedFields.refreshToken, 'undefined refreshToken')}@${instanceUrl}`;
@@ -691,7 +696,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     this.stateAggregator = await StateAggregator.getInstance();
 
     const username = this.options.username;
-    const authOptions: AuthOptions = this.options.oauth2Options || (this.options.accessTokenOptions as AuthOptions);
+    const authOptions: AuthOptions | undefined = this.options.oauth2Options ?? this.options.accessTokenOptions;
 
     // Must specify either username and/or options
     if (!username && !authOptions) {
@@ -706,7 +711,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
     }
 
-    const oauthUsername = username || authOptions?.username;
+    const oauthUsername = username ?? authOptions?.username;
 
     if (oauthUsername) {
       this.username = oauthUsername;
@@ -719,7 +724,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger = await Logger.child('AuthInfo');
 
       const aggregator = await ConfigAggregator.create();
-      const instanceUrl = this.getInstanceUrl(authOptions, aggregator);
+      const instanceUrl = this.getInstanceUrl(aggregator, authOptions);
 
       this.update({
         accessToken: oauthUsername,
@@ -738,7 +743,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
   }
 
-  private getInstanceUrl(options: AuthOptions, aggregator: ConfigAggregator) {
+  private getInstanceUrl(aggregator: ConfigAggregator, options?: AuthOptions): string {
     const instanceUrl =
       options?.instanceUrl ?? (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
     return instanceUrl ?? SfdcUrl.PRODUCTION;
@@ -797,13 +802,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
           authConfig = await this.buildRefreshTokenConfig(options);
+        } else if (this.options.oauth2 instanceof OAuth2) {
+          // authcode exchange / web auth flow
+          authConfig = await this.exchangeToken(options, this.options.oauth2);
         } else {
-          if (this.options.oauth2 instanceof OAuth2) {
-            // authcode exchange / web auth flow
-            authConfig = await this.exchangeToken(options, this.options.oauth2);
-          } else {
-            authConfig = await this.exchangeToken(options);
-          }
+          authConfig = await this.exchangeToken(options);
         }
       }
 
@@ -821,6 +824,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async loadDecryptedAuthFromConfig(username: string): Promise<AuthFields> {
     // Fetch from the persisted auth file
     const authInfo = this.stateAggregator.orgs.get(username, true);
@@ -885,6 +889,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const loginAndAudienceUrls = getLoginAudienceCombos(audienceUrl, loginUrl);
     for (const [login, audience] of loginAndAudienceUrls) {
       try {
+        // sequentially, in probabilistic order
+        // eslint-disable-next-line no-await-in-loop
         authFieldsBuilder = await this.tryJwtAuth(options.clientId, login, audience, privateKeyContents);
         break;
       } catch (err) {
@@ -915,6 +921,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       authFields.instanceUrl = instanceUrl;
     } catch (err) {
       this.logger.debug(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `Instance URL [${authFieldsBuilder.instance_url}] is not available.  DNS lookup failed. Using loginUrl [${options.loginUrl}] instead. This may result in a "Destination URL not reset" error.`
       );
       authFields.instanceUrl = options.loginUrl;
@@ -943,6 +950,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     );
 
     const oauth2 = new JwtOAuth2({ loginUrl });
+    // jsforce has it types as any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
   }
 
@@ -967,6 +976,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       throw messages.createError('refreshTokenAuthError', [(err as Error).message]);
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const { orgId } = parseIdUrl(authFieldsBuilder.id);
 
@@ -980,7 +990,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       username,
       accessToken: authFieldsBuilder.access_token,
       instanceUrl: authFieldsBuilder.instance_url,
-      loginUrl: options.loginUrl || authFieldsBuilder.instance_url,
+      loginUrl: options.loginUrl ?? authFieldsBuilder.instance_url,
       refreshToken: options.refreshToken,
       clientId: options.clientId,
       clientSecret: options.clientSecret,
@@ -1017,6 +1027,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // Only need to query for the username if it isn't known. For example, a new auth code exchange
     // rather than refreshing a token on an existing connection.
     if (!username) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFields.instance_url, authFields.access_token);
       username = userInfo?.username;
@@ -1027,7 +1038,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       instanceUrl: authFields.instance_url,
       orgId,
       username,
-      loginUrl: options.loginUrl || authFields.instance_url,
+      loginUrl: options.loginUrl ?? authFields.instance_url,
       refreshToken: authFields.refresh_token,
       clientId: options.clientId,
       clientSecret: options.clientSecret,
@@ -1041,7 +1052,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
     const instance = ensure(instanceUrl);
     const baseUrl = new SfdcUrl(instance);
-    const userInfoUrl = `${baseUrl}services/oauth2/userinfo`;
+    const userInfoUrl = `${baseUrl.toString()}services/oauth2/userinfo`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
     try {
       this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${userInfoUrl}`);
@@ -1050,7 +1061,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         this.throwUserGetException(response);
       } else {
         const userInfoJson = parseJsonMap(response.body) as UserInfoResult;
-        const url = `${baseUrl}/services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
+        const url = `${baseUrl.toString()}/services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
         this.logger.info(`Sending request for User SObject after successful auth code exchange to URL: ${url}`);
         response = await new Transport().httpRequest({ url, method: 'GET', headers });
         if (response.statusCode >= 400) {
@@ -1072,7 +1083,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param response
    * @private
    */
-  private throwUserGetException(response: { body?: string }) {
+  private throwUserGetException(response: { body?: string }): void {
     let errorMsg = '';
     const bodyAsString = response.body ?? JSON.stringify({ message: 'UNKNOWN', errorCode: 'UNKNOWN' });
     try {
@@ -1100,7 +1111,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
     const instance = ensure(instanceUrl);
     const baseUrl = new SfdcUrl(instance);
-    const scratchOrgInfoUrl = `${baseUrl}/services/data/${apiVersion}/query?q=SELECT%20Id%20FROM%20ScratchOrgInfo%20limit%201`;
+    const scratchOrgInfoUrl = `${baseUrl.toString()}/services/data/${apiVersion}/query?q=SELECT%20Id%20FROM%20ScratchOrgInfo%20limit%201`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
 
     try {
