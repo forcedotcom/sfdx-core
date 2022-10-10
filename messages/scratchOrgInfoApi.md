@@ -16,4 +16,4 @@ Successfully created org with ID: %s and name: %s. Unfortunately, source trackin
 
 # hubOrgIsNotDevHub
 
-Ensure that org with username: %s and id %s is enabled as a DevHub
+Make sure that the org with username %s and ID %s is enabled as a Dev Hub. To enable it, open the org in your browser, navigate to the Dev Hub page in Setup, and click Enable.
