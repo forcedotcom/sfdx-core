@@ -359,10 +359,9 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     const maxFetch: number =
       ((config.getInfo(OrgConfigProperties.ORG_MAX_QUERY_LIMIT).value as number) || queryOptions.maxFetch) ?? 10000;
 
-    const tooling = queryOptions?.tooling;
-    delete queryOptions.tooling;
+    const { tooling, ...queryOptionsWithoutTooling } = queryOptions;
 
-    const options: Partial<QueryOptions> = Object.assign(queryOptions, {
+    const options: Partial<QueryOptions> = Object.assign(queryOptionsWithoutTooling, {
       autoFetch: true,
       maxFetch,
     });
