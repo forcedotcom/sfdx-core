@@ -650,7 +650,7 @@ const _testSetup = (sinon?: SinonStatic): TestContext => {
     // Allow each test to have their own config aggregator
     // @ts-ignore clear for testing.
     delete ConfigAggregator.instance;
-    // testContext.stubs = stubContext(testContext);
+    testContext.stubs = stubContext(testContext);
   });
 
   afterEach(() => {
