@@ -60,7 +60,7 @@ export class TokenAccessor extends AsyncOptionalCreatable {
    * @param name
    * @param token
    */
-  public set(name: string, token: SfToken): void {
+  public set(name: string, token: Partial<SfToken>): void {
     this.config.set(name, token);
   }
 
