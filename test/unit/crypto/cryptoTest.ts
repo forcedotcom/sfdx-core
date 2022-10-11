@@ -12,10 +12,7 @@ import { expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
 import { SfError } from '../../../src/sfError';
 import { Messages } from '../../../src/messages';
-import { shouldThrowSync, testSetup } from '../../../src/testSetup';
-
-// Setup the test environment.
-const $$ = testSetup();
+import { TestContext, shouldThrowSync } from '../../../src/testSetup';
 
 const TEST_KEY = {
   service: 'sfdx',
@@ -26,6 +23,8 @@ const TEST_KEY = {
 describe('CryptoTest', function () {
   const disableEncryptionEnvVar = process.env.SFDX_DISABLE_ENCRYPTION;
   let crypto: Crypto;
+
+  const $$ = new TestContext();
 
   beforeEach(() => {
     // Testing crypto functionality, so restore global stubs.

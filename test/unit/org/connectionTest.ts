@@ -13,13 +13,12 @@ import { Connection as JSForceConnection, HttpRequest } from 'jsforce';
 import { AuthInfo } from '../../../src/org';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { Connection, DNS_ERROR_NAME, SFDX_HTTP_HEADERS, SingleRecordQueryErrors } from '../../../src/org/connection';
-import { shouldThrow, shouldThrowSync, testSetup } from '../../../src/testSetup';
+import { shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 
-// Setup the test environment.
-const $$ = testSetup();
 const TEST_IP = '1.1.1.1';
 
 describe('Connection', () => {
+  const $$ = new TestContext();
   const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
   let requestMock: sinon.SinonStub;
 

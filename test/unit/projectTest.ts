@@ -13,12 +13,10 @@ import { expect } from 'chai';
 import { env } from '@salesforce/kit';
 import { Messages, NamedPackageDir } from '../../src/exported';
 import { SfProject, SfProjectJson } from '../../src/sfProject';
-import { shouldThrow, shouldThrowSync, testSetup } from '../../src/testSetup';
-
-// Setup the test environment.
-const $$ = testSetup();
+import { shouldThrow, shouldThrowSync, TestContext } from '../../src/testSetup';
 
 describe('SfProject', () => {
+  const $$ = new TestContext();
   let projectPath: string;
 
   beforeEach(async () => {

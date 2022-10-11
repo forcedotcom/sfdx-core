@@ -19,15 +19,14 @@ import {
   shouldThrow,
   StreamingMockCometClient,
   StreamingMockSubscriptionCall,
-  testSetup,
+  TestContext,
 } from '../../../src/testSetup';
 
 const MOCK_API_VERSION = '43.0';
 const MOCK_TOPIC = 'topic';
 
-const $$ = testSetup();
-
 describe('streaming client tests', () => {
+  const $$ = new TestContext();
   let username: string;
 
   beforeEach(async () => {

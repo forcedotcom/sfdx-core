@@ -12,11 +12,8 @@ import * as os from 'os';
 import { AnyJson } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
-import { shouldThrow, testSetup } from '../../../src/testSetup';
+import { TestContext, shouldThrow } from '../../../src/testSetup';
 import { Cache } from '../../../src/util/cache';
-
-// Setup the test environment.
-const $$ = testSetup();
 
 const spawnReturnFake = {
   sdtoutData: 'stdout test data',
@@ -39,6 +36,8 @@ const spawnReturnFake = {
 
 if (os.platform() === 'darwin') {
   describe('CryptoKeyFailureTests', () => {
+    const $$ = new TestContext();
+
     const OLD_GENERIC_VAL = process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN;
 
     before(() => {

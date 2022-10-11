@@ -10,12 +10,11 @@ import { Duration, Env } from '@salesforce/kit';
 import { AnyFunction } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
-import { testSetup } from '../../../src/testSetup';
+import { TestContext } from '../../../src/testSetup';
 import { shouldThrow } from '../../../src/testSetup';
 
-const $$ = testSetup();
-
 describe('myDomainResolver', () => {
+  const $$ = new TestContext();
   const POSITIVE_HOST = 'mydomainresolvertest.com';
   const NEGATIVE_HOST = 'mydomainresolvertest2.com';
   const TEST_IP = '1.1.1.1';
@@ -107,6 +106,7 @@ describe('myDomainResolver', () => {
   });
 });
 describe('cname resolver', () => {
+  const $$ = new TestContext();
   const TEST_IP = '1.1.1.1';
   const sandboxCs = 'https://site-ruby-9820-dev-ed.cs50.my.salesforce.com';
   const sandboxNondescript = 'https://efficiency-flow-2380-dev-ed.my.salesforce.com';

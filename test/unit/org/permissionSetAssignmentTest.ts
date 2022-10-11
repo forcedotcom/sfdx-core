@@ -9,24 +9,23 @@ import { AuthInfo } from '../../../src/org/authInfo';
 import { Connection } from '../../../src/org/connection';
 import { Org } from '../../../src/org/org';
 import { PermissionSetAssignment } from '../../../src/org/permissionSetAssignment';
-import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
-
-const $$ = testSetup();
+import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
 
 describe('permission set assignment tests', () => {
-  let userTestdata: MockTestOrgData;
+  const $$ = new TestContext();
+  let userTestData: MockTestOrgData;
 
   beforeEach(() => {
-    userTestdata = new MockTestOrgData();
+    userTestData = new MockTestOrgData();
   });
 
   describe('create tests', () => {
     let org: Org;
     beforeEach(async () => {
-      await $$.stubAuths(userTestdata);
+      await $$.stubAuths(userTestData);
       org = await Org.create({
         connection: await Connection.create({
-          authInfo: await AuthInfo.create({ username: userTestdata.username }),
+          authInfo: await AuthInfo.create({ username: userTestData.username }),
         }),
       });
     });

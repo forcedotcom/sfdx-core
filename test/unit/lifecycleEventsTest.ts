@@ -10,11 +10,10 @@ import { Duration, sleep } from '@salesforce/kit/lib/duration';
 import { spyMethod } from '@salesforce/ts-sinon';
 import * as chai from 'chai';
 import { Lifecycle } from '../../src/lifecycleEvents';
-import { testSetup } from '../../src/testSetup';
-
-const $$ = testSetup();
+import { TestContext } from '../../src/testSetup';
 
 describe('lifecycleEvents', () => {
+  const $$ = new TestContext();
   class Foo {
     // eslint-disable-next-line @typescript-eslint/ban-types, class-methods-use-this
     public bar(name: string, result: {}) {

@@ -28,7 +28,7 @@ import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
 import { Global } from '../../../src/global';
-import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { StateAggregator } from '../../../src/stateAggregator';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
@@ -40,10 +40,8 @@ import { Messages } from '../../../src/messages';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'org');
 
-// Setup the test environment.
-const $$ = testSetup();
-
 describe('Org Tests', () => {
+  const $$ = new TestContext();
   let testData: MockTestOrgData;
   let createOrgViaAuthInfo: (username?: string, org?: MockTestOrgData) => Promise<Org>;
 

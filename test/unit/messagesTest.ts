@@ -14,11 +14,11 @@ import { cloneJson } from '@salesforce/kit';
 import { expect } from 'chai';
 import { Messages } from '../../src/messages';
 import { SfError } from '../../src/sfError';
-import { shouldThrowSync, testSetup } from '../../src/testSetup';
-// Setup the test environment.
-const $$ = testSetup();
+import { shouldThrowSync, TestContext } from '../../src/testSetup';
 
 describe('Messages', () => {
+  const $$ = new TestContext();
+
   const testMessages = {
     msg1: 'test message 1',
     msg2: 'test message 2 %s and %s',

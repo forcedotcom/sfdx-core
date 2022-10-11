@@ -21,7 +21,7 @@ import { Transport } from 'jsforce/lib/transport';
 import { JwtOAuth2Config, OAuth2 } from 'jsforce';
 import { SinonSpy, SinonStub } from 'sinon';
 import { AuthFields, AuthInfo } from '../../../src/org';
-import { MockTestOrgData, shouldThrow, shouldThrowSync, testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { AliasAccessor, OrgAccessor } from '../../../src/stateAggregator';
 import { Crypto } from '../../../src/crypto/crypto';
@@ -52,7 +52,7 @@ class AuthInfoMockOrg extends MockTestOrgData {
 
 describe('AuthInfo', () => {
   // Setup the test environment.
-  const $$ = testSetup();
+  const $$ = new TestContext();
 
   let testOrg: AuthInfoMockOrg;
 
@@ -1891,7 +1891,8 @@ describe('AuthInfo', () => {
 });
 
 describe('AuthInfo No fs mock', () => {
-  const $$ = testSetup();
+  const $$ = new TestContext();
+
   const TEST_KEY = {
     service: 'sfdx',
     account: 'local',

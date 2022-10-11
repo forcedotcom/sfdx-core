@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { AuthRemover } from '../../../src/org/authRemover';
 import { Config } from '../../../src/config/config';
 import { AliasAccessor } from '../../../src/stateAggregator';
-import { MockTestOrgData, shouldThrow, testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { AuthFields } from '../../../src/org';
 import { SfError } from '../../../src/sfError';
@@ -19,7 +19,7 @@ describe('AuthRemover', () => {
   const username = 'espresso@coffee.com';
   const orgId = '123456';
   const org = new MockTestOrgData(orgId, { username });
-  const $$ = testSetup();
+  const $$ = new TestContext();
 
   function expectPartialDeepMatch(actual: AuthFields, expected: AuthFields, ignore = ['refreshToken', 'accessToken']) {
     for (const key of ignore) {

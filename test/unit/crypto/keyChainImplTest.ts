@@ -14,10 +14,7 @@
 import * as fs from 'fs';
 import { assert, expect } from 'chai';
 import { KeychainAccess, keyChainImpl } from '../../../src/crypto/keyChainImpl';
-import { shouldThrow, testSetup } from '../../../src/testSetup';
-
-// Setup the test environment.
-const $$ = testSetup();
+import { shouldThrow, TestContext } from '../../../src/testSetup';
 
 const testImpl = {
   getProgram() {
@@ -50,6 +47,8 @@ const testImpl = {
 };
 
 describe('KeyChainImpl Tests', () => {
+  const $$ = new TestContext();
+
   beforeEach(() => {
     // Testing crypto functionality, so restore global stubs.
     $$.SANDBOXES.CRYPTO.restore();

@@ -6,7 +6,7 @@
  */
 import { expect } from 'chai';
 import { StateAggregator } from '../../../../src/stateAggregator';
-import { MockTestOrgData, MockTestSandboxData, testSetup, uniqid } from '../../../../src/testSetup';
+import { MockTestOrgData, MockTestSandboxData, TestContext, uniqid } from '../../../../src/testSetup';
 
 const sandboxUsername = 'espresso@coffee.com.mysandbox';
 const prodOrgUsername = 'espresso@coffee.com';
@@ -15,7 +15,7 @@ const org = new MockTestOrgData(id, { username: sandboxUsername });
 const sandboxMock = new MockTestSandboxData(id, { username: sandboxUsername, prodOrgUsername });
 
 describe('SandboxAccessor', () => {
-  const $$ = testSetup();
+  const $$ = new TestContext();
   beforeEach(async () => {
     await $$.stubAuths(org);
     await $$.stubSandboxes(sandboxMock);

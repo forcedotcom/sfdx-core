@@ -12,14 +12,13 @@ import { Config, ConfigProperties } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgConfigProperties } from '../../../src/exported';
-import { testSetup } from '../../../src/testSetup';
+import { TestContext } from '../../../src/testSetup';
 
-// Setup the test environment.
-const $$ = testSetup();
 const testEnvVars = ['SF_TARGET_ORG', 'SFDX_MAX_QUERY_LIMIT'];
 
 describe('ConfigAggregator', () => {
   let id: string;
+  const $$ = new TestContext();
   beforeEach(() => {
     // Testing config functionality, so restore global stubs.
     $$.SANDBOXES.CONFIG.restore();

@@ -8,12 +8,12 @@ import { expect } from 'chai';
 import { SinonSpy, SinonStub } from 'sinon';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { Env } from '@salesforce/kit';
-import { shouldThrow, testSetup } from '../../../src/testSetup';
+import { shouldThrow, TestContext } from '../../../src/testSetup';
 import { getLoginAudienceCombos, SfdcUrl } from '../../../src/util/sfdcUrl';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 
 describe('util/sfdcUrl', () => {
-  const $$ = testSetup();
+  const $$ = new TestContext();
   const TEST_IP = '1.1.1.1';
   describe('isValidUrl', () => {
     it('should return true if given a valid url', () => {

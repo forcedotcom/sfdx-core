@@ -10,27 +10,26 @@ import { AnyJson, isJsonMap, JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { SchemaValidator } from '../../../src/schema/validator';
-import { shouldThrow, testSetup } from '../../../src/testSetup';
-
-const $$ = testSetup();
+import { shouldThrow, TestContext } from '../../../src/testSetup';
 
 const SCHEMA_DIR = path.join(__dirname, '..', '..', '..', 'test', 'unit', 'fixtures', 'schemas');
 
-/**
- * Validate a piece of data against a schema using a SchemaValidator instance.
- * The loadSchema method is stubbed out to return the schema.
- *
- * @param {JsonMap} schema The schema to validate with.
- * @param {AnyJson} json The JSON value to validate.
- * @return {Promise<void>}
- */
-const validate = (schema: JsonMap, json: AnyJson): Promise<AnyJson> => {
-  const validator = new SchemaValidator($$.TEST_LOGGER, `${SCHEMA_DIR}/test.json`);
-  sinon.stub(validator, 'loadSync').callsFake(() => schema);
-  return validator.validate(json);
-};
-
 describe('schemaValidator', () => {
+  const $$ = new TestContext();
+  /**
+   * Validate a piece of data against a schema using a SchemaValidator instance.
+   * The loadSchema method is stubbed out to return the schema.
+   *
+   * @param {JsonMap} schema The schema to validate with.
+   * @param {AnyJson} json The JSON value to validate.
+   * @return {Promise<void>}
+   */
+  const validate = (schema: JsonMap, json: AnyJson): Promise<AnyJson> => {
+    const validator = new SchemaValidator($$.TEST_LOGGER, `${SCHEMA_DIR}/test.json`);
+    sinon.stub(validator, 'loadSync').callsFake(() => schema);
+    return validator.validate(json);
+  };
+
   describe('errors', () => {
     const checkError = async (schema, data, errorName, errorMsg) => {
       try {

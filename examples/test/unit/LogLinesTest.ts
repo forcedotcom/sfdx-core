@@ -6,9 +6,7 @@
  */
 import { strictEqual } from 'assert';
 import { Logger, LogLine } from '@salesforce/core';
-import { testSetup } from '@salesforce/core/lib/testSetup';
-
-const $$ = testSetup();
+import { TestContext } from '@salesforce/core/lib/testSetup';
 
 const TEST_STRING = 'foo was here';
 
@@ -23,6 +21,8 @@ class TestObject {
 }
 
 describe('Testing log lines', () => {
+  const $$ = new TestContext();
+
   it('example', async () => {
     const obj: TestObject = new TestObject($$.TEST_LOGGER);
     obj.method();

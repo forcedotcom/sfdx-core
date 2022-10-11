@@ -12,14 +12,13 @@ import { expect } from 'chai';
 import { assert } from '@salesforce/ts-types';
 import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { Env } from '@salesforce/kit';
-import { testSetup, MockTestOrgData } from '../../src/testSetup';
+import { MockTestOrgData, TestContext } from '../../src/testSetup';
 import { SfProjectJson } from '../../src/sfProject';
 import { WebOAuthServer, WebServer } from '../../src/webOAuthServer';
 import { AuthFields, AuthInfo } from '../../src/org/authInfo';
 
-const $$ = testSetup();
-
 describe('WebOauthServer', () => {
+  const $$ = new TestContext();
   describe('determineOauthPort', () => {
     it('should return configured oauth port if it exists', async () => {
       $$.SANDBOX.stub(SfProjectJson.prototype, 'get').withArgs('oauthLocalPort').returns(8080);
@@ -188,6 +187,7 @@ describe('WebOauthServer', () => {
 });
 
 describe('WebServer', () => {
+  const $$ = new TestContext();
   describe('checkOsPort', () => {
     it('should return the port if port is not in use', async () => {
       const server = await WebServer.create({});

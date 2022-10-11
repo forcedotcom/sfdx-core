@@ -5,14 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { shouldThrow, testSetup } from '../../../src/testSetup';
+import { shouldThrow, TestContext } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import checkLightningDomain from '../../../src/util/checkLightningDomain';
 
-const $$ = testSetup();
 const TEST_IP = '1.1.1.1';
 
 describe('checkLightningDomain', () => {
+  const $$ = new TestContext();
+
   beforeEach(() => {
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
   });

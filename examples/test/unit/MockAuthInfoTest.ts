@@ -7,11 +7,10 @@
 
 import { strictEqual } from 'assert';
 import { AuthInfo } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-
-const $$ = testSetup();
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 
 describe('Mocking Auth data', () => {
+  const $$ = new TestContext();
   it('example', async () => {
     const testData = new MockTestOrgData();
     await $$.stubAuths(testData);
