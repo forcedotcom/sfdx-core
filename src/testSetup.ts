@@ -96,21 +96,6 @@ export interface ConfigStub {
 
 /**
  * Instantiate a @salesforce/core test context.
- *
- * **Note:** Call the `init` method in your beforeEach to have clean stubs of @salesforce/core every test run.
- *
- * @example
- * ```
- * const $$ = new TestContext();
- *
- * beforeEach(() => {
- *   $$.init()
- * });
- *
- * afterEach(() => {
- *   $$.restore();
- * });
- * ```
  */
 export class TestContext {
   /**
