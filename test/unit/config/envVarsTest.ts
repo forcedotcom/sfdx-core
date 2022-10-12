@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import { describe } from 'mocha';
 import { EnvVars } from '../../../src/config/envVars';
 import { Global } from '../../../src/global';
-import { testSetup } from '../../../src/testSetup';
+import { TestContext } from '../../../src/testSetup';
 
 describe('envVars', () => {
   const testEnvVars = ['foo', 'SFDX_ACCESS_TOKEN', 'SF_ACCESS_TOKEN', 'SF_SFDX_INTEROPERABILITY'];
@@ -52,9 +52,9 @@ describe('envVars', () => {
 });
 
 describe('envVars - no interop', () => {
-  before(() => {
-    testSetup();
-  });
+  // TestContext disables interoperability
+  new TestContext();
+
   it('should load well known env var not set synonym interoperability is disabled', () => {
     process.env['SFDX_ACCESS_TOKEN'] = 'some access token';
     process.env['SF_ACCESS_TOKEN'] = 'some other access token';

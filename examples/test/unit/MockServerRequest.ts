@@ -7,13 +7,12 @@
 
 import { deepStrictEqual } from 'assert';
 import { AuthInfo, Connection, SfError } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { AnyJson, ensureJsonMap, JsonMap } from '@salesforce/ts-types';
 import { ensureString } from '@salesforce/ts-types';
 
-const $$ = testSetup();
-
 describe('Mocking a force server call', () => {
+  const $$ = new TestContext();
   it('example', async () => {
     const records: AnyJson = { records: ['123456', '234567'] };
     const testData = new MockTestOrgData();

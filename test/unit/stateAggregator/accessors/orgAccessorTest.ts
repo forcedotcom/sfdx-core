@@ -7,7 +7,7 @@
 import { expect } from 'chai';
 import { StateAggregator } from '../../../../src/stateAggregator';
 import { AuthFields } from '../../../../src/org';
-import { MockTestOrgData, shouldThrowSync, testSetup, uniqid } from '../../../../src/testSetup';
+import { MockTestOrgData, shouldThrowSync, TestContext, uniqid } from '../../../../src/testSetup';
 
 const username = 'espresso@coffee.com';
 const org = new MockTestOrgData(uniqid(), { username });
@@ -21,7 +21,7 @@ function expectPartialDeepMatch(actual: AuthFields, expected: AuthFields, ignore
 }
 
 describe('OrgAccessor', () => {
-  const $$ = testSetup();
+  const $$ = new TestContext();
 
   beforeEach(async () => {
     await $$.stubAuths(org);

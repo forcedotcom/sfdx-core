@@ -14,38 +14,38 @@ import { expect } from 'chai';
 import { assert } from '@salesforce/ts-types';
 import { ConfigFile } from '../../../src/config/configFile';
 import { SfError } from '../../../src/exported';
-import { shouldThrow, testSetup } from '../../../src/testSetup';
-
-const $$ = testSetup();
-
-class TestConfig extends ConfigFile<ConfigFile.Options> {
-  private static testId: string = $$.uniqid();
-
-  public static getTestLocalPath() {
-    return $$.localPathRetrieverSync(TestConfig.testId);
-  }
-
-  public static getOptions(
-    filename: string,
-    isGlobal: boolean,
-    isState?: boolean,
-    filePath?: string
-  ): ConfigFile.Options {
-    return {
-      rootFolder: $$.rootPathRetrieverSync(isGlobal, TestConfig.testId),
-      filename,
-      isGlobal,
-      isState,
-      filePath,
-    };
-  }
-
-  public static getFileName() {
-    return 'testFileName';
-  }
-}
+import { shouldThrow, TestContext } from '../../../src/testSetup';
 
 describe('Config', () => {
+  const $$ = new TestContext();
+
+  class TestConfig extends ConfigFile<ConfigFile.Options> {
+    private static testId = $$.uniqid();
+
+    public static getTestLocalPath() {
+      return $$.localPathRetrieverSync(TestConfig.testId);
+    }
+
+    public static getOptions(
+      filename: string,
+      isGlobal: boolean,
+      isState?: boolean,
+      filePath?: string
+    ): ConfigFile.Options {
+      return {
+        rootFolder: $$.rootPathRetrieverSync(isGlobal, TestConfig.testId),
+        filename,
+        isGlobal,
+        isState,
+        filePath,
+      };
+    }
+
+    public static getFileName() {
+      return 'testFileName';
+    }
+  }
+
   describe('instantiation', () => {
     it('not using global has project dir', () => {
       const config = new TestConfig(TestConfig.getOptions('test', false));

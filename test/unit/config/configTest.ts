@@ -17,10 +17,7 @@ import { Config, ConfigPropertyMeta } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStore';
 import { OrgConfigProperties } from '../../../src/exported';
-import { shouldThrowSync, testSetup } from '../../../src/testSetup';
-
-// Setup the test environment.
-const $$ = testSetup();
+import { shouldThrowSync, TestContext } from '../../../src/testSetup';
 
 const configFileContentsString = '{"target-dev-hub": "configTest_devhub","target-org": "configTest_default"}';
 const configFileContentsJson = { 'target-dev-hub': 'configTest_devhub', 'target-org': 'configTest_default' };
@@ -28,6 +25,8 @@ const configFileContentsJson = { 'target-dev-hub': 'configTest_devhub', 'target-
 const clone = (obj: JsonMap) => JSON.parse(JSON.stringify(obj));
 
 describe('Config', () => {
+  const $$ = new TestContext();
+
   let id: string;
 
   beforeEach(() => {

@@ -16,12 +16,10 @@ import {
   GenericWindowsKeychainAccess,
   keyChainImpl,
 } from '../../../src/crypto/keyChainImpl';
-import { testSetup } from '../../../src/testSetup';
-
-// Setup the test environment.
-const $$ = testSetup();
+import { TestContext } from '../../../src/testSetup';
 
 describe('keyChain', () => {
+  const $$ = new TestContext();
   const OLD_SFDX_GENERIC_VAL = process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN;
   const OLD_GENERIC_VAL = process.env.USE_GENERIC_UNIX_KEYCHAIN;
 

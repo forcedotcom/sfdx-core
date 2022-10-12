@@ -9,35 +9,35 @@ import { expect } from 'chai';
 import { JsonMap } from '@salesforce/ts-types';
 import { Duration, sleep } from '@salesforce/kit';
 import { TTLConfig } from '../../../src/config/ttlConfig';
-import { testSetup } from '../../../src/testSetup';
+import { TestContext } from '../../../src/testSetup';
 import { Global } from '../../../src/global';
 
-const $$ = testSetup();
-
-class TestConfig extends TTLConfig<TTLConfig.Options, JsonMap> {
-  private static testId: string = $$.uniqid();
-
-  public static getTestLocalPath() {
-    return $$.localPathRetrieverSync(TestConfig.testId);
-  }
-
-  public static getDefaultOptions(isGlobal = false, filename?: string): TTLConfig.Options {
-    return {
-      rootFolder: $$.rootPathRetrieverSync(isGlobal, TestConfig.testId),
-      isGlobal,
-      isState: true,
-      filename: filename || TestConfig.getFileName(),
-      stateFolder: Global.SFDX_STATE_FOLDER,
-      ttl: Duration.days(1),
-    };
-  }
-
-  public static getFileName() {
-    return 'testFileName';
-  }
-}
-
 describe('TTLConfig', () => {
+  const $$ = new TestContext();
+
+  class TestConfig extends TTLConfig<TTLConfig.Options, JsonMap> {
+    private static testId: string = $$.uniqid();
+
+    public static getTestLocalPath() {
+      return $$.localPathRetrieverSync(TestConfig.testId);
+    }
+
+    public static getDefaultOptions(isGlobal = false, filename?: string): TTLConfig.Options {
+      return {
+        rootFolder: $$.rootPathRetrieverSync(isGlobal, TestConfig.testId),
+        isGlobal,
+        isState: true,
+        filename: filename || TestConfig.getFileName(),
+        stateFolder: Global.SFDX_STATE_FOLDER,
+        ttl: Duration.days(1),
+      };
+    }
+
+    public static getFileName() {
+      return 'testFileName';
+    }
+  }
+
   describe('set', () => {
     it('should timestamp every entry', async () => {
       const config = await TestConfig.create();

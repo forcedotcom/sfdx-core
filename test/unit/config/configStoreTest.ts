@@ -8,9 +8,7 @@ import { expect } from 'chai';
 import { AuthInfoConfig } from '../../../src/config/authInfoConfig';
 import { BaseConfigStore, ConfigContents } from '../../../src/config/configStore';
 import { AuthFields } from '../../../src/org/authInfo';
-import { testSetup } from '../../../src/testSetup';
-
-const $$ = testSetup();
+import { TestContext } from '../../../src/testSetup';
 
 const specialKey = 'spe@cial.property';
 
@@ -37,6 +35,8 @@ class CarConfig extends BaseConfigStore<Record<string, unknown>, CarInfo> {
 class TestConfig<P extends ConfigContents> extends BaseConfigStore<BaseConfigStore.Options, P> {}
 
 describe('ConfigStore', () => {
+  const $$ = new TestContext();
+
   it('for each value', async () => {
     const config = await TestConfig.create();
     config.set('1', 'a');

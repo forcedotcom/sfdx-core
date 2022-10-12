@@ -8,12 +8,11 @@ import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, isString } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { SecureBuffer } from '../../../src/crypto/secureBuffer';
-import { MockTestOrgData, shouldThrow, shouldThrowSync, testSetup } from '../../../src/testSetup';
+import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 import { DefaultUserFields, User, PermissionSetAssignment, Org, Connection, AuthInfo } from '../../../src/org';
 
-const $$ = testSetup();
-
 describe('User Tests', () => {
+  const $$ = new TestContext();
   let adminTestData: MockTestOrgData;
   let user1: MockTestOrgData;
 

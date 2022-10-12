@@ -10,11 +10,9 @@
 import { Transport } from 'jsforce/lib/transport';
 import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
-import { MockTestOrgData, testSetup } from '../../src/testSetup';
+import { MockTestOrgData, TestContext } from '../../src/testSetup';
 import { DeviceOauthService } from '../../src/deviceOauthService';
 import { AuthFields, AuthInfo, DEFAULT_CONNECTED_APP_INFO, SFDX_HTTP_HEADERS } from '../../src/org';
-
-const $$ = testSetup();
 
 const deviceCodeResponse = {
   device_code: '1234',
@@ -35,6 +33,8 @@ const devicePollingResponse = {
 };
 
 describe('DeviceOauthService', () => {
+  const $$ = new TestContext();
+
   describe('init', () => {
     it('should use the provided client id', async () => {
       const service = await DeviceOauthService.create({ clientId: 'CoffeeBeans' });

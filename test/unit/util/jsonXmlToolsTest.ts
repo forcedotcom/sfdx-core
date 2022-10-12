@@ -9,10 +9,9 @@ import { promises as fs } from 'fs';
 import { expect } from 'chai';
 import { SinonStub } from 'sinon';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { shouldThrow, testSetup } from '../../../src/testSetup';
+import { shouldThrow, TestContext } from '../../../src/testSetup';
 import { writeJSONasXML, fixExistingDollarSign } from '../../../src/util/jsonXmlTools';
 
-const $$ = testSetup();
 const XML_PATH = '/tmp/myXml.xml';
 const TEST_JSON = {
   name: 'Anna',
@@ -34,6 +33,8 @@ const DOLLARSIGN_OBJECT = {
 };
 
 describe('jsonXmlTools', () => {
+  const $$ = new TestContext();
+
   let fsWriteFileStub: SinonStub;
   beforeEach(() => {
     fsWriteFileStub = stubMethod($$.SANDBOX, fs, 'writeFile').callsFake((fsPath, xml) => {

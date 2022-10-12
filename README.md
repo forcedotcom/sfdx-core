@@ -33,12 +33,11 @@ Here you can mock authorization for a Salesforce scratch org.
 
 ```typescript
 import { strictEqual } from 'assert';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { AuthInfo } from '@salesforce/core';
 
-const $$ = testSetup();
-
 describe('Mocking Auth data', () => {
+  const $$ = new TestContext();
   it('example', async () => {
     const testData = new MockTestOrgData();
     await $$.stubAuths(testData);
@@ -52,15 +51,14 @@ After having a valid AuthInfo object you can then create fake connections to a S
 
 ```typescript
 import { AuthInfo, Connection, SfError } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { AnyJson, ensureJsonMap, JsonMap } from '@salesforce/ts-types';
 import { ensureString } from '@salesforce/ts-types';
 import { deepStrictEqual } from 'assert';
 import { QueryResult } from 'jsforce';
 
-const $$ = testSetup();
-
 describe('Mocking a force server call', () => {
+  const $$ = new TestContext();
   it('example', async () => {
     const records: AnyJson = { records: ['123456', '234567'] };
     const testData = new MockTestOrgData();
@@ -88,12 +86,11 @@ You can mock the contents of various config files
 
 ```typescript
 import { strictEqual } from 'assert';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { StateAggregator, OrgConfigProperties } from '@salesforce/core';
 
-const $$ = testSetup();
-
 describe('Mocking Aliases', () => {
+  const $$ = new TestContext();
   it('example', async () => {
     const testData = new MockTestOrgData();
     await $$.stubAliases({ myAlias: testData.username });
@@ -128,12 +125,11 @@ Sinon `stub`s and `spy`s must be cleaned up after test invocations. To ease the 
 ```typescript
 import { strictEqual } from 'assert';
 
-import { testSetup } from '@salesforce/core/lib/testSetup';
+import { TestContext } from '@salesforce/core/lib/testSetup';
 import * as os from 'os';
 
-const $$ = testSetup();
-
 describe('Using the built in Sinon sandbox.', () => {
+  const $$ = new TestContext();
   it('example', async () => {
     const unsupportedOS = 'LEO';
     $$.SANDBOX.stub(os, 'platform').returns(unsupportedOS);
@@ -198,10 +194,8 @@ It's also useful to check expected values and content from log lines. TestSetup 
 
 ```typescript
 import { Logger, LogLine } from '@salesforce/core';
-import { testSetup } from '@salesforce/core/lib/testSetup';
+import { TestContext } from '@salesforce/core/lib/testSetup';
 import { strictEqual } from 'assert';
-
-const $$ = testSetup();
 
 const TEST_STRING = 'foo was here';
 
@@ -216,6 +210,7 @@ class TestObject {
 }
 
 describe('Testing log lines', () => {
+  const $$ = new TestContext();
   it('example', async () => {
     const obj = new TestObject($$.TEST_LOGGER);
     obj.method();

@@ -15,7 +15,7 @@ import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
 import { join as pathJoin, basename } from 'path';
 import * as util from 'util';
-import * as sinonType from 'sinon';
+import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
 import { once } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
@@ -28,6 +28,7 @@ import {
   ensureString,
   isJsonMap,
   JsonMap,
+  Nullable,
   Optional,
 } from '@salesforce/ts-types';
 import { ConfigAggregator } from './config/configAggregator';
@@ -52,13 +53,13 @@ import { Global } from './global';
  * on the TestContext.
  */
 export interface SandboxTypes {
-  DEFAULT: sinon.SinonSandbox;
-  CRYPTO: sinon.SinonSandbox;
-  CONFIG: sinon.SinonSandbox;
-  PROJECT: sinon.SinonSandbox;
-  CONNECTION: sinon.SinonSandbox;
-  FS: sinonType.SinonSandbox;
-  ORGS: sinonType.SinonSandbox;
+  DEFAULT: SinonSandbox;
+  CRYPTO: SinonSandbox;
+  CONFIG: SinonSandbox;
+  PROJECT: SinonSandbox;
+  CONNECTION: SinonSandbox;
+  FS: SinonSandbox;
+  ORGS: SinonSandbox;
 }
 
 /**
@@ -94,92 +95,131 @@ export interface ConfigStub {
 }
 
 /**
- * Different configuration options when running before each
+ * Instantiate a @salesforce/core test context.
  */
-export interface TestContext {
+export class TestContext {
   /**
    * The default sandbox is cleared out before each test run.
    *
-   * **See** [sinon sandbox]{@link http://sinonjs.org/releases/v1.17.7/sandbox/}.
+   * **See** [sinon sandbox]{@link https://sinonjs.org/releases/v14/sandbox/}.
    */
-  SANDBOX: sinonType.SinonSandbox;
+  public SANDBOX: SinonSandbox;
   /**
    * An object of different sandboxes. Used when
    * needing to restore parts of the system for customized testing.
    */
-  SANDBOXES: SandboxTypes;
+  public SANDBOXES: SandboxTypes;
   /**
    * The test logger that is used when {@link Logger.child} is used anywhere. It uses memory logging.
    */
-  TEST_LOGGER: Logger;
+  public TEST_LOGGER: Logger;
   /**
    * id A unique id for the test run.
    */
-  id: string;
-  /**
-   * A function that returns unique strings.
-   */
-  uniqid: () => string;
+  public id = uniqid();
   /**
    * An object used in tests that interact with config files.
    */
-  configStubs: {
+  public configStubs: {
     [configName: string]: Optional<ConfigStub>;
     AliasesConfig?: ConfigStub;
     AuthInfoConfig?: ConfigStub;
     Config?: ConfigStub;
     SfProjectJson?: ConfigStub;
     TokensConfig?: ConfigStub;
-  };
+  } = {};
   /**
-   * An record of stubs created during instantaion.
+   * A record of stubs created during instantiation.
    */
-  stubs: {
-    configRead?: sinonType.SinonStub;
-    configReadSync?: sinonType.SinonStub;
-    configWriteSync?: sinonType.SinonStub;
-    configWrite?: sinonType.SinonStub;
-    configExists?: sinonType.SinonStub;
-    configRemove?: sinonType.SinonStub;
-  };
+  public stubs: Record<string, SinonStub> = {};
+
+  public constructor(options: { sinon?: SinonStatic; sandbox?: SinonSandbox; setup?: boolean } = {}) {
+    const opts = { setup: true, ...options };
+    const sinon = this.requireSinon(opts.sinon);
+    // Import all the messages files in the sfdx-core messages dir.
+    Messages.importMessagesDirectory(pathJoin(__dirname));
+    // Create a global sinon sandbox and a test logger instance for use within tests.
+    this.SANDBOX = opts.sandbox ?? sinon.createSandbox();
+    this.SANDBOXES = {
+      DEFAULT: this.SANDBOX,
+      CONFIG: sinon.createSandbox(),
+      PROJECT: sinon.createSandbox(),
+      CRYPTO: sinon.createSandbox(),
+      CONNECTION: sinon.createSandbox(),
+      FS: sinon.createSandbox(),
+      ORGS: sinon.createSandbox(),
+    };
+
+    this.TEST_LOGGER = new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging();
+
+    if (opts.setup) {
+      this.setup();
+    }
+  }
+
+  /**
+   * Generate unique string.
+   */
+  public uniqid(): string {
+    return uniqid();
+  }
+
   /**
    * A function used when resolving the local path. Calls localPathResolverSync by default.
    *
    * @param uid Unique id.
    */
-  localPathRetriever: (uid: string) => Promise<string>;
+  public async localPathRetriever(uid: string): Promise<string> {
+    return Promise.resolve(getTestLocalPath(uid));
+  }
+
   /**
    * A function used when resolving the local path.
    *
    * @param uid Unique id.
    */
-  localPathRetrieverSync: (uid: string) => string;
+  public localPathRetrieverSync(uid: string): string {
+    return getTestLocalPath(uid);
+  }
+
   /**
    * A function used when resolving the global path. Calls globalPathResolverSync by default.
    *
    * @param uid Unique id.
    */
-  globalPathRetriever: (uid: string) => Promise<string>;
+  public async globalPathRetriever(uid: string): Promise<string> {
+    return Promise.resolve(getTestGlobalPath(uid));
+  }
+
   /**
    * A function used when resolving the global path.
    *
    * @param uid Unique id.
    */
-  globalPathRetrieverSync: (uid: string) => string;
+  public globalPathRetrieverSync(uid: string): string {
+    return getTestGlobalPath(uid);
+  }
+
   /**
    * A function used for resolving paths. Calls localPathRetriever and globalPathRetriever.
    *
    * @param isGlobal `true` if the config is global.
    * @param uid user id.
    */
-  rootPathRetriever: (isGlobal: boolean, uid?: string) => Promise<string>;
+  public async rootPathRetriever(isGlobal: boolean, uid?: string): Promise<string> {
+    return retrieveRootPath(isGlobal, uid);
+  }
+
   /**
    * A function used for resolving paths. Calls localPathRetrieverSync and globalPathRetrieverSync.
    *
    * @param isGlobal `true` if the config is global.
    * @param uid user id.
    */
-  rootPathRetrieverSync: (isGlobal: boolean, uid?: string) => string;
+  public rootPathRetrieverSync(isGlobal: boolean, uid?: string): string {
+    return retrieveRootPathSync(isGlobal, uid);
+  }
+
   /**
    * Used to mock http request to Salesforce.
    *
@@ -188,45 +228,161 @@ export interface TestContext {
    *
    * **See** {@link Connection.request}
    */
-  fakeConnectionRequest: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async fakeConnectionRequest(request: AnyJson, options?: AnyJson): Promise<AnyJson> {
+    return defaultFakeConnectionRequest();
+  }
+
   /**
    * Gets a config stub contents by name.
    *
    * @param name The name of the config.
    * @param group If the config supports groups.
    */
-  getConfigStubContents(name: string, group?: string): ConfigContents;
+  public getConfigStubContents(name: string, group?: string): ConfigContents {
+    const stub: Optional<ConfigStub> = this.configStubs[name];
+    if (stub?.contents) {
+      if (group && stub.contents[group]) {
+        return ensureJsonMap(stub.contents[group]);
+      } else {
+        return stub.contents;
+      }
+    }
+    return {};
+  }
+
   /**
    * Sets a config stub contents by name
    *
    * @param name The name of the config stub.
    * @param value The actual stub contents. The Mock data.
    */
-  setConfigStubContents(name: string, value: ConfigContents): void;
+  public setConfigStubContents(name: string, value: ConfigContents): void {
+    if (ensureString(name) && isJsonMap(value)) {
+      this.configStubs[name] = value;
+    }
+  }
+
   /**
    * Set stubs for working in the context of a SfProject
    */
-  inProject(inProject: boolean): void;
+  public inProject(inProject = true): void {
+    this.SANDBOXES.PROJECT.restore();
+    if (inProject) {
+      this.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPath').callsFake(() => this.localPathRetriever(this.id));
+      this.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPathSync').callsFake(() =>
+        this.localPathRetrieverSync(this.id)
+      );
+    } else {
+      this.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPath').rejects(
+        new SfError('', 'InvalidProjectWorkspaceError')
+      );
+      this.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPathSync').throws(
+        new SfError('', 'InvalidProjectWorkspaceError')
+      );
+    }
+  }
+
   /**
    * Stub salesforce org authorizations.
    */
-  stubAuths(...orgs: MockTestOrgData[]): Promise<void>;
+  public async stubAuths(...orgs: MockTestOrgData[]): Promise<void> {
+    const entries = await Promise.all(
+      orgs.map(async (org): Promise<[string, AuthFields]> => [org.username, await org.getConfig()])
+    );
+    const orgMap = new Map(entries);
+
+    stubMethod(this.SANDBOX, OrgAccessor.prototype, 'getAllFiles').resolves([...orgMap.keys()].map((o) => `${o}.json`));
+
+    stubMethod(this.SANDBOX, OrgAccessor.prototype, 'hasFile').callsFake((username: string) => orgMap.has(username));
+
+    const retrieveContents = async function (this: { path: string }): Promise<AuthFields> {
+      const username = basename(this.path.replace('.json', ''));
+      return Promise.resolve(orgMap.get(username) ?? {});
+    };
+
+    this.configStubs.AuthInfoConfig = { retrieveContents };
+  }
+
   /**
    * Stub salesforce sandbox authorizations.
    */
-  stubSandboxes(...orgs: MockTestSandboxData[]): Promise<void>;
+  public async stubSandboxes(...sandboxes: MockTestSandboxData[]): Promise<void> {
+    const entries = (await Promise.all(
+      sandboxes.map(async (sandbox) => [sandbox.username, await sandbox.getConfig()])
+    )) as Array<[string, SandboxFields]>;
+    const sandboxMap = new Map(entries);
+
+    stubMethod(this.SANDBOX, SandboxAccessor.prototype, 'getAllFiles').resolves(
+      [...sandboxMap.keys()].map((o) => `${o}.sandbox.json`)
+    );
+
+    const retrieveContents = async function (this: { path: string }): Promise<SandboxFields> {
+      const username = basename(this.path.replace('.sandbox.json', ''));
+      return Promise.resolve(sandboxMap.get(username) ?? ({} as SandboxFields));
+    };
+
+    this.configStubs.SandboxOrgConfig = { retrieveContents };
+  }
+
   /**
    * Stub the aliases in the global aliases config file.
    */
-  stubAliases(aliases: Record<string, string>, group?: AliasGroup): void;
+  public stubAliases(aliases: Record<string, string>, group = AliasGroup.ORGS): void {
+    this.configStubs.AliasesConfig = { contents: { [group]: aliases } };
+  }
+
   /**
    * Stub contents in the config file.
    */
-  stubConfig(config: Record<string, string>): Promise<void>;
+  public async stubConfig(config: Record<string, string>): Promise<void> {
+    this.configStubs.Config = { contents: config };
+    // configAggregator may have already loaded an instance.  We're not sure why this happens.
+    // This seems to solve the problem by forcing a load of the new stubbed config.
+    await ConfigAggregator.create();
+  }
+
   /**
    * Stub the tokens in the global token config file.
    */
-  stubTokens(tokens: Record<string, string>): void;
+  public stubTokens(tokens: Record<string, string>): void {
+    this.configStubs.TokensConfig = { contents: tokens };
+  }
+
+  public restore(): void {
+    restoreContext(this);
+  }
+
+  public init(): void {
+    this.stubs = stubContext(this);
+  }
+
+  /**
+   * Add beforeEach and afterEach hooks to init the stubs and restore them.
+   * This is called automatically when the class is instantiated unless the setup option is set to false.
+   */
+  public setup(): void {
+    beforeEach(() => {
+      this.init();
+    });
+
+    afterEach(() => {
+      this.restore();
+    });
+  }
+
+  private requireSinon(sinon: Nullable<SinonStatic>): SinonStatic {
+    if (sinon) return sinon;
+    try {
+      sinon = require('sinon');
+    } catch (e) {
+      throw new Error(
+        'The package sinon was not found. Add it to your package.json and pass it in to new TestContext({sinon})'
+      );
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return sinon!;
+  }
 }
 
 /**
@@ -284,149 +440,16 @@ function defaultFakeConnectionRequest(): Promise<AnyJson> {
  * const $$ = instantiateContext();
  *
  * beforeEach(() => {
- *   stubContext($$);
+ *   $$.init()
  * });
  *
  * afterEach(() => {
- *   restoreContext($$);
+ *   $$.restore();
  * });
  * ```
  * @param sinon
  */
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-export const instantiateContext = (sinon?: any): TestContext => {
-  if (!sinon) {
-    try {
-      sinon = require('sinon');
-    } catch (e) {
-      throw new Error(
-        'The package sinon was not found. Add it to your package.json and pass it in to testSetup(sinon.sandbox)'
-      );
-    }
-  }
-
-  // Import all the messages files in the sfdx-core messages dir.
-  // Messages.importMessagesDirectory(pathJoin(__dirname, '..', '..'));
-  Messages.importMessagesDirectory(pathJoin(__dirname));
-  // Create a global sinon sandbox and a test logger instance for use within tests.
-  const defaultSandbox = sinon.createSandbox();
-  const testContext: TestContext = {
-    SANDBOX: defaultSandbox,
-    SANDBOXES: {
-      DEFAULT: defaultSandbox,
-      CONFIG: sinon.createSandbox(),
-      PROJECT: sinon.createSandbox(),
-      CRYPTO: sinon.createSandbox(),
-      CONNECTION: sinon.createSandbox(),
-      FS: sinon.createSandbox(),
-      ORGS: sinon.createSandbox(),
-    },
-    TEST_LOGGER: new Logger({
-      name: 'SFDX_Core_Test_Logger',
-    }).useMemoryLogging(),
-    id: uniqid(),
-    uniqid,
-    configStubs: {},
-    stubs: {},
-    // eslint-disable-next-line @typescript-eslint/require-await
-    localPathRetriever: async (uid: string) => getTestLocalPath(uid),
-    localPathRetrieverSync: getTestLocalPath,
-    // eslint-disable-next-line @typescript-eslint/require-await
-    globalPathRetriever: async (uid: string) => getTestGlobalPath(uid),
-    globalPathRetrieverSync: getTestGlobalPath,
-    rootPathRetriever: retrieveRootPath,
-    rootPathRetrieverSync: retrieveRootPathSync,
-    fakeConnectionRequest: defaultFakeConnectionRequest,
-    getConfigStubContents(name: string, group?: string): ConfigContents {
-      const stub: Optional<ConfigStub> = this.configStubs[name];
-      if (stub?.contents) {
-        if (group && stub.contents[group]) {
-          return ensureJsonMap(stub.contents[group]);
-        } else {
-          return stub.contents;
-        }
-      }
-      return {};
-    },
-
-    setConfigStubContents(name: string, value: ConfigContents) {
-      if (ensureString(name) && isJsonMap(value)) {
-        this.configStubs[name] = value;
-      }
-    },
-    inProject(inProject = true) {
-      testContext.SANDBOXES.PROJECT.restore();
-      if (inProject) {
-        testContext.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPath').callsFake(() =>
-          testContext.localPathRetriever(testContext.id)
-        );
-        testContext.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPathSync').callsFake(() =>
-          testContext.localPathRetrieverSync(testContext.id)
-        );
-      } else {
-        testContext.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPath').rejects(
-          new SfError('', 'InvalidProjectWorkspaceError')
-        );
-        testContext.SANDBOXES.PROJECT.stub(SfProject, 'resolveProjectPathSync').throws(
-          new SfError('', 'InvalidProjectWorkspaceError')
-        );
-      }
-    },
-    async stubAuths(...orgs: MockTestOrgData[]): Promise<void> {
-      const entries = await Promise.all(
-        orgs.map(async (org): Promise<[string, AuthFields]> => [org.username, await org.getConfig()])
-      );
-      const orgMap = new Map(entries);
-
-      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'getAllFiles').resolves(
-        [...orgMap.keys()].map((o) => `${o}.json`)
-      );
-
-      stubMethod(testContext.SANDBOX, OrgAccessor.prototype, 'hasFile').callsFake((username: string) =>
-        orgMap.has(username)
-      );
-
-      const retrieveContents = async function (this: { path: string }): Promise<AuthFields> {
-        const username = basename(this.path.replace('.json', ''));
-        return Promise.resolve(orgMap.get(username) ?? {});
-      };
-
-      this.configStubs.AuthInfoConfig = { retrieveContents };
-    },
-    async stubSandboxes(...sandboxes: MockTestSandboxData[]): Promise<void> {
-      const entries = (await Promise.all(
-        sandboxes.map(async (sanbox) => [sanbox.username, await sanbox.getConfig()])
-      )) as Array<[string, SandboxFields]>;
-      const sandboxMap = new Map(entries);
-
-      stubMethod(testContext.SANDBOX, SandboxAccessor.prototype, 'getAllFiles').resolves(
-        [...sandboxMap.keys()].map((o) => `${o}.sandbox.json`)
-      );
-
-      const retrieveContents = async function (this: { path: string }): Promise<SandboxFields> {
-        const username = basename(this.path.replace('.sandbox.json', ''));
-        return Promise.resolve(sandboxMap.get(username) ?? ({} as SandboxFields));
-      };
-
-      this.configStubs.SandboxOrgConfig = { retrieveContents };
-    },
-    stubAliases(aliases: Record<string, string>, group = AliasGroup.ORGS): void {
-      this.configStubs.AliasesConfig = { contents: { [group]: aliases } };
-    },
-    async stubConfig(config: Record<string, string>): Promise<void> {
-      this.configStubs.Config = { contents: config };
-      // configAggregator may have already loaded an instance.  We're not sure why this happens.
-      // This seems to solve the problem by forcing a load of the new stubbed config.
-      await ConfigAggregator.create();
-    },
-    stubTokens(tokens: Record<string, string>): void {
-      this.configStubs.TokensConfig = { contents: tokens };
-    },
-  };
-
-  return testContext;
-};
+export const instantiateContext = (sinon?: SinonStatic): TestContext => new TestContext({ sinon, setup: false });
 
 /**
  * Stub a @salesforce/core test context. This will mock out logging to a file, config file reading and writing,
@@ -443,21 +466,21 @@ export const instantiateContext = (sinon?: any): TestContext => {
  * const $$ = instantiateContext();
  *
  * beforeEach(() => {
- *   stubContext($$);
+ *   $$.init()
  * });
  *
  * afterEach(() => {
- *   restoreContext($$);
+ *   $$.restore();
  * });
  * ```
  * @param testContext
  */
-export const stubContext = (testContext: TestContext): Record<string, sinonType.SinonStub> => {
+export const stubContext = (testContext: TestContext): Record<string, SinonStub> => {
   // Turn off the interoperability feature so that we don't have to mock
   // the old .sfdx config files
   Global.SFDX_INTEROPERABILITY = false;
 
-  const stubs: Record<string, sinonType.SinonStub> = {};
+  const stubs: Record<string, SinonStub> = {};
 
   // Most core files create a child logger so stub this to return our test logger.
   stubMethod(testContext.SANDBOX, Logger, 'child').resolves(testContext.TEST_LOGGER);
@@ -583,6 +606,8 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
   // Always start with the default and tests beforeEach or it methods can override it.
   testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
 
+  testContext.stubs = stubs;
+
   return stubs;
 };
 
@@ -596,11 +621,11 @@ export const stubContext = (testContext: TestContext): Record<string, sinonType.
  * const $$ = instantiateContext();
  *
  * beforeEach(() => {
- *   stubContext($$);
+ *   $$.init()
  * });
  *
  * afterEach(() => {
- *   restoreContext($$);
+ *   $$.restore();
  * });
  * ```
  * @param testContext
@@ -612,17 +637,19 @@ export const restoreContext = (testContext: TestContext): void => {
   testContext.configStubs = {};
   // Give each test run a clean StateAggregator
   StateAggregator.clearInstance();
+  // Allow each test to have their own config aggregator
+  // @ts-ignore clear for testing.
+  delete ConfigAggregator.instance;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
-const _testSetup = (sinon?: any): TestContext => {
+// eslint-disable-next-line no-underscore-dangle
+const _testSetup = (sinon?: SinonStatic): TestContext => {
   const testContext = instantiateContext(sinon);
 
   beforeEach(() => {
     // Allow each test to have their own config aggregator
     // @ts-ignore clear for testing.
     delete ConfigAggregator.instance;
-
     testContext.stubs = stubContext(testContext);
   });
 
@@ -634,12 +661,29 @@ const _testSetup = (sinon?: any): TestContext => {
 };
 
 /**
+ * @deprecated Use TestContext instead.
+ * Using testSetup will create globals stubs that could lead to erratic test behavior.
+ *
+ * This example shows you how to use TestContext:
+ * @example
+ * ```
+ * const $$ = new TestContext();
+ *
+ * beforeEach(() => {
+ *   $$.init();
+ * });
+ *
+ * afterEach(() => {
+ *   $$.restore();
+ * });
+ * ```
+ *
  * Use to mock out different pieces of sfdx-core to make testing easier. This will mock out
  * logging to a file, config file reading and writing, local and global path resolution, and
  * *http request using connection (soon)*.
  *
  * **Note:** The testSetup should be outside of the describe. If you need to stub per test, use
- * `instantiateContext`, `stubContext`, and `restoreContext`.
+ * `TestContext`.
  * ```
  * // In a mocha tests
  * import testSetup from '@salesforce/core/lib/testSetup';
@@ -655,7 +699,7 @@ const _testSetup = (sinon?: any): TestContext => {
  *    $$.stubAliases({ 'myTestAlias': 'user@company.com' });
  *
  *    // Will use the contents set above.
- *    const username = (await StateAggregator.getInstance()).aliases.resolveUseranme('myTestAlias');
+ *    const username = (await StateAggregator.getInstance()).aliases.resolveUsername('myTestAlias');
  *    expect(username).to.equal('user@company.com');
  *  });
  * });

@@ -6,7 +6,7 @@
  */
 import { expect } from 'chai';
 import { StateAggregator } from '../../../../src/stateAggregator';
-import { MockTestOrgData, testSetup, uniqid } from '../../../../src/testSetup';
+import { MockTestOrgData, TestContext, uniqid } from '../../../../src/testSetup';
 
 const username = 'espresso@coffee.com';
 const alias = 'MyAlias';
@@ -14,7 +14,7 @@ const org = new MockTestOrgData(uniqid(), { username });
 const token = { token: '123', url: 'https://login.salesforce.com', user: username };
 
 describe('TokenAccessor', () => {
-  const $$ = testSetup();
+  const $$ = new TestContext();
 
   beforeEach(async () => {
     $$.stubAliases({ [alias]: username });

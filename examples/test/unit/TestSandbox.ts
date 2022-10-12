@@ -7,12 +7,11 @@
 
 import { strictEqual } from 'assert';
 import * as os from 'os';
-import { testSetup } from '@salesforce/core/lib/testSetup';
+import { TestContext } from '@salesforce/core/lib/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
 
-const $$ = testSetup();
-
 describe('Using the built in Sinon sandbox.', () => {
+  const $$ = new TestContext();
   it('example', async () => {
     const unsupportedOS = 'LEO';
     stubMethod($$.SANDBOX, os, 'platform').returns(unsupportedOS);

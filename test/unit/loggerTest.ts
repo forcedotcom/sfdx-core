@@ -14,15 +14,13 @@ import { expect } from 'chai';
 import * as debug from 'debug';
 import * as _ from 'lodash';
 import { Logger, LoggerFormat, LoggerLevel, LoggerStream } from '../../src/logger';
-import { shouldThrowSync, testSetup } from '../../src/testSetup';
-
-// Setup the test environment.
-const $$ = testSetup();
+import { shouldThrowSync, TestContext } from '../../src/testSetup';
 
 // NOTE: These tests still use 'await' which is how it use to work and were left to make
 // sure we didn't regress the way they were used.
 
 describe('Logger', () => {
+  const $$ = new TestContext();
   const sfdxEnv = process.env.SFDX_ENV;
   const logRotationPeriodBackup = process.env.SF_LOG_ROTATION_PERIOD;
   const logRotationCountBackup = process.env.SF_LOG_ROTATION_COUNT;
