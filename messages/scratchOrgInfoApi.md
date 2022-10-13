@@ -13,3 +13,7 @@ We've deprecated OrgPreferences. Update the scratch org definition file to repla
 # SourceStatusResetFailureError
 
 Successfully created org with ID: %s and name: %s. Unfortunately, source tracking isn’t working as expected. If you run force:source:status, the results may be incorrect. Try again by creating another scratch org.
+
+# hubOrgIsNotDevHub
+
+Make sure that the org with username %s and ID %s is enabled as a Dev Hub. To enable it, open the org in your browser, navigate to the Dev Hub page in Setup, and click Enable.

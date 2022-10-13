@@ -46,7 +46,7 @@ describe('scratchOrgCreate', () => {
         signupTargetLoginUrl: 'https://salesforce.com',
       }),
     } as unknown as SfProject);
-    hubOrgStub.isDevHubOrg.returns(false);
+    hubOrgStub.isDevHubOrg.returns(true);
     hubOrgStub.determineIfDevHubOrg.withArgs(true).resolves();
     // @ts-ignore
     hubOrgStub.getConnection.returns({

@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as sinon from 'sinon';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import { env, Duration } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { Connection } from '../../../src/org';
@@ -51,6 +51,9 @@ const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
 describe('requestScratchOrgCreation', () => {
   const sandbox = sinon.createSandbox();
   const connectionStub = sinon.createStubInstance(Connection);
+  let isDevHubStub: sinon.SinonStub;
+  let hubOrg: Org;
+  let settings: SettingsGenerator;
 
   beforeEach(() => {
     stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
@@ -59,6 +62,9 @@ describe('requestScratchOrgCreation', () => {
       create: sinon.stub().resolves(true),
     });
     stubMethod(sandbox, Org.prototype, 'getConnection').returns(connectionStub);
+    hubOrg = new Org({});
+    settings = new SettingsGenerator();
+    isDevHubStub = stubMethod(sandbox, hubOrg, 'isDevHubOrg').returns(true);
   });
 
   afterEach(() => {
@@ -69,33 +75,36 @@ describe('requestScratchOrgCreation', () => {
     const error = new Error('MyError');
     error.name = 'NamedOrgNotFoundError';
     stubMethod(sandbox, AuthInfo, 'create').rejects(error);
-    const hubOrg = new Org({});
-    const settings = new SettingsGenerator();
     const result = await requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings);
     expect(result).to.be.true;
+  });
+
+  it('requestScratchOrgCreation throws when HubOrg is not a DevHub', async () => {
+    isDevHubStub.returns(false);
+    sandbox.stub(hubOrg, 'getOrgId').returns('00D530000008eXXXXX');
+    try {
+      await requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings);
+      assert.fail('Should have thrown');
+    } catch (e) {
+      expect(e.message).to.equal(messages.getMessage('hubOrgIsNotDevHub', [hubOrg.getUsername(), hubOrg.getOrgId()]));
+    }
   });
 
   it('requestScratchOrgCreation no username field in scratchOrgRequest', async () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { Username, ...scratchOrgRequest } = { ...TEMPLATE_SCRATCH_ORG_INFO };
-    const hubOrg = new Org({});
-    const settings = new SettingsGenerator();
     const result = await requestScratchOrgCreation(hubOrg, scratchOrgRequest as ScratchOrgInfo, settings);
     expect(result).to.be.true;
   });
 
   it('requestScratchOrgCreation no username field in scratchOrgRequest is empty', async () => {
     const scratchOrgRequest = { ...TEMPLATE_SCRATCH_ORG_INFO, Username: undefined };
-    const hubOrg = new Org({});
-    const settings = new SettingsGenerator();
     const result = await requestScratchOrgCreation(hubOrg, scratchOrgRequest, settings);
     expect(result).to.be.true;
   });
 
   it('requestScratchOrgCreation user exists', async () => {
     stubMethod(sandbox, AuthInfo, 'create').resolves();
-    const hubOrg = new Org({});
-    const settings = new SettingsGenerator();
     try {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
@@ -112,8 +121,6 @@ describe('requestScratchOrgCreation', () => {
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       create: sinon.stub().rejects(new Error('MyCreateError')),
     });
-    const hubOrg = new Org({});
-    const settings = new SettingsGenerator();
     try {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
@@ -129,8 +136,7 @@ describe('requestScratchOrgCreation', () => {
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       create: sinon.stub().rejects(),
     });
-    const hubOrg = new Org({});
-    const settings = new SettingsGenerator();
+
     try {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
@@ -153,8 +159,7 @@ describe('requestScratchOrgCreation', () => {
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       create: sinon.stub().rejects(jsForceError),
     });
-    const hubOrg = new Org({});
-    const settings = new SettingsGenerator();
+
     try {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
@@ -169,7 +174,7 @@ describe('requestScratchOrgCreation', () => {
     const err = new Error('MyError');
     err.name = 'NamedOrgNotFound';
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
-    const hubOrg = new Org({});
+
     const s = { a: 'b' };
     const scratchDef = {
       ...TEMPLATE_SCRATCH_ORG_INFO,
@@ -178,7 +183,7 @@ describe('requestScratchOrgCreation', () => {
         preference: true,
       },
     } as unknown as ScratchOrgInfo;
-    const settings = new SettingsGenerator();
+
     await settings.extract(scratchDef);
     try {
       await shouldThrow(requestScratchOrgCreation(hubOrg, scratchDef, settings));
@@ -196,14 +201,13 @@ describe('requestScratchOrgCreation', () => {
     const err = new Error('MyError');
     err.name = 'NamedOrgNotFound';
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
-    const hubOrg = new Org({});
+
     const scratchDef = {
       ...TEMPLATE_SCRATCH_ORG_INFO,
       orgPreferences: {
         preference: true,
       },
     } as unknown as ScratchOrgInfo;
-    const settings = new SettingsGenerator();
     await settings.extract(scratchDef);
     try {
       await shouldThrow(requestScratchOrgCreation(hubOrg, scratchDef, settings));
