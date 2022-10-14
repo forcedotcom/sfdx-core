@@ -608,7 +608,9 @@ export class SfProject {
       // fullPath will not have a trailing slash, so remove it from packageDir.fullPath, if it exists
       const fullPathSansTrailingSep = packageDir.fullPath.replace(/(\\|\/)$/, '');
       return (
-        basename(path) === packageDir.path || fullPath === fullPathSansTrailingSep || path.includes(packageDir.fullPath)
+        basename(path) === packageDir.path ||
+        fullPath === fullPathSansTrailingSep ||
+        fullPath.includes(packageDir.fullPath)
       );
     });
     return match;
