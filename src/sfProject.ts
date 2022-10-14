@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { basename, dirname, isAbsolute, normalize, sep } from 'path';
+import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'path';
 import * as fs from 'fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
@@ -602,9 +602,15 @@ export class SfProject {
    */
   public getPackageFromPath(path: string): Optional<NamedPackageDir> {
     const packageDirs = this.getPackageDirectories();
-    const match = packageDirs.find(
-      (packageDir) => basename(path) === packageDir.path || path.includes(packageDir.fullPath)
-    );
+    // resolve the given path
+    const fullPath = resolve(path);
+    const match = packageDirs.find((packageDir) => {
+      // fullPath will not have a trailing slash, so remove it from packageDir.fullPath, if it exists
+      const fullPathSansTrailingSep = packageDir.fullPath.replace(/(\\|\/)$/, '');
+      return (
+        basename(path) === packageDir.path || fullPath === fullPathSansTrailingSep || path.includes(packageDir.fullPath)
+      );
+    });
     return match;
   }
 
@@ -627,6 +633,7 @@ export class SfProject {
     const packageDirs = this.getPackageDirectories();
     return packageDirs.find((packageDir) => packageDir.name === packageName);
   }
+
   /**
    * Returns the package directory.
    *
@@ -747,6 +754,7 @@ export class SfProject {
   public async hasPackageAliases(): Promise<boolean> {
     return this.getSfProjectJson().hasPackageAliases();
   }
+
   /**
    * Returns a read-only list of `packageDirectories` within sfdx-project.json, first reading
    * and validating the file if necessary. i.e. modifying this array will not affect the
@@ -763,6 +771,7 @@ export class SfProject {
     const packageAliases = this.getPackageAliases();
     return packageAliases ? packageAliases[alias] : undefined;
   }
+
   public getAliasesFromPackageId(id: string): string[] {
     if (!/^.{15,18}$/.test(id)) {
       throw messages.createError('invalidId', [id]);
