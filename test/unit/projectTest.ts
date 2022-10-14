@@ -555,8 +555,8 @@ describe('SfProject', () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {
             packageDirectories: [
-              { path: expectedNestedPackage, default: false },
               { path: expectedPackage, default: true },
+              { path: expectedNestedPackage, default: false },
               { path: expectedContainedPackage, default: false },
             ],
           },
@@ -588,6 +588,30 @@ describe('SfProject', () => {
         const actual = SfProject.getInstance().getPackageNameFromPath(
           join(projectPath, expectedNestedPackage, 'main', 'apex', 'apecClass.cls')
         );
+        expect(actual).to.equal(expectedNestedPackage);
+      });
+      it('should return correct package name when the package has a nested path and given path equal package full path', () => {
+        const actual = SfProject.getInstance().getPackageNameFromPath(join(projectPath, expectedNestedPackage));
+        expect(actual).to.equal(expectedNestedPackage);
+      });
+      it('should return correct package name when the package has a nested path and given relative path', () => {
+        $$.SANDBOX.stub(process, 'cwd').returns(projectPath);
+        const actual = SfProject.getInstance().getPackageNameFromPath(expectedNestedPackage);
+        expect(actual).to.equal(expectedNestedPackage);
+      });
+      it(`should return correct package name when the package has a nested path and given relative dir with leading sep .${sep}foodir`, () => {
+        $$.SANDBOX.stub(process, 'cwd').returns(projectPath);
+        const actual = SfProject.getInstance().getPackageNameFromPath(`.${sep}${expectedNestedPackage}`);
+        expect(actual).to.equal(expectedNestedPackage);
+      });
+      it(`should return correct package name when the package has a nested path and given relative dir trailing sep foodir${sep}`, () => {
+        $$.SANDBOX.stub(process, 'cwd').returns(projectPath);
+        const actual = SfProject.getInstance().getPackageNameFromPath(`${expectedNestedPackage}${sep}`);
+        expect(actual).to.equal(expectedNestedPackage);
+      });
+      it(`should return correct package name when the package has a nested path and given relative dir with leading and trailing sep .${sep}foodir${sep}`, () => {
+        $$.SANDBOX.stub(process, 'cwd').returns(projectPath);
+        const actual = SfProject.getInstance().getPackageNameFromPath(`.${sep}${expectedNestedPackage}${sep}`);
         expect(actual).to.equal(expectedNestedPackage);
       });
     });
