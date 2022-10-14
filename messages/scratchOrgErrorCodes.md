@@ -8,7 +8,7 @@ An unknown server error occurred. Please try again. If you still see this error,
 
 # SignupFailedActionError
 
-See https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_objects_signuprequest.htm for information on error code %s.
+See https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_error_codes.htm for information on error code %s.
 
 # SignupUnexpectedError
 
