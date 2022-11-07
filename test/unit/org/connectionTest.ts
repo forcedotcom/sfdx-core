@@ -197,6 +197,30 @@ describe('Connection', () => {
     expect(response).to.deep.equal(testResponse);
   });
 
+  it('request() deduplicates headers', async () => {
+    const testResponse = { success: true };
+    requestMock.onSecondCall().returns(Promise.resolve(testResponse));
+
+    const conn = await Connection.create({
+      authInfo: fromStub(testAuthInfoWithDomain),
+    });
+
+    const testUrl = 'https://connectionTest/instanceUrl/services/data/v50.0/tooling/sobjects';
+    const requestInfo = {
+      method: 'GET',
+      url: testUrl,
+      headers: { 'Content-Type': 'application/json', 'CoNtEnT-tYpE': 'application/xml', 'new-header': 'foo' },
+    };
+    const expectedRequestInfo = Object.assign({}, requestInfo, {
+      headers: SFDX_HTTP_HEADERS,
+    });
+
+    await conn.tooling.describeGlobal();
+
+    expect(requestMock.called).to.be.true;
+    expect(requestMock.secondCall.args[0]).to.deep.equal(expectedRequestInfo);
+  });
+
   describe('deploy', () => {
     it('deploy() will work with SOAP', async () => {
       const conn = await Connection.create({
@@ -204,7 +228,7 @@ describe('Connection', () => {
       });
       const soapDeployStub = $$.SANDBOX.stub(conn.metadata, 'deploy').resolves();
 
-      await conn.deploy(new Buffer('test data'), { rest: false });
+      await conn.deploy(Buffer.from('test data'), { rest: false });
       expect(soapDeployStub.callCount).to.equal(1);
     });
   });

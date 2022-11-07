@@ -39,7 +39,7 @@ describe('DirectoryWriter', () => {
     validateFileContents(path.join(directoryPath, filename), contents);
   });
   it('addToStore - Buffer', async () => {
-    const contents = new Buffer('my-contents');
+    const contents = Buffer.from('my-contents');
     await directoryWriter.addToStore(contents, filename);
     await directoryWriter.finalize();
     expect(fs.existsSync(path.join(directoryPath, filename))).to.be.true;
