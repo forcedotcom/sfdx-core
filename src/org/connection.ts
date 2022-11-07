@@ -197,7 +197,14 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    */
   public request<R = unknown>(request: string | HttpRequest, options?: JsonMap): StreamPromise<R> {
     const httpRequest: HttpRequest = isString(request) ? { method: 'GET', url: request } : request;
-    httpRequest.headers = Object.assign({}, SFDX_HTTP_HEADERS, httpRequest.headers);
+    // prevent duplicate headers by lowercasing the keys on the incoming request
+    const lowercasedHeaders = httpRequest.headers
+      ? Object.fromEntries(Object.entries(httpRequest.headers).map(([key, value]) => [key.toLowerCase(), value]))
+      : {};
+    httpRequest.headers = {
+      ...SFDX_HTTP_HEADERS,
+      ...lowercasedHeaders,
+    };
     this.logger.debug(`request: ${JSON.stringify(httpRequest)}`);
     return super.request(httpRequest, options);
   }
