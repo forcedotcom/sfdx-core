@@ -119,7 +119,6 @@ export class SfProjectJson extends ConfigFile {
   public readSync(): ConfigContents {
     const contents = super.readSync();
     this.validateKeys();
-    this.schemaValidateSync();
     return contents;
   }
 
@@ -128,7 +127,6 @@ export class SfProjectJson extends ConfigFile {
       this.setContents(newContents);
     }
     this.validateKeys();
-    await this.schemaValidate();
     return super.write();
   }
 
@@ -137,7 +135,6 @@ export class SfProjectJson extends ConfigFile {
       this.setContents(newContents);
     }
     this.validateKeys();
-    this.schemaValidateSync();
     return super.writeSync();
   }
 
