@@ -112,14 +112,12 @@ export class SfProjectJson extends ConfigFile {
   public async read(): Promise<ConfigContents> {
     const contents = await super.read();
     this.validateKeys();
-    await this.schemaValidate();
     return contents;
   }
 
   public readSync(): ConfigContents {
     const contents = super.readSync();
     this.validateKeys();
-    this.schemaValidateSync();
     return contents;
   }
 
@@ -128,7 +126,6 @@ export class SfProjectJson extends ConfigFile {
       this.setContents(newContents);
     }
     this.validateKeys();
-    await this.schemaValidate();
     return super.write();
   }
 
@@ -137,7 +134,6 @@ export class SfProjectJson extends ConfigFile {
       this.setContents(newContents);
     }
     this.validateKeys();
-    this.schemaValidateSync();
     return super.writeSync();
   }
 
@@ -167,19 +163,18 @@ export class SfProjectJson extends ConfigFile {
     if (!this.hasRead) {
       // read calls back into this method after necessarily setting this.hasRead=true
       await this.read();
-    } else {
-      try {
-        const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
-        const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
-        await validator.validate(this.getContents());
-      } catch (err) {
-        const error = err as Error;
-        // Don't throw errors if the global isn't valid, but still warn the user.
-        if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
-          throw messages.createError('schemaValidationError', [this.getPath(), error.message], [this.getPath()], error);
-        } else {
-          this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), error.message]));
-        }
+    }
+    try {
+      const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
+      const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
+      await validator.validate(this.getContents());
+    } catch (err) {
+      const error = err as Error;
+      // Don't throw errors if the global isn't valid, but still warn the user.
+      if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
+        throw messages.createError('schemaValidationError', [this.getPath(), error.message], [this.getPath()], error);
+      } else {
+        this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), error.message]));
       }
     }
   }
@@ -205,19 +200,18 @@ export class SfProjectJson extends ConfigFile {
     if (!this.hasRead) {
       // read calls back into this method after necessarily setting this.hasRead=true
       this.readSync();
-    } else {
-      try {
-        const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
-        const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
-        validator.validateSync(this.getContents());
-      } catch (err) {
-        const error = err as Error;
-        // Don't throw errors if the global isn't valid, but still warn the user.
-        if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
-          throw messages.createError('schemaValidationError', [this.getPath(), error.message], [this.getPath()], error);
-        } else {
-          this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), error.message]));
-        }
+    }
+    try {
+      const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
+      const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
+      validator.validateSync(this.getContents());
+    } catch (err) {
+      const error = err as Error;
+      // Don't throw errors if the global isn't valid, but still warn the user.
+      if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
+        throw messages.createError('schemaValidationError', [this.getPath(), error.message], [this.getPath()], error);
+      } else {
+        this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), error.message]));
       }
     }
   }

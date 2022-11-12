@@ -86,6 +86,7 @@ export class SchemaValidator {
 
     const ajv = new Ajv({
       allErrors: true,
+      allowUnionTypes: true,
       schemas: externalSchemas,
       useDefaults: true,
       // TODO: We may someday want to enable strictSchema. This is disabled for now

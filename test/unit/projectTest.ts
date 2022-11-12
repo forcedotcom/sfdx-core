@@ -36,22 +36,6 @@ describe('SfProject', () => {
       const json = await SfProjectJson.create();
       expect(json.get('packageAliases')['MyName']).to.equal('somePackage');
     });
-    it('read calls schemaValidate', async () => {
-      const defaultOptions = SfProjectJson.getDefaultOptions();
-      const sfProjectJson = new SfProjectJson(defaultOptions);
-      const schemaValidateStub = $$.SANDBOX.stub(sfProjectJson, 'schemaValidate');
-      schemaValidateStub.returns(Promise.resolve());
-      await sfProjectJson.read();
-      expect(schemaValidateStub.calledOnce).to.be.true;
-    });
-    it('write calls schemaValidate', async () => {
-      const defaultOptions = SfProjectJson.getDefaultOptions();
-      const sfProjectJson = new SfProjectJson(defaultOptions);
-      const schemaValidateStub = $$.SANDBOX.stub(sfProjectJson, 'schemaValidate');
-      schemaValidateStub.returns(Promise.resolve());
-      await sfProjectJson.write();
-      expect(schemaValidateStub.calledOnce).to.be.true;
-    });
     it('getPackageDirectories should transform packageDir paths to have path separators that match the OS', async () => {
       let defaultPP: string;
       let transformedDefaultPP: string;
@@ -97,55 +81,6 @@ describe('SfProject', () => {
           default: false,
         },
       ]);
-    });
-    it('schemaValidate validates sfdx-project.json', async () => {
-      $$.setConfigStubContents('SfProjectJson', {
-        contents: {
-          packageDirectories: [
-            { path: 'force-app', default: true },
-            { path: 'common', default: false },
-          ],
-          namespace: 'test_ns',
-          sourceApiVersion: '48.0',
-        },
-      });
-      const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
-      // create() calls read() which calls schemaValidate()
-      await SfProjectJson.create();
-      expect(loggerSpy.called).to.be.false;
-    });
-    it('schemaValidate throws when SFDX_PROJECT_JSON_VALIDATION=true and invalid file', async () => {
-      $$.setConfigStubContents('SfProjectJson', {
-        contents: {
-          packageDirectories: [{ path: 'force-app', default: true }],
-          foo: 'bar',
-        },
-      });
-      $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
-      const expectedError = "Validation errors:\n#/additionalProperties: must NOT have additional properties 'foo'";
-      try {
-        // create() calls read() which calls schemaValidate()
-        await shouldThrow(SfProjectJson.create());
-      } catch (e) {
-        if (!(e instanceof Error)) {
-          expect.fail('Expected error to be an instance of Error');
-        }
-        expect(e.name).to.equal('SchemaValidationError');
-        expect(e.message).to.contain(expectedError);
-      }
-    });
-    it('schemaValidate warns when SFDX_PROJECT_JSON_VALIDATION=false and invalid file', async () => {
-      $$.setConfigStubContents('SfProjectJson', {
-        contents: {
-          packageDirectories: [{ path: 'force-app', default: true }],
-          foo: 'bar',
-        },
-      });
-      const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
-      // create() calls read() which calls schemaValidate()
-      await SfProjectJson.create();
-      expect(loggerSpy.calledOnce).to.be.true;
-      expect(loggerSpy.args[0][0]).to.contains('is not schema valid');
     });
   });
 
