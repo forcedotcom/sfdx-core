@@ -873,8 +873,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
   /**
    * Returns the JSForce connection for the org.
+   *
+   * @param apiVersion The API version to use for the connection.
    */
-  public getConnection(): Connection {
+  public getConnection(apiVersion?: string): Connection {
+    if (apiVersion && this.connection.getApiVersion() !== apiVersion) {
+      this.connection.setApiVersion(apiVersion);
+    }
     return this.connection;
   }
 

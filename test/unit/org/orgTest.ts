@@ -28,7 +28,7 @@ import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
 import { Global } from '../../../src/global';
-import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
+import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { StateAggregator } from '../../../src/stateAggregator';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
@@ -64,6 +64,25 @@ describe('Org Tests', () => {
         }),
       });
     };
+  });
+
+  describe('api version', () => {
+    it('uses latest api version when undefined', async () => {
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(org.getConnection().getApiVersion()).to.equal('50.0');
+    });
+    it('uses specified api version if offered', async () => {
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(org.getConnection('53.0').getApiVersion()).to.equal('53.0');
+    });
+    it('handles bad data', async () => {
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      try {
+        shouldThrowSync(() => org.getConnection('bad'));
+      } catch (err) {
+        // validation rules are tested other places, not going to duplicate here
+      }
+    });
   });
 
   describe('fields', () => {
