@@ -879,9 +879,14 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @param apiVersion The API version to use for the connection.
    */
   public getConnection(apiVersion?: string): Connection {
-    if (apiVersion && this.connection.getApiVersion() !== apiVersion) {
-      this.connection.setApiVersion(apiVersion);
+    if (apiVersion) {
+      if (this.connection.getApiVersion() === apiVersion) {
+        this.logger.warn(`Default API version is already ${apiVersion}`);
+      } else {
+        this.connection.setApiVersion(apiVersion);
+      }
     }
+
     return this.connection;
   }
 
