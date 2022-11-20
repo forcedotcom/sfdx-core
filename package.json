@@ -56,7 +56,7 @@
     "@salesforce/dev-config": "^3.0.1",
     "@salesforce/dev-scripts": "^3.1.0",
     "@salesforce/prettier-config": "^0.0.2",
-    "@salesforce/ts-sinon": "^1.4.0",
+    "@salesforce/ts-sinon": "^1.4.2",
     "@types/archiver": "^5.3.1",
     "@types/chai-string": "^1.4.2",
     "@types/debug": "0.0.31",
