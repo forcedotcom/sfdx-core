@@ -16,7 +16,7 @@ The request to create a scratch org returned an unexpected status
 
 # StillInProgressError
 
-The scratch org is not ready yet (Status = %).
+The scratch org is not ready yet (Status = %s).
 
 # action.StillInProgress
 
