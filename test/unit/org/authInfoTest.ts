@@ -14,7 +14,7 @@ import * as dns from 'dns';
 import * as jwt from 'jsonwebtoken';
 import { cloneJson, env, includes } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
-import { AnyJson, ensureString, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
+import { AnyJson, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { Transport } from 'jsforce/lib/transport';
 
@@ -33,8 +33,8 @@ class AuthInfoMockOrg extends MockTestOrgData {
   public expirationDate = '12-02-20';
   public encryptedAccessToken = this.accessToken;
   public defaultConnectedAppInfo = {
-    clientId: 'SalesforceDevelopmentExperience',
-    clientSecret: '1384510088588713504',
+    clientId: 'PlatformCLI',
+    clientSecret: '',
   };
 
   public async getConfig(): Promise<AuthFields> {
@@ -153,7 +153,6 @@ describe('AuthInfo', () => {
         // verify the returned object doesn't have secrets
         expect(() => walkAndSearchForSecrets(toJsonMap(fields) || {}, decryptedRefreshToken)).to.not.throw();
 
-        expect(strObj).does.not.include(ensureString(testOrg.defaultConnectedAppInfo.clientSecret));
         expect(strObj).does.not.include(decryptedRefreshToken);
       });
     });
@@ -177,7 +176,6 @@ describe('AuthInfo', () => {
         expect(() => walkAndSearchForSecrets(toJsonMap(fields) || {}, decryptedRefreshToken)).to.not.throw();
 
         // double check the stringified objects don't have secrets.
-        expect(strObj).does.not.include(ensureString(testOrg.defaultConnectedAppInfo.clientSecret));
         expect(strObj).does.not.include(decryptedRefreshToken);
       });
     });
@@ -190,7 +188,6 @@ describe('AuthInfo', () => {
         expect(() => walkAndSearchForSecrets(toJsonMap(authInfo) || {}, decryptedRefreshToken)).to.not.throw();
 
         // double check the stringified objects don't have secrets.
-        expect(authInfoString).does.not.include(ensureString(testOrg.defaultConnectedAppInfo.clientSecret));
         expect(authInfoString).does.not.include(decryptedRefreshToken);
       });
     });
@@ -1024,8 +1021,8 @@ describe('AuthInfo', () => {
         isDevHub: false,
         // clientId and clientSecret are now stored in the file, even the defaults.
         // We just hard code the legacy values here to ensure old auth files will still work.
-        clientId: 'SalesforceDevelopmentExperience',
-        clientSecret: '1384510088588713504',
+        clientId: 'PlatformCLI',
+        clientSecret: undefined,
         expirationDate: testOrg.expirationDate,
       };
       // Note that this also verifies the clientId and clientSecret are not persisted,
@@ -1226,9 +1223,7 @@ describe('AuthInfo', () => {
       });
 
       expect(authInfo.getSfdxAuthUrl()).to.contain(
-        `force://SalesforceDevelopmentExperience:1384510088588713504:${
-          testOrg.refreshToken
-        }@${testOrg.instanceUrl.replace('https://', '')}`
+        `force://PlatformCLI::${testOrg.refreshToken}@${testOrg.instanceUrl.replace('https://', '')}`
       );
     });
 
@@ -1254,9 +1249,7 @@ describe('AuthInfo', () => {
       // delete the client secret
       delete authInfo.getFields().clientSecret;
       const instanceUrl = testOrg.instanceUrl.replace('https://', '');
-      expect(authInfo.getSfdxAuthUrl()).to.contain(
-        `force://SalesforceDevelopmentExperience::${testOrg.refreshToken}@${instanceUrl}`
-      );
+      expect(authInfo.getSfdxAuthUrl()).to.contain(`force://PlatformCLI::${testOrg.refreshToken}@${instanceUrl}`);
     });
 
     it('should handle undefined refresh token', async () => {

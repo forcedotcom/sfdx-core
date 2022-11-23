@@ -14,12 +14,8 @@ import { SfError } from '../sfError';
 import { Org } from './org';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
+import { DEFAULT_CONNECTED_APP_INFO } from './authInfo';
 
-const defaultConnectedAppInfo = {
-  clientId: 'PlatformCLI',
-  legacyClientId: 'SalesforceDevelopmentExperience',
-  legacyClientSecret: '1384510088588713504',
-};
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
 
@@ -230,7 +226,7 @@ export const generateScratchOrgInfo = async ({
   // Use the Hub org's client ID value, if one wasn't provided to us, or the default
   if (!scratchOrgInfoPayload.connectedAppConsumerKey) {
     scratchOrgInfoPayload.connectedAppConsumerKey =
-      hubOrg.getConnection().getAuthInfoFields().clientId ?? defaultConnectedAppInfo.clientId;
+      hubOrg.getConnection().getAuthInfoFields().clientId ?? DEFAULT_CONNECTED_APP_INFO.clientId;
   }
 
   if (!nonamespace && sfProject?.get('namespace')) {
