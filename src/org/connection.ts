@@ -239,7 +239,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    */
   public async retrieveMaxApiVersion(): Promise<string> {
     // Check saved value first, then cache.
-    if (this.maxApiVersion || (this.maxApiVersion = this.getCachedApiVersion())) {
+    if ((this.maxApiVersion ??= this.getCachedApiVersion())) {
       return this.maxApiVersion;
     }
 
