@@ -82,11 +82,11 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   // All connections are tied to a username
   private username!: string;
 
-  // Save the DNS resolution result of this connection's instance URL.
-  private resolvable!: boolean;
+  // Save whether we've successfully resolved this connection's instance URL.
+  private hasResolved = false;
 
   // Save the max API version of this connection's org.
-  private maxApiVersion!: string;
+  private maxApiVersion!: Optional<string>;
 
   /**
    * Constructor
@@ -238,14 +238,9 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * Retrieves the highest api version that is supported by the target server instance.
    */
   public async retrieveMaxApiVersion(): Promise<string> {
-    if (this.maxApiVersion) {
+    // Check saved value first, then cache.
+    if (this.maxApiVersion || (this.maxApiVersion = this.getCachedApiVersion())) {
       return this.maxApiVersion;
-    }
-
-    // check API version cache
-    const cachedApiVersion = this.getCachedApiVersion();
-    if (cachedApiVersion) {
-      return cachedApiVersion;
     }
 
     await this.isResolvable();
@@ -291,8 +286,8 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * Verify that instance has a reachable DNS entry, otherwise will throw error
    */
   public async isResolvable(): Promise<boolean> {
-    if (this.resolvable !== undefined) {
-      return this.resolvable;
+    if (this.hasResolved) {
+      return this.hasResolved;
     }
 
     if (!this.options.connectionOptions?.instanceUrl) {
@@ -303,10 +298,9 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     });
     try {
       await resolver.resolve();
-      this.resolvable = true;
+      this.hasResolved = true;
       return true;
     } catch (e) {
-      this.resolvable = false;
       throw messages.createError('domainNotFoundError', [], [], e as Error);
     }
   }
