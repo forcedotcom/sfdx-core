@@ -179,15 +179,7 @@ function parseIdUrl(idUrl: string): { userId: string | undefined; orgId: string 
 
 export const DEFAULT_CONNECTED_APP_INFO = {
   clientId: 'PlatformCLI',
-  // Legacy. The connected app info is owned by the thing that
-  // creates new AuthInfos. Currently that is the auth:* commands which
-  // aren't owned by this core library. These values need to be here
-  // for any old auth files where the id and secret aren't stored.
-  //
-  // Ideally, this would be removed at some point in the distant future
-  // when all auth files now have the clientId stored in it.
-  legacyClientId: 'SalesforceDevelopmentExperience',
-  legacyClientSecret: '1384510088588713504',
+  clientSecret: '',
 };
 
 /**
@@ -573,7 +565,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   public getClientId(): string {
-    return this.getFields()?.clientId ?? DEFAULT_CONNECTED_APP_INFO.legacyClientId;
+    return this.getFields()?.clientId ?? DEFAULT_CONNECTED_APP_INFO.clientId;
   }
 
   public getRedirectUri(): string {
@@ -960,8 +952,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // Ideally, this would be removed at some point in the distant future when all auth files
     // now have the clientId stored in it.
     if (!options.clientId) {
-      options.clientId = DEFAULT_CONNECTED_APP_INFO.legacyClientId;
-      options.clientSecret = DEFAULT_CONNECTED_APP_INFO.legacyClientSecret;
+      options.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
+      options.clientSecret = DEFAULT_CONNECTED_APP_INFO.clientSecret;
     }
 
     if (!options.redirectUri) {
