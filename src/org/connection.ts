@@ -10,7 +10,7 @@
 import { URL } from 'url';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
 import { Duration, env, maxBy } from '@salesforce/kit';
-import { asString, ensure, isString, JsonCollection, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
+import { asString, ensure, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionConfig,
@@ -82,6 +82,12 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   // All connections are tied to a username
   private username!: string;
 
+  // Save whether we've successfully resolved this connection's instance URL.
+  private hasResolved = false;
+
+  // Save the max API version of this connection's org.
+  private maxApiVersion!: Optional<string>;
+
   /**
    * Constructor
    * **Do not directly construct instances of this class -- use {@link Connection.create} instead.**
@@ -135,10 +141,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     try {
       // No version passed in or in the config, so load one.
       if (!baseOptions.version) {
-        const cachedVersion = await conn.loadInstanceApiVersion();
-        if (cachedVersion) {
-          conn.setApiVersion(cachedVersion);
-        }
+        await conn.useLatestApiVersion();
       } else {
         conn.logger.debug(
           `The org-api-version ${baseOptions.version} was found from ${
@@ -153,7 +156,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       }
       conn.logger.debug(`Error trying to load the API version: ${e.name} - ${e.message}`);
     }
-    conn.logger.debug(`Using apiVersion ${conn.getApiVersion()}`);
+    conn.logger.debug(`Connection created with apiVersion ${conn.getApiVersion()}`);
     return conn;
   }
 
@@ -235,8 +238,15 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * Retrieves the highest api version that is supported by the target server instance.
    */
   public async retrieveMaxApiVersion(): Promise<string> {
+    // Check saved value first, then cache.
+    if ((this.maxApiVersion ??= this.getCachedApiVersion())) {
+      return this.maxApiVersion;
+    }
+
     await this.isResolvable();
     type Versioned = { version: string };
+
+    this.logger.debug(`Fetching API versions supported for org: ${this.getUsername()}`);
     const versions: Versioned[] = await this.request<Versioned[]>(`${this.instanceUrl}/services/data`);
     // if the server doesn't return a list of versions, it's possibly a instanceUrl issue where the local file is out of date.
     if (!Array.isArray(versions)) {
@@ -244,9 +254,17 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       throw messages.createError('noApiVersionsError');
     }
     this.logger.debug(`response for org versions: ${versions.map((item) => item.version).join(',')}`);
-    const max = ensure(maxBy(versions, (version: Versioned) => version.version));
+    this.maxApiVersion = ensure(maxBy(versions, (version: Versioned) => version.version)).version;
 
-    return max.version;
+    // cache the max API version just fetched
+    await this.options.authInfo.save({
+      instanceApiVersion: this.maxApiVersion,
+      // This will get messed up if the user changes their local time on their machine.
+      // Not a big deal since it will just get updated sooner/later.
+      instanceApiVersionLastRetrieved: new Date().toLocaleString(),
+    });
+
+    return this.maxApiVersion;
   }
   /**
    * Use the latest API version available on `this.instanceUrl`.
@@ -268,6 +286,10 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * Verify that instance has a reachable DNS entry, otherwise will throw error
    */
   public async isResolvable(): Promise<boolean> {
+    if (this.hasResolved) {
+      return this.hasResolved;
+    }
+
     if (!this.options.connectionOptions?.instanceUrl) {
       throw messages.createError('noInstanceUrlError');
     }
@@ -276,6 +298,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     });
     try {
       await resolver.resolve();
+      this.hasResolved = true;
       return true;
     } catch (e) {
       throw messages.createError('domainNotFoundError', [], [], e as Error);
@@ -429,10 +452,17 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     await this.request(requestInfo);
   }
 
-  private async loadInstanceApiVersion(): Promise<Nullable<string>> {
+  private getCachedApiVersion(): Optional<string> {
+    // Exit early if the API version cache is disabled.
+    if (env.getBoolean('SFDX_IGNORE_API_VERSION_CACHE', false)) {
+      this.logger.debug('Using latest API version since SFDX_IGNORE_API_VERSION_CACHE = true');
+      return;
+    }
+
+    // Get API version cache data
     const authFileFields = this.options.authInfo.getFields();
     const lastCheckedDateString = authFileFields.instanceApiVersionLastRetrieved;
-    let version = authFileFields.instanceApiVersion;
+    const version = authFileFields.instanceApiVersion;
     let lastChecked: Optional<number>;
 
     try {
@@ -443,41 +473,20 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       /* Do nothing, it will just request the version again */
     }
 
-    // Grab the latest api version from the server and cache it in the auth file
-    const useLatest = async (): Promise<void> => {
-      // verifies DNS
-      await this.useLatestApiVersion();
-      version = this.getApiVersion();
-      await this.options.authInfo.save({
-        instanceApiVersion: version,
-        // This will get messed up if the user changes their local time on their machine.
-        // Not a big deal since it will just get updated sooner/later.
-        instanceApiVersionLastRetrieved: new Date().toLocaleString(),
-      });
-    };
-
-    const ignoreCache = env.getBoolean('SFDX_IGNORE_API_VERSION_CACHE', false);
-    if (lastChecked && !ignoreCache) {
+    // Check if the cache has expired
+    if (lastChecked) {
       const now = new Date();
       const has24HoursPastSinceLastCheck = now.getTime() - lastChecked > Duration.hours(24).milliseconds;
-      this.logger.debug(
-        `Last checked on ${lastCheckedDateString} (now is ${now.toLocaleString()}) - ${
-          has24HoursPastSinceLastCheck ? '' : 'not '
-        }getting latest`
-      );
-      if (has24HoursPastSinceLastCheck) {
-        await useLatest();
+      this.logger.debug(`API version cache last checked on ${lastCheckedDateString} (now is ${now.toLocaleString()})`);
+
+      if (!has24HoursPastSinceLastCheck && version) {
+        // return cached API version
+        this.logger.debug(`Using cached API version: ${version}`);
+        return version;
+      } else {
+        this.logger.debug('API version cache expired. Re-fetching latest.');
       }
-    } else {
-      this.logger.debug(
-        `Using the latest because lastChecked=${lastChecked} and SFDX_IGNORE_API_VERSION_CACHE=${ignoreCache}`
-      );
-      // No version found in the file (we never checked before)
-      // so get the latest.
-      await useLatest();
     }
-    this.logger.debug(`Loaded latest org-api-version ${version}`);
-    return version;
   }
 }
 

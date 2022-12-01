@@ -53,6 +53,9 @@ describe('Connection', () => {
   it('throws error when no valid API version', async () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
+    // @ts-ignore (resetting private property)
+    conn.maxApiVersion = undefined;
+
     $$.SANDBOX.restore();
     $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
     $$.SANDBOX.stub(conn, 'isResolvable').resolves(true);
@@ -110,6 +113,7 @@ describe('Connection', () => {
   });
 
   it('create() should create a connection with the cached API version updated with latest', async () => {
+    $$.SANDBOX.stub(Connection.prototype, 'isResolvable').resolves(true);
     testAuthInfo.getFields.returns({
       instanceApiVersionLastRetrieved: 123,
       instanceApiVersion: '40.0',
