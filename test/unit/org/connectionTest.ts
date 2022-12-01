@@ -21,13 +21,14 @@ describe('Connection', () => {
   const $$ = new TestContext();
   const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
   let requestMock: sinon.SinonStub;
+  let myDomainResolverStub: sinon.SinonStub;
 
   let testAuthInfo: StubbedType<AuthInfo>;
   let testAuthInfoWithDomain: StubbedType<AuthInfo>;
 
   beforeEach(() => {
     $$.SANDBOXES.CONNECTION.restore();
-    $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
+    myDomainResolverStub = $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
 
     requestMock = $$.SANDBOX.stub(JSForceConnection.prototype, 'request')
       .onFirstCall()
@@ -122,6 +123,53 @@ describe('Connection', () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
     expect(conn.getApiVersion()).to.equal('50.0');
     expect(testAuthInfo.save.called).to.be.true;
+  });
+
+  it('isResolvable should use hasResolved to avoid multiple DNS resolutions', async () => {
+    // Creating a connection this way should call isResolvable() and set the hasResolved
+    // instance var so that future calls to isResolvable() will not hit the server.
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
+
+    // @ts-ignore (accessing private property)
+    expect(conn.hasResolved).to.be.true;
+    expect(myDomainResolverStub.calledOnce).to.be.true;
+
+    const isResolvable = await conn.isResolvable();
+    expect(isResolvable).to.be.true;
+    expect(myDomainResolverStub.calledOnce).to.be.true;
+    // @ts-ignore (accessing private property)
+    expect(conn.hasResolved).to.be.true;
+  });
+
+  it('retrieveMaxApiVersion should use maxApiVersion, then cache, before hitting server', async () => {
+    const isResolvableStub = $$.SANDBOX.stub(Connection.prototype, 'isResolvable').resolves(true);
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+
+    // This verifies a request was sent during the create
+    // @ts-ignore (accessing private property)
+    expect(conn.maxApiVersion).to.equal('50.0');
+    expect(isResolvableStub.calledOnce).to.be.true;
+    expect(requestMock.calledOnce).to.be.true;
+
+    // This verifies the maxApiVersion instance var was used
+    let apiVersion = await conn.retrieveMaxApiVersion();
+    expect(apiVersion).to.equal('50.0');
+    expect(isResolvableStub.calledOnce).to.be.true;
+    expect(requestMock.calledOnce).to.be.true;
+
+    // This verifies the cache was used
+    // @ts-ignore (accessing private property)
+    conn.maxApiVersion = undefined;
+    testAuthInfo.getFields.returns({
+      instanceApiVersionLastRetrieved: new Date(Date.now() - Duration.hours(10).milliseconds).toLocaleString(),
+      instanceApiVersion: '51.0',
+    });
+    apiVersion = await conn.retrieveMaxApiVersion();
+    expect(apiVersion).to.equal('51.0');
+    expect(isResolvableStub.calledOnce).to.be.true;
+    expect(requestMock.calledOnce).to.be.true;
+    // @ts-ignore (accessing private property)
+    expect(conn.maxApiVersion).to.equal('51.0');
   });
 
   it('setApiVersion() should throw with invalid version', async () => {
