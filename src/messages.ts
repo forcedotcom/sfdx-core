@@ -561,7 +561,7 @@ export class Messages<T extends string> {
    * SfError wants error to end with the word Error.  Use this to create errors while preserving their existing name (for compatibility reasons).
    *
    * @deprecated Use `createError` instead unless you need to preserver the error name to avoid breaking changes.
-   * `error.name` will be the upper-cased key, remove prefixed `error.` and will always end in Error.
+   * `error.name` will be the upper-cased key, remove prefixed `error.`.
    * `error.actions` will be loaded using `${key}.actions` if available.
    *
    * @param key The key of the error message.
