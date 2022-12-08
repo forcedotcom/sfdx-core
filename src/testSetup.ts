@@ -961,6 +961,7 @@ export class MockTestOrgData {
   public isDevHub?: boolean;
   public isScratchOrg?: boolean;
   public isExpired?: boolean | 'unknown';
+  public password?: string;
 
   public constructor(id: string = uniqid(), options?: { username: string }) {
     this.testId = id;
@@ -1009,6 +1010,8 @@ export class MockTestOrgData {
     userMock.isDevHub = this.isDevHub;
     userMock.isScratchOrg = this.isScratchOrg;
     userMock.isExpired = this.isExpired;
+    userMock.password = this.password;
+    userMock.accessToken = this.accessToken;
     return userMock;
   }
 
