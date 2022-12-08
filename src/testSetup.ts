@@ -976,7 +976,6 @@ export class MockTestOrgData {
     this.accessToken = `${this.testId}/accessToken`;
     this.refreshToken = `${this.testId}/refreshToken`;
     this.redirectUri = 'http://localhost:1717/OauthRedirect';
-    this.password = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   }
 
   /**
