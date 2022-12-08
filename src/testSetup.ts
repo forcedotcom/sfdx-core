@@ -961,6 +961,7 @@ export class MockTestOrgData {
   public isDevHub?: boolean;
   public isScratchOrg?: boolean;
   public isExpired?: boolean | 'unknown';
+  public password?: string;
 
   public constructor(id: string = uniqid(), options?: { username: string }) {
     this.testId = id;
@@ -975,6 +976,7 @@ export class MockTestOrgData {
     this.accessToken = `${this.testId}/accessToken`;
     this.refreshToken = `${this.testId}/refreshToken`;
     this.redirectUri = 'http://localhost:1717/OauthRedirect';
+    this.password = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   }
 
   /**
@@ -1009,6 +1011,8 @@ export class MockTestOrgData {
     userMock.isDevHub = this.isDevHub;
     userMock.isScratchOrg = this.isScratchOrg;
     userMock.isExpired = this.isExpired;
+    userMock.password = this.password;
+    userMock.accessToken = this.accessToken;
     return userMock;
   }
 
