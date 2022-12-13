@@ -282,7 +282,7 @@ describe('User Tests', () => {
   });
   describe('retrieve', () => {
     it('should retrieve a user', async () => {
-      await $$.stubUsers({ [adminTestData.username]: [adminTestData, user1] });
+      $$.stubUsers({ [adminTestData.username]: [adminTestData, user1] });
 
       const org = await Org.create({ aliasOrUsername: adminTestData.username });
       const admin = await User.create({ org });

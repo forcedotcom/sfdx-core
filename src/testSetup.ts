@@ -313,15 +313,30 @@ export class TestContext {
    * The admin user is excluded from the users array.
    *
    */
-  public stubUsers(users: Record<string, MockTestOrgData[]>): Promise<void> {
-    const mockUsers = Object.values(users).flatMap((orgUsers) => orgUsers as unknown as UserFields[]);
+  public stubUsers(users: Record<string, MockTestOrgData[]>): void {
+    const mockUsers = Object.values(users).flatMap((orgUsers) =>
+      orgUsers.map((user) => {
+        const userInfo = user.getMockUserInfo();
+        return {
+          alias: userInfo.Alias ?? '',
+          email: userInfo.Email ?? '',
+          emailEncodingKey: userInfo.EmailEncodingKey ?? '',
+          id: userInfo.Id ?? '',
+          languageLocaleKey: userInfo.LanguageLocaleKey ?? '',
+          lastName: userInfo.LastName ?? '',
+          localeSidKey: userInfo.LocaleSidKey ?? '',
+          profileId: userInfo.ProfileId ?? '',
+          timeZoneSidKey: userInfo.TimeZoneSidKey ?? '',
+          username: userInfo.Username ?? '',
+        };
+      })
+    );
     const userOrgsMap = new Map(
       Object.entries(users).map(([adminUsername, orgs]) => {
         const adminOrg = orgs.find((org) => org.username === adminUsername);
-        if (!adminOrg) {
-          return [undefined, undefined];
-        }
-        return [adminOrg.orgId, { usernames: orgs.filter((org) => org.username !== adminUsername) }];
+        return adminOrg
+          ? [adminOrg.orgId, { usernames: orgs.filter((org) => org.username !== adminUsername) }]
+          : [undefined, undefined];
       })
     );
 
@@ -329,15 +344,12 @@ export class TestContext {
       (username): Promise<UserFields | undefined> => Promise.resolve(mockUsers.find((org) => org.username === username))
     );
 
-    // stubMethod(this.SANDBOX, ConfigFile.prototype, 'hasFile').callsFake((orgId: string) => userOrgsMap.has(orgId));
-
     const retrieveContents = async function (this: { path: string }): Promise<{ usernames?: string[] }> {
       const orgId = basename(this.path.replace('.json', ''));
       return Promise.resolve(userOrgsMap.get(orgId) ?? {});
     };
 
     this.configStubs.OrgUsersConfig = { retrieveContents };
-    return Promise.resolve();
   }
 
   /**
@@ -968,6 +980,20 @@ export class StreamingMockCometClient extends CometClient {
   }
 }
 
+type MockUserInfo = {
+  Id: string;
+  Username: string;
+  LastName: string;
+  Alias: string;
+  Configs: string[] | undefined;
+  TimeZoneSidKey: string;
+  LocaleSidKey: string;
+  EmailEncodingKey: string;
+  ProfileId: string;
+  LanguageLocaleKey: string;
+  Email: string;
+};
+
 /**
  * Mock class for Salesforce Orgs.
  *
@@ -1054,7 +1080,7 @@ export class MockTestOrgData {
   /**
    * Return mock user information based on this org.
    */
-  public getMockUserInfo(): JsonMap {
+  public getMockUserInfo(): MockUserInfo {
     return {
       Id: this.userId,
       Username: this.username,
