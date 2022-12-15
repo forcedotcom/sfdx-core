@@ -13,7 +13,7 @@
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
-import { join as pathJoin, basename } from 'path';
+import { basename, join as pathJoin } from 'path';
 import * as util from 'util';
 import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
@@ -42,7 +42,7 @@ import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
 import { OrgAccessor, StateAggregator } from './stateAggregator';
-import { AuthFields, Org, SandboxFields } from './org';
+import { AuthFields, Org, SandboxFields, User, UserFields } from './org';
 import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 import { AliasGroup } from './config/aliasesConfig';
 import { Global } from './global';
@@ -127,6 +127,7 @@ export class TestContext {
     Config?: ConfigStub;
     SfProjectJson?: ConfigStub;
     TokensConfig?: ConfigStub;
+    OrgUsersConfig?: ConfigStub;
   } = {};
   /**
    * A record of stubs created during instantiation.
@@ -302,6 +303,53 @@ export class TestContext {
     };
 
     this.configStubs.AuthInfoConfig = { retrieveContents };
+  }
+
+  /**
+   * Stub salesforce user authorizations.
+   *
+   * @param users The users to stub.
+   * The key is the username of the admin user and it must be included in the users array in order to obtain the orgId key for the remaining users.
+   * The admin user is excluded from the users array.
+   *
+   */
+  public stubUsers(users: Record<string, MockTestOrgData[]>): void {
+    const mockUsers = Object.values(users).flatMap((orgUsers) =>
+      orgUsers.map((user) => {
+        const userInfo = user.getMockUserInfo();
+        return {
+          alias: userInfo.Alias ?? '',
+          email: userInfo.Email ?? '',
+          emailEncodingKey: userInfo.EmailEncodingKey ?? '',
+          id: userInfo.Id ?? '',
+          languageLocaleKey: userInfo.LanguageLocaleKey ?? '',
+          lastName: userInfo.LastName ?? '',
+          localeSidKey: userInfo.LocaleSidKey ?? '',
+          profileId: userInfo.ProfileId ?? '',
+          timeZoneSidKey: userInfo.TimeZoneSidKey ?? '',
+          username: userInfo.Username ?? '',
+        };
+      })
+    );
+    const userOrgsMap = new Map(
+      Object.entries(users).map(([adminUsername, orgs]) => {
+        const adminOrg = orgs.find((org) => org.username === adminUsername);
+        return adminOrg
+          ? [adminOrg.orgId, { usernames: orgs.filter((org) => org.username !== adminUsername) }]
+          : [undefined, undefined];
+      })
+    );
+
+    stubMethod(this.SANDBOX, User.prototype, 'retrieve').callsFake(
+      (username): Promise<UserFields | undefined> => Promise.resolve(mockUsers.find((org) => org.username === username))
+    );
+
+    const retrieveContents = async function (this: { path: string }): Promise<{ usernames?: string[] }> {
+      const orgId = basename(this.path.replace('.json', ''));
+      return Promise.resolve(userOrgsMap.get(orgId) ?? {});
+    };
+
+    this.configStubs.OrgUsersConfig = { retrieveContents };
   }
 
   /**
@@ -701,8 +749,8 @@ const _testSetup = (sinon?: SinonStatic): TestContext => {
  *    $$.stubAliases({ 'myTestAlias': 'user@company.com' });
  *
  *    // Will use the contents set above.
- *    const username = (await StateAggregator.getInstance()).aliases.resolveUsername('myTestAlias');
- *    expect(username).to.equal('user@company.com');
+ *    const username = (await StateAggregator.getInstance()).aliases.resolveUsername("myTestAlias");
+ *    expect(username).to.equal("user@company.com");
  *  });
  * });
  * ```
@@ -721,7 +769,7 @@ export const unexpectedResult = new SfError('This code was expected to fail', 'U
  * ```
  *  try {
  *      await call()
- *      assert.fail('this should never happen');
+ *      assert.fail("this should never happen");
  *  } catch (e) {
  *  ...
  *  }
@@ -751,7 +799,7 @@ export async function shouldThrow(f: Promise<unknown>, message?: string): Promis
  * ```
  *  try {
  *      call()
- *      assert.fail('this should never happen');
+ *      assert.fail("this should never happen");
  *  } catch (e) {
  *  ...
  *  }
@@ -932,6 +980,20 @@ export class StreamingMockCometClient extends CometClient {
   }
 }
 
+type MockUserInfo = {
+  Id: string;
+  Username: string;
+  LastName: string;
+  Alias: string;
+  Configs: string[] | undefined;
+  TimeZoneSidKey: string;
+  LocaleSidKey: string;
+  EmailEncodingKey: string;
+  ProfileId: string;
+  LanguageLocaleKey: string;
+  Email: string;
+};
+
 /**
  * Mock class for Salesforce Orgs.
  *
@@ -1018,7 +1080,7 @@ export class MockTestOrgData {
   /**
    * Return mock user information based on this org.
    */
-  public getMockUserInfo(): JsonMap {
+  public getMockUserInfo(): MockUserInfo {
     return {
       Id: this.userId,
       Username: this.username,

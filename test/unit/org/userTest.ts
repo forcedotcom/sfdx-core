@@ -280,4 +280,14 @@ describe('User Tests', () => {
       expect(permSetAssignSpy.calledOnce).to.equal(true);
     });
   });
+  describe('retrieve', () => {
+    it('should retrieve a user', async () => {
+      $$.stubUsers({ [adminTestData.username]: [adminTestData, user1] });
+
+      const org = await Org.create({ aliasOrUsername: adminTestData.username });
+      const admin = await User.create({ org });
+      const user = await admin.retrieve(user1.username);
+      expect(user.username).to.equal(user1.username);
+    });
+  });
 });
