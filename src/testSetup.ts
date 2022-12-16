@@ -1128,6 +1128,10 @@ export class MockTestOrgData {
 
     config.isDevHub = this.isDevHub;
 
+    if (this.password) {
+      config.password = crypto.encrypt(this.password);
+    }
+
     return config as AuthFields;
   }
 
