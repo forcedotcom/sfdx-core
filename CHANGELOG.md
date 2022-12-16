@@ -1,3 +1,12 @@
+## [3.32.11](https://github.com/forcedotcom/sfdx-core/compare/3.32.10...3.32.11) (2022-12-16)
+
+
+### Bug Fixes
+
+* add password to mock org getConfig ([#729](https://github.com/forcedotcom/sfdx-core/issues/729)) ([00ee0fc](https://github.com/forcedotcom/sfdx-core/commit/00ee0fc940592cc04bc5b3ad6e609a3d5e6c2582))
+
+
+
 ## [3.32.10](https://github.com/forcedotcom/sfdx-core/compare/3.32.9...3.32.10) (2022-12-15)
 
 
