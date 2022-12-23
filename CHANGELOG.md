@@ -1,3 +1,12 @@
+## [3.32.12](https://github.com/forcedotcom/sfdx-core/compare/3.32.11...3.32.12) (2022-12-23)
+
+
+### Bug Fixes
+
+* **deps:** bump jsonwebtoken from 8.5.1 to 9.0.0 ([c40ea0a](https://github.com/forcedotcom/sfdx-core/commit/c40ea0aa3025045488c542bd35684ae7f296b5f5))
+
+
+
 ## [3.32.11](https://github.com/forcedotcom/sfdx-core/compare/3.32.10...3.32.11) (2022-12-16)
 
 
