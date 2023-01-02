@@ -32,7 +32,7 @@ import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
-import { sfdc } from '../util/sfdc';
+import { matchesAccessToken, trimTo15 } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
@@ -443,7 +443,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const devHubOrg = await Org.create({ aliasOrUsername: devHubUsername });
     const conn = devHubOrg.getConnection();
     const data = await conn.query<QueryResult<{ Id: string }>>(
-      `select Id from ScratchOrgInfo where ScratchOrg = '${sfdc.trimTo15(scratchOrgId)}'`
+      `select Id from ScratchOrgInfo where ScratchOrg = '${trimTo15(scratchOrgId)}'`
     );
     return data;
   }
@@ -494,7 +494,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     this.update(authData);
     const username = ensure(this.getUsername());
 
-    if (sfdc.matchesAccessToken(username)) {
+    if (matchesAccessToken(username)) {
       this.logger.debug('Username is an accesstoken. Skip saving authinfo to disk.');
       return this;
     }
@@ -711,7 +711,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     } // Else it will be set in initAuthOptions below.
 
     // If the username is an access token, use that for auth and don't persist
-    if (isString(oauthUsername) && sfdc.matchesAccessToken(oauthUsername)) {
+    if (isString(oauthUsername) && matchesAccessToken(oauthUsername)) {
       // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
       this.logger = await Logger.child('AuthInfo');
 

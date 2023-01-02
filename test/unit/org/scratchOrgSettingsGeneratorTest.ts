@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import { expect } from 'chai';
 import { Org, Connection } from '../../../src/org';
-import { sfdc } from '../../../src/util/sfdc';
+import { validateApiVersion } from '../../../src/util/sfdc';
 import { ZipWriter } from '../../../src/util/zipWriter';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
 import SettingsGenerator, {
@@ -70,7 +70,7 @@ const fakeConnection = (
       ({
         setApiVersion: (apiVersion: string) => {
           expect(apiVersion).to.be.a('string').and.length.to.be.greaterThan(0);
-          expect(sfdc.validateApiVersion(apiVersion)).to.not.be.undefined;
+          expect(validateApiVersion(apiVersion)).to.not.be.undefined;
         },
         deploy: (zipInput: Buffer) => {
           expect(zipInput).to.have.property('length').and.to.be.greaterThan(0);

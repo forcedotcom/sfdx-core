@@ -10,7 +10,7 @@ import { isString } from '@salesforce/ts-types';
 import { ConfigValue } from '../config/configStore';
 import { Messages } from '../messages';
 import { SfdcUrl } from '../util/sfdcUrl';
-import { sfdc } from '../util/sfdc';
+import { validateApiVersion } from '../util/sfdc';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
 const messages = Messages.load('@salesforce/core', 'config', [
@@ -102,7 +102,7 @@ export const ORG_CONFIG_ALLOWED_PROPERTIES = [
     hidden: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue): boolean => value == null || (isString(value) && sfdc.validateApiVersion(value)),
+      validator: (value: ConfigValue): boolean => value == null || (isString(value) && validateApiVersion(value)),
       failedMessage: messages.getMessage('invalidApiVersion'),
     },
   },

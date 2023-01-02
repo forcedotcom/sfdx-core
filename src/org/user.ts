@@ -14,7 +14,7 @@ import { Logger } from '../logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
 import { SfError } from '../sfError';
-import { sfdc } from '../util/sfdc';
+import { matchesAccessToken, validateSalesforceId } from '../util/sfdc';
 import { Connection } from './connection';
 import { PermissionSetAssignment } from './permissionSetAssignment';
 import { Org } from './org';
@@ -94,7 +94,7 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
     authInfo: await AuthInfo.create({ username }),
   });
 
-  if (sfdc.matchesAccessToken(username)) {
+  if (matchesAccessToken(username)) {
     logger.debug('received an accessToken for the username.  Converting...');
     username = (await connection.identity()).username;
     logger.debug(`accessToken converted to ${username}`);
@@ -138,7 +138,7 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
  * @param connection The connection for the query.
  */
 async function retrieveProfileId(name: string, connection: Connection): Promise<string> {
-  if (!sfdc.validateSalesforceId(name)) {
+  if (!validateSalesforceId(name)) {
     const profileQuery = `SELECT Id FROM Profile WHERE name='${name}'`;
     const result = await connection.query<{ Id: string }>(profileQuery);
     if (result.records.length > 0) {

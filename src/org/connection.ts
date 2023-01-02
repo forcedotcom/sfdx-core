@@ -27,7 +27,7 @@ import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
-import { sfdc } from '../util/sfdc';
+import { validateApiVersion } from '../util/sfdc';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
 import { AuthFields, AuthInfo } from './authInfo';
@@ -320,7 +320,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * @param version The API version.
    */
   public setApiVersion(version: string): void {
-    if (!sfdc.validateApiVersion(version)) {
+    if (!validateApiVersion(version)) {
       throw messages.createError('incorrectAPIVersionError', [version]);
     }
     this.version = version;

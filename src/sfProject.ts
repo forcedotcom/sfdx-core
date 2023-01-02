@@ -17,7 +17,7 @@ import { SchemaValidator } from './schema/validator';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
 import { SfError } from './sfError';
-import { sfdc } from './util/sfdc';
+import { findUpperCaseKeys } from './util/sfdc';
 import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
@@ -392,7 +392,7 @@ export class SfProjectJson extends ConfigFile {
 
   private validateKeys(): void {
     // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
-    const upperCaseKey = sfdc.findUpperCaseKeys(this.toObject(), SfProjectJson.BLOCKLIST);
+    const upperCaseKey = findUpperCaseKeys(this.toObject(), SfProjectJson.BLOCKLIST);
     if (upperCaseKey) {
       throw coreMessages.createError('invalidJsonCasing', [upperCaseKey, this.getPath()]);
     }
