@@ -33,10 +33,10 @@ describe('util/sfdc', () => {
     it('returns undefined when not passed a string', () => {
       expect(trimTo15()).to.be.undefined;
       expect(trimTo15(undefined)).to.be.undefined;
-      const id: string = sfdc.trimTo15();
-      const trimmed = sfdc.trimTo15(id);
-      expect(trimmed.length).to.eq(15);
-      expect(trimmed.endsWith('O')).to.be.true;
+    });
+    it('returns same id when 15 char or less', () => {
+      expect(trimTo15('ABCDEFGHIJKLMNO')).to.equal('ABCDEFGHIJKLMNO');
+      expect(trimTo15('ABC')).to.equal('ABC');
     });
   });
 
