@@ -21,7 +21,7 @@ export function trimTo15(id: string | undefined): string | undefined {
   if (!id) {
     return undefined;
   }
-  if (id?.length && id.length > 15) {
+  if (id.length && id.length > 15) {
     id = id.substring(0, 15);
   }
   return id;
@@ -73,7 +73,7 @@ export const validatePathDoesNotContainInvalidChars = (value: string): boolean =
 export const findUpperCaseKeys = (data?: JsonMap, sectionBlocklist: string[] = []): Optional<string> => {
   let key: Optional<string>;
   findKey(data, (val: AnyJson, k: string) => {
-    if (k.substr(0, 1) === k.substr(0, 1).toUpperCase()) {
+    if (/^[A-Z]/.test(k)) {
       key = k;
     } else if (isJsonMap(val)) {
       if (sectionBlocklist.includes(k)) {

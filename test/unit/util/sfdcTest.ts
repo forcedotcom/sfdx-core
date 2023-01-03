@@ -158,6 +158,24 @@ describe('util/sfdc', () => {
       expect(sfdc.findUpperCaseKeys(testObj, ['nested'])).to.equal(undefined);
       expect(findUpperCaseKeys(testObj, ['nested'])).to.equal(undefined);
     });
+
+    it('handles keys starting with numbers', () => {
+      const testObj = {
+        '1abc': true,
+        Abc: false,
+        nested: { '2abc': true },
+      };
+      expect(sfdc.findUpperCaseKeys(testObj)).to.equal('Abc');
+      expect(findUpperCaseKeys(testObj)).to.equal('Abc');
+    });
+    it('handles keys starting with numbers', () => {
+      const testObj = {
+        '1abc': true,
+        nested: { '2abc': true, Upper: false },
+      };
+      expect(sfdc.findUpperCaseKeys(testObj)).to.equal('Upper');
+      expect(findUpperCaseKeys(testObj)).to.equal('Upper');
+    });
   });
 
   describe('matchesAccessToken', () => {
