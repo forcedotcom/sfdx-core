@@ -32,7 +32,7 @@ import { Global } from '../global';
 import { Lifecycle } from '../lifecycleEvents';
 import { Logger } from '../logger';
 import { SfError } from '../sfError';
-import { sfdc } from '../util/sfdc';
+import { trimTo15 } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
 import { StateAggregator } from '../stateAggregator';
@@ -434,7 +434,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     const thisOrgAuthConfig = this.getConnection().getAuthInfoFields();
 
-    const trimmedId: string = sfdc.trimTo15(thisOrgAuthConfig.orgId) as string;
+    const trimmedId = trimTo15(thisOrgAuthConfig.orgId);
 
     const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg='${trimmedId}'`;
 
@@ -1092,7 +1092,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         }
       } catch {
         // if an error is thrown, don't panic yet. we'll try querying by orgId
-        const trimmedId = sfdc.trimTo15(this.getOrgId()) as string;
+        const trimmedId = trimTo15(this.getOrgId());
         this.logger.debug(`defaulting to trimming id from ${this.getOrgId()} to ${trimmedId}`);
         try {
           result = await this.queryProduction(prodOrg, 'SandboxOrganization', trimmedId);

@@ -12,7 +12,7 @@ import { Dictionary, ensure, isString, JsonPrimitive, Nullable } from '@salesfor
 import { Global } from '../global';
 import { Logger } from '../logger';
 import { Messages } from '../messages';
-import { sfdc } from '../util/sfdc';
+import { validateApiVersion } from '../util/sfdc';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { ORG_CONFIG_ALLOWED_PROPERTIES, OrgConfigProperties } from '../org/orgConfigProperties';
 import { ConfigFile } from './configFile';
@@ -221,7 +221,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     hidden: true,
     input: {
       // If a value is provided validate it otherwise no value is unset.
-      validator: (value: ConfigValue): boolean => value == null || (isString(value) && sfdc.validateApiVersion(value)),
+      validator: (value: ConfigValue): boolean => value == null || (isString(value) && validateApiVersion(value)),
       failedMessage: messages.getMessage('invalidApiVersion'),
     },
   },
