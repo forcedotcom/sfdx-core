@@ -33,6 +33,7 @@ import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { StateAggregator } from '../../../src/stateAggregator';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { Messages } from '../../../src/messages';
+import { SfError } from '../../../src/sfError';
 
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -154,6 +155,15 @@ describe('Org Tests', () => {
     it('should expose getOrgId', async () => {
       const org = await Org.create({ aliasOrUsername: testData.username });
       expect(org.getOrgId()).to.eq(testData.orgId);
+    });
+
+    it('should not create org when bad username', async () => {
+      try {
+        await shouldThrow(Org.create({ aliasOrUsername: 'bad@nope.fail' }));
+      } catch (err) {
+        assert(err instanceof SfError);
+        expect(err.name).to.equal('NamedOrgNotFound');
+      }
     });
   });
 
