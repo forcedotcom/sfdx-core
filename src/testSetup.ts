@@ -1016,7 +1016,7 @@ export class MockTestOrgData {
   public clientSecret: string;
   public authcode: string;
   public accessToken: string;
-  public refreshToken: string;
+  public refreshToken: string | undefined;
   public tracksSource: boolean | undefined;
   public userId: string;
   public redirectUri: string;
@@ -1103,15 +1103,15 @@ export class MockTestOrgData {
     const crypto = await Crypto.create();
     const config: JsonMap = {};
     config.orgId = this.orgId;
+    config.clientId = this.clientId;
 
     const accessToken = crypto.encrypt(this.accessToken);
     if (accessToken) {
       config.accessToken = accessToken;
     }
 
-    const refreshToken = crypto.encrypt(this.refreshToken);
-    if (refreshToken) {
-      config.refreshToken = refreshToken;
+    if (this.refreshToken) {
+      config.refreshToken = crypto.encrypt(this.refreshToken);
     }
 
     config.instanceUrl = this.instanceUrl;

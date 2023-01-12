@@ -11,7 +11,7 @@ import { join as pathJoin } from 'path';
 import { Duration, set } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
-import { assert, expect } from 'chai';
+import { assert, expect, config as chaiConfig } from 'chai';
 import { OAuth2 } from 'jsforce';
 import { Transport } from 'jsforce/lib/transport';
 import { SinonStub } from 'sinon';
@@ -37,6 +37,7 @@ import { Messages } from '../../../src/messages';
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
+chaiConfig.truncateThreshold = 0;
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'org');
 
@@ -407,16 +408,18 @@ describe('Org Tests', () => {
 
         // @ts-expect-error because private method
         await prod.sandboxSignupComplete(sandboxResponse);
-        expect(requestStub.firstCall.args).to.deep.equal([
-          {
-            body: '{"sandboxName":"test","callbackUrl":"http://localhost:1717/OauthRedirect"}',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            method: 'POST',
-            url: `${instanceUrl}/sandboxAuth`,
+        expect(requestStub.firstCall.args).to.deep.include({
+          body: JSON.stringify({
+            clientId: prod.getConnection().getAuthInfoFields().clientId,
+            sandboxName: sandboxResponse.SandboxName,
+            callbackUrl: 'http://localhost:1717/OauthRedirect',
+          }),
+          headers: {
+            'Content-Type': 'application/json',
           },
-        ]);
+          method: 'POST',
+          url: `${instanceUrl}/sandboxAuth`,
+        });
       });
 
       it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
