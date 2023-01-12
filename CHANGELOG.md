@@ -1,3 +1,12 @@
+## [3.32.13](https://github.com/forcedotcom/sfdx-core/compare/3.32.12...3.32.13) (2023-01-12)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/ts-types from 1.7.1 to 1.7.2 ([cadc91f](https://github.com/forcedotcom/sfdx-core/commit/cadc91fd5d0ced7cf15fed9ddeda1eea63f20f5b))
+
+
+
 ## [3.32.12](https://github.com/forcedotcom/sfdx-core/compare/3.32.11...3.32.12) (2022-12-23)
 
 
