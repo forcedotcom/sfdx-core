@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "3.32.13",
+  "version": "3.32.14",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "types": "lib/exported.d.ts",

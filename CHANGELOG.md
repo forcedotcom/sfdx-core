@@ -1,3 +1,12 @@
+## [3.32.14](https://github.com/forcedotcom/sfdx-core/compare/3.32.13...3.32.14) (2023-01-18)
+
+
+### Bug Fixes
+
+* snapshot is optional ([e81684c](https://github.com/forcedotcom/sfdx-core/commit/e81684cbe78c22e63b5c191264d26cef70c6c2f8))
+
+
+
 ## [3.32.13](https://github.com/forcedotcom/sfdx-core/compare/3.32.12...3.32.13) (2023-01-12)
 
 
