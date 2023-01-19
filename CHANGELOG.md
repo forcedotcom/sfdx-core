@@ -1,3 +1,12 @@
+# [3.33.0](https://github.com/forcedotcom/sfdx-core/compare/3.32.14...3.33.0) (2023-01-19)
+
+
+### Features
+
+* backward compatible messages.createError ([ac564b9](https://github.com/forcedotcom/sfdx-core/commit/ac564b927bd0c85c874cda39641afb9d9206e268))
+
+
+
 ## [3.32.14](https://github.com/forcedotcom/sfdx-core/compare/3.32.13...3.32.14) (2023-01-18)
 
 
