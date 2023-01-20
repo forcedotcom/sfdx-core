@@ -388,7 +388,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * Cleans up all org related artifacts including users, sandbox config(if a sandbox and auth file.
+   * Cleans up all org related artifacts including users, sandbox config (if a sandbox), source tracking files, and auth file.
    *
    * @param throwWhenRemoveFails Determines if the call should throw an error or fail silently.
    */
@@ -398,14 +398,17 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (this.getConnection().isUsingAccessToken()) {
       return Promise.resolve();
     }
-    await this.removeSandboxConfig();
-    await this.removeUsers(throwWhenRemoveFails);
-    await this.removeUsersConfig();
-    // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's usersname is also
-    // included in the OrgUser config file.
-    //
-    // So, just in case no users are added to this org we will try the remove again.
-    await this.removeAuth();
+    await Promise.all([
+      this.removeSandboxConfig(),
+      this.removeUsers(throwWhenRemoveFails),
+      this.removeUsersConfig(),
+      // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's usersname is also
+      // included in the OrgUser config file.
+      //
+      // So, just in case no users are added to this org we will try the remove again.
+      this.removeAuth(),
+      this.removeSourceTrackingFiles(),
+    ]);
   }
 
   /**
@@ -1454,6 +1457,29 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     // pollInterval cannot be > wait.
     pollInterval = pollInterval.seconds > wait.seconds ? wait : pollInterval;
     return [wait, pollInterval];
+  }
+
+  /**
+   * removes source tracking files hosted in the project/.sf/orgs/<org id>/
+   *
+   * @private
+   */
+  private async removeSourceTrackingFiles(): Promise<void> {
+    try {
+      const rootFolder = await Config.resolveRootFolder(false);
+      const orgPath = pathJoin(rootFolder, Global.SF_STATE_FOLDER, 'orgs', this.getOrgId());
+      await fs.promises.rm(pathJoin(orgPath, 'localSourceTracking'), { recursive: true });
+      await fs.promises.rm(pathJoin(orgPath, 'maxRevision.json'));
+      if (await fs.promises.readdir(orgPath)) {
+        // if the directory is now empty, remove it completely
+        await fs.promises.rm(orgPath);
+      }
+    } catch (e) {
+      // consume the error in case something  went wrong
+      this.logger.debug(
+        `error deleting source tracking information for ${this.getOrgId()} error: ${(e as Error).message}`
+      );
+    }
   }
 }
 
