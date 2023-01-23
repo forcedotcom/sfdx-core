@@ -1470,10 +1470,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         force: true,
       });
     } catch (e) {
+      const err = SfError.wrap(e as string | Error);
       // consume the error in case something  went wrong
-      this.logger.debug(
-        `error deleting source tracking information for ${this.getOrgId()} error: ${(e as Error).message}`
-      );
+      this.logger.debug(`error deleting source tracking information for ${this.getOrgId()} error: ${err.message}`);
     }
   }
 }
