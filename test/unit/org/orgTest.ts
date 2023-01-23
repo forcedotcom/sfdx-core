@@ -280,9 +280,8 @@ describe('Org Tests', () => {
 
           expect(devHubDelete.calledOnce).to.be.true;
           expect(devHubDelete.firstCall.args[1]).to.equal(orgTestData.orgId);
-          expect(fsSpy.callCount).to.equal(2);
-          expect(fsSpy.firstCall.args[0]).to.include('localSourceTracking');
-          expect(fsSpy.secondCall.args[0]).to.include('maxRevision.json');
+          expect(fsSpy.callCount).to.equal(1);
+          expect(fsSpy.firstCall.args[0]).to.include(pathJoin('orgs', org.getOrgId()));
         });
 
         it('should not throw when attempting to delete the source tracking files', async () => {
@@ -306,7 +305,7 @@ describe('Org Tests', () => {
           expect(devHubDelete.calledOnce).to.be.true;
           expect(devHubDelete.firstCall.args[1]).to.equal(orgTestData.orgId);
           expect(fsSpy.callCount).to.equal(1);
-          expect(fsSpy.firstCall.args[0]).to.include('localSourceTracking');
+          expect(fsSpy.firstCall.args[0]).to.include(pathJoin('orgs', org.getOrgId()));
         });
 
         it('should handle INVALID_TYPE or INSUFFICIENT_ACCESS_OR_READONLY errors', async () => {

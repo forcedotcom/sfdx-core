@@ -1466,12 +1466,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     try {
       const rootFolder = await Config.resolveRootFolder(false);
       const orgPath = pathJoin(rootFolder, Global.SF_STATE_FOLDER, 'orgs', this.getOrgId());
-      await fs.promises.rm(pathJoin(orgPath, 'localSourceTracking'), { recursive: true });
-      await fs.promises.rm(pathJoin(orgPath, 'maxRevision.json'));
-      if (!(await fs.promises.readdir(orgPath))) {
-        // if the directory is now empty, remove it completely
-        await fs.promises.rm(orgPath, { recursive: true });
-      }
+      await fs.promises.rm(pathJoin(orgPath), { recursive: true, force: true });
     } catch (e) {
       // consume the error in case something  went wrong
       this.logger.debug(
