@@ -398,17 +398,15 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (this.getConnection().isUsingAccessToken()) {
       return Promise.resolve();
     }
-    await Promise.all([
-      this.removeSandboxConfig(),
-      this.removeUsers(throwWhenRemoveFails),
-      this.removeUsersConfig(),
-      // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's usersname is also
-      // included in the OrgUser config file.
-      //
-      // So, just in case no users are added to this org we will try the remove again.
-      this.removeAuth(),
-      this.removeSourceTrackingFiles(),
-    ]);
+    await this.removeSandboxConfig();
+    await this.removeUsers(throwWhenRemoveFails);
+    await this.removeUsersConfig();
+    // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's usersname is also
+    // included in the OrgUser config file.
+    //
+    // So, just in case no users are added to this org we will try the remove again.
+    await this.removeAuth();
+    await this.removeSourceTrackingFiles();
   }
 
   /**
@@ -1470,9 +1468,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       const orgPath = pathJoin(rootFolder, Global.SF_STATE_FOLDER, 'orgs', this.getOrgId());
       await fs.promises.rm(pathJoin(orgPath, 'localSourceTracking'), { recursive: true });
       await fs.promises.rm(pathJoin(orgPath, 'maxRevision.json'));
-      if (await fs.promises.readdir(orgPath)) {
+      if (!(await fs.promises.readdir(orgPath))) {
         // if the directory is now empty, remove it completely
-        await fs.promises.rm(orgPath);
+        await fs.promises.rm(orgPath, { recursive: true });
       }
     } catch (e) {
       // consume the error in case something  went wrong
