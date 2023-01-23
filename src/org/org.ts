@@ -1465,8 +1465,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   private async removeSourceTrackingFiles(): Promise<void> {
     try {
       const rootFolder = await Config.resolveRootFolder(false);
-      const orgPath = pathJoin(rootFolder, Global.SF_STATE_FOLDER, 'orgs', this.getOrgId());
-      await fs.promises.rm(pathJoin(orgPath), { recursive: true, force: true });
+      await fs.promises.rm(pathJoin(rootFolder, Global.SF_STATE_FOLDER, 'orgs', this.getOrgId()), {
+        recursive: true,
+        force: true,
+      });
     } catch (e) {
       // consume the error in case something  went wrong
       this.logger.debug(
