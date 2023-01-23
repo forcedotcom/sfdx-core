@@ -1,3 +1,12 @@
+## [3.33.1](https://github.com/forcedotcom/sfdx-core/compare/3.33.0...3.33.1) (2023-01-23)
+
+
+### Bug Fixes
+
+* remove source tracking files with Org.delete() ([a85c5bf](https://github.com/forcedotcom/sfdx-core/commit/a85c5bf4dc2312e6be689f70e3b2e74f61cfbfc4))
+
+
+
 # [3.33.0](https://github.com/forcedotcom/sfdx-core/compare/3.32.14...3.33.0) (2023-01-19)
 
 
