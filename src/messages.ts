@@ -225,7 +225,7 @@ export class Messages<T extends string> {
    * @param locale The locale.
    * @param messages The messages. Can not be modified once created.
    */
-  public constructor(bundleName: string, locale: string, private messages: StoredMessageMap) {
+  public constructor(bundleName: string, locale: string, public readonly messages: StoredMessageMap) {
     this.bundleName = bundleName;
     this.locale = locale;
   }
