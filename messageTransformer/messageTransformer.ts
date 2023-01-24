@@ -16,7 +16,7 @@ import { Messages, StoredMessageMap } from '../src/messages';
  * transforms `messages` references from dynamic run-time to static compile-time values
  */
 const transformer = (program: ts.Program, pluginOptions: {}) => {
-  Messages.importMessagesDirectory(__dirname);
+  Messages.importMessagesDirectory(process.cwd());
   const transformerFactory: ts.TransformerFactory<ts.SourceFile> = (context) => {
     return (sourceFile) => {
       // if there are no messages, no transformation is needed
@@ -33,7 +33,9 @@ const transformer = (program: ts.Program, pluginOptions: {}) => {
           return undefined;
         }
         if (
-          // Messages.load|loadMessages('pluginName', 'messagesFile' ...)
+          // transform a runtime load call into hardcoded messages values
+          // const foo = Messages.load|loadMessages('pluginName', 'messagesFile' ...) =>
+          // const foo = new Messages('pluginName', 'messagesFile', new Map([['key', 'value']]))
           ts.isCallExpression(node) &&
           ts.isPropertyAccessExpression(node.expression) &&
           node.expression.expression.getText() === 'Messages' &&
