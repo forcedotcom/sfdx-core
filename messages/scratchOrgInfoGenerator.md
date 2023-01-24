@@ -21,3 +21,7 @@ The ancestor package version [%s] specified in the sfdx-project.json file may ex
 # AncestorIdVersionMismatchError
 
 The ancestorVersion in sfdx-project.json is not the version expected for the ancestorId you supplied. ancestorVersion %s. ancestorID %s."
+
+# unsupportedSnapshotOrgCreateOptions
+
+Org snapshots don’t support one or more options you specified: %s
