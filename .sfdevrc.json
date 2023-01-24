@@ -1,5 +1,13 @@
 {
   "test": {
     "testsPath": "test/**/*Test.ts"
+  },
+  "wireit": {
+    "compile": {
+      "command": "ttsc -p . --pretty --incremental",
+      "files": ["src/**/*.ts", "tsconfig.json", "messages", "messageTransformer"],
+      "output": ["lib/**", "*.tsbuildinfo"],
+      "clean": "if-file-deleted"
+    }
   }
 }

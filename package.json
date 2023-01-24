@@ -15,7 +15,7 @@
     "format": "wireit",
     "lint": "wireit",
     "lint-fix": "yarn sf-lint --fix",
-    "postcompile": "tsc -p test && tsc -p typedocExamples",
+    "postcompile": "tsc -p typedocExamples",
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
@@ -32,7 +32,8 @@
     "docs",
     "lib",
     "messages",
-    "!lib/**/*.map"
+    "!lib/**/*.map",
+    "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
     "@salesforce/bunyan": "^2.0.0",
@@ -55,7 +56,7 @@
   },
   "devDependencies": {
     "@salesforce/dev-config": "^3.0.1",
-    "@salesforce/dev-scripts": "^4.0.0-beta.6",
+    "@salesforce/dev-scripts": "^4.0.0-beta.7",
     "@salesforce/prettier-config": "^0.0.2",
     "@salesforce/ts-sinon": "^1.4.4",
     "@types/archiver": "^5.3.1",
@@ -109,7 +110,9 @@
       "command": "ttsc -p . --pretty --incremental",
       "files": [
         "src/**/*.ts",
-        "tsconfig.json"
+        "tsconfig.json",
+        "messages",
+        "messageTransformer"
       ],
       "output": [
         "lib/**",
@@ -139,14 +142,8 @@
       ],
       "output": []
     },
-    "test": {
-      "dependencies": [
-        "test:only",
-        "test:compile"
-      ]
-    },
     "test:only": {
-      "command": "nyc mocha \"./test/**/*Test.ts\"",
+      "command": "nyc mocha \"test/**/*Test.ts\"",
       "files": [
         "test/**/*.ts",
         "src/**/*.ts",
@@ -154,6 +151,12 @@
         "test/tsconfig.json"
       ],
       "output": []
+    },
+    "test": {
+      "dependencies": [
+        "test:only",
+        "test:compile"
+      ]
     }
   }
 }
