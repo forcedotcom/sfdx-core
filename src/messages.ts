@@ -9,28 +9,13 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as util from 'util';
-import {
-  AnyJson,
-  asString,
-  ensureJsonMap,
-  ensureString,
-  isArray,
-  isJsonMap,
-  isObject,
-  Optional,
-} from '@salesforce/ts-types';
-import { NamedError, upperFirst } from '@salesforce/kit';
+import { AnyJson, asString, ensureJsonMap, ensureString, isJsonMap, isObject } from '@salesforce/ts-types';
+import { ensureArray, NamedError, upperFirst } from '@salesforce/kit';
 import { SfError } from './sfError';
 
 export type Tokens = Array<string | boolean | number | null | undefined>;
 
-class Key {
-  public constructor(private packageName: string, private bundleName: string) {}
-
-  public toString(): string {
-    return `${this.packageName}:${this.bundleName}`;
-  }
-}
+const getKey = (packageName: string, bundleName: string): string => `${packageName}:${bundleName}`;
 
 export type StructuredMessage = {
   message: string;
@@ -256,7 +241,7 @@ export class Messages<T extends string> {
    * @param loader The loader function.
    */
   public static setLoaderFunction(packageName: string, bundle: string, loader: LoaderFunction<string>): void {
-    this.loaders.set(new Key(packageName, bundle).toString(), loader);
+    this.loaders.set(getKey(packageName, bundle), loader);
   }
 
   /**
@@ -401,17 +386,17 @@ export class Messages<T extends string> {
    * @param bundleName The name of the bundle to load.
    */
   public static loadMessages(packageName: string, bundleName: string): Messages<string> {
-    const key = new Key(packageName, bundleName);
-    let messages: Optional<Messages<string>>;
+    const key = getKey(packageName, bundleName);
+    let messages: Messages<string> | undefined;
 
     if (this.isCached(packageName, bundleName)) {
-      messages = this.bundles.get(key.toString());
-    } else if (this.loaders.has(key.toString())) {
-      const loader = this.loaders.get(key.toString());
+      messages = this.bundles.get(key);
+    } else if (this.loaders.has(key)) {
+      const loader = this.loaders.get(key);
       if (loader) {
         messages = loader(Messages.getLocale());
-        this.bundles.set(key.toString(), messages);
-        messages = this.bundles.get(key.toString());
+        this.bundles.set(key, messages);
+        messages = this.bundles.get(key);
       }
     }
 
@@ -444,17 +429,17 @@ export class Messages<T extends string> {
    * @param keys The message keys that will be used.
    */
   public static load<T extends string>(packageName: string, bundleName: string, keys: [T, ...T[]]): Messages<T> {
-    const key = new Key(packageName, bundleName);
-    let messages: Optional<Messages<T>>;
+    const key = getKey(packageName, bundleName);
+    let messages: Messages<T> | undefined;
 
     if (this.isCached(packageName, bundleName)) {
-      messages = this.bundles.get(key.toString());
-    } else if (this.loaders.has(key.toString())) {
-      const loader = this.loaders.get(key.toString());
+      messages = this.bundles.get(key);
+    } else if (this.loaders.has(key)) {
+      const loader = this.loaders.get(key);
       if (loader) {
         messages = loader(Messages.getLocale());
-        this.bundles.set(key.toString(), messages);
-        messages = this.bundles.get(key.toString());
+        this.bundles.set(key, messages);
+        messages = this.bundles.get(key);
       }
     }
 
@@ -486,7 +471,7 @@ export class Messages<T extends string> {
    * @param bundleName The bundle name.
    */
   public static isCached(packageName: string, bundleName: string): boolean {
-    return this.bundles.has(new Key(packageName, bundleName).toString());
+    return this.bundles.has(getKey(packageName, bundleName));
   }
 
   /**
@@ -634,15 +619,15 @@ export class Messages<T extends string> {
       }
     }
 
-    if (!map.has(key)) {
+    const msg = map.get(key);
+    if (!msg) {
       // Don't use messages inside messages
       throw new NamedError(
         'MissingMessageError',
         `Missing message ${this.bundleName}:${key} for locale ${Messages.getLocale()}.`
       );
     }
-    const msg = map.get(key);
-    const messages = (isArray(msg) ? msg : [msg]) as string[];
+    const messages = ensureArray(msg);
     return messages.map((message) => {
       ensureString(message);
       return util.format(message, ...tokens);
