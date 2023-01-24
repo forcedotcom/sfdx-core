@@ -31,7 +31,9 @@ const transformer = (program: ts.Program, pluginOptions: {}) => {
           // importMessagesDirectory now happens at compile, not in runtime
           // returning undefined removes the node
           return undefined;
-        } else if (
+        }
+        if (
+          // Messages.load|loadMessages('pluginName', 'messagesFile' ...)
           ts.isCallExpression(node) &&
           ts.isPropertyAccessExpression(node.expression) &&
           node.expression.expression.getText() === 'Messages' &&
@@ -50,10 +52,9 @@ const transformer = (program: ts.Program, pluginOptions: {}) => {
               messageMapToHardcodedMap(messagesInstance.messages),
             ]),
           ]);
-        } else {
-          // it might be a node that contains one of the things we're interested in, so keep digging
-          return ts.visitEachChild(node, visitor, context);
         }
+        // it might be a node that contains one of the things we're interested in, so keep digging
+        return ts.visitEachChild(node, visitor, context);
       };
       const resultingFile = ts.visitNode(sourceFile, visitor);
       // if (sourceFile.fileName.includes('sfProject.ts')) {
