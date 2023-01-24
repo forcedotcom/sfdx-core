@@ -58,11 +58,7 @@ const transformer = (program: ts.Program, pluginOptions: {}) => {
         // it might be a node that contains one of the things we're interested in, so keep digging
         return ts.visitEachChild(node, visitor, context);
       };
-      const resultingFile = ts.visitNode(sourceFile, visitor);
-      // if (sourceFile.fileName.includes('sfProject.ts')) {
-      //   console.log(ts.createPrinter().printFile(resultingFile));
-      // }
-      return resultingFile;
+      return ts.visitNode(sourceFile, visitor);
     };
   };
   return transformerFactory;
@@ -83,6 +79,7 @@ const messageMapToHardcodedMap = (messages: StoredMessageMap): ts.ArrayLiteralEx
           ts.factory.createStringLiteral(value),
         ]);
       } else if (Array.isArray(value)) {
+        // case 2: string[]
         return ts.factory.createArrayLiteralExpression([
           ts.factory.createStringLiteral(key),
           ts.factory.createArrayLiteralExpression(value.map((v) => ts.factory.createStringLiteral(v))),
