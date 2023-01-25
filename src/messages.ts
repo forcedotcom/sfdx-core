@@ -405,7 +405,7 @@ export class Messages<T extends string> {
     }
 
     // Don't use messages inside messages
-    throw new NamedError('MissingBundleError', `Missing bundle ${key.toString()} for locale ${Messages.getLocale()}.`);
+    throw new NamedError('MissingBundleError', `Missing bundle ${key} for locale ${Messages.getLocale()}.`);
   }
 
   /**
@@ -461,7 +461,7 @@ export class Messages<T extends string> {
     }
 
     // Don't use messages inside messages
-    throw new NamedError('MissingBundleError', `Missing bundle ${key.toString()} for locale ${Messages.getLocale()}.`);
+    throw new NamedError('MissingBundleError', `Missing bundle ${key} for locale ${Messages.getLocale()}.`);
   }
 
   /**
