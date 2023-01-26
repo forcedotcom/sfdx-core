@@ -30,7 +30,7 @@ export interface ScratchOrgInfo {
   readonly ScratchOrg?: string;
   SourceOrg?: string;
   readonly AuthCode: string;
-  Snapshot: string;
+  Snapshot?: string;
   readonly Status: 'New' | 'Creating' | 'Active' | 'Error' | 'Deleted';
   readonly SignupEmail: string;
   readonly SignupUsername: string;

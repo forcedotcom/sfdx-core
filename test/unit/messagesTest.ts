@@ -338,6 +338,16 @@ describe('Messages', () => {
       expect(error.actions[0]).to.equal(testMessages.msg2);
     });
 
+    it('creates error with actions (preserved name)', () => {
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const error = messages.createErrorButPreserveName('msg1');
+
+      expect(error.name).to.equal('Msg1');
+      expect(error.message).to.equal(testMessages.msg1);
+      expect(error.actions.length).to.equal(1);
+      expect(error.actions[0]).to.equal(testMessages.msg2);
+    });
+
     it('creates error with removed error prefix', () => {
       msgMap.set('error.msg1', msgMap.get('msg1'));
       msgMap.set('error.msg1.actions', ['from prefix']);
@@ -345,6 +355,18 @@ describe('Messages', () => {
       const error = messages.createError('error.msg1');
 
       expect(error.name).to.equal('Msg1Error');
+      expect(error.message).to.equal(testMessages.msg1);
+      expect(error.actions.length).to.equal(1);
+      expect(error.actions[0]).to.equal('from prefix');
+    });
+
+    it('creates error with removed error prefix (preserved name)', () => {
+      msgMap.set('error.msg1', msgMap.get('msg1'));
+      msgMap.set('error.msg1.actions', ['from prefix']);
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const error = messages.createErrorButPreserveName('error.msg1');
+
+      expect(error.name).to.equal('Msg1');
       expect(error.message).to.equal(testMessages.msg1);
       expect(error.actions.length).to.equal(1);
       expect(error.actions[0]).to.equal('from prefix');
@@ -358,6 +380,20 @@ describe('Messages', () => {
       const error = messages.createError('errors.msg1');
 
       expect(error.name).to.equal('Msg1Error');
+      expect(error.message).to.equal(testMessages.msg1);
+      expect(error.actions.length).to.equal(1);
+      expect(error.actions[0]).to.equal('from prefix');
+    });
+
+    it('creates error with removed errors prefix (preserved name)', () => {
+      msgMap.set('errors.msg1', msgMap.get('msg1'));
+      msgMap.set('errors.msg1.actions', ['from prefix']);
+      msgMap.set('errors.msg1', msgMap.get('msg1'));
+      msgMap.set('errors.msg1.actions', ['from prefix']);
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const error = messages.createErrorButPreserveName('errors.msg1');
+
+      expect(error.name).to.equal('Msg1');
       expect(error.message).to.equal(testMessages.msg1);
       expect(error.actions.length).to.equal(1);
       expect(error.actions[0]).to.equal('from prefix');

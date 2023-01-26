@@ -388,7 +388,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * Cleans up all org related artifacts including users, sandbox config(if a sandbox and auth file.
+   * Cleans up all org related artifacts including users, sandbox config (if a sandbox), source tracking files, and auth file.
    *
    * @param throwWhenRemoveFails Determines if the call should throw an error or fail silently.
    */
@@ -406,6 +406,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     //
     // So, just in case no users are added to this org we will try the remove again.
     await this.removeAuth();
+    await this.removeSourceTrackingFiles();
   }
 
   /**
@@ -1454,6 +1455,25 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     // pollInterval cannot be > wait.
     pollInterval = pollInterval.seconds > wait.seconds ? wait : pollInterval;
     return [wait, pollInterval];
+  }
+
+  /**
+   * removes source tracking files hosted in the project/.sf/orgs/<org id>/
+   *
+   * @private
+   */
+  private async removeSourceTrackingFiles(): Promise<void> {
+    try {
+      const rootFolder = await Config.resolveRootFolder(false);
+      await fs.promises.rm(pathJoin(rootFolder, Global.SF_STATE_FOLDER, 'orgs', this.getOrgId()), {
+        recursive: true,
+        force: true,
+      });
+    } catch (e) {
+      const err = SfError.wrap(e as string | Error);
+      // consume the error in case something  went wrong
+      this.logger.debug(`error deleting source tracking information for ${this.getOrgId()} error: ${err.message}`);
+    }
   }
 }
 

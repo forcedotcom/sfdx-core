@@ -533,14 +533,43 @@ export class Messages<T extends string> {
     exitCodeOrCause?: number | Error,
     cause?: Error
   ): SfError {
-    const structuredMessage = this.formatMessageContents('error', key, tokens, actionTokens);
-    return new SfError(
-      structuredMessage.message,
-      structuredMessage.name,
-      structuredMessage.actions,
-      exitCodeOrCause,
-      cause
-    );
+    const { message, name, actions } = this.formatMessageContents({
+      type: 'error',
+      key,
+      tokens,
+      actionTokens,
+    });
+    return new SfError(message, name, actions, exitCodeOrCause, cause);
+  }
+
+  /**
+   * SfError wants error names to end with the suffix Error.  Use this to create errors while preserving their existing name (for compatibility reasons).
+   *
+   * @deprecated Use `createError` instead unless you need to preserver the error name to avoid breaking changes.
+   * `error.name` will be the upper-cased key, remove prefixed `error.`.
+   * `error.actions` will be loaded using `${key}.actions` if available.
+   *
+   * @param key The key of the error message.
+   * @param tokens The error message tokens.
+   * @param actionTokens The action messages tokens.
+   * @param exitCodeOrCause The exit code which will be used by SfdxCommand or the underlying error that caused this error to be raised.
+   * @param cause The underlying error that caused this error to be raised.
+   */
+  public createErrorButPreserveName(
+    key: T,
+    tokens: Tokens = [],
+    actionTokens: Tokens = [],
+    exitCodeOrCause?: number | Error,
+    cause?: Error
+  ): SfError {
+    const { message, name, actions } = this.formatMessageContents({
+      type: 'error',
+      key,
+      tokens,
+      actionTokens,
+      preserveName: true,
+    });
+    return new SfError(message, name, actions, exitCodeOrCause, cause);
   }
 
   /**
@@ -554,7 +583,7 @@ export class Messages<T extends string> {
    * @param actionTokens The action messages tokens.
    */
   public createWarning(key: T, tokens: Tokens = [], actionTokens: Tokens = []): StructuredMessage {
-    return this.formatMessageContents('warning', key, tokens, actionTokens);
+    return this.formatMessageContents({ type: 'warning', key, tokens, actionTokens });
   }
 
   /**
@@ -568,7 +597,7 @@ export class Messages<T extends string> {
    * @param actionTokens The action messages tokens.
    */
   public createInfo(key: T, tokens: Tokens = [], actionTokens: Tokens = []): StructuredMessage {
-    return this.formatMessageContents('info', key, tokens, actionTokens);
+    return this.formatMessageContents({ type: 'info', key, tokens, actionTokens });
   }
 
   /**
@@ -581,13 +610,21 @@ export class Messages<T extends string> {
    * @param key The key of the warning message.
    * @param tokens The warning message tokens.
    * @param actionTokens The action messages tokens.
+   * @param preserveName Do not require that the name end in the type ('error' | 'warning' | 'info').
    */
-  private formatMessageContents(
-    type: 'error' | 'warning' | 'info',
-    key: T,
-    tokens: Tokens = [],
-    actionTokens: Tokens = []
-  ): StructuredMessage {
+  private formatMessageContents({
+    type,
+    key,
+    tokens = [],
+    actionTokens = [],
+    preserveName = false,
+  }: {
+    type: 'error' | 'warning' | 'info';
+    key: T;
+    tokens?: Tokens;
+    actionTokens?: Tokens;
+    preserveName?: boolean;
+  }): StructuredMessage {
     const label = upperFirst(type);
     const labelRegExp = new RegExp(`${label}$`);
     const searchValue: RegExp = type === 'error' ? /^error.*\./ : new RegExp(`^${type}.`);
@@ -595,7 +632,7 @@ export class Messages<T extends string> {
     //     'myMessage' -> `MyMessageWarning`
     //     'myMessageError' -> `MyMessageError`
     //     'warning.myMessage' -> `MyMessageWarning`
-    const name = `${upperFirst(key.replace(searchValue, ''))}${labelRegExp.exec(key) ? '' : label}`;
+    const name = `${upperFirst(key.replace(searchValue, ''))}${labelRegExp.exec(key) || preserveName ? '' : label}`;
     const message = this.getMessage(key, tokens);
     let actions;
     try {

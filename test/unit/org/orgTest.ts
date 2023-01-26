@@ -260,6 +260,54 @@ describe('Org Tests', () => {
           expect(removeSpy.calledOnce).to.be.true;
         });
 
+        it('should delete the source tracking files', async () => {
+          const dev = await createOrgViaAuthInfo(testData.username);
+          const orgTestData = new MockTestOrgData();
+          const org = await createOrgViaAuthInfo(orgTestData.username, orgTestData);
+          const fsSpy = $$.SANDBOX.stub(fs.promises, 'rm');
+
+          const devHubQuery = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+            Id: orgTestData.orgId,
+          });
+          const devHubDelete = stubMethod($$.SANDBOX, Org.prototype, 'destroyScratchOrg').resolves();
+
+          await org.deleteFrom(dev);
+
+          expect(devHubQuery.calledOnce).to.be.true;
+          expect(devHubQuery.firstCall.args[0]).to.equal(
+            `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${orgTestData.username}'`
+          );
+
+          expect(devHubDelete.calledOnce).to.be.true;
+          expect(devHubDelete.firstCall.args[1]).to.equal(orgTestData.orgId);
+          expect(fsSpy.callCount).to.equal(1);
+          expect(fsSpy.firstCall.args[0]).to.include(pathJoin('orgs', org.getOrgId()));
+        });
+
+        it('should not throw when attempting to delete the source tracking files', async () => {
+          const dev = await createOrgViaAuthInfo(testData.username);
+          const orgTestData = new MockTestOrgData();
+          const org = await createOrgViaAuthInfo(orgTestData.username, orgTestData);
+          const fsSpy = $$.SANDBOX.stub(fs.promises, 'rm').throws('error');
+
+          const devHubQuery = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+            Id: orgTestData.orgId,
+          });
+          const devHubDelete = stubMethod($$.SANDBOX, Org.prototype, 'destroyScratchOrg').resolves();
+
+          await org.deleteFrom(dev);
+
+          expect(devHubQuery.calledOnce).to.be.true;
+          expect(devHubQuery.firstCall.args[0]).to.equal(
+            `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${orgTestData.username}'`
+          );
+
+          expect(devHubDelete.calledOnce).to.be.true;
+          expect(devHubDelete.firstCall.args[1]).to.equal(orgTestData.orgId);
+          expect(fsSpy.callCount).to.equal(1);
+          expect(fsSpy.firstCall.args[0]).to.include(pathJoin('orgs', org.getOrgId()));
+        });
+
         it('should handle INVALID_TYPE or INSUFFICIENT_ACCESS_OR_READONLY errors', async () => {
           const dev = await createOrgViaAuthInfo();
 

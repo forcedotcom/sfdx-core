@@ -25,6 +25,12 @@ describe('SfError', () => {
       err.exitCode = 100;
       expect(err.exitCode).to.equal(100);
     });
+
+    it('does not change the error name if provided', () => {
+      const msg = 'this is a test message';
+      const err = new SfError(msg, 'myErrorName');
+      expect(err.name).to.equal('myErrorName');
+    });
   });
 
   describe('wrap', () => {

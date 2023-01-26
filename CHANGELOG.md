@@ -1,3 +1,30 @@
+## [3.33.1](https://github.com/forcedotcom/sfdx-core/compare/3.33.0...3.33.1) (2023-01-23)
+
+
+### Bug Fixes
+
+* remove source tracking files with Org.delete() ([a85c5bf](https://github.com/forcedotcom/sfdx-core/commit/a85c5bf4dc2312e6be689f70e3b2e74f61cfbfc4))
+
+
+
+# [3.33.0](https://github.com/forcedotcom/sfdx-core/compare/3.32.14...3.33.0) (2023-01-19)
+
+
+### Features
+
+* backward compatible messages.createError ([ac564b9](https://github.com/forcedotcom/sfdx-core/commit/ac564b927bd0c85c874cda39641afb9d9206e268))
+
+
+
+## [3.32.14](https://github.com/forcedotcom/sfdx-core/compare/3.32.13...3.32.14) (2023-01-18)
+
+
+### Bug Fixes
+
+* snapshot is optional ([e81684c](https://github.com/forcedotcom/sfdx-core/commit/e81684cbe78c22e63b5c191264d26cef70c6c2f8))
+
+
+
 ## [3.32.13](https://github.com/forcedotcom/sfdx-core/compare/3.32.12...3.32.13) (2023-01-12)
 
 
