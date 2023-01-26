@@ -6,20 +6,21 @@
   "types": "lib/exported.d.ts",
   "license": "BSD-3-Clause",
   "scripts": {
-    "build": "sf-build",
+    "build": "wireit",
     "ci-docs": "yarn sf-ci-docs",
     "clean": "sf-clean",
     "clean-all": "sf-clean all",
-    "compile": "sf-compile",
+    "compile": "wireit",
     "docs": "sf-docs",
-    "format": "sf-format",
-    "lint": "sf-lint",
+    "format": "wireit",
+    "lint": "wireit",
     "lint-fix": "yarn sf-lint --fix",
-    "postcompile": "tsc -p test && tsc -p typedocExamples",
+    "postcompile": "tsc -p typedocExamples",
     "prepack": "sf-prepack",
     "prepare": "sf-install",
-    "pretest": "sf-compile-test",
-    "test": "sf-test"
+    "test": "wireit",
+    "test:compile": "wireit",
+    "test:only": "wireit"
   },
   "keywords": [
     "force",
@@ -31,7 +32,8 @@
     "docs",
     "lib",
     "messages",
-    "!lib/**/*.map"
+    "!lib/**/*.map",
+    "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
     "@salesforce/bunyan": "^2.0.0",
@@ -54,7 +56,7 @@
   },
   "devDependencies": {
     "@salesforce/dev-config": "^3.0.1",
-    "@salesforce/dev-scripts": "^3.1.0",
+    "@salesforce/dev-scripts": "^4.0.0-beta.7",
     "@salesforce/prettier-config": "^0.0.2",
     "@salesforce/ts-sinon": "^1.4.4",
     "@types/archiver": "^5.3.1",
@@ -86,7 +88,9 @@
     "shelljs": "0.8.5",
     "sinon": "^14.0.2",
     "ts-node": "^10.4.0",
-    "typescript": "^4.9.4"
+    "ttypescript": "^1.5.15",
+    "typescript": "^4.9.4",
+    "wireit": "^0.9.3"
   },
   "repository": {
     "type": "git",
@@ -94,5 +98,65 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "wireit": {
+    "build": {
+      "dependencies": [
+        "compile",
+        "lint"
+      ]
+    },
+    "compile": {
+      "command": "ttsc -p . --pretty --incremental",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "messages",
+        "messageTransformer"
+      ],
+      "output": [
+        "lib/**",
+        "*.tsbuildinfo"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "format": {
+      "command": "prettier --write \"+(src|test|schemas)/**/*.+(ts|js|json)|command-snapshot.json\""
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache",
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        ".eslintignore",
+        ".eslintrc.js"
+      ],
+      "output": []
+    },
+    "test:compile": {
+      "command": "tsc -p \"./test\" --pretty",
+      "files": [
+        "test/**/*.ts",
+        "tsconfig.json",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test:only": {
+      "command": "nyc mocha \"test/**/*Test.ts\"",
+      "files": [
+        "test/**/*.ts",
+        "src/**/*.ts",
+        "tsconfig.json",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test": {
+      "dependencies": [
+        "test:only",
+        "test:compile"
+      ]
+    }
   }
 }

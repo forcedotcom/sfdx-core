@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "./lib",
     "resolveJsonModule": true,
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "plugins": [{ "transform": "./messageTransformer/messageTransformer.ts" }]
   },
   "include": ["./src/**/*.ts"]
 }

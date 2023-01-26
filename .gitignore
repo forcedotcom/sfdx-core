@@ -25,6 +25,9 @@ coverage
 docs
 
 # -- CLEAN ALL
+*.tsbuildinfo
+.eslintcache
+.wireit
 node_modules
 
 # --
