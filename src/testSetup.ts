@@ -576,8 +576,9 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
 
   // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
   // @ts-ignore
-  stubs.configRead = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
-  stubs.configReadSync = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(read);
+  stubs.configRead = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(read);
+  // @ts-ignore
+  stubs.configReadSync = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
 
   const writeSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): void {
     if (!testContext.configStubs[this.constructor.name]) {
