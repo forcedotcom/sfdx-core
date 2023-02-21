@@ -48,7 +48,9 @@ async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> 
   const rawResponse = await new Transport().httpRequest(options);
   const response = parseJsonMap<T>(rawResponse.body);
   if (response.error) {
-    const err = new SfError('Request Failed.');
+    const errorDescription = typeof response.error_description === 'string' ? response.error_description : ''
+    const error = typeof response.error === 'string' ?  response.error : 'Unknown';
+    const err = new SfError(`Request Failed: ${error} ${errorDescription}`);
     err.data = Object.assign(response, { status: rawResponse.statusCode });
     throw err;
   } else {
