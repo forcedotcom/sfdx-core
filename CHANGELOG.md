@@ -1,3 +1,12 @@
+## [3.33.2](https://github.com/forcedotcom/sfdx-core/compare/3.33.1...3.33.2) (2023-02-21)
+
+
+### Bug Fixes
+
+* improve error contents for device login ([#774](https://github.com/forcedotcom/sfdx-core/issues/774)) ([3ad803a](https://github.com/forcedotcom/sfdx-core/commit/3ad803ad4d4b0ff473c04a8dd727c65546bfa86e))
+
+
+
 ## [3.33.1](https://github.com/forcedotcom/sfdx-core/compare/3.33.0...3.33.1) (2023-01-23)
 
 
