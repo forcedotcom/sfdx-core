@@ -236,7 +236,11 @@ export default class SettingsGenerator {
   /**
    * Deploys the settings to the org.
    */
-  public async deploySettingsViaFolder(scratchOrg: Org, apiVersion: string): Promise<void> {
+  public async deploySettingsViaFolder(
+    scratchOrg: Org,
+    apiVersion: string,
+    timeout: Duration = Duration.minutes(10)
+  ): Promise<void> {
     const username = scratchOrg.getUsername();
     const logger = await Logger.child('deploySettingsViaFolder');
 
@@ -274,7 +278,7 @@ export default class SettingsGenerator {
           };
         }
       },
-      timeout: Duration.minutes(10),
+      timeout,
       frequency: Duration.seconds(1),
       timeoutErrorName: 'DeployingSettingsTimeoutError',
     };
