@@ -416,8 +416,18 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
             // if any return a result
             logger.debug(`found orgId ${fields.orgId} in devhub ${hubAuthInfo.username}`);
             try {
-              await orgAuthInfo.save({ ...fields, devHubUsername: hubAuthInfo.username });
-              logger.debug(`set ${hubAuthInfo.username} as devhub for scratch org ${orgAuthInfo.getUsername()}`);
+              const soi = data.records[0];
+              await orgAuthInfo.save({
+                ...fields,
+                devHubUsername: hubAuthInfo.username,
+                expirationDate: soi.ExpirationDate,
+                isScratch: true,
+              });
+              logger.debug(
+                `set ${hubAuthInfo.username} as devhub and expirationDate ${
+                  soi.ExpirationDate
+                } for scratch org ${orgAuthInfo.getUsername()}`
+              );
             } catch (error) {
               logger.debug(`error updating auth file for ${orgAuthInfo.getUsername()}`, error);
             }
@@ -439,11 +449,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   private static async queryScratchOrg(
     devHubUsername: string | undefined,
     scratchOrgId: string
-  ): Promise<QueryResult<QueryResult<{ Id: string }>>> {
+  ): Promise<QueryResult<{ Id: string; ExpirationDate: string }>> {
     const devHubOrg = await Org.create({ aliasOrUsername: devHubUsername });
     const conn = devHubOrg.getConnection();
-    const data = await conn.query<QueryResult<{ Id: string }>>(
-      `select Id from ScratchOrgInfo where ScratchOrg = '${trimTo15(scratchOrgId)}'`
+    const data = await conn.singleRecordQuery<QueryResult<{ Id: string; ExpirationDate: string }>>(
+      `select Id, ExpirationDate from ScratchOrgInfo where ScratchOrg = '${trimTo15(scratchOrgId)}'`
     );
     return data;
   }
