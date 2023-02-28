@@ -61,3 +61,7 @@ We can't find a SandboxProcess with the SandboxName %s.
 # MultiSandboxProcessNotFoundBySandboxName
 
 We found more than one SandboxProcess with the SandboxName %s.
+
+# sandboxNotResumable
+
+The sandbox %s cannot resume with status of %s.
