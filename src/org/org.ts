@@ -44,22 +44,7 @@ import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } fro
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'org', [
-  'deleteOrgHubError',
-  'insufficientAccessToDelete',
-  'missingAuthUsername',
-  'noDevHubFound',
-  'notADevHub',
-  'noUsernameFound',
-  'sandboxDeleteFailed',
-  'sandboxInfoCreateFailed',
-  'sandboxNotFound',
-  'scratchOrgNotFound',
-  'AuthInfoOrgIdUndefined',
-  'sandboxCreateNotComplete',
-  'SandboxProcessNotFoundBySandboxName',
-  'MultiSandboxProcessNotFoundBySandboxName',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'org');
 
 export type OrganizationInformation = {
   Name: string;
@@ -105,6 +90,12 @@ export interface SandboxUserAuthResponse {
   authCode: string;
   instanceUrl: string;
   loginUrl: string;
+}
+
+const resumableSandboxStatus = ['Activating', 'Pending', 'Pending Activation', 'Processing', 'Sampling'];
+
+export function sandboxIsResumable(value: string): boolean {
+  return resumableSandboxStatus.includes(value);
 }
 
 export type SandboxProcessObject = {
@@ -315,6 +306,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw messages.createError('sandboxCreateNotComplete');
     }
 
+    if (!sandboxIsResumable(sandboxCreationProgress.Status)) {
+      throw messages.createError('sandboxNotResumable', [
+        sandboxCreationProgress.SandboxName,
+        sandboxCreationProgress.Status,
+      ]);
+    }
     this.logger.debug(
       `resume - pollStatusAndAuth sandboxProcessObj ${JSON.stringify(
         sandboxCreationProgress,
