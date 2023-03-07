@@ -128,9 +128,9 @@ configAggregator.getPropertyValue(SfdxPropertyKeys.API_VERSION);
 
 ### Why
 
-Originally encryption happened within AuthInfo. Ideally the mechanism that reads and writes secure values also encrypt them. Then helps ensure that decrypted values don't get saved to disk. If you use ConfigFile, you can know set encryption keys rather than dealing with Crypto directly.
+Originally encryption happened within AuthInfo. Ideally the mechanism that reads and writes secure values also encrypt them. This helps ensure that decrypted values don't get saved to disk. If you use ConfigFile, you can now set encryption keys rather than dealing with Crypto directly.
 
-Because of that change, it no longer made sense to have a cache on AuthInfo. Instead, getting auth info fields should always be getting it from the true source, which is the config file. In this case, StateAggregator.
+Because of that change it no longer made sense to have a cache on AuthInfo. Instead, getting auth info fields should always be getting it from the true source, which is the config file. In this case, StateAggregator.
 
 Most people won't have to worry about these changes unless doing some special test mocking or using the removed `AuthInfo.clearCache` or the encrypt param on `AuthInfo.update`. Everything updated will always be encrypted to prevent any accidents with storying decrypted data.
 
@@ -219,7 +219,7 @@ messages.getMessage('baKey'); // type error because baKey is not loaded above
 
 ### Why?
 
-Quite often, customers would get the error `Missing message <bundle>:<key> for locale en_US.` at runtime in production code. This should really be a development time error. In v3, we have added typescript typings to help catch these at development time. We also updates all examples to load messages at the top of the file which most libraries and plugins already do. Reading the messages at load time is very fast (under 0.5ms per message file).
+Quite often customers would get the error `Missing message <bundle>:<key> for locale en_US.` at runtime in production code. This should really be a development time error. In v3 we have added TypeScript typings to help catch these at development time. We also updates all examples to load messages at the top of the file, which most libraries and plugins already do. Reading the messages at load time is very fast (under 0.5ms per message file).
 
 We created the method `load` to really highlight the change and require the type key param. Making it optional on `loadMessages` could lead to mistakes as well. Plus, the word messages there is redundant. We did not rename `getMessages` to reduce the amount of code changes.
 
@@ -251,11 +251,11 @@ throw new SfError(errMessage, errName, errActions);
 
 ### Why?
 
-With the changes to messages, we want developers to be explicit about the keys they are using. We also want to encourage messages are loaded at the top of the file. The `SfdxError.create` method bypasses both of those objectives. Because of this, we just completely removed it. Although it adds a little bit of convenience, it also simplifies the usage. For a similar convenience, see `Messages.createError`.
+With the changes to messages we want developers to be explicit about the keys they are using. We also want to encourage messages are loaded at the top of the file. The `SfdxError.create` method bypasses both of those objectives. Because of this we just completely removed it. Although it adds a little bit of convenience, it also simplifies the usage. For a similar convenience, see `Messages.createError`.
 
 # Error Names
 
-While standardizing on our message files, we realized that there were a lot of inconsistencies with our thrown error names. To stay consistent with [ecma](https://tc39.es/ecma262/#sec-error.prototype.name), we changed all error names to be CamelCase and end in `Error`. Below is a table of all the changed error names. If you are catching one of these errors and checking the name, you will need to update that reference.
+While standardizing on our message files, we realized that there were a lot of inconsistencies with our thrown error names. To stay consistent with [ecma](https://tc39.es/ecma262/#sec-error.prototype.name) we changed all error names to be CamelCase and end in `Error`. Below is a table of all the changed error names. If you are catching one of these errors and checking the name, you will need to update that reference.
 
 | v2 Error Name                                | V3 Error Name                                |
 | -------------------------------------------- | -------------------------------------------- |
