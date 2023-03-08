@@ -63,7 +63,7 @@
     "@types/chai-string": "^1.4.2",
     "@types/debug": "0.0.31",
     "@types/jsen": "0.0.21",
-    "@types/jsonwebtoken": "8.5.9",
+    "@types/jsonwebtoken": "9.0.1",
     "@types/lodash": "^4.14.191",
     "@types/shelljs": "0.8.11",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
