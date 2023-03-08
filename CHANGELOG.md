@@ -1,3 +1,48 @@
+## [3.33.6](https://github.com/forcedotcom/sfdx-core/compare/3.33.5...3.33.6) (2023-03-02)
+
+
+### Bug Fixes
+
+* check for resumable state for sandbox resume ([157622f](https://github.com/forcedotcom/sfdx-core/commit/157622f10c1d16c531d1576feb44a17eb1b04952))
+
+
+
+## [3.33.5](https://github.com/forcedotcom/sfdx-core/compare/3.33.4...3.33.5) (2023-02-26)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/schemas from 1.4.0 to 1.5.0 ([f63c2f8](https://github.com/forcedotcom/sfdx-core/commit/f63c2f8135c27f794c5fce65be3dd5ea9e14f57f))
+
+
+
+## [3.33.4](https://github.com/forcedotcom/sfdx-core/compare/3.33.3...3.33.4) (2023-02-22)
+
+
+### Bug Fixes
+
+* **deps:** bump @types/graceful-fs from 4.1.5 to 4.1.6 ([d7500b9](https://github.com/forcedotcom/sfdx-core/commit/d7500b96caf2b13f8b0824c29721e639b0274165))
+
+
+
+## [3.33.3](https://github.com/forcedotcom/sfdx-core/compare/3.33.2...3.33.3) (2023-02-22)
+
+
+### Bug Fixes
+
+* correct timeout for deploy during scratch org creation ([364985d](https://github.com/forcedotcom/sfdx-core/commit/364985d849d29dc07f4c27c5e3e67e2f3b344ff6))
+
+
+
+## [3.33.2](https://github.com/forcedotcom/sfdx-core/compare/3.33.1...3.33.2) (2023-02-21)
+
+
+### Bug Fixes
+
+* improve error contents for device login ([#774](https://github.com/forcedotcom/sfdx-core/issues/774)) ([3ad803a](https://github.com/forcedotcom/sfdx-core/commit/3ad803ad4d4b0ff473c04a8dd727c65546bfa86e))
+
+
+
 ## [3.33.1](https://github.com/forcedotcom/sfdx-core/compare/3.33.0...3.33.1) (2023-01-23)
 
 

@@ -394,7 +394,8 @@ export const pollForScratchOrgInfo = async (
 export const deploySettings = async (
   scratchOrg: Org,
   orgSettings: SettingsGenerator,
-  apiVersion: string
+  apiVersion: string,
+  timeout: Duration = Duration.minutes(10)
 ): Promise<void> => {
   const logger = await Logger.child('scratchOrgInfoApi-deploySettings');
   if (orgSettings.hasSettings()) {
@@ -403,7 +404,7 @@ export const deploySettings = async (
 
     try {
       await orgSettings.createDeploy();
-      await orgSettings.deploySettingsViaFolder(scratchOrg, apiVersion);
+      await orgSettings.deploySettingsViaFolder(scratchOrg, apiVersion, timeout);
       // updating the revision num to zero during org:creation if source members are created during org:create.
       // This only happens for some specific scratch org definition file.
       await updateRevisionCounterToZero(scratchOrg);

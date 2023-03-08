@@ -36,7 +36,8 @@ jobs:
       command: 'yarn test:nuts'
       os: ${{ matrix.os }}
       useCache: false
-      preBuildCommands: 'shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules@salesforce/core'
+      postBuildCommands: 'shx rm -rf node_modules/jsforce/typings'
+      preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core'
     secrets: inherit
   # hidden until we fix source-testkit to better handle jwt
   # deployRetrieveNuts:

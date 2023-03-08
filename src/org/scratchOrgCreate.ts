@@ -191,6 +191,8 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
 
 export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promise<ScratchOrgCreateResult> => {
   const logger = await Logger.child('scratchOrgCreate');
+  /** epoch milliseconds */
+  const startTimestamp = Date.now();
 
   logger.debug('scratchOrgCreate');
   await emit({ stage: 'prepare request' });
@@ -296,7 +298,9 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
       settingsGenerator,
       apiversion ??
         configAggregator.getPropertyValue(OrgConfigProperties.ORG_API_VERSION) ??
-        (await scratchOrg.retrieveMaxApiVersion())
+        (await scratchOrg.retrieveMaxApiVersion()),
+      // some of our "wait" time has already been used.  Calculate how much remains that we can spend on the deployment.
+      Duration.milliseconds(wait.milliseconds - (Date.now() - startTimestamp))
     ),
   ]);
 
