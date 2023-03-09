@@ -23,7 +23,9 @@ describe('AuthRemover', () => {
 
   function expectPartialDeepMatch(actual: AuthFields, expected: AuthFields, ignore = ['refreshToken', 'accessToken']) {
     for (const key of ignore) {
+      // @ts-ignore
       delete actual[key];
+      // @ts-ignore
       delete expected[key];
     }
     expect(actual).to.deep.equal(expected);

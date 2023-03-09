@@ -88,7 +88,7 @@ describe('Connection', () => {
     expect(get(conn, 'options.authInfo')).to.exist;
     expect(conn.loginUrl).to.equal(testConnectionOptions.loginUrl);
     // eslint-disable-next-line no-underscore-dangle
-    expect(conn._callOptions.client).to.contain('sfdx toolbelt:');
+    expect(conn._callOptions?.client).to.contain('sfdx toolbelt:');
   });
 
   it('create() should create a connection with the latest API version', async () => {

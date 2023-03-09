@@ -29,11 +29,13 @@ describe('SfProject', () => {
     it('allows uppercase packaging aliases on write', async () => {
       const json = await SfProjectJson.create();
       await json.write({ packageAliases: { MyName: 'somePackage' } });
+      // @ts-ignore
       expect($$.getConfigStubContents('SfProjectJson').packageAliases['MyName']).to.equal('somePackage');
     });
     it('allows uppercase packaging aliases on read', async () => {
       $$.setConfigStubContents('SfProjectJson', { contents: { packageAliases: { MyName: 'somePackage' } } });
       const json = await SfProjectJson.create();
+      // @ts-ignore
       expect(json.get('packageAliases')['MyName']).to.equal('somePackage');
     });
     it('getPackageDirectories should transform packageDir paths to have path separators that match the OS', async () => {
@@ -242,6 +244,7 @@ describe('SfProject', () => {
     });
     it('gets global overrides default', async () => {
       const read = async function () {
+        // @ts-ignore
         if (this.isGlobal()) {
           return { sfdcLoginUrl: 'globalUrl' };
         } else {
@@ -255,6 +258,7 @@ describe('SfProject', () => {
     });
     it('gets local overrides global', async () => {
       const read = async function () {
+        // @ts-ignore
         if (this.isGlobal()) {
           return { sfdcLoginUrl: 'globalUrl' };
         } else {
@@ -269,6 +273,7 @@ describe('SfProject', () => {
     it('gets env overrides local and config', async () => {
       process.env.FORCE_SFDC_LOGIN_URL = 'envarUrl';
       const read = async function () {
+        // @ts-ignore
         if (this.isGlobal()) {
           return { sfdcLoginUrl: 'globalUrl' };
         } else {
@@ -302,6 +307,7 @@ describe('SfProject', () => {
     });
     it('gets config org-instance-url sets sfdcLoginUrl when there is none elsewhere', async () => {
       const read = async function () {
+        // @ts-ignore
         if (this.isGlobal()) {
           return { 'org-api-version': 38.0 };
         } else {
@@ -318,6 +324,7 @@ describe('SfProject', () => {
     });
     it('config instanceUrl defers to sfdcLoginUrl in files', async () => {
       const read = async function () {
+        // @ts-ignore
         if (this.isGlobal()) {
           return { 'org-api-version': 38.0, sfdcLoginUrl: 'https://fromfiles.com' };
         } else {
@@ -334,6 +341,7 @@ describe('SfProject', () => {
     });
     it('gets config overrides local', async () => {
       const read = async function () {
+        // @ts-ignore
         if (this.isGlobal()) {
           return { 'org-api-version': 38.0 };
         } else {
@@ -437,7 +445,7 @@ describe('SfProject', () => {
       try {
         shouldThrowSync(() => project.getPackageDirectories());
       } catch (e) {
-        expect(e.message).to.equal(
+        expect((e as Error).message).to.equal(
           Messages.load('@salesforce/core', 'config', ['singleNonDefaultPackage']).getMessage('singleNonDefaultPackage')
         );
       }
@@ -595,7 +603,7 @@ describe('SfProject', () => {
 
       it('should set/get an existing package', () => {
         SfProject.getInstance().setActivePackage(expectedPackage);
-        expect(SfProject.getInstance().getActivePackage().name).to.equal(expectedPackage);
+        expect(SfProject.getInstance().getActivePackage()?.name).to.equal(expectedPackage);
       });
     });
 
@@ -828,7 +836,7 @@ describe('SfProject', () => {
       const project = SfProject.getInstance();
       const foundPkg = project.findPackage((pd) => pd.path === 'force-app1');
       expect(foundPkg).to.be.ok;
-      expect(foundPkg.default).to.be.true;
+      expect(foundPkg?.default).to.be.true;
     });
     it('should find second instance when predicate is specific to a single entry', () => {
       $$.setConfigStubContents('SfProjectJson', {
@@ -843,7 +851,7 @@ describe('SfProject', () => {
       const project = SfProject.getInstance();
       const foundPkg = project.findPackage((pd) => pd.path === 'force-app1' && pd.default === false);
       expect(foundPkg).to.be.ok;
-      expect(foundPkg.default).to.be.false;
+      expect(foundPkg?.default).to.be.false;
     });
   });
 });

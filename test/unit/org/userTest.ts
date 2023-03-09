@@ -156,7 +156,9 @@ describe('User Tests', () => {
         shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(err.message).to.equal('Invalid complexity value. Specify a value between 0 and 5, inclusive.');
+        expect((err as Error).message).to.equal(
+          'Invalid complexity value. Specify a value between 0 and 5, inclusive.'
+        );
       }
     });
 
@@ -166,7 +168,7 @@ describe('User Tests', () => {
         shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(err.message).to.equal('Invalid length value. Specify a value between 8 and 1000, inclusive.');
+        expect((err as Error).message).to.equal('Invalid length value. Specify a value between 8 and 1000, inclusive.');
       }
     });
   });

@@ -29,9 +29,8 @@ describe('Logger', () => {
     process.env.SFDX_ENV = 'test';
 
     // Must restore the globally stubbed Logger.child method here.  Stubbed in testSetup.
-    if (Logger.child['restore']) {
-      Logger.child['restore']();
-    }
+    // @ts-expect-error: called is a sinon spy property
+    if (Logger.child['restore']) Logger.child['restore']();
   });
 
   afterEach(() => {
@@ -75,7 +74,7 @@ describe('Logger', () => {
           'should have thrown an error trying to get an invalid level name'
         );
       } catch (err) {
-        expect(err.name).to.equal('UnrecognizedLoggerLevelNameError');
+        expect((err as Error).name).to.equal('UnrecognizedLoggerLevelNameError');
       }
     });
 
@@ -102,8 +101,8 @@ describe('Logger', () => {
 
   describe('addLogFileStream', () => {
     const testLogFile = 'some/dir/mylogfile.json';
-    let utilAccessStub;
-    let utilWriteFileStub;
+    let utilAccessStub: sinon.SinonStub;
+    let utilWriteFileStub: sinon.SinonStub;
 
     beforeEach(() => {
       utilAccessStub = $$.SANDBOX.stub(fs.promises, 'access');
@@ -156,6 +155,7 @@ describe('Logger', () => {
       const defaultLogger = await Logger.root();
       expect(defaultLogger).to.be.instanceof(Logger);
       expect(defaultLogger.getName()).to.equal('sf');
+      // @ts-expect-error: called is a sinon spy property
       expect(defaultLogger.addFilter['called'], 'new Logger() should have called addFilter()').to.be.true;
       const logger = await Logger.root();
       expect(logger).to.equal(defaultLogger);
@@ -173,7 +173,9 @@ describe('Logger', () => {
       const rootLogger = await Logger.root();
       expect(rootLogger.getName()).to.equal('sf');
       expect(await Logger.root()).to.equal(rootLogger);
+      // @ts-expect-error: called is a sinon spy property
       expect(Logger.root['called']).to.be.true;
+      // @ts-expect-error: called is a sinon spy property
       expect(rootLogger.addLogFileStream['called']).to.be.false;
     });
 
@@ -185,6 +187,7 @@ describe('Logger', () => {
 
       // @ts-ignore to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
+      // @ts-expect-error: called is a sinon spy property
       expect(rootLogger.fatal['called']).to.be.true;
     });
   });
@@ -206,6 +209,7 @@ describe('Logger', () => {
 
       // @ts-ignore to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
+      // @ts-expect-error: called is a sinon spy property
       expect(childLogger.fatal['called']).to.be.false;
     });
   });
@@ -257,6 +261,7 @@ describe('Logger', () => {
       const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(0);
 
       // Log at the provided log level for each test entry
+      // @ts-expect-error
       testLogEntries.forEach((entry) => logger[logLevel[0]](entry));
 
       const logData = logger.readLogContentsAsText();
@@ -279,6 +284,7 @@ describe('Logger', () => {
       // logger.fatal() necessarily writes to stderr so stub it here
       $$.SANDBOX.stub(process.stderr, 'write');
       await runTest(['fatal', 60]);
+      // @ts-expect-error: called is a sinon spy property
       expect(process.stderr.write['called']).to.be.true;
     });
   });
@@ -305,11 +311,12 @@ describe('Logger', () => {
       const logger = (await Logger.child('testSerializersLogger')).useMemoryLogging();
 
       // A test serializer
-      logger.getBunyanLogger().serializers.config = (obj) =>
+      logger.getBunyanLogger().serializers.config = (obj: Record<string, unknown>) =>
         _.reduce(
           obj,
           (acc, val, key) => {
             if (isString(val) || isNumber(val) || isBoolean(val)) {
+              // @ts-expect-error
               acc[key] = val;
             }
             return acc;
@@ -329,7 +336,11 @@ describe('Logger', () => {
   });
 
   describe('debug lib', () => {
-    let output;
+    let output: string;
+    const accumlateOutput = (error: string): boolean => {
+      output += error;
+      return true;
+    };
     beforeEach(() => {
       Logger.destroyRoot();
       // @ts-ignore enable debug logging
@@ -345,7 +356,7 @@ describe('Logger', () => {
     it('should use root in output', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => (output += error));
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => accumlateOutput(error.toString()));
       const logger = await Logger.root();
       expect(logger.debugEnabled).to.equal(true);
       logger.warn('warn');
@@ -357,7 +368,7 @@ describe('Logger', () => {
     it('should use child name in output', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => (output += error));
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => accumlateOutput(error.toString()));
       const logger = (await Logger.root()).child('test');
       logger.warn('warn');
       out.restore();
@@ -368,7 +379,7 @@ describe('Logger', () => {
     it('should include higher level', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => (output += error));
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => accumlateOutput(error.toString()));
       const logger = await Logger.root();
       // Logger is debug by default. Debug is lower than info.
       logger.info('info');
@@ -380,7 +391,7 @@ describe('Logger', () => {
     it('should not include lower level', async () => {
       // Do this in the test because we want normal mocha output
       const out = $$.SANDBOX.stub(process.stdout, 'write');
-      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => (output += error));
+      const err = $$.SANDBOX.stub(process.stderr, 'write').callsFake((error) => accumlateOutput(error.toString()));
       const logger = await Logger.root();
       logger.setLevel(LoggerLevel.FATAL);
       logger.info('info');

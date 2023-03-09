@@ -16,13 +16,13 @@ describe('lifecycleEvents', () => {
   const $$ = new TestContext();
   class Foo {
     // eslint-disable-next-line @typescript-eslint/ban-types, class-methods-use-this
-    public bar(name: string, result: {}) {
+    public bar(name: string, result: Record<string, unknown>) {
       return result[name] as string;
     }
   }
 
-  let fakeSpy;
-  let loggerSpy;
+  let fakeSpy: sinon.SinonSpy;
+  let loggerSpy: sinon.SinonSpy;
   const fake = new Foo();
 
   beforeEach(() => {
@@ -49,6 +49,7 @@ describe('lifecycleEvents', () => {
 
   it('handles the warnings and telemetry events', async () => {
     Lifecycle.getInstance().onWarning(async (result) => {
+      // @ts-expect-error
       fake.bar('test1', result);
     });
     Lifecycle.getInstance().onTelemetry(async (result) => {
@@ -70,9 +71,11 @@ describe('lifecycleEvents', () => {
 
   it('successful event registration and emitting causes the callback to be called', async () => {
     Lifecycle.getInstance().on('test1', async (result) => {
+      // @ts-expect-error: called is a sinon spy property
       fake.bar('test1', result);
     });
     Lifecycle.getInstance().on('test2', async (result) => {
+      // @ts-expect-error: called is a sinon spy property
       fake.bar('test1', result);
     });
     chai.expect(fakeSpy.callCount).to.be.equal(0);
@@ -91,10 +94,12 @@ describe('lifecycleEvents', () => {
 
   it('an event registering twice logs a warning but creates two listeners that both fire when emitted', async () => {
     Lifecycle.getInstance().on('test3', async (result) => {
+      // @ts-expect-error: called is a sinon spy property
       fake.bar('test3', result);
     });
     Lifecycle.getInstance().on('test3', async (result) => {
       await sleep(Duration.milliseconds(1));
+      // @ts-expect-error: called is a sinon spy property
       fake.bar('test3', result);
     });
     chai.expect(loggerSpy.callCount).to.be.equal(1);
@@ -123,6 +128,7 @@ describe('lifecycleEvents', () => {
 
   it('removeAllListeners works', async () => {
     Lifecycle.getInstance().on('test5', async (result) => {
+      // @ts-expect-error: called is a sinon spy property
       fake.bar('test5', result);
     });
     await Lifecycle.getInstance().emit('test5', 'Success');
@@ -141,7 +147,7 @@ describe('lifecycleEvents', () => {
   });
 
   it('getListeners works', async () => {
-    const x = async (result) => {
+    const x = async (result: Record<string, unknown>) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       fake.bar('test6', result);
     };
@@ -156,7 +162,7 @@ describe('lifecycleEvents', () => {
   it('will use a newer version and transfer the listeners', () => {
     // the original
     const lifecycle = Lifecycle.getInstance();
-    lifecycle.on('test7', async (result) => {
+    lifecycle.on('test7', async (result: Record<string, unknown>) => {
       fake.bar('test7', result);
     });
     $$.SANDBOX.stub(Lifecycle, 'staticVersion').returns('999999.0.0');

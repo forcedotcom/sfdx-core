@@ -40,7 +40,7 @@ describe('CryptoTest', function () {
 
   afterEach(() => {
     crypto.close();
-    process.env.SFDX_DISABLE_ENCRYPTION = disableEncryptionEnvVar || '';
+    process.env.SFDX_DISABLE_ENCRYPTION = disableEncryptionEnvVar ?? '';
   });
 
   if (process.platform === 'darwin') {
@@ -65,6 +65,7 @@ describe('CryptoTest', function () {
       crypto = new Crypto();
       // @ts-ignore
       await crypto.init();
+      if (!secret) throw new Error('secret is undefined');
       const decrypted = crypto.decrypt(secret);
       expect(decrypted).to.equal(text);
     });
@@ -137,8 +138,9 @@ describe('CryptoTest', function () {
       delete process.env.SFDX_DISABLE_ENCRYPTION;
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error: access protected method
       await crypto.init();
+      // @ts-expect-error: falsy value
       secret = crypto.encrypt(undefined);
       expect(secret).to.equal(undefined);
     });
@@ -162,8 +164,9 @@ describe('CryptoTest', function () {
       try {
         shouldThrowSync(() => crypto.decrypt('abcdefghijklmnopqrstuvwxyz:123456789'));
       } catch (error) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(error.actions[0]).to.equal(message);
+        const sfError = error as SfError;
+        if (!sfError.actions) throw new Error('sfError.actions is undefined');
+        expect(sfError.actions[0]).to.equal(message);
       }
     });
 
@@ -184,6 +187,7 @@ describe('CryptoTest', function () {
       crypto = new Crypto();
       // @ts-ignore
       await crypto.init();
+      // @ts-expect-error: secret is not a string
       expect(() => crypto.decrypt(secret)).to.not.throw(message);
       delete process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN;
     });

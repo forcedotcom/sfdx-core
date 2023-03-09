@@ -84,13 +84,17 @@ describe('ConfigAggregator', () => {
   it('reload decrypts config values', async () => {
     // readSync doesn't decrypt values
     $$.SANDBOX.stub(Config.prototype, 'readSync').callsFake(function () {
+      // @ts-ignore
       this.setContents({ 'org-isv-debugger-sid': 'encrypted' });
+      // @ts-ignore
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return this.getContents();
     });
     // read decrypts values
     $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function () {
+      // @ts-ignore
       this.setContents({ 'org-isv-debugger-sid': 'decrypted' });
+      // @ts-ignore
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return this.getContents();
     });
@@ -158,6 +162,7 @@ describe('ConfigAggregator', () => {
     it('env', async () => {
       process.env.SF_TARGET_ORG = 'test';
       const aggregator = await ConfigAggregator.create();
+      // @ts-ignore
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       $$.SANDBOX.stub(fs, 'readFile').callsFake(async (path: string) => {
         if (path) {

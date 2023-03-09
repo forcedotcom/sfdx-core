@@ -237,7 +237,7 @@ describe('streaming client tests', () => {
       await shouldThrow(asyncStatusClient.handshake());
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      expect(e.name).to.equal(StreamingClient.TimeoutErrorType.HANDSHAKE);
+      expect((e as Error).name).to.equal(StreamingClient.TimeoutErrorType.HANDSHAKE);
     }
   });
 
@@ -268,8 +268,7 @@ describe('streaming client tests', () => {
     try {
       await shouldThrow(asyncStatusClient.subscribe(async (): Promise<void> => Promise.resolve()));
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      expect(e.name).to.equal(StreamingClient.TimeoutErrorType.SUBSCRIBE);
+      expect((e as Error).name).to.equal(StreamingClient.TimeoutErrorType.SUBSCRIBE);
     }
   });
 
@@ -329,7 +328,7 @@ describe('streaming client tests', () => {
     };
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      // @ts-ignore
       await shouldThrow(StreamingClient.prototype['incoming'].call(context, apiVersionErrorMsg, () => {}));
     } catch (e) {
       expect(e).to.have.property('name', 'HandshakeApiVersionError');

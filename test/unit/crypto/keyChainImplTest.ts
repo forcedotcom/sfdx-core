@@ -57,6 +57,7 @@ describe('KeyChainImpl Tests', () => {
   describe('keychain program file issues', () => {
     it('File not found', async () => {
       try {
+        // eslint-disable-next-line @typescript-eslint/await-thenable
         await keyChainImpl.validateProgram.bind(null, `/foo/bar/${$$.uniqid()}`, fs);
         assert('keyChainImpl.validateProgram() should have thrown an error');
       } catch (err) {
@@ -77,6 +78,7 @@ describe('KeyChainImpl Tests', () => {
 
       try {
         // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/await-thenable
         await keyChainImpl.validateProgram.bind(null, `/foo/bar/${$$.uniqid()}`, fsImpl, () => false);
         assert('keyChainImpl.validateProgram() should have thrown an error');
       } catch (err) {
@@ -93,7 +95,7 @@ describe('KeyChainImpl Tests', () => {
         try {
           await shouldThrow(access.getPassword({ account: '', service: '', password: '' }, () => {}));
         } catch (error) {
-          expect(error.name).to.equal('MissingCredentialProgramError');
+          expect((error as Error).name).to.equal('MissingCredentialProgramError');
         }
       });
       (process.platform !== 'win32' ? it : it.skip)('program access', async () => {
@@ -104,14 +106,15 @@ describe('KeyChainImpl Tests', () => {
         try {
           await shouldThrow(access.getPassword({ account: '', service: '', password: '' }, () => {}));
         } catch (error) {
-          expect(error.name).to.equal('CredentialProgramAccessError');
+          expect((error as Error).name).to.equal('CredentialProgramAccessError');
         }
       });
       it('requires account', async () => {
         const access = new KeychainAccess(testImpl, fs);
         let set = false;
+        // @ts-expect-error: null account
         await access.getPassword({ account: null, service: '', password: '' }, (error) => {
-          expect(error.name).to.equal('KeyChainAccountRequiredError');
+          expect((error as Error).name).to.equal('KeyChainAccountRequiredError');
           set = true;
         });
         assert(set);
@@ -119,8 +122,9 @@ describe('KeyChainImpl Tests', () => {
       it('requires service', async () => {
         const access = new KeychainAccess(testImpl, fs);
         let set = false;
+        // @ts-expect-error: null service
         await access.getPassword({ account: '', service: null, password: '' }, (error) => {
-          expect(error.name).to.equal('KeyChainServiceRequiredError');
+          expect((error as Error).name).to.equal('KeyChainServiceRequiredError');
           set = true;
         });
         assert(set);
@@ -131,8 +135,9 @@ describe('KeyChainImpl Tests', () => {
       it('requires account', async () => {
         const access = new KeychainAccess(testImpl, fs);
         let set = false;
+        // @ts-expect-error: null account
         await access.setPassword({ account: null, service: '', password: '' }, (error) => {
-          expect(error.name).to.equal('KeyChainAccountRequiredError');
+          expect((error as Error).name).to.equal('KeyChainAccountRequiredError');
           set = true;
         });
         assert(set);
@@ -140,8 +145,9 @@ describe('KeyChainImpl Tests', () => {
       it('requires service', async () => {
         const access = new KeychainAccess(testImpl, fs);
         let set = false;
+        // @ts-expect-error: null service
         await access.setPassword({ account: '', service: null, password: '' }, (error) => {
-          expect(error.name).to.equal('KeyChainServiceRequiredError');
+          expect((error as Error).name).to.equal('KeyChainServiceRequiredError');
           set = true;
         });
         assert(set);
@@ -149,8 +155,9 @@ describe('KeyChainImpl Tests', () => {
       it('requires service', async () => {
         const access = new KeychainAccess(testImpl, fs);
         let set = false;
+        // @ts-expect-error: null password
         await access.setPassword({ account: '', service: '', password: null }, (error) => {
-          expect(error.name).to.equal('PasswordRequiredError');
+          expect((error as Error).name).to.equal('PasswordRequiredError');
           set = true;
         });
         assert(set);
@@ -173,53 +180,63 @@ describe('KeyChainImpl Tests', () => {
     };
 
     const _testForPlatform = function (done: any) {
+      // @ts-ignore
       expect(this.platformImpl).not.to.be.null;
+      // @ts-ignore
       expect(this.platformImpl).not.to.be.undefined;
       done();
     };
 
     const _getCommandFunc = function (done: any) {
-      const testFunc = function (pgmPath, options) {
+      const testFunc = function (pgmPath: string, options: any) {
+        // @ts-ignore
         expect(pgmPath).to.equal(this.platformImpl.osImpl.getProgram());
         expect(options).to.include(keyChainOptions.service).and.to.include(keyChainOptions.account);
       };
 
+      // @ts-ignore
       this.platformImpl.osImpl.getCommandFunc(keyChainOptions, testFunc.bind(this));
       done();
     };
 
     const _OnGetCommandError = function (done: any) {
-      const responseFunc = function (err) {
+      const responseFunc = function (err: unknown) {
         expect(err).to.have.property('name', 'PasswordNotFoundError');
       };
 
+      // @ts-ignore
       this.platformImpl.osImpl.onGetCommandClose(1, 'zuul', 'dana', keyChainOptions, responseFunc.bind(this));
       done();
     };
 
     const _OnGetCommandMacUserCanceled = function (done: any) {
-      const responseFunc = function (err) {
+      const responseFunc = function (err: unknown) {
         expect(err).to.have.property('name', 'KeyChainUserCanceledError');
       };
 
+      // @ts-ignore
       this.platformImpl.osImpl.onGetCommandClose(128, 'zuul', 'dana', null, responseFunc.bind(this));
       done();
     };
 
     const _OnSetFunc = function (done: any) {
       const testFunc = function (pgmPath: any, options: any) {
+        // @ts-ignore
         expect(pgmPath).to.equal(this.platformImpl.osImpl.getProgram());
         expect(options).to.include(keyChainOptions.password);
         expect(options).to.include(keyChainOptions.service).and.to.include(keyChainOptions.account);
       };
       // passwords for linux are read properly from stdin. Boo Windows and Mac
+      // @ts-ignore
       if (this.platform !== platforms.LINUX) {
+        // @ts-ignore
         this.platformImpl.osImpl.setCommandFunc(keyChainOptions, testFunc.bind(this));
       }
       done();
     };
 
     const _OnGetCommandLinuxRetry = async function () {
+      // @ts-ignore
       const onGetCommandCloseFn = this.platformImpl.osImpl.onGetCommandClose.bind(
         null,
         1,
@@ -235,7 +252,7 @@ describe('KeyChainImpl Tests', () => {
       }
     };
 
-    const _tests = function () {
+    const _tests = function (this: any) {
       it('Found Impl', _testForPlatform.bind(this));
       it('getCommandFunc', _getCommandFunc.bind(this));
       it('OnGetCommand Close Error', _OnGetCommandError.bind(this));
@@ -252,10 +269,12 @@ describe('KeyChainImpl Tests', () => {
 
     Object.keys(platforms).forEach((platformKey) => {
       if (Object.hasOwnProperty.call(platforms, platformKey)) {
+        // @ts-expect-error
         const platform = platforms[platformKey];
         // this test is very much tied to various internal keychain impls. generic_unix doesn't rely on a
         // third-party program.
         if (!(platform === platforms.GENERIC_UNIX || platform === platforms.GENERIC_WINDOWS)) {
+          // @ts-expect-error
           const platformImpl = keyChainImpl[platform];
 
           describe(`${platform} tests`, _tests.bind({ platformImpl, platform }));

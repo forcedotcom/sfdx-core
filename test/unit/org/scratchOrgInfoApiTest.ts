@@ -85,8 +85,10 @@ describe('requestScratchOrgCreation', () => {
     try {
       await requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings);
       assert.fail('Should have thrown');
-    } catch (e) {
-      expect(e.message).to.equal(messages.getMessage('hubOrgIsNotDevHub', [hubOrg.getUsername(), hubOrg.getOrgId()]));
+    } catch (error) {
+      expect((error as Error).message).to.equal(
+        messages.getMessage('hubOrgIsNotDevHub', [hubOrg.getUsername(), hubOrg.getOrgId()])
+      );
     }
   });
 
@@ -98,7 +100,8 @@ describe('requestScratchOrgCreation', () => {
   });
 
   it('requestScratchOrgCreation no username field in scratchOrgRequest is empty', async () => {
-    const scratchOrgRequest = { ...TEMPLATE_SCRATCH_ORG_INFO, Username: undefined };
+    // @ts-expect-error
+    const scratchOrgRequest: ScratchOrgInfo = { ...TEMPLATE_SCRATCH_ORG_INFO, Username: undefined };
     const result = await requestScratchOrgCreation(hubOrg, scratchOrgRequest, settings);
     expect(result).to.be.true;
   });
@@ -109,7 +112,7 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.message).to.include(errorCodesMessages.getMessage('C-1007'));
+      expect((error as Error).message).to.include(errorCodesMessages.getMessage('C-1007'));
     }
   });
 
@@ -125,7 +128,7 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.message).to.include('MyCreateError');
+      expect((error as Error).message).to.include('MyCreateError');
     }
   });
 
@@ -141,7 +144,7 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(requestScratchOrgCreation(hubOrg, TEMPLATE_SCRATCH_ORG_INFO, settings));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.message).to.include('MyError');
+      expect((error as Error).message).to.include('MyError');
     }
   });
 
@@ -193,7 +196,7 @@ describe('requestScratchOrgCreation', () => {
       }
       expect(error).to.exist;
       expect(error).to.have.keys(['cause', 'name', 'actions', 'exitCode']);
-      expect(error.toString()).to.include('SignupDuplicateSettingsSpecifiedError');
+      expect((error as Error).toString()).to.include('SignupDuplicateSettingsSpecifiedError');
     }
   });
 
@@ -217,7 +220,7 @@ describe('requestScratchOrgCreation', () => {
       }
       expect(error).to.exist;
       expect(error).to.have.keys(['cause', 'name', 'actions', 'exitCode']);
-      expect(error.toString()).to.include(messages.getMessage('DeprecatedPrefFormat'));
+      expect((error as Error).toString()).to.include(messages.getMessage('DeprecatedPrefFormat'));
     }
   });
 });
@@ -277,7 +280,7 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(deploySettings(scratchOrg, orgSettingsStub, apiVersion));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.message).to.include('MyError');
+      expect((error as Error).message).to.include('MyError');
     }
   });
 
@@ -293,7 +296,7 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(resolveUrl(scratchOrgAuthInfoStub));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.message).to.include('MyError');
+      expect((error as Error).message).to.include('MyError');
     }
   });
 
@@ -314,8 +317,8 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(resolveUrl(scratchOrgAuthInfoStub));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.data).to.have.keys(['orgId', 'username', 'instanceUrl']);
-      expect(error.data).to.deep.equal(fields);
+      expect((error as SfError).data).to.have.keys(['orgId', 'username', 'instanceUrl']);
+      expect((error as SfError).data).to.deep.equal(fields);
     }
   });
 
@@ -331,7 +334,7 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(resolveUrl(scratchOrgAuthInfoStub));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.data).to.have.keys(['orgId', 'username', 'instanceUrl']);
+      expect((error as SfError).data).to.have.keys(['orgId', 'username', 'instanceUrl']);
     }
   });
 });
@@ -379,7 +382,7 @@ describe('pollForScratchOrgInfo', () => {
       await shouldThrow(pollForScratchOrgInfo(hubOrg, scratchOrgInfoId));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.message).to.include(
+      expect((error as Error).message).to.include(
         errorCodesMessages.getMessage('SignupFailedUnknownError', [scratchOrgInfoId, username]),
         'signupFailedUnknown'
       );
@@ -413,7 +416,7 @@ describe('pollForScratchOrgInfo', () => {
       await shouldThrow(pollForScratchOrgInfo(hubOrg, scratchOrgInfoId, timeout));
     } catch (error) {
       expect(error).to.exist;
-      expect(error.name).to.include('ScratchOrgInfoTimeoutError');
+      expect((error as Error).name).to.include('ScratchOrgInfoTimeoutError');
     }
   });
 

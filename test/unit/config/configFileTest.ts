@@ -195,7 +195,7 @@ describe('Config', () => {
         config.unlinkSync();
         assert(false, 'should throw');
       } catch (e) {
-        expect(e.name).to.equal('TargetFileNotFound');
+        expect((e as Error).name).to.equal('TargetFileNotFound');
       }
     });
   });

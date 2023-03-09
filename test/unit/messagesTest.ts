@@ -12,6 +12,7 @@ import * as path from 'path';
 import { EOL } from 'os';
 import { cloneJson } from '@salesforce/kit';
 import { expect } from 'chai';
+import { SinonStub } from 'sinon';
 import { Messages } from '../../src/messages';
 import { SfError } from '../../src/sfError';
 import { shouldThrowSync, TestContext } from '../../src/testSetup';
@@ -52,7 +53,7 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => messages.getMessage('msg4'));
       } catch (err) {
-        expect(err.message).to.equal('Missing message myBundle:msg4 for locale en_US.');
+        expect((err as Error).message).to.equal('Missing message myBundle:msg4 for locale en_US.');
       }
     });
 
@@ -61,7 +62,7 @@ describe('Messages', () => {
         messages.getMessage('msg3.msg4');
         shouldThrowSync(() => messages.getMessage('msg3.msg4'));
       } catch (err) {
-        expect(err.message).to.equal('Missing message myBundle:msg4 for locale en_US.');
+        expect((err as Error).message).to.equal('Missing message myBundle:msg4 for locale en_US.');
       }
     });
 
@@ -85,7 +86,7 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => Messages.importMessageFile('package name', 'myPluginMessages.txt'));
       } catch (err) {
-        expect(err.message).to.contain('Only json, js and md message files are allowed, not .txt');
+        expect((err as Error).message).to.contain('Only json, js and md message files are allowed, not .txt');
       }
     });
 
@@ -120,9 +121,9 @@ describe('Messages', () => {
   });
 
   describe('importMessagesDirectory', () => {
-    let importMessageFileStub;
-    let readdirSyncStub;
-    let statSyncStub;
+    let importMessageFileStub: SinonStub;
+    let readdirSyncStub: SinonStub;
+    let statSyncStub: SinonStub;
 
     const msgFiles = ['apexMessages.json', 'soqlMessages.json'];
 
@@ -188,7 +189,7 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => Messages.importMessagesDirectory('./'));
       } catch (e) {
-        expect(e.message).to.contain('Invalid module path.');
+        expect((e as Error).message).to.contain('Invalid module path.');
       }
     });
   });
@@ -200,8 +201,8 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
-        expect(err.message).to.contain('Cannot find module');
-        expect(err.message).to.contain('myPluginMessages.json');
+        expect((err as Error).message).to.contain('Cannot find module');
+        expect((err as Error).message).to.contain('myPluginMessages.json');
       }
     });
 
@@ -212,8 +213,8 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
-        expect(err.name).to.equal('SfError');
-        expect(err.message).to.equal('Invalid message file: myPluginMessages.json. No content.');
+        expect((err as Error).name).to.equal('SfError');
+        expect((err as Error).message).to.equal('Invalid message file: myPluginMessages.json. No content.');
       }
     });
 
@@ -224,8 +225,8 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
-        expect(err.name).to.equal('Error');
-        expect(err.message).to.equal(
+        expect((err as Error).name).to.equal('Error');
+        expect((err as Error).message).to.equal(
           "Invalid JSON content in message file: myPluginMessages.json\nUnexpected token. Found returned content type 'string'."
         );
       }
@@ -282,8 +283,8 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
-        expect(err.name).to.equal('Error');
-        expect(err.message).to.equal(
+        expect((err as Error).name).to.equal('Error');
+        expect((err as Error).message).to.equal(
           'Invalid markdown message file: myPluginMessages.md\nThe line "# <key>" must be immediately followed by the message on a new line.'
         );
       }
@@ -322,7 +323,7 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => Messages.load('pname', 'notfound', ['']));
       } catch (err) {
-        expect(err.message).to.equal('Missing bundle pname:notfound for locale en_US.');
+        expect((err as Error).message).to.equal('Missing bundle pname:notfound for locale en_US.');
       }
     });
   });
@@ -334,8 +335,12 @@ describe('Messages', () => {
 
       expect(error.name).to.equal('Msg1Error');
       expect(error.message).to.equal(testMessages.msg1);
-      expect(error.actions.length).to.equal(1);
-      expect(error.actions[0]).to.equal(testMessages.msg2);
+      if (error.actions) {
+        expect(error.actions.length).to.equal(1);
+        expect(error.actions[0]).to.equal(testMessages.msg2);
+      } else {
+        throw new Error('error.actions should not be undefined');
+      }
     });
 
     it('creates error with actions (preserved name)', () => {
@@ -344,8 +349,12 @@ describe('Messages', () => {
 
       expect(error.name).to.equal('Msg1');
       expect(error.message).to.equal(testMessages.msg1);
-      expect(error.actions.length).to.equal(1);
-      expect(error.actions[0]).to.equal(testMessages.msg2);
+      if (error.actions) {
+        expect(error.actions.length).to.equal(1);
+        expect(error.actions[0]).to.equal(testMessages.msg2);
+      } else {
+        throw new Error('error.actions should not be undefined');
+      }
     });
 
     it('creates error with removed error prefix', () => {
@@ -356,8 +365,12 @@ describe('Messages', () => {
 
       expect(error.name).to.equal('Msg1Error');
       expect(error.message).to.equal(testMessages.msg1);
-      expect(error.actions.length).to.equal(1);
-      expect(error.actions[0]).to.equal('from prefix');
+      if (error.actions) {
+        expect(error.actions.length).to.equal(1);
+        expect(error.actions[0]).to.equal('from prefix');
+      } else {
+        throw new Error('error.actions should not be undefined');
+      }
     });
 
     it('creates error with removed error prefix (preserved name)', () => {
@@ -368,8 +381,12 @@ describe('Messages', () => {
 
       expect(error.name).to.equal('Msg1');
       expect(error.message).to.equal(testMessages.msg1);
-      expect(error.actions.length).to.equal(1);
-      expect(error.actions[0]).to.equal('from prefix');
+      if (error.actions) {
+        expect(error.actions.length).to.equal(1);
+        expect(error.actions[0]).to.equal('from prefix');
+      } else {
+        throw new Error('error.actions should not be undefined');
+      }
     });
     it('creates error with removed errors prefix', () => {
       msgMap.set('errors.msg1', msgMap.get('msg1'));
@@ -381,8 +398,12 @@ describe('Messages', () => {
 
       expect(error.name).to.equal('Msg1Error');
       expect(error.message).to.equal(testMessages.msg1);
-      expect(error.actions.length).to.equal(1);
-      expect(error.actions[0]).to.equal('from prefix');
+      if (error.actions) {
+        expect(error.actions.length).to.equal(1);
+        expect(error.actions[0]).to.equal('from prefix');
+      } else {
+        throw new Error('error.actions should not be undefined');
+      }
     });
 
     it('creates error with removed errors prefix (preserved name)', () => {
@@ -395,8 +416,12 @@ describe('Messages', () => {
 
       expect(error.name).to.equal('Msg1');
       expect(error.message).to.equal(testMessages.msg1);
-      expect(error.actions.length).to.equal(1);
-      expect(error.actions[0]).to.equal('from prefix');
+      if (error.actions) {
+        expect(error.actions.length).to.equal(1);
+        expect(error.actions[0]).to.equal('from prefix');
+      } else {
+        throw new Error('error.actions should not be undefined');
+      }
     });
   });
   describe('createWarning', () => {
@@ -406,8 +431,12 @@ describe('Messages', () => {
 
       expect(warning.name).to.equal('Msg1Warning');
       expect(warning.message).to.equal(testMessages.msg1);
-      expect(warning.actions.length).to.equal(1);
-      expect(warning.actions[0]).to.equal(testMessages.msg2);
+      if (warning.actions) {
+        expect(warning.actions.length).to.equal(1);
+        expect(warning.actions[0]).to.equal(testMessages.msg2);
+      } else {
+        throw new Error('warning.actions should not be undefined');
+      }
     });
 
     it('creates warning with removed warning prefix', () => {
@@ -418,8 +447,12 @@ describe('Messages', () => {
 
       expect(warning.name).to.equal('Msg1Warning');
       expect(warning.message).to.equal(testMessages.msg1);
-      expect(warning.actions.length).to.equal(1);
-      expect(warning.actions[0]).to.equal('from prefix');
+      if (warning.actions) {
+        expect(warning.actions.length).to.equal(1);
+        expect(warning.actions[0]).to.equal('from prefix');
+      } else {
+        throw new Error('warning.actions should not be undefined');
+      }
     });
   });
   describe('createInfo', () => {
@@ -429,8 +462,12 @@ describe('Messages', () => {
 
       expect(info.name).to.equal('Msg1Info');
       expect(info.message).to.equal(testMessages.msg1);
-      expect(info.actions.length).to.equal(1);
-      expect(info.actions[0]).to.equal(testMessages.msg2);
+      if (info.actions) {
+        expect(info.actions.length).to.equal(1);
+        expect(info.actions[0]).to.equal(testMessages.msg2);
+      } else {
+        throw new Error('info.actions should not be undefined');
+      }
     });
 
     it('creates info with removed info prefix', () => {
@@ -441,8 +478,12 @@ describe('Messages', () => {
 
       expect(info.name).to.equal('Msg1Info');
       expect(info.message).to.equal(testMessages.msg1);
-      expect(info.actions.length).to.equal(1);
-      expect(info.actions[0]).to.equal('from prefix');
+      if (info.actions) {
+        expect(info.actions.length).to.equal(1);
+        expect(info.actions[0]).to.equal('from prefix');
+      } else {
+        throw new Error('info.actions should not be undefined');
+      }
     });
   });
 });

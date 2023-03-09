@@ -14,6 +14,7 @@ import { expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
 import { TestContext, shouldThrow } from '../../../src/testSetup';
 import { Cache } from '../../../src/util/cache';
+import { SfError } from '../../../src/sfError';
 
 const spawnReturnFake = {
   sdtoutData: 'stdout test data',
@@ -45,7 +46,7 @@ if (os.platform() === 'darwin') {
     });
 
     after(() => {
-      process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL || '';
+      process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL ?? '';
       Cache.enable();
     });
 
@@ -76,11 +77,13 @@ if (os.platform() === 'darwin') {
       try {
         await shouldThrow(Crypto.create(), 'Should have thrown an SetCredentialError for Crypto.init()');
       } catch (err) {
-        expect(err.name).to.equal('SetCredentialError');
-        expect(err.message).to.equal(
+        expect((err as Error).name).to.equal('SetCredentialError');
+        expect((err as Error).message).to.equal(
           `Command failed with response:\n${spawnReturnFake.sdtoutData} - ${spawnReturnFake.sdterrData}`
         );
-        expect(err.actions[0]).to.equal(
+        const actions = (err as SfError).actions;
+        if (!actions) expect.fail('No actions found');
+        expect(actions[0]).to.equal(
           `Determine why this command failed to set an encryption key for user ${currentUser}: [${programArg} ${setOptionsArg.join(
             ' '
           )}].`
@@ -103,9 +106,11 @@ if (os.platform() === 'darwin') {
           'Should have thrown an PasswordNotFoundError for Crypto.init()'
         );
       } catch (err) {
-        expect(err.name).to.equal('PasswordNotFoundError');
-        expect(err.message).to.equal('Could not find password.\nstdout test data - stdout test data');
-        expect(err.actions[0]).to.equal(
+        expect((err as Error).name).to.equal('PasswordNotFoundError');
+        expect((err as Error).message).to.equal('Could not find password.\nstdout test data - stdout test data');
+        const actions = (err as SfError).actions;
+        if (!actions) expect.fail('No actions found');
+        expect(actions[0]).to.equal(
           `Ensure a valid password is returned with the following command: [${programArg} ${optionsArg.join(' ')}]`
         );
       }
@@ -119,8 +124,8 @@ if (os.platform() === 'darwin') {
       try {
         await shouldThrow(Crypto.create(), 'Should have thrown an UnsupportedOperatingSystemError for Crypto.init()');
       } catch (err) {
-        expect(err.name).to.equal('UnsupportedOperatingSystemError');
-        expect(err.message).to.equal(`Unsupported Operating System: ${unsupportedOS}`);
+        expect((err as Error).name).to.equal('UnsupportedOperatingSystemError');
+        expect((err as Error).message).to.equal(`Unsupported Operating System: ${unsupportedOS}`);
       }
     });
   });

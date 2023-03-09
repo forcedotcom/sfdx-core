@@ -88,7 +88,7 @@ describe('WebOauthServer', () => {
         await oauthServer.authorizeAndSave();
         assert(false, 'authorizeAndSave should fail');
       } catch (e) {
-        expect(e.message, 'BAD ERROR');
+        expect((e as Error).message, 'BAD ERROR');
       }
       expect(authStub.callCount).to.equal(1);
       expect(reportErrorStub.args[0][0].message).to.equal('BAD ERROR');
@@ -105,7 +105,7 @@ describe('WebOauthServer', () => {
 
     const origOn = webServer.server.on;
     stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
       if (event !== 'request') return origOn.call(webServer.server, event, callback);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       callback(
@@ -124,7 +124,7 @@ describe('WebOauthServer', () => {
       await oauthServer.authorizeAndSave();
       assert(false, 'should reject');
     } catch (err) {
-      expect(err.name).to.equal('access_denied');
+      expect((err as Error).name).to.equal('access_denied');
     }
     expect(endSpy.args[0][0]).contain('end-user denied authorization');
   });
@@ -204,7 +204,7 @@ describe('WebServer', () => {
         // @ts-ignore because private member
         await newServer.checkOsPort();
       } catch (err) {
-        expect(err.name).to.include('EADDRINUSE');
+        expect((err as Error).name).to.include('EADDRINUSE');
       } finally {
         existingServer.close();
       }
@@ -217,7 +217,7 @@ describe('WebServer', () => {
         // @ts-ignore because private member
         await server.checkOsPort();
       } catch (err) {
-        expect(err.name).to.include('SOCKET_TIMEOUT');
+        expect((err as Error).name).to.include('SOCKET_TIMEOUT');
       }
     });
   });

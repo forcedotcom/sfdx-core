@@ -272,6 +272,7 @@ describe('Config', () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.readSync.name).callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        // @ts-ignore
         this.setContentsFromObject({ unknown: 'unknown config key and value' });
       });
 
@@ -281,7 +282,7 @@ describe('Config', () => {
   });
 
   describe('allowed properties', () => {
-    let originalAllowedProperties;
+    let originalAllowedProperties: ConfigPropertyMeta[];
 
     beforeEach(() => {
       originalAllowedProperties = (Config as any).allowedProperties;
@@ -315,9 +316,9 @@ describe('Config', () => {
       Config.addAllowedProperties(configMetas);
       const addedConfigMeta = Config.getAllowedProperties().find((configMeta) => configMeta.key === 'hello');
 
-      expect(addedConfigMeta.key).to.equal('hello');
-      expect(addedConfigMeta.hidden).to.equal(false);
-      expect(addedConfigMeta.encrypted).to.equal(false);
+      expect(addedConfigMeta?.key).to.equal('hello');
+      expect(addedConfigMeta?.hidden).to.equal(false);
+      expect(addedConfigMeta?.encrypted).to.equal(false);
     });
   });
 });
