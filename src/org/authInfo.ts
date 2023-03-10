@@ -25,7 +25,7 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { JwtOAuth2, JwtOAuth2Config, OAuth2, QueryResult, TokenResponse } from 'jsforce';
+import { JwtOAuth2, JwtOAuth2Config, OAuth2, TokenResponse } from 'jsforce';
 import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
@@ -411,26 +411,23 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     await Promise.all(
       hubAuthInfos.map(async (hubAuthInfo) => {
         try {
-          const data = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
-          if (data.totalSize > 0) {
-            // if any return a result
-            logger.debug(`found orgId ${fields.orgId} in devhub ${hubAuthInfo.username}`);
-            try {
-              const soi = data.records[0];
-              await orgAuthInfo.save({
-                ...fields,
-                devHubUsername: hubAuthInfo.username,
-                expirationDate: soi.ExpirationDate,
-                isScratch: true,
-              });
-              logger.debug(
-                `set ${hubAuthInfo.username} as devhub and expirationDate ${
-                  soi.ExpirationDate
-                } for scratch org ${orgAuthInfo.getUsername()}`
-              );
-            } catch (error) {
-              logger.debug(`error updating auth file for ${orgAuthInfo.getUsername()}`, error);
-            }
+          const soi = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
+          // if any return a result
+          logger.debug(`found orgId ${fields.orgId} in devhub ${hubAuthInfo.username}`);
+          try {
+            await orgAuthInfo.save({
+              ...fields,
+              devHubUsername: hubAuthInfo.username,
+              expirationDate: soi.ExpirationDate,
+              isScratch: true,
+            });
+            logger.debug(
+              `set ${hubAuthInfo.username} as devhub and expirationDate ${
+                soi.ExpirationDate
+              } for scratch org ${orgAuthInfo.getUsername()}`
+            );
+          } catch (error) {
+            logger.debug(`error updating auth file for ${orgAuthInfo.getUsername()}`, error);
           }
         } catch (error) {
           logger.error(`Error connecting to devhub ${hubAuthInfo.username}`, error);
@@ -449,14 +446,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   private static async queryScratchOrg(
     devHubUsername: string | undefined,
     scratchOrgId: string
-  ): Promise<QueryResult<{ Id: string; ExpirationDate: string }>> {
+  ): Promise<{ Id: string; ExpirationDate: string }> {
     const devHubOrg = await Org.create({ aliasOrUsername: devHubUsername });
     const conn = devHubOrg.getConnection();
-    const data = await conn.singleRecordQuery<QueryResult<{ Id: string; ExpirationDate: string }>>(
+    const data = await conn.singleRecordQuery<{ Id: string; ExpirationDate: string }>(
       `select Id, ExpirationDate from ScratchOrgInfo where ScratchOrg = '${trimTo15(scratchOrgId)}'`
     );
     return data;
   }
+
   /**
    * Get the username.
    */
