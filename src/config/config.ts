@@ -19,29 +19,7 @@ import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'config', [
-  'deprecatedConfigKey',
-  'invalidApiVersion',
-  'invalidBooleanConfigValue',
-  'invalidConfigValue',
-  'invalidInstanceUrl',
-  'invalidIsvDebuggerSid',
-  'invalidIsvDebuggerUrl',
-  'invalidNumberConfigValue',
-  'invalidWrite',
-  'unknownConfigKey',
-  'defaultUsername',
-  'defaultDevHubUsername',
-  'isvDebuggerSid',
-  'isvDebuggerUrl',
-  'apiVersion',
-  'disableTelemetry',
-  'maxQueryLimit',
-  'restDeploy',
-  'instanceUrl',
-  'disable-telemetry',
-  'customOrgMetadataTemplates',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'config');
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 const CONFIG_FILE_NAME = 'config.json';

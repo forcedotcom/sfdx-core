@@ -15,15 +15,7 @@ import { SfError } from '../sfError';
 import { Org } from './org';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'permissionSetAssignment', [
-  'errorsEncounteredCreatingAssignment',
-  'orgRequired',
-  'userIdRequired',
-  'permSetRequired',
-  'assignCommandPermissionSetNotFoundForNSError',
-  'assignCommandPermissionSetNotFoundError',
-  'notSuccessfulButNoErrorsReported',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'permissionSetAssignment');
 
 /**
  * Map of fields name for a permission set assignment

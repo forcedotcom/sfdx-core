@@ -18,9 +18,9 @@ import { StatusResult } from './types';
 import { PollingClient } from './pollingClient';
 
 // Timeout for DNS lookup polling defaults to 3 seconds and should always be at least 3 seconds
-const DNS_TIMEOUT = Math.max(3, new Env().getNumber('SFDX_DNS_TIMEOUT', 3) as number);
+const DNS_TIMEOUT = Math.max(3, new Env().getNumber('SFDX_DNS_TIMEOUT', 3));
 // Retry frequency for DNS lookup polling defaults to 1 second and should be at least 1 second
-const DNS_RETRY_FREQ = Math.max(1, new Env().getNumber('SFDX_DNS_RETRY_FREQUENCY', 1) as number);
+const DNS_RETRY_FREQ = Math.max(1, new Env().getNumber('SFDX_DNS_RETRY_FREQUENCY', 1));
 
 /**
  * A class used to resolve MyDomains. After a ScratchOrg is created its host name my not be propagated to the

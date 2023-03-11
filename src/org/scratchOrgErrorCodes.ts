@@ -17,16 +17,7 @@ const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
-const namedMessages = Messages.load('@salesforce/core', 'scratchOrgErrorCodes', [
-  'SignupFailedActionError',
-  'SignupFailedUnknownError',
-  'SignupFailedError',
-  'SignupUnexpectedError',
-  'StillInProgressError',
-  'action.StillInProgress',
-  'ScratchOrgDeletedError',
-  'NoScratchOrgInfoError',
-]);
+const namedMessages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
 
 // getMessage will throw when the code isn't found
 // and we don't know whether a given code takes arguments or not
@@ -55,7 +46,7 @@ export const validateScratchOrgInfoForResume = async ({
   cache: ScratchOrgCache;
   hubUsername: string;
 }): Promise<ScratchOrgInfo> => {
-  if (!scratchOrgInfo || !scratchOrgInfo.Id || scratchOrgInfo.Status === 'Deleted') {
+  if (!scratchOrgInfo?.Id || scratchOrgInfo.Status === 'Deleted') {
     // 1. scratch org info does not exist in that dev hub or has been deleted
     cache.unset(jobId);
     await cache.write();
@@ -74,7 +65,7 @@ export const checkScratchOrgInfoForErrors = async (
   orgInfo: Optional<ScratchOrgInfo>,
   hubUsername: Optional<string>
 ): Promise<ScratchOrgInfo> => {
-  if (!orgInfo || !orgInfo.Id) {
+  if (!orgInfo?.Id) {
     throw new SfError('No scratch org info found.', 'ScratchOrgInfoNotFound');
   }
   if (orgInfo.Status === 'Active') {

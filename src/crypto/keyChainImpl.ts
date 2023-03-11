@@ -18,19 +18,7 @@ import { SfError } from '../sfError';
 import { Messages } from '../messages';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'encryption', [
-  'missingCredentialProgramError',
-  'credentialProgramAccessError',
-  'keyChainServiceRequiredError',
-  'keyChainAccountRequiredError',
-  'passwordRetryError',
-  'passwordRequiredError',
-  'passwordNotFoundError',
-  'setCredentialError',
-  'keyChainUserCanceledError',
-  'genericKeychainServiceError',
-  'genericKeychainInvalidPermsError',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'encryption');
 
 export type FsIfc = Pick<typeof nodeFs, 'statSync'>;
 
@@ -398,7 +386,7 @@ const darwinImpl: OsImpl = {
     // stdout. Reference: http://blog.macromates.com/2006/keychain-access-from-shell/
     if (stderr.includes('password')) {
       const match = RegExp(/"(.*)"/).exec(stderr);
-      if (!match || !match[1]) {
+      if (!match?.[1]) {
         fn(messages.createError('passwordNotFoundError', [`${stdout} - ${stderr}`]));
       } else {
         fn(null, match[1]);

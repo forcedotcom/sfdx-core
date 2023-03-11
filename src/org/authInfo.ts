@@ -41,18 +41,7 @@ import { OrgConfigProperties } from './orgConfigProperties';
 import { Org } from './org';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'core', [
-  'authInfoCreationError',
-  'authInfoOverwriteError',
-  'namedOrgNotFound',
-  'orgDataNotAvailableError',
-  'orgDataNotAvailableError.actions',
-  'refreshTokenAuthError',
-  'jwtAuthErrors',
-  'authCodeUsernameRetrievalError',
-  'authCodeExchangeError',
-  'missingClientId',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'core');
 
 /**
  * Fields for authorization, org, and local information.

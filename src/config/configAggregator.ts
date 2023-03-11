@@ -12,7 +12,7 @@ import { EnvVars } from './envVars';
 import { Config, ConfigPropertyMeta, SfdxPropertyKeys, SFDX_ALLOWED_PROPERTIES } from './config';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'config', ['unknownConfigKey', 'deprecatedConfigKey']);
+const messages = Messages.loadMessages('@salesforce/core', 'config');
 
 /**
  * Information about a config property.

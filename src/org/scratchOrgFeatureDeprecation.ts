@@ -15,11 +15,7 @@ import { isString } from '@salesforce/ts-types';
 // Local
 import { Messages } from '../messages';
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'scratchOrgFeatureDeprecation', [
-  'quantifiedFeatureWithoutQuantityWarning',
-  'mappedFeatureWarning',
-  'deprecatedFeatureWarning',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgFeatureDeprecation');
 const FEATURE_TYPES = {
   // simpleFeatureMapping holds a set of direct replacement values for features.
   simpleFeatureMapping: {

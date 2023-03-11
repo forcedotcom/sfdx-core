@@ -13,22 +13,7 @@ import { SfdcUrl } from '../util/sfdcUrl';
 import { validateApiVersion } from '../util/sfdc';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
-const messages = Messages.load('@salesforce/core', 'config', [
-  'invalidApiVersion',
-  'invalidBooleanConfigValue',
-  'invalidInstanceUrl',
-  'invalidIsvDebuggerSid',
-  'invalidIsvDebuggerUrl',
-  'invalidNumberConfigValue',
-  'org-api-version',
-  'org-instance-url',
-  'org-isv-debugger-sid',
-  'org-isv-debugger-url',
-  'org-max-query-limit',
-  'target-dev-hub',
-  'target-org',
-  'org-custom-metadata-templates',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'config');
 
 export enum OrgConfigProperties {
   /**

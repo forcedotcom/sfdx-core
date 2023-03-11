@@ -21,17 +21,9 @@ import { findUpperCaseKeys } from './util/sfdc';
 import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'config', [
-  'schemaValidationError',
-  'singleNonDefaultPackage',
-  'missingDefaultPath',
-  'multipleDefaultPaths',
-  'invalidPackageDirectory',
-  'missingPackageDirectory',
-  'invalidId',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'config');
 
-const coreMessages = Messages.load('@salesforce/core', 'core', ['invalidJsonCasing']);
+const coreMessages = Messages.loadMessages('@salesforce/core', 'core');
 
 export type PackageDirDependency = {
   [k: string]: unknown;

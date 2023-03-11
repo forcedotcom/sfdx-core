@@ -18,7 +18,7 @@ import { SfError } from './sfError';
 import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'auth', ['pollingTimeout']);
+const messages = Messages.loadMessages('@salesforce/core', 'auth');
 
 export interface DeviceCodeResponse extends JsonMap {
   device_code: string;
@@ -48,8 +48,8 @@ async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> 
   const rawResponse = await new Transport().httpRequest(options);
   const response = parseJsonMap<T>(rawResponse.body);
   if (response.error) {
-    const errorDescription = typeof response.error_description === 'string' ? response.error_description : ''
-    const error = typeof response.error === 'string' ?  response.error : 'Unknown';
+    const errorDescription = typeof response.error_description === 'string' ? response.error_description : '';
+    const error = typeof response.error === 'string' ? response.error : 'Unknown';
     const err = new SfError(`Request Failed: ${error} ${errorDescription}`);
     err.data = Object.assign(response, { status: rawResponse.statusCode });
     throw err;

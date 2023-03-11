@@ -31,7 +31,7 @@ export interface JsForceError extends Error {
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
-const errorCodes = Messages.load('@salesforce/core', 'scratchOrgErrorCodes', ['C-1007']);
+const errorCodes = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
 
 /**
  * Returns the url to be used to authorize into the new scratch org
