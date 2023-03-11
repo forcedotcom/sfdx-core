@@ -188,41 +188,6 @@ myConfig.get('option1'); // string - automatically decrypted
 myConfig.get('option2'); // boolean
 ```
 
-## Messages
-
-### What?
-
-- New: `Messages.load` (use instead of `Messages.loadMessages`)
-- Require keys names when loading messages
-- Added markdown as supported message format
-
-**v2:**
-
-```typescript
-// Top of the file which is loaded when the file is loaded
-Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'core');
-
-messages.getMessage('fooKey'); // string - if fooKey doesn't exist, error
-```
-
-**v3:**
-
-```typescript
-Messages.importMessagesDirectory(__dirname);
-// if fooKey or barKey doesn't exist, error.
-const messages = Messages.load('@salesforce/core', 'core', ['fooKey', 'barKey']);
-
-messages.getMessage('fooKey'); // string
-messages.getMessage('baKey'); // type error because baKey is not loaded above
-```
-
-### Why?
-
-Quite often customers would get the error `Missing message <bundle>:<key> for locale en_US.` at runtime in production code. This should really be a development time error. In v3 we have added TypeScript typings to help catch these at development time. We also updates all examples to load messages at the top of the file, which most libraries and plugins already do. Reading the messages at load time is very fast (under 0.5ms per message file).
-
-We created the method `load` to really highlight the change and require the type key param. Making it optional on `loadMessages` could lead to mistakes as well. Plus, the word messages there is redundant. We did not rename `getMessages` to reduce the amount of code changes.
-
 ## SfError (formerly SfdxError)
 
 ### What?
