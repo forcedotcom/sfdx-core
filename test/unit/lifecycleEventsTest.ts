@@ -162,7 +162,7 @@ describe('lifecycleEvents', () => {
   it('will use a newer version and transfer the listeners', () => {
     // the original
     const lifecycle = Lifecycle.getInstance();
-    lifecycle.on('test7', async (result: Record<string, unknown>) => {
+    lifecycle.on<Record<string, unknown>>('test7', async (result) => {
       fake.bar('test7', result);
     });
     $$.SANDBOX.stub(Lifecycle, 'staticVersion').returns('999999.0.0');

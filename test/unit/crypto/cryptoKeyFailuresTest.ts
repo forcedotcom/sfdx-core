@@ -10,7 +10,7 @@ import * as childProcess from 'child_process';
 import * as _crypto from 'crypto';
 import * as os from 'os';
 import { AnyJson } from '@salesforce/ts-types';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
 import { TestContext, shouldThrow } from '../../../src/testSetup';
 import { Cache } from '../../../src/util/cache';
@@ -77,11 +77,12 @@ if (os.platform() === 'darwin') {
       try {
         await shouldThrow(Crypto.create(), 'Should have thrown an SetCredentialError for Crypto.init()');
       } catch (err) {
-        expect((err as Error).name).to.equal('SetCredentialError');
-        expect((err as Error).message).to.equal(
+        assert(err instanceof SfError, 'Should be an SfError');
+        expect(err.name).to.equal('SetCredentialError');
+        expect(err.message).to.equal(
           `Command failed with response:\n${spawnReturnFake.sdtoutData} - ${spawnReturnFake.sdterrData}`
         );
-        const actions = (err as SfError).actions;
+        const actions = err.actions;
         if (!actions) expect.fail('No actions found');
         expect(actions[0]).to.equal(
           `Determine why this command failed to set an encryption key for user ${currentUser}: [${programArg} ${setOptionsArg.join(
