@@ -1,3 +1,12 @@
+## [3.33.7](https://github.com/forcedotcom/sfdx-core/compare/3.33.6...3.33.7) (2023-03-13)
+
+
+### Bug Fixes
+
+* conf file stubs for read and readSync ([a4ceedc](https://github.com/forcedotcom/sfdx-core/commit/a4ceedc086bd293f10a30d2ac78b2f832acc0120))
+
+
+
 ## [3.33.6](https://github.com/forcedotcom/sfdx-core/compare/3.33.5...3.33.6) (2023-03-02)
 
 
