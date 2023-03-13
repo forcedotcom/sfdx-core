@@ -11,7 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { EOL } from 'os';
 import { cloneJson } from '@salesforce/kit';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import { SinonStub } from 'sinon';
 import { Messages } from '../../src/messages';
 import { SfError } from '../../src/sfError';
@@ -201,8 +201,9 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
-        expect((err as Error).message).to.contain('Cannot find module');
-        expect((err as Error).message).to.contain('myPluginMessages.json');
+        assert(err instanceof Error);
+        expect(err.message).to.contain('Cannot find module');
+        expect(err.message).to.contain('myPluginMessages.json');
       }
     });
 
@@ -213,8 +214,9 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
-        expect((err as Error).name).to.equal('SfError');
-        expect((err as Error).message).to.equal('Invalid message file: myPluginMessages.json. No content.');
+        assert(err instanceof Error);
+        expect(err.name).to.equal('SfError');
+        expect(err.message).to.equal('Invalid message file: myPluginMessages.json. No content.');
       }
     });
 
@@ -225,8 +227,9 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
-        expect((err as Error).name).to.equal('Error');
-        expect((err as Error).message).to.equal(
+        assert(err instanceof Error);
+        expect(err.name).to.equal('Error');
+        expect(err.message).to.equal(
           "Invalid JSON content in message file: myPluginMessages.json\nUnexpected token. Found returned content type 'string'."
         );
       }
@@ -283,8 +286,9 @@ describe('Messages', () => {
       try {
         shouldThrowSync(() => loaderFn(Messages.getLocale()));
       } catch (err) {
-        expect((err as Error).name).to.equal('Error');
-        expect((err as Error).message).to.equal(
+        assert(err instanceof Error);
+        expect(err.name).to.equal('Error');
+        expect(err.message).to.equal(
           'Invalid markdown message file: myPluginMessages.md\nThe line "# <key>" must be immediately followed by the message on a new line.'
         );
       }

@@ -8,23 +8,21 @@
 
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
-import { env, Duration } from '@salesforce/kit';
+import { Duration, env } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { Connection } from '../../../src/org';
+import { AuthInfo, Connection, Org } from '../../../src/org';
 import { shouldThrow } from '../../../src/testSetup';
-import { Org } from '../../../src/org';
-import { AuthInfo } from '../../../src/org';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import SettingsGenerator from '../../../src/org/scratchOrgSettingsGenerator';
-import {
-  requestScratchOrgCreation,
-  JsForceError,
-  deploySettings,
-  resolveUrl,
-  pollForScratchOrgInfo,
-  authorizeScratchOrg,
-} from '../../../src/org/scratchOrgInfoApi';
 import * as mockForStandaloneFunctions from '../../../src/org/scratchOrgInfoApi';
+import {
+  authorizeScratchOrg,
+  deploySettings,
+  JsForceError,
+  pollForScratchOrgInfo,
+  requestScratchOrgCreation,
+  resolveUrl,
+} from '../../../src/org/scratchOrgInfoApi';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
 import { Messages } from '../../../src/messages';
 import { SfError } from '../../../src/sfError';
@@ -317,8 +315,9 @@ describe('requestScratchOrgCreation', () => {
       await shouldThrow(resolveUrl(scratchOrgAuthInfoStub));
     } catch (error) {
       expect(error).to.exist;
-      expect((error as SfError).data).to.have.keys(['orgId', 'username', 'instanceUrl']);
-      expect((error as SfError).data).to.deep.equal(fields);
+      assert(error instanceof SfError);
+      expect(error.data).to.have.keys(['orgId', 'username', 'instanceUrl']);
+      expect(error.data).to.deep.equal(fields);
     }
   });
 

@@ -107,9 +107,10 @@ if (os.platform() === 'darwin') {
           'Should have thrown an PasswordNotFoundError for Crypto.init()'
         );
       } catch (err) {
-        expect((err as Error).name).to.equal('PasswordNotFoundError');
-        expect((err as Error).message).to.equal('Could not find password.\nstdout test data - stdout test data');
-        const actions = (err as SfError).actions;
+        assert(err instanceof SfError);
+        expect(err.name).to.equal('PasswordNotFoundError');
+        expect(err.message).to.equal('Could not find password.\nstdout test data - stdout test data');
+        const actions = err.actions;
         if (!actions) expect.fail('No actions found');
         expect(actions[0]).to.equal(
           `Ensure a valid password is returned with the following command: [${programArg} ${optionsArg.join(' ')}]`
@@ -125,8 +126,9 @@ if (os.platform() === 'darwin') {
       try {
         await shouldThrow(Crypto.create(), 'Should have thrown an UnsupportedOperatingSystemError for Crypto.init()');
       } catch (err) {
-        expect((err as Error).name).to.equal('UnsupportedOperatingSystemError');
-        expect((err as Error).message).to.equal(`Unsupported Operating System: ${unsupportedOS}`);
+        assert(err instanceof Error);
+        expect(err.name).to.equal('UnsupportedOperatingSystemError');
+        expect(err.message).to.equal(`Unsupported Operating System: ${unsupportedOS}`);
       }
     });
   });
