@@ -549,7 +549,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     // Since read is now stubbed, make sure to call getPath to initialize it.
     configFile.getPath();
 
-    // @ts-ignore set this to true to avoid an infinite loop in tests when reading config files.
+    // @ts-expect-error: set this to true to avoid an infinite loop in tests when reading config files.
     configFile.hasRead = true;
     return stub;
   };
@@ -575,9 +575,9 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   };
 
   // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
-  // @ts-ignore
-  stubs.configRead = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
-  stubs.configReadSync = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(read);
+  stubs.configRead = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(read);
+  // @ts-expect-error: muting exact type match for stub readSync
+  stubs.configReadSync = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
 
   const writeSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): void {
     if (!testContext.configStubs[this.constructor.name]) {

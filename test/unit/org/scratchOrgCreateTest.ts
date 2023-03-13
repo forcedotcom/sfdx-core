@@ -48,7 +48,7 @@ describe('scratchOrgCreate', () => {
     } as unknown as SfProject);
     hubOrgStub.isDevHubOrg.returns(true);
     hubOrgStub.determineIfDevHubOrg.withArgs(true).resolves();
-    // @ts-ignore
+    // @ts-expect-error - type not complete
     hubOrgStub.getConnection.returns({
       getAuthInfoFields: sandbox.stub().returns({
         clientId,

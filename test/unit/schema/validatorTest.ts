@@ -6,7 +6,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { AnyJson, isJsonMap, JsonMap } from '@salesforce/ts-types';
+import { AnyJson, isJsonMap, JsonCollection, JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { SchemaValidator } from '../../../src/schema/validator';
@@ -31,7 +31,12 @@ describe('schemaValidator', () => {
   };
 
   describe('errors', () => {
-    const checkError = async (schema, data, errorName, errorMsg) => {
+    const checkError = async (
+      schema: JsonMap,
+      data: string | number | boolean | JsonCollection | null,
+      errorName: string,
+      errorMsg: string
+    ) => {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         await shouldThrow(validate(schema, data));

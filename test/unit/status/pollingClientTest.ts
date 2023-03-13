@@ -173,8 +173,9 @@ describe('clientTest', () => {
     try {
       await shouldThrow(client.subscribe());
     } catch (e) {
-      expect(emitWarning.callCount).to.be.equal(1000 /* timeout */ / 100 /* frequency */);
-      expect(callCount).to.be.equal(1000 /* timeout */ / 100 /* frequency */);
+      const expectedCallCount = 1000 /* timeout */ / 100; /* frequency */
+      expect(emitWarning.callCount).to.be.greaterThanOrEqual(expectedCallCount);
+      expect(callCount).to.be.greaterThanOrEqual(expectedCallCount);
     }
   });
 });

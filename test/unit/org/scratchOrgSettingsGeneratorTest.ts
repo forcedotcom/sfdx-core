@@ -99,10 +99,10 @@ function createStubs() {
   adminTestData = new MockTestOrgData();
   addToZipStub = sandbox
     .stub(ZipWriter.prototype, 'addToStore')
+    // @ts-expect-error - fake function signature mismatch
     .callsFake((contents: string, filepath: string): Promise<void> => {
       expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
       expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-      return;
     });
   finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
   sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
@@ -162,10 +162,10 @@ describe('scratchOrgSettingsGenerator', () => {
     beforeEach(() => {
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-          return;
         });
     });
 
@@ -254,10 +254,10 @@ describe('scratchOrgSettingsGenerator', () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-          return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
@@ -294,7 +294,7 @@ describe('scratchOrgSettingsGenerator', () => {
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(error.message).to.include(
+        expect((error as Error).message).to.include(
           'settings/True.settings is not a valid metadata object. Check the name and casing of the file'
         );
         expect(error)
@@ -316,10 +316,10 @@ describe('scratchOrgSettingsGenerator', () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-          return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
@@ -356,7 +356,7 @@ describe('scratchOrgSettingsGenerator', () => {
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(error.message).to.include(
+        expect((error as Error).message).to.include(
           'settings/True.settings is not a valid metadata object. Check the name and casing of the file'
         );
         expect(error)
@@ -378,10 +378,10 @@ describe('scratchOrgSettingsGenerator', () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-          return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
@@ -483,10 +483,10 @@ describe('scratchOrgSettingsGenerator', () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-          return;
         });
       finalizeStub = sandbox.stub(ZipWriter.prototype, 'finalize').resolves();
       sandbox.stub(Connection.prototype, 'deploy').callsFake((): any =>
@@ -525,10 +525,10 @@ describe('scratchOrgSettingsGenerator', () => {
     beforeEach(() => {
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
-          return;
         });
     });
 

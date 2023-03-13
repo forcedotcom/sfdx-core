@@ -28,7 +28,7 @@ describe('DirectoryWriter', () => {
   let directoryPath: string;
   beforeEach(() => {
     directoryWriter = new DirectoryWriter();
-    directoryPath = directoryWriter.getDestinationPath();
+    directoryPath = directoryWriter.getDestinationPath() ?? '';
   });
   it('addToStore - string', async () => {
     const contents = 'my-contents';

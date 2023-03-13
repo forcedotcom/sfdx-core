@@ -32,7 +32,7 @@ describe('permission set assignment tests', () => {
 
     it('should create a perm set assignment.', async () => {
       let query = '';
-      // @ts-ignore
+      // @ts-expect-error - fake function does not match target signature
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
@@ -46,7 +46,7 @@ describe('permission set assignment tests', () => {
       });
 
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
-        // @ts-ignore
+        // @ts-expect-error - cannot assign type not quite the same
         create() {
           return Promise.resolve({ success: true });
         },
@@ -65,7 +65,7 @@ describe('permission set assignment tests', () => {
 
     it('Failed to find permsets with namespace', async () => {
       let query = '';
-      // @ts-ignore
+      // @ts-expect-error - fake function does not match target signature
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
@@ -79,7 +79,7 @@ describe('permission set assignment tests', () => {
       });
 
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
-        // @ts-ignore
+        // @ts-expect-error - type mismatch
         create() {
           return Promise.resolve({ success: true });
         },
@@ -97,7 +97,7 @@ describe('permission set assignment tests', () => {
 
     it('Failed to find permsets without namespace', async () => {
       let query = '';
-      // @ts-ignore
+      // @ts-expect-error - fake function does not match target signature
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
@@ -111,7 +111,7 @@ describe('permission set assignment tests', () => {
       });
 
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
-        // @ts-ignore
+        // @ts-expect-error - type mismatch
         create() {
           return Promise.resolve({ success: true });
         },
@@ -128,7 +128,7 @@ describe('permission set assignment tests', () => {
 
     it('permset assignment with errors', async () => {
       let query = '';
-      // @ts-ignore
+      // @ts-expect-error - fake function does not match target signature
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
@@ -142,7 +142,7 @@ describe('permission set assignment tests', () => {
       });
 
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
-        // @ts-ignore
+        // @ts-expect-error - type mismatch
         create() {
           return Promise.resolve({ errors: ['error one', 'error two'] });
         },
@@ -160,7 +160,7 @@ describe('permission set assignment tests', () => {
 
     it('permset assignment with empty errors', async () => {
       let query = '';
-      // @ts-ignore
+      // @ts-expect-error - fake function does not match target signature
       $$.SANDBOX.stub(Connection.prototype, 'query').callsFake((_query: string) => {
         query = _query.toLowerCase();
         if (query.includes('from permissionset')) {
@@ -174,9 +174,8 @@ describe('permission set assignment tests', () => {
       });
 
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
-        // @ts-ignore
+        // @ts-expect-error - type mismatch
         create() {
-          // @ts-ignore
           return Promise.resolve({ errors: [] });
         },
       }));

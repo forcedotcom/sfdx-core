@@ -27,8 +27,7 @@ describe('util/internal', () => {
         await resolveProjectPath();
         assert(false, 'should throw');
       } catch (e) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(e.name).to.equal('InvalidProjectWorkspaceError');
+        expect((e as Error).name).to.equal('InvalidProjectWorkspaceError');
       }
     });
   });
@@ -44,8 +43,7 @@ describe('util/internal', () => {
         resolveProjectPathSync();
         assert(false, 'should throw');
       } catch (e) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(e.name).to.equal('InvalidProjectWorkspaceError');
+        expect((e as Error).name).to.equal('InvalidProjectWorkspaceError');
       }
     });
   });

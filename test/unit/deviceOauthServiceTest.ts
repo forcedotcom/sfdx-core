@@ -32,31 +32,37 @@ const devicePollingResponse = {
   issued_at: '1234',
 };
 
+type UnknownError = {
+  error: string;
+  status: number;
+  error_description: string;
+};
+
 describe('DeviceOauthService', () => {
   const $$ = new TestContext();
 
   describe('init', () => {
     it('should use the provided client id', async () => {
       const service = await DeviceOauthService.create({ clientId: 'CoffeeBeans' });
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       expect(service.options.clientId).to.equal('CoffeeBeans');
     });
 
     it('should use default client id if not provided', async () => {
       const service = await DeviceOauthService.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       expect(service.options.clientId).to.equal(DEFAULT_CONNECTED_APP_INFO.clientId);
     });
 
     it('should use the provided login url', async () => {
       const service = await DeviceOauthService.create({ loginUrl: 'https://login.example.com' });
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       expect(service.options.loginUrl).to.equal('https://login.example.com');
     });
 
     it('should use default login url if not provided', async () => {
       const service = await DeviceOauthService.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       expect(service.options.loginUrl).to.equal('https://login.salesforce.com');
     });
   });
@@ -108,12 +114,12 @@ describe('DeviceOauthService', () => {
 
     it('should stop polling if max attempts reached', async () => {
       const service = await DeviceOauthService.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       service.pollingCount = DeviceOauthService.POLLING_COUNT_MAX + 1;
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);
       } catch (err) {
-        expect(err.name).to.equal('PollingTimeoutError');
+        expect((err as Error).name).to.equal('PollingTimeoutError');
       }
     });
 
@@ -126,9 +132,9 @@ describe('DeviceOauthService', () => {
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);
       } catch (err) {
-        // @ts-ignore because private member
+        // @ts-expect-error: because private member
         expect(service.pollingCount).to.equal(0);
-        expect(err.status).to.equal(401);
+        expect((err as UnknownError).status).to.equal(401);
       }
     });
 
@@ -144,10 +150,11 @@ describe('DeviceOauthService', () => {
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);
       } catch (err) {
-        // @ts-ignore because private member
+        // @ts-expect-error: because private member
         expect(service.pollingCount).to.equal(0);
-        expect(err.status).to.equal(400);
-        expect(err.error_description).to.equal('Invalid grant type');
+        const error = err as UnknownError;
+        expect(error.status).to.equal(400);
+        expect(error.error_description).to.equal('Invalid grant type');
       }
     });
   });
@@ -181,17 +188,18 @@ describe('DeviceOauthService', () => {
     it('should return the configuration for the login request', async () => {
       const url = 'https://login.salesforce.com/services/oauth2/token';
       const service = await DeviceOauthService.create({});
-      // @ts-ignore because private method
+      // @ts-expect-error because private method
       const opts = service.getLoginOptions(url);
       expect(opts.url).to.equal(url);
+      if (!opts.headers) throw new Error('headers should be defined');
       expect(opts.headers['content-type']).to.include('multipart/form-data; boundary=');
       expect(opts.headers['user-agent']).to.equal(SFDX_HTTP_HEADERS['user-agent']);
       expect(opts.method).to.equal('POST');
-      expect(opts.body.toString()).to.include('client_id');
-      expect(opts.body.toString()).to.include('PlatformCLI');
-      expect(opts.body.toString()).to.include('response_type');
-      expect(opts.body.toString()).to.include('device_code');
-      expect(opts.body.toString()).to.include('refresh_token');
+      expect(opts.body?.toString()).to.include('client_id');
+      expect(opts.body?.toString()).to.include('PlatformCLI');
+      expect(opts.body?.toString()).to.include('response_type');
+      expect(opts.body?.toString()).to.include('device_code');
+      expect(opts.body?.toString()).to.include('refresh_token');
     });
   });
 
@@ -199,19 +207,20 @@ describe('DeviceOauthService', () => {
     it('should return the configuration for the login request', async () => {
       const url = 'https://login.salesforce.com/services/oauth2/token';
       const service = await DeviceOauthService.create({});
-      // @ts-ignore because private method
+      // @ts-expect-error because private method
       const opts = service.getPollingOptions(url, '12345');
       expect(opts.url).to.equal(url);
+      if (!opts.headers) throw new Error('Expected headers to be defined');
       expect(opts.headers['content-type']).to.include('multipart/form-data; boundary=');
       expect(opts.headers['user-agent']).to.equal(SFDX_HTTP_HEADERS['user-agent']);
       expect(opts.method).to.equal('POST');
-      expect(opts.body.toString()).to.include('client_id');
-      expect(opts.body.toString()).to.include('PlatformCLI');
-      expect(opts.body.toString()).to.include('grant_type');
-      expect(opts.body.toString()).to.include('grant_type');
-      expect(opts.body.toString()).to.include('device');
-      expect(opts.body.toString()).to.include('code');
-      expect(opts.body.toString()).to.include('12345');
+      expect(opts.body?.toString()).to.include('client_id');
+      expect(opts.body?.toString()).to.include('PlatformCLI');
+      expect(opts.body?.toString()).to.include('grant_type');
+      expect(opts.body?.toString()).to.include('grant_type');
+      expect(opts.body?.toString()).to.include('device');
+      expect(opts.body?.toString()).to.include('code');
+      expect(opts.body?.toString()).to.include('12345');
     });
   });
 });

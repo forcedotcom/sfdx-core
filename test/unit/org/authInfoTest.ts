@@ -143,6 +143,7 @@ describe('AuthInfo', () => {
       stubUserRequest();
       authInfo = await AuthInfo.create({ oauth2Options });
 
+      // @ts-expect-error - undefined un-assignable to string
       decryptedRefreshToken = authInfo.getFields(true).refreshToken;
     });
 
@@ -428,7 +429,7 @@ describe('AuthInfo', () => {
             })
           );
         } catch (err) {
-          expect(err.name).to.equal('AuthInfoOverwriteError');
+          expect((err as Error).name).to.equal('AuthInfoOverwriteError');
         }
       });
 
@@ -451,7 +452,7 @@ describe('AuthInfo', () => {
         try {
           await shouldThrow(AuthInfo.create({ username: testOrg.username, oauth2Options: jwtConfig }));
         } catch (err) {
-          expect(err.name).to.equal('JwtAuthError');
+          expect((err as Error).name).to.equal('JwtAuthError');
         }
       });
 
@@ -549,7 +550,9 @@ describe('AuthInfo', () => {
 
         // Verify authInfo.fields are encrypted
         const crypto = await Crypto.create();
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
 
         // Verify expected methods are called with expected args
@@ -601,7 +604,9 @@ describe('AuthInfo', () => {
 
         // Verify authInfo.fields are encrypted
         const crypto = await Crypto.create();
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
 
         // Verify expected methods are called with expected args
@@ -665,7 +670,9 @@ describe('AuthInfo', () => {
 
         // Verify authInfo.fields are encrypted
         const crypto = await Crypto.create();
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
 
         // Verify expected methods are called with expected args
@@ -719,8 +726,11 @@ describe('AuthInfo', () => {
 
         // Verify authInfo.fields are encrypted
         const crypto = await Crypto.create();
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().clientSecret)).equals(refreshTokenConfig.clientSecret);
 
         // Verify expected methods are called with expected args
@@ -760,7 +770,7 @@ describe('AuthInfo', () => {
         try {
           await shouldThrow(AuthInfo.create({ username, oauth2Options: refreshTokenConfig }));
         } catch (err) {
-          expect(err.name).to.equal('RefreshTokenAuthError');
+          expect((err as Error).name).to.equal('RefreshTokenAuthError');
         }
       });
     });
@@ -803,7 +813,9 @@ describe('AuthInfo', () => {
 
         // Verify authInfo.fields are encrypted
         const crypto = await Crypto.create();
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(authResponse.refresh_token);
 
         // Verify expected methods are called with expected args
@@ -885,7 +897,7 @@ describe('AuthInfo', () => {
         try {
           await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
         } catch (err) {
-          expect(err.name).to.equal('AuthCodeExchangeError');
+          expect((err as Error).name).to.equal('AuthCodeExchangeError');
         }
       });
 
@@ -917,7 +929,7 @@ describe('AuthInfo', () => {
         try {
           await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
         } catch (err) {
-          expect(err.name).to.equal('AuthCodeUsernameRetrievalError');
+          expect((err as Error).name).to.equal('AuthCodeUsernameRetrievalError');
         }
       });
 
@@ -953,7 +965,7 @@ describe('AuthInfo', () => {
         try {
           await shouldThrow(AuthInfo.create({ oauth2Options: authCodeConfig }));
         } catch (err) {
-          expect(err.name).to.equal('AuthCodeUsernameRetrievalError');
+          expect((err as Error).name).to.equal('AuthCodeUsernameRetrievalError');
         }
       });
 
@@ -961,7 +973,7 @@ describe('AuthInfo', () => {
         try {
           await shouldThrow(AuthInfo.create());
         } catch (err) {
-          expect(err.name).to.equal('AuthInfoCreationError');
+          expect((err as Error).name).to.equal('AuthInfoCreationError');
         }
       });
     });
@@ -1007,9 +1019,13 @@ describe('AuthInfo', () => {
       const decryptedActualFields = $$.stubs.configWrite.lastCall.thisValue.toObject() as AuthFields & {
         timestamp: string;
       };
+      // @ts-expect-error - undefined un-assignable to string
       decryptedActualFields.accessToken = crypto.decrypt(decryptedActualFields.accessToken);
+      // @ts-expect-error - undefined un-assignable to string
       decryptedActualFields.refreshToken = crypto.decrypt(decryptedActualFields.refreshToken);
+      // @ts-expect-error - undefined un-assignable to string
       decryptedActualFields.clientSecret = crypto.decrypt(decryptedActualFields.clientSecret);
+      // @ts-expect-error - operand must be optional
       delete decryptedActualFields.timestamp;
       const expectedFields = {
         accessToken: changedData.accessToken,
@@ -1071,7 +1087,7 @@ describe('AuthInfo', () => {
 
       context.initAuthOptions.resolves();
       context.save.resolves();
-      // @ts-ignore
+      // @ts-expect-error - null not valid
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
 
       expect(context.initAuthOptions.called, 'Should have called AuthInfo.initAuthOptions() during refreshFn()').to.be
@@ -1124,6 +1140,7 @@ describe('AuthInfo', () => {
       const testCallback = $$.SANDBOX.spy();
       context.initAuthOptions.throws(new Error('Error: Data Not Available'));
       context.save.resolves();
+      // @ts-expect-error: null connection
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
       expect(testCallback.called).to.be.true;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -1465,7 +1482,7 @@ describe('AuthInfo', () => {
       it('should return list of authorizations with aliases', async () => {
         $$.stubAliases({ MyAlias: testOrg.username });
         const auths = await AuthInfo.listAllAuthorizations(
-          (orgAuth) => orgAuth.aliases.length === 1 && orgAuth.aliases.includes('MyAlias')
+          (orgAuth) => orgAuth.aliases?.length === 1 && orgAuth.aliases.includes('MyAlias')
         );
         expect(auths).to.deep.equal([
           {
@@ -1491,7 +1508,7 @@ describe('AuthInfo', () => {
           [OrgConfigProperties.TARGET_DEV_HUB]: testOrg.username,
         });
         const auths = await AuthInfo.listAllAuthorizations((orgAuth) =>
-          orgAuth.configs.includes(OrgConfigProperties.TARGET_ORG)
+          orgAuth.configs ? orgAuth.configs.includes(OrgConfigProperties.TARGET_ORG) : false
         );
         expect(auths).to.deep.equal([
           {
@@ -1630,7 +1647,7 @@ describe('AuthInfo', () => {
           )
         );
       } catch (e) {
-        expect(e.name).to.equal('INVALID_SFDX_AUTH_URL');
+        expect((e as Error).name).to.equal('INVALID_SFDX_AUTH_URL');
       }
     });
   });
@@ -1803,6 +1820,7 @@ describe('AuthInfo', () => {
     it('should not update org - no fields.orgId', async () => {
       adminTestData.makeDevHub();
       user1.isScratchOrg = true;
+      // @ts-expect-error - operand must be optional
       delete user1.orgId;
       user1.devHubUsername = adminTestData.username;
 

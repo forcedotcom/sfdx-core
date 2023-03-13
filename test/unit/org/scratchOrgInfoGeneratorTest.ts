@@ -69,7 +69,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { alias: packageId };
             }
@@ -88,7 +88,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageVersionSubscriberId },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { alias: packageId };
             }
@@ -131,7 +131,7 @@ describe('scratchOrgInfoGenerator', () => {
               ancestorVersion: '4.0.0.0',
             },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { alias: packageId };
             }
@@ -158,7 +158,7 @@ describe('scratchOrgInfoGenerator', () => {
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
             { path: 'bar', package: 'barPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { alias: packageId };
             }
@@ -180,7 +180,7 @@ describe('scratchOrgInfoGenerator', () => {
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
             { path: 'bar', package: 'barPkgName', versionNumber: '4.7.0.NEXT', ancestorId: otherPackageId },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { alias: packageId };
             }
@@ -214,7 +214,7 @@ describe('scratchOrgInfoGenerator', () => {
         } catch (err) {
           expect(err).to.exist;
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          expect(err.message).to.equal(messages.getMessage('Package2AncestorsIdsKeyNotSupportedError'));
+          expect((err as Error).message).to.equal(messages.getMessage('Package2AncestorsIdsKeyNotSupportedError'));
         }
       });
 
@@ -251,7 +251,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'alias' },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { alias: packageId };
             }
@@ -271,7 +271,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'alias' },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return undefined;
             }
@@ -295,7 +295,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'alias' },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { notTheAlias: packageId };
             }
@@ -321,7 +321,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorVersion: '5.0' },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { alias: packageId };
             }
@@ -338,7 +338,7 @@ describe('scratchOrgInfoGenerator', () => {
         } catch (err) {
           expect(err).to.exist;
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          expect(err.message).to.equal(messages.getMessage('InvalidAncestorVersionFormatError', ['5.0']));
+          expect((err as Error).message).to.equal(messages.getMessage('InvalidAncestorVersionFormatError', ['5.0']));
         }
       });
 
@@ -347,7 +347,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorVersion: '4.0.0.0' },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { fooPkgName: packageId };
             }
@@ -367,7 +367,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorVersion: 'HIGHEST' },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { fooPkgName: packageId };
             }
@@ -387,7 +387,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorVersion: 'NONE' },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { fooPkgName: packageId };
             }
@@ -406,7 +406,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'HIGHEST' },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { fooPkgName: packageId };
             }
@@ -426,7 +426,7 @@ describe('scratchOrgInfoGenerator', () => {
           getPackageDirectories: () => [
             { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: 'NONE' },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { fooPkgName: packageId };
             }
@@ -481,7 +481,7 @@ describe('scratchOrgInfoGenerator', () => {
               ancestorVersion: '4.0.0.0',
             },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { alias: packageId };
             }
@@ -539,7 +539,7 @@ describe('scratchOrgInfoGenerator', () => {
               ancestorId: badPackageId,
             },
           ],
-          get: (arg) => {
+          get: (arg: string) => {
             if (arg === 'packageAliases') {
               return { alias: packageId };
             }
@@ -657,8 +657,9 @@ describe('scratchOrgInfoGenerator', () => {
           hubOrg: await Org.create({}),
           scratchOrgInfoPayload: {
             orgName: 'MyOrgName',
+            // @ts-expect-error - cannot assign undefined to string
             connectedAppConsumerKey: undefined,
-          } as ScratchOrgInfoPayload,
+          },
           nonamespace: false,
           ignoreAncestorIds: true,
         })
