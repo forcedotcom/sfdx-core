@@ -328,7 +328,7 @@ describe('streaming client tests', () => {
     };
 
     try {
-      // @ts-ignore
+      // @ts-expect-error - return type mistmatch
       await shouldThrow(StreamingClient.prototype['incoming'].call(context, apiVersionErrorMsg, () => {}));
     } catch (e) {
       expect(e).to.have.property('name', 'HandshakeApiVersionError');

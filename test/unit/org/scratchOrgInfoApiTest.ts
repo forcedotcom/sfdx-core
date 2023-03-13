@@ -57,7 +57,7 @@ describe('requestScratchOrgCreation', () => {
 
   beforeEach(() => {
     stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
-    // @ts-ignore partial type returned
+    // @ts-expect-error partial type returned
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       create: sinon.stub().resolves(true),
     });
@@ -100,7 +100,7 @@ describe('requestScratchOrgCreation', () => {
   });
 
   it('requestScratchOrgCreation no username field in scratchOrgRequest is empty', async () => {
-    // @ts-expect-error
+    // @ts-expect-error - undefined not assignable
     const scratchOrgRequest: ScratchOrgInfo = { ...TEMPLATE_SCRATCH_ORG_INFO, Username: undefined };
     const result = await requestScratchOrgCreation(hubOrg, scratchOrgRequest, settings);
     expect(result).to.be.true;
@@ -120,7 +120,7 @@ describe('requestScratchOrgCreation', () => {
     const err = new Error('MyError');
     err.name = 'NamedOrgNotFoundError';
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
-    // @ts-ignore
+    // @ts-expect-error - type partial mismatch
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       create: sinon.stub().rejects(new Error('MyCreateError')),
     });
@@ -135,7 +135,7 @@ describe('requestScratchOrgCreation', () => {
   it('requestScratchOrgCreation AuthInfo.create fails', async () => {
     const err = new Error('MyError');
     stubMethod(sandbox, AuthInfo, 'create').rejects(err);
-    // @ts-ignore
+    // @ts-expect-error - type partial mismatch
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       create: sinon.stub().rejects(),
     });
@@ -158,7 +158,7 @@ describe('requestScratchOrgCreation', () => {
       fields: ['error-field'],
     } as JsForceError;
 
-    // @ts-ignore
+    // @ts-expect-error - type partial mismatch
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       create: sinon.stub().rejects(jsForceError),
     });
@@ -361,7 +361,7 @@ describe('pollForScratchOrgInfo', () => {
       Status: 'Active',
       Id: scratchOrgInfoId,
     };
-    // @ts-ignore
+    // @ts-expect-error - type partial mismatch
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       retrieve: sinon.stub().withArgs(scratchOrgInfoId).resolves(retrieve),
     });
@@ -374,7 +374,7 @@ describe('pollForScratchOrgInfo', () => {
       Status: 'Error',
       Id: scratchOrgInfoId,
     };
-    // @ts-ignore
+    // @ts-expect-error - type partial mismatch
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       retrieve: sinon.stub().withArgs(scratchOrgInfoId).resolves(retrieve),
     });
@@ -398,7 +398,7 @@ describe('pollForScratchOrgInfo', () => {
       Status: 'Active',
       Id: scratchOrgInfoId,
     };
-    // @ts-ignore
+    // @ts-expect-error - type partial mismatch
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       retrieve: sinon.stub().withArgs(scratchOrgInfoId).onCall(0).resolves(creating).onCall(1).resolves(active),
     });
@@ -408,7 +408,7 @@ describe('pollForScratchOrgInfo', () => {
 
   it('pollForScratchOrgInfo retrieve rejects with timeout', async () => {
     const timeout = Duration.milliseconds(150);
-    // @ts-ignore
+    // @ts-expect-error - type partial mismatch
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       retrieve: sinon.stub().withArgs(scratchOrgInfoId).rejects(new Error('MyError')),
     });
@@ -426,7 +426,7 @@ describe('pollForScratchOrgInfo', () => {
       Status: 'Active',
     };
     const timeout = Duration.milliseconds(3000);
-    // @ts-ignore
+    // @ts-expect-error - type partial mismatch
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
       retrieve: sinon
         .stub()

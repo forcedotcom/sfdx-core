@@ -478,7 +478,7 @@ describe('Org Tests', () => {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
         } as SandboxProcessObject;
-        // @ts-ignore
+        // @ts-expect-error - type not assignable
         stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws({
           name: 'INVALID_STATUS',
         });
@@ -603,7 +603,7 @@ describe('Org Tests', () => {
     it('should remove config setting', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function (): Promise<boolean> {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        // @ts-ignore
+        // @ts-expect-error this is any
         const result: boolean = this.path?.endsWith(`${testData.orgId}.json`) as boolean;
         return result;
       });
@@ -634,7 +634,7 @@ describe('Org Tests', () => {
 
     it('should remove the alias', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function (): Promise<boolean> {
-        // @ts-ignore
+        // @ts-expect-error - this is any
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         const result: boolean = this.path?.endsWith(`${testData.orgId}.json`) as boolean;
         return result;

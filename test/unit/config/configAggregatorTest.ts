@@ -84,17 +84,17 @@ describe('ConfigAggregator', () => {
   it('reload decrypts config values', async () => {
     // readSync doesn't decrypt values
     $$.SANDBOX.stub(Config.prototype, 'readSync').callsFake(function () {
-      // @ts-ignore
+      // @ts-expect-error this is any
       this.setContents({ 'org-isv-debugger-sid': 'encrypted' });
-      // @ts-ignore
+      // @ts-expect-error this is any
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return this.getContents();
     });
     // read decrypts values
     $$.SANDBOX.stub(Config.prototype, 'read').callsFake(async function () {
-      // @ts-ignore
+      // @ts-expect-error this is any
       this.setContents({ 'org-isv-debugger-sid': 'decrypted' });
-      // @ts-ignore
+      // @ts-expect-error this is any
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return this.getContents();
     });
@@ -128,7 +128,7 @@ describe('ConfigAggregator', () => {
 
   describe('locations', () => {
     it('local', async () => {
-      // @ts-ignore
+      // @ts-expect-error async function signature not quite same as expected
       $$.SANDBOX.stub(fs.promises, 'readFile').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {
@@ -144,7 +144,7 @@ describe('ConfigAggregator', () => {
     });
 
     it('global', async () => {
-      // @ts-ignore
+      // @ts-expect-error async function signature not quite same as expected
       $$.SANDBOX.stub(fs.promises, 'readFile').callsFake(async (path: string) => {
         if (path) {
           if (path.includes(await $$.globalPathRetriever(id))) {
@@ -162,7 +162,7 @@ describe('ConfigAggregator', () => {
     it('env', async () => {
       process.env.SF_TARGET_ORG = 'test';
       const aggregator = await ConfigAggregator.create();
-      // @ts-ignore
+      // @ts-expect-error async function signature not quite same as expected
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       $$.SANDBOX.stub(fs, 'readFile').callsFake(async (path: string) => {
         if (path) {

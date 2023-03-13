@@ -44,25 +44,25 @@ describe('DeviceOauthService', () => {
   describe('init', () => {
     it('should use the provided client id', async () => {
       const service = await DeviceOauthService.create({ clientId: 'CoffeeBeans' });
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       expect(service.options.clientId).to.equal('CoffeeBeans');
     });
 
     it('should use default client id if not provided', async () => {
       const service = await DeviceOauthService.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       expect(service.options.clientId).to.equal(DEFAULT_CONNECTED_APP_INFO.clientId);
     });
 
     it('should use the provided login url', async () => {
       const service = await DeviceOauthService.create({ loginUrl: 'https://login.example.com' });
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       expect(service.options.loginUrl).to.equal('https://login.example.com');
     });
 
     it('should use default login url if not provided', async () => {
       const service = await DeviceOauthService.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       expect(service.options.loginUrl).to.equal('https://login.salesforce.com');
     });
   });
@@ -114,7 +114,7 @@ describe('DeviceOauthService', () => {
 
     it('should stop polling if max attempts reached', async () => {
       const service = await DeviceOauthService.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       service.pollingCount = DeviceOauthService.POLLING_COUNT_MAX + 1;
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);
@@ -154,7 +154,6 @@ describe('DeviceOauthService', () => {
         expect(service.pollingCount).to.equal(0);
         const error = err as UnknownError;
         expect(error.status).to.equal(400);
-        // @ts-ignore
         expect(error.error_description).to.equal('Invalid grant type');
       }
     });
@@ -189,7 +188,7 @@ describe('DeviceOauthService', () => {
     it('should return the configuration for the login request', async () => {
       const url = 'https://login.salesforce.com/services/oauth2/token';
       const service = await DeviceOauthService.create({});
-      // @ts-ignore because private method
+      // @ts-expect-error because private method
       const opts = service.getLoginOptions(url);
       expect(opts.url).to.equal(url);
       if (!opts.headers) throw new Error('headers should be defined');
@@ -208,7 +207,7 @@ describe('DeviceOauthService', () => {
     it('should return the configuration for the login request', async () => {
       const url = 'https://login.salesforce.com/services/oauth2/token';
       const service = await DeviceOauthService.create({});
-      // @ts-ignore because private method
+      // @ts-expect-error because private method
       const opts = service.getPollingOptions(url, '12345');
       expect(opts.url).to.equal(url);
       if (!opts.headers) throw new Error('Expected headers to be defined');

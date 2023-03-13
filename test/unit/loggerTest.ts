@@ -185,7 +185,7 @@ describe('Logger', () => {
       const rootLogger = await Logger.root();
       $$.SANDBOX.stub(rootLogger, 'fatal');
 
-      // @ts-ignore to access private property `lifecycle` for testing uncaughtException
+      // @ts-expect-error to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
       // @ts-expect-error: called is a sinon spy property
       expect(rootLogger.fatal['called']).to.be.true;
@@ -207,7 +207,7 @@ describe('Logger', () => {
       const childLogger = await Logger.child(childLoggerName);
       $$.SANDBOX.stub(childLogger, 'fatal');
 
-      // @ts-ignore to access private property `lifecycle` for testing uncaughtException
+      // @ts-expect-error to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
       // @ts-expect-error: called is a sinon spy property
       expect(childLogger.fatal['called']).to.be.false;
@@ -261,7 +261,7 @@ describe('Logger', () => {
       const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(0);
 
       // Log at the provided log level for each test entry
-      // @ts-expect-error
+      // @ts-expect-error suppress any type
       testLogEntries.forEach((entry) => logger[logLevel[0]](entry));
 
       const logData = logger.readLogContentsAsText();
@@ -316,7 +316,7 @@ describe('Logger', () => {
           obj,
           (acc, val, key) => {
             if (isString(val) || isNumber(val) || isBoolean(val)) {
-              // @ts-expect-error
+              // @ts-expect-error string cannot index value
               acc[key] = val;
             }
             return acc;
@@ -343,7 +343,7 @@ describe('Logger', () => {
     };
     beforeEach(() => {
       Logger.destroyRoot();
-      // @ts-ignore enable debug logging
+      // @ts-expect-error enable debug logging
       debug.useColors = () => false;
       debug.enable('*');
       output = '';
@@ -405,7 +405,7 @@ describe('Logger', () => {
     it('should transform to logfmt streams', () => {
       let output = '';
 
-      // @ts-ignore
+      // @ts-expect-error string not assignable to boolean
       const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake((info) => (output += info));
 
       const testStream: LoggerStream = {
@@ -428,7 +428,7 @@ describe('Logger', () => {
     it('should wrap LogFmt message with quotes', () => {
       let output = '';
 
-      // @ts-ignore
+      // @ts-expect-error
       const out = $$.SANDBOX.stub(process.stdout, 'write').callsFake((info) => (output += info));
 
       const testStream: LoggerStream = {

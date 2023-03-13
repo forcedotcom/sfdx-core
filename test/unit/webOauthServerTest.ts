@@ -99,7 +99,7 @@ describe('WebOauthServer', () => {
     const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
     await oauthServer.start();
 
-    // @ts-ignore because private member
+    // @ts-expect-error because private member
     const webServer = oauthServer.webServer;
     const endSpy = $$.SANDBOX.spy();
 
@@ -144,7 +144,7 @@ describe('WebOauthServer', () => {
     it('should return auth code from the request', async () => {
       stubMethod($$.SANDBOX, WebOAuthServer.prototype, 'validateState').returns(true);
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       const code = oauthServer.parseAuthCodeFromRequest(serverResponseStub, serverRequestStub);
       expect(code).to.equal(authCode);
     });
@@ -154,7 +154,7 @@ describe('WebOauthServer', () => {
       const closeStub = stubMethod($$.SANDBOX, WebOAuthServer.prototype, 'closeRequest').returns(null);
       const sendErrorStub = stubMethod($$.SANDBOX, WebServer.prototype, 'sendError').returns(null);
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       oauthServer.parseAuthCodeFromRequest(serverResponseStub, serverRequestStub);
       expect(closeStub.callCount).to.equal(1);
       expect(sendErrorStub.callCount).to.equal(1);
@@ -167,7 +167,7 @@ describe('WebOauthServer', () => {
         query: { state: 'abc123456' },
       });
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       const actual = oauthServer.validateState(serverRequestStub);
       expect(actual).to.equal(false);
     });
@@ -177,9 +177,9 @@ describe('WebOauthServer', () => {
         query: { state: 'abc123456' },
       });
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       oauthServer.authUrl = 'http://login.salesforce.com?state=abc123456';
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       const actual = oauthServer.validateState(serverRequestStub);
       expect(actual).to.equal(true);
     });
@@ -191,7 +191,7 @@ describe('WebServer', () => {
   describe('checkOsPort', () => {
     it('should return the port if port is not in use', async () => {
       const server = await WebServer.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       const port = await server.checkOsPort();
       expect(port).to.equal(WebOAuthServer.DEFAULT_PORT);
     });
@@ -201,7 +201,7 @@ describe('WebServer', () => {
       await existingServer.start();
       const newServer = await WebServer.create({});
       try {
-        // @ts-ignore because private member
+        // @ts-expect-error because private member
         await newServer.checkOsPort();
       } catch (err) {
         expect((err as Error).name).to.include('EADDRINUSE');
@@ -214,7 +214,7 @@ describe('WebServer', () => {
       stubMethod($$.SANDBOX, WebServer.prototype, 'getSocketTimeout').returns(0);
       const server = await WebServer.create({});
       try {
-        // @ts-ignore because private member
+        // @ts-expect-error because private member
         await server.checkOsPort();
       } catch (err) {
         expect((err as Error).name).to.include('SOCKET_TIMEOUT');
@@ -225,7 +225,7 @@ describe('WebServer', () => {
   describe('getSocketTimeout', () => {
     it('should return default timeout when env var does not exist', async () => {
       const server = await WebServer.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       const timeout = server.getSocketTimeout();
       expect(timeout).to.equal(WebServer.DEFAULT_CLIENT_SOCKET_TIMEOUT);
     });
@@ -233,7 +233,7 @@ describe('WebServer', () => {
     it('should return env var value for timeout when env var does exist', async () => {
       stubMethod($$.SANDBOX, Env.prototype, 'getNumber').returns(5000);
       const server = await WebServer.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       const timeout = server.getSocketTimeout();
       expect(timeout).to.equal(5000);
     });
@@ -241,7 +241,7 @@ describe('WebServer', () => {
     it('should return default timeout when env var is invalid value', async () => {
       stubMethod($$.SANDBOX, Env.prototype, 'getNumber').returns('foo');
       const server = await WebServer.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       const timeout = server.getSocketTimeout();
       expect(timeout).to.equal(WebServer.DEFAULT_CLIENT_SOCKET_TIMEOUT);
     });
@@ -249,7 +249,7 @@ describe('WebServer', () => {
     it('should return default timeout when env var is 0', async () => {
       stubMethod($$.SANDBOX, Env.prototype, 'getNumber').returns(0);
       const server = await WebServer.create({});
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       const timeout = server.getSocketTimeout();
       expect(timeout).to.equal(WebServer.DEFAULT_CLIENT_SOCKET_TIMEOUT);
     });

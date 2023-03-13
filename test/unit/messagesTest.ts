@@ -92,7 +92,7 @@ describe('Messages', () => {
 
     it('should add the json message file to the map of loaders', () => {
       const loaderSetStub = $$.SANDBOX.stub(Messages, 'setLoaderFunction');
-      // @ts-ignore
+      // @ts-expect-error string not assignable to Loader function
       $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
       Messages.importMessageFile('package name', 'myPluginMessages.json');
       expect(loaderSetStub.firstCall.args[0]).to.equal('package name');
@@ -102,7 +102,7 @@ describe('Messages', () => {
 
     it('should add the js message file to the map of loaders', () => {
       const loaderSetStub = $$.SANDBOX.stub(Messages, 'setLoaderFunction');
-      // @ts-ignore
+      // @ts-expect-error string not assignable to Loader function
       $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
       Messages.importMessageFile('package name', 'myPluginMessages.js');
       expect(loaderSetStub.firstCall.args[0]).to.equal('package name');
@@ -113,7 +113,7 @@ describe('Messages', () => {
     it('should NOT add the message file to the map of loaders when the bundle already exists', () => {
       $$.SANDBOX.stub(Messages, 'isCached').returns(true);
       const loaderSetStub = $$.SANDBOX.stub(Messages, 'setLoaderFunction');
-      // @ts-ignore
+      // @ts-expect-error string not assignable to Loader function
       $$.SANDBOX.stub(Messages, 'generateFileLoaderFunction').returns('loaderFunction');
       Messages.importMessageFile('package name', 'myPluginMessages.json');
       expect(loaderSetStub.called).to.be.false;

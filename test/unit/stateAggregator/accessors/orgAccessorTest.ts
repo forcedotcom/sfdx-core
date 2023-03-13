@@ -14,9 +14,9 @@ const org = new MockTestOrgData(uniqid(), { username });
 
 function expectPartialDeepMatch(actual: AuthFields, expected: AuthFields, ignore = ['refreshToken', 'accessToken']) {
   for (const key of ignore) {
-    // @ts-ignore
+    // @ts-expect-error - element is implicit any
     delete actual?.[key];
-    // @ts-ignore
+    // @ts-expect-error - element is implicit any
     delete expected?.[key];
   }
   expect(actual).to.deep.equal(expected);
@@ -150,7 +150,7 @@ describe('OrgAccessor', () => {
     it('should add the username if does not exist on the object', async () => {
       const stateAggregator = await StateAggregator.getInstance();
       const newOrg = { ...org, instanceUrl };
-      // @ts-ignore
+      // @ts-expect-error - operand must be optional
       delete newOrg['username'];
 
       stateAggregator.orgs.set(username, newOrg);

@@ -77,7 +77,7 @@ describe('KeyChainImpl Tests', () => {
       };
 
       try {
-        // @ts-ignore
+        // @ts-expect-error - no overloaded method matches
         // eslint-disable-next-line @typescript-eslint/await-thenable
         await keyChainImpl.validateProgram.bind(null, `/foo/bar/${$$.uniqid()}`, fsImpl, () => false);
         assert('keyChainImpl.validateProgram() should have thrown an error');
@@ -99,7 +99,7 @@ describe('KeyChainImpl Tests', () => {
         }
       });
       (process.platform !== 'win32' ? it : it.skip)('program access', async () => {
-        // @ts-ignore
+        // @ts-expect-error - invalid type
         $$.SANDBOX.stub(fs, 'statSync').returns(true);
         const access = new KeychainAccess(testImpl, fs);
 
@@ -180,21 +180,21 @@ describe('KeyChainImpl Tests', () => {
     };
 
     const _testForPlatform = function (done: any) {
-      // @ts-ignore
+      // @ts-expect-error - this is any
       expect(this.platformImpl).not.to.be.null;
-      // @ts-ignore
+      // @ts-expect-error - this is any
       expect(this.platformImpl).not.to.be.undefined;
       done();
     };
 
     const _getCommandFunc = function (done: any) {
       const testFunc = function (pgmPath: string, options: any) {
-        // @ts-ignore
+        /// @ts-expect-error - this is any
         expect(pgmPath).to.equal(this.platformImpl.osImpl.getProgram());
         expect(options).to.include(keyChainOptions.service).and.to.include(keyChainOptions.account);
       };
 
-      // @ts-ignore
+      // @ts-expect-error - this is any
       this.platformImpl.osImpl.getCommandFunc(keyChainOptions, testFunc.bind(this));
       done();
     };
@@ -204,7 +204,7 @@ describe('KeyChainImpl Tests', () => {
         expect(err).to.have.property('name', 'PasswordNotFoundError');
       };
 
-      // @ts-ignore
+      // @ts-expect-error - this is any
       this.platformImpl.osImpl.onGetCommandClose(1, 'zuul', 'dana', keyChainOptions, responseFunc.bind(this));
       done();
     };
@@ -214,29 +214,29 @@ describe('KeyChainImpl Tests', () => {
         expect(err).to.have.property('name', 'KeyChainUserCanceledError');
       };
 
-      // @ts-ignore
+      // @ts-expect-error - this is any
       this.platformImpl.osImpl.onGetCommandClose(128, 'zuul', 'dana', null, responseFunc.bind(this));
       done();
     };
 
     const _OnSetFunc = function (done: any) {
       const testFunc = function (pgmPath: any, options: any) {
-        // @ts-ignore
+        // @ts-expect-error - this is any
         expect(pgmPath).to.equal(this.platformImpl.osImpl.getProgram());
         expect(options).to.include(keyChainOptions.password);
         expect(options).to.include(keyChainOptions.service).and.to.include(keyChainOptions.account);
       };
       // passwords for linux are read properly from stdin. Boo Windows and Mac
-      // @ts-ignore
+      // @ts-expect-error - this is any
       if (this.platform !== platforms.LINUX) {
-        // @ts-ignore
+        // @ts-expect-error - this is any
         this.platformImpl.osImpl.setCommandFunc(keyChainOptions, testFunc.bind(this));
       }
       done();
     };
 
     const _OnGetCommandLinuxRetry = async function () {
-      // @ts-ignore
+      // @ts-expect-error - this is any
       const onGetCommandCloseFn = this.platformImpl.osImpl.onGetCommandClose.bind(
         null,
         1,
@@ -269,12 +269,12 @@ describe('KeyChainImpl Tests', () => {
 
     Object.keys(platforms).forEach((platformKey) => {
       if (Object.hasOwnProperty.call(platforms, platformKey)) {
-        // @ts-expect-error
+        // @ts-expect-error - element is any
         const platform = platforms[platformKey];
         // this test is very much tied to various internal keychain impls. generic_unix doesn't rely on a
         // third-party program.
         if (!(platform === platforms.GENERIC_UNIX || platform === platforms.GENERIC_WINDOWS)) {
-          // @ts-expect-error
+          // @ts-expect-error - element is any
           const platformImpl = keyChainImpl[platform];
 
           describe(`${platform} tests`, _tests.bind({ platformImpl, platform }));

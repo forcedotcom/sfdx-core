@@ -21,7 +21,7 @@ describe('SfProject', () => {
 
   beforeEach(async () => {
     projectPath = await $$.localPathRetriever($$.id);
-    // @ts-ignore private method
+    // @ts-expect-error private method
     SfProject.instances.clear();
   });
 
@@ -29,13 +29,13 @@ describe('SfProject', () => {
     it('allows uppercase packaging aliases on write', async () => {
       const json = await SfProjectJson.create();
       await json.write({ packageAliases: { MyName: 'somePackage' } });
-      // @ts-ignore
+      // @ts-expect-error possibly undefined
       expect($$.getConfigStubContents('SfProjectJson').packageAliases['MyName']).to.equal('somePackage');
     });
     it('allows uppercase packaging aliases on read', async () => {
       $$.setConfigStubContents('SfProjectJson', { contents: { packageAliases: { MyName: 'somePackage' } } });
       const json = await SfProjectJson.create();
-      // @ts-ignore
+      // @ts-expect-error possibly undefined
       expect(json.get('packageAliases')['MyName']).to.equal('somePackage');
     });
     it('getPackageDirectories should transform packageDir paths to have path separators that match the OS', async () => {
@@ -140,7 +140,7 @@ describe('SfProject', () => {
 
   describe('resolve', () => {
     it('caches the sfdx-project.json per path', async () => {
-      // @ts-ignore  SfProject.instances is private so override for testing.
+      // @ts-expect-error  SfProject.instances is private so override for testing.
       const instanceSetSpy = $$.SANDBOX.spy(SfProject.instances, 'set');
       const project1 = await SfProject.resolve('foo');
       expect(instanceSetSpy.calledOnce).to.be.true;
@@ -244,7 +244,7 @@ describe('SfProject', () => {
     });
     it('gets global overrides default', async () => {
       const read = async function () {
-        // @ts-ignore
+        // @ts-expect-error this is any
         if (this.isGlobal()) {
           return { sfdcLoginUrl: 'globalUrl' };
         } else {
@@ -258,7 +258,7 @@ describe('SfProject', () => {
     });
     it('gets local overrides global', async () => {
       const read = async function () {
-        // @ts-ignore
+        // @ts-expect-error this is any
         if (this.isGlobal()) {
           return { sfdcLoginUrl: 'globalUrl' };
         } else {
@@ -273,7 +273,7 @@ describe('SfProject', () => {
     it('gets env overrides local and config', async () => {
       process.env.FORCE_SFDC_LOGIN_URL = 'envarUrl';
       const read = async function () {
-        // @ts-ignore
+        // @ts-expect-error this is any
         if (this.isGlobal()) {
           return { sfdcLoginUrl: 'globalUrl' };
         } else {
@@ -307,7 +307,7 @@ describe('SfProject', () => {
     });
     it('gets config org-instance-url sets sfdcLoginUrl when there is none elsewhere', async () => {
       const read = async function () {
-        // @ts-ignore
+        // @ts-expect-error this is any
         if (this.isGlobal()) {
           return { 'org-api-version': 38.0 };
         } else {
@@ -324,7 +324,7 @@ describe('SfProject', () => {
     });
     it('config instanceUrl defers to sfdcLoginUrl in files', async () => {
       const read = async function () {
-        // @ts-ignore
+        // @ts-expect-error this is any
         if (this.isGlobal()) {
           return { 'org-api-version': 38.0, sfdcLoginUrl: 'https://fromfiles.com' };
         } else {
@@ -341,7 +341,7 @@ describe('SfProject', () => {
     });
     it('gets config overrides local', async () => {
       const read = async function () {
-        // @ts-ignore
+        // @ts-expect-error this is any
         if (this.isGlobal()) {
           return { 'org-api-version': 38.0 };
         } else {

@@ -53,7 +53,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       secret = crypto.encrypt(text);
       expect(secret).to.not.equal(text);
@@ -63,7 +63,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       if (!secret) throw new Error('secret is undefined');
       const decrypted = crypto.decrypt(secret);
@@ -74,7 +74,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'true';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       secret = crypto.encrypt(text);
       expect(secret).to.not.equal(text);
@@ -84,7 +84,7 @@ describe('CryptoTest', function () {
       delete process.env.SFDX_DISABLE_ENCRYPTION;
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       secret = crypto.encrypt(text);
       expect(secret).to.not.equal(text);
@@ -94,7 +94,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'true';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       const str = '123456';
       const encrypted = crypto.encrypt(str);
@@ -107,7 +107,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       expect(Crypto.prototype.decrypt.bind(crypto, 'foo')).to.throw(Error).and.have.property('actions');
     });
@@ -116,7 +116,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       expect(Crypto.prototype.decrypt.bind(crypto, ''))
         .to.throw(Error)
@@ -127,9 +127,9 @@ describe('CryptoTest', function () {
       delete process.env.SFDX_DISABLE_ENCRYPTION;
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
-      // @ts-ignore
+      // @ts-expect-error -> null cannot be assigned to string
       secret = crypto.encrypt(null);
       expect(secret).to.equal(undefined);
     });
@@ -155,7 +155,7 @@ describe('CryptoTest', function () {
       sfdxErr.actions[0] = message;
       stubMethod($$.SANDBOX, os, 'platform').returns('darwin');
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       $$.SANDBOX.stub(crypto, 'decrypt').throws(sfdxErr);
       expect(() => crypto.decrypt('abcdefghijklmnopqrstuvwxyz:123456789')).to.throw(
@@ -185,7 +185,7 @@ describe('CryptoTest', function () {
         final: () => {},
       }));
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       // @ts-expect-error: secret is not a string
       expect(() => crypto.decrypt(secret)).to.not.throw(message);

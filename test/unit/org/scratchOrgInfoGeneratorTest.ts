@@ -657,7 +657,7 @@ describe('scratchOrgInfoGenerator', () => {
           hubOrg: await Org.create({}),
           scratchOrgInfoPayload: {
             orgName: 'MyOrgName',
-            // @ts-ignore
+            // @ts-expect-error - cannot assign undefined to string
             connectedAppConsumerKey: undefined,
           },
           nonamespace: false,

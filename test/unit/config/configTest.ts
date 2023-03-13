@@ -76,7 +76,7 @@ describe('Config', () => {
       stubMethod($$.SANDBOX, fs.promises, 'readFile').withArgs(config.getPath()).resolves(configFileContentsString);
 
       // Manipulate config.hasRead to force a read
-      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      // @ts-expect-error -> hasRead is protected. Ignore for testing.
       config.hasRead = false;
 
       const content: ConfigContents = await config.read();
@@ -271,8 +271,8 @@ describe('Config', () => {
     it('calls ConfigFile.read with unknown key and does not throw on crypt', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.readSync.name).callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
+        // @ts-expect-error -> this is any
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        // @ts-ignore
         this.setContentsFromObject({ unknown: 'unknown config key and value' });
       });
 

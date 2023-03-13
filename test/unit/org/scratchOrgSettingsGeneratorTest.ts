@@ -99,7 +99,7 @@ function createStubs() {
   adminTestData = new MockTestOrgData();
   addToZipStub = sandbox
     .stub(ZipWriter.prototype, 'addToStore')
-    // @ts-ignore
+    // @ts-expect-error - fake function signature mismatch
     .callsFake((contents: string, filepath: string): Promise<void> => {
       expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
       expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -162,7 +162,7 @@ describe('scratchOrgSettingsGenerator', () => {
     beforeEach(() => {
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
-        // @ts-ignore
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -254,7 +254,7 @@ describe('scratchOrgSettingsGenerator', () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
-        // @ts-ignore
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -316,7 +316,7 @@ describe('scratchOrgSettingsGenerator', () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
-        // @ts-ignore
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -378,7 +378,7 @@ describe('scratchOrgSettingsGenerator', () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
-        // @ts-ignore
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -483,7 +483,7 @@ describe('scratchOrgSettingsGenerator', () => {
       adminTestData = new MockTestOrgData();
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
-        // @ts-ignore
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);
@@ -525,7 +525,7 @@ describe('scratchOrgSettingsGenerator', () => {
     beforeEach(() => {
       addToZipStub = sandbox
         .stub(ZipWriter.prototype, 'addToStore')
-        // @ts-ignore
+        // @ts-expect-error - fake function signature mismatch
         .callsFake((contents: string, filepath: string): Promise<void> => {
           expect(contents).to.be.a('string').and.to.have.length.greaterThan(0);
           expect(filepath).to.be.a('string').and.to.have.length.greaterThan(0);

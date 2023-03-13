@@ -143,7 +143,7 @@ describe('AuthInfo', () => {
       stubUserRequest();
       authInfo = await AuthInfo.create({ oauth2Options });
 
-      // @ts-ignore
+      // @ts-expect-error - undefined un-assignable to string
       decryptedRefreshToken = authInfo.getFields(true).refreshToken;
     });
 
@@ -550,9 +550,9 @@ describe('AuthInfo', () => {
 
         // Verify authInfo.fields are encrypted
         const crypto = await Crypto.create();
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
 
         // Verify expected methods are called with expected args
@@ -604,9 +604,9 @@ describe('AuthInfo', () => {
 
         // Verify authInfo.fields are encrypted
         const crypto = await Crypto.create();
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
 
         // Verify expected methods are called with expected args
@@ -670,9 +670,9 @@ describe('AuthInfo', () => {
 
         // Verify authInfo.fields are encrypted
         const crypto = await Crypto.create();
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
 
         // Verify expected methods are called with expected args
@@ -726,11 +726,11 @@ describe('AuthInfo', () => {
 
         // Verify authInfo.fields are encrypted
         const crypto = await Crypto.create();
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(refreshTokenConfig.refreshToken);
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().clientSecret)).equals(refreshTokenConfig.clientSecret);
 
         // Verify expected methods are called with expected args
@@ -813,9 +813,9 @@ describe('AuthInfo', () => {
 
         // Verify authInfo.fields are encrypted
         const crypto = await Crypto.create();
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().accessToken)).equals(authResponse.access_token);
-        // @ts-expect-error
+        // @ts-expect-error - undefined un-assignable to string
         expect(crypto.decrypt(authInfo.getFields().refreshToken)).equals(authResponse.refresh_token);
 
         // Verify expected methods are called with expected args
@@ -1019,13 +1019,13 @@ describe('AuthInfo', () => {
       const decryptedActualFields = $$.stubs.configWrite.lastCall.thisValue.toObject() as AuthFields & {
         timestamp: string;
       };
-      // @ts-ignore
+      // @ts-expect-error - undefined un-assignable to string
       decryptedActualFields.accessToken = crypto.decrypt(decryptedActualFields.accessToken);
-      // @ts-ignore
+      // @ts-expect-error - undefined un-assignable to string
       decryptedActualFields.refreshToken = crypto.decrypt(decryptedActualFields.refreshToken);
-      // @ts-ignore
+      // @ts-expect-error - undefined un-assignable to string
       decryptedActualFields.clientSecret = crypto.decrypt(decryptedActualFields.clientSecret);
-      // @ts-ignore
+      // @ts-expect-error - operand must be optional
       delete decryptedActualFields.timestamp;
       const expectedFields = {
         accessToken: changedData.accessToken,
@@ -1087,7 +1087,7 @@ describe('AuthInfo', () => {
 
       context.initAuthOptions.resolves();
       context.save.resolves();
-      // @ts-ignore
+      // @ts-expect-error - null not valid
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
 
       expect(context.initAuthOptions.called, 'Should have called AuthInfo.initAuthOptions() during refreshFn()').to.be
@@ -1820,7 +1820,7 @@ describe('AuthInfo', () => {
     it('should not update org - no fields.orgId', async () => {
       adminTestData.makeDevHub();
       user1.isScratchOrg = true;
-      // @ts-ignore
+      // @ts-expect-error - operand must be optional
       delete user1.orgId;
       user1.devHubUsername = adminTestData.username;
 

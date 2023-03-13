@@ -43,13 +43,13 @@ describe('lifecycleEvents', () => {
   });
 
   it('getInstance is on the global object to protect against npm version dependency mismatch', async () => {
-    // @ts-ignore don't declare the type in the test
+    // @ts-expect-error don't declare the type in the test
     chai.assert(Lifecycle.getInstance() === global.salesforceCoreLifecycle);
   });
 
   it('handles the warnings and telemetry events', async () => {
     Lifecycle.getInstance().onWarning(async (result) => {
-      // @ts-expect-error
+      // @ts-expect-error: type mismatch
       fake.bar('test1', result);
     });
     Lifecycle.getInstance().onTelemetry(async (result) => {

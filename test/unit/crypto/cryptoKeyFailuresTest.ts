@@ -66,12 +66,12 @@ if (os.platform() === 'darwin') {
 
       // Setup stubs so that the spawn process to the encryption program returns
       // a fake to cause errors.
-      // @ts-ignore
+      // @ts-expect-error - type mismatch
       $$.SANDBOX.stub(_crypto, 'randomBytes').returns(buf);
       const spawnStub = $$.SANDBOX.stub(childProcess, 'spawn');
-      // @ts-ignore
+      // @ts-expect-error - number of arguments
       spawnStub.withArgs(programArg, getOptionsArg).returns(spawnReturnFake);
-      // @ts-ignore
+      // @ts-expect-error - number of arguments
       spawnStub.withArgs(programArg, setOptionsArg).returns(spawnReturnFake);
 
       try {
@@ -98,7 +98,7 @@ if (os.platform() === 'darwin') {
 
       // Setup stubs so that the spawn process to the encryption program returns
       // a fake to cause errors.
-      // @ts-ignore
+      // @ts-expect-error - number of arguments
       $$.SANDBOX.stub(childProcess, 'spawn').withArgs(programArg, optionsArg).returns(spawnReturnFake);
 
       try {
@@ -119,7 +119,7 @@ if (os.platform() === 'darwin') {
 
     it('should throw when the OS is not supported', async () => {
       const unsupportedOS = 'LEO';
-      // @ts-ignore
+      // @ts-expect-error - unsupported type
       $$.SANDBOX.stub(os, 'platform').returns(unsupportedOS);
 
       try {
