@@ -195,7 +195,7 @@ describe('util/sfdcUrl', () => {
         await shouldThrow(url.checkLightningDomain());
       } catch (e) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(e.name).to.equal('Error');
+        expect((e as Error).name).to.equal('Error');
       }
     });
   });
@@ -278,7 +278,7 @@ describe('util/sfdcUrl', () => {
         await shouldThrow(url.lookup());
       } catch (e) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(e.name).to.equal('Error');
+        expect((e as Error).name).to.equal('Error');
       }
     });
   });

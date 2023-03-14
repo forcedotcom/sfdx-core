@@ -33,6 +33,7 @@ import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { StateAggregator } from '../../../src/stateAggregator';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { Messages } from '../../../src/messages';
+import { SfError } from '../../../src/sfError';
 
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -233,7 +234,7 @@ describe('Org Tests', () => {
           try {
             await shouldThrow(org.deleteFrom(dev));
           } catch (e) {
-            expect(e.message).to.contain('The Dev Hub org cannot be deleted.');
+            expect((e as Error).message).to.contain('The Dev Hub org cannot be deleted.');
           }
         });
 
@@ -322,7 +323,7 @@ describe('Org Tests', () => {
           try {
             await shouldThrow(org.deleteFrom(dev));
           } catch (err) {
-            expect(err.message).to.contain(
+            expect((err as Error).message).to.contain(
               'You do not have the appropriate permissions to delete a scratch org. Please contact your Salesforce admin.'
             );
           }
@@ -342,7 +343,7 @@ describe('Org Tests', () => {
           try {
             await shouldThrow(org.deleteFrom(dev));
           } catch (err) {
-            expect(err.message).to.contain('Attempting to delete an expired or deleted org');
+            expect((err as Error).message).to.contain('Attempting to delete an expired or deleted org');
           }
         });
       });
@@ -437,11 +438,11 @@ describe('Org Tests', () => {
           await shouldThrow(prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) }));
         } catch (e) {
           expect(createStub.calledOnce).to.be.true;
-          expect(e.message).to.include('The sandbox org creation failed with a result of');
-          expect(e.message).to.include(
+          expect((e as Error).message).to.include('The sandbox org creation failed with a result of');
+          expect((e as Error).message).to.include(
             'duplicate value found: SandboxName duplicates value on record with id: 0GQ4p000000U6rv'
           );
-          expect(e.exitCode).to.equal(1);
+          expect((e as SfError).exitCode).to.equal(1);
         }
       });
 
@@ -477,7 +478,7 @@ describe('Org Tests', () => {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
         } as SandboxProcessObject;
-        // @ts-ignore
+        // @ts-expect-error - type not assignable
         stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws({
           name: 'INVALID_STATUS',
         });
@@ -600,9 +601,11 @@ describe('Org Tests', () => {
     });
 
     it('should remove config setting', async () => {
-      stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function () {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-        return this.path?.endsWith(`${testData.orgId}.json`);
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function (): Promise<boolean> {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        // @ts-expect-error this is any
+        const result: boolean = this.path?.endsWith(`${testData.orgId}.json`) as boolean;
+        return result;
       });
 
       stubMethod($$.SANDBOX, fs.promises, 'unlink').resolves();
@@ -630,9 +633,11 @@ describe('Org Tests', () => {
     });
 
     it('should remove the alias', async () => {
-      stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function () {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-        return this.path?.endsWith(`${testData.orgId}.json`);
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function (): Promise<boolean> {
+        // @ts-expect-error - this is any
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        const result: boolean = this.path?.endsWith(`${testData.orgId}.json`) as boolean;
+        return result;
       });
 
       stubMethod($$.SANDBOX, fs.promises, 'unlink').resolves();
@@ -764,6 +769,7 @@ describe('Org Tests', () => {
       const org1Username = orgs[1].getUsername();
 
       const stateAggregator = await StateAggregator.getInstance();
+      // @ts-expect-error: user is nullable
       stateAggregator.aliases.set('foo', org1Username);
       const user = stateAggregator.aliases.getUsername('foo');
       expect(user).eq(org1Username);
@@ -773,6 +779,7 @@ describe('Org Tests', () => {
       await configAggregator.reload();
       expect(configAggregator.getInfo(OrgConfigProperties.TARGET_ORG)).has.property('value', undefined);
 
+      // @ts-expect-error: user is nullable
       const alias = stateAggregator.aliases.get(user);
       expect(alias).eq(null);
     });
@@ -859,7 +866,7 @@ describe('Org Tests', () => {
       const org = await createOrgViaAuthInfo();
 
       const devHub: Optional<Org> = await org.getDevHubOrg();
-      expect(devHub.getUsername()).eq(devHubUser);
+      expect(devHub?.getUsername()).eq(devHubUser);
     });
 
     it('org is devhub', async () => {
@@ -867,7 +874,7 @@ describe('Org Tests', () => {
       const org = await createOrgViaAuthInfo();
 
       const devHub: Optional<Org> | undefined = await org.getDevHubOrg();
-      expect(devHub.getUsername()).eq(testData.username);
+      expect(devHub?.getUsername()).eq(testData.username);
     });
   });
 
@@ -1042,7 +1049,9 @@ describe('Org Tests', () => {
       try {
         await shouldThrow(prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) }));
       } catch (e) {
-        expect(e.message).to.be.equal(messages.getMessage('SandboxProcessNotFoundBySandboxName', [sandboxNameIn]));
+        expect((e as Error).message).to.be.equal(
+          messages.getMessage('SandboxProcessNotFoundBySandboxName', [sandboxNameIn])
+        );
         expect(queryStub.calledOnce).to.be.true;
         expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
         expect(pollStatusAndAuthStub.called).to.be.false;
@@ -1057,7 +1066,9 @@ describe('Org Tests', () => {
       try {
         await shouldThrow(prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) }));
       } catch (e) {
-        expect(e.message).to.be.equal(messages.getMessage('MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn]));
+        expect((e as Error).message).to.be.equal(
+          messages.getMessage('MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn])
+        );
         expect(queryStub.calledOnce).to.be.true;
         expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
         expect(pollStatusAndAuthStub.called).to.be.false;

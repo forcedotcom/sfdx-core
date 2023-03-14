@@ -40,7 +40,7 @@ describe('CryptoTest', function () {
 
   afterEach(() => {
     crypto.close();
-    process.env.SFDX_DISABLE_ENCRYPTION = disableEncryptionEnvVar || '';
+    process.env.SFDX_DISABLE_ENCRYPTION = disableEncryptionEnvVar ?? '';
   });
 
   if (process.platform === 'darwin') {
@@ -53,7 +53,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       secret = crypto.encrypt(text);
       expect(secret).to.not.equal(text);
@@ -63,8 +63,9 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
+      if (!secret) throw new Error('secret is undefined');
       const decrypted = crypto.decrypt(secret);
       expect(decrypted).to.equal(text);
     });
@@ -73,7 +74,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'true';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       secret = crypto.encrypt(text);
       expect(secret).to.not.equal(text);
@@ -83,7 +84,7 @@ describe('CryptoTest', function () {
       delete process.env.SFDX_DISABLE_ENCRYPTION;
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       secret = crypto.encrypt(text);
       expect(secret).to.not.equal(text);
@@ -93,7 +94,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'true';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       const str = '123456';
       const encrypted = crypto.encrypt(str);
@@ -106,7 +107,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       expect(Crypto.prototype.decrypt.bind(crypto, 'foo')).to.throw(Error).and.have.property('actions');
     });
@@ -115,7 +116,7 @@ describe('CryptoTest', function () {
       process.env.SFDX_DISABLE_ENCRYPTION = 'false';
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       expect(Crypto.prototype.decrypt.bind(crypto, ''))
         .to.throw(Error)
@@ -126,9 +127,9 @@ describe('CryptoTest', function () {
       delete process.env.SFDX_DISABLE_ENCRYPTION;
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
-      // @ts-ignore
+      // @ts-expect-error -> null cannot be assigned to string
       secret = crypto.encrypt(null);
       expect(secret).to.equal(undefined);
     });
@@ -137,8 +138,9 @@ describe('CryptoTest', function () {
       delete process.env.SFDX_DISABLE_ENCRYPTION;
 
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error: access protected method
       await crypto.init();
+      // @ts-expect-error: falsy value
       secret = crypto.encrypt(undefined);
       expect(secret).to.equal(undefined);
     });
@@ -153,7 +155,7 @@ describe('CryptoTest', function () {
       sfdxErr.actions[0] = message;
       stubMethod($$.SANDBOX, os, 'platform').returns('darwin');
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
       $$.SANDBOX.stub(crypto, 'decrypt').throws(sfdxErr);
       expect(() => crypto.decrypt('abcdefghijklmnopqrstuvwxyz:123456789')).to.throw(
@@ -162,8 +164,9 @@ describe('CryptoTest', function () {
       try {
         shouldThrowSync(() => crypto.decrypt('abcdefghijklmnopqrstuvwxyz:123456789'));
       } catch (error) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect(error.actions[0]).to.equal(message);
+        const sfError = error as SfError;
+        if (!sfError.actions) throw new Error('sfError.actions is undefined');
+        expect(sfError.actions[0]).to.equal(message);
       }
     });
 
@@ -182,8 +185,9 @@ describe('CryptoTest', function () {
         final: () => {},
       }));
       crypto = new Crypto();
-      // @ts-ignore
+      // @ts-expect-error -> init is protected
       await crypto.init();
+      // @ts-expect-error: secret is not a string
       expect(() => crypto.decrypt(secret)).to.not.throw(message);
       delete process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN;
     });

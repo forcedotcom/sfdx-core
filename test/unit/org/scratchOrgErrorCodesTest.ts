@@ -35,9 +35,13 @@ describe('getHumanErrorMessage', () => {
       expect(err).to.be.an.instanceof(SfError);
       expect(err.message).to.include('couldn’t find a');
       expect(err.message).to.not.include('%s');
-      expect(err.actions[0]).to.include('information on error code');
-      expect(err.actions[0]).to.include(ErrorCode);
-      expect(err.actions[0]).to.not.include('%s');
+      if (err.actions) {
+        expect(err.actions[0]).to.include('information on error code');
+        expect(err.actions[0]).to.include(ErrorCode);
+        expect(err.actions[0]).to.not.include('%s');
+      } else {
+        expect.fail('should have actions');
+      }
     }
   });
 
@@ -52,9 +56,13 @@ describe('getHumanErrorMessage', () => {
       expect(err).to.be.an.instanceof(SfError);
       expect(err.message).to.include('create scratch org');
       expect(err.message).to.not.include('%s');
-      expect(err.actions[0]).to.include('information on error code');
-      expect(err.actions[0]).to.include(ErrorCode);
-      expect(err.actions[0]).to.not.include('%s');
+      if (err.actions) {
+        expect(err.actions[0]).to.include('information on error code');
+        expect(err.actions[0]).to.include(ErrorCode);
+        expect(err.actions[0]).to.not.include('%s');
+      } else {
+        expect.fail('should have actions');
+      }
     }
   });
 
@@ -88,6 +96,7 @@ describe('getHumanErrorMessage', () => {
 
   it('test get default message for undefined error code.', async () => {
     try {
+      // @ts-expect-error: testing for undefined ErrorCode
       await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode: null }, testUsername));
     } catch (err) {
       if (!(err instanceof SfError)) {
@@ -102,6 +111,7 @@ describe('getHumanErrorMessage', () => {
 
   it('Throws generic error for undefined status', async () => {
     try {
+      // @ts-expect-error: testing undefined status
       await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo, Status: undefined }, testUsername));
     } catch (err) {
       if (!(err instanceof SfError)) {

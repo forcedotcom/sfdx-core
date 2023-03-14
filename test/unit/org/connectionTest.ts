@@ -54,7 +54,7 @@ describe('Connection', () => {
   it('throws error when no valid API version', async () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
-    // @ts-ignore (resetting private property)
+    // @ts-expect-error (resetting private property)
     conn.maxApiVersion = undefined;
 
     $$.SANDBOX.restore();
@@ -88,7 +88,7 @@ describe('Connection', () => {
     expect(get(conn, 'options.authInfo')).to.exist;
     expect(conn.loginUrl).to.equal(testConnectionOptions.loginUrl);
     // eslint-disable-next-line no-underscore-dangle
-    expect(conn._callOptions.client).to.contain('sfdx toolbelt:');
+    expect(conn._callOptions?.client).to.contain('sfdx toolbelt:');
   });
 
   it('create() should create a connection with the latest API version', async () => {
@@ -130,14 +130,14 @@ describe('Connection', () => {
     // instance var so that future calls to isResolvable() will not hit the server.
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
 
-    // @ts-ignore (accessing private property)
+    // @ts-expect-error (accessing private property)
     expect(conn.hasResolved).to.be.true;
     expect(myDomainResolverStub.calledOnce).to.be.true;
 
     const isResolvable = await conn.isResolvable();
     expect(isResolvable).to.be.true;
     expect(myDomainResolverStub.calledOnce).to.be.true;
-    // @ts-ignore (accessing private property)
+    // @ts-expect-error (accessing private property)
     expect(conn.hasResolved).to.be.true;
   });
 
@@ -146,7 +146,7 @@ describe('Connection', () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
 
     // This verifies a request was sent during the create
-    // @ts-ignore (accessing private property)
+    // @ts-expect-error (accessing private property)
     expect(conn.maxApiVersion).to.equal('50.0');
     expect(isResolvableStub.calledOnce).to.be.true;
     expect(requestMock.calledOnce).to.be.true;
@@ -158,7 +158,7 @@ describe('Connection', () => {
     expect(requestMock.calledOnce).to.be.true;
 
     // This verifies the cache was used
-    // @ts-ignore (accessing private property)
+    // @ts-expect-error (accessing private property)
     conn.maxApiVersion = undefined;
     testAuthInfo.getFields.returns({
       instanceApiVersionLastRetrieved: new Date(Date.now() - Duration.hours(10).milliseconds).toLocaleString(),
@@ -168,7 +168,7 @@ describe('Connection', () => {
     expect(apiVersion).to.equal('51.0');
     expect(isResolvableStub.calledOnce).to.be.true;
     expect(requestMock.calledOnce).to.be.true;
-    // @ts-ignore (accessing private property)
+    // @ts-expect-error (accessing private property)
     expect(conn.maxApiVersion).to.equal('51.0');
   });
 

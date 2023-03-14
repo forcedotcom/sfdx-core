@@ -78,7 +78,7 @@ describe('TokenAccessor', () => {
       const newToken = { ...token, instanceUrl };
       stateAggregator.tokens.update(username, newToken);
       const result = stateAggregator.tokens.get(username);
-      expect(result.instanceUrl).to.deep.equal(instanceUrl);
+      expect(result?.instanceUrl).to.deep.equal(instanceUrl);
     });
   });
 

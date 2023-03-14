@@ -195,7 +195,7 @@ describe('Config', () => {
         config.unlinkSync();
         assert(false, 'should throw');
       } catch (e) {
-        expect(e.name).to.equal('TargetFileNotFound');
+        expect((e as Error).name).to.equal('TargetFileNotFound');
       }
     });
   });
@@ -250,7 +250,7 @@ describe('Config', () => {
       config = await TestConfig.create(TestConfig.getOptions('test', false, true));
       expect(readFileStub.calledOnce).to.be.true;
 
-      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      // @ts-expect-error -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal(testFileContentsJson);
 
@@ -268,7 +268,7 @@ describe('Config', () => {
       config = await TestConfig.create(TestConfig.getOptions('test', false, true));
       expect(readFileStub.calledOnce).to.be.true;
 
-      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      // @ts-expect-error -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal({});
     });
@@ -295,7 +295,7 @@ describe('Config', () => {
     it('sets hasRead=false by default', async () => {
       const configOptions = TestConfig.getOptions('test', false, true);
       const testConfig = new TestConfig(configOptions);
-      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      // @ts-expect-error -> hasRead is protected. Ignore for testing.
       expect(testConfig.hasRead).to.be.false;
     });
 
@@ -305,7 +305,7 @@ describe('Config', () => {
       config = await TestConfig.create(TestConfig.getOptions('test', false, true));
       expect(readFileStub.calledOnce).to.be.true;
 
-      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      // @ts-expect-error -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal(testFileContentsJson);
 
@@ -332,11 +332,11 @@ describe('Config', () => {
       config = new TestConfig(TestConfig.getOptions('test', false, true));
       expect(readFileStub.calledOnce).to.be.false;
 
-      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      // @ts-expect-error -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.false;
 
       config.readSync(false, false);
-      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      // @ts-expect-error -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal(testFileContentsJson);
 
@@ -355,7 +355,7 @@ describe('Config', () => {
       config.readSync();
       expect(readFileStub.calledOnce).to.be.true;
 
-      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      // @ts-expect-error -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
       expect(config.getContents()).to.deep.equal({});
     });
@@ -388,7 +388,7 @@ describe('Config', () => {
       config.readSync();
 
       // -> hasRead is protected. Ignore for testing.
-      // @ts-ignore
+      // @ts-expect-error -> hasRead is protected. Ignore for testing.
       expect(config.hasRead).to.be.true;
 
       // Read again.  Stub should now be called twice.

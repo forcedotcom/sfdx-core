@@ -10,10 +10,11 @@ import * as childProcess from 'child_process';
 import * as _crypto from 'crypto';
 import * as os from 'os';
 import { AnyJson } from '@salesforce/ts-types';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
 import { TestContext, shouldThrow } from '../../../src/testSetup';
 import { Cache } from '../../../src/util/cache';
+import { SfError } from '../../../src/sfError';
 
 const spawnReturnFake = {
   sdtoutData: 'stdout test data',
@@ -45,7 +46,7 @@ if (os.platform() === 'darwin') {
     });
 
     after(() => {
-      process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL || '';
+      process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL ?? '';
       Cache.enable();
     });
 
@@ -65,22 +66,25 @@ if (os.platform() === 'darwin') {
 
       // Setup stubs so that the spawn process to the encryption program returns
       // a fake to cause errors.
-      // @ts-ignore
+      // @ts-expect-error - type mismatch
       $$.SANDBOX.stub(_crypto, 'randomBytes').returns(buf);
       const spawnStub = $$.SANDBOX.stub(childProcess, 'spawn');
-      // @ts-ignore
+      // @ts-expect-error - number of arguments
       spawnStub.withArgs(programArg, getOptionsArg).returns(spawnReturnFake);
-      // @ts-ignore
+      // @ts-expect-error - number of arguments
       spawnStub.withArgs(programArg, setOptionsArg).returns(spawnReturnFake);
 
       try {
         await shouldThrow(Crypto.create(), 'Should have thrown an SetCredentialError for Crypto.init()');
       } catch (err) {
+        assert(err instanceof SfError, 'Should be an SfError');
         expect(err.name).to.equal('SetCredentialError');
         expect(err.message).to.equal(
           `Command failed with response:\n${spawnReturnFake.sdtoutData} - ${spawnReturnFake.sdterrData}`
         );
-        expect(err.actions[0]).to.equal(
+        const actions = err.actions;
+        if (!actions) expect.fail('No actions found');
+        expect(actions[0]).to.equal(
           `Determine why this command failed to set an encryption key for user ${currentUser}: [${programArg} ${setOptionsArg.join(
             ' '
           )}].`
@@ -94,7 +98,7 @@ if (os.platform() === 'darwin') {
 
       // Setup stubs so that the spawn process to the encryption program returns
       // a fake to cause errors.
-      // @ts-ignore
+      // @ts-expect-error - number of arguments
       $$.SANDBOX.stub(childProcess, 'spawn').withArgs(programArg, optionsArg).returns(spawnReturnFake);
 
       try {
@@ -103,9 +107,12 @@ if (os.platform() === 'darwin') {
           'Should have thrown an PasswordNotFoundError for Crypto.init()'
         );
       } catch (err) {
+        assert(err instanceof SfError);
         expect(err.name).to.equal('PasswordNotFoundError');
         expect(err.message).to.equal('Could not find password.\nstdout test data - stdout test data');
-        expect(err.actions[0]).to.equal(
+        const actions = err.actions;
+        if (!actions) expect.fail('No actions found');
+        expect(actions[0]).to.equal(
           `Ensure a valid password is returned with the following command: [${programArg} ${optionsArg.join(' ')}]`
         );
       }
@@ -113,12 +120,13 @@ if (os.platform() === 'darwin') {
 
     it('should throw when the OS is not supported', async () => {
       const unsupportedOS = 'LEO';
-      // @ts-ignore
+      // @ts-expect-error - unsupported type
       $$.SANDBOX.stub(os, 'platform').returns(unsupportedOS);
 
       try {
         await shouldThrow(Crypto.create(), 'Should have thrown an UnsupportedOperatingSystemError for Crypto.init()');
       } catch (err) {
+        assert(err instanceof Error);
         expect(err.name).to.equal('UnsupportedOperatingSystemError');
         expect(err.message).to.equal(`Unsupported Operating System: ${unsupportedOS}`);
       }

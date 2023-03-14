@@ -23,7 +23,9 @@ describe('AuthRemover', () => {
 
   function expectPartialDeepMatch(actual: AuthFields, expected: AuthFields, ignore = ['refreshToken', 'accessToken']) {
     for (const key of ignore) {
+      // @ts-expect-error - type is any
       delete actual[key];
+      // @ts-expect-error - type is any
       delete expected[key];
     }
     expect(actual).to.deep.equal(expected);
@@ -36,7 +38,7 @@ describe('AuthRemover', () => {
   describe('resolveUsername', () => {
     it('should return username if no alias exists', async () => {
       const remover = await AuthRemover.create();
-      // @ts-ignore because private method
+      // @ts-expect-error because private method
       const resolved = await remover.resolveUsername(username);
       expect(resolved).to.equal(username);
     });
@@ -46,7 +48,7 @@ describe('AuthRemover', () => {
       $$.stubAliases({ [alias]: username });
       const remover = await AuthRemover.create();
 
-      // @ts-ignore because private method
+      // @ts-expect-error because private method
       const resolved = await remover.resolveUsername(alias);
       expect(resolved).to.equal(username);
     });
@@ -117,7 +119,7 @@ describe('AuthRemover', () => {
       });
 
       const remover = await AuthRemover.create();
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       await remover.unsetConfigValues(username);
       // expect 4 calls to unset:
       // 1. unset target-org locally
@@ -143,7 +145,7 @@ describe('AuthRemover', () => {
       $$.stubAliases({ [alias1]: username, [alias2]: username });
 
       const remover = await AuthRemover.create();
-      // @ts-ignore because private member
+      // @ts-expect-error because private member
       await remover.unsetAliases(username);
       // expect 2 calls: one for each alias
       expect(aliasesSpy.callCount).to.equal(2);

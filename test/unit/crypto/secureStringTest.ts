@@ -27,6 +27,7 @@ describe('secureBuffer', () => {
 
   it('falsy value', () => {
     const sString: SecureBuffer<string> = new SecureBuffer();
+    // @ts-expect-error: falsy value
     sString.consume(null);
     const value = sString.value((buffer: Buffer) => {
       expect(buffer.toString('utf8')).to.be.equal('');
@@ -38,6 +39,7 @@ describe('secureBuffer', () => {
   it('falsy callback', () => {
     const sString: SecureBuffer<string> = new SecureBuffer();
     sString.consume(secretTextBuffer);
+    // @ts-expect-error: falsy callback
     sString.value(null);
   });
 

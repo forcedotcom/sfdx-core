@@ -76,7 +76,7 @@ describe('Config', () => {
       stubMethod($$.SANDBOX, fs.promises, 'readFile').withArgs(config.getPath()).resolves(configFileContentsString);
 
       // Manipulate config.hasRead to force a read
-      // @ts-ignore -> hasRead is protected. Ignore for testing.
+      // @ts-expect-error -> hasRead is protected. Ignore for testing.
       config.hasRead = false;
 
       const content: ConfigContents = await config.read();
@@ -271,6 +271,7 @@ describe('Config', () => {
     it('calls ConfigFile.read with unknown key and does not throw on crypt', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.readSync.name).callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
+        // @ts-expect-error -> this is any
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         this.setContentsFromObject({ unknown: 'unknown config key and value' });
       });
@@ -281,7 +282,7 @@ describe('Config', () => {
   });
 
   describe('allowed properties', () => {
-    let originalAllowedProperties;
+    let originalAllowedProperties: ConfigPropertyMeta[];
 
     beforeEach(() => {
       originalAllowedProperties = (Config as any).allowedProperties;
@@ -315,9 +316,9 @@ describe('Config', () => {
       Config.addAllowedProperties(configMetas);
       const addedConfigMeta = Config.getAllowedProperties().find((configMeta) => configMeta.key === 'hello');
 
-      expect(addedConfigMeta.key).to.equal('hello');
-      expect(addedConfigMeta.hidden).to.equal(false);
-      expect(addedConfigMeta.encrypted).to.equal(false);
+      expect(addedConfigMeta?.key).to.equal('hello');
+      expect(addedConfigMeta?.hidden).to.equal(false);
+      expect(addedConfigMeta?.encrypted).to.equal(false);
     });
   });
 });

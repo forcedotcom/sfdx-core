@@ -42,7 +42,7 @@ describe('checkLightningDomain', () => {
       await shouldThrow(checkLightningDomain(url));
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      expect(e.name).to.equal('Error');
+      expect((e as Error).name).to.equal('Error');
     }
   });
 });

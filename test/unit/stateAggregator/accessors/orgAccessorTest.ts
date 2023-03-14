@@ -14,7 +14,9 @@ const org = new MockTestOrgData(uniqid(), { username });
 
 function expectPartialDeepMatch(actual: AuthFields, expected: AuthFields, ignore = ['refreshToken', 'accessToken']) {
   for (const key of ignore) {
+    // @ts-expect-error - element is implicit any
     delete actual?.[key];
+    // @ts-expect-error - element is implicit any
     delete expected?.[key];
   }
   expect(actual).to.deep.equal(expected);
@@ -50,7 +52,11 @@ describe('OrgAccessor', () => {
     it('should return org that corresponds to a username', async () => {
       const stateAggregator = await StateAggregator.getInstance();
       const result = await stateAggregator.orgs.read(username);
-      expectPartialDeepMatch(result, await org.getConfig());
+      if (result) {
+        expectPartialDeepMatch(result, await org.getConfig());
+      } else {
+        throw new Error('No org returned');
+      }
     });
   });
 
@@ -80,7 +86,7 @@ describe('OrgAccessor', () => {
           shouldThrowSync(() => stateAggregator.orgs.get(badUsername, false, true));
         } catch (e) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          expect(e.name).to.equal('NamedOrgNotFoundError');
+          expect((e as Error).name).to.equal('NamedOrgNotFoundError');
         }
       });
     });
@@ -125,7 +131,7 @@ describe('OrgAccessor', () => {
       const stateAggregator = await StateAggregator.getInstance();
       const newUsername = 'foobar@baz.com';
       const newOrg = { ...(await new MockTestOrgData().getConfig()), username: null };
-      stateAggregator.orgs.set(newUsername, newOrg);
+      stateAggregator.orgs.set(newUsername, newOrg as unknown as AuthFields);
       const result = stateAggregator.orgs.get(newUsername);
       expect(result.username).to.deep.equal(newUsername);
     });
@@ -144,7 +150,8 @@ describe('OrgAccessor', () => {
     it('should add the username if does not exist on the object', async () => {
       const stateAggregator = await StateAggregator.getInstance();
       const newOrg = { ...org, instanceUrl };
-      delete newOrg.username;
+      // @ts-expect-error - operand must be optional
+      delete newOrg['username'];
 
       stateAggregator.orgs.set(username, newOrg);
       const result = stateAggregator.orgs.get(username);

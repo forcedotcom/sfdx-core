@@ -107,12 +107,14 @@ describe('ZipWriter write to file and throws', () => {
     readStreamStub = sinon.createStubInstance(ReadableFileStream);
     createWriteStreamStub = sandbox.stub(fs, 'createWriteStream').withArgs(rootDestination).returns(writeStreamStub);
     createReadStreamStub = sandbox.stub(fs, 'createReadStream').withArgs(rootDestination).returns(readStreamStub);
+    // @ts-expect-error - fake function signature not quite complete
     readStreamStub.on.callsFake((event: string, listener: (...args: any[]) => void): ReadableFileStream => {
       if (event === 'data') {
         setImmediate(() => listener(Buffer.from(bufferString, 'utf8')));
       }
       return readStreamStub;
     });
+    // @ts-expect-error - fake function signature not quite complete
     readStreamStub.once.callsFake((event: string, listener: (...args: any[]) => void): ReadableFileStream => {
       if (event === 'end') {
         setImmediate(() => listener());
@@ -154,12 +156,14 @@ describe('ZipWriter write to file', () => {
     readStreamStub = sinon.createStubInstance(ReadableFileStream);
     createWriteStreamStub = sandbox.stub(fs, 'createWriteStream').withArgs(rootDestination).returns(writeStreamStub);
     createReadStreamStub = sandbox.stub(fs, 'createReadStream').withArgs(rootDestination).returns(readStreamStub);
+    // @ts-expect-error - fake function signature not quite complete
     readStreamStub.on.callsFake((event: string, listener: (...args: any[]) => void): ReadableFileStream => {
       if (event === 'data') {
         setImmediate(() => listener(Buffer.from(bufferString, 'utf8')));
       }
       return readStreamStub;
     });
+    // @ts-expect-error - fake function signature not quite complete
     readStreamStub.once.callsFake((event: string, listener: (...args: any[]) => void): ReadableFileStream => {
       if (event === 'error') {
         setImmediate(() => listener(new Error('FileReadError')));
